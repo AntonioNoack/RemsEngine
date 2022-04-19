@@ -25,7 +25,7 @@ object EditorState {
     var isGaming = false
 
     var prefabSource: FileReference = InvalidRef
-    val prefab get() = PrefabCache.getPrefab(prefabSource)
+    val prefab get() = PrefabCache[prefabSource]
 
     // todo box selecting with shift
 

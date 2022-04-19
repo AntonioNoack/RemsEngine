@@ -12,6 +12,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.maxOutlineColors
 import me.anno.gpu.texture.*
+import me.anno.utils.Color.toARGB
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.*
 import org.lwjgl.BufferUtils
@@ -106,6 +107,11 @@ object GFXx3D {
     fun draw3DText(
         offset: Vector3fc,
         stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4fc
+    ) = draw3DText(offset, stack, buffer, color.toARGB())
+
+    fun draw3DText(
+        offset: Vector3fc,
+        stack: Matrix4fArrayList, buffer: StaticBuffer, color: Int
     ) {
         val shader = ShaderLib.shader3DText.value
         shader.use()

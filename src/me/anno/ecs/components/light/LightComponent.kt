@@ -85,10 +85,8 @@ abstract class LightComponent(
         clone.autoUpdate = autoUpdate
     }
 
-    override fun onDrawGUI() {
-        if (isSelectedIndirectly) {
-            drawShape()
-        }
+    override fun onDrawGUI(all: Boolean) {
+        if (all) drawShape()
     }
 
     abstract fun drawShape()

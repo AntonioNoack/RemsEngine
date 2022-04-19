@@ -327,8 +327,8 @@ open class Rigidbody : Component() {
         bulletInstance?.applyGravity()
     }
 
-    override fun onDrawGUI() {// center of mass circle
-        super.onDrawGUI()
+    override fun onDrawGUI(all: Boolean) {// center of mass circle
+        super.onDrawGUI(all)
         /*val stack = RenderView.stack
         stack.pushMatrix()
         stack.translate(centerOfMass.x.toFloat(), centerOfMass.y.toFloat(), centerOfMass.z.toFloat())

@@ -108,7 +108,7 @@ class VehicleWheel : Component() {
             bulletInstance?.rollInfluence = value
         }
 
-    override fun onDrawGUI() {
+    override fun onDrawGUI(all: Boolean) {
         // todo draw steering and power, brake and such for debugging
         LineShapes.drawCircle(entity, radius, 1, 2, 0.0)
     }

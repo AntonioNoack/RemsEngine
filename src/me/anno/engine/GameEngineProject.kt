@@ -71,7 +71,7 @@ class GameEngineProject() : NamedSaveable() {
 
     fun forAllPrefabs(run: (FileReference, Prefab) -> Unit) {
         forAllFiles { file ->
-            val prefab = PrefabCache.getPrefab(file)
+            val prefab = PrefabCache[file]
             if (prefab != null) run(file, prefab)
         }
     }

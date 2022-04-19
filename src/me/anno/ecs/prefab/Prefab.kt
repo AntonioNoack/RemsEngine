@@ -1,6 +1,5 @@
 package me.anno.ecs.prefab
 
-import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Change
@@ -90,18 +89,40 @@ class Prefab : Saveable {
         var sum = adds.size + sets.size
         if (depth > 0) {
             if (prefab != InvalidRef) {
-                val prefab = getPrefab(prefab, maxPrefabDepth, async)
+                val prefab = PrefabCache[prefab, maxPrefabDepth, async]
                 if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
             }
             for (change in adds) {
                 val childPrefab = change.prefab
                 if (childPrefab != InvalidRef) {
-                    val prefab = getPrefab(childPrefab, maxPrefabDepth, async)
+                    val prefab = PrefabCache[childPrefab, maxPrefabDepth, async]
                     if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
                 }
             }
         }
         return sum
+    }
+
+    operator fun get(path: Path, property: String, depth: Int = maxPrefabDepth): Any? {
+        val sample = sets[path, property]
+        if (sample != null) return sample
+        if (depth > 0) {
+            // check adds
+            val parentPath = path.parent
+            if (parentPath != null) {
+                for (add in adds) {
+                    // todo we would need a .subpath and .startsWith
+                    if (add.path == parentPath) {
+                        val prefab = PrefabCache[add.prefab]
+                        if (prefab != null) return prefab[ROOT_PATH, property, depth - 1]
+                        break
+                    }
+                }
+            }
+            val prefab = PrefabCache[prefab]
+            if (prefab != null) return prefab[path, property, depth - 1]
+        }
+        return null
     }
 
     fun add(change: CAdd, index: Int): Path {

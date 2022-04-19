@@ -10,7 +10,7 @@ import me.anno.utils.types.AABBs.transformUnion
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 
-abstract class ProceduralMesh : MeshBaseComponent() {
+abstract class ProceduralMesh : MeshComponentBase() {
 
     val mesh2 = Mesh()
 

@@ -36,9 +36,8 @@ object PrefabCache : CacheSection("Prefab") {
     private val prefabTimeout = 60_000L
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
 
-    fun getPrefab(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false): Prefab? {
-        return getPrefabPair(resource, depth, async)?.prefab
-    }
+    operator fun get(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false) =
+        getPrefabPair(resource, depth, async)?.prefab
 
     private fun loadAssimpModel(resource: FileReference): Prefab? {
         return try {
@@ -279,7 +278,7 @@ object PrefabCache : CacheSection("Prefab") {
         return instance
     }
 
-    private fun printDependencyGraph(prefab: FileReference) {
+    fun printDependencyGraph(prefab: FileReference): String {
         val added = HashSet<FileReference>()
         val todo = ArrayList<FileReference>()
         val connections = HashMap<FileReference, List<FileReference>>()
@@ -287,7 +286,7 @@ object PrefabCache : CacheSection("Prefab") {
         todo.add(prefab)
         while (todo.isNotEmpty()) {
             val next = todo.removeAt(todo.lastIndex)
-            val prefab2 = getPrefab(next)
+            val prefab2 = PrefabCache[next]
             if (prefab2 != null) {
                 val con = HashSet<FileReference>()
                 val s0 = prefab2.prefab
@@ -308,9 +307,17 @@ object PrefabCache : CacheSection("Prefab") {
             }
         }
         // make the graph easily readable
-        val nameMap = connections.keys.withIndex().associate { it.value to it.index }
+        val nameList = connections.entries
+            .sortedByDescending { it.value.size }
+        val nameMap = nameList
+            .withIndex()
+            .associate { it.value.key to it.index }
         // print the graph for debugging
-        LOGGER.error("Dependency Graph: ${connections.entries.associate { nameMap[it.key] to it.value.mapNotNull { v -> nameMap[v] } }}, $nameMap")
+        return "${
+            connections.entries
+                .associate { nameMap[it.key]!! to it.value.mapNotNull { v -> nameMap[v] }.sorted() }
+                .toSortedMap()
+        }, ${nameList.map { "${get(it.key)?.get(Path.ROOT_PATH, "name")}" }}, $nameMap"
     }
 
     private fun createSuperInstance(
@@ -320,7 +327,7 @@ object PrefabCache : CacheSection("Prefab") {
     ): PrefabSaveable {
         // find out somehow, which files are members of that circle
         if (depth < 0) {
-            printDependencyGraph(prefab)
+            LOGGER.warn("Dependency Graph: ${printDependencyGraph(prefab)}")
             throw StackOverflowError("Circular dependency in $prefab")
         }
         /*if (chain != null) {
@@ -334,11 +341,11 @@ object PrefabCache : CacheSection("Prefab") {
         }*/
         // LOGGER.info("chain: $chain")
         val depth1 = depth - 1
-        return getPrefab(prefab, depth1)?.createInstance(depth1) ?: ISaveable.create(clazz) as PrefabSaveable
+        return PrefabCache[prefab, depth1]?.createInstance(depth1) ?: ISaveable.create(clazz) as PrefabSaveable
     }
 
     fun loadScenePrefab(file: FileReference): Prefab {
-        val prefab = getPrefab(file, maxPrefabDepth) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
+        val prefab = this[file, maxPrefabDepth] ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
         prefab.source = file
         if (!file.exists) file.writeText(TextWriter.toText(prefab, StudioBase.workspace))
         return prefab

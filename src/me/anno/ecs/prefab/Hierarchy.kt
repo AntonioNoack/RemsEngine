@@ -5,7 +5,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
-import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
@@ -70,7 +69,7 @@ object Hierarchy {
                         }*/
                     }
                 }
-                someRelatedParent = getPrefab(someRelatedParent.prefab) ?: break
+                someRelatedParent = PrefabCache[someRelatedParent.prefab] ?: break
             }
             someParent = someParent.parent ?: break
         }
@@ -418,7 +417,7 @@ object Hierarchy {
 
     private fun testJsonFormatter() {
         val ref = getReference(documents, "RemsEngine/SampleProject/Scene.json")
-        val prefab = PrefabCache.getPrefab(ref)
+        val prefab = PrefabCache[ref]
         println(JsonFormatter.format(prefab.toString()))
     }
 

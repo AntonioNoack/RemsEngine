@@ -319,7 +319,7 @@ class Mesh : PrefabSaveable() {
     private var lineBuffer: IndexBuffer? = null
 
     @NotSerializedProperty
-    private var debugLineBuffer: IndexBuffer? = null
+    var debugLineBuffer: IndexBuffer? = null
 
     @NotSerializedProperty
     private var invalidDebugLines = true

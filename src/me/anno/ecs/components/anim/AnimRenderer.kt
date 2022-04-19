@@ -139,7 +139,7 @@ open class AnimRenderer : MeshComponent() {
         clone.animations = animations
     }
 
-    override fun onDrawGUI() {
+    override fun onDrawGUI(all: Boolean) {
         val skeleton = SkeletonCache[skeleton]
         if (skeleton != null) {
             val shader = pbrModelShader.value

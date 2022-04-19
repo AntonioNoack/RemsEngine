@@ -4,9 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshBaseComponent
-import me.anno.engine.raycast.Projection.projectRayToAABBBack
-import me.anno.engine.raycast.Projection.projectRayToAABBFront
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.clear
@@ -226,7 +224,7 @@ object Raycast {
     }*/
 
     fun raycastTriangleMesh(
-        entity: Entity?, component: MeshBaseComponent, mesh: Mesh,
+        entity: Entity?, component: MeshComponentBase, mesh: Mesh,
         start: Vector3d, direction: Vector3d, end: Vector3d,
         radiusAtOrigin: Double, radiusPerUnit: Double,
         result: RayHit,

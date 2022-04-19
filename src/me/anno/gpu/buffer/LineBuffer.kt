@@ -62,7 +62,7 @@ object LineBuffer {
         buffer.drawMode = GL_LINES
     }
 
-    private var bytes: ByteBuffer
+    var bytes: ByteBuffer
         get() = buffer.nioBuffer!!
         set(value) {
             buffer.nioBuffer = value
@@ -487,10 +487,10 @@ object LineBuffer {
         finish(camTransform, shader)
     }
 
-    private fun finish(camTransform: Matrix4f, shader: Shader) {
+    private fun finish(transform: Matrix4f, shader: Shader) {
 
         buffer.upload()
-        shader.m4x4("transform", camTransform)
+        shader.m4x4("transform", transform)
         buffer.draw(shader)
 
         // reset the buffer

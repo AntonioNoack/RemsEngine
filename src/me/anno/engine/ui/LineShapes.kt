@@ -308,6 +308,24 @@ object LineShapes {
         putRelativeLine(positions[0], positions[1], color)
     }
 
+    fun drawLine(
+        entity: Entity?,
+        p0: Vector3f,
+        p1: Vector3f,
+        color: Int = Collider.guiLineColor
+    ) {
+        val transform = getDrawMatrix(entity)
+        val positions = tmpVec3d
+        positions[0].set(p0)
+        positions[1].set(p1)
+        if (transform != null) {
+            for (i in 0 until 2) {
+                transform.transformPosition(positions[i])
+            }
+        }
+        putRelativeLine(positions[0], positions[1], color)
+    }
+
     fun drawSphere(
         entity: Entity?,
         radius: Double,

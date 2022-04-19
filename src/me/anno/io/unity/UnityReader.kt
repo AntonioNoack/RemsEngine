@@ -3,7 +3,6 @@ package me.anno.io.unity
 import me.anno.Engine
 import me.anno.cache.CacheData
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
@@ -35,6 +34,7 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
@@ -42,6 +42,7 @@ import org.joml.Vector2f
 import org.joml.Vector3d
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.abs
 import kotlin.math.min
 
 object UnityReader {
@@ -137,6 +138,24 @@ object UnityReader {
         val child = getChild(name)
         if (child != InvalidRef) return child
         val children = if (isSomeKindOfDirectory) listChildren() else emptyList()
+        if (children?.size == 1 && name.length == "4300000.json".length && name.startsWith("43000") && name.endsWith(".json")) {
+            val meshes = children.first().getChild("Meshes").listChildren()
+            if (meshes != null && meshes.size > 1) {
+                val id = name.substring(0, name.length - 5).toInt() - 4300000
+                // find submesh
+                // todo find mesh by id... who defines the order?
+                // for now just return the n-th child...
+                val subMesh = meshes.getOrNull(id)
+                if (subMesh != null) {
+                    LOGGER.info("$name was missing from mesh file, choose ${subMesh.nameWithoutExtension} based on $id from ${meshes.map { it.nameWithoutExtension }}")
+                    return subMesh
+                } else LOGGER.warn("Submesh $id could not be found out of ${meshes.size}, from ${meshes.map { it.nameWithoutExtension }}")
+            } else if (meshes?.size == 1) {
+                return meshes.first()
+            } else {
+                LOGGER.warn("Could not find submeshes in $this")
+            }
+        }
         val newChild = if (children != null && children.isNotEmpty()) {
             getChildOrNull("100100000.json") ?: getChildOrNull("Scene.json") ?: children.first()
         } else null
@@ -196,66 +215,87 @@ object UnityReader {
 
     fun applyTransformOnPrefab(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject) {
 
-        val changes = node["Modification"]?.get("Modifications")?.children ?: emptyList()
+        val localPos = node["LocalPosition"]?.getVector3d(0.0)
+        val localRot = node["LocalRotation"]?.getQuaternion(1e-7)
+        val localSca = node["LocalScale"]?.getVector3dScale(1e-7)
 
-        val position = Vector3d()
-        val scale = Vector3d(1.0)
-        val rotation = Quaterniond()
-        for (change in changes) {
+        if (localPos != null) prefab.setProperty("position", localPos)
+        if (localRot != null) prefab.setProperty("rotation", localRot)
+        if (localSca != null) prefab.setProperty("scale", localSca)
 
-            val target = decodePath(guid, change["Target"], project)
+        // these changes are properties of the "Prefab" node, not the transform...
+        val changes = node["Modification"]?.get("Modifications")?.children
 
-            // e.g. m_LocalPosition.x -> LocalPosition.x,
-            // m_Name -> Name, ...
-            // RootOrder?
-            // LocalRotation.x/y/z/w
-            // LocalEulerAnglesHint.x/y/z?
-            val path = beautify(change["PropertyPath"]!!.value.toString())
-            val value = change["Value"]?.value // e.g. 1.723
-            // a reference to a local object, when dragging sth onto another thing
-            // value is then empty
-            val objectReference = decodePath(guid, change["ObjectReference"], project)
+        if (changes != null) {
 
-            when (path) {
-                "Name" -> prefab.setProperty("name", value ?: continue)
-                // position
-                "LocalPosition.x" -> position.x = value?.toDoubleOrNull() ?: continue
-                "LocalPosition.y" -> position.y = value?.toDoubleOrNull() ?: continue
-                "LocalPosition.z" -> position.z = value?.toDoubleOrNull() ?: continue
-                // rotation
-                "LocalRotation.x" -> rotation.x = value?.toDoubleOrNull() ?: continue
-                "LocalRotation.y" -> rotation.y = value?.toDoubleOrNull() ?: continue
-                "LocalRotation.z" -> rotation.z = value?.toDoubleOrNull() ?: continue
-                "LocalRotation.w" -> rotation.w = value?.toDoubleOrNull() ?: continue
-                // scale
-                "LocalScale.x" -> scale.x = value?.toDoubleOrNull() ?: continue
-                "LocalScale.y" -> scale.y = value?.toDoubleOrNull() ?: continue
-                "LocalScale.z" -> scale.z = value?.toDoubleOrNull() ?: continue
-                // mmh... maybe for rotations with large angle?
-                "LocalEulerAnglesHint.x", "LocalEulerAnglesHint.y", "LocalEulerAnglesHint.z" -> {
+            val position = JomlPools.vec3d.create().set(0.0)
+            val scale = JomlPools.vec3d.create().set(1.0)
+            val rotation = JomlPools.quat4d.create().identity()
+
+            for (change in changes) {
+
+                val target = decodePath(guid, change["Target"], project)
+
+                // e.g. m_LocalPosition.x -> LocalPosition.x,
+                // m_Name -> Name, ...
+                // RootOrder?
+                // LocalRotation.x/y/z/w
+                // LocalEulerAnglesHint.x/y/z?
+                val path = beautify(change["PropertyPath"]!!.value.toString())
+                val value = change["Value"]?.value // e.g. 1.723
+
+                // a reference to a local object, when dragging sth onto another thing
+                // value is then empty
+                val objectReference = decodePath(guid, change["ObjectReference"], project)
+
+                when (path) {
+                    "Name" -> prefab.setProperty("name", value ?: continue)
+                    // position
+                    "LocalPosition.x" -> position.x = value?.toDoubleOrNull() ?: continue
+                    "LocalPosition.y" -> position.y = value?.toDoubleOrNull() ?: continue
+                    "LocalPosition.z" -> position.z = value?.toDoubleOrNull() ?: continue
+                    // rotation
+                    "LocalRotation.x" -> rotation.x = value?.toDoubleOrNull() ?: continue
+                    "LocalRotation.y" -> rotation.y = value?.toDoubleOrNull() ?: continue
+                    "LocalRotation.z" -> rotation.z = value?.toDoubleOrNull() ?: continue
+                    "LocalRotation.w" -> rotation.w = value?.toDoubleOrNull() ?: continue
+                    // scale
+                    "LocalScale.x" -> scale.x = value?.toDoubleOrNull() ?: continue
+                    "LocalScale.y" -> scale.y = value?.toDoubleOrNull() ?: continue
+                    "LocalScale.z" -> scale.z = value?.toDoubleOrNull() ?: continue
+                    // mmh... maybe for rotations with large angle?
+                    "LocalEulerAnglesHint.x", "LocalEulerAnglesHint.y", "LocalEulerAnglesHint.z" -> {
+                    }
+                    "RootOrder" -> {
+                    } // probably for changing the order of children
+                    "Materials.Array.data[0]" -> {
+                        println("todo set material ... $value")
+                        // todo set the material somehow... is it a material?
+                    }
+                    else -> LOGGER.info("$target, Change: $path, value: $value, ref: $objectReference")
                 }
-                "RootOrder" -> {
-                } // probably for changing the order of children
-                "Materials.Array.data[0]" -> {
-                    println("todo set material ... $value")
-                    // todo set the material somehow... is it a material?
-                }
-                else -> LOGGER.info("$target, Change: $path, value: $value, ref: $objectReference")
+
             }
 
             if (position.lengthSquared() != 0.0) {
-                prefab.setProperty("position", position)
+                prefab.setProperty("position", Vector3d(position))
             }
 
-            if (scale.distanceSquared(1.0, 1.0, 1.0) != 0.0) {
-                prefab.setProperty("scale", scale)
+            if (scale.distanceSquared(1.0, 1.0, 1.0) > 1e-7) {
+                prefab.setProperty("scale", Vector3d(scale))
             }
 
-            if (rotation.w != 1.0) {
-                prefab.setProperty("rotation", rotation)
+            if (abs(rotation.w - 1.0) > 1e-7) {
+                prefab.setProperty("rotation", Quaterniond(rotation))
             }
+
+            println("pos rot sca: $position, $rotation, $scale by $changes")
+
+            JomlPools.vec3d.sub(2)
+            JomlPools.quat4d.sub(1)
 
         }
+
     }
 
     fun defineMaterial(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject) {
@@ -500,9 +540,10 @@ object UnityReader {
                     }
                 }
                 "Transform" -> {
-                    val goFile = decodePath(guid, node["GameObject"], project)
-                    if (goFile is PrefabReadable) {
-                        transformToGameObject[file] = goFile
+                    val gameObject = decodePath(guid, node["GameObject"], project)
+                    // println("transform $fileId has game object $gameObject, ${gameObject is PrefabReadable}")
+                    if (gameObject is PrefabReadable) {
+                        transformToGameObject[file] = gameObject
                     } else {
                         val pi = decodePath(guid, node["PrefabInternal"], project)
                         if (pi is PrefabReadable) {
@@ -529,7 +570,7 @@ object UnityReader {
                         * */
                         val children2 = children.packListEntries().children
                         if (children2 != null) {
-                            LOGGER.info("processing ${children2.size} children from prefab")
+                            // LOGGER.info("processing ${children2.size} children from prefab")
                             for (childNode in children2) {
                                 addPrefabChild(prefab, decodePath(guid, childNode, project))
                             }
@@ -572,8 +613,8 @@ object UnityReader {
                         // prefab.prefab = prefabPath
                     }
                     // find transform, which belongs to this GameObject
-                    val key = decodePath(guid, fileId, project)
-                    val transform = transformsByGameObject[key]
+                    // println("looking up gameObject $fileId.transform with $file")
+                    val transform = transformsByGameObject[file]
                     if (transform != null) {
                         // if not active, then disable the entity prefab
                         val isActive = node.getBool("IsActive")
@@ -600,6 +641,10 @@ object UnityReader {
                                 }
                             }
                         }
+                    }
+                    val name = node["Name"]?.value
+                    if (name != null) {
+                        prefab.setProperty("name", name)
                     }
                 }
             }
@@ -770,7 +815,7 @@ object UnityReader {
     }
 
     fun testRendering(file: FileReference, size: Int = 512) {
-        val prefab = PrefabCache.getPrefab(file)!!
+        val prefab = PrefabCache[file]!!
         println(JsonFormatter.format(prefab.toString()))
         val sample = prefab.createInstance()
         println(sample)
@@ -865,6 +910,11 @@ Transform:
 
         Prefab.maxPrefabDepth = 7
 
+
+        // todo support for submeshes:
+        // MeshFilters reference submeshes by changing the fileId
+        // 4300002 is the 2nd (probably) submesh
+
         // todo analyse triplanar scene & recreate complete tree structure from it
 
         /*sceneRenderTest()
@@ -898,7 +948,7 @@ Transform:
 
         ECSRegistry.init()
 
-        val circularDependencies = listOf(
+        /*val circularDependencies = listOf(
             "6e7e49849c96318418dbd28b88bc6d06/100100000.json",
             "cae9881699f289945baf66e9c9958a45/100100000.json",
             "9baabcdff9f934e4f93321577d7858e5/1637145686889916.json",
@@ -911,7 +961,7 @@ Transform:
             LOGGER.info(sample)
             LOGGER.info(JsonFormatter.format(prefab.toString()))
             LOGGER.info(prefab!!.getSampleInstance())
-        }
+        }*/
 
         /*Thumbs.useCacheFolder = true
         for (file in listOf(meshComponent, colliderComponent, entityOfComponent)) {
@@ -967,8 +1017,16 @@ Transform:
 
         // ECSRegistry.initNoGFX()
 
+        val testScene = getReference(main, "Scenes/Demo_TriplanarDirt.unity")
+        for (fileName in listOf("2130288114", "668974552")) {
+            val file = getReference(testScene, "$fileName.json")
+            println("$fileName: " + PrefabCache.printDependencyGraph(file))
+        }
+        //Engine.requestShutdown()
+        //return
+
         testUI {
-            object : FileExplorer(getReference(main, "Prefabs/Icons"), style) {
+            object : FileExplorer(testScene, style) {
 
                 override fun getRightClickOptions(): List<FileExplorerOption> = emptyList()
 

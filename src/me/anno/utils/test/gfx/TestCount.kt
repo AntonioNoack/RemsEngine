@@ -16,12 +16,12 @@ fun main() {
     ECSRegistry.init()
 
     val file = getReference(downloads, "San_Miguel/san-miguel.obj")
-    val obj = PrefabCache.getPrefab(file)
+    val obj = PrefabCache[file]
     val entity = obj!!.getSampleInstance() as Entity
     var sum = 0L
     entity.findFirstInAll {
         if (it is Entity) {
-            it.anyComponent(MeshComponent::class){ mesh ->
+            it.anyComponent(MeshComponent::class) { mesh ->
                 val mesh2 = MeshCache[mesh.mesh]!!
                 sum += if (mesh2.indices != null) {
                     mesh2.indices!!.size / 3

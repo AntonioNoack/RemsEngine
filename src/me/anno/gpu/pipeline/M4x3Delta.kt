@@ -76,29 +76,55 @@ object M4x3Delta {
      * uploads the transform, minus some offset, to the GPU uniform <location>
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
-    fun Shader.m4x3delta(location: String, m: Matrix4x3d, pos: Vector3d, worldScale: Double) {
+    fun Shader.m4x3delta(location: String, m: Matrix4x3d?, pos: Vector3d, worldScale: Double) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) {
 
             // false = column major, however the labelling of these things is awkward
             // A_ji, as far, as I can see
+
             buffer16.limit(12)
             buffer16.position(0)
-            buffer16.put((m.m00() * worldScale).toFloat())
-            buffer16.put((m.m01() * worldScale).toFloat())
-            buffer16.put((m.m02() * worldScale).toFloat())
 
-            buffer16.put((m.m10() * worldScale).toFloat())
-            buffer16.put((m.m11() * worldScale).toFloat())
-            buffer16.put((m.m12() * worldScale).toFloat())
+            if(m != null){
 
-            buffer16.put((m.m20() * worldScale).toFloat())
-            buffer16.put((m.m21() * worldScale).toFloat())
-            buffer16.put((m.m22() * worldScale).toFloat())
+                buffer16.put((m.m00() * worldScale).toFloat())
+                buffer16.put((m.m01() * worldScale).toFloat())
+                buffer16.put((m.m02() * worldScale).toFloat())
 
-            buffer16.put(((m.m30() - pos.x) * worldScale).toFloat())
-            buffer16.put(((m.m31() - pos.y) * worldScale).toFloat())
-            buffer16.put(((m.m32() - pos.z) * worldScale).toFloat())
+                buffer16.put((m.m10() * worldScale).toFloat())
+                buffer16.put((m.m11() * worldScale).toFloat())
+                buffer16.put((m.m12() * worldScale).toFloat())
+
+                buffer16.put((m.m20() * worldScale).toFloat())
+                buffer16.put((m.m21() * worldScale).toFloat())
+                buffer16.put((m.m22() * worldScale).toFloat())
+
+                buffer16.put(((m.m30() - pos.x) * worldScale).toFloat())
+                buffer16.put(((m.m31() - pos.y) * worldScale).toFloat())
+                buffer16.put(((m.m32() - pos.z) * worldScale).toFloat())
+
+            } else {
+
+                val ws = worldScale.toFloat()
+
+                buffer16.put(ws)
+                buffer16.put(0f)
+                buffer16.put(0f)
+
+                buffer16.put(0f)
+                buffer16.put(ws)
+                buffer16.put(0f)
+
+                buffer16.put(0f)
+                buffer16.put(0f)
+                buffer16.put(ws)
+
+                buffer16.put((-pos.x * worldScale).toFloat())
+                buffer16.put((-pos.y * worldScale).toFloat())
+                buffer16.put((-pos.z * worldScale).toFloat())
+
+            }
 
             buffer16.position(0)
 

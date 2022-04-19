@@ -12,7 +12,7 @@ import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
@@ -383,7 +383,7 @@ class PipelineStage(
                 initShader(shader, cameraMatrix, pipeline)
             }
 
-            val receiveShadows = if (renderer is MeshBaseComponent) renderer.receiveShadows else true
+            val receiveShadows = if (renderer is MeshComponentBase) renderer.receiveShadows else true
             if (hasLights) {
                 if (previousMaterialByShader == null ||
                     needsLightUpdateForEveryMesh ||
@@ -412,7 +412,7 @@ class PipelineStage(
             // not if the material has changed
             // this updates the skeleton and such
             if (entity !== lastEntity || lastMesh !== mesh || lastShader !== shader) {
-                if (renderer is MeshBaseComponent && mesh.hasBonesInBuffer)
+                if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
                     renderer.defineVertexTransform(shader, entity, mesh)
                 else shader.v1b("hasAnimation", false)
                 lastEntity = entity
@@ -426,7 +426,7 @@ class PipelineStage(
             shader.v2i(
                 "randomIdData",
                 if (mesh.proceduralLength > 0) 3 else 0,
-                if (component is MeshBaseComponent) component.randomTriangleId else 0
+                if (component is MeshComponentBase) component.randomTriangleId else 0
             )
 
             mesh.draw(shader, materialIndex)
@@ -574,7 +574,7 @@ class PipelineStage(
             // not if the material has changed
             // this updates the skeleton and such
             if (entity !== lastEntity || lastMesh !== mesh) {
-                if (renderer is MeshBaseComponent && mesh.hasBonesInBuffer)
+                if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
                     renderer.defineVertexTransform(shader, entity, mesh)
                 else shader.v1b("hasAnimation", false)
                 lastEntity = entity
@@ -715,7 +715,7 @@ class PipelineStage(
     }
 
     fun getMaterial(renderer: Component, mesh: Mesh, index: Int): Material {
-        var material = if (renderer is MeshBaseComponent) renderer.materials.getOrNull(index) else null
+        var material = if (renderer is MeshComponentBase) renderer.materials.getOrNull(index) else null
         material = material ?: mesh.materials.getOrNull(index)
         return MaterialCache[material, defaultMaterial]
     }

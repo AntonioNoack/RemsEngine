@@ -3,11 +3,11 @@ package me.anno.mesh.assimp.test
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.gpu.shader.ShaderLib
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.io.files.thumbs.Thumbs
+import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
@@ -63,7 +63,7 @@ fun main() {
 
     clock.start()
     Sleep.waitUntilDefined(true) {
-        PrefabCache.getPrefab(file)
+        PrefabCache[file]
         // loadAssimpStatic(srcFile, null)
     }
     clock.stop("custom")

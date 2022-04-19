@@ -20,9 +20,10 @@ import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ECSRegistry
@@ -530,7 +531,7 @@ object Thumbs {
         }
     }
 
-    private fun waitForTextures(comp: MeshBaseComponent, mesh: Mesh, srcFile: FileReference) {
+    private fun waitForTextures(comp: MeshComponentBase, mesh: Mesh, srcFile: FileReference) {
         // wait for all textures
         val textures = HashSet<FileReference>()
         iterateMaterials(comp.materials, mesh.materials) { material ->
@@ -577,7 +578,7 @@ object Thumbs {
     }
 
     private fun collectTextures(entity: Entity, textures: MutableSet<FileReference>) {
-        for (comp in entity.getComponentsInChildren(MeshBaseComponent::class, false)) {
+        for (comp in entity.getComponentsInChildren(MeshComponentBase::class, false)) {
             val mesh = comp.getMesh()
             if (mesh == null) {
                 warnMissingMesh(comp, mesh)
@@ -606,7 +607,7 @@ object Thumbs {
         // statically loading is easier, but we may load things twice ->
         // only load them once, use our cache
         val data = waitUntilDefined(true) {
-            PrefabCache.getPrefab(srcFile)
+            PrefabCache[srcFile, maxPrefabDepth, true]
             // loadAssimpStatic(srcFile, null)
         }.getSampleInstance()
         generateSomething(data, srcFile, dstFile, size, callback)
@@ -619,7 +620,7 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         val data = waitUntilDefined(true) {
-            PrefabCache.getPrefab(srcFile)
+            PrefabCache[srcFile, maxPrefabDepth, true]
             // loadVOX(srcFile, null)
         }.getSampleInstance() as Entity
         // generateFrame(dstFile, data, size, previewRenderer, true, callback)
@@ -638,7 +639,7 @@ object Thumbs {
         // todo draw gui (colliders), entity positions
         waitForTextures(data, srcFile)
         entity.validateTransform()
-        val drawSkeletons = !entity.hasComponent(MeshBaseComponent::class)
+        val drawSkeletons = !entity.hasComponent(MeshComponentBase::class)
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             data.drawAssimp(
                 true, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
@@ -689,7 +690,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
-        comp: MeshBaseComponent,
+        comp: MeshComponentBase,
         callback: (Texture2D) -> Unit
     ) {
         val mesh = comp.getMesh() ?: return
@@ -958,7 +959,7 @@ object Thumbs {
             is Skeleton -> generateSkeletonFrame(srcFile, dstFile, asset, size, callback)
             is Animation -> generateAnimationFrame(dstFile, asset, size, callback)
             is Entity -> generateEntityFrame(srcFile, dstFile, size, asset, callback)
-            is MeshBaseComponent -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
+            is MeshComponentBase -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
             is Collider -> generateColliderFrame(srcFile, dstFile, size, asset, callback)
             is Component -> {
                 // todo render component somehow... just return an icon?

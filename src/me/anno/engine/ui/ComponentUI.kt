@@ -26,7 +26,7 @@ import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache.getPrefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
 import me.anno.engine.RemsEngine
@@ -82,7 +82,7 @@ object ComponentUI {
         FileExplorerOption(NameDesc("Open Scene")) { _, it -> ECSSceneTabs.open(it, "Entity", PlayMode.EDITING) },
         // create mutable scene, = import
         FileExplorerOption(NameDesc("Import")) { panel, it ->
-            val prefab = getPrefab(it)
+            val prefab = PrefabCache[it]
             if (prefab == null) msg(
                 panel.windowStack,
                 NameDesc("Cannot import ${it.name}", "Because it cannot be loaded as a scene", "")
@@ -946,7 +946,7 @@ object ComponentUI {
                                 options.add(prefab)
                             }
                         }*/
-                        val prefab0 = getPrefab(value as? FileReference)
+                        val prefab0 = PrefabCache[value as? FileReference]
                         if (prefab0 != null) options.add(prefab0)
                         if (options.size > 1) {
                             // todo show fileExplorer-like previews

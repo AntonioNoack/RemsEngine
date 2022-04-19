@@ -1,12 +1,11 @@
 package me.anno.mesh.assimp
 
-import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.lwjgl.assimp.*
 
 object SkeletonAnimAndBones {
 
-    private val LOGGER = LogManager.getLogger(SkeletonAnimAndBones::class)
+    // private val LOGGER = LogManager.getLogger(SkeletonAnimAndBones::class)
 
     fun loadSkeletonFromAnimationsAndBones(
         aiScene: AIScene,
@@ -20,12 +19,12 @@ object SkeletonAnimAndBones {
         if (numMeshes > 0) {
             val meshes = aiScene.mMeshes()!!
             for (i in 0 until numMeshes) {
-                val mesh = AIMesh.create(meshes[i])
+                val mesh = AIMesh.createSafe(meshes[i]) ?: continue
                 val numBones = mesh.mNumBones()
                 if (numBones > 0) {
                     val bones = mesh.mBones()!!
                     for (j in 0 until numBones) {
-                        val bone = AIBone.create(bones[j])
+                        val bone = AIBone.createSafe(bones[j]) ?: continue
                         val boneName = bone.mName().dataString()
                         allowedNames.add(boneName)
                     }
@@ -37,7 +36,7 @@ object SkeletonAnimAndBones {
         if (numAnimations > 0) {
             val animations = aiScene.mAnimations()!!
             for (i in 0 until numAnimations) {// collect all animated bones
-                val aiAnimation = AIAnimation.create(animations[i])
+                val aiAnimation = AIAnimation.createSafe(animations[i]) ?: continue
                 AnimatedMeshesLoader.createAnimationCache2(aiAnimation, allowedNames)
             }
         }

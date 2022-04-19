@@ -2,8 +2,8 @@ package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.change.Path
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.ByteImage.Companion.hasAlpha
 import me.anno.io.files.FileFileRef
@@ -17,7 +17,6 @@ import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.io.AIFileIOImpl
 import me.anno.utils.Color.rgba
 import me.anno.utils.types.Strings.isBlank2
-import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -26,15 +25,11 @@ import org.lwjgl.assimp.Assimp.*
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
-
 open class StaticMeshesLoader {
 
     companion object {
 
-        /*val defaultFlags = aiProcess_GenSmoothNormals or aiProcess_JoinIdenticalVertices or aiProcess_Triangulate or
-                aiProcess_FixInfacingNormals or aiProcess_GlobalScale*/
-
-        val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
+        const val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
                 aiProcess_Triangulate or // we don't want to triangulate ourselves
                 aiProcess_JoinIdenticalVertices or // is required to load indexed geometry
                 aiProcess_FixInfacingNormals or // is recommended, may be incorrect...
@@ -53,39 +48,25 @@ open class StaticMeshesLoader {
         }
 
         // or aiProcess_PreTransformVertices // <- disables animations
-        private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
 
     }
-
-    /*fun fileToBuffer(name: String, termination: Boolean): ByteBuffer {
-        val bytes = name.toByteArray()
-        var size = bytes.size
-        if (termination) size++
-        val byteBuffer = MemoryUtil.memAlloc(size)
-        byteBuffer.put(bytes)
-        if (termination) byteBuffer.put(0)
-        byteBuffer.flip()
-        return byteBuffer
-    }
-
-    fun fileToBuffer(resourcePath: FileReference, termination: Boolean): ByteBuffer {
-        val bytes = resourcePath.inputStream().readBytes()
-        var size = bytes.size
-        if (termination) size++
-        val byteBuffer = MemoryUtil.memAlloc(size)
-        byteBuffer.put(bytes)
-        if (termination) byteBuffer.put(0)
-        byteBuffer.flip()
-        return byteBuffer
-    }*/
 
     fun loadFile(file: FileReference, flags: Int): AIScene {
-        if(file.lcExtension == "obj") throw RuntimeException()
-        return if (file is FileFileRef || file.absolutePath.count { it == '.' } <= 1) {
-            aiImportFile(file.absolutePath, flags)
-        } else {
-            val fileIO = AIFileIOImpl.create(file, file.getParent()!!)
-            aiImportFileEx(file.name, flags, fileIO)
+        // obj files should use our custom importer
+        // if (file.lcExtension == "obj") throw IllegalArgumentException()
+        return synchronized(StaticMeshesLoader) {
+            // we could load in parallel,
+            // but we'd need to keep track of the scale factor;
+            // it only is allowed to be set, if the file is an fbx file
+            val store = aiCreatePropertyStore()!!
+            val isFBXFile = Signature.findName(file) == "fbx"
+            aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, if (isFBXFile) 0.01f else 1f)
+            if (file is FileFileRef || file.absolutePath.count { it == '.' } <= 1) {
+                aiImportFileExWithProperties(file.absolutePath, flags, null, store)
+            } else {
+                val fileIO = AIFileIOImpl.create(file, file.getParent()!!)
+                aiImportFileExWithProperties(file.name, flags, fileIO, store)
+            }
         } ?: throw Exception("Error loading model $file, ${aiGetErrorString()}")
     }
 
@@ -153,7 +134,7 @@ open class StaticMeshesLoader {
         if (childCount > 0) {
             val children = aiNode.mChildren()!!
             for (i in 0 until childCount) {
-                val childNode = AINode.create(children[i])
+                val childNode = AINode.createSafe(children[i]) ?: continue
                 val childName = childNode.mName().dataString()
                 val childPath = prefab.add(path, 'e', "Entity", childName, i)
                 buildScene(aiScene, sceneMeshes, hasSkeleton, childNode, prefab, childPath)
@@ -175,7 +156,8 @@ open class StaticMeshesLoader {
             val textures = aiScene.mTextures()!!
             val list = ArrayList<FileReference>(numTextures)
             for (it in 0 until numTextures) {
-                list += loadTexture(parentFolder, AITexture.create(textures[it]), it)
+                val texture = AITexture.createSafe(textures[it]) ?: continue
+                list += loadTexture(parentFolder, texture, it)
             }
             list
         } else emptyList()
@@ -197,11 +179,12 @@ open class StaticMeshesLoader {
     private fun processIndices(aiMesh: AIMesh, indices: IntArray) {
         val numFaces = aiMesh.mNumFaces()
         val aiFaces = aiMesh.mFaces()
+        val aiFace = AIFace.mallocStack()
         for (j in 0 until numFaces) {
-            val aiFace = aiFaces[j]
+            aiFaces.get(j, aiFace)
             val buffer = aiFace.mIndices()
             val i = j * 3
-            when (val remaining = buffer.remaining()) {
+            when (buffer.remaining()) {
                 1 -> {
                     // a point
                     indices[i + 0] = buffer.get()
@@ -219,9 +202,6 @@ open class StaticMeshesLoader {
                     indices[i + 0] = buffer.get()
                     indices[i + 1] = buffer.get()
                     indices[i + 2] = buffer.get()
-                }
-                else -> {
-                    LOGGER.warn("Remaining number of vertices is awkward: $remaining")
                 }
             }
         }
@@ -490,79 +470,56 @@ open class StaticMeshesLoader {
 
     private fun processTangents(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
         val src = aiMesh.mTangents()
-        return if (src != null) {
-            val dst = FloatArray(vertexCount * 3)
-            var j = 0
-            while (src.remaining() > 0) {
-                val value = src.get()
-                dst[j++] = value.x()
-                dst[j++] = value.y()
-                dst[j++] = value.z()
-            }
-            dst
-        } else null
+        return if (src != null && vertexCount > 0) processVec3(src, FloatArray(vertexCount * 3)) else null
     }
 
     private fun processNormals(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
         val src = aiMesh.mNormals()
-        return if (src != null) {
-            val dst = FloatArray(vertexCount * 3)
-            var j = 0
-            while (src.remaining() > 0) {
-                val value = src.get()
-                dst[j++] = value.x()
-                dst[j++] = value.y()
-                dst[j++] = value.z()
-            }
-            dst
-        } else null
+        return if (src != null && vertexCount > 0) processVec3(src, FloatArray(vertexCount * 3)) else null
     }
 
     private fun processUVs(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
         val src = aiMesh.mTextureCoords(0)
         return if (src != null) {
-            val dst = FloatArray(vertexCount * 2)
             var j = 0
+            val vec = AIVector3D.mallocStack()
+            val dst = FloatArray(vertexCount * 2)
             while (src.remaining() > 0) {
-                val value = src.get()
-                dst[j++] = value.x()
-                dst[j++] = value.y()
+                src.get(vec)
+                dst[j++] = vec.x()
+                dst[j++] = vec.y()
             }
             dst
         } else null
     }
 
-    private fun processPositions(aiMesh: AIMesh, dst: FloatArray) {
-        var j = 0
-        val src = aiMesh.mVertices()
-        while (src.hasRemaining()) {
-            val value = src.get()
-            dst[j++] = value.x()
-            dst[j++] = value.y()
-            dst[j++] = value.z()
-        }
-    }
+    private fun processPositions(aiMesh: AIMesh, dst: FloatArray) =
+        processVec3(aiMesh.mVertices(), dst)
 
-    fun processPositions(aiMesh: AIAnimMesh, dst: FloatArray) {
+    fun processPositions(aiMesh: AIAnimMesh, dst: FloatArray) =
+        processVec3(aiMesh.mVertices()!!, dst)
+
+    private fun processVec3(src: AIVector3D.Buffer, dst: FloatArray): FloatArray {
         var j = 0
-        val src = aiMesh.mVertices()!!
-        while (src.hasRemaining()) {
-            val value = src.get()
-            dst[j++] = value.x()
-            dst[j++] = value.y()
-            dst[j++] = value.z()
+        val vec = AIVector3D.mallocStack()
+        while (src.hasRemaining() && j < dst.size) {
+            src.get(vec)
+            dst[j++] = vec.x()
+            dst[j++] = vec.y()
+            dst[j++] = vec.z()
         }
+        return dst
     }
 
     private fun processVertexColors(aiMesh: AIMesh, index: Int, vertexCount: Int): IntArray? {
         val src = aiMesh.mColors(index)
         return if (src != null) {
-            val dst = IntArray(vertexCount)
             var j = 0
-            while (src.remaining() > 0) {
-                val value = src.get()
-                val rgba = rgba(value.r(), value.g(), value.b(), value.a())
-                dst[j++] = rgba
+            val vec = AIColor4D.mallocStack()
+            val dst = IntArray(vertexCount)
+            while (src.remaining() > 0 && j < vertexCount) {
+                src.get(vec)
+                dst[j++] = rgba(vec.r(), vec.g(), vec.b(), vec.a())
             }
             // when every one is black or white, it doesn't actually have data
             if (dst.all { it == -1 } || dst.all { it == 0 }) return null

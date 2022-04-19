@@ -6,7 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.effects.SSAOEffect
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.effects.Bloom
@@ -163,8 +163,9 @@ class RenderView(
         }
 
     val worldScale get() = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
-    var position = Vector3d()
-    var rotation = Vector3d(-20.0, 0.0, 0.0)
+
+    val position = Vector3d()
+    val rotation = Vector3d(-20.0, 0.0, 0.0)
 
     private val deferredRenderer = DeferredRenderer
     private val deferred = deferredRenderer.deferredSettings!!
@@ -266,7 +267,7 @@ class RenderView(
 
         if (isKeyDown(GLFW.GLFW_KEY_PAUSE)) {
             world?.simpleTraversal(false) {
-                if (it is Entity && it.hasComponentInChildren(MeshBaseComponent::class)) {
+                if (it is Entity && it.hasComponentInChildren(MeshComponentBase::class)) {
                     val transform = it.transform
                     println("${Tabs.spaces(2 * it.depthInHierarchy)}'${it.name}':\n${transform.localTransform}\n${transform.globalTransform}")
                 }
@@ -492,6 +493,7 @@ class RenderView(
         // clock.stop("drawing scene", 0.05)
 
         var dstBuffer = buffer
+        val world = getWorld()
 
         if (useDeferredRendering) {
 
@@ -499,7 +501,7 @@ class RenderView(
 
             if (renderMode.dlt != null) {
                 drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
-                drawGizmos(buffer, renderer, camPosition, true)
+                drawGizmos(world,buffer, renderer, camPosition, true)
                 GFX.copyNoAlpha(buffer)
                 return
             }
@@ -508,7 +510,7 @@ class RenderView(
                 RenderMode.DEPTH -> {
                     val depth = FBStack["depth", w, h, 1, false, 1, true]
                     drawScene(w, h, camera0, camera1, blending, renderer, depth, true, !useDeferredRendering)
-                    drawGizmos(depth, renderer, camPosition, true)
+                    drawGizmos(world,depth, renderer, camPosition, true)
                     drawDepthTexture(x, y + h, w, -h, depth.depthTexture!!)
                     return
                 }
@@ -517,7 +519,7 @@ class RenderView(
                     val lightBuffer = lightBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-                    drawGizmos(lightBuffer, renderer, camPosition, true)
+                    drawGizmos(world,lightBuffer, renderer, camPosition, true)
                     drawTexture(x, y + h, w, -h, lightBuffer.getTexture0(), true, -1, null)
                     return
                 }
@@ -525,7 +527,7 @@ class RenderView(
                     val lightBuffer = lightBuffer
                     pipeline.lightPseudoStage.visualizeLightCount = true
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-                    drawGizmos(lightBuffer, renderer, camPosition, false)
+                    drawGizmos(world,lightBuffer, renderer, camPosition, false)
                     drawTexture(x, y + h, w, -h, lightBuffer.getTexture0(), true, -1, null)
                     pipeline.lightPseudoStage.visualizeLightCount = false
                     return
@@ -533,7 +535,7 @@ class RenderView(
                 RenderMode.SSAO -> {
                     // 0.1f as radius seems pretty ideal with our world scale :)
                     drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
-                    drawGizmos(buffer, renderer, camPosition, true)
+                    drawGizmos(world,buffer, renderer, camPosition, true)
                     val strength = max(ssao.strength, 0.01f)
                     val ssao = ScreenSpaceAmbientOcclusion.compute(
                         buffer, deferred, cameraMatrix,
@@ -554,7 +556,7 @@ class RenderView(
                 }
                 RenderMode.SS_REFLECTIONS -> {
                     drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
-                    drawGizmos(buffer, renderer, camPosition, true)
+                    drawGizmos(world,buffer, renderer, camPosition, true)
                     val lightBuffer = lightBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
@@ -585,7 +587,7 @@ class RenderView(
                 RenderMode.ALL_DEFERRED_BUFFERS -> {
 
                     drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
-                    drawGizmos(buffer, renderer, camPosition, true)
+                    drawGizmos(world,buffer, renderer, camPosition, true)
 
                     val lightBuffer = lightBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
@@ -647,7 +649,7 @@ class RenderView(
                         val layerRenderer = attributeRenderers[layer]!!
 
                         drawScene(tw, th, camera0, camera1, blending, layerRenderer, tmp, false, !useDeferredRendering)
-                        drawGizmos(tmp, renderer, camPosition, true)
+                        drawGizmos(world,tmp, renderer, camPosition, true)
 
                         val texture = tmp.getTexture0()
                         // y flipped, because it would be incorrect otherwise
@@ -665,7 +667,7 @@ class RenderView(
 
                     if (renderer != DeferredRenderer) {
                         drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
-                        drawGizmos(buffer, renderer, camPosition, true)
+                        drawGizmos(world,buffer, renderer, camPosition, true)
                         drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
                         return
                     }
@@ -724,7 +726,7 @@ class RenderView(
                             // todo use msaa for gizmos
                             // or use anti-aliasing, that works on color edges
                             // and supports lines
-                            drawGizmos(camPosition, true)
+                            drawGizmos(world,camPosition, true)
                             drawSelected()
                         }
 
@@ -752,7 +754,7 @@ class RenderView(
 
                             }
 
-                            drawGizmos(camPosition, true)
+                            drawGizmos(world,camPosition, true)
                             drawSelected()
 
                         }
@@ -833,18 +835,19 @@ class RenderView(
         val px2 = px.toInt() - x
         val py2 = py.toInt() - y
 
+        val world = getWorld()
+
         val ids = Screenshots.getPixels(diameter, px2, py2, buffer, idRenderer) {
             drawScene(w, h, camera, camera, 0f, idRenderer, buffer, changeSize = false, true)
-            drawGizmos(camPosition, false)
+            drawGizmos(world,camPosition, false)
         }
 
         val depths = Screenshots.getPixels(diameter, px2, py2, buffer, depthRenderer) {
             drawScene(w, h, camera, camera, 0f, depthRenderer, buffer, changeSize = false, true)
-            drawGizmos(camPosition, false)
+            drawGizmos(world,camPosition, false)
         }
 
         val clickedId = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
-        val world = getWorld()
         val clicked = if (clickedId == 0 || world !is Entity) null
         else pipeline.findDrawnSubject(clickedId, world)
         // LOGGER.info("$clickedId -> $clicked")
@@ -1063,6 +1066,7 @@ class RenderView(
 
         val isDeferred = dst.numTextures > 1
         val specialClear = isDeferred && renderer === DeferredRenderer
+        val world = getWorld()
 
         val preDrawDepth = renderMode == RenderMode.WITH_PRE_DRAW_DEPTH
         if (preDrawDepth) {
@@ -1104,11 +1108,11 @@ class RenderView(
             if (doDrawGizmos) {
                 if (!renderer.isFakeColor && !isFinalRendering) {
                     useFrame(w, h, changeSize, dst, simpleNormalRenderer) {
-                        drawGizmos(camPosition, true)
+                        drawGizmos(world, camPosition, true)
                         drawSelected()
                     }
                 } else if (renderer == idRenderer || renderer == idRendererVis) {
-                    drawGizmos(camPosition, false)
+                    drawGizmos(world, camPosition, false)
                 }
             }
 
@@ -1129,7 +1133,7 @@ class RenderView(
             for (selected in library.fineSelection) {
                 when (selected) {
                     is Entity -> drawOutline(selected, worldScale)
-                    is MeshBaseComponent -> {
+                    is MeshComponentBase -> {
                         val mesh = selected.getMesh() ?: continue
                         drawOutline(selected, mesh, worldScale)
                     }
@@ -1164,17 +1168,18 @@ class RenderView(
     }
 
     private fun drawGizmos(
+        world: PrefabSaveable?,
         framebuffer: IFramebuffer,
         renderer: Renderer,
         camPosition: Vector3d,
         drawGridLines: Boolean
     ) {
         useFrame(framebuffer, renderer) {
-            drawGizmos(camPosition, drawGridLines)
+            drawGizmos(world, camPosition, drawGridLines)
         }
     }
 
-    private fun drawGizmos(camPosition: Vector3d, drawGridLines: Boolean) {
+    fun drawGizmos(world: PrefabSaveable?, camPosition: Vector3d, drawGridLines: Boolean) {
 
         if (playMode != PlayMode.EDITING) return
 
@@ -1198,8 +1203,6 @@ class RenderView(
 
                 var clickId = entityBaseClickId
                 //val scaleV = JomlPools.vec3d.create()
-
-                val world = getWorld()
 
                 // much faster than depthTraversal, because we only need visible elements anyways
                 if (world != null) pipeline.traverse(world) { entity ->
@@ -1232,12 +1235,12 @@ class RenderView(
                     val components = entity.components
                     for (i in components.indices) {
                         val component = components[i]
-                        if (component.isEnabled && component !is MeshBaseComponent) {
+                        if (component.isEnabled && component !is MeshComponentBase) {
                             // mesh components already got their id
                             val componentClickId = clickId++
                             component.clickId = componentClickId
                             GFX.drawnId = componentClickId
-                            component.onDrawGUI()
+                            component.onDrawGUI(component.isSelectedIndirectly)
                         }
                     }
 
@@ -1256,7 +1259,7 @@ class RenderView(
                 // JomlPools.vec3d.sub(1)
 
                 if (drawGridLines) {
-                    drawGrid(radius, worldScale)
+                    drawGrid(radius)
                 }
 
                 DebugRendering.drawDebug(this)

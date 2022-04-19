@@ -6,7 +6,7 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
@@ -16,15 +16,17 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
+import me.anno.studio.StudioBase
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
+import me.anno.ui.dragging.Draggable
+import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.utils.hpc.SyncMaster
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
@@ -72,7 +74,7 @@ class ECSSceneTab(
     fun resetCamera(root: PrefabSaveable) {
         rotation.set(-20.0, 0.0, 0.0)
         when (root) {
-            is MeshBaseComponent -> {
+            is MeshComponentBase -> {
                 val mesh = root.getMesh() ?: return
                 resetCamera(mesh)
             }
@@ -200,6 +202,20 @@ class ECSSceneTab(
         super.tickUpdate()
         backgroundColor = if (ECSSceneTabs.currentTab == this) 0xff777777.toInt()
         else originalBGColor
+    }
+
+    override fun onCopyRequested(x: Float, y: Float) = file
+
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        return when(action){
+            "DragStart" -> {
+                val title = file.nameWithoutExtension
+                val stringContent = file.absolutePath
+                StudioBase.dragged = Draggable(stringContent, "File", file, title, style)
+                true
+            }
+            else -> super.onGotAction(x, y, dx, dy, action, isContinuous)
+        }
     }
 
     fun save() {

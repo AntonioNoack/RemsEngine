@@ -5,7 +5,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
-import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.ComponentUI
@@ -54,7 +53,7 @@ class PrefabInspector(val prefab: Prefab) {
     val reference get() = prefab.source
 
     constructor(reference: FileReference, classNameIfNull: String) :
-            this(getPrefab(reference) ?: Prefab(classNameIfNull, reference).apply {
+            this(PrefabCache[reference] ?: Prefab(classNameIfNull, reference).apply {
                 LOGGER.warn("Had to create Prefab for $reference, could not load prefab")
             })
 
@@ -375,11 +374,10 @@ class PrefabInspector(val prefab: Prefab) {
         } else true
     }
 
-    fun addEntityChild(parent: Entity, prefab: Prefab) {
+    fun addChild2(parent: Entity, type: Char, prefab: Prefab) {
         if (!checkDependencies(parent, prefab.source)) return
-        if (prefab.clazzName != "Entity") throw IllegalArgumentException("Type must be Entity!")
         val path = parent.prefabPath!!
-        prefab.add(path, 'e', prefab.clazzName, prefab.clazzName, prefab.source)
+        this.prefab.add(path, type, prefab.clazzName, Path.generateRandomId(), prefab.source)
     }
 
     fun save() {

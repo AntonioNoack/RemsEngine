@@ -17,11 +17,6 @@ open class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
     operator fun get(ref: FileReference?) = get(ref, false)
     operator fun get(ref: FileReference?, default: V) = get(ref, false) ?: default
 
-    fun getPrefab(ref: FileReference?, depth: Int, async: Boolean): Prefab? {
-        if (ref == null || ref == InvalidRef) return null
-        return PrefabCache.getPrefab(ref, depth, async)
-    }
-
     open operator fun get(ref: FileReference?, async: Boolean): V? {
         if (ref == null || ref == InvalidRef) return null
         val instance = getPrefabInstance(ref, maxPrefabDepth, async) ?: return null

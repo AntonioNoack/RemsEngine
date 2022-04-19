@@ -78,7 +78,7 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
 
     abstract fun createConstraint(a: RigidBody, b: RigidBody, ta: Transform, tb: Transform): TypedConstraint
 
-    override fun onDrawGUI() {
+    override fun onDrawGUI(all: Boolean) {
         LineShapes.drawPoint(entity, selfPosition, 1.0)
         LineShapes.drawPoint(other?.entity ?: entity, otherPosition, 1.0)
     }

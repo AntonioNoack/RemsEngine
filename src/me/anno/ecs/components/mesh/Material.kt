@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache.getPrefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
@@ -74,18 +74,21 @@ class Material : PrefabSaveable() {
     @Range(0.0, 100.0)
     @Type("Color3HDR")
     var emissiveBase = Vector3f(0f)
+
     @Type("Texture/Reference")
     var emissiveMap: FileReference = InvalidRef
 
     // mix(min,max,value(uv)) or 1 if undefined)
     @Range(0.0, 1.0)
     var roughnessMinMax = Vector2f(0f, 1f)
+
     @Type("Texture/Reference")
     var roughnessMap: FileReference = InvalidRef
 
     // mix(min,max,map(uv)) or 1 if undefined)
     @Range(0.0, 1.0)
     var metallicMinMax = Vector2f(0f, 0f)
+
     @Type("Texture/Reference")
     var metallicMap: FileReference = InvalidRef
 
@@ -95,6 +98,7 @@ class Material : PrefabSaveable() {
     // light *= 1-(1-map(uv)) * strength
     @Range(0.0, 100.0)
     var occlusionStrength = 1f
+
     @Type("Texture/Reference")
     var occlusionMap: FileReference = InvalidRef
 
@@ -304,7 +308,7 @@ class Material : PrefabSaveable() {
         @JvmStatic
         fun main(args: Array<String>) {
             ECSRegistry.initNoGFX()
-            val prefab = getPrefab(OS.documents.getChild("cube bricks.glb"))!!
+            val prefab = PrefabCache[OS.documents.getChild("cube bricks.glb")]!!
             for (change in prefab.adds) {
                 LOGGER.info(change)
             }

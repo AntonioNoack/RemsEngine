@@ -3,6 +3,7 @@ package me.anno.io.yaml
 import me.anno.io.yaml.YAMLReader.listKey
 import me.anno.io.yaml.YAMLReader.parseYAMLxJSON
 import me.anno.utils.Color.rgba
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -149,8 +150,30 @@ class YAMLNode(
                 }
             }
         }
-        return if (abs(x - 1) > significance || abs(y - 1) > significance || abs(z - 1) > significance) {
+        return if (abs(x - 1) + abs(y - 1) + abs(z - 1) > significance) {
             Vector3d(x, y, z)
+        } else null
+    }
+
+    fun getQuaternion(significance: Double): Quaterniond? {
+        val str = value ?: return null
+        var x = 0.0
+        var y = 0.0
+        var z = 0.0
+        var w = 1.0
+        parseYAMLxJSON(str) { key, value ->
+            val parsed = value.toDoubleOrNull()
+            if (parsed != null) {
+                when (key) {
+                    "r", "x" -> x = parsed
+                    "g", "y" -> y = parsed
+                    "b", "z" -> z = parsed
+                    "w" -> w = parsed
+                }
+            }
+        }
+        return if (abs(x) + abs(y) + abs(z) + abs(w - 1.0) > significance) {
+            Quaterniond(x, y, z, w)
         } else null
     }
 

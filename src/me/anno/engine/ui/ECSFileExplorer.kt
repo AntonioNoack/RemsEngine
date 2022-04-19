@@ -2,7 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache.getPrefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.RemsEngine
 import me.anno.engine.scene.ScenePrefab
@@ -43,7 +43,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
 
     override fun onDoubleClick(file: FileReference) {
         // open the file
-        val prefab = getPrefab(file)
+        val prefab = PrefabCache[file]
         if (prefab != null) {
             prefab.source = file
             ECSSceneTabs.open(syncMaster, prefab, PlayMode.EDITING)
@@ -126,19 +126,19 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
     fun replaceReferences(prefabs: HashMap<FileReference, Prefab>) {
         // replace all local references, so we can change the properties of everything:
         for ((_, prefab) in prefabs) {
-            val original = getPrefab(prefab.prefab)!!
+            val original = PrefabCache[prefab.prefab]!!
             original.sets.forEach { k1, k2, v ->
                 when {
                     v is FileReference && v != InvalidRef -> {
                         val replacement = prefabs[v]
                         if (replacement != null) {
-                            prefab.set(k1, k2, replacement.source)
+                            prefab[k1, k2] = replacement.source
                         }
                     }
                     v is List<*> && v.any { it is FileReference && it != InvalidRef } -> {
                         // e.g. materials
                         val replacement = v.map { prefabs[it]?.source ?: it }
-                        prefab.set(k1, k2, replacement)
+                        prefab[k1, k2] = replacement
                     }
                 }
             }
@@ -166,7 +166,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
 
                 // it may not be necessarily a prefab, it could be a saveable
                 val prefab = try {
-                    getPrefab(srcFile)
+                    PrefabCache[srcFile]
                 } catch (e: Exception) {
                     e.printStackTrace()
                     null

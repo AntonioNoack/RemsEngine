@@ -110,8 +110,8 @@ class EnvironmentMap : LightComponentBase() {
         return true
     }
 
-    override fun onDrawGUI() {
-        if (isSelectedIndirectly) {
+    override fun onDrawGUI(all: Boolean) {
+        if (all) {
             drawBox(entity)
             drawCross(entity, crossExtends)
         }

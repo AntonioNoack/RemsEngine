@@ -4,7 +4,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.mesh.assimp.AnimationFrame
 import me.anno.maths.Maths.min
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f

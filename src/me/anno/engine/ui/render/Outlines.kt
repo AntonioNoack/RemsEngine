@@ -2,7 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.gpu.OpenGL
 import me.anno.gpu.pipeline.CullMode
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
@@ -13,7 +13,6 @@ import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
 import me.anno.utils.types.AABBs.avgZ
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBf
 import org.joml.Matrix4d
 
 object Outlines {
@@ -35,14 +34,14 @@ object Outlines {
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
-            if (component is MeshBaseComponent) {
+            if (component is MeshComponentBase) {
                 val mesh = component.getMesh() ?: continue
                 drawOutline(component, mesh, worldScale)
             }
         }
     }
 
-    fun drawOutline(meshComponent: MeshBaseComponent, mesh: Mesh, worldScale: Double) {
+    fun drawOutline(meshComponent: MeshComponentBase, mesh: Mesh, worldScale: Double) {
 
         // todo respect alpha somehow?
 

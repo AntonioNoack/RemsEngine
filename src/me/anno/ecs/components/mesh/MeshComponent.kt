@@ -23,7 +23,7 @@ import me.anno.io.serialization.SerializedProperty
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
-open class MeshComponent() : MeshBaseComponent() {
+open class MeshComponent() : MeshComponentBase() {
 
     constructor(mesh: FileReference) : this() {
         this.mesh = mesh

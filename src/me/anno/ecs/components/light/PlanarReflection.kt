@@ -205,8 +205,8 @@ class PlanarReflection : LightComponentBase() {
         return aabb
     }
 
-    override fun onDrawGUI() {
-        if (isSelectedIndirectly) {
+    override fun onDrawGUI(all: Boolean) {
+        if (all) {
             drawXYPlane(entity, 0.0)
             drawXYPlane(entity, 1.0)
             drawArrowZ(entity, 1.0, 0.0)

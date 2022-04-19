@@ -1,7 +1,7 @@
 package me.anno.ecs.prefab.change
 
 import me.anno.Build
-import me.anno.ecs.prefab.PrefabCache.getPrefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -10,7 +10,6 @@ import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
-import org.apache.logging.log4j.LogManager
 
 class CAdd() : Change() {
 
@@ -95,7 +94,7 @@ class CAdd() : Change() {
         // LOGGER.info("adding $clazzName/$nameId with type $type to $path; to ${instance.prefabPath}, ${path == instance.prefabPath}")
         if (prefab != InvalidRef && depth < 0) throw RuntimeException("Circular reference on $prefab")
 
-        val loadedInstance = getPrefab(prefab, depth)?.createInstance()
+        val loadedInstance = PrefabCache[prefab, depth]?.createInstance()
         val clazzName = clazzName
         var newInstance = loadedInstance
         if (newInstance == null) {

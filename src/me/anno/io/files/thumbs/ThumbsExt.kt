@@ -3,7 +3,7 @@ package me.anno.io.files.thumbs
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.buffer.LineBuffer
@@ -22,7 +22,7 @@ object ThumbsExt {
 
     fun Mesh.drawAssimp(
         stack: Matrix4f,
-        comp: MeshBaseComponent?,
+        comp: MeshComponentBase?,
         useMaterials: Boolean,
         centerMesh: Boolean,
         normalizeScale: Boolean
@@ -104,11 +104,15 @@ object ThumbsExt {
 
     }
 
-    fun finishLines(cameraMatrix: Matrix4f, worldMatrix: Matrix4x3f?) {
-        val m = JomlPools.mat4f.create().set(cameraMatrix)
-        if (worldMatrix != null) m.mul(worldMatrix)
-        LineBuffer.finish(m)
-        JomlPools.mat4f.sub(1)
+    fun finishLines(cameraMatrix: Matrix4f, worldMatrix: Matrix4x3f?): Boolean {
+        return if (LineBuffer.bytes.position() > 0) {
+            val m = JomlPools.mat4f.create()
+            m.set(cameraMatrix)
+            if (worldMatrix != null) m.mul(worldMatrix)
+            LineBuffer.finish(m)
+            JomlPools.mat4f.sub(1)
+            true
+        } else false
     }
 
 }

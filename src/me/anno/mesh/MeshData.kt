@@ -2,14 +2,13 @@ package me.anno.mesh
 
 import me.anno.cache.data.ICacheData
 import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.SkeletonCache
-import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
@@ -71,6 +70,13 @@ open class MeshData : ICacheData {
 
         transformUniform(shader, cameraMatrix)
 
+        // for GUI functions that use the camera matrix
+        RenderView.worldScale = 1.0
+        RenderView.camPosition.set(0.0)
+        RenderView.camDirection.set(0.0, 0.0, -1.0) // not correct, but approx. correct
+        RenderView.cameraMatrix.set(cameraMatrix)
+        RenderView.currentInstance = null
+
         drawHierarchy(
             shader,
             cameraMatrix,
@@ -116,14 +122,15 @@ open class MeshData : ICacheData {
             )
         )
 
-        if (entity.hasComponent(MeshBaseComponent::class)) {
+        if (entity.hasComponent(MeshComponentBase::class)) {
 
+            shader.use()
             shader.m4x3("localTransform", stack)
             shader.v1f("worldScale", 1f) // correct?
             GFX.shaderColor(shader, "tint", -1)
 
             if (useMaterials) {
-                entity.anyComponent(MeshBaseComponent::class) { comp ->
+                entity.anyComponent(MeshComponentBase::class) { comp ->
                     val mesh = comp.getMesh()
                     if (mesh?.positions != null) {
                         mesh.checkCompleteness()
@@ -145,7 +152,7 @@ open class MeshData : ICacheData {
             } else {
                 val material = defaultMaterial
                 material.defineShader(shader)
-                entity.anyComponent(MeshBaseComponent::class) { comp ->
+                entity.anyComponent(MeshComponentBase::class) { comp ->
                     val mesh = comp.getMesh()
                     if (mesh?.positions != null) {
                         mesh.checkCompleteness()
@@ -160,13 +167,13 @@ open class MeshData : ICacheData {
             }
         }
 
-        if (entity.sumComponents(Collider::class) { collider ->
-                collider.drawShape(); 1
-            } > 0) {
-            ThumbsExt.finishLines(cameraMatrix, stack)
-            // switch back to default shader
-            shader.use()
+        val components = entity.components
+        for (index in components.indices) {
+            val component = components[index]
+            component.onDrawGUI(true)
         }
+
+        ThumbsExt.finishLines(cameraMatrix, null)
 
         if (drawSkeletons) {
             val animMeshRenderer = entity.getComponent(AnimRenderer::class, false)
@@ -192,10 +199,10 @@ open class MeshData : ICacheData {
 
     companion object {
         private val LOGGER = LogManager.getLogger(MeshData::class)
-        fun warnMissingMesh(comp: MeshBaseComponent, mesh: Mesh?) {
-            if(mesh == null){
+        fun warnMissingMesh(comp: MeshComponentBase, mesh: Mesh?) {
+            if (mesh == null) {
                 if (comp is MeshComponent) {
-                    if(comp.mesh == InvalidRef){
+                    if (comp.mesh == InvalidRef) {
                         LOGGER.warn("MeshComponent '${comp.name}' is missing path (${comp.mesh})")
                     } else {
                         LOGGER.warn("Mesh '${comp.name}'/'${comp.mesh}' is missing from MeshComponent")

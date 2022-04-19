@@ -6,7 +6,7 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.LightComponentBase
-import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.ui.UIEvent
@@ -604,14 +604,14 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     fun onChangeComponent(component: Component) {
-        hasRenderables = hasComponent(MeshBaseComponent::class, false) ||
+        hasRenderables = hasComponent(MeshComponentBase::class, false) ||
                 hasComponent(LightComponentBase::class, false)
         val tmpAABB = JomlPools.aabbd.create().all()
         val fillsSpace = component.fillSpace(transform.globalTransform, tmpAABB)
         if (fillsSpace) invalidateOwnAABB()
         hasSpaceFillingComponents = hasRenderables ||
                 anyComponent {
-                    it !is MeshBaseComponent && it !is LightComponentBase &&
+                    it !is MeshComponentBase && it !is LightComponentBase &&
                             it.fillSpace(transform.globalTransform, tmpAABB)
                 }
         JomlPools.aabbd.sub(1)

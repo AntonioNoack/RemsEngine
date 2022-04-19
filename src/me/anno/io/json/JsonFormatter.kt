@@ -2,6 +2,8 @@ package me.anno.io.json
 
 object JsonFormatter {
 
+    fun format(sth: Any?) = format(sth.toString())
+
     @Throws(IndexOutOfBoundsException::class)
     fun format(str: String, indentation: String = "  ", lineBreakLength: Int = 10): String {
 

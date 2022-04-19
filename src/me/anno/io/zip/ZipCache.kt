@@ -4,9 +4,11 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.instances.PDFCache
 import me.anno.config.DefaultConfig
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.image.ImageReader
 import me.anno.image.gimp.GimpImage
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFile7z.Companion.createZipRegistry7z
@@ -21,6 +23,7 @@ import me.anno.mesh.obj.MTLReader2
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 
 object ZipCache : CacheSection("ZipCache") {
 
@@ -73,7 +76,7 @@ object ZipCache : CacheSection("ZipCache") {
         // pdf documents
         register("pdf", PDFCache::readAsFolder)
         // meshes
-        // todo all mesh extensions
+        // to do all mesh extensions
         register(listOf("fbx", "gltf", "dae", "draco", "md2", "md5mesh"), AnimatedMeshesLoader::readAsFolder)
         register("blend", BlenderReader::readAsFolder)
         register("obj", OBJReader2::readAsFolder)
@@ -83,13 +86,16 @@ object ZipCache : CacheSection("ZipCache") {
         // cannot be read by assimp anyways
         // registerFileExtension("max", AnimatedMeshesLoader::readAsFolder) // 3ds max file, idk about it's file signature
         // images
-        // todo all image formats
+        // to do all image formats
         val imageFormats = listOf("png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds", "gif", "exr")
         register(imageFormats, ImageReader::readAsFolder)
         register("gimp", GimpImage::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos
         // register yaml generally for unity files?
-        registerFileExtension(UnityReader.unityExtensions) { UnityReader.readAsFolder(it) as InnerFolder }
+        registerFileExtension(UnityReader.unityExtensions) {
+            UnityReader.readAsFolder(it) as? InnerFolder
+                ?: throw IOException("$it cannot be read as Unity project")
+        }
     }
 
     fun unzipMaybe(file: FileReference): InnerFolder? {
@@ -107,7 +113,7 @@ object ZipCache : CacheSection("ZipCache") {
                 try {
                     val reader = readerBySignature[signature] ?: readerBySignature[ext] ?: readerByFileExtension[ext]
                     val folder = if (reader != null) reader(file1) else createZipRegistryV2(file1)
-                    if(file1 is InnerFile) file1.folder = folder
+                    if (file1 is InnerFile) file1.folder = folder
                     folder
                 } catch (e: Exception) {
                     e.printStackTrace()

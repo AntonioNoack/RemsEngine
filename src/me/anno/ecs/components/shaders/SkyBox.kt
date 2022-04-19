@@ -2,7 +2,7 @@ package me.anno.ecs.components.shaders
 
 import me.anno.ecs.Component
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSMeshShader
@@ -20,7 +20,7 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3f
 
-class SkyBox : MeshBaseComponent() {
+class SkyBox : MeshComponentBase() {
 
     // todo override raytracing for clicking: if ray goes far enough, let it click us
 

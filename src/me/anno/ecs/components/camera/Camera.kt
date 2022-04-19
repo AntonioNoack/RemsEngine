@@ -63,7 +63,7 @@ class Camera : Component() {
         return clone
     }
 
-    override fun onDrawGUI() {
+    override fun onDrawGUI(all: Boolean) {
         // todo draw camera symbol with all the properties
         LineShapes.drawArrowZ(entity, 0.0, 1.0) // not showing up?
     }

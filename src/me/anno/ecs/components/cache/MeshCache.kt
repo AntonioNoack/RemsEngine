@@ -2,7 +2,7 @@ package me.anno.ecs.components.cache
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache
@@ -21,9 +21,9 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
         return when (instance) {
             is Mesh -> instance
             is MeshComponent -> getMesh(instance, ref, async)
-            is MeshBaseComponent -> instance.getMesh()
+            is MeshComponentBase -> instance.getMesh()
             is Entity -> {
-                val comp = instance.getComponentInChildren(MeshBaseComponent::class, false)
+                val comp = instance.getComponentInChildren(MeshComponentBase::class, false)
                 if (comp is MeshComponent) getMesh(comp, ref, async)
                 else comp?.getMesh()
             }

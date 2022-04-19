@@ -2,13 +2,17 @@ package me.anno.engine.ui.control
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.prefab.Hierarchy
-import me.anno.ecs.prefab.PrefabCache.getPrefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
@@ -26,6 +30,7 @@ import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.pow
+import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.sceneView.Gizmos
@@ -46,15 +51,13 @@ import org.joml.Vector3f
 // todo translate, rotate, scale with gizmos
 // todo gizmos & movement for properties with @PositionAnnotation
 
-// todo gui depth doesn't match scene depth.. why?
-
 // todo advanced snapping
 // todo mode to place it on top of things using mesh bounds
 // todo xyz keys to rotate 90° on that axis
 // todo shift for dynamic angles
 // automatically attach it to that object, that is being targeted? mmh.. no, use the selection for that
 
-// todo draw the gizmos
+// done draw the gizmos
 
 // todo shift to activate g/s/r-number control modes for exact scaling? mmh..
 
@@ -90,8 +93,87 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         add(topLeft)
     }
 
+    override fun tickUpdate() {
+        super.tickUpdate()
+        if (dragged != null) invalidateDrawing() // might be displayable
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
+        val dragged = dragged
+        if (dragged != null) {
+            // if something is dragged, draw it as a preview
+            if (dragged.getContentType() == "File") {
+                val original = dragged.getOriginal()
+                val files = if (original is FileReference) listOf(original)
+                else (original as List<*>).filterIsInstance<FileReference>()
+                val pos = JomlPools.vec3d.create()
+                for (file in files) {
+
+                    // to do another solution would be to add it temporarily to the hierarchy, and remove it if it is cancelled
+
+                    val prefab = PrefabCache[file] ?: continue
+                    // sdf component, mesh component, light components and colliders would be fine as well
+                    val sample = prefab.getSampleInstance() as? Entity ?: continue
+
+                    // find where to draw it
+                    findDropPosition(file, pos)
+
+                    // draw it
+                    val stack = RenderView.stack
+                    stack.set(RenderView.cameraMatrix)
+                    stack.translate(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())
+                    val rot0 = sample.transform.localRotation
+                    stack.rotate(rot0.x.toFloat(), rot0.y.toFloat(), rot0.z.toFloat(), rot0.w.toFloat())
+                    val sca0 = sample.transform.localPosition
+                    stack.scale(sca0.x.toFloat(), sca0.y.toFloat(), sca0.z.toFloat())
+
+                    // todo how can we use the same depth as the scene?
+
+                    fun draw(entity: Entity) {
+                        for (component in entity.components) {
+                            if (component.isEnabled) when (component) {
+                                is MeshComponentBase -> {
+                                    // todo draw
+                                    val mesh = component.getMesh()
+                                    if (mesh != null) {
+                                        for (i in 0 until mesh.numMaterials) {
+                                            val material = MaterialCache[component.materials.getOrNull(i)]
+                                                ?: MaterialCache[mesh.materials.getOrNull(i)] ?: defaultMaterial
+                                        }
+                                    }
+                                }
+                                is LightComponentBase -> {
+                                    // todo draw... how?
+                                    // would need to be integrated in the scene...
+
+                                }
+                            }
+                        }
+                        for (child in entity.children) {
+                            if (child.isEnabled) {
+                                stack.pushMatrix()
+                                val transform = child.transform
+                                val pos1 = transform.localPosition
+                                stack.translate(pos1.x.toFloat(), pos1.y.toFloat(), pos1.z.toFloat())
+                                val rot1 = transform.localRotation
+                                stack.rotate(rot1.x.toFloat(), rot1.y.toFloat(), rot1.z.toFloat(), rot1.w.toFloat())
+                                val sca1 = transform.localScale
+                                stack.scale(sca1.x.toFloat(), sca1.y.toFloat(), sca1.z.toFloat())
+                                draw(child)
+                                stack.popMatrix()
+                            }
+                        }
+                    }
+
+                    draw(sample)
+
+                    // draw its gui
+                    view.drawGizmos(sample, RenderView.camPosition, false)
+                }
+                JomlPools.vec3d.sub(1)
+            }
+        }
         // show the mode
         drawSimpleTextCharByChar(
             x, y, 2, when (mode) {
@@ -111,7 +193,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         }
     }
 
-    private fun drawGizmos2(){
+    private fun drawGizmos2() {
         for (selected0 in EditorState.selection) {
             var selected: PrefabSaveable? = selected0 as? PrefabSaveable
             while (selected != null && selected !is Entity) {
@@ -384,9 +466,9 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         val prefab = root.prefab
         val path = entity.prefabPath
         if (prefab != null && path != null) {
-            prefab.set(path, "position", entity.position)
-            prefab.set(path, "rotation", entity.rotation)
-            prefab.set(path, "scale", entity.scale)
+            prefab[path, "position"] = entity.position
+            prefab[path, "rotation"] = entity.rotation
+            prefab[path, "scale"] = entity.scale
         }
         // entity.invalidateAABBsCompletely()
         // entity.invalidateChildTransforms()
@@ -402,7 +484,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         for (file in files) {
             // todo load as prefab (?)
             // todo when a material, assign it to the hovered mesh-component
-            val prefab = getPrefab(file) ?: continue
+            val prefab = PrefabCache[file] ?: continue
             when (prefab.getSampleInstance()) {
                 is Material -> {
                     val meshComponent = hovComponent as? MeshComponent
@@ -437,15 +519,16 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                     // where? selected / root
                     // todo while dragging this, show preview
                     // todo place it where the preview was drawn
-                    val root = library.selection.firstInstanceOrNull<PrefabSaveable>() ?: view.getWorld()
-                    if (root is Entity) PrefabInspector.currentInspector!!.addEntityChild(root, prefab)
+                    val root = library.selection.firstInstanceOrNull<Entity>() ?: view.getWorld()
+                    if (root is Entity) PrefabInspector.currentInspector!!.addChild2(root, 'e', prefab)
+                    else LOGGER.warn("Could not drop $file onto ${root?.className}")
                 }
                 /*is SDFComponent -> {
                     // todo add this...
                 }*/
                 is Component -> {
                     if (hovEntity != null) {
-                        PrefabInspector.currentInspector!!.addEntityChild(hovEntity, prefab)
+                        PrefabInspector.currentInspector!!.addChild2(hovEntity, 'c', prefab)
                     }
                 }
                 // todo general listener in the components, which listens for drag events? they could be useful for custom stuff...
@@ -456,6 +539,18 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
             }
             LOGGER.info("pasted $file")
         }
+    }
+
+    // todo use this for the preview
+    fun findDropPosition(drop: FileReference, dst: Vector3d): Vector3d? {
+        val prefab = PrefabCache[drop] ?: return null
+        val sample = prefab.getSampleInstance() as? Entity ?: return null
+        // todo depending on mode, use other strategies to find zero-point on object
+        // todo use mouse wheel to change height? maybe...
+        // todo depending on settings, we also can use snapping
+        val distance = view.radius
+        // todo camDirection will only be correct, if this was the last drawn instance
+        return dst.set(RenderView.mouseDir).mul(distance).add(RenderView.camPosition)
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

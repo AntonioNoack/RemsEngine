@@ -275,10 +275,9 @@ abstract class Collider : CollidingComponent() {
     abstract fun createBulletShape(scale: Vector3d): CollisionShape
 
     // a collider needs to be drawn
-    override fun onDrawGUI() {
-        if (isSelectedIndirectly) {
-            drawShape()
-        }
+    override fun onDrawGUI(all: Boolean) {
+        // println("onDrawGUI on collider, $isSelectedIndirectly")
+        if (all) drawShape()
         // todo draw transformation gizmos for easy collider manipulation
     }
 

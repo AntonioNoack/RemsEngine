@@ -13,6 +13,17 @@ import java.nio.ByteOrder
 
 object UnrealReader {
 
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val ref = getReference(
+            "" +
+                    "E:/Assets/Polygon_Office_Unreal_4_22_01.zip/" +
+                    "PolygonOffice/Content/PolygonOffice/Meshes/Generic/" +
+                    "SM_Generic_Cloud_01.uasset"
+        )
+        ref.inputStream().use { read(it) }
+    }
+
     fun read(input: InputStream) {
         read(
             ByteBuffer.wrap(input.readBytes())
@@ -20,7 +31,68 @@ object UnrealReader {
         )
     }
 
+    val packageFileTag = 0x9E2A83C1.toInt()
+
+    fun readPackageSummary(buffer: ByteBuffer) {
+        val tag = buffer.int
+        assert(tag, MAGIC)
+        val legacyFileVersion = buffer.int
+        var currentLegacyFileVersion = -8
+        if (legacyFileVersion < 0) {
+            // modern version numbers
+            if (legacyFileVersion < currentLegacyFileVersion) {
+                throw IllegalStateException("cannot safely load")
+            }
+            if (legacyFileVersion != -4) {
+                val legacyUE3Version = buffer.int
+            }
+            fileVersionUE4 = buffer.int
+            if (legacyFileVersion <= -8) {
+                fileVersionUE5 = buffer.int
+            }
+            // todo read license version
+            val customVersionContainer =
+                if (legacyFileVersion <= -2) readArray { readCustomVersion() } else emptyArray()
+            if(fileVersionUE4 == 0 && fileVersionUE5 == 0 && fileVersionLicensee == 0){
+                unversioned = true
+                fileVersionUE = 0 // todo Ar.Ver
+                fileVersionLicensee // ...
+            } else {
+                unversioned = false
+
+            }
+        } else throw RuntimeException("Legacy UE3 is not supported")
+
+        /*val totalHeaderSize = buffer.int
+        val folderName = readFString()
+        val packageFlags = readPackageFlags()
+
+        val nameCount = buffer.int
+        val nameOffset = buffer.int
+
+        if(!packageFlags.hasFlag())*/
+
+    }
+
+    var fileVersionUE4 = 0
+    var fileVersionUE5 = 0
+    var unversioned = false
+    var fileVersionUE = 0
+    var fileVersionLicensee = 0
+
+    fun <V> readArray(readElement: () -> V): Array<V> {
+        TODO()
+    }
+
+    fun readCustomVersion(){
+        TODO()
+    }
+
     fun read(buffer: ByteBuffer) {
+
+        // https://github.com/FabianFG/CUE4Parse/blob/1fc543a0434c8a2aa020443a377659fd4a908895/CUE4Parse/UE4/Assets/Package.cs
+        // https://github.com/FabianFG/CUE4Parse/blob/1fc543a0434c8a2aa020443a377659fd4a908895/CUE4Parse/UE4/Objects/UObject/FPackageFileSummary.cs#L32
+
         // http://wiki.xentax.com/index.php/Unreal_Engine_4_UASSET
         assert(buffer.int, MAGIC)
         val version = buffer.int xor 255
@@ -46,6 +118,7 @@ object UnrealReader {
         buffer.skip(12)
         buffer.skip(4)
         val filesDataOffset = buffer.int
+        println("name vs offset: ${buffer.position()} vs $nameDirOffset")
         val names = Array(numNames) {
             val length = buffer.int // including null
             println("length $it/$numNames: $length")
@@ -69,17 +142,6 @@ object UnrealReader {
         }*/
         buffer.skip(4) // padding
 
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val ref = getReference(
-            "" +
-                    "E:/Assets/Polygon_Office_Unreal_4_22_01.zip/" +
-                    "PolygonOffice/Content/PolygonOffice/Meshes/Generic/" +
-                    "SM_Generic_Cloud_01.uasset"
-        )
-        ref.inputStream().use { read(it) }
     }
 
     fun <V> assert(a: V, b: V) {

@@ -9,7 +9,7 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.LineShapes
@@ -26,10 +26,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.thirdF
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.sqrt
@@ -47,9 +44,18 @@ open class MeshCollider() : Collider() {
     var mesh: Mesh? = null
         get() {
             if (field == null) field = MeshCache[meshFile]
-            if (field == null) field = entity?.getComponentInChildren(MeshBaseComponent::class, false)?.getMesh()
+            if (field == null) field = entity?.getComponentInChildren(MeshComponentBase::class, false)?.getMesh()
             return field
         }
+
+    @DebugProperty
+    val meshTriangles get() = mesh?.numTriangles
+    @DebugProperty
+    val meshAABB get(): AABBf? {
+        val mesh = mesh
+        mesh?.ensureBuffer()
+        return mesh?.aabb
+    }
 
     @Type("MeshComponent/Reference")
     var meshFile: FileReference = InvalidRef
@@ -208,15 +214,15 @@ open class MeshCollider() : Collider() {
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
 
-        isValid = true
-
-        val mesh = mesh ?: return SphereShape(0.5)
+        val mesh = mesh ?: return defaultShape
 
         val positions = mesh.positions
         if (positions == null) {
             isValid = false
             return defaultShape
         }
+
+        isValid = true
 
         val indices = mesh.indices
 
@@ -311,14 +317,22 @@ open class MeshCollider() : Collider() {
         if (isConvex && hull != null) {
             val points = hull.vertexPointer
             val indices = hull.indexPointer
+            // yellow
+            val color = 0xffffaa or (255 shl 24)
             for (i in 0 until hull.numIndices() step 3) {
                 val a = points[indices[i]]
                 val b = points[indices[i + 1]]
                 val c = points[indices[i + 2]]
-                LineShapes.drawLine(entity, a, b)
-                LineShapes.drawLine(entity, b, c)
-                LineShapes.drawLine(entity, c, a)
+                LineShapes.drawLine(entity, a, b, color)
+                LineShapes.drawLine(entity, b, c, color)
+                LineShapes.drawLine(entity, c, a, color)
             }
+        }
+        mesh?.forEachTriangle { a, b, c ->
+            val color = -1
+            LineShapes.drawLine(entity, a, b, color)
+            LineShapes.drawLine(entity, b, c, color)
+            LineShapes.drawLine(entity, c, a, color)
         }
     }
 

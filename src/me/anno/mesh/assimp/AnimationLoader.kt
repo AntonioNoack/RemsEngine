@@ -1,10 +1,9 @@
 package me.anno.mesh.assimp
 
-import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
+import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.utils.search.BinarySearch.binarySearch
-import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -14,7 +13,7 @@ import kotlin.math.max
 
 object AnimationLoader {
 
-    private val LOGGER = LogManager.getLogger(AnimationLoader::class)
+    // private val LOGGER = LogManager.getLogger(AnimationLoader::class)
 
     private inline fun findIndex(count: Int, compare: (Int) -> Int): Int {
         if (count == 2) return 0

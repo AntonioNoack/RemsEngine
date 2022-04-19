@@ -1,7 +1,7 @@
 package me.anno.io.packer
 
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache.getPrefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.files.FileReference
 
 object ResourceFinder {
@@ -20,7 +20,7 @@ object ResourceFinder {
             if (ref is FileReference && ref.exists) {
                 if (result.add(ref)) {
                     // not done yet
-                    val refPrefab = getPrefab(ref)
+                    val refPrefab = PrefabCache[ref]
                     if (refPrefab != null && donePrefabs.add(refPrefab)) {
                         findResources(refPrefab, result, donePrefabs)
                     }

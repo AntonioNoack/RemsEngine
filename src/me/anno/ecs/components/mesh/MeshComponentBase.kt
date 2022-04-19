@@ -16,7 +16,7 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 
-abstract class MeshBaseComponent : CollidingComponent() {
+abstract class MeshComponentBase : CollidingComponent() {
 
     /**
      * whether a object will receive shadows from shadow-mapped lights;
@@ -110,7 +110,7 @@ abstract class MeshBaseComponent : CollidingComponent() {
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
-        clone as MeshBaseComponent
+        clone as MeshComponentBase
         clone.materials = materials // clone list?
         clone.castShadows = castShadows
         clone.receiveShadows = receiveShadows

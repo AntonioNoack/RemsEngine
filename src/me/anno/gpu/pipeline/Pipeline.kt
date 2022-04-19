@@ -87,7 +87,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         return defaultStage
     }
 
-    private fun addMesh(mesh: Mesh, renderer: MeshBaseComponent, entity: Entity, clickId: Int) {
+    private fun addMesh(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, clickId: Int) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         val materialOverrides = renderer.materials
@@ -100,11 +100,11 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         }
     }
 
-    private fun addMeshDepth(mesh: Mesh, renderer: MeshBaseComponent, entity: Entity) {
+    private fun addMeshDepth(mesh: Mesh, renderer: MeshComponentBase, entity: Entity) {
         defaultStage.add(renderer, mesh, entity, 0, 0)
     }
 
-    private fun addMeshInstanced(mesh: Mesh, renderer: MeshBaseComponent, entity: Entity, clickId: Int) {
+    private fun addMeshInstanced(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, clickId: Int) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         val materialOverrides = renderer.materials
@@ -176,7 +176,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         val clickId = 1
         when (rootElement) {
             is Entity -> fill(rootElement, cameraPosition, worldScale)
-            is MeshBaseComponent -> {
+            is MeshComponentBase -> {
                 val mesh = rootElement.getMesh()
                 if (mesh != null) addMesh(mesh, rootElement, sampleEntity, clickId)
             }
@@ -297,7 +297,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                             clickId = assignClickIds(component, clickId)
                         }
                     }
-                    is MeshBaseComponent -> {
+                    is MeshComponentBase -> {
                         val mesh = component.getMesh()
                         if (mesh != null) {
                             component.clickId = clickId
@@ -383,7 +383,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         for (i in components.indices) {
             val component = components[i]
             if (component.isEnabled && component !== ignoredComponent) {
-                if (component is MeshBaseComponent && component.castShadows) {
+                if (component is MeshComponentBase && component.castShadows) {
                     val mesh = component.getMesh()
                     if (mesh != null) {
                         if (component.isInstanced) {
@@ -416,7 +416,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             val c = components[i]
             if (c.isEnabled) {
                 // this probably should be more generic...
-                if (c is MeshBaseComponent || c is SDFComponent) {
+                if (c is MeshComponentBase || c is SDFComponent) {
                     // LOGGER.debug("[C] ${c.clickId.toString(16)} vs ${searchedId.toString(16)}")
                     if (c.clickId == searchedId) return c
                 }

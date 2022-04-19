@@ -34,7 +34,10 @@ abstract class Component : PrefabSaveable(), Inspectable {
     val transform
         get() = entity?.transform
 
-    val isSelectedIndirectly get() = entity?.anyInHierarchy { it == EditorState.lastSelection } == true
+    val isSelectedIndirectly
+        get() = this in EditorState.selection ||
+                this in EditorState.fineSelection ||
+                entity?.anyInHierarchy { it == EditorState.lastSelection } == true
 
     // can be overridden, e.g. for materials
     override fun listChildTypes(): String = ""
@@ -106,7 +109,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     override fun isDefaultValue(): Boolean = false
 
-    open fun onDrawGUI() {}
+    open fun onDrawGUI(all: Boolean) {}
 
     open fun onChangeProperty(name: String, value: Any?) {}
 

@@ -21,6 +21,21 @@ class Clock(
         firstTime = lastTime
     }
 
+    fun stop(wasUsedFor: () -> String) {
+        stop(wasUsedFor, minTime)
+    }
+
+    fun stop(wasUsedFor: () -> String, elementCount: Int) {
+        val time = System.nanoTime()
+        val dt0 = time - lastTime
+        val dt = dt0 * 1e-9
+        lastTime = time
+        if (dt > minTime) {
+            val nanosPerElement = dt0 / elementCount
+            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for ${wasUsedFor()}, ${nanosPerElement}ns/e")
+        }
+    }
+
     fun stop(wasUsedFor: String) {
         stop(wasUsedFor, minTime)
     }

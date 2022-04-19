@@ -15,7 +15,7 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import kotlin.math.log2
 
-class LODMeshComponent : MeshBaseComponent() {
+class LODMeshComponent : MeshComponentBase() {
 
     @Docs("Distance for LOD index 1")
     @Range(1e-150, 1e150)
