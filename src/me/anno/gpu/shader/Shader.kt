@@ -2,6 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.builder.Varying
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
@@ -13,7 +14,6 @@ import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
 open class Shader(
     shaderName: String,
     val geometry: String?,
-    val attributes: List<Variable>,
     val vsUniforms: List<Variable>,
     val vertex: String,
     val varying: List<Variable>,
@@ -22,12 +22,12 @@ open class Shader(
 ) : OpenGLShader(shaderName) {
 
     constructor(
-        shaderName: String, attributes: List<Variable>, vsUniforms: List<Variable>, vertex: String,
+        shaderName: String, vsUniforms: List<Variable>, vertex: String,
         varying: List<Variable>, fsUniforms: List<Variable>, fragment: String
-    ) : this(shaderName, null, attributes, vsUniforms, vertex, varying, fsUniforms, fragment)
+    ) : this(shaderName, null, vsUniforms, vertex, varying, fsUniforms, fragment)
 
     constructor(shaderName: String, geometry: String?, vertex: String, varying: List<Variable>, fragment: String) :
-            this(shaderName, geometry, emptyList(), emptyList(), vertex, varying, emptyList(), fragment)
+            this(shaderName, geometry, emptyList(), vertex, varying, emptyList(), fragment)
 
     constructor(shaderName: String, vertex: String, varying: List<Variable>, fragment: String) :
             this(shaderName, null, vertex, varying, fragment)
@@ -81,17 +81,20 @@ open class Shader(
         // todo only set them, if not already specified
         builder.append("precision mediump float;\n")
         builder.append("precision mediump int;\n")
-        for (v in attributes) {
-            builder.append(attribute)
-            builder.append(' ')
-            builder.append(v.type.glslName)
-            builder.append(' ')
-            builder.append(v.name)
-            builder.append(';')
-            builder.append('\n')
-        }
         for (v in vsUniforms) {
-            builder.append("uniform ")
+            when (v.inOutMode) {
+                VariableMode.ATTR -> {
+                    builder.append(attribute)
+                    builder.append(' ')
+                }
+                // todo inout...
+                VariableMode.IN, VariableMode.INOUT -> {
+                    builder.append("uniform ")
+                }
+                VariableMode.OUT -> {
+                    builder.append("out ")
+                }
+            }
             builder.append(v.type.glslName)
             builder.append(' ')
             builder.append(v.name)
@@ -104,8 +107,7 @@ open class Shader(
             builder.append(v.type.glslName)
             builder.append(' ')
             builder.append(v.vShaderName)
-            builder.append(';')
-            builder.append('\n')
+            builder.append(";\n")
         }
         builder.append(vertex.replaceVaryingNames(true, varyings))
         vertexSource = builder.toString()
@@ -122,16 +124,22 @@ open class Shader(
             builder.append(v.type.glslName)
             builder.append(' ')
             builder.append(v.fShaderName)
-            builder.append(';')
-            builder.append('\n')
+            builder.append(";\n")
         }
         for (v in fsUniforms) {
-            builder.append("uniform ")
+            when (v.inOutMode) {
+                VariableMode.IN, VariableMode.INOUT -> {
+                    builder.append("uniform ")
+                }
+                VariableMode.ATTR -> throw IllegalArgumentException("Fragment variable must not have type ATTR")
+                VariableMode.OUT -> {
+                    builder.append("out ")
+                }
+            }
             builder.append(v.type.glslName)
             builder.append(' ')
             builder.append(v.name)
-            builder.append(';')
-            builder.append('\n')
+            builder.append(";\n")
         }
         val base =
             (if (!fragment.contains("out ") && glslVersion == DefaultGLSLVersion && fragment.contains("gl_FragColor")) {

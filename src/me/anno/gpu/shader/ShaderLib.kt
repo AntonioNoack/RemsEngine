@@ -5,6 +5,7 @@ import me.anno.gpu.drawing.UVProjection
 import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.Clock
@@ -13,6 +14,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
+import kotlin.math.sqrt
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 object ShaderLib {
@@ -39,6 +41,13 @@ object ShaderLib {
      * our code only uses 3, I think
      * */
     const val maxOutlineColors = 6
+
+    val simplestVertexShader0List = listOf(Variable(GLSLType.V2F, "attr0", VariableMode.ATTR))
+    const val simplestVertexShader0 = "" +
+            "void main(){\n" +
+            "   gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
+            "   uv = attr0;\n" +
+            "}"
 
     val simplestVertexShader = "" +
             "$attribute vec2 attr0;\n" +
@@ -70,6 +79,8 @@ object ShaderLib {
             "float brightness(vec4 color){\n" +
             "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
             "}\n"
+
+    fun brightness(r: Float, g: Float, b: Float) = sqrt(sqrt(0.299f * r * r + 0.587f * g * g + 0.114f * b * b))
 
     // https://community.khronos.org/t/quaternion-functions-for-glsl/50140/3
     const val quaternionTransform = "" +
@@ -331,7 +342,7 @@ object ShaderLib {
     )
 
     // make this customizable?
-    val blacklist =   listOf(
+    val blacklist = listOf(
         "cgSlope", "cgOffset", "cgPower", "cgSaturation",
         "forceFieldUVCount", "forceFieldColorCount"
     )

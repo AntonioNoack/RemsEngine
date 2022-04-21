@@ -2,6 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 
 object ShaderPlus {
 
@@ -74,7 +75,7 @@ object ShaderPlus {
             Variable(GLSLType.V1F, "finalAlpha"),
             Variable(GLSLType.V1I, "drawMode"),
             Variable(GLSLType.V1I, "randomId"),
-            Variable(GLSLType.V4F, "fragColor", false),
+            Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
         )
         val code = "" +
                 randomFunc +

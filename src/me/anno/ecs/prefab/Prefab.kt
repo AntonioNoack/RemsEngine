@@ -12,6 +12,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.CountMap
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
@@ -44,7 +45,7 @@ class Prefab : Saveable {
     var wasCreatedFromJson = false
     var source: FileReference = InvalidRef
 
-    val instanceName get() = sets[ROOT_PATH, "name"]?.toString()
+    val instanceName get() = sets[ROOT_PATH, "name"] as? String
 
     // for the game runtime, we could save the prefab instance here
     // or maybe even just add the changes, and merge them
@@ -190,6 +191,14 @@ class Prefab : Saveable {
         if (!isWritable) throw ImmutablePrefabException(source)
         when (change) {
             is CAdd -> {
+                if (adds.any2 { it.nameId == change.nameId && it.path == change.path })
+                    throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
+                // todo check branched prefabs for adds as well
+                val sourcePrefab = PrefabCache[prefab]
+                if (sourcePrefab != null) {
+                    if (sourcePrefab.adds.any2 { it.nameId == change.nameId && it.path == change.path })
+                        throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
+                }
                 ensureMutableLists()
                 (adds as MutableList).add(change)
                 isValid = false
@@ -244,7 +253,7 @@ class Prefab : Saveable {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFile("prefab", prefab)
-        writer.writeString("className", clazzName)
+        writer.writeString("class", clazzName)
         writer.writeObjectList(null, "adds", adds)
         writer.writeObjectList(null, "sets", sets.map { k1, k2, v -> CSet(k1, k2, v) })
         writer.writeObject(null, "history", history)
@@ -254,7 +263,7 @@ class Prefab : Saveable {
         if (!isWritable) throw ImmutablePrefabException(source)
         when (name) {
             "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
-            "className" -> clazzName = value ?: ""
+            "className", "class" -> clazzName = value ?: ""
             else -> super.readString(name, value)
         }
     }

@@ -1,9 +1,11 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.ui.editor.files.FileContentImporter
 import org.apache.logging.log4j.LogManager
@@ -32,18 +34,13 @@ object ECSFileImporter : FileContentImporter<PrefabSaveable>() {
         val path = parent.prefabPath!!
 
         val prefab = PrefabCache[file]
-
         if (prefab != null) {
-
-            val instance = prefab.createInstance()
-            parent.addChild(instance)
-            inspector.prefab.add(path, 'e', "Entity", instance.name, file)
-            callback(instance as Entity)
-            if (doSelect) {
-                // todo select it
-
+            val newPath = Hierarchy.add(prefab, Path.ROOT_PATH, inspector.prefab, path)
+            if (doSelect && newPath != null) {
+                val root = inspector.prefab.getSampleInstance()
+                val instance = Hierarchy.getInstanceAt(root, newPath)
+                EditorState.select(instance)
             }
-
         } else LOGGER.warn("Failed to import $file")
 
     }

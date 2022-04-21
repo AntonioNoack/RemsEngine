@@ -64,6 +64,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
                         val value = newValue()
                         content.add(value)
                         children.add(createPanel(value))
+                        onChange()
                         invalidateLayout()
                     }
                 ))

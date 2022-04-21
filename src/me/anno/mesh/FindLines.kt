@@ -2,15 +2,15 @@ package me.anno.mesh
 
 object FindLines {
 
-    fun isLine(ab: Boolean, bc: Boolean, ca: Boolean): Boolean {
+    private fun isLine(ab: Boolean, bc: Boolean, ca: Boolean): Boolean {
         return (ab || ca || bc) && (!ab || !ca || !bc)
     }
 
-    fun isLine(a: Int, b: Int, c: Int): Boolean {
+    private fun isLine(a: Int, b: Int, c: Int): Boolean {
         return isLine(a == b, b == c, c == a)
     }
 
-    fun isLine(
+    private fun isLine(
         ax: Float, ay: Float, az: Float,
         bx: Float, by: Float, bz: Float,
         cx: Float, cy: Float, cz: Float

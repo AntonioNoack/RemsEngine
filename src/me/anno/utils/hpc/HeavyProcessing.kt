@@ -1,5 +1,6 @@
 package me.anno.utils.hpc
 
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.max
 
@@ -13,8 +14,10 @@ object HeavyProcessing : WorkSplitter(max(1, Runtime.getRuntime().availableProce
     }
 
     override fun plusAssign(task: () -> Unit) {
-        thread(name = "HeavyProcessing") { task() }
+        thread(name = "HeavyProcessing[${counter.getAndIncrement()}]") { task() }
     }
+
+    val counter = AtomicInteger()
 
     @JvmStatic
     fun main(args: Array<String>) {

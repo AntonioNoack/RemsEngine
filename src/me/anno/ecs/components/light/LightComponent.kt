@@ -3,6 +3,7 @@ package me.anno.ecs.components.light
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -37,6 +38,11 @@ abstract class LightComponent(
     // todo lines of light: how?
     // todo circle/sphere of light: how?
 
+    // black lamp light?
+    @Type("Color3HDR")
+    @SerializedProperty
+    var color: Vector3f = Vector3f(1f)
+
     @Range(0.0, 16.0)
     var shadowMapCascades = 0
         set(value) {
@@ -69,10 +75,6 @@ abstract class LightComponent(
     open fun invalidateShadows() {
         needsUpdate = true
     }
-
-    // black lamp light?
-    @SerializedProperty
-    var color: Vector3f = Vector3f(1f)
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)

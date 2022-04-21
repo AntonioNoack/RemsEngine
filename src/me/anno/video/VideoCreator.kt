@@ -8,21 +8,21 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
+import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.Codecs.videoCodecByExtension
-import me.anno.video.ffmpeg.FFMPEGStream.Companion.logOutput
 import me.anno.video.ffmpeg.FFMPEG
-import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
 import me.anno.video.ffmpeg.FFMPEGEncodingBalance
 import me.anno.video.ffmpeg.FFMPEGEncodingType
+import me.anno.video.ffmpeg.FFMPEGStream.Companion.logOutput
+import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
-import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.min
 
@@ -50,7 +50,7 @@ open class VideoCreator(
         if (output.exists) output.delete()
         else output.getParent()?.tryMkdirs()
 
-        val extension = output.extension.lowercase(Locale.getDefault())
+        val extension = output.lcExtension
         val isGIF = extension == "gif"
 
         /**
@@ -59,56 +59,50 @@ open class VideoCreator(
          * because I don't know how to send audio and video data to ffmpeg
          * at the same time with only one output stream
          * */
-        val size = "${w}x${h}"
         val rawFormat = "rgb24"
-        val encoding = videoCodecByExtension(extension) // "libx264"
-        val constantRateFactor = quality.toString()
 
         // Incompatible pixel format 'yuv420p' for codec 'gif', auto-selecting format 'bgr8'
         val dstFormat = if (isGIF) "bgr8" else "yuv420p"
         val fpsString = fps.toString()
 
-        val videoEncodingArguments = arrayListOf(
+        val args = arrayListOf(
             "-f", "rawvideo",
-            "-s", size,
+            "-s", "${w}x${h}",
             "-r", fpsString,
             "-pix_fmt", rawFormat,
             "-i", "pipe:0", // output buffer
         )
 
-        if (!isGIF && encoding != null) {
-            videoEncodingArguments += listOf(
-                "-c:v", encoding
-            )
+        val encoding = if (!isGIF) videoCodecByExtension(extension) else null
+        if (encoding != null) {
+            args += "-c:v"
+            args += encoding // "libx264"
         }
 
-        videoEncodingArguments += listOf(
-            "-an", // no audio
-            "-r", fpsString,
-            // "-qp", "0", // constant quality
-        )
+        args += "-an" // no audio
+        args += "-r"
+        args += fpsString
+        // "-qp", "0", // constant quality
 
         if (!isGIF) {
-            videoEncodingArguments += listOf(
-                "-crf", constantRateFactor
-            )
+            // constant rate factor
+            args += "-crf"
+            args += quality.toString()
         }
 
-        videoEncodingArguments += listOf(
-            "-pix_fmt", dstFormat
-        )
+        args += "-pix_fmt"
+        args += dstFormat
 
         if (encoding == "libx264") {
             // other codecs support other values
-            videoEncodingArguments += listOf(
-                "-preset", balance.internalName
-            )
+            args += "-preset"
+            args += balance.internalName
         }
 
-        val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, videoEncodingArguments.size + 4, true)
-        if (videoEncodingArguments.isNotEmpty()) builder += "-hide_banner"
+        val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, args.size + 4, true)
+        if (args.isNotEmpty()) builder += "-hide_banner"
 
-        builder += videoEncodingArguments
+        builder += args
         if (type.internalName != null) {
             builder += "-tune"
             builder += type.internalName
@@ -118,7 +112,7 @@ open class VideoCreator(
         process = builder.start()
         logOutput(null, process.inputStream, true)
         thread(name = "VideoCreatorOutput") {
-            processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream){
+            processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream) {
                 close()
             }
         }
@@ -137,7 +131,7 @@ open class VideoCreator(
 
         GFX.check()
 
-        if (frame.w != w || frame.h != h) throw RuntimeException("Resolution does not match!")
+        if (frame.w != w || frame.h != h) throw IllegalArgumentException("Resolution does not match!")
         frame.bindDirectly()
         Frame.invalidate()
 
@@ -165,6 +159,21 @@ open class VideoCreator(
             }
         }
 
+    }
+
+    fun writeFrame(frame: Image) {
+        if (frame.width != w || frame.height != h) throw IllegalArgumentException("Resolution does not match!")
+        val output = videoOut
+        synchronized(output) {
+            for (y in 0 until h) {
+                for (x in 0 until w) {
+                    val color = frame.getRGB(x, y)
+                    output.write(color.shr(16))
+                    output.write(color.shr(8))
+                    output.write(color)
+                }
+            }
+        }
     }
 
     private val byteArrayBuffer = ByteArray(min(pixelByteCount, 2048))
@@ -268,6 +277,29 @@ open class VideoCreator(
             }
             GFX.addGPUTask(1) { writeFrame() }
             GFX.workGPUTasksUntilShutdown()
+        }
+
+        /**
+         * render a video from a set of textures
+         * */
+        fun renderVideo2(
+            w: Int,
+            h: Int,
+            fps: Double,
+            dst: FileReference,
+            numFrames: Long,
+            getNextFrame: (Long) -> Image?
+        ) {
+            val creator = VideoCreator(
+                w, h, fps, numFrames, FFMPEGEncodingBalance.S1,
+                FFMPEGEncodingType.DEFAULT, defaultQuality, dst
+            )
+            creator.init()
+            for (i in 0 until numFrames) {
+                val frame = getNextFrame(i) ?: break
+                creator.writeFrame(frame)
+            }
+            creator.close()
         }
 
     }

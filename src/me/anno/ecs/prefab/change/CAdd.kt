@@ -61,8 +61,8 @@ class CAdd() : Change() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeChar("type", type)
-        writer.writeString("name", nameId)
-        writer.writeString("className", clazzName)
+        writer.writeString("id", nameId)
+        writer.writeString("class", clazzName)
         writer.writeString("prefab", prefab.toString())
     }
 
@@ -75,9 +75,9 @@ class CAdd() : Change() {
 
     override fun readString(name: String, value: String?) {
         when (name) {
-            "className" -> clazzName = value
+            "className", "class" -> clazzName = value
             "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
-            "name" -> this.nameId = value ?: return
+            "name", "id" -> this.nameId = value ?: return
             else -> super.readString(name, value)
         }
     }

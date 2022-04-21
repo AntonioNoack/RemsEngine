@@ -17,9 +17,9 @@ object PrefabHelper {
 
     fun add(
         prefab: Prefab, parentPath: Path,
-        typeChar: Char, type: String, name: String, ref: FileReference
+        typeChar: Char, type: String, nameId: String, ref: FileReference
     ): Path {
-        return prefab.add(parentPath, typeChar, type, name, ref)
+        return prefab.add(parentPath, typeChar, type, nameId, ref)
     }
 
     fun setX(prefab: Prefab, path: Path, name: String, value: Any?) {

@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
+import me.anno.ecs.components.mesh.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.shader.GLSLType
@@ -15,9 +16,14 @@ import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.maths.Maths.length
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.collideBack
-import me.anno.utils.types.AABBs.collideFront
+import me.anno.utils.types.AABBs.avgX
+import me.anno.utils.types.AABBs.avgY
+import me.anno.utils.types.AABBs.avgZ
+import me.anno.utils.types.AABBs.deltaX
+import me.anno.utils.types.AABBs.deltaY
+import me.anno.utils.types.AABBs.deltaZ
 import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.collections.component1
@@ -29,6 +35,8 @@ import kotlin.math.max
  * builds shaders for signed distance function rendering
  * */
 object SDFComposer {
+
+    // todo it would be nice, if we had an exporter for ShaderToy
 
     const val dot2 = "" +
             "float dot2(vec2 v){ return dot(v,v); }\n" +
@@ -79,8 +87,13 @@ object SDFComposer {
         uniforms["localStart"] = TypeValueV3(GLSLType.V3F, Vector3f()) { localStart ->
             val dt = tree.transform?.drawTransform
             if (dt != null) {
-                val pos = RenderView.camPosition
-                localStart.set(pos.x - dt.m30(), pos.y - dt.m31(), pos.z - dt.m32())
+                val pos = JomlPools.vec3d.create()
+                val dtInverse = JomlPools.mat4x3d.create()
+                dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
+                dtInverse.transformPosition(RenderView.camPosition, pos)
+                localStart.set(pos)
+                JomlPools.vec3d.sub(1)
+                JomlPools.mat4x3d.sub(1)
             }
         }
         uniforms["sdfReliability"] = TypeValueV2(GLSLType.V1F) { tree.globalReliability }
@@ -93,18 +106,35 @@ object SDFComposer {
             val dt = tree.transform?.drawTransform
             if (dt != null) {
                 // compute first and second intersection with aabb
-                // todo theoretically, we should transform the ray from global space into local space;
-                // for local start as well
+                // transform camera position into local space
                 val pos = JomlPools.vec3d.create()
-                    .set(RenderView.camPosition)
-                    .sub(dt.m30(), dt.m31(), dt.m32())
-                val dir = RenderView.camDirection
+                val dtInverse = JomlPools.mat4x3d.create()
+                dt.invert(dtInverse)
+                dtInverse.transformPosition(RenderView.camPosition, pos)
+                // val dir = RenderView.camDirection
                 val bounds = tree.localAABB
-                val min = bounds.collideFront(pos, dir).toFloat()
-                val max = bounds.collideBack(pos, dir).toFloat()
+                val dx = (pos.x - bounds.avgX()).toFloat()
+                val dy = (pos.y - bounds.avgY()).toFloat()
+                val dz = (pos.z - bounds.avgZ()).toFloat()
+                val bdx = bounds.deltaX().toFloat()
+                val bdy = bounds.deltaY().toFloat()
+                val bdz = bounds.deltaZ().toFloat()
+                val min = sdBox(dx, dy, dz, bdx * 0.5f, bdy * 0.5f, bdz * 0.5f)
+                val max = min + length(bdx, bdy, bdz)
+                tree.camNear = min
+                tree.camFar = max
                 it.set(max(0f, min), max)
                 JomlPools.vec3d.sub(1)
+                JomlPools.mat4x3d.sub(1)
             }
+        }
+        uniforms["localMin"] = TypeValueV3(GLSLType.V3F, Vector3f()) {
+            val b = tree.localAABB
+            it.set(b.minX, b.minY, b.minZ)
+        }
+        uniforms["localMax"] = TypeValueV3(GLSLType.V3F, Vector3f()) {
+            val b = tree.localAABB
+            it.set(b.maxX, b.maxY, b.maxZ)
         }
         uniforms["perspectiveCamera"] = TypeValue(GLSLType.BOOL) { RenderView.camInverse.m33() == 0.0 }
         uniforms["debugMode"] = TypeValue(GLSLType.V1I) { tree.debugMode.id }
@@ -140,7 +170,9 @@ object SDFComposer {
                     Variable(GLSLType.M4x3, "localTransform"),
                     Variable(GLSLType.M3x3, "invLocalTransform"),
                     Variable(GLSLType.V1I, "maxSteps"),
-                    Variable(GLSLType.V2F, "distanceBounds"), // todo compute them...
+                    Variable(GLSLType.V2F, "distanceBounds"),
+                    Variable(GLSLType.V3F, "localMin"),
+                    Variable(GLSLType.V3F, "localMax"),
                     Variable(GLSLType.V1I, "debugMode"), // 0 = default, 1 = #steps, 2 = sdf planes
                     Variable(GLSLType.V3F, "localStart"),
                     Variable(GLSLType.BOOL, "perspectiveCamera"),
@@ -218,21 +250,24 @@ object SDFComposer {
                             "               float distance = -localPos.y / localDir.y;\n" +
                             "               if(distance > 0.0){\n" +
                             "                   vec3 localHit = localPos + distance * localDir;\n" +
-                            "                   localHit.y = 0.0;\n" + // correct numerical issues
-                            "                   finalPosition = localTransform * vec4(localHit, 1.0);\n" +
+                            // check if localPos is within bounds -> only render the plane :)
+                            "                   if(all(greaterThan(localHit,localMin)) && all(lessThan(localHit,localMax))){\n" +
+                            "                       localHit.y = 0.0;\n" + // correct numerical issues
+                            "                       finalPosition = localTransform * vec4(localHit, 1.0);\n" +
                             // "                   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
-                            "                   finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
-                            "                   vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
-                            "                   gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                            "                   distance = map(localHit).x;\n" + // < 0.0 removed, because we show the shape there
+                            "                       finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
+                            "                       vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+                            "                       gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                            "                       distance = map(localHit).x;\n" + // < 0.0 removed, because we show the shape there
                             // waves like in Inigo Quilez demos, e.g. https://www.shadertoy.com/view/tt3yz7
                             // show the inside as well? mmh...
-                            "                   vec3 col = vec3(0.9,0.6,0.3) * (1.0 - exp(-2.0*distance));\n" +
+                            "                       vec3 col = vec3(0.9,0.6,0.3) * (1.0 - exp(-2.0*distance));\n" +
                             // less amplitude, when filtering issues occur
-                            "                   float delta = 5.0 * length(vec2(dFdx(distance),dFdy(distance)));\n" +
-                            "                   col *= 0.8 + 0.2*cos(20.0*distance)*max(1.0-delta,0.0);\n" +
-                            "                   finalColor = col;\n" +
-                            "                   finalAlpha = 1.0;\n" +
+                            "                       float delta = 5.0 * length(vec2(dFdx(distance),dFdy(distance)));\n" +
+                            "                       col *= 0.8 + 0.2*cos(20.0*distance)*max(1.0-delta,0.0);\n" +
+                            "                       finalColor = col;\n" +
+                            "                       finalAlpha = 1.0;\n" +
+                            "                   } else discard;\n" +
                             "               } else discard;\n" +
                             "           } else discard;\n" +
                             "       } else {\n" +

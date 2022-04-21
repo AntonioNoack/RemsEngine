@@ -293,7 +293,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     val hasValidName = !absolutePath.isBlank2()
     fun hasValidName() = hasValidName
 
-    var isHidden = name.startsWith('.') || (lcExtension == "meta" && "/Assets/" in absolutePath)
+    var isHidden = name.startsWith('.') || (lcExtension == "meta" && "/Assets/" in absolutePath) // hidden file in Linux, or file in unity package
 
     fun hide() {
         isHidden = true

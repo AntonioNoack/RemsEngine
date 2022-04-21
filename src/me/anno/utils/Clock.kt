@@ -81,7 +81,7 @@ class Clock(
         }
     }
 
-    fun total(wasUsedFor: String) {
+    fun total(wasUsedFor: String = "") {
         total(wasUsedFor, minTime)
     }
 

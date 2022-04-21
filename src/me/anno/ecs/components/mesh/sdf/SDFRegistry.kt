@@ -10,6 +10,7 @@ object SDFRegistry {
 
     fun init() {
         // shapes
+        registerCustomClass(SDFBezierCurve())
         registerCustomClass(SDFBlob())
         registerCustomClass(SDFBoundingBox())
         registerCustomClass(SDFBox())
@@ -38,6 +39,7 @@ object SDFRegistry {
         registerCustomClass(SDFHalfSpace())
         registerCustomClass(SDFHexGrid())
         registerCustomClass(SDFMirror())
+        registerCustomClass(SDFNoise())
         registerCustomClass(SDFOnion())
         registerCustomClass(SDFRotSym())
         registerCustomClass(SDFRoundness())

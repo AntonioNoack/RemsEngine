@@ -45,13 +45,13 @@ object ECSSceneTabs : ScrollPanelX(style) {
             }
         }
 
-    fun open(syncMaster: SyncMaster, prefab: Prefab, playMode: PlayMode): ECSSceneTab {
-        val opened = children3.firstOrNull { it.file == prefab.source }
+    fun open(syncMaster: SyncMaster, reference: FileReference, playMode: PlayMode): ECSSceneTab {
+        val opened = children3.firstOrNull { it.file == reference }
         return if (opened != null) {
             open(opened)
             opened
         } else {
-            val tab = ECSSceneTab(syncMaster, prefab, playMode)
+            val tab = ECSSceneTab(syncMaster, reference, playMode)
             content += tab
             open(tab)
             tab

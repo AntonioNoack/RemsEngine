@@ -77,9 +77,14 @@ open class MeshData : ICacheData {
         RenderView.cameraMatrix.set(cameraMatrix)
         RenderView.currentInstance = null
 
+        val cameraXPreGlobal = Matrix4f()
+        cameraXPreGlobal.set(cameraMatrix)
+            .mul(localStack)
+
         drawHierarchy(
             shader,
             cameraMatrix,
+            cameraXPreGlobal,
             localStack,
             skinningMatrices,
             color,
@@ -97,6 +102,7 @@ open class MeshData : ICacheData {
     fun drawHierarchy(
         shader: Shader,
         cameraMatrix: Matrix4f,
+        cameraXPreGlobal: Matrix4f,
         stack: Matrix4x3fArrayList,
         skinningMatrices: Array<Matrix4x3f>?,
         color: Vector4fc,
@@ -173,7 +179,7 @@ open class MeshData : ICacheData {
             component.onDrawGUI(true)
         }
 
-        ThumbsExt.finishLines(cameraMatrix, null)
+        ThumbsExt.finishLines(cameraXPreGlobal)
 
         if (drawSkeletons) {
             val animMeshRenderer = entity.getComponent(AnimRenderer::class, false)
@@ -185,7 +191,7 @@ open class MeshData : ICacheData {
         val children = entity.children
         for (i in children.indices) {
             drawHierarchy(
-                shader, cameraMatrix, stack, skinningMatrices,
+                shader, cameraMatrix, cameraXPreGlobal, stack, skinningMatrices,
                 color, model0, children[i], useMaterials, drawSkeletons
             )
         }

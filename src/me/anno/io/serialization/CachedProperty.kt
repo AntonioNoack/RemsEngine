@@ -33,18 +33,32 @@ class CachedProperty(
             if (oldValue is Enum<*> && value !is Enum<*>) {
                 // an enum, let's try our best to find the correct value
                 val values = EnumInput.getEnumConstants(oldValue.javaClass)
-                val newValue = when (value) {
-                    is Byte -> values[value.toInt().and(0xff)]
-                    is UByte -> values[value.toInt()]
-                    is Short -> values[value.toInt().and(0xffff)]
-                    is UShort -> values[value.toInt()]
-                    is Int -> values[value]
-                    is UInt -> values[value.toInt()]
-                    is Long -> values[value.toInt()]
-                    is ULong -> values[value.toInt()]
-                    is Float -> values[value.toInt()]
-                    is Double -> values[value.toInt()]
-                    is String -> {
+                val index = when (value) {
+                    is Byte -> value.toUByte().toInt()
+                    is UByte -> value.toInt()
+                    is Short -> value.toUShort().toInt()
+                    is UShort -> value.toInt()
+                    is Int -> value
+                    is UInt -> value.toInt()
+                    is Long -> value.toInt()
+                    is ULong -> value.toInt()
+                    is Float -> value.toInt()
+                    is Double -> value.toInt()
+                    else -> Int.MIN_VALUE
+                }
+                if (index != Int.MIN_VALUE && index !in values.indices)
+                    LOGGER.warn("Index $index out of bounds! 0 until ${values.size} for ${oldValue.javaClass}")
+                val newValue = when {
+                    index != Int.MIN_VALUE -> {
+                        val idProperty = (oldValue::class as KClass<Any>)
+                            .memberProperties
+                            .firstOrNull { it.name == "id" }
+                        if (idProperty != null) {
+                            // todo use hashmap or array or sth like that for lookup
+                            values.firstOrNull { idProperty.get(it) == index } ?: values[0]
+                        } else values.getOrNull(index) ?: values[0]
+                    }
+                    value is String -> {
                         /**
                          * try to match the old value with the existing enums
                          * properties, which are tested, in order
@@ -71,7 +85,7 @@ class CachedProperty(
             } else setter.call(instance, value)
             true
         } catch (e: Exception) {
-            LOGGER.error("Setting property '$name' with value of class '${value?.javaClass?.name}' to instance of class '${instance::class.jvmName}', properties class: '$clazz'")
+            LOGGER.error("Error setting property '$name' with value of class '${value?.javaClass?.name}' to instance of class '${instance::class.jvmName}', properties class: '$clazz'")
             e.printStackTrace()
             false
         }

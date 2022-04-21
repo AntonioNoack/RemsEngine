@@ -152,12 +152,12 @@ object Hierarchy {
                 // find correct type and insert index
                 val srcSample = getInstanceAt(srcPrefab.getSampleInstance(), srcPath)!!
                 val type = dstParentInstance.getTypeOf(srcSample)
-                val name = Path.generateRandomId()
+                val nameId = Path.generateRandomId()
                 val clazz = srcPrefab.clazzName
                 val srcPrefabSource = srcSample.prefab?.prefab ?: InvalidRef
                 if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
-                val dstPath = dstPrefab.add(dstParentPath, type, clazz, name, srcPrefabSource)
-                LOGGER.debug("Adding element '$name' of class $clazz, type '$type' to path '$dstPath'")
+                val dstPath = dstPrefab.add(dstParentPath, type, clazz, nameId, srcPrefabSource)
+                LOGGER.debug("Adding element '$nameId' of class $clazz, type '$type' to path '$dstPath'")
                 val adds = srcPrefab.adds
                 assert(adds !== dstPrefab.adds)
                 for (index1 in adds.indices) {

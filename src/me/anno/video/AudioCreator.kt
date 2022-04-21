@@ -36,7 +36,7 @@ abstract class AudioCreator(
         // todo allow different audio codecs (if required...)
         // quality:
         // libopus > libvorbis >= libfdk_aac > libmp3lame >= eac3/ac3 > aac > libtwolame > vorbis (dont) > mp2 > wmav2/wmav1 (dont)
-        val audioCodec = audioCodecByExtension(output.extension) ?: return
+        val audioCodec = audioCodecByExtension(output.lcExtension) ?: return
 
         // http://crazedmuleproductions.blogspot.com/2005/12/using-ffmpeg-to-combine-audio-and.html
         // ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac output.mp4

@@ -10,18 +10,24 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.FlatShaders.copyShader
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader0
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader0List
 import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths.log
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
+import org.lwjgl.system.CallbackI
 import kotlin.math.exp
 
 object Bloom {
@@ -124,7 +130,6 @@ object Bloom {
             val dxi = dx * i
             val dyi = dy * i
             blur.append('+')
-            blur.append("")
             blur.append(factor)
             if (offset) blur.append("*(minusOffset(texelFetch(tex,p+ivec2(")
             else blur.append("*(texelFetch(tex,p+ivec2(")
@@ -140,10 +145,12 @@ object Bloom {
             else blur.append("),0).rgb)\n")
         }
         return Shader(
-            "bloom0", simplestVertexShader, uvList, "" +
-                    "out vec4 fragColor;\n" +
-                    "uniform float offset;\n" +
-                    "uniform sampler2D tex;\n" +
+            "bloom0", simplestVertexShader0List, simplestVertexShader0, uvList,
+            listOf(
+                Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
+                Variable(GLSLType.V1F, "offset"),
+                Variable(GLSLType.S2D, "tex")
+            ), "" +
                     brightness +
                     "vec3 minusOffset(vec3 col){\n" +
                     "   float length = brightness(col);\n" +

@@ -1,18 +1,16 @@
 package me.anno.video
 
 import me.anno.video.CodecInfo.audioCodecList
-import java.util.*
 
 object Codecs {
 
-    fun audioCodecByExtension(extension: String): String? {
-        val lc = extension.lowercase(Locale.getDefault())
+    fun audioCodecByExtension(lcExtension: String): String? {
         for ((key, value) in audioCodecList) {
-            if (lc in key && value.isNotEmpty()) {
+            if (lcExtension in key && value.isNotEmpty()) {
                 return value[0]
             }
         }
-        return when (lc) {
+        return when (lcExtension) {
             "mp3", "mpg",
             "mp4", "m4a",
             "flv", "f4v" -> "libmp3lame"

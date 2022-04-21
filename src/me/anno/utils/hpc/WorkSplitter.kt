@@ -1,8 +1,8 @@
 package me.anno.utils.hpc
 
 import me.anno.maths.Maths
-import me.anno.utils.LOGGER
 import me.anno.utils.Sleep.waitUntil
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.ceil
@@ -17,6 +17,10 @@ import kotlin.math.sqrt
  * HeavyProcessing for testing/debugging parallel tasks
  * */
 abstract class WorkSplitter(val numThreads: Int) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(WorkSplitter::class)
+    }
 
     abstract operator fun plusAssign(task: () -> Unit)
 

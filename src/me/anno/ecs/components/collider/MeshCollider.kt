@@ -13,6 +13,7 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.LineShapes
+import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
@@ -323,16 +324,16 @@ open class MeshCollider() : Collider() {
                 val a = points[indices[i]]
                 val b = points[indices[i + 1]]
                 val c = points[indices[i + 2]]
-                LineShapes.drawLine(entity, a, b, color)
-                LineShapes.drawLine(entity, b, c, color)
-                LineShapes.drawLine(entity, c, a, color)
+                drawLine(entity, a, b, color)
+                drawLine(entity, b, c, color)
+                drawLine(entity, c, a, color)
             }
         }
         mesh?.forEachTriangle { a, b, c ->
             val color = -1
-            LineShapes.drawLine(entity, a, b, color)
-            LineShapes.drawLine(entity, b, c, color)
-            LineShapes.drawLine(entity, c, a, color)
+            drawLine(entity, a, b, color)
+            drawLine(entity, b, c, color)
+            drawLine(entity, c, a, color)
         }
     }
 

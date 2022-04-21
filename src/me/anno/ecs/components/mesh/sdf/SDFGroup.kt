@@ -125,7 +125,8 @@ class SDFGroup : SDFComponent() {
             }
         }
 
-    var stairs = 5f
+    @Range(0.0, 1e38)
+    var numStairs = 5f
 
     @Range(0.0, 1e38)
     var groove = Vector2f(0.1f)
@@ -152,6 +153,7 @@ class SDFGroup : SDFComponent() {
                     CombinationMode.ENGRAVE,
                     CombinationMode.GROOVE -> { // use first only, the rest is cut off
                         children.first { it.isEnabled }.calculateBounds(dst)
+                        if (type == CombinationMode.GROOVE) dst.widen(smoothness)
                     }
                     CombinationMode.TONGUE -> { // use first only, then widen
                         children.first { it.isEnabled }.calculateBounds(dst)
@@ -199,7 +201,7 @@ class SDFGroup : SDFComponent() {
                             }
                         }
                     }
-                    CombinationMode.PIPE, // how can we compute that? intersection +/- radius
+                    CombinationMode.PIPE,
                     CombinationMode.INTERSECTION -> {
                         dst.all()
                         for (childIndex in children.indices) {
@@ -210,6 +212,7 @@ class SDFGroup : SDFComponent() {
                                 dst.intersect(tmp)
                             }
                         }
+                        if (type == CombinationMode.PIPE) dst.widen(smoothness)
                     }
                 }
                 JomlPools.aabbf.sub(1)
@@ -314,7 +317,7 @@ class SDFGroup : SDFComponent() {
                         funcName.contains("column", true) ||
                         funcName.contains("stairs", true)
                     ) {
-                        defineUniform(uniforms, GLSLType.V1F) { stairs + 1f }
+                        defineUniform(uniforms, GLSLType.V1F) { numStairs + 1f }
                     } else null
                     var activeIndex = -1
                     for (index in children.indices) {
@@ -352,7 +355,8 @@ class SDFGroup : SDFComponent() {
             // first scale or offset? offset, because it was applied after scaling
             val offsetName = trans.offsetName
             val scaleName = trans.scaleName
-            if (offsetName != null) builder.append("res").append(dstIndex).append(".x+=").append(offsetName).append(";\n")
+            if (offsetName != null) builder.append("res").append(dstIndex).append(".x+=").append(offsetName)
+                .append(";\n")
             if (scaleName != null) builder.append("res").append(dstIndex).append(".x*=").append(scaleName).append(";\n")
             if (localReliability != 1f) builder.append("res").append(dstIndex).append(".x*=")
                 .appendUniform(uniforms, GLSLType.V1F) { localReliability }.append(";\n")
@@ -510,6 +514,9 @@ class SDFGroup : SDFComponent() {
         clone.smoothness = smoothness
         clone.progress = progress
         clone.type = type
+        clone.style = style
+        clone.groove.set(groove)
+        clone.numStairs = numStairs
         clone.dynamicSmoothness = dynamicSmoothness
         clone.children.clear()
         clone.children.addAll(children.map {

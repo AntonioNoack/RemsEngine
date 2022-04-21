@@ -48,17 +48,22 @@ import org.apache.logging.log4j.LogManager
 // this can be like a scene (/scene tab)
 // show changed values in bold
 
-class PrefabInspector(val prefab: Prefab) {
+class PrefabInspector(val reference: FileReference) {
 
-    val reference get() = prefab.source
+    val prefab: Prefab
+        get() {
+            val prefab = PrefabCache[reference]!!
+            prefab.ensureMutableLists()
+            return prefab
+        }
 
     constructor(reference: FileReference, classNameIfNull: String) :
-            this(PrefabCache[reference] ?: Prefab(classNameIfNull, reference).apply {
-                LOGGER.warn("Had to create Prefab for $reference, could not load prefab")
-            })
-
-    init {
-        prefab.ensureMutableLists()
+            this(reference) {
+        if (PrefabCache[reference] == null && !reference.exists) {
+            val prefab = Prefab(classNameIfNull)
+            prefab.source = reference
+            reference.writeText(TextWriter.toText(prefab, InvalidRef))
+        }
     }
 
     val history = prefab.history ?: ChangeHistory()
@@ -374,7 +379,7 @@ class PrefabInspector(val prefab: Prefab) {
         } else true
     }
 
-    fun addChild2(parent: Entity, type: Char, prefab: Prefab) {
+    fun addNewChild(parent: Entity, type: Char, prefab: Prefab) {
         if (!checkDependencies(parent, prefab.source)) return
         val path = parent.prefabPath!!
         this.prefab.add(path, type, prefab.clazzName, Path.generateRandomId(), prefab.source)

@@ -61,7 +61,16 @@ class FloatImage(
         return FloatBufferImage(width, height, numChannels, data, map)
     }
 
-    override fun normalize(): IFloatImage {
+    fun normalized() = clone().normalize()
+
+    fun clone(): FloatImage {
+        val data = data
+        val newData = FloatArray(data.size)
+        System.arraycopy(data, 0, newData, 0, data.size)
+        return FloatImage(width, height, numChannels, newData)
+    }
+
+    override fun normalize(): FloatImage {
         var min = 0f
         var max = 0f
         for (v in data) {
@@ -73,6 +82,13 @@ class FloatImage(
             for (i in data.indices) {
                 data[i] *= div
             }
+        }
+        return this
+    }
+
+    fun abs(): IFloatImage {
+        for (i in data.indices) {
+            data[i] = kotlin.math.abs(data[i])
         }
         return this
     }

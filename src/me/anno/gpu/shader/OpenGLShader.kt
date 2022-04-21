@@ -16,9 +16,7 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
 import java.nio.FloatBuffer
 
-abstract class OpenGLShader(
-    val name: String
-) : ICacheData {
+abstract class OpenGLShader(val name: String) : ICacheData {
 
     companion object {
 

@@ -13,7 +13,7 @@ fun main() {
 fun countLines(file: FileReference): Int {
     return if (file.isDirectory) {
         file.listChildren()?.sumOf { countLines(it) } ?: 0
-    } else when (file.extension.lowercase()) {
+    } else when (file.lcExtension) {
         "kt", "java" -> {
             file.readLines().count {
                 !it.isBlank2() && !it.trim().startsWith("//")

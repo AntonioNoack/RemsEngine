@@ -520,7 +520,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                     // todo while dragging this, show preview
                     // todo place it where the preview was drawn
                     val root = library.selection.firstInstanceOrNull<Entity>() ?: view.getWorld()
-                    if (root is Entity) PrefabInspector.currentInspector!!.addChild2(root, 'e', prefab)
+                    if (root is Entity) PrefabInspector.currentInspector!!.addNewChild(root, 'e', prefab)
                     else LOGGER.warn("Could not drop $file onto ${root?.className}")
                 }
                 /*is SDFComponent -> {
@@ -528,7 +528,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 }*/
                 is Component -> {
                     if (hovEntity != null) {
-                        PrefabInspector.currentInspector!!.addChild2(hovEntity, 'c', prefab)
+                        PrefabInspector.currentInspector!!.addNewChild(hovEntity, 'c', prefab)
                     }
                 }
                 // todo general listener in the components, which listens for drag events? they could be useful for custom stuff...

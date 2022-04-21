@@ -38,10 +38,19 @@ import org.joml.*
 import kotlin.math.abs
 import kotlin.math.floor
 
-// todo draw outline around selected sdf component
+// todo draw outline around selected sdf component properly
+// todo 3d bezier curves like https://www.shadertoy.com/view/ldj3Wh
 open class SDFComponent : ProceduralMesh() {
 
     // todo color maps like https://iquilezles.org/www/articles/palettes/palettes.htm
+
+    @DebugProperty
+    @NotSerializedProperty
+    var camNear = 0f
+
+    @DebugProperty
+    @NotSerializedProperty
+    var camFar = 0f
 
     override var isEnabled: Boolean
         get() = super.isEnabled

@@ -7,13 +7,13 @@ import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
+import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
@@ -26,7 +26,6 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.Draggable
-import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.utils.hpc.SyncMaster
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
@@ -54,8 +53,8 @@ class ECSSceneTab(
         playMode: PlayMode
     ) : this(syncMaster, PrefabInspector(fileReference, classNameIfNull), fileReference, playMode)
 
-    constructor(syncMaster: SyncMaster, prefab: Prefab, playMode: PlayMode) :
-            this(syncMaster, PrefabInspector(prefab), playMode)
+    constructor(syncMaster: SyncMaster, reference: FileReference, playMode: PlayMode) :
+            this(syncMaster, PrefabInspector(reference), playMode)
 
     constructor(syncMaster: SyncMaster, inspector: PrefabInspector, playMode: PlayMode) :
             this(syncMaster, inspector, inspector.reference, playMode)
@@ -165,7 +164,10 @@ class ECSSceneTab(
                         play()
                     },
                     MenuOption(NameDesc("Play Fullscreen")) {
-                       playFullscreen()
+                        playFullscreen()
+                    },
+                    MenuOption(NameDesc("Copy Path")) {
+                        Input.setClipboardContent(onCopyRequested(0f, 0f).toString())
                     },
                     MenuOption(NameDesc("Close")) {
                         ECSSceneTabs.close(this)
@@ -176,13 +178,13 @@ class ECSSceneTab(
         }
     }
 
-    fun play(){
+    fun play() {
         val tab = ECSSceneTabs.currentTab!!
         val playMode = if (playMode == PlayMode.EDITING) PlayMode.PLAY_TESTING else PlayMode.EDITING
         ECSSceneTabs.open(ECSSceneTab(tab.syncMaster, tab.inspector, tab.file, playMode))
     }
 
-    fun playFullscreen(){
+    fun playFullscreen() {
         // opens window with fullscreen attribute
         val style = style
         val panel = PanelListY(style)
@@ -207,7 +209,7 @@ class ECSSceneTab(
     override fun onCopyRequested(x: Float, y: Float) = file
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        return when(action){
+        return when (action) {
             "DragStart" -> {
                 val title = file.nameWithoutExtension
                 val stringContent = file.absolutePath

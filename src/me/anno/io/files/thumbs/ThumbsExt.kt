@@ -104,13 +104,17 @@ object ThumbsExt {
 
     }
 
-    fun finishLines(cameraMatrix: Matrix4f, worldMatrix: Matrix4x3f?): Boolean {
+    fun finishLines(cameraMatrix: Matrix4f, worldMatrix: Matrix4x3f? = null): Boolean {
         return if (LineBuffer.bytes.position() > 0) {
-            val m = JomlPools.mat4f.create()
-            m.set(cameraMatrix)
-            if (worldMatrix != null) m.mul(worldMatrix)
-            LineBuffer.finish(m)
-            JomlPools.mat4f.sub(1)
+            if (worldMatrix == null) {
+                LineBuffer.finish(cameraMatrix)
+            } else {
+                val m = JomlPools.mat4f.create()
+                m.set(cameraMatrix)
+                m.mul(worldMatrix)
+                LineBuffer.finish(m)
+                JomlPools.mat4f.sub(1)
+            }
             true
         } else false
     }

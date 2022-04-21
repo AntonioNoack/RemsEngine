@@ -446,7 +446,12 @@ class FileExplorerEntry(
                     file is InnerLinkFile -> "Link to " + getTooltip(file.link)
                     file is PrefabReadable -> {
                         val prefab = file.readPrefab()
-                        file.name + "\n" +
+                        val name = prefab.instanceName
+                        val base = prefab.prefab
+                        "" +
+                                "${file.name}\n" +
+                                (if (base != InvalidRef) "${base.nameWithoutExtension}\n" else "") +
+                                (if (name != null) "\"$name\"\n" else "") +
                                 "${prefab.clazzName}, ${prefab.countTotalChanges(true)} Changes"
                     }
                     file is ImageReadable -> {

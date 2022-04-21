@@ -77,6 +77,14 @@ open class SDFBox : SDFSmoothShape() {
     override val className = "SDFBox"
 
     companion object {
+        fun sdBox(px: Float, py: Float, pz: Float,hx: Float, hy: Float, hz: Float): Float {
+            val qx = abs(px) - hx
+            val qy = abs(py) - hy
+            val qz = abs(pz) - hz
+            val outer = length(max(0f, qx), max(0f, qy), max(0f, qz))
+            val inner = min(max(qx, max(qy, qz)), 0f)
+            return outer + inner
+        }
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
         const val sdBox = "" +
                 "float sdBox(vec3 p, vec3 b){\n" +
