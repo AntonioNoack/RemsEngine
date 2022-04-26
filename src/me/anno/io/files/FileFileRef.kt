@@ -2,7 +2,6 @@ package me.anno.io.files
 
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.Streams.copy
-import java.io.BufferedOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.net.URI

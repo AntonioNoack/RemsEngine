@@ -1,7 +1,6 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.utils.pooling.JomlPools
-import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.sqrt
 

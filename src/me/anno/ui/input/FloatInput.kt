@@ -2,7 +2,6 @@ package me.anno.ui.input
 
 import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
 import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown

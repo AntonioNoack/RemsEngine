@@ -39,33 +39,36 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             val iList = -10..10
             val buffer = StaticBuffer(
                 listOf(Attribute("attr0", 2)),
-                4 * (4 * iList.toList().size - 3)
+                6 * (4 * iList.toList().size - 3)
             )
-            buffer.quads()
             for ((index, i) in iList.withIndex()) {
                 val l = pow(step, i.toFloat())
                 val s = l / step
                 if (index == 0) {
                     // first face: just a quad
                     buffer.put(-l, -l)
-                    buffer.put(-l, l)
-                    buffer.put(l, l)
-                    buffer.put(l, -l)
+                    buffer.put(-l, +l)
+                    buffer.put(+l, +l)
+                    buffer.put(-l, -l)
+                    buffer.put(+l, +l)
+                    buffer.put(+l, -l)
                 } else {
                     // secondary faces: quad rings
-                    for (j in 0 until 4) {
+                    for (j in 0 until 6) {
                         fun put(x0: Float, y0: Float) {
                             when (j) {
                                 0 -> buffer.put(+x0, +y0)
                                 1 -> buffer.put(-x0, -y0)
                                 2 -> buffer.put(-y0, +x0)
-                                3 -> buffer.put(+y0, -x0)
+                                3 -> buffer.put(+x0, +y0)
+                                4 -> buffer.put(-y0, +x0)
+                                5 -> buffer.put(+y0, -x0)
                             }
                         }
-                        put(s, -s)
-                        put(s, s)
-                        put(l, l)
-                        put(l, -l)
+                        put(+s, -s)
+                        put(+s, +s)
+                        put(+l, +l)
+                        put(+l, -l)
                     }
                 }
             }
@@ -179,7 +182,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             }
 
             val quadCount = sizeX * sizeY
-            val jointData = FloatArray(quadCount * 20)
+            val jointData = FloatArray(quadCount * 6 * 5)
 
             val di = 1f / sizeX
             val dj = 1f / sizeY
@@ -197,10 +200,15 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
                 val i01 = i.toFloat() / sizeX
                 for (j in 0 until sizeY) {
                     val j01 = j.toFloat() / sizeY
+
                     put(i01, j01)
                     put(i01 + di, j01)
                     put(i01 + di, j01 + dj)
+
+                    put(i01, j01)
+                    put(i01 + di, j01 + dj)
                     put(i01, j01 + dj)
+
                 }
             }
 
@@ -210,7 +218,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
                     Attribute("attr0", 3),
                     Attribute("attr1", 2)
                 )
-            ).quads()
+            )
 
         }
 

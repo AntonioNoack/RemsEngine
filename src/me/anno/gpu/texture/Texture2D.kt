@@ -20,7 +20,6 @@ import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
@@ -83,7 +82,7 @@ open class Texture2D(
     var createdW = 0
     var createdH = 0
 
-    var isHDR = false
+    override var isHDR = false
 
     fun setSize(width: Int, height: Int) {
         w = width
@@ -96,7 +95,7 @@ open class Texture2D(
         tmp4i[2] = GL_RED
         tmp4i[3] = GL_ONE
         check()
-        GL11.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, tmp4i)
+        glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, tmp4i)
         check()
     }
 

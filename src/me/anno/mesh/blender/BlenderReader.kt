@@ -533,7 +533,7 @@ object BlenderReader {
             BObject.BObjectType.OB_CAMERA -> {
                 val cam = obj.data as? BCamera
                 if (cam != null) {
-                    val c = prefab.add(path, 'c', "CameraComponent", 0)
+                    val c = prefab.add(path, 'c', "Camera", 0)
                     prefab.setUnsafe(c, "near", cam.near.toDouble())
                     prefab.setUnsafe(c, "far", cam.far.toDouble())
                 }

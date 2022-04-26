@@ -280,7 +280,11 @@ object Maths {
     }
 
     fun convertARGB2RGBA(i: Int): Int {
-        return i.shl(8) or i.shr(24).and(255)
+        return i.shl(8) or i.ushr(24)
+    }
+
+    fun convertRGBA2ARGB(i: Int): Int {
+        return i.ushr(8) or i.shl(24)
     }
 
     fun convertABGR2ARGB(i: Int): Int {

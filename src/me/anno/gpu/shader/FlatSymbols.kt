@@ -1,13 +1,18 @@
 package me.anno.gpu.shader
 
+import me.anno.gpu.shader.ShaderLib.attr0List
+import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.builder.Variable
+
 object FlatSymbols {
 
     val flatShaderHalfArrow = BaseShader(
         "flatShaderTexture",
-        "" +
-                ShaderLib.simpleVertexShader, ShaderLib.uvList, "" +
-                "uniform vec4 color, backgroundColor;\n" +
-                "uniform float smoothness;\n" +
+        attr0List, attr0VShader, ShaderLib.uvList, listOf(
+            Variable(GLSLType.V4F, "color"),
+            Variable(GLSLType.V4F, "backgroundColor"),
+            Variable(GLSLType.V1F, "smoothness")
+        ), "" +
                 "void main(){\n" +
                 "   float delta = smoothness * mix(dFdx(uv.x), -dFdy(uv.y), 0.667);\n" +
                 "   float p0 = -0.5 + (uv.x - uv.y);\n" +
@@ -21,11 +26,15 @@ object FlatSymbols {
 
     val flatShaderCircle = BaseShader(
         "flatShaderTexture",
-        "" +
-                ShaderLib.simpleVertexShader, ShaderLib.uvList, "" +
-                "uniform vec4 innerColor, circleColor, backgroundColor;\n" +
-                "uniform float innerRadius, outerRadius, smoothness;\n" +
-                "uniform vec2 degrees;\n" +
+        attr0List, attr0VShader, ShaderLib.uvList, listOf(
+            Variable(GLSLType.V4F, "innerColor"),
+            Variable(GLSLType.V4F, "circleColor"),
+            Variable(GLSLType.V4F, "backgroundColor"),
+            Variable(GLSLType.V1F, "innerRadius"),
+            Variable(GLSLType.V1F, "outerRadius"),
+            Variable(GLSLType.V1F, "smoothness"),
+            Variable(GLSLType.V2F, "degrees")
+        ), "" +
                 "void main(){\n" +
                 "   vec2 uv2 = uv*2.0-1.0;\n" +
                 "   float radius = length(uv2), safeRadius = max(radius, 1e-16);\n" +

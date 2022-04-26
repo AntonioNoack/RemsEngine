@@ -222,8 +222,8 @@ object PBRLibraryGLTF {
             //"    float Gx = NdotL;\n" +
             // NdotL is already in the light equation, NdotV is in G
             // also we don't need two divisions, we can use one
-            // todo 1. where is our bug, that we need to limit the value
-            // todo 2. why can we set the limit so high? how is it processed further?
+            // to do 1. where is our bug, that we need to limit the value?
+            // to do 2. why can we set the limit so high? how is it processed further?
             "#define computeSpecularBRDF NdotL / (x * x * t.x * t.y)\n"
 
     val specularBRDFv2NoColorEnd = "specularLight *= DxPi4;\n"
@@ -234,7 +234,7 @@ object PBRLibraryGLTF {
      * and the half-vector between both (H)
      * The camera position in view space is fixed.
      * */
-    val combineMainColor = "" +
+    private val combineMainColor = "" +
             microfacetDistribution +
             specularReflectance +
             specularAttenuation +
@@ -257,7 +257,7 @@ object PBRLibraryGLTF {
             "    return diffuse + specular;\n" + // we could accumulate this in the light buffer
             "}\n"
 
-    val combineWithEmissive = "" +
+    private val combineWithEmissive = "" +
             combineMainColor +
             "vec3 combineWithEmissive(vec3 mainColor, float occlusionFactor, vec3 emissive){\n" +
             "   return mainColor * occlusionFactor + emissive" +

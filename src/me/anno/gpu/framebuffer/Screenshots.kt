@@ -14,7 +14,7 @@ import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
 import me.anno.utils.OS
 import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11C.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -25,11 +25,13 @@ object Screenshots {
         lx: Int, ly: Int,
         fb: Framebuffer,
         renderer: Renderer,
+        buffer: Any,
+        format: Int,
+        type: Int,
         drawScene: () -> Unit
-    ): IntArray {
+    ): Any {
         val localYOpenGL = fb.h - ly
-        val buffer = IntArray(diameter * diameter)
-        OpenGL.useFrame(0,0, fb.w, fb.h, true, fb, renderer) {
+        OpenGL.useFrame(0, 0, fb.w, fb.h, true, fb, renderer) {
             val radius = diameter shr 1
             val x0 = clamp(lx - radius, 0, fb.w)
             val y0 = clamp(localYOpenGL - radius, 0, fb.h)
@@ -39,25 +41,65 @@ object Screenshots {
                 Frame.bind()
                 // draw only the clicked area
                 OpenGL.scissorTest.use(true) {
-                    GL11.glScissor(x0, y0, x1 - x0, y1 - y0)
+                    glScissor(x0, y0, x1 - x0, y1 - y0)
                     drawScene()
-                    GL11.glFlush(); GL11.glFinish() // wait for everything to be drawn
+                    glFlush(); glFinish() // wait for everything to be drawn
                     readAlignment(4 * (x1 - x0))
-                    GL11.glReadPixels(x0, y0, x1 - x0, y1 - y0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
+                    when (buffer) {
+                        is IntArray -> glReadPixels(x0, y0, x1 - x0, y1 - y0, format, type, buffer)
+                        is FloatArray -> glReadPixels(x0, y0, x1 - x0, y1 - y0, format, type, buffer)
+                        else -> throw IllegalArgumentException()
+                    }
                 }
             } else LOGGER.warn("Selected region was empty: $lx,$ly in 0,0 .. ${fb.w},${fb.h} +/- $radius")
         }
         return buffer
     }
 
+    fun getU8RGBAPixels(
+        diameter: Int,
+        lx: Int, ly: Int,
+        fb: Framebuffer,
+        renderer: Renderer,
+        drawScene: () -> Unit
+    ): IntArray {
+        val buffer = IntArray(diameter * diameter)
+        getPixels(diameter, lx, ly, fb, renderer, buffer, GL_RGBA, GL_UNSIGNED_BYTE, drawScene)
+        return buffer
+    }
+
+    fun getFP32RGBAPixels(
+        diameter: Int,
+        lx: Int, ly: Int,
+        fb: Framebuffer,
+        renderer: Renderer,
+        drawScene: () -> Unit
+    ): FloatArray {
+        val buffer = FloatArray(diameter * diameter * 4)
+        getPixels(diameter, lx, ly, fb, renderer, buffer, GL_RGBA, GL_FLOAT, drawScene)
+        return buffer
+    }
+
+    fun getFP32RPixels(
+        diameter: Int,
+        lx: Int, ly: Int,
+        fb: Framebuffer,
+        renderer: Renderer,
+        drawScene: () -> Unit
+    ): FloatArray {
+        val buffer = FloatArray(diameter * diameter)
+        getPixels(diameter, lx, ly, fb, renderer, buffer, GL_RED, GL_FLOAT, drawScene)
+        return buffer
+    }
+
     fun getClosestId(
         diameter: Int,
         idBuffer: IntArray,
-        depthBuffer: IntArray,
+        depthBuffer: FloatArray,
         depthImportance: Int = if (OpenGL.depthMode.currentValue.reversedDepth) -10 else +10
     ): Int {
 
-        var bestDistance = Int.MAX_VALUE
+        var bestDistance = Int.MAX_VALUE.toFloat()
         var bestResult = 0
 
         // sometimes the depth buffer seems to contain copies of the idBuffer -.-
@@ -70,7 +112,7 @@ object Screenshots {
 
         // convert that color to an id
         for ((index, value) in idBuffer.withIndex()) {
-            val depth = depthBuffer[index] and 255
+            val depth = depthBuffer[index]
             val result = value.and(0xffffff)
             val x = (index % diameter) - radius
             val y = (index / diameter) - radius

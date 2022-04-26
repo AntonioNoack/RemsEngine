@@ -8,6 +8,20 @@ open class LTRB(var left: Int, var top: Int, var right: Int, var bottom: Int) : 
     val width: Int get() = left + right
     val height: Int get() = top + bottom
 
+    fun set(all: Int) {
+        left = all
+        top = all
+        right = all
+        bottom = all
+    }
+
+    fun set(left: Int, top: Int, right: Int, bottom: Int){
+        this.left = left
+        this.top = top
+        this.right = right
+        this.bottom = bottom
+    }
+
     override fun readInt(name: String, value: Int) {
         when (name) {
             "left" -> left = value

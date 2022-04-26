@@ -3,7 +3,6 @@ package me.anno.ui.editor.files
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase.Companion.addEvent
-import me.anno.utils.structures.Hierarchical
 
 abstract class FileContentImporter<V> {
 

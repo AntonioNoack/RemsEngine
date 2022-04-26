@@ -9,7 +9,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.AABBs.all
@@ -20,6 +19,9 @@ import org.joml.Vector2f
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.roundToInt
+
+// todo the sdf things have become quite a lot of code, and probably won't be in that many games,
+//  therefore they probably should be a mod/plugin
 
 /**
  * joins multiple sdf components together, like a folder;
@@ -66,10 +68,9 @@ class SDFGroup : SDFComponent() {
 
     override val children = ArrayList<SDFComponent>()
 
-    override fun getOptionsByType(type: Char): List<Option>? {
-        return if (type == 'c') getOptionsByClass(this, SDFComponent::class)
+    override fun getOptionsByType(type: Char) =
+        if (type == 'c') getOptionsByClass(this, SDFComponent::class)
         else super.getOptionsByType(type)
-    }
 
     override fun listChildTypes(): String = "c" + super.listChildTypes()
     override fun getChildListNiceName(type: Char) = if (type == 'c') "Children" else super.getChildListNiceName(type)
@@ -362,7 +363,7 @@ class SDFGroup : SDFComponent() {
                 .appendUniform(uniforms, GLSLType.V1F) { localReliability }.append(";\n")
             buildDMShader(builder, posIndex, dstIndex, nextVariableId, uniforms, functions)
         } else {
-            builder.append("res").append(dstIndex).append("=vec2(1e20,-1.0);\n")
+            builder.append("res").append(dstIndex).append("=vec2(Infinity,-1.0);\n")
             buildDMShader(builder, posIndex0, dstIndex, nextVariableId, uniforms, functions)
         }
     }
@@ -500,6 +501,25 @@ class SDFGroup : SDFComponent() {
                 }
             }
         }
+    }
+
+    override fun onVisibleUpdate(): Boolean {
+        val children = children
+        for (index in children.indices) {
+            val child = children[index]
+            if (child.isEnabled) child.onVisibleUpdate()
+        }
+        return true
+    }
+
+    override fun onUpdate(): Int {
+        super.onUpdate()
+        val children = children
+        for (index in children.indices) {
+            val child = children[index]
+            if (child.isEnabled) child.onUpdate()
+        }
+        return 1
     }
 
     override fun clone(): SDFGroup {

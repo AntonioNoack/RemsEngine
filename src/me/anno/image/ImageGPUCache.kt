@@ -4,18 +4,19 @@ import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.data.ImageData
 import me.anno.cache.data.LateinitTexture
-import me.anno.gpu.GFXBase
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib
 import me.anno.image.raw.GPUImage
+import me.anno.io.ResourceHelper
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerFile
 import me.anno.utils.Sleep.waitForGFXThread
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
+import javax.imageio.ImageIO
 import kotlin.math.sqrt
 
 object ImageGPUCache : CacheSection("Images") {
@@ -78,7 +79,7 @@ object ImageGPUCache : CacheSection("Images") {
     fun getInternalTexture(name: String, asyncGenerator: Boolean, timeout: Long = 60_000): Texture2D? {
         val texture = getEntry(name, timeout, asyncGenerator) { name1 ->
             try {
-                val img = GFXBase.loadAssetsImage(name1)
+                val img = ImageIO.read(ResourceHelper.loadResource(name1).buffered())
                 val texture = Texture2D("internal-'$name1'", img.width, img.height, 1)
                 texture.create(img, sync = false, checkRedundancy = true)
                 texture

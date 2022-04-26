@@ -1,8 +1,19 @@
 package me.anno.gpu.shader
 
+import me.anno.ecs.components.camera.effects.ColorMapEffect
+import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.shader.ShaderLib.attr0List
+import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.ITexture2D
 
 object ShaderPlus {
 
@@ -12,6 +23,18 @@ object ShaderPlus {
 
     fun create(name: String, geometry: String?, vertex: String, varying: List<Variable>, fragment: String): Shader {
         return Shader(name, geometry, vertex, varying, makeFragmentShaderUniversal(varying, fragment))
+    }
+
+    fun create(
+        name: String, geometry: String?,
+        vertexVariables: List<Variable>, vertex: String, varying: List<Variable>,
+        fragmentVariables: List<Variable>, fragment: String
+    ): Shader {
+        return Shader(
+            name, geometry,
+            vertexVariables, vertex, varying,
+            fragmentVariables, makeFragmentShaderUniversal(varying, fragment)
+        )
     }
 
     val randomFunc = "#define GET_RANDOM(co) fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453)\n"
@@ -41,16 +64,7 @@ object ShaderPlus {
                 "       if(finalAlpha < 0.01) discard;\n" +
                 "       gl_FragColor = vec4(tint.rgb, 1.0);\n" +
                 "       break;\n" +
-                "   case ${DrawMode.ID_VIS.id}:\n" +
-                "       if(finalAlpha < 0.01) discard;\n" +
-                "       gl_FragColor = vec4(GET_RANDOM(tint.rg), GET_RANDOM(tint.gb), GET_RANDOM(100.0 - tint.br), 1.0);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.DEPTH_LOG2_01.id}:\n" +
-                "       if(finalAlpha < 0.01) discard;\n" +
-                "       float depth01 = 0.5 + 0.04 * log2(zDistance);\n" +
-                "       gl_FragColor = vec4(depth01, depth01, depth01*depth01, finalAlpha);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.DEPTH_LOG2.id}:\n" +
+                "   case ${DrawMode.DEPTH_DSQ.id}:\n" +
                 "       if(finalAlpha < 0.01) discard;\n" +
                 "       gl_FragColor = vec4(zDistance, 0.0, zDistance * zDistance, finalAlpha);\n" +
                 "       break;\n" +
@@ -91,18 +105,7 @@ object ShaderPlus {
                 "       if(finalAlpha < 0.01) discard;\n" +
                 "       fragColor = vec4(tint.rgb, 1.0);\n" +
                 "       break;\n" +
-                "   case ${DrawMode.ID_VIS.id}:\n" +
-                "       if(finalAlpha < 0.01) discard;\n" +
-                "       float flRandomId2 = dot(vec4(256.0*65536.0, 65536.0, 256.0, 1.0), tint);\n" +
-                "       vec2 seed2 = vec2(sin(flRandomId2), cos(flRandomId2));\n" +
-                "       fragColor = vec4(GET_RANDOM(seed2.xy), GET_RANDOM(seed2.yx), GET_RANDOM(100.0 - seed2.yx), 1.0);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.DEPTH_LOG2_01.id}:\n" +
-                "       if(finalAlpha < 0.01) discard;\n" +
-                "       float depth01 = 0.5 + 0.04 * log2(zDistance);\n" +
-                "       fragColor = vec4(depth01, depth01, depth01*depth01, finalAlpha);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.DEPTH_LOG2.id}:\n" +
+                "   case ${DrawMode.DEPTH_DSQ.id}:\n" +
                 "       if(finalAlpha < 0.01) discard;\n" +
                 "       fragColor = vec4(zDistance, 0.0, zDistance * zDistance, finalAlpha);\n" +
                 "       break;\n" +
@@ -121,13 +124,38 @@ object ShaderPlus {
         return ShaderStage(callName, variables, code)
     }
 
+    val randomShader = Shader(
+        "random", attr0List, attr0VShader, uvList,
+        listOf(Variable(GLSLType.S2D, "source")), "" +
+                randomFunc +
+                "void main(){\n" +
+                "   vec4 tint = texture(source, uv);\n" +
+                "   float flRandomId2 = dot(vec4(256.0*65536.0, 65536.0, 256.0, 1.0), tint);\n" +
+                "   vec2 seed2 = vec2(sin(flRandomId2), cos(flRandomId2));\n" +
+                "   gl_FragColor = vec4(GET_RANDOM(seed2.xy), GET_RANDOM(seed2.yx), GET_RANDOM(100.0 - seed2.yx), 1.0);\n" +
+                "\n}"
+    )
+
+    object RandomEffect : ColorMapEffect() {
+        override fun render(color: ITexture2D): IFramebuffer {
+            val target = FBStack["random", color.w, color.h, 4, false, 1, false]
+            useFrame(target) {
+                val shader = randomShader
+                shader.use()
+                color.bind(0, GPUFiltering.NEAREST, Clamping.CLAMP)
+                flat01.draw(shader)
+            }
+            return target
+        }
+
+        override fun clone() = this // illegal
+    }
+
     enum class DrawMode(val id: Int) {
         COLOR_SQUARED(0),
         COLOR(1),
         ID(2),
-        ID_VIS(3),
-        DEPTH_LOG2_01(4), // does not need a float buffer
-        DEPTH_LOG2(5), // needs a float buffer
+        DEPTH_DSQ(5), // needs a float buffer
         COPY(6),
         TINT(7),
         RANDOM_ID(8)

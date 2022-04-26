@@ -8,6 +8,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.findSystem
 import me.anno.utils.types.Vectors.setAxis
 import org.joml.Matrix4x3d
+import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.cos
@@ -324,6 +325,30 @@ object LineShapes {
             }
         }
         putRelativeLine(positions[0], positions[1], color)
+    }
+
+    fun drawRect(
+        entity: Entity?,
+        p0: Vector3f,
+        p1: Vector3f,
+        p2: Vector3f,
+        p3: Vector3f,
+        color: Int = Collider.guiLineColor
+    ) {
+        val transform = getDrawMatrix(entity)
+        val positions = tmpVec3d
+        positions[0].set(p0)
+        positions[1].set(p1)
+        positions[2].set(p2)
+        positions[3].set(p3)
+        if (transform != null) {
+            for (i in 0 until 4) {
+                transform.transformPosition(positions[i])
+            }
+        }
+        for (i in 0 until 4) {
+            putRelativeLine(positions[i], positions[(i + 1) and 3], color)
+        }
     }
 
     fun drawSphere(

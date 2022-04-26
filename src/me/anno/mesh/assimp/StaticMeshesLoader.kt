@@ -32,7 +32,7 @@ open class StaticMeshesLoader {
         const val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
                 aiProcess_Triangulate or // we don't want to triangulate ourselves
                 aiProcess_JoinIdenticalVertices or // is required to load indexed geometry
-                aiProcess_FixInfacingNormals or // is recommended, may be incorrect...
+                // aiProcess_FixInfacingNormals or // is recommended, may be incorrect... is incorrect for the Sponza sample from Intel
                 aiProcess_GlobalScale
 
         fun shininessToRoughness(shininessExponent: Float): Float {

@@ -18,7 +18,6 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
 import me.anno.engine.ui.render.RenderView.Companion.mouseDir
-import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.input.Touch

@@ -15,7 +15,7 @@ object CubemapModel {
         listOf(
             Attribute("attr0", 3),
             Attribute("attr1", 2)
-        ), 4 * 6
+        ), 6 * 6
     ).apply {
 
         fun put(v0: Vector3fc, dx: Vector3fc, dy: Vector3fc, x: Float, y: Float, u: Int, v: Int) {
@@ -23,11 +23,19 @@ object CubemapModel {
             put(pos.x, pos.y, pos.z, u / 4f, v / 3f)
         }
 
-        fun addFace(u: Int, v: Int, v0: Vector3fc, dx: Vector3fc, dy: Vector3fc) {
-            put(v0, dx, dy, -1f, -1f, u + 1, v)
-            put(v0, dx, dy, -1f, +1f, u + 1, v + 1)
-            put(v0, dx, dy, +1f, +1f, u, v + 1)
-            put(v0, dx, dy, +1f, -1f, u, v)
+        fun addFace(u0: Int, v0: Int, p: Vector3fc, dx: Vector3fc, dy: Vector3fc) {
+
+            val u1 = u0 + 1
+            val v1 = v0 + 1
+
+            put(p, dx, dy, -1f, -1f, u1, v0)
+            put(p, dx, dy, -1f, +1f, u1, v1)
+            put(p, dx, dy, +1f, +1f, u0, v1)
+
+            put(p, dx, dy, -1f, -1f, u1, v0)
+            put(p, dx, dy, +1f, +1f, u0, v1)
+            put(p, dx, dy, +1f, -1f, u0, v0)
+
         }
 
         val mxAxis = Vector3f(-1f, 0f, 0f)
@@ -40,8 +48,6 @@ object CubemapModel {
         addFace(3, 1, zAxis, xAxis, yAxis) // 2x right, back
         addFace(1, 0, myAxis, mxAxis, mzAxis) // top
         addFace(1, 2, yAxis, mxAxis, zAxis) // bottom
-
-        quads()
 
     }
 
@@ -49,7 +55,7 @@ object CubemapModel {
         listOf(
             Attribute("attr0", 3),
             Attribute("attr1", 2)
-        ), 4 * 6 * 2
+        ), 6 * 6 * 2
     ).apply {
 
         fun put(v0: Vector3fc, dx: Vector3fc, dy: Vector3fc, x: Float, y: Float, u: Int, v: Int) {
@@ -57,15 +63,26 @@ object CubemapModel {
             put(pos.x, pos.y, pos.z, u / 4f, v / 3f)
         }
 
-        fun addFace(u: Int, v: Int, v0: Vector3fc, dx: Vector3fc, dy: Vector3fc) {
-            put(v0, dx, dy, -1f, -1f, u + 1, v)
-            put(v0, dx, dy, -1f, +1f, u + 1, v + 1)
-            put(v0, dx, dy, -1f, +1f, u + 1, v + 1)
-            put(v0, dx, dy, +1f, +1f, u, v + 1)
-            put(v0, dx, dy, +1f, +1f, u, v + 1)
-            put(v0, dx, dy, +1f, -1f, u, v)
-            put(v0, dx, dy, +1f, -1f, u, v)
-            put(v0, dx, dy, -1f, -1f, u + 1, v)
+        fun addFace(u0: Int, v0: Int, p: Vector3fc, dx: Vector3fc, dy: Vector3fc) {
+            val u1 = u0 + 1
+            val v1 = v0 + 1
+
+            put(p, dx, dy, -1f, -1f, u1, v0)
+            put(p, dx, dy, -1f, +1f, u1, v1)
+            put(p, dx, dy, -1f, +1f, u1, v1)
+
+            put(p, dx, dy, -1f, -1f, u1, v0)
+            put(p, dx, dy, -1f, +1f, u1, v1)
+            put(p, dx, dy, +1f, +1f, u0, v1)
+
+            put(p, dx, dy, +1f, +1f, u0, v1)
+            put(p, dx, dy, +1f, -1f, u0, v0)
+            put(p, dx, dy, +1f, -1f, u0, v0)
+
+            put(p, dx, dy, +1f, +1f, u0, v1)
+            put(p, dx, dy, +1f, -1f, u0, v0)
+            put(p, dx, dy, -1f, -1f, u1, v0)
+
         }
 
         val mxAxis = Vector3f(-1f, 0f, 0f)
@@ -78,8 +95,6 @@ object CubemapModel {
         addFace(3, 1, zAxis, xAxis, yAxis) // 2x right, back
         addFace(1, 0, myAxis, mxAxis, mzAxis) // top
         addFace(1, 2, yAxis, mxAxis, zAxis) // bottom
-
-        quads()
 
     }
 

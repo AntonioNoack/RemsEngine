@@ -15,10 +15,6 @@ class CSet() : Change() {
         if (name == "parent") throw IllegalStateException("Name cannot be parent, use CAdd for that")
     }
 
-    override fun withPath(path: Path): Change {
-        return CSet(path, name, value)
-    }
-
     var name: String? = null
     var value: Any? = null
 

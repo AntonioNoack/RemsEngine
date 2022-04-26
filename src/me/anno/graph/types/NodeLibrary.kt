@@ -14,29 +14,35 @@ import me.anno.graph.types.flow.maths.MathD2Node
 import me.anno.graph.types.flow.maths.MathL2Node
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
-class NodeLibrary(val nodes: Set<Node>) {
+class NodeLibrary(val nodes: Collection<() -> Node>) {
+
+    constructor(vararg nodes: () -> Node) :
+            this(nodes.toList())
+
+    fun register() {
+        for (node in nodes) {
+            registerCustomClass(node)
+        }
+    }
+
     companion object {
 
         val flowNodes = NodeLibrary(
-            hashSetOf(
-                GetLocalVariableNode(),
-                SetLocalVariableNode(),
-                ForNode(),
-                IfElseNode(),
-                WhileNode(),
-                PrintNode(),
-                MathL2Node(),
-                MathD2Node(),
-                CompareNode()
-            )
+            { GetLocalVariableNode() },
+            { SetLocalVariableNode() },
+            { ForNode() },
+            { IfElseNode() },
+            { WhileNode() },
+            { PrintNode() },
+            { MathL2Node() },
+            { MathD2Node() },
+            { CompareNode() }
         )
 
         fun init() {
-            registerCustomClass(NodeInput())
-            registerCustomClass(NodeOutput())
-            for (node in flowNodes.nodes) {
-                registerCustomClass(node)
-            }
+            registerCustomClass { NodeInput() }
+            registerCustomClass { NodeOutput() }
+            flowNodes.register()
         }
 
     }

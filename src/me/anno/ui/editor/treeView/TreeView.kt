@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
-import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
@@ -20,25 +19,24 @@ import org.apache.logging.log4j.LogManager
 
 abstract class TreeView<V>(
     val sources: List<V>,
-    val fileContentImporter: FileContentImporter<V>,
-    val showSymbols: Boolean,
+    private val fileContentImporter: FileContentImporter<V>,
+    private val showSymbols: Boolean,
     style: Style
 ) : ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
-    val list = content as PanelList
+    val list = child as PanelList
     val sample get() = list.children.first() as TreeViewPanel<*>
 
     init {
         padding.top = 16
     }
 
-    val elementByIndex = ArrayList<V>()
+    private val elementByIndex = ArrayList<V>()
 
     var inset = style.getSize("fontSize", 12) / 3
     var collapsedSymbol = DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
 
     var needsTreeUpdate = true
-    var focused: Panel? = null
 
     // Selection.select(element, null)
     abstract fun selectElement(element: V?)

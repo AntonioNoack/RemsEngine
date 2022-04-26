@@ -4,10 +4,13 @@ import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.drawing.DrawGradients
-import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
@@ -15,8 +18,8 @@ import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color
 import me.anno.utils.OS
+import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11.glClearColor
 import org.lwjgl.opengl.GL11C.*
 import org.lwjgl.opengl.GL30C
 import java.awt.image.BufferedImage
@@ -24,6 +27,34 @@ import java.nio.ByteBuffer
 import kotlin.math.min
 
 object FramebufferToMemory {
+
+    /**
+     * this is a function, which works in screen space rather than UI space!!
+     * */
+    private fun drawTexturePure(
+        x: Int, y: Int, w: Int, h: Int,
+        texture: ITexture2D, ignoreAlpha: Boolean,
+        applyToneMapping: Boolean = false
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = FlatShaders.flatShaderTexture.value
+        shader.use()
+        GFXx2D.posSize(shader, x, GFX.viewportHeight - y, w, -h)
+        GFXx2D.defineAdvancedGraphicalFeatures(shader)
+        shader.v4f("color", -1)
+        shader.v1i("alphaMode", ignoreAlpha.toInt())
+        shader.v1b("applyToneMapping", applyToneMapping)
+        GFXx2D.noTiling(shader)
+        val tex = texture as? Texture2D
+        texture.bind(
+            0,
+            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.clamping ?: Clamping.CLAMP
+        )
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
 
     fun createBufferedImage(framebuffer: Framebuffer, flipY: Boolean, withAlpha: Boolean): BufferedImage {
         return createBufferedImage(framebuffer.w, framebuffer.h, framebuffer, flipY, withAlpha)
@@ -51,13 +82,13 @@ object FramebufferToMemory {
 
     fun createBufferedImage(w: Int, h: Int, texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): BufferedImage {
         return createBufferedImage(w, h, zero, flipY, withAlpha) { x2, y2, _, _ ->
-            DrawTextures.drawTexturePure(-x2, -y2, w, h, texture, !withAlpha)
+            drawTexturePure(-x2, -y2, w, h, texture, !withAlpha)
         }
     }
 
     fun createImage(w: Int, h: Int, texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): IntImage {
         return createImage(w, h, zero, flipY, withAlpha) { x2, y2, _, _ ->
-            DrawTextures.drawTexturePure(-x2, -y2, w, h, texture, !withAlpha)
+            drawTexturePure(-x2, -y2, w, h, texture, !withAlpha)
         }
     }
 

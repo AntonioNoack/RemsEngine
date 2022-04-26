@@ -38,9 +38,9 @@ class TreeViewPanel<V>(
     val getName: (V) -> String,
     val setName: (V, String) -> Unit,
     val openAddMenu: (parent: V) -> Unit,
-    val fileContentImporter: FileContentImporter<V>,
+    private val fileContentImporter: FileContentImporter<V>,
     showSymbol: Boolean,
-    val treeView: TreeView<V>, style: Style
+    private val treeView: TreeView<V>, style: Style
 ) : PanelListX(style) {
 
     val uiSymbol: TextPanel? = if (showSymbol) {
@@ -201,7 +201,6 @@ class TreeViewPanel<V>(
                         treeView.addBefore(element, child)
                     } else {
                         treeView.addChild(element, child)
-                        // element.addChild(child)
                     }
                     // we can't remove the element, if it's the parent
                     if (original !in child.listOfAll) {
@@ -210,7 +209,6 @@ class TreeViewPanel<V>(
                 } else if (relativeY < 0.67f) {
                     // paste as child
                     treeView.addChild(element, child)
-                    // element.addChild(child)
                     if (element != original) {
                         // we can't remove the element, if it's the parent
                         if (original !in child.listOfAll) {
@@ -223,7 +221,6 @@ class TreeViewPanel<V>(
                         treeView.addAfter(element, child)
                     } else {
                         treeView.addChild(element, child)
-                        // element.addChild(child)
                     }
                     // we can't remove the element, if it's the parent
                     if (original !in child.listOfAll) {
@@ -231,7 +228,6 @@ class TreeViewPanel<V>(
                     }
                 }
                 treeView.selectElement(child)
-                // selectTransform(child)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -249,7 +245,7 @@ class TreeViewPanel<V>(
             }
         }
 
-    fun V.removeFromParent() {
+    private fun V.removeFromParent() {
         treeView.removeChild(treeView.getParent(this) ?: return, this)
     }
 

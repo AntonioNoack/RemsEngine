@@ -1,7 +1,6 @@
 package me.anno.ecs.components.anim
 
 import me.anno.ecs.components.cache.SkeletonCache
-import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference

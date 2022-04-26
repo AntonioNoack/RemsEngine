@@ -96,9 +96,11 @@ open class MeshData : ICacheData {
 
     }
 
+    // we should be able to remove them...
     fun vec3(v: Vector3d): Vector3f = Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
-    fun quat(q: Quaterniond): Quaternionf = Quaternionf(q.x.toFloat(), q.y.toFloat(), q.z.toFloat(), q.w.toFloat())
+    fun quat(q: Quaterniond): Quaternionf = Quaternionf(q)
 
+    @Suppress("MemberVisibilityCanBePrivate")
     fun drawHierarchy(
         shader: Shader,
         cameraMatrix: Matrix4f,

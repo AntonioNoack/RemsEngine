@@ -13,12 +13,12 @@ import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
 
 open class Shader(
     shaderName: String,
-    val geometry: String?,
-    val vsUniforms: List<Variable>,
-    val vertex: String,
-    val varying: List<Variable>,
-    val fsUniforms: List<Variable>,
-    val fragment: String
+    private val geometryShader: String?,
+    private val vertexVariables: List<Variable>,
+    private val vertexShader: String,
+    private val varyings: List<Variable>,
+    private val fragmentVariables: List<Variable>,
+    private val fragmentShader: String
 ) : OpenGLShader(shaderName) {
 
     constructor(
@@ -36,7 +36,7 @@ open class Shader(
     var fragmentSource = ""
 
     override fun sourceContainsWord(word: String): Boolean {
-        return word in vertex || word in fragment
+        return word in vertexShader || word in fragmentShader
     }
 
     // shader compile time doesn't really matter... -> move it to the start to preserve ram use?
@@ -45,7 +45,7 @@ open class Shader(
 
         // LOGGER.debug("$shaderName\nGEOMETRY:\n$geometry\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
 
-        val varyings = varying.map { Varying(if (it.isFlat || it.type.isFlat) "flat" else "", it.type, it.name) }
+        val varyings = varyings.map { Varying(if (it.isFlat || it.type.isFlat) "flat" else "", it.type, it.name) }
 
         val program = glCreateProgram()
         GFX.check()
@@ -53,9 +53,9 @@ open class Shader(
         GFX.check()
 
         val versionString = formatVersion(glslVersion) + "\n// $name\n"
-        val geometryShader = if (geometry != null) {
+        val geometryShader = if (geometryShader != null) {
             for (v in varyings) v.makeDifferent()
-            var geo = versionString + geometry
+            var geo = versionString + geometryShader
             while (true) {
                 // copy over all varyings for the shaders
                 val copyIndex = geo.indexOf("#copy")
@@ -81,7 +81,7 @@ open class Shader(
         // todo only set them, if not already specified
         builder.append("precision mediump float;\n")
         builder.append("precision mediump int;\n")
-        for (v in vsUniforms) {
+        for (v in vertexVariables) {
             when (v.inOutMode) {
                 VariableMode.ATTR -> {
                     builder.append(attribute)
@@ -98,8 +98,7 @@ open class Shader(
             builder.append(v.type.glslName)
             builder.append(' ')
             builder.append(v.name)
-            builder.append(';')
-            builder.append('\n')
+            builder.append(";\n")
         }
         for (v in varyings) {
             builder.append(v.modifiers)
@@ -109,7 +108,7 @@ open class Shader(
             builder.append(v.vShaderName)
             builder.append(";\n")
         }
-        builder.append(vertex.replaceVaryingNames(true, varyings))
+        builder.append(vertexShader.replaceVaryingNames(true, varyings))
         vertexSource = builder.toString()
         builder.clear()
 
@@ -126,7 +125,7 @@ open class Shader(
             builder.append(v.fShaderName)
             builder.append(";\n")
         }
-        for (v in fsUniforms) {
+        for (v in fragmentVariables) {
             when (v.inOutMode) {
                 VariableMode.IN, VariableMode.INOUT -> {
                     builder.append("uniform ")
@@ -142,11 +141,15 @@ open class Shader(
             builder.append(";\n")
         }
         val base =
-            (if (!fragment.contains("out ") && glslVersion == DefaultGLSLVersion && fragment.contains("gl_FragColor")) {
+            (if (!fragmentShader.contains("out ") &&
+                glslVersion == DefaultGLSLVersion &&
+                fragmentShader.contains("gl_FragColor") &&
+                fragmentVariables.none { it.isOutput }
+            ) {
                 "" +
-                        "out vec4 glFragColor;" +
-                        fragment.replace("gl_FragColor", "glFragColor")
-            } else fragment)
+                        "out vec4 glFragColor;\n" +
+                        fragmentShader.replace("gl_FragColor", "glFragColor")
+            } else fragmentShader)
         builder.append(base.replaceVaryingNames(false, varyings))
 
         fragmentSource = builder.toString()

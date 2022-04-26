@@ -147,7 +147,7 @@ class LightPipelineStage(
                 // first the ones for the deferred data
                 // then the ones for the shadows
                 val textures = listOf("finalLight", "ambientOcclusion") + settingsV2.layers2.map { it.name }
-                shader.ignoreUniformWarnings(
+                shader.ignoreNameWarnings(
                     "tint", "invLocalTransform",
                     "defLayer0", "defLayer1", "defLayer2", "defLayer3",
                     "defLayer4", "defLayer5", "defLayer6", "defLayer7"
@@ -248,6 +248,7 @@ class LightPipelineStage(
                         Variable(GLSLType.S2D, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
                         // - point lights
                         Variable(GLSLType.SCube, "shadowMapCubic", 1),
+                        Variable(GLSLType.BOOL, "receiveShadows"),
                         // Variable(GLSLType.V3F, "finalColor"), // not really required
                         Variable(GLSLType.V3F, "finalPosition"),
                         Variable(GLSLType.V3F, "finalNormal"),
@@ -277,7 +278,8 @@ class LightPipelineStage(
                             "    vec3 H = normalize(V + lightDirWS);\n" +
                             specularBRDFv2NoColorStart +
                             specularBRDFv2NoColor +
-                            "    specularLight = clamp(effectiveSpecular * computeSpecularBRDF, 0.0, 1e6);\n" +
+                            "    specularLight = effectiveSpecular * computeSpecularBRDF;\n" +
+                            // "    specularLight = clamp(specularLight, 0.0, 1e6);\n" +
                             specularBRDFv2NoColorEnd +
                             "} else specularLight = vec3(0.0);\n" +
                             // translucency; looks good and approximately correct
@@ -311,7 +313,7 @@ class LightPipelineStage(
                 val textures = settingsV2.layers2.map { it.name } +
                         listOf("shadowMapCubic0") +
                         Array(Renderers.MAX_PLANAR_LIGHTS) { "shadowMapPlanar$it" }
-                shader.ignoreUniformWarnings(
+                shader.ignoreNameWarnings(
                     "tint", "invLocalTransform", "colors",
                     "tangents", "uvs", "normals", "isDirectional",
                     "defLayer0", "defLayer1", "defLayer2", "defLayer3", "defLayer4"

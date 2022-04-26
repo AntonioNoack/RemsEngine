@@ -3,9 +3,7 @@ package me.anno.utils.pooling
 import org.apache.logging.log4j.LogManager
 import java.nio.BufferUnderflowException
 
-class Stack<V : Any>(
-    private val createInstance: () -> V
-) {
+class Stack<V : Any>(private val createInstance: () -> V) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Stack::class)

@@ -6,12 +6,16 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.shader.Shader
 import me.anno.utils.LOGGER
 import org.lwjgl.opengl.*
+import org.lwjgl.opengl.GL11C.GL_UNSIGNED_INT
+import org.lwjgl.opengl.GL15C.*
+import org.lwjgl.opengl.GL30C.glGenVertexArrays
+import org.lwjgl.opengl.GL31C.glDrawElementsInstanced
 import org.lwjgl.system.MemoryUtil
 
 class IndexBuffer(
     val base: Buffer,
     indices: IntArray,
-    val usage: Int = GL15.GL_STATIC_DRAW
+    val usage: Int = GL_STATIC_DRAW
 ) : ICacheData, Drawable {
 
     var indices: IntArray = indices
@@ -23,7 +27,7 @@ class IndexBuffer(
         }
 
     var pointer = -1
-    var elementsType = GL11.GL_UNSIGNED_INT
+    var elementsType = GL_UNSIGNED_INT
     var isUpToDate = false
     var session = 0
     var locallyAllocated = 0L
@@ -46,7 +50,7 @@ class IndexBuffer(
 
     private fun ensureVAO() {
         if (Buffer.useVAOs) {
-            if (vao <= 0) vao = GL30.glGenVertexArrays()
+            if (vao <= 0) vao = glGenVertexArrays()
             if (vao <= 0) throw OutOfMemoryError("Could not allocate vertex array")
         }
     }
@@ -58,7 +62,7 @@ class IndexBuffer(
         ensureVAO()
 
         Buffer.bindVAO(vao)
-        Buffer.bindBuffer(GL30.GL_ARRAY_BUFFER, base.pointer)
+        Buffer.bindBuffer(GL_ARRAY_BUFFER, base.pointer)
         var hasAttr = false
         val attributes = base.attributes
         for (index in attributes.indices) {
@@ -81,14 +85,14 @@ class IndexBuffer(
         base.ensureBuffer()
 
         Buffer.bindVAO(vao)
-        Buffer.bindBuffer(GL30.GL_ARRAY_BUFFER, base.pointer)
+        Buffer.bindBuffer(GL_ARRAY_BUFFER, base.pointer)
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
         for (attr in base.attributes) {
             Buffer.bindAttribute(shader, attr, false)
         }
 
         instanceData.ensureBuffer()
-        Buffer.bindBuffer(GL30.GL_ARRAY_BUFFER, instanceData.pointer)
+        Buffer.bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
         for (attr in instanceData.attributes) {
             Buffer.bindAttribute(shader, attr, true)
         }
@@ -104,9 +108,9 @@ class IndexBuffer(
         val indices = indices
         if (indices.isEmpty()) return
 
-        val target = GL30.GL_ELEMENT_ARRAY_BUFFER
+        val target = GL_ELEMENT_ARRAY_BUFFER
 
-        if (pointer <= 0) pointer = GL15.glGenBuffers()
+        if (pointer <= 0) pointer = glGenBuffers()
         if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL buffer")
         Buffer.bindBuffer(target, pointer)
 
@@ -133,19 +137,19 @@ class IndexBuffer(
                 for (i in indices) buffer.put(i.toShort())
                 buffer.flip()
                 if (indices.size * 2L == locallyAllocated) {
-                    GL30.glBufferSubData(target, 0, buffer)
+                    glBufferSubData(target, 0, buffer)
                 } else {
-                    GL30.glBufferData(target, buffer, usage)
+                    glBufferData(target, buffer, usage)
                 }
                 locallyAllocated = Buffer.allocate(locallyAllocated, indices.size * 2L)
                 MemoryUtil.memFree(buffer)
             }
             else -> {
-                elementsType = GL11.GL_UNSIGNED_INT
+                elementsType = GL_UNSIGNED_INT
                 if (indices.size * 4L == locallyAllocated) {
-                    GL30.glBufferSubData(target, 0, indices)
+                    glBufferSubData(target, 0, indices)
                 } else {
-                    GL30.glBufferData(target, indices, usage)
+                    glBufferData(target, indices, usage)
                 }
                 locallyAllocated = Buffer.allocate(locallyAllocated, indices.size * 4L)
             }
@@ -157,7 +161,7 @@ class IndexBuffer(
     fun draw(shader: Shader, mode: Int) {
         bind(shader) // defines drawLength
         if (base.drawLength > 0) {
-            GL11.glDrawElements(mode, indices.size, elementsType, 0)
+            glDrawElements(mode, indices.size, elementsType, 0)
             unbind()
             GFX.check()
         }
@@ -227,14 +231,14 @@ class IndexBuffer(
     fun drawInstanced(shader: Shader, instanceData: Buffer, mode: Int) {
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
-        GL33.glDrawElementsInstanced(mode, indices.size, elementsType, 0, instanceData.drawLength)
+        glDrawElementsInstanced(mode, indices.size, elementsType, 0, instanceData.drawLength)
         unbind()
     }
 
     fun drawSimpleInstanced(shader: Shader, mode: Int, count: Int) {
         bind(shader) // defines drawLength
         if (base.drawLength > 0) {
-            GL31.glDrawElementsInstanced(mode, indices.size, elementsType, 0, count)
+            glDrawElementsInstanced(mode, indices.size, elementsType, 0, count)
             unbind()
             GFX.check()
         }
@@ -250,7 +254,7 @@ class IndexBuffer(
         if (buffer >= 0) {
             GFX.addGPUTask(1) {
                 Buffer.onDestroyBuffer(buffer)
-                GL15.glDeleteBuffers(buffer)
+                glDeleteBuffers(buffer)
             }
             pointer = -1
             locallyAllocated = Buffer.allocate(locallyAllocated, 0)

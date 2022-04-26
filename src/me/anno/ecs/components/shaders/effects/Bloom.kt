@@ -14,10 +14,9 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderLib.attr0List
+import me.anno.gpu.shader.ShaderLib.attr0VShader
 import me.anno.gpu.shader.ShaderLib.brightness
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader0
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader0List
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -27,7 +26,6 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths.log
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
-import org.lwjgl.system.CallbackI
 import kotlin.math.exp
 
 object Bloom {
@@ -145,7 +143,7 @@ object Bloom {
             else blur.append("),0).rgb)\n")
         }
         return Shader(
-            "bloom0", simplestVertexShader0List, simplestVertexShader0, uvList,
+            "bloom0", attr0List, attr0VShader, uvList,
             listOf(
                 Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
                 Variable(GLSLType.V1F, "offset"),
@@ -179,11 +177,14 @@ object Bloom {
 
     private val compositionShader = lazy {
         Shader(
-            "bloom", simplestVertexShader, uvList, "" +
-                    "out vec4 fragColor;\n" +
-                    "uniform float strength;\n" +
-                    "uniform bool applyToneMapping;\n" +
-                    "uniform sampler2D base, bloom;\n" +
+            "bloom", attr0List, attr0VShader, uvList,
+            listOf(
+                Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
+                Variable(GLSLType.V1F, "strength"),
+                Variable(GLSLType.BOOL, "applyToneMapping"),
+                Variable(GLSLType.S2D, "base"),
+                Variable(GLSLType.S2D, "bloom")
+            ), "" +
                     noiseFunc +
                     "void main(){\n" +
                     "   vec4 color0 = texture(base,uv);\n" +

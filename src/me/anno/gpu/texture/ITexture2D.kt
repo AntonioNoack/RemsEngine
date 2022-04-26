@@ -13,6 +13,8 @@ interface ITexture2D : ICacheData {
         return bind(if(filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR, clamping)
     }*/
 
+    val isHDR: Boolean
+
     fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean
     fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         return bind(index, if (filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR, clamping)

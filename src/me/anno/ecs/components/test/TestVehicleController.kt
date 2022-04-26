@@ -9,6 +9,8 @@ import me.anno.input.Input
 class TestVehicleController : Component(), ControlReceiver {
 
     var force = 1.0
+    var steering = 1.0
+    var brake = 1.0
 
     override fun onPhysicsUpdate(): Boolean {
         val vehicle = entity!!.getComponent(Vehicle::class) ?: return false
@@ -18,7 +20,8 @@ class TestVehicleController : Component(), ControlReceiver {
         var force = 0.0
         if (Input.isKeyDown('t')) force++
         if (Input.isKeyDown('g')) force--
-        vehicle.steering = steering
+        vehicle.brakeForcePerWheel = if (Input.isKeyDown(' ')) this.brake else 0.0
+        vehicle.steering = steering * this.steering
         vehicle.engineForcePerWheel = force * this.force
         return true
     }

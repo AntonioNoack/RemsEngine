@@ -1,6 +1,6 @@
 package me.anno.gpu
 
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 
 enum class DepthMode(val func: Int, val reversedDepth: Boolean) {
     ALWAYS(0, true),

@@ -11,6 +11,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.ZipCache
@@ -33,11 +34,6 @@ import org.apache.logging.log4j.LogManager
 // done import mesh/material/... for modifications:
 // done create material, mesh, animation etc folder
 // done rename Scene.json to mesh file name.json
-// todo if the name is a number, try to find another one
-// todo or use a different name for that prefab...
-
-// todo drag assets into the scene
-// todo drag materials onto mesh components
 
 class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: Style) : FileExplorer(file0, style) {
 
@@ -118,11 +114,13 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
             } else LOGGER.warn("Could not load $src as prefab")
         }
         invalidate()
-        // todo update icon of current folder
         LastModifiedCache.invalidate(current)
+        // update icon of current folder... hopefully this works
+        Thumbs.invalidate(current)
+        Thumbs.invalidate(current.getParent())
     }
 
-    fun replaceReferences(prefabs: HashMap<FileReference, Prefab>) {
+    private fun replaceReferences(prefabs: HashMap<FileReference, Prefab>) {
         // replace all local references, so we can change the properties of everything:
         for ((_, prefab) in prefabs) {
             val original = PrefabCache[prefab.prefab]!!
@@ -145,7 +143,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
         }
     }
 
-    fun copyAssets(
+    private fun copyAssets(
         srcFolder: FileReference, dstFolder: FileReference, isMainFolder: Boolean,
         result: HashMap<FileReference, Prefab>
     ) {
@@ -203,7 +201,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
         }
     }
 
-    fun pastePrefab(data: String): Boolean {
+    private fun pastePrefab(data: String): Boolean {
         try {
             val read = TextReader.read(data, StudioBase.workspace, true)
             val saveable = read.getOrNull(0) ?: return false
@@ -253,6 +251,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
 
         val folderOptions = ArrayList<FileExplorerOption>()
 
+        @Suppress("MemberVisibilityCanBePrivate")
         fun addOptionToCreateFile(name: String, fileContent: String) {
             folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, folder ->
                 val file = findNextFile(folder, name, "json", 1, 0.toChar(), 0)
@@ -263,19 +262,21 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
             })
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         fun addOptionToCreateComponent(name: String, clazzName: String = name) {
             addOptionToCreateFile(name, Prefab(clazzName).toString())
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         fun addOptionToCreateComponent(name: String, clazzName: String, prefab: FileReference) {
             addOptionToCreateFile(name, Prefab(clazzName, prefab).toString())
         }
 
         init {
-            // todo create camera, material, shader, prefab, mesh, script, etc
+            // create camera, material, shader, prefab, mesh, script, etc
             addOptionToCreateComponent("Entity")
             addOptionToCreateComponent("Scene", "Entity", ScenePrefab)
-            addOptionToCreateComponent("Camera", "CameraComponent")
+            // addOptionToCreateComponent("Camera", "Camera")
             // addOptionToCreateComponent("Cube", "")
             addOptionToCreateComponent("Material")
             addOptionToCreateComponent("Rigidbody")

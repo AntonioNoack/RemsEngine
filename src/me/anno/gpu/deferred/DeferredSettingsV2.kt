@@ -112,28 +112,30 @@ class DeferredSettingsV2(
         shaderName: String,
         geometrySource: String?,
         instanced: Boolean,
-        vertexSource: String,
+        vertexVariables: List<Variable>,
+        vertexShader: String,
         varyings: List<Variable>,
-        fragmentSource: String,
+        fragmentVariables: List<Variable>,
+        fragmentShader: String,
         textures: List<String>?
     ): Shader {
 
         // what do we do, if the position is missing? we cannot do anything...
-        val vertex = if (instanced) "#define INSTANCED;\n$vertexSource" else vertexSource
+        val vertex = if (instanced) "#define INSTANCED;\n$vertexShader" else vertexShader
         val fragment = StringBuilder(16)
 
         appendLayerDeclarators(fragment)
 
-        val lio = fragmentSource.lastIndexOf('}')
-        if (lio < 0) throw RuntimeException("Expected to find } in fragment source, but only got '$vertexSource'/'$geometrySource'/'$fragmentSource'")
+        val lio = fragmentShader.lastIndexOf('}')
+        if (lio < 0) throw RuntimeException("Expected to find } in fragment source, but only got '$vertexShader'/'$geometrySource'/'$fragmentShader'")
 
-        val oldFragmentCode = fragmentSource
+        val oldFragmentCode = fragmentShader
             .substring(0, lio)
             .replace("gl_FragColor", "vec4 glFragColor")
 
         fragment.append(oldFragmentCode)
 
-        val hasFragColor = "gl_FragColor" in fragmentSource
+        val hasFragColor = "gl_FragColor" in fragmentShader
         if (hasFragColor) {
             fragment.append("vec3 finalColor = glFragColor.rgb;\n")
             fragment.append("float finalAlpha = glFragColor.a;\n")
@@ -144,7 +146,11 @@ class DeferredSettingsV2(
 
         fragment.append("}")
 
-        val shader = Shader(shaderName, geometrySource, vertex, varyings, fragment.toString())
+        val shader = Shader(
+            shaderName, geometrySource,
+            vertexVariables, vertex, varyings,
+            fragmentVariables, fragment.toString()
+        )
         shader.glslVersion = 330
         shader.setTextureIndices(textures)
         return shader
@@ -171,103 +177,10 @@ class DeferredSettingsV2(
         }
     }
 
-    fun getLayerOutputVariables(): List<Variable> {
-        return settingsV1.layers.map { type ->
-            Variable(GLSLType.V4F, type.name, VariableMode.OUT)
-        }
-    }
-
     fun appendLayerWriters(output: StringBuilder) {
         for (layer in layers) {
             layer.appendLayer(output)
         }
-    }
-
-    fun createPostProcessingShader(
-        shaderName: String,
-        geometrySource: String?,
-        fragmentSource: String,
-        textures: List<String>?
-    ): Shader {
-        val vertex = "" +
-                "$attribute vec2 attr0;\n" +
-                "uniform vec2 pos, size;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                "   uv = attr0;\n" +
-                "}"
-        return createPostProcessingShader(shaderName, vertex, uvList, geometrySource, fragmentSource, textures)
-    }
-
-    fun createPostProcessFragment(
-        fragmentSource: String,
-        textures: List<String>?
-    ): String {
-        val index = fragmentSource.indexOf("main")
-        val index2 = fragmentSource.indexOf('{', index + 4) + 1
-        val fragment = StringBuilder()
-        if (textures != null) {
-            // declare all layer values
-            for (layer in layers2) {
-                if (layer.name in textures) {
-                    fragment.append("uniform sampler2D ")
-                    fragment.append(layer.name)
-                    fragment.append(";\n")
-                }
-            }
-        }
-        fragment.append(fragmentSource.substring(0, index2))
-        // only assign them, if they appear
-        if (textures != null) {
-            // load all layer values
-            for (layer in layers2) {
-                if (layer.name in textures) {
-                    fragment.append("vec4 _")
-                    fragment.append(layer.name)
-                    fragment.append(" = texture(")
-                    fragment.append(layer.name)
-                    fragment.append(", uv);\n")
-                }
-            }
-            // assign them to their meaning
-            for (layer in layers) {
-                if (layer.textureName in textures) {
-                    val type = layer.type
-                    type.appendDefinition(fragment)
-                    fragment.append(" = _")
-                    layer.appendMapping(fragment)
-                }
-            }
-        }
-        fragment.append(fragmentSource.substring(index2))
-        return fragment.toString()
-    }
-
-    fun createPostProcessingShader(
-        shaderName: String,
-        vertex: String,
-        varying: List<Variable>,
-        geometrySource: String?,
-        fragmentSource: String,
-        textures: List<String>?
-    ): Shader {
-        val fragment = createPostProcessFragment(fragmentSource, textures)
-        val shader = Shader(shaderName, geometrySource, vertex, varying, fragment.toString())
-        shader.setTextureIndices(textures)
-        return shader
-    }
-
-    fun createPostProcessingShader(
-        shaderName: String,
-        vertex: String,
-        varying: List<Variable>,
-        fragmentSource: String,
-        textures: List<String>?
-    ): BaseShader {
-        val fragment = createPostProcessFragment(fragmentSource, textures)
-        val shader = BaseShader(shaderName, vertex, varying, fragment)
-        shader.setTextureIndices(textures)
-        return shader
     }
 
     fun findLayer(type: DeferredLayerType): Layer? {

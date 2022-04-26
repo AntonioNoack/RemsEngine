@@ -27,7 +27,7 @@ class Transform() : Saveable() {
             }
         }
 
-    fun invalidateForChildren() {
+    private fun invalidateForChildren() {
         if (state == State.VALID) state = State.CHILDREN_NEED_UPDATE
     }
 
@@ -40,6 +40,22 @@ class Transform() : Saveable() {
     var lastDrawTime = 0L
     var lastUpdateDt = 0L
 
+    /** transform relative to center of the world; all transforms combined from root to this node */
+    val globalTransform = Matrix4x3d()
+
+    /** transform relative to parent */
+    val localTransform = Matrix4x3d()
+
+    /** smoothly interpolated transform; global */
+    private val drawTransform = Matrix4x3d()
+
+    /** smoothly interpolated transform from the previous frame; global */
+    private val drawnTransform = Matrix4x3d()
+
+    private val pos = Vector3d()
+    private val rot = Quaterniond()
+    private val sca = Vector3d(1.0)
+
     fun teleportUpdate(time: Long = Engine.gameTime) {
         lastUpdateTime = time
         lastUpdateDt = 1_000_000_000
@@ -47,7 +63,34 @@ class Transform() : Saveable() {
         checkDrawTransform()
     }
 
-    fun checkDrawTransform() {
+    fun getDrawnMatrix(time: Long = Engine.gameTime): Matrix4x3d {
+        getDrawMatrix(time) // update matrices
+        return drawnTransform
+    }
+
+    fun getDrawMatrix(time: Long = Engine.gameTime): Matrix4x3d {
+        val drawTransform = drawTransform
+        val factor = updateDrawingLerpFactor(time)
+        if (factor > 0.0) {
+            val extrapolatedTime = (Engine.gameTime - lastUpdateTime).toDouble() / lastUpdateDt
+            // needs to be changed, if the extrapolated time changes -> it changes if the phyisics engine is behind
+            // its target -> in the physics engine, we send the game time instead of the physics time,
+            // and this way, it's relatively guaranteed to be roughly within [0,1]
+            val fac2 = factor / (Maths.clamp(1.0 - extrapolatedTime, 0.001, 1.0))
+            if (fac2 < 1.0) {
+                drawnTransform.set(drawTransform)
+                drawTransform.lerp(globalTransform, fac2)
+                checkDrawTransform()
+            } else {
+                drawnTransform.set(drawTransform)
+                drawTransform.set(globalTransform)
+                checkDrawTransform()
+            }
+        }
+        return drawTransform
+    }
+
+    private fun checkDrawTransform() {
         checkTransform(drawTransform)
     }
 
@@ -84,36 +127,17 @@ class Transform() : Saveable() {
         }
     }*/
 
-    fun getDrawMatrix(time: Long = Engine.gameTime): Matrix4x3d {
-        val drawTransform = drawTransform
-        val factor = updateDrawingLerpFactor(time)
-        if (factor > 0.0) {
-            val extrapolatedTime = (Engine.gameTime - lastUpdateTime).toDouble() / lastUpdateDt
-            // needs to be changed, if the extrapolated time changes -> it changes if the phyisics engine is behind
-            // its target -> in the physics engine, we send the game time instead of the physics time,
-            // and this way, it's relatively guaranteed to be roughly within [0,1]
-            val fac2 = factor / (Maths.clamp(1.0 - extrapolatedTime, 0.001, 1.0))
-            if (fac2 < 1.0) {
-                drawTransform.lerp(globalTransform, fac2)
-                checkDrawTransform()
-            } else {
-                drawTransform.set(globalTransform)
-                checkDrawTransform()
-            }
-        }
-        return drawTransform
-    }
-
-    fun updateDrawingLerpFactor(time: Long = Engine.gameTime): Double {
-        val v = drawDrawingLerpFactor(time)
+    private fun updateDrawingLerpFactor(time: Long = Engine.gameTime): Double {
+        val v = calculateDrawingLerpFactor(time)
         lastDrawTime = time
         return v
     }
 
-    fun drawDrawingLerpFactor(time: Long = Engine.gameTime): Double {
+    private fun calculateDrawingLerpFactor(time: Long = Engine.gameTime): Double {
         return if (lastUpdateDt <= 0) {
             // hasn't happened -> no interpolation
             drawTransform.set(globalTransform)
+            drawnTransform.set(globalTransform)
             checkDrawTransform()
             0.0
         } else {
@@ -121,15 +145,6 @@ class Transform() : Saveable() {
             drawingDt.toDouble() / lastUpdateDt
         }
     }
-
-    val globalTransform = Matrix4x3d()
-    val drawTransform = Matrix4x3d()
-
-    val localTransform = Matrix4x3d()
-
-    private val pos = Vector3d()
-    private val rot = Quaterniond()
-    private val sca = Vector3d(1.0)
 
     fun invalidateLocal() {
         state = State.VALID_GLOBAL

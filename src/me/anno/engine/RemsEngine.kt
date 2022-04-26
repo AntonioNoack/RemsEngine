@@ -35,7 +35,17 @@ import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
-// todo: undo-redo
+/////////////////////
+// todo: undo-redo //
+/////////////////////
+
+// todo loading is slow: all tabs are loaded, even if only a single one is actually used
+
+// todo decals
+
+// todo forward-plus rendering
+// todo which platforms support Compute Shaders? we need them for forward+
+
 
 // todo bug: tooltip texts of properties are not being displayed
 
@@ -165,8 +175,8 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
                 .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
                 .filterIsInstance<Inspectable>()
             EditorState.fineSelection = fineSelection
-                    .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
-                    .filterIsInstance<Inspectable>()
+                .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
+                .filterIsInstance<Inspectable>()
         }
         PropertyInspector.invalidateUI()
     }

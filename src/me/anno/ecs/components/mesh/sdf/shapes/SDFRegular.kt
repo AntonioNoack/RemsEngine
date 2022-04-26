@@ -3,7 +3,6 @@ package me.anno.ecs.components.mesh.sdf.shapes
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.gpu.shader.GLSLType
-import me.anno.maths.Maths.PHI
 import me.anno.maths.Maths.PHIf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.pow

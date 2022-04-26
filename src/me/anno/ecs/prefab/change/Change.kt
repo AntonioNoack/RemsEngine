@@ -7,7 +7,6 @@ import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
@@ -17,8 +16,6 @@ import java.text.ParseException
 abstract class Change : Saveable(), Cloneable {
 
     var path: Path = ROOT_PATH
-
-    abstract fun withPath(path: Path): Change
 
     fun apply(instance0: PrefabSaveable, depth: Int) {
         if (instance0.prefabPath != ROOT_PATH) throw RuntimeException("Root instance must have root path, got ${instance0.prefabPath}")

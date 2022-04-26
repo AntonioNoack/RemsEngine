@@ -2,12 +2,11 @@ package me.anno.gpu.buffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
-import org.lwjgl.opengl.GL11.GL_UNSIGNED_INT
-import org.lwjgl.opengl.GL11.glDrawElements
-import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL30
-import org.lwjgl.opengl.GL31.glDrawElementsInstanced
-import org.lwjgl.opengl.GL33
+import org.lwjgl.opengl.GL11C.GL_UNSIGNED_INT
+import org.lwjgl.opengl.GL11C.glDrawElements
+import org.lwjgl.opengl.GL15C.*
+import org.lwjgl.opengl.GL30C
+import org.lwjgl.opengl.GL31C.glDrawElementsInstanced
 import org.lwjgl.system.MemoryUtil
 
 /**
@@ -103,9 +102,9 @@ class IndexedStaticBuffer(
                 for (i in indices) buffer.put(i.toShort())
                 buffer.flip()
                 if (indices.size * 2L == locallyAllocated2) {
-                    GL30.glBufferSubData(GL30.GL_ELEMENT_ARRAY_BUFFER, 0, buffer)
+                    glBufferSubData(GL30C.GL_ELEMENT_ARRAY_BUFFER, 0, buffer)
                 } else {
-                    GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
+                    glBufferData(GL30C.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
                 }
                 locallyAllocated2 = allocate(locallyAllocated2, indices.size * 2L)
                 MemoryUtil.memFree(buffer)
@@ -113,9 +112,9 @@ class IndexedStaticBuffer(
             else -> {
                 elementsType = GL_UNSIGNED_INT
                 if (indices.size * 4L == locallyAllocated2) {
-                    GL30.glBufferSubData(GL30.GL_ELEMENT_ARRAY_BUFFER, 0, indices)
+                    glBufferSubData(GL30C.GL_ELEMENT_ARRAY_BUFFER, 0, indices)
                 } else {
-                    GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, indices, usage)
+                    glBufferData(GL30C.GL_ELEMENT_ARRAY_BUFFER, indices, usage)
                 }
                 locallyAllocated2 = allocate(locallyAllocated2, indices.size * 4L)
             }
@@ -136,7 +135,7 @@ class IndexedStaticBuffer(
         checkSession()
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
-        GL33.glDrawElementsInstanced(mode, indices.size, elementsType, 0, instanceData.drawLength)
+        glDrawElementsInstanced(mode, indices.size, elementsType, 0, instanceData.drawLength)
         unbind(shader)
     }
 

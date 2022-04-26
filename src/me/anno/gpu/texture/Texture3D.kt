@@ -14,8 +14,7 @@ import me.anno.gpu.texture.Texture2D.Companion.writeAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
 import me.anno.utils.hpc.Threads.threadWithName
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL30C.*
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -69,7 +68,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
 
     fun createRGBA8() {
         beforeUpload(w * 4)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
         afterUpload(4)
     }
 
@@ -136,7 +135,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
     fun createMonochrome(data: ByteBuffer) {
         if (w * h * d != data.remaining()) throw RuntimeException("incorrect size!")
         beforeUpload(w)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, w, h, d, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, data)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE, data)
         afterUpload(1)
     }
 

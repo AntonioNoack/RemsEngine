@@ -3,7 +3,6 @@ package me.anno.engine.ui.control
 import me.anno.ecs.Entity
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.components.ui.UIEventType
-import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.MouseButton
 

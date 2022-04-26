@@ -9,6 +9,8 @@ import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
+import me.anno.ecs.components.physics.twod.Box2dPhysics
+import me.anno.ecs.components.physics.twod.Rigidbody2d
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabInspector
@@ -559,11 +561,15 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     val physics get() = getRoot(Entity::class).getComponent(BulletPhysics::class, false)
+    val physics2d get() = getRoot(Entity::class).getComponent(Box2dPhysics::class, false)
     val rigidbody: Entity? get() = getComponent(Rigidbody::class, false)?.entity
     val rigidbodyComponent: Rigidbody? get() = getComponent(Rigidbody::class, false)
+    val rigidbody2d: Entity? get() = getComponent(Rigidbody2d::class, false)?.entity
+    val rigidbodyComponent2d: Rigidbody2d? get() = getComponent(Rigidbody2d::class, false)
 
     fun invalidateRigidbody() {
         physics?.invalidate(rigidbody ?: return)
+        physics2d?.invalidate(rigidbody2d ?: return)
     }
 
     override fun destroy() {
@@ -729,6 +735,28 @@ class Entity() : PrefabSaveable(), Inspectable {
             @Suppress("UNCHECKED_CAST")
             if ((includingDisabled || c.isEnabled) && clazz.isInstance(c) && test(c as V))
                 return true
+        }
+        return false
+    }
+
+    fun <V : Component> anyComponentInChildren(
+        clazz: KClass<V>,
+        includingDisabled: Boolean = false,
+        test: (V) -> Boolean
+    ): Boolean {
+        val components = components
+        for (index in components.indices) {
+            val c = components[index]
+            @Suppress("UNCHECKED_CAST")
+            if ((includingDisabled || c.isEnabled) && clazz.isInstance(c) && test(c as V))
+                return true
+        }
+        val children = children
+        for (index in children.indices) {
+            val c = children[index]
+            if ((includingDisabled || c.isEnabled) && c.anyComponentInChildren(clazz, includingDisabled, test)) {
+                return true
+            }
         }
         return false
     }

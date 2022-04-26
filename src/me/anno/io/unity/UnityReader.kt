@@ -145,7 +145,9 @@ object UnityReader {
         val child = getChild(name)
         if (child != InvalidRef) return child
         val children = if (isSomeKindOfDirectory) listChildren() else emptyList()
+        var isSubMesh = false
         if (children?.size == 1 && name.length == "4300000.json".length && name.startsWith("43000") && name.endsWith(".json")) {
+            isSubMesh = true
             val meshes = children.first().getChild("Meshes").listChildren()
             if (meshes != null && meshes.size > 1) {
                 val id = name.substring(0, name.length - 5).toInt() - 4300000
@@ -166,7 +168,7 @@ object UnityReader {
         val newChild = if (children != null && children.isNotEmpty()) {
             getChildOrNull("100100000.json") ?: getChildOrNull("Scene.json") ?: children.first()
         } else null
-        if (name != "4300000.json" && name != "2800000.json") {
+        if (!isSubMesh && name != "2800000.json") {
             // 4300000 is a magic for meshes,
             // 2800000 for textures,
             // 0 idk...

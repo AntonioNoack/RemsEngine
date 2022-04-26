@@ -10,6 +10,7 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 
+// todo removing removes two letters at the same time
 open class TextInput(
     title: String,
     val visibilityKey: String,

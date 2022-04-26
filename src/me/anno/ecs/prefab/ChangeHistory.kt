@@ -8,6 +8,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase
+import me.anno.studio.history.History
 import me.anno.studio.history.StringHistory
 import me.anno.ui.editor.PropertyInspector
 
@@ -18,7 +19,7 @@ class ChangeHistory : StringHistory() {
         // maybe incorrect...
         val workspace = StudioBase.workspace
         val changes = TextReader.read(v, workspace, true).filterIsInstance<Change>()
-        println(changes)
+        LOGGER.debug(changes)
         // todo this may be the incorrect prefab...
         val prefab = PrefabInspector.currentInspector!!.prefab
         prefab.adds = changes.filterIsInstance<CAdd>()
@@ -28,7 +29,7 @@ class ChangeHistory : StringHistory() {
                 prefab.sets[change.path, change.name!!] = change.value
             }
         }
-        println("invalidated instance")
+        LOGGER.debug("invalidated instance")
         prefab.invalidateInstance()
         PropertyInspector.invalidateUI()
     }

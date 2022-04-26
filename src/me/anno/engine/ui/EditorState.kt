@@ -3,9 +3,7 @@ package me.anno.engine.ui
 import me.anno.config.DefaultConfig
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
-import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.files.FileReference
@@ -61,7 +59,7 @@ object EditorState {
         // todo not all stuff here makes sense
         // todo some stuff is (maybe) missing, e.g. animation panels, particle system editors, ...
         Dict["Scene View", "ui.customize.sceneView"] to { SceneView(this, PlayMode.EDITING, DefaultConfig.style) },
-        Dict["Tree View", "ui.customize.treeView"] to { ECSTreeView(this, isGaming, DefaultConfig.style) },
+        Dict["Tree View", "ui.customize.treeView"] to { ECSTreeView(this, DefaultConfig.style) },
         Dict["Properties", "ui.customize.inspector"] to { PropertyInspector({ selection }, DefaultConfig.style) },
         // Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },
         // Dict["Timeline", "ui.customize.timeline"] to { TimelinePanel(DefaultConfig.style) },

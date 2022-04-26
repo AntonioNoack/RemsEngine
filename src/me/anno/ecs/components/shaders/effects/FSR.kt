@@ -1,5 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
+import me.anno.engine.ui.render.Renderers.toneMapping
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL.useFrame
@@ -8,15 +9,16 @@ import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.image.ImageGPUCache
+import me.anno.io.ResourceHelper
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
-import me.anno.io.ResourceHelper
 
 object FSR {
 
@@ -57,12 +59,15 @@ object FSR {
                     "layout(location=0) out vec4 glFragColor;\n" +
                     "uniform vec4 con0,con1,con2,con3;\n" +
                     "uniform vec2 texelOffset;\n" +
+                    "uniform bool applyToneMapping;\n" +
+                    noiseFunc + // needed for tone mapping
+                    toneMapping +
                     "void main(){\n" +
                     "   vec3 color;\n" +
                     "   float alpha = texture(source,uv).a;\n" +
                     "   vec2 coords = uv * dstWH;\n" +
                     "   FsrEasuF(color, coords, con0, con1, con2, con3);\n" +
-                    "   glFragColor = vec4(color, alpha > .01 ? 1.0 : 0.0);\n" +
+                    "   glFragColor = vec4(applyToneMapping ? toneMapping(color) : color, alpha > .01 ? 1.0 : 0.0);\n" +
                     "}"
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such
@@ -103,7 +108,10 @@ object FSR {
 
     }
 
-    fun upscale(sw: Int, sh: Int, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
+    fun upscale(
+        sw: Int, sh: Int, x: Int, y: Int, w: Int, h: Int,
+        flipY: Boolean, applyToneMapping: Boolean
+    ) {
         // if source is null, the texture needs to be bound to slot 0
         val shader = upscaleShader.value
         shader.use()
@@ -112,10 +120,14 @@ object FSR {
         texelOffset(shader, w, h)
         posSize(shader, x, y, w, h)
         shader.v4f("background", 0)
+        shader.v1b("applyToneMapping", applyToneMapping)
         flat01.draw(shader)
     }
 
-    fun upscale(sw: Int, sh: Int, x: Int, y: Int, w: Int, h: Int, flipY: Boolean, backgroundColor: Int) {
+    fun upscale(
+        sw: Int, sh: Int, x: Int, y: Int, w: Int, h: Int,
+        flipY: Boolean, backgroundColor: Int, applyToneMapping: Boolean
+    ) {
         // if source is null, the texture needs to be bound to slot 0
         val shader = upscaleShader.value
         shader.use()
@@ -124,6 +136,7 @@ object FSR {
         texelOffset(shader, w, h)
         posSize(shader, x, y, w, h)
         shader.v4f("background", backgroundColor or (255 shl 24))
+        shader.v1b("applyToneMapping", applyToneMapping)
         flat01.draw(shader)
     }
 
@@ -134,14 +147,17 @@ object FSR {
         shader.v4f("con3", 0f, 4f / ih, 0f, 0f)
     }
 
-    fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
+    fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int, flipY: Boolean, applyToneMapping: Boolean) {
         source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-        upscale(source.w, source.h, x, y, w, h, flipY)
+        upscale(source.w, source.h, x, y, w, h, flipY, applyToneMapping)
     }
 
-    fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int, flipY: Boolean, backgroundColor: Int) {
+    fun upscale(
+        source: ITexture2D, x: Int, y: Int, w: Int, h: Int,
+        flipY: Boolean, backgroundColor: Int, applyToneMapping: Boolean
+    ) {
         source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-        upscale(source.w, source.h, x, y, w, h, flipY, backgroundColor)
+        upscale(source.w, source.h, x, y, w, h, flipY, backgroundColor, applyToneMapping)
     }
 
     fun sharpen(sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
@@ -200,7 +216,7 @@ object FSR {
         val oh = texture.h * size
 
         val upscaled = FBStack["", ow, oh, 4, false, 1, false]
-        useFrame(upscaled) { upscale(texture, 0, 0, ow, oh, true) }
+        useFrame(upscaled) { upscale(texture, 0, 0, ow, oh, true, applyToneMapping = false) }
         FramebufferToMemory.createImage(upscaled, false, false)
             .write(src.getSibling("${src.nameWithoutExtension}-${size}x.png"))
 

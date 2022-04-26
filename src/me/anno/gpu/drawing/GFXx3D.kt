@@ -22,6 +22,7 @@ import kotlin.math.min
 @Suppress("unused")
 object GFXx3D {
 
+    // used in Rem's Studio
     fun getScale(w: Int, h: Int) = 1f / h
     fun getScale(w: Float, h: Float) = 1f / h
 

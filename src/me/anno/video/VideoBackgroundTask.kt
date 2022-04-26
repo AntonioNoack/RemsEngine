@@ -15,7 +15,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.video.FrameTask.Companion.missingResource
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 import java.util.concurrent.atomic.AtomicLong
 
 abstract class VideoBackgroundTask(

@@ -7,7 +7,6 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths
-import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import org.joml.Vector4f
 

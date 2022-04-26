@@ -40,10 +40,14 @@ object ECSSceneTabs : ScrollPanelX(style) {
         set(value) {
             if (field != value) {
                 field?.onStop()
-                value?.onStart()
+                value?.needsStart = true
                 field = value
             }
         }
+
+    init {
+        content.spacing = 4
+    }
 
     fun open(syncMaster: SyncMaster, reference: FileReference, playMode: PlayMode): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == reference }
@@ -131,9 +135,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
             // root = sceneTab.root
             val instance = prefab.getSampleInstance()
             EditorState.select(instance, null)
-            if (tab !in children3) {
-                content += tab
-            }
+            if (tab !in children3) content += tab
             for (window in windowStack) {
                 window.panel.forAllPanels {
                     if (it is RenderView) {
@@ -148,13 +150,13 @@ object ECSSceneTabs : ScrollPanelX(style) {
     }
 
     fun updatePrefab(prefab: Prefab) {
-        val prefabInstance = prefab.getSampleInstance()
-        // val world = createWorld(prefabInstance, prefab.source)
+        currentTab?.inspector?.onChange() // probably correct ^^
+        val instance = prefab.getSampleInstance()
         EditorState.prefabSource = prefab.source
-        (prefabInstance as? Entity)?.apply {
-            create()
-            val physics = prefabInstance.getComponent(BulletPhysics::class, false)
-            if (physics != null) rebuildPhysics(physics)
+        if (instance is Entity) {
+            instance.create()
+            val physics = instance.getComponent(BulletPhysics::class, false)
+            if (physics != null) instance.rebuildPhysics(physics)
         }
     }
 

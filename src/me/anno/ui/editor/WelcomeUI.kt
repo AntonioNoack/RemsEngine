@@ -1,7 +1,6 @@
 package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
@@ -156,7 +155,7 @@ abstract class WelcomeUI {
             tp.setTooltip(project.file.absolutePath)
             thread(name = "FileExists?") {// file search can use some time
                 if (!project.file.exists) {
-                    tp.textColor = 0xff0000 or DefaultStyle.black
+                    tp.textColor = 0xff0000 or black
                     tp.setTooltip(
                         Dict["%1, not found!", "ui.recentProjects.projectNotFound"].replace(
                             "%1",

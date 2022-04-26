@@ -14,13 +14,12 @@ import org.joml.Vector4fc
 
 object GFXx2D {
 
-    // todo implement a global matrix here, which can be used to draw GUI element inside the world
-    // todo mesh or image backgrounds for panels
-    // todo create UI in editor from components somehow
-    // todo if we use this, we no longer can rely on clipping
-    // todo if we use this, we get subpixel errors, and need to switch to other rendering techniques
+    val transform = Matrix4fArrayList()
 
-    // val uiTransform = Matrix4f()
+    // todo implement transformed UI rendering:
+    // subpixel errors -> non subpixel font textures, maybe sdf,
+    // clipping no longer works
+    // done implement a global matrix here, which can be used to draw GUI element inside the world
 
     fun tiling(shader: Shader, tiling: Vector4fc?) {
         if (tiling != null) shader.v4f("tiling", tiling)
@@ -171,12 +170,7 @@ object GFXx2D {
     }
 
     fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int) {
-        val posX = (x - GFX.viewportX).toFloat() / GFX.viewportWidth
-        val posY = 1f - (y - GFX.viewportY).toFloat() / GFX.viewportHeight
-        val relW = +w.toFloat() / GFX.viewportWidth
-        val relH = -h.toFloat() / GFX.viewportHeight
-        shader.v2f("pos", posX, posY)
-        shader.v2f("size", relW, relH)
+        posSize(shader, x.toFloat(), y.toFloat(), w.toFloat(), h.toFloat())
     }
 
     fun posSize(shader: Shader, x: Float, y: Float, w: Float, h: Float) {
@@ -184,6 +178,7 @@ object GFXx2D {
         val posY = 1f - (y - GFX.viewportY) / GFX.viewportHeight
         val relW = +w / GFX.viewportWidth
         val relH = -h / GFX.viewportHeight
+        shader.m4x4("transform", transform)
         shader.v2f("pos", posX, posY)
         shader.v2f("size", relW, relH)
     }

@@ -3,7 +3,6 @@ package me.anno.ui.input
 import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
-import me.anno.gpu.GFX
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.MouseButton
@@ -19,7 +18,6 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import org.joml.*

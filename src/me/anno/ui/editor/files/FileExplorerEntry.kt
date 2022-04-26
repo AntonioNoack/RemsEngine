@@ -277,15 +277,15 @@ class FileExplorerEntry(
         val h = y1 - y0
         // if aspect ratio is extreme, use a different scale
         val (iw, ih) = scaleMaxPreview(image.w, image.h, w, h, 5)
-        // todo if texture is HDR, then use reinhard tonemapping for preview, with factor of 5
+        val isHDR = image.isHDR
         // we can use FSR to upsample the images xD
         val x = x0 + (w - iw) / 2
         val y = y0 + (h - ih) / 2
         if (image is Texture2D) image.filtering = GPUFiltering.LINEAR
         if (iw > image.w && ih > image.h) {// maybe use fsr only, when scaling < 4x
-            FSR.upscale(image, x, y, iw, ih, false, backgroundColor)// ^^
+            FSR.upscale(image, x, y, iw, ih, false, backgroundColor, isHDR)// ^^
         } else {
-            drawTexture(x, y, iw, ih, image, -1, null)
+            drawTexture(x, y, iw, ih, image, -1, null, isHDR)
         }
     }
 

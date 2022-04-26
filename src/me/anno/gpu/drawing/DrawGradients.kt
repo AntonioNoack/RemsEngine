@@ -2,7 +2,6 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.FlatShaders.flatShaderGradient
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib.bindWhite

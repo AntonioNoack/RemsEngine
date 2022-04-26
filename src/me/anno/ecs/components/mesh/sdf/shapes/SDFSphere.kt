@@ -3,7 +3,6 @@ package me.anno.ecs.components.mesh.sdf.shapes
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.maths.Maths.length
-import org.joml.AABBf
 import org.joml.Vector4f
 
 class SDFSphere : SDFShape() {

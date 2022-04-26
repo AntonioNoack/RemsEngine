@@ -37,15 +37,16 @@ import org.joml.*
 
 /**
  * collects meshes for sorting (transparency, overdraw), and for instanced rendering
+ * todo instead of a pipeline, maybe the best would be a render graph...
  * */
 class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
 
-    // todo pipelines, that we need:
+    // pipelines, that we need:
     //  - 3d world,
+    //  - transparency
     //  - 2d ui,
     //  - ...
-    // todo we can sort by material and shaders...
-    // todo or by distance...
+    // to do we can sort by material and shaders; or by distance
 
     var ignoredEntity: Entity? = null // e.g. for environment maps
     var ignoredComponent: Component? = null

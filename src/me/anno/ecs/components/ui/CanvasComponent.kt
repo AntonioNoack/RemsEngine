@@ -37,7 +37,7 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4d
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 
 // done make ui elements Entities?
 // done make them something special?

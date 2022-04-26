@@ -118,7 +118,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
     }
 
     @NotSerializedProperty
-    val components
+    open val components
         get() = entity!!.components
 
     override fun toString(): String {

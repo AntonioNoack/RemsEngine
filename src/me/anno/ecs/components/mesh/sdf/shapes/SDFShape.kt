@@ -61,7 +61,7 @@ open class SDFShape : SDFComponent() {
         builder.append(",")
         builder.appendUniform(uniforms, GLSLType.V1F) {
             val currentRenderer = currentRenderer
-            if (currentRenderer == Renderer.idRenderer || currentRenderer == Renderer.idRendererVis) clickId.toFloat()
+            if (currentRenderer == Renderer.idRenderer) clickId.toFloat()
             else materialId.toFloat()
         }
         builder.append(");\n")

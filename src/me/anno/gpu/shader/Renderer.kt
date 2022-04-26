@@ -36,16 +36,9 @@ open class Renderer(
         val colorRenderer = Renderer("color", false, ShaderPlus.DrawMode.COLOR, null)
         val colorSqRenderer = Renderer("colorSq", false, ShaderPlus.DrawMode.COLOR_SQUARED, null)
         val idRenderer = Renderer("id", true, ShaderPlus.DrawMode.ID, null)
-        // todo implement as post-processing to decrease extra shader complexity
-        val idRendererVis = Renderer("idVis", true, ShaderPlus.DrawMode.ID_VIS, null)
-        // todo implement as post-processing to decrease extra shader complexity
-        val depthRenderer01 = Renderer("depth01", true, ShaderPlus.DrawMode.DEPTH_LOG2_01, null)
-        // todo implement as post-processing to decrease extra shader complexity
-        val depthRenderer = Renderer("depth", true, ShaderPlus.DrawMode.DEPTH_LOG2, null)
+        val depthRenderer = Renderer("depth", true, ShaderPlus.DrawMode.DEPTH_DSQ, null)
         val copyRenderer = Renderer("copy", false, ShaderPlus.DrawMode.COPY, null)
-        // todo implement as post-processing to decrease extra shader complexity
-        val depthOnlyRenderer = Renderer("depthOnly", true, ShaderPlus.DrawMode.DEPTH_LOG2, null)
-        val randomIdRenderer = Renderer("randomId", true, ShaderPlus.DrawMode.RANDOM_ID, null)
+        val triangleVisRenderer = Renderer("randomId", true, ShaderPlus.DrawMode.RANDOM_ID, null)
 
         // color deficiency renderers
         /*val grayscaleRenderer = Renderer("grayscale", true, ShaderPlus.DrawMode.COLOR, null)

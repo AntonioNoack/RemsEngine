@@ -66,7 +66,7 @@ object PlaneShapes {
     val transform = Matrix4x3d()
 
     fun drawCircle(entity: Entity, color: Int) {
-        drawCircle(entity.transform.drawTransform, color)
+        drawCircle(entity.transform.getDrawMatrix(), color)
     }
 
     fun drawCircle(m: Matrix4x3d, color: Int) {

@@ -26,6 +26,8 @@ class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
         setWeight(1f)
     }
 
+    override val canDrawOverBorders = true
+
     var mx = 0f
     var my = 0f
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

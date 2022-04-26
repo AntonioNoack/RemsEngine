@@ -36,7 +36,7 @@ import kotlin.math.max
  * */
 object SDFComposer {
 
-    // todo it would be nice, if we had an exporter for ShaderToy
+    // todo exporter for ShaderToy
 
     const val dot2 = "" +
             "float dot2(vec2 v){ return dot(v,v); }\n" +
@@ -46,13 +46,13 @@ object SDFComposer {
     const val raycasting = "" +
             // input: vec3 ray origin, vec3 ray direction
             // output: vec2(distance, materialId)
-            "vec2 raycast(in vec3 ro, in vec3 rd, out int i){\n" +
+            "vec2 raycast(vec3 ro, vec3 rd, out int i){\n" +
             // ray marching
             "   vec2 res = vec2(-1.0);\n" +
             "   float tMin = distanceBounds.x, tMax = distanceBounds.y;\n" +
             "   float t = tMin;\n" +
             "   for(i=0; i<maxSteps && t<tMax; i++){\n" +
-            "     vec2 h = map(ro+rd*t);\n" +
+            "     vec2 h = map(ro,rd,ro+rd*t);\n" +
             "     if(abs(h.x)<(sdfMaxRelativeError*t)){\n" + // allowed error grows with distance
             "       res = vec2(t,h.y);\n" +
             "       break;\n" +
@@ -65,13 +65,13 @@ object SDFComposer {
 
     // http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
     const val normal = "" +
-            "vec3 calcNormal(in vec3 pos, float epsilon) {\n" +
+            "vec3 calcNormal(vec3 ro, vec3 rd, vec3 pos, float epsilon) {\n" +
             // inspired by tdhooper and klems - a way to prevent the compiler from inlining map() 4 times
             "  vec3 n = vec3(0.0);\n" +
             "  for(int i=ZERO;i<4;i++) {\n" +
             // 0.5773 is just a scalar factor
             "      vec3 e = 2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0;\n" +
-            "      n += e*map(pos+e*epsilon).x;\n" +
+            "      n += e*map(ro,rd,pos+e*epsilon).x;\n" +
             "  }\n" +
             "  return normalize(n);\n" +
             "}\n"
@@ -85,7 +85,7 @@ object SDFComposer {
         val shapeDependentShader = StringBuilder()
         tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions)
         uniforms["localStart"] = TypeValueV3(GLSLType.V3F, Vector3f()) { localStart ->
-            val dt = tree.transform?.drawTransform
+            val dt = tree.transform?.getDrawMatrix()
             if (dt != null) {
                 val pos = JomlPools.vec3d.create()
                 val dtInverse = JomlPools.mat4x3d.create()
@@ -103,7 +103,7 @@ object SDFComposer {
         uniforms["distanceBounds"] = TypeValueV3(GLSLType.V2F, Vector2f()) {
             // find maximum in local space from current point to bounding box
             // best within frustum
-            val dt = tree.transform?.drawTransform
+            val dt = tree.transform?.getDrawMatrix()
             if (dt != null) {
                 // compute first and second intersection with aabb
                 // transform camera position into local space
@@ -229,6 +229,7 @@ object SDFComposer {
                             // convert normals into global normals
                             // compute global depth
 
+                            "if(!gl_FrontFacing) discard;\n" +
                             "vec3 localDir, localPos;\n" +
                             "if(perspectiveCamera){\n" +
                             "   localDir = normalize(invLocalTransform * finalPosition);\n" +
@@ -239,7 +240,7 @@ object SDFComposer {
                             "   localDir = normalize(invLocalTransform * finalPosition);\n" +
                             "   localPos = localStart;\n" +
                             "}\n" +
-                            "vec2 ray = map(localPos);\n" +
+                            "vec2 ray = map(localPos,localDir,localPos);\n" +
                             "int steps;\n" +
                             "if(ray.x >= 0.0){\n" + // not inside an object
                             "   ray = raycast(localPos, localDir, steps);\n" +
@@ -251,14 +252,14 @@ object SDFComposer {
                             "               if(distance > 0.0){\n" +
                             "                   vec3 localHit = localPos + distance * localDir;\n" +
                             // check if localPos is within bounds -> only render the plane :)
-                            "                   if(all(greaterThan(localHit,localMin)) && all(lessThan(localHit,localMax))){\n" +
+                            "                   if(all(greaterThan(localHit.xz,localMin.xz)) && all(lessThan(localHit.xz,localMax.xz))){\n" +
                             "                       localHit.y = 0.0;\n" + // correct numerical issues
                             "                       finalPosition = localTransform * vec4(localHit, 1.0);\n" +
                             // "                   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
                             "                       finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
                             "                       vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
                             "                       gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                            "                       distance = map(localHit).x;\n" + // < 0.0 removed, because we show the shape there
+                            "                       distance = map(localPos,localDir,localHit).x;\n" + // < 0.0 removed, because we show the shape there
                             // waves like in Inigo Quilez demos, e.g. https://www.shadertoy.com/view/tt3yz7
                             // show the inside as well? mmh...
                             "                       vec3 col = vec3(0.9,0.6,0.3) * (1.0 - exp(-2.0*distance));\n" +
@@ -272,16 +273,18 @@ object SDFComposer {
                             "           } else discard;\n" +
                             "       } else {\n" +
                             "           vec3 localHit = localPos + ray.x * localDir;\n" +
-                            "           vec3 localNormal = calcNormal(localHit, sdfNormalEpsilon);\n" +
+                            // check bounds
+                            //"           if(all(greaterThan(localHit,localMin)) && all(lessThan(localHit,localMax))){\n" +
+                            "               vec3 localNormal = calcNormal(localPos, localDir, localHit, sdfNormalEpsilon);\n" +
                             // convert localHit to global hit
-                            "           finalPosition = localTransform * vec4(localHit, 1.0);\n" +
-                            "           finalNormal = normalize(localTransform * vec4(localNormal, 0.0));\n" +
+                            "               finalPosition = localTransform * vec4(localHit, 1.0);\n" +
+                            "               finalNormal = normalize(localTransform * vec4(localNormal, 0.0));\n" +
                             // respect reflection plane
-                            "           if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
+                            "               if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
                             // calculate depth
-                            "           vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
-                            "           gl_FragDepth = newVertex.z/newVertex.w;\n" +
-
+                            "               vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+                            "               gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                            //"           } else discard;\n" + // to do instead of discarding, we should clamp the distance, and check the color there
                             // step by step define all material properties
                             builder.toString() +
                             "       }\n" +
@@ -326,7 +329,7 @@ object SDFComposer {
                             "}\n" +
 
                             // click ids of parts
-                            "if(drawMode == ${ShaderPlus.DrawMode.ID.id} || drawMode == ${ShaderPlus.DrawMode.ID_VIS.id}){\n" +
+                            "if(drawMode == ${ShaderPlus.DrawMode.ID.id}){\n" +
                             "   int intId = int(ray.y);\n" +
                             "   tint = vec4(vec3(float(intId&255), float((intId>>8)&255), float((intId>>16)&255))/255.0, 1.0);\n" +
                             "}\n" +
@@ -344,7 +347,7 @@ object SDFComposer {
                             "#define PHI 1.618033988749895\n"
                 )
                 for (func in functions) builder2.append(func)
-                builder2.append("vec2 map(in vec3 pos0){\n")
+                builder2.append("vec2 map(vec3 ro, vec3 rd, vec3 pos0){\n")
                 builder2.append("   vec2 res0;\n")
                 builder2.append(shapeDependentShader)
                 builder2.append("   return res0;\n}\n")

@@ -22,7 +22,7 @@ import me.anno.utils.types.Matrices.mirror
 import me.anno.utils.types.Matrices.mul2
 import me.anno.utils.types.Vectors.toVector3f
 import org.joml.*
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 import kotlin.math.max
 import kotlin.math.min
 

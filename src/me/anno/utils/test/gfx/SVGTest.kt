@@ -9,7 +9,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS
 import org.joml.Matrix4fArrayList

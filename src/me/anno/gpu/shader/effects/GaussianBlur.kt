@@ -13,6 +13,8 @@ import me.anno.input.Input
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
+import org.lwjgl.opengl.GL11C.glClear
 import kotlin.math.max
 
 object GaussianBlur {
@@ -27,7 +29,7 @@ object GaussianBlur {
     ) {
         // step1
         useFrame(0, 0, w, h, true, target, Renderer.colorRenderer) {
-            GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
+            glClear(GL_DEPTH_BUFFER_BIT)
             GFXx3D.draw3DGaussianBlur(localTransform, size, w, h, threshold, isFirst, isFullscreen)
         }
         target.bindTexture0(

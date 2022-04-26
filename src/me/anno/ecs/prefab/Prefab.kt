@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.Build
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Change
@@ -191,13 +192,15 @@ class Prefab : Saveable {
         if (!isWritable) throw ImmutablePrefabException(source)
         when (change) {
             is CAdd -> {
-                if (adds.any2 { it.nameId == change.nameId && it.path == change.path })
-                    throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
-                // todo check branched prefabs for adds as well
-                val sourcePrefab = PrefabCache[prefab]
-                if (sourcePrefab != null) {
-                    if (sourcePrefab.adds.any2 { it.nameId == change.nameId && it.path == change.path })
+                if (!Build.isShipped) {
+                    if (adds.any2 { it.nameId == change.nameId && it.path == change.path })
                         throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
+                    // todo check branched prefabs for adds as well
+                    val sourcePrefab = PrefabCache[prefab]
+                    if (sourcePrefab != null) {
+                        if (sourcePrefab.adds.any2 { it.nameId == change.nameId && it.path == change.path })
+                            throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
+                    }
                 }
                 ensureMutableLists()
                 (adds as MutableList).add(change)
@@ -317,9 +320,11 @@ class Prefab : Saveable {
         synchronized(this) {
             return if (!isValid) {
                 val instance = PrefabCache.createInstance(this, prefab, adds, sets, depth, clazzName)
-                instance.forAll {
-                    if (it.prefab !== this) {
-                        throw IllegalStateException("Incorrectly created prefab!")
+                if (Build.isDebug) {// a safety check, that shouldn't happen in a shipped program
+                    instance.forAll {
+                        if (it.prefab !== this) {
+                            throw IllegalStateException("Incorrectly created prefab!")
+                        }
                     }
                 }
                 // assign super instance? we should really cache that...

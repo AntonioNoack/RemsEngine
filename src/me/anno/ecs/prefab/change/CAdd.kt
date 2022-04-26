@@ -34,7 +34,8 @@ class CAdd() : Change() {
         prefab: FileReference = InvalidRef
     ) : this(parentPath, type, clazzName, clazzName, prefab)
 
-    override fun withPath(path: Path): Change {
+    fun withPath(path: Path, changeId: Boolean): Change {
+        val nameId = if(changeId) Path.generateRandomId() else nameId
         return CAdd(path, type, clazzName!!, nameId, prefab)
     }
 

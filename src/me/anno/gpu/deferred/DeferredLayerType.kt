@@ -3,11 +3,11 @@ package me.anno.gpu.deferred
 import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector4fc
 
-class DeferredLayerType(
+open class DeferredLayerType(
     val name: String,
     val glslName: String,
     val dimensions: Int,
-    val minimumQuality: BufferQuality,
+    val minimumQuality: BufferQuality, // todo this depends on the platform
     val highDynamicRange: Boolean,
     val defaultValueARGB: Vector4fc,
     val map01: String,
@@ -155,7 +155,7 @@ class DeferredLayerType(
             BufferQuality.LOW_8, false, 0x007799ff, "", ""
         )
 
-        // todo could be replaced by depth to save bandwidth
+        // todo should be replaced by depth to save bandwidth
         val DEPTH = DeferredLayerType(
             "DEPTH", "finalDepth", 1,
             BufferQuality.HIGH_32, true, 0, "", ""

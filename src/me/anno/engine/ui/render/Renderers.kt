@@ -24,6 +24,9 @@ import org.lwjgl.opengl.GL20
 
 object Renderers {
 
+    // todo reinhard tonemapping works often, but not always: {0,1}³ does not work, add spilling somehow
+    // todo also maybe it should be customizable...
+
     // and banding prevention
     val toneMapping =
         "vec3 toneMapping(vec3 color){ return (color)/(1.0+color) - random(gl_FragCoord.xy) * ${1f / 255f}; }\n"

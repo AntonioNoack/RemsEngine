@@ -13,6 +13,10 @@ object ImageReader {
     // easy interface to read any image as rgba and individual channels
 
     fun readAsFolder(file: FileReference): InnerFolder {
+
+        // todo white with transparency, black with transparency
+        // (overriding color)
+
         val folder = InnerFolder(file)
         // add the most common swizzles: r,g,b,a
         // to do maybe bgra or similar in the future

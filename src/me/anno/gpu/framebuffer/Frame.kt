@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.offsetX
 import me.anno.gpu.GFX.offsetY
 import me.anno.gpu.OpenGL
-import org.lwjgl.opengl.GL11.glViewport
+import org.lwjgl.opengl.GL11C
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -111,7 +111,7 @@ object Frame {
             }
 
             // this is mirrored
-            glViewport(x2, y2, w, h)
+            GL11C.glViewport(x2, y2, w, h)
 
             lastX = x
             lastY = y

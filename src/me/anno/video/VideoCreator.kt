@@ -19,7 +19,7 @@ import me.anno.video.ffmpeg.FFMPEGStream.Companion.logOutput
 import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer

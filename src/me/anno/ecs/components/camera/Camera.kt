@@ -6,6 +6,7 @@ import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
+import me.anno.maths.Maths.clamp
 import org.joml.Vector2f
 import org.joml.Vector4f
 
@@ -31,7 +32,20 @@ class Camera : Component() {
 
     // val pipeline = lazy { Pipeline() }
 
-    val effects get() = components.filterIsInstance<CameraEffect>()
+    val effects = ArrayList<CameraEffect>()
+
+    override fun listChildTypes(): String = "e"
+    override fun getChildListByType(type: Char) = effects
+    override fun getChildListNiceName(type: Char) = "Effects"
+    override fun getOptionsByType(type: Char) = getOptionsByClass(this, CameraEffect::class)
+    override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
+        if (child is CameraEffect) {
+            effects.add(clamp(index, 0, effects.size), child)
+        } else super.addChildByType(index, type, child)
+    }
+    override fun removeChild(child: PrefabSaveable) {
+        effects.remove(child)
+    }
 
     @Type("Color4")
     var clearColor = Vector4f(0.1f, 0.2f, 0.3f, 1f)
@@ -47,7 +61,7 @@ class Camera : Component() {
     // function to blend to the next one
     fun use(blendingTime: Float) {
         val player = currentLocalPlayer!!
-        val state = player.camera
+        val state = player.cameraState
         // only if not already set as target
         if (state.currentCamera != this) {
             state.cameraBlendingTime = blendingTime

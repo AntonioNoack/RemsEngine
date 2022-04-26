@@ -290,7 +290,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     }
 
-    override fun createFlatShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
+    override fun createForwardShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
 
         val base = createBase(instanced, true)
 

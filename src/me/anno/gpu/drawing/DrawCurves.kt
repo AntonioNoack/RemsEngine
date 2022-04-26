@@ -11,14 +11,15 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.maths.Maths.length
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 
-// inspired by https://www.shadertoy.com/view/XdVBWd
+// inspired by https://www.shadertoy.com/view/XdVBWd "Cubic Bezier - 2D BBox " from Inigo Quilez
 object DrawCurves {
 
-    fun parametricShader(name: String, parametricFunction: String, numParams: Int): BaseShader {
+    private fun parametricShader(name: String, parametricFunction: String, numParams: Int): BaseShader {
         return BaseShader(
             name, "" +
                     "${OpenGLShader.attribute} vec2 attr0;\n" + // we need to use a high-def mesh here
                     "uniform vec2 pos, size;\n" +
+                    "uniform mat4 transform;\n" +
                     "uniform float extrusion, tScale;\n" +
                     "uniform vec2 ${(0 until numParams).joinToString { "p$it" }};\n" + // control points of cubic bezier curve, [0,1]²
                     "vec2 rot90(vec2 v){ return vec2(-v.y, v.x); }\n" +
@@ -33,7 +34,7 @@ object DrawCurves {
                     "   vec2 p1 = point(t);\n" +
                     "   vec2 p2 = point(t + dt);\n" +
                     "   uv = p1 + rot90(normalize(p2-p0)) * attr0.y * extrusion;\n" +
-                    "   gl_Position = vec4((pos + uv * size)*2.0-1.0, 0.0, 1.0);\n" +
+                    "   gl_Position = transform * vec4((pos + uv * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V1F, "t")), "" +
                     "uniform vec4 ${(0 until numParams).joinToString { "c$it" }}, backgroundColor;\n" +
                     "uniform vec2 ${(0 until numParams).joinToString { "p$it" }};\n" + // control points of cubic bezier curve

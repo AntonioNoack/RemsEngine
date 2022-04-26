@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.fonts.FontManager
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
+import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -166,22 +167,19 @@ object DrawTexts {
         GFX.loadTexturesSync.push(true)
 
         var fx = x + dx
-        val fy = 1f - (y + dy - GFX.viewportY).toFloat() / GFX.viewportHeight
         var h = font.sizeInt
         for (char in text) {
             val txt = char.toString()
             val size = FontManager.getSize(font, txt, -1, -1)
             val sizeX = GFXx2D.getSizeX(size)
-            val sizeY = GFXx2D.getSizeY(size)
-            h = sizeY
+            h = GFXx2D.getSizeY(size)
             val w = if (equalSpaced) charWidth else sizeX
             if (!txt.isBlank2()) {
                 val texture = FontManager.getTexture(font, txt, -1, -1)
                 if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                     texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     val x2 = fx + (w - sizeX) / 2
-                    shader.v2f("pos", (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth, fy)
-                    shader.v2f("size", sizeX.toFloat() / GFX.viewportWidth, -h.toFloat() / GFX.viewportHeight)
+                    posSize(shader, x2, y + dy, sizeX, h)
                     GFX.flat01.draw(shader)
                     GFX.check()
                 } else {
@@ -245,12 +243,7 @@ object DrawTexts {
             val y2 = y + getOffset(h, alignY)
             val windowWidth = GFX.viewportWidth.toFloat()
             val windowHeight = GFX.viewportHeight.toFloat()
-            shader.v2f(
-                "pos",
-                (x2 - GFX.viewportX) / windowWidth,
-                1f - (y2 - GFX.viewportY) / windowHeight
-            )
-            shader.v2f("size", w / windowWidth, -h / windowHeight)
+            posSize(shader, x2, y2, w, h)
             shader.v2f("windowSize", windowWidth, windowHeight)
             shader.v4f("textColor", color)
             shader.v4f("backgroundColor", backgroundColor)

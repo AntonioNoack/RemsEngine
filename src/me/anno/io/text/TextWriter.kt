@@ -3,7 +3,6 @@ package me.anno.io.text
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 
 class TextWriter(initialCapacity: Int, workspace: FileReference) : TextWriterBase(workspace) {
 

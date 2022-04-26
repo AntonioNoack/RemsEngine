@@ -131,7 +131,7 @@ fun main() {
     }*/
 
     // like Rem's CLI instantiate OpenGL
-    HiddenOpenGLContext.createOpenGL(size, size)
+    HiddenOpenGLContext.createOpenGL(size/4, size/4)
     ShaderLib.init()
     ECSShaderLib.init()
 
@@ -156,6 +156,8 @@ fun main() {
     clock.stop("Registry")
 
     testEntityMeshFrame(getReference(documents, "CuteGhost.obj"))
+
+    testAssimpMeshFrame(getReference(downloads, "3d/DamagedHelmet.glb"))
 
     // testSVG(getReference(downloads, "2d/tiger.svg"))
 
@@ -185,9 +187,6 @@ fun main() {
     testImage(getReference(downloads, "3d/DamagedHelmet.glb/textures/0.jpg/r.png"))
     testImage(getReference(downloads, "3d/DamagedHelmet.glb/textures/0.jpg/g.png"))
     testImage(getReference(downloads, "3d/DamagedHelmet.glb/textures/0.jpg/b.png"))*/
-
-    // done metallic was missing
-    testAssimpMeshFrame(getReference(downloads, "3d/DamagedHelmet.glb"))
 
 
     // that skeleton looks incorrect... why? because it itself is incorrect, others work

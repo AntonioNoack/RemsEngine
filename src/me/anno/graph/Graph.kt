@@ -3,10 +3,6 @@ package me.anno.graph
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Optimization.simplexAlgorithm
-import java.util.*
-import kotlin.math.max
 
 
 // todo for editing just copy them

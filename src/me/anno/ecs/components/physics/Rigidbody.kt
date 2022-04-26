@@ -44,7 +44,7 @@ open class Rigidbody : Component() {
     var bulletInstance: RigidBody? = null
 
     @NotSerializedProperty
-    val constrained = ArrayList<Constraint<*>>()
+    val constraints = ArrayList<Constraint<*>>()
 
     @DebugProperty
     @NotSerializedProperty
@@ -106,7 +106,7 @@ open class Rigidbody : Component() {
 
     @Docs("How heavy it is")
     @SerializedProperty
-    var mass = 1.0
+    var mass = 0.0
         set(value) {
             if (field != value) {
                 if ((field > 0.0) != (value > 0.0)) {
@@ -361,7 +361,7 @@ open class Rigidbody : Component() {
         clone.gravity.set(gravity)
     }
 
-    override val className get() = "Rigidbody"
+    override val className = "Rigidbody"
 
     companion object {
         val gravity0 = Vector3d(0.0, -9.81, 0.0)

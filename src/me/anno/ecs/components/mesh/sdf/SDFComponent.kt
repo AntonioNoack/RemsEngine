@@ -1,11 +1,14 @@
 package me.anno.ecs.components.mesh.sdf
 
 import me.anno.Build
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.*
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
+import me.anno.ecs.components.script.QuickScriptComponent
+import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.Projection.projectRayToAABBBack
 import me.anno.engine.raycast.Projection.projectRayToAABBFront
@@ -20,7 +23,6 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes
-import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.structures.lists.Lists.any2
@@ -38,19 +40,10 @@ import org.joml.*
 import kotlin.math.abs
 import kotlin.math.floor
 
-// todo draw outline around selected sdf component properly
-// todo 3d bezier curves like https://www.shadertoy.com/view/ldj3Wh
+// todo sdf images and maybe text like https://github.com/fogleman/sdf
+// todo color maps like https://iquilezles.org/www/articles/palettes/palettes.htm
+
 open class SDFComponent : ProceduralMesh() {
-
-    // todo color maps like https://iquilezles.org/www/articles/palettes/palettes.htm
-
-    @DebugProperty
-    @NotSerializedProperty
-    var camNear = 0f
-
-    @DebugProperty
-    @NotSerializedProperty
-    var camFar = 0f
 
     override var isEnabled: Boolean
         get() = super.isEnabled
@@ -60,6 +53,21 @@ open class SDFComponent : ProceduralMesh() {
                 super.isEnabled = value
             }
         }
+
+    @NotSerializedProperty
+    private val internalComponents = ArrayList<Component>(4)
+
+    @SerializedProperty
+    override val components: List<Component>
+        get() = internalComponents
+
+    @DebugProperty
+    @NotSerializedProperty
+    var camNear = 0f
+
+    @DebugProperty
+    @NotSerializedProperty
+    var camFar = 0f
 
     /**
      * how much larger the underlying mesh needs to be to cover this sdf mesh;
@@ -226,6 +234,15 @@ open class SDFComponent : ProceduralMesh() {
     val positionMappers = ArrayList<PositionMapper>()
     val distanceMappers = ArrayList<DistanceMapper>()
 
+    override fun onDestroy() {
+        super.onDestroy()
+        val components = internalComponents
+        for (index in components.indices) {
+            val child = components[index]
+            if (child.isEnabled) child.onDestroy()
+        }
+    }
+
     override fun onUpdate(): Int {
         super.onUpdate()
         if (hasInvalidBounds) {
@@ -234,7 +251,21 @@ open class SDFComponent : ProceduralMesh() {
             updateMesh(mesh2, false)
             invalidateAABB()
         }
+        val components = internalComponents
+        for (index in components.indices) {
+            val child = components[index]
+            if (child.isEnabled) child.callUpdate()
+        }
         return 1
+    }
+
+    override fun onVisibleUpdate(): Boolean {
+        val components = internalComponents
+        for (index in components.indices) {
+            val child = components[index]
+            if (child.isEnabled) child.onVisibleUpdate()
+        }
+        return true
     }
 
     override fun hasRaycastType(typeMask: Int): Boolean {
@@ -311,7 +342,9 @@ open class SDFComponent : ProceduralMesh() {
     }
 
     // allow manual sdf?
-    // todo script components for sdfs?
+    // done easy script components for sdfs?
+    // no, just use lua scripts
+    // todo allow (script) components to be added to sdf components
 
     open fun calculateBounds(dst: AABBf) {
         dst.clear()
@@ -404,16 +437,33 @@ open class SDFComponent : ProceduralMesh() {
         JomlPools.aabbf.sub(1)
     }
 
-    override fun getOptionsByType(type: Char): List<Option>? {
-        return if (type == 'p') getOptionsByClass(this, PositionMapper::class)
-        else getOptionsByClass(this, DistanceMapper::class)
+    override fun getOptionsByType(type: Char) = when (type) {
+        'p' -> getOptionsByClass(this, PositionMapper::class)
+        'd' -> getOptionsByClass(this, DistanceMapper::class)
+        else -> getOptionsByClass(this, QuickScriptComponent::class)
     }
 
-    override fun listChildTypes(): String = "pd"
-    override fun getChildListByType(type: Char) = if (type == 'p') positionMappers else distanceMappers
-    override fun getTypeOf(child: PrefabSaveable) = if (child is PositionMapper) 'p' else 'd'
+    override fun listChildTypes(): String = "pdx"
+
+    override fun getChildListByType(type: Char) = when (type) {
+        'p' -> positionMappers
+        'd' -> distanceMappers
+        else -> components
+    }
+
+    override fun getTypeOf(child: PrefabSaveable) = when (child) {
+        is PositionMapper -> 'p'
+        is DistanceMapper -> 'd'
+        else -> 'x'
+    }
+
     override fun addChild(index: Int, child: PrefabSaveable) = addChildByType(index, ' ', child)
-    override fun getChildListNiceName(type: Char) = if (type == 'p') "PositionMappers" else "DistanceMappers"
+    override fun getChildListNiceName(type: Char) = when (type) {
+        'p' -> "PositionMappers"
+        'd' -> "DistanceMappers"
+        else -> "Components"
+    }
+
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         when (child) {
             is PositionMapper -> {
@@ -423,6 +473,11 @@ open class SDFComponent : ProceduralMesh() {
             }
             is DistanceMapper -> {
                 distanceMappers.add(clamp(index, 0, distanceMappers.size), child)
+                child.parent = this
+                invalidateShader()
+            }
+            is Component -> {
+                internalComponents.add(clamp(index, 0, internalComponents.size), child)
                 child.parent = this
                 invalidateShader()
             }

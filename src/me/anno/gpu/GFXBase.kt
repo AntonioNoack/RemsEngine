@@ -18,8 +18,10 @@ import me.anno.gpu.debug.OpenGLDebug.getDebugSeverityName
 import me.anno.gpu.debug.OpenGLDebug.getDebugSourceName
 import me.anno.gpu.debug.OpenGLDebug.getDebugTypeName
 import me.anno.gpu.drawing.DrawRectangles
+import me.anno.image.Image
+import me.anno.image.ImageCPUCache
 import me.anno.input.Input.invalidateLayout
-import me.anno.io.ResourceHelper.loadResource
+import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
@@ -32,14 +34,17 @@ import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
-import org.lwjgl.opengl.*
+import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL43C.glDebugMessageCallback
+import org.lwjgl.opengl.GLCapabilities
+import org.lwjgl.opengl.GLUtil
+import org.lwjgl.opengl.KHRDebug
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import java.awt.AWTException
 import java.awt.Robot
-import java.awt.image.BufferedImage
-import javax.imageio.ImageIO
 import kotlin.math.abs
 
 /**
@@ -310,7 +315,7 @@ open class GFXBase {
     open fun renderStep0() {
         if (isDebug) {
             // System.loadLibrary("renderdoc");
-            GL43.glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, message: Long, _: Long ->
+            glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, message: Long, _: Long ->
                 val message2 = if (message != 0L) MemoryUtil.memUTF8(message) else null
                 LOGGER.warn(
                     message2 +
@@ -320,7 +325,7 @@ open class GFXBase {
                             ", severity: " + getDebugSeverityName(severity)
                 )
             }, 0)
-            GL11.glEnable(KHRDebug.GL_DEBUG_OUTPUT)
+            glEnable(KHRDebug.GL_DEBUG_OUTPUT)
         }
         checkIsGFXThread()
     }
@@ -330,7 +335,7 @@ open class GFXBase {
     }
 
     open fun renderStep(window: WindowX) {
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT)
         val width = window.width
         val height = window.height
         GFX.setFrameNullSize(window)
@@ -441,37 +446,35 @@ open class GFXBase {
         var projectName = "Rem's Engine"
 
         fun setIcon(window: Long) {
-            try {
-
-                val image = GLFWImage.malloc()
-                val buffer = GLFWImage.malloc(1)
-
-                val bufferedImage: BufferedImage = loadAssetsImage("icon.png")
-                val w = bufferedImage.width
-                val h = bufferedImage.height
-                val pixels = BufferUtils.createByteBuffer(w * h * 4)
-                for (y in 0 until h) {
-                    for (x in 0 until w) {
-                        // argb -> rgba
-                        val color = bufferedImage.getRGB(x, y)
-                        pixels.put(color.shr(16).toByte())
-                        pixels.put(color.shr(8).toByte())
-                        pixels.put(color.toByte())
-                        pixels.put(color.shr(24).toByte())
-                    }
-                }
-                pixels.flip()
-                image.set(w, h, pixels)
-                buffer.put(0, image)
-                GLFW.glfwSetWindowIcon(window, buffer)
-
-            } catch (e: Exception) {
-                e.printStackTrace()
+            val src = getReference(BundledRef.prefix + "icon.png")
+            val srcImage = ImageCPUCache.getImage(src, false)
+            if (srcImage != null) {
+                setIcon(window, srcImage)
             }
         }
 
-        fun loadAssetsImage(name: String): BufferedImage {
-            return ImageIO.read(loadResource(name).buffered())
+        fun setIcon(window: Long, srcImage: Image) {
+
+            val image = GLFWImage.malloc()
+            val buffer = GLFWImage.malloc(1)
+
+            val w = srcImage.width
+            val h = srcImage.height
+            val pixels = BufferUtils.createByteBuffer(w * h * 4)
+            for (y in 0 until h) {
+                for (x in 0 until w) {
+                    // argb -> rgba
+                    val color = srcImage.getRGB(x, y)
+                    pixels.put(color.shr(16).toByte())
+                    pixels.put(color.shr(8).toByte())
+                    pixels.put(color.toByte())
+                    pixels.put(color.shr(24).toByte())
+                }
+            }
+            pixels.flip()
+            image.set(w, h, pixels)
+            buffer.put(0, image)
+            GLFW.glfwSetWindowIcon(window, buffer)
         }
 
     }

@@ -12,7 +12,8 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.attr0List
+import me.anno.gpu.shader.ShaderLib.attr0VShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -28,7 +29,7 @@ object ScreenSpaceReflections {
     // position + normal + metallic/reflectivity + maybe-roughness + illuminated image -> illuminated + reflections
     val shader = lazy {
         Shader(
-            "ss-reflections", simplestVertexShader, uvList, "" +
+            "ss-reflections", attr0List, attr0VShader, uvList, emptyList(), "" +
 
                     "out vec4 fragColor;\n" +
 

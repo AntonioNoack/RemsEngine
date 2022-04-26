@@ -268,9 +268,11 @@ interface ISaveable {
         @JvmStatic
         fun registerCustomClass(constructor: () -> ISaveable) {
             val instance0 = constructor()
-            checkInstance(instance0)
             val className = instance0.className
             register(className, RegistryEntry(instance0, constructor))
+            // dangerous to be done after
+            // but this allows us to skip the full implementation of clone() everywhere
+            checkInstance(instance0)
         }
 
         @JvmStatic

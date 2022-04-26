@@ -12,7 +12,7 @@ import me.anno.io.utils.StringMap
 
 open class Player : Component() {
 
-    val camera = CameraState()
+    val cameraState = CameraState()
 
     // todo save all kind of information here
     val sessionInfo = StringMap()
@@ -43,7 +43,7 @@ open class Player : Component() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Player
-        camera.copy(clone.camera)
+        cameraState.copy(clone.cameraState)
         clone.sessionInfo.clear()
         clone.sessionInfo.putAll(sessionInfo)
         clone.persistentInfo.clear()

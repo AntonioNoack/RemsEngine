@@ -9,7 +9,7 @@ object ResourceHelper {
 
     @Throws(IOException::class)
     fun loadResource(name: String): InputStream {
-        // needs to be the same package
+        // needs to be the same jar
         return ResourceHelper.javaClass.classLoader.getResourceAsStream(name)
             ?: throw FileNotFoundException("res://$name")
     }

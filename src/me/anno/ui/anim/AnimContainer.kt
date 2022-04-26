@@ -12,7 +12,6 @@ import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import kotlin.math.abs
 

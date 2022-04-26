@@ -1,10 +1,8 @@
 package me.anno.ui.base.scrolling
 
 import me.anno.Engine
-import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mulAlpha
 import me.anno.ui.Panel

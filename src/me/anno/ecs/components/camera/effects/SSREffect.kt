@@ -27,7 +27,7 @@ class SSREffect : ToneMappedEffect() {
     override fun render(
         buffer: IFramebuffer,
         format: DeferredSettingsV2,
-        layers: HashMap<DeferredLayerType, IFramebuffer>
+        layers: MutableMap<DeferredLayerType, IFramebuffer>
     ) {
         write(
             layers, dstType,

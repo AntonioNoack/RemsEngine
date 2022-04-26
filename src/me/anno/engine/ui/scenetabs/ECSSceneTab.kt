@@ -1,6 +1,7 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.LightComponentBase
@@ -13,11 +14,13 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
+import me.anno.gpu.Cursor
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
+import me.anno.maths.Maths.mixARGB
 import me.anno.studio.StudioBase
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
@@ -61,6 +64,7 @@ class ECSSceneTab(
 
     init {
         LOGGER.info("Created tab with ${inspector.prefab.countTotalChanges(true)}+ changes")
+        padding.set(6, 2, 6, 2)
     }
 
     // different tabs have different "cameras"
@@ -70,14 +74,17 @@ class ECSSceneTab(
 
     var isFirstTime = true
 
-    fun resetCamera(root: PrefabSaveable) {
+    override fun getCursor() = Cursor.hand
+
+    private fun resetCamera(root: PrefabSaveable) {
         rotation.set(-20.0, 0.0, 0.0)
         when (root) {
             is MeshComponentBase -> {
+                root.ensureBuffer()
                 val mesh = root.getMesh() ?: return
-                resetCamera(mesh)
+                resetCamera2(mesh)
             }
-            is Mesh -> resetCamera(root)
+            is Mesh -> resetCamera2(root)
             is Material, is LightComponentBase -> {
                 radius = 2.0
             }
@@ -91,13 +98,11 @@ class ECSSceneTab(
                 root.union(Matrix4x3d(), aabb, Vector3d(), false)
                 resetCamera(aabb, false)
             }
-            else -> {
-                LOGGER.warn("Please implement bounds for ${root.className}")
-            }
+            else -> LOGGER.warn("Please implement bounds for ${root.className}")
         }
     }
 
-    private fun resetCamera(mesh: Mesh) {
+    private fun resetCamera2(mesh: Mesh) {
         resetCamera(mesh.aabb, true)
     }
 
@@ -115,17 +120,20 @@ class ECSSceneTab(
         }
     }
 
+    var needsStart = false
+
     fun onStart() {
-        // todo when first created, center around scene,
-        // todo and adjust the radius
+
+        // todo when first created, center around scene, and adjust the radius
+
         syncMaster.nextSession()
-        val root = inspector.root
-        val rootEntity = root as? Entity
-        rootEntity?.physics?.startWork()
+
         if (isFirstTime) {
+            val root = inspector.root
             isFirstTime = false
             resetCamera(root)
         }
+
         for (window in window?.windowStack ?: emptyList()) {
             window.panel.forAll {
                 if (it is RenderView) {
@@ -135,6 +143,7 @@ class ECSSceneTab(
                 }
             }
         }
+
     }
 
     fun onStop() {
@@ -202,8 +211,14 @@ class ECSSceneTab(
 
     override fun tickUpdate() {
         super.tickUpdate()
-        backgroundColor = if (ECSSceneTabs.currentTab == this) 0xff777777.toInt()
-        else originalBGColor
+        backgroundColor = when {
+            ECSSceneTabs.currentTab == this -> 0xff777777.toInt()
+            else -> mixARGB(originalBGColor, black, 0.2f)
+        }
+        if (ECSSceneTabs.currentTab == this && needsStart) {
+            needsStart = false
+            onStart()
+        }
     }
 
     override fun onCopyRequested(x: Float, y: Float) = file

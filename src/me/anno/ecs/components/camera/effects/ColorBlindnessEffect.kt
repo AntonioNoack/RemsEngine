@@ -1,13 +1,14 @@
 package me.anno.ecs.components.camera.effects
 
-import me.anno.ecs.Component
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -26,7 +27,7 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
     override fun render(color: ITexture2D) =
         render(color, strength, mode)
 
-    override fun clone(): Component {
+    override fun clone(): ColorBlindnessEffect {
         val clone = ColorBlindnessEffect()
         copy(clone)
         return clone
@@ -57,11 +58,12 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
 
         // from https://gist.github.com/jcdickinson/580b7fb5cc145cee8740, http://www.daltonize.org/search/label/Daltonize
         val shader = Shader(
-            "colorblindness", ShaderLib.simplestVertexShader, ShaderLib.uvList,
-            "uniform int mode;\n" +
-                    "uniform float strength;\n" +
-                    "uniform sampler2D source;\n" +
-                    ShaderLib.brightness +
+            "colorblindness", ShaderLib.attr0List, ShaderLib.attr0VShader, ShaderLib.uvList,
+            listOf(
+                Variable(GLSLType.V1I, "mode"),
+                Variable(GLSLType.V1F, "strength"),
+                Variable(GLSLType.S2D, "source")
+            ), ShaderLib.brightness +
                     "void main(){\n" +
                     "   vec4 color = texture(source, uv);\n" +
                     "   if(mode == ${Mode.GRAYSCALE.id}){\n" +

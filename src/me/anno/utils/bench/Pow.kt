@@ -4,26 +4,26 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.ShaderLib.attr0List
+import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.utils.types.Floats.f2
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
 fun main() {
 
     fun createShader(code: String) = Shader(
-        "", simplestVertexShader,
-        listOf(Variable(GLSLType.V2F, "uv")), "void main(){$code}"
+        "", attr0List, attr0VShader,
+        uvList, listOf(), "void main(){$code}"
     )
 
     fun repeat(code: String, times: Int): String {

@@ -42,8 +42,8 @@ object ShaderLib {
      * */
     const val maxOutlineColors = 6
 
-    val simplestVertexShader0List = listOf(Variable(GLSLType.V2F, "attr0", VariableMode.ATTR))
-    const val simplestVertexShader0 = "" +
+    val attr0List = listOf(Variable(GLSLType.V2F, "attr0", VariableMode.ATTR))
+    const val attr0VShader = "" +
             "void main(){\n" +
             "   gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
             "   uv = attr0;\n" +
@@ -67,8 +67,9 @@ object ShaderLib {
             "$attribute vec2 attr0;\n" +
             "uniform vec2 pos, size;\n" +
             "uniform vec4 tiling;\n" +
+            "uniform mat4 transform;\n" +
             "void main(){\n" +
-            "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.5, 1.0);\n" +
+            "   gl_Position = transform * vec4((pos + attr0 * size)*2.0-1.0, 0.5, 1.0);\n" +
             "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "}"
 
@@ -357,10 +358,11 @@ object ShaderLib {
             "" +
                     "$attribute vec2 attr0;\n" +
                     "uniform vec2 pos, size;\n" +
+                    "uniform mat4 transform;\n" + // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
                     "uniform vec2 windowSize;\n" +
                     "void main(){\n" +
                     "   vec2 localPos = pos + attr0 * size;\n" +
-                    "   gl_Position = vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
+                    "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
                     "   position = localPos * windowSize;\n" +
                     "   uv = attr0;\n" +
                     "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V2F, "position")), "" +
@@ -483,8 +485,8 @@ object ShaderLib {
 
         // somehow becomes dark for large |steps|-values
         shader3DBoxBlur = createShader(
-            "3d-blur", simplestVertexShader, listOf(Variable(GLSLType.V2F, "uv")), "" +
-                    "precision highp float;\n" +
+            "3d-blur", attr0List, attr0VShader, uvList, listOf(), "" +
+                    "precision highp float;\n" + // why?
                     "uniform sampler2D tex;\n" +
                     "uniform vec2 stepSize;\n" +
                     "uniform int steps;\n" +
@@ -837,36 +839,50 @@ object ShaderLib {
     // however, the overhead shouldn't be a problem -> ignored
     fun createShaderNoShorts(
         shaderName: String,
-        v3D: String,
-        y3D: List<Variable>,
-        f3D: String,
+        vertexShader: String,
+        varyings: List<Variable>,
+        fragmentShader: String,
         textures: List<String>
     ): BaseShader {
-        val shader = BaseShader(shaderName, v3D, y3D, f3D)
+        val shader = BaseShader(shaderName, vertexShader, varyings, fragmentShader)
         shader.setTextureIndices(textures)
         return shader
     }
 
     fun createShaderPlus(
         shaderName: String,
-        v3D: String,
-        y3D: List<Variable>,
-        f3D: String,
+        vertexShader: String,
+        varyings: List<Variable>,
+        fragmentShader: String,
         textures: List<String>
     ): BaseShader {
-        val shader = BaseShader(shaderName, v3D, y3D, f3D)
+        val shader = BaseShader(shaderName, vertexShader, varyings, fragmentShader)
         shader.setTextureIndices(textures)
         return shader
     }
 
     fun createShader(
         shaderName: String,
-        v3D: String,
-        y3D: List<Variable>,
-        f3D: String,
+        vertexShader: String,
+        varyings: List<Variable>,
+        fragmentShader: String,
         textures: List<String>
     ): BaseShader {
-        val shader = BaseShader(shaderName, v3D, y3D, f3D)
+        val shader = BaseShader(shaderName, vertexShader, varyings, fragmentShader)
+        shader.setTextureIndices(textures)
+        return shader
+    }
+
+    fun createShader(
+        shaderName: String,
+        vertexVariables: List<Variable>,
+        vertexShader: String,
+        varyings: List<Variable>,
+        fragmentVariables: List<Variable>,
+        fragmentShader: String,
+        textures: List<String>
+    ): BaseShader {
+        val shader = BaseShader(shaderName, vertexVariables, vertexShader, varyings, fragmentVariables, fragmentShader)
         shader.setTextureIndices(textures)
         return shader
     }

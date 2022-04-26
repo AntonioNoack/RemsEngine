@@ -3,12 +3,13 @@ package me.anno.engine.ui.render
 import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.camera.effects.ColorBlindnessEffect
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.shader.ShaderPlus
 
 enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffect? = null) {
 
     DEFAULT,
     WITHOUT_POST_PROCESSING,
-    CLICK_IDS,
+    CLICK_IDS(ShaderPlus.RandomEffect),
     DEPTH,
     FORCE_DEFERRED,
     FORCE_NON_DEFERRED,

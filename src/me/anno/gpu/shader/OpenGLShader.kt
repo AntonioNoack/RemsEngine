@@ -212,15 +212,15 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
-    fun ignoreUniformWarnings(names: Collection<String>) {
+    fun ignoreNameWarnings(names: Collection<String>) {
         ignoredNames += names
     }
 
-    fun ignoreUniformWarnings(vararg names: String) {
+    fun ignoreNameWarnings(vararg names: String) {
         ignoredNames += names
     }
 
-    fun ignoreUniformWarning(name: String) {
+    fun ignoreNameWarnings(name: String) {
         ignoredNames += name
     }
 
@@ -236,15 +236,14 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     }
 
     fun getAttributeLocation(name: String): Int {
-        val old = attributeLocations[name]
-        if (old != null) return old
-        if (safeShaderBinding) use()
-        val loc = glGetAttribLocation(program, name)
-        attributeLocations[name] = loc
-        if (loc < 0 && name !in ignoredNames) {
-            LOGGER.warn("Attribute location \"$name\" not found in shader ${this.name}")
+        return attributeLocations.getOrPut(name) {
+            if (safeShaderBinding) use()
+            val loc = glGetAttribLocation(program, name)
+            if (loc < 0 && name !in ignoredNames) {
+                LOGGER.warn("Attribute location \"$name\" not found in shader ${this.name}")
+            }
+            loc
         }
-        return loc
     }
 
     fun potentiallyUse() {

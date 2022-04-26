@@ -3,6 +3,7 @@ package me.anno.gpu.deferred
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 
+@Deprecated("Just legacy, still used in my VoxelWorld experiment")
 open class DeferredShader(
     settings: DeferredSettingsV1,
     shaderName: String,

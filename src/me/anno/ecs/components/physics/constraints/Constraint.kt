@@ -22,8 +22,8 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
     var other: Rigidbody? = null
         set(value) {
             if (field != value) {
-                value?.constrained?.add(this)
-                field?.constrained?.remove(this)
+                value?.constraints?.add(this)
+                field?.constraints?.remove(this)
                 field = value
             }
         }

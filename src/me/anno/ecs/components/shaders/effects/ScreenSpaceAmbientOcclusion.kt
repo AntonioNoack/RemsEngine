@@ -3,20 +3,24 @@ package me.anno.ecs.components.shaders.effects
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.attr0List
+import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -83,7 +87,7 @@ object ScreenSpaceAmbientOcclusion {
     private val occlusionShader = lazy {
         Shader(
             "ssao-occlusion",
-            ShaderLib.simplestVertexShader, uvList, "" +
+            attr0List, attr0VShader, uvList, emptyList(), "" +
                     "layout(location=0) out float glFragColor;\n" +
                     "uniform float radius, strength;\n" +
                     "uniform int numSamples;\n" +
@@ -133,11 +137,12 @@ object ScreenSpaceAmbientOcclusion {
 
     private val blurShader = lazy {
         Shader(
-            "ssao-blur",
-            ShaderLib.simplestVertexShader, uvList, "" +
-                    "layout(location=0) out float glFragColor;\n" +
-                    "uniform sampler2D source;\n" +
-                    "uniform vec2 delta;\n" +
+            "ssao-blur", attr0List, attr0VShader, uvList,
+            listOf(
+                Variable(GLSLType.V1F, "glFragColor", VariableMode.OUT),
+                Variable(GLSLType.S2D, "source"),
+                Variable(GLSLType.V2F, "delta")
+            ), "" +
                     "void main(){\n" +
                     "   vec2 uv0 = uv-delta;\n" +
                     "   vec2 uv1 = uv+delta;\n" +
@@ -184,7 +189,8 @@ object ScreenSpaceAmbientOcclusion {
         }
         // resolution can be halved to improve performance
         val div = clamp(DefaultConfig["gpu.ssao.div10", 10], 10, 100)
-        val dst = FBStack["ssao-1st", roundDiv(position.w * 10, div), roundDiv(position.h * 10, div), 1, false, 1, false]
+        val dst =
+            FBStack["ssao-1st", roundDiv(position.w * 10, div), roundDiv(position.h * 10, div), 1, false, 1, false]
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
             val shader = occlusionShader.value

@@ -95,7 +95,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
     val (uniforms, shaderBase) = createTestShader(finalShape)
     val group1 = (finalShape as? SDFGroup)?.children?.getOrNull(0)
     val group2 = (finalShape as? SDFGroup)?.children?.getOrNull(1)
-    println(shaderBase.fragmentSource)
+    println(shaderBase.fragmentShader)
     val camRotation = Quaternionf()
     val camMatrix = Matrix3f()
     TestDrawPanel.testDrawing {

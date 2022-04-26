@@ -1,30 +1,39 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.shader.OpenGLShader.Companion.attribute
+import me.anno.gpu.shader.ShaderLib.attr0List
+import me.anno.gpu.shader.ShaderLib.attr0VShader
 import me.anno.gpu.shader.ShaderLib.blacklist
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 
 object FlatShaders {
 
     val copyShader = ShaderLib.createShader(
-        "copy", ShaderLib.simplestVertexShader, listOf(Variable(GLSLType.V2F, "uv")), "" +
-                "uniform sampler2D tex;\n" +
-                "uniform float am1;\n" +
+        "copy", attr0List, attr0VShader, uvList, listOf(
+            Variable(GLSLType.S2D, "tex"),
+            Variable(GLSLType.V1F, "am1")
+        ), "" +
                 "void main(){\n" +
                 "   gl_FragColor = (1.0-am1) * texture(tex, uv);\n" +
                 "}", listOf("tex")
     )
 
+    val attr0PosSize = attr0List + listOf(
+        Variable(GLSLType.V2F, "pos"),
+        Variable(GLSLType.V2F, "size")
+    )
+
+    val attr0PosSizeVShader = "" +
+            "void main(){\n" +
+            "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
+            "}"
+
     // color only for a rectangle
     // (can work on more complex shapes)
     val flatShader = BaseShader(
-        "flatShader", "" +
-                "$attribute vec2 attr0;\n" +
-                "uniform vec2 pos, size;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                "}", emptyList(), "" +
-                "uniform vec4 color;\n" +
+        "flatShader", attr0PosSize, attr0PosSizeVShader,
+        emptyList(), listOf(Variable(GLSLType.V4F, "color")), "" +
                 "void main(){\n" +
                 "   gl_FragColor = color;\n" +
                 "}"
@@ -32,14 +41,12 @@ object FlatShaders {
 
 
     val flatShaderStriped = BaseShader(
-        "flatShader", "" +
-                "$attribute vec2 attr0;\n" +
-                "uniform vec2 pos, size;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                "}", emptyList(), "" +
-                "uniform vec4 color;\n" +
-                "uniform int offset, stride;\n" +
+        "flatShader", attr0PosSize, attr0PosSizeVShader,
+        emptyList(), listOf(
+            Variable(GLSLType.V4F, "color"),
+            Variable(GLSLType.V1I, "offset"),
+            Variable(GLSLType.V1I, "stride")
+        ), "" +
                 "void main(){\n" +
                 "   int x = int(gl_FragCoord.x);\n" +
                 "   if(x % stride != offset) discard;\n" +
@@ -51,12 +58,13 @@ object FlatShaders {
         "flatShaderGradient", "" +
                 "$attribute vec2 attr0;\n" +
                 "uniform vec2 pos, size;\n" +
+                "uniform mat4 transform;\n" +
                 "uniform vec4 uvs;\n" +
                 ShaderLib.yuv2rgb +
                 "uniform vec4 lColor, rColor;\n" +
                 "uniform bool inXDirection;\n" +
                 "void main(){\n" +
-                "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
+                "   gl_Position = transform * vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                 "   color = (inXDirection ? attr0.x : attr0.y) < 0.5 ? lColor : rColor;\n" +
                 "   color = color * color;\n" + // srgb -> linear
                 "   uv = mix(uvs.xy, uvs.zw, attr0);\n" +
@@ -83,7 +91,7 @@ object FlatShaders {
 
     val flatShaderTexture = BaseShader(
         "flatShaderTexture", "" +
-                ShaderLib.simpleVertexShader, ShaderLib.uvList, "" +
+                ShaderLib.simpleVertexShader, uvList, "" +
                 "uniform sampler2D tex;\n" +
                 "uniform vec4 color;\n" +
                 "uniform int alphaMode;\n" + // 0 = rgba, 1 = rgb, 2 = a
@@ -98,7 +106,7 @@ object FlatShaders {
 
     val depthShader = BaseShader(
         "depth", "" +
-                ShaderLib.simpleVertexShader, ShaderLib.uvList, "" +
+                ShaderLib.simpleVertexShader, uvList, "" +
                 "uniform sampler2D tex;\n" +
                 "void main(){\n" +
                 "   float depth0 = texture(tex, uv).x;\n" +
@@ -111,8 +119,9 @@ object FlatShaders {
         "flatShaderCubemap", "" +
                 "$attribute vec2 attr0;\n" +
                 "uniform vec2 pos, size;\n" +
+                "uniform mat4 transform;\n" +
                 "void main(){\n" +
-                "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
+                "   gl_Position = transform * vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                 "   uv = (attr0 - 0.5) * vec2(${Math.PI * 2},${Math.PI});\n" +
                 "}", listOf(Variable(GLSLType.V2F, "uv")), "" +
                 "uniform samplerCube tex;\n" +

@@ -20,7 +20,7 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import kotlin.math.abs

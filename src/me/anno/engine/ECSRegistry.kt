@@ -13,6 +13,8 @@ import me.anno.ecs.components.camera.effects.BloomEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
 import me.anno.ecs.components.camera.effects.SSREffect
 import me.anno.ecs.components.collider.*
+import me.anno.ecs.components.collider.twod.CircleCollider
+import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.sdf.SDFRegistry
@@ -25,6 +27,8 @@ import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
 import me.anno.ecs.components.physics.constraints.*
+import me.anno.ecs.components.physics.twod.Box2dPhysics
+import me.anno.ecs.components.physics.twod.Rigidbody2d
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.player.RemotePlayer
 import me.anno.ecs.components.script.QuickInputScriptComponent
@@ -175,7 +179,7 @@ object ECSRegistry {
 
         registerCustomClass(SkyBox())
 
-        // colliders
+        // 3d colliders
         registerCustomClass(BoxCollider())
         registerCustomClass(CapsuleCollider())
         registerCustomClass(ConeCollider())
@@ -183,6 +187,10 @@ object ECSRegistry {
         registerCustomClass(CylinderCollider())
         registerCustomClass(MeshCollider())
         registerCustomClass(SphereCollider())
+
+        // 2d colliders
+        registerCustomClass(RectCollider())
+        registerCustomClass(CircleCollider())
 
         // skeletons and such
         registerCustomClass(MorphTarget())
@@ -203,7 +211,9 @@ object ECSRegistry {
 
         // physics
         registerCustomClass(BulletPhysics())
+        registerCustomClass(Box2dPhysics())
         registerCustomClass(Rigidbody())
+        registerCustomClass(Rigidbody2d())
         registerCustomClass(Vehicle())
         registerCustomClass(VehicleWheel())
 

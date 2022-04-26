@@ -24,8 +24,8 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
-import org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT
-import org.lwjgl.opengl.GL11.glClear
+import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
+import org.lwjgl.opengl.GL11C.glClear
 import kotlin.math.pow
 
 abstract class LightComponent(
@@ -165,7 +165,7 @@ abstract class LightComponent(
         pipeline.reset()
         val entity = entity!!
         val transform = entity.transform
-        val drawTransform = transform.drawTransform
+        val drawTransform = transform.getDrawMatrix()
         val resolution = shadowMapResolution
         val global = transform.globalTransform
         val position = global.getTranslation(JomlPools.vec3d.create())
@@ -175,7 +175,7 @@ abstract class LightComponent(
         val shadowTextures = shadowTextures
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
-        val renderer = Renderer.depthOnlyRenderer
+        val renderer = Renderer.depthRenderer
         val depthMode = DepthMode.GREATER
         for (i in 0 until shadowMapCascades) {
             val cascadeScale = shadowMapPower.pow(-i.toDouble())

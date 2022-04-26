@@ -1,6 +1,5 @@
 package me.anno.audio
 
-import me.anno.audio.streams.FloatPair
 import me.anno.utils.types.Floats.f2
 
 open class SimpleTransfer(l2l: Float, r2r: Float) : AudioTransfer(l2l, r2r, 0f, 0f) {

@@ -8,8 +8,6 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFTwist.Companion.twistFunc
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
-import me.anno.maths.Maths
-import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f

@@ -2,13 +2,17 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
+import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.physics.BulletPhysics.Companion.convertMatrix
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
+import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SQRT1_2
@@ -33,6 +37,16 @@ abstract class Collider : CollidingComponent() {
     @Range(0.0, 1.0)
     @SerializedProperty
     var roundness = 0.0
+
+    @Docs("Whether this collider will collide with stuff, or just detect collisions")
+    @SerializedProperty
+    var hasPhysics = true
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateRigidbody()
+            }
+        }
 
     open val isConvex: Boolean = true
 
@@ -78,6 +92,7 @@ abstract class Collider : CollidingComponent() {
         super.copy(clone)
         clone as Collider
         clone.roundness = roundness
+        clone.hasPhysics = hasPhysics
     }
 
     fun unionRing(
@@ -138,17 +153,17 @@ abstract class Collider : CollidingComponent() {
         }
     }
 
-    open fun unionCube(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, x: Double, y: Double, z: Double) {
+    open fun unionCube(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, hx: Double, hy: Double, hz: Double) {
         // union the most typical layout: a sphere
         // 001,010,100,-001,-010,-100
-        aabb.union(globalTransform.transformPosition(tmp.set(+x, +y, +z)))
-        aabb.union(globalTransform.transformPosition(tmp.set(+x, +y, -z)))
-        aabb.union(globalTransform.transformPosition(tmp.set(+x, -y, +z)))
-        aabb.union(globalTransform.transformPosition(tmp.set(+x, -y, -z)))
-        aabb.union(globalTransform.transformPosition(tmp.set(-x, +y, +z)))
-        aabb.union(globalTransform.transformPosition(tmp.set(-x, +y, -z)))
-        aabb.union(globalTransform.transformPosition(tmp.set(-x, -y, +z)))
-        aabb.union(globalTransform.transformPosition(tmp.set(-x, -y, -z)))
+        aabb.union(globalTransform.transformPosition(tmp.set(+hx, +hy, +hz)))
+        aabb.union(globalTransform.transformPosition(tmp.set(+hx, +hy, -hz)))
+        aabb.union(globalTransform.transformPosition(tmp.set(+hx, -hy, +hz)))
+        aabb.union(globalTransform.transformPosition(tmp.set(+hx, -hy, -hz)))
+        aabb.union(globalTransform.transformPosition(tmp.set(-hx, +hy, +hz)))
+        aabb.union(globalTransform.transformPosition(tmp.set(-hx, +hy, -hz)))
+        aabb.union(globalTransform.transformPosition(tmp.set(-hx, -hy, +hz)))
+        aabb.union(globalTransform.transformPosition(tmp.set(-hx, -hy, -hz)))
     }
 
     open fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
@@ -179,7 +194,6 @@ abstract class Collider : CollidingComponent() {
         return outside + inside - roundness
     }
 
-    // todo test that
     fun createBulletCollider(base: Entity, scale: Vector3d): Pair<Transform, CollisionShape> {
         val transform0 = entity!!.fromLocalToOtherLocal(base)
         // there may be extra scale hidden in there
@@ -276,15 +290,14 @@ abstract class Collider : CollidingComponent() {
 
     // a collider needs to be drawn
     override fun onDrawGUI(all: Boolean) {
-        // println("onDrawGUI on collider, $isSelectedIndirectly")
-        if (all) drawShape()
+        if (all || RenderView.currentInstance?.renderMode == RenderMode.PHYSICS) drawShape()
         // todo draw transformation gizmos for easy collider manipulation
     }
 
     abstract fun drawShape()
 
     companion object {
-        var guiLineColor = 0x77ffff
+        val guiLineColor = 0x77ffff or black
         const val COSINE_22_5 = 1.0 / 1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
         const val INV_COSINE_22_5 = 1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
         const val OUTER_SPHERE_RADIUS_X8 = 1.224744871391589 // sqrt(1.5),

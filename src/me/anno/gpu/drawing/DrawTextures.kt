@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
+import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.FlatShaders.depthShader
 import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
 import me.anno.gpu.shader.FlatShaders.flatShaderTexture
@@ -16,61 +17,37 @@ object DrawTextures {
 
     fun drawProjection(
         x: Int, y: Int, w: Int, h: Int,
-        texture: CubemapTexture, ignoreAlpha: Boolean, color: Int
+        texture: CubemapTexture, ignoreAlpha: Boolean, color: Int,
+        applyToneMapping: Boolean = false
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = flatShaderCubemap.value
         shader.use()
-        GFXx2D.posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h)
         defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)
+        shader.v1b("applyToneMapping", applyToneMapping)
         texture.bind(0, texture.filtering, Clamping.CLAMP)
-        GFX.flat01.draw(shader)
-        GFX.check()
-    }
-
-    fun drawTexturePure(
-        x: Int, y: Int, w: Int, h: Int,
-        texture: ITexture2D, ignoreAlpha: Boolean,
-    ) {
-        if (w == 0 || h == 0) return
-        GFX.check()
-        val shader = flatShaderTexture.value
-        shader.use()
-        val posX = (x - GFX.viewportX).toFloat() / GFX.viewportWidth
-        val posY = (y - GFX.viewportY).toFloat() / GFX.viewportHeight
-        val relW = +w.toFloat() / GFX.viewportWidth
-        val relH = +h.toFloat() / GFX.viewportHeight
-        shader.v2f("pos", posX, posY)
-        shader.v2f("size", relW, relH)
-        defineAdvancedGraphicalFeatures(shader)
-        shader.v4f("color", -1)
-        shader.v1i("alphaMode", ignoreAlpha.toInt())
-        GFXx2D.noTiling(shader)
-        val tex = texture as? Texture2D
-        texture.bind(
-            0,
-            tex?.filtering ?: GPUFiltering.NEAREST,
-            tex?.clamping ?: Clamping.CLAMP
-        )
         GFX.flat01.draw(shader)
         GFX.check()
     }
 
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
-        texture: ITexture2D, ignoreAlpha: Boolean, color: Int = -1, tiling: Vector4fc? = null
+        texture: ITexture2D, ignoreAlpha: Boolean, color: Int = -1, tiling: Vector4fc? = null,
+        applyToneMapping: Boolean = false
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = flatShaderTexture.value
         shader.use()
-        GFXx2D.posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h)
         defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
+        shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         val tex = texture as? Texture2D
         texture.bind(
@@ -90,7 +67,7 @@ object DrawTextures {
         GFX.check()
         val shader = depthShader.value
         shader.use()
-        GFXx2D.posSize(shader, x, y, w, h)
+        posSize(shader, x, y+h-1, w, -h)
         defineAdvancedGraphicalFeatures(shader)
         GFXx2D.noTiling(shader)
         val tex = texture as? Texture2D
@@ -106,7 +83,8 @@ object DrawTextures {
     fun drawTextureAlpha(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D,
-        color: Int = -1, tiling: Vector4fc? = null
+        color: Int = -1, tiling: Vector4fc? = null,
+        applyToneMapping: Boolean = false
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
@@ -116,6 +94,7 @@ object DrawTextures {
         defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1i("alphaMode", 2)
+        shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         val tex = texture as? Texture2D
         texture.bind(
@@ -127,14 +106,17 @@ object DrawTextures {
         GFX.check()
     }
 
-    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: ITexture2D, color: Int, tiling: Vector4fc?) {
-        drawTexture(x, y, w, h, texture, false, color, tiling)
+    fun drawTexture(
+        x: Int, y: Int, w: Int, h: Int, texture: ITexture2D,
+        color: Int, tiling: Vector4fc?, applyToneMapping: Boolean = false
+    ) {
+        drawTexture(x, y, w, h, texture, false, color, tiling, applyToneMapping)
     }
 
     private val tiling = Vector4f()
     fun drawTransparentBackground(x: Int, y: Int, w: Int, h: Int, numVerticalStripes: Float = 5f) {
         tiling.set(numVerticalStripes * w.toFloat() / h.toFloat(), numVerticalStripes, 0f, 0f)
-        drawTexture(x, y, w, h, TextureLib.colorShowTexture, -1, tiling)
+        drawTexture(x, y, w, h, TextureLib.colorShowTexture, -1, tiling, false)
     }
 
     fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4fc?) {

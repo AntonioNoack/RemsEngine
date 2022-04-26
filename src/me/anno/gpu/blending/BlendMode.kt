@@ -1,7 +1,6 @@
 package me.anno.gpu.blending
 
 import me.anno.language.translation.NameDesc
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30.*
 
 // todo custom blend modes? -> maybe... could be customizable...
@@ -104,7 +103,7 @@ class BlendMode(
             .set(BlendFunc.ADD)
 
         val SUB_COLOR = ADD.copy(NameDesc("Sub Color", "", "gpu.blendMode.subColor"), "Subtract Color")
-            .set(GL11.GL_ONE, GL11.GL_ONE)
+            .set(GL_ONE, GL_ONE)
             .set(BlendFunc.REV_SUB, BlendFunc.ADD)
 
         // a way to remove alpha from an image

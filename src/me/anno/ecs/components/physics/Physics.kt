@@ -1,23 +1,33 @@
 package me.anno.ecs.components.physics
 
+import cz.advel.stack.Stack
 import me.anno.Engine
+import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.annotations.HideInInspector
+import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.ui.debug.FrameTimes
 import me.anno.utils.structures.sets.ParallelHashSet
 import me.anno.utils.types.AABBs.set
+import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
+import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.reflect.KClass
 
-abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irbClass: KClass<InternalRigidBody>) :
-    Component() {
+abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
+    private val rigidBodyClass: KClass<InternalRigidBody>
+) : Component() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Physics::class)
@@ -48,8 +58,9 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
     @SerializedProperty
     var targetUpdatesPerSecond = 30.0
 
+    @DebugProperty
     @NotSerializedProperty
-    var time = 0L
+    var timeNanos = 0L
 
     abstract fun updateGravity()
 
@@ -70,6 +81,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
             remove(entity, false)
             // will be re-added by addOrGet
             // todo add to invalidEntities somehow? mmh...
+            // todo constraints for Physics2d
             entity.allComponents(Constraint::class) {
                 val other = it.other?.entity
                 if (other != null) {
@@ -86,18 +98,17 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
     fun <V : Component> getValidComponents(entity: Entity, clazz: KClass<V>): Sequence<V> {
         // only collect colliders, which are appropriate for this: stop at any other rigidbody
         return sequence {
-            // todo also only collect physics colliders, not click-colliders
             @Suppress("unchecked_cast")
             yieldAll(entity.components.filter { it.isEnabled && clazz.isInstance(it) } as List<V>)
             for (child in entity.children) {
-                if (child.isEnabled && !child.hasComponent(irbClass, false)) {
+                if (child.isEnabled && !child.hasComponent(rigidBodyClass, false)) {
                     yieldAll(getValidComponents(child, clazz))
                 }
             }
         }
     }
 
-    open fun remove(entity: Entity, fallenOutOfWorld: Boolean){
+    open fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         val rigid = rigidBodies.remove(entity) ?: return
         LOGGER.debug("- ${entity.prefabPath}")
         nonStaticRigidBodies.remove(entity)
@@ -143,82 +154,115 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
 
     fun addOrGet(entity: Entity): ExternalRigidBody? {
         // LOGGER.info("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
-        val rigidbody = entity.getComponent(irbClass, false) ?: return null
+        val rigidbody = entity.getComponent(rigidBodyClass, false) ?: return null
         return if (rigidbody.isEnabled) {
             getRigidbody(rigidbody)
         } else null
     }
 
-    fun callUpdates() {
-        /* val tmp = Stack.borrowTrans()
-        for ((body, scaledBody) in rigidBodies) {
-            val physics = scaledBody.second
-            physics.clearForces() // needed???...
-            // testing force: tornado
-            physics.getWorldTransform(tmp)
-            val f = 1.0 + 0.01 * sq(tmp.origin.x, tmp.origin.z)
-            physics.applyCentralForce(Vector3d(tmp.origin.z / f, 0.0, -tmp.origin.x / f))
-        }*/
+    private fun callUpdates() {
         for (body in rigidBodies.keys) {
             body.physicsUpdate()
         }
     }
 
+    @NotSerializedProperty
+    var lastUpdate = 0L
+
+    @NotSerializedProperty
+    private var workerThread: Thread? = null
+
+    @SerializedProperty
+    var synchronousPhysics = false
+        set(value) {
+            if (field != value) {
+                stopWorker()
+                field = value
+            }
+        }
+
+    @Docs("If the game hang for that many milliseconds, the physics will stop being simulated, and be restarted on the next update")
+    @SerializedProperty
+    var simulationTimeoutMillis = 5000L
+
+    private fun startWorker() {
+        workerThread = thread(name = className) {
+            try {
+                while (!Engine.shutdown) {
+
+                    val targetUPS = targetUpdatesPerSecond
+                    val targetStep = 1.0 / targetUPS
+                    val targetStepNanos = (targetStep * 1e9).toLong()
+
+                    //  todo if too far back in time, just simulate that we are good
+
+                    // stop if received updates for no more than 1-3s
+                    val targetTime = Engine.nanoTime
+                    if (abs(targetTime - lastUpdate) >
+                        simulationTimeoutMillis * MILLIS_TO_NANOS
+                    ) break
+
+                    val absMinimumTime = targetTime - targetStepNanos * 2
+
+                    if (timeNanos < absMinimumTime) {
+                        // report this value somehow...
+                        // there may be lots and lots of warnings, if the calculations are too slow
+                        val delta = absMinimumTime - timeNanos
+                        timeNanos = absMinimumTime
+                        val warning = "Physics skipped ${(delta * 1e-9).f1()}s"
+                        lastWarning = warning
+                        LOGGER.warn(warning)
+                    }
+
+                    if (timeNanos > targetTime) {
+                        // done :), sleep
+                        Thread.sleep((timeNanos - targetTime) / 2)
+                    } else {
+                        // there is still work to do
+                        val t0 = System.nanoTime()
+                        val debug = false //Engine.gameTime > 10e9 // wait 10s
+                        if (debug) {
+                            Stack.printClassUsage()
+                            Stack.printSizes()
+                        }
+                        step(targetStepNanos, debug)
+                        val t1 = System.nanoTime()
+                        addEvent { FrameTimes.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
+                    }
+                }
+            } catch (e: InterruptedException) {
+                // we were stopped, which is fine
+            } finally {
+                workerThread = null
+            }
+        }
+    }
+
+    private fun stopWorker() {
+        synchronized(this) {
+            workerThread?.interrupt()
+            workerThread = null
+        }
+    }
+
     override fun onUpdate(): Int {
-        // todo call this async, and when the step is done
-        step((Engine.deltaTime * 1e9f).toLong(), false)
+        super.onUpdate()
+        lastUpdate = Engine.nanoTime
+        if (synchronousPhysics) {
+            step((Engine.deltaTime * 1e9).toLong(), false)
+        } else {
+            if (isEnabled) {
+                if (workerThread == null) {
+                    startWorker()
+                }
+            } else stopWorker()
+        }
         return 1
     }
 
-    @HideInInspector
-    @NotSerializedProperty
-    fun startWork() {
-        /*val syncMaster = ECSTypeLibrary.syncMaster
-        var first = true
-        syncMaster.addThread("Physics", {
-
-            if (first) {
-                Thread.sleep(2000)
-                this.time = Engine.gameTime
-                first = false
-                LOGGER.warn("Starting physics")
-            }
-
-            val targetUPS = targetUpdatesPerSecond
-            val targetStep = 1.0 / targetUPS
-            val targetStepNanos = (targetStep * 1e9).toLong()
-
-            //  todo if too far back in time, just simulate that we are good
-
-            val targetTime = Engine.gameTime
-            val absMinimumTime = targetTime - targetStepNanos * 2
-
-            if (this.time < absMinimumTime) {
-                // todo report this value somehow...
-                // todo there may be lots and lots of warnings, if the calculations are too slow
-                // val delta = absMinimumTime - this.time
-                this.time = absMinimumTime
-                // LOGGER.warn("Physics skipped ${(delta * 1e-9)}s")
-            }
-
-            if (this.time > targetTime) {
-                // done :), sleep
-                (this.time - targetTime) / 2
-            } else {
-                // there is still work to do
-                val t0 = System.nanoTime()
-                val debug = false //Engine.gameTime > 10e9 // wait 10s
-                if (debug) {
-                    Stack.printClassUsage()
-                    Stack.printSizes()
-                }
-                step(targetStepNanos, debug)
-                val t1 = System.nanoTime()
-                addEvent { FrameTimes.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
-                0
-            }
-
-        }, { debugDraw })*/
+    override fun onDestroy() {
+        super.onDestroy()
+        stopWorker()
     }
 
     abstract fun worldStepSimulation(step: Double)
@@ -248,7 +292,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
 
         // clock.stop("calculated changes, step ${dt * 1e-9}", 0.1)
 
-        this.time += dt
+        this.timeNanos += dt
 
         // is not correct for the physics, but we use it for gfx only anyways
         // val time = Engine.gameTime
@@ -287,6 +331,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
             // val dst = entity.transform
             // dst.calculateLocalTransform((entity.parent as? Entity)?.transform)
             entity.invalidateAABBsCompletely()
+            entity.invalidateChildTransforms()
         }
 
         // clock.total("physics step", 0.1)
@@ -298,7 +343,9 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
         clone as Physics<*, *>
         clone.allowedSpace.set(allowedSpace)
         clone.targetUpdatesPerSecond = targetUpdatesPerSecond
-        clone.time = time
+        clone.timeNanos = timeNanos
+        clone.synchronousPhysics = synchronousPhysics
+        clone.gravity.set(gravity)
     }
 
 }

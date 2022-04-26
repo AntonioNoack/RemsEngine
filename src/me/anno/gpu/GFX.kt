@@ -19,7 +19,6 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
-import me.anno.gpu.shader.Renderer.Companion.idRendererVis
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
@@ -40,7 +39,6 @@ import org.joml.Vector3fc
 import org.joml.Vector4fc
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL11.GL_ALPHA_TEST
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL43C.GL_MAX_UNIFORM_LOCATIONS
 import org.lwjgl.opengl.GL45C.GL_CONTEXT_LOST
@@ -191,14 +189,14 @@ object GFX : GFXBase() {
 
     fun shaderColor(shader: Shader, name: String, color: Int) {
         when (currentRenderer) {
-            idRenderer, idRendererVis -> shaderId(shader, name)
+            idRenderer -> shaderId(shader, name)
             else -> shader.v4f(name, color)
         }
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector4fc?) {
         when (currentRenderer) {
-            idRenderer, idRendererVis -> shaderId(shader, name)
+            idRenderer -> shaderId(shader, name)
             else -> if (color != null) shader.v4f(name, color)
             else shader.v4f(name, 1f)
         }
@@ -206,7 +204,7 @@ object GFX : GFXBase() {
 
     fun shaderColor(shader: Shader, name: String, color: Vector3fc?) {
         when (currentRenderer) {
-            idRenderer, idRendererVis -> shaderId(shader, name)
+            idRenderer -> shaderId(shader, name)
             else -> if (color != null) shader.v4f(name, color, 1f)
             else shader.v4f(name, 1f)
         }
@@ -399,7 +397,6 @@ object GFX : GFXBase() {
         // BlendDepth.reset()
 
         glDisable(GL_CULL_FACE)
-        glDisable(GL_ALPHA_TEST)
 
         check()
 

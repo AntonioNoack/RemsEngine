@@ -8,6 +8,8 @@ import kotlin.math.min
 /**
  * conditional locks
  * run each thread in a loop
+ *
+ * probably no longer needed...
  * */
 class SyncMaster {
 

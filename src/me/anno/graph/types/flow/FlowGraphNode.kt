@@ -28,8 +28,6 @@ abstract class FlowGraphNode : Node {
         return con.type != "Flow"
     }
 
-    override val className: String = javaClass.simpleName
-
     companion object {
         val beforeName = "Before"
         val afterName = "After"

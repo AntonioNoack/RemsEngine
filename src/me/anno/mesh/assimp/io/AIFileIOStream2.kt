@@ -3,7 +3,6 @@ package me.anno.mesh.assimp.io
 import me.anno.mesh.assimp.io.IFileIOStream.Companion.SEEK_CUR
 import me.anno.mesh.assimp.io.IFileIOStream.Companion.SEEK_END
 import me.anno.mesh.assimp.io.IFileIOStream.Companion.SEEK_SET
-import org.apache.logging.log4j.LogManager
 import org.lwjgl.system.MemoryUtil
 import kotlin.math.min
 

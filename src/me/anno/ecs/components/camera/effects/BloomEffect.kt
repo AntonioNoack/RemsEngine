@@ -15,7 +15,7 @@ class BloomEffect : ToneMappedEffect() {
     override fun render(
         buffer: IFramebuffer,
         format: DeferredSettingsV2,
-        layers: HashMap<DeferredLayerType, IFramebuffer>
+        layers: MutableMap<DeferredLayerType, IFramebuffer>
     ) {
         val hdrInput = layers[DeferredLayerType.HDR_RESULT]!!.getTexture0()
         val output = Bloom.bloom2(hdrInput, offset, strength, applyToneMapping)

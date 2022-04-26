@@ -1,9 +1,8 @@
 package me.anno.mesh.vox.format
 
-import me.anno.ecs.prefab.change.CAdd
-import me.anno.ecs.prefab.change.CSet
-import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 
 class VOXLayer(var name: String) {

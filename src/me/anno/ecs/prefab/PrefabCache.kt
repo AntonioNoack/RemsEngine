@@ -28,6 +28,11 @@ import me.anno.studio.StudioBase
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
 object PrefabCache : CacheSection("Prefab") {
 
@@ -201,7 +206,7 @@ object PrefabCache : CacheSection("Prefab") {
                     } else CacheData(null)
                 }
                 if (entry is CacheData<*> && entry.value == null)
-                    throw RuntimeException("Could not load $resource as prefab")
+                    throw IOException("Could not load $resource as prefab")
                 return entry as? FileReadPrefabData
             }
             else -> null
@@ -216,10 +221,13 @@ object PrefabCache : CacheSection("Prefab") {
         depth: Int,
         clazz: String
     ): PrefabSaveable {
+        // todo here is some kind of race condition taking place
+        // without this println, or Thread.sleep(),
+        // prefabs extending ScenePrefab will not produce correct instances
+        LOGGER.info("Creating instance from thread ${Thread.currentThread().name}, from '${prefab?.source}', ${prefab?.adds?.size} adds + ${prefab?.sets?.size}")
+        // Thread.sleep(10)
         val instance = createSuperInstance(superPrefab, depth, clazz)
         instance.changePaths(prefab, Path.ROOT_PATH)
-        // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
-        // LOGGER.info("  creating entity instance from ${changes0?.size ?: 0} changes, $changes2")
         adds?.forEachIndexed { index, add ->
             try {
                 add.apply(instance, depth - 1)

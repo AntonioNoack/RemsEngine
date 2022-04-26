@@ -34,7 +34,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         return Hierarchy.getInstanceAt(sampleInstance, prefabPath!!)
     }
 
-    fun getOriginalOrDefault(): PrefabSaveable = getOriginal() ?: getSuperInstance(className)
+    fun getOriginalOrDefault() = getOriginal() ?: getSuperInstance(className)
 
     val ref get() = prefab?.source
 

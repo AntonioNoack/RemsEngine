@@ -4,7 +4,6 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Vector4f
 

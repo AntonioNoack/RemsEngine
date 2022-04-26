@@ -7,7 +7,6 @@ import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
 import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference

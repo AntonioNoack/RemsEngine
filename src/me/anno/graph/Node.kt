@@ -1,7 +1,7 @@
 package me.anno.graph
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
-import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
@@ -10,7 +10,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import org.joml.Vector3d
 
-abstract class Node() : NamedSaveable() {
+abstract class Node() : PrefabSaveable() {
 
     constructor(name: String) : this() {
         this.name = name
@@ -20,6 +20,9 @@ abstract class Node() : NamedSaveable() {
         this.inputs = Array(inputs.size / 2) { NodeInput(inputs[it * 2], inputs[it * 2 + 1], this) }
         this.outputs = Array(outputs.size / 2) { NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this) }
     }
+
+    // make name final
+    final override var name = ""
 
     open fun createUI(list: PanelListY, style: Style) {}
 
@@ -148,8 +151,8 @@ abstract class Node() : NamedSaveable() {
         setInputs(inputValues, -1)
     }
 
-    fun clone(): Node {// not ideal, but probably good enough for now and manual graph creation
-        return TextReader.readFirst<Node>(TextWriter.toText(this, InvalidRef), InvalidRef)!!
+    override fun clone(): Node {// not ideal, but probably good enough for now and manual graph creation
+        return TextReader.readFirst(TextWriter.toText(this, InvalidRef), InvalidRef)
     }
 
 }

@@ -6,10 +6,8 @@ import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.*
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL30.*
-import org.lwjgl.opengl.GL30C
 
 class CubemapFramebuffer(
     override var name: String, var size: Int,
@@ -82,7 +80,7 @@ class CubemapFramebuffer(
         if (pointer < 0) create()
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
-        GL11.glDisable(GL13.GL_MULTISAMPLE)
+        GL11C.glDisable(GL13C.GL_MULTISAMPLE)
     }
 
     private fun checkSize(newSize: Int) {

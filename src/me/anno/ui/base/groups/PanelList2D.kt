@@ -2,7 +2,6 @@ package me.anno.ui.base.groups
 
 import me.anno.Engine
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract

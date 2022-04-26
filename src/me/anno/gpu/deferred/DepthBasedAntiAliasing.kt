@@ -1,26 +1,36 @@
 package me.anno.gpu.deferred
 
+import me.anno.Engine
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
-import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.buffer.CubemapModel.cubemapModel
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.monitor.SubpixelLayout
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.shader3D
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.image.ImageWriter
-import me.anno.image.ImageWriter.MSAAx8
+import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
-import me.anno.utils.LOGGER
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mixARGB
+import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
+import me.anno.utils.LOGGER
 import org.joml.Matrix2f
+import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector3f
+import org.lwjgl.opengl.GL11C.*
 import kotlin.math.abs
-
 
 /**
  * idea: use msaa on the depth in a separate pass,
@@ -32,190 +42,12 @@ import kotlin.math.abs
  * */
 object DepthBasedAntiAliasing {
 
-    val smoothstep1 = "" +
-            "float smoothstep1(float x){\n" +
-            "   return pow(x,2.0)*(3.0-2.0*x);\n" +
-            "}\n"
+    // not ideal, but still ok most times
+    // todo curves are still an issue
+    // if we are lucky, FSR 2.0 tells us how to implement this without bugs :)
+    // only issue: axis aligned boxes...
 
-    // only works for flat sections -> we need edge detection
-    /*val shader0 = lazy {
-        Shader(
-            "Depth-Based MSAA", null,
-            simplestVertexShader, uvList,
-            "out vec4 fragColor;\n" +
-                    "uniform sampler2D color,depth0,depthMSAA;\n" +
-                    "uniform float strength;\n" +
-                    "void main(){" +
-                    "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
-                    "   float self = texelFetch(depth0,p,0).r;\n" +
-                    "   float middle = texelFetch(depthMSAA,p,0).r;\n" +
-                    "   float mn=middle,mx=middle,v;\n" +
-                    (Array(9) {
-                        val dx = (it % 3) - 1
-                        val dy = (it / 3) - 1
-                        if (dx == 0 && dy == 0) "" else
-                            "v=texelFetch(depthMSAA,p+ivec2($dx,$dy),0).r;mn=min(mn,v);mx=max(mx,v);\n"
-                    }.joinToString("")) +
-                    "   float blur = clamp(strength*abs(self-middle)/(1e-38+(mx-mn)),0,1);\n" +
-                    "   if(blur < ${1f / 255f}){\n" +
-                    "       fragColor = texelFetch(color,p,0);\n" +
-                    "   } else {\n" +
-                    "       vec4 center = texelFetch(color,p,0);\n" +
-                    "       vec4 avg = ${1f / 9f} * (${
-                        Array(9) {
-                            val dx = (it % 3) - 1
-                            val dy = (it / 3) - 1
-                            if (dx == 0 && dy == 0) "center" else
-                                "texelFetch(color,p+ivec2($dx,$dy),0)"
-                        }.joinToString("+")
-                    });\n" +
-                    "       fragColor = mix(center,avg,blur);\n" +
-                    "   }\n" +
-                    "   fragColor = vec4(blur,blur,blur,1);\n" +
-                    "}"
-        ).apply { setTextureIndices(listOf("color", "depth0", "depthMSAA")) }
-    }*/
-
-    // works on the sobel filter
-    // -> edges are 2 wide instead of 1 one wide
-    // make this only 1 wide somehow:
-    // -> all we needed was a sharpening function on that blur-factor: e.g. smoothstep
-
-    // done when it works, add sub-pixel anti-aliasing for the sharpest game engine on the market XD
-
-    /*val shader = lazy {
-        Shader(
-            "Depth-Based MSAA", null,
-            simplestVertexShader, uvList,
-            "out vec4 fragColor;\n" +
-                    // use color instead of depth?
-                    // depth is great for false-positives, but bad for false-negatives (it blurs too few pixels)
-                    // color does not guarantee the 2 wide transitions -> cannot really be used
-                    "uniform sampler2D color,depth0;\n" +
-                    "uniform bool showEdges,disableEffect;\n" +
-                    "uniform float threshold;\n" +
-                    "uniform vec2 rbOffset;\n" +
-                    "#define COLOR_STRENGTH 200\n" + // is square
-                    "bool needsBlur(ivec2 p){\n" +
-                    "   float d0 = max(texelFetch(depth0,p,0).r,1e-38);\n" +
-                    "   float d1 = texelFetch(depth0,p-ivec2(1,0),0).r;\n" +
-                    "   float d2 = texelFetch(depth0,p-ivec2(0,1),0).r;\n" +
-                    "   float d3 = texelFetch(depth0,p+ivec2(1,0),0).r;\n" +
-                    "   float d4 = texelFetch(depth0,p+ivec2(0,1),0).r;\n" +
-                    "   float sobel = 4.0-(d1+d2+d3+d4)/d0;\n" +
-                    "   if(abs(sobel) > threshold) return true;\n" +
-                    // combine color with depth
-                    "   vec4 c0 = texelFetch(color,p,0);\n" +
-                    "   vec4 c1 = texelFetch(color,p-ivec2(1,0),0);\n" +
-                    "   vec4 c2 = texelFetch(color,p-ivec2(0,1),0);\n" +
-                    "   vec4 c3 = texelFetch(color,p+ivec2(1,0),0);\n" +
-                    "   vec4 c4 = texelFetch(color,p+ivec2(0,1),0);\n" +
-                    "   vec4 sobel2 = 4.0*c0-(c1+c2+c3+c4);\n" +
-                    "   float sobel2x = COLOR_STRENGTH*dot(sobel2,sobel2);\n" +
-                    "   return sobel2x > 1.0;\n" +
-                    "}\n" +
-                    // theoretically better,
-                    // practically there is too much noise to decide such a thing
-                    /*"bool isEdge(ivec2 p){\n" +
-                    "   return needsBlur(p) && !(\n" +
-                    "       needsBlur(p+ivec2(1,0)) && needsBlur(p+ivec2(0,1)) &&\n" +
-                    "       needsBlur(p-ivec2(1,0)) && needsBlur(p-ivec2(0,1))\n" +
-                    "   );\n" +
-                    "}\n" +*/
-                    "#define isEdge needsBlur\n" +
-                    "float dC2(ivec2 p, ivec2 dp){\n" +
-                    "   vec4 c1 = texelFetch(color,p-dp,0);\n" +
-                    "   vec4 c2 = texelFetch(color,p+dp,0);\n" +
-                    "   vec4 dc = c1-c2;\n" +
-                    "   return COLOR_STRENGTH*dot(dc,dc)*threshold;\n" +
-                    "}\n" +
-                    "float dC1(ivec2 p, ivec2 dp){\n" +
-                    "   vec4 c1 = texelFetch(color,p,0);\n" +
-                    "   vec4 c2 = texelFetch(color,p+dp,0);\n" +
-                    "   vec4 dc = c1-c2;\n" +
-                    "   return COLOR_STRENGTH*dot(dc,dc)*threshold;\n" +
-                    "}\n" +
-                    // we don't need clamp
-                    smoothstep +
-                    "void main(){\n" +
-                    "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
-                    "   if(disableEffect){\n" +
-                    "       fragColor = texelFetch(color,p,0);\n" +
-                    "       return;\n" +
-                    "   }\n" +
-                    "   if(showEdges){\n" +
-                    "       fragColor = vec4(vec2(isEdge(p)?1:0),0,1);\n" +
-                    "       return;\n" +
-                    "   }\n" +
-                    "   if(isEdge(p)){\n" +
-                    "#define maxSteps 15\n" +
-                    "       float d0 = texelFetch(depth0,p,0).r;\n" +
-                    "       float d1 = texelFetch(depth0,p-ivec2(1,0),0).r;\n" +
-                    "       float d2 = texelFetch(depth0,p-ivec2(0,1),0).r;\n" +
-                    "       float d3 = texelFetch(depth0,p+ivec2(1,0),0).r;\n" +
-                    "       float d4 = texelFetch(depth0,p+ivec2(0,1),0).r;\n" +
-                    "       float sobel = 4.0-(d1+d2+d3+d4)/d0;\n" +
-                    "       float dx = abs(d3-d1)+dC2(p,ivec2(1,0));\n" +
-                    "       float dy = abs(d4-d2)+dC2(p,ivec2(0,1));\n" +
-                    "       bool dirX = dx > dy;\n" + // dx > dy
-                    "       int ix = 0;\n" +
-                    "       if (min(dx, dy) * 1.05 > max(dx, dy)) {\n" +
-                    // small corner: go to one of the edges, x/y doesn't matter
-                    // not perfect, but pretty good
-                    "           ix = abs(d1-d0)+dC1(p,ivec2(-1,0)) > abs(d3-d0)+dC1(p,ivec2(1,0)) ? +1 : -1;\n" +
-                    "           p.x += ix;\n" +
-                    "           float d02,d12,d22,d32,d42,dx2,dy2;\n" +
-                    "           d02 = texelFetch(depth0,p+ivec2(ix,   0),0).r;\n" +
-                    "           d12 = texelFetch(depth0,p+ivec2(ix-1, 0),0).r;\n" +
-                    "           d22 = texelFetch(depth0,p+ivec2(ix,  -1),0).r;\n" +
-                    "           d32 = texelFetch(depth0,p+ivec2(ix+1, 0),0).r;\n" +
-                    "           d42 = texelFetch(depth0,p+ivec2(ix,  +1),0).r;\n" +
-                    "           dx2 = abs(d32-d12)+dC2(p,ivec2(1,0));\n" +
-                    "           dy2 = abs(d42-d22)+dC2(p,ivec2(0,1));\n" +
-                    "           dirX = dx2 >= dy2;\n" +
-                    "       }\n" +
-                    "       int pos,neg;\n" +
-                    "       ivec2 p2=p,dp=dirX?ivec2(0,1):ivec2(1,0);\n" +
-                    "       for(pos=1;pos<=maxSteps;pos++){\n" +
-                    "           p2+=dp;\n" +
-                    "           if(!needsBlur(p2)) break;\n" +
-                    "       }\n" +
-                    "       p2=p;\n" +
-                    "       for(neg=1;neg<=maxSteps;neg++){\n" +
-                    "           p2-=dp;\n" +
-                    "           if(!needsBlur(p2)) break;\n" +
-                    "       }\n" +
-                    "       float fraction = (float(pos)-0.5)/float(pos+neg-1);\n" +
-                    "       float blur = min(1-fraction,fraction);\n" +
-                    "       blur = smoothstep1(blur);\n" + // sharpen the edge from 2 wide to 1 wide
-                    "       int other = (dirX?" +
-                    "           abs(d1-d0)+dC1(p,ivec2(-1,0)) > abs(d3-d0)+dC1(p,ivec2(1,0)) : " +
-                    "           abs(d2-d0)+dC1(p,ivec2(0,-1)) > abs(d4-d0)+dC1(p,ivec2(0,1))) ? -1 : +1;\n" +
-                    "       p.x -= ix;\n" + // undo the coordinate change
-                    "       vec4 mixColor = texelFetch(color,p+(dirX?ivec2(other,0):ivec2(0,other)),0);\n" +
-                    // "       fragColor = vec4(vec3(fraction),1);\n" +
-                    // "       fragColor = vec4(vec3(blur),1);\n" +
-                    "       vec4 baseColor = texelFetch(color,p,0);\n" +
-                    "       vec2 offset = rbOffset * other;\n" +
-                    "       if(dirX){\n" +
-                    "           vec2 ga = mix(baseColor.ga, mixColor.ga, blur);\n" +
-                    "           float r = mix(baseColor.r,  mixColor.r,  max(blur-offset.x, 0));\n" +
-                    "           float b = mix(baseColor.b,  mixColor.b,  max(blur+offset.x, 0));\n" +
-                    "           fragColor = vec4(r,ga.x,b,ga.y);\n" +
-                    "       } else {\n" +
-                    "           vec2 ga = mix(baseColor.ga, mixColor.ga, blur);\n" +
-                    "           float r = mix(baseColor.r,  mixColor.r,  max(blur-offset.y, 0));\n" +
-                    "           float b = mix(baseColor.b,  mixColor.b,  max(blur+offset.y, 0));\n" +
-                    "           fragColor = vec4(r,ga.x,b,ga.y);\n" +
-                    "       }\n" +
-                    "   } else {\n" +
-                    "       fragColor = texelFetch(color,p,0);\n" +
-                    "   }\n" +
-                    "}"
-        ).apply { setTextureIndices(listOf("color", "depth0")) }
-    }
-*/
-    val shaderNoColor = lazy {
+    val shader = lazy {
         Shader(
             "Depth-Based FXAA",
             simplestVertexShader, uvList,
@@ -236,15 +68,37 @@ object DepthBasedAntiAliasing {
                     "   float sobel = 4.0-(d1+d2+d3+d4)/d0;\n" +
                     "   return abs(sobel) > threshold;\n" +
                     "}\n" +
-                    smoothstep1 +
+                    "bool needsBlurX(ivec2 p){\n" +
+                    "   float d0 = max(texelFetch(depth0,p,0).r,1e-38);\n" +
+                    "   float d1 = texelFetch(depth0,p-ivec2(1,0),0).r;\n" +
+                    "   float d2 = texelFetch(depth0,p+ivec2(1,0),0).r;\n" +
+                    "   float sobel = 2.0-(d1+d2)/d0;\n" +
+                    "   return abs(sobel) > threshold;\n" +
+                    "}\n" +
+                    "bool needsBlurY(ivec2 p){\n" +
+                    "   float d0 = max(texelFetch(depth0,p,0).r,1e-38);\n" +
+                    "   float d1 = texelFetch(depth0,p-ivec2(0,1),0).r;\n" +
+                    "   float d2 = texelFetch(depth0,p+ivec2(0,1),0).r;\n" +
+                    "   float sobel = 2.0-(d1+d2)/d0;\n" +
+                    "   return abs(sobel) > threshold;\n" +
+                    "}\n" +
+                    "float smoothstep1(float x){\n" +
+                    "   return pow(x,2.0)*(3.0-2.0*x);\n" +
+                    "}\n" +
+                    "float max(vec2 m){ return max(m.x,m.y); }\n" +
+                    "float min(vec2 m){ return min(m.x,m.y); }\n" +
                     "void main(){\n" +
                     "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
-                    "   if(disableEffect){\n" +
+                    "   ivec2 ts = textureSize(color, 0);\n" +
+                    "   if(disableEffect || min(p) <= 0 || max(p-ts) >= -1){\n" +
                     "       fragColor = texelFetch(color, p, 0);\n" +
                     "       return;\n" +
                     "   }\n" +
                     "   if(showEdges){\n" +
-                    "       fragColor = vec4(vec2(needsBlur(p) ? 1.0 : 0.0), 0.0, 1.0);\n" +
+                    "       fragColor = vec4(\n" +
+                    "           needsBlur(p)  ? 1.0 : 0.0,\n" +
+                    "           needsBlurX(p) ? 1.0 : 0.0,\n" +
+                    "           needsBlurY(p) ? 1.0 : 0.0, 1.0);\n" +
                     "       return;\n" +
                     "   }\n" +
                     "   if(needsBlur(p)){\n" +
@@ -276,22 +130,20 @@ object DepthBasedAntiAliasing {
                     "       ivec2 p2=p,dp=dirX?ivec2(0,1):ivec2(1,0);\n" +
                     "       for(pos=1;pos<=maxSteps;pos++){\n" +
                     "           p2+=dp;\n" +
-                    "           if(!needsBlur(p2)) break;\n" +
+                    "           if(!(dirX?needsBlurX(p2):needsBlurY(p2))) break;\n" +
                     "       }\n" +
                     "       p2=p;\n" +
                     "       for(neg=1;neg<=maxSteps;neg++){\n" +
                     "           p2-=dp;\n" +
-                    "           if(!needsBlur(p2)) break;\n" +
+                    "           if(!(dirX?needsBlurX(p2):needsBlurY(p2))) break;\n" +
                     "       }\n" +
                     "       float fraction = (float(pos)-0.5)/float(pos+neg-1);\n" +
-                    "       float blur = min(1.0-fraction,fraction);\n" +
+                    "       float blur = neg==maxSteps && pos==maxSteps ? 0.0 : min(1.0-fraction,fraction);\n" +
                     "       blur = smoothstep1(blur);\n" + // sharpen the edge from 2 wide to 1 wide
                     "       int other = (dirX?" +
                     "           abs(d1-d0) > abs(d3-d0) : " +
                     "           abs(d2-d0) > abs(d4-d0)) ? -1 : +1;\n" +
                     "       vec4 mixColor = texelFetch(color,p+(dirX?ivec2(other,0):ivec2(0,other)),0);\n" +
-                    // "       fragColor = vec4(vec3(fraction),1);\n" +
-                    // "       fragColor = vec4(vec3(blur),1);\n" +
                     "       vec4 baseColor = texelFetch(color,p,0);\n" +
                     "       vec2 offset = rbOffset * float(other);\n" +
                     "       if(dirX){\n" +
@@ -312,9 +164,9 @@ object DepthBasedAntiAliasing {
         ).apply { setTextureIndices(listOf("color", "depth0")) }
     }
 
-    fun render(color: ITexture2D, simpleDepth: ITexture2D, threshold: Float = 1e-5f) {
+    fun render(color: ITexture2D, depth: ITexture2D, threshold: Float = 1e-5f) {
         val enableDebugControls = false
-        val shader = shaderNoColor.value
+        val shader = shader.value
         shader.use()
         shader.v1f("threshold", threshold)
         shader.v1b("disableEffect", enableDebugControls && isControlDown)
@@ -325,14 +177,55 @@ object DepthBasedAntiAliasing {
         // 0.5 for mean, 0.5 to make the effect less obvious
         shader.v2f("rbOffset", (sr.x - sb.x) * 0.25f, (sr.y - sb.y) * 0.25f)
         shader.v1b("showEdges", enableDebugControls && isShiftDown)
-        simpleDepth.bindTrulyNearest(1)
+        depth.bindTrulyNearest(1)
         color.bindTrulyNearest(0)
         flat01.draw(shader)
     }
 
     @JvmStatic
     fun main(args: Array<String>) {
-        testEdgeAA()
+        testShader()
+        // testEdgeAA()
+    }
+
+    private fun testShader() {
+        val transform = Matrix4f()
+        var angle = 0f
+        testDrawing {
+            val w = it.w / 8
+            val h = it.h / 8
+            transform.identity()
+            transform.perspective(1f, w.toFloat() / h, 0.01f, 100f)
+            transform.translate(0f, 0f, -5f)
+            val delta = 0.2f * Engine.deltaTime
+            if (Input.isLeftDown) angle += delta
+            if (Input.isRightDown) angle -= delta
+            transform.rotateZ(angle)
+            val depth = FBStack["depth", w, h, 4, false, 1, false]
+            val mesh = cubemapModel
+            mesh.ensureBuffer()
+            useFrame(depth) {
+                glClearColor(1f, 0.7f, 0f, 1f)
+                glClear(GL_COLOR_BUFFER_BIT)
+                val shader = shader3D.value
+                shader.use()
+                shader.m4x4("transform", transform)
+                mesh.draw(shader)
+            }
+            val result = FBStack["result", w, h, 4, false, 1, false]
+            useFrame(result) {
+                val shader = shader.value
+                shader.use()
+                shader.v1b("showEdges", isShiftDown)
+                shader.v1b("disableEffect", isControlDown)
+                shader.v1f("threshold", 1e-5f)
+                shader.v2f("rbOffset", 0f, 0f) // red-blue-offset; disabled for testing
+                depth.bindTexture0(0, GPUFiltering.NEAREST, Clamping.CLAMP)
+                depth.bindTexture0(1, GPUFiltering.NEAREST, Clamping.CLAMP)
+                flat01.draw(shader)
+            }
+            GFX.copy(result)
+        }
     }
 
     private fun testEdgeAA() {
@@ -497,77 +390,6 @@ object DepthBasedAntiAliasing {
         ("----------------------------------------------------------")
         (points.map { it.y }.joinToString("\n"))*/
 
-    }
-
-    private fun testPlanarAA() {
-
-        val size = 64
-        val sm1 = size - 1
-
-        val normal = Vector2f(1f, 10f).normalize()
-        val position = Vector2f(size / 2f)
-        val plane = Vector3f(normal, -normal.dot(position))
-
-        fun render(dst: FloatArray, v0: Float, v1: Float, msaa: FloatArray) {
-            val samples = msaa.size / 2
-            val fSamples = 1f / samples
-            for (y in 0 until size) {
-                for (x in 0 until size) {
-                    var sum = 0f
-                    for (sample in 0 until samples) {
-                        val msaaIndex = sample shl 1
-                        val xf = x + msaa[msaaIndex]
-                        val yf = y + msaa[msaaIndex + 1]
-                        sum += if (plane.dot(xf, yf, 1f) >= 0f) v1 else v0 // inside / outside plane
-                    }
-                    dst[x * size + y] = sum * fSamples // resolve
-                }
-            }
-        }
-
-        val noMSAA = floatArrayOf(0.5f, 0.5f)
-
-        val msaa = MSAAx8
-
-        fun sample(f: FloatArray, x: Int, y: Int): Float {
-            return f[clamp(x, 0, sm1) + clamp(y, 0, sm1) * size]
-        }
-
-        val msaaDepth = FloatArray(64 * 64) // already with resolve
-        val defaultDepth = FloatArray(64 * 64)
-
-        // render a triangle onto msaa and default depth
-        render(msaaDepth, 0f, 1f, msaa)
-        render(defaultDepth, 0f, 1f, noMSAA)
-
-        val newDepth = FloatArray(64 * 64)
-        for (y in 0 until size) {
-            for (x in 0 until size) {
-                val self = sample(defaultDepth, x, y)
-                val middle = sample(msaaDepth, x, y)
-                var max = middle
-                var min = middle
-                var sum = 0f
-                for (i in 0 until 9) {
-                    val dx = (i % 3) - 1
-                    val dy = (i / 3) - 1
-                    val v = sample(msaaDepth, x + dx, y + dy)
-                    max = max(max, v)
-                    min = min(min, v)
-                    sum += v
-                }
-                // 2f is needed, because the theoretical maximum distance is 0.5f to the other,
-                // and the maximum interpolation that we need at this point is 1f
-                val blur = clamp(2f * abs(self - middle) / max(1e-38f, max - min), 0f, 1f)
-                // avg or (max-min)/2 doesn't make a quality difference
-                // there is a slight pixel difference
-                newDepth[x + y * size] = mix(self, sum / 9f, blur)
-            }
-        }
-
-        ImageWriter.writeImageFloat(size, size, "d-def.png", true, defaultDepth)
-        ImageWriter.writeImageFloat(size, size, "d-msaa.png", true, msaaDepth)
-        ImageWriter.writeImageFloat(size, size, "msaa.png", true, newDepth)
     }
 
 }

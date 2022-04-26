@@ -7,6 +7,7 @@ import me.anno.input.Modifiers
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
 import me.anno.studio.StudioBase
+import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.utils.WindowStack.Companion.printLayout
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -74,6 +75,8 @@ object EngineActions {
         for ((name, action) in actions) {
             ActionManager.registerGlobalAction(name, action)
         }
+
+        CodeEditor.registerActions()
 
         ActionManager.createDefaultKeymap = EngineActions::createKeymap
 

@@ -105,7 +105,7 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
@@ -152,10 +152,18 @@ object Thumbs {
         }
     }
 
-    fun invalidate(file: FileReference, neededSize: Int) {
+    fun invalidate(file: FileReference?, neededSize: Int) {
+        file ?: return
         val size = getSize(neededSize)
         ImageGPUCache.remove { key, _ ->
             key is ThumbnailKey && key.file == file && key.size == size
+        }
+    }
+
+    fun invalidate(file: FileReference?) {
+        file ?: return
+        ImageGPUCache.remove { key, _ ->
+            key is ThumbnailKey && key.file == file
         }
     }
 
@@ -675,7 +683,7 @@ object Thumbs {
         waitForTextures(mesh, srcFile)
         // sometimes black: because of vertex colors, which are black
         // render everything without color
-        renderToBufferedImage(InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
+        renderToBufferedImage(InvalidRef, dstFile, true, simpleNormalRenderer, false, callback, size, size) {
             mesh.drawAssimp(
                 createPerspective(defaultAngleY, 1f),
                 null,

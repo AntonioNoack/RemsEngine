@@ -7,12 +7,12 @@ import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
 import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
-import org.lwjgl.opengl.GL12.GL_TEXTURE_WRAP_R
-import org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP
-import org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X
-import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT16
+import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE
+import org.lwjgl.opengl.GL12C.GL_TEXTURE_WRAP_R
+import org.lwjgl.opengl.GL13C.GL_TEXTURE_CUBE_MAP
+import org.lwjgl.opengl.GL13C.GL_TEXTURE_CUBE_MAP_POSITIVE_X
+import org.lwjgl.opengl.GL14C.GL_DEPTH_COMPONENT16
 import org.lwjgl.opengl.GL30
 import java.nio.ByteBuffer
 
@@ -30,6 +30,8 @@ class CubemapTexture(
     var pointer = -1
 
     var locallyAllocated = 0L
+
+    override var isHDR = false
 
     override var w: Int
         get() = size

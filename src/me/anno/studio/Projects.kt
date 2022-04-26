@@ -6,11 +6,12 @@ import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
 import org.apache.logging.log4j.LogManager
 
+@Suppress("MemberVisibilityCanBePrivate")
 object Projects {
 
     private val LOGGER = LogManager.getLogger(Projects::class)
 
-    private val recentProjectCount = 10
+    private var recentProjectCount = 10
     fun getRecentProjects(): ArrayList<ProjectHeader> {
         val projects = ArrayList<ProjectHeader>()
         val usedFiles = HashSet<FileReference>()

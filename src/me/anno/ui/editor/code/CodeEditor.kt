@@ -696,6 +696,21 @@ open class CodeEditor(style: Style) : Panel(style) {
             return if (p < h) p else period - h
         }
 
+        fun registerActions() {
+            ActionManager.register("CodeEditor.upArrow.t", "Up")
+            ActionManager.register("CodeEditor.downArrow.t", "Down")
+            ActionManager.register("CodeEditor.leftArrow.t", "Left")
+            ActionManager.register("CodeEditor.rightArrow.t", "Right")
+            ActionManager.register("CodeEditor.upArrow.t.s", "Up-2")
+            ActionManager.register("CodeEditor.downArrow.t.s", "Down-2")
+            ActionManager.register("CodeEditor.leftArrow.t.s", "Left-2")
+            ActionManager.register("CodeEditor.rightArrow.t.s", "Right-2")
+            ActionManager.register("CodeEditor.z.t.c", "Undo")
+            ActionManager.register("CodeEditor.z.t.cs", "Redo")
+            ActionManager.register("CodeEditor.y.t.c", "Undo")
+            ActionManager.register("CodeEditor.y.t.cs", "Redo")
+        }
+
         @JvmStatic
         fun main(args: Array<String>) {
             testUI2 {
@@ -704,18 +719,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
                 StudioBase.instance?.language = me.anno.language.Language.German
 
-                ActionManager.register("CodeEditor.upArrow.t", "Up")
-                ActionManager.register("CodeEditor.downArrow.t", "Down")
-                ActionManager.register("CodeEditor.leftArrow.t", "Left")
-                ActionManager.register("CodeEditor.rightArrow.t", "Right")
-                ActionManager.register("CodeEditor.upArrow.t.s", "Up-2")
-                ActionManager.register("CodeEditor.downArrow.t.s", "Down-2")
-                ActionManager.register("CodeEditor.leftArrow.t.s", "Left-2")
-                ActionManager.register("CodeEditor.rightArrow.t.s", "Right-2")
-                ActionManager.register("CodeEditor.z.t.c", "Undo")
-                ActionManager.register("CodeEditor.z.t.cs", "Redo")
-                ActionManager.register("CodeEditor.y.t.c", "Undo")
-                ActionManager.register("CodeEditor.y.t.cs", "Redo")
+                registerActions()
 
                 // doesn't work somehow :/
                 ActionManager.register("EnumInput.arrowUp.t", "Up")

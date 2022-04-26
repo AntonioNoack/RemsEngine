@@ -20,7 +20,8 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Matrices.rotate2
 import org.joml.*
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
+import org.lwjgl.opengl.GL11C.glClear
 
 // todo size of point light: probably either distance or direction needs to be adjusted
 // todo - in proximity, the appearance must not stay as a point, but rather be a sphere
@@ -93,9 +94,9 @@ class PointLight : LightComponent(LightType.POINT) {
         val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
         OpenGL.depthMode.use(DepthMode.GREATER) {
-            texture.draw(resolution, Renderer.depthOnlyRenderer) { side ->
+            texture.draw(resolution, Renderer.depthRenderer) { side ->
                 Frame.bind()
-                GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
+                glClear(GL_DEPTH_BUFFER_BIT)
                 setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
                 EnvironmentMap.rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rotInvert)

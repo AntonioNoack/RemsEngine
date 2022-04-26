@@ -1,5 +1,6 @@
 package me.anno.ecs.components.physics
 
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
 
@@ -26,13 +27,16 @@ class Vehicle : Rigidbody() {
 
     var brakeForcePerWheel = 0.0
 
-    @Suppress("unused")
-    val wheels get() = entity!!.getComponents(VehicleWheel::class)
+    @DebugProperty
+    val wheelCount
+        get() = wheels.size
+
+    val wheels get() = entity!!.getComponentsInChildren(VehicleWheel::class)
 
     override fun onPhysicsUpdate(): Boolean {
         // only if enabled...
         // only if they actually are connected to the engine/brake/steering...
-        entity!!.anyComponent(VehicleWheel::class) {
+        entity!!.anyComponentInChildren(VehicleWheel::class) {
             it.steering = steering
             it.engineForce = engineForcePerWheel
             it.brakeForce = brakeForcePerWheel

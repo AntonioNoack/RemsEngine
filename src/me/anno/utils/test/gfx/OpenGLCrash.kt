@@ -2,8 +2,8 @@ package me.anno.utils.test.gfx
 
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL30.GL_R8
+import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL30C.GL_R8
 import java.nio.ByteBuffer
 
 object OpenGLCrash {

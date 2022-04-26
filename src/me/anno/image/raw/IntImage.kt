@@ -2,6 +2,8 @@ package me.anno.image.raw
 
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
+import java.awt.image.BufferedImage
+import java.awt.image.DataBufferInt
 
 open class IntImage(
     width: Int, height: Int,
@@ -23,6 +25,18 @@ open class IntImage(
     }
 
     override fun getRGB(index: Int): Int = data[index]
+
+    override fun createBufferedImage(): BufferedImage {
+        val width = width
+        val height = height
+        val image = BufferedImage(width, height, if (hasAlphaChannel) 2 else 1)
+        val dataBuffer = image.raster.dataBuffer as DataBufferInt
+        val dataDst = dataBuffer.data
+        val dataSrc = data
+        // src, dst
+        System.arraycopy(dataSrc, 0, dataDst, 0, dataSrc.size)
+        return image
+    }
 
     override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
         // data cloning is required, because the function in Texture2D switches the red and blue channels

@@ -28,8 +28,8 @@ import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11.GL_LINES
+import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL11C.GL_LINES
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -174,7 +174,7 @@ class Mesh : PrefabSaveable() {
     private var helperMeshes: Array<Mesh?>? = null
 
     // to allow for quads, and strips and such
-    var drawMode = GL11.GL_TRIANGLES
+    var drawMode = GL11C.GL_TRIANGLES
 
     val aabb = AABBf()
 
@@ -686,7 +686,7 @@ class Mesh : PrefabSaveable() {
         // split indices / data, would be of advantage here
         val length = materialIndices.maxOrNull()!! + 1
         if (length == 1) return
-        if (drawMode != GL11.GL_TRIANGLES) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
+        if (drawMode != GL11C.GL_TRIANGLES) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
         if (length > 1000) throw IllegalStateException("Material Id must be less than 1000!")
         val helperMeshes = arrayOfNulls<Mesh>(length)
         val indices = indices

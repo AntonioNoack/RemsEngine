@@ -125,14 +125,13 @@ class PrefabInspector(val reference: FileReference) {
 
     fun isChanged(path: Path?, name: String): Boolean {
         path ?: return false
-        val oldChange = sets[path, name] // .firstOrNull { it.path == path && it.name == name }
-        return oldChange != null
+        return sets.contains(path, name)
     }
 
     fun change(path: Path?, instance: PrefabSaveable, name: String, value: Any?) {
         instance[name] = value
         path ?: return
-        prefab.set(path, name, value)
+        prefab[path, name] = value
         onChange()
     }
 
@@ -173,6 +172,8 @@ class PrefabInspector(val reference: FileReference) {
 
         val warningPanel = UpdatingTextPanel(500, style) { instance.lastWarning }
         warningPanel.textColor = warningPanel.textColor.mulARGB(0xffff3333.toInt())
+        warningPanel.tooltip = "Click to hide this warning until the issue reappears"
+        warningPanel.addLeftClickListener { instance.lastWarning = null } // "marks" the warning as "read"
         list += warningPanel
 
         list.add(TextInput("Name", "", instance.name, style).apply {

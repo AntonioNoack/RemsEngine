@@ -2,10 +2,11 @@ package me.anno.gpu.buffer
 
 import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import me.anno.utils.pooling.ByteBufferPool
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11C.*
 import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL31
+import org.lwjgl.opengl.GL15C.GL_ELEMENT_ARRAY_BUFFER
+import org.lwjgl.opengl.GL15C.glGenBuffers
+import org.lwjgl.opengl.GL31C.glDrawElementsInstanced
 import kotlin.math.min
 
 object DrawLinesBuffer {
@@ -13,13 +14,13 @@ object DrawLinesBuffer {
     fun drawLines(triangleCount: Int) {
         ensureLineBuffer()
         val count = min(triangleCount * 2, lineBufferLength)
-        GL11.glDrawElements(GL11.GL_LINES, count, GL11.GL_UNSIGNED_INT, 0)
+        glDrawElements(GL_LINES, count, GL_UNSIGNED_INT, 0)
     }
 
     fun drawLinesInstanced(triangleCount: Int, instanceCount: Int) {
         ensureLineBuffer()
         val count = min(triangleCount * 2, lineBufferLength)
-        GL31.glDrawElementsInstanced(GL11.GL_LINES, count, GL11.GL_UNSIGNED_INT, 0, instanceCount)
+        glDrawElementsInstanced(GL_LINES, count, GL_UNSIGNED_INT, 0, instanceCount)
     }
 
     private const val lineBufferLength = 1 shl 20
@@ -27,9 +28,9 @@ object DrawLinesBuffer {
     private fun ensureLineBuffer() {
         if (lineBuffer < 0) {
             // GFX.check()
-            lineBuffer = GL20.glGenBuffers()
-            if(lineBuffer < 0) throw RuntimeException("Failed to create buffer")
-            bindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
+            lineBuffer = glGenBuffers()
+            if (lineBuffer < 0) throw RuntimeException("Failed to create buffer")
+            bindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
             val nioBytes = ByteBufferPool
                 .allocateDirect(4 * lineBufferLength)
             val nioBuffer = nioBytes

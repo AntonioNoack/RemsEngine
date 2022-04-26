@@ -2,24 +2,23 @@ package me.anno.ecs.components.physics.twod
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.twod.Collider2d
+import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
 import me.anno.io.serialization.NotSerializedProperty
-import org.jbox2d.collision.AABB
-import org.jbox2d.collision.RayCastInput
-import org.jbox2d.collision.RayCastOutput
+import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.maths.Maths.SQRT3
+import me.anno.utils.pooling.Stack
+import me.anno.utils.types.Matrices.getScaleLength
+import me.anno.utils.types.Vectors.print
+import org.apache.logging.log4j.LogManager
+import org.jbox2d.collision.shapes.CircleShape
 import org.jbox2d.collision.shapes.MassData
 import org.jbox2d.collision.shapes.PolygonShape
-import org.jbox2d.collision.shapes.Shape
-import org.jbox2d.collision.shapes.ShapeType
-import org.jbox2d.common.Transform
 import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.*
-import org.joml.Matrix3x2f
 import org.joml.Matrix4x3d
-import org.joml.Vector2f
 import org.joml.Vector3d
-import java.util.*
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -28,24 +27,30 @@ import kotlin.math.sin
  * docs: https://box2d.org/documentation/
  * todo stepping like BulletPhysics, maybe join them
  * todo:
- *  - Rigid body physics
  *  - Stable stacking
- *  - Gravity
  *  - Fast persistent contact solver
  *  - Dynamic tree broadphase
- *  - Sliding friction
- *  - Boxes, circles, edges and polygons
+ *  - Edges and polygons
  *  - Several joint types: distance, revolute, prismatic, pulley, gear, mouse
  *  - Motors
- *  - Sleeping (removes motionless bodies from simulation until touched)
- *  - Continuous collision detection (accurate solving of fast bodies)
  *  - Ray casts
  *  - Sensors
- *  - Dynamic, Kinematic, and Static bodies
- *  - Liquid particle simulation from Google's LiquidFun
+ *  - Liquid particle simulation from Google's LiquidFun ( https://google.github.io/liquidfun/ )
+ * Dynamic, Kinematic, and Static bodies; Kinematic skipped for now, as I don't understand it's use-case yet
+ * Rigid body physics
+ * Continuous collision detection (accurate solving of fast bodies)
+ * Sliding friction
+ * Gravity
+ * Sleeping (removes motionless bodies from simulation until touched)
  * Serialization? idk, should be done by the engine
  * */
 class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
+
+    // todo reset button that loads all elements from disk again = resets the scene
+    // todo or better: implement restart button, start, stop, and don't execute scripts in edit mode
+
+    var velocityIterations = 6
+    var positionIterations = 2
 
     @NotSerializedProperty
     private val world = World(Vec2(gravity.x.toFloat(), gravity.y.toFloat()))
@@ -58,64 +63,107 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         world.step(step.toFloat(), velocityIterations, positionIterations)
     }
 
-    var velocityIterations = 6
-    var positionIterations = 2
-
     override fun createRigidbody(entity: Entity, rigidBody: Rigidbody2d): BodyWithScale<Body>? {
 
-
         val colliders = getValidComponents(entity, Collider2d::class).toList()
+
         return if (colliders.isNotEmpty()) {
 
-            // bullet does not work correctly with scale changes: create larger shapes directly
-            val globalTransform = entity.transform.globalTransform
+            entity.validateTransform()
 
-            val scale = globalTransform.getScale(Vector3d())
+            val massData = MassData()
+            var mass = 0f
+            val shapes = Array(colliders.size) {
+                val collider = colliders[it]
+                val (trans, shape) = collider.createBox2dCollider(entity)
+                when (shape) {
+                    is CircleShape -> {
+                        shape.m_p.set(trans.m30().toFloat(), trans.m31().toFloat())
+                        shape.radius *= (trans.getScaleLength() / SQRT3).toFloat()
+                        // rotation doesn't matter
+                    }
+                    is PolygonShape -> {
+                        val vertices = shape.vertices
+                        // transform all vertices individually
+                        // translation, rotation and scale are all included automatically :)
+                        for (i in 0 until shape.m_count) {
+                            val vert = vertices[i]
+                            val vx = vert.x
+                            val vy = vert.y
+                            vert.set(
+                                (trans.m00() * vx + trans.m10() * vy + trans.m30()).toFloat(),
+                                (trans.m01() * vx + trans.m11() * vy + trans.m31()).toFloat(),
+                            )
+                        }
+                        shape.set(
+                            vertices,
+                            shape.m_count
+                        )
+                    }
+                    else -> LOGGER.warn("todo implement shape ${shape::class}")
+                }
+                if (collider.hasPhysics) {
+                    shape.computeMass(massData, collider.density)
+                    mass += massData.mass
+                }
+                shape
+            }
 
-            // todo collect colliders
-            // todo if they are empty, don't create body with scale
             val def = BodyDef()
             val transform = entity.transform
             val global = transform.globalTransform
             def.position.set(global.m30().toFloat(), global.m31().toFloat())
             def.angle = atan2(global.m10(), global.m00()).toFloat() // not perfect, but good enough probably
-            def.fixedRotation // todo set that
-            def.type = BodyType.DYNAMIC // todo set that depending on state... Kinematic?
-            def.allowSleep // todo flag for that
-            def.angularDamping // todo set that
-            def.angularVelocity // todo set that
-            def.bullet
-            def.gravityScale
-            def.linearDamping
-            def.linearVelocity
+            def.type = if (mass > 0f) BodyType.DYNAMIC else BodyType.STATIC // set that depending on state... Kinematic?
+            def.bullet = rigidBody.preventTunneling
+            def.gravityScale = rigidBody.gravityScale
+            def.linearDamping = rigidBody.linearDamping
+            val lv = rigidBody.linearVelocity
+            def.linearVelocity.set(lv.x, lv.y)
+            def.angularDamping = rigidBody.angularDamping
+            def.angularVelocity = rigidBody.angularVelocity
+            def.fixedRotation = rigidBody.preventRotation
             def.userData = rigidBody // maybe for callbacks :)
+
             val body = world.createBody(def)
+            body.isSleepingAllowed = !rigidBody.alwaysActive
 
-            val scale2f = Vector2f(scale.x.toFloat(), scale.y.toFloat())
-
-            for (collider in colliders) {
-                val (trans, shape) = collider.createBox2dCollider(entity, scale2f)
-                // todo translate / rotate / scale the shape...
+            for (index in colliders.indices) {
+                val collider = colliders[index]
+                val shape = shapes[index]
                 // add shape
                 val fixDef = FixtureDef()
                 fixDef.shape = shape
                 fixDef.density = collider.density
                 fixDef.friction = collider.friction
-                fixDef.restitution
-                fixDef.isSensor
-                fixDef.filter // todo this probably is the collision mask
-                fixDef.userData
+                fixDef.restitution = collider.restitution
+                fixDef.isSensor = !collider.hasPhysics
+                fixDef.filter.maskBits = collider.collisionMask
+                fixDef.userData = collider // maybe could be used :)
                 body.createFixture(fixDef)
             }
 
-            return BodyWithScale(body, scale)
+            return BodyWithScale(body, Vector3d(1.0))
 
         } else null
 
     }
 
     override fun onCreateRigidbody(entity: Entity, rigidbody: Rigidbody2d, bodyWithScale: BodyWithScale<Body>) {
-        // todo constraints & such
+
+        val body = bodyWithScale.body
+
+        rigidbody.box2dInstance = body
+        rigidBodies[entity] = bodyWithScale
+
+        if (body.fixtureList.density > 0f) {
+            nonStaticRigidBodies[entity] = bodyWithScale
+        } else {
+            nonStaticRigidBodies.remove(entity)
+        }
+
+        // todo constraints
+
     }
 
     override fun worldRemoveRigidbody(rigidbody: Body) {
@@ -129,10 +177,10 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         val angle = rigidbody.angle
         val c = cos(angle).toDouble()
         val s = sin(angle).toDouble()
-        dstTransform.set(// I hope this matrix is correct
-            +c * scale.x, -s * scale.x, 0.0,
-            +s * scale.y, +c * scale.y, 0.0,
-            0.0, 0.0, scale.z,
+        dstTransform.set(
+            +c, +s, 0.0,
+            -s, +c, 0.0,
+            0.0, 0.0, 1.0,
             pos.x.toDouble(), pos.y.toDouble(), 0.0
         )
     }
@@ -147,8 +195,18 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(Box2dPhysics::class)
+
+        val vec2f = Stack { Vec2() }
+
         @JvmStatic
         fun main(args: Array<String>) {
+            test1()
+            test2()
+        }
+
+        private fun test1() {
+            LOGGER.info("Library Test")
             // works, just why is it not accelerating?
             // create test world
             val world = World(Vec2(0f, -9.81f))
@@ -170,10 +228,48 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             fixtureDef.density = 1f
             fixtureDef.friction = 0.3f
             boxBody.createFixture(fixtureDef)
-            println(boxBody.position)
             for (i in 0 until 10) {
+                LOGGER.info(boxBody.position)
                 world.step(1f, 1, 1)
-                println(boxBody.position)
+            }
+        }
+
+        private fun test2() {
+            // why is the result slightly different?
+            LOGGER.info("Own World Test")
+            // create the same world as in test 1, now just with our own classes
+            // create test world
+            val world = Entity()
+            val physics = Box2dPhysics()
+            physics.velocityIterations = 1
+            physics.positionIterations = 1
+            world.add(physics)
+            val ground = Entity()
+            val groundRB = Rigidbody2d()
+            ground.add(groundRB)
+            val groundShape = RectCollider()
+            groundShape.halfExtends.set(50f, 5f)
+            ground.position = Vector3d(0.0, -10.0, 0.0)
+            ground.add(groundShape)
+            world.add(ground)
+            // test gravity and maybe collisions
+            val box = Entity()
+            val boxRB = Rigidbody2d()
+            box.add(boxRB)
+            box.position = Vector3d(0.0, 10.0, 0.0)
+            val boxShape = RectCollider()
+            boxShape.density = 1f
+            boxShape.halfExtends.set(1f, 1f)
+            box.add(boxShape)
+            world.add(box)
+            world.validateTransform()
+            groundRB.invalidatePhysics()
+            boxRB.invalidatePhysics()
+            for (i in 0 until 10) {
+                box.validateTransform()
+                ground.validateTransform()
+                LOGGER.info(box.position.print())
+                physics.step(MILLIS_TO_NANOS * 1000, false)
             }
         }
 

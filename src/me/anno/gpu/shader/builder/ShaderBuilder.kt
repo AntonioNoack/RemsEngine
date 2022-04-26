@@ -5,7 +5,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
-import me.anno.utils.LOGGER
 import kotlin.math.max
 
 class ShaderBuilder(val name: String) {
@@ -104,7 +103,7 @@ class ShaderBuilder(val name: String) {
         collectTextureIndices(textureIndices, fragment.uniforms)
         // LOGGER.info("Textures($name): $textureIndices")
         shader.setTextureIndices(textureIndices)
-        shader.ignoreUniformWarnings(ignored)
+        shader.ignoreNameWarnings(ignored)
         /*for (stage in vertex.stages) ignore(shader, stage)
         for (stage in fragment.stages) ignore(shader, stage)*/
         return shader
@@ -114,11 +113,11 @@ class ShaderBuilder(val name: String) {
         for (param in stage.variables.filter { !it.isAttribute }) {
             if (param.arraySize > 0 && param.type.glslName.startsWith("sampler")) {
                 for (i in 0 until param.arraySize) {
-                    shader.ignoreUniformWarning(param.name + i)
+                    shader.ignoreNameWarnings(param.name + i)
                 }
             }
         }
-        shader.ignoreUniformWarnings(stage.variables.filter { !it.isAttribute }.map { it.name })
+        shader.ignoreNameWarnings(stage.variables.filter { !it.isAttribute }.map { it.name })
     }
 
     companion object {

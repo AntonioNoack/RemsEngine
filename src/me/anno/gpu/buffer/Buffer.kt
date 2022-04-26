@@ -8,7 +8,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.input.Input
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL33.glDrawArraysInstanced
@@ -87,13 +87,14 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
     abstract fun createNioBuffer()
 
+    @Deprecated("Not supported on mobile platforms nor modern OpenGL")
     fun quads(): Buffer {
-        drawMode = GL11.GL_QUADS
+        drawMode = GL11C.GL_QUADS
         return this
     }
 
     fun lines(): Buffer {
-        drawMode = GL11.GL_LINES
+        drawMode = GL11C.GL_LINES
         return this
     }
 

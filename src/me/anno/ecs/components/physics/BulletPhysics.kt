@@ -20,6 +20,7 @@ import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
+import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
@@ -32,14 +33,12 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
 import me.anno.engine.ui.render.RenderView.Companion.cameraMatrix
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
-import org.lwjgl.glfw.GLFW
 import javax.vecmath.Matrix4d
 import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
@@ -106,12 +105,6 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     // e
     // s
 
-    /*@DebugAction
-    fun reset() {
-        // todo reset everything...
-        // todo index whole world...
-    }*/
-
     @NotSerializedProperty
     private val sampleWheels = ArrayList<WheelInfo>()
 
@@ -144,7 +137,8 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     override fun createRigidbody(entity: Entity, rigidBody: Rigidbody): BodyWithScale<RigidBody>? {
 
-        val colliders = getValidComponents(entity, Collider::class).toList()
+        val colliders = getValidComponents(entity, Collider::class)
+            .filter { it.hasPhysics }.toList()
         return if (colliders.isNotEmpty()) {
 
             // bullet does not work correctly with scale changes: create larger shapes directly
@@ -185,18 +179,18 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     }
 
-    private fun defineVehicle(entity: Entity, rigidbody: Vehicle, body: RigidBody) {
+    private fun defineVehicle(entity: Entity, vehicleComp: Vehicle, body: RigidBody) {
         // todo correctly create vehicle, if the body is scaled
         val tuning = VehicleTuning()
-        tuning.frictionSlip = rigidbody.frictionSlip
-        tuning.suspensionDamping = rigidbody.suspensionDamping
-        tuning.suspensionStiffness = rigidbody.suspensionStiffness
-        tuning.suspensionCompression = rigidbody.suspensionCompression
-        tuning.maxSuspensionTravelCm = rigidbody.maxSuspensionTravelCm
+        tuning.frictionSlip = vehicleComp.frictionSlip
+        tuning.suspensionDamping = vehicleComp.suspensionDamping
+        tuning.suspensionStiffness = vehicleComp.suspensionStiffness
+        tuning.suspensionCompression = vehicleComp.suspensionCompression
+        tuning.maxSuspensionTravelCm = vehicleComp.maxSuspensionTravelCm
         val raycaster = DefaultVehicleRaycaster(world)
         val vehicle = RaycastVehicle(tuning, body, raycaster)
         vehicle.setCoordinateSystem(0, 1, 2)
-        val wheels = getValidComponents(entity, VehicleWheel::class)
+        val wheels = vehicleComp.wheels
         for (wheel in wheels) {
             val info = wheel.createBulletInstance(entity, vehicle)
             wheel.bulletInstance = info
@@ -238,7 +232,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             nonStaticRigidBodies.remove(entity)
         }
 
-        for (c in rigidbody.constrained) {
+        for (c in rigidbody.constraints) {
             // ensure the constraint exists
             val rigidbody2 = c.entity!!.rigidbodyComponent!!
             addConstraint(c, getRigidbody(rigidbody2)!!, rigidbody2, rigidbody)
@@ -291,7 +285,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         }
         val rigid2 = entity.rigidbodyComponent
         if (rigid2 != null) {
-            for (c in rigid2.constrained) {
+            for (c in rigid2.constraints) {
                 val bi = c.bulletInstance
                 if (bi != null) {
                     world.removeConstraint(bi)
@@ -359,25 +353,24 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     }
 
-    private fun drawDebug(view: RenderView, worldScale: Double) {
+    private fun drawDebug(view: RenderView?) {
 
         val debugDraw = debugDraw ?: return
 
         // define camera transform
         debugDraw.stack.set(cameraMatrix)
-        debugDraw.worldScale = worldScale
         debugDraw.cam.set(camPosition)
 
-        if (view.renderMode == RenderMode.PHYSICS) {
-            drawContactPoints(view)
-            drawAABBs(view)
-            drawVehicles(view)
+        if (view == null || view.renderMode == RenderMode.PHYSICS) {
+            drawContactPoints()
+            drawAABBs()
+            drawVehicles()
             LineBuffer.finish(cameraMatrix)
         }
 
     }
 
-    private fun drawContactPoints(view: RenderView) {
+    private fun drawContactPoints() {
         val dispatcher = world.dispatcher
         val numManifolds: Int = dispatcher.numManifolds
         for (i in 0 until numManifolds) {
@@ -388,21 +381,19 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 DrawAABB.drawLine(
                     cp.positionWorldOnB,
                     Vector3d(cp.positionWorldOnB).apply { add(cp.normalWorldOnB) },
-                    view.worldScale, 0x777777
+                    RenderView.worldScale, 0x777777
                 )
             }
         }
     }
 
-    private fun drawAABBs(view: RenderView) {
+    private fun drawAABBs() {
 
         val tmpTrans = Stack.newTrans()
         val minAabb = Vector3d()
         val maxAabb = Vector3d()
 
         val collisionObjects = world.collisionObjectArray
-
-        val worldScale = view.worldScale
 
         for (i in 0 until collisionObjects.size) {
 
@@ -414,7 +405,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 CollisionObject.DISABLE_DEACTIVATION -> 0xff0000
                 CollisionObject.DISABLE_SIMULATION -> 0xffff00
                 else -> 0xff0000
-            }
+            } or black
 
             // todo draw the local coordinate arrows
             // debugDrawObject(colObj.getWorldTransform(tmpTrans), colObj.collisionShape, color)
@@ -425,31 +416,26 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 AABBd()
                     .setMin(minAabb.x, minAabb.y, minAabb.z)
                     .setMax(maxAabb.x, maxAabb.y, maxAabb.z),
-                worldScale,
+                RenderView.worldScale,
                 color
             )
         }
 
     }
 
-    private fun drawVehicles(view: RenderView) {
+    private fun drawVehicles() {
 
         val wheelPosWS = Vector3d()
         val axle = Vector3d()
         val tmp = Stack.newVec()
 
-        val worldScale = view.worldScale
-
+        val worldScale = RenderView.worldScale
         val vehicles = world.vehicles
         for (i in 0 until vehicles.size) {
             val vehicle = vehicles.getQuick(i) ?: break
             for (v in 0 until vehicle.numWheels) {
 
-                val wheelColor = if (vehicle.getWheelInfo(v).raycastInfo.isInContact) {
-                    0x0000ff
-                } else {
-                    0xff0000
-                }
+                val wheelColor = (if (vehicle.getWheelInfo(v).raycastInfo.isInContact) 0x0000ff else 0xff0000) or black
 
                 wheelPosWS.set(vehicle.getWheelInfo(v).worldTransform.origin)
                 axle.set(
@@ -479,39 +465,8 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     private var debugDraw: BulletDebugDraw? = null
     override fun onDrawGUI(all: Boolean) {
         super.onDrawGUI(all)
-        val view = RenderView.currentInstance!!
-        drawDebug(view, view.worldScale)
-    }
-
-    override fun onUpdate(): Int {
-        testVehicleControls()
-        return 1
-    }
-
-    private fun testVehicleControls() {
-
-        var steering = 0.0
-        var engineForce = 0.0
-        var brakeForce = 0.0
-
-        if (GLFW.GLFW_KEY_SPACE in Input.keysDown) brakeForce++
-        if (GLFW.GLFW_KEY_UP in Input.keysDown) engineForce++
-        if (GLFW.GLFW_KEY_DOWN in Input.keysDown) engineForce--
-        if (GLFW.GLFW_KEY_LEFT in Input.keysDown) steering++
-        if (GLFW.GLFW_KEY_RIGHT in Input.keysDown) steering--
-
-        try {
-            val wheels = sampleWheels
-            for (index in wheels.indices) {
-                val wheel = wheels[index]
-                wheel.engineForce = if (wheel.bIsFrontWheel) 0.0 else engineForce
-                wheel.steering = if (wheel.bIsFrontWheel) steering * 0.5 else 0.0
-                wheel.brake = brakeForce
-            }
-        } catch (e: ConcurrentModificationException) {
-            // will flicker a little, when cars are spawned/de-spawned
-        }
-
+        val view = RenderView.currentInstance
+        drawDebug(view)
     }
 
     private fun createBulletWorld(): DiscreteDynamicsWorld {

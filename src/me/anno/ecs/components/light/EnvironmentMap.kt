@@ -30,7 +30,7 @@ import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.rotate2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 import kotlin.math.PI
 
 // todo these could be used as

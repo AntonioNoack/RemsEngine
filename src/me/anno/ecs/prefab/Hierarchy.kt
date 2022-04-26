@@ -43,7 +43,7 @@ object Hierarchy {
         val collDepth = element.depthInHierarchy
         prefab[Path.ROOT_PATH, "name"] = element.name
         // setters.add(CSet(Path.ROOT_PATH, "name", element.name))
-        // todo why can it's parent be null?
+        // todo why can its parent be null?
         if (!copyPasteRoot && someParent.parent != null) someParent = someParent.parent!!
         val startIndex = if (copyPasteRoot) collDepth else collDepth - 1
         for (depth in startIndex downTo 0) {// from element to root
@@ -114,7 +114,7 @@ object Hierarchy {
                         }
                         if (!foundMatch) {
                             LOGGER.warn(
-                                "Missing path $path[$pathIndex] (${path.getNames()}, ${path.getTypes()}, ${path.getIndices()}) in $instance, " +
+                                "Missing path (${Thread.currentThread().name}) $path[$pathIndex] (${path.getNames()}, ${path.getTypes()}, ${path.getIndices()}) in $instance, " +
                                         "only ${components.size} $childType available ${components.joinToString { "'${it.name}':${it.prefabPath}" }}"
                             )
                             throw Path.EXIT
@@ -162,7 +162,7 @@ object Hierarchy {
                 assert(adds !== dstPrefab.adds)
                 for (index1 in adds.indices) {
                     val change = adds[index1]
-                    dstPrefab.add(change.withPath(Path(dstPath, change.path)))
+                    dstPrefab.add(change.withPath(Path(dstPath, change.path), true))
                 }
                 val sets = srcPrefab.sets
                 sets.forEach { k1, k2, v ->

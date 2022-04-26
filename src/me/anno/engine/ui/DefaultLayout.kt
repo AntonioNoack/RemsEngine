@@ -31,7 +31,7 @@ object DefaultLayout {
         val libraryBase = EditorState
         val library = libraryBase.uiLibrary
 
-        animationWindow.add(CustomContainer(ECSTreeView(libraryBase, isGaming, style), library, style), 1f)
+        animationWindow.add(CustomContainer(ECSTreeView(libraryBase, style), library, style), 1f)
         animationWindow.add(CustomContainer(SceneView(libraryBase, PlayMode.EDITING, style), library, style), 3f)
         animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
         animationWindow.setWeight(1f)

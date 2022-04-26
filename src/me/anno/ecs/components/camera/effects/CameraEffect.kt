@@ -1,16 +1,15 @@
 package me.anno.ecs.components.camera.effects
 
 import me.anno.Engine
-import me.anno.ecs.Component
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.io.base.BaseWriter
 
-// todo these effects don't necessarily need to be components, they could just be prefab saveables
-abstract class CameraEffect : Component() {
+abstract class CameraEffect : PrefabSaveable() {
 
     @Range(0.0, 1e10)
     var strength = 1f
@@ -18,17 +17,18 @@ abstract class CameraEffect : Component() {
     // todo integrate this into RenderView
     // todo integrate all useful effects from Three.js
     // todo pixel-local shaders: they could be stacked within one shader to reduce bandwidth requirements & rounding
+    // (tone mapping, color correction, ...)
 
     open fun listInputs(): List<DeferredLayerType> = emptyList()
     open fun listOutputs(): List<DeferredLayerType> = emptyList()
     open fun render(
         buffer: IFramebuffer,
         format: DeferredSettingsV2,
-        layers: HashMap<DeferredLayerType, IFramebuffer>
+        layers: MutableMap<DeferredLayerType, IFramebuffer>
     ) {
     }
 
-    fun write(layers: HashMap<DeferredLayerType, IFramebuffer>, type: DeferredLayerType, fb: IFramebuffer) {
+    fun write(layers: MutableMap<DeferredLayerType, IFramebuffer>, type: DeferredLayerType, fb: IFramebuffer) {
         (fb as? Framebuffer)?.lastDraw = Engine.nanoTime
         layers[type] = fb
     }
@@ -37,6 +37,17 @@ abstract class CameraEffect : Component() {
         super.copy(clone)
         clone as CameraEffect
         clone.strength = strength
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        saveSerializableProperties(writer)
+    }
+
+    override fun readSomething(name: String, value: Any?) {
+        if (!readSerializableProperty(name, value)) {
+            super.readSomething(name, value)
+        }
     }
 
 }

@@ -18,7 +18,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.clamp
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11C.*
 import kotlin.math.roundToInt
 
 /**

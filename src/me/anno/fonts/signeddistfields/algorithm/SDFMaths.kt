@@ -1,12 +1,9 @@
 package me.anno.fonts.signeddistfields.algorithm
 
 import org.joml.AABBf
-import org.joml.Vector2dc
 import org.joml.Vector2f
 import org.joml.Vector2fc
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sqrt
 
 object SDFMaths {

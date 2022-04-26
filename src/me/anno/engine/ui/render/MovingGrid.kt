@@ -14,7 +14,6 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
-import me.anno.utils.Clock
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import kotlin.math.floor
@@ -25,7 +24,6 @@ import kotlin.math.roundToInt
 object MovingGrid {
 
     fun drawGrid(radius: Double) {
-
         LineBuffer.finish(RenderView.cameraMatrix)
         OpenGL.blendMode.use(BlendMode.ADD) {
             if (RenderView.currentInstance?.renderMode != RenderMode.DEPTH) {
@@ -37,7 +35,6 @@ object MovingGrid {
                 drawGrid2(radius)
             }
         }
-
     }
 
     private fun drawGrid2(radius: Double) {

@@ -10,7 +10,7 @@ abstract class ColorMapEffect : CameraEffect() {
     override fun render(
         buffer: IFramebuffer,
         format: DeferredSettingsV2,
-        layers: HashMap<DeferredLayerType, IFramebuffer>
+        layers: MutableMap<DeferredLayerType, IFramebuffer>
     ) {
         val sdrInput = layers[DeferredLayerType.SDR_RESULT]!!.getTexture0()
         val output = render(sdrInput)

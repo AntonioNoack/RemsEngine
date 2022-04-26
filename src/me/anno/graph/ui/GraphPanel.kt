@@ -4,7 +4,6 @@ import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.engine.ECSRegistry
-import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawCurves.drawCubicBezier
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
@@ -114,10 +113,11 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
             val mouseX = window.mouseX
             val mouseY = window.mouseY
             openMenu(windowStack,
-                library.nodes.map {
-                    MenuOption(NameDesc(it.name)) {
+                library.nodes.map { newNode ->
+                    val sample = newNode()
+                    MenuOption(NameDesc(sample.name)) {
                         // place node at mouse position
-                        val node = it.clone()
+                        val node = newNode()
                         // todo if placed on line, connect left & right sides where types match from top to bottom
                         node.position.set(windowToCoordsX(mouseX.toDouble()), windowToCoordsY(mouseY.toDouble()), 0.0)
                         graph!!.nodes.add(node)

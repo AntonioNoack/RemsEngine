@@ -149,11 +149,15 @@ class PipelineStage(
             shader.v1b("hasReflectionPlane", false)
             return
         }
-        // todo find the by-angle-and-position best matching planar reflection
         val pr = pipeline.planarReflections
-        val bestPr = pr.firstOrNull {
+        val bestPr = pr.filter {
             val lb = it.lastBuffer as Texture2D?
             lb != null && lb.pointer >= 0
+        }.minByOrNull {
+            // todo find the by-angle-and-position best matching planar reflection
+            // todo don't choose a planar reflection, that is invisible from the camera
+            // it.globalNormal.dot(target.direction)
+            0f
         }
         shader.v1b("hasReflectionPlane", bestPr != null)
         if (bestPr != null) {
@@ -533,7 +537,7 @@ class PipelineStage(
                 // todo cluster them cheaply?
                 aabb.clear()
                 for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
-                    localAABB.transformUnion(trs[index]!!.drawTransform, aabb)
+                    localAABB.transformUnion(trs[index]!!.getDrawMatrix(), aabb)
                 }
                 setupLights(pipeline, shader, cameraPosition, worldScale, aabb, receiveShadows)
             }

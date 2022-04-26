@@ -48,11 +48,7 @@ object Outlines {
         val entity = meshComponent.entity ?: return
         val transform0 = entity.transform
 
-        // important, when the object is off-screen, but the outline is not
-        // (can happen, because the outline is slightly larger)
-        transform0.drawDrawingLerpFactor()
-
-        val transform = transform0.drawTransform
+        val transform = transform0.getDrawMatrix()
         val camPosition = RenderView.camPosition
 
         // scale based on visual scale, or use a geometry shader for that

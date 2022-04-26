@@ -56,6 +56,7 @@ fun drawLogo(window: WindowX) {
     )
 
     shader.use()
+    shader.ignoreNameWarnings("normals", "uvs", "tangents", "colors")
 
     GFX.check()
 

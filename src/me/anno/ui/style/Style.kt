@@ -5,7 +5,6 @@ import me.anno.config.DefaultStyle.black
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
-import me.anno.utils.test.files.deleteEmptyFolders
 import org.apache.logging.log4j.LogManager
 
 class Style(val prefix: String?, val suffix: String?) {

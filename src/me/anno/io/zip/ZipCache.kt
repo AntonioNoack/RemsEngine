@@ -4,11 +4,9 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.instances.PDFCache
 import me.anno.config.DefaultConfig
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.image.ImageReader
 import me.anno.image.gimp.GimpImage
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFile7z.Companion.createZipRegistry7z

@@ -16,7 +16,7 @@ import me.anno.ui.utils.WindowStack
 import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11C
 import kotlin.math.max
 import kotlin.math.min
 
@@ -268,8 +268,8 @@ open class Window(
                     true, buffer, Renderer.colorRenderer
                 ) {
                     Frame.bind()
-                    GL11.glClearColor(0f, 0f, 0f, 0f)
-                    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
+                    GL11C.glClearColor(0f, 0f, 0f, 0f)
+                    GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT)
                     panel0.canBeSeen = true
                     panel0.draw(x0, y0, x1, y1)
                 }
