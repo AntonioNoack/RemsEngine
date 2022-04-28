@@ -6,6 +6,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.ui.Panel
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.WrapAlign
@@ -15,6 +16,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileExplorer.Companion.editInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
+import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.style.Style
 import me.anno.utils.files.FileExplorerSelectWrapper
@@ -39,13 +41,13 @@ class FileInput(
     // val text get() = base.text
 
     init {
-        base.setTooltip(f0.absolutePath)
+        base.tooltip = f0.absolutePath
         base.apply {
             this += WrapAlign.LeftCenter
             addChangeListener {
                 val gf = it.toGlobalFile()
                 this@FileInput.changeListener(gf)
-                base.setTooltip(gf.absolutePath)
+                base.tooltip = gf.absolutePath
             }
         }
         button.apply {
@@ -68,7 +70,7 @@ class FileInput(
                     }
                 }
             }
-            setTooltip("Select the file in your default file explorer")
+            tooltip = "Select the file in your default file explorer"
             textColor = textColor and 0x7fffffff
             focusTextColor = textColor
         }
@@ -138,6 +140,13 @@ class FileInput(
         } else {
             LOGGER.warn("Can only paste a single file!, got $files")
         }
+    }
+
+    override fun getTooltipPanel(x: Float, y: Float): Panel? {
+        // could be cached...
+        val entry = FileExplorerEntry(null, false, lastValue, style)
+        entry.showTitle = false
+        return entry
     }
 
     companion object {

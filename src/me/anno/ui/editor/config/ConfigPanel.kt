@@ -163,7 +163,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         val subChain = StringBuilder(topList.size * 2)
         for (entry in topList) {
             val subList = PanelListY(style)
-            subList.setTooltip(entry.fullName)
+            subList.tooltip = entry.fullName
             entry.createPanels(subList)
             val searchKey = entry.fullName.lowercase(Locale.getDefault())
             contentList += searchKey to subList
@@ -187,7 +187,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
             val subChain2 = StringBuilder(group.value.size * 2)
             for (entry in group.value) {
                 val subList = PanelListY(style)
-                subList.setTooltip(entry.fullName)
+                subList.tooltip = entry.fullName
                 entry.createPanels(subList)
                 val searchKey = entry.fullName.lowercase(Locale.getDefault())
                 contentList += searchKey to subList

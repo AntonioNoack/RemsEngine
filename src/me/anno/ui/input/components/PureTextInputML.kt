@@ -650,7 +650,8 @@ open class PureTextInputML(style: Style) :
     }
 
     fun clear() {
-        setText(resetListener?.invoke() ?: "", true)
+        val newText = resetListener?.invoke() ?: ""
+        setText(newText, true)
         setCursorToEnd()
     }
 

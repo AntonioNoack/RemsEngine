@@ -266,6 +266,7 @@ class Mesh : PrefabSaveable() {
         // LOGGER.info("Collected aabb $aabb from ${positions?.size}/${indices?.size} points")
     }
 
+    @Suppress("unused")
     fun calculateNormals(smooth: Boolean) {
         if (smooth && indices == null) LOGGER.warn("Meshes without indices cannot be rendered smoothly (for now)!")
         normals = FloatArray(positions!!.size)
@@ -483,6 +484,9 @@ class Mesh : PrefabSaveable() {
         }
     }
 
+    /** can be set to false to use tangents as an additional data channel; notice the RGB[-1,1] limit though */
+    var checkTangents = true
+
     private fun updateMesh() {
 
         if (proceduralLength > 0) return
@@ -509,7 +513,7 @@ class Mesh : PrefabSaveable() {
         this.hasUVs = hasUVs
 
         NormalCalculator.checkNormals(positions, normals, indices)
-        if (hasUVs) TangentCalculator.checkTangents(positions, normals, tangents, uvs, indices)
+        if (hasUVs && checkTangents) TangentCalculator.checkTangents(positions, normals, tangents, uvs, indices)
 
         val colors = color0
         val boneWeights = boneWeights

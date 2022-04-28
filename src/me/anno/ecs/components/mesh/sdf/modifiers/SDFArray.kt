@@ -14,13 +14,13 @@ import org.joml.Vector4f
 import kotlin.math.floor
 import kotlin.math.round
 
-// todo height mapping
-// todo dunes
 class SDFArray : PositionMapper() {
 
     // todo all arrays should have the option to evaluate the neighbors for correct sdfs without gaps
     // todo arrays and over multipliers could be sources for randomness :3
-    // todo how would we implement it? ...
+    // how would we implement it?
+    //   local variable in generator
+    //   randomness-source slot in consumer
 
     // we could beautify the result when the shapes are overlapping by repeatedly calling the child...
     // would be pretty expensive...

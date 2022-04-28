@@ -128,14 +128,23 @@ class Path(
         return path.startsWithOffset(this, offset)
     }
 
-    fun startsWith(other: Path?): Boolean {
+    fun startsWith0(target: Path?): Boolean {
         // magic value ^^
-        if (other == null || other == ROOT_PATH) return true
-        var previous = this
-        while (true) {
-            if (previous == other) return true
-            previous = previous.parent ?: return false
-        }
+        if (target == null || target == ROOT_PATH) return true
+        return if (target == this) true else parent?.startsWith0(target) ?: false
+    }
+
+    /**
+     * if this starts with target, returns ret such that target + ret == this
+     * else returns null
+     * */
+    fun startsWith1(target: Path?): Path? {
+        // magic value ^^
+        if (target == null || target == ROOT_PATH) return this
+        // reconstruct the rest path
+        if (target == this) return ROOT_PATH
+        val byParent = parent?.startsWith1(target) ?: return null
+        return Path(byParent, nameId, index, type)
     }
 
     fun getNames(): List<String> {
@@ -163,7 +172,7 @@ class Path(
     }
 
     fun startsWithOffset(other: Path, offset: Int): Boolean {
-        if (offset == 0) return startsWith(other)
+        if (offset == 0) return startsWith0(other)
         else {
             if (size < other.size + offset) return false
             try {
@@ -202,12 +211,25 @@ class Path(
                 (parent ?: ROOT_PATH) == other.parent
     }
 
-    fun added(name: String, index: Int, type: Char): Path {
-        return Path(this, name, index, type)
+    fun added(nameId: String, index: Int, type: Char): Path {
+        return Path(this, nameId, index, type)
     }
 
     operator fun plus(indexAndType: Triple<String, Int, Char>): Path {
         return Path(this, indexAndType.first, indexAndType.second, indexAndType.third)
+    }
+
+    operator fun plus(path: Path): Path {
+        var newPath = this
+        fun add(lePath: Path) {
+            val lePathParent = lePath.parent
+            if (lePathParent != null && lePathParent != ROOT_PATH) {
+                add(lePathParent)
+            }
+            newPath = Path(newPath, lePath.nameId, lePath.index, lePath.type)
+        }
+        add(path)
+        return newPath
     }
 
     override fun toString(): String {

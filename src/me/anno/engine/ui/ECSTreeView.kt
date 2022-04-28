@@ -67,67 +67,51 @@ class ECSTreeView(val library: EditorState, style: Style) :
         }
     }
 
-    override fun addChild(element: ISaveable, child: Any) {
-        if (element !is Entity) return
-        val entityIndex = child is Entity || (child is Prefab && child.clazzName == "Entity")
-        val index = if (entityIndex) element.children.size else element.components.size
-        addChild(element, child, index)
-    }
-
-    fun addChild(element: PrefabSaveable, child: Any, index: Int) {
-        val dstPath = element.prefabPath!!
+    override fun addChild(element: ISaveable, child: Any, index: Int) {
+        element as PrefabSaveable
         when (child) {
             is Prefab -> {
                 Hierarchy.add(
                     child,
                     Path.ROOT_PATH,
-                    element
+                    element,
+                    index
                 )
             }
             is PrefabSaveable -> {
                 val childRoot = child.root
-                // dstPath.setLast(child.name, index, element.getTypeOf(child))
-                // name must never change,
-                // type must never change
-                // index can change
-                dstPath.index = index
                 Hierarchy.add(
                     childRoot.prefab!!,
                     child.prefabPath!!,
-                    element
+                    element,
+                    index
                 )
             }
             else -> LOGGER.warn("Unknown type $child")
         }
     }
 
-    override fun addAfter(self: ISaveable, sibling: Any) {
-        // self.addAfter(sibling as Entity)
-        if (self is PrefabSaveable) {
-            addChild(self.parent as PrefabSaveable, sibling, self.indexInParent + 1)
-        } else throw NotImplementedError()
-    }
-
-    override fun addBefore(self: ISaveable, sibling: Any) {
-        // self.addBefore(sibling as Entity)
-        if (self is PrefabSaveable) {
-            addChild(self.parent as PrefabSaveable, sibling, self.indexInParent)
-        } else throw NotImplementedError()
+    override fun getIndexInParent(parent: ISaveable, child: ISaveable): Int {
+        // todo we need the add index (inside the current prefab) for this to work correctly
+        // todo or we should support complete reordering
+        LOGGER.warn("getIndexInParent isn't implemented fully")
+        return if (child is PrefabSaveable) {
+            child.indexInParent
+        } else 0
     }
 
     override fun removeChild(parent: ISaveable, child: ISaveable) {
         // todo somehow the window element cannot be removed
         if (parent is PrefabSaveable && child is PrefabSaveable) {
             LOGGER.info("Trying to remove element ${child.className} from ${parent.className}")
-            // todo also remove all children of it
-            EditorState.selection = EditorState.selection.filter { it != child }
-            EditorState.fineSelection = EditorState.fineSelection.filter { it != child }
+            EditorState.selection = EditorState.selection.filter { it !in child.listOfHierarchy }
+            EditorState.fineSelection = EditorState.fineSelection.filter { it !in child.listOfHierarchy }
             Hierarchy.removePathFromPrefab(parent.root.prefab!!, child)
         } else throw NotImplementedError()
     }
 
     override fun destroy(element: ISaveable) {
-        // element.onDestroy()
+        if (element is PrefabSaveable) element.onDestroy()
     }
 
     private fun getWarning(element: PrefabSaveable): String? {
@@ -230,7 +214,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
     }
 
     override fun setCollapsed(element: ISaveable, collapsed: Boolean) {
-        if(element !is PrefabSaveable) return
+        if (element !is PrefabSaveable) return
         element.isCollapsed = collapsed
         try {
             element.root.prefab!![element.prefabPath!!, "isCollapsed"] = collapsed

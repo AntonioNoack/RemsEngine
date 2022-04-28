@@ -186,7 +186,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
             // create a animation node to show the first animation
             if (meshes.isEmpty() && animMap.isNotEmpty()) {
-                val animPath = hierarchy.add(ROOT_PATH, 'c', "AnimRenderer", 0)
+                val animPath = hierarchy.add(ROOT_PATH, 'c', "AnimRenderer")
                 hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
                 hierarchy.setUnsafe(animPath, "animations", sampleAnimations)
             }

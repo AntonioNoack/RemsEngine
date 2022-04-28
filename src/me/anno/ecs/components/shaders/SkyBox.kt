@@ -75,7 +75,7 @@ class SkyBox : MeshComponentBase() {
                 val defines = if (colors) "#define COLORS\n" else ""
                 return ShaderStage(
                     "vertex",
-                    createVertexAttributes(instanced, colors),
+                    createVertexVariables(instanced, colors),
                     "" +
                             defines +
                             "localPosition = 1e15 * sign(coords);\n" +

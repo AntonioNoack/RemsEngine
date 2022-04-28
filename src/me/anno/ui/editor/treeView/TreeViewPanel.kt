@@ -193,14 +193,14 @@ class TreeViewPanel<V>(
             @Suppress("unchecked_cast")
             val original = (dragged as? Draggable)?.getOriginal() as? V
             val relativeY = (y - this.y) / this.h
-            val element = getElement()
+            val element = getElement()!!
             moveChange {
                 if (relativeY < 0.33f) {
                     // paste on top
                     if (element.parent != null) {
                         treeView.addBefore(element, child)
                     } else {
-                        treeView.addChild(element, child)
+                        treeView.addChild(element, child, -1)
                     }
                     // we can't remove the element, if it's the parent
                     if (original !in child.listOfAll) {
@@ -208,7 +208,7 @@ class TreeViewPanel<V>(
                     }
                 } else if (relativeY < 0.67f) {
                     // paste as child
-                    treeView.addChild(element, child)
+                    treeView.addChild(element, child, -1)
                     if (element != original) {
                         // we can't remove the element, if it's the parent
                         if (original !in child.listOfAll) {
@@ -220,7 +220,7 @@ class TreeViewPanel<V>(
                     if (element.parent != null) {
                         treeView.addAfter(element, child)
                     } else {
-                        treeView.addChild(element, child)
+                        treeView.addChild(element, child, -1)
                     }
                     // we can't remove the element, if it's the parent
                     if (original !in child.listOfAll) {

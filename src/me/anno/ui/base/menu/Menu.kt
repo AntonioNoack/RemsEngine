@@ -34,6 +34,7 @@ object Menu {
     var paddingY = 10
 
     const val menuSeparator = "-----"
+
     // used in Rem's Studio, maybe should be moved there
     val menuSeparator1 = MenuOption(NameDesc(menuSeparator, "", "")) {}
 
@@ -89,7 +90,7 @@ object Menu {
         val panel = PureTextInput(style)
         panel.setText(value0, false)
         panel.placeholder = title.name
-        panel.setTooltip(title.desc)
+        panel.tooltip = title.desc
         panel.setEnterListener {
             callback(panel.text)
             close(panel)
@@ -98,14 +99,14 @@ object Menu {
             panel.textColor = getColor(it)
         }
         val submit = TextButton(actionName.name, false, style)
-            .setTooltip(actionName.desc)
-            .addLeftClickListener {
-                callback(panel.text)
-                close(panel)
-            }
+        submit.tooltip = actionName.desc
+        submit.addLeftClickListener {
+            callback(panel.text)
+            close(panel)
+        }
 
         val cancel = TextButton("Cancel", false, style)
-            .addLeftClickListener { close(panel) }
+        cancel.addLeftClickListener { close(panel) }
 
         val buttons = PanelListX(style)
         buttons += cancel
@@ -155,7 +156,7 @@ object Menu {
                             true
                         } else false
                     }
-                    button.setTooltip(option.description)
+                    button.tooltip = option.description
                     button.enableHoverColor = true
                     button.padding.left = padding
                     button.padding.right = padding
@@ -165,7 +166,7 @@ object Menu {
                     val button = TextPanel(name, style)
                     button.textColor = mixARGB(button.textColor, 0x77777777, 0.5f)
                     button.focusTextColor = button.textColor
-                    button.setTooltip(option.description)
+                    button.tooltip = option.description
                     button.padding.left = padding
                     button.padding.right = padding
                     list += button
@@ -238,7 +239,7 @@ object Menu {
                     }
                 }
             }
-            titlePanel.setTooltip(title.desc)
+            titlePanel.tooltip = title.desc
             titlePanel.padding.left = padding
             titlePanel.padding.right = padding
             list += titlePanel

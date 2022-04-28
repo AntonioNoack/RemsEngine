@@ -33,7 +33,7 @@ class BooleanInput(
         title: String, description: String,
         startValue: Boolean, defaultValue: Boolean, style: Style
     ) : this(title, startValue, defaultValue, style) {
-        setTooltip(description)
+        tooltip = description
     }
 
     private val titleView = if (title.isBlank2()) null else TextPanel("$title:", style)

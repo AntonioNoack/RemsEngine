@@ -3,7 +3,6 @@ package me.anno.ecs.prefab
 import me.anno.Build
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
-import me.anno.ecs.prefab.change.Change
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.ISaveable
@@ -78,13 +77,6 @@ class Prefab : Saveable {
         // if (sets !is MutableList) sets = ArrayList(sets)
     }
 
-    fun addAll(changes: Collection<Change>) {
-        if (!isWritable) throw ImmutablePrefabException(source)
-        for (change in changes) {
-            add(change)
-        }
-    }
-
     fun getPrefabOrSource() = prefab.nullIfUndefined() ?: source
 
     fun countTotalChanges(async: Boolean, depth: Int = 20): Int {
@@ -127,8 +119,8 @@ class Prefab : Saveable {
         return null
     }
 
-    fun add(change: CAdd, index: Int): Path {
-        return add(change).getChildPath(index)
+    fun add(change: CAdd, index: Int, insertIndex: Int = -1): Path {
+        return add(change, insertIndex).getSetterPath(index)
     }
 
     fun set(instance: PrefabSaveable, key: String, value: Any?) {
@@ -165,63 +157,87 @@ class Prefab : Saveable {
         sets[path, name] = value
     }
 
-    fun add(parentPath: Path, typeChar: Char, type: String, nameId: String, index: Int): Path {
-        return add(CAdd(parentPath, typeChar, type, nameId, InvalidRef)).getChildPath(index)
+    fun add(parentPath: Path, typeChar: Char, type: String, nameId: String, index: Int, insertIndex: Int = -1): Path {
+        return add(CAdd(parentPath, typeChar, type, nameId, InvalidRef), insertIndex).getSetterPath(index)
     }
 
-    fun add(parentPath: Path, typeChar: Char, type: String, nameId: String, ref: FileReference): Path {
+    fun add(
+        parentPath: Path,
+        typeChar: Char,
+        className: String,
+        nameId: String,
+        ref: FileReference,
+        insertIndex: Int = -1
+    ): Path {
         val index = addCounts.getAndInc(typeChar to parentPath)
-        return add(CAdd(parentPath, typeChar, type, nameId, ref)).getChildPath(index)
+        return add(CAdd(parentPath, typeChar, className, nameId, ref), insertIndex).getSetterPath(index)
     }
 
-    fun add(parentPath: Path, typeChar: Char, clazzName: String): Path {
+    fun add(parentPath: Path, typeChar: Char, clazzName: String, insertIndex: Int = -1): Path {
         val index = addCounts.getAndInc(typeChar to parentPath)
-        return add(CAdd(parentPath, typeChar, clazzName, clazzName, InvalidRef)).getChildPath(index)
+        return add(CAdd(parentPath, typeChar, clazzName, clazzName, InvalidRef), insertIndex).getSetterPath(index)
     }
 
-    fun add(parentPath: Path, typeChar: Char, clazzName: String, index: Int): Path {
-        return add(CAdd(parentPath, typeChar, clazzName, clazzName, InvalidRef)).getChildPath(index)
+    fun add(parentPath: Path, typeChar: Char, clazzName: String, index: Int, insertIndex: Int = -1): Path {
+        return add(CAdd(parentPath, typeChar, clazzName, clazzName, InvalidRef), insertIndex).getSetterPath(index)
     }
 
-    fun add(parentPath: Path, typeChar: Char, clazzName: String, name: String): Path {
-        val index = addCounts.getAndInc(typeChar to parentPath)
-        return add(CAdd(parentPath, typeChar, clazzName, name, InvalidRef)).getChildPath(index)
+    fun add(parentPath: Path, typeChar: Char, clazzName: String, name: String, insertIndex: Int = -1): Path {
+        val index = addCounts.getAndInc(typeChar to parentPath) // only true if this is a new instance
+        return add(CAdd(parentPath, typeChar, clazzName, name, InvalidRef), insertIndex).getSetterPath(index)
     }
 
-    fun <V : Change> add(change: V): V {
+    fun add(change: CAdd, insertIndex: Int): CAdd {
         if (!isWritable) throw ImmutablePrefabException(source)
-        when (change) {
-            is CAdd -> {
-                if (!Build.isShipped) {
-                    if (adds.any2 { it.nameId == change.nameId && it.path == change.path })
-                        throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
-                    // todo check branched prefabs for adds as well
-                    val sourcePrefab = PrefabCache[prefab]
-                    if (sourcePrefab != null) {
-                        if (sourcePrefab.adds.any2 { it.nameId == change.nameId && it.path == change.path })
-                            throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
-                    }
-                }
-                ensureMutableLists()
-                (adds as MutableList).add(change)
-                isValid = false
+        if (!Build.isShipped) {
+            if (adds.any2 { it.nameId == change.nameId && it.path == change.path })
+                throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
+            // todo check branched prefabs for adds as well
+            val sourcePrefab = PrefabCache[prefab]
+            if (sourcePrefab != null) {
+                if (sourcePrefab.adds.any2 { it.nameId == change.nameId && it.path == change.path })
+                    throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
             }
-            is CSet -> {
-                /*ensureMutableLists()
-                if (sets.none {
-                        if (it.path == change.path && it.name == change.name) {
-                            it.value = change.value
-                            true
-                        } else false
-                    }) {
-                    (sets as MutableList).add(change)
-                }*/
-                sets[change.path, change.name!!] = change.value
-                // apply to sample instance to keep it valid
-                updateSample(change)
-            }
-            else -> LOGGER.warn("Unknown change type")
         }
+        ensureMutableLists()
+        val adds = adds as MutableList
+        if (insertIndex == -1) {
+            adds.add(change)
+        } else {
+            // find the correct insert index
+            // relative to all other local adds
+            var globalInsertIndex = 0
+            for (index in adds.indices) {
+                if (adds[index].path == change.path) {
+                    if (globalInsertIndex == insertIndex) {
+                        adds.add(index, change)
+                        break
+                    }
+                    globalInsertIndex++
+                }
+            }
+            if (globalInsertIndex <= insertIndex) {
+                adds.add(change)
+            }
+        }
+        isValid = false
+        return change
+    }
+
+    fun add(change: CSet): CSet {
+        if (!isWritable) throw ImmutablePrefabException(source)
+        /*ensureMutableLists()
+        if (sets.none {
+                if (it.path == change.path && it.name == change.name) {
+                    it.value = change.value
+                    true
+                } else false
+            }) {
+            (sets as MutableList).add(change)
+        }*/
+        sets[change.path, change.name!!] = change.value
+        // apply to sample instance to keep it valid
+        updateSample(change)
         return change
     }
 

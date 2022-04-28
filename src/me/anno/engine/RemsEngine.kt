@@ -35,21 +35,17 @@ import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
-/////////////////////
-// todo: undo-redo //
-/////////////////////
+// todo dropping in meshes no longer works.. why? + fix
 
 // todo loading is slow: all tabs are loaded, even if only a single one is actually used
 
 // todo decals
 
 // todo forward-plus rendering
-// todo which platforms support Compute Shaders? we need them for forward+
+// which platforms support Compute Shaders? we need them for forward+
+// Windows, Android with OpenGL 3.0
 
-
-// todo bug: tooltip texts of properties are not being displayed
-
-// todo runtime-components must have warning
+// todo runtime-only-PrefabSaveables must show warning in UI, that they are temporary
 // todo must be editable -> no CSet/CAdd, just instance changes
 
 
@@ -89,7 +85,7 @@ import org.apache.logging.log4j.LogManager
 //  - Sims like game, just low-poly style
 //          simlish should be easy ^^
 
-class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
+open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     lateinit var currentProject: GameEngineProject
 

@@ -21,7 +21,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.studio.Inspectable
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
@@ -874,6 +873,18 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
+    fun removeAllChildren() {
+        for (index in children.indices.reversed()) {
+            remove(children[index])
+        }
+    }
+
+    fun removeAllComponents() {
+        for (index in components.indices.reversed()) {
+            remove(components[index])
+        }
+    }
+
     val sizeOfHierarchy
         get(): Int {
             val children = children
@@ -955,8 +966,6 @@ class Entity() : PrefabSaveable(), Inspectable {
             val t = transform
             "1x/${(t.lastUpdateDt * 1e-9).f3()}s, ${((Engine.gameTime - t.lastUpdateTime) * 1e-9).f3()}s ago"
         }*/
-        // reloading tests for history
-        list += TextPanel(System.identityHashCode(this).toString(), style)
         PrefabInspector.currentInspector!!.inspect(this, list, style)
     }
 

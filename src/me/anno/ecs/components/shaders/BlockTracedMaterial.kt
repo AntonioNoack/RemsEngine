@@ -59,8 +59,8 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
                 "finalRoughness = 0.5;\n"
     }
 
-    open fun createFragmentVariables(instanced: Boolean): List<Variable> {
-        return listOf(
+    override fun createFragmentVariables(instanced: Boolean): ArrayList<Variable> {
+        return arrayListOf(
             // input varyings
             Variable(GLSLType.V3F, "localPosition"),
             Variable(GLSLType.M4x4, "transform"),
@@ -87,9 +87,8 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
     }
 
     override fun createFragmentStage(instanced: Boolean): ShaderStage {
-        val fragmentVariables = createFragmentVariables(instanced)
         return ShaderStage(
-            "material", fragmentVariables, "" +
+            "material", createFragmentVariables(instanced), "" +
                     // step by step define all material properties
                     "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
                     "vec3 bounds1 = vec3(bounds-1);\n" +

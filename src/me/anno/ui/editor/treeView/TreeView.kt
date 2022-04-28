@@ -52,7 +52,7 @@ abstract class TreeView<V>(
 
     abstract fun setCollapsed(element: V, collapsed: Boolean)
 
-    abstract fun addChild(element: V, child: Any)
+    abstract fun addChild(element: V, child: Any, index: Int)
 
     abstract fun removeChild(parent: V, child: V)
 
@@ -69,15 +69,17 @@ abstract class TreeView<V>(
 
     abstract fun setName(element: V, name: String)
 
-    // val index = parentChildren.indexOf(self)
-    // parentChildren.add(index, child)
-    // child.parent = p
-    abstract fun addBefore(self: V, sibling: Any)
+   open fun addBefore(self: Any, sibling: V){
+        val parent = getParent(sibling)!!
+        addChild(parent, self, getIndexInParent(parent, sibling))
+    }
 
-    // val index = parentChildren.indexOf(self)
-    // parentChildren.add(index + 1, child)
-    // child.parent = p
-    abstract fun addAfter(self: V, sibling: Any)
+    open fun addAfter(self: Any, sibling: V) {
+        val parent = getParent(sibling)!!
+        addChild(parent, self, getIndexInParent(parent, sibling) + 1)
+    }
+
+    abstract fun getIndexInParent(parent: V, child: V): Int
 
     abstract fun stringifyForCopy(element: V): String
 

@@ -40,8 +40,17 @@ import org.joml.*
 import kotlin.math.abs
 import kotlin.math.floor
 
+// todo mobius ring like https://www.shadertoy.com/view/XldSDs
+// todo signed distance fields, e.g. from meshes
+
 // todo sdf images and maybe text like https://github.com/fogleman/sdf
 // todo color maps like https://iquilezles.org/www/articles/palettes/palettes.htm
+
+// this principle could be applied on mobile platforms:
+// lighting & environment independent, nice shading
+// mapcaps like https://observablehq.com/@makio135/matcaps?ui=classic
+// we then could directly link an online library for fast development
+// ... or generate them synthetically ...
 
 open class SDFComponent : ProceduralMesh() {
 

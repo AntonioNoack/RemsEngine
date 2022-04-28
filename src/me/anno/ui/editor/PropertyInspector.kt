@@ -10,8 +10,8 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.editor.files.Search
-import me.anno.ui.input.*
-import me.anno.ui.input.components.Checkbox
+import me.anno.ui.input.InputPanel
+import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.types.Strings.isBlank2
@@ -84,31 +84,9 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             // this would cause bad user experience:
             // e.g. 0.0001 would be replaced with 1e-4
             if (d.listOfAll.any { it.isInFocus }) continue
-            when (s) {
-                is FloatInput -> {
-                    (d as? FloatInput)?.apply {
-                        d.setValue(s.lastValue, false)
-                    }
-                }
-                is FloatVectorInput -> {
-                    (d as? FloatVectorInput)?.apply {
-                        d.setValue(s, false)
-                    }
-                }
-                is ColorInput -> {
-                    (d as? ColorInput)?.apply {
-                        d.setValue(s.getValue(), false)
-                    }
-                }
-                is Checkbox -> {
-                    (d as? Checkbox)?.apply {
-                        d.isChecked = s.isChecked
-                    }
-                }
-                is TextInputML -> {
-                    (d as? TextInputML)?.apply {
-                        d.setValue(s.text, false)
-                    }
+            if (s is InputPanel<*> && s::class == d::class) {
+                (d as? InputPanel<Any?>)?.apply {
+                    d.setValue(s.lastValue, false)
                 }
             }
         }

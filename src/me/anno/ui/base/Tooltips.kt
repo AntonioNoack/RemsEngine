@@ -5,6 +5,7 @@ import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.hoveredPanel
 import me.anno.gpu.WindowX
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.length
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
@@ -79,25 +80,23 @@ object Tooltips {
             return false
         }
 
-        val delta = abs(time - lastMovementTime) / 1_000_000
-        if (delta >= tooltipReactionTime || lastPanel?.onMovementHideTooltip == false) {
+        val delta = abs(time - lastMovementTime)
+        val tooltipReactionTimeNanos = tooltipReactionTime * MILLIS_TO_NANOS
+        if (delta >= tooltipReactionTimeNanos || lastPanel?.onMovementHideTooltip == false) {
             val hovered = hoveredPanel
             if (hovered != null) {
 
-                val panel = hovered.getTooltipPanel(mouseX, mouseY)
-                lastPanel = panel
+                val tooltip = hovered.getTooltipToP(mouseX, mouseY)
+                lastPanel = tooltip as? Panel
 
-                if (panel != null) {
-                    panel.window = hovered.window
-                    draw(window, hovered, panel)
+                if (tooltip is Panel) {
+                    tooltip.window = hovered.window
+                    draw(window, hovered, tooltip)
                     return true
-                } else {
-                    val tooltipText = hovered.getTooltipText(mouseX, mouseY)
-                    if (tooltipText != null && !tooltipText.isBlank2()) {
-                        textPanel.text = tooltipText
-                        draw(window, hovered, container)
-                        return true
-                    }
+                } else if (tooltip is String && !tooltip.isBlank2()) {
+                    textPanel.text = tooltip
+                    draw(window, hovered, container)
+                    return true
                 }
             }
         } else lastPanel = null

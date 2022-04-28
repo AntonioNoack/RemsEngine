@@ -84,7 +84,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
     companion object {
 
-        val sampleSize = 128
+        const val sampleSize = 128
 
         val bmp = Signature("bmp", 0, "BM")
 
@@ -139,6 +139,8 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
                 }
             }
         }
+
+        // todo qoi support? https://github.com/phoboslab/qoi, https://github.com/saharNooby/qoi-java
 
         // source: https://en.wikipedia.org/wiki/List_of_file_signatures
         // https://www.garykessler.net/library/file_sigs.html

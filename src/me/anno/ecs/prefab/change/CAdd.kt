@@ -17,7 +17,7 @@ class CAdd() : Change() {
         parentPath: Path,
         type: Char,
         clazzName: String,
-        nameId: String? = clazzName,
+        nameId: String,
         prefab: FileReference = InvalidRef
     ) : this() {
         this.path = parentPath
@@ -34,22 +34,21 @@ class CAdd() : Change() {
         prefab: FileReference = InvalidRef
     ) : this(parentPath, type, clazzName, clazzName, prefab)
 
-    fun withPath(path: Path, changeId: Boolean): Change {
-        val nameId = if(changeId) Path.generateRandomId() else nameId
-        return CAdd(path, type, clazzName!!, nameId, prefab)
+    fun withPath(path: Path, changeId: Boolean): CAdd {
+        val nameId = if (changeId) Path.generateRandomId() else nameId
+        return CAdd(path, type, clazzName, nameId, prefab)
     }
 
-    fun getChildPath(index: Int): Path {
-        // LOGGER.debug("$path += ($nameId, $index, $type) -> $result")
-        return path.added(nameId!!, index, type)
+    fun getSetterPath(index: Int): Path {
+        return path.added(nameId, index, type)
     }
 
-    var type: Char = ' '
-    var clazzName: String? = null
-    var nameId: String? = null
+    var type = ' '
+    var clazzName = ""
+    var nameId = ""
     var prefab: FileReference = InvalidRef
 
-    override fun clone(): Change {
+    override fun clone(): CAdd {
         val clone = CAdd()
         clone.path = path
         clone.type = type
@@ -76,7 +75,7 @@ class CAdd() : Change() {
 
     override fun readString(name: String, value: String?) {
         when (name) {
-            "className", "class" -> clazzName = value
+            "className", "class" -> clazzName = value ?: return
             "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
             "name", "id" -> this.nameId = value ?: return
             else -> super.readString(name, value)
@@ -99,8 +98,7 @@ class CAdd() : Change() {
         val clazzName = clazzName
         var newInstance = loadedInstance
         if (newInstance == null) {
-            val maybe = ISaveable.createOrNull(clazzName ?: return)
-            when (maybe) {
+            when (val maybe = ISaveable.createOrNull(clazzName)) {
                 is PrefabSaveable -> newInstance = maybe
                 null -> throw UnknownClassException(clazzName)
                 else -> throw InvalidClassException("Class \"$clazzName\" does not extend PrefabSaveable")
@@ -110,7 +108,7 @@ class CAdd() : Change() {
         val type = type
         val prefab = instance.prefab
         val index = instance.getChildListByType(type).size
-        val nameId = nameId!!
+        val nameId = nameId
         if (nameId.isNotEmpty() && nameId[0] != '#') {
             // an actual name; names in fbx files and such should not start with # if possible xD
             newInstance.name = nameId

@@ -70,7 +70,7 @@ object SDFComposer {
             "  vec3 n = vec3(0.0);\n" +
             "  for(int i=ZERO;i<4;i++) {\n" +
             // 0.5773 is just a scalar factor
-            "      vec3 e = 2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0;\n" +
+            "      vec3 e = vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))*2.0-1.0;\n" +
             "      n += e*map(ro,rd,pos+e*epsilon).x;\n" +
             "  }\n" +
             "  return normalize(n);\n" +

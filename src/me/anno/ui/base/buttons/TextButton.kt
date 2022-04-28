@@ -31,7 +31,7 @@ open class TextButton(
     constructor(style: Style) : this("", false, style)
 
     constructor(title: String, description: String, isSquare: Boolean, style: Style) : this(title, isSquare, style) {
-        setTooltip(description)
+        tooltip = description
     }
 
     constructor(title: String, description: String, dictPath: String, isSquare: Boolean, style: Style) :

@@ -44,7 +44,7 @@ abstract class StackPanel(
         for ((index, it) in values.withIndex()) {
             addComponent(getOptionFromInspectable(it)!!, index, false)
         }
-        setTooltip(tooltipText)
+        tooltip = tooltipText
     }
 
     fun showMenu() {

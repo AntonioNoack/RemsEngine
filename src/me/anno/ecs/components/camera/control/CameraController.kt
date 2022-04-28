@@ -5,9 +5,14 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
+import me.anno.io.ISaveable
+import me.anno.io.base.BaseWriter
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Vectors.addSmoothly
 import org.joml.Vector3f
@@ -25,7 +30,12 @@ abstract class CameraController : Component(), ControlReceiver {
     val position = Vector3f()
     var rotation = Vector3f()
 
-    val camera: Camera? = null
+    @Type("Camera/PrefabSaveable")
+    @NotSerializedProperty
+    var camera: Camera? = null
+
+    @Type("Entity/PrefabSaveable")
+    @NotSerializedProperty
     var base: Entity? = null
 
     @Range(0.0, 100.0)
@@ -35,6 +45,27 @@ abstract class CameraController : Component(), ControlReceiver {
     var rotateAngleY = true
     var rotateAngleX = false
     var rotateAngleZ = false
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as CameraController
+        clone.base = getInClone(base, clone)
+        clone.camera = getInClone(camera, clone)
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeObject(null, "base", base)
+        writer.writeObject(null, "camera", camera)
+    }
+
+    override fun readObject(name: String, value: ISaveable?) {
+        when (name) {
+            "base" -> base = value as? Entity
+            "camera" -> camera = value as? Camera
+            else -> super.readObject(name, value)
+        }
+    }
 
     open fun clampRotation() {}
 

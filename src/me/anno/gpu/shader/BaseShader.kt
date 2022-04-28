@@ -36,7 +36,7 @@ open class BaseShader(
 
     private val flatShader = KeyTripleMap<Renderer, Boolean, GeoShader?, Shader>()
     private val deferredShaders = KeyTripleMap<DeferredSettingsV2, Boolean, GeoShader?, Shader>()
-    private val depthShader = lazy { Array(2) { createDepthShader(it > 0) } }
+    private val depthShader = Array(2) { lazy { createDepthShader(it > 0) } }
 
     /** shader for rendering the depth, e.g. for pre-depth */
     open fun createDepthShader(instanced: Boolean): Shader {
@@ -118,7 +118,7 @@ open class BaseShader(
             val renderer = OpenGL.currentRenderer
             val instanced = OpenGL.instanced.currentValue
             val shader = if (renderer == Renderer.depthRenderer) {
-                depthShader.value[instanced.toInt()]
+                depthShader[instanced.toInt()].value
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
                     val geoMode = OpenGL.geometryShader.currentValue

@@ -353,8 +353,8 @@ object UnityReader {
         if (isEnabled == false) prefab.setProperty("isEnabled", isEnabled)
         val path = if (center != null) {
             prefab.clazzName = "Entity"
-            prefab.set(ROOT_PATH, "position", center)
-            prefab.add(ROOT_PATH, 'c', "BoxCollider", 0)
+            prefab[ROOT_PATH, "position"] = center
+            prefab.add(ROOT_PATH, 'c', "BoxCollider")
         } else {
             prefab.clazzName = "BoxCollider"
             ROOT_PATH

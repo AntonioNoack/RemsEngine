@@ -37,13 +37,8 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
-// todo bug: right click to reset is not working on text inputs, why?
+// todo bug: right click doesn't show reset option
 // todo bug: instance and inspector can get out of sync: the color slider for materials stops working :/
-
-// done if there is a physics components, start it
-// todo only execute it, if the scene is visible/selected
-// todo later: only execute it, if in game mode
-// todo later: control it's speed, and step size
 
 // this can be like a scene (/scene tab)
 // show changed values in bold
@@ -92,10 +87,10 @@ class PrefabInspector(val reference: FileReference) {
 
     fun onChange() {
         savingTask.update()
+        invalidateUI()
     }
 
     fun reset(path: Path?) {
-        // todo if path is null, we could remember the original values :)
         path ?: return
         if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
         // if (sets.removeIf { it.path == path }) {
@@ -146,6 +141,9 @@ class PrefabInspector(val reference: FileReference) {
             )
 
         val path = instance.prefabPath
+
+        list += TextPanel("${path?.nameId}, ${System.identityHashCode(instance)}", style)
+
         /*if (path == null) {
             LOGGER.error(
                 "Missing path for " +
@@ -321,7 +319,7 @@ class PrefabInspector(val reference: FileReference) {
                 try {
                     val property2 = PIProperty(this, instance, name, property)
                     val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: continue
-                    if (panel.tooltip != null) panel.setTooltip(property.description)
+                    panel.tooltip = property.description
                     list.add(panel)
                 } catch (e: Exception) {
                     LOGGER.error("Error $e from ${reflections.clazz}/$name")

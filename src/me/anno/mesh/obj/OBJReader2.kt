@@ -123,7 +123,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     private fun newGroup() {
         lastGroupPath = scenePrefab.add(
             CAdd(Path.ROOT_PATH, 'e', "Entity", lastGroupName),
-            groupCountInScene++
+            groupCountInScene++, -1
         )
         objectCountInGroup = 0
         newObject()
@@ -135,7 +135,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         }
         lastObjectPath = scenePrefab.add(
             CAdd(lastGroupPath, 'e', "Entity", lastObjectName),
-            objectCountInGroup++
+            objectCountInGroup++, -1
         )
         meshCountInObject = 0
     }

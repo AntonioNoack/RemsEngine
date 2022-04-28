@@ -1,5 +1,6 @@
 package me.anno.ecs.components.light
 
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.utils.types.AABBs.all
 import org.joml.AABBd
@@ -8,6 +9,7 @@ import org.joml.Vector3f
 
 class AmbientLight : LightComponentBase() {
 
+    @Type("Color3HDR")
     var color = Vector3f(0.1f)
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

@@ -39,7 +39,6 @@ import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
@@ -101,6 +100,23 @@ object ComponentUI {
 
     // todo position control+x is not working (reset on right click is working)
 
+    fun List<*>.toTypedArray2(value: Any): Any? {
+        val newArray = java.lang.reflect.Array.newInstance(value.javaClass.componentType, size) // Array<V>
+        val tmpArray = toTypedArray() // Array<Object>
+        // println("old class: ${value::class.java}, or ${value.javaClass}, new class: ${newArray.javaClass}, tmp class: ${tmpArray.javaClass}")
+        try {
+            // will this work? can we do it via reflections, if it doesn't???
+            // at least in my version it works ^^
+            System.arraycopy(tmpArray, 0, newArray, 0, tmpArray.size)
+        } catch (e: Exception) {
+            LOGGER.error(
+                "Copy failed, which is a failure by the JVM implementation; please contact Antonio Noack, author of Rem's Engine",
+                e
+            )
+        }
+        return newArray
+    }
+
     fun createUI2(
         name: String?,
         visibilityKey: String,
@@ -158,7 +174,7 @@ object ComponentUI {
                 val arrayType = getArrayType(property, value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
                     override fun onChange() {
-                        property.set(this, content.toTypedArray())
+                        property.set(this, content.toTypedArray2(value))
                     }
                 }.apply { setValues(value.toList()) }
             }
@@ -205,29 +221,7 @@ object ComponentUI {
                     return input
                 }
                 if (value is ISaveable) {
-                    // todo serialize saveables, they may be simple
-                    // a first variant for editing may be a json editor
-                    val value0 = JsonFormatter.format(TextWriter.toText(value, StudioBase.workspace))
-                    val input = TextInputML(title, value0, style)
-                    val textColor = input.base.textColor
-                    input.addChangeListener {
-                        if (it == "null") {
-                            property.set(input, null)
-                        } else {
-                            try {
-                                val value2 = TextReader.read(it, StudioBase.workspace, false).firstOrNull()
-                                if (value2 != null) {
-                                    property.set(input, value2)
-                                    input.base.textColor = textColor
-                                } else {
-                                    input.base.textColor = 0xffff77 or 0xff.shl(24)
-                                }
-                            } catch (e: Exception) {
-                                input.base.textColor = 0xff7733 or 0xff.shl(24)
-                            }
-                        }
-                    }
-                    return input
+                    return createISaveableInput(title, value, style, property)
                 }
                 return TextPanel("?? $title, ${value?.javaClass}", style)
             }
@@ -235,6 +229,68 @@ object ComponentUI {
 
         return createUIByTypeName(name, visibilityKey, property, type1, range, style)
 
+    }
+
+    fun createISaveableInput(title: String, saveable: ISaveable, style: Style, property: IProperty<Any?>): Panel {
+        // if saveable is Inspectable, we could use the inspector as well :)
+        // runtime: O(n²) where n is number of properties of that class
+        // could be improved, but shouldn't matter
+        try {
+            // force all variables, so we can list all
+            // todo: this will get stuck for recursive references...
+            val typeMap = HashMap<String, Pair<String, Any?>>()
+            val detective = DetectiveWriter(typeMap)
+            saveable.save(detective)
+            if (typeMap.isNotEmpty()) {
+                val panel = PanelListY(style)
+                panel.padding.left += 8 // a little indent
+                val title2 = title.ifBlank { saveable.className }
+                // todo list/array-views should have their content visibility be toggleable
+                panel.add(TextPanel(title2, style).apply {
+                    // hide the intractability, so it looks like a title
+                    isItalic = true
+                    focusTextColor = textColor
+                    focusBackground = backgroundColor
+                })
+                for ((name, typeValue) in typeMap) {
+                    val type = typeValue.first
+                    val startValue = typeValue.second
+                    panel.add(
+                        createUIByTypeName(
+                            name, "${saveable.className}/$name",
+                            SIProperty(name, type, saveable, startValue, property, detective),
+                            typeValue.first, null, style
+                        )
+                    )
+                }
+                return panel
+            } else LOGGER.warn("No property was found for class ${saveable.className}")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        // serialize saveables for now, this is simple
+        // a first variant for editing may be a json editor
+        val value0 = JsonFormatter.format(TextWriter.toText(saveable, StudioBase.workspace))
+        val input = TextInputML(title, value0, style)
+        val textColor = input.base.textColor
+        input.addChangeListener {
+            if (it == "null") {
+                property.set(input, null)
+            } else {
+                try {
+                    val value2 = TextReader.read(it, StudioBase.workspace, false).firstOrNull()
+                    if (value2 != null) {
+                        property.set(input, value2)
+                        input.base.textColor = textColor
+                    } else {
+                        input.base.textColor = 0xffff77 or 0xff.shl(24)
+                    }
+                } catch (e: Exception) {
+                    input.base.textColor = 0xff7733 or 0xff.shl(24)
+                }
+            }
+        }
+        return input
     }
 
     private fun warnDetectionIssue(name: String?) {
@@ -285,7 +341,7 @@ object ComponentUI {
             // todo char
             "Byte" -> {
                 val type = Type(default as Byte,
-                    { Maths.clamp(it.toLong(), range.minByte().toLong(), range.maxByte().toLong()).toByte() }, { it })
+                    { clamp(it.toLong(), range.minByte().toLong(), range.maxByte().toLong()).toByte() }, { it })
                 return IntInput(style, title, visibilityKey, type).apply {
                     property.init(this)
                     setValue((value as Byte).toInt(), false)
@@ -298,7 +354,7 @@ object ComponentUI {
             }
             "UByte" -> {
                 val type = Type(default as UByte,
-                    { Maths.clamp(it.toLong(), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
+                    { clamp(it.toLong(), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
                     { it })
                 return IntInput(style, title, visibilityKey, type).apply {
                     property.init(this)
@@ -312,7 +368,7 @@ object ComponentUI {
             }
             "Short" -> {
                 val type = Type(default as Short,
-                    { Maths.clamp(it.toLong(), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
+                    { clamp(it.toLong(), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
                     { it })
                 return IntInput(style, title, visibilityKey, type).apply {
                     property.init(this)
@@ -326,7 +382,7 @@ object ComponentUI {
             }
             "UShort" -> {
                 val type = Type(default as UShort,
-                    { Maths.clamp(it.toLong(), range.minUShort().toLong(), range.maxUShort().toLong()).toUShort() },
+                    { clamp(it.toLong(), range.minUShort().toLong(), range.maxUShort().toLong()).toUShort() },
                     { it })
                 return IntInput(style, title, visibilityKey, type).apply {
                     property.init(this)
@@ -455,7 +511,7 @@ object ComponentUI {
             }
 
             // float vectors
-            // todo ranges for vectors (?)
+            // todo ranges for vectors
             "Vector2f" -> {
                 val type = Type.VEC2.withDefault(default as? Vector2f ?: Vector2f())
                 return FloatVectorInput(title, visibilityKey, value as Vector2f, type, style).apply {
@@ -857,7 +913,7 @@ object ComponentUI {
                                 value as Array<*>
                                 return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                     override fun onChange() {
-                                        property.set(this, content.toTypedArray())
+                                        property.set(this, content.toTypedArray2(value))
                                     }
                                 }.apply {
                                     property.init(this)
@@ -1002,6 +1058,9 @@ object ComponentUI {
                             })
                         }
                     }
+                    value is ISaveable && ISaveable.getClass(type0) != null -> {
+                        return createISaveableInput(title, value, style, property)
+                    }
                 }
 
                 LOGGER.warn("Missing knowledge to edit $type0, '$title'")
@@ -1039,6 +1098,7 @@ object ComponentUI {
     }
 
     fun getDefault(type: String): Any? {
+        if (type.endsWith("?")) return null
         return when (type) {
             "Byte" -> 0.toByte()
             "Short" -> 0.toShort()
@@ -1048,7 +1108,6 @@ object ComponentUI {
             "Float" -> 0f
             "Double" -> 0.0
             "String" -> ""
-            "String?" -> null
             "Vector2f" -> Vector2f()
             "Vector3f" -> Vector3f()
             "Vector4f" -> Vector4f()
@@ -1062,7 +1121,14 @@ object ComponentUI {
             "Quaterniond" -> Quaterniond()
             "Matrix4f" -> Matrix4f()
             "Matrix4d" -> Matrix4d()
-            else -> null
+            "File", "FileReference", "Reference" -> InvalidRef
+            else -> {
+                try {// just try it, maybe it works :)
+                    ISaveable.create(type)
+                } catch (e: Exception) {
+                    null
+                }
+            }
         }
     }
 

@@ -9,6 +9,8 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.PlayMode
+import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -166,6 +168,14 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
     }
 
+    @Docs("If the game hang for that many milliseconds, the physics will stop being simulated, and be restarted on the next update")
+    @SerializedProperty
+    var simulationTimeoutMillis = 5000L
+
+    @Docs("Whether physics should be executed in the editing environment")
+    @SerializedProperty
+    var updateInEditMode = false
+
     @NotSerializedProperty
     var lastUpdate = 0L
 
@@ -180,10 +190,6 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                 field = value
             }
         }
-
-    @Docs("If the game hang for that many milliseconds, the physics will stop being simulated, and be restarted on the next update")
-    @SerializedProperty
-    var simulationTimeoutMillis = 5000L
 
     private fun startWorker() {
         workerThread = thread(name = className) {
@@ -248,15 +254,18 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     override fun onUpdate(): Int {
         super.onUpdate()
         lastUpdate = Engine.nanoTime
-        if (synchronousPhysics) {
-            step((Engine.deltaTime * 1e9).toLong(), false)
-        } else {
-            if (isEnabled) {
-                if (workerThread == null) {
-                    startWorker()
-                }
-            } else stopWorker()
-        }
+        val shallExecute = updateInEditMode || RenderView.currentInstance?.playMode != PlayMode.EDITING
+        if (shallExecute) {
+            if (synchronousPhysics) {
+                step((Engine.deltaTime * 1e9).toLong(), false)
+            } else {
+                if (isEnabled) {
+                    if (workerThread == null) {
+                        startWorker()
+                    }
+                } else stopWorker()
+            }
+        } else stopWorker()
         return 1
     }
 

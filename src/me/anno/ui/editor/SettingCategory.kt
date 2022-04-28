@@ -33,7 +33,7 @@ open class SettingCategory(
 
     constructor(title: String, description: String, dictPath: String, withScrollbar: Boolean, style: Style) :
             this(Dict[title, dictPath], title, withScrollbar, false, style) {
-        setTooltip(Dict[description, "$dictPath.desc"])
+        tooltip = Dict[description, "$dictPath.desc"]
     }
 
     val titlePanel = object : TextPanel(title, style.getChild("group")) {

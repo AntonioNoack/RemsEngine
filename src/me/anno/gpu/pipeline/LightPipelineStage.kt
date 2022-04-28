@@ -509,6 +509,7 @@ class LightPipelineStage(
             shader.use()
 
             shader.v4f("tint", -1)
+            shader.v1b("receiveShadows",true)
 
             initShader(shader, cameraMatrix)
 
@@ -617,6 +618,7 @@ class LightPipelineStage(
         shader.use()
 
         shader.v1b("isDirectional", type == LightType.DIRECTIONAL)
+        shader.v1b("receiveShadows",true)
 
         val cameraMatrix = cameraMatrix!!
         val cameraPosition = cameraPosition!!

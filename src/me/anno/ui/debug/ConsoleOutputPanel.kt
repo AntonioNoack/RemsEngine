@@ -88,7 +88,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             val console = ConsoleOutputPanel(style.getChild("small"))
             // console.fontName = "Segoe UI"
             Logging.console = console
-            console.setTooltip("Double-click to open history")
+            console.tooltip = "Double-click to open history"
             console.text = Logging.lastConsoleLines.lastOrNull() ?: ""
             return console
         }

@@ -33,7 +33,7 @@ class PathPanel(file: FileReference?, style: Style) : PanelListX(style) {
 
         val panel = TextPanel(name, style)
         panel.addLeftClickListener { onChangeListener?.invoke(file?.getParent()) }
-        panel.setTooltip(file.toString())
+        panel.tooltip = file.toString()
         this += panel
 
         invalidateLayout()

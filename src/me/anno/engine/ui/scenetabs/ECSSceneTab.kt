@@ -235,6 +235,8 @@ class ECSSceneTab(
         }
     }
 
+    override fun getTooltipText(x: Float, y: Float) = file.absolutePath
+
     fun save() {
         inspector.save()
     }

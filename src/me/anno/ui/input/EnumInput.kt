@@ -22,7 +22,7 @@ open class EnumInput(
 
     constructor(title: String, ttt: String, startValue: String, options: List<NameDesc>, style: Style) :
             this(title, true, startValue, options, style) {
-        setTooltip(ttt)
+        tooltip = ttt
     }
 
     constructor(
@@ -32,9 +32,8 @@ open class EnumInput(
         startValue: String,
         options: List<NameDesc>,
         style: Style
-    ) :
-            this(Dict[title, dictPath], true, startValue, options, style) {
-        setTooltip(Dict[ttt, "$dictPath.desc"])
+    ) : this(Dict[title, dictPath], true, startValue, options, style) {
+        tooltip = Dict[ttt, "$dictPath.desc"]
     }
 
     constructor(
@@ -46,12 +45,12 @@ open class EnumInput(
         style: Style
     ) :
             this(Dict[title, dictPath], true, startValue.name, options, style) {
-        setTooltip(Dict[ttt, "$dictPath.desc"])
+        tooltip = Dict[ttt, "$dictPath.desc"]
     }
 
     constructor(name: NameDesc, startValue: NameDesc, options: List<NameDesc>, style: Style) :
             this(name.name, true, startValue.name, options, style) {
-        setTooltip(name.desc)
+        tooltip = name.desc
     }
 
     var lastIndex = options.indexOfFirst { it.name == startValue }
@@ -155,14 +154,14 @@ open class EnumInput(
     }
 
     fun up() {
-        setIndex( (lastIndex - 1 + options.size) % options.size)
+        setIndex((lastIndex - 1 + options.size) % options.size)
     }
 
     fun down() {
-       setIndex((lastIndex - 1 + options.size) % options.size)
+        setIndex((lastIndex - 1 + options.size) % options.size)
     }
 
-    fun setIndex(index: Int){
+    fun setIndex(index: Int) {
         setValue(options[index], index, true)
     }
 

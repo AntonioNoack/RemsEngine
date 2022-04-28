@@ -526,14 +526,14 @@ object BlenderReader {
             }
             BObject.BObjectType.OB_MESH -> {
                 // add mesh component
-                val c = prefab.add(path, 'c', "MeshComponent", 0)
+                val c = prefab.add(path, 'c', "MeshComponent")
                 prefab.setUnsafe(c, "mesh", (obj.data as BMesh).fileRef)
                 // materials would be nice... but somehow they are always null
             }
             BObject.BObjectType.OB_CAMERA -> {
                 val cam = obj.data as? BCamera
                 if (cam != null) {
-                    val c = prefab.add(path, 'c', "Camera", 0)
+                    val c = prefab.add(path, 'c', "Camera")
                     prefab.setUnsafe(c, "near", cam.near.toDouble())
                     prefab.setUnsafe(c, "far", cam.far.toDouble())
                 }
@@ -550,7 +550,7 @@ object BlenderReader {
                     }
                     if (clazzName != null) {
                         // additional scale by brightness? probably would be a good idea
-                        val c = prefab.add(path, 'c', clazzName, 0)
+                        val c = prefab.add(path, 'c', clazzName)
                         val e = light.energy * 0.01f // 100 W is ~ our brightness
                         prefab.setUnsafe(c, "color", Vector3f(light.r, light.g, light.b).mul(e))
                         prefab.setUnsafe(c, "shadowMapCascades", light.cascadeCount)

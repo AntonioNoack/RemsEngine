@@ -570,10 +570,13 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun getCursor(): Long? = uiParent?.getCursor() ?: 0L
 
     open fun getTooltipPanel(x: Float, y: Float): Panel? = tooltipPanel
-    open fun getTooltipText(x: Float, y: Float): String? = tooltip ?: uiParent?.getTooltipText(x, y)
+    open fun getTooltipText(x: Float, y: Float): String? = tooltip
+    fun getTooltipToP(x: Float, y: Float): Any? =
+        getTooltipText(x, y) ?: getTooltipText(x, y) ?: uiParent?.getTooltipToP(x, y)
 
     fun setTooltip(tooltipText: String?): Panel {
         tooltip = tooltipText
+        tooltipPanel = null
         return this
     }
 

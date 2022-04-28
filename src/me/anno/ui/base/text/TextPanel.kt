@@ -12,10 +12,14 @@ import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.MouseButton
+import me.anno.io.ISaveable
+import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
+import me.anno.ui.base.Font
+import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
@@ -303,13 +307,60 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         clone as TextPanel
         clone.instantTextLoading = instantTextLoading
         clone.padding = padding
+        clone.text = text
         clone.font = font
         clone.textColor = textColor
         clone.focusTextColor = focusTextColor
+        clone.focusBackground = focusBackground
         clone.textAlignment = textAlignment
-        clone.textCacheKey = textCacheKey
+        // clone.textCacheKey = textCacheKey
         clone.breaksIntoMultiline = breaksIntoMultiline
         clone.disableCopy = disableCopy
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeString("text", text)
+        writer.writeObject(null, "font", font)
+        writer.writeBoolean("disableCopy", disableCopy)
+        writer.writeEnum("textAlignment", textAlignment)
+        writer.writeColor("textColor", textColor)
+        writer.writeColor("focusTextColor", focusTextColor)
+        writer.writeColor("focusBackground", focusBackground)
+        writer.writeObject(null, "padding", padding)
+        writer.writeBoolean("breaksIntoMultiline", breaksIntoMultiline)
+        writer.writeBoolean("instantTextLoading", instantTextLoading)
+    }
+
+    override fun readBoolean(name: String, value: Boolean) {
+        when(name){
+            "disableCopy" -> disableCopy = value
+            "breaksIntoMultiline" -> breaksIntoMultiline = value
+            "instantTextLoading" -> instantTextLoading = value
+            else -> super.readBoolean(name, value)
+        }
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when(name){
+            "textColor" -> textColor = value
+            "focusTextColor" -> focusTextColor = value
+            "focusBackground" -> focusBackground = value
+            else -> super.readInt(name, value)
+        }
+    }
+
+    override fun readString(name: String, value: String?) {
+        if(name == "text") text = value ?: ""
+         else super.readString(name, value)
+    }
+
+    override fun readObject(name: String, value: ISaveable?) {
+        when(name){
+            "padding" -> padding = value as? Padding ?: return
+            "font" -> font = value as? Font ?: return
+            else -> super.readObject(name, value)
+        }
     }
 
     override val className: String = "TextPanel"

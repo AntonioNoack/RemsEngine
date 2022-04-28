@@ -30,13 +30,12 @@ class Texture3DBTMaterial : BlockTracedMaterial("3dTex-rt") {
         shader.v3f("color1", color1)
     }
 
-    override fun createFragmentVariables(instanced: Boolean): List<Variable> {
-        return super.createFragmentVariables(instanced) +
-                listOf(
-                    Variable(GLSLType.S3D, "blocksTexture"),
-                    Variable(GLSLType.V3F, "color0"),
-                    Variable(GLSLType.V3F, "color1"),
-                )
+    override fun createFragmentVariables(instanced: Boolean): ArrayList<Variable> {
+        val base = super.createFragmentVariables(instanced)
+        base += Variable(GLSLType.S3D, "blocksTexture")
+        base += Variable(GLSLType.V3F, "color0")
+        base += Variable(GLSLType.V3F, "color1")
+        return base
     }
 
     override fun initProperties(instanced: Boolean): String {

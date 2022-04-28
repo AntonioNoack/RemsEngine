@@ -8,11 +8,18 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFTwist.Companion.twistFunc
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
+import me.anno.maths.Maths.PIf
+import me.anno.maths.Maths.clamp
+import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AABBs.clear
+import me.anno.utils.types.AABBs.set
+import org.joml.AABBf
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.atan2
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 class SDFRotSym : PositionMapper() {
 
@@ -20,19 +27,19 @@ class SDFRotSym : PositionMapper() {
         set(value) {
             field.set(value)
             field.normalize()
-            // invalidateBounds()
-        }
-
-    var offset = Vector3f()
-        set(value) {
-            field.set(value)
-            // invalidateBounds()
+            invalidateBounds()
         }
 
     var slices = 1f
         set(value) {
             field = value
-            // invalidateBounds()
+            invalidateBounds()
+        }
+
+    var offset = Vector3f()
+        set(value) {
+            field.set(value)
+            invalidateBounds()
         }
 
     override fun buildShader(
@@ -50,7 +57,7 @@ class SDFRotSym : PositionMapper() {
         val offset = defineUniform(uniforms, offset)
         builder.append('-').append(offset)
         builder.append(',').appendUniform(uniforms, rotation)
-        builder.append(',').appendUniform(uniforms, GLSLType.V1F){ slices * invTau }
+        builder.append(',').appendUniform(uniforms, GLSLType.V1F) { slices * invTau }
         builder.append(")+").append(offset).append(";\n")
         return null
     }
@@ -69,6 +76,36 @@ class SDFRotSym : PositionMapper() {
         pos.rotateY(-angle)
         rotation.transformInverse(pos)
         pos.add(offset)
+    }
+
+    override fun applyTransform(bounds: AABBf) {
+        // around the axis, apply this transform x times, and union with the points...
+        val slices = clamp(slices, 1f, 8f).roundToInt()
+        val quat = JomlPools.quat4f.create().set(rotation)
+        val quatInv = JomlPools.quat4f.create().set(quat).invert()
+        val pos = JomlPools.vec3f.create()
+        val dst = JomlPools.aabbf.create().clear()
+        val offset = offset
+        for (i in 0 until slices) {
+            val angle = PIf * 2f * i / slices
+            for (j in 0 until 8) {
+                val ox = if (j.and(1) != 0) bounds.minX else bounds.maxX
+                val oy = if (j.and(2) != 0) bounds.minY else bounds.maxY
+                val oz = if (j.and(4) != 0) bounds.minZ else bounds.maxZ
+                pos.set(ox, oy, oz).sub(offset)
+                // surely this could be packed into a single rotation...
+                quatInv.transform(pos)
+                pos.rotateY(angle)
+                quat.transform(pos)
+                pos.add(offset)
+                dst.union(pos)
+            }
+        }
+        //dst.translate(offset)
+        bounds.set(dst)
+        JomlPools.vec3f.sub(1)
+        JomlPools.aabbf.sub(1)
+        JomlPools.quat4f.sub(2)
     }
 
     fun Vector4f.add(v: Vector3f) {
@@ -92,8 +129,8 @@ class SDFRotSym : PositionMapper() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFRotSym
-        clone.rotation = rotation
-        clone.offset = offset
+        clone.rotation.set(rotation)
+        clone.offset.set(offset)
         clone.slices = slices
     }
 

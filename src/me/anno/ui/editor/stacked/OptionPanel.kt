@@ -23,7 +23,7 @@ class OptionPanel(
 ) : SettingCategory(title, stackPanel.style) {
 
     init {
-        setTooltip(tooltipText)
+        tooltip = tooltipText
         PropertyInspector.createInspector(value, content, style)
     }
 

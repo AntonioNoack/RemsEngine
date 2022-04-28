@@ -79,7 +79,7 @@ import kotlin.math.*
 
 // todo images: show extra information: width, height
 class FileExplorerEntry(
-    private val explorer: FileExplorer,
+    private val explorer: FileExplorer?,
     val isParent: Boolean, file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
 
@@ -109,11 +109,20 @@ class FileExplorerEntry(
     var previewFPS = 1.0
     var meta: FFMPEGMetadata? = null
 
+    var showTitle = true
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
+
     private val originalBackgroundColor = backgroundColor
     private val hoverBackgroundColor = mixARGB(black, originalBackgroundColor, 0.85f)
     private val darkerBackgroundColor = mixARGB(black, originalBackgroundColor, 0.7f)
 
-    private val size get() = explorer.entrySize.toInt()
+    private val size
+        get() = explorer?.entrySize?.toInt() ?: 64
 
     private val importType = file.extension.getImportType()
     private var iconPath = if (isParent || file.isDirectory) {
@@ -173,7 +182,8 @@ class FileExplorerEntry(
         super.calculateSize(w, h)
         val size = size
         minW = size
-        minH = size + (titlePanel.font.sizeInt * 5 / 2)
+        minH = size
+        if (showTitle) minH += (titlePanel.font.sizeInt * 5 / 2)
         this.w = minW
         this.h = minH
     }
@@ -519,7 +529,7 @@ class FileExplorerEntry(
         val h = h
 
         val extraHeight = h - w
-        lines = max(ceil(extraHeight / fontSize).toInt(), 1)
+        lines = if (showTitle) max(ceil(extraHeight / fontSize).toInt(), 1) else 0
 
         padding = w / 20
 
@@ -540,7 +550,7 @@ class FileExplorerEntry(
             ::drawThumb
         )
 
-        clip2Dual(
+        if (showTitle) clip2Dual(
             x0, y0, x1, y1,
             x + padding,
             y + h - padding - textH,
@@ -582,9 +592,11 @@ class FileExplorerEntry(
                 StudioBase.dragged = Draggable(stringContent, "File", original, title, style)
             }
             "Enter" -> {
-                val file = getReferenceOrTimeout(path)
-                if (explorer.canSensiblyEnter(file)) {
-                    explorer.switchTo(file)
+                if (explorer != null) {
+                    val file = getReferenceOrTimeout(path)
+                    if (explorer.canSensiblyEnter(file)) {
+                        explorer.switchTo(file)
+                    } else return false
                 } else return false
             }
             "Rename" -> {
@@ -596,7 +608,7 @@ class FileExplorerEntry(
             "OpenInStandardProgram" -> getReferenceOrTimeout(path).openInStandardProgram()
             "EditInStandardProgram" -> getReferenceOrTimeout(path).editInStandardProgram()
             "Delete" -> deleteFileMaybe(this, getReferenceOrTimeout(path))
-            "OpenOptions" -> explorer.openOptions(getReferenceOrTimeout(path))
+            "OpenOptions" -> explorer?.openOptions(getReferenceOrTimeout(path)) ?: return false
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
@@ -610,17 +622,17 @@ class FileExplorerEntry(
             if (dst.exists && !allowed.equals(file.name, true)) {
                 ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override")) {
                     file.renameTo(dst)
-                    explorer.invalidate()
+                    explorer?.invalidate()
                 }
             } else {
                 file.renameTo(dst)
-                explorer.invalidate()
+                explorer?.invalidate()
             }
         }
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        if (button.isLeft) {
+        if (button.isLeft && explorer != null) {
             val file = getReferenceOrTimeout(path)
             if (explorer.canSensiblyEnter(file)) {
                 LOGGER.info("Can enter ${file.name}? Yes!")
@@ -658,7 +670,7 @@ class FileExplorerEntry(
                 )
             ) {
                 moveToTrash(files.map { it.toFile() }.toTypedArray())
-                explorer.invalidate()
+                explorer?.invalidate()
             }
             val deletePermanently = MenuOption(
                 NameDesc(
@@ -668,7 +680,7 @@ class FileExplorerEntry(
                 )
             ) {
                 files.forEach { it.deleteRecursively() }
-                explorer.invalidate()
+                explorer?.invalidate()
             }
             openMenu(windowStack, title, listOf(moveToTrash, dontDelete, deletePermanently))
         }

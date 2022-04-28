@@ -35,7 +35,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return builder
     }
 
-    open fun createVertexAttributes(instanced: Boolean, colors: Boolean): ArrayList<Variable> {
+    open fun createVertexVariables(instanced: Boolean, colors: Boolean): ArrayList<Variable> {
 
         val attributes = ArrayList<Variable>(32)
         attributes += Variable(GLSLType.V3F, "coords", VariableMode.ATTR)
@@ -95,7 +95,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         return ShaderStage(
             "vertex",
-            createVertexAttributes(instanced, colors),
+            createVertexVariables(instanced, colors),
             "" +
                     defines +
                     "#ifdef INSTANCED\n" +
@@ -145,10 +145,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     }
 
-    // just like the gltf pbr shader define all material properties
-    open fun createFragmentStage(instanced: Boolean): ShaderStage {
-
-        val fragmentVariables = listOf(
+    open fun createFragmentVariables(instanced: Boolean): ArrayList<Variable> {
+        return arrayListOf(
             // input textures
             Variable(GLSLType.S2D, "diffuseMap"),
             Variable(GLSLType.S2D, "normalMap"),
@@ -197,10 +195,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V4F, "clearCoat"),
             Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
         )
+    }
 
+    // just like the gltf pbr shader define all material properties
+    open fun createFragmentStage(instanced: Boolean): ShaderStage {
 
         return ShaderStage(
-            "material", fragmentVariables, "" +
+            "material", createFragmentVariables(instanced), "" +
                     "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
 
                     // step by step define all material properties

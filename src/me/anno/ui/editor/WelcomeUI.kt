@@ -152,15 +152,13 @@ abstract class WelcomeUI {
         for (project in recent) {
             val tp = TextPanel(project.name, style)
             tp.enableHoverColor = true
-            tp.setTooltip(project.file.absolutePath)
+            tp.tooltip = project.file.absolutePath
             thread(name = "FileExists?") {// file search can use some time
                 if (!project.file.exists) {
                     tp.textColor = 0xff0000 or black
-                    tp.setTooltip(
-                        Dict["%1, not found!", "ui.recentProjects.projectNotFound"].replace(
-                            "%1",
-                            project.file.absolutePath
-                        )
+                    tp.tooltip = Dict["%1, not found!", "ui.recentProjects.projectNotFound"].replace(
+                        "%1",
+                        project.file.absolutePath
                     )
                 }
             }

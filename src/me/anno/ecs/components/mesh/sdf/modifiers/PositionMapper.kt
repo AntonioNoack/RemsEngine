@@ -10,35 +10,10 @@ import org.joml.Vector4f
 /**
  * transforms positions, e.g. by sine waves
  * */
-abstract class PositionMapper : PrefabSaveable() {
-
-    override var isEnabled: Boolean
-        get() = super.isEnabled
-        set(value) {
-            if (super.isEnabled != value) {
-                invalidateShader()
-                super.isEnabled = value
-            }
-        }
-
-    fun invalidateShader() {
-        when (val parent = parent) {
-            is SDFComponent -> parent.invalidateShader()
-            // else -> LOGGER.warn("Incorrect parent: ${parent?.className}")
-        }
-    }
-
-    fun invalidateBounds() {
-        when (val parent = parent) {
-            is SDFComponent -> parent.invalidateBounds()
-            // else -> LOGGER.warn("Incorrect parent: ${parent?.className}")
-        }
-    }
-
-    open fun applyTransform(bounds: AABBf) {}
+abstract class PositionMapper : SDFMapper() {
 
     /**
-     * returns the name of the sd offset variable (or null if no offset exists)
+     * @return the name of the sd offset variable (or null if no offset exists)
      * */
     abstract fun buildShader(
         builder: StringBuilder,
@@ -49,14 +24,9 @@ abstract class PositionMapper : PrefabSaveable() {
     ): String?
 
     /**
-     * 4th component is the offset to the sdf:
-     * - just increase it, if applicable
-     * - ignore it otherwise
+     * applies the transform to a vector, e.g. rotation or such
+     * @param pos position plus depth offset
      * */
     abstract fun calcTransform(pos: Vector4f)
-
-    /*companion object {
-        private val LOGGER = LogManager.getLogger(PositionMapper::class)
-    }*/
 
 }
