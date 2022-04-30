@@ -36,6 +36,8 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
 
     var locallyAllocated = 0L
 
+    var internalFormat = 0
+
     fun checkSession() {
         if (session != OpenGL.session) {
             session = OpenGL.session
@@ -59,8 +61,9 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         writeAlignment(alignment)
     }
 
-    private fun afterUpload(bpp: Int) {
+    private fun afterUpload(internalFormat: Int, bpp: Int) {
         isCreated = true
+        this.internalFormat = internalFormat
         locallyAllocated = allocate(locallyAllocated, w.toLong() * h.toLong() * d.toLong() * bpp)
         filtering(filtering)
         GFX.check()
@@ -69,13 +72,13 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
     fun createRGBA8() {
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-        afterUpload(4)
+        afterUpload(GL_RGBA8, 4)
     }
 
     fun createRGBAFP32() {
         beforeUpload(w * 16)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
-        afterUpload(16)
+        afterUpload(GL_RGBA32F, 16)
     }
 
     fun create(createImage: () -> BufferedImage) {
@@ -119,7 +122,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
     fun createRGBA8(data: IntArray) {
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
-        afterUpload(4)
+        afterUpload(GL_RGBA8, 4)
     }
 
     fun createMonochrome(data: ByteArray) {
@@ -136,7 +139,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         if (w * h * d != data.remaining()) throw RuntimeException("incorrect size!")
         beforeUpload(w)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE, data)
-        afterUpload(1)
+        afterUpload(GL_R8, 1)
     }
 
     fun create(type: TargetType, data: ByteArray?) {
@@ -156,7 +159,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
             type.uploadFormat, type.fillType, byteBuffer
         )
         bufferPool.returnBuffer(byteBuffer)
-        afterUpload(type.bytesPerPixel)
+        afterUpload(type.internalFormat, type.bytesPerPixel)
     }
 
     fun createRGBA(data: FloatArray) {
@@ -175,7 +178,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         beforeUpload(w * 16)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         bufferPool.returnBuffer(byteBuffer)
-        afterUpload(16)
+        afterUpload(GL_RGBA32F, 16)
     }
 
     fun createRGBA(data: ByteArray) {
@@ -187,14 +190,14 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
-        afterUpload(4)
+        afterUpload(GL_RGBA8, 4)
     }
 
     fun createRGBA(data: ByteBuffer) {
         if (w * h * d * 4 != data.remaining()) throw RuntimeException("incorrect size!, got ${data.remaining()}, expected $w * $h * $d * 4 bpp")
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
-        afterUpload(4)
+        afterUpload(GL_RGBA8, 4)
     }
 
     fun ensureFiltering(nearest: GPUFiltering) {

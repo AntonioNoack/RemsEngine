@@ -3,6 +3,7 @@ package me.anno.gpu.shader
 import me.anno.gpu.GFX
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture3D
 import me.anno.maths.Maths.ceilDiv
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
@@ -10,6 +11,7 @@ import org.joml.Vector3i
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL43.*
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class ComputeShader(
     shaderName: String,
     val version: Int,
@@ -60,6 +62,21 @@ class ComputeShader(
         )
     }
 
+    fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
+        Companion.bindTexture(slot, texture, mode)
+    }
+
+    /**
+     * for array textures to bind a single layer
+     * */
+    fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, layer: Int) {
+        bindTexture(slot, texture, mode, layer)
+    }
+
+    fun bindTexture(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {
+        Companion.bindTexture(slot, texture, mode)
+    }
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(ComputeShader::class)
@@ -85,20 +102,21 @@ class ComputeShader(
             intArrayOf(sx, sy, sz, maxUnitsPerGroup)
         }
 
-        // todo this type could be derived from the shader or texture
-        fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, type: Int = GL_RGBA32F) {
-            if(texture.internalFormat == 0){
-                LOGGER.warn("Internal format is 0!, using $type")
-                texture.internalFormat = type
-            }
+        // texture type could be derived from the shader and texture -> verify it?
+        // todo can we dynamically create shaders for the cases that we need? probably best :)
+        fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
             glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, texture.internalFormat)
         }
 
         /**
          * for array textures to bind a single layer
          * */
-        fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, type: Int, layer: Int) {
-            glBindImageTexture(slot, texture.pointer, 0, false, layer, mode.code, type)
+        fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, layer: Int) {
+            glBindImageTexture(slot, texture.pointer, 0, false, layer, mode.code, texture.internalFormat)
+        }
+
+        fun bindTexture(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {
+            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, texture.internalFormat)
         }
 
     }

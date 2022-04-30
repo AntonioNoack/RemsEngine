@@ -1,7 +1,7 @@
 package me.anno.audio.openal
 
+import me.anno.Engine
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.studio.StudioBase.Companion.shallStop
 import me.anno.utils.Sleep.sleepABit
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL
@@ -24,7 +24,7 @@ object AudioManager {
     private var device = 0L
     private var context = 0L
 
-    // which session is the current one
+    // which session is the current one;
     // resources from old session shall not be used,
     // as all pointers will be invalid!
     var openALSession = 0
@@ -37,27 +37,36 @@ object AudioManager {
     var onUpdate: ((time: Long) -> Unit)? = null
 
     fun startRunning() {
+        runningThread?.interrupt() // kill the old thread
         runningThread = thread(name = "AudioManager") {
-            init()
-            while (!shallStop) {
-                ALBase.check()
-                val time = System.nanoTime()
-                try {
-                    AudioTasks.workQueue()
-                } catch (e: Exception) {
-                    // if(e.message != "ALException: Invalid Name") // why does the error happen???
-                    e.printStackTrace()
+            // just in case the other thread is still alive, wait a little
+            try {
+                Thread.sleep(50)
+                init()
+                while (!Engine.shutdown) {
+                    // idk, just in case...
+                    ALBase.alThread = Thread.currentThread()
+                    ALBase.check()
+                    val time = System.nanoTime()
+                    try {
+                        AudioTasks.workQueue()
+                    } catch (e: Exception) {
+                        // if(e.message != "ALException: Invalid Name") // why does the error happen???
+                        e.printStackTrace()
+                    }
+                    ALBase.check()
+                    onUpdate?.invoke(time)
+                    ALBase.check()
+                    if (!Engine.shutdown) {
+                        // shall be destroyed by OpenAL itself -> false
+                        sleepABit(false)
+                    }
+                    checkIsDestroyed()
                 }
-                ALBase.check()
-                onUpdate?.invoke(time)
-                ALBase.check()
-                if (!shallStop) {
-                    // shall be destroyed by OpenAL itself -> false
-                    sleepABit(false)
-                }
-                checkIsDestroyed()
+                destroy()
+            } catch (e: InterruptedException) {
+                // ignore
             }
-            destroy()
         }
     }
 
@@ -107,6 +116,7 @@ object AudioManager {
     fun init() {
 
         openALSession++ // new session
+        ALBase.alThread = Thread.currentThread()
 
         // only returns "OpenAL Soft" on Windows -> relatively useless
         // LOGGER.info(alcGetString(0L, ALC_DEFAULT_DEVICE_SPECIFIER))

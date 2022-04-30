@@ -570,7 +570,7 @@ class SDFGroup : SDFComponent() {
 
         const val hgFunctions = "" +
                 // some of these types could use an additional material index for the intersection...
-                // but we'll change the material system anyways
+                // but we'll change the material system anyway
                 "void pR45(inout vec2 p) {\n" +
                 "   p = (p + vec2(p.y, -p.x))*sqrt(0.5);\n" +
                 "}\n" +
