@@ -39,8 +39,6 @@ import org.apache.logging.log4j.LogManager
 
 // todo loading is slow: all tabs are loaded, even if only a single one is actually used
 
-// todo decals
-
 // todo forward-plus rendering
 // which platforms support Compute Shaders? we need them for forward+
 // Windows, Android with OpenGL 3.0
@@ -61,7 +59,6 @@ import org.apache.logging.log4j.LogManager
 // todo - inspect -> show it in the editor
 
 // todo drop in meshes
-// todo drop in ui maybe...
 
 // todo reduce skeletal animations to a single translation plus rotations only?
 // todo animation matrices then can be reduced to rotation + translation
@@ -70,7 +67,7 @@ import org.apache.logging.log4j.LogManager
 // to do bug: long text field is broken...
 
 
-// todo games, which we want to develop:
+// games, which we want to develop:
 //  - city builder
 //          on a globe would be cool
 //          with districts, giant world, connecting multiple cities together

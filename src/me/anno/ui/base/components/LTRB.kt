@@ -22,6 +22,15 @@ open class LTRB(var left: Int, var top: Int, var right: Int, var bottom: Int) : 
         this.bottom = bottom
     }
 
+    fun add(all: Int) =add(all,all,all,all)
+
+    fun add(left: Int, top: Int, right: Int, bottom: Int){
+        this.left += left
+        this.top += top
+        this.right += right
+        this.bottom += bottom
+    }
+
     override fun readInt(name: String, value: Int) {
         when (name) {
             "left" -> left = value

@@ -63,12 +63,6 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             return v
         }
 
-        fun castB(x: Double, y: Double, z: Double): Vector3d {
-            val v = Stack.borrowVec()
-            v.set(x, y, z)
-            return v
-        }
-
         fun convertMatrix(ourTransform: Matrix4x3d, scale: org.joml.Vector3d): Matrix4d {
             // bullet does not support scale -> we always need to correct it
             val sx = 1.0 / scale.x
@@ -269,6 +263,16 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             }
         } else {
             LOGGER.warn("Cannot constrain two static bodies!, ${rigidbody.prefabPath} to ${other.prefabPath}")
+        }
+    }
+
+    override fun removeConstraints(entity: Entity) {
+        entity.allComponents(Constraint::class) {
+            val other = it.other?.entity
+            if (other != null) {
+                remove(other, false)
+            }
+            false
         }
     }
 

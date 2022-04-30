@@ -166,6 +166,10 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
     }
 
+    override fun removeConstraints(entity: Entity) {
+        // todo constraints for Physics2d
+    }
+
     override fun worldRemoveRigidbody(rigidbody: Body) {
         world.destroyBody(rigidbody)
     }

@@ -14,7 +14,9 @@ import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.ui.utils.WindowStack
+import me.anno.utils.structures.lists.Lists.size
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.logging.log4j.LogManager
 
 class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
     ScrollPanelY(Padding(3), AxisAlignment.MIN, style.getChild("propertyInspector")) {
@@ -22,8 +24,8 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
     constructor(getInspectable: () -> Inspectable?, style: Style, @Suppress("unused_parameter") ignored: Unit) :
             this({ getInspectable().run { if (this == null) emptyList() else listOf(this) } }, style)
 
-    val list0 = child as PanelListY
-    val list1 = PanelListY(style)
+    val oldValues = child as PanelListY
+    val newValues = PanelListY(style)
     var lastSelected: List<Inspectable> = emptyList()
 
     val searchPanel = TextInput("Search Properties", "", true, style)
@@ -32,7 +34,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         searchPanel.addChangeListener { searchTerms ->
             // todo if an element is hidden by VisibilityKey, and it contains the search term, toggle that VisibilityKey
             val search = Search(searchTerms)
-            for ((index, child) in list0.children.withIndex()) {
+            for ((index, child) in oldValues.children.withIndex()) {
                 if (index > 0) {
                     child.visibility = Visibility[child.fulfillsSearch(search)]
                 }
@@ -54,10 +56,10 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         if (selected != lastSelected) {
             lastSelected = selected
             needsUpdate = false
-            list0.clear()
+            oldValues.clear()
             if (selected.isNotEmpty()) {
-                list0.add(searchPanel)
-                createInspector(selected, list0, style)
+                oldValues.add(searchPanel)
+                createInspector(selected, oldValues, style)
             }
         } else if (needsUpdate) {
             update(selected)
@@ -68,37 +70,49 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         invalidateDrawing()
         lastSelected = selected
         needsUpdate = false
-        list1.clear()
+        newValues.clear()
         if (selected.isNotEmpty()) {
-            createInspector(selected, list1, style)
+            createInspector(selected, newValues, style)
         }
         // is matching required? not really
-        val src = list1.listOfAll.iterator()
-        val dst = list0.listOfAll.iterator()
-        if (src.hasNext()) src.next() // skip search panel
+        val newPanels = newValues.listOfAll.toList()
+        val oldPanels = oldValues.listOfAll.toList()
+        val newSize = newPanels.size + searchPanel.listOfAll.size
+        val oldSize = oldPanels.size
+        val newPanelIter = newPanels.iterator()
+        val oldPanelIter = oldPanels.iterator()
+        if (newPanelIter.hasNext()) newPanelIter.next() // skip search panel
         // works as long as the structure stays the same
-        while (src.hasNext() && dst.hasNext()) {
-            val s = src.next()
-            val d = dst.next()
+        while (newPanelIter.hasNext() and oldPanelIter.hasNext()) {
+            val newPanel = newPanelIter.next()
+            val oldPanel = oldPanelIter.next()
             // don't change the value while the user is editing it
             // this would cause bad user experience:
             // e.g. 0.0001 would be replaced with 1e-4
-            if (d.listOfAll.any { it.isInFocus }) continue
-            if (s is InputPanel<*> && s::class == d::class) {
-                (d as? InputPanel<Any?>)?.apply {
-                    d.setValue(s.lastValue, false)
+            if (!oldPanel.isAnyChildInFocus &&
+                !newPanel.isAnyChildInFocus &&
+                newPanel is InputPanel<*> &&
+                newPanel::class == oldPanel::class
+            ) {
+                // only the value needs to be updated
+                // no one to be notified
+                (oldPanel as? InputPanel<Any?>)?.apply {
+                    oldPanel.setValue(newPanel.lastValue, false)
                 }
             }
         }
-        if (src.hasNext() != dst.hasNext() && selected.isNotEmpty()) {
+        if (newSize != oldSize && selected.isNotEmpty()) {
             // we need to update the structure...
-            lastSelected = emptyList()
-            tickUpdate()
+            // todo transfer focussed elements, so we don't loose focus
+            LOGGER.info("Whole structure needed update, new: ${newPanels.size} vs old: ${oldPanels.size}")
+            oldValues.clear()
+            oldValues.add(searchPanel)
+            oldValues.addAll(newValues.children)
         }
     }
 
     operator fun plusAssign(panel: Panel) {
-        list0 += panel
+        oldValues += panel
     }
 
     override fun onPropertiesChanged() {
@@ -108,6 +122,8 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
     override val className: String = "PropertyInspector"
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(PropertyInspector::class)
 
         private fun createGroup(
             title: String, description: String, dictSubPath: String,
@@ -138,8 +154,8 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             }
         }
 
+        /** expensive operation if something major was changed */
         fun invalidateUI() {
-            // expensive operation
             for (window in GFX.windows) {
                 invalidateUI(window.windowStack)
             }

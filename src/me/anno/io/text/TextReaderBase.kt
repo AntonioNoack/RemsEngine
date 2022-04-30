@@ -16,8 +16,8 @@ import java.io.EOFException
 abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
 
     var tmpChar = -1
-    var lineNumber = 1
-    var lineIndex = 0 // index within line
+    private var lineNumber = 1
+    private var lineIndex = 0 // index within line
 
     fun readNext(char: Char) {
         readNext(char.code)
@@ -202,7 +202,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         }
     }
 
-    fun <ArrayType, InstanceType> readArray(
+    private fun <ArrayType, InstanceType> readArray(
         typeName: String,
         createArray: (arraySize: Int) -> ArrayType,
         readValue: () -> InstanceType,
@@ -233,7 +233,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         return values
     }
 
-    inline fun <reified Type> readArray(
+    private inline fun <reified Type> readArray(
         typeName: String, a0: Type,
         crossinline readValue: () -> Type,
     ): Array<Type> {
@@ -243,7 +243,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         )
     }
 
-    inline fun <reified Type> readArray2(
+    private inline fun <reified Type> readArray2(
         typeName: String, a0: Array<Type>,
         crossinline readValue: () -> Type,
     ): Array<Array<Type>> {
@@ -741,31 +741,31 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         toDouble()// ?: error("Invalid double", this)
     }
 
-    fun readBoolArray() = readArray("boolean",
+    private fun readBoolArray() = readArray("boolean",
         { BooleanArray(it) }, { readBool() },
         { array, index, value -> array[index] = value })
 
-    fun readCharArray() = readArray("char",
+    private fun readCharArray() = readArray("char",
         { CharArray(it) }, { readChar() },
         { array, index, value -> array[index] = value })
 
-    fun readByteArray() = readArray("byte",
+    private fun readByteArray() = readArray("byte",
         { ByteArray(it) }, { readByte() },
         { array, index, value -> array[index] = value })
 
-    fun readShortArray() = readArray("short",
+    private fun readShortArray() = readArray("short",
         { ShortArray(it) }, { readShort() },
         { array, index, value -> array[index] = value })
 
-    fun readIntArray() = readArray("int",
+    private fun readIntArray() = readArray("int",
         { IntArray(it) }, { readInt() },
         { array, index, value -> array[index] = value })
 
-    fun readLongArray() = readArray("long",
+    private fun readLongArray() = readArray("long",
         { LongArray(it) }, { readLong() },
         { array, index, value -> array[index] = value })
 
-    fun readFloatArray() = readArray(
+    private fun readFloatArray() = readArray(
         "float",
         { FloatArray(it) }, { readFloat() },
         { array, index, value -> array[index] = value }
@@ -889,7 +889,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
                     when (val next = skipSpace()) {
                         'n' -> readNull()
                         '{' -> readObject()
-                        in '0'..'9' -> readPtr(next, true)
+                        in '0'..'9' -> readPtr(next)
                         else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
                     }
                 }, { array, index, value -> array[index] = value })
@@ -902,7 +902,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
                         when (val next = skipSpace()) {
                             'n' -> readNull()
                             '{' -> readObjectAndRegister(type)
-                            in '0'..'9' -> readPtr(next, true)
+                            in '0'..'9' -> readPtr(next)
                             else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
                         }
                     }, { array, index, value -> array[index] = value })
@@ -933,9 +933,9 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         return obj
     }
 
-    private fun readPtr(next: Char, warnIfMissing: Boolean): ISaveable? {
+    private fun readPtr(next: Char): ISaveable? {
         tmpChar = next.code
-        return getByPointer(readInt(), warnIfMissing)
+        return getByPointer(readInt(), warnIfMissing = true)
     }
 
     private fun readNull(): Nothing? {

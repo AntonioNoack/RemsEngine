@@ -174,7 +174,7 @@ class Controller(val id: Int) {
 
     fun pollEvents(window: WindowX, isFirst: Boolean): Boolean {
 
-        val time = Engine.gameTime
+        val time = Engine.nanoTime
         val dt = clamp((time - lastTime) * 1e-9f, 1e-3f, 0.2f)
         lastTime = time
         isActiveMaybe *= (1f - dt)
@@ -309,7 +309,7 @@ class Controller(val id: Int) {
                     ActionManager.onMouseMoved(window, dx, dy)
                     if (!GFX.isMouseTrapped) {
                         // only works well, if we have a single player
-                        // it we have a mouse user and a controller user, the controller user will win here ...
+                        // if we have a mouse user and a controller user, the controller user will win here ...
                         // todo grand theft waifu should be playable on keyboard/mouse + controller at the same time <3
                         // reset the mouse position, if we used the original mouse again
                         // todo update mouseX/Y outside the main window, and then remove this condition
@@ -335,7 +335,7 @@ class Controller(val id: Int) {
                     var dx = axisValues[scrollButtons]
                     var dy = axisValues[scrollButtons + 1]
 
-                    // non linear curve for better control, and fast-scrolling
+                    // non-linear curve for better control, and fast-scrolling
                     val speed = DefaultConfig["ui.controller.mouseWheelSpeed", 50f] * dt
                     if (DefaultConfig["ui.controller.mouseWheelEnableAcceleration", true]) {
                         val f = sq(dx, dy)

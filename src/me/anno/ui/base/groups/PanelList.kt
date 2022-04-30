@@ -38,6 +38,14 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         child.parent = this
     }
 
+    fun addAll(children: Collection<Panel>) {
+        val oldSize = this.children.size
+        this.children.addAll(children)
+        for (index in oldSize until this.children.size) {
+            this.children[index].parent = this
+        }
+    }
+
     override fun addChild(child: PrefabSaveable) {
         if (child is Panel) add(child)
     }

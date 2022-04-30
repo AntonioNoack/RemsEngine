@@ -300,6 +300,12 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         }
     }
 
+    fun disableFocusColors(): TextPanel {
+        focusTextColor = textColor
+        focusBackground = backgroundColor
+        return this
+    }
+
     override fun clone() = TextPanel(this)
 
     override fun copy(clone: PrefabSaveable) {
@@ -333,7 +339,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     override fun readBoolean(name: String, value: Boolean) {
-        when(name){
+        when (name) {
             "disableCopy" -> disableCopy = value
             "breaksIntoMultiline" -> breaksIntoMultiline = value
             "instantTextLoading" -> instantTextLoading = value
@@ -342,7 +348,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     override fun readInt(name: String, value: Int) {
-        when(name){
+        when (name) {
             "textColor" -> textColor = value
             "focusTextColor" -> focusTextColor = value
             "focusBackground" -> focusBackground = value
@@ -351,12 +357,12 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     override fun readString(name: String, value: String?) {
-        if(name == "text") text = value ?: ""
-         else super.readString(name, value)
+        if (name == "text") text = value ?: ""
+        else super.readString(name, value)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "padding" -> padding = value as? Padding ?: return
             "font" -> font = value as? Font ?: return
             else -> super.readObject(name, value)

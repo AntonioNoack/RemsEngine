@@ -16,19 +16,8 @@ import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
 import kotlin.math.abs
 
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 open class Rigidbody : Component() {
-
-    // todo prefer to split strings when switching from lower case to upper case
-
-    // todo physics: awake button, which adds a little of force, or temporarily undoes the sleeping time limit, and activates it
-
-    // done extra gravity settings
-
-    // todo getters for all information like velocity and such
-
-    // done functions to add impulses and forces
-
-    // todo transform this into a matrix
 
     @Range(0.0, 15.0)
     var group = 1
@@ -176,6 +165,48 @@ open class Rigidbody : Component() {
             bulletInstance?.deactivationTime = value
         }
 
+    @DebugProperty
+    var velocity = Vector3d()
+        get() {
+            val bi = bulletInstance
+            if (bi != null) {
+                val tmp = Stack.borrowVec()
+                bulletInstance?.getLinearVelocity(tmp)
+                field.set(tmp.x, tmp.y, tmp.z)
+            }
+            return field
+        }
+        set(value) {
+            field.set(value)
+            val bi = bulletInstance
+            if (bi != null) {
+                val tmp = Stack.borrowVec()
+                tmp.set(value.x, value.y, value.z)
+                bulletInstance?.setLinearVelocity(tmp)
+            }
+        }
+
+    @DebugProperty
+    var angularVelocity = Vector3d()
+        get() {
+            val bi = bulletInstance
+            if (bi != null) {
+                val tmp = Stack.borrowVec()
+                bulletInstance?.getAngularVelocity(tmp)
+                field.set(tmp.x, tmp.y, tmp.z)
+            }
+            return field
+        }
+        set(value) {
+            field.set(value)
+            val bi = bulletInstance
+            if (bi != null) {
+                val tmp = Stack.borrowVec()
+                tmp.set(value.x, value.y, value.z)
+                bulletInstance?.setAngularVelocity(tmp)
+            }
+        }
+
     fun invalidatePhysics() {
         val entity = entity ?: return
         entity.physics?.invalidate(entity)
@@ -193,10 +224,16 @@ open class Rigidbody : Component() {
 
     @SerializedProperty
     var centerOfMass = Vector3d()
-    /*set(value) {// todo
-        field = value
-        bulletInstance?.setCenterOfMassTransform(com.bulletphysics.linearmath.Transform())
-    }*/
+        set(value) {
+            field.set(value)
+            val bi = bulletInstance
+            if (bi != null) {
+                val trans = Stack.borrowTrans()
+                trans.setIdentity()
+                trans.origin.set(value.x, value.y, value.z)
+                bi.setCenterOfMassTransform(trans)
+            }
+        }
 
     @Docs("If an object is static, it will never move, and has infinite mass")
     @NotSerializedProperty

@@ -44,7 +44,7 @@ class BooleanInput(
             this += titleView
             titleView.enableHoverColor = true
             titleView.padding.right = 5
-            titleView.focusTextColor = titleView.textColor
+            titleView.disableFocusColors()
         }
         this += checkView
         this += WrapAlign.LeftTop
@@ -52,12 +52,10 @@ class BooleanInput(
 
     override val lastValue: Boolean get() = checkView.lastValue
 
-    // todo drawing & ignoring inputs
-    private var _isEnabled = true
-    override var isEnabled: Boolean
-        get() = _isEnabled
+    var isChecked: Boolean
+        get() = checkView.isChecked
         set(value) {
-            _isEnabled = value; invalidateDrawing()
+            checkView.isChecked = value
         }
 
     override var textColor: Int
@@ -124,6 +122,7 @@ class BooleanInput(
         clone.titleView?.text = titleView?.text ?: ""
         // only works, if there is no references
         clone.isSelectedListener = isSelectedListener
+        clone.isChecked = isChecked
     }
 
     override val className: String = "BooleanInput"

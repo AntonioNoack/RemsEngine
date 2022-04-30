@@ -8,6 +8,7 @@ import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
@@ -41,6 +42,8 @@ import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
+
+// todo darken panels when in play-testing mode
 
 class ECSSceneTab(
     val syncMaster: SyncMaster,
@@ -132,6 +135,14 @@ class ECSSceneTab(
             val root = inspector.root
             isFirstTime = false
             resetCamera(root)
+        }
+
+        val prefab = inspector.prefab
+        if (prefab.clazzName == "Entity") {
+            val instance = prefab.getSampleInstance() as Entity
+            instance.create()
+            val physics = instance.getComponent(BulletPhysics::class, false)
+            if (physics != null) instance.rebuildPhysics(physics)
         }
 
         for (window in window?.windowStack ?: emptyList()) {

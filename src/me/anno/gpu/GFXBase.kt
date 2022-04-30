@@ -20,10 +20,12 @@ import me.anno.gpu.debug.OpenGLDebug.getDebugTypeName
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
+import me.anno.input.Input
 import me.anno.input.Input.invalidateLayout
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.utils.Clock
@@ -247,6 +249,8 @@ open class GFXBase {
         return window.pointer != 0L
     }
 
+    private var neverStarveWindows = DefaultConfig["ux.neverStarveWindows", false]
+
     private var lastCurrent = 0L
     open fun runRenderLoop(window0: WindowX) {
         LOGGER.info("Running RenderLoop")
@@ -267,10 +271,21 @@ open class GFXBase {
         tick.stop("Game Init")
         var lastTime = System.nanoTime()
         while (!destroyed && !shutdown) {
+
+            Engine.updateTime()
+
             val time = Engine.nanoTime
+
+            val firstWindow = windows.firstOrNull()
+            if (firstWindow != null) Input.pollControllers(firstWindow)
+
             for (index in 0 until windows.size) {
                 val window = windows.getOrNull(index) ?: break
-                if (window.isInFocus || abs(window.lastUpdate - time) > 1e9 / idleFPS) {
+                if (window.isInFocus ||
+                    window.hasActiveMouseTargets() ||
+                    neverStarveWindows ||
+                    abs(window.lastUpdate - time) * idleFPS > 1e9
+                ) {
                     window.lastUpdate = time
                     // hopefully this is ok (calling it async to other glfw stuff)
                     if (makeCurrent(window)) {
@@ -292,7 +307,9 @@ open class GFXBase {
                 if (window.shouldClose) close(window)
             }
 
-            if (windows.isNotEmpty() && windows.none { it.isInFocus && !it.isMinimized }) {
+            if (windows.isNotEmpty() &&
+                windows.none { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() }
+            ) {
                 // enforce 30 fps, because we don't need more
                 // and don't want to waste energy
                 val currentTime = System.nanoTime()

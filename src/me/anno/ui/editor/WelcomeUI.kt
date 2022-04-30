@@ -63,7 +63,7 @@ abstract class WelcomeUI {
                 .with("%1", studio.versionName), style
         ).apply {
             textColor = textColor and 0x7fffffff
-            focusTextColor = textColor
+            disableFocusColors()
         }
 
         welcome += SpacerPanel(0, 1, style)

@@ -842,16 +842,8 @@ open class Texture2D(
         isDestroyed = true
         val pointer = pointer
         if (pointer > -1) {
-            if (!isGFXThread()) {
-                GFX.addGPUTask(1) {
-                    DebugGPUStorage.tex2d.remove(this)
-                    invalidateBinding()
-                    locallyAllocated = allocate(locallyAllocated, 0L)
-                    texturesToDelete.add(pointer)
-                }
-            } else {
-                DebugGPUStorage.tex2d.remove(this)
-                invalidateBinding()
+            synchronized(texturesToDelete) {
+                // allocation counter is removed a bit early, shouldn't be too bad
                 locallyAllocated = allocate(locallyAllocated, 0L)
                 texturesToDelete.add(pointer)
             }
@@ -963,18 +955,18 @@ open class Texture2D(
         }
 
         fun destroyTextures() {
-            if (texturesToDelete.isNotEmpty()) {
-                // unbind old textures
-                for (slot in boundTextures.indices) {
-                    val tex = boundTextures[slot]
-                    if (tex > 0 && tex in texturesToDelete) {
+            synchronized(texturesToDelete) {
+                if (texturesToDelete.isNotEmpty()) {
+                    // unbind old textures
+                    boundTextureSlot = -1
+                    boundTextures.fill(-1)
+                    for (slot in boundTextures.indices) {
                         activeSlot(slot)
                         bindTexture(GL_TEXTURE_2D, 0)
-                        boundTextures[slot] = 0
                     }
+                    glDeleteTextures(texturesToDelete.toIntArray())
+                    texturesToDelete.clear()
                 }
-                glDeleteTextures(texturesToDelete.toIntArray())
-                texturesToDelete.clear()
             }
         }
 

@@ -7,7 +7,6 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
-import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
@@ -64,6 +63,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     @NotSerializedProperty
     var timeNanos = 0L
 
+    var printValidations = false
+
     abstract fun updateGravity()
 
     override fun onCreate() {
@@ -73,29 +74,22 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     fun invalidate(entity: Entity) {
-        // LOGGER.debug("invalidated ${System.identityHashCode(this)}")
+        if (printValidations) LOGGER.debug("invalidated ${System.identityHashCode(this)}")
         invalidEntities.add(entity)
     }
 
     fun validate() {
-        // LOGGER.debug("validating ${System.identityHashCode(this)}")
+        if (printValidations) LOGGER.debug("validating ${System.identityHashCode(this)}")
         invalidEntities.process2x({ entity ->
             remove(entity, false)
-            // will be re-added by addOrGet
-            // todo add to invalidEntities somehow? mmh...
-            // todo constraints for Physics2d
-            entity.allComponents(Constraint::class) {
-                val other = it.other?.entity
-                if (other != null) {
-                    remove(other, false)
-                }
-                false
-            }
+            removeConstraints(entity)
         }, { entity ->
             val rigidbody = addOrGet(entity)
             entity.isPhysicsControlled = rigidbody != null
         })
     }
+
+    abstract fun removeConstraints(entity: Entity)
 
     fun <V : Component> getValidComponents(entity: Entity, clazz: KClass<V>): Sequence<V> {
         // only collect colliders, which are appropriate for this: stop at any other rigidbody
@@ -200,16 +194,15 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                     val targetStep = 1.0 / targetUPS
                     val targetStepNanos = (targetStep * 1e9).toLong()
 
-                    //  todo if too far back in time, just simulate that we are good
-
                     // stop if received updates for no more than 1-3s
                     val targetTime = Engine.nanoTime
-                    if (abs(targetTime - lastUpdate) >
-                        simulationTimeoutMillis * MILLIS_TO_NANOS
-                    ) break
+                    if (abs(targetTime - lastUpdate) > simulationTimeoutMillis * MILLIS_TO_NANOS) {
+                        LOGGER.debug("Stopping work, ${(targetTime - lastUpdate) / 1e6} > $simulationTimeoutMillis")
+                        break
+                    }
 
+                    // the absolute worst case time
                     val absMinimumTime = targetTime - targetStepNanos * 2
-
                     if (timeNanos < absMinimumTime) {
                         // report this value somehow...
                         // there may be lots and lots of warnings, if the calculations are too slow
@@ -222,7 +215,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
                     if (timeNanos > targetTime) {
                         // done :), sleep
-                        Thread.sleep((timeNanos - targetTime) / 2)
+                        Thread.sleep((timeNanos - targetTime) / (2 * MILLIS_TO_NANOS))
                     } else {
                         // there is still work to do
                         val t0 = System.nanoTime()

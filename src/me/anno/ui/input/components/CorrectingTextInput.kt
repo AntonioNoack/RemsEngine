@@ -57,7 +57,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
         if (!isHovered) lastSuggestion = null
     }
 
-    // todo better tool tip element to list all options
+    // todo better tooltip element to list all options
     // todo on tab or keys, open a menu with the options
     private var lastSuggestion: Suggestion? = null
     override fun getTooltipText(x: Float, y: Float): String? {
@@ -77,7 +77,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
             }
         }
         lastSuggestion = null
-        return super.getTooltipText(x, y)
+        return null
     }
 
     abstract fun onCharTyped2(x: Float, y: Float, key: Int)

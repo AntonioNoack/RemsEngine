@@ -29,16 +29,16 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 object PrefabCache : CacheSection("Prefab") {
 
     var printJsonErrors = true
+    var prefabTimeout = 60_000L
 
-    private val prefabTimeout = 60_000L
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
 
     operator fun get(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false) =
@@ -333,21 +333,10 @@ object PrefabCache : CacheSection("Prefab") {
         depth: Int,
         clazz: String
     ): PrefabSaveable {
-        // find out somehow, which files are members of that circle
         if (depth < 0) {
             LOGGER.warn("Dependency Graph: ${printDependencyGraph(prefab)}")
             throw StackOverflowError("Circular dependency in $prefab")
         }
-        /*if (chain != null) {
-            if (prefab != InvalidRef) {
-                chain.add(prefab)
-                if (prefab in chain) {
-                    LOGGER.warn("Hit dependency ring: $chain, $prefab")
-                    return ISaveable.create(clazz) as PrefabSaveable
-                }
-            }
-        }*/
-        // LOGGER.info("chain: $chain")
         val depth1 = depth - 1
         return PrefabCache[prefab, depth1]?.createInstance(depth1) ?: ISaveable.create(clazz) as PrefabSaveable
     }

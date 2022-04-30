@@ -27,7 +27,7 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class Material : PrefabSaveable() {
+open class Material : PrefabSaveable() {
 
     // todo most properties here should be defined by the shader, not this class
     // todo we then somehow must display them dynamically

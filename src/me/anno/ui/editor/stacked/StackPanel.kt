@@ -32,11 +32,8 @@ abstract class StackPanel(
 
     val content = PanelListY(style)
 
-    val title = object : TextPanel(titleText, style) {
-        init {
-            focusTextColor = textColor
-        }
-    }
+    val title = TextPanel(titleText, style)
+        .disableFocusColors()
 
     init {
         add(this.title)

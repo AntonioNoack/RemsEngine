@@ -375,14 +375,7 @@ object GFX : GFXBase() {
 
         // rendering and editor section
 
-        Engine.updateTime()
-
         Input.resetFrameSpecificKeyStates()
-
-        if (window == GFX.someWindow) {
-            // only once per frame
-            Input.pollControllers(window)
-        }
 
         workEventTasks()
 

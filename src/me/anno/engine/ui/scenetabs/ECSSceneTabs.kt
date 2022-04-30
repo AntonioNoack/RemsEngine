@@ -21,13 +21,6 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 
-// todo just like the original in Rem's Studio
-// todo drop: open that prefab/scene
-// todo extra tab to play -> opens the main scene as a game
-// todo save tabs...
-
-// todo show the current scene with a different background color
-// todo the same for Rems Studio
 object ECSSceneTabs : ScrollPanelX(style) {
 
     private val LOGGER = LogManager.getLogger(ECSSceneTabs::class)
@@ -133,8 +126,9 @@ object ECSSceneTabs : ScrollPanelX(style) {
             currentTab = tab
             PrefabInspector.currentInspector = tab.inspector
             // root = sceneTab.root
-            val instance = prefab.getSampleInstance()
-            EditorState.select(instance, null)
+            // val instance = prefab.getSampleInstance()
+            // EditorState.select(instance, null)
+            EditorState.select(null, null)
             if (tab !in children3) content += tab
             for (window in windowStack) {
                 window.panel.forAllPanels {
@@ -151,13 +145,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     fun updatePrefab(prefab: Prefab) {
         currentTab?.inspector?.onChange() // probably correct ^^
-        val instance = prefab.getSampleInstance()
         EditorState.prefabSource = prefab.source
-        if (instance is Entity) {
-            instance.create()
-            val physics = instance.getComponent(BulletPhysics::class, false)
-            if (physics != null) instance.rebuildPhysics(physics)
-        }
     }
 
     /*fun createWorld(item: ISaveable, src: FileReference): Entity {

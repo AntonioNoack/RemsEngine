@@ -111,7 +111,7 @@ open class EnumInput(
     init {
         if (titleView != null) {
             this += titleView
-            titleView.focusTextColor = titleView.textColor
+            titleView.disableFocusColors()
         }
         this += inputPanel
     }

@@ -242,20 +242,28 @@ object ComponentUI {
             val detective = DetectiveWriter(typeMap)
             saveable.save(detective)
             if (typeMap.isNotEmpty()) {
-                val panel = PanelListY(style)
-                panel.padding.left += 8 // a little indent
+                // outlined, black background or sth like that
+                // best a colored padding
+                // todo more colorful?
+                val panel = PanelListY(style.getChild("deep"))
+                // todo border is too wide on y, why???
+                panel.padding.set(2) // border
+                val panel2 = PanelListY(style)
+                panel.add(panel2)
                 val title2 = title.ifBlank { saveable.className }
                 // todo list/array-views should have their content visibility be toggleable
-                panel.add(TextPanel(title2, style).apply {
-                    // hide the intractability, so it looks like a title
+                panel2.add(object : TextPanel(title2, style) {
+                    override fun onCopyRequested(x: Float, y: Float) =
+                        TextWriter.toText(saveable, InvalidRef)
+                }.apply {
+                    // make it look like a title
                     isItalic = true
-                    focusTextColor = textColor
-                    focusBackground = backgroundColor
+                    disableFocusColors()
                 })
                 for ((name, typeValue) in typeMap) {
                     val type = typeValue.first
                     val startValue = typeValue.second
-                    panel.add(
+                    panel2.add(
                         createUIByTypeName(
                             name, "${saveable.className}/$name",
                             SIProperty(name, type, saveable, startValue, property, detective),

@@ -101,7 +101,7 @@ open class ColorInput(
         this += previewField
         this += titleView
         titleView.enableHoverColor = true
-        titleView.focusTextColor = titleView.textColor
+        titleView.disableFocusColors()
         contentView.setRGBA(oldValue, false)
     }
 

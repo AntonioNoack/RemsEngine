@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.Engine
 import me.anno.input.Input
 import me.anno.studio.StudioBase
 import me.anno.ui.utils.WindowStack
@@ -8,7 +9,9 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback
 import org.lwjgl.glfw.GLFWKeyCallback
 import org.lwjgl.system.MemoryUtil
+import kotlin.math.abs
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 open class WindowX(var title: String) {
 
     companion object {
@@ -52,6 +55,7 @@ open class WindowX(var title: String) {
      * */
     var mouseTargetX = Double.NaN
     var mouseTargetY = Double.NaN
+    var lastMouseTargetNanos = 0L
 
     var savedWidth = 300
     var savedHeight = 300
@@ -60,6 +64,10 @@ open class WindowX(var title: String) {
 
     var enableVsync = true
     private var lastVsyncInterval = -1
+
+    fun hasActiveMouseTargets(): Boolean {
+        return abs(lastMouseTargetNanos - Engine.nanoTime) < 1e9
+    }
 
     fun setVsyncEnabled(enabled: Boolean) {
         enableVsync = enabled
@@ -113,16 +121,22 @@ open class WindowX(var title: String) {
     fun updateMouseTarget(): Boolean {
         val robot = GFX.robot
         return if (mouseTargetX.isFinite() && mouseTargetY.isFinite()) {
-            if (isInFocus) {
+            if (isInFocus &&
+                mouseTargetX in 0.0..(width - 1.0) &&
+                mouseTargetY in 0.0..(height - 1.0)
+            ) {
                 GLFW.glfwSetCursorPos(pointer, mouseTargetX, mouseTargetY)
             } else if (robot != null) {
                 val x = IntArray(1)
                 val y = IntArray(1)
                 GLFW.glfwGetWindowPos(pointer, x, y)
+                // this is broken, but I have no idea why :(
+                // when I click another window via window bottom bar, I loose control over the mouse with the controller
+                LOGGER.debug("Setting mouse to ${mouseTargetX}+${x[0]}, ${mouseTargetY}+${y[0]}")
                 robot.mouseMove(mouseTargetX.toInt() + x[0], mouseTargetY.toInt() + y[0])
             }
-            mouseTargetX = -1.0
-            mouseTargetY = -1.0
+            mouseTargetX = Double.NaN
+            mouseTargetY = Double.NaN
             true
         } else false
     }
@@ -138,13 +152,13 @@ open class WindowX(var title: String) {
     }
 
     fun moveMouseTo(x: Float, y: Float) {
-        mouseTargetX = x.toDouble()
-        mouseTargetY = y.toDouble()
+        moveMouseTo(x.toDouble(), y.toDouble())
     }
 
     fun moveMouseTo(x: Double, y: Double) {
         mouseTargetX = x
         mouseTargetY = y
+        lastMouseTargetNanos = Engine.nanoTime
     }
 
     fun updateMousePosition() {
@@ -191,7 +205,7 @@ open class WindowX(var title: String) {
             // just be sure in case the OS/glfw don't send it
             if (isMinimized0) needsRefresh = true
         }
-        GLFW.glfwSetWindowRefreshCallback(window) { _: Long -> needsRefresh = true }
+        GLFW.glfwSetWindowRefreshCallback(window) { needsRefresh = true }
 
         // can we use that?
         // glfwSetWindowMaximizeCallback()

@@ -49,8 +49,8 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         sumConst = constantSum
         sumWeight = weightSum
 
-        minH = constantSum + padding.height
         minW = (maxX - x) + padding.width
+        minH = constantSum + padding.height
 
     }
 
@@ -72,8 +72,8 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
                 perWeight = extraAvailable / sumWeight
             }
 
-            var currentY = y + padding.top
             val childX = x + padding.left
+            var currentY = y + padding.top
 
             val children = children
             for (i in children.indices) {

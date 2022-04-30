@@ -125,7 +125,7 @@ open class PureTextInputML(style: Style) :
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
     private val endCursor get() = CursorPosition(lines.last().size, lines.lastIndex)
     private val joinedText get() = lines.joinToString("\n") { list -> list.joinChars() }
-    private val actualChildren = (content as PanelListY).children
+    private val actualChildren = (child as PanelListY).children
     private val scrollbarStartY get() = if (minW > w) actualChildren.last().run { y + h - 3 } else y + h
     private val wasJustChanged get() = abs(Engine.gameTime - lastChangeTime) < 200_000_000
     val styleSample get() = actualChildren[0] as TextPanel
@@ -170,8 +170,9 @@ open class PureTextInputML(style: Style) :
             val panel = children[index] as TextPanel
             panel.text = if (needsPlaceholder) placeholder else chars.joinChars().toString()
             panel.textColor = (panel.textColor and 0xffffff) or (if (needsPlaceholder) 70 else 255).shl(24)
-            panel.focusTextColor = panel.textColor
+            panel.disableFocusColors()
         }
+        invalidateLayout()
     }
 
     override fun tickUpdate() {
@@ -717,6 +718,7 @@ open class PureTextInputML(style: Style) :
         clone.cursor2.set(cursor2)
         clone.lineLimit = lineLimit
         clone.placeholder = placeholder
+        clone.focusTextColor = focusTextColor
     }
 
     override val className: String = "PureTextInputML"

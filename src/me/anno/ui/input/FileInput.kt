@@ -6,6 +6,8 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.thumbs.Thumbs
+import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
@@ -41,13 +43,13 @@ class FileInput(
     // val text get() = base.text
 
     init {
-        base.tooltip = f0.absolutePath
+        // base.tooltip = f0.absolutePath
         base.apply {
             this += WrapAlign.LeftCenter
             addChangeListener {
                 val gf = it.toGlobalFile()
                 this@FileInput.changeListener(gf)
-                base.tooltip = gf.absolutePath
+                // base.tooltip = gf.absolutePath
             }
         }
         button.apply {
@@ -72,7 +74,7 @@ class FileInput(
             }
             tooltip = "Select the file in your default file explorer"
             textColor = textColor and 0x7fffffff
-            focusTextColor = textColor
+            disableFocusColors()
         }
         this += button
         // for a symmetric border
@@ -143,9 +145,15 @@ class FileInput(
     }
 
     override fun getTooltipPanel(x: Float, y: Float): Panel? {
+        // only if the image is not the default one
+        val size = 64 - 64 / 20 // 1/20th is padding
+        Thumbs.getThumbnail(file, size, true) ?: return null
         // could be cached...
         val entry = FileExplorerEntry(null, false, lastValue, style)
         entry.showTitle = false
+        // I like this better than a transparent background
+        entry.backgroundRadius = 6f
+        entry.backgroundColor = mixARGB(backgroundColor, -1, 0.5f)
         return entry
     }
 
