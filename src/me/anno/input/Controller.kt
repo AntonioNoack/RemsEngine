@@ -2,16 +2,21 @@ package me.anno.input
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.WindowX
+import me.anno.input.controller.ControllerCalibration
+import me.anno.input.controller.CalibrationProcedure
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
+import me.anno.ui.base.menu.Menu
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
@@ -36,6 +41,7 @@ class Controller(val id: Int) {
 
     private var ticksOnline = 0
 
+    private val rawAxisValues = FloatArray(MAX_NUM_AXES)
     private val axisValues = FloatArray(MAX_NUM_AXES)
     private val axisSpeeds = FloatArray(MAX_NUM_AXES)
 
@@ -80,6 +86,10 @@ class Controller(val id: Int) {
         return if (axis in 0 until numAxes) axisValues[axis] else 0f
     }
 
+    fun getRawAxis(axis: Int): Float {
+        return if (axis in 0 until numAxes) rawAxisValues[axis] else 0f
+    }
+
     private val gamepadState = GLFWGamepadState.calloc()
     private val gamepadAxes get() = gamepadState.axes()
     private val gamepadButtons get() = gamepadState.buttons()
@@ -95,8 +105,10 @@ class Controller(val id: Int) {
         LOGGER.info("Connected to controller '$name', id '$guid', gamepad? $isGamepad")
         calibration = loadCalibration(guid) ?: ControllerCalibration(isGamepad)
         if (!calibration.isCalibrated) {
-            // todo controller calibration procedure
-            LOGGER.warn("TODO: Request a calibration from the user for controller '$name', '$guid'")
+            LOGGER.warn("No calibration was found for controller '$name', guid '$guid'")
+            Menu.ask(GFX.someWindow.windowStack, NameDesc("Calibrate new controller '$name'?")) {
+                CalibrationProcedure.start(GFX.someWindow, style)
+            }
         }
         buttonDownTime.fill(0)
         axisValues.fill(0f)
@@ -256,6 +268,7 @@ class Controller(val id: Int) {
 
                 val lastValue = axisValues[axisId]
                 val value = calibration.getValue(state, axisId)
+                rawAxisValues[axisId] = state
                 axisValues[axisId] = value
                 axisSpeeds[axisId] = (value - lastValue) / dt
                 isActiveMaybe = clamp(isActiveMaybe + abs(lastValue - value) * 5f, 0f, 1f)
@@ -285,7 +298,7 @@ class Controller(val id: Int) {
             }
 
             // support multiple mice (?); game specific; nice for strategy games
-            if (isFirst && isActive) {
+            if (isFirst && isActive && enableControllerInputs) {
 
                 // if buttons = 0,1 (left wheel), then move the mouse
                 val moveButtons = DefaultConfig["ui.controller.mouseMoveAxis0", 0]
@@ -375,6 +388,8 @@ class Controller(val id: Int) {
         private var mousePosY = 0f
         private var mouseWheelFract = 0f
 
+        var enableControllerInputs = true
+
         fun formatGuid(guid: String): String {
             var str = guid.trim()
             if (str.startsWith('0')) {
@@ -390,8 +405,11 @@ class Controller(val id: Int) {
             return str
         }
 
+        private fun getCaliFile(guid: String) =
+            getReference(ConfigBasics.configFolder, "controller/${formatGuid(guid)}.json")
+
         fun loadCalibration(guid: String): ControllerCalibration? {
-            val file = getReference(ConfigBasics.configFolder, "controller/${formatGuid(guid)}.json")
+            val file = getCaliFile(guid)
             if (!file.exists || file.isDirectory) return null
             return TextReader.readFirstOrNull<ControllerCalibration>(file, StudioBase.workspace)
         }
@@ -401,7 +419,7 @@ class Controller(val id: Int) {
                 "You should not save a controller calibration, " +
                         "that has not actually been calibrated"
             )
-            val file = getReference(ConfigBasics.configFolder, "controller/${formatGuid(guid)}.json")
+            val file = getCaliFile(guid)
             file.getParent()?.tryMkdirs()
             TextWriter.save(calibration, file, StudioBase.workspace)
         }

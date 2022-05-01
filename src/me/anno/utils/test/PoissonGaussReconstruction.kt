@@ -22,6 +22,8 @@ import kotlin.math.roundToInt
  * and a few ray tracing papers
  * */
 
+// todo compute using gfx or compute shaders
+
 const val tileSize = 32
 
 fun brightness(rgb: Int) = ShaderLib.brightness(rgb.r01(), rgb.g01(), rgb.b01())
@@ -245,6 +247,7 @@ fun main() {
     // reconstruct original image: blurred + Integral(dx,dy), where Integral is just accumulated differences
 
     val src = pictures.getChild("bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg")
+    val ext = ".png"
     val original = ImageCPUCache.getImage(src, false)!!.floats()
     val dst = desktop.getChild("poisson")
     dst.tryMkdirs()
@@ -262,8 +265,8 @@ fun main() {
 
     // would need to be blurred, and not blurred at the same time...
     // how?
-    val bdx = dx.blurXSigned(sigma)
-    val bdy = dy.blurYSigned(sigma)
+    val bdx = dx.blurXSigned(sigma) // .blurY(sigma)
+    val bdy = dy.blurYSigned(sigma) // .blurX(sigma)
 
     val errorScale = 1f
     val normalScale = 1f
@@ -282,19 +285,20 @@ fun main() {
 
     blurred.write(dst.getChild("blurred.jpg"))
 
-    dx.added(normalScale, 0.5f).write(dst.getChild("dx.jpg"))
-    dy.added(normalScale, 0.5f).write(dst.getChild("dy.jpg"))
+    dx.added(normalScale, 0.5f).write(dst.getChild("dx$ext"))
+    dy.added(normalScale, 0.5f).write(dst.getChild("dy$ext"))
 
-    bdx.added(normalScale, 0.5f).write(dst.getChild("bdx.jpg"))
-    bdy.added(normalScale, 0.5f).write(dst.getChild("bdy.jpg"))
+    bdx.added(normalScale, 0.5f).write(dst.getChild("bdx$ext"))
+    bdy.added(normalScale, 0.5f).write(dst.getChild("bdy$ext"))
 
-    result.write(dst.getChild("result-gaussian.jpg"))
-    error.write(dst.getChild("error-gaussian.jpg"))
+    result.write(dst.getChild("trick$ext"))
+
+    error.write(dst.getChild("error-gaussian$ext"))
 
     val tmp = result.clone()
     renderVideo2(
         original.width, original.height, 5.0,
-        dst.getChild("fromBetter.mp4"), 50
+        dst.getChild("trick-to-result.mp4"), 50
     ) {
         if (it > 0L) {
             val s = if (it.and(1) == 1L) result else tmp
@@ -303,19 +307,19 @@ fun main() {
         } else result
     }
 
-    result.write(dst.getChild("result-better.jpg"))
+    result.write(dst.getChild("result-trick$ext"))
 
     val error0 = original
         .added(errorScale, result, -errorScale)
         .abs()
 
-    error0.write(dst.getChild("error-better.jpg"))
+    error0.write(dst.getChild("error-trick$ext"))
 
     System.arraycopy(blurred.data, 0, result.data, 0, result.data.size)
 
     renderVideo2(
         original.width, original.height, 5.0,
-        dst.getChild("fromBlurred.mp4"), 50
+        dst.getChild("blurred-to-result.mp4"), 50
     ) {
         if (it > 0L) {
             val s = if (it.and(1) == 1L) result else tmp
@@ -324,13 +328,13 @@ fun main() {
         } else result
     }
 
-    result.write(dst.getChild("result-blurred.jpg"))
+    result.write(dst.getChild("result-blurred$ext"))
 
     val error1 = original
         .added(errorScale, result, -errorScale)
         .abs()
 
-    error1.write(dst.getChild("error-blurred.jpg"))
+    error1.write(dst.getChild("error-blurred$ext"))
 
     // a test of when src == dst, so the improvement gets passed along
     /*System.arraycopy(blurred.data, 0, result.data, 0, result.data.size)

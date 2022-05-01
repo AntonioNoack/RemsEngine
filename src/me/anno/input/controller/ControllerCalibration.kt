@@ -1,4 +1,4 @@
-package me.anno.input
+package me.anno.input.controller
 
 import me.anno.input.Controller.Companion.MAX_NUM_AXES
 import me.anno.io.ISaveable
