@@ -10,7 +10,8 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 
-// todo removing removes two letters at the same time
+// todo delete removes two letters at the same time
+@Suppress("unused")
 open class TextInput(
     title: String,
     val visibilityKey: String,
@@ -123,6 +124,12 @@ open class TextInput(
     override fun requestFocus(exclusive: Boolean) {
         base.requestFocus(exclusive)
     }
+
+    override var isInputAllowed: Boolean
+        get() = base.isInputAllowed
+        set(value) {
+            base.isInputAllowed = value
+        }
 
     override fun getCursor(): Long = Cursor.drag
 

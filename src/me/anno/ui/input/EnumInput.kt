@@ -63,9 +63,19 @@ open class EnumInput(
         inputPanel.enableHoverColor = true
     }
 
-    override var lastValue = options.firstOrNull { it.name == startValue }
-        ?: options.firstOrNull { it.englishName == startValue }
-        ?: options.first()
+    override var isInputAllowed = true
+        set(value) {
+            // todo show text less opaque if not allowed
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
+        }
+
+    override var lastValue =
+        options.firstOrNull { it.name == startValue }
+            ?: options.firstOrNull { it.englishName == startValue }
+            ?: options.first()
 
     fun setValue(option: NameDesc, index: Int, notify: Boolean = true) {
         inputPanel.text = option.name
@@ -82,21 +92,15 @@ open class EnumInput(
         return this
     }
 
-    // todo drawing & ignoring inputs
-    private var _isEnabled = true
-    override var isEnabled: Boolean
-        get() = _isEnabled
-        set(value) {
-            _isEnabled = value; invalidateDrawing()
-        }
-
     fun moveDown(direction: Int) {
-        val oldValue = inputPanel.text
-        val index = lastIndex + direction
-        val index2 = (index + 2 * options.size) % options.size
-        val newValue = options[index2]
-        if (oldValue != newValue.name) {
-            setValue(newValue, index2)
+        if (isInputAllowed) {
+            val oldValue = inputPanel.text
+            val index = lastIndex + direction
+            val index2 = (index + 2 * options.size) % options.size
+            val newValue = options[index2]
+            if (oldValue != newValue.name) {
+                setValue(newValue, index2)
+            }
         }
     }
 
@@ -145,20 +149,19 @@ open class EnumInput(
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        when (action) {
-            "Up" -> up()
-            "Down" -> down()
-            else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
-        }
-        return true
-    }
-
-    fun up() {
-        setIndex((lastIndex - 1 + options.size) % options.size)
-    }
-
-    fun down() {
-        setIndex((lastIndex - 1 + options.size) % options.size)
+        return if (isInputAllowed) {
+            when (action) {
+                "Up" -> {
+                    setIndex((lastIndex - 1 + options.size) % options.size)
+                    true
+                }
+                "Down" -> {
+                    setIndex((lastIndex - 1 + options.size) % options.size)
+                    true
+                }
+                else -> super.onGotAction(x, y, dx, dy, action, isContinuous)
+            }
+        } else super.onGotAction(x, y, dx, dy, action, isContinuous)
     }
 
     fun setIndex(index: Int) {

@@ -54,21 +54,23 @@ class FileInput(
         }
         button.apply {
             addLeftClickListener {
-                var file2 = file
-                while (file2 != InvalidRef && !file2.exists) {
-                    val file3 = file2.getParent() ?: InvalidRef
-                    if (file3 == InvalidRef || file3 == file2 || file3.exists) {
-                        file2 = file3
-                        break
-                    } else {
-                        file2 = file3
+                if (isInputAllowed) {
+                    var file2 = file
+                    while (file2 != InvalidRef && !file2.exists) {
+                        val file3 = file2.getParent() ?: InvalidRef
+                        if (file3 == InvalidRef || file3 == file2 || file3.exists) {
+                            file2 = file3
+                            break
+                        } else {
+                            file2 = file3
+                        }
                     }
-                }
-                val file3 = if (file2 == InvalidRef) null else (file2 as? FileFileRef)?.file
-                // todo select the file using our own explorer (?), because ours may be better
-                FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
-                    if (file != null) {
-                        setValue(getReference(file), true)
+                    val file3 = if (file2 == InvalidRef) null else (file2 as? FileFileRef)?.file
+                    // todo select the file using our own explorer (?), because ours may be better
+                    FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
+                        if (file != null) {
+                            setValue(getReference(file), true)
+                        }
                     }
                 }
             }
@@ -82,6 +84,13 @@ class FileInput(
         if (border > 0) this += SpacerPanel(border, 0, style).apply { backgroundColor = 0 }
         this += base//ScrollPanelX(base, Padding(), style, AxisAlignment.MIN)
     }
+
+    override var isInputAllowed: Boolean
+        get() = base.isInputAllowed
+        set(value) {
+            base.isInputAllowed = value
+            button.isInputAllowed = value
+        }
 
     /*fun setValue(file: FileReference, notify: Boolean): FileInput {
         base.setValue(file.toString2(), false)
@@ -137,11 +146,13 @@ class FileInput(
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        if (files.size == 1) {
-            setValue(files[0], true)
-        } else {
-            LOGGER.warn("Can only paste a single file!, got $files")
-        }
+        if (isInputAllowed) {
+            if (files.size == 1) {
+                setValue(files[0], true)
+            } else {
+                LOGGER.warn("Can only paste a single file!, got $files")
+            }
+        } else super.onPasteFiles(x, y, files)
     }
 
     override fun getTooltipPanel(x: Float, y: Float): Panel? {

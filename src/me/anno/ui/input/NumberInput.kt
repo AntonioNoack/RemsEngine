@@ -36,6 +36,12 @@ abstract class NumberInput<BaseType>(
             titleView?.text = value
         }
 
+    override var isInputAllowed
+        get() = inputPanel.isInputAllowed
+        set(value) {
+            inputPanel.isInputAllowed = value
+        }
+
     override var textSize: Float
         get() = inputPanel.textSize
         set(value) {

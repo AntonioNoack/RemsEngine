@@ -8,6 +8,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Strings.isBlank2
 
 /**
@@ -56,6 +57,14 @@ class BooleanInput(
         get() = checkView.isChecked
         set(value) {
             checkView.isChecked = value
+        }
+
+    override var isInputAllowed
+        get() = checkView.isInputAllowed
+        set(value) {
+            titleView?.setTextAlpha(if (value) 1f else 0.5f)
+            checkView.isInputAllowed = value
+            invalidateDrawing()
         }
 
     override var textColor: Int

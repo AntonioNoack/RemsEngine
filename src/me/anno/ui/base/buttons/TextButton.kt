@@ -52,6 +52,8 @@ open class TextButton(
         this += WrapAlign.LeftTop
     }
 
+    var isInputAllowed = true
+
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         if (isSquare) {
@@ -84,6 +86,8 @@ open class TextButton(
 
         drawBackground(x0, y0, x1, y1)
 
+        // todo less strength if input is disabled
+
         val widthLimit = if (breaksIntoMultiline) this.w else -1
         val size = getTextSize(font, text, widthLimit, heightLimit)
         DrawTexts.drawText(
@@ -115,7 +119,8 @@ open class TextButton(
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
-        if (key.isClickKey()) click()
+        if (isInputAllowed && key.isClickKey()) click()
+        else super.onKeyTyped(x, y, key)
     }
 
     override fun acceptsChar(char: Int) = char.isClickKey()

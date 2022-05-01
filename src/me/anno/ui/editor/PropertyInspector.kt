@@ -21,6 +21,7 @@ import org.apache.logging.log4j.LogManager
 class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
     ScrollPanelY(Padding(3), AxisAlignment.MIN, style.getChild("propertyInspector")) {
 
+    @Suppress("unused")
     constructor(getInspectable: () -> Inspectable?, style: Style, @Suppress("unused_parameter") ignored: Unit) :
             this({ getInspectable().run { if (this == null) emptyList() else listOf(this) } }, style)
 
@@ -96,6 +97,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             ) {
                 // only the value needs to be updated
                 // no one to be notified
+                @Suppress("unused")
                 (oldPanel as? InputPanel<Any?>)?.apply {
                     oldPanel.setValue(newPanel.lastValue, false)
                 }

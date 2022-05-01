@@ -96,12 +96,12 @@ object Installer {
 
     fun uninstall() {
 
-        // todo show a window
-        // todo ask if the config should be deleted
-        // todo ask if all (known, latest) projects should be erased
+        // to do show a window
+        // to do ask if the config should be deleted
+        // to do ask if all (known, latest) projects should be erased
 
-        // todo ask if ffmpeg shall be deleted, if it's not in the default install directory
-        // todo put config into that default install directory???
+        // to do ask if ffmpeg shall be deleted, if it's not in the default install directory
+        // to do put config into that default install directory???
         Uninstaller.uninstall()
 
     }

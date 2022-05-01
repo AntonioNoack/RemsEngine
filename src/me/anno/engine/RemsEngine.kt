@@ -77,6 +77,7 @@ import org.apache.logging.log4j.LogManager
 //  - gta / grand theft waifu,
 //          money/car/heist stealing game with 3rd person shooting and car driving as main game loop
 //          low poly style, because that's the only possible way for a hobby programmer
+//          should be playable on keyboard/mouse + controller at the same time <3
 //  - GTA x Minecraft? it would be nice to build in such a world... low poly could allow that by placing assets, and then
 //          creating personal levels or bases with that
 //  - Sims like game, just low-poly style

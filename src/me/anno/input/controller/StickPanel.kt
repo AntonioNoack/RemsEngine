@@ -24,8 +24,6 @@ class StickPanel(
         private val LOGGER = LogManager.getLogger(StickPanel::class)
     }
 
-    // todo save results at the end, if good enough
-
     override fun save(cali: ControllerCalibration) {
         cali.dead[axis0]
         if (length(bounds.deltaX(), bounds.deltaY()) > 0.5f) {
@@ -49,8 +47,6 @@ class StickPanel(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-
-        // todo legend to show what the colors mean
 
         val vx = controller.getRawAxis(axis0)
         val vy = controller.getRawAxis(axis1)

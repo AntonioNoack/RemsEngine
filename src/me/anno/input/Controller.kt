@@ -29,6 +29,7 @@ import kotlin.math.max
 
 // todo rumble using external library? glfw and lwjgl sadly have no support for it
 // https://github.com/williamahartman/Jamepad?
+@Suppress("unused")
 class Controller(val id: Int) {
 
     private val glfwId = GLFW_JOYSTICK_1 + id
@@ -195,8 +196,14 @@ class Controller(val id: Int) {
         this.isFirst = isPresent && isFirst
 
         if (isConnected != isPresent) {
-            // todo show that the controller has been enabled / deactivated
             LOGGER.info("Controller ${this.id} has been ${if (isPresent) "activated" else "deactivated"}")
+            for (listener in onControllerChanged) {
+                try {
+                    listener(this)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
             isConnected = isPresent
             if (isPresent) {
                 resetState()
@@ -323,9 +330,8 @@ class Controller(val id: Int) {
                     if (!GFX.isMouseTrapped) {
                         // only works well, if we have a single player
                         // if we have a mouse user and a controller user, the controller user will win here ...
-                        // todo grand theft waifu should be playable on keyboard/mouse + controller at the same time <3
                         // reset the mouse position, if we used the original mouse again
-                        // todo update mouseX/Y outside the main window, and then remove this condition
+                        // to do update mouseX/Y outside the main window, and then remove this condition
                         // don't reset, if we're outside the window, because Input.mouseX/Y is not updated outside
                         val mainWindow = GFX.windows.first()
                         if (abs(time - lastMousePos) > 1e9 && isMouseInWindow()) {// 1s delay to switch back to mouse
@@ -389,6 +395,15 @@ class Controller(val id: Int) {
         private var mouseWheelFract = 0f
 
         var enableControllerInputs = true
+
+        private var onControllerChanged = ArrayList<(Controller) -> Unit>()
+
+        /**
+         * use this function to get notified about controller changes
+         * */
+        fun addControllerChangeListener(listener: (Controller) -> Unit) {
+            onControllerChanged.add(listener)
+        }
 
         fun formatGuid(guid: String): String {
             var str = guid.trim()

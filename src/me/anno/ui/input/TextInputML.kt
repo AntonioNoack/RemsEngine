@@ -54,6 +54,12 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
             base.isItalic = value
         }
 
+    override var isInputAllowed: Boolean
+        get() = base.isInputAllowed
+        set(value) {
+            base.isInputAllowed = value
+        }
+
     fun setCursorToEnd() = base.setCursorToEnd()
 
     fun setPlaceholder(text: String): TextInputML {

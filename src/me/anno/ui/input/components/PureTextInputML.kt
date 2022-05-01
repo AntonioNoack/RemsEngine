@@ -20,6 +20,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
+import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -30,7 +31,7 @@ import kotlin.math.abs
 import kotlin.streams.toList
 
 open class PureTextInputML(style: Style) :
-    ScrollPanelXY(Padding(0), style), TextStyleable {
+    ScrollPanelXY(Padding(0), style), InputPanel<String>, TextStyleable {
 
     private val cursor1 = CursorPosition(0, 0)
     private val cursor2 = CursorPosition(0, 0)
@@ -107,6 +108,23 @@ open class PureTextInputML(style: Style) :
                 (p as TextStyleable).isItalic = value
             }
         }
+
+    override var isInputAllowed = true
+        set(value) {
+            // todo show text less opaque if not allowed
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
+        }
+
+    override val lastValue: String
+        get() = lastText
+
+    override fun setValue(value: String, notify: Boolean): PureTextInputML {
+        setText(value, notify)
+        return this
+    }
 
     @NotSerializedProperty
     private var lastText = ""

@@ -47,7 +47,7 @@ open class ColorInput(
     val titleView = TitlePanel(title, contentView, style)
     private val previewField = PreviewField(titleView, 2, style)
         .apply {
-            addLeftClickListener { openColorChooser() }
+            addLeftClickListener { if (isInputAllowed) openColorChooser() }
             color = oldValue.toARGB() or black
         }
 
@@ -55,11 +55,12 @@ open class ColorInput(
     private var mouseIsDown = false
 
     // todo drawing & ignoring inputs
-    private var _isEnabled = true
-    override var isEnabled: Boolean
-        get() = _isEnabled
+    override var isInputAllowed = true
         set(value) {
-            _isEnabled = value; invalidateDrawing()
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
         }
 
     fun getValue() = contentView.getColor()
@@ -117,11 +118,11 @@ open class ColorInput(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
-            button.isLeft -> {
+            isInputAllowed && button.isLeft -> {
                 if (long) openColorChooser()
-                else super.onMouseClicked(x, y, button, long)
+                else super.onMouseClicked(x, y, button, false)
             }
-            button.isRight -> {
+            isInputAllowed && button.isRight -> {
                 val window = GFX.activeWindow!!
                 Menu.openMenu(windowStack, listOf(
                     MenuOption(NameDesc("Copy")) { Input.copy(window, contentView) },

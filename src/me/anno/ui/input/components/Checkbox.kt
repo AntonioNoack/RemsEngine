@@ -9,6 +9,7 @@ import me.anno.input.MouseButton
 import me.anno.ui.Panel
 import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
+import me.anno.utils.Color.withAlpha
 import org.lwjgl.glfw.GLFW
 import kotlin.math.min
 
@@ -25,6 +26,14 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     }
 
     var isChecked = startValue
+
+    override var isInputAllowed = true
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
+        }
 
     override val lastValue: Boolean get() = isChecked
 
@@ -60,7 +69,8 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
 
         val size = min(w, h)
         if (size > 0) {
-            val color = if (isHovered) 0xccffffff.toInt() else -1
+            var color = if (isHovered) 0xccffffff.toInt() else -1
+            color = color.withAlpha(if (isInputAllowed) 1f else 0.5f)
             // draw the icon on/off
             drawTexture(
                 x + (w - size) / 2,
@@ -86,26 +96,37 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        toggle(true)
+        if (isInputAllowed) toggle(true)
+        else super.onMouseClicked(x, y, button, long)
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        toggle(true)
+        if (isInputAllowed) toggle(true)
+        else super.onDoubleClick(x, y, button)
     }
 
     override fun onEnterKey(x: Float, y: Float) {
-        toggle(true)
+        if (isInputAllowed) toggle(true)
+        else super.onEnterKey(x, y)
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
         when (key) {
-            GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_UP -> toggle(true)
+            GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_UP -> {
+                if (isInputAllowed) toggle(true)
+                else super.onKeyTyped(x, y, key)
+            }
+            else -> super.onKeyTyped(x, y, key)
         }
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        val resetValue = resetListener() ?: defaultValue
-        if (resetValue != isChecked) toggle(true)
+        if (isInputAllowed) {
+            val resetValue = resetListener() ?: defaultValue
+            if (resetValue != isChecked) toggle(true)
+        } else {
+            super.onEmpty(x, y)
+        }
     }
 
     fun setResetListener(listener: () -> Boolean?): Checkbox {

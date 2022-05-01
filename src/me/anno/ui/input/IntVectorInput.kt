@@ -57,12 +57,24 @@ open class IntVectorInput(
 
     init {
 
+        valueList.disableConstantSpaceForWeightedChildren = true
+
         if (type == Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
 
         valueList += WrapAlign.TopFill
         this += valueList
+        if (titleView != null) valueList.hide()
 
     }
+
+    override var isInputAllowed: Boolean
+        get() = valueFields.first().isInputAllowed
+        set(value) {
+            titleView?.setTextAlpha(if(value) 1f else 0.5f)
+            for(child in valueFields){
+                child.isInputAllowed = value
+            }
+        }
 
     override val lastValue: Vector4i
         get() = Vector4i(

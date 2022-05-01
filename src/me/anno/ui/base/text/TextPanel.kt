@@ -23,6 +23,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.input.Keys.isClickKey
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.isBlank2
@@ -39,6 +40,11 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     constructor(nameDesc: NameDesc, style: Style) : this(nameDesc.name, style) {
         tooltip = nameDesc.desc
+    }
+
+    fun setTextAlpha(alpha: Float){
+        textColor = textColor.withAlpha(alpha)
+        invalidateDrawing()
     }
 
     var instantTextLoading = false

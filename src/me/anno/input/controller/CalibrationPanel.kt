@@ -24,8 +24,6 @@ abstract class CalibrationPanel(
     style: Style
 ) : Panel(style) {
 
-    // todo save results at the end, if good enough
-
     init {
         tooltip = "Click to reset"
         addLeftClickListener {

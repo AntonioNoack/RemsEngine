@@ -125,10 +125,8 @@ open class FloatVectorInput(
     }
 
     init {
-        valueList.disableConstantSpaceForWeightedChildren = true
-    }
 
-    init {
+        valueList.disableConstantSpaceForWeightedChildren = true
 
         if (type == Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
 
@@ -138,6 +136,15 @@ open class FloatVectorInput(
         if (titleView != null) valueList.hide()
 
     }
+
+    override var isInputAllowed: Boolean
+        get() = valueFields.first().isInputAllowed
+        set(value) {
+            titleView?.setTextAlpha(if(value) 1f else 0.5f)
+            for(child in valueFields){
+                child.isInputAllowed = value
+            }
+        }
 
     override val lastValue: Vector4d
         get() = Vector4d(

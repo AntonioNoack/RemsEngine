@@ -14,6 +14,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
+@Suppress("unused")
 object Corner {
 
     private fun corner(mx: Boolean, my: Boolean): StaticBuffer {
@@ -92,42 +93,6 @@ object Corner {
         shader.v1f("smoothness", smoothness)
         shader.v2f("size2", w.toFloat(), h.toFloat())
         GFX.flat01.draw(shader)
-
-        /*if (w > 0 && h > 0) {
-            if (radius > 0 && (topLeft || topRight || bottomLeft || bottomRight)) {
-
-                // val bottomFree = !bottomLeft && !bottomRight
-                // val topFree = !topLeft && !topRight
-                // val leftFree = !topLeft && !bottomLeft
-                // val rightFree = !topRight && !bottomRight
-
-                // todo optimize to use less draw calls if 1 or 2 corners are drawn only
-
-                GFXx2D.flatColor(centerColor)
-
-                // draw center part
-                drawRect(x, y + radius, w, h - radius * 2)
-
-                // draw top bar
-                drawRect(x + radius, y, w - 2 * radius, radius)
-                // draw bottom bar
-                drawRect(x + radius, y + h - radius, w - 2 * radius, radius)
-
-                // draw corners
-                if (topLeft) drawCorner(x, y, radius, radius, this.topLeft)
-                else drawRect(x, y, radius, radius)
-
-                if (topRight) drawCorner(x + w - radius, y, radius, radius, this.topRight)
-                else drawRect(x + w - radius, y, radius, radius)
-
-                if (bottomLeft) drawCorner(x, y + h - radius, radius, radius, this.bottomLeft)
-                else drawRect(x, y + h - radius, radius, radius)
-
-                if (bottomRight) drawCorner(x + w - radius, y + h - radius, radius, radius, this.bottomRight)
-                else drawRect(x + w - radius, y + h - radius, radius, radius)
-
-            } else drawRect(x, y, w, h, centerColor)
-        }*/
     }
 
     fun drawCorner(x: Int, y: Int, w: Int, h: Int, corner: StaticBuffer) {
@@ -135,7 +100,7 @@ object Corner {
         GFX.check()
         val shader = flatShader.value
         shader.use()
-        GFXx2D.posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h)
         corner.draw(shader)
         GFX.check()
     }
@@ -145,7 +110,7 @@ object Corner {
         GFX.check()
         val shader = flatShader.value
         shader.use()
-        GFXx2D.posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h)
         shader.v4f("color", color)
         corner.draw(shader)
         GFX.check()

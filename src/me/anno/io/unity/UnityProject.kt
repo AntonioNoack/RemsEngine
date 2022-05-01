@@ -81,9 +81,9 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                         // probably a binary file
                         // create a fake link file
                         // find file id
-                        // todo there may be actual useful data in the meta file,
-                        // todo e.g. import settings
-                        // todo use this data to create a prefab, which then links to the original file
+                        // to do there may be actual useful data in the meta file,
+                        // to do e.g. import settings
+                        // to do use this data to create a prefab, which then links to the original file
                         val meta = getMeta(content)
                         val fileId = getMainId(meta)
                         // LOGGER.info("[89] fileId from $meta: $fileId, created link")
