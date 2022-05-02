@@ -3,16 +3,26 @@ package me.anno.maths.bvh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.raycast.RayHit
 import me.anno.gpu.GFX
+import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AABBs.avgX
+import me.anno.utils.types.AABBs.avgY
+import me.anno.utils.types.AABBs.avgZ
 import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ
+import me.anno.utils.types.AABBs.transformSet
 import me.anno.utils.types.Booleans.toInt
 import org.joml.AABBf
+import org.joml.Matrix4x3f
+import org.joml.Vector3d
 import org.joml.Vector3f
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -83,31 +93,133 @@ abstract class BVHBuilder(
         // todo build whole scene into TLAS+BLAS and then render it correctly
         // todo how do we manage multiple meshes? connected buffer is probably the best...
 
-        fun build(mesh: Mesh, splitMethod: SplitMethod, maxNodeSize: Int, withIndirections: Boolean): BVHBuilder? {
+        // todo can we somehow use an array of pointers in OpenGL, so we can use many different texture sizes??? would really help...
+
+        val blasCache = HashMap<Mesh, BLASNode?>()
+
+        fun buildTLAS(
+            scene: PipelineStage, // filled with meshes
+            cameraPosition: Vector3d,
+            worldScale: Double,
+            splitMethod: SplitMethod,
+            maxNodeSize: Int
+        ): TLASNode {
+            val objects = ArrayList<TLASLeaf>(scene.size)
+            // add non-instanced objects
+            val dr = scene.drawRequests
+            for (index in dr.indices) {
+                val dri = dr[index]
+                // to do theoretically, we'd need to respect material override as well,
+                // but idk how to do materials yet...
+                val mesh = dri.mesh
+                val blas = blasCache.getOrPut(mesh) {
+                    buildBLAS(mesh, splitMethod, maxNodeSize)
+                } ?: continue
+                val entity = dri.entity
+                val transform = entity.transform
+                val l2w0 = transform.getDrawMatrix()
+                val l2w = Matrix4x3f().set4x3delta(l2w0, cameraPosition, worldScale)
+                val w2l = Matrix4x3f()
+                l2w.invert(w2l)
+                val centroid = Vector3f()
+                val localBounds = mesh.aabb
+                centroid.set(localBounds.avgX(), localBounds.avgY(), localBounds.avgZ())
+                l2w.transformPosition(centroid)
+                val globalBounds = AABBf()
+                localBounds.transformSet(l2w, globalBounds)
+                objects.add(TLASLeaf(centroid, l2w, w2l, blas, globalBounds))
+            }
+            // todo add all instanced objects
+            return recursiveBuildTLAS(objects, 0, objects.size, splitMethod)
+        }
+
+        fun buildBLAS(mesh: Mesh, splitMethod: SplitMethod, maxNodeSize: Int): BLASNode? {
             val positions = mesh.positions ?: return null
             val indices = mesh.indices ?: IntArray(positions.size / 3) { it }
             val numTriangles = indices.size / 3
-            val dstPos = if (withIndirections) null else FloatArray(numTriangles * 9)
-            val root = recursiveBuild(positions, indices, 0, numTriangles, maxNodeSize, splitMethod, dstPos)
-            if (dstPos != null) {
-                var i3 = 0
-                for (i in 0 until numTriangles * 3) {
-                    var j3 = indices[i] * 3
-                    dstPos[i3++] = positions[j3++]
-                    dstPos[i3++] = positions[j3++]
-                    dstPos[i3++] = positions[j3]
-                }
+            val dstPos = FloatArray(numTriangles * 9)
+            val root = recursiveBuildBLAS(positions, indices, 0, numTriangles, maxNodeSize, splitMethod, dstPos)
+            var i3 = 0
+            for (i in 0 until numTriangles * 3) {
+                var j3 = indices[i] * 3
+                dstPos[i3++] = positions[j3++]
+                dstPos[i3++] = positions[j3++]
+                dstPos[i3++] = positions[j3]
             }
             return root
         }
 
-        private fun recursiveBuild(
+        private fun recursiveBuildTLAS(
+            objects: ArrayList<TLASLeaf>,
+            start: Int, end: Int, // triangle indices
+            splitMethod: SplitMethod
+        ): TLASNode {
+            val count = end - start
+            if (count <= 1) {
+                // leaf was already created by parent buildTLAS()
+                return objects[start]
+            } else {
+
+                val bounds = AABBf()
+                for (i in start until end) {
+                    bounds.union(objects[i].bounds)
+                }
+
+                // bounds of center of primitives for efficient split dimension
+                val centroidBounds = AABBf()
+                for (index in start until end) {
+                    centroidBounds.union(objects[index].centroid)
+                }
+
+                // split dimension
+                val dim = centroidBounds.maxDim()
+
+                // partition primitives into two sets & build children
+                var mid = (start + end) / 2
+                if (centroidBounds.getMax(dim) == centroidBounds.getMin(dim)) {
+                    // creating a leaf node here would be illegal, because maxNodesPerPoint would be violated
+                    // nodes must be split randomly -> just skip all splitting computations
+                } else {
+                    // partition based on split method
+                    // for the very start, we'll only implement the simplest methods
+                    when (splitMethod) {
+                        SplitMethod.MIDDLE -> {
+                            val midF = (centroidBounds.getMin(dim) + centroidBounds.getMax(dim)) * 0.5f
+                            mid = partition(objects, start, end) { t ->
+                                t.centroid[dim] < midF
+                            }
+                            if (mid == start || mid >= end - 1) {// middle didn't work -> use more elaborate scheme
+                                mid = (start + end) / 2
+                                median(objects, start, end) { t0, t1 ->
+                                    t0.centroid[dim].compareTo(t1.centroid[dim])
+                                }
+                            }
+                        }
+                        SplitMethod.MEDIAN -> {
+                            median(objects, start, end) { t0, t1 ->
+                                t0.centroid[dim].compareTo(t1.centroid[dim])
+                            }
+                        }
+                        SplitMethod.SURFACE_AREA_HEURISTIC -> TODO()
+                        SplitMethod.HIERARCHICAL_LINEAR -> TODO()
+                    }
+                }
+
+                val n0 = recursiveBuildTLAS(objects, start, mid, splitMethod)
+                val n1 = recursiveBuildTLAS(objects, mid, end, splitMethod)
+
+                return TLASBranch(dim, n0, n1, bounds)
+            }
+
+        }
+
+        private fun recursiveBuildBLAS(
             positions: FloatArray,
             indices: IntArray,
             start: Int, end: Int, // triangle indices
             maxNodeSize: Int,
             splitMethod: SplitMethod,
-            dstPos: FloatArray?,
+            newPositions: FloatArray,
         ): BLASNode {
 
             val bounds = AABBf()
@@ -120,10 +232,7 @@ abstract class BVHBuilder(
             if (count <= maxNodeSize) {
 
                 // create leaf
-                return if (dstPos == null)
-                    BLASLeaf(start, count, bounds, positions, indices)
-                else
-                    BLASLeaf(start, count, bounds, dstPos, null)
+                return BLASLeaf(start, count, newPositions, bounds)
 
             } else {
 
@@ -160,15 +269,16 @@ abstract class BVHBuilder(
                                 a[dim] + b[dim] + c[dim] < midF
                             }
                             if (mid == start || mid >= end - 1) {// middle didn't work -> use more elaborate scheme
+                                mid = (start + end) / 2
                                 median(positions, indices, start, end) { a0, b0, c0, a1, b1, c1 ->
-                                    a0[dim] + b0[dim] + c0[dim] < a1[dim] + b1[dim] + c1[dim]
+                                    (a0[dim] + b0[dim] + c0[dim]).compareTo(a1[dim] + b1[dim] + c1[dim])
                                 }
                             }
                         }
                         SplitMethod.MEDIAN -> {
                             // if (start == 0 && end == indices.size / 3) debug(positions, indices, start, end)
                             median(positions, indices, start, end) { a0, b0, c0, a1, b1, c1 ->
-                                a0[dim] + b0[dim] + c0[dim] < a1[dim] + b1[dim] + c1[dim]
+                                (a0[dim] + b0[dim] + c0[dim]).compareTo(a1[dim] + b1[dim] + c1[dim])
                             }
                             //debug(positions, indices, start, mid)
                             //debug(positions, indices, mid, end)
@@ -177,8 +287,8 @@ abstract class BVHBuilder(
                         SplitMethod.HIERARCHICAL_LINEAR -> TODO()
                     }
                 }
-                val n0 = recursiveBuild(positions, indices, start, mid, maxNodeSize, splitMethod, dstPos)
-                val n1 = recursiveBuild(positions, indices, mid, end, maxNodeSize, splitMethod, dstPos)
+                val n0 = recursiveBuildBLAS(positions, indices, start, mid, maxNodeSize, splitMethod, newPositions)
+                val n1 = recursiveBuildBLAS(positions, indices, mid, end, maxNodeSize, splitMethod, newPositions)
 
                 return BLASBranch(dim, n0, n1, bounds)
             }
@@ -213,21 +323,27 @@ abstract class BVHBuilder(
         }*/
 
         fun median(
+            objects: ArrayList<TLASLeaf>,
+            start: Int,
+            end: Int,
+            condition: (t0: TLASLeaf, t1: TLASLeaf) -> Int
+        ) {
+            // not optimal performance, but at least it will 100% work
+            objects.subList(start, end).sortWith(condition)
+        }
+
+        fun median(
             positions: FloatArray,
             indices: IntArray,
             start: Int,
             end: Int,
-            condition: (a0: Vector3f, b0: Vector3f, c0: Vector3f, a1: Vector3f, b1: Vector3f, c1: Vector3f) -> Boolean
+            condition: (a0: Vector3f, b0: Vector3f, c0: Vector3f, a1: Vector3f, b1: Vector3f, c1: Vector3f) -> Int
         ) {
             // not optimal performance, but at least it will 100% work
             val count = end - start
             val solution = Array(count) { start + it }
             solution.sortWith { a, b ->
-                when {
-                    a == b -> 0
-                    comp(positions, indices, a, b, condition) -> +1
-                    else -> -1
-                }
+                comp(positions, indices, a, b, condition)
             }
             val c3 = count * 3
             val s3 = start * 3
@@ -246,8 +362,8 @@ abstract class BVHBuilder(
 
         private fun comp(
             positions: FloatArray, indices: IntArray, i: Int, j: Int,
-            condition: (a0: Vector3f, b0: Vector3f, c0: Vector3f, a1: Vector3f, b1: Vector3f, c1: Vector3f) -> Boolean
-        ): Boolean {
+            condition: (a0: Vector3f, b0: Vector3f, c0: Vector3f, a1: Vector3f, b1: Vector3f, c1: Vector3f) -> Int
+        ): Int {
             val a0 = JomlPools.vec3f.create()
             val b0 = JomlPools.vec3f.create()
             val c0 = JomlPools.vec3f.create()
@@ -288,6 +404,27 @@ abstract class BVHBuilder(
 
         }
 
+        private fun partition(
+            objects: ArrayList<TLASLeaf>, start: Int, end: Int,
+            condition: (TLASLeaf) -> Boolean
+        ): Int {
+
+            var i = start
+            var j = (end - 1)
+
+            while (i < j) {
+                // while front is fine, progress front
+                while (i < j && condition(objects[i])) i++
+                // while back is fine, progress back
+                while (i < j && !condition(objects[j])) j--
+                // if nothing works, swap i and j
+                if (i < j) swap(objects, i, j)
+            }
+
+            return i
+
+        }
+
         private fun cond(
             positions: FloatArray, indices: IntArray, i: Int, condition: (Vector3f, Vector3f, Vector3f) -> Boolean
         ): Boolean {
@@ -305,6 +442,12 @@ abstract class BVHBuilder(
 
         private fun Vector3f.set(positions: FloatArray, ai: Int) {
             set(positions[ai], positions[ai + 1], positions[ai + 2])
+        }
+
+        private fun <V> swap(list: ArrayList<V>, i: Int, j: Int) {
+            val tmp = list[i]
+            list[i] = list[j]
+            list[j] = tmp
         }
 
         private fun swap(indices: IntArray, i: Int, j: Int) {

@@ -9,17 +9,19 @@ import org.joml.Matrix4x3f
 import org.joml.Vector3f
 
 class TLASLeaf(
-    val worldToLocal: Matrix4x3f,   //           12
+    val centroid: Vector3f,
     val localToWorld: Matrix4x3f,   //           12
+    val worldToLocal: Matrix4x3f,   //           12
     val mesh: BLASNode,             //          1-2
     bounds: AABBf,                  //            6
     //                              // total: 31/32 floats = 128 bytes
-) : BLASNode(bounds) {
+) : TLASNode(bounds) {
 
     override fun print(depth: Int) {
         println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $worldToLocal, ${mesh.index}")
     }
 
+    // idk, we could go deeper if we wanted
     override fun countNodes() = 1
     override fun maxDepth() = 1
     override fun forEach(run: (BVHBuilder) -> Unit) = run(this)

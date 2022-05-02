@@ -13,12 +13,14 @@ import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageWriter
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mixARGB2
 import me.anno.maths.bvh.BVHBuilder.Companion.createNodeTexture
 import me.anno.maths.bvh.BVHBuilder.Companion.createTriangleTexture
 import me.anno.maths.bvh.RayTracing.glslIntersections
 import me.anno.utils.Clock
+import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.ThreadLocal2
@@ -26,11 +28,45 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
 import me.anno.utils.types.AABBs.avgZ
+import org.joml.Quaternionf
 import org.joml.Vector2i
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11C.glFinish
 import org.lwjgl.opengl.GL11C.glFlush
+
+val localResult = ThreadLocal2 { RayHit() }
+val sky0 = 0x2f5293
+val sky1 = 0x5c729b
+
+fun renderOnCPU(
+    w: Int, h: Int, name: String, cx: Double, cy: Double, fovZ: Double,
+    start2: Vector3f, rotation: Quaternionf, bvh: BVHBuilder,
+) {
+    val dir0 = JomlPools.vec3f.create()
+    dir0.set(cx, cy, fovZ).normalize()
+    val maxZ = length(dir0.x, dir0.y)
+    ImageWriter.writeImageInt(
+        w, h, false, name, 64
+    ) { x, y, _ ->
+        val direction = JomlPools.vec3f.create()
+        direction.set(x - cx, cy - y, fovZ).normalize()
+        val dirX = direction.x
+        val dirY = direction.y
+        rotation.transform(direction)
+        val result = localResult.get()
+        val maxDistance = 1e20
+        result.distance = maxDistance
+        bvh.intersect(start2, direction, result)
+        val color = if (result.distance < maxDistance) {
+            val normal = result.normalWS
+            normal.normalize()
+            (normal.x * 60 + 150).toInt() * 0x10101
+        } else mixARGB2(sky0, sky1, length(dirX, dirY) / maxZ)
+        JomlPools.vec3f.sub(1)
+        color
+    }
+}
 
 fun main() {
 
@@ -57,7 +93,7 @@ fun main() {
     val source = downloads.getChild("3d/bunny.obj")
     val mesh = MeshCache[source]!!
 
-    println("model has ${mesh.numTriangles} triangles")
+    LOGGER.info("model has ${mesh.numTriangles} triangles")
 
     val meshComponent = MeshComponent()
     meshComponent.mesh = source
@@ -71,14 +107,10 @@ fun main() {
     )
     val start2 = Vector3f().set(start)
 
-    val maxDistance = 10.0
+    val maxDistance = 1e20
 
     val cx = (w - 1) * 0.5
     val cy = (h - 1) * 0.5
-
-    val localResult = ThreadLocal2 { RayHit() }
-    val sky0 = 0x2f5293
-    val sky1 = 0x5c729b
 
     val clock = Clock()
 
@@ -106,26 +138,12 @@ fun main() {
         clock.stop("cpu-raw", w * h)
     }
 
-    val bvh = BVHBuilder.build(mesh, SplitMethod.MEDIAN, maxNodeSize, false)!!
+    val bvh = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN, maxNodeSize)!!
     if (cpuBVH) {
         // bvh.print()
+        val rotation = Quaternionf()
         clock.start()
-        ImageWriter.writeImageInt(
-            w, h, false, "bvh/cpu-bvh.png", 64
-        ) { x, y, _ ->
-            val direction = JomlPools.vec3f.create()
-            direction.set(x - cx, cy - y, fovZ).normalize()
-            val result = localResult.get()
-            result.distance = maxDistance
-            bvh.intersect(start2, direction, result)
-            val color = if (result.distance < maxDistance) {
-                val normal = result.normalWS
-                normal.normalize()
-                (normal.x * 60 + 150).toInt() * 0x10101
-            } else mixARGB2(sky0, sky1, 10f * length(direction.x, direction.y))
-            JomlPools.vec3f.sub(1)
-            color
-        }
+        renderOnCPU(w, h, "bvh/cpu-bvh.png", cx, cy, fovZ, start2, rotation, bvh)
         clock.stop("cpu-bvh", w * h)
     }
 
@@ -155,64 +173,63 @@ fun main() {
                         "       uint nextNodeStack[$maxDepth];\n" +
                         "       uint nodeIndex = 0;\n" + // root
                         "       uint stackIndex = 0;\n" +
-                        "       uint pixelIndex;\n" +
                         "       vec3 normal = vec3(0.0);\n" +
                         "       float distance = Infinity;\n" +
                         "       ivec2 nodeTexSize = imageSize(nodes);\n" +
                         "       ivec2 triTexSize = imageSize(triangles);\n" +
-                        "       vec3 dir = vec3(vec2(pos)-cameraOffset.xy, cameraOffset.z);\n" +
-                        "       dir = normalize(dir);\n" +
+                        "       vec3 dir = normalize(vec3(vec2(pos)-cameraOffset.xy, cameraOffset.z));\n" +
                         "       vec3 invDir = 1.0 / dir;\n" +
-                        "if(${!useBVH}){\n" +
-                        // general test
-                        "       for(uint triangleIndex=0;triangleIndex<${mesh.numTriangles};triangleIndex++){\n" + // triangle index
-                        // load triangle data
-                        "           pixelIndex = triangleIndex * 3;\n" + // 3 = pixels per triangle
-                        "           uint triX = pixelIndex % triTexSize.x;\n" +
-                        "           uint triY = pixelIndex / triTexSize.x;\n" +
-                        "           vec3 p0 = imageLoad(triangles, ivec2(triX,triY)).rgb;\n" +
-                        "           vec3 p1 = imageLoad(triangles, ivec2(triX+1,triY)).rgb;\n" +
-                        "           vec3 p2 = imageLoad(triangles, ivec2(triX+2,triY)).rgb;\n" +
-                        "           intersectTriangle(cameraPosition, dir, p0, p1, p2, normal, distance);\n" +
-                        "       }\n" +
-                        "} else {\n" +
-                        "       uint k=0;\n" +
-                        "       while(k++<1024){\n" +
-                        // fetch node data
-                        "           pixelIndex = nodeIndex * 2;\n" + // 2 = pixels per node
-                        "           uint nodeX = pixelIndex % nodeTexSize.x;\n" +
-                        "           uint nodeY = pixelIndex / nodeTexSize.x;\n" +
-                        "           vec4 d0 = imageLoad(nodes, ivec2(nodeX,nodeY));\n" +
-                        "           vec4 d1 = imageLoad(nodes, ivec2(nodeX+1,nodeY));\n" +
-                        // bounds check
-                        "           if(intersectAABB(cameraPosition,invDir,d0.xyz,d1.xyz,distance)){\n" +
-                        "               uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
-                        "               if(v01.y == 0){\n" +
-                        // to do: check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.h ?
-                        "                   nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
-                        "                   nodeIndex++;\n" + // search child next
-                        "               } else {\n" +
-                        // this node is a leaf
-                        // check all triangles for intersections
-                        "                   uint start = v01.x, end = min(start+v01.y,${mesh.numTriangles});\n" +
-                        "                   for(uint triangleIndex=start;triangleIndex<end;triangleIndex++){\n" + // triangle index -> load triangle data
-                        "                       pixelIndex = triangleIndex * 3;\n" + // 3 = pixels per triangle
-                        "                       uint triX = pixelIndex % triTexSize.x;\n" +
-                        "                       uint triY = pixelIndex / triTexSize.x;\n" +
-                        "                       vec3 p0 = imageLoad(triangles, ivec2(triX,triY)).rgb;\n" +
-                        "                       vec3 p1 = imageLoad(triangles, ivec2(triX+1,triY)).rgb;\n" +
-                        "                       vec3 p2 = imageLoad(triangles, ivec2(triX+2,triY)).rgb;\n" +
-                        "                       intersectTriangle(cameraPosition, dir, p0, p1, p2, normal, distance);\n" +
-                        "                   }\n" + // next node
-                        "                   if(stackIndex < 1) break;\n" +
-                        "                   nodeIndex = nextNodeStack[--stackIndex];\n" +
-                        "               }\n" +
-                        "           } else {\n" + // next node
-                        "               if(stackIndex < 1) break;\n" +
-                        "               nodeIndex = nextNodeStack[--stackIndex];\n" +
-                        "           }\n" +
-                        "       }\n" +
-                        "}\n" +
+                        (if (useBVH) {
+                            "" +
+                                    "uint k=0;\n" +
+                                    "while(k++<1024){\n" + // could be k<bvh.count() or true
+                                    // fetch node data
+                                    "    uint pixelIndex = nodeIndex * 2;\n" + // 2 = pixels per node
+                                    "    uint nodeX = pixelIndex % nodeTexSize.x;\n" +
+                                    "    uint nodeY = pixelIndex / nodeTexSize.x;\n" +
+                                    "    vec4 d0 = imageLoad(nodes, ivec2(nodeX,nodeY));\n" +
+                                    "    vec4 d1 = imageLoad(nodes, ivec2(nodeX+1,nodeY));\n" +
+                                    // bounds check
+                                    "    if(intersectAABB(cameraPosition,invDir,d0.xyz,d1.xyz,distance)){\n" +
+                                    "        uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
+                                    "        if(v01.y == 0){\n" +
+                                    // to do: check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.h ?
+                                    "            nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
+                                    "            nodeIndex++;\n" + // search child next
+                                    "        } else {\n" +
+                                    // this node is a leaf
+                                    // check all triangles for intersections
+                                    "            uint start = v01.x, end = min(start+v01.y,${mesh.numTriangles});\n" +
+                                    "            for(uint triangleIndex=start;triangleIndex<end;triangleIndex++){\n" + // triangle index -> load triangle data
+                                    "                pixelIndex = triangleIndex * 3;\n" + // 3 = pixels per triangle
+                                    "                uint triX = pixelIndex % triTexSize.x;\n" +
+                                    "                uint triY = pixelIndex / triTexSize.x;\n" +
+                                    "                vec3 p0 = imageLoad(triangles, ivec2(triX,triY)).rgb;\n" +
+                                    "                vec3 p1 = imageLoad(triangles, ivec2(triX+1,triY)).rgb;\n" +
+                                    "                vec3 p2 = imageLoad(triangles, ivec2(triX+2,triY)).rgb;\n" +
+                                    "                intersectTriangle(cameraPosition, dir, p0, p1, p2, normal, distance);\n" +
+                                    "            }\n" + // next node
+                                    "            if(stackIndex < 1) break;\n" +
+                                    "            nodeIndex = nextNodeStack[--stackIndex];\n" +
+                                    "        }\n" +
+                                    "    } else {\n" + // next node
+                                    "        if(stackIndex < 1) break;\n" +
+                                    "        nodeIndex = nextNodeStack[--stackIndex];\n" +
+                                    "    }\n" +
+                                    "}\n"
+                        } else {
+                            "" +
+                                    "for(uint triangleIndex=0;triangleIndex<${mesh.numTriangles};triangleIndex++){\n" + // triangle index
+                                    // load triangle data
+                                    "    uint pixelIndex = triangleIndex * 3;\n" + // 3 = pixels per triangle
+                                    "    uint triX = pixelIndex % triTexSize.x;\n" +
+                                    "    uint triY = pixelIndex / triTexSize.x;\n" +
+                                    "    vec3 p0 = imageLoad(triangles, ivec2(triX,triY)).rgb;\n" +
+                                    "    vec3 p1 = imageLoad(triangles, ivec2(triX+1,triY)).rgb;\n" +
+                                    "    vec3 p2 = imageLoad(triangles, ivec2(triX+2,triY)).rgb;\n" +
+                                    "    intersectTriangle(cameraPosition, dir, p0, p1, p2, normal, distance);\n" +
+                                    "}\n"
+                        }) +
                         // save result to texture
                         "       vec3 result = vec3(0.0);\n" +
                         "       if(distance < Infinity){\n" +

@@ -11,6 +11,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
 import me.anno.utils.files.Files.findNextFileName
+import me.anno.utils.files.Files.findNextName
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.apache.logging.log4j.LogManager
@@ -137,6 +138,8 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             CAdd(lastGroupPath, 'e', "Entity", lastObjectName),
             objectCountInGroup++, -1
         )
+        // in case there is no new name, create one ourselves
+        lastObjectName = findNextName(lastObjectName, '.')
         meshCountInObject = 0
     }
 
@@ -144,7 +147,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         if (facePositions.size > 0) {
             if (lastObjectPath.isEmpty()) newObject()
             val mesh = Prefab("Mesh")
-            val name = lastObjectName
+            val name = lastObjectPath.nameId
             var fileName = "$name.json"
             mesh.setProperty("material", lastMaterial)
             mesh.setProperty("positions", facePositions.toFloatArray())
@@ -153,7 +156,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             val meshesFolder = meshesFolder
             // find good new name for mesh
             if (meshesFolder.getChild(fileName) != InvalidRef) {
-                fileName = "$lastObjectName-${lastMaterial.name}"
+                fileName = "$name-${lastMaterial.name}"
                 val fileI = meshesFolder.getChild(fileName)
                 if (fileI != InvalidRef) {
                     fileName = findNextFileName(fileI, 1, '-', 1)
@@ -162,7 +165,18 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             // add mesh component to last object
             val meshRef = meshesFolder.createPrefabChild(fileName, mesh)
             mesh.source = meshRef
-            val add = scenePrefab.add(lastObjectPath, 'c', "MeshComponent", name, meshCountInObject++)
+            var prefabName = name
+            var add: Path
+            nameSearch@while (true){
+                try {
+                    add = scenePrefab.add(lastObjectPath, 'c', "MeshComponent", prefabName, meshCountInObject)
+                    break@nameSearch
+                } catch (e: IllegalArgumentException){
+                    // continue searching a better name...
+                    prefabName = findNextName(prefabName,'.')
+                }
+            }
+            meshCountInObject++
             scenePrefab[add, "mesh"] = meshRef
             // LOGGER.debug("Clearing at ${facePositions.size / 3}")
             facePositions.clear()

@@ -339,9 +339,9 @@ object AABBs {
     }
 
     /**
-     * transforms this matrix, then unions it with base, and places the result in dst
+     * transforms this matrix, and places the result in dst
      * */
-    fun AABBf.transformReplace(m: Matrix4x3f, base: AABBf, dst: AABBf = base): AABBf {
+    fun AABBf.transformSet(m: Matrix4x3f, dst: AABBf = this): AABBf {
         val mx = minX
         val my = minY
         val mz = minZ

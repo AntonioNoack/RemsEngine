@@ -8,7 +8,6 @@ import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.components.script.QuickScriptComponent
-import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.Projection.projectRayToAABBBack
 import me.anno.engine.raycast.Projection.projectRayToAABBFront
@@ -34,7 +33,7 @@ import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ
 import me.anno.utils.types.AABBs.set
-import me.anno.utils.types.AABBs.transformReplace
+import me.anno.utils.types.AABBs.transformSet
 import me.anno.utils.types.Matrices.set2
 import org.joml.*
 import kotlin.math.abs
@@ -394,7 +393,7 @@ open class SDFComponent : ProceduralMesh() {
         }
         // make bounds reasonable, so we can actually use them in computations
         clampBounds(dst)
-        src.transformReplace(transform, dst)
+        src.transformSet(transform, dst)
         JomlPools.mat4x3f.sub(1)
     }
 

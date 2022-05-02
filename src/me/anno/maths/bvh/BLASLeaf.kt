@@ -7,10 +7,7 @@ import me.anno.utils.types.Triangles
 import org.joml.AABBf
 import org.joml.Vector3f
 
-class BLASLeaf(
-    val start: Int, val length: Int, bounds: AABBf,
-    val pos: FloatArray, val idx: IntArray?
-) : BLASNode(bounds) {
+class BLASLeaf(val start: Int, val length: Int, val pos: FloatArray, bounds: AABBf) : BLASNode(bounds) {
 
     override fun print(depth: Int) {
         println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $start += $length")
@@ -38,52 +35,25 @@ class BLASLeaf(
             val bld0 = bestLocalDistance
 
             val p = this.pos
-            val idx = this.idx
 
-            if (idx == null) {
-                var i3 = start * 9
-                for (i in start until end) {
+            var i3 = start * 9
+            for (i in start until end) {
 
-                    a.set(p[i3++], p[i3++], p[i3++])
-                    b.set(p[i3++], p[i3++], p[i3++])
-                    c.set(p[i3++], p[i3++], p[i3++])
+                a.set(p[i3++], p[i3++], p[i3++])
+                b.set(p[i3++], p[i3++], p[i3++])
+                c.set(p[i3++], p[i3++], p[i3++])
 
-                    val localDistance = Triangles.rayTriangleIntersection(
-                        pos, dir, a, b, c,
-                        bestLocalDistance, localNormalTmp, localHitTmp
-                    )
-                    if (localDistance < bestLocalDistance) {
-                        bestLocalDistance = localDistance
-                        // could swap pointers as well
-                        localHit.set(localHitTmp)
-                        localNormal.set(localNormalTmp)
-                    }
-
+                val localDistance = Triangles.rayTriangleIntersection(
+                    pos, dir, a, b, c,
+                    bestLocalDistance, localNormalTmp, localHitTmp
+                )
+                if (localDistance < bestLocalDistance) {
+                    bestLocalDistance = localDistance
+                    // could swap pointers as well
+                    localHit.set(localHitTmp)
+                    localNormal.set(localNormalTmp)
                 }
-            } else {
-                for (i in start until end) {
 
-                    val i3 = i * 3
-                    val a3 = idx[i3] * 3
-                    val b3 = idx[i3 + 1] * 3
-                    val c3 = idx[i3 + 2] * 3
-
-                    a.set(p[a3], p[a3 + 1], p[a3 + 2])
-                    b.set(p[b3], p[b3 + 1], p[b3 + 2])
-                    c.set(p[c3], p[c3 + 1], p[c3 + 2])
-
-                    val localDistance = Triangles.rayTriangleIntersection(
-                        pos, dir, a, b, c,
-                        bestLocalDistance, localNormalTmp, localHitTmp
-                    )
-                    if (localDistance < bestLocalDistance) {
-                        bestLocalDistance = localDistance
-                        // could swap pointers as well
-                        localHit.set(localHitTmp)
-                        localNormal.set(localNormalTmp)
-                    }
-
-                }
             }
 
             val bld = bestLocalDistance.toDouble()
@@ -95,6 +65,6 @@ class BLASLeaf(
         }
     }
 
-    override fun findCompactPositions() = if (idx == null) pos else null
+    override fun findCompactPositions() = pos
 
 }

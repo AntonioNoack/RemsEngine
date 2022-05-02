@@ -123,6 +123,31 @@ object Files {
         return findNextFileName(parent, name, extension, digitsLength, colonSymbol, startingNumber)
     }
 
+    fun findNextName(name: String, separator: Char, startingNumber: Long = 1): String {
+        // find how long the number is
+        var numLength = 0
+        for (i in name.lastIndex downTo 0) {
+            if (name[i] in '0'..'9') {
+                numLength++
+            } else break
+        }
+        // create new name
+        val newNumber: Long
+        var nameEndIndex: Int
+        if (numLength == 0) {
+            nameEndIndex = name.length
+            newNumber = startingNumber
+        } else {
+            val splitIndex = name.length - numLength
+            nameEndIndex = splitIndex
+            newNumber = name.substring(splitIndex, name.length).toLong() + 1
+        }
+        if (name[nameEndIndex-1] == separator) nameEndIndex--
+        val partString = name.substring(0, nameEndIndex)
+        return if (separator.code == 0) "$partString$newNumber"
+        else "$partString$separator$newNumber"
+    }
+
     fun Long.formatFileSize(): String {
         if (this < 0) return "-" + (-this).formatFileSize()
         val endings = "kMGTPEZY"

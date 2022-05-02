@@ -12,13 +12,13 @@ import kotlin.math.max
 object RayTracing {
 
     const val glslIntersections = "" +
+            // https://stackoverflow.com/questions/59257678/intersect-a-ray-with-a-triangle-in-glsl-c
             "float pointInOrOn(vec3 p1, vec3 p2, vec3 a, vec3 b){\n" +
             "    vec3 cp1 = cross(b - a, p1 - a);\n" +
             "    vec3 cp2 = cross(b - a, p2 - a);\n" +
             "    return step(0.0, dot(cp1, cp2));\n" +
             "}\n" +
             "void intersectTriangle(vec3 pos, vec3 dir, vec3 p0, vec3 p1, vec3 p2, out vec3 normal, inout float bestDistance){\n" +
-            // https://stackoverflow.com/questions/59257678/intersect-a-ray-with-a-triangle-in-glsl-c
             "   vec3 N = cross(p1-p0, p2-p0);\n" +
             "   float distance = dot(p0-pos, N) / dot(dir, N);\n" +
             "   vec3 px = pos + dir * distance;\n" +

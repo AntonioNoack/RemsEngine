@@ -173,18 +173,20 @@ class Prefab : Saveable {
         return add(CAdd(parentPath, typeChar, className, nameId, ref), insertIndex).getSetterPath(index)
     }
 
+    @Deprecated("Please use the functions with explicit names")
     fun add(parentPath: Path, typeChar: Char, clazzName: String, insertIndex: Int = -1): Path {
         val index = addCounts.getAndInc(typeChar to parentPath)
         return add(CAdd(parentPath, typeChar, clazzName, clazzName, InvalidRef), insertIndex).getSetterPath(index)
     }
 
+    @Deprecated("Please use the functions with explicit names")
     fun add(parentPath: Path, typeChar: Char, clazzName: String, index: Int, insertIndex: Int = -1): Path {
         return add(CAdd(parentPath, typeChar, clazzName, clazzName, InvalidRef), insertIndex).getSetterPath(index)
     }
 
-    fun add(parentPath: Path, typeChar: Char, clazzName: String, name: String, insertIndex: Int = -1): Path {
+    fun add(parentPath: Path, typeChar: Char, clazzName: String, nameId: String, insertIndex: Int = -1): Path {
         val index = addCounts.getAndInc(typeChar to parentPath) // only true if this is a new instance
-        return add(CAdd(parentPath, typeChar, clazzName, name, InvalidRef), insertIndex).getSetterPath(index)
+        return add(CAdd(parentPath, typeChar, clazzName, nameId, InvalidRef), insertIndex).getSetterPath(index)
     }
 
     fun add(change: CAdd, insertIndex: Int): CAdd {
