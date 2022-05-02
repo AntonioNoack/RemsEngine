@@ -20,6 +20,7 @@ import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
@@ -30,6 +31,7 @@ import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.nio.*
 
+@Suppress("unused")
 open class Texture2D(
     val name: String,
     override var w: Int,
@@ -171,6 +173,7 @@ open class Texture2D(
                     is FloatBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is DoubleBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is IntArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+                    is FloatArray ->  glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     null -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, null as ByteBuffer?)
                     else -> throw RuntimeException("${data.javaClass}")
                 }
@@ -560,13 +563,13 @@ open class Texture2D(
         data.limit(2)
     }
 
-    fun createRGBASwizzle(ints: IntArray, checkRedundancy: Boolean) {
-        beforeUpload(1, ints.size)
-        val ints2 = if (checkRedundancy) checkRedundancy(ints) else ints
-        switchRGB2BGR(ints2)
+    fun createRGBASwizzle(data: IntArray, checkRedundancy: Boolean) {
+        beforeUpload(1, data.size)
+        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        switchRGB2BGR(data2)
         writeAlignment(4 * w)
         // uses bgra instead of rgba to save the swizzle
-        texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
+        texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4)
     }
 
@@ -574,31 +577,31 @@ open class Texture2D(
      * Warning:
      * changes the red and blue bytes; if that is not ok, create a copy of your array!
      * */
-    fun createRGBSwizzle(ints: IntArray, checkRedundancy: Boolean) {
-        beforeUpload(1, ints.size)
-        val ints2 = if (checkRedundancy) checkRedundancy(ints) else ints
-        switchRGB2BGR(ints2)
+    fun createRGBSwizzle(data: IntArray, checkRedundancy: Boolean) {
+        beforeUpload(1, data.size)
+        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        switchRGB2BGR(data2)
         // would work without swizzle, but I am not sure, that this is legal,
         // because the number of channels from the input and internal format differ
         // glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, ints2)
         writeAlignment(4 * w)
-        texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
+        texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 3)
     }
 
-    fun createRGB(floats: FloatArray, checkRedundancy: Boolean) {
-        beforeUpload(3, floats.size)
-        val floats2 = if (checkRedundancy) checkRedundancy(floats) else floats
+    fun createRGB(data: FloatArray, checkRedundancy: Boolean) {
+        beforeUpload(3, data.size)
+        val floats2 = if (checkRedundancy) checkRedundancy(data) else data
         writeAlignment(12 * w)
         texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, floats2)
         afterUpload(true, 12)
     }
 
-    fun createRGB(floats: FloatBuffer, checkRedundancy: Boolean) {
-        beforeUpload(3, floats.capacity())
-        if (checkRedundancy) checkRedundancy(floats)
+    fun createRGB(data: FloatBuffer, checkRedundancy: Boolean) {
+        beforeUpload(3, data.capacity())
+        if (checkRedundancy) checkRedundancy(data)
         writeAlignment(12 * w)
-        texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, floats)
+        texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, data)
         afterUpload(true, 12)
     }
 
@@ -613,21 +616,21 @@ open class Texture2D(
         afterUpload(false, 3)
     }
 
-    fun createRGBA(ints: IntBuffer, checkRedundancy: Boolean) {
-        beforeUpload(1, ints.remaining())
-        if (checkRedundancy) checkRedundancy(ints)
-        if (ints.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
+    fun createRGBA(data: IntBuffer, checkRedundancy: Boolean) {
+        beforeUpload(1, data.remaining())
+        if (checkRedundancy) checkRedundancy(data)
+        if (data.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
         writeAlignment(4 * w)
-        texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ints)
+        texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4)
     }
 
-    fun createRGB(ints: IntBuffer, checkRedundancy: Boolean) {
-        beforeUpload(1, ints.remaining())
-        if (checkRedundancy) checkRedundancy(ints)
-        if (ints.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
+    fun createRGB(data: IntBuffer, checkRedundancy: Boolean) {
+        beforeUpload(1, data.remaining())
+        if (checkRedundancy) checkRedundancy(data)
+        if (data.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
         writeAlignment(4 * w)
-        texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, ints)
+        texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4)
     }
 
@@ -736,22 +739,22 @@ open class Texture2D(
         createRGBA(buffer, false)
     }
 
-    fun createRGBA(buffer: ByteBuffer, checkRedundancy: Boolean) {
-        beforeUpload(4, buffer.remaining())
-        if (checkRedundancy) checkRedundancy(buffer, false)
-        texImage2D(TargetType.UByteTarget4, buffer)
+    fun createRGBA(data: ByteBuffer, checkRedundancy: Boolean) {
+        beforeUpload(4, data.remaining())
+        if (checkRedundancy) checkRedundancy(data, false)
+        texImage2D(TargetType.UByteTarget4, data)
         // glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-        bufferPool.returnBuffer(buffer)
+        bufferPool.returnBuffer(data)
         afterUpload(false, 4)
     }
 
-    fun createRGB(buffer: ByteBuffer, checkRedundancy: Boolean) {
-        beforeUpload(3, buffer.remaining())
-        if (checkRedundancy) checkRedundancy(buffer, true)
+    fun createRGB(data: ByteBuffer, checkRedundancy: Boolean) {
+        beforeUpload(3, data.remaining())
+        if (checkRedundancy) checkRedundancy(data, true)
         // texImage2D(TargetType.UByteTarget3, buffer)
         writeAlignment(3 * w)
-        texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
-        bufferPool.returnBuffer(buffer)
+        texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, data)
+        bufferPool.returnBuffer(data)
         afterUpload(false, 3)
     }
 
@@ -784,14 +787,14 @@ open class Texture2D(
 
     var autoUpdateMipmaps = true
 
-    private fun filtering(nearest: GPUFiltering) {
+    private fun filtering(filtering: GPUFiltering) {
         if (withMultisampling) {
             this.filtering = GPUFiltering.TRULY_NEAREST
             // multisample textures only support nearest filtering;
             // they don't accept the command to be what they are either
             return
         }
-        if (!hasMipmap && nearest.needsMipmap && (w > 1 || h > 1)) {
+        if (!hasMipmap && filtering.needsMipmap && (w > 1 || h > 1)) {
             glGenerateMipmap(target)
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {
@@ -804,9 +807,9 @@ open class Texture2D(
             // is called afterwards anyways
             // glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
-        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, nearest.min)
-        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, nearest.mag)
-        this.filtering = nearest
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering.mag)
+        this.filtering = filtering
     }
 
     var hasMipmap = false
@@ -824,13 +827,19 @@ open class Texture2D(
         } else throw IllegalStateException("Cannot bind non-created texture!")
     }*/
 
-    override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
+    override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
         checkSession()
         if (pointer > 0 && isCreated) {
-            if (isBoundToSlot(index)) return false
+            if (isBoundToSlot(index)) {
+                if (filtering != this.filtering || clamping != this.clamping) {
+                    activeSlot(index) // force this to be bound
+                    ensureFilterAndClamping(filtering, clamping)
+                }
+                return false
+            }
             activeSlot(index)
             val result = bindTexture(target, pointer)
-            ensureFilterAndClamping(nearest, clamping)
+            ensureFilterAndClamping(filtering, clamping)
             return result
         } else throw IllegalStateException("Cannot bind non-created texture!, $name")
     }

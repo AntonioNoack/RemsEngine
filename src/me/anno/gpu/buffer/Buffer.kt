@@ -16,76 +16,17 @@ import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import java.nio.ByteBuffer
 import kotlin.math.max
 
-abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
-    ICacheData, Drawable {
+abstract class Buffer(attributes: List<Attribute>, usage: Int) :
+    OpenGLBuffer(GL_ARRAY_BUFFER, attributes, usage), Drawable {
 
     constructor(attributes: List<Attribute>) : this(attributes, GL15.GL_STATIC_DRAW)
 
-    val stride = computeOffsets(attributes)
-
     var drawMode = GL_TRIANGLES
-    var nioBuffer: ByteBuffer? = null
-
-    var drawLength = 0
-
-    var pointer = -1
-    var session = 0
-
-    var isUpToDate = false
-
-    fun getName() = getName(0)
-    fun getName(index: Int) = attributes[index].name
-
-    var locallyAllocated = 0L
-
-    fun checkSession() {
-        if (session != OpenGL.session) {
-            session = OpenGL.session
-            onSessionChange()
+    var drawLength
+        get() = elementCount
+        set(value) {
+            elementCount = value
         }
-    }
-
-    open fun onSessionChange() {
-        pointer = -1
-        isUpToDate = false
-        locallyAllocated = allocate(locallyAllocated, 0L)
-        vao = -1
-    }
-
-    fun upload(allowResize: Boolean = true) {
-
-        checkSession()
-
-        GFX.check()
-
-        if (nioBuffer == null) {
-            createNioBuffer()
-        }
-
-        if (pointer <= 0) pointer = glGenBuffers()
-        if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
-
-        bindBuffer(GL_ARRAY_BUFFER, pointer)
-
-        val nio = nioBuffer!!
-        val newLimit = nio.position()
-        drawLength = max(drawLength, newLimit / stride)
-        nio.position(0)
-        nio.limit(drawLength * stride)
-        if (allowResize && locallyAllocated > 0 && newLimit in locallyAllocated / 2..locallyAllocated) {
-            // just keep the buffer
-            GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, nio)
-        } else {
-            locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
-            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, nio, usage)
-        }
-
-        GFX.check()
-        isUpToDate = true
-
-    }
-
-    abstract fun createNioBuffer()
 
     @Deprecated("Not supported on mobile platforms nor modern OpenGL")
     fun quads(): Buffer {
@@ -98,13 +39,18 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         return this
     }
 
-    private var vao = -1
+    var vao = -1
 
     private fun ensureVAO() {
         if (useVAOs) {
             if (vao <= 0) vao = glGenVertexArrays()
             if (vao <= 0) throw IllegalStateException()
         }
+    }
+
+    override fun onSessionChange() {
+        super.onSessionChange()
+        vao = -1
     }
 
     private var hasWarned = false
@@ -192,26 +138,9 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         }
     }
 
-    open fun unbind(shader: Shader) {
-        bindBuffer(GL_ARRAY_BUFFER, 0)
+    override fun unbind(shader: Shader) {
+        super.unbind(shader)
         bindVAO(0)
-        if (!useVAOs) {
-            for (index in attributes.indices) {
-                val attr = attributes[index]
-                val loc = shader.getAttributeLocation(attr.name)
-                if (loc >= 0) glDisableVertexAttribArray(loc)
-            }
-        }
-    }
-
-    fun ensureBuffer() {
-        checkSession()
-        if (!isUpToDate) upload()
-    }
-
-    fun ensureBufferWithoutResize() {
-        checkSession()
-        if (!isUpToDate) upload(false)
     }
 
     override fun drawInstanced(shader: Shader, instanceData: Buffer) {

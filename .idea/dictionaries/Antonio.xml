@@ -26,8 +26,10 @@
       <w>blanchedalmond</w>
       <w>blueviolet</w>
       <w>bokeh</w>
+      <w>branchless</w>
       <w>brdf</w>
       <w>burlywood</w>
+      <w>bvec</w>
       <w>cacheable</w>
       <w>cadetblue</w>
       <w>catched</w>
@@ -307,12 +309,14 @@
       <w>texel</w>
       <w>thinnen</w>
       <w>titlecase</w>
+      <w>tlas</w>
       <w>tonemapped</w>
       <w>tonemapping</w>
       <w>treemiddle</w>
       <w>triangulator</w>
       <w>tritanopia</w>
       <w>uchimura</w>
+      <w>uint</w>
       <w>ultrafast</w>
       <w>unifont</w>
       <w>uniport</w>

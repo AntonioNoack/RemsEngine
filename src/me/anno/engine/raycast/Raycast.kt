@@ -233,6 +233,9 @@ object Raycast {
         val original = result.distance
         if (original <= 0.0) return false
 
+        // calculate bounds
+        mesh.ensureBuffer()
+
         // todo it would be great if we would/could project the start+end onto the global aabb,
         // todo if they lay outside, so more often we can use the faster method more often
 
@@ -286,9 +289,7 @@ object Raycast {
                     localRadiusAtOrigin,
                     localRadiusPerUnit,
                     localMaxDistance
-                )
-                // localSrt0.dot(localDir0) <= localEnd0.dot(localDir0)
-            ) {
+                )) {
 
                 // test whether we intersect any triangle of this mesh
                 val localMaxDistance2 = localMaxDistance + extraDistance

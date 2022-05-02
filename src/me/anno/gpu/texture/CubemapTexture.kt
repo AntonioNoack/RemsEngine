@@ -167,8 +167,8 @@ class CubemapTexture(
         } else throw IllegalStateException("Cannot bind non-created texture!")
     }
 
-    override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
-        return bind(index, nearest)
+    override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
+        return bind(index, filtering)
     }
 
     private fun clamping() {

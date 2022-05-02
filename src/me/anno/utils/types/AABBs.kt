@@ -7,6 +7,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+@Suppress("unused")
 object AABBs {
 
     fun AABBd.isEmpty() = minX > maxX
@@ -23,10 +24,12 @@ object AABBs {
     fun AABBf.deltaX() = maxX - minX
     fun AABBf.deltaY() = maxY - minY
     fun AABBf.deltaZ() = maxZ - minZ
+    fun AABBf.volume() = deltaX() * deltaY() * deltaZ()
 
     fun AABBd.deltaX() = maxX - minX
     fun AABBd.deltaY() = maxY - minY
     fun AABBd.deltaZ() = maxZ - minZ
+    fun AABBd.volume() = deltaX() * deltaY() * deltaZ()
 
     fun AABBf.print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
     fun AABBd.print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
@@ -586,6 +589,15 @@ object AABBs {
         val sz = start.z + c * dir.z*/
         return aabb.testRay(start.x, start.y, start.z, dir.x, dir.y, dir.z) &&
                 distanceSquared(aabb, start) <= maxDistance * maxDistance
+    }
+
+    fun AABBf.scale(sx: Float, sy: Float = sx, sz: Float = sx) {
+        minX *= sx
+        minY *= sy
+        minZ *= sz
+        maxX *= sx
+        maxY *= sy
+        maxZ *= sz
     }
 
     fun AABBf.collideFront(pos: Vector3f, dir: Vector3f): Float {

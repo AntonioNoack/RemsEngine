@@ -1,15 +1,45 @@
-package me.anno.gpu.raytracing
+package me.anno.maths.bvh
 
 import me.anno.maths.Maths
 import org.joml.*
 import kotlin.math.max
 
-// todo gpu accelerated BVH traversal
-// todo using compute shaders / glsl, how much performance can we get? :)
-// todo ray-aabb-intersection:
-// todo (x01 - rayOrigin) / rayDir, r0=min(v0,v1) and r1=max(v0,v1)
-// todo hit if min(r1x,r1y,r1z) > max(r1x,r1y,r1z)
+// to do gpu accelerated BVH traversal
+// to do using compute shaders / glsl, how much performance can we get? :)
+// to do ray-aabb-intersection:
+// to do (x01 - rayOrigin) / rayDir, r0=min(v0,v1) and r1=max(v0,v1)
+// to do hit if min(r1x,r1y,r1z) > max(r1x,r1y,r1z)
 object RayTracing {
+
+    const val glslIntersections = "" +
+            "float pointInOrOn(vec3 p1, vec3 p2, vec3 a, vec3 b){\n" +
+            "    vec3 cp1 = cross(b - a, p1 - a);\n" +
+            "    vec3 cp2 = cross(b - a, p2 - a);\n" +
+            "    return step(0.0, dot(cp1, cp2));\n" +
+            "}\n" +
+            "void intersectTriangle(vec3 pos, vec3 dir, vec3 p0, vec3 p1, vec3 p2, out vec3 normal, inout float bestDistance){\n" +
+            // https://stackoverflow.com/questions/59257678/intersect-a-ray-with-a-triangle-in-glsl-c
+            "   vec3 N = cross(p1-p0, p2-p0);\n" +
+            "   float distance = dot(p0-pos, N) / dot(dir, N);\n" +
+            "   vec3 px = pos + dir * distance;\n" +
+            "   bool hit = \n" +
+            "       pointInOrOn(px, p0, p1, p2) *\n" +
+            "       pointInOrOn(px, p1, p2, p0) *\n" +
+            "       pointInOrOn(px, p2, p0, p1) *" +
+            "       step(0.0, bestDistance - distance) > 0.0;\n" +
+            "   bestDistance = hit ? distance : bestDistance;\n" +
+            "   normal = hit ? N : normal;\n" +
+            "}\n" +
+            "float minComp(vec3 v){ return min(v.x,min(v.y,v.z)); }\n" +
+            "float maxComp(vec3 v){ return max(v.x,max(v.y,v.z)); }\n" +
+            "bool intersectAABB(vec3 pos, vec3 invDir, vec3 bMin, vec3 bMax, float maxDistance){\n" +
+            "   bvec3 neg   = lessThan(invDir, vec3(0.0));\n" +
+            "   vec3  close = mix(bMin,bMax,neg);\n" +
+            "   vec3  far   = mix(bMax,bMin,neg);\n" +
+            "   float tMin  = maxComp((close-pos)*invDir);\n" +
+            "   float tMax  = minComp((far-pos)*invDir);\n" +
+            "   return max(tMin, 0.0) < min(tMax, maxDistance);\n" +
+            "}\n"
 
     fun Vector4f.dot(v: Vector3f, w: Float) = dot(v.x, v.y, v.z, w)
 
@@ -50,7 +80,12 @@ object RayTracing {
         return far >= near
     }
 
-    fun isRayIntersectingAABB(rayOrigin: Vector3f, invRayDirection: Vector3f, aabb: AABBf, maxDistance: Float): Boolean {
+    fun isRayIntersectingAABB(
+        rayOrigin: Vector3f,
+        invRayDirection: Vector3f,
+        aabb: AABBf,
+        maxDistance: Float
+    ): Boolean {
         val rx = rayOrigin.x
         val ry = rayOrigin.y
         val rz = rayOrigin.z
@@ -98,7 +133,12 @@ object RayTracing {
         return far >= near
     }
 
-    fun isRayIntersectingAABB(rayOrigin: Vector3d, invRayDirection: Vector3d, aabb: AABBd, maxDistance: Double): Boolean {
+    fun isRayIntersectingAABB(
+        rayOrigin: Vector3d,
+        invRayDirection: Vector3d,
+        aabb: AABBd,
+        maxDistance: Double
+    ): Boolean {
         val rx = rayOrigin.x
         val ry = rayOrigin.y
         val rz = rayOrigin.z

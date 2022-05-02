@@ -20,6 +20,7 @@ import kotlin.math.roundToInt
 
 /**
  * GPU implementation of poisson reconstruction
+ * todo some clamping seems to be incorrect...
  * */
 @Suppress("unused")
 class PoissonFramebuffer : Poisson<Framebuffer> {

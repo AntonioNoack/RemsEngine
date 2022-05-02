@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL30C.glGenVertexArrays
 import org.lwjgl.opengl.GL31C.glDrawElementsInstanced
 import org.lwjgl.system.MemoryUtil
 
+// todo probably should be an OpenGLBuffer
 class IndexBuffer(
     val base: Buffer,
     indices: IntArray,

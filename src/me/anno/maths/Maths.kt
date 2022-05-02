@@ -387,4 +387,7 @@ object Maths {
     fun ceilDiv(a: Long, b: Long) = (a + b - 1L) / b
     fun roundDiv(a: Long, b: Long) = (a + b.shr(1)) / b
 
+    fun align(size: Int, rem: Int) = ceilDiv(size, rem) * rem
+    fun align(size: Long, rem: Long) = ceilDiv(size, rem) * rem
+
 }
