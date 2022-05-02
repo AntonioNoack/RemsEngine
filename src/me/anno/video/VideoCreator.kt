@@ -248,6 +248,7 @@ open class VideoCreator(
             fps: Double,
             dst: FileReference,
             numFrames: Long,
+            shutdown: Boolean,
             getNextFrame: (callback: (Texture2D) -> Unit) -> Unit
         ) {
             val creator = VideoCreator(
@@ -265,8 +266,12 @@ open class VideoCreator(
                     }
                     creator.writeFrame(fb, frameCount.toLong()) {
                         if (++frameCount <= numFrames) {
-                            GFX.addGPUTask(1) {
+                            if (GFX.isGFXThread()) {
                                 writeFrame()
+                            } else {
+                                GFX.addGPUTask(1) {
+                                    writeFrame()
+                                }
                             }
                         } else {
                             creator.close()
@@ -275,8 +280,12 @@ open class VideoCreator(
                     }
                 }
             }
-            GFX.addGPUTask(1) { writeFrame() }
-            GFX.workGPUTasksUntilShutdown()
+            if (GFX.isGFXThread()) {
+                writeFrame()
+            } else {
+                GFX.addGPUTask(1) { writeFrame() }
+            }
+            if (shutdown) GFX.workGPUTasksUntilShutdown()
         }
 
         /**

@@ -262,7 +262,7 @@ open class Window(
                 GFX.loadTexturesSync.clear()
                 GFX.loadTexturesSync.push(true)
 
-                // todo if the window is being rescaled, reuse the old fb
+                // todo while the window is being rescaled, reuse the old fb
                 useFrame(
                     x0, y0, x1 - x0, y1 - y0,
                     true, buffer, Renderer.colorRenderer

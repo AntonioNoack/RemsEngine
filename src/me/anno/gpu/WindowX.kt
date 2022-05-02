@@ -91,6 +91,10 @@ open class WindowX(var title: String) {
         }
     }
 
+    fun isFullscreen(): Boolean {
+        return GLFW.glfwGetWindowMonitor(pointer) != 0L
+    }
+
     fun toggleFullscreen() {
         // a little glitchy ^^, but it works :D
         val usedMonitor = GLFW.glfwGetWindowMonitor(pointer)

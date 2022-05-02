@@ -23,6 +23,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.mesh.Point
@@ -221,6 +222,12 @@ object GFX : GFXBase() {
     fun copy(buffer: Framebuffer) {
         Frame.bind()
         buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        copy()
+    }
+
+    fun copy(buffer: ITexture2D) {
+        Frame.bind()
+        buffer.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
         copy()
     }
 

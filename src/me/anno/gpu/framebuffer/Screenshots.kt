@@ -7,6 +7,8 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
+import me.anno.image.Image
+import me.anno.image.raw.BIImage
 import me.anno.image.raw.IntImage
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
@@ -15,10 +17,18 @@ import me.anno.utils.OS
 import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11C.*
+import java.awt.Rectangle
+import java.awt.Toolkit
 import java.text.SimpleDateFormat
 import java.util.*
 
 object Screenshots {
+
+    fun takeSystemScreenshot(): Image? {
+        val robot = GFX.robot ?: return null
+        val image = robot.createScreenCapture(Rectangle(Toolkit.getDefaultToolkit().screenSize))
+        return BIImage(image)
+    }
 
     fun getPixels(
         diameter: Int,

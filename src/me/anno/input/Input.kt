@@ -243,7 +243,7 @@ object Input {
                 // (because the underlying Transform changes)
                 val inFocusTreeViews = inFocus.filterIsInstance<TreeViewPanel<*>>()
                 for (it in inFocus) it.onDeleteKey(mouseX, mouseY)
-                inFocus.removeAll(inFocusTreeViews)
+                inFocus.removeAll(inFocusTreeViews.toSet())
             }
             GLFW.GLFW_KEY_BACKSPACE -> {
                 // todo secondary windows are not reacting... why?

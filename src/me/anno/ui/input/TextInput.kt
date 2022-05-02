@@ -10,7 +10,6 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 
-// todo delete removes two letters at the same time
 @Suppress("unused")
 open class TextInput(
     title: String,

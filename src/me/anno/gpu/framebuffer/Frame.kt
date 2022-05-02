@@ -23,10 +23,6 @@ object Frame {
         )
     }
 
-    fun bindMaybe() {
-        bind()
-    }
-
     fun reset() {
         lastPtr = -2 - abs(lastPtr)
     }

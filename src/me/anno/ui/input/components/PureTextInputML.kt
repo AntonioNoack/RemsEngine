@@ -458,8 +458,11 @@ open class PureTextInputML(style: Style) :
     }
 
     fun deleteAfter() {
-        moveRight()
-        deleteBefore()
+        if (lastDelete != Engine.gameTime) {
+            lastDelete = Engine.gameTime
+            moveRight()
+            deleteBefore()
+        }
     }
 
     fun ensureCursorBounds() {
@@ -704,10 +707,10 @@ open class PureTextInputML(style: Style) :
         likeBackspaceKey()
     }
 
-    private var lastBackspace = 0L
+    private var lastDelete = 0L
     private fun likeBackspaceKey() {
-        if (lastBackspace != Engine.gameTime) {
-            lastBackspace = Engine.gameTime
+        if (lastDelete != Engine.gameTime) {
+            lastDelete = Engine.gameTime
             deleteBefore()
         }
     }

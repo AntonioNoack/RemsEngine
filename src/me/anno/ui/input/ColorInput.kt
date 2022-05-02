@@ -7,6 +7,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.Screenshots
+import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
@@ -15,6 +17,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.ui.Window
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
@@ -138,22 +141,45 @@ open class ColorInput(
     // todo button for color picker.. but where?
     fun pickColor() {
         // color picker
-        // todo - take screenshot of full screen; all screens? could be hard with multiples in non-regular config...
-        // todo - open (new?) window in fullscreen
+        // - take screenshot of full screen; all screens? could be hard with multiples in non-regular config...
+        // - open (new?) window in fullscreen
         // - add controls on the bottom, or somewhere..., with a preview of the color
         // - select on click, or when dragging + enter then
+        val windowX = GFX.activeWindow ?: GFX.someWindow
         GFX.addGPUTask(1) {// delay, so the original menu can disappear
-            val ws = windowStack
-            val fb = Framebuffer("colorPicker", ws.width, ws.height, 1, 1, false, DepthBufferType.INTERNAL)
-            fb.ensure()
-            windowStack.draw(fb.w, fb.h, true, true, fb)
-            val imageData = FramebufferToMemory.createImage(fb, true, withAlpha = false)
-            windowStack.push(ColorPicker(fb, imageData, true, style).apply {
-                callback = { color ->
-                    contentView.setARGB(color, true)
-                    this@ColorInput.invalidateDrawing()
+            val screenshot = Screenshots.takeSystemScreenshot()
+            val colorPicker = if (screenshot == null) {
+                val ws = windowStack
+                val fb = Framebuffer("colorPicker", ws.width, ws.height, 1, 1, false, DepthBufferType.INTERNAL)
+                fb.ensure()
+                windowStack.draw(fb.w, fb.h, didSomething0 = true, forceRedraw = true, dstBuffer = fb)
+                val imageData = FramebufferToMemory.createImage(fb, true, withAlpha = false)
+                ColorPicker(fb, fb.getTexture0() as Texture2D, imageData, true, style)
+            } else {
+                val texture = Texture2D(screenshot.createBufferedImage(), false)
+                ColorPicker(null, texture, screenshot, true, style)
+            }
+            var wasFullscreen = false
+            fun resetFullscreen() {
+                if (!wasFullscreen && windowX.isFullscreen()) {
+                    windowX.toggleFullscreen()
+                }
+            }
+            colorPicker.callback = { color ->
+                contentView.setARGB(color, true)
+                this@ColorInput.invalidateDrawing()
+                resetFullscreen()
+            }
+            colorPicker.enableControls()
+            val windowStack = windowStack
+            windowStack.push(object : Window(colorPicker, true, windowStack) {
+                override fun destroy() {
+                    super.destroy()
+                    resetFullscreen()
                 }
             })
+            wasFullscreen = windowX.isFullscreen()
+            if (!wasFullscreen) windowX.toggleFullscreen()
         }
     }
 

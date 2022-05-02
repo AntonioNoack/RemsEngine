@@ -820,7 +820,7 @@ object ShaderLib {
                 "           float fi = float(i);\n" +
                 "           float relativeX = fi/steps;\n" +
                 "           vec4 colorHere = texture(tex, uv2 + fi * stepSize);\n" +
-                "           float weight = i == 0 ? 1.0 : exp(-relativeX*relativeX);\n" +
+                "           float weight = exp(-relativeX*relativeX);\n" +
                 "           sum += weight;\n" +
                 "           color += vec4(max(vec3(0.0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
                 "       }\n" +
