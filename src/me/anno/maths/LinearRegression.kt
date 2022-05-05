@@ -5,12 +5,15 @@ import me.anno.maths.LinearAlgebra.mulNT
 import me.anno.maths.LinearAlgebra.mulNV
 import me.anno.maths.LinearAlgebra.mulTN
 import me.anno.maths.LinearAlgebra.mulTV
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4d
 import org.joml.Vector2d
 import org.joml.Vector3d
 import org.joml.Vector4d
+import javax.sound.sampled.Line
 import kotlin.math.abs
 
+@Suppress("unused")
 object LinearRegression {
 
     fun solve(x: DoubleArray, y: DoubleArray, ps: Int, fs: Int): DoubleArray? {
@@ -160,6 +163,7 @@ object LinearRegression {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        val logger = LogManager.getLogger(LinearRegression::class)
         // test polynomial of 2nd degree
         val deg2 = findPolynomialCoefficients(
             listOf(
@@ -168,7 +172,7 @@ object LinearRegression {
                 Vector2d(+1.0, +1.0)
             )
         )!!.toList()
-        println("$deg2 == (0,0,1)?")
+        logger.info("$deg2 == (0,0,1)?")
         // test polynomial of 3rd/4th degree
         val deg4 = findPolynomialCoefficients(
             listOf(
@@ -179,9 +183,9 @@ object LinearRegression {
                 Vector2d(+2.0, +0.0)
             )
         )!!.toList()
-        println("$deg4 == (0,-1.333,0,0.333,0)?")
-        println(evaluateBlackFrame(doubleArrayOf(0.0, 0.0, 1.0, 0.0, 0.0)))
-        println(evaluateBlackFrame(doubleArrayOf(1.0, 0.0, 0.0, 0.0, 1.0)))
+        logger.info("$deg4 == (0,-1.333,0,0.333,0)?")
+        logger.info(evaluateBlackFrame(doubleArrayOf(0.0, 0.0, 1.0, 0.0, 0.0)))
+        logger.info(evaluateBlackFrame(doubleArrayOf(1.0, 0.0, 0.0, 0.0, 1.0)))
     }
 
 }

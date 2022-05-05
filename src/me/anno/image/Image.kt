@@ -213,7 +213,7 @@ abstract class Image(
             data: ByteArray
         ) {
             // add a padding for alpha, because OpenGL needs it that way
-            val buffer = bufferPool[width * height * 4, false]
+            val buffer = bufferPool[width * height * 4, false, false]
             var j = 0
             var k = 0
             val l = width * height * 3

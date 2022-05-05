@@ -77,7 +77,7 @@ abstract class GPUFrame(
     }
 
     fun interlaceReplace(a: ByteBuffer, b: ByteBuffer): ByteBuffer {
-        val dst = Texture2D.bufferPool[a.remaining() * 2, false]
+        val dst = Texture2D.bufferPool[a.remaining() * 2, false, false]
         val size = a.limit()
         for (i in 0 until size) {
             dst.put(a[i])

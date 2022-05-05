@@ -29,14 +29,10 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
     }
 
     override fun countNodes() = 1 + n0.countNodes() + n1.countNodes()
-
     override fun maxDepth() = 1 + kotlin.math.max(n0.maxDepth(), n1.maxDepth())
+    override fun countTLASLeaves() = n0.countTLASLeaves() + n1.countTLASLeaves()
 
-    override fun findCompactPositions(): FloatArray? {
-        throw UnsupportedOperationException("Must not request compact positions from multiple meshes at once")
-    }
-
-    override fun forEach(run: (BVHBuilder) -> Unit) {
+    override fun forEach(run: (TLASNode) -> Unit) {
         run(this)
         n0.forEach(run)
         n1.forEach(run)

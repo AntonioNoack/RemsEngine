@@ -1,6 +1,5 @@
-package me.anno.utils.test
+package me.anno.ecs
 
-import me.anno.ecs.Entity
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
@@ -14,6 +13,5 @@ fun main() {
 
     println(t.localPosition)
     println(t.globalPosition)
-
 
 }

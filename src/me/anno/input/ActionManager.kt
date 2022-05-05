@@ -172,12 +172,12 @@ object ActionManager : StringMap() {
         isContinuous: Boolean,
         actions: List<String>?
     ): Boolean {
-        // println("pa ${panel::class.simpleName}/${panel.className}, ${actions?.size}")
+        // LOGGER.info("pa ${panel::class.simpleName}/${panel.className}, ${actions?.size}")
         if (actions == null) return false
         for (actionIndex in actions.indices) {
             val action = actions[actionIndex]
             if (panel.onGotAction(x, y, dx, dy, action, isContinuous)) {
-                // println("pa consumed action $action by ${panel::class}")
+                // LOGGER.info("pa consumed action $action by ${panel::class}")
                 return true
             }
         }
@@ -189,12 +189,12 @@ object ActionManager : StringMap() {
         dx: Float, dy: Float, isContinuous: Boolean,
         panel: Panel, actions: List<String>?
     ): Boolean {
-        // println("el ${panel::class.simpleName}/${panel.className}, ${actions?.size}")
+        // LOGGER.info("el ${panel::class.simpleName}/${panel.className}, ${actions?.size}")
         if (actions == null) return false
         for (actionIndex in actions.indices) {
             val action = actions[actionIndex]
             if (panel.onGotAction(window.mouseX, window.mouseY, dx, dy, action, isContinuous)) {
-                // println("el consumed action $action by ${panel::class}")
+                // LOGGER.info("el consumed action $action by ${panel::class}")
                 return true
             }
         }

@@ -7,7 +7,7 @@ import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import org.lwjgl.glfw.GLFW.GLFW_KEY_V
 
-class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
+open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
 
     override fun tickUpdate() {
         super.tickUpdate()

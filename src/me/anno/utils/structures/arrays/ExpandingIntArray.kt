@@ -1,5 +1,6 @@
 package me.anno.utils.structures.arrays
 
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 class ExpandingIntArray(
@@ -158,17 +159,18 @@ class ExpandingIntArray(
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
+            val logger = LogManager.getLogger(ExpandingIntArray::class)
             val list = ExpandingIntArray(16)
             list.add(1)
             list.add(2)
             list.add(3)
-            println(list) // 1,2,3
+            logger.info(list) // 1,2,3
             list.removeAt(1)
-            println(list) // 1,3
+            logger.info(list) // 1,3
             list.add(0, 5)
-            println(list) // 5,1,3
+            logger.info(list) // 5,1,3
             list.removeBetween(0, 1)
-            println(list) // 1,3
+            logger.info(list) // 1,3
         }
     }
 

@@ -23,7 +23,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     // todo but also allow merging
 
     init {
-        if (default is CustomContainer) me.anno.utils.LOGGER.warn(
+        if (default is CustomContainer) LOGGER.warn(
             "You added a custom container to a custom container." +
                     " You probably made a mistake!"
         )

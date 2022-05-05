@@ -3,6 +3,9 @@ package me.anno.ui.base
 import me.anno.ui.Panel
 import me.anno.ui.style.Style
 
+/**
+ * an invisible panel that executes a function every tick
+ * */
 open class SpyPanel(style: Style, val update: () -> Unit): Panel(style) {
     override fun tickUpdate() {
         super.tickUpdate()

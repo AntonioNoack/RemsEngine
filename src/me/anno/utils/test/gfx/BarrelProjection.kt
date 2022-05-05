@@ -11,6 +11,7 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.rgb
 import me.anno.utils.OS.desktop
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
+import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -111,6 +112,8 @@ fun getError(image: Image, channel: Int, polynomial: Polynomial): Int {
 }
 
 fun main() {
+    
+    val logger = LogManager.getLogger("BarrelProjection")
 
     // r = 2, 1 = g, 0 = b
 
@@ -129,8 +132,6 @@ fun main() {
     bestPolynomials[2] = Polynomial(2.5E-4f * img.width, 4.5833335E-4f * img.height)
     apply(img, "rgb1", bestPolynomials)
 
-    return
-
     /*val pBest = Polynomial(8f * s * 5f, 11f * s * 5f)
     apply(image, "best", 2, pBest)*/
 
@@ -140,12 +141,12 @@ fun main() {
         val image = if (channelIndex == 0) img
         else apply(img, bestPolynomials)
 
-        println("processing channel $channel")
+        logger.info("processing channel $channel")
 
         // todo we should use the previously best parameters
 
         val error0 = getError(image, channel, p0)
-        println("error0: ${error0.toFloat() / (image.width * image.height)}")
+        logger.info("error0: ${error0.toFloat() / (image.width * image.height)}")
 
         var best = 0
         var bestParams = p0
@@ -156,8 +157,8 @@ fun main() {
             val p = Polynomial(it[0] * s, it[1] * s)
             val error1 = getError(image, channel, p) - error0
             if (error1 < 0) {
-                println("-----------------------------")
-                println("${it.joinToString()} $error1, max: ${p.compute(1f)}")
+                logger.info("-----------------------------")
+                logger.info("${it.joinToString()} $error1, max: ${p.compute(1f)}")
             }
             result[(it[0] + max) * dim + it[1] + max] = error1.toFloat()
             if (error1 < best) {
@@ -166,8 +167,8 @@ fun main() {
             }
         }
 
-        println("---------------------")
-        println("best: $best, params = $bestParams")
+        logger.info("---------------------")
+        logger.info("best: $best, params = $bestParams")
 
         ImageWriter.writeImageFloat(dim, dim, "error-$channel-x1.png", true, result)
 
@@ -177,7 +178,7 @@ fun main() {
 
     apply(img, "rgb2", bestPolynomials)
     for ((index, poly) in bestPolynomials.withIndex()) {
-        println("bestPolynomials[$index] = Polynomial(${poly.c3 / img.width}f * img.width, ${poly.c5 / img.height}f * img.height)")
+        logger.info("bestPolynomials[$index] = Polynomial(${poly.c3 / img.width}f * img.width, ${poly.c5 / img.height}f * img.height)")
     }
 
 }

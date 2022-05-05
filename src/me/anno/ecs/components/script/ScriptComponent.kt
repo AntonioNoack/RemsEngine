@@ -13,6 +13,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.logging.log4j.LogManager
 import org.luaj.vm2.*
 import org.luaj.vm2.lib.DebugLib
 import org.luaj.vm2.lib.OneArgFunction
@@ -72,6 +73,8 @@ open class ScriptComponent : Component() {
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(ScriptComponent::class)
+
         val global = ThreadLocal2 { defineVM() }
 
         val luaCache = CacheSection("Lua")
@@ -84,7 +87,7 @@ open class ScriptComponent : Component() {
                 val code0 = vm.load(text)
                 val code1 = if (Build.isDebug) wrapIntoLimited(code0, vm, instructionLimit) else code0
                 val code2 = code1.call()
-                println(text)
+                LOGGER.debug(text)
                 // val code = file.inputStream().use { LuaC.instance.compile(it, "${source.absolutePath}-$date") }
                 // val func = LuaClosure(code, global.get())
                 CacheData(code2)
@@ -188,7 +191,7 @@ open class ScriptComponent : Component() {
         @JvmStatic
         fun main(args: Array<String>) {
             val globals = global.get()
-            println(wrapIntoLimited(globals.load("while 1 > 0 do end"), globals).invoke())
+            LOGGER.debug(wrapIntoLimited(globals.load("while 1 > 0 do end"), globals).invoke())
         }
 
         object ErrorFunction : ZeroArgFunction() {

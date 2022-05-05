@@ -362,7 +362,7 @@ class Path(
             val sample = prefab.getSampleInstance()
             if (sample.prefabPath != ROOT_PATH) throw RuntimeException()
             val c1 = prefab.add(ROOT_PATH, 'e', "Entity", "C1")
-            val c2 = prefab.add(c1, 'e', "Entity", "C2")
+            /*val c2 = */prefab.add(c1, 'e', "Entity", "C2")
             // val c3 = prefab.add(c2, 'e', "Entity", "C3")
 
             val adds = prefab.adds
@@ -372,8 +372,8 @@ class Path(
                 val x1 = TextReader.read(x0, InvalidRef, false)[0] as CAdd
                 val x2 = TextWriter.toText(x1, InvalidRef)
                 if (x0 != x2) {
-                    println(JsonFormatter.format(x0))
-                    println(JsonFormatter.format(x2))
+                    LOGGER.info(JsonFormatter.format(x0))
+                    LOGGER.info(JsonFormatter.format(x2))
                     throw RuntimeException()
                 }
             }
@@ -381,13 +381,13 @@ class Path(
             val json = TextWriter.toText(prefab, InvalidRef)
             val prefabClone = TextReader.read(json, InvalidRef, false)[0] as Prefab
 
-            println(prefab.adds)
+            LOGGER.info(prefab.adds)
 
-            println(JsonFormatter.format(json))
+            LOGGER.info(JsonFormatter.format(json))
 
-            println(prefabClone.adds)
+            LOGGER.info(prefabClone.adds)
             val json2 = TextWriter.toText(prefabClone, InvalidRef)
-            println(JsonFormatter.format(json2))
+            LOGGER.info(JsonFormatter.format(json2))
             if (json != json2) throw RuntimeException()
 
 

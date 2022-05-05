@@ -1,9 +1,11 @@
 package me.anno.utils.types
 
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 
 object AnyToDouble {
+
+    private val LOGGER = LogManager.getLogger(AnyToDouble::class)
 
     fun getDouble(any: Any?, index: Int, defaultValue: Double = 0.0): Double {
         return any[index, defaultValue]

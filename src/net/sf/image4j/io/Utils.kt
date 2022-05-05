@@ -1,6 +1,5 @@
 package net.sf.image4j.io
 
-import me.anno.io.xml.XMLReader.skipN
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -36,8 +35,7 @@ object Utils {
      * @return the converted value
      */
     private fun swapInteger(value: Int): Int {
-        return (value and -0x1000000 shr 24 or (value and 0x00FF0000 shr 8)
-                or (value and 0x0000FF00 shl 8) or (value and 0x000000FF shl 24))
+        return (value and -0x1000000 shr 24 or (value and 0x00FF0000 shr 8) or (value and 0x0000FF00 shl 8) or (value and 0x000000FF shl 24))
     }
 
     private fun toHexString(i0: Int, littleEndian: Boolean): String {

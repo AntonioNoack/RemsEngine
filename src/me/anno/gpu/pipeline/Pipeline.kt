@@ -24,7 +24,6 @@ import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.sorting.MergeSort.mergeSort
 import me.anno.utils.structures.Compare.ifSame
@@ -33,6 +32,7 @@ import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
 import me.anno.utils.types.AABBs.avgZ
 import me.anno.utils.types.Matrices.distanceSquared
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 
 /**
@@ -366,6 +366,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         }
     }
 
+    @Suppress("unused")
     fun traverseConditionally(entity: Entity, run: (Entity) -> Boolean) {
         if (run(entity)) {
             val children = entity.children
@@ -494,6 +495,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     override fun isDefaultValue(): Boolean = false
 
     companion object {
+        private val LOGGER = LogManager.getLogger(Pipeline::class)
         private val sampleEntity = Entity()
         private val sampleMeshComponent = MeshComponent()
         private val sampleMesh = Icosahedron.createMesh(60, 60)

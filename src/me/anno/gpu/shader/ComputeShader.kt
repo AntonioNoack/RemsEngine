@@ -84,7 +84,7 @@ class ComputeShader(
         @JvmStatic
         fun main(args: Array<String>) {
             HiddenOpenGLContext.createOpenGL()
-            println(stats)
+            LOGGER.info(stats)
         }
 
         val stats by lazy {

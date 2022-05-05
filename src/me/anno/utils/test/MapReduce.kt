@@ -4,8 +4,11 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Clock
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
+import org.apache.logging.log4j.LogManager
 
 fun main() {
+
+    val logger = LogManager.getLogger("MapReduce")
 
     // this sample used 16s in Python:
     // https://www.michael-noll.com/tutorials/writing-an-hadoop-mapreduce-program-in-python/
@@ -15,6 +18,8 @@ fun main() {
     // on the ARA cluster with Hadoop, it uses 25s without combination stage, and 45s with.
     // because of this, I first had issues understanding the point of our course Big Data
     // now we're doing sensible and interesting things :)
+
+    // reason for inefficiency: overhead: the dataset is too small
 
     val clock = Clock()
 
@@ -39,7 +44,7 @@ fun main() {
     }
 
     for ((key, value) in total.entries.sortedBy { -it.value }.subList(0, 10)) {
-        LOGGER.info("$key: ${value}x")
+        logger.info("$key: ${value}x")
     }
 
     clock.stop("word counting")

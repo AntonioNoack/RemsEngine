@@ -59,6 +59,11 @@ object Input {
     var mouseDownY = 0f
     var mouseKeysDown = HashSet<Int>()
 
+    // sum of mouse wheel movement
+    // for components that have no access to events
+    var mouseWheelSumX = 0f
+    var mouseWheelSumY = 0f
+
     val keysDown = HashMap<Int, Long>()
     val keysWentDown = HashSet<Int>()
     val keysWentUp = HashSet<Int>()
@@ -336,6 +341,8 @@ object Input {
 
     var userCanScrollX = false
     fun onMouseWheel(window: WindowX, dx: Float, dy: Float, byMouse: Boolean) {
+        mouseWheelSumX += dx
+        mouseWheelSumY += dy
         if (length(dx, dy) > 0f) framesSinceLastInteraction = 0
         addEvent {
             val mouseX = window.mouseX
@@ -700,6 +707,11 @@ object Input {
         return key in keysDown
     }
 
+    fun isKeyDown(key: String): Boolean {
+        val keyCode = KeyCombination.keyMapping[key] ?: return false
+        return isKeyDown(keyCode)
+    }
+
     fun isKeyDown(key: Char): Boolean {
         return isKeyDown(key.uppercaseChar().code)
     }
@@ -712,12 +724,22 @@ object Input {
         return wasKeyPressed(key.uppercaseChar().code)
     }
 
+    fun wasKeyPressed(key: String): Boolean {
+        val keyCode = KeyCombination.keyMapping[key] ?: return false
+        return wasKeyPressed(keyCode)
+    }
+
     fun wasKeyReleased(key: Int): Boolean {
         return key in keysWentUp
     }
 
     fun wasKeyReleased(key: Char): Boolean {
         return wasKeyReleased(key.uppercaseChar().code)
+    }
+
+    fun wasKeyReleased(key: String): Boolean {
+        val keyCode = KeyCombination.keyMapping[key] ?: return false
+        return wasKeyReleased(keyCode)
     }
 
 }

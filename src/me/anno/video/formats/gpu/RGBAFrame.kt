@@ -10,7 +10,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
 
     override fun load(input: InputStream) {
         val s0 = w * h
-        val data = Texture2D.bufferPool[s0 * 4, false]
+        val data = Texture2D.bufferPool[s0 * 4, false, false]
         data.position(0)
         for (i in 0 until s0) {
             val r = input.read()
@@ -26,7 +26,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
             data.put(b.toByte())
             data.put(a.toByte()) // offset is required
         }
-        data.position(0)
+        data.flip()
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask(w, h) {
             rgb.createRGBA(data, true)

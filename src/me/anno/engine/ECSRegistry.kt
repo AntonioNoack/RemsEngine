@@ -78,7 +78,9 @@ import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.input.*
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.input.components.PureTextInputML
+import me.anno.utils.LOGGER
 import me.anno.utils.types.Floats.f3
+import org.apache.logging.log4j.LogManager
 
 object ECSRegistry {
 
@@ -264,7 +266,7 @@ object ECSRegistry {
         hasBeenInited = false
         init()
         val t2 = System.nanoTime()
-        println(
+        LogManager.getLogger(ECSRegistry::class).info(
             "Used 1st ${((t1 - t0) * 1e-9).f3()} / " +
                     "2nd ${((t2 - t1) * 1e-9).f3()} s, " +
                     "base: ${((t0 - tx) * 1e-9).f3()}"

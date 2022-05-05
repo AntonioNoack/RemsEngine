@@ -3,7 +3,9 @@ package me.anno.maths.bvh
 import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
@@ -15,12 +17,12 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
+import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.mixARGB2
-import me.anno.maths.bvh.BVHBuilder.Companion.createNodeTexture
-import me.anno.maths.bvh.BVHBuilder.Companion.createTriangleTexture
+import me.anno.maths.bvh.RayTracing.glslBLASIntersection
 import me.anno.maths.bvh.RayTracing.glslIntersections
 import me.anno.utils.Clock
-import me.anno.utils.LOGGER
+import me.anno.utils.Color.toRGB
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.ThreadLocal2
@@ -28,16 +30,18 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
 import me.anno.utils.types.AABBs.avgZ
+import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector2i
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11C.glFinish
 import org.lwjgl.opengl.GL11C.glFlush
+import java.io.IOException
 
 val localResult = ThreadLocal2 { RayHit() }
-val sky0 = 0x2f5293
-val sky1 = 0x5c729b
+const val sky0 = 0x2f5293
+const val sky1 = 0x5c729b
 
 fun renderOnCPU(
     w: Int, h: Int, name: String, cx: Double, cy: Double, fovZ: Double,
@@ -49,26 +53,96 @@ fun renderOnCPU(
     ImageWriter.writeImageInt(
         w, h, false, name, 64
     ) { x, y, _ ->
-        val direction = JomlPools.vec3f.create()
-        direction.set(x - cx, cy - y, fovZ).normalize()
-        val dirX = direction.x
-        val dirY = direction.y
-        rotation.transform(direction)
-        val result = localResult.get()
-        val maxDistance = 1e20
-        result.distance = maxDistance
-        bvh.intersect(start2, direction, result)
-        val color = if (result.distance < maxDistance) {
-            val normal = result.normalWS
-            normal.normalize()
-            (normal.x * 60 + 150).toInt() * 0x10101
-        } else mixARGB2(sky0, sky1, length(dirX, dirY) / maxZ)
-        JomlPools.vec3f.sub(1)
-        color
+        val dir = JomlPools.vec3f.create()
+        dir.set(x - cx, cy - y, fovZ).normalize()
+        val dirX = dir.x
+        val dirY = dir.y
+        rotation.transform(dir)
+        val hit = localResult.get()
+        hit.ctr = 0
+        hit.normalWS.set(0.0)
+        val maxDistance = 1e15
+        hit.distance = maxDistance
+        try {
+            bvh.intersect(start2, dir, hit)
+            val color = if (dir.x < dir.y) {
+                mixARGB(0, -1, clamp(hit.ctr * 0.1f))
+            } else if (hit.normalWS.lengthSquared() > 0.0) {
+                val normal = hit.normalWS
+                normal.normalize()
+                (normal.x * 60 + 150).toInt() * 0x10101
+            } else mixARGB2(sky0, sky1, length(dirX, dirY) / maxZ)
+            JomlPools.vec3f.sub(1)
+            color
+        } catch (e: IOException) {
+            hit.normalWS.toRGB()
+        }
     }
 }
 
+fun createShader(useBVH: Boolean, maxDepth: Int, mesh: Mesh?): ComputeShader {
+    return ComputeShader(
+        "bvh-traversal", Vector2i(16), "" +
+                "layout(rgba32f, binding = 0) uniform image2D triangles;\n" +
+                "layout(rgba32f, binding = 1) uniform image2D nodes;\n" +
+                "layout(rgba32f, binding = 2) uniform image2D dst;\n" +
+                "uniform ivec2 size;\n" +
+                "uniform vec3 worldPos;\n" +
+                "uniform vec4 worldRot;\n" +
+                "uniform vec3 cameraOffset;\n" +
+                "uniform vec3 sky0, sky1;\n" +
+                "uniform int drawMode;\n" +
+                "#define Infinity 1e15\n" +
+                glslIntersections +
+                quatRot +
+                "#define BLAS_DEPTH $maxDepth\n" +
+                glslBLASIntersection +
+                "void main(){\n" +
+                "   uint nodeCtr=0;\n" +
+                "   ivec2 pos = ivec2(gl_GlobalInvocationID.xy);\n" +
+                "   if(all(lessThan(pos,size))){\n" +
+                "       float distance = Infinity;\n" +
+                "       vec3 normal = vec3(0.0);\n" +
+                "       vec3 worldDir = vec3(vec2(pos)-cameraOffset.xy, cameraOffset.z);\n" +
+                "       worldDir = quatRot(worldDir, worldRot);\n" +
+                "       worldDir = normalize(worldDir);\n" +
+                (if (useBVH) {
+                    "" +
+                            "vec3 invDir = 1.0 / worldDir;\n" +
+                            "intersectBLAS(0, worldPos, worldDir, invDir, normal, distance, nodeCtr);\n"
+                } else {
+                    "" +
+                            "ivec2 triTexSize = imageSize(triangles);\n" +
+                            "for(uint triangleIndex=0;triangleIndex<${mesh!!.numTriangles};triangleIndex++){\n" + // triangle index
+                            // load triangle data
+                            "    uint pixelIndex = triangleIndex * 3;\n" + // 3 = pixels per triangle
+                            "    uint triX = pixelIndex % triTexSize.x;\n" +
+                            "    uint triY = pixelIndex / triTexSize.x;\n" +
+                            "    vec3 p0 = imageLoad(triangles, ivec2(triX,triY)).rgb;\n" +
+                            "    vec3 p1 = imageLoad(triangles, ivec2(triX+1,triY)).rgb;\n" +
+                            "    vec3 p2 = imageLoad(triangles, ivec2(triX+2,triY)).rgb;\n" +
+                            "    intersectTriangle(worldPos, worldDir, p0, p1, p2, normal, distance);\n" +
+                            "}\n"
+                }) +
+                // save result to texture
+                "       vec3 result = vec3(float(nodeCtr)*0.01);\n" +
+                "       if(drawMode == 0) if(distance < Infinity){\n" +
+                "           normal = normalize(normal);\n" +
+                "           result = vec3(normal.x * ${60 / 255f} + ${150 / 255f});\n" +
+                "       } else {\n" +
+                // compute sky color
+                "           float f = 10.0 * length(worldDir.xy);\n" +
+                "           result = sky1;//sqrt(mix(sky0*sky0,sky1*sky1,f));\n" +
+                "       }\n" +
+                "       imageStore(dst, pos, vec4(result, 1.0));\n" +
+                "   }\n" +
+                "}\n"
+    )
+}
+
 fun main() {
+
+    val logger = LogManager.getLogger("BLASTest")
 
     // done render bunny with and without bvh, and measure time difference
     // done execute on cpu, then on gpu :)
@@ -77,7 +151,7 @@ fun main() {
     val cpuRaw = false // 21k ns/pixel
     val cpuBVH = true // 910 -> 350 ns/pixel
     val gpuRaw = false // 240-210 ns/pixel
-    val gpuBVH = true // 128 -> 2 🤯 ns/pixel
+    val gpuBVH = true // 128 -> 2 ns/pixel, nice :D
 
     val maxNodeSize = 4
 
@@ -93,7 +167,7 @@ fun main() {
     val source = downloads.getChild("3d/bunny.obj")
     val mesh = MeshCache[source]!!
 
-    LOGGER.info("model has ${mesh.numTriangles} triangles")
+    logger.info("model has ${mesh.numTriangles} triangles")
 
     val meshComponent = MeshComponent()
     meshComponent.mesh = source
@@ -102,8 +176,10 @@ fun main() {
     mesh.ensureBuffer()
 
     val fovZ = -w * 5.0
-    val start = Vector3d(0.0, 0.0, 1.2).add(
-        mesh.aabb.avgX().toDouble(), mesh.aabb.avgY().toDouble(), mesh.aabb.avgZ().toDouble()
+    val start = Vector3d(
+        mesh.aabb.avgX().toDouble(),
+        mesh.aabb.avgY().toDouble(),
+        mesh.aabb.avgZ().toDouble() + 1.2
     )
     val start2 = Vector3f().set(start)
 
@@ -149,104 +225,19 @@ fun main() {
 
     // we could use https://www.khronos.org/opengl/wiki/Shader_Storage_Buffer_Object SSBOs instead of textures
     if (gpuRaw || gpuBVH) {
-        val triangles = createTriangleTexture(bvh)
-        val nodes = createNodeTexture(bvh)
+        val triangles = bvh.createTriangleTexture()
+        val nodes = bvh.createBLASTexture()
+        triangles.write(desktop.getChild("bvh/tri.png"), flipY = false, withAlpha = false)
+        nodes.write(desktop.getChild("bvh/blas.png"), flipY = false, withAlpha = false)
         val result = Texture2D("colors", w, h, 1)
         result.create(TargetType.FloatTarget4)
         val maxDepth = bvh.maxDepth()
         fun render(useBVH: Boolean, name: String) {
-            val shader = ComputeShader(
-                "bvh-traversal", Vector2i(32), "" +
-                        "layout(rgba32f, binding = 0) uniform image2D triangles;\n" +
-                        "layout(rgba32f, binding = 1) uniform image2D nodes;\n" +
-                        "layout(rgba32f, binding = 2) uniform image2D dst;\n" +
-                        "uniform ivec2 size;\n" +
-                        "uniform vec3 cameraPosition;\n" +
-                        "uniform vec3 cameraOffset;\n" +
-                        "uniform vec3 sky0, sky1;\n" +
-                        "#define Infinity 1e20\n" +
-                        glslIntersections +
-                        "void main(){\n" +
-                        "   ivec2 pos = ivec2(gl_GlobalInvocationID.xy);\n" +
-                        "   if(all(lessThan(pos,size))){\n" +
-                        "#define stackLimit $maxDepth\n" +
-                        "       uint nextNodeStack[$maxDepth];\n" +
-                        "       uint nodeIndex = 0;\n" + // root
-                        "       uint stackIndex = 0;\n" +
-                        "       vec3 normal = vec3(0.0);\n" +
-                        "       float distance = Infinity;\n" +
-                        "       ivec2 nodeTexSize = imageSize(nodes);\n" +
-                        "       ivec2 triTexSize = imageSize(triangles);\n" +
-                        "       vec3 dir = normalize(vec3(vec2(pos)-cameraOffset.xy, cameraOffset.z));\n" +
-                        "       vec3 invDir = 1.0 / dir;\n" +
-                        (if (useBVH) {
-                            "" +
-                                    "uint k=0;\n" +
-                                    "while(k++<1024){\n" + // could be k<bvh.count() or true
-                                    // fetch node data
-                                    "    uint pixelIndex = nodeIndex * 2;\n" + // 2 = pixels per node
-                                    "    uint nodeX = pixelIndex % nodeTexSize.x;\n" +
-                                    "    uint nodeY = pixelIndex / nodeTexSize.x;\n" +
-                                    "    vec4 d0 = imageLoad(nodes, ivec2(nodeX,nodeY));\n" +
-                                    "    vec4 d1 = imageLoad(nodes, ivec2(nodeX+1,nodeY));\n" +
-                                    // bounds check
-                                    "    if(intersectAABB(cameraPosition,invDir,d0.xyz,d1.xyz,distance)){\n" +
-                                    "        uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
-                                    "        if(v01.y == 0){\n" +
-                                    // to do: check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.h ?
-                                    "            nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
-                                    "            nodeIndex++;\n" + // search child next
-                                    "        } else {\n" +
-                                    // this node is a leaf
-                                    // check all triangles for intersections
-                                    "            uint start = v01.x, end = min(start+v01.y,${mesh.numTriangles});\n" +
-                                    "            for(uint triangleIndex=start;triangleIndex<end;triangleIndex++){\n" + // triangle index -> load triangle data
-                                    "                pixelIndex = triangleIndex * 3;\n" + // 3 = pixels per triangle
-                                    "                uint triX = pixelIndex % triTexSize.x;\n" +
-                                    "                uint triY = pixelIndex / triTexSize.x;\n" +
-                                    "                vec3 p0 = imageLoad(triangles, ivec2(triX,triY)).rgb;\n" +
-                                    "                vec3 p1 = imageLoad(triangles, ivec2(triX+1,triY)).rgb;\n" +
-                                    "                vec3 p2 = imageLoad(triangles, ivec2(triX+2,triY)).rgb;\n" +
-                                    "                intersectTriangle(cameraPosition, dir, p0, p1, p2, normal, distance);\n" +
-                                    "            }\n" + // next node
-                                    "            if(stackIndex < 1) break;\n" +
-                                    "            nodeIndex = nextNodeStack[--stackIndex];\n" +
-                                    "        }\n" +
-                                    "    } else {\n" + // next node
-                                    "        if(stackIndex < 1) break;\n" +
-                                    "        nodeIndex = nextNodeStack[--stackIndex];\n" +
-                                    "    }\n" +
-                                    "}\n"
-                        } else {
-                            "" +
-                                    "for(uint triangleIndex=0;triangleIndex<${mesh.numTriangles};triangleIndex++){\n" + // triangle index
-                                    // load triangle data
-                                    "    uint pixelIndex = triangleIndex * 3;\n" + // 3 = pixels per triangle
-                                    "    uint triX = pixelIndex % triTexSize.x;\n" +
-                                    "    uint triY = pixelIndex / triTexSize.x;\n" +
-                                    "    vec3 p0 = imageLoad(triangles, ivec2(triX,triY)).rgb;\n" +
-                                    "    vec3 p1 = imageLoad(triangles, ivec2(triX+1,triY)).rgb;\n" +
-                                    "    vec3 p2 = imageLoad(triangles, ivec2(triX+2,triY)).rgb;\n" +
-                                    "    intersectTriangle(cameraPosition, dir, p0, p1, p2, normal, distance);\n" +
-                                    "}\n"
-                        }) +
-                        // save result to texture
-                        "       vec3 result = vec3(0.0);\n" +
-                        "       if(distance < Infinity){\n" +
-                        "           normal = normalize(normal);\n" +
-                        "           result = vec3(normal.x * ${60 / 255f} + ${150 / 255f});\n" +
-                        "       } else {\n" +
-                        // compute sky color
-                        "           float f = 10.0 * length(dir.xy);\n" +
-                        "           result = sqrt(mix(sky0*sky0,sky1*sky1,f));\n" +
-                        "       }\n" +
-                        "       imageStore(dst, pos, vec4(result, 1.0));\n" +
-                        "   }\n" +
-                        "}\n"
-            )
+            val shader = createShader(useBVH, maxDepth, mesh)
             shader.use()
             shader.v2i("size", w, h)
-            shader.v3f("cameraPosition", start2)
+            shader.v3f("worldPos", start2)
+            shader.v4f("worldDir", Quaternionf())
             shader.v3f("cameraOffset", cx.toFloat(), cy.toFloat(), fovZ.toFloat())
             shader.v3f("sky0", sky0)
             shader.v3f("sky1", sky1)

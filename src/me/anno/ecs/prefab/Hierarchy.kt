@@ -98,7 +98,7 @@ object Hierarchy {
                 val herePath = prefabRootPath + add.getSetterPath(0)
                 val startsWithPath = herePath.startsWith1(srcSetPath)
                 if (startsWithPath != null) {
-                    if(startsWithPath != Path.ROOT_PATH) {
+                    if (startsWithPath != Path.ROOT_PATH) {
                         // can simply reference it, and we're done
                         dstPrefab.add(startsWithPath.parent!!, add.type, add.clazzName, add.nameId, add.prefab)
                     }// else done: this was already added via Prefab(className)
@@ -362,7 +362,7 @@ object Hierarchy {
                 "sets: ${sets.filterMajor { k1 -> k1.startsWith0(path) }.entries.joinToString { it.key.toString() }}, " +
                 "all start with $path"
         )
-        sets.removeMajorIf { it.startsWith0(path)  }
+        sets.removeMajorIf { it.startsWith0(path) }
         // sets.removeIf { it.path.startsWith(path) }
         prefab.isValid = false
 
@@ -534,21 +534,21 @@ object Hierarchy {
     private fun testJsonFormatter() {
         val ref = getReference(documents, "RemsEngine/SampleProject/Scene.json")
         val prefab = PrefabCache[ref]
-        println(JsonFormatter.format(prefab.toString()))
+        LOGGER.debug(JsonFormatter.format(prefab.toString()))
     }
 
     private fun testPrefab() {
         val prefab = Prefab("Entity")
         val sample1 = prefab.getSampleInstance()
         assert(sample1 is Entity)
-        val child = prefab.add(Path.ROOT_PATH, 'c', "PointLight")
+        val child = prefab.add(Path.ROOT_PATH, 'c', "PointLight", "PL")
         prefab[child, "lightSize"] = Math.PI
         val sample2 = prefab.getSampleInstance()
         assert(sample2 is Entity)
         sample2 as Entity
         assert(sample2.components.count { it is PointLight }, 1)
         val light1 = getInstanceAt(sample2, child)
-        println("found ${light1?.prefabPath} at $child")
+        LOGGER.debug("found ${light1?.prefabPath} at $child")
         assert(light1 is PointLight)
         assert((light1 as PointLight).lightSize == Math.PI)
     }
@@ -561,8 +561,8 @@ object Hierarchy {
             child[Path.ROOT_PATH, "plane"] = Planef(0f, 1f, 0f, i.toFloat())
             add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH)
         }
-        println(prefab.adds)
-        println(prefab.sets)
+        LOGGER.debug(prefab.adds)
+        LOGGER.debug(prefab.sets)
         val inst = prefab.getSampleInstance() as SDFBox
         for (i in 0 until count) {
             val dist = inst.distanceMappers[i] as SDFHalfSpace
@@ -582,8 +582,8 @@ object Hierarchy {
             child[Path.ROOT_PATH, "plane"] = Planef(0f, 1f, 0f, i.toFloat())
             add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH, insertIndex)
         }
-        println(prefab.adds)
-        println(prefab.sets)
+        LOGGER.debug(prefab.adds)
+        LOGGER.debug(prefab.sets)
         val inst = prefab.getSampleInstance() as SDFBox
         for (i in 0 until count) {
             val dist = inst.distanceMappers[i] as SDFHalfSpace
@@ -594,21 +594,21 @@ object Hierarchy {
     @JvmStatic
     fun main(args: Array<String>) {
         ECSRegistry.initNoGFX()
-        println("----------------------")
+        LOGGER.debug("----------------------")
         testMultiAdd()
-        println("----------------------")
+        LOGGER.debug("----------------------")
         testPrefab()
-        println("----------------------")
+        LOGGER.debug("----------------------")
         testRemoval2()
-        println("----------------------")
+        LOGGER.debug("----------------------")
         testAdd()
-        println("----------------------")
+        LOGGER.debug("----------------------")
         testReordering()
-        println("----------------------")
+        LOGGER.debug("----------------------")
         testRenumberRemove()
-        println("----------------------")
+        LOGGER.debug("----------------------")
         // testJsonFormatter()
-        println("----------------------")
+        LOGGER.debug("----------------------")
         Engine.requestShutdown()
     }
 

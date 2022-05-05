@@ -4,9 +4,11 @@ import me.anno.engine.raycast.RayHit
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.volume
+import me.anno.utils.types.Vectors.fract
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
+import java.io.IOException
 
 class TLASLeaf(
     val centroid: Vector3f,
@@ -14,20 +16,27 @@ class TLASLeaf(
     val worldToLocal: Matrix4x3f,   //           12
     val mesh: BLASNode,             //          1-2
     bounds: AABBf,                  //            6
-    //                              // total: 31/32 floats = 128 bytes
+    //                              // total: 31/32 floats = 124/128 bytes
 ) : TLASNode(bounds) {
 
     override fun print(depth: Int) {
-        println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $worldToLocal, ${mesh.index}")
+        println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $worldToLocal, ${mesh.nodeId}")
     }
 
     // idk, we could go deeper if we wanted
     override fun countNodes() = 1
     override fun maxDepth() = 1
-    override fun forEach(run: (BVHBuilder) -> Unit) = run(this)
+    override fun forEach(run: (TLASNode) -> Unit) = run(this)
+    override fun countTLASLeaves() = 1
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit) {
         if (intersectBounds(pos, invDir, dirIsNeg, hit.distance.toFloat())) {
+
+            // for testing only
+            if (dir.x < dir.y) {
+                hit.ctr++
+                // return
+            }
 
             // transform from global to local coordinates
             // and trace the ray inside the local bounds
@@ -35,19 +44,28 @@ class TLASLeaf(
             val worldToLocal = worldToLocal
 
             val localPos = JomlPools.vec3f.create()
-            worldToLocal.transformPosition(pos, localPos)
             val localDir = JomlPools.vec3f.create()
-            worldToLocal.transformDirection(dir, localDir)
             val localInvDir = JomlPools.vec3f.create()
+            val localEnd = JomlPools.vec3f.create()
+
+            worldToLocal.transformPosition(pos, localPos)
+            worldToLocal.transformDirection(dir, localDir).normalize()
             localInvDir.set(1f).div(localDir)
 
-            val localEnd = JomlPools.vec3f.create()
-            localEnd.set(dir).mul(hit.distance.toFloat()).add(pos)
-            worldToLocal.transformPosition(localEnd, localEnd)
+            // debug
+            /*if (dir.x > dir.y && hit.ctr > 2) {
+                hit.normalWS.set(localPos.mul(100f).fract())
+                throw IOException()
+            }*/
+
+            // here localEnd = dir * distance
+            localEnd.set(dir).mul(hit.distance.toFloat())
+            // then make it local
+            worldToLocal.transformDirection(localEnd, localEnd)
 
             // distance must be converted from local to global and vise versa
             val globalDistance = hit.distance
-            val localDistance = localPos.distance(localEnd).toDouble()
+            val localDistance = localEnd.length().toDouble()
 
             hit.distance = localDistance
 
@@ -62,17 +80,15 @@ class TLASLeaf(
                 hit.distance = pos.distance(localEnd).toDouble()
                 // transform normal from local to world
                 localDir.set(hit.normalWS)
-                localToWorld.transformDirection(localDir)
+                localToWorld.transformDirection(localDir) // is normalized later
                 hit.normalWS.set(localDir)
             } else {
                 hit.distance = globalDistance
             }
 
-            JomlPools.vec3f.sub(3)
+            JomlPools.vec3f.sub(4)
 
         }
     }
-
-    override fun findCompactPositions() = mesh.findCompactPositions()
 
 }

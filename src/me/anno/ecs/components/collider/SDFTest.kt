@@ -8,6 +8,7 @@ import me.anno.image.ImageWriter
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.maths.Maths.fract
 import me.anno.utils.Color.rgba
+import me.anno.utils.LOGGER
 import me.anno.utils.OS.documents
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -110,7 +111,7 @@ fun renderSDF(collider: Collider, name: String) {
         val pos = Vector3f(x, y, 0f).mul(scale).sub(offset)
         val dir = Vector3f().set(pos).mul(-1f).normalize()
         val distance = collider.raycast(pos, dir, 0f, 0f, null, size * 2f)
-        if (distance.isInfinite()) println("$x $y -> $pos, $dir -> $distance")
+        if (distance.isInfinite()) LOGGER.debug("$x $y -> $pos, $dir -> $distance")
         if (distance < 0f) -255f else distance * (if (heavy) 0.25f else 2f) * 255f / size
     }
 

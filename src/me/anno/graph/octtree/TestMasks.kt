@@ -1,8 +1,10 @@
 package me.anno.graph.octtree
 
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 
 fun main() {
+
+    val logger = LogManager.getLogger("TestMasks")
 
     val max = 1 shl 2
 
@@ -23,7 +25,7 @@ fun main() {
                 val answer = isBetween or isZero or isOne
                 if (answer != -1) continue
 
-                LOGGER.info("${index.toString(2)} is ok for ${minIndex.toString(2)} .. ${maxIndex.toString(2)}")
+                logger.info("${index.toString(2)} is ok for ${minIndex.toString(2)} .. ${maxIndex.toString(2)}")
             }
         }
     }

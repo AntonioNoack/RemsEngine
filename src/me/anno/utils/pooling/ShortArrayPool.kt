@@ -1,6 +1,6 @@
 package me.anno.utils.pooling
 
-open class ShortArrayPool(size: Int, exactMatchesOnly: Boolean) : BufferPool<ShortArray>(size, exactMatchesOnly) {
+open class ShortArrayPool(size: Int) : BufferPool<ShortArray>(size) {
 
     override fun createBuffer(size: Int) = ShortArray(size)
 

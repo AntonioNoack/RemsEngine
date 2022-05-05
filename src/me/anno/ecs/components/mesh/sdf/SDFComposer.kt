@@ -163,7 +163,7 @@ object SDFComposer {
         if (needsSwitch) builder.append("}\n")
 
         val shader = object : ECSMeshShader("raycasting-${tree.hashCode()}") {
-            override fun createFragmentStage(instanced: Boolean): ShaderStage {
+            override fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean): ShaderStage {
                 // instancing is not supported
                 val fragmentVariables = listOf(
                     Variable(GLSLType.M4x4, "transform"),

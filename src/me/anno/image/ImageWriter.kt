@@ -16,7 +16,6 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced2d
@@ -24,6 +23,7 @@ import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
 import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Vector2f
 import java.awt.Color
@@ -37,6 +37,8 @@ import kotlin.math.*
 
 @Suppress("unused")
 object ImageWriter {
+
+    private val LOGGER = LogManager.getLogger(ImageWriter::class)
 
     val tileSize = 8
 

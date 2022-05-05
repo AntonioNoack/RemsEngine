@@ -1,6 +1,6 @@
 package me.anno.utils.pooling
 
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 
 /**
  * inspired by Unity's object pools,
@@ -15,6 +15,10 @@ class ObjectPool<V>(
     initialSize: Int = 16,
     private var maxSize: Int = 64,
 ) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ObjectPool::class)
+    }
 
     constructor(create: () -> V) : this(create, {}, {}, {}, false)
 

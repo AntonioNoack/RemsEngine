@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.io.files.FileRootRef
 import me.anno.io.zip.InnerPrefabFile
+import org.apache.logging.log4j.LogManager
 
 object ScenePrefab : InnerPrefabFile(
     "Scene.prefab",
@@ -13,7 +14,9 @@ object ScenePrefab : InnerPrefabFile(
     FileRootRef,
     Prefab("Entity").apply {
 
-        println("creating ScenePrefab from thread ${Thread.currentThread().name}")
+        val logger = LogManager.getLogger(ScenePrefab::class)
+
+        logger.debug("creating ScenePrefab from thread ${Thread.currentThread().name}")
 
         ensureMutableLists()
 
@@ -37,7 +40,7 @@ object ScenePrefab : InnerPrefabFile(
 
         sealFromModifications()
 
-        println("finished ScenePrefab")
+        logger.debug("finished ScenePrefab")
 
     }) {
 

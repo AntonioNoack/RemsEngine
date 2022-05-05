@@ -224,8 +224,8 @@ object PrefabCache : CacheSection("Prefab") {
         // todo here is some kind of race condition taking place
         // without this println, or Thread.sleep(),
         // prefabs extending ScenePrefab will not produce correct instances
-        LOGGER.info("Creating instance from thread ${Thread.currentThread().name}, from '${prefab?.source}', ${prefab?.adds?.size} adds + ${prefab?.sets?.size}")
-        // Thread.sleep(10)
+        // LOGGER.info("Creating instance from thread ${Thread.currentThread().name}, from '${prefab?.source}', ${prefab?.adds?.size} adds + ${prefab?.sets?.size}")
+        Thread.sleep(10)
         val instance = createSuperInstance(superPrefab, depth, clazz)
         instance.changePaths(prefab, Path.ROOT_PATH)
         adds?.forEachIndexed { index, add ->

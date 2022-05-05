@@ -4,9 +4,10 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.network.http.HttpProtocol
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 
 fun main() {
+    val logger = LogManager.getLogger("HttpServerTest")
     // a sample web server, implemented on top of the server class
     val server = Server()
     val folder = getReference("C:/XAMPP/htdocs")
@@ -31,7 +32,7 @@ fun main() {
                 // copy the data
                 file.inputStream().use { it.copyTo(client.dos) }
             } else {
-                LOGGER.warn("$path -> $file was not found")
+                logger.warn("$path -> $file was not found")
                 sendResponse(client, 404)
             }
         }

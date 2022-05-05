@@ -19,7 +19,7 @@ abstract class AudioStream(
 
         val taskQueue = ProcessingGroup("AudioStream", 0.5f)
 
-        val bufferPool = ByteBufferPool(32, true)
+        val bufferPool = ByteBufferPool(32)
 
         fun getIndex(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
             val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
@@ -63,7 +63,7 @@ abstract class AudioStream(
         isWaitingForBuffer.set(true)
         taskQueue += {// load all data async
 
-            val sb0 = bufferPool[bufferSize * 2 * 2, false]
+            val sb0 = bufferPool[bufferSize * 2 * 2, false, true]
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = sb0.asShortBuffer()
 

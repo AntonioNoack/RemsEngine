@@ -1,6 +1,6 @@
 package me.anno.language.spellcheck
 
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 
 fun main() {
 
@@ -12,6 +12,6 @@ fun main() {
         Thread.sleep(10)
     }
 
-    LOGGER.info(answer)
+    LogManager.getLogger("SpellcheckingTest").info(answer)
 
 }

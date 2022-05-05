@@ -83,7 +83,7 @@ class CubemapTexture(
     fun createRGB(sides: List<ByteArray>) {
         beforeUpload(6 * 3, sides[0].size)
         val size = size
-        val byteBuffer = Texture2D.bufferPool[size * size * 3, false]
+        val byteBuffer = Texture2D.bufferPool[size * size * 3, false, false]
         for (i in 0 until 6) {
             byteBuffer.position(0)
             byteBuffer.put(sides[i])
@@ -100,7 +100,7 @@ class CubemapTexture(
     fun createRGBA(sides: List<ByteArray>) {
         beforeUpload(6 * 4, sides[0].size)
         val size = size
-        val byteBuffer = Texture2D.bufferPool[size * size * 4, false]
+        val byteBuffer = Texture2D.bufferPool[size * size * 4, false, false]
         for (i in 0 until 6) {
             byteBuffer.position(0)
             byteBuffer.put(sides[i])

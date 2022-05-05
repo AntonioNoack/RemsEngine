@@ -132,8 +132,8 @@ class AudioStreamRaw(
         val index0 = ffmpegSampleRate * time0
         val index1 = ffmpegSampleRate * time1
 
-        val leftBuffer = FAPool[bufferSize, true]
-        val rightBuffer = FAPool[bufferSize, true]
+        val leftBuffer = FAPool[bufferSize, true, true]
+        val rightBuffer = FAPool[bufferSize, true, true]
 
         val s0 = ShortPair()
         val s1 = ShortPair()

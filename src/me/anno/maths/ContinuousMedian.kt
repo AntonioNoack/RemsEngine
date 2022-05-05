@@ -1,14 +1,15 @@
 package me.anno.maths
 
-import me.anno.utils.LOGGER
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.utils.types.Floats.f6
 import me.anno.utils.types.Floats.f6s
 import me.anno.utils.types.Strings.withLength
+import org.apache.logging.log4j.LogManager
 import kotlin.math.*
 
+// is this still used anywhere?
 class ContinuousMedian(val min: Float, val max: Float, numBuckets: Int = 16) {
 
     private var total = 0f
@@ -77,6 +78,8 @@ class ContinuousMedian(val min: Float, val max: Float, numBuckets: Int = 16) {
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(ContinuousMedian::class)
+
         @JvmStatic
         fun main(args: Array<String>) {
             testDirect()
@@ -84,8 +87,8 @@ class ContinuousMedian(val min: Float, val max: Float, numBuckets: Int = 16) {
             testContinuous()
         }
 
-        fun testDirect(){
-            val instance = ContinuousMedian(0f, 3000f,6)
+        fun testDirect() {
+            val instance = ContinuousMedian(0f, 3000f, 6)
             instance.bucketWeights[0] = 6f
             instance.bucketWeights[1] = 7f
             instance.bucketWeights[2] = 9f
@@ -96,9 +99,9 @@ class ContinuousMedian(val min: Float, val max: Float, numBuckets: Int = 16) {
             instance.median = Float.NaN
             LOGGER.info(instance.median) // shall be 1388.889
         }
-        
-        fun testDiscrete(){
-            val instance = ContinuousMedian(0f, 3000f,6)
+
+        fun testDiscrete() {
+            val instance = ContinuousMedian(0f, 3000f, 6)
             instance.add(250f, 6f)
             instance.add(750f, 7f)
             instance.add(1250f, 9f)
@@ -111,8 +114,8 @@ class ContinuousMedian(val min: Float, val max: Float, numBuckets: Int = 16) {
             // shall be 1388.889
             // actual, with sharpness 1.1: 1393.785 -> good enough :)
         }
-        
-        fun testContinuous(){
+
+        fun testContinuous() {
             val samples = 1
             val testsEach = 23
             val min = 0f
@@ -143,7 +146,7 @@ class ContinuousMedian(val min: Float, val max: Float, numBuckets: Int = 16) {
                                 "data: ${instance.bucketWeights.joinToString()}"
                     )
                     // LOGGER.info("$testValue +/- $thinness*0.5 -> ${instance.bucketWeights.joinToString()}")
-                    errSum += relErr*relErr
+                    errSum += relErr * relErr
                     errSum2 += relErr
                 }
                 LOGGER.info("stdDev: ${sqrt(errSum / testsEach)}, bias: ${errSum2 / testsEach}\n")

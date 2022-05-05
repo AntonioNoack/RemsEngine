@@ -16,11 +16,11 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.pooling.FloatArrayPool
 import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
@@ -173,7 +173,7 @@ open class Texture2D(
                     is FloatBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is DoubleBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is IntArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    is FloatArray ->  glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+                    is FloatArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     null -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, null as ByteBuffer?)
                     else -> throw RuntimeException("${data.javaClass}")
                 }
@@ -194,7 +194,7 @@ open class Texture2D(
         texImage2D(type.internalFormat, type.uploadFormat, type.fillType, data)
     }
 
-    fun create() {
+    fun createRGBA() {
         beforeUpload(0, 0)
         texImage2D(TargetType.UByteTarget4, null)
         afterUpload(false, 4 * samples)
@@ -313,7 +313,7 @@ open class Texture2D(
     }
 
     private fun createRGBA(img: BufferedImage, sync: Boolean, checkRedundancy: Boolean) {
-        val intData = img.getRGB(0, 0, w, h, intArrayPool[w * h, false], 0, w)
+        val intData = img.getRGB(0, 0, w, h, intArrayPool[w * h, false, false], 0, w)
         val hasAlpha = img.hasAlphaChannel()
         if (!hasAlpha) {
             // ensure opacity
@@ -336,7 +336,7 @@ open class Texture2D(
     }
 
     fun getBuffer(bytes: ByteArray, ensureOpaque: Boolean): ByteBuffer {
-        val buffer = bufferPool[w * h * 4, false]
+        val buffer = bufferPool[w * h * 4, false, false]
         val wh = w * h
         when (bytes.size) {
             wh -> {
@@ -540,13 +540,18 @@ open class Texture2D(
     }
 
     private fun checkRedundancy(data: ByteBuffer, rgbOnly: Boolean) {
-        // when rgbOnly, check rgb only?
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
         val c3 = data[3]
-        for (i in 4 until w * h * 4 step 4) {
-            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
+        if (rgbOnly) {
+            for (i in 4 until w * h * 4 step 4) {
+                if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return
+            }
+        } else {
+            for (i in 4 until w * h * 4 step 4) {
+                if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
+            }
         }
         setSize1x1()
         data.limit(4)
@@ -608,7 +613,7 @@ open class Texture2D(
     fun createRGB(data: ByteArray, checkRedundancy: Boolean) {
         beforeUpload(3, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        val buffer = bufferPool[data2.size, false]
+        val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         writeAlignment(3 * w)
         texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
@@ -645,7 +650,7 @@ open class Texture2D(
     fun createRG(data: ByteArray, checkRedundancy: Boolean) {
         beforeUpload(2, data.size)
         val data2 = if (checkRedundancy) checkRedundancyRG(data) else data
-        val buffer = bufferPool[data.size, false]
+        val buffer = bufferPool[data.size, false, false]
         buffer.put(data2).flip()
         texImage2D(GL_RG, GL_RG, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
@@ -675,7 +680,7 @@ open class Texture2D(
     fun createBGR(data: ByteArray, checkRedundancy: Boolean) {
         beforeUpload(3, data.size)
         val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
-        val byteBuffer = bufferPool[data2.size, false]
+        val byteBuffer = bufferPool[data2.size, false, false]
         byteBuffer.put(data2).flip()
         texImage2D(GL_RGBA8, GL_BGR, GL_UNSIGNED_BYTE, byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
@@ -693,7 +698,7 @@ open class Texture2D(
     fun createMonochrome(data: ByteArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
-        val byteBuffer = bufferPool[data2.size, false]
+        val byteBuffer = bufferPool[data2.size, false, false]
         byteBuffer.put(data2).flip()
         texImage2D(TargetType.UByteTarget1, byteBuffer)
         // glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
@@ -706,7 +711,7 @@ open class Texture2D(
         beforeUpload(4, data.size)
         val data2 = if (checkRedundancy && w * h > 1) checkRedundancy(data) else data
 
-        val byteBuffer = bufferPool[data2.size * 4, false]
+        val byteBuffer = bufferPool[data2.size * 4, false, false]
 
         val floatBuffer = byteBuffer.asFloatBuffer()
         floatBuffer.put(data2).flip()
@@ -719,10 +724,22 @@ open class Texture2D(
 
     }
 
+    fun createRGBA(data: FloatBuffer, buffer: ByteBuffer, checkRedundancy: Boolean) {
+
+        beforeUpload(4, data.capacity())
+        if (checkRedundancy && w * h > 1) checkRedundancy(data)
+
+        // rgba32f as internal format is extremely important... otherwise the value is cropped
+        texImage2D(TargetType.FloatTarget4, buffer)
+
+        afterUpload(true, 16)
+
+    }
+
     fun createBGRA(data: ByteArray, checkRedundancy: Boolean) {
         checkSize(4, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        val buffer = bufferPool[data2.size, false]
+        val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         beforeUpload(4, buffer.remaining())
         if (checkRedundancy) checkRedundancy(buffer, false)
@@ -734,11 +751,12 @@ open class Texture2D(
     fun createRGBA(data: ByteArray, checkRedundancy: Boolean) {
         checkSize(4, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        val buffer = bufferPool[data2.size, false]
+        val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         createRGBA(buffer, false)
     }
 
+    /** creates the texture, and returns the buffer */
     fun createRGBA(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(4, data.remaining())
         if (checkRedundancy) checkRedundancy(data, false)
@@ -880,9 +898,10 @@ open class Texture2D(
 
         fun BufferedImage.hasAlphaChannel() = colorModel.hasAlpha()
 
-        val bufferPool = ByteBufferPool(64, false)
-        val byteArrayPool = ByteArrayPool(64, true)
-        val intArrayPool = IntArrayPool(64, true)
+        val bufferPool = ByteBufferPool(64)
+        val byteArrayPool = ByteArrayPool(64)
+        val intArrayPool = IntArrayPool(64)
+        val floatArrayPool = FloatArrayPool(64)
 
         var allocated = 0L
         fun allocate(oldValue: Long, newValue: Long): Long {

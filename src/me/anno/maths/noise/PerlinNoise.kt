@@ -1,6 +1,7 @@
 package me.anno.maths.noise
 
 import me.anno.image.ImageWriter
+import org.apache.logging.log4j.LogManager
 import kotlin.random.Random
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -161,13 +162,14 @@ class PerlinNoise(
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
+            val logger = LogManager.getLogger(PerlinNoise::class)
             val gen = PerlinNoise(1234L, 8, 0.5f, 0f, 1f)
             val samples = 10000
             val buckets = IntArray(10)
             for (i in 0 until samples) {
                 buckets[(gen[i.toFloat()] * buckets.size).toInt()]++
             }
-            println(buckets.joinToString())
+            logger.info(buckets.joinToString())
             ImageWriter.writeImageInt(256, 256, false, "perlin.png", 16) { x, y, _ ->
                 (gen[x / 100f, y / 100f] * 255).toInt() * 0x10101
             }

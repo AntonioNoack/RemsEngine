@@ -15,12 +15,11 @@ class BLASLeaf(val start: Int, val length: Int, val pos: FloatArray, bounds: AAB
 
     override fun countNodes() = 1
     override fun maxDepth() = 1
-    override fun forEach(run: (BVHBuilder) -> Unit) = run(this)
+    override fun forEach(run: (BLASNode) -> Unit) = run(this)
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit) {
         if (intersectBounds(pos, invDir, dirIsNeg, hit.distance.toFloat())) {
 
-            val end = start + length
             val vs = hit.tmpVector3fs
             val a = vs[0]
             val b = vs[1]
@@ -37,13 +36,14 @@ class BLASLeaf(val start: Int, val length: Int, val pos: FloatArray, bounds: AAB
             val p = this.pos
 
             var i3 = start * 9
-            for (i in start until end) {
+            val j3 = i3 + length * 9
+            while (i3 < j3) {
 
                 a.set(p[i3++], p[i3++], p[i3++])
                 b.set(p[i3++], p[i3++], p[i3++])
                 c.set(p[i3++], p[i3++], p[i3++])
 
-                val localDistance = Triangles.rayTriangleIntersection(
+                val localDistance = Triangles.rayTriangleIntersectionFront(
                     pos, dir, a, b, c,
                     bestLocalDistance, localNormalTmp, localHitTmp
                 )

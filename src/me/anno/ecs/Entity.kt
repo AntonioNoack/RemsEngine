@@ -238,7 +238,7 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     fun invalidatePhysics(force: Boolean) {
         if (force || hasPhysicsInfluence()) {
-            // println("inv physics: ${physics != null}, ${rigidbody != null}")
+            // LOGGER.debug("inv physics: ${physics != null}, ${rigidbody != null}")
             physics?.invalidate(rigidbody ?: return)
         }
     }

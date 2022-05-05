@@ -4,10 +4,11 @@ import me.anno.io.base.BaseWriter
 import me.anno.network.Packet
 import me.anno.network.Server
 import me.anno.network.TCPClient
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
+@Suppress("unused")
 open class ClosePacket(var reason: String, magic: String) : Packet(magic) {
 
     constructor() : this("")
@@ -43,5 +44,9 @@ open class ClosePacket(var reason: String, magic: String) : Packet(magic) {
     }
 
     override val className: String = "ClosePacket"
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ClosePacket::class)
+    }
 
 }

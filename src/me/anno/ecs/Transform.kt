@@ -208,6 +208,9 @@ class Transform() : Saveable() {
             state = State.VALID_GLOBAL
         }
 
+    val globalRotation
+        get() = globalTransform.getUnnormalizedRotation(Quaterniond())
+
     fun setGlobalRotation(yxz: Vector3d) {
         globalTransform.setRotationYXZ(yxz.y, yxz.x, yxz.z)
         state = State.VALID_GLOBAL

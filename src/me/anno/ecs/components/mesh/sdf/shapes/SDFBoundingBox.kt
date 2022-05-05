@@ -100,7 +100,7 @@ class SDFBoundingBox : SDFBox() {
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
-        private const val boundingBoxSDF = "" +
+        const val boundingBoxSDF = "" +
                 "float sdBoundingBox(vec3 p, vec3 b, float e){\n" +
                 "        p = abs(p)-b;\n" +
                 "   vec3 q = abs(p+e)-e;\n" +

@@ -24,7 +24,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix2f
 import org.joml.Matrix4f
 import org.joml.Vector2f
@@ -230,6 +230,8 @@ object DepthBasedAntiAliasing {
 
     private fun testEdgeAA() {
 
+        val logger = LogManager.getLogger(DepthBasedAntiAliasing::class)
+
         // task: to find the correct formula, maybe draw a graph of fraction ~ correct blur
         // result: there is no simple correct formula, it seems... there must be something inheritely wrong...
 
@@ -363,7 +365,7 @@ object DepthBasedAntiAliasing {
                         ) > 0f
                     ) c0 else c1
                     if (y > size / 2 && otherColor == baseColor) {
-                        LOGGER.warn("Incorrect border color! $x $y")
+                        logger.warn("Incorrect border color! $x $y")
                         r[i] = mix(0xff0000, baseColor, 0.5f)
                     } else {
                         r[i] = when (x * 3 / size) {

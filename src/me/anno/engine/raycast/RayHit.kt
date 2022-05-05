@@ -20,7 +20,6 @@ class RayHit {
     val tmpVector3fs = Array(10) { Vector3f() }
     val tmpVector3ds = Array(10) { Vector3d() }
     val tmpVector4fs = Array(3) { Vector4f() }
-    val tmpVector4ds = Array(3) { Vector4d() }
     val tmpMat4x3d = Matrix4x3d()
     val tmpAABBd = AABBd()
 
@@ -31,6 +30,8 @@ class RayHit {
 
     val positionWS = Vector3d()
     val normalWS = Vector3d()
+
+    var ctr = 0
 
     fun setFromLocal(
         globalTransform: Matrix4x3d,

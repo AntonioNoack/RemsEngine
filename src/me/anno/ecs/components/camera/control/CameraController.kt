@@ -10,10 +10,13 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
+import me.anno.input.Input.isKeyDown
+import me.anno.input.Input.isShiftDown
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
+import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Vectors.addSmoothly
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
@@ -28,7 +31,14 @@ abstract class CameraController : Component(), ControlReceiver {
     val acceleration = Vector3f()
     val velocity = Vector3f()
     val position = Vector3f()
+
+    /**
+     * euler yxz rotation where x=x,y=y,z=z
+     * */
     var rotation = Vector3f()
+
+    var movementSpeed = 1f
+    var rotationSpeed = 1f
 
     @Type("Camera/PrefabSaveable")
     @NotSerializedProperty
@@ -81,24 +91,19 @@ abstract class CameraController : Component(), ControlReceiver {
      * */
     open fun collectInputs(acceleration: Vector3f) {
         // todo support as much as possible, best with some kind of keymapping...
-        if (Input.isKeyDown('w')) acceleration.z--
-        if (Input.isKeyDown(GLFW.GLFW_KEY_UP)) acceleration.z--
-        if (Input.isKeyDown('s')) acceleration.z++
-        if (Input.isKeyDown(GLFW.GLFW_KEY_DOWN)) acceleration.z++
-        if (Input.isKeyDown('a')) acceleration.x--
-        if (Input.isKeyDown(GLFW.GLFW_KEY_LEFT)) acceleration.x--
-        if (Input.isKeyDown('d')) acceleration.x++
-        if (Input.isKeyDown(GLFW.GLFW_KEY_RIGHT)) acceleration.x++
-        if (Input.isShiftDown) acceleration.y--
-        if (Input.isKeyDown('q')) acceleration.y--
-        if (Input.isKeyDown(' ')) acceleration.y++
-        if (Input.isKeyDown('e')) acceleration.y++
+        val s = movementSpeed
+        if (isKeyDown('w') || isKeyDown(GLFW.GLFW_KEY_UP)) acceleration.z -= s
+        if (isKeyDown('s') || isKeyDown(GLFW.GLFW_KEY_DOWN)) acceleration.z += s
+        if (isKeyDown('a') || isKeyDown(GLFW.GLFW_KEY_LEFT)) acceleration.x -= s
+        if (isKeyDown('d') || isKeyDown(GLFW.GLFW_KEY_RIGHT)) acceleration.x += s
+        if (isShiftDown || isKeyDown('q')) acceleration.y -= s
+        if (isKeyDown(' ') || isKeyDown('e')) acceleration.y += s
     }
 
     open fun clampAcceleration(acceleration: Vector3f) {
         val al = acceleration.length()
-        if (al > 1f) {
-            acceleration.div(al)
+        if (al > movementSpeed) {
+            acceleration.mul(movementSpeed / al)
         }
     }
 
@@ -145,8 +150,8 @@ abstract class CameraController : Component(), ControlReceiver {
     abstract fun computeTransform(baseTransform: Transform, camTransform: Transform, camera: Camera)
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
-        return if (needsClickToRotate || (Input.isLeftDown && rotateLeft) || (Input.isMiddleDown && rotateMiddle) || (Input.isRightDown && rotateRight)) {
-            rotation.add(dy, 0f, dx)
+        return if (!needsClickToRotate || (Input.isLeftDown && rotateLeft) || (Input.isMiddleDown && rotateMiddle) || (Input.isRightDown && rotateRight)) {
+            rotation.add(-dy.toRadians() * rotationSpeed, -dx.toRadians() * rotationSpeed, 0f)
             clampRotation()
             // ... apply rotation to transform
             true

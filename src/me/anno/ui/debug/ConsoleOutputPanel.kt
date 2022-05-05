@@ -1,6 +1,7 @@
 package me.anno.ui.debug
 
 import me.anno.Logging
+import me.anno.Logging.lastConsoleLines
 import me.anno.config.DefaultStyle
 import me.anno.engine.RemsEngine
 import me.anno.input.MouseButton
@@ -25,17 +26,17 @@ import kotlin.math.max
 
 // todo second console output panel, which has the default font?
 
+/**
+ * displays all recent logging messages, and opens an overview on double click
+ * */
 open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
-    var lastDrawn = "x"
     override fun tickUpdate() {
-        val text = text
-        if (text != lastDrawn) {
-            lastDrawn = text
-            invalidateDrawing()
-            tooltip = text
-            textColor = getTextColor(text) and 0x77ffffff
-        }
+        val text = lastConsoleLines.peek() ?: ""
+        this.text = text
+        tooltip = text.ifBlank { "Double-click to open history" }
+        textColor = getTextColor(text) and 0x77ffffff
+        super.tickUpdate()
     }
 
     fun getTextColor(msg: String): Int {
@@ -58,8 +59,8 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             list += TextButton(Dict["Close", "ui.general.close"], false, style).addLeftClickListener {
                 windowStack.pop().destroy()
             }
-            val lcl = Logging.lastConsoleLines
-            for (i in lcl.lastIndex downTo 0) {
+            val lcl = lastConsoleLines.toList()
+            for (i in lcl.indices.reversed()) {
                 val msg = lcl.getOrNull(i) ?: continue
                 val panel = ConsoleOutputLine(list, msg, style)
                 val color = getTextColor(msg)
@@ -87,9 +88,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
         fun createConsole(style: Style): ConsoleOutputPanel {
             val console = ConsoleOutputPanel(style.getChild("small"))
             // console.fontName = "Segoe UI"
-            Logging.console = console
             console.tooltip = "Double-click to open history"
-            console.text = Logging.lastConsoleLines.lastOrNull() ?: ""
             return console
         }
 

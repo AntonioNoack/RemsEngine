@@ -58,7 +58,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
 
     override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
         val size = width * height
-        val bytes = bufferPool[size, false]
+        val bytes = bufferPool[size, false, false]
         when (src) {
             is BIImage -> {
                 // use direct data access

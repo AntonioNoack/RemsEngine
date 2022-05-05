@@ -34,6 +34,31 @@ object Triangles {
         return distance
     }
 
+    /**
+     * only front faces are valid; back faces are skipped;
+     * returns Infinity on miss
+     * */
+    fun rayTriangleIntersectionFront(
+        origin: Vector3fc, direction: Vector3fc,
+        a: Vector3fc, b: Vector3fc, c: Vector3fc,
+        maxDistance: Float,
+        dstNormal: Vector3f,
+        dstPosition: Vector3f
+    ): Float {
+        val n = subCross(a, b, c, dstNormal)
+        val ndd = n.dot(direction)
+        if (ndd >= 0f) return Float.POSITIVE_INFINITY
+        val d = n.dot(a)
+        val distance = (d - n.dot(origin)) / ndd
+        if (distance < 0f || distance >= maxDistance) return Float.POSITIVE_INFINITY
+        direction.mulAdd(distance, origin, dstPosition)
+        if (subCrossDot(a, b, dstPosition, n) < 0f ||
+            subCrossDot(b, c, dstPosition, n) < 0f ||
+            subCrossDot(c, a, dstPosition, n) < 0f
+        ) return Float.POSITIVE_INFINITY
+        return distance
+    }
+
     // https://courses.cs.washington.edu/courses/csep557/10au/lectures/triangle_intersection.pdf
     fun rayTriangleIntersection(
         origin: Vector3dc, direction: Vector3dc,

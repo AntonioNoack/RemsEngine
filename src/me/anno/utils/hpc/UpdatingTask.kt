@@ -1,7 +1,7 @@
 package me.anno.utils.hpc
 
-import me.anno.utils.LOGGER
 import me.anno.utils.Sleep
+import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import kotlin.concurrent.thread
 
@@ -33,6 +33,10 @@ class UpdatingTask(val threadName: String, val cleaning: () -> Unit) {
     fun destroy() {
         runningThread?.interrupt()
         runningThread = null
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(UpdatingTask::class)
     }
 
 }

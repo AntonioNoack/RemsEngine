@@ -1,5 +1,6 @@
 package me.anno.utils.hpc
 
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -8,6 +9,8 @@ import kotlin.math.max
 object HeavyProcessing : WorkSplitter(max(1, Runtime.getRuntime().availableProcessors() - 2)) {
 
     private val queues = HashMap<String, ProcessingQueue>()
+
+    @Suppress("unused")
     fun addTask(queueGroup: String, task: () -> Unit) {
         val queue = queues.getOrPut(queueGroup) { ProcessingQueue(queueGroup) }
         queue += task
@@ -17,16 +20,17 @@ object HeavyProcessing : WorkSplitter(max(1, Runtime.getRuntime().availableProce
         thread(name = "HeavyProcessing[${counter.getAndIncrement()}]") { task() }
     }
 
-    val counter = AtomicInteger()
+    private val counter = AtomicInteger()
 
     @JvmStatic
     fun main(args: Array<String>) {
+        val logger = LogManager.getLogger(HeavyProcessing::class)
         // should return (5,1)
-        println(splitWork(50, 10, 5))
+        logger.info(splitWork(50, 10, 5))
         // should return (7,1)
-        println(splitWork(50, 10, 7))
+        logger.info(splitWork(50, 10, 7))
         // should return (4,2)
-        println(splitWork(50, 10, 8))
+        logger.info(splitWork(50, 10, 8))
     }
 
 }

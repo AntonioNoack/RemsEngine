@@ -558,6 +558,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun v2f(name: String, v: Vector2fc) = v2f(name, v.x(), v.y())
     fun v3f(name: String, v: Vector3fc) = v3f(name, v.x(), v.y(), v.z())
     fun v4f(name: String, v: Vector4fc) = v4f(name, v.x(), v.y(), v.z(), v.w())
+    fun v4f(name: String, v: Quaternionfc) = v4f(name, v.x(), v.y(), v.z(), v.w())
     fun v4f(name: String, v: Vector4dc) =
         v4f(name, v.x().toFloat(), v.y().toFloat(), v.z().toFloat(), v.w().toFloat())
 

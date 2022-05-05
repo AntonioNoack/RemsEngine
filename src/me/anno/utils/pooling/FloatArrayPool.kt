@@ -1,6 +1,6 @@
 package me.anno.utils.pooling
 
-open class FloatArrayPool(size: Int, exactMatchesOnly: Boolean) : BufferPool<FloatArray>(size, exactMatchesOnly) {
+open class FloatArrayPool(size: Int) : BufferPool<FloatArray>(size) {
 
     override fun createBuffer(size: Int) = FloatArray(size)
 

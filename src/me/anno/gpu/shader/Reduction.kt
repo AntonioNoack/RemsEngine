@@ -18,9 +18,9 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.utils.Color.toHexColor
-import me.anno.utils.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import org.joml.Vector4fc
 import org.lwjgl.opengl.GL11C
@@ -198,7 +198,7 @@ object Reduction {
         HiddenOpenGLContext.createOpenGL()
         val fileReference = OS.pictures.getChild("4k.jpg")
         val image = ImageGPUCache.getImage(fileReference, false)!!
-        LOGGER.info(reduce(image, AVG).toHexColor())
+        LogManager.getLogger("Reduction").info(reduce(image, AVG).toHexColor())
     }
 
 }

@@ -231,7 +231,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
             val data = ShortData()
             rangingProcessing += {
                 val splits = SPLITS
-                val values = SAPool[splits * 2, false]
+                val values = SAPool[splits * 2, false, true]
                 var lastBufferIndex = 0L
                 lateinit var buffer: Pair<FloatArray, FloatArray>
                 val bufferSizeM1 = bufferSize - 1

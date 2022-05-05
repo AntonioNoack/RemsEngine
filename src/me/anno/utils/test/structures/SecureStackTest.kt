@@ -1,26 +1,33 @@
 package me.anno.utils.test.structures
 
-import me.anno.utils.LOGGER
 import me.anno.utils.structures.stacks.SecureStack
+import org.apache.logging.log4j.LogManager
 
-val stack = object : SecureStack<Int>(0) {
-    override fun onChangeValue(newValue: Int, oldValue: Int) {
-        LOGGER.info("$oldValue -> $newValue")
-    }
-}
 
 fun main() {
+
+    val logger = LogManager.getLogger("SecureStackTest")
+
+    val stack = object : SecureStack<Int>(0) {
+        override fun onChangeValue(newValue: Int, oldValue: Int) {
+            logger.info("$oldValue -> $newValue")
+        }
+    }
+
+    fun testFun(value: Int, consumer: () -> Unit) {
+        stack.use(value, consumer)
+    }
 
     try {
         stack.use(1) {
             stack.use(2) {
                 stack.use(3) {
-                    LOGGER.info("top")
+                    logger.info("top")
                 }
             }
         }
 
-        LOGGER.info("level zero")
+        logger.info("level zero")
 
         stack.use(1) {
             stack.use(2) {
@@ -33,14 +40,10 @@ fun main() {
         e.printStackTrace()
     }
 
-    LOGGER.info(stack)
+    logger.info(stack)
     testFun(17) {
-        LOGGER.info(stack)
+        logger.info(stack)
     }
 
 
-}
-
-inline fun testFun(value: Int, consumer: () -> Unit) {
-    stack.use(value, consumer)
 }

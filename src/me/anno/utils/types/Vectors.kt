@@ -1,5 +1,6 @@
 package me.anno.utils.types
 
+import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Triangles.subCross
@@ -8,7 +9,13 @@ import org.joml.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
+@Suppress("unused")
 object Vectors {
+
+    /**
+     * the following functions allow for comfortable debugging with vectors;
+     * they shouldn't be used in production to keep allocations at a minimum
+     * */
 
     operator fun Vector2fc.plus(s: Vector2fc) = Vector2f(x() + s.x(), y() + s.y())
     operator fun Vector2fc.minus(s: Vector2fc) = Vector2f(x() - s.x(), y() - s.y())
@@ -97,30 +104,11 @@ object Vectors {
     }
 
     fun Vector2fc.isInsideTriangle(a: Vector2fc, b: Vector2fc, c: Vector2fc): Boolean {
-
         val asX = x() - a.x()
         val asY = y() - a.y()
-
         val sAb = (b.x() - a.x()) * asY - (b.y() - a.y()) * asX > 0
-
         if ((c.x() - a.x()) * asY - (c.y() - a.y()) * asX > 0 == sAb) return false
-
         return (c.x() - b.x()) * (y() - b.y()) - (c.y() - b.y()) * (x() - b.x()) > 0 == sAb
-
-        /*var sum = 0
-
-        if(getSideSign(a,b) > 0f) sum++
-        if(getSideSign(b,c) > 0f) sum++
-        if(getSideSign(c,a) > 0f) sum++
-
-        println(sum)
-        println(getSideSign(a,b))
-        println(getSideSign(b,c))
-        println(getSideSign(c,a))
-
-        // left or right of all lines
-        return sum == 0 || sum == 3
-    */
     }
 
     fun Vector2fc.isInsideTriangle2(a: Vector2fc, b: Vector2fc, c: Vector2fc): Boolean {
@@ -138,30 +126,11 @@ object Vectors {
 
 
     fun Vector2d.isInsideTriangle(a: Vector2dc, b: Vector2dc, c: Vector2dc): Boolean {
-
         val asX = x() - a.x()
         val asY = y() - a.y()
-
         val sAb = (b.x() - a.x()) * asY - (b.y() - a.y()) * asX > 0
-
         if ((c.x() - a.x()) * asY - (c.y() - a.y()) * asX > 0 == sAb) return false
-
         return (c.x() - b.x()) * (y() - b.y()) - (c.y() - b.y()) * (x() - b.x()) > 0 == sAb
-
-        /*var sum = 0
-
-        if(getSideSign(a,b) > 0f) sum++
-        if(getSideSign(b,c) > 0f) sum++
-        if(getSideSign(c,a) > 0f) sum++
-
-        println(sum)
-        println(getSideSign(a,b))
-        println(getSideSign(b,c))
-        println(getSideSign(c,a))
-
-        // left or right of all lines
-        return sum == 0 || sum == 3
-    */
     }
 
     fun Vector2dc.isInsideTriangle2(a: Vector2dc, b: Vector2dc, c: Vector2dc): Boolean {
@@ -235,10 +204,6 @@ object Vectors {
         if (subCrossDot(c, a, q, n) < 0.0) sum++
         return sum == 0 || (allowBackside && sum == 3)
     }
-
-    fun Int.byteToHex() = (256 or this).toString(16).substring(1)
-    fun Vector3f.toHex() =
-        "#${(x * 255).toInt().byteToHex()}${(y * 255).toInt().byteToHex()}${(z * 255).toInt().byteToHex()}"
 
     fun Vector2fc.print() = "(${x()} ${y()})"
     fun Vector2dc.print() = "(${x()} ${y()})"
@@ -491,5 +456,9 @@ object Vectors {
     }
 
     fun Vector2f.dot2(x: Float, y: Float) = this.x * x + this.y * y
+
+    fun Vector3f.fract(dst: Vector3f = this) = dst.set(Maths.fract(x), Maths.fract(y), Maths.fract(z))
+    fun Vector3d.fract(dst: Vector3d = this) = dst.set(Maths.fract(x), Maths.fract(y), Maths.fract(z))
+
 
 }

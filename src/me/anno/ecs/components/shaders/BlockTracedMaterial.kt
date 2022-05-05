@@ -35,10 +35,10 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
 
     // needs to be adjusted as well for accurate shadows
     // I hope this gets optimized well, because no material data is actually required...
-    override fun createDepthShader(instanced: Boolean): Shader {
+    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean): Shader {
         val builder = createBuilder()
-        builder.addVertex(createVertexStage(instanced, false))
-        builder.addFragment(createFragmentStage(instanced))
+        builder.addVertex(createVertexStage(isInstanced, isAnimated, false))
+        builder.addFragment(createFragmentStage(isInstanced, isAnimated))
         GFX.check()
         val shader = builder.create()
         shader.glslVersion = glslVersion
@@ -59,7 +59,7 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
                 "finalRoughness = 0.5;\n"
     }
 
-    override fun createFragmentVariables(instanced: Boolean): ArrayList<Variable> {
+    override fun createFragmentVariables(isInstanced: Boolean, isAnimated: Boolean): ArrayList<Variable> {
         return arrayListOf(
             // input varyings
             Variable(GLSLType.V3F, "localPosition"),
@@ -86,9 +86,9 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
         )
     }
 
-    override fun createFragmentStage(instanced: Boolean): ShaderStage {
+    override fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean): ShaderStage {
         return ShaderStage(
-            "material", createFragmentVariables(instanced), "" +
+            "material", createFragmentVariables(isInstanced, isAnimated), "" +
                     // step by step define all material properties
                     "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
                     "vec3 bounds1 = vec3(bounds-1);\n" +
@@ -113,13 +113,13 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
                     "vec3 dn = sign(dir);\n" +
                     "vec3 ds = dn/dir;\n" +
                     "float nextDist, dist = 0.0;\n" +
-                    initProperties(instanced) +
+                    initProperties(isInstanced) +
                     "int lastNormal = dtf3.z == dtf ? 2 : dtf3.y == dtf ? 1 : 0, i;\n" +
                     "bool done = false;\n" +
                     "for(i=0;i<maxSteps;i++){\n" +
                     "   nextDist = min(s.x, min(s.y, s.z));\n" +
                     "   bool isAir = false;\n" +
-                    checkIfIsAir(instanced) +
+                    checkIfIsAir(isInstanced) +
                     "   if(isAir){\n" + // continue traversal
                     "       if(nextDist == s.x){\n" +
                     "           blockPosition.x += dn.x; s.x += ds.x; lastNormal = 0;\n" +
@@ -141,7 +141,7 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
                     "else {               localNormal.z = -dn.z; }\n" +
                     "finalNormal = normalize((localTransform * vec4(localNormal, 0.0)).xyz);\n" +
                     // correct depth
-                    modifyDepth(instanced) +
+                    modifyDepth(isInstanced) +
                     "vec3 localPos = localStart - halfBounds + dir * dist;\n" +
                     "finalPosition = localTransform * vec4(localPos, 1.0);\n" +
                     // must be used for correct mirror rendering
@@ -150,7 +150,7 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
                     "gl_FragDepth = newVertex.z/newVertex.w;\n" +
                     // todo add reflections from reflection planes back in
                     // todo add other stuff back in maybe, like clear coat & stuff
-                    computeMaterialProperties(instanced)
+                    computeMaterialProperties(isInstanced)
         )
     }
 

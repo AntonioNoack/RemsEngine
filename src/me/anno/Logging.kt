@@ -1,9 +1,8 @@
 package me.anno
 
-import me.anno.ui.debug.ConsoleOutputPanel
 import java.io.OutputStream
 import java.io.PrintStream
-import java.util.*
+import java.util.concurrent.LinkedBlockingQueue
 import kotlin.math.max
 
 object Logging {
@@ -11,9 +10,7 @@ object Logging {
     private val originalOut = System.out!!
     private val originalErr = System.err!!
 
-    var console: ConsoleOutputPanel? = null
-
-    val lastConsoleLines = LinkedList<String>()
+    val lastConsoleLines = LinkedBlockingQueue<String>()
     var lastConsoleLineCount = 500
     var maxConsoleLineLength = 500
 
@@ -24,10 +21,9 @@ object Logging {
                 b == '\n'.code -> {
                     // only accept non-empty lines?
                     val lines = lastConsoleLines
-                    if (lines.size > max(0, lastConsoleLineCount)) lines.removeFirst()
+                    if (lines.size > max(0, lastConsoleLineCount)) lines.poll()
                     line = processMessage(line)
-                    lines.push(line)
-                    console?.text = line
+                    lines.add(line)
                     line = ""
                 }
                 line.length < maxConsoleLineLength -> {

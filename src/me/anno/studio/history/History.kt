@@ -135,7 +135,7 @@ abstract class History<V> : Saveable() {
     override fun isDefaultValue(): Boolean = false
 
     companion object {
-        val LOGGER = LogManager.getLogger(History::class)
+        private val LOGGER = LogManager.getLogger(History::class)
         val maxChanged = 512
     }
 

@@ -4,9 +4,9 @@ import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.shader.Shader
-import me.anno.utils.LOGGER
-import org.lwjgl.opengl.*
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11C.GL_UNSIGNED_INT
+import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15C.*
 import org.lwjgl.opengl.GL30C.glGenVertexArrays
 import org.lwjgl.opengl.GL31C.glDrawElementsInstanced
@@ -260,6 +260,10 @@ class IndexBuffer(
             pointer = -1
             locallyAllocated = Buffer.allocate(locallyAllocated, 0)
         }
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(IndexBuffer::class)
     }
 
 }

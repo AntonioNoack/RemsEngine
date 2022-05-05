@@ -48,7 +48,7 @@ open class IntImage(
     }
 
     fun cloneData(): IntArray {
-        val clone = Texture2D.intArrayPool[data.size, false]
+        val clone = Texture2D.intArrayPool[data.size, false, true]
         System.arraycopy(data, 0, clone, 0, data.size)
         return clone
     }

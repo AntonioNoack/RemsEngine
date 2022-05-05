@@ -113,6 +113,14 @@ object Maths {
         return sqrt(mix(a2.toFloat(), b2.toFloat(), f)).roundToInt()
     }
 
+    fun mix(a: Int, b: Int, f: Double) = a * (1.0 - f) + f * b
+    fun mix(a: Long, b: Long, f: Double) = a * (1.0 - f) + f * b
+    fun mix(a: Float, b: Float, f: Float, g: Float) = a * g + b * f
+    fun mix(a: Double, b: Double, f: Float, g: Float) = a * g + b * f
+    fun mix(a: Vector2f, b: Vector2f, f: Double, dst: Vector2f) = a.lerp(b, f.toFloat(), dst)
+    fun mix(a: Vector3f, b: Vector3f, f: Double, dst: Vector3f) = a.lerp(b, f.toFloat(), dst)
+    fun mix(a: Vector4f, b: Vector4f, f: Double, dst: Vector4f) = a.lerp(b, f.toFloat(), dst)
+
     fun mixRandomly(a: Int, b: Int, f: Float): Int {
         return (a * (1f - f) + b * f + Math.random()).toInt()
     }

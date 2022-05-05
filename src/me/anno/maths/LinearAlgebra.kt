@@ -10,6 +10,7 @@ import kotlin.math.sqrt
  * T = transposed matrix
  * V = vector
  * */
+@Suppress("unused")
 object LinearAlgebra {
 
     /**

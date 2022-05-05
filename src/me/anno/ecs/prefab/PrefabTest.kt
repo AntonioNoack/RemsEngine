@@ -7,8 +7,8 @@ import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerTmpFile
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
-
 
 fun main() {
 
@@ -19,6 +19,8 @@ fun main() {
 }
 
 fun test1() {
+
+    val logger = LogManager.getLogger("PrefabTest")
 
     fun <V> assert(v1: V, v2: V) {
         if (v1 != v2) throw RuntimeException("$v1 != $v2")
@@ -39,7 +41,7 @@ fun test1() {
     basePrefab.setProperty("isCollapsed", false)
     assert(basePrefab.getSampleInstance().isCollapsed, false)
 
-    basePrefab.add(Path.ROOT_PATH, 'c', "MeshComponent")
+    basePrefab.add(Path.ROOT_PATH, 'c', "MeshComponent", "MC")
 
     val basePrefabFile = InnerTmpFile.InnerTmpPrefabFile(basePrefab)
 
@@ -53,33 +55,35 @@ fun test1() {
     assert(prefab.getSampleInstance().name, "Herbert")
 
     val child = prefab.add(Path.ROOT_PATH, 'e', "Entity", "SomeChild", basePrefabFile)
-    val rigidbody = prefab.add(child, 'c', "Rigidbody")
+    val rigidbody = prefab.add(child, 'c', "Rigidbody", "RB")
     prefab[rigidbody, "overrideGravity"] = true
     prefab[rigidbody, "gravity"] = Vector3d()
 
-    println(prefab.getSampleInstance()) // shall have two mesh components
+    logger.info(prefab.getSampleInstance()) // shall have two mesh components
 
     val text = TextWriter.toText(prefab, InvalidRef)
-    println(text)
+    logger.info(text)
 
     val copied = TextReader.read(text, InvalidRef, true).first() as Prefab
-    println(copied.getSampleInstance())
+    logger.info(copied.getSampleInstance())
 }
 
 fun test2() {
 
+    val logger = LogManager.getLogger("PrefabTest")
+
     // test removing, deleting
 
     val prefab = Prefab("Entity")
-    val child = prefab.add(Path.ROOT_PATH, 'e', "Entity")
-    val rigid = prefab.add(child, 'c', "Rigidbody")
+    val child = prefab.add(Path.ROOT_PATH, 'e', "Entity", "E")
+    val rigid = prefab.add(child, 'c', "Rigidbody", "RB")
     prefab[rigid, "overrideGravity"] = true
     prefab[rigid, "gravity"] = Vector3d()
 
     val text = TextWriter.toText(prefab, InvalidRef)
-    println(JsonFormatter.format(text))
+    logger.info(JsonFormatter.format(text))
 
     val copied = TextReader.read(text, InvalidRef, false).first() as Prefab
-    println(copied.getSampleInstance())
+    logger.info(copied.getSampleInstance())
 
 }

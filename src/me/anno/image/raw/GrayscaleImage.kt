@@ -23,7 +23,7 @@ open class GrayscaleImage(
         } else when (src) {
             is IntImage -> {
                 val data = src.data
-                val bytes = bufferPool[size, false]
+                val bytes = bufferPool[size, false, false]
                 for (i in 0 until size) {
                     bytes.put(i, getLuminance(data[i]).toByte())
                 }
@@ -31,7 +31,7 @@ open class GrayscaleImage(
             }
             is ByteImage -> {
                 val data = src.data
-                val bytes = bufferPool[size, false]
+                val bytes = bufferPool[size, false, false]
                 for (i in 0 until size) {
                     val j = i * 4
                     bytes.put(i, getLuminance(data[j + 1], data[j + 2], data[j + 3]).toByte())

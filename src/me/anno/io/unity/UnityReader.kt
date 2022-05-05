@@ -85,7 +85,7 @@ object UnityReader {
     }
 
     fun findUnityProject(file: FileReference): UnityProject? {
-        // println("$file, ${file.exists}, ${file.isDirectory}, ${file.listChildren()}, ${file.length()}")
+        // LOGGER.debug("$file, ${file.exists}, ${file.isDirectory}, ${file.listChildren()}, ${file.length()}")
         if (!file.exists) return null
         val key = "/Assets/"
         val abs = file.absolutePath
@@ -295,7 +295,7 @@ object UnityReader {
                     "RootOrder" -> {
                     } // probably for changing the order of children
                     "Materials.Array.data[0]" -> {
-                        println("todo set material ... $value")
+                        LOGGER.debug("todo set material ... $value")
                         // todo set the material somehow... is it a material?
                     }
                     else -> LOGGER.info("$target, Change: $path, value: $value, ref: $objectReference")
@@ -315,7 +315,7 @@ object UnityReader {
                 prefab.setProperty("rotation", Quaterniond(rotation))
             }
 
-            println("pos rot sca: $position, $rotation, $scale by $changes")
+            LOGGER.debug("pos rot sca: $position, $rotation, $scale by $changes")
 
             JomlPools.vec3d.sub(2)
             JomlPools.quat4d.sub(1)
@@ -359,7 +359,7 @@ object UnityReader {
             prefab.clazzName = "BoxCollider"
             ROOT_PATH
         }
-        if (size != null) prefab.set(path, "halfExtends", size)
+        if (size != null) prefab[path, "halfExtends"] = size
         // todo this is not known/supported...
         // val isTrigger = node.getBool("IsTrigger")
         // if (isTrigger != null) prefab.set(path, "isTrigger", isTrigger) // mmh...
@@ -526,7 +526,7 @@ object UnityReader {
                             transformToGameObject[file] = pi
                         }*/
                     }
-                    // println("transform $fileId has game object $gameObject, ${gameObject is PrefabReadable}")
+                    // LOGGER.debug("transform $fileId has game object $gameObject, ${gameObject is PrefabReadable}")
                 }
                 //
 
@@ -785,7 +785,7 @@ object UnityReader {
                         // prefab.prefab = prefabPath
                     }
                     // find transform, which belongs to this GameObject
-                    // println("looking up gameObject $fileId.transform with $file")
+                    // LOGGER.debug("looking up gameObject $fileId.transform with $file")
                     val transform = transformToGameObject.reverse[file]
                     val components = node["Component"]
                     val prefab3 = (transform as? PrefabReadable)?.readPrefab()
@@ -975,7 +975,7 @@ object UnityReader {
             return InvalidRef
         }
 
-        println("returning ${project.getGuidFolder(file)}")
+        LOGGER.debug("returning ${project.getGuidFolder(file)}")
         return project.getGuidFolder(file)
 
     }
@@ -992,7 +992,7 @@ object UnityReader {
 
     fun FileReference.printTree(depth: Int, maxDepth: Int) {
         if (!isHidden) {
-            println(Tabs.spaces(depth * 2) + name)
+            LOGGER.debug(Tabs.spaces(depth * 2) + name)
             if (depth + 1 < maxDepth && (if (depth == 0) isSomeKindOfDirectory else isDirectory)) {
                 for (child in listChildren() ?: emptyList()) {
                     child.printTree(depth + 1, maxDepth)
@@ -1003,9 +1003,9 @@ object UnityReader {
 
     fun testRendering(file: FileReference, size: Int = 512, index: Int) {
         val prefab = PrefabCache[file]!!
-        println(JsonFormatter.format(prefab.toString()))
+        LOGGER.debug(JsonFormatter.format(prefab.toString()))
         val sample = prefab.createInstance()
-        println(sample)
+        LOGGER.debug(sample)
         Thumbs.generateSomething(
             prefab, file,
             desktop.getChild("$index.png"), size
@@ -1115,13 +1115,13 @@ Transform:
 
         /*val file =
             getReference("E:/Assets/POLYGON_Pirates_Pack_Unity_5_6_0.zip/PolygonPirates/Assets/PolygonPirates/Materials")
-        println("file exists? ${file.exists}, children: ${file.listChildren()}")
+        LOGGER.debug("file exists? ${file.exists}, children: ${file.listChildren()}")
         val projectPath2 = findUnityProject(file)
-        println("project from file? $projectPath2")*/
+        LOGGER.debug("project from file? $projectPath2")*/
 
         /*val file2 = file.getParent()!!.getChild("Prefabs/Vehicles/SM_Flag_British_01.prefab")
-        println("file2 exists? ${file2.exists}")
-        println(PrefabCache.getPrefab(file2))*/
+        LOGGER.debug("file2 exists? ${file2.exists}")
+        LOGGER.debug(PrefabCache.getPrefab(file2))*/
 
         // return
 
@@ -1154,9 +1154,9 @@ Transform:
         /*Thumbs.useCacheFolder = true
         for (file in listOf(meshComponent, colliderComponent, entityOfComponent)) {
             val prefab = PrefabCache.loadPrefab(file)!!
-            println(JsonFormatter.format(prefab.toString()))
+            LOGGER.debug(JsonFormatter.format(prefab.toString()))
             val sample = prefab.createInstance()
-            println(sample)
+            LOGGER.debug(sample)
             Thumbs.generateSomething(prefab, file,
                 desktop.getChild(sample::class.simpleName + ".png"), 512
             ) {}
@@ -1208,7 +1208,7 @@ Transform:
         val testScene = getReference(main, "Scenes/Demo_TriplanarDirt.unity")
         for (fileName in listOf("2130288114", "668974552")) {
             val file = getReference(testScene, "$fileName.json")
-            println("$fileName: " + PrefabCache.printDependencyGraph(file))
+            LOGGER.debug("$fileName: " + PrefabCache.printDependencyGraph(file))
         }
         //Engine.requestShutdown()
         //return

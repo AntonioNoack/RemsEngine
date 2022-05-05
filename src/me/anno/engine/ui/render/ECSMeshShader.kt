@@ -27,15 +27,15 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
     }
 
-    open fun createBase(instanced: Boolean, colors: Boolean): ShaderBuilder {
+    open fun createBase(isInstanced: Boolean, isAnimated: Boolean, colors: Boolean): ShaderBuilder {
         val builder = createBuilder()
-        builder.addVertex(createVertexStage(instanced, colors))
+        builder.addVertex(createVertexStage(isInstanced, isAnimated, colors))
         builder.addVertex(createRandomIdStage())
-        builder.addFragment(createFragmentStage(instanced))
+        builder.addFragment(createFragmentStage(isInstanced, isAnimated))
         return builder
     }
 
-    open fun createVertexVariables(instanced: Boolean, colors: Boolean): ArrayList<Variable> {
+    open fun createVertexVariables(isInstanced: Boolean, isAnimated: Boolean, colors: Boolean): ArrayList<Variable> {
 
         val attributes = ArrayList<Variable>(32)
         attributes += Variable(GLSLType.V3F, "coords", VariableMode.ATTR)
@@ -65,7 +65,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             attributes += Variable(GLSLType.V4F, "vertexColor", false)
         }
 
-        if (instanced) {
+        if (isInstanced) {
             attributes += Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR)
             attributes += Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR)
             attributes += Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR)
@@ -74,6 +74,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 attributes += Variable(GLSLType.V4F, "tint", VariableMode.OUT)
             }
         } else {
+            // todo for low end gpus
+            //  a) change the jointTransforms to a texture
+            // todo jointTransforms could be baked over all available/used animations, as we just send the weights directly to the shader <3
+            //  this would allow us to render animated meshes instanced as well <3, and with independent animations [just manually created animations would need extra care]
+            //  b) or separate the shader all together
             // attributes
             attributes += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
             attributes += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
@@ -87,15 +92,15 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return attributes
     }
 
-    open fun createVertexStage(instanced: Boolean, colors: Boolean): ShaderStage {
+    open fun createVertexStage(isInstanced: Boolean, isAnimated: Boolean, colors: Boolean): ShaderStage {
 
         val defines = "" +
-                (if (instanced) "#define INSTANCED\n" else "") +
+                (if (isInstanced) "#define INSTANCED\n" else "") +
                 (if (colors) "#define COLORS\n" else "")
 
         return ShaderStage(
             "vertex",
-            createVertexVariables(instanced, colors),
+            createVertexVariables(isInstanced, isAnimated, colors),
             "" +
                     defines +
                     "#ifdef INSTANCED\n" +
@@ -145,7 +150,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     }
 
-    open fun createFragmentVariables(instanced: Boolean): ArrayList<Variable> {
+    open fun createFragmentVariables(isInstanced: Boolean, isAnimated: Boolean): ArrayList<Variable> {
         return arrayListOf(
             // input textures
             Variable(GLSLType.S2D, "diffuseMap"),
@@ -198,10 +203,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     }
 
     // just like the gltf pbr shader define all material properties
-    open fun createFragmentStage(instanced: Boolean): ShaderStage {
+    open fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean): ShaderStage {
 
         return ShaderStage(
-            "material", createFragmentVariables(instanced), "" +
+            "material", createFragmentVariables(isInstanced, isAnimated), "" +
                     "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
 
                     // step by step define all material properties
@@ -274,10 +279,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     }
 
-    override fun createDepthShader(instanced: Boolean): Shader {
+    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean): Shader {
 
         val builder = createBuilder()
-        builder.addVertex(createVertexStage(instanced, false))
+        builder.addVertex(createVertexStage(isInstanced, isAnimated, false))
         // no random id required
 
         // for the future, we could respect transparency from textures :)
@@ -291,9 +296,14 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     }
 
-    override fun createForwardShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
+    override fun createForwardShader(
+        postProcessing: ShaderStage?,
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        geoShader: GeoShader?
+    ): Shader {
 
-        val base = createBase(instanced, true)
+        val base = createBase(isInstanced, isAnimated, true)
 
         // <3, this is crazily easy
         base.addFragment(postProcessing)
@@ -308,10 +318,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     override fun createDeferredShader(
         deferred: DeferredSettingsV2,
         isInstanced: Boolean,
+        isAnimated: Boolean,
         geoShader: GeoShader?
     ): Shader {
 
-        val base = createBase(isInstanced, true)
+        val base = createBase(isInstanced, isAnimated, true)
         base.outputs = deferred
 
         // build & finish

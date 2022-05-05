@@ -340,8 +340,8 @@ object BlenderReader {
 
         val meshes = file.instances["Mesh"] as? List<BMesh> ?: emptyList()
         meshes.forEach { mesh ->
-            println(mesh.id.name)
-            println(mesh.materials?.joinToString())
+            LOGGER.debug(mesh.id.name)
+            LOGGER.debug(mesh.materials?.joinToString())
         }*/
 
         // return folder
@@ -352,14 +352,14 @@ object BlenderReader {
             for (i in materialsInFile.indices) {
                 val mat = materialsInFile[i]
                 val name = mat.id.name.substring(2)
-                // println("material $name")
+                // LOGGER.debug("material $name")
                 val prefab = Prefab("Material")
                 prefab.setProperty("diffuseBase", Vector4f(mat.r, mat.g, mat.b, mat.a))
                 prefab.setProperty("metallicMinMax", Vector2f(0f, mat.metallic))
                 prefab.setProperty("roughnessMinMax", Vector2f(0f, mat.roughness))
                 prefab.sealFromModifications()
                 mat.fileRef = matFolder.createPrefabChild("$name.json", prefab)
-                // println("prev ${mat.id.prev}, next: ${mat.id.next}")
+                // LOGGER.debug("prev ${mat.id.prev}, next: ${mat.id.next}")
             }
         }
         clock.stop("read ${file.instances["Material"]?.size} materials")
@@ -379,10 +379,10 @@ object BlenderReader {
 
                 // todo if there are multiple materials, collect the indices
 
-                // println("mesh materials: $materials")
-                // println("mesh $name: ${mesh.numVertices} vertices, ${mesh.numPolygons} polys with ${mesh.polygons?.sumOf { it.loopSize }} vertices")
+                // LOGGER.debug("mesh materials: $materials")
+                // LOGGER.debug("mesh $name: ${mesh.numVertices} vertices, ${mesh.numPolygons} polys with ${mesh.polygons?.sumOf { it.loopSize }} vertices")
                 // val mapping = mapMaterials(materialsInFile, polygons)
-                // println("mat-mapping: [${mapping.first.joinToString()}], [${mapping.second.joinToString()}]")
+                // LOGGER.debug("mat-mapping: [${mapping.first.joinToString()}], [${mapping.second.joinToString()}]")
                 // prefab.setProperty("materials", mapping.second)
                 prefab.setProperty("materials", materials.map { it as BMaterial?; it?.fileRef ?: InvalidRef })
                 // todo bone hierarchy,
@@ -410,11 +410,11 @@ object BlenderReader {
                 }
                 prefab.setProperty("positions", positions)
                 prefab.setProperty("normals", normals)
-                // println("loop uvs: " + mesh.loopUVs?.size)
+                // LOGGER.debug("loop uvs: " + mesh.loopUVs?.size)
                 val uvs = mesh.loopUVs ?: BInstantList.emptyList()
                 // todo vertex colors
                 val hasUVs = uvs.isNotEmpty() && uvs.any { it.u != 0f || it.v != 0f }
-                // println("loop cols: " + mesh.loopColor?.size)
+                // LOGGER.debug("loop cols: " + mesh.loopColor?.size)
                 val triCount = polygons.sumOf {
                     when (val size = it.loopSize) {
                         0 -> 0

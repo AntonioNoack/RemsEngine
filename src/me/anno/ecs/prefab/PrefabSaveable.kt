@@ -205,6 +205,11 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         }
     }
 
+    fun throwWarning() {
+        val lw = lastWarning
+        if (lw != null) throw RuntimeException(lw)
+    }
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)

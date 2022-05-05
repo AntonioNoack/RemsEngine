@@ -18,7 +18,7 @@ import java.io.IOException
  * */
 object ConfigBasics {
 
-    val LOGGER = LogManager.getLogger(ConfigBasics::class)
+    private val LOGGER = LogManager.getLogger(ConfigBasics::class)
 
     val configFolder get() = getReference(OS.home, ".config/$projectName")
     val cacheFolder get() = getReference(OS.home, ".cache/$projectName")

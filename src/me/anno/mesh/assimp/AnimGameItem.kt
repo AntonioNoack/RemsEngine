@@ -96,11 +96,15 @@ class AnimGameItem(
 
     companion object {
 
-        val matrixSize = 12
-        val matrixUniforms = 4
-        val maxBonesByComponents = GFX.maxVertexUniformComponents / matrixSize - 40
-        val maxBonesByUniforms = GFX.maxUniforms / matrixUniforms - 12
-        val maxBones = Maths.clamp(min(maxBonesByComponents, maxBonesByUniforms), 4, 256)
+        val matrixSize = 12 // at least on an Nvidia GPU, I maxed out the limit by just 256 matrices...
+        val maxBones: Int
+        init {
+            val matrixUniforms = 12
+            val maxBonesByComponents = GFX.maxVertexUniformComponents / matrixSize - 40
+            val maxBonesByUniforms = GFX.maxUniforms / matrixUniforms - 30
+            maxBones = Maths.clamp(min(maxBonesByComponents, maxBonesByUniforms), 4, 256)
+        }
+
         val matrixBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
         val tmpMatrices = Array(maxBones) { Matrix4x3f() }
 

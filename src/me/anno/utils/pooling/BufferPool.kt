@@ -1,13 +1,13 @@
 package me.anno.utils.pooling
 
-abstract class BufferPool<V>(val size: Int, val exactMatchesOnly: Boolean) {
+abstract class BufferPool<V>(val size: Int) {
 
     abstract fun clear(buffer: V, size: Int)
     abstract fun getSize(buffer: V): Int
     abstract fun createBuffer(size: Int): V
 
     private val available = arrayOfNulls<Any?>(size)
-    operator fun get(size: Int, clear: Boolean): V {
+    operator fun get(size: Int, clear: Boolean, exactMatchesOnly: Boolean): V {
         val maxSize = if (exactMatchesOnly) size else size * 2
         synchronized(this) {
             for (i in 0 until this.size) {

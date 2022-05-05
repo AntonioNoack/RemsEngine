@@ -39,7 +39,7 @@ open class OpaqueImage(
                         4 -> {
                             val width = src.width
                             val height = src.height
-                            val cloned = Texture2D.bufferPool[3 * width * height, false]
+                            val cloned = Texture2D.bufferPool[3 * width * height, false, false]
                             var j = 0
                             val data = src.data
                             for (i in 0 until width * height) {

@@ -1,7 +1,10 @@
 package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
+import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.shader.Shader
+import me.anno.io.files.FileReference
+import me.anno.utils.OS
 
 interface ITexture2D : ICacheData {
 
@@ -28,5 +31,10 @@ interface ITexture2D : ICacheData {
     }
 
     fun bindTrulyNearest(index: Int) = bind(index, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+
+    fun write(dst: FileReference, flipY: Boolean, withAlpha: Boolean) {
+        FramebufferToMemory.createImage(this, flipY, withAlpha)
+            .write(dst)
+    }
 
 }

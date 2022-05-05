@@ -9,7 +9,7 @@ class Clock(
     printZeros: Boolean = false
 ) {
 
-    val minTime = if (printZeros) -1.0 else 0.0005
+    var minTime = if (printZeros) -1.0 else 0.0005
 
     var firstTime = System.nanoTime()
     var lastTime = firstTime

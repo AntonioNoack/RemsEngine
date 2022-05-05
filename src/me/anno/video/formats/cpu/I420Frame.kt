@@ -178,94 +178,93 @@ object I420Frame : CPUFrame() {
 
     }
 
-    fun benchmark(runs: Int = 100) {
-
-        val w = 512
-        val h = 512
-
-        val w2 = (w + 1) / 2
-        val h2 = (h + 1) / 2
-
-        val wx = w + w.and(1) - 1 // same if odd, -1 else
-        val hx = h + h.and(1) - 1
-
-        val s0 = w * h
-        val s1 = w2 * h2
-
-        val data = IntArray(w * h)
-        val yData = ByteBuffer.allocateDirect(s0)
-        val uData = ByteBuffer.allocateDirect(s1)
-        val vData = ByteBuffer.allocateDirect(s1)
-
-        val t0 = System.nanoTime()
-
-        for (i in 0 until runs) {
-            for (yi in 0 until hx) {
-                for (xi in 0 until wx) {
-                    val it = xi + w * yi
-                    data[it] = yuv2rgb(
-                        yData[it],
-                        interpolate(xi, yi, w2, uData),
-                        interpolate(xi, yi, w2, vData)
-                    )
-                }
-            }
-        }
-
-        val t1 = System.nanoTime()
-
-        for (i in 0 until runs) {
-            for (yi in 0 until hx step 2) {
-                var it = yi * w
-                for (xi in 0 until wx step 2) {
-                    data[it] = yuv2rgb(
-                        yData[it],
-                        int00(xi, yi, w2, uData),
-                        int00(xi, yi, w2, vData)
-                    )
-                    it += 2
-                }
-                it = 1 + yi * w
-                for (xi in 1 until wx step 2) {
-                    data[it] = yuv2rgb(
-                        yData[it],
-                        int10(xi, yi, w2, uData),
-                        int10(xi, yi, w2, vData)
-                    )
-                    it += 2
-                }
-            }
-
-            for (yi in 1 until hx step 2) {
-                var it = yi * w
-                for (xi in 0 until wx step 2) {
-                    data[it] = yuv2rgb(
-                        yData[it],
-                        int01(xi, yi, w2, uData),
-                        int01(xi, yi, w2, vData)
-                    )
-                    it += 2
-                }
-                it = 1 + yi * w
-                for (xi in 1 until wx step 2) {
-                    data[it] = yuv2rgb(
-                        yData[it],
-                        int11(xi, yi, w2, uData),
-                        int11(xi, yi, w2, vData)
-                    )
-                    it += 2
-                }
-            }
-
-        }
-
-        val t2 = System.nanoTime()
-        println("${(t1 - t0) / 1e9} vs ${(t2 - t1) / 1e9}")
-
-    }
-
     @JvmStatic
     fun main(args: Array<String>) {
+        fun benchmark(runs: Int = 100) {
+
+            val w = 512
+            val h = 512
+
+            val w2 = (w + 1) / 2
+            val h2 = (h + 1) / 2
+
+            val wx = w + w.and(1) - 1 // same if odd, -1 else
+            val hx = h + h.and(1) - 1
+
+            val s0 = w * h
+            val s1 = w2 * h2
+
+            val data = IntArray(w * h)
+            val yData = ByteBuffer.allocateDirect(s0)
+            val uData = ByteBuffer.allocateDirect(s1)
+            val vData = ByteBuffer.allocateDirect(s1)
+
+            val t0 = System.nanoTime()
+
+            for (i in 0 until runs) {
+                for (yi in 0 until hx) {
+                    for (xi in 0 until wx) {
+                        val it = xi + w * yi
+                        data[it] = yuv2rgb(
+                            yData[it],
+                            interpolate(xi, yi, w2, uData),
+                            interpolate(xi, yi, w2, vData)
+                        )
+                    }
+                }
+            }
+
+            val t1 = System.nanoTime()
+
+            for (i in 0 until runs) {
+                for (yi in 0 until hx step 2) {
+                    var it = yi * w
+                    for (xi in 0 until wx step 2) {
+                        data[it] = yuv2rgb(
+                            yData[it],
+                            int00(xi, yi, w2, uData),
+                            int00(xi, yi, w2, vData)
+                        )
+                        it += 2
+                    }
+                    it = 1 + yi * w
+                    for (xi in 1 until wx step 2) {
+                        data[it] = yuv2rgb(
+                            yData[it],
+                            int10(xi, yi, w2, uData),
+                            int10(xi, yi, w2, vData)
+                        )
+                        it += 2
+                    }
+                }
+
+                for (yi in 1 until hx step 2) {
+                    var it = yi * w
+                    for (xi in 0 until wx step 2) {
+                        data[it] = yuv2rgb(
+                            yData[it],
+                            int01(xi, yi, w2, uData),
+                            int01(xi, yi, w2, vData)
+                        )
+                        it += 2
+                    }
+                    it = 1 + yi * w
+                    for (xi in 1 until wx step 2) {
+                        data[it] = yuv2rgb(
+                            yData[it],
+                            int11(xi, yi, w2, uData),
+                            int11(xi, yi, w2, vData)
+                        )
+                        it += 2
+                    }
+                }
+
+            }
+
+            val t2 = System.nanoTime()
+            println("${(t1 - t0) / 1e9} vs ${(t2 - t1) / 1e9}")
+
+        }
         benchmark()
         ImageCPUCache.getImage(pictures.getChild("Anime/70697252_p4_master1200.webp"), false)!!
             .write(desktop.getChild("anime.png"))

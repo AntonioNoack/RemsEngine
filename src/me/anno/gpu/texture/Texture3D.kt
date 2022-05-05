@@ -127,7 +127,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
 
     fun createMonochrome(data: ByteArray) {
         if (w * h * d != data.size) throw RuntimeException("incorrect size!")
-        val byteBuffer = bufferPool[data.size, false]
+        val byteBuffer = bufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
@@ -147,7 +147,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         if (data != null && type.bytesPerPixel != 3 && w * h * d * type.bytesPerPixel != data.size)
             throw RuntimeException("incorrect size!, got ${data.size}, expected $w * $h * $d * ${type.bytesPerPixel} bpp")
         val byteBuffer = if (data != null) {
-            val byteBuffer = bufferPool[data.size, false]
+            val byteBuffer = bufferPool[data.size, false, false]
             byteBuffer.position(0)
             byteBuffer.put(data)
             byteBuffer.position(0)
@@ -164,12 +164,12 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
 
     fun createRGBA(data: FloatArray) {
         if (w * h * d * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $w * $h * $d * 4 bpp")
-        val byteBuffer = bufferPool[data.size * 4, false]
+        val byteBuffer = bufferPool[data.size * 4, false, false]
         byteBuffer.order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
         val floatBuffer = byteBuffer.asFloatBuffer()
         floatBuffer.put(data)
-        floatBuffer.position(0)
+        floatBuffer.flip()
         createRGBA(floatBuffer, byteBuffer)
     }
 
@@ -183,10 +183,10 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
 
     fun createRGBA(data: ByteArray) {
         if (w * h * d * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $w * $h * $d * 4 bpp")
-        val byteBuffer = bufferPool[data.size, false]
+        val byteBuffer = bufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
-        byteBuffer.position(0)
+        byteBuffer.flip()
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         bufferPool.returnBuffer(byteBuffer)

@@ -1,8 +1,11 @@
 package me.anno.graph.knn
 
 import me.anno.utils.structures.lists.Lists.smallestKElements
+import org.apache.logging.log4j.LogManager
 
 object Heap {
+
+    private val LOGGER = LogManager.getLogger(Heap::class)
 
     // https://www.geeksforgeeks.org/building-heap-from-array/
     // To heapify a subtree rooted with node i which is
@@ -104,12 +107,12 @@ object Heap {
     // A utility function to print the array
     // representation of Heap
     fun <V> printHeap(arr: List<V>?) {
-        println("Array representation of Heap is:")
-        println(arr)
+        LOGGER.info("Array representation of Heap is:")
+        LOGGER.info(arr)
     }
 
     fun <V> printSortedMax(arr: ArrayList<V>, comparator: Comparator<V>) {
-        println("Sorted elements are:")
+        LOGGER.info("Sorted elements are:")
         var i = 0
         val l = arr.size
         while (i < l) {
@@ -117,11 +120,11 @@ object Heap {
             print(value.toString() + " ")
             i++
         }
-        println()
+        LOGGER.info()
     }
 
     fun <V> printSortedMin(arr: ArrayList<V>, comparator: Comparator<V>) {
-        println("Sorted elements are:")
+        LOGGER.info("Sorted elements are:")
         var i = 0
         val l = arr.size
         while (i < l) {
@@ -129,7 +132,7 @@ object Heap {
             print(value.toString() + " ")
             i++
         }
-        println()
+        LOGGER.info()
     }
 
     // Driver Code
@@ -147,7 +150,7 @@ object Heap {
         val arr0 = intArrayOf(1, 3, 5, 4, 6, 13, 10, 9, 8, 15, 17)
         val arr = ArrayList<Int>()
         for (value in arr0) arr.add(value)
-        println(arr.smallestKElements(10, Comparator { obj: Int, integer: Int? ->
+        LOGGER.info(arr.smallestKElements(10, Comparator { obj: Int, integer: Int? ->
             obj.compareTo(
                 integer!!
             )

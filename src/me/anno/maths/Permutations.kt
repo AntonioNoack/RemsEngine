@@ -1,5 +1,6 @@
 package me.anno.maths
 
+@Suppress("unused")
 object Permutations {
 
     fun <T> generatePermutations(elements: List<T>, onNextPermutation: (List<T>) -> Unit) {

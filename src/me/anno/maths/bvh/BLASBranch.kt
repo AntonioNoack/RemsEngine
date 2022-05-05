@@ -28,14 +28,12 @@ class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABB
     }
 
     override fun countNodes() = 1 + n0.countNodes() + n1.countNodes()
-
     override fun maxDepth() = 1 + kotlin.math.max(n0.maxDepth(), n1.maxDepth())
 
-    override fun findCompactPositions(): FloatArray? {
-        return n0.findCompactPositions()
-    }
+    // compact positions are saved in both nodes, and they are identical
+    override fun findCompactPositions() = n0.findCompactPositions()
 
-    override fun forEach(run: (BVHBuilder) -> Unit) {
+    override fun forEach(run: (BLASNode) -> Unit) {
         run(this)
         n0.forEach(run)
         n1.forEach(run)

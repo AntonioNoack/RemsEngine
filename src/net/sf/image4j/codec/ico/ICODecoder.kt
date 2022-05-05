@@ -88,8 +88,7 @@ object ICODecoder {
                         // and store as separate images
                         val img = BMPDecoder.read(xorHeader, input1)
                         // If we want to be sure we've decoded the XOR mask
-                        // correctly,
-                        // we can write it out as a PNG to a temp file here.
+                        // correctly, we can write it out as a PNG to a temp file here.
                         // try {
                         // File temp = File.createTempFile("image4j", ".png");
                         // ImageIO.write(xor, "png", temp);
@@ -177,7 +176,7 @@ object ICODecoder {
         }
 
         // long t2 = System.currentTimeMillis()
-        // println("Loaded ICO file in "+(t2 - t)+"ms")
+        // LOGGER.debug("Loaded ICO file in "+(t2 - t)+"ms")
 
         return ret
     }

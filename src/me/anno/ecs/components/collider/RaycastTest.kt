@@ -1,8 +1,8 @@
 package me.anno.ecs.components.collider
 
 import me.anno.image.ImageWriter
-import me.anno.utils.LOGGER
 import me.anno.utils.types.Floats.toRadians
+import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
 
@@ -25,7 +25,7 @@ fun writeImage(
 
 /* test for box ray collisions: defines a fish-eye camera, and renders the distance to the box */
 fun renderCollider(b: Collider, name: String = b.name.ifBlank { b.className }) {
-    LOGGER.info("Rendering $name")
+    LogManager.getLogger("RaycastTest").info("Rendering $name")
     val heavy = name == "Monkey"
     val dir = Quaternionf()
         .rotateY(30f.toRadians())

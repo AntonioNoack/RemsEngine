@@ -11,6 +11,7 @@ import me.anno.studio.StudioBase
 import me.anno.studio.history.History
 import me.anno.studio.history.StringHistory
 import me.anno.ui.editor.PropertyInspector
+import org.apache.logging.log4j.LogManager
 
 class ChangeHistory : StringHistory() {
 
@@ -37,6 +38,8 @@ class ChangeHistory : StringHistory() {
     override val className: String = "ChangeHistory"
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(ChangeHistory::class)
 
         /**
          * a test for StringHistories compression capabilities

@@ -98,7 +98,7 @@ class SoundBuffer() : ICacheData {
             stb_vorbis_get_info(decoder, info)
             val channels = info.channels()
             val lengthSamples = stb_vorbis_stream_length_in_samples(decoder)
-            val pcm = bufferPool[lengthSamples * 2, false].asShortBuffer()
+            val pcm = bufferPool[lengthSamples * 2, false, true].asShortBuffer()
             this.data = pcm
             pcm.limit(stb_vorbis_get_samples_short_interleaved(decoder, channels, pcm) * channels)
             stb_vorbis_close(decoder)

@@ -115,6 +115,13 @@ object OpenGL {
         }
     }
 
+    val animated = object : SecureBoolStack(false) {
+        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
+            // nothing changes on the OpenGL side,
+            // just the shaders need to be modified
+        }
+    }
+
     val cullMode = object : SecureStack<CullMode>(CullMode.BOTH) {
         override fun onChangeValue(newValue: CullMode, oldValue: CullMode) {
             GFX.check()

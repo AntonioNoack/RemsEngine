@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * the instances should be regularly checked whether they are still in use
  * */
-open class ByteBufferPool(val size: Int, val exactMatchesOnly: Boolean, var entryTimeoutNanos: Long = 5_000_000_000L) {
+open class ByteBufferPool(val size: Int, var entryTimeoutNanos: Long = 5_000_000_000L) {
 
     fun freeUnusedEntries() {
         val time = Engine.gameTime
@@ -37,7 +37,7 @@ open class ByteBufferPool(val size: Int, val exactMatchesOnly: Boolean, var entr
     val available = arrayOfNulls<ByteBuffer>(size)
     val lastUsed = LongArray(size)
 
-    operator fun get(size: Int, clear: Boolean): ByteBuffer {
+    operator fun get(size: Int, clear: Boolean, exactMatchesOnly: Boolean): ByteBuffer {
         val maxSize = if (exactMatchesOnly) size else size * 2 - 1
         synchronized(this) {
             for (i in 0 until this.size) {

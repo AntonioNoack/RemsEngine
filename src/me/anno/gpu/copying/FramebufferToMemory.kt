@@ -168,7 +168,7 @@ object FramebufferToMemory {
         val wi = window.width
         val hi = window.height
 
-        val buffer = Texture2D.bufferPool[wi * hi * 4, false]
+        val buffer = Texture2D.bufferPool[wi * hi * 4, false, false]
 
         if (clearColor != null) {
             glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w)

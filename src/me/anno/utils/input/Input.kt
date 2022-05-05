@@ -68,7 +68,7 @@ object Input {
             throw EOFException()
         }
 
-        val bytes = pool[n, false]
+        val bytes = pool[n, false, false]
         bytes.position(0)
         bytes.limit(n)
         bytes.put(tmp, 0, numReadChars0)

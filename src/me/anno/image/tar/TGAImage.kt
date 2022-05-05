@@ -10,7 +10,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.BufferedIO.useBuffered
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.io.DataInputStream
 import java.io.IOException
@@ -45,15 +45,15 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             1 -> 0x10101 * (data[index].toInt() and 255)
             2 -> {
                 val j = index * 2
-                rgba(0, data[j].toInt(), data[j + 1].toInt(), 255)
+                bgra2rgba(0, data[j].toInt(), data[j + 1].toInt(), 255)
             }
             3 -> {
                 val j = index * 3
-                rgba(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), 255)
+                bgra2rgba(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), 255)
             }
             4 -> {
                 val j = index * 4
-                rgba(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), data[j + 3].toInt())
+                bgra2rgba(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), data[j + 3].toInt())
             }
             else -> throw RuntimeException("$numChannels is not supported for TGA images")
         }
@@ -85,7 +85,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                 var i = 0
                 var j = 0
                 while (i < size) {
-                    buffer.setElem(i, rgba(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), 255))
+                    buffer.setElem(i, bgra2rgba(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), 255))
                     i++
                     j += 3
                 }
@@ -94,7 +94,10 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                 var i = 0
                 var j = 0
                 while (i < size) {
-                    buffer.setElem(i, rgba(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), data[j + 3].toInt()))
+                    buffer.setElem(
+                        i,
+                        bgra2rgba(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), data[j + 3].toInt())
+                    )
                     i++
                     j += 4
                 }
@@ -126,7 +129,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                 var i = 0
                 var j = 0
                 while (i < size) {
-                    dst[i] = rgba(
+                    dst[i] = bgra2rgba(
                         data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), 255
                     )
                     i++
@@ -137,9 +140,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                 var i = 0
                 var j = 0
                 while (i < size) {
-                    dst[i] = rgba(
-                        data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), data[j + 3].toInt()
-                    )
+                    dst[i] = bgra2rgba(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), data[j + 3].toInt())
                     i++
                     j += 4
                 }
@@ -149,7 +150,10 @@ class TGAImage(// bgra, even if the implementation calls it rgba
     }
 
     companion object {
-        private fun rgba(b: Int, g: Int, r: Int, a: Int): Int {
+
+        private val LOGGER = LogManager.getLogger(TGAImage::class)
+
+        private fun bgra2rgba(b: Int, g: Int, r: Int, a: Int): Int {
             return r and 255 shl 16 or (g and 255 shl 8) or (b and 255) or (a and 255 shl 24)
         }
 
@@ -460,7 +464,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
 
             // Faster than doing a 16-or-24-or-32 check on each individual pixel,
             // just make a separate loop for each.
-            when(pixelDepth){
+            when (pixelDepth) {
                 32 -> {
                     for (y in 0 until height) {
                         rawDataIndex = (if (flip) y else height - 1 - y) * width * dl

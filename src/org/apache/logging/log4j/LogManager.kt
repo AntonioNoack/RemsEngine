@@ -3,7 +3,8 @@ package org.apache.logging.log4j
 import kotlin.reflect.KClass
 
 /**
- * the main logging manager, which should be used
+ * the main logging manager, which should be used all over the engine;
+ * @see [me.anno.ui.debug.ConsoleOutputPanel]
  */
 object LogManager {
 
@@ -16,6 +17,7 @@ object LogManager {
         disabled.add(logger)
     }
 
+    @Suppress("unused")
     fun enableLogger(logger: String?) {
         disabled.remove(logger)
     }
@@ -30,7 +32,7 @@ object LogManager {
 
     @JvmStatic
     fun getLogger(clazz: KClass<*>): LoggerImpl {
-        // System.out.println("Inited " + clazz.getSimpleName());
+        // "Inited " + clazz.getSimpleName()
         return getLogger(clazz.simpleName)
     }
 

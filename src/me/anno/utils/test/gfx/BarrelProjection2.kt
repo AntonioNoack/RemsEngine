@@ -5,6 +5,7 @@ import me.anno.image.ImageCPUCache
 import me.anno.maths.Maths
 import me.anno.maths.Optimization.simplexAlgorithm
 import me.anno.utils.OS.desktop
+import org.apache.logging.log4j.LogManager
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -17,7 +18,7 @@ fun findParams(image: Image, channel: Int, i: Int, n: Int): Pair<Int, Polynomial
     val startY = radius * cos(angle)
 
     val params = simplexAlgorithm(floatArrayOf(startX, startY), s, 0f, 100) { params ->
-        val polynomial = Polynomial( params[0], params[1])
+        val polynomial = Polynomial(params[0], params[1])
         getError(image, channel, polynomial).toFloat()
     }
 
@@ -28,6 +29,8 @@ fun findParams(image: Image, channel: Int, i: Int, n: Int): Pair<Int, Polynomial
 }
 
 fun main() {
+
+    val logger = LogManager.getLogger("BarrelProjection")
 
     // tests... not as good as first one
 
@@ -47,10 +50,10 @@ fun main() {
         val image = if (channelIndex == 0) img
         else apply(img, bestPolynomials)
 
-        println("processing channel $channel")
+        logger.info("processing channel $channel")
 
         val error0 = getError(image, channel, p0)
-        println("error0: ${error0.toFloat() / (3 * image.width * image.height)}")
+        logger.info("error0: ${error0.toFloat() / (3 * image.width * image.height)}")
 
         var best = 0
         var bestParams = p0
@@ -61,7 +64,7 @@ fun main() {
             if (i == 0 || error < best) {
                 best = error
                 bestParams = params
-                println(
+                logger.info(
                     "   found better point " +
                             "${(best - error0).toFloat() / (3 * image.width * image.height)}, $params"
                 )
@@ -79,8 +82,8 @@ fun main() {
             if (error1 < best) {
                 best = error1
                 bestParams = p
-                println("-----------------------------")
-                println(
+                logger.info("-----------------------------")
+                logger.info(
                     "   base method, found better: ${it.joinToString()} " +
                             "${(error1 - error0).toFloat() / (3 * image.width * image.height)}, max: ${p.compute(1f)}"
                 )
@@ -88,10 +91,10 @@ fun main() {
         }
         val t2 = System.nanoTime()
         ImageWriter.writeImageFloat(dim, dim, "error-$channelIndex-x1.png", true, result)
-        println("${(t2 - t1) * 1e-9} vs ${(t1 - t0) * 1e-9}")*/
+        logger.info("${(t2 - t1) * 1e-9} vs ${(t1 - t0) * 1e-9}")*/
 
-        println("-------- $channelIndex: $channel --------")
-        println("best: ${(best - error0).toFloat() / (3 * image.width * image.height)}, params = $bestParams")
+        logger.info("-------- $channelIndex: $channel --------")
+        logger.info("best: ${(best - error0).toFloat() / (3 * image.width * image.height)}, params = $bestParams")
 
         bestPolynomials[channel] = bestParams
         apply(image, "temp-$channelIndex.png", bestPolynomials)
@@ -99,7 +102,7 @@ fun main() {
     }
 
     for ((index, poly) in bestPolynomials.withIndex()) {
-        println("bestPolynomials[$index] = Polynomial(${poly.c3 / img.width}f * img.width, ${poly.c5 / img.height}f * img.height)")
+        logger.info("bestPolynomials[$index] = Polynomial(${poly.c3 / img.width}f * img.width, ${poly.c5 / img.height}f * img.height)")
     }
 
 }

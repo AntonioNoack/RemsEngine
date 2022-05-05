@@ -34,22 +34,32 @@ open class BaseShader(
     var textures: List<String>? = null
     var ignoredUniforms = HashSet<String>()
 
-    private val flatShader = KeyTripleMap<Renderer, Boolean, GeoShader?, Shader>()
-    private val deferredShaders = KeyTripleMap<DeferredSettingsV2, Boolean, GeoShader?, Shader>()
-    private val depthShader = Array(2) { lazy { createDepthShader(it > 0) } }
+    private val flatShader = KeyTripleMap<Renderer, Int, GeoShader?, Shader>()
+    private val deferredShaders = KeyTripleMap<DeferredSettingsV2, Int, GeoShader?, Shader>()
+    private val depthShader = Array(2) { lazy { createDepthShader(it.and(1) != 0, it.and(2) != 0) } }
 
     /** shader for rendering the depth, e.g. for pre-depth */
-    open fun createDepthShader(instanced: Boolean): Shader {
+    open fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean): Shader {
         if (vertexShader.isBlank2()) throw RuntimeException()
-        val vertexShader = if (instanced) "#define INSTANCED\n$vertexShader" else vertexShader
+        var vertexShader = vertexShader
+        if (isInstanced) vertexShader = "#define INSTANCED\n$vertexShader"
+        if (isAnimated) vertexShader = "#define ANIMATED\n$vertexShader"
         return Shader(name, vertexVariables, vertexShader, varyings, fragmentVariables, "void main(){}")
     }
 
     /** shader for forward rendering */
-    open fun createForwardShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
+    open fun createForwardShader(
+        postProcessing: ShaderStage?,
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        geoShader: GeoShader?
+    ): Shader {
 
         val varying = varyings
-        val vertex = if (instanced) "#define INSTANCED\n$vertexShader" else vertexShader
+        var vertexShader = vertexShader
+        if (isInstanced) vertexShader = "#define INSTANCED\n$vertexShader"
+        if (isAnimated) vertexShader = "#define ANIMATED\n$vertexShader"
+        val vertex = vertexShader
 
         val postProcessing1 = postProcessing?.functions?.firstOrNull { it.name == "main" }?.body ?: ""
 
@@ -57,7 +67,7 @@ open class BaseShader(
         // what do we do if it writes glFragColor?
         // option to use flat shading independent of rendering mode (?)
         val fragment = StringBuilder()
-        if (instanced) fragment.append("#define INSTANCED\n")
+        if (isInstanced) fragment.append("#define INSTANCED\n")
         val postMainIndex = postProcessing1.indexOf("void main")
         if (postMainIndex > 0) {
             // add the code before main
@@ -117,19 +127,21 @@ open class BaseShader(
             GFX.check()
             val renderer = OpenGL.currentRenderer
             val instanced = OpenGL.instanced.currentValue
+            val animated = OpenGL.animated.currentValue
+            val stateId = instanced.toInt() + animated.toInt(2)
             val shader = if (renderer == Renderer.depthRenderer) {
-                depthShader[instanced.toInt()].value
+                depthShader[stateId].value
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
                     val geoMode = OpenGL.geometryShader.currentValue
-                    flatShader.getOrPut(renderer, instanced, geoMode) { r, i, g ->
-                        val shader = createForwardShader(r.getPostProcessing(), i, g)
+                    flatShader.getOrPut(renderer, stateId, geoMode) { r, i, g ->
+                        val shader = createForwardShader(r.getPostProcessing(), i.and(1) != 0, i.and(2) != 0, g)
                         r.uploadDefaultUniforms(shader)
                         // LOGGER.info(shader.fragmentSource)
                         shader
                     }
                 }
-                else -> get(deferred, instanced, OpenGL.geometryShader.currentValue)
+                else -> get(deferred, stateId, OpenGL.geometryShader.currentValue)
             }
             GFX.check()
             shader.use()
@@ -159,7 +171,12 @@ open class BaseShader(
     }
 
     /** shader for deferred rendering */
-    open fun createDeferredShader(deferred: DeferredSettingsV2, isInstanced: Boolean, geoShader: GeoShader?): Shader {
+    open fun createDeferredShader(
+        deferred: DeferredSettingsV2,
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        geoShader: GeoShader?
+    ): Shader {
         val shader = deferred.createShader(
             name,
             geoShader?.code, isInstanced,
@@ -184,8 +201,10 @@ open class BaseShader(
         GFX.check()
     }
 
-    operator fun get(settings: DeferredSettingsV2, instanced: Boolean, geoShader: GeoShader?): Shader {
-        return deferredShaders.getOrPut(settings, instanced, geoShader, ::createDeferredShader)
+    operator fun get(settings: DeferredSettingsV2, stateId: Int, geoShader: GeoShader?): Shader {
+        return deferredShaders.getOrPut(settings, stateId, geoShader) { settings2, stateId2, geoShader2 ->
+            createDeferredShader(settings2, stateId2.and(1) != 0, stateId2.and(2) != 0, geoShader2)
+        }
     }
 
     fun destroy() {

@@ -5,7 +5,7 @@ import me.anno.engine.IProperty
 import me.anno.io.serialization.CachedProperty
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextStyleable
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 
 class PIProperty(
     val pi: PrefabInspector,
@@ -34,7 +34,7 @@ class PIProperty(
     }
 
     override fun set(panel: Panel?, value: Any?) {
-        if(pi.prefab.isWritable){
+        if (pi.prefab.isWritable) {
             (panel as? TextStyleable)?.isBold = true
             // info("setting value of $name, ${panel is TextStyleable}")
             property[instance] = value
@@ -57,5 +57,9 @@ class PIProperty(
 
     override val annotations: List<Annotation>
         get() = property.annotations
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(PIProperty::class)
+    }
 
 }
