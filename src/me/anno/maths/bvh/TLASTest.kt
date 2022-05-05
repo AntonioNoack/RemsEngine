@@ -30,6 +30,8 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
+import me.anno.utils.types.AABBs.deltaX
+import me.anno.utils.types.AABBs.deltaZ
 import org.joml.*
 import org.lwjgl.opengl.GL11C
 
@@ -44,7 +46,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
         downloads.getChild("3d/XYZ arrows.obj")
     )
 
-    val source = sources[2]
+    val source = sources[3]
     val pipeline = Pipeline(DeferredSettingsV2(listOf(DeferredLayerType.COLOR), false))
     pipeline.defaultStage = PipelineStage(
         "default", Sorting.NO_SORTING, 0, null, DepthMode.ALWAYS, true,
@@ -57,12 +59,6 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
     scene.validateTransform()
     scene.validateAABBs()
 
-    /*scene.forAll {
-        if(it is Entity){
-            println("${it.name}, ${it.hasValidAABB}, ${it.aabb}")
-        }
-    }*/
-
     val aabb = scene.aabb
 
     val cameraPosition = Vector3d(aabb.avgX(), aabb.avgY(), aabb.maxZ * 1.5f)
@@ -72,7 +68,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
     pipeline.frustum.setToEverything(cameraPosition, cameraRotation)
     pipeline.fill(scene, cameraPosition, worldScale)
 
-    /*for (i in 0 until 5) {
+    for (i in 0 until 5) {
         for (j in 0 until 5) {
             if (i + j > 0) {
                 val scene2 = prefab.createInstance() as Entity
@@ -90,7 +86,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
                 pipeline.fill(scene2, cameraPosition, worldScale)
             }
         }
-    }*/
+    }
 
     val tlas = BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, worldScale, SplitMethod.MEDIAN, maxNodeSize)
     return Quad(tlas, Vector3f().set(cameraPosition), Quaternionf(cameraRotation), 1f)
@@ -154,8 +150,8 @@ fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Text
                     "       worldDir = quatRot(worldDir, worldRot);\n" +
                     "       worldDir = normalize(worldDir);\n" +
                     "       vec3 worldInvDir = 1.0 / worldDir;\n" +
-                    "       uint k=0,numIntersections=0,nodeCtr=0;\n" +
-                    "while(true){\n" + // start of tlas
+                    "       uint k=512,numIntersections=0,nodeCtr=0;\n" +
+                    "while(k-- > 0){\n" + // start of tlas
                     // fetch tlas node data
                     "   uint pixelIndex = nodeIndex * $PIXELS_PER_TLAS_NODE;\n" +
                     "   uint nodeX = pixelIndex % tlasTexSize.x;\n" +
@@ -164,10 +160,15 @@ fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Text
                     "   vec4 d1 = imageLoad(tlasNodes, ivec2(nodeX+1,nodeY));\n" + // tlas bounds check
                     "   if(intersectAABB(worldPos,worldInvDir,d0.xyz,d1.xyz,worldDistance)){\n" +
                     "       uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
-                    "       if(v01.y == 0){\n" + // tlas branch
-                    // to do: check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.h ?
-                    "           nodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
-                    "           nodeIndex++;\n" + // search child next
+                    "       if(v01.y < 3){\n" + // tlas branch
+                    // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
+                    "           if(worldDir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
+                    "               nodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
+                    "               nodeIndex++;\n" + // search child next
+                    "           } else {\n" +
+                    "               nodeStack[stackIndex++] = nodeIndex + 1;\n" + // mark other child for later
+                    "               nodeIndex += v01.x;\n" + // search child next
+                    "           }\n" +
                     "       } else {\n" + // tlas leaf
                     "           numIntersections++;\n" +
                     // load more data and then transform ray into local coordinates

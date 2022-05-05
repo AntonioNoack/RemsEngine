@@ -39,12 +39,12 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
 
             if (it is TLASBranch) {
                 v0 = it.n1.nodeId - it.nodeId
-                v1 = 0
+                v1 = it.axis
             } else {
                 it as TLASLeaf
                 // offset is like an id
                 v0 = it.mesh.nodeId
-                v1 = 1
+                v1 = 3 // = max axis + 1
             }
 
             val b = it.bounds

@@ -186,8 +186,8 @@ fun main(
             it.clear()
 
             // render gpu side
-            val w = it.w / 2
-            val h = it.h / 2
+            val w = it.w
+            val h = it.h
 
             val cx = (w - 1) * 0.5f
             val cy = (h - 1) * 0.5f

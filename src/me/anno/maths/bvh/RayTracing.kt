@@ -57,7 +57,7 @@ object RayTracing {
             "   ivec2 triTexSize = imageSize(triangles);\n" +
             "   uint nextNodeStack[BLAS_DEPTH];\n" +
             "   uint stackIndex = 0;\n" +
-            "   uint k=nodeCtr+1024;\n" +
+            "   uint k=nodeCtr+512;\n" +
             "   while(nodeCtr++<k){\n" + // could be k<bvh.count() or true or 2^depth
             // fetch node data
             "       uint pixelIndex = nodeIndex * $PIXELS_PER_BLAS_NODE;\n" +
@@ -67,14 +67,19 @@ object RayTracing {
             "       vec4 d1 = imageLoad(nodes, ivec2(nodeX+1,nodeY));\n" +
             "       if(intersectAABB(pos,invDir,d0.xyz,d1.xyz,distance)){\n" + // bounds check
             "           uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
-            "           if(v01.y == 0){\n" +
-            // to do: check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.h ?
-            "               nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
-            "               nodeIndex++;\n" + // search child next
-            "          } else {\n" +
+            "           if(v01.y < 3){\n" +
+            // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
+            "               if(dir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
+            "                   nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
+            "                   nodeIndex++;\n" + // search child next
+            "               } else {\n" +
+            "                   nextNodeStack[stackIndex++] = nodeIndex + 1;\n" + // mark other child for later
+            "                   nodeIndex += v01.x;\n" + // search child next
+            "               }\n" +
+            "           } else {\n" +
             // this node is a leaf
             // check all triangles for intersections
-            "               uint index = v01.x * $PIXELS_PER_TRIANGLE, end = index + v01.y * $PIXELS_PER_TRIANGLE;\n" +
+            "               uint index = v01.x, end = index + v01.y;\n" +
             "               uint triX = index % triTexSize.x;\n" +
             "               uint triY = index / triTexSize.x;\n" +
             "               for(;index<end;index += $PIXELS_PER_TRIANGLE){\n" + // triangle index -> load triangle data
@@ -88,7 +93,7 @@ object RayTracing {
             "                   }\n" +
             "               }\n" + // next node
             "               if(stackIndex < 1) break;\n" +
-            "              nodeIndex = nextNodeStack[--stackIndex];\n" +
+            "               nodeIndex = nextNodeStack[--stackIndex];\n" +
             "          }\n" +
             "       } else {\n" + // next node
             "           if(stackIndex < 1) break;\n" +

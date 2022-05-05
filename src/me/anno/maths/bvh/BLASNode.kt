@@ -42,11 +42,11 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             when (it) {
                 is BLASBranch -> {
                     v0 = it.n1.nodeId - it.nodeId // next node
-                    v1 = 0  // not a leaf
+                    v1 = it.axis  // not a leaf
                 }
                 is BLASLeaf -> {
-                    v0 = it.start
-                    v1 = it.length
+                    v0 = it.start * PIXELS_PER_TRIANGLE
+                    v1 = it.length * PIXELS_PER_TRIANGLE
                 }
                 else -> throw RuntimeException()
             }
@@ -179,11 +179,11 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
 
                     if (it is BLASBranch) {
                         v0 = it.n1.nodeId - it.nodeId // next node
-                        v1 = 0  // not a leaf
+                        v1 = it.axis // not a leaf, 0-2
                     } else {
                         it as BLASLeaf
-                        v0 = it.start + it.triangleStartIndex
-                        v1 = it.length
+                        v0 = (it.start + it.triangleStartIndex) * PIXELS_PER_TRIANGLE
+                        v1 = (it.length) * PIXELS_PER_TRIANGLE // >= 3, < 3 would mean not a single triangle, and that's invalid
                     }
 
                     val bounds = it.bounds
