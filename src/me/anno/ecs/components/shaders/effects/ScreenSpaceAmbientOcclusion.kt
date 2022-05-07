@@ -2,6 +2,7 @@ package me.anno.ecs.components.shaders.effects
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
@@ -32,8 +33,6 @@ import java.util.*
 import kotlin.math.sqrt
 
 object ScreenSpaceAmbientOcclusion {
-
-    // todo ssao is broken on Nvidia GPUs... why???
 
     // could be set lower for older hardware, would need restart
     private val MAX_SAMPLES = max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
@@ -141,7 +140,7 @@ object ScreenSpaceAmbientOcclusion {
         Shader(
             "ssao-blur", attr0List, attr0VShader, uvList,
             listOf(
-                Variable(GLSLType.V1F, "glFragColor", VariableMode.OUT),
+                Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT),
                 Variable(GLSLType.S2D, "source"),
                 Variable(GLSLType.V2F, "delta")
             ), "" +
@@ -153,7 +152,7 @@ object ScreenSpaceAmbientOcclusion {
                     "       textureGather(source,vec2(uv1.x,uv0.y),0) +\n" +
                     "       textureGather(source,vec2(uv0.x,uv1.y),0) +\n" +
                     "       textureGather(source,vec2(uv1.x,uv1.y),0);\n" +
-                    "   glFragColor = (sum.x+sum.y+sum.z+sum.w) * ${1.0 / 16.0};\n" +
+                    "   glFragColor = vec4((sum.x+sum.y+sum.z+sum.w) * ${1.0 / 16.0});\n" +
                     "}"
         ).apply { glslVersion = 400 } // 400 for textureGather
     }
@@ -250,8 +249,12 @@ object ScreenSpaceAmbientOcclusion {
         samples: Int
     ): ITexture2D? {
         if (strength <= 0f) return whiteTexture
-        val tmp = firstPass(data, settingsV2, transform, radius, strength, min(samples, MAX_SAMPLES)) ?: return null
-        return secondPass(tmp).getTexture0()
+        lateinit var tex: ITexture2D
+        renderPurely {
+            val tmp = firstPass(data, settingsV2, transform, radius, strength, min(samples, MAX_SAMPLES)) ?: return null
+            tex = secondPass(tmp).getTexture0()
+        }
+        return tex
     }
 
     fun compute(
@@ -262,8 +265,12 @@ object ScreenSpaceAmbientOcclusion {
         strength: Float,
         samples: Int
     ): IFramebuffer {
-        val tmp = firstPass(position, normal, transform, radius, strength, min(samples, MAX_SAMPLES))
-        return secondPass(tmp)
+        lateinit var tex: IFramebuffer
+        renderPurely {
+            val tmp = firstPass(position, normal, transform, radius, strength, min(samples, MAX_SAMPLES))
+            tex = secondPass(tmp)
+        }
+        return tex
     }
 
 }

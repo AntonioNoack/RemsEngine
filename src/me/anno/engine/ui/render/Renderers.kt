@@ -83,7 +83,7 @@ object Renderers {
                 // Variable(GLSLType.V4F, "finalClearCoat"),
                 // Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
                 // if the translucency > 0, the normal map probably should be turned into occlusion ->
-                // no, or at max slightly, because the area around it will illuminate it
+                // no, or at max slightly, because the surrounding area will illuminate it
                 Variable(GLSLType.V1F, "finalTranslucency"),
                 Variable(GLSLType.V1F, "finalAlpha"),
                 Variable(GLSLType.V3F, "finalPosition"),

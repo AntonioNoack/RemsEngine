@@ -148,12 +148,18 @@ object OpenGL {
         }
     }
 
+    /**
+     * render without blending and without depth test
+     * */
     inline fun renderPurely(render: () -> Unit) {
         blendMode.use(null) {
             depthMode.use(DepthMode.ALWAYS, render)
         }
     }
 
+    /**
+     * render with back-to-front alpha blending and without depth test
+     * */
     inline fun renderDefault(render: () -> Unit) {
         blendMode.use(BlendMode.DEFAULT) {
             depthMode.use(DepthMode.ALWAYS, render)
