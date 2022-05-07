@@ -46,6 +46,7 @@ object ShaderPlus {
         val raw = fragmentSource.trim()
         if (!raw.endsWith("}")) throw RuntimeException("Source needs to end with }")
         return "" +
+                "out vec4 fragColor;\n" +
                 "uniform int drawMode;\n" +
                 (if (hasTint) "" else "uniform vec4 tint;\n") +
                 "" + raw.substring(0, raw.length - 1) + "" +
@@ -55,24 +56,27 @@ object ShaderPlus {
                 "switch(drawMode){\n" +
                 "   case ${DrawMode.COLOR_SQUARED.id}:\n" +
                 "       vec3 tmpCol = ${if (hasTint) "finalColor" else "finalColor * tint.rgb"};\n" +
-                "       gl_FragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
+                "       fragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
                 "       break;\n" +
                 "   case ${DrawMode.COLOR.id}:\n" +
-                "       gl_FragColor = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
+                "       fragColor = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
                 "       break;\n" +
                 "   case ${DrawMode.ID.id}:\n" +
                 "       if(finalAlpha < 0.01) discard;\n" +
-                "       gl_FragColor = vec4(tint.rgb, 1.0);\n" +
+                "       fragColor = vec4(tint.rgb, 1.0);\n" +
                 "       break;\n" +
                 "   case ${DrawMode.DEPTH_DSQ.id}:\n" +
                 "       if(finalAlpha < 0.01) discard;\n" +
-                "       gl_FragColor = vec4(zDistance, 0.0, zDistance * zDistance, finalAlpha);\n" +
+                "       fragColor = vec4(zDistance, 0.0, zDistance * zDistance, finalAlpha);\n" +
                 "       break;\n" +
                 "   case ${DrawMode.COPY.id}:\n" +
-                "       gl_FragColor = vec4(finalColor, finalAlpha);\n" +
+                "       fragColor = vec4(finalColor, finalAlpha);\n" +
                 "       break;\n" +
                 "   case ${DrawMode.TINT.id}:\n" +
-                "       gl_FragColor = tint;\n" +
+                "       fragColor = tint;\n" +
+                "       break;\n" +
+                "   default:" +
+                "       fragColor = vec4(1.0,0.0,1.0,1.0);\n" +
                 "       break;\n" +
                 // random id not supported here
                 "   }\n" +
@@ -119,6 +123,9 @@ object ShaderPlus {
                 "       float flRandomId = float(randomId);\n" +
                 "       vec2 seed = vec2(sin(flRandomId), cos(flRandomId));\n" +
                 "       fragColor = vec4(GET_RANDOM(seed.xy), GET_RANDOM(seed.yx), GET_RANDOM(100.0 - seed.yx), 1.0);\n" +
+                "       break;\n" +
+                "   default:" +
+                "       fragColor = vec4(1.0,0.0,0.5,1.0);\n" +
                 "       break;\n" +
                 "}\n"
         return ShaderStage(callName, variables, code)

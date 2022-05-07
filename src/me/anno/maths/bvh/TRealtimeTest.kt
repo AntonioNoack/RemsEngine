@@ -59,6 +59,8 @@ fun main(
 
     testUI {
 
+        GFX.someWindow.setVsyncEnabled(false)
+
         cpuTexture.createRGBA()
 
         val main = PanelListY(style)

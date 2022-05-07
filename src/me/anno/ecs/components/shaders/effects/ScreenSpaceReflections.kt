@@ -102,7 +102,7 @@ object ScreenSpaceReflections {
                     "   int hit0 = 0;\n" +
 
                     "   float depth = thickness, viewDistance;\n" +
-                    "   vec3 positionTo;\n" +
+                    "   vec3 positionTo = vec3(0.0);\n" +
 
                     // calculate the number of pixels to the edge of the screen
                     "   int maxLinearSteps = int(min(delta * $testMaxDistanceRatio.0, useX ? " +

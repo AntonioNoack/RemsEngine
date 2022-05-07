@@ -25,8 +25,14 @@ open class BaseShader(
     val fragmentShader: String
 ) { // Saveable or PrefabSaveable?
 
-    constructor(name: String, vertexSource: String, varyingSource: List<Variable>, fragmentSource: String) :
-            this(name, emptyList(), vertexSource, varyingSource, emptyList(), fragmentSource)
+    constructor(name: String, vertexSource: String, varyingSource: List<Variable>, fragmentSource: String) : this(
+        name,
+        emptyList(),
+        vertexSource,
+        varyingSource,
+        emptyList(),
+        fragmentSource
+    )
 
     constructor() : this("", "", emptyList(), "")
 
@@ -49,10 +55,7 @@ open class BaseShader(
 
     /** shader for forward rendering */
     open fun createForwardShader(
-        postProcessing: ShaderStage?,
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        geoShader: GeoShader?
+        postProcessing: ShaderStage?, isInstanced: Boolean, isAnimated: Boolean, geoShader: GeoShader?
     ): Shader {
 
         val varying = varyings
@@ -69,21 +72,25 @@ open class BaseShader(
         val fragment = StringBuilder()
         if (isInstanced) fragment.append("#define INSTANCED\n")
         val postMainIndex = postProcessing1.indexOf("void main")
+        var fragmentShader = fragmentShader
+        val hasLegacyFragColor = "gl_FragColor" in fragmentShader
+        if (hasLegacyFragColor) {
+            fragment.append("out vec4 glFragColor;\n")
+            fragmentShader = fragmentShader.replace("gl_FragColor", "glFragColor")
+        }
         if (postMainIndex > 0) {
             // add the code before main
             fragment.append(postProcessing1.substring(0, postMainIndex))
         }
-        if ("gl_FragColor" !in fragmentShader) {
-            fragment.append(fragmentShader.substring(0, fragmentShader.lastIndexOf('}')))
-            // finalColor, finalAlpha were properly defined
-        } else {
+        if (hasLegacyFragColor) {
             fragment.append(fragmentShader.substring(0, fragmentShader.lastIndexOf('}')))
             // finalColor, finalAlpha are missing
             fragment.append(
-                "" +
-                        "vec3 finalColor = gl_FragColor.rgb;\n" +
-                        "float finalAlpha = gl_FragColor.a;\n"
+                "" + "vec3 finalColor = glFragColor.rgb;\n" + "float finalAlpha = glFragColor.a;\n"
             )
+        } else {
+            fragment.append(fragmentShader.substring(0, fragmentShader.lastIndexOf('}')))
+            // finalColor, finalAlpha were properly defined
         }
         if (postMainIndex >= 0 || !postProcessing1.isBlank2()) {
             val pmi2 = if (postMainIndex < 0) -1 else postProcessing1.indexOf('{', postMainIndex + 9)
@@ -98,20 +105,16 @@ open class BaseShader(
             }
             fragment.append(postProcessing1.substring(pmi2 + 1))
         } else {
-            fragment.append("gl_FragColor = vec4(finalColor, finalAlpha);\n")
+            if (!fragment.contains("out vec4 glFragColor"))
+                fragment.insert(0, "out vec4 glFragColor;\n")
+            fragment.append("glFragColor = vec4(finalColor, finalAlpha);\n")
         }
         if (postMainIndex < 0) {
             fragment.append('}')
         }
         GFX.check()
         val shader = ShaderPlus.create(
-            name,
-            geoShader?.code,
-            vertexVariables,
-            vertex,
-            varying,
-            fragmentVariables,
-            fragment.toString()
+            name, geoShader?.code, vertexVariables, vertex, varying, fragmentVariables, fragment.toString()
         )
         shader.glslVersion = glslVersion
         shader.setTextureIndices(textures)
@@ -172,14 +175,12 @@ open class BaseShader(
 
     /** shader for deferred rendering */
     open fun createDeferredShader(
-        deferred: DeferredSettingsV2,
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        geoShader: GeoShader?
+        deferred: DeferredSettingsV2, isInstanced: Boolean, isAnimated: Boolean, geoShader: GeoShader?
     ): Shader {
         val shader = deferred.createShader(
             name,
-            geoShader?.code, isInstanced,
+            geoShader?.code,
+            isInstanced,
             vertexVariables,
             vertexShader,
             varyings,
@@ -224,24 +225,10 @@ open class BaseShader(
 
         // is used to draw indexed geometry optionally as lines (for debugging purposes)
         val lineGeometry = GeoShader(
-            "layout(triangles) in;\n" +
-                    "layout(line_strip, max_vertices = 6) out;\n" +
-                    "#inOutVarying\n" +
-                    "void main(){\n" +
-                    "   #copy[0]\n" +
-                    "   gl_Position = gl_in[0].gl_Position;\n" +
-                    "   EmitVertex();\n" + // a-b
-                    "   #copy[1]\n" +
-                    "   gl_Position = gl_in[1].gl_Position;\n" +
-                    "   EmitVertex();\n" + // b-c
-                    "   #copy[2]\n" +
-                    "   gl_Position = gl_in[2].gl_Position;\n" +
-                    "   EmitVertex();\n" + // c-a
-                    "   #copy[0]\n" +
-                    "   gl_Position = gl_in[0].gl_Position;\n" +
-                    "   EmitVertex();\n" +
-                    "   EndPrimitive();\n" +
-                    "}"
+            "layout(triangles) in;\n" + "layout(line_strip, max_vertices = 6) out;\n" + "#inOutVarying\n" + "void main(){\n" + "   #copy[0]\n" + "   gl_Position = gl_in[0].gl_Position;\n" + "   EmitVertex();\n" + // a-b
+                    "   #copy[1]\n" + "   gl_Position = gl_in[1].gl_Position;\n" + "   EmitVertex();\n" + // b-c
+                    "   #copy[2]\n" + "   gl_Position = gl_in[2].gl_Position;\n" + "   EmitVertex();\n" + // c-a
+                    "   #copy[0]\n" + "   gl_Position = gl_in[0].gl_Position;\n" + "   EmitVertex();\n" + "   EndPrimitive();\n" + "}"
         )
 
         // does not work for scaled things, somehow...
@@ -280,23 +267,9 @@ open class BaseShader(
         )*/
 
         val cullFaceColoringGeometry = GeoShader(
-            "layout(triangles) in;\n" +
-                    "layout(triangle_strip, max_vertices = 3) out;\n" +
-                    "#inOutVarying\n" +
-                    "void main(){\n" +
+            "layout(triangles) in;\n" + "layout(triangle_strip, max_vertices = 3) out;\n" + "#inOutVarying\n" + "void main(){\n" +
                     // check if front facing or back facing, and change the color
-                    "   vec3 a = gl_in[0].gl_Position.xyz / gl_in[0].gl_Position.w;\n" +
-                    "   vec3 b = gl_in[1].gl_Position.xyz / gl_in[1].gl_Position.w;\n" +
-                    "   vec3 c = gl_in[2].gl_Position.xyz / gl_in[2].gl_Position.w;\n" +
-                    "   vec4 color = vec4(cross(b-a,c-a).z < 0.0 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 0.0, 1.0), 1.0);\n" +
-                    "   for(int i=0;i<3;i++){\n" +
-                    "       #copy[i]\n" +
-                    "       f_vertexColor = color;\n" +
-                    "       gl_Position = gl_in[i].gl_Position;\n" +
-                    "       EmitVertex();\n" +
-                    "   }\n" +
-                    "   EndPrimitive();\n" +
-                    "}\n"
+                    "   vec3 a = gl_in[0].gl_Position.xyz / gl_in[0].gl_Position.w;\n" + "   vec3 b = gl_in[1].gl_Position.xyz / gl_in[1].gl_Position.w;\n" + "   vec3 c = gl_in[2].gl_Position.xyz / gl_in[2].gl_Position.w;\n" + "   vec4 color = vec4(cross(b-a,c-a).z < 0.0 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 0.0, 1.0), 1.0);\n" + "   for(int i=0;i<3;i++){\n" + "       #copy[i]\n" + "       f_vertexColor = color;\n" + "       gl_Position = gl_in[i].gl_Position;\n" + "       EmitVertex();\n" + "   }\n" + "   EndPrimitive();\n" + "}\n"
         )
 
     }

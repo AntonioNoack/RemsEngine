@@ -116,8 +116,9 @@ object Renderers {
                     "           vec3 lightColor = data0.rgb;\n" +
                     "           int lightType = int(data0.a);\n" +
                     "           vec3 lightPosition, lightDirWS, localNormal, effectiveSpecular, effectiveDiffuse;\n" +
+                    "           lightDirWS = effectiveDiffuse = effectiveSpecular = vec3(0.0);\n" + // making Nvidia GPUs happy
                     "           localNormal = normalize(WStoLightSpace * vec4(finalNormal,0.0));\n" +
-                    "           float NdotL;\n" + // normal dot light
+                    "           float NdotL = 0.0;\n" + // normal dot light
                     "           int shadowMapIdx0 = int(data2.r);\n" +
                     "           int shadowMapIdx1 = int(data2.g);\n" +
                     // local coordinates of the point in the light "cone"
@@ -131,7 +132,11 @@ object Renderers {
                             LightType.SPOT -> SpotLight
                                 .getShaderCode("continue", true)
                         }
-                        "case ${it.id}:\n${core}break;\n"
+                        if (it != LightType.values().last()) {
+                            "case ${it.id}:\n${core}break;\n"
+                        } else {
+                            "default:\n${core}break;\n"
+                        }
                     } +
                     "           }\n" +
                     "           if(hasSpecular && dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +

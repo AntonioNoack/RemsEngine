@@ -46,7 +46,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
         downloads.getChild("3d/XYZ arrows.obj")
     )
 
-    val source = sources[3]
+    val source = sources[0]
     val pipeline = Pipeline(DeferredSettingsV2(listOf(DeferredLayerType.COLOR), false))
     pipeline.defaultStage = PipelineStage(
         "default", Sorting.NO_SORTING, 0, null, DepthMode.ALWAYS, true,
@@ -189,7 +189,7 @@ fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Text
                     "               vec4 d20 = imageLoad(tlasNodes, ivec2(nodeX+5,nodeY));\n" +
                     "               vec4 d21 = imageLoad(tlasNodes, ivec2(nodeX+6,nodeY));\n" +
                     "               vec4 d22 = imageLoad(tlasNodes, ivec2(nodeX+7,nodeY));\n" +
-                    "               mat4x3 localToWorld = mat4x3(d20,d21,d22);\n" +
+                    "               mat4x3 localToWorld = mat4x3(d20,d21,d22);\n" + // todo this might cause issues on Nvidia, check it
                     // transform result into global coordinates
                     // theoretically we could get z-fighting here
                     "               float worldDistance1 = localDistance * length(localToWorld * vec4(localDir, 0.0));\n" +

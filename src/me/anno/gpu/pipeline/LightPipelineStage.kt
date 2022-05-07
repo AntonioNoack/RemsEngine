@@ -45,13 +45,15 @@ class LightPipelineStage(
 
         private val lightInstancedAttributes = listOf(
             // transform
-            Attribute("instanceTrans0", 4),
-            Attribute("instanceTrans1", 4),
-            Attribute("instanceTrans2", 4),
+            Attribute("instanceTrans0", 3),
+            Attribute("instanceTrans1", 3),
+            Attribute("instanceTrans2", 3),
+            Attribute("instanceTrans3", 3),
             // inverse transform for light mapping
-            Attribute("invInsTrans0", 4),
-            Attribute("invInsTrans1", 4),
-            Attribute("invInsTrans2", 4),
+            Attribute("invInsTrans0", 3),
+            Attribute("invInsTrans1", 3),
+            Attribute("invInsTrans2", 3),
+            Attribute("invInsTrans3", 3),
             // light properties like type, color, cone angle
             Attribute("lightData0", 4),
             Attribute("lightData1", 4),
@@ -61,9 +63,10 @@ class LightPipelineStage(
 
         private val lightCountInstancedAttributes = listOf(
             // transform
-            Attribute("instanceTrans0", 4),
-            Attribute("instanceTrans1", 4),
-            Attribute("instanceTrans2", 4),
+            Attribute("instanceTrans0", 3),
+            Attribute("instanceTrans1", 3),
+            Attribute("instanceTrans2", 3),
+            Attribute("instanceTrans3", 3),
             Attribute("shadowData", 1)
             // instanced rendering does not support shadows -> no shadow data / as a uniform
         )
@@ -118,7 +121,7 @@ class LightPipelineStage(
                             "   vec3 color3;\n" +
                             "   if(length(finalPosition) < 1e34){\n" +
                             "       vec3 light = texture(finalLight, uv).rgb + ambientLight;\n" +
-                            "       float occlusion = (1.0 - finalOcclusion) * texture(ambientOcclusion, uv).r;\n" +
+                            "       float occlusion = (1.0 - finalOcclusion) * (1.0 - texture(ambientOcclusion, uv).r);\n" +
                             "       color3 = finalColor * light * occlusion + finalEmissive;\n" +
                             "   } else color3 = finalColor + finalEmissive;\n" + // sky
                             "   if(applyToneMapping) color3 = color3/(1.0+color3);\n" +
@@ -175,12 +178,14 @@ class LightPipelineStage(
                         ShaderStage(
                             "v", listOf(
                                 Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-                                Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR),
-                                Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR),
-                                Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR),
-                                Variable(GLSLType.V4F, "invInsTrans0", VariableMode.ATTR),
-                                Variable(GLSLType.V4F, "invInsTrans1", VariableMode.ATTR),
-                                Variable(GLSLType.V4F, "invInsTrans2", VariableMode.ATTR),
+                                Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR),
+                                Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR),
+                                Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR),
+                                Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR),
+                                Variable(GLSLType.V3F, "invInsTrans0", VariableMode.ATTR),
+                                Variable(GLSLType.V3F, "invInsTrans1", VariableMode.ATTR),
+                                Variable(GLSLType.V3F, "invInsTrans2", VariableMode.ATTR),
+                                Variable(GLSLType.V3F, "invInsTrans3", VariableMode.ATTR),
                                 Variable(GLSLType.V4F, "lightData0", VariableMode.ATTR),
                                 Variable(GLSLType.V4F, "lightData1", VariableMode.ATTR),
                                 Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
@@ -198,10 +203,10 @@ class LightPipelineStage(
                                     "if(${type == LightType.DIRECTIONAL} && data2.a <= 0.0){\n" +
                                     "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                                     "} else {\n" +
-                                    "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
+                                    "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
                                     "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
                                     "}\n" +
-                                    "WStoLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2);\n" +
+                                    "WStoLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2,invInsTrans3);\n" +
                                     "uvw = gl_Position.xyw;\n"
                         )
                     } else {
@@ -261,7 +266,7 @@ class LightPipelineStage(
                         Variable(GLSLType.V4F, "light", VariableMode.OUT)
                     ), "" +
                             // light calculation including shadows if !instanced
-                            "vec3 diffuseLight, specularLight;\n" +
+                            "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
                             "bool hasSpecular = finalMetallic > 0.0;\n" +
                             "vec3 V = normalize(-finalPosition);\n" +
                             "float NdotV = abs(dot(finalNormal,V));\n" +
@@ -271,8 +276,8 @@ class LightPipelineStage(
                             "vec3 lightColor = data0.rgb;\n" +
                             "vec3 dir = WStoLightSpace * vec4(finalPosition, 1.0);\n" +
                             "vec3 localNormal = normalize(WStoLightSpace * vec4(finalNormal, 0.0));\n" +
-                            "float NdotL;\n" + // normal dot light
-                            "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS;\n" +
+                            "float NdotL = 0.0;\n" + // normal dot light
+                            "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS = vec3(0.0);\n" +
                             coreFragment +
                             "if(hasSpecular && dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
                             "    vec3 H = normalize(V + lightDirWS);\n" +
@@ -347,9 +352,10 @@ class LightPipelineStage(
             Shader(
                 "visualize-light-count-instanced", "" +
                         "$attribute vec3 coords;\n" +
-                        "$attribute vec4 instanceTrans0;\n" +
-                        "$attribute vec4 instanceTrans1;" +
-                        "$attribute vec4 instanceTrans2;\n" +
+                        "$attribute vec3 instanceTrans0;\n" +
+                        "$attribute vec3 instanceTrans1;\n" +
+                        "$attribute vec3 instanceTrans2;\n" +
+                        "$attribute vec3 instanceTrans3;\n" +
                         "$attribute vec4 shadowData;\n" +
                         "uniform mat4 transform;\n" +
                         "uniform bool isDirectional;\n" +
@@ -358,7 +364,7 @@ class LightPipelineStage(
                         "   if(isDirectional && shadowData.a <= 0.0){\n" +
                         "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                         "   } else {\n" +
-                        "      mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
+                        "       mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
                         "      gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
                         "   }\n" +
                         "}", listOf(), "" +

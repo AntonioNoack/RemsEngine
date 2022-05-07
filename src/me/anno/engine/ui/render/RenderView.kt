@@ -59,6 +59,7 @@ import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
@@ -513,6 +514,8 @@ open class RenderView(
                     pipeline.lightPseudoStage.visualizeLightCount = true
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
                     drawGizmos(world, lightBuffer, renderer, camPosition, false)
+                    // todo special shader to better differentiate the values than black-white
+                    // (1 is extremely dark, nearly black)
                     drawTexture(x, y+h-1, w, -h, lightBuffer.getTexture0(), true, -1, null)
                     pipeline.lightPseudoStage.visualizeLightCount = false
                     return
@@ -675,7 +678,7 @@ open class RenderView(
                     val ssao = if (ssaoStrength > 0f) ScreenSpaceAmbientOcclusion.compute(
                         buffer, deferred, cameraMatrix,
                         ssao.radius, ssaoStrength, ssao.samples
-                    ) ?: whiteTexture else whiteTexture
+                    ) ?: blackTexture else blackTexture
 
                     // use the existing depth buffer for the 3d ui
                     val dstBuffer0 = baseSameDepth

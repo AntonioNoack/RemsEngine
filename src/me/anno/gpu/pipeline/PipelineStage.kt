@@ -61,9 +61,10 @@ class PipelineStage(
 
         // is rotation, position and scale enough?...
         private val meshInstancedAttributes = listOf(
-            Attribute("instanceTrans0", 4),
-            Attribute("instanceTrans1", 4),
-            Attribute("instanceTrans2", 4),
+            Attribute("instanceTrans0", 3),
+            Attribute("instanceTrans1", 3),
+            Attribute("instanceTrans2", 3),
+            Attribute("instanceTrans3", 3),
             Attribute("instanceTint", AttributeType.UINT8_NORM, 4)
         )
 

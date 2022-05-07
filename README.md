@@ -6,15 +6,11 @@ but they always had much in common, so I decided to write my own engine.
 - direct Java/Kotlin support
 - usable in my favourite IDE: Intellij Idea
 - completely Open Source
-- no fees (until 1M/y ^^)
+- no fees
 - hopefully in the future fewer annoyances with skeletons than Unreal Engine
 - support for all kinds of formats
 - working/loading from inside compressed folders
 - I get to learn even more about game engines <3
-<!--
-no longer really is true:
-- hopefully fewer files than Unity, with their one-meta-for-every-file-strategy
--->
 
 This engine does not have the target to offer the best graphics, or be the best performant. Its goal is to be nice and
 quick to develop in, like a tool box.
@@ -91,10 +87,10 @@ graph TB
     - you can even use your controller in other programs as a mouse, while Rem's Engine/Studio is running :3
 - bare-bones support for .blend files from Blender, so you don't have to export manually
 - automatic file reload, on file change
-- UI with integrated spellchecking
+- Android-inspired UI with integrated spellchecking
+- very basic Lua scripting
 
 ## Planned Features
-- nice UI system
 - easy local multiplayer
 - environment maps as lights
 - compute environment maps from the scene for reflections
@@ -102,9 +98,9 @@ graph TB
 - shader graphs
 - transparent meshes
 - export to Windows/Linux
-- Lua scripting
 - usable Gizmos 🙈
 - usable Multiplayer, local and tcp/udp
+- fully supported Lua scripting
 
 ## Maybe Later Features
 - export to Web
@@ -144,19 +140,29 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 * [Apache PDFBox](https://pdfbox.apache.org/) (Rendering PDFs)
 * [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDFs)
 * [JAI ImageIO JPEG2000](https://github.com/jai-imageio/jai-imageio-jpeg2000) (JPEG 2000 support for PDFs)
-* [jUnRAR](https://github.com/edmund-wagner/junrar)
-  , [Apache VFS](https://search.maven.org/artifact/org.apache.commons/commons-vfs2/2.8.0/jar) (Reading RAR files)
+* [jUnRAR](https://github.com/edmund-wagner/junrar), [Apache VFS](https://search.maven.org/artifact/org.apache.commons/commons-vfs2/2.8.0/jar) (Reading RAR files)
 * [Image4j](https://github.com/imcdonagh/image4j) (Reading ICO images)
 * [Bullet](http://jbullet.advel.cz/) (3d Physics, adjusted to be FP64 instead of FP32)
 * [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
 * [LuaJ](https://github.com/luaj/luaj) (Lua scripting)
 
-## Build
+## Build It
 
-The project can be built similar to [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), just the main class now is me.anno.engine.RemsEngine.
+The project can be built similar to [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), just the main class now is *me.anno.engine.RemsEngine*.
 All listed libraries need to be added to the project in some way.
+
+## Use It
+
+If you don't want to compile the engine yourself, and just want to focus on developing games, plugins or mods, you can use pre-built versions.
+There isn't an official release yet, because my UI isn't stable enough (imo), but you can use the in-official build from my [Cellular Automata Demo](https://github.com/AntonioNoack/CellularAutomata/tree/main/out/artifacts/Demo). 
+A release of [Rem's Studio](https://github.com/AntonioNoack/RemsStudio) would work as well.
+
+## Documentation
+
+The documentation is mainly done within the code itself, so I recommend you to download the engine source code.
+You can also take a look at the Wiki. There, I describe the serialization system, how to create a mod, and supported file formats.
 
 ## Wiki
 
-Since both projects originate from the same base, the Wiki currently is located at Rem's Studio's repository.
-If you have any indept questions, just ask me on YouTube/MeWe/GitHub/Email/Discord.
+Since both projects originate from the same base, the [Wiki](https://github.com/AntonioNoack/RemsStudio/wiki) currently is located at Rem's Studio's repository.
+If you have any in-depth questions, just ask me on YouTube, MeWe, GitHub, Discord, or via Email.

@@ -81,12 +81,13 @@ abstract class BVHBuilder(
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(BVHBuilder::class)
+        // private val LOGGER = LogManager.getLogger(BVHBuilder::class)
 
-        // todo build whole scene into TLAS+BLAS and then render it correctly
-        // todo how do we manage multiple meshes? connected buffer is probably the best...
+        // done build whole scene into TLAS+BLAS and then render it correctly
+        // done how do we manage multiple meshes? connected buffer is probably the best...
 
         // todo can we somehow use an array of pointers in OpenGL, so we can use many different texture sizes??? would really help...
+        // we could reduce the number of materials, and draw the materials sequentially with separate TLASes...
 
         val blasCache = HashMap<Mesh, BLASNode?>()
 
@@ -399,7 +400,7 @@ abstract class BVHBuilder(
         ): Int {
 
             var i = start
-            var j = (end - 1)
+            var j = end - 1
 
             while (i < j) {
                 // while front is fine, progress front

@@ -33,6 +33,8 @@ import kotlin.math.sqrt
 
 object ScreenSpaceAmbientOcclusion {
 
+    // todo ssao is broken on Nvidia GPUs... why???
+
     // could be set lower for older hardware, would need restart
     private val MAX_SAMPLES = max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
 
@@ -88,7 +90,7 @@ object ScreenSpaceAmbientOcclusion {
         Shader(
             "ssao-occlusion",
             attr0List, attr0VShader, uvList, emptyList(), "" +
-                    "layout(location=0) out float glFragColor;\n" +
+                    "layout(location=0) out vec4 glFragColor;\n" +
                     "uniform float radius, strength;\n" +
                     "uniform int numSamples;\n" +
                     "uniform mat4 transform;\n" +
@@ -98,8 +100,8 @@ object ScreenSpaceAmbientOcclusion {
                     "void main(){\n" +
                     "   vec3 origin = texture(finalPosition, uv).xyz;\n" +
                     "   if(dot2(origin) > 1e20){\n" + // sky and such can be skipped automatically
-                    "       glFragColor = 1.0;\n" +
-                    "   } else {;\n" +
+                    "       glFragColor = vec4(0.0);\n" +
+                    "   } else {\n" +
                     // "  float originDepth = length(origin);\n" +
                     "       vec3 normal = texture(finalNormal, uv).xyz * 2.0 - 1.0;\n" +
                     // reverse back sides, e.g. for plants
@@ -126,7 +128,7 @@ object ScreenSpaceAmbientOcclusion {
                     // without it, the result looks approx. the same :)
                     "           occlusion += isInside ? sampleDepth < sampleTheoDepth ? 1.0 : 0.0 : 0.5;\n" +
                     "       }\n" +
-                    "       glFragColor = clamp(1.0 - strength * occlusion/float(numSamples), 0.0, 1.0);\n" +
+                    "       glFragColor = vec4(clamp(strength * occlusion/float(numSamples), 0.0, 1.0));\n" +
                     "   }" +
                     "}"
         ).apply {
@@ -189,8 +191,9 @@ object ScreenSpaceAmbientOcclusion {
         }
         // resolution can be halved to improve performance
         val div = clamp(DefaultConfig["gpu.ssao.div10", 10], 10, 100)
-        val dst =
-            FBStack["ssao-1st", roundDiv(position.w * 10, div), roundDiv(position.h * 10, div), 1, false, 1, false]
+        val fw = roundDiv(position.w * 10, div)
+        val fh = roundDiv(position.h * 10, div)
+        val dst = FBStack["ssao-1st", fw, fh, 1, false, 1, false]
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
             val shader = occlusionShader.value

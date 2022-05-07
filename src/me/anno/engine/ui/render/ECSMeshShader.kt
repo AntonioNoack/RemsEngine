@@ -66,9 +66,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         }
 
         if (isInstanced) {
-            attributes += Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR)
-            attributes += Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR)
-            attributes += Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR)
+            attributes += Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR)
+            attributes += Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR)
+            attributes += Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR)
+            attributes += Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR)
             if (colors) {
                 attributes += Variable(GLSLType.V4F, "instanceTint", VariableMode.ATTR)
                 attributes += Variable(GLSLType.V4F, "tint", VariableMode.OUT)
@@ -104,7 +105,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             "" +
                     defines +
                     "#ifdef INSTANCED\n" +
-                    "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
+                    "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
                     "   localPosition = coords;\n" +
                     "   finalPosition = localTransform * vec4(coords, 1.0);\n" +
                     "   #ifdef COLORS\n" +
