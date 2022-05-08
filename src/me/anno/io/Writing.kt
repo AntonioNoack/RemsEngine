@@ -5,6 +5,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.EOFException
 
+@Suppress("unused")
 object Writing {
 
     fun DataInputStream.readNValues(array: ByteArray) {

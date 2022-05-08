@@ -10,6 +10,7 @@ object YAMLReader {
 
     const val listKey = ""
 
+    @Suppress("unused")
     @Throws(IOException::class)
     fun parseYAML(file: FileReference, beautify: Boolean = true): YAMLNode {
         return parseYAML(file.readText(), beautify)
@@ -118,8 +119,7 @@ object YAMLReader {
     }
 
     /**
-     * decodes stuff like "{fileID: 4257549673306434, guid: ee81afb80bd75294cb740f6f220deafd, type: 2}"
-     * or {x:12, y:4, z: 13}
+     * decodes stuff like "{fileID: 42575496, guid: ee81afb80bd, type: 2}" or {x:12, y:4, z: 13}
      * */
     fun parseYAMLxJSON(json: String, beautify: Boolean, callback: (String, String) -> Unit) {
         val start = json.indexOf('{')

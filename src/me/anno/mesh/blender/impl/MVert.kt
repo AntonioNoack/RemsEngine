@@ -8,7 +8,7 @@ import java.nio.ByteBuffer
 class MVert(file: BlenderFile, dnaStruct: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, dnaStruct, buffer, position) {
 
-    // they stay the same inside of a file
+    // they stay the same inside a file
     private val coOffset = getOffset("co[3]")
     private val noOffset = getOffset("no[3]")
 

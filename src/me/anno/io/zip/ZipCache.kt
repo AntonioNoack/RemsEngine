@@ -20,13 +20,12 @@ import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.MTLReader2
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
-import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
 object ZipCache : CacheSection("ZipCache") {
 
-    // done cache the whole content? if less than a certain file size
-    // done cache the whole hierarchy [? only less than a certain depth level - not done]
+    // cache all content? if less than a certain file size
+    // cache the whole hierarchy [? only less than a certain depth level - not done]
 
     // todo read compressed exe files?
 
@@ -36,6 +35,7 @@ object ZipCache : CacheSection("ZipCache") {
     private val readerBySignature = HashMap<String, (FileReference) -> InnerFile>(64)
     private val readerByFileExtension = HashMap<String, (FileReference) -> InnerFile>(64)
 
+    @Suppress("unused")
     fun registerFileExtension(signature: String, reader: (FileReference) -> InnerFolder) {
         readerBySignature[signature] = reader
     }
@@ -81,8 +81,8 @@ object ZipCache : CacheSection("ZipCache") {
         register("mtl", MTLReader2::readAsFolder)
         register("vox", VOXReader::readAsFolder)
         register("zip", ::createZipRegistryV2)
-        // cannot be read by assimp anyways
-        // registerFileExtension("max", AnimatedMeshesLoader::readAsFolder) // 3ds max file, idk about it's file signature
+        // cannot be read by assimp anyway
+        // registerFileExtension("max", AnimatedMeshesLoader::readAsFolder) // 3ds max file, idk about its file signature
         // images
         // to do all image formats
         val imageFormats = listOf("png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds", "gif", "exr")
@@ -135,6 +135,6 @@ object ZipCache : CacheSection("ZipCache") {
     // is there a better strategy than this?? maybe index a few on every go to load something
     val sizeLimit = DefaultConfig["zipCache.autoLoadLimit", 20_000_000L]
 
-    private val LOGGER = LogManager.getLogger(ZipCache::class)
+    // private val LOGGER = LogManager.getLogger(ZipCache::class)
 
 }

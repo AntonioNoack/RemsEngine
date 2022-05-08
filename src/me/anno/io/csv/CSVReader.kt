@@ -3,6 +3,7 @@ package me.anno.io.csv
 import me.anno.utils.structures.lists.Lists.transposed
 import me.anno.utils.types.Strings.isBlank2
 
+@Suppress("unused")
 object CSVReader {
 
     // a few simple and dirty readers

@@ -3,6 +3,7 @@ package me.anno.io.windows
 import me.anno.io.files.FileReference.Companion.getReference
 
 fun main() {
+    @Suppress("SpellCheckingInspection")
     val names = arrayOf( /* "src/test/fixtures/Local file.lnk",
                 "src/test/fixtures/Local folder.lnk",
                 "src/test/fixtures/Remote folder.lnk",

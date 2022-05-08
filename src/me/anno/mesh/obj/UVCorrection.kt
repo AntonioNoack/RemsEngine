@@ -95,6 +95,7 @@ object UVCorrection {
     @JvmStatic
     fun main(args: Array<String>) {
         ECSRegistry.initNoGFX()
+        @Suppress("SpellCheckingInspection")
         val samples = listOf(
             // path and ideal detection
             "ogldev-source/Content/jeep.obj", // y
@@ -110,7 +111,7 @@ object UVCorrection {
             val folder = OBJReader2.readAsFolder(ref)
             clock.start()
             correct(folder)
-            clock.stop("calc") // the first one always is extra long
+            clock.stop("calc") // the first one is always extra long
         }
     }
 

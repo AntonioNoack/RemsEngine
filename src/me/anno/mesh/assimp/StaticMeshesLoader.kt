@@ -57,7 +57,7 @@ open class StaticMeshesLoader {
         return synchronized(StaticMeshesLoader) {
             // we could load in parallel,
             // but we'd need to keep track of the scale factor;
-            // it only is allowed to be set, if the file is an fbx file
+            // it only is allowed to be set, if the file is a fbx file
             val store = aiCreatePropertyStore()!!
             val isFBXFile = Signature.findName(file) == "fbx"
             aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, if (isFBXFile) 0.01f else 1f)
@@ -184,6 +184,7 @@ open class StaticMeshesLoader {
             aiFaces.get(j, aiFace)
             val buffer = aiFace.mIndices()
             val i = j * 3
+            @Suppress("SpellCheckingInspection")
             when (buffer.remaining()) {
                 1 -> {
                     // a point
@@ -198,7 +199,7 @@ open class StaticMeshesLoader {
                     indices[i + 2] = indices[i + 0]
                 }
                 3 -> {
-                    // a triangle, as it should be by the triangulate flag
+                    // a triangle, as it should be by the triangulation flag
                     indices[i + 0] = buffer.get()
                     indices[i + 1] = buffer.get()
                     indices[i + 2] = buffer.get()
@@ -253,6 +254,7 @@ open class StaticMeshesLoader {
         val normalMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS, texturesDir)
         if (normalMap != InvalidRef) prefab.setProperty("normalMap", normalMap)
 
+        @Suppress("SpellCheckingInspection")
         /*val baseColor2 = getPath(
             aiScene, aiMaterial, loadedTextures,
             AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, texturesDir

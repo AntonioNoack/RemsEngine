@@ -65,6 +65,7 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         mesh: Mesh = Mesh()
     ) = createMesh(palette, outsideIsSolid, allSides, mesh)
 
+    @Suppress("unused")
     fun createMesh(
         palette: IntArray,
         outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?,

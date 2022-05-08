@@ -101,11 +101,12 @@ object FindLines {
         }
     }
 
+    @Suppress("unused")
     fun getAllUniqueLines(indices: IntArray?, positions: FloatArray?, old: IntArray? = null): IntArray? {
 
         if (indices == null) {
             // we would need to actually compare positions
-            return getAllLines(indices, positions, old)
+            return getAllLines(null, positions, old)
         }
 
         val lines = HashSet<Long>()

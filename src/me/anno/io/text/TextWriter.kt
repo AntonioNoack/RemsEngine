@@ -13,6 +13,7 @@ class TextWriter(initialCapacity: Int, workspace: FileReference) : TextWriterBas
     /** you should not use this function
      * if you use it, your file no longer will be readable (probably)
      * */
+    @Suppress("unused")
     fun getFoolishWriteAccess() = data
 
     override fun append(v: Char) {
@@ -69,6 +70,7 @@ class TextWriter(initialCapacity: Int, workspace: FileReference) : TextWriterBas
             }
         }
 
+        @Suppress("unused")
         fun toBuilder(data: ISaveable, workspace: FileReference): StringBuilder {
             val writer = TextWriter(workspace)
             writer.add(data)

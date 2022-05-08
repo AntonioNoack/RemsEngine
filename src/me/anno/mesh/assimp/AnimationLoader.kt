@@ -62,6 +62,7 @@ object AnimationLoader {
         )
     }
 
+    @Suppress("unused")
     fun averageTranslation(aiNodeAnim: AINodeAnim): Vector3f {
         val keys = aiNodeAnim.mPositionKeys()!!
         val numKeys = aiNodeAnim.mNumPositionKeys()

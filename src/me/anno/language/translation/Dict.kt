@@ -34,6 +34,7 @@ object Dict {
         }
     }
 
+    @Suppress("unused")
     fun getLanguageName(input: InputStream): String? {
         val text = String(input.readBytes())
         return getLanguageName(text)
@@ -78,7 +79,7 @@ object Dict {
                     if (name?.isNotEmpty() == true) {
                         options += LanguageOption(data, "config/${file.name}", name)
                     }
-                } catch (e: IOException) {
+                } catch (_: IOException) {
                 }
             }
         }

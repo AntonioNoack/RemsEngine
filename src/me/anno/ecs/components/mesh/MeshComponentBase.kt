@@ -100,6 +100,8 @@ abstract class MeshComponentBase : CollidingComponent() {
         mesh.aabb.transformUnion(globalTransform, aabb)
     }
 
+    open val hasAnimation: Boolean = false
+
     open fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
         shader.v1b("hasAnimation", false)
     }

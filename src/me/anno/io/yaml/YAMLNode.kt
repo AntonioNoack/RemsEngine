@@ -53,6 +53,7 @@ class YAMLNode(
     fun getFloat(): Float? = value?.toFloatOrNull()
     fun getFloat(name: String): Float? = this[name]?.getFloat()
 
+    @Suppress("unused")
     fun getColorAsInt(name: String): Int? = this[name]?.getColorAsInt()
     fun getColorAsInt(): Int? {
         val str = value ?: return null

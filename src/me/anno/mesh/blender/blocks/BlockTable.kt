@@ -8,7 +8,7 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
     constructor(file: BlenderFile) : this(file, null, null)
 
     companion object {
-        private const val HEAPBASE = 4096L
+        private const val HEAP_BASE = 4096L
     }
 
     val sorted = blocks?.sortedBy { it.header.address }?.toMutableList() ?: ArrayList()
@@ -40,7 +40,7 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
         }
         if (sorted.isNotEmpty()) {
             val first = sorted.first()
-            if (first.header.address <= HEAPBASE) throw IllegalStateException()
+            if (first.header.address <= HEAP_BASE) throw IllegalStateException()
         }
     }
 
@@ -80,7 +80,7 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
             // -i-1 is the pos of the block with start address larger
             // than address. But we need the block with a start address
             // lower than address. Thus, -i-2
-            i = -i - 2;
+            i = -i - 2
             if (i >= 0) {
                 val b = sorted[i]
                 val endAddress = b.header.address + b.header.size

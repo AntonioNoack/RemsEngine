@@ -23,7 +23,7 @@ import java.io.InputStream
 // with unpacking it from a zip file,
 // this was 3x faster than assimp: 13s instead of 40s
 // without unzipping, it still was 10s for this, and 34s for assimp
-// (yes, when using assimp, I am copying everything, which is non optimal)
+// (yes, when using assimp, I am copying everything, which is non-optimal)
 class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(input) {
 
     constructor(file: FileReference) : this(file.inputStream(), file)
@@ -334,7 +334,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     private fun triangulateFace() {
 
         // triangulate the points correctly
-        // currently is the most expensive step, because of so much allocations:
+        // currently is the most expensive step, because of so many allocations:
         // points, the array, the return list, ...
 
         val points2 = Array(points.size / 3) {
@@ -444,7 +444,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
                     }
                 }
             }
-        } catch (e: EOFException) {
+        } catch (_: EOFException) {
         }
 
         finishGroup()

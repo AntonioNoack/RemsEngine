@@ -54,7 +54,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         private val staticReferences = HashMap<String, FileReference>()
 
         private val fileCache = CacheSection("Files")
-        private val fileTimeout = 20_000L
+        var fileTimeout = 20_000L
 
         /**
          * removes old references
@@ -90,7 +90,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                 }
             }
             // go over all file explorers, and invalidate them, if they contain it, or are inside
-            // a little unspecific; works anyways
+            // a little unspecific; works anyway
             val parent = getReferenceOrTimeout(absolutePath).getParent()
             if (parent != null && parent != InvalidRef) {
                 // todo we should invalidate ALL windowStacks
@@ -318,13 +318,13 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     /**
-     * give an access to an input stream
+     * give access to an input stream;
      * should be buffered for better performance
      * */
     abstract fun inputStream(): InputStream
 
     /**
-     * give an access to an output stream
+     * give access to an output stream;
      * should be buffered for better performance
      * */
     abstract fun outputStream(): OutputStream
@@ -477,7 +477,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             return true
         }
         return when (signature) {
-            null, "xml", "json", "yaml" -> {// maybe something unknown, that we understand anyways
+            null, "xml", "json", "yaml" -> {// maybe something unknown, that we understand anyway
                 // dae is xml
                 when (lcExtension) {
                     in UnityReader.unityExtensions, "json" -> {

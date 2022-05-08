@@ -58,8 +58,8 @@ class BinaryFile(val data: ByteBuffer) {
         return String(ByteArray(length) { data.get(index++) })
     }
 
-    fun readByte() = read()
-    fun readBoolean() = read() != 0.toByte()
+    // fun readByte() = read()
+    // fun readBoolean() = read() != 0.toByte()
     fun read0String(): String {
         // control codes?
         var length = 0

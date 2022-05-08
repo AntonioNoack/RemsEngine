@@ -52,11 +52,11 @@ class SaveableArray : Saveable(), MutableList<ISaveable> {
 
     override fun remove(element: ISaveable) = values.remove(element)
 
-    override fun removeAll(elements: Collection<ISaveable>) = values.removeAll(elements)
+    override fun removeAll(elements: Collection<ISaveable>) = values.removeAll(elements.toSet())
 
     override fun removeAt(index: Int) = values.removeAt(index)
 
-    override fun retainAll(elements: Collection<ISaveable>) = values.retainAll(elements)
+    override fun retainAll(elements: Collection<ISaveable>) = values.retainAll(elements.toSet())
 
     override fun set(index: Int, element: ISaveable) = values.set(index, element)
 

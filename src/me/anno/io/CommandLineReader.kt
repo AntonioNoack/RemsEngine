@@ -8,6 +8,7 @@ import java.io.IOException
 import java.io.InputStream
 import kotlin.concurrent.thread
 
+@Suppress("unused")
 object CommandLineReader {
 
     private val LOGGER = LogManager.getLogger(CommandLineReader::class)

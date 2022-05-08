@@ -6,7 +6,8 @@ import me.anno.io.files.FileReference
 import org.joml.*
 
 /**
- * a class, that does nothing
+ * a BaseWriter, with the default behaviour of ignoring everything;
+ * this is used in Rem's Studio as a way to detect references (whether a pointer needs to be added as such to a file)
  * */
 abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkipDefaultValues) {
 

@@ -4,7 +4,6 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.EmptyInputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -28,7 +27,7 @@ abstract class InnerFile(
     init {
         if (_parent is InnerFolder) {
             val old = _parent.children.put(name, this)
-            if (old != null){
+            if (old != null) {
                 old.folder = this
                 _parent.children[name] = old
                 // LOGGER.warn("Overrode $old")
@@ -36,7 +35,7 @@ abstract class InnerFile(
         }
     }
 
-    // assigned typically anyways
+    // assigned typically anyway
     override var lastModified = 0L // _parent.lastModified
     override var lastAccessed = 0L // _parent.lastAccessed
 
@@ -116,7 +115,7 @@ abstract class InnerFile(
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(InnerFile::class)
+        // private val LOGGER = LogManager.getLogger(InnerFile::class)
 
         fun createMainFolder(zipFileLocation: FileReference): Pair<InnerFolder, HashMap<String, InnerFile>> {
             val file = InnerFolder(zipFileLocation)

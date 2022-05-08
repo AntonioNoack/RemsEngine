@@ -3,6 +3,11 @@ package me.anno.io.json
 import me.anno.utils.types.Strings
 import java.io.OutputStream
 
+/**
+ * simple class to write JSON content; if you write Saveables, consider BinaryWriter and TextWriter first!
+ * used in Rem's Studio to save UI layout
+ * */
+@Suppress("unused")
 class JsonWriter(val output: OutputStream) {
 
     private var first = true

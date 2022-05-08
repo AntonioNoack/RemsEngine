@@ -11,6 +11,7 @@ object XMLReader {
         var done = 0L
         while (done < n) {
             val skipped = skip(n - done)
+            @Suppress("KotlinConstantConditions")
             when {
                 skipped < 0L -> throw EOFException() // should not happen
                 skipped == 0L -> {
@@ -152,6 +153,7 @@ object XMLReader {
         if (first == '<'.code) {
             val (name, end) = input.readTypeUntilSpaceOrEnd()
             val lowerCaseName = name.lowercase(Locale.getDefault())
+            @Suppress("SpellCheckingInspection")
             when {
                 name.startsWith("?") -> {
                     // <?xml version="1.0" encoding="utf-8"?>

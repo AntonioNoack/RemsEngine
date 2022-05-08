@@ -391,6 +391,7 @@ object BlenderReader {
                 // val layers = mesh.lData.layers ?: emptyArray()
                 // val uvLayers = layers.firstOrNull { it as BCustomDataLayer; it.type == 16 } as? BCustomDataLayer
                 // val weights = layers.firstOrNull { it as BCustomDataLayer; it.type == 17 } as? BCustomDataLayer
+                @Suppress("SpellCheckingInspection")
                 /*
                 * var layers = data.getLdata().getLayers();
                 var uvs = layers.filter(map => map.getType() == 16)[0];
@@ -573,6 +574,7 @@ object BlenderReader {
         // for (i in 0 until 100) Thread.sleep(100)
         // val ref = getReference(documents, "Blender/Bedroom.blend")
         val ref = documents.getChild("Blender/MaterialTest-2.blend")
+        @Suppress("SpellCheckingInspection")
         // val ref = getReference("E:/Documents/Blender/Aerial Aircraft Carrier (CVNA-82)II.blend")
         Thumbs.testGeneration(ref, this::readAsFolder)
     }

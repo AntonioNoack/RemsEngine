@@ -48,6 +48,7 @@ class NameDesc(
             return Dict[name, dictPath]
         }
 
+        @Suppress("unused")
         fun translateDescription(desc: String, dictPath: String): String {
             return Dict[desc, "$dictPath.desc"]
         }

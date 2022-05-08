@@ -11,6 +11,7 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.math.min
 
+@Suppress("SpellCheckingInspection", "unused")
 open class BlendData(
     val file: BlenderFile,
     val dnaStruct: DNAStruct,

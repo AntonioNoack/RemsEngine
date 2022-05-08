@@ -4,6 +4,11 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.files.FileReference
 
+/**
+ * class to list all resources for a prefab, so it can be packed;
+ * replaces those references with new, bundled references
+ * */
+@Suppress("unused")
 object ResourceFinder {
 
     // todo when we drag in a resource, use Scene.json, not the file directly, so we don't need awkward loaders in the shipped game

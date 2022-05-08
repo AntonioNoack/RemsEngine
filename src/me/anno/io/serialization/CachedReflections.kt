@@ -19,6 +19,7 @@ class CachedReflections(
     val debugWarnings: List<KProperty<*>>
 ) {
 
+    @Suppress("unused")
     constructor(instance: Any) : this(instance, instance::class)
 
     constructor(instance: Any, clazz: KClass<*>) : this(
@@ -36,6 +37,7 @@ class CachedReflections(
         getPropertiesByDeclaringClass(clazz, allProperties)
     }
 
+    // todo use this
     val executeInEditMode = annotations.any { it is ExecuteInEditMode }
 
     /**
@@ -161,7 +163,7 @@ class CachedReflections(
                     val getter = field.getter
                     getter.isAccessible = true
                     val value = getter.call(instance)
-                    val forceSaving = serial?.forceSaving ?: value is Boolean
+                    val forceSaving = serial?.forceSaving ?: (value is Boolean)
                     val property = CachedProperty(
                         name, clazz, needsSerialization, forceSaving,
                         field.annotations, getter, setter

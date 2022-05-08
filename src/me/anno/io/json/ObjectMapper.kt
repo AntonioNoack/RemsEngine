@@ -84,7 +84,7 @@ object ObjectMapper {
                                 ?.joinToString(",", "[", "]") ?: "null")
                             "boolean[]" -> output.write((field.get(instance) as? BooleanArray)
                                 ?.joinToString(",", "[", "]") ?: "null")
-                            // other types, inluding lists, arrays and maps
+                            // other types, including lists, arrays and maps
                             else -> {
                                 when(val value = field.get(instance)){
                                     null -> output.write("null".toByteArray())
@@ -148,10 +148,12 @@ object ObjectMapper {
         output.write(']')
     }
 
+    @Suppress("unused")
     fun <V> readValue(value: ByteArray, clazz: Class<V>): V {
         return convertValue(JsonReader(value).readObject(), clazz)
     }
 
+    @Suppress("unused")
     fun <V> readValue(value: InputStream, clazz: Class<V>): V {
         return convertValue(JsonReader(value).readObject(), clazz)
     }
@@ -299,7 +301,8 @@ object ObjectMapper {
         return clazz
     }
 
-    fun Any.toJsonNode(): JsonNode {
+    @Suppress("unused")
+    fun Any?.toJsonNode(): JsonNode {
         val value = this
         if(value is JsonNode) return value
         return JsonValue(value)

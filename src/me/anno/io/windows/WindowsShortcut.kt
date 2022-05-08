@@ -29,6 +29,7 @@ import java.text.ParseException
  * ISBN: 0-596-00907-0
  * http://www.oreilly.com/catalog/swinghks/
  */
+@Suppress("SpellCheckingInspection")
 class WindowsShortcut {
 
     /**
@@ -75,8 +76,13 @@ class WindowsShortcut {
     var commandLineArguments: String? = null
         private set
 
+    @Suppress("unused")
+    constructor()
+
     constructor(file: FileReference) {
-        file.inputStream().use { input -> parseLink(input.readNBytes2(maxLength, false)) }
+        file.inputStream().use { input ->
+            parseLink(input.readNBytes2(maxLength, false))
+        }
     }
 
     // todo make this use InputStreams instead of buffers
@@ -188,7 +194,7 @@ class WindowsShortcut {
          * therefore any code needing to loop through several files should first check this.
          *
          * @param file the potential link
-         * @return true if may be a link, false otherwise
+         * @return true if it may be a link, false otherwise
          * @throws IOException if an IOException is thrown while reading from the file
          */
         @Throws(IOException::class)

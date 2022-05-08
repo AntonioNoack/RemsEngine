@@ -1,3 +1,7 @@
+
+this is a sample file for the structures within a Blender save file
+it is a reference for my Blender reader
+
 class Link:
 	*next: Link(16)@0
 	*prev: Link(16)@8

@@ -102,6 +102,7 @@ open class InnerFolder(
             ?: InnerByteFile("$absolutePath/$name", relativePath, this, content)
     }
 
+    @Suppress("unused")
     fun createByteChild(
         name: String,
         content: Lazy<ByteArray>,

@@ -12,6 +12,7 @@ class InnerByteFile(
 
     override var signature: Signature? = Signature.find(content)
 
+    @Suppress("unused")
     constructor(folder: InnerFolder, name: String, content: ByteArray) : this(
         "${folder.absolutePath}/$name",
         "${folder.relativePath}/$name",

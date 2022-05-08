@@ -2,7 +2,8 @@ package me.anno.language
 
 import me.anno.language.translation.NameDesc
 
-enum class Language(val name2: String, val code: String) {
+@Suppress("CanBeParameter")
+enum class Language(val prettyName: String, val code: String) {
 
     None("None", ""),
 
@@ -54,7 +55,7 @@ enum class Language(val name2: String, val code: String) {
     Tagalog("Tagalog", "tl-PH"),
     Ukrainian("Ukrainian", "uk-UA");
 
-    val naming = NameDesc(name2, "", "lang.$code")
+    val naming = NameDesc(prettyName, "", "lang.$code")
 
     override fun toString() = naming.name
 

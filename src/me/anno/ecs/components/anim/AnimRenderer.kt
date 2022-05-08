@@ -54,6 +54,12 @@ open class AnimRenderer : MeshComponent() {
         return if (anyIsRunning) 1 else 10
     }
 
+    override val hasAnimation: Boolean
+        get() {
+            val skeleton = SkeletonCache[skeleton]
+            return skeleton != null && animations.isNotEmpty()
+        }
+
     override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
 
         val skeleton = SkeletonCache[skeleton]

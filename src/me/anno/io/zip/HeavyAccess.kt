@@ -5,8 +5,6 @@ import kotlin.concurrent.thread
 
 object HeavyAccess {
 
-
-
     private val lockedFiles = HashSet<FileReference>()
     private val waitingRequests = HashMap<FileReference, ArrayList<IHeavyAccess<*>>>()
 
@@ -65,9 +63,9 @@ object HeavyAccess {
         }
 
         if (waiting != null) {
-            // new thread, because our original is finished anyways
+            // new thread, because our original is finished anyway
             thread(name = "HeavyAccess.process($source)") {
-                @Suppress("UNCHECKED_CAST")
+                @Suppress("unchecked_cast")
                 process(source, waiting as List<IHeavyAccess<Stream>>)
             }
         }

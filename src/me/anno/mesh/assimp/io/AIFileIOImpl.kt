@@ -49,7 +49,7 @@ object AIFileIOImpl {
                         answer
                     },
                     { _, charArray, size1, size2 ->
-                        // write proc
+                        // write process
                         throw UnsupportedOperationException("Writing is not supported, $charArray, $size1*$size2")
                     },
                     { aiFile ->

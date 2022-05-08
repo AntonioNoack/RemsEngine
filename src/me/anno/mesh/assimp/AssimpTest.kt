@@ -38,6 +38,7 @@ fun main() {
     val size = 512
 
     // todo test animation / skeleton
+    @Suppress("SpellCheckingInspection")
     val file = getReference(downloads, "3d/taryk/scene.gltf")
     val aiScene = AnimatedMeshesLoader.loadFile(file, StaticMeshesLoader.defaultFlags)
     val rootNode = aiScene.mRootNode()!!
@@ -68,6 +69,7 @@ fun main() {
 
 }
 
+@Suppress("unused", "SpellCheckingInspection")
 fun walkingTest() {
     val loader = AnimatedMeshesLoader
     val (_, prefab) = loader.readAsFolder2(getReference(downloads, "fbx/simple pack anims/Walking.fbx"))
@@ -76,6 +78,7 @@ fun walkingTest() {
     }
 }
 
+@Suppress("unused")
 fun oldTest() {
 
     val logger = LogManager.getLogger("AssimpTest")
@@ -161,7 +164,7 @@ fun processMaterial(material: AIMaterial) {
     val ambient = Vector4f()
     val result = aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, aiTextureType_NONE, 0, color)
     if (result == 0) {
-        ambient.set(result.r() / 255f, result.g() / 255f, result.b() / 255f, result.a() / 255f)
+        ambient.set(0f, 0f, 0f, 1f)
         logger.info("ambient: ${ambient.print()}")
     }
 

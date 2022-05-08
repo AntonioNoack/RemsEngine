@@ -5,6 +5,7 @@ import kotlin.math.floor
 import kotlin.random.Random
 
 // Int is quicker than int, why???
+@Suppress("CanBeParameter")
 class FullNoise(val seed: Long) {
 
     // longs can be used as well, but are slightly slower (long->int, 17->16, 26->13, 26->23, 48->32)

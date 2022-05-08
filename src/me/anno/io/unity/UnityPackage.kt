@@ -33,7 +33,7 @@ object UnityPackage {
                         createEntryArchive(parent, name, asset, registry)
                     } else null
                     if (metaFile != null && assetFile != null) {
-                        unityArchive.project.register(guid, metaFile, assetFile)
+                        unityArchive.project.register(guid, assetFile)
                     }
                 }
             }

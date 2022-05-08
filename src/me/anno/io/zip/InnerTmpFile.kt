@@ -16,6 +16,7 @@ abstract class InnerTmpFile private constructor(name: String) :
 
     constructor() : this("tmp://${id.incrementAndGet()}")
 
+    @Suppress("unused")
     class InnerTmpByteFile(bytes: ByteArray) : InnerTmpFile() {
 
         var bytes: ByteArray = bytes
@@ -32,6 +33,7 @@ abstract class InnerTmpFile private constructor(name: String) :
 
     }
 
+    @Suppress("unused")
     class InnerTmpTextFile(text: String) : InnerTmpFile() {
 
         var text: String = text
@@ -97,7 +99,7 @@ abstract class InnerTmpFile private constructor(name: String) :
         override fun listChildren(): List<FileReference>? = null
 
         override fun readText() = text.value
-        override fun readBytes() = bytes.value
+        override fun readBytes() = bytes.value!!
 
         override fun getInputStream(): InputStream {
             return text.value.byteInputStream()

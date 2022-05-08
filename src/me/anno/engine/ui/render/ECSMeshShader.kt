@@ -81,12 +81,14 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             //  this would allow us to render animated meshes instanced as well <3, and with independent animations [just manually created animations would need extra care]
             //  b) or separate the shader all together
             // attributes
-            attributes += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
-            attributes += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
-            // not required for the instanced rendering, because this is instance specific
-            attributes += Variable(GLSLType.M4x3, "jointTransforms", maxBones)
+            if (isAnimated) {
+                attributes += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
+                attributes += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
+                // not required for the instanced rendering, because this is instance specific
+                attributes += Variable(GLSLType.M4x3, "jointTransforms", maxBones)
+                attributes += Variable(GLSLType.BOOL, "hasAnimation")
+            }
             attributes += Variable(GLSLType.M4x3, "localTransform")
-            attributes += Variable(GLSLType.BOOL, "hasAnimation")
             // Variable(GLSLType.V4F, "weight", false),
         }
 
@@ -112,8 +114,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "       normal = localTransform * vec4(normals, 0.0);\n" +
                     "       tangent = localTransform * vec4(tangents, 0.0);\n" +
                     "       tint = instanceTint;\n" +
-                    "   #endif\n" +
-                    "#else\n" +
+                    "   #endif\n" + // colors
+                    "#else\n" + // instanced
+                    "   #ifdef ANIMATED\n" +
                     "   if(hasAnimation){\n" +
                     "       mat4x3 jointMat;\n" +
                     "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
@@ -126,18 +129,21 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "           tangent = jointMat * vec4(tangents, 0.0);\n" +
                     "       #endif\n" +
                     "   } else {\n" +
+                    "   #endif\n" + // animated
                     "       localPosition = coords;\n" +
                     "       #ifdef COLORS\n" +
                     "           normal = normals;\n" +
                     "           tangent = tangents;\n" +
                     "       #endif\n" +
+                    "   #ifdef ANIMATED\n" +
                     "   }\n" +
+                    "   #endif\n" + // animated
                     "   finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
                     "   #ifdef COLORS\n" +
                     "       normal = localTransform * vec4(normal, 0.0);\n" +
                     "       tangent = localTransform * vec4(tangent, 0.0);\n" +
-                    "   #endif\n" +
-                    "#endif\n" +
+                    "   #endif\n" + // colors
+                    "#endif\n" + // not instanced
                     // normal only needs to be normalized, if we show the normal
                     // todo only activate on viewing it...
                     "#ifdef COLORS\n" +

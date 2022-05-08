@@ -23,26 +23,26 @@ object Permutations {
             elements[j] = t
         }
 
-        // i acts similarly to the stack pointer
-        var i = 0
-        while (i < n) {
-            if (c[i] < i) {
-                if (i % 2 == 0) {// even
-                    swap(0, i)
+        // index acts similarly to the stack pointer
+        var index = 0
+        while (index < n) {
+            if (c[index] < index) {
+                if (index % 2 == 0) {// even
+                    swap(0, index)
                 } else {
-                    swap(c[i], i)
+                    swap(c[index], index)
                 }
                 onNextPermutation(elements)
                 // Swap has occurred ending the for-loop.
                 // Simulate the increment of the for-loop counter
-                c[i]++
+                c[index]++
                 // Simulate recursive call reaching the base case by bringing the pointer
                 // to the base case analog in the array
-                i = 0
+                index = 0
             } else {
                 // Calling generate(i+1, A) has ended as the for-loop terminated.
                 // Reset the state and simulate popping the stack by incrementing the pointer.
-                c[i++] = 0
+                c[index++] = 0
             }
         }
 

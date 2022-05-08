@@ -6,6 +6,7 @@ import java.io.File
 import java.io.IOException
 
 
+@Suppress("unused")
 object TrashManager {
 
     private val LOGGER = LogManager.getLogger(TrashManager::class)

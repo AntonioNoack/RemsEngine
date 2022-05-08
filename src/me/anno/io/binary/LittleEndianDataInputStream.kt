@@ -4,6 +4,7 @@ import me.anno.utils.input.Input.readNBytes2
 import java.io.EOFException
 import java.io.InputStream
 
+@Suppress("unused")
 open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
 
     var position = 0L

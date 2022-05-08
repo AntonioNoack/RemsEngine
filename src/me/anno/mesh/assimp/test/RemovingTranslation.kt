@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package me.anno.mesh.assimp.test
 
 import me.anno.ecs.components.anim.ImportedAnimation

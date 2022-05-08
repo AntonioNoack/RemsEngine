@@ -4,7 +4,10 @@ import java.io.EOFException
 import java.io.InputStream
 import java.lang.StringBuilder
 
-// to avoid the import of fasterXML.json (17MB) we create our own solution
+/**
+ * to avoid the import of FasterXML (17MB) or similar, we create our own light-weight solution to reading JSON files;
+ * this has no reflection support, so it is safe, but you have to do importing yourself
+ * */
 class JsonReader(val data: InputStream) {
 
     constructor(data: ByteArray): this(data.inputStream())
@@ -104,7 +107,7 @@ class JsonReader(val data: InputStream) {
         }
     }
 
-    fun readSomething(next: Char): Any {
+    fun readSomething(next: Char): Any? {
         when(next){
             in '0' .. '9', '.', '+', '-' -> {
                 putBack(next)
@@ -138,7 +141,7 @@ class JsonReader(val data: InputStream) {
                 assert(next(), 'u', 'U')
                 assert(next(), 'l', 'L')
                 assert(next(), 'l', 'L')
-                return Null // pseudo-null ;)
+                return null
             }
             else -> throw RuntimeException("Expected value, got $next")
         }
@@ -172,9 +175,5 @@ class JsonReader(val data: InputStream) {
     fun assert(i: Char, c: Char, msg: String){
         if(i != c) throw JsonFormatException(msg)
     }
-
-    class JsonFormatException(message: String): RuntimeException(message)
-
-
 
 }

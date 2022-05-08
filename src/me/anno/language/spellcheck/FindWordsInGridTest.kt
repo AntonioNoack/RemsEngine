@@ -5,17 +5,17 @@ import me.anno.language.Language
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Sleep
-import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.min
 
-val minLength = 2
+const val minLength = 2
 
+@Suppress("SpellCheckingInspection")
 fun main() {
-    // with a dictionary, it could find words automatically
+    // with a dictionary, it could find words automatically,
     // so it can just display all substrings in the field nicely,
     // which is already a great help
     // homework of my (ex-girl)friend

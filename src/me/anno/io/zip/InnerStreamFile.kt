@@ -8,6 +8,7 @@ class InnerStreamFile(
     val getStream: () -> InputStream
 ) : InnerFile(absolutePath, relativePath, false, _parent) {
 
+    @Suppress("unused")
     constructor(folder: InnerFolder, name: String, getStream: () -> InputStream) : this(
         "${folder.absolutePath}/$name",
         "${folder.relativePath}/$name",

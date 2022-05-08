@@ -5,7 +5,6 @@ import kotlin.concurrent.thread
 
 object HeavyIterator {
 
-
     private val lockedFiles = HashSet<FileReference>()
     private val waitingRequests = HashMap<FileReference, ArrayList<IHeavyIterable<*, *, *>>>()
 
@@ -35,7 +34,7 @@ object HeavyIterator {
                     false
                 } else {
                     lockedFiles.add(source)
-                    @Suppress("UNCHECKED_CAST")
+                    @Suppress("unchecked_cast")
                     waiting = waitingRequests.remove(source) as List<IHeavyIterable<Item, Stream, Processable>>?
                     true
                 }

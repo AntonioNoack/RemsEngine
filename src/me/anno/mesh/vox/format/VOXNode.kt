@@ -25,7 +25,7 @@ class VOXNode {
     var rotation = 0
 
     fun containsModel(): Boolean {
-        return if (models ?: child?.models != null) true
+        return if ((models ?: child?.models) != null) true
         else children?.any { it.containsModel() } ?: false
     }
 

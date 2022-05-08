@@ -137,47 +137,47 @@ object LinearAlgebra {
         fun score(f: Double): Double {
             return -abs(Maths.log(abs(f)))
         }
-        for (mi in 0 until size) {
+        for (m in 0 until size) {
 
             // which column is optimized
-            // find largest value in this column
-            var largest = score(a[mi * (size + 1)])
-            var bestRow = mi
-            for (rowIndex in mi + 1 until size) {
-                val v = score(a[rowIndex * size + mi])
+            // find the largest value in this column
+            var largest = score(a[m * (size + 1)])
+            var bestRow = m
+            for (rowIndex in m + 1 until size) {
+                val v = score(a[rowIndex * size + m])
                 if (v > largest) {
                     largest = v
                     bestRow = rowIndex
                 }
             }
 
-            if (a[bestRow * size + mi] == 0.0) return null // matrix is not invertible
+            if (a[bestRow * size + m] == 0.0) return null // matrix is not invertible
 
-            // switch the rows mi and bestRow
-            if (bestRow != mi) {
-                switchRow(a, size, bestRow, mi)
-                switchRow(b, size, bestRow, mi)
-                bestRow = mi
+            // switch the rows m and bestRow
+            if (bestRow != m) {
+                switchRow(a, size, bestRow, m)
+                switchRow(b, size, bestRow, m)
+                bestRow = m
             }
 
             val offset0 = bestRow * size
-            largest = a[offset0 + mi]
+            largest = a[offset0 + m]
 
             // subtract a[i,j]/largest from every other row
             for (row in 0 until size) {
                 if (row != bestRow) {
                     val offsetI = row * size
-                    val factor = a[offsetI + mi] / largest
-                    a[offsetI + mi] = 0.0
-                    for (i in mi + 1 until size) {
+                    val factor = a[offsetI + m] / largest
+                    a[offsetI + m] = 0.0
+                    for (i in m + 1 until size) {
                         a[offsetI + i] -= factor * a[offset0 + i]
                     }
                     subRow(b, size, bestRow, row, factor)
                 }
             }
             // divide this row
-            a[offset0 + mi] = 1.0
-            for (ni in mi + 1 until size) {
+            a[offset0 + m] = 1.0
+            for (ni in m + 1 until size) {
                 a[offset0 + ni] /= largest
             }
             divRow(b, size, bestRow, largest)

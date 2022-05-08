@@ -7,6 +7,7 @@ import kotlin.math.sign
 /**
  * a library of often used meshes, so we don't have too many copies in the engine
  * */
+@Suppress("unused")
 object Shapes {
 
     fun scale(src: FloatArray, scale: Float, dst: FloatArray = FloatArray(src.size)): FloatArray {

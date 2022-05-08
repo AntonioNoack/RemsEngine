@@ -1,6 +1,7 @@
 package me.anno.mesh.vox.model
 
 // a different implementation could use oct-trees
+@Suppress("unused")
 class DenseI32VoxelModel(sizeX: Int, sizeY: Int, sizeZ: Int, val data: IntArray) : VoxelModel(sizeX, sizeY, sizeZ) {
 
     override fun fill(dst: IntArray) {

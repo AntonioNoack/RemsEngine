@@ -9,6 +9,6 @@ fun main() {
     val style1 = LanguageStyle()
     style1.color = 0x775533
     val text = TextWriter.toText(style1, InvalidRef)
-    val style2 = TextReader.readFirst<LanguageStyle>(text, InvalidRef)!!
+    val style2 = TextReader.readFirst<LanguageStyle>(text, InvalidRef)
     if (style2.color != style1.color) throw RuntimeException("$text -> " + style2.color.toString(16))
 }

@@ -249,12 +249,12 @@ object ScreenSpaceAmbientOcclusion {
         samples: Int
     ): ITexture2D? {
         if (strength <= 0f) return whiteTexture
-        lateinit var tex: ITexture2D
+        lateinit var result: ITexture2D
         renderPurely {
             val tmp = firstPass(data, settingsV2, transform, radius, strength, min(samples, MAX_SAMPLES)) ?: return null
-            tex = secondPass(tmp).getTexture0()
+            result = secondPass(tmp).getTexture0()
         }
-        return tex
+        return result
     }
 
     fun compute(
@@ -265,12 +265,12 @@ object ScreenSpaceAmbientOcclusion {
         strength: Float,
         samples: Int
     ): IFramebuffer {
-        lateinit var tex: IFramebuffer
+        lateinit var result: IFramebuffer
         renderPurely {
             val tmp = firstPass(position, normal, transform, radius, strength, min(samples, MAX_SAMPLES))
-            tex = secondPass(tmp)
+            result = secondPass(tmp)
         }
-        return tex
+        return result
     }
 
 }

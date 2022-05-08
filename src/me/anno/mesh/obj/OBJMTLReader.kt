@@ -167,6 +167,7 @@ open class OBJMTLReader(val reader: InputStream) {
         return x
     }
 
+    @Suppress("unused")
     fun readVector2f(): Vector2f {
         skipSpaces()
         val x = readFloat()

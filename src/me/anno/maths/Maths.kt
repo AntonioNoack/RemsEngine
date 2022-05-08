@@ -15,15 +15,15 @@ object Maths {
     const val SECONDS_TO_NANOS = 1_000_000_000L
 
     const val SQRT1_2 = 0.7071067811865476
-    const val SQRT1_2f = 0.7071067811865476f
+    const val SQRT1_2f = 0.70710677f
     const val SQRT2 = 1.4142135623730951
-    const val SQRT2F = 1.4142135623730951f
+    const val SQRT2F = 1.4142135f
     const val SQRT3 = 1.7320508075688772
     const val GOLDEN_RATIO = 1.618033988749895 // phi
     const val PHI = GOLDEN_RATIO
     const val PHIf = PHI.toFloat()
 
-    const val GoldenRatio = 1.618033988749895f// (1f + sqrt(5f)) * 0.5f
+    const val GoldenRatio = 1.618034f // (1f + sqrt(5f)) * 0.5f
 
     fun sq(x: Int) = x * x
 
@@ -117,9 +117,9 @@ object Maths {
     fun mix(a: Long, b: Long, f: Double) = a * (1.0 - f) + f * b
     fun mix(a: Float, b: Float, f: Float, g: Float) = a * g + b * f
     fun mix(a: Double, b: Double, f: Float, g: Float) = a * g + b * f
-    fun mix(a: Vector2f, b: Vector2f, f: Double, dst: Vector2f) = a.lerp(b, f.toFloat(), dst)
-    fun mix(a: Vector3f, b: Vector3f, f: Double, dst: Vector3f) = a.lerp(b, f.toFloat(), dst)
-    fun mix(a: Vector4f, b: Vector4f, f: Double, dst: Vector4f) = a.lerp(b, f.toFloat(), dst)
+    fun mix(a: Vector2f, b: Vector2f, f: Double, dst: Vector2f): Vector2f = a.lerp(b, f.toFloat(), dst)
+    fun mix(a: Vector3f, b: Vector3f, f: Double, dst: Vector3f): Vector3f = a.lerp(b, f.toFloat(), dst)
+    fun mix(a: Vector4f, b: Vector4f, f: Double, dst: Vector4f): Vector4f = a.lerp(b, f.toFloat(), dst)
 
     fun mixRandomly(a: Int, b: Int, f: Float): Int {
         return (a * (1f - f) + b * f + Math.random()).toInt()

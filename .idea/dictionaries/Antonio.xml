@@ -18,6 +18,7 @@
       <w>asturian</w>
       <w>atan</w>
       <w>atanh</w>
+      <w>azeria</w>
       <w>bathymetry</w>
       <w>bbbb</w>
       <w>bgra</w>
@@ -72,6 +73,7 @@
       <w>decomp</w>
       <w>deeppink</w>
       <w>deepskyblue</w>
+      <w>deflater</w>
       <w>deformer</w>
       <w>deformers</w>
       <w>defs</w>
@@ -86,6 +88,7 @@
       <w>dont</w>
       <w>easu</w>
       <w>emissive</w>
+      <w>endianness</w>
       <w>envs</w>
       <w>equirectangular</w>
       <w>expm</w>
@@ -107,6 +110,7 @@
       <w>framebuffers</w>
       <w>fullscreen</w>
       <w>gainsboro</w>
+      <w>galician</w>
       <w>gamepad</w>
       <w>gbar</w>
       <w>generatable</w>
@@ -131,6 +135,8 @@
       <w>hypot</w>
       <w>imag</w>
       <w>indianred</w>
+      <w>infacing</w>
+      <w>inflater</w>
       <w>infos</w>
       <w>inited</w>
       <w>inscattered</w>
@@ -153,6 +159,7 @@
       <w>lawngreen</w>
       <w>layr</w>
       <w>lemonchiffon</w>
+      <w>lempel</w>
       <w>lerp</w>
       <w>lerped</w>
       <w>lerps</w>
@@ -208,6 +215,7 @@
       <w>mids</w>
       <w>mintcream</w>
       <w>mistyrose</w>
+      <w>mkdirs</w>
       <w>mmmh</w>
       <w>motd</w>
       <w>movflags</w>
@@ -281,6 +289,7 @@
       <w>saveable</w>
       <w>saveables</w>
       <w>scifi</w>
+      <w>sdna</w>
       <w>seagreen</w>
       <w>segoe</w>
       <w>serializables</w>

@@ -81,6 +81,7 @@ class BlenderFile(val file: BinaryFile) {
 
     init {
         file.padding(4)
+        @Suppress("SpellCheckingInspection")
         file.consumeIdentifier("TLEN")
     }
 
@@ -93,6 +94,7 @@ class BlenderFile(val file: BinaryFile) {
 
     init {
         file.padding(4)
+        @Suppress("SpellCheckingInspection")
         file.consumeIdentifier("STRC")
     }
 
@@ -161,6 +163,7 @@ class BlenderFile(val file: BinaryFile) {
         }
     }
 
+    @Suppress("unused")
     fun printIdTypes() {
         for (struct in structs) {
             if (struct.fields.first().type.name == "ID") {
@@ -174,6 +177,7 @@ class BlenderFile(val file: BinaryFile) {
         }
     }
 
+    @Suppress("unused")
     fun printTypes() {
         for (struct in structs) {
             LOGGER.info(
@@ -222,6 +226,7 @@ class BlenderFile(val file: BinaryFile) {
         }
     }
 
+    @Suppress("unused")
     fun searchReferencesByStructsAtPositions(positions: List<Int>, names: List<String>){
         val positionsOfInterest = HashSet<Int>()
         val nextPositions = ArrayList<Pair<Int, String>>()
@@ -264,6 +269,7 @@ class BlenderFile(val file: BinaryFile) {
     companion object {
         private val LOGGER = LogManager.getLogger(BlenderFile::class)
         val DNA1 = getCode("DNA1")
+        @Suppress("SpellCheckingInspection")
         val ENDBlock = getCode("ENDB")
         val TEST = getCode("TEST")
         private fun getCode(code: String) = rgba(

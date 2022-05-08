@@ -166,6 +166,8 @@ object OpenGL {
         }
     }
 
+    // maximum expected depth for OpenGL operations
+    // could be changed, if needed...
     private const val maxSize = 512
     val renderers = Array(maxSize) { colorRenderer }
 

@@ -15,6 +15,7 @@ class InnerImageFile(
 
     override var signature: Signature? = Signature.bmp
 
+    @Suppress("unused")
     constructor(folder: InnerFolder, name: String, content: Image) : this(
         "${folder.absolutePath}/$name",
         "${folder.relativePath}/$name",

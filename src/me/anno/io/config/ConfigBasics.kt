@@ -81,6 +81,7 @@ object ConfigBasics {
     fun loadConfig(localFileName: String, workspace: FileReference, defaultValue: StringMap, saveIfMissing: Boolean) =
         loadConfig(getConfigFile(localFileName), workspace, defaultValue, saveIfMissing)
 
+    @Suppress("unused")
     fun loadJsonArray(
         localFileName: String,
         workspace: FileReference,

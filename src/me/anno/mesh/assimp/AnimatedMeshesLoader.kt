@@ -124,7 +124,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
         // todo load lights and cameras for the game engine
 
-        // creates prefabs from the whole file content
+        // it creates prefabs from the whole file content,
         // so we can inherit from the materials, meshes, animations, ...
         // all and separately
         val aiScene = loadFile(file, flags)
@@ -184,7 +184,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             } else emptyList()
             addSkeleton(hierarchy, skeleton, skeletonPath, sampleAnimations)
 
-            // create a animation node to show the first animation
+            // create an animation node to show the first animation
             if (meshes.isEmpty() && animMap.isNotEmpty()) {
                 val animPath = hierarchy.add(ROOT_PATH, 'c', "AnimRenderer")
                 hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
@@ -228,7 +228,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
         val transform = transform0.localTransform // root, so global = local
 
-        // correct order? at least the rotation is correct
+        // correct order? at least the rotation is correct;
         // correct scale?
         transform.mul(Matrix4x3d(matrix.transpose()))
 
@@ -332,7 +332,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 val indexInEntity = adds
                     .filter { it.path == change.path }
                     .indexOfFirst { it === change }
-                val path = change.path.added(change.nameId!!, indexInEntity, 'c')
+                val path = change.path.added(change.nameId, indexInEntity, 'c')
                 hierarchyPrefab.setUnsafe(path, "skeleton", skeletonPath)
                 hierarchyPrefab.setUnsafe(path, "animations", sampleAnimations)
             }
@@ -387,7 +387,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                         "$length: '${StandardCharsets.UTF_8.decode(buff)}'"
                     }
                     6 -> {
-                        // aivector3d
+                        // ai vector3d
                         // todo doubles or floats?
                         val buffer = valueRaw.mData(12 * 8).asDoubleBuffer()
                         Vector3d(buffer[0], buffer[1], buffer[2])

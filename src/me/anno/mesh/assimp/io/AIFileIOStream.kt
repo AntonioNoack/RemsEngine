@@ -38,6 +38,7 @@ class AIFileIOStream(val file: FileReference) : IFileIOStream {
         var done = 0L
         while (done < delta) {
             val skipped = input.skip(delta)
+            @Suppress("KotlinConstantConditions")
             if (skipped < 0L) return -1 // eof
             done += skipped
         }

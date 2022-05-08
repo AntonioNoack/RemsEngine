@@ -1,5 +1,6 @@
 package me.anno.io.binary
 
+@Suppress("unused")
 object BinaryTypes {
     
     // for the values, a system would be nice

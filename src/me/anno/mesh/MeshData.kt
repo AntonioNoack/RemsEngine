@@ -12,6 +12,7 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.drawing.GFXx3D.transformUniform
 import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
@@ -44,61 +45,62 @@ open class MeshData : ICacheData {
 
         RenderView.currentInstance = null
 
-        val baseShader = if (useECSShader) pbrModelShader else shaderAssimp
-        val shader = baseShader.value
-        shader.use()
-        shader3DUniforms(shader, cameraMatrix, color)
-        uploadAttractors0(shader)
-
         val model0 = assimpModel!!
         val animation = model0.animations[animationName]
-        val skinningMatrices = if (animation != null) {
-            model0.uploadJointMatrices(shader, animation, time)
-        } else null
-        shader.v1b("hasAnimation", skinningMatrices != null)
+        val hasAnimation = animation != null
 
-        val localStack = Matrix4x3fArrayList()
+        OpenGL.animated.use(hasAnimation) {
 
-        if (normalizeScale) {
-            val scale = getScaleFromAABB(model0.staticAABB.value)
-            localStack.scale(scale)
+            val baseShader = if (useECSShader) pbrModelShader else shaderAssimp
+            val shader = baseShader.value
+            shader.use()
+            shader3DUniforms(shader, cameraMatrix, color)
+            uploadAttractors0(shader)
+
+            val skinningMatrices = if (hasAnimation) {
+                model0.uploadJointMatrices(shader, animation!!, time)
+            } else null
+            shader.v1b("hasAnimation", skinningMatrices != null)
+
+            val localStack = Matrix4x3fArrayList()
+
+            if (normalizeScale) {
+                val scale = getScaleFromAABB(model0.staticAABB.value)
+                localStack.scale(scale)
+            }
+
+            if (centerMesh) {
+                centerMesh(null, cameraMatrix, localStack, model0)
+            }
+
+            transformUniform(shader, cameraMatrix)
+
+            // for GUI functions that use the camera matrix
+            RenderView.worldScale = 1.0
+            RenderView.camPosition.set(0.0)
+            RenderView.camDirection.set(0.0, 0.0, -1.0) // not correct, but approx. correct
+            RenderView.cameraMatrix.set(cameraMatrix)
+            RenderView.currentInstance = null
+
+            val cameraXPreGlobal = Matrix4f()
+            cameraXPreGlobal.set(cameraMatrix)
+                .mul(localStack)
+
+            drawHierarchy(
+                shader,
+                cameraMatrix,
+                cameraXPreGlobal,
+                localStack,
+                skinningMatrices,
+                color,
+                model0,
+                model0.hierarchy,
+                useMaterials,
+                drawSkeletons
+            )
+
         }
-
-        if (centerMesh) {
-            centerMesh(null, cameraMatrix, localStack, model0)
-        }
-
-        transformUniform(shader, cameraMatrix)
-
-        // for GUI functions that use the camera matrix
-        RenderView.worldScale = 1.0
-        RenderView.camPosition.set(0.0)
-        RenderView.camDirection.set(0.0, 0.0, -1.0) // not correct, but approx. correct
-        RenderView.cameraMatrix.set(cameraMatrix)
-        RenderView.currentInstance = null
-
-        val cameraXPreGlobal = Matrix4f()
-        cameraXPreGlobal.set(cameraMatrix)
-            .mul(localStack)
-
-        drawHierarchy(
-            shader,
-            cameraMatrix,
-            cameraXPreGlobal,
-            localStack,
-            skinningMatrices,
-            color,
-            model0,
-            model0.hierarchy,
-            useMaterials,
-            drawSkeletons
-        )
-
     }
-
-    // we should be able to remove them...
-    fun vec3(v: Vector3d): Vector3f = Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
-    fun quat(q: Quaterniond): Quaternionf = Quaternionf(q)
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun drawHierarchy(

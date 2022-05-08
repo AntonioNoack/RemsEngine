@@ -157,7 +157,7 @@ interface ISaveable {
     fun readMap(name: String, value: Map<Any?, Any?>)
 
     /**
-     * can saving be ignored?, because this is default anyways?
+     * can saving be ignored?, because this is default anyway?
      * */
     fun isDefaultValue(): Boolean
 
@@ -177,7 +177,7 @@ interface ISaveable {
                 val value = field.getter.call(this)
                 // todo if the type is explicitly given, however not deductible (empty array), and the saving is forced,
                 // todo use the field.type
-                writer.writeSomething(this, name, value, field.forceSaving ?: value is Boolean)
+                writer.writeSomething(this, name, value, field.forceSaving ?: (value is Boolean))
             }
         }
     }

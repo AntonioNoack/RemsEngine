@@ -325,7 +325,7 @@ class VOXReader {
 
     private fun decodeFrame(node: VOXNode, frame: HashMap<String, String>?) {
         frame ?: return
-        val translation = frame["_t"]?.split(' ')?.map { it.toDouble() } // typically just ints
+        val translation = frame["_t"]?.split(' ')?.map { it.toDouble() } // typically just integers
         if (translation != null) {
             node.px = +translation[0]
             node.pz = -translation[1]
@@ -337,7 +337,7 @@ class VOXReader {
     /**
      * skips over a dictionary
      * this skips a lot of string allocations
-     * can be used, when there is no interesting data anyways
+     * can be used, when there is no interesting data anyway
      * */
     private fun skipDict(bytes: ByteBuffer) {
         val entries = bytes.int
@@ -375,6 +375,7 @@ class VOXReader {
             return readAsFolder(reader, file).a
         }
 
+        @Suppress("unused")
         fun readAsFolder2(file: FileReference): Quad<InnerFolder, FileReference, Prefab, List<FileReference>> {
             val reader = VOXReader().read(file)
             return readAsFolder(reader, file)

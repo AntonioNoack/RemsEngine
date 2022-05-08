@@ -9,6 +9,7 @@ class InnerLazyByteFile(
     val content: Lazy<ByteArray>
 ) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
 
+    @Suppress("unused")
     constructor(folder: InnerFolder, name: String, content: Lazy<ByteArray>) : this(
         "${folder.absolutePath}/$name",
         "${folder.relativePath}/$name",

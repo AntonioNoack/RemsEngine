@@ -319,6 +319,7 @@ class PipelineStage(
         return entity.transform.distanceSquaredGlobally(cameraPosition)
     }
 
+    @Suppress("unused")
     fun draw(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
 
         // the dotViewDir may be easier to calculate, and technically more correct, but it has one major flaw:
@@ -369,74 +370,78 @@ class PipelineStage(
         for (index in 0 until nextInsertIndex) {
 
             val request = drawRequests[index]
-            val mesh = request.mesh
-            val entity = request.entity
 
             GFX.drawnId = request.clickId
 
-            val transform = entity.transform
+            val hasAnimation = (request.component as? MeshComponentBase)?.hasAnimation ?: false
+            OpenGL.animated.use(hasAnimation){
 
-            val renderer = request.component
-            val materialIndex = request.materialIndex
-            val material = getMaterial(renderer, mesh, materialIndex)
-            val shader = getShader(material)
-            shader.use()
+                val mesh = request.mesh
+                val entity = request.entity
 
+                val transform = entity.transform
+                val renderer = request.component
+                val materialIndex = request.materialIndex
+                val material = getMaterial(renderer, mesh, materialIndex)
 
-            val previousMaterialByShader = lastMaterial.put(shader, material)
-            if (previousMaterialByShader == null) {
-                initShader(shader, cameraMatrix, pipeline)
-            }
+                val shader = getShader(material)
+                shader.use()
 
-            val receiveShadows = if (renderer is MeshComponentBase) renderer.receiveShadows else true
-            if (hasLights) {
-                if (previousMaterialByShader == null ||
-                    needsLightUpdateForEveryMesh ||
-                    receiveShadows != lastReceiveShadows
-                ) {
-                    // upload all light data
-                    setupLights(pipeline, shader, cameraPosition, worldScale, request, receiveShadows)
-                    lastReceiveShadows = receiveShadows
+                val previousMaterialByShader = lastMaterial.put(shader, material)
+                if (previousMaterialByShader == null) {
+                    initShader(shader, cameraMatrix, pipeline)
                 }
+
+                val receiveShadows = if (renderer is MeshComponentBase) renderer.receiveShadows else true
+                if (hasLights) {
+                    if (previousMaterialByShader == null ||
+                        needsLightUpdateForEveryMesh ||
+                        receiveShadows != lastReceiveShadows
+                    ) {
+                        // upload all light data
+                        setupLights(pipeline, shader, cameraPosition, worldScale, request, receiveShadows)
+                        lastReceiveShadows = receiveShadows
+                    }
+                }
+
+                setupLocalTransform(shader, transform, cameraPosition, worldScale, time)
+
+                // the state depends on textures (global) and uniforms (per shader),
+                // so test both
+                if (previousMaterialByShader != material || previousMaterialInScene != material) {
+                    // bind textures for the material
+                    // bind all default properties, e.g. colors, roughness, metallic, clear coat/sheen, ...
+                    material.defineShader(shader)
+                    previousMaterialInScene = material
+                }
+
+                mesh.ensureBuffer()
+
+                // only if the entity or mesh changed
+                // not if the material has changed
+                // this updates the skeleton and such
+                if (entity !== lastEntity || lastMesh !== mesh || lastShader !== shader) {
+                    if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
+                        renderer.defineVertexTransform(shader, entity, mesh)
+                    else shader.v1b("hasAnimation", false)
+                    lastEntity = entity
+                    lastMesh = mesh
+                    lastShader = shader
+                }
+
+                shaderColor(shader, "tint", -1)
+                shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                val component = request.component
+                shader.v2i(
+                    "randomIdData",
+                    if (mesh.proceduralLength > 0) 3 else 0,
+                    if (component is MeshComponentBase) component.randomTriangleId else 0
+                )
+
+                mesh.draw(shader, materialIndex)
+                drawnTriangles += mesh.numTriangles
+
             }
-
-            setupLocalTransform(shader, transform, cameraPosition, worldScale, time)
-
-            // the state depends on textures (global) and uniforms (per shader),
-            // so test both
-            if (previousMaterialByShader != material || previousMaterialInScene != material) {
-                // bind textures for the material
-                // bind all default properties, e.g. colors, roughness, metallic, clear coat/sheen, ...
-                material.defineShader(shader)
-                previousMaterialInScene = material
-            }
-
-            mesh.ensureBuffer()
-
-            // only if the entity or mesh changed
-            // not if the material has changed
-            // this updates the skeleton and such
-            if (entity !== lastEntity || lastMesh !== mesh || lastShader !== shader) {
-                if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
-                    renderer.defineVertexTransform(shader, entity, mesh)
-                else shader.v1b("hasAnimation", false)
-                lastEntity = entity
-                lastMesh = mesh
-                lastShader = shader
-            }
-
-            shaderColor(shader, "tint", -1)
-            shader.v1b("hasVertexColors", mesh.hasVertexColors)
-            val component = request.component
-            shader.v2i(
-                "randomIdData",
-                if (mesh.proceduralLength > 0) 3 else 0,
-                if (component is MeshComponentBase) component.randomTriangleId else 0
-            )
-
-            mesh.draw(shader, materialIndex)
-            drawnTriangles += mesh.numTriangles
-
         }
 
         lastMaterial.clear()
@@ -715,6 +720,7 @@ class PipelineStage(
         instancedSize++
     }
 
+    @Suppress("unused")
     fun getMaterial(mesh: Mesh, index: Int): Material {
         return MaterialCache[mesh.materials.getOrNull(index), defaultMaterial]
     }

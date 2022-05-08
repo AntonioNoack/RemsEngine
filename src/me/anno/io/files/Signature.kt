@@ -2,7 +2,6 @@ package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.gimp.GimpImage
-import me.anno.io.zip.InnerByteFile
 import me.anno.io.zip.SignatureFile
 import java.nio.ByteBuffer
 import kotlin.math.min
@@ -115,6 +114,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             signatures.sortByDescending { it.signature.size }
         }
 
+        @Suppress("unused")
         fun unregister(signature: Signature) {
             // could use binary search to find signature
             // still would be O(n)
@@ -123,11 +123,10 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
         fun findName(fileReference: FileReference) = find(fileReference)?.name
         fun find(fileReference: FileReference): Signature? {
-            if(fileReference is SignatureFile) return fileReference.signature
+            if (fileReference is SignatureFile) return fileReference.signature
             if (!fileReference.exists) return null
             return when (fileReference) {
                 is PrefabReadable -> signatures.first { it.name == "json" }
-                is InnerByteFile -> find(fileReference.data!!) // full data access costs nothing
                 else -> {
                     // reads the bytes, or 255 if at end of file
                     // how much do we read? 🤔
@@ -144,6 +143,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
         // source: https://en.wikipedia.org/wiki/List_of_file_signatures
         // https://www.garykessler.net/library/file_sigs.html
+        @Suppress("SpellCheckingInspection")
         val signatures = arrayListOf(
             Signature("bz2", 0, "BZh"),
             Signature("rar", 0, "Rar!", byteArrayOf(0x1a, 0x07)),
@@ -152,7 +152,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("zip", 0, "PK", byteArrayOf(7, 8)), // "spanned archive"
             Signature("tar", 0, listOf(0x1F, 0x9D)), // lempel-ziv-welch
             Signature("tar", 0, listOf(0x1F, 0xA0)),// lzh
-            // Signature("tar", 257, "ustar"), // der große Offset ist unglücklich...
+            // Signature("tar", 257, "ustar"), // this large offset is unfortunate; we'd have to adjust the signature readout for ALL others
             Signature("gzip", 0, listOf(0x1F, 0x8B)), // gz/tar.gz
             Signature("xz", 0, byteArrayOf(0xFD.toByte()), "7zXZ", byteArrayOf(0)), // xz compression
             Signature("lz4", 0, byteArrayOf(0x04, 0x22, 0x4D, 0x18)), // another compression
@@ -211,7 +211,11 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("media", 0, listOf(0x00, 0x00, 0x01, 0xB3)),// mpg, mpeg
             Signature("media", 4, "ftypisom"), // mp4
             Signature("media", 4, "ftypmp42"), // mp4
-            Signature("media", 0, listOf(0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11)), // wmv, wma, asf (Windows Media file)
+            Signature(
+                "media",
+                0,
+                listOf(0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11)
+            ), // wmv, wma, asf (Windows Media file)
             // meshes
             Signature("vox", 0, "VOX "),
             Signature("fbx", 0, "Kaydara FBX Binary"),

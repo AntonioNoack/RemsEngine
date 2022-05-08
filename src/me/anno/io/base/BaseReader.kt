@@ -60,7 +60,7 @@ abstract class BaseReader {
                     }
                 }
             }
-        } else LOGGER.warn("Got object with uuid $ptr: $value, it will be ignored")
+        } else LOGGER.warn("Got object with uuid 0: $value, it will be ignored")
     }
 
     fun addMissingReference(owner: Any, name: String, childPtr: Int) {

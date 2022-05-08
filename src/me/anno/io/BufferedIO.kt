@@ -2,6 +2,7 @@ package me.anno.io
 
 import java.io.*
 
+@Suppress("unused")
 object BufferedIO {
 
     fun InputStream.useBuffered(): InputStream {

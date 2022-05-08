@@ -99,7 +99,7 @@ class AnimGameItem(
         // todo RTX 3070 just like GT 1030 have the same bone uniform count problem
         //  - transform this uniform array to textures instead; this would allow for instanced animations as well, which would be nice :)
 
-        val matrixSize = 12 // at least on an Nvidia GPU, I maxed out the limit by just 256 matrices...
+        val matrixSize = 12 // at least on an Nvidia GPU (RTX 3070 and GT 1030), I maxed out the limit by just 256 matrices...
         val maxBones: Int
         init {
             val matrixUniforms = 12

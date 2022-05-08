@@ -4,9 +4,12 @@ import me.anno.io.json.ObjectMapper.toJsonNode
 
 class JsonObject : JsonNode() {
 
-    val map = HashMap<String, Any>()
+    val map = HashMap<String, Any?>()
 
-    operator fun set(key: String, value: Any) {
+    operator fun contains(key: String) =
+        map.containsKey(key)
+
+    operator fun set(key: String, value: Any?) {
         map[key] = value
     }
 

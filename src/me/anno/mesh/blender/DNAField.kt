@@ -13,10 +13,4 @@ class DNAField(val index: Int, val decoratedName: String, val type: DNAType) {
         return "${type.name}(${type.size})@$offset"
     }
 
-    companion object {
-        private fun removeSignatureFromName(name: String): String {
-            return name.replace("*", "").split('[').first()
-        }
-    }
-
 }

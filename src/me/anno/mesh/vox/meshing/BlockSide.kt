@@ -1,4 +1,4 @@
-package me.anno.mesh.vox.meshing;
+package me.anno.mesh.vox.meshing
 
 enum class BlockSide(
     val id: Int,

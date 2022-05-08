@@ -488,20 +488,20 @@ open class RenderView(
 
             when {
                 renderMode.dlt != null -> {
-                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
+                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, doDrawGizmos = false)
                     drawGizmos(world, buffer, renderer, camPosition, true)
                     GFX.copyNoAlpha(buffer)
                     return
                 }
                 renderMode == RenderMode.DEPTH -> {
                     val depth = FBStack["depth", w, h, 1, false, 1, true]
-                    drawScene(w, h, camera0, camera1, blending, renderer, depth, true, !useDeferredRendering)
+                    drawScene(w, h, camera0, camera1, blending, renderer, depth, true, doDrawGizmos = false)
                     drawGizmos(world, depth, renderer, camPosition, true)
                     drawDepthTexture(x, y, w, h, depth.depthTexture!!)
                     return
                 }
                 renderMode == RenderMode.LIGHT_SUM -> {
-                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
+                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, doDrawGizmos = false)
                     val lightBuffer = lightBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
@@ -522,7 +522,7 @@ open class RenderView(
                 }
                 renderMode == RenderMode.SSAO -> {
                     // 0.1f as radius seems pretty ideal with our world scale :)
-                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
+                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, doDrawGizmos = false)
                     drawGizmos(world, buffer, renderer, camPosition, true)
                     val strength = max(ssao.strength, 0.01f)
                     val ssao = ScreenSpaceAmbientOcclusion.compute(
@@ -543,7 +543,7 @@ open class RenderView(
                     return
                 }
                 renderMode == RenderMode.SS_REFLECTIONS -> {
-                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
+                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, doDrawGizmos = false)
                     drawGizmos(world, buffer, renderer, camPosition, true)
                     val lightBuffer = lightBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
@@ -574,7 +574,7 @@ open class RenderView(
                 }
                 renderMode == RenderMode.ALL_DEFERRED_BUFFERS -> {
 
-                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
+                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, doDrawGizmos = false)
                     drawGizmos(world, buffer, renderer, camPosition, true)
 
                     val lightBuffer = lightBuffer
@@ -636,7 +636,7 @@ open class RenderView(
                         val layer = deferred.layerTypes[index]
                         val layerRenderer = attributeRenderers[layer]!!
 
-                        drawScene(tw, th, camera0, camera1, blending, layerRenderer, tmp, false, !useDeferredRendering)
+                        drawScene(tw, th, camera0, camera1, blending, layerRenderer, tmp, false, doDrawGizmos = false)
                         drawGizmos(world, tmp, renderer, camPosition, true)
 
                         val texture = tmp.getTexture0()
@@ -652,7 +652,7 @@ open class RenderView(
 
                 }
                 renderer != DeferredRenderer -> {
-                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
+                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, doDrawGizmos = false)
                     drawGizmos(world, buffer, renderer, camPosition, true)
                     val effect = renderMode.effect
                     if (effect != null) {
@@ -669,7 +669,7 @@ open class RenderView(
 
                     if (buffer != baseNBuffer) throw IllegalStateException("Expected baseBuffer, but got ${buffer.name} for $renderMode")
 
-                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, !useDeferredRendering)
+                    drawScene(w, h, camera0, camera1, blending, renderer, buffer, true, doDrawGizmos = false)
                     val lightBuffer = lightBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)

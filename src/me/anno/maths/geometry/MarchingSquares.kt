@@ -17,7 +17,7 @@ object MarchingSquares {
     // to do implement dual contouring https://www.boristhebrave.com/2018/04/15/dual-contouring-tutorial/
 
     /**
-     * finds the intersection with the x axis between (0,a) and (1,b)
+     * finds the intersection with the x-axis between (0,a) and (1,b)
      * */
     private fun findZero(a: Float, b: Float): Float {
         return a / (a - b)
@@ -143,7 +143,7 @@ object MarchingSquares {
 
         val polygons = ArrayList<ArrayList<Vector2f>>()
         while (next.isNotEmpty()) {
-            // this is quite critical and I don't fully trust it...
+            // this is quite critical, and I don't fully trust it...
             var (v0, v1) = next.entries.first()
             val polygon = ArrayList<Vector2f>()
             polygon.add(v0)

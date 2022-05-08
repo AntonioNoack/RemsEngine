@@ -45,6 +45,7 @@ object SpiralPattern {
         }
     }
 
+    @Suppress("unused")
     fun sortedBlock(radius: Int): List<Vector3i> {
         val size = 2 * radius + 1
         val list = ArrayList<Vector3i>(size * size * size)
@@ -59,6 +60,7 @@ object SpiralPattern {
         return list
     }
 
+    @Suppress("unused")
     fun spiral3d(radius: Int, fillBlock: Boolean): List<Vector3i> {
         val size = 2 * radius + 1
         val result = ArrayList<Vector3i>(size * size * size)

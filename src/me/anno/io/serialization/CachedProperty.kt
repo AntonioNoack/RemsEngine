@@ -50,6 +50,7 @@ class CachedProperty(
                     LOGGER.warn("Index $index out of bounds! 0 until ${values.size} for ${oldValue.javaClass}")
                 val newValue = when {
                     index != Int.MIN_VALUE -> {
+                        @Suppress("UNCHECKED_CAST")
                         val idProperty = (oldValue::class as KClass<Any>)
                             .memberProperties
                             .firstOrNull { it.name == "id" }
@@ -62,11 +63,12 @@ class CachedProperty(
                         /**
                          * try to match the old value with the existing enums
                          * properties, which are tested, in order
-                         * 1. name matches, case sensitive
-                         * 2. name matches, case insensitive
+                         * 1. name matches, case-sensitive
+                         * 2. name matches, case-insensitive
                          * 3. enum.id exists now && enum.id matches old ordinal
                          * 4. ordinal matches
                          * */
+                        @Suppress("GrazieInspection")
                         val splitIndex = value.indexOf('/')
                         val ordinal = if (splitIndex < 0) -1 else value.substring(0, splitIndex).toInt()
                         val name = value.substring(splitIndex + 1)
@@ -106,6 +108,7 @@ class CachedProperty(
         private fun hide(it: HideInInspector, name: String, clazz: KClass<*>): (Any) -> Boolean {
             if (it.hideIfVariableIsTrue.isBlank2()) return { _ -> true }
             else {
+                @Suppress("UNCHECKED_CAST")
                 val getter1 = clazz.memberProperties
                     .firstOrNull { p -> p.name == it.hideIfVariableIsTrue } as? KProperty1<Any, Boolean>
                 if (getter1 != null) return { instance -> getter1.invoke(instance) }

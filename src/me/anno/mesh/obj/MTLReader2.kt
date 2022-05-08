@@ -16,7 +16,6 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
 
     init {
         var material: Prefab? = null
-        var materialName = ""
         var hadOpacity = false
         var color = Vector4f()
         // load all materials
@@ -36,7 +35,7 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
                         "newmtl" -> {
                             material?.setProperty("diffuseBase", color)
                             skipSpaces()
-                            materialName = readUntilSpace()
+                            val materialName = readUntilSpace()
                             material = Prefab("Material")
                             materials[materialName] = material
                             color = Vector4f(1f)
@@ -79,6 +78,7 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
                                 color.w = 1f - readValue()
                             } else skipLine()
                         }
+                        @Suppress("SpellCheckingInspection")
                         "illum" -> {
                             skipSpaces()
                             /*when (readUntilSpace().toInt()) {
@@ -109,7 +109,7 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
                     }
                 }
             }
-        } catch (e: EOFException) {
+        } catch (_: EOFException) {
         }
         material?.setProperty("diffuseBase", color)
         reader.close()

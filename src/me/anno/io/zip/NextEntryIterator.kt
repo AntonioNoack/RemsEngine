@@ -13,7 +13,7 @@ abstract class NextEntryIterator<V> : Iterator<V> {
     override fun next(): V {
         val v = next
         next = nextEntry()
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         return v as V
     }
 }

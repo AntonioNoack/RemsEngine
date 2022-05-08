@@ -16,7 +16,7 @@ object MergeBlocks {
         val sz = model.sizeZ
 
         // checking lights is too complicated, except they are in full darkness
-        // which would be caves; but caves are always irregular anyways ->
+        // which would be caves; but caves are always irregular anyway ->
         // this functionality is useless for this use-case and realization
         // we need to do this differently
 

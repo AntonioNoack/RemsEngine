@@ -21,7 +21,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
 
     val clock = Clock()
 
-    private val registry = HashMap<String, GuidObject>()
+    private val registry = HashMap<String, FileReference>()
     private val yamlCache = HashMap<FileReference, YAMLNode>()
 
     // guid -> folder file for the decoded instances
@@ -66,15 +66,14 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                     LOGGER.warn("GUID '$guid' was not found in registry!")
                     return InvalidRef
                 }
-                val content = guidObject.contentFile
                 // this looks much nicer, because then we have the file name in the name, not just IDs
                 // folder = InnerFolder(content)
                 // but it would also override the original resources...
                 folder = InnerFolder("${root.absolutePath}/$guid", guid, root)
                 files[guid] = folder
-                when (content.lcExtension) {
+                when (guidObject.lcExtension) {
                     in UnityReader.unityExtensions -> {
-                        val node = getYAML(guidObject.contentFile)
+                        val node = getYAML(guidObject)
                         parse(node, guid, folder)
                     }
                     else -> {
@@ -84,10 +83,10 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                         // to do there may be actual useful data in the meta file,
                         // to do e.g. import settings
                         // to do use this data to create a prefab, which then links to the original file
-                        val meta = getMeta(content)
+                        val meta = getMeta(guidObject)
                         val fileId = getMainId(meta)
                         // LOGGER.info("[89] fileId from $meta: $fileId, created link")
-                        InnerLinkFile(folder, fileId ?: content.name, content)
+                        InnerLinkFile(folder, fileId ?: guidObject.name, guidObject)
                     }
                 }
             }
@@ -120,14 +119,9 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         }
     }
 
-    fun register(guid: String, metaFile: FileReference, assetFile: FileReference) {
-        try {
-            synchronized(this) {
-                registry[guid] = GuidObject(parseYAML(metaFile.readText(), true), metaFile, assetFile)
-            }
-        } catch (e: Exception) {
-            LOGGER.warn("$e in $metaFile")
-            e.printStackTrace()
+    fun register(guid: String, assetFile: FileReference) {
+        synchronized(this) {
+            registry[guid] = assetFile
         }
     }
 
@@ -157,7 +151,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                             if (guid != null) {
                                 // LOGGER.info("Registered guid $file")
                                 val content = file.getSibling(file.nameWithoutExtension)
-                                registry[guid] = GuidObject(yaml, file, content)
+                                registry[guid] = content
                             } else LOGGER.warn("Didn't find guid in $file")
                             yamlCache[file] = yaml
                         } catch (e: IOException) {

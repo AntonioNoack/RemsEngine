@@ -6,6 +6,7 @@ import java.io.InputStream
 import java.util.concurrent.TimeoutException
 import kotlin.math.abs
 
+@Suppress("unused")
 class TimeoutInputStream(
     private val input: InputStream,
     private val timeoutMillis: Long

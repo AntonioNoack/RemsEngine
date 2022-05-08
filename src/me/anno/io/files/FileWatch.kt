@@ -40,7 +40,7 @@ object FileWatch {
 
     private val watched = HashMap<String, Pair<WatchKey, ArrayList<FileReference>?>>()
 
-    private val neverDisable = true
+    var neverDisable = true
 
     private fun addWatchDog(file: FileReference, original: FileReference) {
         if (Build.isShipped) return // no change will occur, as everything will be internal

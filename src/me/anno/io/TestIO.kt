@@ -41,6 +41,7 @@ fun main() {
     logger.info("when text is compressed: ${bos2.toByteArray().size}")*/
 
     // a special file, which does not work as a stream using the default ZipInputStream (only DEFLATED entries can have EXT descriptor)
+    @Suppress("SpellCheckingInspection")
     val ref = getReference(OS.downloads, "Stone_Wall_uljlcdwew_4K_surface_ms.zip")
     logger.info(ref.isSomeKindOfDirectory)
 
@@ -56,11 +57,12 @@ fun main() {
     /*val zis = ZipInputStream(ref.inputStream())
     while(true){
         val entry = zis.nextEntry ?: break
-        LOGGER.infoentry.name)
+        LOGGER.info(entry.name)
     }*/
 
 }
 
+@Suppress("unused")
 fun testConfig() {
     val logger = LogManager.getLogger("TestConfig")
     val configDefaults = StringMap()

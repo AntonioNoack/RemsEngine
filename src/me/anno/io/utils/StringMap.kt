@@ -77,6 +77,8 @@ open class StringMap(
         }
     }
 
+    // parameter can be called key or parameterName
+    // both are requested by Map and Saveable
     override operator fun get(key: String): Any? {
         synchronized(this) {
             onSyncAccess()
@@ -84,10 +86,10 @@ open class StringMap(
         }
     }
 
-    override operator fun set(key: String, value: Any?): Boolean {
+    override operator fun set(propertyName: String, value: Any?): Boolean {
         synchronized(this) {
             onSyncAccess()
-            val old = map.put(key, value)
+            val old = map.put(propertyName, value)
             if (old != value) wasChanged = true
         }
         return true

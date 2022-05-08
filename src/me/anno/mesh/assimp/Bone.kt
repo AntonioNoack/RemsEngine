@@ -39,6 +39,7 @@ class Bone(var id: Int, var parentId: Int, name: String) : NamedSaveable() {
         calculateInverseBindPose()
     }
 
+    @Suppress("unused")
     fun setInverseBindPose(m: Matrix4f) {
         inverseBindPose.set(m)
         offsetVector.set(m.m30(), m.m31(), m.m32())
