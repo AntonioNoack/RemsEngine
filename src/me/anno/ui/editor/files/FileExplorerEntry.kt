@@ -709,7 +709,7 @@ class FileExplorerEntry(
 
         private val LOGGER = LogManager.getLogger(FileExplorerEntry::class)
 
-        val videoBufferLength = 64
+        var videoBufferLength = 64
 
         private val charHHMMSS = "hh:mm:ss/hh:mm:ss".toCharArray()
         private val charMMSS = "mm:ss/mm:ss".toCharArray()
@@ -773,6 +773,7 @@ class FileExplorerEntry(
             )
         }
 
+        @Suppress("unused")
         fun drawLoadingCircle(stack: Matrix4fArrayList, relativeTime: Float) {
             GFXx3D.draw3DCircle(
                 stack, 0f,

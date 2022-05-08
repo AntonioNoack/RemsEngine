@@ -18,6 +18,7 @@ class Draggable(
         title: String, style: Style
     ) : this(content, contentType, original, TextPanel(title, style))
 
+    @Suppress("unused")
     constructor(
         content: String, contentType: String, original: Any?,
         style: Style

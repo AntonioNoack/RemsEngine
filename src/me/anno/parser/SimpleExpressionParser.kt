@@ -377,7 +377,7 @@ object SimpleExpressionParser {
                 wasChanged = true
             }
         }
-        // searched: ] to close a vector
+        // searched: ']' to close a vector
         loop@ for (i in 1 until size) {
             val vector = this[i - 1] as? Vector ?: continue
             if (this[i] == ']' && !vector.isClosed) {
@@ -432,7 +432,7 @@ object SimpleExpressionParser {
         val chars = condition.filter { it.isCounted() }.toSet().toList()
     }
 
-    val isName = { x: Any -> x is String && x.isNotEmpty() }
+    // val isName = { x: Any -> x is String && x.isNotEmpty() }
     val isFunctionName = Array(6) {
         val reference = when (it) {
             1 -> functions1
@@ -598,8 +598,7 @@ object SimpleExpressionParser {
     }
 
     var knownMessages = HashSet<String>()
-    fun parseDouble(parts: CountingList?) = parseDouble(parts, null)
-    fun parseDouble(parts: CountingList?, additionalConstants: Map<String, Any>?): Double? {
+    fun parseDouble(parts: CountingList?, additionalConstants: Map<String, Any>? = null): Double? {
 
         val parts2 = simplify(parts, additionalConstants) ?: return null
         return when (parts2.size) {

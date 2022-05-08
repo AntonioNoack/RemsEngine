@@ -83,6 +83,7 @@ object Grid {
         drawSmoothLine(x0 - x, y0 - y, x1 - x, y1 - y, w, h, color, alpha)
     }
 
+    @Suppress("unused")
     fun drawSmoothLine(
         x0: Float, y0: Float, x1: Float, y1: Float,
         x: Int, y: Int, w: Int, h: Int, color: Int, alpha: Float
@@ -113,13 +114,13 @@ object Grid {
         }
     }
 
+    @Suppress("unused")
     fun drawLineXW(
         x0: Float, y0: Float,
         x1: Float, y1: Float,
         x: Int, y: Int,
         w: Int, h: Int, color: Int, alpha: Float
     ) = drawLine0W(x0 - x, y0 - y, x1 - x, y1 - y, w, h, color, alpha)
-
 
     fun drawLine0W(
         x0: Float, y0: Float, x1: Float, y1: Float,
@@ -238,6 +239,7 @@ object Grid {
 
     }
 
+    @Suppress("unused")
     fun drawBuffer(stack: Matrix4fArrayList, color: Vector4fc, buffer: StaticBuffer) {
 
         if (color.w() <= 0f) return

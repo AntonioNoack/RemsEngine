@@ -36,6 +36,7 @@ object Menu {
     const val menuSeparator = "-----"
 
     // used in Rem's Studio, maybe should be moved there
+    @Suppress("unused")
     val menuSeparator1 = MenuOption(NameDesc(menuSeparator, "", "")) {}
 
     fun msg(windowStack: WindowStack, title: NameDesc) {
@@ -178,6 +179,7 @@ object Menu {
 
     }
 
+    @Suppress("unused")
     fun openMenuByPanels(windowStack: WindowStack, title: NameDesc, panels: List<Panel>): Window? {
         // GFX.updateMousePosition()
         // windowStack.updateMousePosition(window)
@@ -233,10 +235,11 @@ object Menu {
                         window.x += dx.roundToInt()
                         window.y += dy.roundToInt()
                         invalidateLayout()
+                        return
                     } else if (rightDown) {
                         // todo scale somehow...
-
                     }
+                    super.onMouseMoved(x, y, dx, dy)
                 }
             }
             titlePanel.tooltip = title.desc
@@ -301,6 +304,7 @@ object Menu {
 
     }
 
+    @Suppress("unused")
     fun openMenuComplex(
         windowStack: WindowStack,
         x: Float,

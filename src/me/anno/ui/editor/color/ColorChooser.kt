@@ -243,7 +243,7 @@ open class ColorChooser(
     override fun clone(): ColorChooser {
         val clone = ColorChooser(
             style, withAlpha,
-            palette.clone() as ColorPalette
+            palette.clone()
         )
         copy(clone)
         return clone
@@ -268,7 +268,7 @@ open class ColorChooser(
 
     companion object {
         private val LOGGER = LogManager.getLogger(ColorChooser::class)
-        val circleBarRatio = 0.2f
+        var circleBarRatio = 0.2f
         var lastVisualisation: ColorVisualisation? = null
         var lastColorSpace: ColorSpace? = null
         fun getDefaultColorSpace(): ColorSpace {

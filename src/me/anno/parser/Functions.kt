@@ -8,7 +8,7 @@ import kotlin.math.*
 
 object Functions {
 
-    fun UnknownFunction(name: String, paramString: String): Throwable {
+    fun onUnknownFunction(name: String, paramString: String): Throwable {
         val lcName = name.lowercase(Locale.getDefault())
         val f0 = functions0[name] ?: functions0[lcName]
         val f1 = functions1[name] ?: functions1[lcName]
@@ -35,7 +35,7 @@ object Functions {
             if (this[i - 0] != ')') continue
             val name = this[i - 2] as? String ?: continue
             val function =
-                functions0[name] ?: functions0[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(name, "x")
+                functions0[name] ?: functions0[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(name, "x")
             for (j in 0 until 2) removeAt(i - j)
             this[i - 2] = function()
             applyFunc0()
@@ -51,7 +51,7 @@ object Functions {
             val name = this[i - 3] as? String ?: continue
             val x = this[i - 1] as? Double ?: continue
             val function =
-                functions1[name] ?: functions1[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(name, "x")
+                functions1[name] ?: functions1[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(name, "x")
             for (j in 0 until 3) removeAt(i - j)
             this[i - 3] = function(x)
             applyFunc1()
@@ -69,7 +69,7 @@ object Functions {
             val x = this[i - 3] as? Double ?: continue
             val y = this[i - 1] as? Double ?: continue
             val function =
-                functions2[name] ?: functions2[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(
+                functions2[name] ?: functions2[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
                     name,
                     "x,y"
                 )
@@ -92,7 +92,7 @@ object Functions {
             val y = this[i - 3] as? Double ?: continue
             val z = this[i - 1] as? Double ?: continue
             val function =
-                functions3[name] ?: functions3[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(
+                functions3[name] ?: functions3[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
                     name,
                     "x,y,z"
                 )
@@ -117,7 +117,7 @@ object Functions {
             val z = this[i - 3] as? Double ?: continue
             val w = this[i - 1] as? Double ?: continue
             val function =
-                functions4[name] ?: functions4[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(
+                functions4[name] ?: functions4[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
                     name,
                     "x,y,z,w"
                 )
@@ -133,7 +133,7 @@ object Functions {
      * apply functions with five arguments
      * longer functions than that could be used, but the longer a function is,
      * the more complex remembering their order gets ;)
-     * our simple expression language is meant for simple stuff only anyways
+     * our simple expression language is meant for simple stuff only anyway
      * */
     fun MutableList<Any>.applyFunc5(): Boolean {
         for (i in 11 until size) {
@@ -150,7 +150,7 @@ object Functions {
             val d = this[i - 3] as? Double ?: continue
             val e = this[i - 1] as? Double ?: continue
             val function =
-                functions5[name] ?: functions5[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(
+                functions5[name] ?: functions5[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
                     name,
                     "a,b,c,d,e"
                 )
@@ -169,7 +169,10 @@ object Functions {
     val functions4 = HashMap<String, (Double, Double, Double, Double) -> Double>()
     val functions5 = HashMap<String, (Double, Double, Double, Double, Double) -> Double>()
 
+    @Suppress("unused")
     val unaryFunctions = functions1
+
+    @Suppress("unused")
     val binaryFunctions = functions2
 
     val constants = HashMap<String, Double>()

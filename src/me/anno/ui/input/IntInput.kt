@@ -2,7 +2,6 @@ package me.anno.ui.input
 
 import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.pow
 import me.anno.parser.SimpleExpressionParser
@@ -42,11 +41,13 @@ open class IntInput(
 
     constructor(style: Style) : this(style, "", "", Type.INT)
 
+    @Suppress("unused")
     constructor(title: String, visibilityKey: String, value0: Int, type: Type, style: Style) :
             this(style, title, visibilityKey, type) {
         setValue(value0, false)
     }
 
+    @Suppress("unused")
     constructor(title: String, visibilityKey: String, value0: Long, type: Type, style: Style) :
             this(style, title, visibilityKey, type) {
         setValue(value0, false)
@@ -67,7 +68,7 @@ open class IntInput(
             val trimmed = text.trim()
             return if (trimmed.isEmpty()) 0L
             else trimmed.toLongOrNull() ?: SimpleExpressionParser.parseDouble(trimmed)?.roundToLong()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
         }
         return 0L
     }

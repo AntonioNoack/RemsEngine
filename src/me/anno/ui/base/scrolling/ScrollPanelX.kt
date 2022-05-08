@@ -28,10 +28,10 @@ open class ScrollPanelX(
     }
 
     @NotSerializedProperty
-    var lsp = -1.0
+    var lastScrollPosX = -1.0
 
     @NotSerializedProperty
-    var lmsp = -1L
+    var lastMaxScrollPosX = -1L
 
     override var scrollPositionX = 0.0
 
@@ -56,9 +56,9 @@ open class ScrollPanelX(
         val my = window.mouseYi
         scrollbar.isBeingHovered = capturesChildEvents(mx, my)
         if (scrollbar.updateAlpha()) invalidateDrawing()
-        if (scrollPositionX != lsp || maxScrollPositionX != lmsp) {
-            lsp = scrollPositionX
-            lmsp = maxScrollPositionX
+        if (scrollPositionX != lastScrollPosX || maxScrollPositionX != lastMaxScrollPosX) {
+            lastScrollPosX = scrollPositionX
+            lastMaxScrollPosX = maxScrollPositionX
             window.needsLayout += this
         }
     }

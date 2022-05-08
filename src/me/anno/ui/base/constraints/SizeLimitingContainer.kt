@@ -1,5 +1,7 @@
 package me.anno.ui.base.constraints
 
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.base.BaseWriter
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
@@ -16,6 +18,27 @@ class SizeLimitingContainer(child: Panel, var sizeX: Int, var sizeY: Int, style:
         super.calculateSize(limitedW, limitedH)
         if (sizeX >= 0) minW = min(minW, padding.width + sizeX)
         if (sizeY >= 0) minH = min(minH, padding.height + sizeY)
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as SizeLimitingContainer
+        clone.sizeX = sizeX
+        clone.sizeY = sizeY
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeInt("sizeX", sizeX)
+        writer.writeInt("sizeY", sizeY)
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when (name) {
+            "sizeX" -> sizeX = value
+            "sizeY" -> sizeY = value
+            else -> super.readInt(name, value)
+        }
     }
 
     override val className: String = "SizeLimitingContainer"

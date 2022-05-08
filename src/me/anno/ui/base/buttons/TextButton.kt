@@ -49,7 +49,7 @@ open class TextButton(
 
     init {
         padding += borderSize
-        this += WrapAlign.LeftTop
+        add(WrapAlign.LeftTop)
     }
 
     var isInputAllowed = true

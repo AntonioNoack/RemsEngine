@@ -14,6 +14,7 @@ open class LinkPanel(link: String, style: Style) : TextPanel(link, style.getChil
 
     constructor(style: Style) : this("", style)
 
+    @Suppress("unused")
     constructor(link: URL, style: Style) : this(link.toString(), style)
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {

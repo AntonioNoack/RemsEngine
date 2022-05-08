@@ -3,6 +3,7 @@ package me.anno.studio
 import org.apache.commons.cli.CommandLine
 import org.apache.logging.log4j.LogManager
 
+@Suppress("unused")
 object CommandLines {
 
     fun warn(name: String, value: String, defaultValue: Any) {

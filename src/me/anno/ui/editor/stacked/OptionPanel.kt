@@ -8,7 +8,6 @@ import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
-import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.PropertyInspector
@@ -81,6 +80,6 @@ class OptionPanel(
         }
     }
 
-    override fun getMultiSelectablePanel(): Panel? = this
+    override fun getMultiSelectablePanel() = this
 
 }

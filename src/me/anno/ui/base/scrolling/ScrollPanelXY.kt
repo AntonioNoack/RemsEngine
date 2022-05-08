@@ -22,16 +22,16 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     open val content get() = child
 
     @NotSerializedProperty
-    private var lspX = -1.0
+    private var lastScrollPosX = -1.0
 
     @NotSerializedProperty
-    private var lspY = -1.0
+    private var lastScrollPosY = -1.0
 
     @NotSerializedProperty
-    private var lmspX = -1L
+    private var lastMaxScrollPosX = -1L
 
     @NotSerializedProperty
-    private var lmspY = -1L
+    private var lastMaxScrollPosY = -1L
 
     override fun tickUpdate() {
         super.tickUpdate()
@@ -43,15 +43,15 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         if (scrollbarX.updateAlpha()) invalidateDrawing()
         if (scrollbarY.updateAlpha()) invalidateDrawing()
         if (
-            scrollPositionX != lspX ||
-            scrollPositionY != lspY ||
-            maxScrollPositionX != lmspX ||
-            maxScrollPositionY != lmspY
+            scrollPositionX != lastScrollPosX ||
+            scrollPositionY != lastScrollPosY ||
+            maxScrollPositionX != lastMaxScrollPosX ||
+            maxScrollPositionY != lastMaxScrollPosY
         ) {
-            lspX = scrollPositionX
-            lspY = scrollPositionY
-            lmspX = maxScrollPositionX
-            lmspY = maxScrollPositionY
+            lastScrollPosX = scrollPositionX
+            lastScrollPosY = scrollPositionY
+            lastMaxScrollPosX = maxScrollPositionX
+            lastMaxScrollPosY = maxScrollPositionY
             window.needsLayout += this
         }
     }
@@ -250,7 +250,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
 
     companion object {
 
-        val minWeight = 0.0001f
+        const val minWeight = 0.0001f
 
         val scrollSpeed get() = DefaultConfig["ui.scroll.speed", 30f]
 

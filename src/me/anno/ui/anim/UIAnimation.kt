@@ -34,7 +34,7 @@ abstract class UIAnimation(
 
     fun clone() = TextReader.readFirst<UIAnimation>(
         TextWriter.toText(this, StudioBase.workspace), StudioBase.workspace
-    )!!
+    )
 
     override val className: String = "UIAnimation"
 }

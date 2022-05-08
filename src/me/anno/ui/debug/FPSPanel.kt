@@ -9,7 +9,7 @@ import kotlin.math.roundToInt
 
 object FPSPanel {
 
-    val text = "xxxxxx, min: xxxxxx".toCharArray()
+    val text = "theFPS, min: theFPS".toCharArray()
 
     fun add(nanos: Long, color: Int) {
         FrameTimes.putValue(nanos * 1e-9f, color)

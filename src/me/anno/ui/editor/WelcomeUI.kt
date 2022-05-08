@@ -282,7 +282,7 @@ abstract class WelcomeUI {
                 return fileNameIsOk(parent ?: return true)
             }
 
-            // todo check if we have write and read access
+            // todo check if we have write- and read-access
             val file = fileInput.file
             var state = "ok"
             var msg = ""

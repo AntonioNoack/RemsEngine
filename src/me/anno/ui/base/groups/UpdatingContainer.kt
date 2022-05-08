@@ -7,6 +7,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
 import kotlin.math.abs
 
+@Suppress("unused")
 class UpdatingContainer(updateMillis: Long, val getter: () -> Panel?, style: Style) :
     PanelContainer(getter() ?: Panel(style), Padding.Zero, style) {
 

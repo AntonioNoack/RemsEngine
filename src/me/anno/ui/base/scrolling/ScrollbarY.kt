@@ -1,5 +1,6 @@
 package me.anno.ui.base.scrolling
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.maths.Maths.mulAlpha
@@ -7,7 +8,13 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 import kotlin.math.max
 
-class ScrollbarY(val scrollable: ScrollableY, style: Style) : Scrollbar(style) {
+open class ScrollbarY(val scrollable: ScrollableY, style: Style) : Scrollbar(style) {
+
+    final override var parent: PrefabSaveable?
+        get() = super.parent
+        set(value) {
+            super.parent = value
+        }
 
     init {
         parent = scrollable as PanelGroup

@@ -4,6 +4,7 @@ import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 
+@Suppress("unused")
 enum class GFXSettings(
     val id: Int,
     private val displayNameEn: String,

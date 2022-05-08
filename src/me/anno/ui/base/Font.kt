@@ -59,6 +59,7 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
     var sample = lazy { SampleSize(this) }
     val sampleWidth get() = sample.value.width
     val sampleHeight get() = sample.value.height
+    @Suppress("unused")
     val sampleSize get() = sample.value.size
 
     fun invalidate() {

@@ -54,21 +54,24 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
                     buffer.put(+l, -l)
                 } else {
                     // secondary faces: quad rings
-                    for (j in 0 until 6) {
+                    for (j in 0 until 4) {
                         fun put(x0: Float, y0: Float) {
                             when (j) {
                                 0 -> buffer.put(+x0, +y0)
                                 1 -> buffer.put(-x0, -y0)
                                 2 -> buffer.put(-y0, +x0)
-                                3 -> buffer.put(+x0, +y0)
-                                4 -> buffer.put(-y0, +x0)
-                                5 -> buffer.put(+y0, -x0)
+                                3 -> buffer.put(+y0, -x0)
                             }
                         }
-                        put(+s, -s)
-                        put(+s, +s)
-                        put(+l, +l)
-                        put(+l, -l)
+
+                        put(+s, +s) // 0
+                        put(+l, +l) // 1
+                        put(-l, +l) // 2
+
+                        put(+s, +s) // 0
+                        put(-l, +l) // 2
+                        put(-s, +s) // 3
+
                     }
                 }
             }

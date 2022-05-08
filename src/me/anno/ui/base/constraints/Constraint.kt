@@ -10,6 +10,6 @@ abstract class Constraint(val order: Int) : Saveable() {
 
     abstract fun apply(panel: Panel)
 
-    fun clone() = TextReader.readFirst<Constraint>(TextWriter.toText(this, InvalidRef), InvalidRef, false)!!
+    open fun clone() = TextReader.readFirst<Constraint>(TextWriter.toText(this, InvalidRef), InvalidRef, false)
 
 }

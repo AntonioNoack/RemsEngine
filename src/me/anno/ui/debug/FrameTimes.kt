@@ -74,7 +74,7 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
         draw(x, y, x + w, y + h)
     }
 
-    val drawInts get() = OS.isAndroid
+    val withoutInterpolation get() = OS.isAndroid
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
@@ -93,7 +93,7 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
             val width = width
             val indexOffset = nextIndex - 1 + width
 
-            if (drawInts) {
+            if (withoutInterpolation) {
 
                 var lastX = x0
                 var lastBarHeight = 0

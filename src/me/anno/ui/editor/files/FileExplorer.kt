@@ -455,7 +455,7 @@ abstract class FileExplorer(
         progress.finish()
         try {
             tmp?.delete()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
         }
     }
 

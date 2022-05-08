@@ -5,6 +5,7 @@ import me.anno.ui.Panel
 import kotlin.math.max
 import kotlin.math.min
 
+@Suppress("unused")
 class WrapAlign(
     var alignX: AxisAlignment?,
     var alignY: AxisAlignment?

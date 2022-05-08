@@ -1,5 +1,6 @@
 package me.anno.ui.base.constraints
 
+@Suppress("unused")
 enum class AxisAlignment(val id: Int, val xName: String, val yName: String){
     MIN(-1, "Left", "Top"){
         override fun getOffset(parentW: Int, minW: Int): Int = 0 },

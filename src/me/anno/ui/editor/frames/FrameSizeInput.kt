@@ -11,6 +11,8 @@ import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
 import java.util.*
 
+/** input for width and height; offers presets and a custom input field; used in Rem's Studio */
+@Suppress("unused")
 class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(style) {
 
     private val val0 = value0.parseResolution() ?: defaultResolution

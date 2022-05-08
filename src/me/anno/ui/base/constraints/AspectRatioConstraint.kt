@@ -8,7 +8,7 @@ import kotlin.math.roundToInt
 class AspectRatioConstraint
 private constructor(var ratio: Float?, val getRatio: (() -> Float)?) : Constraint(25) {
 
-    constructor(): this(1f)
+    constructor() : this(1f)
     constructor(ratio: Float) : this(ratio, null)
     constructor(getRatio: (() -> Float)) : this(null, getRatio)
 
@@ -34,6 +34,10 @@ private constructor(var ratio: Float?, val getRatio: (() -> Float)?) : Constrain
         super.save(writer)
         val ratio = ratio
         if (ratio != null) writer.writeFloat("ratio", ratio)
+    }
+
+    override fun clone(): Constraint {
+        return AspectRatioConstraint(ratio, getRatio)
     }
 
     override val className = "AspectRatioConstraint"

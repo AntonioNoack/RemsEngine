@@ -7,16 +7,16 @@ import kotlin.math.min
 
 object HSVColorSpace {
 
-    val GLSL = "" +
+    const val GLSL = "" +
             "vec3 spaceToRGB(vec3 hsv){" +
-            "   float h = hsv.x;\n" +
+            "   float h = hsv.x, h6 = h * 6.0;\n" +
             "   float c = hsv.z * hsv.y\n;" +
-            "   float x = c * (1.0 - abs(mod(h*${(360.0/60.0)}, 2.0) - 1.0));\n" +
+            "   float x = c * (1.0 - abs(mod(h6, 2.0) - 1.0));\n" +
             "   float m = hsv.z - c;\n" +
-            "   vec3 rgb = h < 0.5 ? (\n" +
-            "       h < ${1.0/6.0} ? vec3(c,x,0.0) : h < ${2.0/6.0} ? vec3(x,c,0.0) : vec3(0.0,c,x) \n" +
+            "   vec3 rgb = h6 < 3.0 ? (\n" +
+            "       h6 < 1.0 ? vec3(c,x,0.0) : h6 < 2.0 ? vec3(x,c,0.0) : vec3(0.0,c,x) \n" +
             "   ) : (\n" +
-            "       h < ${4.0/6.0} ? vec3(0.0,x,c) : h < ${5.0/6.0} ? vec3(x,0.0,c) : vec3(c,0.0,x)\n" +
+            "       h6 < 4.0 ? vec3(0.0,x,c) : h6 < 5.0 ? vec3(x,0.0,c) : vec3(c,0.0,x)\n" +
             "   );\n" +
             "   return m + rgb;\n" +
             "}"
