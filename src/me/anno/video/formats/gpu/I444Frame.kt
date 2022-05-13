@@ -7,7 +7,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
-import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 
 // this seems to work, and to be correct

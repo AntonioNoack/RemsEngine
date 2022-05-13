@@ -5,9 +5,8 @@ import me.anno.network.Protocol
 import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.utils.Warning.unused
-import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.IOException
-import kotlin.math.max
 
 abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000) :
     Protocol(methodToMagic(method), NetworkProtocol.TCP) {

@@ -183,7 +183,11 @@ object PrefabCache : CacheSection("Prefab") {
         async: Boolean = false
     ): ISaveable? {
         val pair = getPrefabPair(resource, depth, async) ?: return null
-        return pair.instance ?: pair.prefab?.getSampleInstance(depth)
+        return pair.instance ?: try {
+            pair.prefab?.getSampleInstance(depth)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private fun getPrefabPair(
@@ -221,11 +225,11 @@ object PrefabCache : CacheSection("Prefab") {
         depth: Int,
         clazz: String
     ): PrefabSaveable {
-        // todo here is some kind of race condition taking place
+        // to do here is some kind of race condition taking place
         // without this println, or Thread.sleep(),
         // prefabs extending ScenePrefab will not produce correct instances
         // LOGGER.info("Creating instance from thread ${Thread.currentThread().name}, from '${prefab?.source}', ${prefab?.adds?.size} adds + ${prefab?.sets?.size}")
-        Thread.sleep(10)
+        // Thread.sleep(10)
         val instance = createSuperInstance(superPrefab, depth, clazz)
         instance.changePaths(prefab, Path.ROOT_PATH)
         adds?.forEachIndexed { index, add ->

@@ -47,6 +47,8 @@ object SDFRegistry {
         registerCustomClass(SDFTriangleArray())
         registerCustomClass(SDFTwist())
         registerCustomClass(SDFVoronoiArray())
+        // physics
+        registerCustomClass(SDFCollider())
     }
 
 }

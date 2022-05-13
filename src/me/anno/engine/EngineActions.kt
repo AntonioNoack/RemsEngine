@@ -2,6 +2,7 @@ package me.anno.engine
 
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.gpu.GFX
+import me.anno.gpu.drawLogo
 import me.anno.input.ActionManager
 import me.anno.input.Modifiers
 import me.anno.io.files.FileReference.Companion.getReference
@@ -9,6 +10,7 @@ import me.anno.io.utils.StringMap
 import me.anno.studio.StudioBase
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.utils.WindowStack.Companion.printLayout
+import me.anno.utils.LOGGER
 
 @Suppress("MemberVisibilityCanBePrivate")
 object EngineActions {
@@ -19,7 +21,11 @@ object EngineActions {
             "ToggleFullscreen" to { GFX.focussedWindow?.toggleFullscreen(); true },
             "PrintLayout" to { printLayout();true },
             "DragEnd" to {
+
                 val dragged = StudioBase.dragged
+
+                LOGGER.debug("Executing DragEnd, $dragged")
+
                 if (dragged != null) {
 
                     val type = dragged.getContentType()
@@ -28,15 +34,19 @@ object EngineActions {
                     val window = GFX.focussedWindow
                     if (window != null) when (type) {
                         "File" -> {
-                            GFX.hoveredPanel?.onPasteFiles(
+                            val hp = GFX.hoveredPanel
+                            if (hp != null) hp.onPasteFiles(
                                 window.mouseX, window.mouseY,
                                 data.split("\n").map { getReference(it) }
                             )
+                            else LOGGER.warn("No panel was hovered for drop")
                         }
                         else -> {
-                            GFX.hoveredPanel?.onPaste(window.mouseX, window.mouseY, data, type)
+                            val hp = GFX.hoveredPanel
+                            if (hp != null) hp.onPaste(window.mouseX, window.mouseY, data, type)
+                            else LOGGER.warn("No panel was hovered for drop")
                         }
-                    }
+                    } else LOGGER.warn("Could not drop, because no window was focussed")
 
                     StudioBase.dragged = null
 
@@ -114,6 +124,7 @@ object EngineActions {
         register["global.h.t", "ToggleHideObject"]
 
         // press instead of down for the delay
+        register["FileInput.left.press", "DragStart"]
         register["ColorPaletteEntry.left.press", "DragStart"]
         register["SceneTab.left.press", "DragStart"]
         register["FileEntry.left.press", "DragStart"]

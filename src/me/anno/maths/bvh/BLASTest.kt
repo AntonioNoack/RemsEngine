@@ -21,6 +21,7 @@ import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.mixARGB2
 import me.anno.maths.bvh.RayTracing.glslBLASIntersection
 import me.anno.maths.bvh.RayTracing.glslIntersections
+import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.utils.Clock
 import me.anno.utils.Color.toRGB
 import me.anno.utils.OS.desktop
@@ -96,6 +97,7 @@ fun createShader(useBVH: Boolean, maxDepth: Int, mesh: Mesh?): ComputeShader {
                 glslIntersections +
                 quatRot +
                 "#define BLAS_DEPTH $maxDepth\n" +
+                loadMat4x3 +
                 glslBLASIntersection +
                 "void main(){\n" +
                 "   uint nodeCtr=0;\n" +

@@ -1,6 +1,7 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.gpu.GFX
@@ -99,16 +100,18 @@ class AnimGameItem(
         // todo RTX 3070 just like GT 1030 have the same bone uniform count problem
         //  - transform this uniform array to textures instead; this would allow for instanced animations as well, which would be nice :)
 
-        val matrixSize = 12 // at least on an Nvidia GPU (RTX 3070 and GT 1030), I maxed out the limit by just 256 matrices...
-        val maxBones: Int
-        init {
+        // at least on an Nvidia GPU (RTX 3070 and GT 1030), I maxed out the limit by just 256 matrices...
+        const val matrixSize = 12
+        val maxBones = if (useAnimTextures) 256 // limited by indices that can be packed into a byte
+        else {
+            // limited by number of assignable uniform matrices
             val matrixUniforms = 12
             val maxBonesByComponents = GFX.maxVertexUniformComponents / matrixSize - 40
             val maxBonesByUniforms = GFX.maxUniforms / matrixUniforms - 30
-            maxBones = Maths.clamp(min(maxBonesByComponents, maxBonesByUniforms), 4, 128)
+            Maths.clamp(min(maxBonesByComponents, maxBonesByUniforms), 4, 128)
         }
 
-        val matrixBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
+        val matrixBuffer: FloatBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
         val tmpMatrices = Array(maxBones) { Matrix4x3f() }
 
         private val LOGGER = LogManager.getLogger(AnimGameItem::class)

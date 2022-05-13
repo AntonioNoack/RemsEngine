@@ -6,7 +6,7 @@ import me.anno.utils.types.AABBs.volume
 import org.joml.AABBf
 import org.joml.Vector3f
 
-// to do this is very similar to BLASBranch. We probably could combine them
+// this is very similar to BLASBranch. We probably could combine them
 class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABBf) : TLASNode(bounds) {
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit) {

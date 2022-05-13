@@ -27,7 +27,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.hex4
-import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.types.InputStreams.readNBytes2
 import kotlin.math.ceil
 import kotlin.math.log2
 

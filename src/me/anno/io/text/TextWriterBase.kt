@@ -862,6 +862,46 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4fc>, force: Boolean) =
         writeArray(name, values, force, "m4x4[]") { writeMatrix(it) }
 
+    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2fc>>, force: Boolean) {
+        writeArray(name, values, force, "m2x2[][]") { array ->
+            writeArray(array.size, array.size) {
+                writeMatrix(array[it])
+            }
+        }
+    }
+
+    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2fc>>, force: Boolean) {
+        writeArray(name, values, force, "m3x2[][]") { array ->
+            writeArray(array.size, array.size) {
+                writeMatrix(array[it])
+            }
+        }
+    }
+
+    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3fc>>, force: Boolean) {
+        writeArray(name, values, force, "m3x3[][]") { array ->
+            writeArray(array.size, array.size) {
+                writeMatrix(array[it])
+            }
+        }
+    }
+
+    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3fc>>, force: Boolean) {
+        writeArray(name, values, force, "m4x3[][]") { array ->
+            writeArray(array.size, array.size) {
+                writeMatrix(array[it])
+            }
+        }
+    }
+
+    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4fc>>, force: Boolean) {
+        writeArray(name, values, force, "m4x4[][]") { array ->
+            writeArray(array.size, array.size) {
+                writeMatrix(array[it])
+            }
+        }
+    }
+
     override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
         writeAttributeStart("m4x4", name)
         writeMatrix(value)
@@ -966,6 +1006,46 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeMatrix4x4dArray(name: String, values: Array<Matrix4dc>, force: Boolean) =
         writeArray(name, values, force, "m4x4d[]") { writeMatrix(it) }
+
+    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2dc>>, force: Boolean) {
+        writeArray(name, values, force, "m2x2d[][]") { array ->
+            writeArray(array.size, array.size) {
+                writeMatrix(array[it])
+            }
+        }
+    }
+
+    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2dc>>, force: Boolean) {
+        writeArray(name, values, force, "m3x2d[][]") { array ->
+            writeArray(array.size, array.size) {
+                writeMatrix(array[it])
+            }
+        }
+    }
+
+    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3dc>>, force: Boolean) {
+        writeArray(name, values, force, "m3x3d[][]") { array ->
+            writeArray(array.size, array.size) {
+                writeMatrix(array[it])
+            }
+        }
+    }
+
+    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3dc>>, force: Boolean) {
+        writeArray(name, values, force, "m4x3d[][]") { array ->
+            writeArray(array.size, array.size) {
+                writeMatrix(array[it])
+            }
+        }
+    }
+
+    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4dc>>, force: Boolean) {
+        writeArray(name, values, force, "m4x4[][]") { array ->
+            writeArray(array.size, array.size) {
+                writeMatrix(array[it])
+            }
+        }
+    }
 
     // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
     private fun clamp2x2Relative(tmp: FloatArray, scale: Float = 1e-7f) {

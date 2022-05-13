@@ -1,4 +1,4 @@
-package me.anno.mesh.vox.format
+package me.anno.mesh.vox
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd

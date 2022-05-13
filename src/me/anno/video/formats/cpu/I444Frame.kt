@@ -3,7 +3,7 @@ package me.anno.video.formats.cpu
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
-import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 
 // this seems to work, and to be correct

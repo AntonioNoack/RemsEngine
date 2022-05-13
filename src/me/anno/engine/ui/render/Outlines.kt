@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.gpu.OpenGL
+import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.pipeline.CullMode
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.shader.ShaderLib
@@ -17,12 +18,14 @@ import org.joml.Matrix4d
 
 object Outlines {
 
-    private val LOGGER = LogManager.getLogger(Outlines::class)
+    // private val LOGGER = LogManager.getLogger(Outlines::class)
 
     private val tmpMat4d = Matrix4d()
 
     fun drawOutline(entity: Entity, worldScale: Double) {
         whiteTexture.bind(0) // for the albedo
+        DrawAABB.drawAABB(entity.aabb, worldScale, RenderView.aabbColorHovered)
+        LineBuffer.finish(RenderView.cameraMatrix)
         drawOutlineInternally(entity, worldScale)
     }
 

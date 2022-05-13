@@ -22,7 +22,7 @@ object Color {
     fun Int.withAlpha(alpha: Float): Int = rgba(r(), g(), b(), (255f * alpha).roundToInt())
     fun Int.mulAlpha(alpha: Float): Int = rgba(r(), g(), b(), (a() * alpha).roundToInt())
     fun Int.mulARGB(other: Int): Int =
-        rgba(r() * other.r() / 255, g() * other.g() / 255, b() * other.b() / 255, a() * other.a() / 255)
+        rgba((r() * other.r()) / 255, (g() * other.g()) / 255, (b() * other.b()) / 255, (a() * other.a()) / 255)
 
     fun rgb(r: Byte, g: Byte, b: Byte): Int = r.toInt().and(255).shl(16) or
             g.toInt().and(255).shl(8) or
@@ -73,8 +73,8 @@ object Color {
         return dr + dg + db
     }
 
-    fun Int.toVecRGBA() = Vector4f(r() / 255f, g() / 255f, b() / 255f, a() / 255f)
-    fun Int.toVecRGB() = Vector3f(r() / 255f, g() / 255f, b() / 255f)
+    fun Int.toVecRGBA() = Vector4f(r01(), g01(), b01(), a01())
+    fun Int.toVecRGB() = Vector3f(r01(), g01(), b01())
 
     const val base36 = "0123456789abcdefghijklmnopqrstuvwxyz"
 

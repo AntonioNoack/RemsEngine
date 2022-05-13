@@ -1,41 +1,99 @@
 package me.anno.animation
 
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.clamp
 
-enum class LoopingState(val id: Int, val naming: NameDesc){
-    PLAY_ONCE(0, NameDesc("Once")),
-    PLAY_LOOP(1, NameDesc("Looping")),
-    PLAY_REVERSING_LOOP(2, NameDesc("Reversing"));
+enum class LoopingState(val id: Int, val naming: NameDesc) {
+    PLAY_ONCE(0, NameDesc("Once")) {
+        override fun get(time: Float, duration: Float): Float {
+            return clamp(time, 0f, duration)
+        }
 
-    operator fun get(time: Double, duration: Double) = when(this){
-        PLAY_ONCE -> time
-        PLAY_LOOP -> time % duration
-        PLAY_REVERSING_LOOP -> {
-            val time0 = time % (2 * duration)
-            if(time0 >= duration){
+        override fun get(time: Double, duration: Double): Double {
+            return clamp(time, 0.0, duration)
+        }
+
+        override fun get(time: Int, duration: Int): Int {
+            return clamp(time, 0, duration)
+        }
+
+        override fun get(time: Long, duration: Long): Long {
+            return clamp(time, 0, duration)
+        }
+    },
+    PLAY_LOOP(1, NameDesc("Looping")) {
+
+        override fun get(time: Float, duration: Float): Float {
+            return time % duration
+        }
+
+        override fun get(time: Double, duration: Double): Double {
+            return time % duration
+        }
+
+        override fun get(time: Int, duration: Int): Int {
+            return time % duration
+        }
+
+        override fun get(time: Long, duration: Long): Long {
+            return time % duration
+        }
+    },
+    PLAY_REVERSING_LOOP(2, NameDesc("Reversing")) {
+
+        override fun get(time: Float, duration: Float): Float {
+            val doubleDuration = 2f * duration
+            val time0 = time % doubleDuration
+            return if (time0 >= duration) {
                 // reverse
-                2 * duration - time0
+                doubleDuration - time0
             } else {
                 // play usually
                 time0
             }
         }
-    }
 
-    operator fun get(index: Long, maxSampleIndex: Long) = when(this){
-        PLAY_ONCE -> index
-        PLAY_LOOP -> index % maxSampleIndex
-        PLAY_REVERSING_LOOP -> {
-            val index0 = index % (2 * maxSampleIndex)
-            if(index0 >= maxSampleIndex){
+        override fun get(time: Double, duration: Double): Double {
+            val doubleDuration = 2.0 * duration
+            val time0 = time % doubleDuration
+            return if (time0 >= duration) {
                 // reverse
-                2 * maxSampleIndex - index0
+                doubleDuration - time0
             } else {
                 // play usually
-                index0
+                time0
             }
         }
-    }
+
+        override fun get(time: Int, duration: Int): Int {
+            val doubleDuration = 2 * duration
+            val time1 = time % doubleDuration
+            return if (time1 >= duration) {
+                // reverse
+                doubleDuration - time1
+            } else {
+                // play usually
+                time1
+            }
+        }
+
+        override fun get(time: Long, duration: Long): Long {
+            val doubleDuration = 2 * duration
+            val time1 = time % doubleDuration
+            return if (time1 >= duration) {
+                // reverse
+                doubleDuration - time1
+            } else {
+                // play usually
+                time1
+            }
+        }
+    };
+
+    abstract operator fun get(time: Float, duration: Float): Float
+    abstract operator fun get(time: Double, duration: Double): Double
+    abstract operator fun get(time: Int, duration: Int): Int
+    abstract operator fun get(time: Long, duration: Long): Long
 
     companion object {
         fun getState(id: Int) = values().firstOrNull { it.id == id } ?: PLAY_ONCE

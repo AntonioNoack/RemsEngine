@@ -24,7 +24,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.input.Keys.isClickKey
+import me.anno.ui.Keys.isClickKey
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max

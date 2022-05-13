@@ -25,6 +25,8 @@ class BoneByBoneAnimation : Animation() {
     var rootMotion: FloatArray? = null // Array(frameCount) { Vector3f() }
     var rotations: FloatArray? = null // Array(frameCount * boneCount) { Quaternionf() }
 
+    override val numFrames: Int get() = frameCount
+
     fun getRootMotion(frame: Int, dst: Vector3f = Vector3f()) {
         val index = 3 * frame
         val rm = rootMotion!!
@@ -124,6 +126,39 @@ class BoneByBoneAnimation : Animation() {
             if (boneId == 0) {
                 // the root may be animated
                 getRootMotion(fraction, frameIndex0, frameIndex1, translation)
+            } else {
+                // get the offset from the skeleton: from parent to this
+                bone.relativeTransform.getTranslation(translation)
+            }
+            val localTransform = localTransforms[boneId]
+                .identity()
+                .translate(translation)
+                .rotate(rotation)
+            val parentLocalTransform =
+                if (bone.parentId < 0) null
+                else localTransforms[bone.parentId]
+            parentLocalTransform?.mul(localTransform, localTransform)
+            dst[boneId].identity()
+                //.set(globalInvTransform)
+                .mul(localTransform)
+                .mul(bone.inverseBindPose)
+            //.mul(globalTransform)
+        }
+        return dst
+    }
+
+    override fun getMatrices(index: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
+        val skeleton = SkeletonCache[skeleton] ?: return null
+        val bones = skeleton.bones
+        val rotation = Quaternionf()
+        val translation = Vector3f()
+        val localTransforms = Array(bones.size) { Matrix4x3f() }
+        for (boneId in bones.indices) {
+            val bone = bones[boneId]
+            getRotation(index, boneId, rotation)
+            if (boneId == 0) {
+                // the root may be animated
+                getRootMotion(index, translation)
             } else {
                 // get the offset from the skeleton: from parent to this
                 bone.relativeTransform.getTranslation(translation)

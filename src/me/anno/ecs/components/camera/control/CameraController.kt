@@ -56,6 +56,10 @@ abstract class CameraController : Component(), ControlReceiver {
     var rotateAngleX = false
     var rotateAngleZ = false
 
+    /** set to 0 to disable numpad as mouse; degrees per second */
+    var numpadAsMouseSpeed = 90f
+    var numpadWheelSpeed = 1f
+
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as CameraController
@@ -98,6 +102,31 @@ abstract class CameraController : Component(), ControlReceiver {
         if (isKeyDown('d') || isKeyDown(GLFW.GLFW_KEY_RIGHT)) acceleration.x += s
         if (isShiftDown || isKeyDown('q')) acceleration.y -= s
         if (isKeyDown(' ') || isKeyDown('e')) acceleration.y += s
+        if (numpadAsMouseSpeed != 0f || numpadWheelSpeed != 0f) {
+
+            var dx = 0f
+            var dy = 0f
+            var dz = 0f
+
+            if (isKeyDown("numpad4")) dx--
+            if (isKeyDown("numpad6")) dx++
+            if (isKeyDown("numpad8")) dy--
+            if (isKeyDown("numpad2")) dy++
+            if (isKeyDown("numpad7")) dz++
+            if (isKeyDown("numpad1")) dz--
+
+            if (dx != 0f || dy != 0f) {
+                val dt = Engine.deltaTime * numpadAsMouseSpeed * rotationSpeed
+                rotation.add((dy * dt).toRadians(), (dx * dt).toRadians(), 0f)
+                clampRotation()
+            }
+
+            if (dz != 0f) {
+                val dt = Engine.deltaTime * numpadWheelSpeed
+                onMouseWheel(0f, 0f, 0f, dz * dt, false)
+            }
+
+        }
     }
 
     open fun clampAcceleration(acceleration: Vector3f) {

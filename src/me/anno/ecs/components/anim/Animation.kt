@@ -15,16 +15,18 @@ abstract class Animation : PrefabSaveable {
 
     constructor() : super()
 
-    constructor(name: String, duration: Double) : super() {
+    constructor(name: String, duration: Float) : super() {
         this.name = name
         this.duration = duration
     }
 
     final override var name: String = ""
 
-    var duration = 1.0
+    var duration = 1f
 
     var skeleton: FileReference = InvalidRef
+
+    abstract val numFrames: Int
 
     fun calculateMonotonousTime(time: Float, frameCount: Int): Triple<Float, Int, Int> {
         val duration = duration
@@ -39,6 +41,7 @@ abstract class Animation : PrefabSaveable {
     }
 
     abstract fun getMatrices(entity: Entity?, time: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
+    abstract fun getMatrices(index: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
 
     fun getMappedMatrices(
         entity: Entity?,
@@ -47,6 +50,23 @@ abstract class Animation : PrefabSaveable {
         retargeting: Retargeting
     ): Array<Matrix4x3f>? {
         val base = getMatrices(entity, time, dst) ?: return null
+        if (retargeting.isIdentityMapping) return base
+        if (retargeting.srcSkeleton != skeleton) throw RuntimeException("Incompatible skeletons!")
+        retargeting.validate()
+        for (it in SkeletonCache[retargeting.dstSkeleton]!!.bones.indices) {
+            val bm = base.getOrNull(retargeting.mapping[it])
+            if (bm != null) dst[it].set(bm)
+            else dst[it].identity()
+        }
+        return dst
+    }
+
+    fun getMappedMatrices(
+        frameIndex: Int,
+        dst: Array<Matrix4x3f>,
+        retargeting: Retargeting
+    ): Array<Matrix4x3f>? {
+        val base = getMatrices(frameIndex, dst) ?: return null
         if (retargeting.isIdentityMapping) return base
         if (retargeting.srcSkeleton != skeleton) throw RuntimeException("Incompatible skeletons!")
         retargeting.validate()
@@ -73,16 +93,37 @@ abstract class Animation : PrefabSaveable {
         return dst
     }
 
+    fun getMappedMatricesSafely(
+        frameIndex: Int,
+        dst: Array<Matrix4x3f>,
+        retargeting: Retargeting
+    ): Array<Matrix4x3f> {
+        val base = getMappedMatrices(frameIndex, dst, retargeting)
+        if (base == null) {
+            for (i in SkeletonCache[retargeting.dstSkeleton]!!.bones.indices) {
+                dst[i].identity()
+            }
+        }
+        return dst
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeDouble("duration", duration)
+        writer.writeFloat("duration", duration)
         writer.writeFile("skeleton", skeleton)
     }
 
     override fun readDouble(name: String, value: Double) {
         when (name) {
-            "duration" -> duration = value
+            "duration" -> duration = value.toFloat()
             else -> super.readDouble(name, value)
+        }
+    }
+
+    override fun readFloat(name: String, value:Float) {
+        when (name) {
+            "duration" -> duration = value
+            else -> super.readFloat(name, value)
         }
     }
 

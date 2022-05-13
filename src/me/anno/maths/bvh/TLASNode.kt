@@ -8,9 +8,9 @@ import org.joml.AABBf
 import org.joml.Matrix4x3f
 
 abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
+
     abstract fun countTLASLeaves(): Int
     abstract fun forEach(run: (TLASNode) -> Unit)
-
 
     // we can create one wasteful texture, or two efficient ones...
     // since we have a binding limit, I'd go with a single one for now

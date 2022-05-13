@@ -1,7 +1,7 @@
 package me.anno.io.windows
 
 import me.anno.io.files.FileReference
-import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.text.ParseException

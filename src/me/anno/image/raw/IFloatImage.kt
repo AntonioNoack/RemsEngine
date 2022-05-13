@@ -6,6 +6,7 @@ import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.smoothStep
 import kotlin.math.floor
 
 abstract class IFloatImage(
@@ -49,6 +50,45 @@ abstract class IFloatImage(
                 val y0 = min(floor(y2), hm2f)
                 val fx = clamp(x2 - x0, 0f, 1f)
                 val fy = clamp(y2 - y0, 0f, 1f)
+                val i0 = x0.toInt() + y0.toInt() * width
+                val i1 = i0 + width
+                mix(
+                    mix(getValue(i0, channel), getValue(i0 + 1, channel), fx),
+                    mix(getValue(i1, channel), getValue(i1 + 1, channel), fx),
+                    fy
+                )
+            }
+        }
+    }
+
+    @Suppress("unused")
+    open fun getValueSmooth(x: Float, y: Float, channel: Int = 0): Float {
+        val width = width
+        val height = height
+        return when {
+            width == 1 && height == 1 -> getValue(0, channel)
+            width == 1 -> {
+                val y2 = clamp(y, 0f, hm1f)
+                val y0 = min(floor(y2), hm2f)
+                val fy = y2 - y0
+                val i0 = y0.toInt() * width
+                val i1 = i0 + width
+                smoothStep(getValue(i0, channel), getValue(i1, channel), fy)
+            }
+            height == 1 -> {
+                val x2 = clamp(x, 0f, wm1f)
+                val x0 = min(floor(x2), wm2f)
+                val fx = x2 - x0
+                val i0 = x0.toInt()
+                smoothStep(getValue(i0, channel), getValue(i0 + 1, channel), fx)
+            }
+            else -> {
+                val x2 = clamp(x, 0f, wm1f)
+                val y2 = clamp(y, 0f, hm1f)
+                val x0 = min(floor(x2), wm2f)
+                val y0 = min(floor(y2), hm2f)
+                val fx = smoothStep(x2 - x0)
+                val fy = smoothStep(y2 - y0)
                 val i0 = x0.toInt() + y0.toInt() * width
                 val i1 = i0 + width
                 mix(

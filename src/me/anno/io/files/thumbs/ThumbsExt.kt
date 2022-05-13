@@ -8,17 +8,43 @@ import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.Shader
 import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.pooling.JomlPools
-import org.joml.AABBd
-import org.joml.Matrix4f
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3f
+import org.joml.*
+import org.joml.Math
 import kotlin.math.max
 
 object ThumbsExt {
+
+    var defaultAngleY = -25f
+
+    fun createPerspective(y: Float, aspectRatio: Float, stack: Matrix4f) {
+
+        Perspective.setPerspective(stack, 0.7f, aspectRatio, 0.001f, 10f, 0f, 0f)
+        stack.translate(0f, 0f, -1f)// move the camera back a bit
+        stack.rotateX(Math.toRadians(15f))// rotate it into a nice viewing angle
+        stack.rotateY(Math.toRadians(y))
+
+        // calculate the scale, such that everything can be visible
+        // half, because it's half the size, 1.05f for a small border
+        stack.scale(1.05f * 0.5f)
+
+    }
+
+    fun createPerspectiveList(y: Float, aspectRatio: Float): Matrix4fArrayList {
+        val stack = Matrix4fArrayList()
+        createPerspective(y, aspectRatio, stack)
+        return stack
+    }
+
+    fun createPerspective(y: Float, aspectRatio: Float): Matrix4f {
+        val stack = Matrix4f()
+        createPerspective(y, aspectRatio, stack)
+        return stack
+    }
 
     fun Mesh.drawAssimp(
         stack: Matrix4f,

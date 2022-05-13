@@ -8,6 +8,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.maths.Maths.mixARGB
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
@@ -15,6 +16,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileExplorer.Companion.editInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
@@ -127,6 +129,15 @@ class FileInput(
         base.setValue(text.replace('\\', '/'), notify)
     }
 
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        return if (action == "DragStart") {
+            val title = file.nameWithoutExtension
+            val stringContent = file.absolutePath
+            StudioBase.dragged = Draggable(stringContent, "File", file, title, style)
+            true
+        } else super.onGotAction(x, y, dx, dy, action, isContinuous)
+    }
+
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
             button.isRight -> openMenu(windowStack, listOf(
@@ -167,6 +178,8 @@ class FileInput(
         entry.backgroundColor = mixARGB(backgroundColor, -1, 0.5f)
         return entry
     }
+
+    override val className = "FileInput"
 
     companion object {
         private val LOGGER = LogManager.getLogger(FileInput::class)

@@ -109,6 +109,11 @@ open class Saveable : ISaveable {
     override fun readMatrix3x3fArray(name: String, values: Array<Matrix3f>) = readSomething(name, values)
     override fun readMatrix4x3fArray(name: String, values: Array<Matrix4x3f>) = readSomething(name, values)
     override fun readMatrix4x4fArray(name: String, values: Array<Matrix4f>) = readSomething(name, values)
+    override fun readMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>) = readSomething(name, values)
+    override fun readMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2f>>) = readSomething(name, values)
+    override fun readMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3f>>) = readSomething(name, values)
+    override fun readMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3f>>) = readSomething(name, values)
+    override fun readMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4f>>) = readSomething(name, values)
 
     override fun readMatrix2x2d(name: String, value: Matrix2d) = readSomething(name, value)
     override fun readMatrix3x2d(name: String, value: Matrix3x2d) = readSomething(name, value)
@@ -120,6 +125,11 @@ open class Saveable : ISaveable {
     override fun readMatrix3x3dArray(name: String, values: Array<Matrix3d>) = readSomething(name, values)
     override fun readMatrix4x3dArray(name: String, values: Array<Matrix4x3d>) = readSomething(name, values)
     override fun readMatrix4x4dArray(name: String, values: Array<Matrix4d>) = readSomething(name, values)
+    override fun readMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2d>>) = readSomething(name, values)
+    override fun readMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2d>>) = readSomething(name, values)
+    override fun readMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3d>>) = readSomething(name, values)
+    override fun readMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>) = readSomething(name, values)
+    override fun readMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>) = readSomething(name, values)
 
     override fun readQuaternionf(name: String, value: Quaternionf) = readSomething(name, value)
     override fun readQuaternionfArray(name: String, values: Array<Quaternionf>) = readSomething(name, values)

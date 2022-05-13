@@ -98,6 +98,13 @@ object OpenGL {
         }
     }
 
+    /**
+     * clears the depth according to the current depthMode
+     * */
+    fun clearDepth() {
+        glClear(GL_DEPTH_BUFFER_BIT)
+    }
+
     val depthMask = object : SecureStack<Boolean>(true) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             GFX.check()

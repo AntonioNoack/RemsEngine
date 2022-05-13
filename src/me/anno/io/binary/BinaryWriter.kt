@@ -727,6 +727,46 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4fc>, force: Boolean) =
         writeGenericArray(name, values, force, MATRIX4X4F_ARRAY) { writeMatrix(it) }
 
+    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2fc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2fc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3fc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3fc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4fc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2dc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2dc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3dc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3dc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4dc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
     private fun writeMatrix(value: Matrix2dc) {
         output.writeDouble(value.m00())
         output.writeDouble(value.m01())

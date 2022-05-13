@@ -69,26 +69,28 @@ class ECSTreeView(val library: EditorState, style: Style) :
 
     override fun addChild(element: ISaveable, child: Any, index: Int) {
         element as PrefabSaveable
+        val prefab: Prefab
+        val prefabPath: Path
         when (child) {
             is Prefab -> {
-                Hierarchy.add(
-                    child,
-                    Path.ROOT_PATH,
-                    element,
-                    index
-                )
+                prefab = child
+                prefabPath = Path.ROOT_PATH
             }
             is PrefabSaveable -> {
-                val childRoot = child.root
-                Hierarchy.add(
-                    childRoot.prefab!!,
-                    child.prefabPath!!,
-                    element,
-                    index
-                )
+                prefab = child.root.prefab!!
+                prefabPath = child.prefabPath!!
             }
-            else -> LOGGER.warn("Unknown type $child")
+            else -> {
+                LOGGER.warn("Unknown type $child")
+                return
+            }
         }
+        Hierarchy.add(
+            prefab,
+            prefabPath,
+            element,
+            index
+        )
     }
 
     override fun getIndexInParent(parent: ISaveable, child: ISaveable): Int {

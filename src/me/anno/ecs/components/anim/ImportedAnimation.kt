@@ -14,6 +14,9 @@ class ImportedAnimation : Animation() {
     @NotSerializedProperty
     var frames: Array<Array<Matrix4x3f>> = emptyArray()
 
+    override val numFrames: Int
+        get() = frames.size
+
     override fun getMatrices(entity: Entity?, time: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f> {
 
         // find the correct frames for interpolation and lerp them
@@ -30,6 +33,14 @@ class ImportedAnimation : Animation() {
 
         return dst
 
+    }
+
+    override fun getMatrices(index: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
+        val frame = frames[index]
+        for (i in 0 until min(dst.size, frame.size)) {
+            dst[i].set(frame[i])
+        }
+        return dst
     }
 
     override fun clone(): ImportedAnimation {

@@ -2,7 +2,7 @@ package me.anno.video.formats.cpu
 
 import me.anno.image.Image
 import me.anno.image.raw.ByteImage
-import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 
 object Y4Frame : CPUFrame() {

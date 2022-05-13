@@ -243,6 +243,26 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
         TODO("Not yet implemented")
     }
 
+    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2fc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2fc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3fc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3fc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4fc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
     override fun writeMatrix2x2d(name: String, value: Matrix2dc, force: Boolean) {
         dst[name] = "Matrix2x2d" to value
     }
@@ -280,6 +300,26 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     }
 
     override fun writeMatrix4x4dArray(name: String, values: Array<Matrix4dc>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2dc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2dc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3dc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3dc>>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4dc>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 

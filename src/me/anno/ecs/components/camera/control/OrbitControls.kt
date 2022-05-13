@@ -7,7 +7,7 @@ import me.anno.maths.Maths.pow
 import kotlin.math.cos
 import kotlin.math.sin
 
-class OrbitControls : CameraController() {
+open class OrbitControls : CameraController() {
 
     var radius = 10f
     var mouseWheelSpeed = 0.2f

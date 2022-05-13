@@ -9,6 +9,7 @@ import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.scene.ScenePrefab
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib
@@ -35,7 +36,7 @@ import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
-// todo dropping in meshes no longer works.. why? + fix
+// todo after dragging, nothing can be clicked anymore... why???
 
 // todo loading is slow: all tabs are loaded, even if only a single one is actually used
 
@@ -47,7 +48,7 @@ import org.apache.logging.log4j.LogManager
 // todo must be editable -> no CSet/CAdd, just instance changes
 
 
-// todo color input sometimes janky... why?
+// to do color input sometimes janky... why?
 
 // todo to reduce the size of the engine, physics engines could be turned into mods
 // todo libraries like jpeg2000, pdf and such should become mods as well
@@ -57,8 +58,7 @@ import org.apache.logging.log4j.LogManager
 // todo right click on a path:
 // todo - mutate -> create an asset based on that and replace the path, then inspect
 // todo - inspect -> show it in the editor
-
-// todo drop in meshes
+// todo right click on file input -> open in file explorer
 
 // todo reduce skeletal animations to a single translation plus rotations only?
 // todo animation matrices then can be reduced to rotation + translation
@@ -115,6 +115,9 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         LogManager.disableLogger("TriangleBasedShadingContext")
         LogManager.disableLogger("Type4ShadingContext")
         startClock.stop("Disable some loggers")
+
+        // to avoid race conditions
+        ScenePrefab.prefab.getSampleInstance()
 
     }
 

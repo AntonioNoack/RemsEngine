@@ -242,6 +242,7 @@ object SDFComposer {
                             "}\n" +
                             "vec2 ray = map(localPos,localDir,localPos);\n" +
                             "int steps;\n" +
+                            "finalAlpha = 0.0;\n" +
                             "if(ray.x >= 0.0){\n" + // not inside an object
                             "   ray = raycast(localPos, localDir, steps);\n" +
                             "   if(debugMode != ${DebugMode.NUM_STEPS.id}){\n" +
@@ -332,7 +333,7 @@ object SDFComposer {
                             "if(drawMode == ${ShaderPlus.DrawMode.ID.id}){\n" +
                             "   int intId = int(ray.y);\n" +
                             "   tint = vec4(vec3(float(intId&255), float((intId>>8)&255), float((intId>>16)&255))/255.0, 1.0);\n" +
-                            "}\n" +
+                            "} else tint = vec4(1.0);\n" +
                             ""
 
                 )

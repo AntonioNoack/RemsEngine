@@ -27,8 +27,12 @@ class AudioStreamRaw(
     companion object {
 
         // 1024 (48Hz .. 48kHz) or 2048? (24Hz .. 48kHz)
-        val bufferSize = 4096
-        val ffmpegSliceSampleDuration = 30.0 // seconds, 10s of music
+        var bufferSize = 4096
+        // should be set by the engine depending on the OS
+        // could be overridden manually, e.g. to get a 8kHz vibe;
+        // if you do that, consider overriding bufferSize as well, so the audio could be adjusted faster if needed (idk yet)
+        var playbackSampleRate = 48000
+        val ffmpegSliceSampleDuration = 30.0 // seconds, 30s of music
 
         inline fun averageSamples(
             mni: Double, mxi: Double, s0: ShortPair, s1: ShortPair, s2: ShortPair,
@@ -143,7 +147,7 @@ class AudioStreamRaw(
         var indexI = index0
         for (sampleIndex in 0 until bufferSize) {
 
-            val indexJ = mix(index0, index1, sampleIndex.toDouble() / bufferSize)
+            val indexJ = mix(index0, index1, (sampleIndex + 1).toDouble() / bufferSize)
 
             // average values from index0 to index1
             val mni = min(indexI, indexJ)

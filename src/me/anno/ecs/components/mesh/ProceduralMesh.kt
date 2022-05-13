@@ -24,8 +24,13 @@ abstract class ProceduralMesh : MeshComponentBase() {
         get() = (mesh2.positions?.size ?: -3) / 3
 
     @DebugProperty
-    val numberOfTriangles
-        get() = (mesh2.indices?.size ?: (mesh2.positions?.size ?: -9) / 3) / 3
+    val numberOfTriangles: Int
+        get() {
+            val indices = mesh2.indices
+            if (indices != null) return indices.size / 3
+            val positions = mesh2.positions
+            return if (positions != null) positions.size / 9 else -1
+        }
 
     @DebugProperty
     @NotSerializedProperty

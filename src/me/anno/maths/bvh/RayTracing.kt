@@ -1,16 +1,11 @@
 package me.anno.maths.bvh
 
-import me.anno.maths.Maths
 import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_BLAS_NODE
 import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
 import org.joml.*
 import kotlin.math.max
+import kotlin.math.min
 
-// to do gpu accelerated BVH traversal
-// to do using compute shaders / glsl, how much performance can we get? :)
-// to do ray-aabb-intersection:
-// to do (x01 - rayOrigin) / rayDir, r0=min(v0,v1) and r1=max(v0,v1)
-// to do hit if min(r1x,r1y,r1z) > max(r1x,r1y,r1z)
 @Suppress("unused")
 object RayTracing {
 
@@ -48,7 +43,18 @@ object RayTracing {
             "   return max(tMin, 0.0) <= min(tMax, maxDistance);\n" +
             "}\n"
 
+    const val loadMat4x3 = "" +
+            "mat4x3 loadMat4x3(vec4 a, vec4 b, vec4 c){\n" +
+            "   return mat4x3(\n" +
+            "       a.xyz,\n" +
+            "       vec3(a.w, b.xy),\n" +
+            "       vec3(b.zw, c.x),\n" +
+            "       c.yzw\n" +
+            "   );\n" +
+            "}\n"
+
     val glslBLASIntersection = "" +
+            "" +
             "void intersectBLAS(\n" +
             "       uint nodeIndex, vec3 pos, vec3 dir, vec3 invDir,\n" +
             "       inout vec3 normal, inout float distance, inout uint nodeCtr\n" +
@@ -130,13 +136,13 @@ object RayTracing {
         val sx1 = (aabb.maxX - rx) * rdx
         val sy1 = (aabb.maxY - ry) * rdy
         val sz1 = (aabb.maxZ - rz) * rdz
-        val nearX = Maths.min(sx0, sx1)
+        val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
-        val nearY = Maths.min(sy0, sy1)
+        val nearY = min(sy0, sy1)
         val farY = max(sy0, sy1)
-        val nearZ = Maths.min(sz0, sz1)
+        val nearZ = min(sz0, sz1)
         val farZ = max(sz0, sz1)
-        val far = Maths.min(farX, Maths.min(farY, farZ))
+        val far = min(farX, min(farY, farZ))
         val near = max(max(nearX, max(nearY, nearZ)), 0f)
         return far >= near
     }
@@ -159,13 +165,13 @@ object RayTracing {
         val sx1 = (aabb.maxX - rx) * rdx
         val sy1 = (aabb.maxY - ry) * rdy
         val sz1 = (aabb.maxZ - rz) * rdz
-        val nearX = Maths.min(sx0, sx1)
+        val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
-        val nearY = Maths.min(sy0, sy1)
+        val nearY = min(sy0, sy1)
         val farY = max(sy0, sy1)
-        val nearZ = Maths.min(sz0, sz1)
+        val nearZ = min(sz0, sz1)
         val farZ = max(sz0, sz1)
-        val far = Maths.min(farX, Maths.min(farY, farZ))
+        val far = min(farX, min(farY, farZ))
         val near = max(max(nearX, max(nearY, nearZ)), 0f)
         return far >= near && near < maxDistance
     }
@@ -183,13 +189,13 @@ object RayTracing {
         val sx1 = (aabb.maxX - rx) * rdx
         val sy1 = (aabb.maxY - ry) * rdy
         val sz1 = (aabb.maxZ - rz) * rdz
-        val nearX = Maths.min(sx0, sx1)
+        val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
-        val nearY = Maths.min(sy0, sy1)
+        val nearY = min(sy0, sy1)
         val farY = max(sy0, sy1)
-        val nearZ = Maths.min(sz0, sz1)
+        val nearZ = min(sz0, sz1)
         val farZ = max(sz0, sz1)
-        val far = Maths.min(farX, Maths.min(farY, farZ))
+        val far = min(farX, min(farY, farZ))
         val near = max(max(nearX, max(nearY, nearZ)), 0.0)
         return far >= near
     }
@@ -212,13 +218,13 @@ object RayTracing {
         val sx1 = (aabb.maxX - rx) * rdx
         val sy1 = (aabb.maxY - ry) * rdy
         val sz1 = (aabb.maxZ - rz) * rdz
-        val nearX = Maths.min(sx0, sx1)
+        val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
-        val nearY = Maths.min(sy0, sy1)
+        val nearY = min(sy0, sy1)
         val farY = max(sy0, sy1)
-        val nearZ = Maths.min(sz0, sz1)
+        val nearZ = min(sz0, sz1)
         val farZ = max(sz0, sz1)
-        val far = Maths.min(farX, Maths.min(farY, farZ))
+        val far = min(farX, min(farY, farZ))
         val near = max(max(nearX, max(nearY, nearZ)), 0.0)
         return far >= near && near < maxDistance
     }
@@ -236,13 +242,13 @@ object RayTracing {
         val sx1 = (aabb.maxX - rx) * rdx
         val sy1 = (aabb.maxY - ry) * rdy
         val sz1 = (aabb.maxZ - rz) * rdz
-        val nearX = Maths.min(sx0, sx1)
+        val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
-        val nearY = Maths.min(sy0, sy1)
+        val nearY = min(sy0, sy1)
         val farY = max(sy0, sy1)
-        val nearZ = Maths.min(sz0, sz1)
+        val nearZ = min(sz0, sz1)
         val farZ = max(sz0, sz1)
-        val far = Maths.min(farX, Maths.min(farY, farZ))
+        val far = min(farX, min(farY, farZ))
         val near = max(max(nearX, max(nearY, nearZ)), 0f)
         return if (far >= near) near else Float.POSITIVE_INFINITY
     }
@@ -260,13 +266,13 @@ object RayTracing {
         val sx1 = (aabb.maxX - rx) * rdx
         val sy1 = (aabb.maxY - ry) * rdy
         val sz1 = (aabb.maxZ - rz) * rdz
-        val nearX = Maths.min(sx0, sx1)
+        val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
-        val nearY = Maths.min(sy0, sy1)
+        val nearY = min(sy0, sy1)
         val farY = max(sy0, sy1)
-        val nearZ = Maths.min(sz0, sz1)
+        val nearZ = min(sz0, sz1)
         val farZ = max(sz0, sz1)
-        val far = Maths.min(farX, Maths.min(farY, farZ))
+        val far = min(farX, min(farY, farZ))
         val near = max(max(nearX, max(nearY, nearZ)), 0.0)
         return if (far >= near) near else Double.POSITIVE_INFINITY
     }

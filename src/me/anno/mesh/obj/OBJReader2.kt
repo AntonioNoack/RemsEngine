@@ -10,6 +10,8 @@ import me.anno.io.zip.InnerFolder
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
+import me.anno.utils.Clock
+import me.anno.utils.OS.downloads
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.findNextName
 import me.anno.utils.structures.arrays.ExpandingFloatArray
@@ -55,6 +57,10 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     private val faceNormals = ExpandingFloatArray(3 * defaultSize2)
     private val faceUVs = ExpandingFloatArray(2 * defaultSize2)
 
+    private var numPositions = 0
+    private var numUVs = 0
+    private var numNormals = 0
+
     private val points = ExpandingIntArray(256)
 
     fun printSizes() {
@@ -75,24 +81,29 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         val vertex = points[index]
         val normal = points[index + 1]
         val uv = points[index + 2]
-        facePositions += positions[vertex]
-        facePositions += positions[vertex + 1]
-        facePositions += positions[vertex + 2]
+        val positions = positions
+        val facePositions = facePositions
+        facePositions.ensureExtra(3)
+        facePositions.addUnsafe(positions[vertex])
+        facePositions.addUnsafe(positions[vertex + 1])
+        facePositions.addUnsafe(positions[vertex + 2])
+        val faceNormals = faceNormals
+        faceNormals.ensureExtra(3)
         if (normal >= 0) {
-            faceNormals += normals[normal]
-            faceNormals += normals[normal + 1]
-            faceNormals += normals[normal + 2]
+            val normals = normals
+            faceNormals.addUnsafe(normals[normal])
+            faceNormals.addUnsafe(normals[normal + 1])
+            faceNormals.addUnsafe(normals[normal + 2])
         } else {
-            faceNormals += 0f
-            faceNormals += 0f
-            faceNormals += 0f
+            faceNormals.addUnsafe(0f, 0f, 0f)
         }
+        val faceUVs = faceUVs
+        faceUVs.ensureExtra(2)
         if (uv >= 0) {
-            faceUVs += uvs[uv]
-            faceUVs += uvs[uv + 1]
+            val uvs = uvs
+            faceUVs.addUnsafe(uvs[uv], uvs[uv + 1])
         } else {
-            faceUVs += 0f
-            faceUVs += 0f
+            faceUVs.addUnsafe(0f, 0f)
         }
     }
 
@@ -167,13 +178,13 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             mesh.source = meshRef
             var prefabName = name
             var add: Path
-            nameSearch@while (true){
+            nameSearch@ while (true) {
                 try {
                     add = scenePrefab.add(lastObjectPath, 'c', "MeshComponent", prefabName, meshCountInObject)
                     break@nameSearch
-                } catch (e: IllegalArgumentException){
+                } catch (e: IllegalArgumentException) {
                     // continue searching a better name...
-                    prefabName = findNextName(prefabName,'.')
+                    prefabName = findNextName(prefabName, '.')
                 }
             }
             meshCountInObject++
@@ -227,6 +238,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         skipSpaces()
         positions += readFloat()
         skipLine()
+        numPositions++
     }
 
     private fun readUVs() {
@@ -235,6 +247,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         skipSpaces()
         uvs += readFloat()
         skipLine()
+        numUVs++
     }
 
     private fun readNormals() {
@@ -245,6 +258,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         skipSpaces()
         normals += readFloat()
         skipLine()
+        numNormals++
     }
 
     private fun readMaterialLib() {
@@ -268,9 +282,10 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     private fun readLine() {
         points.clear()
         skipSpaces()
-        val idx0 = readIndex()
+        val numVertices = positions.size / 3
+        val idx0 = readIndex(numVertices)
         skipSpaces()
-        val idx1 = readIndex()
+        val idx1 = readIndex(numVertices)
         val next0 = nextChar()
         if (next0 == '\n') {
             putLinePoint(idx0)
@@ -287,7 +302,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
                     '\n'.code -> break@pts
                     else -> {
                         putBack(next)
-                        points += readIndex() * 3
+                        points += readIndex(numVertices) * 3
                     }
                 }
             }
@@ -303,7 +318,11 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     }
 
     private fun readFacePoints() {
+        val points = points
         points.clear()
+        val numPositions = numPositions
+        val numNormals = numNormals
+        val numUVs = numUVs
         pts@ while (true) {
             when (val next = nextChar()) {
                 ' ', '\t' -> {
@@ -311,21 +330,19 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
                 '\n' -> break@pts
                 else -> {
                     putBack(next)
-                    val vertexIndex0 = readInt()
-                    val vertexIndex = (vertexIndex0 - 1)
+                    val vertexIndex = readIndex(numPositions)
                     var uvIndex = -1
                     var normalIndex = -1
                     if (putBack == '/'.code) {
                         nextChar()
-                        uvIndex = (readInt() - 1)
+                        uvIndex = readIndex(numUVs)
                         if (putBack == '/'.code) {
                             nextChar()
-                            normalIndex = (readInt() - 1)
+                            normalIndex = readIndex(numNormals)
                         }
                     }
-                    points += vertexIndex * 3
-                    points += normalIndex * 3
-                    points += uvIndex * 2
+                    points.ensureCapacity(points.size + 3)
+                    points.addUnsafe(vertexIndex * 3, normalIndex * 3, uvIndex * 2)
                 }
             }
         }
@@ -461,6 +478,28 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
 
         fun readAsFolder(file: FileReference): InnerFolder {
             return file.inputStream().use { OBJReader2(it, file) }.folder
+        }
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val source = downloads.getChild("ogldev-source/crytek_sponza/sponza.obj")
+            // 20MB, so larger than the L3 cache of my CPU
+            // so the theoretical speed limit is my memory bandwidth
+            // 3.2Gb/s -> 400MB/s -> 20MB file should be readable within 0.05s
+            val data = source.readText() // remove material references for clearer reading performance
+                .replace("mtllib", "#mtllib")
+                .toByteArray()
+            val clock = Clock()
+            for (i in 0 until 1000) {
+                clock.start()
+                OBJReader2(data.inputStream(), source)
+                clock.stop("Reading OBJ with 20MB", data.size)
+            }
+            // 0.5s, so 10x slower than possible... ok, but slow...
+            // goes down to 0.13s after the first 10 runs
+            // and with "optimizations" (trial and error what is faster),
+            // we now get down to 0.105s
+            // 2x slower than theoretically possible -> ok, I think
         }
 
     }

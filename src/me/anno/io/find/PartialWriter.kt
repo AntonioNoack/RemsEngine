@@ -83,6 +83,12 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
     override fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3fc>, force: Boolean) {}
     override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4fc>, force: Boolean) {}
 
+    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2fc>>, force: Boolean) {}
+    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2fc>>, force: Boolean) {}
+    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3fc>>, force: Boolean) {}
+    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3fc>>, force: Boolean) {}
+    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4fc>>, force: Boolean) {}
+
     override fun writeMatrix2x2d(name: String, value: Matrix2dc, force: Boolean) {}
     override fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean) {}
     override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {}
@@ -94,6 +100,12 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
     override fun writeMatrix3x3dArray(name: String, values: Array<Matrix3dc>, force: Boolean) {}
     override fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3dc>, force: Boolean) {}
     override fun writeMatrix4x4dArray(name: String, values: Array<Matrix4dc>, force: Boolean) {}
+
+    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2dc>>, force: Boolean) {}
+    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2dc>>, force: Boolean) {}
+    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3dc>>, force: Boolean) {}
+    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3dc>>, force: Boolean) {}
+    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4dc>>, force: Boolean) {}
 
     override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {}
     override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {}

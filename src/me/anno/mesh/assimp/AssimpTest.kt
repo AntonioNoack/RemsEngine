@@ -12,9 +12,13 @@ import me.anno.io.files.thumbs.Thumbs
 import me.anno.mesh.assimp.AnimHierarchy.loadSkeletonFromAnimations
 import me.anno.mesh.assimp.AnimatedMeshesLoader.createNodeCache
 import me.anno.utils.Color.a
+import me.anno.utils.Color.a01
 import me.anno.utils.Color.b
+import me.anno.utils.Color.b01
 import me.anno.utils.Color.g
+import me.anno.utils.Color.g01
 import me.anno.utils.Color.r
+import me.anno.utils.Color.r01
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
@@ -170,7 +174,7 @@ fun processMaterial(material: AIMaterial) {
 
     val diffuse = Vector4f()
     if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, color) != 0) {
-        diffuse.set(result.r() / 255f, result.g() / 255f, result.b() / 255f, result.a() / 255f)
+        diffuse.set(result.r01(), result.g01(), result.b01(), result.a01())
         logger.info("diffuse: ${diffuse.print()}")
     }
 

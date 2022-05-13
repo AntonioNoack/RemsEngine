@@ -143,6 +143,7 @@
       <w>inscattering</w>
       <w>inspectable</w>
       <w>inspectables</w>
+      <w>interactable</w>
       <w>invalidations</w>
       <w>iter</w>
       <w>ivec</w>
@@ -290,6 +291,7 @@
       <w>saveable</w>
       <w>saveables</w>
       <w>scifi</w>
+      <w>sdfs</w>
       <w>sdna</w>
       <w>seagreen</w>
       <w>segoe</w>

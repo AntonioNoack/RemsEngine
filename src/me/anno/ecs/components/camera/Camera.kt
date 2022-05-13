@@ -1,6 +1,7 @@
 package me.anno.ecs.components.camera
 
 import me.anno.ecs.Component
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
@@ -43,6 +44,7 @@ class Camera : Component() {
             effects.add(clamp(index, 0, effects.size), child)
         } else super.addChildByType(index, type, child)
     }
+
     override fun removeChild(child: PrefabSaveable) {
         effects.remove(child)
     }
@@ -57,6 +59,11 @@ class Camera : Component() {
      * offset of the center relative to the screen center; in OpenGL coordinates [-1, +1]²
      * */
     var center = Vector2f()
+
+    @DebugAction
+    fun use() {
+        use(1f)
+    }
 
     // function to blend to the next one
     fun use(blendingTime: Float) {

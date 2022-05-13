@@ -7,7 +7,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.utils.Sleep
-import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 
 class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {

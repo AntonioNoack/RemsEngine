@@ -14,6 +14,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
+import kotlin.math.min
 import kotlin.math.sqrt
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
@@ -551,7 +552,7 @@ object ShaderLib {
                 "bool isInLimits(float value, vec2 minMax){\n" +
                 "   return value >= minMax.x && value <= minMax.y;\n" +
                 "}\n" + // sqrt and ² for better color mixing
-                "vec4 mix(vec4 a, vec4 b, float stop, vec2 stops){\n" +
+                "vec4 mix2(vec4 a, vec4 b, float stop, vec2 stops){\n" +
                 "   float f = clamp((stop-stops.x)/(stops.y-stops.x), 0.0, 1.0);\n" +
                 "   return vec4(sqrt(mix(a.rgb*a.rgb, b.rgb*b.rgb, f)), mix(a.a, b.a, f));\n" +
                 "}\n" +
@@ -574,9 +575,9 @@ object ShaderLib {
                 "   vec4 color = \n" +
                 "       stopValue <= stops.x ? color0:\n" +
                 "       stopValue >= stops.w ? color3:\n" +
-                "       stopValue <  stops.y ? mix(color0, color1, stopValue, stops.xy):\n" +
-                "       stopValue <  stops.z ? mix(color1, color2, stopValue, stops.yz):\n" +
-                "                              mix(color2, color3, stopValue, stops.zw);\n" +
+                "       stopValue <  stops.y ? mix2(color0, color1, stopValue, stops.xy):\n" +
+                "       stopValue <  stops.z ? mix2(color1, color2, stopValue, stops.yz):\n" +
+                "                              mix2(color2, color3, stopValue, stops.zw);\n" +
                 // "   color.rgb = fract(vec3(stopValue));\n" +
                 "   color.rgb = colorGrading(color.rgb);\n" +
                 "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
@@ -660,8 +661,9 @@ object ShaderLib {
                 "$attribute vec4 weights;\n" +
                 "$attribute ivec4 indices;\n" +
                 "uniform bool hasAnimation;\n" +
+                // todo replace this with animTexture system
                 "uniform mat4x3 localTransform;\n" +
-                "uniform mat4x3 jointTransforms[$maxBones];\n" +
+                "uniform mat4x3 jointTransforms[${min(128,maxBones)}];\n" +
                 "void main(){\n" +
                 "   if(hasAnimation){\n" +
                 "       mat4x3 jointMat;\n" +

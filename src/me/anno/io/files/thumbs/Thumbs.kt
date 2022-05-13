@@ -45,7 +45,6 @@ import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.gpu.drawing.Perspective.setPerspective
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -69,6 +68,9 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.io.files.thumbs.ThumbsExt.createPerspective
+import me.anno.io.files.thumbs.ThumbsExt.createPerspectiveList
+import me.anno.io.files.thumbs.ThumbsExt.defaultAngleY
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
@@ -93,15 +95,14 @@ import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.Warning.unused
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.use
-import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
 import org.joml.Math.sqrt
-import org.joml.Math.toRadians
-import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
@@ -115,6 +116,7 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.test.assertNull
 
 /**
  * creates and caches small versions of image and video resources
@@ -493,33 +495,6 @@ object Thumbs {
 
     }
 
-    val defaultAngleY = -25f
-
-    private fun createPerspective(y: Float, aspectRatio: Float, stack: Matrix4f) {
-
-        setPerspective(stack, 0.7f, aspectRatio, 0.001f, 10f, 0f, 0f)
-        stack.translate(0f, 0f, -1f)// move the camera back a bit
-        stack.rotateX(toRadians(15f))// rotate it into a nice viewing angle
-        stack.rotateY(toRadians(y))
-
-        // calculate the scale, such that everything can be visible
-        // half, because it's half the size, 1.05f for a small border
-        stack.scale(1.05f * 0.5f)
-
-    }
-
-    private fun createPerspectiveList(y: Float, aspectRatio: Float): Matrix4fArrayList {
-        val stack = Matrix4fArrayList()
-        createPerspective(y, aspectRatio, stack)
-        return stack
-    }
-
-    private fun createPerspective(y: Float, aspectRatio: Float): Matrix4f {
-        val stack = Matrix4f()
-        createPerspective(y, aspectRatio, stack)
-        return stack
-    }
-
     // just render it using the simplest shader
     fun generateFrame(
         srcFile: FileReference,
@@ -589,7 +564,7 @@ object Thumbs {
         for (comp in entity.getComponentsInChildren(MeshComponentBase::class, false)) {
             val mesh = comp.getMesh()
             if (mesh == null) {
-                warnMissingMesh(comp, mesh)
+                warnMissingMesh(comp, null)
                 continue
             }
             iterateMaterials(comp.materials, mesh.materials) { material ->
@@ -683,7 +658,7 @@ object Thumbs {
         waitForTextures(mesh, srcFile)
         // sometimes black: because of vertex colors, which are black
         // render everything without color
-        renderToBufferedImage(InvalidRef, dstFile, true, simpleNormalRenderer, false, callback, size, size) {
+        renderToBufferedImage(InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
                 createPerspective(defaultAngleY, 1f),
                 null,
@@ -871,19 +846,17 @@ object Thumbs {
         val duration = animation.duration
         val hasMotion = duration > 0.0
         val count = if (hasMotion) 6 else 1
-        val dt = if (hasMotion) duration / count else 0.0
+        val dt = if (hasMotion) duration / count else 0f
         val bones = skeleton.bones
-        val boneCount = bones.size // actually just joints
-        val meshVertices = FloatArray(boneCount * boneMeshVertices.size)
+        val meshVertices = Texture2D.floatArrayPool[bones.size * boneMeshVertices.size, false, true]
         mesh.positions = meshVertices
-        val skinningMatrices = Array(boneCount) { Matrix4x3f() }
-        val animPositions = Array(boneCount) { Vector3f() }
+        val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
         renderMultiWindowImage(dstFile, count, size, true, simpleNormalRenderer, callback) { it, aspect ->
             val time = it * dt
             // generate the matrices
-            animation.getMatrices(entity, time.toFloat(), skinningMatrices)
+            animation.getMatrices(entity, time, skinningMatrices)
             // apply the matrices to the bone positions
-            for (i in animPositions.indices) {
+            for (i in 0 until min(animPositions.size, bones.size)) {
                 val position = animPositions[i].set(bones[i].bindPosition)
                 skinningMatrices[i].transformPosition(position)
             }
@@ -899,6 +872,50 @@ object Thumbs {
                 normalizeScale = true
             )
         }
+        Texture2D.floatArrayPool.returnBuffer(meshVertices)
+        mesh.destroy()
+    }
+
+    val threadLocalBoneMatrices = ThreadLocal2 {
+        val boneCount = 256
+        val skinningMatrices = Array(boneCount) { Matrix4x3f() }
+        val animPositions = Array(boneCount) { Vector3f() }
+        skinningMatrices to animPositions
+    }
+
+    fun drawAnimatedSkeleton(
+        animation: Animation,
+        time: Float,
+        aspect: Float
+    ) {
+        // todo center on bounds by all frames combined
+        val skeleton = SkeletonCache[animation.skeleton] ?: return
+        val entity = Entity()
+        val mesh = Mesh()
+        val bones = skeleton.bones
+        val meshVertices = Texture2D.floatArrayPool[bones.size * boneMeshVertices.size, false, true]
+        mesh.positions = meshVertices
+        val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
+        // generate the matrices
+        animation.getMatrices(entity, time, skinningMatrices)
+        // apply the matrices to the bone positions
+        for (i in 0 until min(animPositions.size, bones.size)) {
+            val position = animPositions[i].set(bones[i].bindPosition)
+            skinningMatrices[i].transformPosition(position)
+        }
+        generateSkeleton(bones, animPositions, meshVertices, null)
+        mesh.invalidateGeometry()
+        // draw the skeleton in that portion of the frame
+        mesh.ensureBuffer()
+        mesh.drawAssimp(
+            createPerspective(defaultAngleY, aspect),
+            null,
+            useMaterials = false,
+            centerMesh = true,
+            normalizeScale = true
+        )
+        Texture2D.floatArrayPool.returnBuffer(meshVertices)
+        mesh.description
     }
 
     private fun listTextures(materialReference: FileReference): List<FileReference> {
@@ -1111,7 +1128,7 @@ object Thumbs {
 
                     // done thumbnails and import for .vox files (MagicaVoxel voxel meshes)
 
-                    // todo thumbnails for meshes, and components
+                    // done thumbnails for meshes, and components
                     // todo thumbnails for scripts?
                     // todo thumbnails for Rem's Studio transforms
                     "obj", "fbx", "gltf", "glb", "dae", "md2", "md5mesh" -> {

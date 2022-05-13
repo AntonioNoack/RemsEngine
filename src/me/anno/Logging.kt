@@ -42,9 +42,7 @@ object Logging {
     }
 
     fun setup() {
-
         System.setOut(PrintStream(OutputPipe(originalOut) { it }))
         System.setErr(PrintStream(OutputPipe(originalErr) { "[ERR] $it" }))
-
     }
 }

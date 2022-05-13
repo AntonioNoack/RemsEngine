@@ -159,6 +159,66 @@ class PerlinNoise(
         return sum
     }
 
+    fun getSmooth(x: Float): Float {
+        var sum = offset
+        val generators = generators!!
+        val factors = factors
+        var vx = x
+        for (i in factors.indices) {
+            sum += factors[i] * generators[i].getValueSmooth(vx)
+            vx *= 2f
+        }
+        return sum
+    }
+
+    fun getSmooth(x: Float, y: Float): Float {
+        var sum = offset
+        val generators = generators!!
+        val factors = factors
+        var vx = x
+        var vy = y
+        for (i in factors.indices) {
+            sum += factors[i] * generators[i].getValueSmooth(vx, vy)
+            vx *= 2f
+            vy *= 2f
+        }
+        return sum
+    }
+
+    fun getSmooth(x: Float, y: Float, z: Float): Float {
+        var sum = offset
+        val generators = generators!!
+        val factors = factors
+        var vx = x
+        var vy = y
+        var vz = z
+        for (i in factors.indices) {
+            sum += factors[i] * generators[i].getValueSmooth(vx, vy, vz)
+            vx *= 2f
+            vy *= 2f
+            vz *= 2f
+        }
+        return sum
+    }
+
+    fun getSmooth(x: Float, y: Float, z: Float, w: Float): Float {
+        var sum = offset
+        val generators = generators!!
+        val factors = factors
+        var vx = x
+        var vy = y
+        var vz = z
+        var vw = w
+        for (i in factors.indices) {
+            sum += factors[i] * generators[i].getValueSmooth(vx, vy, vz, vw)
+            vx *= 2f
+            vy *= 2f
+            vz *= 2f
+            vw *= 2f
+        }
+        return sum
+    }
+
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {

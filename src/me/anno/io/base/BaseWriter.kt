@@ -99,6 +99,11 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeMatrix3x3fArray(name: String, values: Array<Matrix3fc>, force: Boolean = false)
     abstract fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3fc>, force: Boolean = false)
     abstract fun writeMatrix4x4fArray(name: String, values: Array<Matrix4fc>, force: Boolean = false)
+    abstract fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2fc>>, force: Boolean = false)
+    abstract fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2fc>>, force: Boolean = false)
+    abstract fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3fc>>, force: Boolean = false)
+    abstract fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3fc>>, force: Boolean = false)
+    abstract fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4fc>>, force: Boolean = false)
 
     abstract fun writeMatrix2x2d(name: String, value: Matrix2dc, force: Boolean = false)
     abstract fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean = false)
@@ -110,6 +115,11 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeMatrix3x3dArray(name: String, values: Array<Matrix3dc>, force: Boolean = false)
     abstract fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3dc>, force: Boolean = false)
     abstract fun writeMatrix4x4dArray(name: String, values: Array<Matrix4dc>, force: Boolean = false)
+    abstract fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2dc>>, force: Boolean = false)
+    abstract fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2dc>>, force: Boolean = false)
+    abstract fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3dc>>, force: Boolean = false)
+    abstract fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3dc>>, force: Boolean = false)
+    abstract fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4dc>>, force: Boolean = false)
 
     abstract fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean = false)
     abstract fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean = false)
@@ -337,14 +347,22 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
                         // todo all types
 
-                        is Boolean -> writeBooleanArray(name, BooleanArray(value.size) { value[it] as Boolean }, forceSaving)
+                        is Boolean -> writeBooleanArray(
+                            name,
+                            BooleanArray(value.size) { value[it] as Boolean },
+                            forceSaving
+                        )
                         is Char -> writeCharArray(name, CharArray(value.size) { value[it] as Char }, forceSaving)
                         is Byte -> writeByteArray(name, ByteArray(value.size) { value[it] as Byte }, forceSaving)
                         is Short -> writeShortArray(name, ShortArray(value.size) { value[it] as Short }, forceSaving)
                         is Int -> writeIntArray(name, IntArray(value.size) { value[it] as Int }, forceSaving)
                         is Long -> writeLongArray(name, LongArray(value.size) { value[it] as Long }, forceSaving)
                         is Float -> writeFloatArray(name, FloatArray(value.size) { value[it] as Float }, forceSaving)
-                        is Double -> writeDoubleArray(name, DoubleArray(value.size) { value[it] as Double }, forceSaving)
+                        is Double -> writeDoubleArray(
+                            name,
+                            DoubleArray(value.size) { value[it] as Double },
+                            forceSaving
+                        )
 
                         is BooleanArray -> writeBooleanArray2D(name, toArray(value), forceSaving)
                         is CharArray -> writeCharArray2D(name, toArray(value), forceSaving)
@@ -439,7 +457,17 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is ISaveable -> writeNullableObjectArray(self, name, value as Array<ISaveable?>, forceSaving)
                         is FileReference -> writeFileArray(name, cast(value), forceSaving)
 
-                        is Array<*> -> TODO("implement writing 2d array, of string or objects")
+                        is Array<*> -> {
+                            if (sample.isNotEmpty()) {
+                                when (val sample1 = sample[0]) {
+                                    is Matrix4x3f -> writeMatrix4x3fArray2D(name, cast(value), forceSaving)
+                                    is Matrix4f -> writeMatrix4x4fArray2D(name, cast(value), forceSaving)
+                                    else -> {
+                                        TODO("implement writing 2d array of type ${sample1?.javaClass}, '$name'")
+                                    }
+                                }
+                            } // else ...
+                        }
 
                         else -> throw RuntimeException("Not yet implemented: saving an array of $sample")
                     }

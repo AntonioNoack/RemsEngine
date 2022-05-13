@@ -9,11 +9,11 @@ import me.anno.maths.Maths.unmix
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 object MarchingSquares {
 
-    // to do marching squares probably could be used in quite a few instances:
-    // to do implement 3d marching squares
+    // marching squares probably could be used in quite a few instances
     // to do implement dual contouring https://www.boristhebrave.com/2018/04/15/dual-contouring-tutorial/
 
     /**
@@ -29,7 +29,7 @@ object MarchingSquares {
      * @param w width of field
      * @param h height of field
      * @param values field of values, row-major with stride w
-     * @param threshold relative threshold of inside/outside
+     * @param threshold relative threshold of inside/outside, typically 0
      * @return list of polygons, that are defined by the field
      * */
     fun march(w: Int, h: Int, values: FloatArray, threshold: Float): List<List<Vector2f>> {
@@ -164,11 +164,14 @@ object MarchingSquares {
             println("no polygons were found!")
             return
         }
-        val scale = 128
+        val scale = 8
+        val f0 = 1f / scale
+        val f1 = 3f / scale
         val field = FloatImage(w, h, 1, values)
+        val fieldScale = 2f / (values.maxOrNull()!! - values.minOrNull()!!)
         ImageWriter.writeImageFloat(
             (w - 1) * scale, (h - 1) * scale,
-            "marchingSquares", 512, false
+            "marchingSquares", 32, false
         ) { x, y, _ ->
             val px = x.toFloat() / scale
             val py = y.toFloat() / scale
@@ -181,8 +184,8 @@ object MarchingSquares {
                     }
                 }
             )
-            val f = clamp(unmix(1f / scale, 3f / scale, distance))
-            mix(1f, field.getValue(px, py), f)
+            val f = clamp(unmix(f0, f1, distance))
+            mix(1f, fieldScale * field.getValue(px, py), f)
         }
     }
 
@@ -191,13 +194,14 @@ object MarchingSquares {
         val w = 32
         val h = 16
         val t = (w * w + h * h) * 0.1f
+        val random = Random(1234L)
         val values = FloatArray(w * h) {
             val xi = it % w
-            val yi = it / h
-            val x = xi - w / 2f
-            val y = yi - h / 2f
+            val yi = it / w
+            val x = xi - (w - 1f) / 2f
+            val y = yi - (h - 1f) / 2f
             (x * x + y * y) * 2f - t
-            Math.random().toFloat() - 0.5f
+            // random.nextFloat() - 0.5f
         }
         val polygons = march(w, h, values, 0f)
         debugPolygons(w, h, values, polygons)

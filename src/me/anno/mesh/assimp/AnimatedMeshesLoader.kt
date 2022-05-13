@@ -170,7 +170,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 val animations = root.createChild("animations", null) as InnerFolder
                 for ((animName, animation) in animMap) {
                     animation[ROOT_PATH, "skeleton"] = skeletonPath
-                    animations.createPrefabChild(animName, animation)
+                    animations.createPrefabChild("$animName.json", animation)
                 }
             }
 
@@ -514,7 +514,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
         val prefab = Prefab("ImportedAnimation")
         prefab[ROOT_PATH, "name"] = animName
-        prefab[ROOT_PATH, "duration"] = duration
+        prefab[ROOT_PATH, "duration"] = duration.toFloat()
         prefab[ROOT_PATH, "frames"] = frames
         return prefab
     }
@@ -534,7 +534,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
         val prefab = Prefab("BoneByBoneAnimation")
         prefab[ROOT_PATH, "name"] = animName
-        prefab[ROOT_PATH, "duration"] = duration
+        prefab[ROOT_PATH, "duration"] = duration.toFloat()
         prefab[ROOT_PATH, "frameCount"] = maxFramesV2
         prefab[ROOT_PATH, "boneCount"] = boneMap.size
         prefab[ROOT_PATH, "rootMotion"] = rootMotion

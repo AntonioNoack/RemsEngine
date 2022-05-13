@@ -44,6 +44,10 @@ import kotlin.math.roundToInt
 // todo which parts of the engine can be split into modules? would be good for compile times
 // todo generate dependency graph visualization/computation? :)
 
+/**
+ * base class for UI setup;
+ * manages audio, graphics, settings, game loop, ui
+ * */
 abstract class StudioBase(
     val needsAudio: Boolean,
     val title: String,

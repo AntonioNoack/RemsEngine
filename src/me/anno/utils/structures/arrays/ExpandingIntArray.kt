@@ -77,6 +77,27 @@ class ExpandingIntArray(
 
     override operator fun get(index: Int) = array!![index]
 
+    fun addUnsafe(x: Int) {
+        array!![size++] = x
+    }
+
+    fun addUnsafe(x: Int, y: Int) {
+        val array = array!!
+        var size = size
+        array[size++] = x
+        array[size++] = y
+        this.size = size
+    }
+
+    fun addUnsafe(x: Int, y: Int, z: Int) {
+        val array = array!!
+        var size = size
+        array[size++] = x
+        array[size++] = y
+        array[size++] = z
+        this.size = size
+    }
+
     operator fun plusAssign(value: Int) {
         ensureCapacity(size + 1)
         array!![size++] = value

@@ -1,12 +1,15 @@
 package me.anno.engine.ui.render
 
+import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.*
+import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 
 open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
@@ -74,19 +77,35 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 attributes += Variable(GLSLType.V4F, "instanceTint", VariableMode.ATTR)
                 attributes += Variable(GLSLType.V4F, "tint", VariableMode.OUT)
             }
+            if (isAnimated && useAnimTextures) {
+                attributes += Variable(GLSLType.V4F, "animWeights")
+                attributes += Variable(GLSLType.V4F, "animIndices")
+                attributes += Variable(GLSLType.S2D, "animTexture")
+                attributes += Variable(GLSLType.BOOL, "hasAnimation")
+            }
         } else {
-            // todo for low end gpus
-            //  a) change the jointTransforms to a texture
-            // todo jointTransforms could be baked over all available/used animations, as we just send the weights directly to the shader <3
-            //  this would allow us to render animated meshes instanced as well <3, and with independent animations [just manually created animations would need extra care]
-            //  b) or separate the shader all together
+
+            //        A
+            // frames |
+            //        V
+            //                  <---------->
+            //          bones x 3 rows for matrix
+
             // attributes
             if (isAnimated) {
                 attributes += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
                 attributes += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
-                // not required for the instanced rendering, because this is instance specific
-                attributes += Variable(GLSLType.M4x3, "jointTransforms", maxBones)
-                attributes += Variable(GLSLType.BOOL, "hasAnimation")
+                if (useAnimTextures) {
+                    attributes += Variable(GLSLType.V4F, "animWeights")
+                    attributes += Variable(GLSLType.V4F, "animIndices")
+                    attributes += Variable(GLSLType.S2D, "animTexture")
+                    attributes += Variable(GLSLType.BOOL, "hasAnimation")
+                } else {
+                    // not required for the instanced rendering, because this is instance specific,
+                    // and therefore not supported for instanced rendering
+                    attributes += Variable(GLSLType.M4x3, "jointTransforms", maxBones)
+                    attributes += Variable(GLSLType.BOOL, "hasAnimation")
+                }
             }
             attributes += Variable(GLSLType.M4x3, "localTransform")
             // Variable(GLSLType.V4F, "weight", false),
@@ -101,7 +120,39 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 (if (isInstanced) "#define INSTANCED\n" else "") +
                 (if (colors) "#define COLORS\n" else "")
 
-        return ShaderStage(
+        val animationCode = if (useAnimTextures) {
+            "" +
+                    "jointMat  = getAnimMatrix(indices.x) * weights.x;\n" +
+                    "jointMat += getAnimMatrix(indices.y) * weights.y;\n" +
+                    "jointMat += getAnimMatrix(indices.z) * weights.z;\n" +
+                    "jointMat += getAnimMatrix(indices.w) * weights.w;\n"
+        } else {
+            "" +
+                    "jointMat  = jointTransforms[indices.x] * weights.x;\n" +
+                    "jointMat += jointTransforms[indices.y] * weights.y;\n" +
+                    "jointMat += jointTransforms[indices.z] * weights.z;\n" +
+                    "jointMat += jointTransforms[indices.w] * weights.w;\n"
+        }
+
+        val getAnimMatrix = "" +
+                loadMat4x3 +
+                "mat4x3 getAnimMatrix(int index, float time){\n" +
+                "   int timeI = int(time); float timeF = fract(time);\n" +
+                "   vec4 a = mix(texelFetch(animTexture, ivec2(index,  timeI), 0), texelFetch(animTexture, ivec2(index,  timeI+1), 0), timeF);\n" +
+                "   vec4 b = mix(texelFetch(animTexture, ivec2(index+1,timeI), 0), texelFetch(animTexture, ivec2(index+1,timeI+1), 0), timeF);\n" +
+                "   vec4 c = mix(texelFetch(animTexture, ivec2(index+2,timeI), 0), texelFetch(animTexture, ivec2(index+2,timeI+1), 0), timeF);\n" +
+                "   return loadMat4x3(a,b,c);\n" +
+                "}\n" +
+                "mat4x3 getAnimMatrix(int index){\n" +
+                "   mat4x3 t;\n" +
+                "   t  = getAnimMatrix(index,animIndices.x)*animWeights.x;\n" +
+                "   t += getAnimMatrix(index,animIndices.y)*animWeights.y;\n" +
+                "   t += getAnimMatrix(index,animIndices.z)*animWeights.z;\n" +
+                "   t += getAnimMatrix(index,animIndices.w)*animWeights.w;\n" +
+                "   return t;\n" +
+                "}\n"
+
+        val stage = ShaderStage(
             "vertex",
             createVertexVariables(isInstanced, isAnimated, colors),
             "" +
@@ -118,11 +169,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "#else\n" + // instanced
                     "   #ifdef ANIMATED\n" +
                     "   if(hasAnimation){\n" +
-                    "       mat4x3 jointMat;\n" +
-                    "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
-                    "       jointMat += jointTransforms[indices.y] * weights.y;\n" +
-                    "       jointMat += jointTransforms[indices.z] * weights.z;\n" +
-                    "       jointMat += jointTransforms[indices.w] * weights.w;\n" +
+                    "       mat4x3 jointMat;\n" + animationCode +
                     "       localPosition = jointMat * vec4(coords, 1.0);\n" +
                     "       #ifdef COLORS\n" +
                     "           normal = jointMat * vec4(normals, 0.0);\n" +
@@ -154,6 +201,12 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                     ShaderLib.positionPostProcessing
         )
+
+        if (isAnimated && useAnimTextures) {
+            stage.functions.add(Function(getAnimMatrix))
+        }
+
+        return stage
 
     }
 

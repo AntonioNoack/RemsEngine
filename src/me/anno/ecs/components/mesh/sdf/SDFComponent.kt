@@ -162,26 +162,6 @@ open class SDFComponent : ProceduralMesh() {
     @NotSerializedProperty
     var hasInvalidBounds = true
 
-    @DebugAction
-    fun invalidateBounds() {
-        val parent = parent
-        if (parent is SDFComponent) {
-            parent.invalidateBounds()
-        } else hasInvalidBounds = true
-    }
-
-    fun computeGlobalTransform(dst: Matrix4x3f): Matrix4x3f {
-        when (val parent = parent) {
-            is Entity -> dst.set2(parent.transform.globalTransform)
-            is SDFGroup -> parent.computeGlobalTransform(dst)
-            // else idk
-        }
-        dst.translate(position)
-        dst.rotate(rotation)
-        dst.scale(scale)
-        return dst
-    }
-
     // input: 3d position
     // output: float distance, int material index
 
@@ -241,6 +221,26 @@ open class SDFComponent : ProceduralMesh() {
 
     val positionMappers = ArrayList<PositionMapper>()
     val distanceMappers = ArrayList<DistanceMapper>()
+
+    @DebugAction
+    fun invalidateBounds() {
+        val parent = parent
+        if (parent is SDFComponent) {
+            parent.invalidateBounds()
+        } else hasInvalidBounds = true
+    }
+
+    fun computeGlobalTransform(dst: Matrix4x3f): Matrix4x3f {
+        when (val parent = parent) {
+            is Entity -> dst.set2(parent.transform.globalTransform)
+            is SDFGroup -> parent.computeGlobalTransform(dst)
+            // else idk
+        }
+        dst.translate(position)
+        dst.rotate(rotation)
+        dst.scale(scale)
+        return dst
+    }
 
     override fun onDestroy() {
         super.onDestroy()

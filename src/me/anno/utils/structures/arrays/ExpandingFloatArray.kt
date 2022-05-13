@@ -66,19 +66,39 @@ class ExpandingFloatArray(
     }
 
     fun add(value: Float) {
-        val array = array
-        if (array == null || size + 1 >= array.size) {
-            val newArray = FloatArray(if (array == null) initCapacity else max(array.size * 2, 16))
-            if (array != null) System.arraycopy(array, 0, newArray, 0, size)
-            this.array = newArray
-            newArray[size++] = value
-        } else {
-            array[size++] = value
-        }
+        ensureExtra(1)
+        array!![size++] = value
     }
 
-    fun addUnsafe(value: Float) {
-        array!![size++] = value
+    fun addUnsafe(x: Float) {
+        array!![size++] = x
+    }
+
+    fun addUnsafe(x: Float, y: Float) {
+        val array = array!!
+        var size = size
+        array[size++] = x
+        array[size++] = y
+        this.size = size
+    }
+
+    fun addUnsafe(x: Float, y: Float, z: Float) {
+        val array = array!!
+        var size = size
+        array[size++] = x
+        array[size++] = y
+        array[size++] = z
+        this.size = size
+    }
+
+    fun addUnsafe(x: Float, y: Float, z: Float, w: Float) {
+        val array = array!!
+        var size = size
+        array[size++] = x
+        array[size++] = y
+        array[size++] = z
+        array[size++] = w
+        this.size = size
     }
 
     operator fun set(index: Int, value: Float) {

@@ -98,7 +98,7 @@ import me.anno.io.binary.BinaryTypes.VECTOR4I_ARRAY
 import me.anno.io.binary.BinaryTypes.VECTOR4I_ARRAY_2D
 import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.types.InputStreams.readNBytes2
 import org.joml.*
 import java.io.DataInputStream
 

@@ -22,6 +22,7 @@ import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
 import me.anno.maths.bvh.RayTracing.glslBLASIntersection
 import me.anno.maths.bvh.RayTracing.glslIntersections
+import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.maths.bvh.TLASNode.Companion.PIXELS_PER_TLAS_NODE
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
@@ -38,6 +39,7 @@ import org.lwjgl.opengl.GL11C
 fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Float> {
 
     // create a scene, so maybe load Sponza, and then execute our renderer on TLAS
+    @Suppress("SpellCheckingInspection")
     val sources = listOf(
         downloads.getChild("ogldev-source/crytek_sponza/sponza.obj"),
         downloads.getChild("ogldev-source/dabrovic-sponza/sponza.obj"),
@@ -68,22 +70,23 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
     pipeline.frustum.setToEverything(cameraPosition, cameraRotation)
     pipeline.fill(scene, cameraPosition, worldScale)
 
-    for (i in 0 until 5) {
-        for (j in 0 until 5) {
-            if (i + j > 0) {
-                val scene2 = prefab.createInstance() as Entity
-                // clone object to test mesh duplication
-                scene2.transform.localPosition =
-                    scene2.transform.localPosition.add(aabb.deltaX() * i, 0.0, aabb.deltaZ() * j)
-                scene2.transform.localRotation =
-                    scene2.transform.localRotation
-                        .rotateY(0.1 * i)
-                        .rotateX(0.1 * j)
-                scene2.transform.invalidateGlobal()
-                scene2.validateTransform()
-                scene2.validateAABBs()
-
-                pipeline.fill(scene2, cameraPosition, worldScale)
+    if (true) {
+        val dx = aabb.deltaX() * 1.1
+        val dy = 0.0
+        val dz = aabb.deltaZ() * 1.1
+        for (i in 0 until 5) {
+            for (j in 0 until 5) {
+                if (i + j > 0) {
+                    val scene2 = prefab.createInstance() as Entity
+                    // clone object to test mesh duplication
+                    scene2.transform
+                        .translateLocal(dx * i, dy, dz * j)
+                        .rotateYLocal(0.2 * i)
+                        .rotateXLocal(0.2 * j)
+                    scene2.validateTransform()
+                    scene2.validateAABBs()
+                    pipeline.fill(scene2, cameraPosition, worldScale)
+                }
             }
         }
     }
@@ -136,6 +139,7 @@ fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Text
                     boundingBoxSDF + // for debugging
                     "#define nodes blasNodes\n" +
                     "#define BLAS_DEPTH $maxBLASDepth\n" +
+                    loadMat4x3 +
                     glslBLASIntersection +
                     "void main(){\n" +
                     "   ivec2 pos = ivec2(gl_GlobalInvocationID.xy);\n" +
@@ -175,7 +179,7 @@ fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Text
                     "           vec4 d10 = imageLoad(tlasNodes, ivec2(nodeX+2,nodeY));\n" +
                     "           vec4 d11 = imageLoad(tlasNodes, ivec2(nodeX+3,nodeY));\n" +
                     "           vec4 d12 = imageLoad(tlasNodes, ivec2(nodeX+4,nodeY));\n" +
-                    "           mat4x3 worldToLocal = mat4x3(d10,d11,d12);\n" +
+                    "           mat4x3 worldToLocal = loadMat4x3(d10,d11,d12);\n" +
                     // transform ray into local coordinates
                     "           vec3 localPos = worldToLocal * vec4(worldPos, 1.0);\n" +
                     "           vec3 localDir = normalize(worldToLocal * vec4(worldDir, 0.0));\n" +
@@ -189,7 +193,7 @@ fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Text
                     "               vec4 d20 = imageLoad(tlasNodes, ivec2(nodeX+5,nodeY));\n" +
                     "               vec4 d21 = imageLoad(tlasNodes, ivec2(nodeX+6,nodeY));\n" +
                     "               vec4 d22 = imageLoad(tlasNodes, ivec2(nodeX+7,nodeY));\n" +
-                    "               mat4x3 localToWorld = mat4x3(d20,d21,d22);\n" + // todo this might cause issues on Nvidia, check it
+                    "               mat4x3 localToWorld = loadMat4x3(d20,d21,d22);\n" +
                     // transform result into global coordinates
                     // theoretically we could get z-fighting here
                     "               float worldDistance1 = localDistance * length(localToWorld * vec4(localDir, 0.0));\n" +

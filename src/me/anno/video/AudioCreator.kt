@@ -69,7 +69,7 @@ abstract class AudioCreator(
         }
 
         val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, audioEncodingArguments.size + 2, true)
-        if (audioEncodingArguments.isNotEmpty()) builder += "-hide_banner"
+        builder += "-hide_banner"
         builder += audioEncodingArguments
 
         val process = builder.start()

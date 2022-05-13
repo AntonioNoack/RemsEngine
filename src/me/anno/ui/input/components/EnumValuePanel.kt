@@ -4,8 +4,8 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.input.Keys.isDownKey
-import me.anno.utils.input.Keys.isUpKey
+import me.anno.ui.Keys.isDownKey
+import me.anno.ui.Keys.isUpKey
 
 class EnumValuePanel(title: String, private var owner: EnumInput, style: Style) :
     TextPanel(title, style.getChild("italic")) {

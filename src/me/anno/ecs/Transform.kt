@@ -318,6 +318,64 @@ class Transform() : Saveable() {
         invalidateGlobal()
     }
 
+    @Suppress("unused")
+    fun setLocalPosition(v: Vector3dc): Transform {
+        return setLocalPosition(v.x(), v.y(), v.z())
+    }
+
+    @Suppress("unused")
+    fun setLocalPosition(x: Double, y: Double, z: Double): Transform {
+        localPosition.set(x, y, z)
+        invalidateGlobal()
+        return this
+    }
+
+    @Suppress("unused")
+    fun setGlobalPosition(v: Vector3dc): Transform {
+        return setGlobalPosition(v.x(), v.y(), v.z())
+    }
+
+    @Suppress("unused")
+    fun setGlobalPosition(x: Double, y: Double, z: Double): Transform {
+        globalPosition.set(x, y, z)
+        invalidateLocal()
+        return this
+    }
+
+    @Suppress("unused")
+    fun translateLocal(dx: Double, dy: Double, dz: Double): Transform {
+        localPosition.add(dx, dy, dz)
+        invalidateGlobal()
+        return this
+    }
+
+    @Suppress("unused")
+    fun translateGlobal(dx: Double, dy: Double, dz: Double): Transform {
+        globalPosition.add(dx, dy, dz)
+        invalidateLocal()
+        return this
+    }
+
+    fun resetLocalRotation(): Transform {
+        localRotation = localRotation.identity()
+        return this
+    }
+
+    fun rotateXLocal(angleRadians: Double): Transform {
+        localRotation = localRotation.rotateX(angleRadians)
+        return this
+    }
+
+    fun rotateYLocal(angleRadians: Double): Transform {
+        localRotation = localRotation.rotateY(angleRadians)
+        return this
+    }
+
+    fun rotateZLocal(angleRadians: Double): Transform {
+        localRotation = localRotation.rotateZ(angleRadians)
+        return this
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         // global doesn't need to be saved, as it can be reconstructed

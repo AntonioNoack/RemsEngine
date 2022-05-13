@@ -7,15 +7,21 @@ import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.engine.ui.render.Renderers
 import me.anno.fonts.FontManager
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
+import me.anno.gpu.OpenGL
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -38,6 +44,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
+import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
@@ -49,6 +56,10 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
+import me.anno.utils.Color.a01
+import me.anno.utils.Color.b01
+import me.anno.utils.Color.g01
+import me.anno.utils.Color.r01
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.pooling.JomlPools
@@ -63,6 +74,7 @@ import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.lwjgl.opengl.GL11C.*
 import kotlin.math.*
 
 // todo when dragging files over the edge of the border, mark them as copied, or somehow make them draggable...
@@ -71,13 +83,13 @@ import kotlin.math.*
 
 // todo when the aspect ratio is extreme (e.g. > 50), stretch the image artificially to maybe 10 aspect ratio
 
-// todo cannot enter mtl file
+// done cannot enter mtl file
 
 // todo when is audio, and hovered, we need to draw the loading animation continuously as well
 
 // todo right click to get all meta information? (properties panel in windows)
 
-// todo images: show extra information: width, height
+// done images: show extra information: width, height
 class FileExplorerEntry(
     private val explorer: FileExplorer?,
     val isParent: Boolean, file: FileReference, style: Style
@@ -97,7 +109,7 @@ class FileExplorerEntry(
     // done icons for project files
     // done asset files like unity, and then icons for them? (we want a unity-like engine, just with Kotlin)
 
-    // todo play mesh animations
+    // done play mesh animations
 
     private var startTime = 0L
 
@@ -328,7 +340,48 @@ class FileExplorerEntry(
     private fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
         val w = x1 - x0
         val h = y1 - y0
-        val image = Thumbs.getThumbnail(ref1 ?: InvalidRef, w, true) ?: getDefaultIcon() ?: whiteTexture
+        val file = ref1 ?: InvalidRef
+        if (isHovered) {
+            // todo reset time when not hovered
+            val animSample = try {
+                if (file.lcExtension == "json") PrefabCache.getPrefabInstance(file) else null
+            } catch (e: Exception) {
+                null // just not an animation
+            }
+            if (animSample is Animation) {
+                val time = (Engine.gameTime / 1e9) % animSample.duration
+                val samples = min(
+                    GFX.maxSamples, when (StudioBase.instance?.gfxSettings) {
+                        GFXSettings.HIGH -> 8
+                        GFXSettings.MEDIUM -> 2
+                        else -> 1
+                    }
+                )
+                if (samples > 1) {
+                    val tmp = FBStack["tmp", w, h, 4, false, 8, true] // msaa; probably should depend on gfx settings
+                    OpenGL.useFrame(0, 0, w, h, false, tmp, Renderers.simpleNormalRenderer) {
+                        OpenGL.depthMode.use(DepthMode.GREATER) {
+                            val bg = backgroundColor
+                            glClearColor(bg.r01(), bg.g01(), bg.b01(), bg.a01())
+                            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                            Thumbs.drawAnimatedSkeleton(animSample, time.toFloat(), w.toFloat() / h)
+                        }
+                    }
+                    GFX.copy(tmp)
+                } else {
+                    // use current buffer directly
+                    OpenGL.useFrame(0, 0, w, h, false, OpenGL.currentBuffer, Renderers.simpleNormalRenderer) {
+                        OpenGL.depthMode.use(DepthMode.GREATER) {
+                            glClear(GL_DEPTH_BUFFER_BIT)
+                            Thumbs.drawAnimatedSkeleton(animSample, time.toFloat(), w.toFloat() / h)
+                        }
+                    }
+                }
+                invalidateDrawing() // make sure to draw it next frame
+                return
+            }
+        }
+        val image = Thumbs.getThumbnail(file, w, true) ?: getDefaultIcon() ?: whiteTexture
         val rot = (image as? Texture2D)?.rotation
         image.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         if (rot == null) {

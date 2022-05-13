@@ -128,6 +128,11 @@ interface ISaveable {
     fun readMatrix3x3fArray(name: String, values: Array<Matrix3f>)
     fun readMatrix4x3fArray(name: String, values: Array<Matrix4x3f>)
     fun readMatrix4x4fArray(name: String, values: Array<Matrix4f>)
+    fun readMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>)
+    fun readMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2f>>)
+    fun readMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3f>>)
+    fun readMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3f>>)
+    fun readMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4f>>)
 
     fun readMatrix2x2d(name: String, value: Matrix2d)
     fun readMatrix3x2d(name: String, value: Matrix3x2d)
@@ -139,6 +144,11 @@ interface ISaveable {
     fun readMatrix3x3dArray(name: String, values: Array<Matrix3d>)
     fun readMatrix4x3dArray(name: String, values: Array<Matrix4x3d>)
     fun readMatrix4x4dArray(name: String, values: Array<Matrix4d>)
+    fun readMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2d>>)
+    fun readMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2d>>)
+    fun readMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3d>>)
+    fun readMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>)
+    fun readMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>)
 
     fun readQuaternionf(name: String, value: Quaternionf)
     fun readQuaternionfArray(name: String, values: Array<Quaternionf>)
@@ -200,6 +210,20 @@ interface ISaveable {
 
         private val LOGGER = LogManager.getLogger(ISaveable::class)
         private val reflectionCache = ConcurrentHashMap<KClass<*>, CachedReflections>()
+
+        fun getReflections(instance: Any): CachedReflections {
+            val clazz = instance::class
+            return reflectionCache.getOrPut(clazz) { CachedReflections(this, clazz) }
+        }
+
+        fun get(instance: Any, name: String): Any? {
+            return getReflections(instance)[instance, name]
+        }
+
+        fun set(instance: Any, name: String, value: Any?): Boolean {
+            val reflections = getReflections(instance)
+            return reflections.set(instance, name, value)
+        }
 
         class RegistryEntry(val sampleInstance: ISaveable, val generator: () -> ISaveable) {
             fun generate() = generator()

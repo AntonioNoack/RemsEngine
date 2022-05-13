@@ -57,6 +57,22 @@ object Maths {
         }
     }
 
+    fun smoothStepUnsafe(x: Float): Float {
+        return x * x * (3f - 2f * x)
+    }
+
+    fun smoothStep(a: Float, b: Float, x: Float): Float {
+        return when {
+            x <= 0f -> a
+            x < 1f -> mix(a, b, x * x * (3f - 2f * x))
+            else -> b
+        }
+    }
+
+    fun smoothStepUnsafe(a: Float, b: Float, x: Float): Float {
+        return mix(a, b, x * x * (3f - 2f * x))
+    }
+
     fun clamp01(x: Float) = clamp(x, 0f, 1f)
 
     fun pow(base: Double, power: Double) = StrictMath.pow(base, power)

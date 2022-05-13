@@ -244,7 +244,7 @@ object ECSRegistry {
         }
     }
 
-    fun initWithGFX(w: Int, h: Int = w) {
+    fun initWithGFX(w: Int = 512, h: Int = w) {
         HiddenOpenGLContext.createOpenGL(w, h)
         ShaderLib.init()
         ECSShaderLib.init()

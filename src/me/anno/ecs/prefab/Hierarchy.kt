@@ -188,7 +188,7 @@ object Hierarchy {
                     childIndex in components.indices &&
                     components[childIndex].prefabPath == pathI
                 ) {
-                    // bingo, easiest way: path is matching
+                    // bingo; easiest way: path is matching
                     instance = components[childIndex]
                 } else {
                     val match = components.firstOrNull { it.prefabPath == pathI }
@@ -264,22 +264,32 @@ object Hierarchy {
                 val type = dstParentInstance.getTypeOf(srcSample)
                 val nameId = Path.generateRandomId()
                 val clazz = srcPrefab.clazzName
-                val srcPrefabSource = srcSample.prefab?.prefab ?: InvalidRef
-                if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
-                val dstPath = dstPrefab.add(dstParentPath, type, clazz, nameId, srcPrefabSource, insertIndex)
-                LOGGER.debug("Adding element '$nameId' of class $clazz, type '$type' to path '$dstPath'")
-                val adds = srcPrefab.adds
-                assert(adds !== dstPrefab.adds)
-                for (index1 in adds.indices) {
-                    val change = adds[index1]
-                    dstPrefab.add(change.withPath(Path(dstPath, change.path), true), -1)
+                val allowLink = srcPrefab.source != InvalidRef
+                if (allowLink) {
+                    val srcPrefabSource = srcPrefab.source
+                    if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
+                    val dstPath = dstPrefab.add(dstParentPath, type, clazz, nameId, srcPrefabSource, insertIndex)
+                    LOGGER.debug("Adding element '$nameId' of class $clazz, type '$type' to path '$dstPath'")
+                    ECSSceneTabs.updatePrefab(dstPrefab)
+                    return dstPath
+                } else {
+                    val srcPrefabSource = srcPrefab.prefab
+                    if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
+                    val dstPath = dstPrefab.add(dstParentPath, type, clazz, nameId, srcPrefabSource, insertIndex)
+                    LOGGER.debug("Adding element '$nameId' of class $clazz, type '$type' to path '$dstPath'")
+                    val adds = srcPrefab.adds
+                    assert(adds !== dstPrefab.adds)
+                    for (index1 in adds.indices) {
+                        val change = adds[index1]
+                        dstPrefab.add(change.withPath(Path(dstPath, change.path), true), -1)
+                    }
+                    val sets = srcPrefab.sets
+                    sets.forEach { k1, k2, v ->
+                        dstPrefab[Path(dstPath, k1), k2] = v
+                    }
+                    ECSSceneTabs.updatePrefab(dstPrefab)
+                    return dstPath
                 }
-                val sets = srcPrefab.sets
-                sets.forEach { k1, k2, v ->
-                    dstPrefab[Path(dstPath, k1), k2] = v
-                }
-                ECSSceneTabs.updatePrefab(dstPrefab)
-                return dstPath
             } else {
                 LOGGER.debug("Extraction")
                 return add(
@@ -591,6 +601,20 @@ object Hierarchy {
         }
     }
 
+    fun testAddSimpleChild() {
+        val scene = Prefab("Entity")
+        val added = PrefabCache[getReference(documents, "CuteGhost.fbx")]!!
+        val ca = scene.adds.size
+        val cs = scene.sets.size
+        add(added, Path.ROOT_PATH, scene, Path.ROOT_PATH, -1)
+        val nca = scene.adds.size
+        val ncs = scene.sets.size
+        assert(nca, ca + 1)
+        assert(ncs, cs)
+        scene.createInstance()
+        // to do check there were no warnings
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
         ECSRegistry.initNoGFX()
@@ -606,6 +630,8 @@ object Hierarchy {
         testReordering()
         LOGGER.debug("----------------------")
         testRenumberRemove()
+        LOGGER.debug("----------------------")
+        testAddSimpleChild()
         LOGGER.debug("----------------------")
         // testJsonFormatter()
         LOGGER.debug("----------------------")

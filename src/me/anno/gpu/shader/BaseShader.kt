@@ -42,7 +42,7 @@ open class BaseShader(
 
     private val flatShader = KeyTripleMap<Renderer, Int, GeoShader?, Shader>()
     private val deferredShaders = KeyTripleMap<DeferredSettingsV2, Int, GeoShader?, Shader>()
-    private val depthShader = Array(2) { lazy { createDepthShader(it.and(1) != 0, it.and(2) != 0) } }
+    private val depthShader = Array(4) { lazy { createDepthShader(it.and(1) != 0, it.and(2) != 0) } }
 
     /** shader for rendering the depth, e.g. for pre-depth */
     open fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean): Shader {

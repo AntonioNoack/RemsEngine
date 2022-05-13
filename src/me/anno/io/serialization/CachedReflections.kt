@@ -44,7 +44,7 @@ class CachedReflections(
      * updates the property in the instance
      * returns true on success
      * */
-    operator fun set(self: ISaveable, name: String, value: Any?): Boolean {
+    operator fun set(self: Any, name: String, value: Any?): Boolean {
         val property = allProperties[name] ?: return false
         val value2 = if (value is Array<*> && property[self] !is Array<*>) {
             value.toList()
@@ -52,7 +52,7 @@ class CachedReflections(
         return property.set(self, value2)
     }
 
-    operator fun get(self: ISaveable, name: String): Any? {
+    operator fun get(self: Any, name: String): Any? {
         val property = allProperties[name] ?: return null
         return property[self]
     }

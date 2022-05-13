@@ -4,6 +4,9 @@ import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
+/**
+ * a class for measuring performance
+ * */
 class Clock(
     private val printWholeAccuracy: Boolean = false,
     printZeros: Boolean = false

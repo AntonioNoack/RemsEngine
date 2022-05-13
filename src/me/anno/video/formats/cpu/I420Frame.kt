@@ -6,7 +6,7 @@ import me.anno.image.ImageCPUCache
 import me.anno.image.raw.IntImage
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
-import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 import java.nio.ByteBuffer
 

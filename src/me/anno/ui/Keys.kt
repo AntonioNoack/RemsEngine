@@ -1,4 +1,4 @@
-package me.anno.utils.input
+package me.anno.ui
 
 import org.lwjgl.glfw.GLFW
 

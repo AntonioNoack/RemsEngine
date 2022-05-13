@@ -1,34 +1,55 @@
 package me.anno.ecs.components.audio
 
-// todo audio system
-// todo some kind of event system for when music changed
+import me.anno.ecs.Component
+import me.anno.ecs.annotations.Docs
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 
-// todo there need to be multiple types: procedural & loaded
-// todo define distance function
+class AudioComponent : AudioComponentBase() {
 
-// todo effects maybe? mmh... procedural audio!
-// todo what's the best way to compute distance to the main listener? world position
+    var source: FileReference = InvalidRef
 
-// todo what's the best way to combine audio for local multiplayer? we could use stereo a little for that :)
-// (should be disable-able)
+    // most tracks are short, so keep them in memory by default
+    @Docs("Keeps the track in memory, so it can be started without delay")
+    var keepInMemory = true
 
-// todo implement things
-
-class AudioComponent {
-
-    enum class PlayMode {
-        ONCE,
-        LOOP
+    override fun clone(): Component {
+        val clone = AudioComponent()
+        copy(clone)
+        return clone
     }
 
-    enum class Attenuation {
-        LINEAR, EXPONENTIAL,
-        GLOBAL,
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as AudioComponent
+        clone.source = source
+        clone.keepInMemory = keepInMemory
     }
 
-    var isRunning = false
-    var isFinished = false
+    private fun keepInMemory() {
+        // todo calculate number of buffers
+        val duration = 10
 
-    fun start() {}
+        var numBuffers = 10
+        for(i in 0 until numBuffers){
+            // todo keep buffer in memory
+        }
+    }
+
+    fun isFullyLoaded(){
+        // todo check whether all buffers are in memory
+    }
+
+    override fun onUpdate(): Int {
+        var ret = 30
+        if (keepInMemory) {
+            keepInMemory()
+            ret = 5
+        }
+        return ret
+    }
+
+    override val className = "AudioComponent"
 
 }

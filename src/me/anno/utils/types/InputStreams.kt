@@ -1,4 +1,4 @@
-package me.anno.utils.input
+package me.anno.utils.types
 
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.ByteBufferPool
@@ -7,7 +7,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.math.min
 
-object Input {
+object InputStreams {
 
     private val tmpBuffer = ThreadLocal2 { ByteArray(1024) }
 

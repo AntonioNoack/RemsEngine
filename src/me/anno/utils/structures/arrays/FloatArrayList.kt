@@ -1,9 +1,9 @@
 package me.anno.utils.structures.arrays
 
-import me.anno.utils.Color.a
-import me.anno.utils.Color.b
-import me.anno.utils.Color.g
-import me.anno.utils.Color.r
+import me.anno.utils.Color.a01
+import me.anno.utils.Color.b01
+import me.anno.utils.Color.g01
+import me.anno.utils.Color.r01
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -71,16 +71,16 @@ class FloatArrayList(val capacity: Int, val defaultValue: Float = 0f) {
     }
 
     fun addRGB(c: Int) {
-        this += c.r() / 255f
-        this += c.g() / 255f
-        this += c.b() / 255f
+        this += c.r01()
+        this += c.g01()
+        this += c.b01()
     }
 
     fun addRGBA(c: Int) {
-        this += c.r() / 255f
-        this += c.g() / 255f
-        this += c.b() / 255f
-        this += c.a() / 255f
+        this += c.r01()
+        this += c.g01()
+        this += c.b01()
+        this += c.a01()
     }
 
     fun putInto(dst0: ByteBuffer) {

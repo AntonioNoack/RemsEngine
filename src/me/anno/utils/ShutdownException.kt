@@ -1,3 +1,3 @@
 package me.anno.utils
 
-class ShutdownException() : Exception()
+class ShutdownException : Exception()

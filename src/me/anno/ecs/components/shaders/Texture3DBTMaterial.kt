@@ -12,6 +12,7 @@ import org.joml.Vector3f
 /**
  * texture 3d - block traced material
  * */
+@Suppress("unused")
 class Texture3DBTMaterial : BlockTracedMaterial("3dTex-rt") {
 
     var blocks: Texture3D? = null
@@ -39,7 +40,7 @@ class Texture3DBTMaterial : BlockTracedMaterial("3dTex-rt") {
     }
 
     override fun initProperties(instanced: Boolean): String {
-        return "float block;\n"
+        return "float block = 0.0;\n"
     }
 
     override fun checkIfIsAir(instanced: Boolean): String {

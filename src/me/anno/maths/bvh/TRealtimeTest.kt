@@ -39,13 +39,6 @@ fun main() {
     main(tlas, cameraPosition, cameraRotation, fovZFactor)
 }
 
-enum class BVHDrawMode(val id: Int) {
-    COLOR(0),
-    NORMAL(1),
-    TLAS_HITS(2),
-    BLAS_HITS(3),
-}
-
 fun main(
     bvh: TLASNode,
     cameraPosition: Vector3f, cameraRotation: Quaternionf,

@@ -243,14 +243,16 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         )
     }
 
-    private inline fun <reified Type> readArray2(
-        typeName: String, a0: Array<Type>,
-        crossinline readValue: () -> Type,
-    ): Array<Array<Type>> {
+    private inline fun <reified Type2> readArray2(
+        typeName: String, sampleArray: Array<Type2>,
+        crossinline readValue: () -> Type2,
+    ): Array<Array<Type2>> {
+        val sampleInstance = sampleArray[0]
         @Suppress("unchecked_cast")
         return readArray(typeName,
-            { Array(it) { a0 } }, { readArray(typeName, a0, readValue) },
-            { array, index, value -> array[index] = value as Array<Type> }
+            { Array(it) { sampleArray } },
+            { readArray(typeName, sampleInstance, readValue) },
+            { array, index, value -> array[index] = value }
         )
     }
 
@@ -854,6 +856,11 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             "m3x3[]" -> obj.readMatrix3x3fArray(name, readArray("m3x3", matrix3x3) { readMatrix3x3() })
             "m4x3[]" -> obj.readMatrix4x3fArray(name, readArray("m4x3", matrix4x3) { readMatrix4x3() })
             "m4x4[]" -> obj.readMatrix4x4fArray(name, readArray("m4x4", matrix4x4) { readMatrix4x4() })
+            "m2x2[][]" -> obj.readMatrix2x2fArray2D(name, readArray2("m2x2", matrix2x2a) { readMatrix2x2() })
+            "m3x2[][]" -> obj.readMatrix3x2fArray2D(name, readArray2("m3x2", matrix3x2a) { readMatrix3x2() })
+            "m3x3[][]" -> obj.readMatrix3x3fArray2D(name, readArray2("m3x3", matrix3x3a) { readMatrix3x3() })
+            "m4x3[][]" -> obj.readMatrix4x3fArray2D(name, readArray2("m4x3", matrix4x3a) { readMatrix4x3() })
+            "m4x4[][]" -> obj.readMatrix4x4fArray2D(name, readArray2("m4x4", matrix4x4a) { readMatrix4x4() })
             "m2x2d" -> obj.readMatrix2x2d(name, readMatrix2x2d())
             "m3x2d" -> obj.readMatrix3x2d(name, readMatrix3x2d())
             "m3x3d" -> obj.readMatrix3x3d(name, readMatrix3x3d())
@@ -864,6 +871,11 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             "m3x3d[]" -> obj.readMatrix3x3dArray(name, readArray("m3x3d", matrix3x3d) { readMatrix3x3d() })
             "m4x3d[]" -> obj.readMatrix4x3dArray(name, readArray("m4x3d", matrix4x3d) { readMatrix4x3d() })
             "m4x4d[]" -> obj.readMatrix4x4dArray(name, readArray("m4x4d", matrix4x4d) { readMatrix4x4d() })
+            "m2x2d[][]" -> obj.readMatrix2x2dArray2D(name, readArray2("m2x2d", matrix2x2da) { readMatrix2x2d() })
+            "m3x2d[][]" -> obj.readMatrix3x2dArray2D(name, readArray2("m3x2d", matrix3x2da) { readMatrix3x2d() })
+            "m3x3d[][]" -> obj.readMatrix3x3dArray2D(name, readArray2("m3x3d", matrix3x3da) { readMatrix3x3d() })
+            "m4x3d[][]" -> obj.readMatrix4x3dArray2D(name, readArray2("m4x3d", matrix4x3da) { readMatrix4x3d() })
+            "m4x4d[][]" -> obj.readMatrix4x4dArray2D(name, readArray2("m4x4d", matrix4x4da) { readMatrix4x4d() })
             "AABBf" -> readWithBrackets(type) {
                 obj.readAABBf(
                     name, AABBf()
@@ -1062,16 +1074,26 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         private val matrix3x3d = Matrix3d()
         private val matrix4x3d = Matrix4x3d()
         private val matrix4x4d = Matrix4d()
-        private val vector2f0a = emptyArray<Vector2f>()
-        private val vector3f0a = emptyArray<Vector3f>()
-        private val vector4f0a = emptyArray<Vector4f>()
-        private val vector2d0a = emptyArray<Vector2d>()
-        private val vector3d0a = emptyArray<Vector3d>()
-        private val vector4d0a = emptyArray<Vector4d>()
-        private val vector2i0a = emptyArray<Vector2i>()
-        private val vector3i0a = emptyArray<Vector3i>()
-        private val vector4i0a = emptyArray<Vector4i>()
-        private val file0a = emptyArray<FileReference>()
+        private val vector2f0a = arrayOf(Vector2f())
+        private val vector3f0a = arrayOf(Vector3f())
+        private val vector4f0a = arrayOf(Vector4f())
+        private val vector2d0a = arrayOf(Vector2d())
+        private val vector3d0a = arrayOf(Vector3d())
+        private val vector4d0a = arrayOf(Vector4d())
+        private val vector2i0a = arrayOf(Vector2i())
+        private val vector3i0a = arrayOf(Vector3i())
+        private val vector4i0a = arrayOf(Vector4i())
+        private val matrix2x2a = arrayOf(Matrix2f())
+        private val matrix3x2a = arrayOf(Matrix3x2f())
+        private val matrix3x3a = arrayOf(Matrix3f())
+        private val matrix4x3a = arrayOf(Matrix4x3f())
+        private val matrix4x4a = arrayOf(Matrix4f())
+        private val matrix2x2da = arrayOf(Matrix2d())
+        private val matrix3x2da = arrayOf(Matrix3x2d())
+        private val matrix3x3da = arrayOf(Matrix3d())
+        private val matrix4x3da = arrayOf(Matrix4x3d())
+        private val matrix4x4da = arrayOf(Matrix4d())
+        private val file0a = arrayOf<FileReference>(InvalidRef)
         private const val black = 255.shl(24).toLong()
         private val LOGGER = LogManager.getLogger(TextReaderBase::class)
     }

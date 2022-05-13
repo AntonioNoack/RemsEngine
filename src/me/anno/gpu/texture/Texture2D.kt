@@ -92,10 +92,15 @@ open class Texture2D(
     }
 
     fun swizzleMonochrome() {
-        tmp4i[0] = GL_RED
-        tmp4i[1] = GL_RED
-        tmp4i[2] = GL_RED
-        tmp4i[3] = GL_ONE
+        swizzle(GL_RED, GL_RED, GL_RED, GL_ONE)
+    }
+
+    // could and should be used for roughness/metallic like textures in the future
+    fun swizzle(r: Int, g: Int, b: Int, a: Int) {
+        tmp4i[0] = r
+        tmp4i[1] = g
+        tmp4i[2] = b
+        tmp4i[3] = a
         check()
         glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, tmp4i)
         check()
@@ -105,12 +110,12 @@ open class Texture2D(
         checkSession()
         if (isDestroyed) throw RuntimeException("Texture was destroyed")
         if (pointer <= 0) {
-            GFX.check()
+            check()
             pointer = createTexture()
             DebugGPUStorage.tex2d.add(this)
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
-            GFX.check()
+            check()
         }
         if (pointer <= 0) throw RuntimeException("Could not allocate texture pointer")
     }
@@ -203,6 +208,12 @@ open class Texture2D(
     fun create(type: TargetType) {
         beforeUpload(0, 0)
         texImage2D(type, null)
+        afterUpload(type.isHDR, type.bytesPerPixel)
+    }
+
+    fun create(type: TargetType, data: ByteBuffer) {
+        beforeUpload(0, 0)
+        texImage2D(type, data)
         afterUpload(type.isHDR, type.bytesPerPixel)
     }
 
@@ -333,6 +344,14 @@ open class Texture2D(
                 intArrayPool.returnBuffer(intData)
             }
         }
+    }
+
+    fun overridePartially(data: ByteBuffer, x: Int, y: Int, w: Int, h: Int, type: TargetType){
+        ensurePointer()
+        bindBeforeUpload()
+        val level = 0
+        glTexSubImage2D(target, level, x, y, w, h, type.uploadFormat, type.fillType, data)
+        check()
     }
 
     fun getBuffer(bytes: ByteArray, ensureOpaque: Boolean): ByteBuffer {

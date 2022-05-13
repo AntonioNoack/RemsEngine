@@ -135,7 +135,7 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
                     "   } else break;\n" + // hit something :)
                     "}\n" +
                     // compute normal
-                    "vec3 localNormal;\n" +
+                    "vec3 localNormal = vec3(0.0);\n" +
                     "if(lastNormal == 0){ localNormal.x = -dn.x; } else\n" +
                     "if(lastNormal == 1){ localNormal.y = -dn.y; }\n" +
                     "else {               localNormal.z = -dn.z; }\n" +

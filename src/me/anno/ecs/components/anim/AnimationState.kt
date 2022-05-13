@@ -1,6 +1,7 @@
 package me.anno.ecs.components.anim
 
 import me.anno.animation.LoopingState
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.cache.AnimationCache
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -9,7 +10,9 @@ import me.anno.io.files.InvalidRef
 
 class AnimationState(
     var source: FileReference,
+    @Range(0.0, 1.0)
     var weight: Float,
+    @Range(0.0, Double.POSITIVE_INFINITY)
     var progress: Float,
     var speed: Float,
     var repeat: LoopingState

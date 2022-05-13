@@ -48,6 +48,7 @@ abstract class Collider : CollidingComponent() {
             }
         }
 
+    @Docs("Whether the collider is convex; in Bullet, only convex-convex and convex-concave interactions are defined")
     open val isConvex: Boolean = true
 
     override fun hasRaycastType(typeMask: Int): Boolean {

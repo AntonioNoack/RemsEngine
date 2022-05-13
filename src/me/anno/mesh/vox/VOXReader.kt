@@ -8,8 +8,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.zip.InnerFolder
 import me.anno.maths.Maths.convertABGR2ARGB
-import me.anno.mesh.vox.format.VOXLayer
-import me.anno.mesh.vox.format.VOXNode
 import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.utils.OS

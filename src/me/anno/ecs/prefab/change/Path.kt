@@ -294,7 +294,6 @@ class Path(
 
         private val LOGGER = LogManager.getLogger(Path::class)
 
-        val TRUE = Throwable()
         val FALSE = Throwable()
         val EXIT = Throwable()
 
