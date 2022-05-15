@@ -26,24 +26,7 @@ object ECSShaderLib {
                 "worldScale"
             )
         )
-        val textures = mutableListOf(
-            "diffuseMap",
-            "normalMap",
-            "emissiveMap",
-            "roughnessMap",
-            "metallicMap",
-            "occlusionMap",
-            "sheenNormalMap",
-            "reflectionPlane"
-        )
-        for (i in 0 until Renderers.MAX_PLANAR_LIGHTS) {
-            textures.add("shadowMapPlanar$i")
-        }
-        for (i in 0 until Renderers.MAX_CUBEMAP_LIGHTS) {
-            textures.add("shadowMapCubic$i")
-        }
-        shader.ignoreUniformWarnings(textures)
-        shader.setTextureIndices(textures)
+
         shader.glslVersion = 330
 
         val shader2 = BaseShader(

@@ -17,7 +17,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
             val g = input.read()
             val b = input.read()
             val a = input.read()
-            if (r < 0 || g < 0 || b < 0 || a < 0){
+            if (r < 0 || g < 0 || b < 0 || a < 0) {
                 Texture2D.bufferPool.returnBuffer(data)
                 throw EOFException()
             }
@@ -28,7 +28,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
         }
         data.flip()
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask(w, h) {
+        GFX.addGPUTask("RGBA", w, h) {
             rgb.createRGBA(data, true)
             creationLimiter.release()
         }

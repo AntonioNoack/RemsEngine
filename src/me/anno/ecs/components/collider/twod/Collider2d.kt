@@ -1,9 +1,11 @@
 package me.anno.ecs.components.collider.twod
 
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import org.jbox2d.collision.shapes.Shape
 import org.jbox2d.dynamics.Fixture
@@ -15,15 +17,23 @@ import org.joml.Matrix4x3d
 
 abstract class Collider2d : Collider() {
 
+    @NotSerializedProperty
     var box2dInstance: Fixture? = null
+
+    @DebugProperty
+    val box2d get() = box2dInstance?.hashCode()
 
     @Range(0.0, 1e100)
     @SerializedProperty
     var density = 0f
         set(value) {
             // could we update this at runtime? would need to update mass & inertia
-            field = value
-            invalidateRigidbody()
+            if (field != value) {
+                field = value
+                box2dInstance?.density = value
+                // to do check if this works
+                // invalidateRigidbody()
+            }
         }
 
     @Range(0.0, 1.0)

@@ -31,7 +31,7 @@ import me.anno.utils.types.InputStreams.readNBytes2
 import kotlin.math.ceil
 import kotlin.math.log2
 
-// todo idea: move inFocus into WindowStack, because it really depends only on the stack
+// done idea: move inFocus into WindowStack, because it really depends only on the stack
 
 // todo hex editor like HxD, but better comparison mode
 // todo maybe next to each other?, and then synchronize scroll lists? lock/unlock them? :)

@@ -19,7 +19,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.mixARGB2
-import me.anno.maths.bvh.RayTracing.glslBLASIntersection
+import me.anno.maths.bvh.RayTracing.glslBLASIntersectionCompute
 import me.anno.maths.bvh.RayTracing.glslIntersections
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.utils.Clock
@@ -81,7 +81,7 @@ fun renderOnCPU(
     }
 }
 
-fun createShader(useBVH: Boolean, maxDepth: Int, mesh: Mesh?): ComputeShader {
+fun createComputeShader(useBVH: Boolean, maxDepth: Int, mesh: Mesh?): ComputeShader {
     return ComputeShader(
         "bvh-traversal", Vector2i(16), "" +
                 "layout(rgba32f, binding = 0) uniform image2D triangles;\n" +
@@ -98,7 +98,7 @@ fun createShader(useBVH: Boolean, maxDepth: Int, mesh: Mesh?): ComputeShader {
                 quatRot +
                 "#define BLAS_DEPTH $maxDepth\n" +
                 loadMat4x3 +
-                glslBLASIntersection +
+                glslBLASIntersectionCompute +
                 "void main(){\n" +
                 "   uint nodeCtr=0;\n" +
                 "   ivec2 pos = ivec2(gl_GlobalInvocationID.xy);\n" +
@@ -235,7 +235,7 @@ fun main() {
         result.create(TargetType.FloatTarget4)
         val maxDepth = bvh.maxDepth()
         fun render(useBVH: Boolean, name: String) {
-            val shader = createShader(useBVH, maxDepth, mesh)
+            val shader = createComputeShader(useBVH, maxDepth, mesh)
             shader.use()
             shader.v2i("size", w, h)
             shader.v3f("worldPos", start2)

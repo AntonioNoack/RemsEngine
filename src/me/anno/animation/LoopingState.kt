@@ -24,19 +24,23 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
     PLAY_LOOP(1, NameDesc("Looping")) {
 
         override fun get(time: Float, duration: Float): Float {
-            return time % duration
+            val t = time % duration
+            return if (t < 0f) t + duration else t
         }
 
         override fun get(time: Double, duration: Double): Double {
-            return time % duration
+            val t = time % duration
+            return if (t < 0.0) t + duration else t
         }
 
         override fun get(time: Int, duration: Int): Int {
-            return time % duration
+            val t = time % duration
+            return if (t < 0) t + duration else t
         }
 
         override fun get(time: Long, duration: Long): Long {
-            return time % duration
+            val t = time % duration
+            return if (t < 0) t + duration else t
         }
     },
     PLAY_REVERSING_LOOP(2, NameDesc("Reversing")) {

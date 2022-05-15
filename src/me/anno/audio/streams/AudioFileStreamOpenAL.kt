@@ -106,7 +106,7 @@ class AudioFileStreamOpenAL(
             requestNextBuffer(index, alSource.session)
         }
         if (isPlaying) {
-            AudioTasks.addNextTask(1) {
+            AudioTasks.addNextTask("wait", 1) {
                 waitForRequiredBuffers()
                 ALBase.check()
             }
@@ -119,7 +119,7 @@ class AudioFileStreamOpenAL(
 
         if (!isPlaying) return true
 
-        AudioTasks.addTask(10) {
+        AudioTasks.addTask("buffer filling", 10) {
             if (isPlaying) {
 
                 checkSession()

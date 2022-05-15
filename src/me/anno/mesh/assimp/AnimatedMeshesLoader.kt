@@ -181,7 +181,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                         0f, 1f, LoopingState.PLAY_LOOP
                     )
                 )
-            } else emptyList()
+            } else arrayListOf() // must be ArrayList
             addSkeleton(hierarchy, skeleton, skeletonPath, sampleAnimations)
 
             // create an animation node to show the first animation

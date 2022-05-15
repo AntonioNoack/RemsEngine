@@ -210,13 +210,13 @@ class WindowsShortcut {
             return link.size >= 32 && readLE32(link, magicOffset) == magic
         }
 
-        private fun getNullDelimitedString(bytes: ByteArray, off: Int): String {
+        private fun getNullDelimitedString(bytes: ByteArray, start: Int): String {
             // count bytes until the null character (0)
-            var index = off
+            var index = start
             while (index < bytes.size && bytes[index] != 0.toByte()) {
                 index++
             }
-            return String(bytes, off, off - index)
+            return String(bytes, start, index - start)
         }
 
         private fun readUTF16LE(bytes: ByteArray, off: Int, len: Int): String {

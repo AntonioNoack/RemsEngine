@@ -185,7 +185,7 @@ class FileExplorerEntry(
     fun stopPlayback() {
         val audio = audio
         if (audio != null && audio.isPlaying) {
-            AudioTasks.addTask(1) { audio.stop() }
+            AudioTasks.addTask("stop", 1) { audio.stop() }
             this.audio = null
         }
     }
@@ -269,7 +269,7 @@ class FileExplorerEntry(
                                     file, LoopingState.PLAY_LOOP,
                                     -hoverPlaybackDelay, meta, 1.0
                                 )
-                                AudioTasks.addTask(5) {
+                                AudioTasks.addTask("start", 5) {
                                     audio?.start()
                                 }
                             }
@@ -370,7 +370,7 @@ class FileExplorerEntry(
                     GFX.copy(tmp)
                 } else {
                     // use current buffer directly
-                    OpenGL.useFrame(0, 0, w, h, false, OpenGL.currentBuffer, Renderers.simpleNormalRenderer) {
+                    OpenGL.useFrame(x0, y0, w, h, false, OpenGL.currentBuffer, Renderers.simpleNormalRenderer) {
                         OpenGL.depthMode.use(DepthMode.GREATER) {
                             glClear(GL_DEPTH_BUFFER_BIT)
                             Thumbs.drawAnimatedSkeleton(animSample, time.toFloat(), w.toFloat() / h)

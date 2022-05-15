@@ -139,8 +139,6 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             }
         }
 
-        // todo qoi support? https://github.com/phoboslab/qoi, https://github.com/saharNooby/qoi-java
-
         // source: https://en.wikipedia.org/wiki/List_of_file_signatures
         // https://www.garykessler.net/library/file_sigs.html
         @Suppress("SpellCheckingInspection")
@@ -191,8 +189,9 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("dds", 0, "DDS "), // direct x image file format
             Signature("gif", 0, "GIF8"), // graphics interchange format, often animated
             Signature("gimp", 0, GimpImage.MAGIC), // gimp file
-            // https://openexr.readthedocs.io/en/latest/OpenEXRFileLayout.html
-            // todo exr reader
+            // todo qoi support?, https://github.com/phoboslab/qoi, https://github.com/saharNooby/qoi-java
+            Signature("qoi", 0, "qoif"),
+            // todo exr reader, https://openexr.readthedocs.io/en/latest/OpenEXRFileLayout.html
             Signature("exr", 0, listOf(0x76, 0x2f, 0x31, 0x01)), // HDR image format, can be exported from Blender
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...

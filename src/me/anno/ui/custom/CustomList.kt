@@ -270,7 +270,9 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     }
 
     override fun getCursor(): Long? {
-        for (scrollbar in scrollbars) {
+        val scrollbars = scrollbars
+        for (index in scrollbars.indices) {
+            val scrollbar = scrollbars[index]
             if (scrollbar.isBeingHovered) {
                 return if (isY) Cursor.vResize else Cursor.hResize
             }

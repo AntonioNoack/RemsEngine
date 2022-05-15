@@ -6,6 +6,7 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.shader.ComputeTextureMode
@@ -24,6 +25,7 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toRGB
 import me.anno.utils.hpc.HeavyProcessing
+import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.AABBs.volume
@@ -45,16 +47,11 @@ fun main(
     fovZFactor: Float
 ) {
 
-    val cpuTexture = Texture2D("cpu", 1, 1, 1)
-    val gpuTexture = Texture2D("gpu", 1, 1, 1)
-
     LogManager.disableLogger("WorkSplitter")
 
     testUI {
 
         GFX.someWindow.setVsyncEnabled(false)
-
-        cpuTexture.createRGBA()
 
         val main = PanelListY(style)
         val controls = OrbitControls()
@@ -105,6 +102,10 @@ fun main(
 
         fun computeSpeed(w: Int, h: Int, dt: Long) = dt / (w * h)
 
+        val pipeline = ProcessingGroup("trt", 1f)
+        val cpuTexture = Texture2D("cpu", 1, 1, 1)
+        cpuTexture.createRGBA()
+
         list.add(TestDrawPanel {
 
             it.clear()
@@ -121,10 +122,11 @@ fun main(
             fun nextFrame() {
                 val tmpPos = Vector3f(cameraPosition)
                 val tmpRot = Quaternionf(cameraRotation)
-                HeavyProcessing.addTask("") {
+                pipeline += {
                     val cpuBuffer = Texture2D.bufferPool[w * h * 4, false, false]
                     val t0 = System.nanoTime()
-                    HeavyProcessing.processBalanced2d(0, 0, w, h, 8, 1) { x0, y0, x1, y1 ->
+                    pipeline.processBalanced2d(0, 0, w, h, 8, 1) { x0, y0, x1, y1 ->
+                        JomlPools.reset()
                         for (y in y0 until y1) {
                             for (x in x0 until x1) {
                                 val dir = JomlPools.vec3f.create()
@@ -154,7 +156,7 @@ fun main(
                     val dt = max(t1 - t0, 1L)
                     cpuSpeed = computeSpeed(w, h, dt)
                     cpuFPS = SECONDS_TO_NANOS / dt
-                    GFX.addGPUTask(1) {
+                    GFX.addGPUTask("trt", 1) {
                         cpuTexture.w = w
                         cpuTexture.h = h
                         cpuTexture.createRGBA(cpuBuffer, false)
@@ -174,43 +176,78 @@ fun main(
 
         })
 
-        val (shader, triangles, blasNodes, tlasNodes) = createShader(bvh)
+        val useComputeShader = false
+        if (useComputeShader) {
 
-        list.add(TestDrawPanel {
+            val (shader, triangles, blasNodes, tlasNodes) = createComputeShader(bvh)
+            val gpuTexture = Texture2D("gpu", 1, 1, 1)
 
-            it.clear()
+            list.add(TestDrawPanel {
 
-            // render gpu side
-            val w = it.w
-            val h = it.h
+                it.clear()
 
-            val cx = (w - 1) * 0.5f
-            val cy = (h - 1) * 0.5f
-            val fovZ = -w * fovZFactor
+                // render gpu side
+                val w = it.w
+                val h = it.h
 
-            if (!gpuTexture.isCreated || gpuTexture.w != w || gpuTexture.h != h) {
-                gpuTexture.w = w
-                gpuTexture.h = h
-                gpuTexture.createRGBA()
-            }
+                val cx = (w - 1) * 0.5f
+                val cy = (h - 1) * 0.5f
+                val fovZ = -w * fovZFactor
 
-            shader.use()
-            shader.v2i("size", w, h)
-            shader.v3f("worldPos", cameraPosition)
-            shader.v4f("worldRot", cameraRotation)
-            shader.v3f("cameraOffset", cx, cy, fovZ)
-            shader.v3f("sky0", sky0)
-            shader.v3f("sky1", sky1)
-            shader.v1i("drawMode", Input.isKeyDown('x').toInt(1))
-            shader.bindTexture(0, triangles, ComputeTextureMode.READ)
-            shader.bindTexture(1, blasNodes, ComputeTextureMode.READ)
-            shader.bindTexture(2, tlasNodes, ComputeTextureMode.READ)
-            shader.bindTexture(3, gpuTexture, ComputeTextureMode.WRITE)
-            shader.runBySize(w, h)
+                if (!gpuTexture.isCreated || gpuTexture.w != w || gpuTexture.h != h) {
+                    gpuTexture.w = w
+                    gpuTexture.h = h
+                    gpuTexture.createRGBA()
+                }
 
-            DrawTextures.drawTexture(it.x, it.y + it.h, it.w, -it.h, gpuTexture, true, -1, null)
+                shader.use()
+                shader.v2i("size", w, h)
+                shader.v3f("worldPos", cameraPosition)
+                shader.v4f("worldRot", cameraRotation)
+                shader.v3f("cameraOffset", cx, cy, fovZ)
+                shader.v3f("sky0", sky0)
+                shader.v3f("sky1", sky1)
+                shader.v1i("drawMode", Input.isKeyDown('x').toInt(1))
+                shader.bindTexture(0, triangles, ComputeTextureMode.READ)
+                shader.bindTexture(1, blasNodes, ComputeTextureMode.READ)
+                shader.bindTexture(2, tlasNodes, ComputeTextureMode.READ)
+                shader.bindTexture(3, gpuTexture, ComputeTextureMode.WRITE)
+                shader.runBySize(w, h)
 
-        })
+                DrawTextures.drawTexture(it.x, it.y + it.h, it.w, -it.h, gpuTexture, true, -1, null)
+
+            })
+
+        } else {
+
+            val (shader, triangles, blasNodes, tlasNodes) = createGraphicsShader(bvh)
+
+            list.add(TestDrawPanel {
+
+                it.clear()
+
+                // render gpu side
+                val w = it.w
+                val h = it.h
+
+                val cx = (w - 1) * 0.5f
+                val cy = (h - 1) * 0.5f
+                val fovZ = -w * fovZFactor * 0.5f
+
+                shader.use()
+                shader.v3f("worldPos", cameraPosition)
+                shader.v4f("worldRot", cameraRotation)
+                shader.v3f("cameraOffset", cx, cy, fovZ)
+                shader.v3f("sky0", sky0)
+                shader.v3f("sky1", sky1)
+                shader.v1i("drawMode", Input.isKeyDown('x').toInt(1))
+                triangles.bindTrulyNearest(0)
+                blasNodes.bindTrulyNearest(1)
+                tlasNodes.bindTrulyNearest(2)
+                flat01.draw(shader)
+
+            })
+        }
 
         main.add(list)
         list.setWeight(100f)

@@ -9,15 +9,15 @@ object AudioTasks {
     private val audioTasks = ConcurrentLinkedQueue<Task>()
     private val nextAudioTasks = ArrayList<Task>()
 
-    fun addTask(weight: Int, task: () -> Unit) {
+    fun addTask(name: String, weight: Int, task: () -> Unit) {
         // could be optimized for release...
-        audioTasks.add(weight to task)
+        audioTasks.add(Task(name, weight, task))
     }
 
-    fun addNextTask(weight: Int, task: () -> Unit) {
+    fun addNextTask(name: String, weight: Int, task: () -> Unit) {
         // could be optimized for release...
         synchronized(nextAudioTasks) {
-            nextAudioTasks.add(weight to task)
+            nextAudioTasks.add(Task(name, weight, task))
         }
     }
 

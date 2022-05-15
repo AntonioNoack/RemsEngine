@@ -69,14 +69,14 @@ abstract class TreeView<V>(
 
     abstract fun setName(element: V, name: String)
 
-   open fun addBefore(self: Any, sibling: V){
-        val parent = getParent(sibling)!!
-        addChild(parent, self, getIndexInParent(parent, sibling))
+    open fun addBefore(self: V, sibling: V) {
+        val parent = getParent(self)!!
+        addChild(parent, self!!, getIndexInParent(parent, sibling))
     }
 
-    open fun addAfter(self: Any, sibling: V) {
-        val parent = getParent(sibling)!!
-        addChild(parent, self, getIndexInParent(parent, sibling) + 1)
+    open fun addAfter(self: V, sibling: V) {
+        val parent = getParent(self)!!
+        addChild(parent, self!!, getIndexInParent(parent, sibling) + 1)
     }
 
     abstract fun getIndexInParent(parent: V, child: V): Int

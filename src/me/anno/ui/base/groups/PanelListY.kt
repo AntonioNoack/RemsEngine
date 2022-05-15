@@ -55,7 +55,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
     }
 
     override fun setPosition(x: Int, y: Int) {
-        // todo some elements don't like this shortcut either...
+        // todo some elements don't like this shortcut...
         if (true || needsPosUpdate(x, y)) {
             lastPosTime = Engine.gameTime
 

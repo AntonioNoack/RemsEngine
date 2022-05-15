@@ -256,7 +256,7 @@ object SignedDistanceField {
         val buffer = calculateDistances(w, h, minX, maxX, minY, maxY, contours, roundEdges)
 
         val tex = Texture2D("SDF", w, h, 1)
-        GFX.addGPUTask(w, h) {
+        GFX.addGPUTask("SDF.createTexture()", w, h) {
             tex.createMonochrome(buffer, true)
             ByteBufferPool.free(buffer)
         }

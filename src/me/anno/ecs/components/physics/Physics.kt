@@ -5,9 +5,11 @@ import me.anno.Engine
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.RemsEngine
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.NotSerializedProperty
@@ -27,7 +29,7 @@ import kotlin.math.abs
 import kotlin.reflect.KClass
 
 abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
-    private val rigidBodyClass: KClass<InternalRigidBody>
+    private val internalRigidBodyClass: KClass<InternalRigidBody>
 ) : Component() {
 
     companion object {
@@ -60,12 +62,31 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     var targetUpdatesPerSecond = 30.0
 
     @DebugProperty
+    val numNonStatic get() = nonStaticRigidBodies.size
+
+    @DebugProperty
+    val numRigidbodies get() = rigidBodies.size
+
+    @DebugProperty
+    val numInvalid get() = invalidEntities.size
+
+    @DebugProperty
     @NotSerializedProperty
     var timeNanos = 0L
 
     var printValidations = false
 
     abstract fun updateGravity()
+
+    @DebugAction
+    fun invalidateAll() {
+        entity?.forAll {
+            if (internalRigidBodyClass.isInstance(it)) {
+                val e = (it as? Component)?.entity
+                if (e != null) invalidate(e)
+            }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -97,7 +118,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
             @Suppress("unchecked_cast")
             yieldAll(entity.components.filter { it.isEnabled && clazz.isInstance(it) } as List<V>)
             for (child in entity.children) {
-                if (child.isEnabled && !child.hasComponent(rigidBodyClass, false)) {
+                if (child.isEnabled && !child.hasComponent(internalRigidBodyClass, false)) {
                     yieldAll(getValidComponents(child, clazz))
                 }
             }
@@ -150,7 +171,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     fun addOrGet(entity: Entity): ExternalRigidBody? {
         // LOGGER.info("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
-        val rigidbody = entity.getComponent(rigidBodyClass, false) ?: return null
+        val rigidbody = entity.getComponent(internalRigidBodyClass, false) ?: return null
         return if (rigidbody.isEnabled) {
             getRigidbody(rigidbody)
         } else null
@@ -184,6 +205,14 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                 field = value
             }
         }
+
+    @DebugAction
+    fun reloadScene() {
+        // todo root cannot be restored, why?
+        val selected = RemsEngine.collectSelected()
+        root.prefab?.invalidateInstance()
+        RemsEngine.restoreSelected(selected)
+    }
 
     private fun startWorker() {
         workerThread = thread(name = className) {
@@ -334,6 +363,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
             // dst.calculateLocalTransform((entity.parent as? Entity)?.transform)
             entity.invalidateAABBsCompletely()
             entity.invalidateChildTransforms()
+            entity.validateTransform()
         }
 
         // clock.total("physics step", 0.1)

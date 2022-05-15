@@ -2,6 +2,7 @@ package me.anno.io.text
 
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
+import me.anno.io.base.InvalidFormatException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -102,7 +103,7 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
             return read(data, workspace, "", safely)
         }
 
-        @Throws(EOFException::class)
+        @Throws(EOFException::class, InvalidFormatException::class)
         fun read(data: InputStream, workspace: FileReference, sourceName: String, safely: Boolean): List<ISaveable> {
             val reader = TextStreamReader(data, workspace)
             reader.sourceName = sourceName

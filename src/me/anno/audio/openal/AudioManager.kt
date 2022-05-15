@@ -72,10 +72,11 @@ object AudioManager {
 
     private var lastCheckedTime = 0L
     private var lastDeviceConfig = 0
+    private val queryBuffer = intArrayOf(0)
     private fun checkIsDestroyed() {
         // todo detect if the primary audio device was changed by the user...
         val time = System.nanoTime()
-        if (abs(time - lastCheckedTime) > 100 * MILLIS_TO_NANOS) {
+        if (abs(time - lastCheckedTime) > 500 * MILLIS_TO_NANOS) {
             lastCheckedTime = time
             // 0.1ms -> it would be fine to even check it every time
             // we could consider only playback devices, but realistically the audio config shouldn't change often
@@ -92,9 +93,8 @@ object AudioManager {
                     return
                 } else {
                     // maybe it died anyways?...
-                    val answer = intArrayOf(0)
-                    alcGetIntegerv(device, ALC_CONNECTED, answer)
-                    if (answer[0] == 0) {
+                    alcGetIntegerv(device, ALC_CONNECTED, queryBuffer)
+                    if (queryBuffer[0] == 0) {
                         LOGGER.warn("Audio playing device disconnected")
                         reconnect()
                     }

@@ -55,7 +55,7 @@ abstract class FrameTask(
         /**
          * runs on GPU thread
          * */
-        GFX.addGPUTask(width, height) {
+        GFX.addGPUTask("FrameTask", width, height) {
             if (renderFrame(time)) {
                 writeFrame(averageFrame)
                 destroy()
@@ -180,7 +180,7 @@ abstract class FrameTask(
     }
 
     fun destroy() {
-        GFX.addGPUTask(width, height) {
+        GFX.addGPUTask("FrameTask.destroy()", width, height) {
             partialFrame.destroy()
             averageFrame.destroy()
         }

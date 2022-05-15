@@ -1,5 +1,6 @@
 package me.anno.ui.editor
 
+import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
@@ -36,6 +37,7 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
+import java.io.IOException
 import kotlin.concurrent.thread
 
 abstract class WelcomeUI {
@@ -282,10 +284,10 @@ abstract class WelcomeUI {
                 return fileNameIsOk(parent ?: return true)
             }
 
-            // todo check if we have write- and read-access
             val file = fileInput.file
             var state = "ok"
             var msg = ""
+            val writeAccessTestFile = file.getChild(".${Engine.nanoTime}.txt")
             when {
                 !rootIsOk(file) -> {
                     state = "error"
@@ -302,6 +304,27 @@ abstract class WelcomeUI {
                 file.exists && file.listChildren()?.isNotEmpty() == true -> {
                     state = "warning"
                     msg = translate("Folder is not empty!", "ui.project.folderNotEmpty")
+                }
+                // check if we have write- and read-access
+                try {
+                    writeAccessTestFile.writeText(writeAccessTestFile.name)
+                    false
+                } catch (e: IOException) {
+                    true
+                } -> {
+                    state = "error"
+                    msg = translate("Cannot write in folder", "ui.project.writeFailed")
+                }
+                try {
+                    writeAccessTestFile.readText() != writeAccessTestFile.name
+                } catch (e: Exception) {
+                    true
+                } -> {
+                    state = "error"
+                    msg = translate("Cannot read properly from folder", "ui.project.readFailed")
+                }
+                else -> {
+                    writeAccessTestFile.delete()
                 }
             }
             fileInput.tooltip = msg

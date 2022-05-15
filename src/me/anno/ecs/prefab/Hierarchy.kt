@@ -176,6 +176,8 @@ object Hierarchy {
 
     fun getInstanceAt(instance0: PrefabSaveable, path: Path): PrefabSaveable? {
 
+        if (path == Path.ROOT_PATH) return instance0
+
         var instance = instance0
         try {
             path.fromRootToThis(false) { pathIndex, pathI ->

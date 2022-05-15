@@ -15,14 +15,12 @@ import javax.imageio.ImageIO
 
 fun main() {
 
-    HiddenOpenGLContext.setSize(3000, 200)
     HiddenOpenGLContext.createOpenGL()
 
     ShaderLib.init()
 
-    // todo load or create small test image
-
-    val testImage = ImageIO.read(desktop.getChild("fox100.png").inputStream())
+    val srcFile = desktop.getChild("fox100.png")
+    val testImage = ImageIO.read(srcFile.inputStream())
     //BufferedImage(2, 2, 2)
     /*testImage.setRGB(0, 0, 0xff0000 or black)
     testImage.setRGB(0, 1, 0x00ff00 or black)
@@ -34,7 +32,7 @@ fun main() {
     val magnification = 1
 
     Thumbs.renderToBufferedImage(
-        InvalidRef, desktop.getChild("result.png"), false,
+        srcFile, InvalidRef, desktop.getChild("result.png"), false,
         Renderer.colorRenderer, true, { },
         formats.size * testImage.width * magnification, testImage.height * magnification
     ) {

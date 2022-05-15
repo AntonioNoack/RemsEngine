@@ -147,7 +147,7 @@ fun checkWord(word: String) {
 }
 
 fun waitForResults(timeoutMillis: Long = 30_000) {
-    // todo for such tasks, we could start multiple spellchecker instances
+    // to do for such tasks, we could start multiple spellchecker instances
     val logger = LogManager.getLogger("FindWords")
     val done = HashSet<String>()
     var timeSinceLastResult = System.nanoTime()

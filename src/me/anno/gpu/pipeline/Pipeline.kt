@@ -160,6 +160,10 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         }
     }
 
+    fun resetClickId() {
+        lastClickId = 0
+    }
+
     fun fill(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double) {
         // todo more complex traversal:
         // done exclude static entities by their AABB
@@ -169,12 +173,12 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         //  - add a margin, so entities at the screen border can stay visible
         //  - partially populate the pipeline?
         rootElement.validateAABBs()
-        lastClickId = subFill(rootElement, 1, cameraPosition, worldScale)
+        lastClickId = subFill(rootElement, lastClickId, cameraPosition, worldScale)
         // LOGGER.debug("$contained/$nonContained")
     }
 
     fun fill(rootElement: PrefabSaveable, cameraPosition: Vector3d, worldScale: Double) {
-        val clickId = 1
+        val clickId = lastClickId
         when (rootElement) {
             is Entity -> fill(rootElement, cameraPosition, worldScale)
             is MeshComponentBase -> {
@@ -209,8 +213,8 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     val center = Vector3d()
     private val lightList = SmallestKList<LightRequest<*>>(16) { a, b ->
         // todo also use the size, and relative size to the camera
-        val at = a.transform.globalTransform
-        val bt = b.transform.globalTransform
+        val at = a.transform.getDrawMatrix()
+        val bt = b.transform.getDrawMatrix()
         val cam = RenderView.camPosition
         val scale = JomlPools.vec3d.borrow()
         val da = (at.distanceSquared(center) + at.distanceSquared(cam)) * bt.getScale(scale).lengthSquared()

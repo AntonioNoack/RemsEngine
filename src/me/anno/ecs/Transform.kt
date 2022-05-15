@@ -4,6 +4,7 @@ import me.anno.Engine
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths
+import me.anno.utils.pooling.JomlPools
 import org.joml.*
 
 class Transform() : Saveable() {
@@ -13,27 +14,26 @@ class Transform() : Saveable() {
     }
 
     enum class State {
-        VALID,
-        CHILDREN_NEED_UPDATE,
-        VALID_LOCAL,
-        VALID_GLOBAL
+        VALID, CHILDREN_NEED_UPDATE, VALID_LOCAL, VALID_GLOBAL
     }
 
     private var state = State.VALID
         set(value) {
             field = value
             if (field != State.VALID) {
-                entity?.parentEntity?.transform?.invalidateForChildren()
+                parent?.invalidateForChildren()
             }
         }
 
-    private fun invalidateForChildren() {
+    fun invalidateForChildren() {
         if (state == State.VALID) state = State.CHILDREN_NEED_UPDATE
+        else parent?.invalidateForChildren() // keep behaviour linear
     }
 
     val needsUpdate get() = state != State.VALID
 
     var entity: Entity? = null
+    val parent get() = entity?.parentEntity?.transform
 
     // two transforms could be used to interpolate between draw calls
     var lastUpdateTime = 0L
@@ -179,10 +179,7 @@ class Transform() : Saveable() {
         get() = rot
         set(value) {
             rot.set(value)
-            localTransform
-                .translation(pos)
-                .rotate(value)
-                .scale(sca)
+            localTransform.translation(pos).rotate(value).scale(sca)
             invalidateGlobal()
         }
 
@@ -194,26 +191,71 @@ class Transform() : Saveable() {
         get() = sca
         set(value) {
             sca.set(value)
-            localTransform
-                .translation(pos)
-                .rotate(rot)
-                .scale(value)
+            localTransform.translation(pos).rotate(rot).scale(value)
             invalidateGlobal()
         }
 
-    var globalPosition
-        get() = globalTransform.getTranslation(Vector3d())
+    /**
+     * WARNING: setting this does not work together with setGlobalRotation/Scale()
+     * */
+    var globalPosition: Vector3d
+        get() = globalTransform.getTranslation(JomlPools.vec3d.create())
         set(value) {
             globalTransform.setTranslation(value)
-            state = State.VALID_GLOBAL
+            invalidateLocal()
         }
 
-    val globalRotation
-        get() = globalTransform.getUnnormalizedRotation(Quaterniond())
+    /**
+     * WARNING: setting this does not work together with setGlobalPosition()
+     * */
+    var globalRotation: Quaterniond
+        get() = globalTransform.getUnnormalizedRotation(JomlPools.quat4d.create())
+        set(value) {
+            // todo test this
+            // we have no correct, direct control over globalRotation,
+            // so we use tricks, and compute an ideal local rotation instead
+            val parent = parent
+            localRotation = if (parent != null) {
+                val m = Quaterniond()
+                m.set(parent.globalRotation)
+                m.invert() // now the rotation is like an inversion to the parent
+                m.mul(value) // then apply this afterwards
+                m
+            } else {
+                // local = global
+                value
+            }
+        }
+
+    /**
+     * WARNING: setting this does not work together with setGlobalPosition()
+     * */
+    var globalScale: Vector3d
+        get() = globalTransform.getScale(JomlPools.vec3d.create())
+        set(value) {
+            // todo test this
+            // we have no correct, direct control over globalScale,
+            // so we use tricks, and compute an ideal local scale instead
+            val parent = parent
+            localScale = if (parent != null) {
+                val m = parent.globalScale // returns a "copy"
+                m.set(1.0 / m.x, 1.0 / m.y, 1.0 / m.z) // invert
+                // we need to correct for the local rotation
+                // might be correct, am very unsure...
+                localRotation.transformInverse(m)
+                m.mul(value) // then apply this afterwards
+                m
+            } else {
+                // local = global
+                value
+            }
+        }
 
     fun setGlobalRotation(yxz: Vector3d) {
-        globalTransform.setRotationYXZ(yxz.y, yxz.x, yxz.z)
-        state = State.VALID_GLOBAL
+        val tmp = JomlPools.quat4d.create()
+        tmp.rotateYXZ(yxz.y, yxz.x, yxz.z)
+        globalRotation = tmp
+        JomlPools.quat4d.sub(1)
     }
 
     fun validate() {
@@ -221,8 +263,14 @@ class Transform() : Saveable() {
         when (state) {
             // really update by time? idk... this is not the time when it was changed...
             // it kind of is, when we call updateTransform() every frame
-            State.VALID_LOCAL -> calculateGlobalTransform(parent)
-            State.VALID_GLOBAL -> calculateLocalTransform(parent)
+            State.VALID_LOCAL -> {
+                calculateGlobalTransform(parent)
+                smoothUpdate()
+            }
+            State.VALID_GLOBAL -> {
+                calculateLocalTransform(parent)
+                smoothUpdate()
+            }
             else -> {
             }
         }
@@ -286,8 +334,7 @@ class Transform() : Saveable() {
             globalTransform.set(localTransform)
         } else {
             checkTransform(parent.globalTransform)
-            globalTransform.set(parent.globalTransform)
-                .mul(localTransform)
+            globalTransform.set(parent.globalTransform).mul(localTransform)
         }
         checkTransform(globalTransform)
     }
@@ -302,9 +349,7 @@ class Transform() : Saveable() {
             // parent.global * self.local * point = self.global * point
             // parent.global * self.local = self.global
             // self.local = inv(parent.global) * self.global
-            localTransform.set(parent.globalTransform)
-                .invert()
-                .mul(globalTransform)
+            localTransform.set(parent.globalTransform).invert().mul(globalTransform)
             setCachedPosRotSca()
             checkTransform(localTransform)
         }

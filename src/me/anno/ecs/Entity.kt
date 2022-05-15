@@ -435,7 +435,7 @@ class Entity() : PrefabSaveable(), Inspectable {
      * invalidates all children, so it's pretty expensive
      * */
     fun invalidateChildTransforms() {
-        // notify root, that we need an update
+        transform.invalidateForChildren()
         val children = children
         for (i in children.indices) {
             val child = children[i]
@@ -479,9 +479,13 @@ class Entity() : PrefabSaveable(), Inspectable {
     override fun isDefaultValue(): Boolean = false
 
     private fun transformUpdate(keepWorldTransform: Boolean) {
-        val state = if (keepWorldTransform) Transform.State.VALID_GLOBAL else Transform.State.VALID_LOCAL
-        transform.setStateAndUpdate(state)
-        invalidateAABBsCompletely()
+        if (keepWorldTransform) {
+            transform.invalidateLocal()
+        } else {
+            transform.invalidateGlobal()
+            invalidateChildTransforms()
+            invalidateAABBsCompletely()
+        }
     }
 
     override fun addChild(child: PrefabSaveable) {

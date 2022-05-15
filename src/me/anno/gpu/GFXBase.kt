@@ -25,10 +25,12 @@ import me.anno.input.Input.invalidateLayout
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.utils.Clock
+import me.anno.utils.structures.lists.Lists.all2
+import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.structures.lists.Lists.none2
 import org.apache.logging.log4j.LogManager.getLogger
 import org.apache.logging.log4j.Logger
 import org.lwjgl.BufferUtils
@@ -79,12 +81,12 @@ open class GFXBase {
     /**
      * window, that is in focus; may be null
      * */
-    val focussedWindow get() = windows.firstOrNull { it.isInFocus }
+    val focusedWindow get() = windows.firstOrNull2 { it.isInFocus }
 
     /**
      * window, that is in focus, or arbitrary window, if undefined
      * */
-    val someWindow get() = focussedWindow ?: windows.first() // we also could choose the one closest to the mouse :)
+    val someWindow get() = focusedWindow ?: windows[0] // we also could choose the one closest to the mouse :)
 
     val glfwLock = Any()
     val openglLock = Any()
@@ -307,7 +309,7 @@ open class GFXBase {
             }
 
             if (windows.isNotEmpty() &&
-                windows.none { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() }
+                windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() }
             ) {
                 // enforce 30 fps, because we don't need more
                 // and don't want to waste energy
@@ -395,7 +397,7 @@ open class GFXBase {
 
         var lastMtWindow: WindowX? = null
 
-        while (!windows.all { it.shouldClose } && !shutdown) {
+        while (!windows.all2 { it.shouldClose } && !shutdown) {
             for (index in 0 until windows.size) {
                 val window = windows[index]
                 if (!window.shouldClose) {
@@ -404,7 +406,7 @@ open class GFXBase {
                         if (DefaultConfig["window.close.directly", false]) break
                         else {
                             GLFW.glfwSetWindowShouldClose(window.pointer, false)
-                            addGPUTask(1) {
+                            addGPUTask("close-request", 1) {
                                 ask(
                                     ws, NameDesc("Close %1?", "", "ui.closeProgram")
                                         .with("%1", projectName)

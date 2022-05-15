@@ -1,6 +1,8 @@
 package me.anno.gpu.shader
 
 import me.anno.config.DefaultConfig
+import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
+import me.anno.engine.ui.render.ECSMeshShader.Companion.getAnimMatrix
 import me.anno.gpu.drawing.UVProjection
 import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
@@ -661,16 +663,28 @@ object ShaderLib {
                 "$attribute vec4 weights;\n" +
                 "$attribute ivec4 indices;\n" +
                 "uniform bool hasAnimation;\n" +
-                // todo replace this with animTexture system
                 "uniform mat4x3 localTransform;\n" +
-                "uniform mat4x3 jointTransforms[${min(128,maxBones)}];\n" +
+                "uniform mat4x3 jointTransforms[${min(128, maxBones)}];\n" +
+                (if (useAnimTextures) "" +
+                        "uniform sampler2D animTexture;\n" +
+                        "uniform vec4 animWeights, animIndices;\n" +
+                        getAnimMatrix else "") +
                 "void main(){\n" +
-                "   if(hasAnimation){\n" +
-                "       mat4x3 jointMat;\n" +
-                "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
-                "       jointMat += jointTransforms[indices.y] * weights.y;\n" +
-                "       jointMat += jointTransforms[indices.z] * weights.z;\n" +
-                "       jointMat += jointTransforms[indices.w] * weights.w;\n" +
+                (if (useAnimTextures) "" +
+                        "   if(hasAnimation && textureSize(animTexture,0).x > 1.0){\n" +
+                        "       mat4x3 jointMat;\n" +
+                        "jointMat  = getAnimMatrix(indices.x) * weights.x;\n" +
+                        "jointMat += getAnimMatrix(indices.y) * weights.y;\n" +
+                        "jointMat += getAnimMatrix(indices.z) * weights.z;\n" +
+                        "jointMat += getAnimMatrix(indices.w) * weights.w;\n"
+                else "" +
+                        "   if(hasAnimation){\n" +
+                        "       mat4x3 jointMat;\n" +
+                        "jointMat  = jointTransforms[indices.x] * weights.x;\n" +
+                        "jointMat += jointTransforms[indices.y] * weights.y;\n" +
+                        "jointMat += jointTransforms[indices.z] * weights.z;\n" +
+                        "jointMat += jointTransforms[indices.w] * weights.w;\n"
+                        ) +
                 "       finalPosition = jointMat * vec4(coords, 1.0);\n" +
                 "       normal = jointMat * vec4(normals, 0.0);\n" +
                 "       tangent = jointMat * vec4(tangents, 0.0);\n" +
@@ -683,7 +697,6 @@ object ShaderLib {
                 "   tangent = localTransform * vec4(tangent, 0.0);\n" +
                 "   finalPosition = localTransform * vec4(finalPosition, 1.0);\n" +
                 // normal only needs to be normalized, if we show the normal
-                // todo only activate on viewing it...
                 "   normal = normalize(normal);\n" + // here? nah ^^
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 "   uv = uvs;\n" +

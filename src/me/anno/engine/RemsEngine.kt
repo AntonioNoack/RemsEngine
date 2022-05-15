@@ -160,22 +160,9 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
     }
 
     override fun clearAll() {
-        val selection = EditorState.selection.map { (it as? PrefabSaveable)?.prefabPath ?: it }
-        val fineSelection = EditorState.fineSelection.map { (it as? PrefabSaveable)?.prefabPath ?: it }
+        val selected = collectSelected()
         super.clearAll()
-        // restore the current selection
-        // reloaded prefab; must not be accessed before clearAll
-        val prefab = EditorState.prefab
-        val sample = prefab?.getSampleInstance()
-        if (prefab != null && sample != null) {
-            EditorState.selection = selection
-                .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
-                .filterIsInstance<Inspectable>()
-            EditorState.fineSelection = fineSelection
-                .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
-                .filterIsInstance<Inspectable>()
-        }
-        PropertyInspector.invalidateUI()
+        restoreSelected(selected)
     }
 
     override fun createUI() {
@@ -255,6 +242,34 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
     }
 
     companion object {
+
+        fun collectSelected(): Any {
+            val selection = EditorState.selection.map { (it as? PrefabSaveable)?.prefabPath ?: it }
+            val fineSelection = EditorState.fineSelection.map { (it as? PrefabSaveable)?.prefabPath ?: it }
+            val lastSelection = EditorState.lastSelection.run { (this as? PrefabSaveable)?.prefabPath ?: this }
+            return Triple(selection, fineSelection, lastSelection)
+        }
+
+        fun restoreSelected(collected: Any) {
+            val (selection, fineSelection, lastSelection) = @Suppress("unchecked_cast")
+            (collected as Triple<List<Any>, List<Any>, Any?>)
+            // restore the current selection
+            // reloaded prefab; must not be accessed before clearAll
+            val prefab = EditorState.prefab
+            val sample = prefab?.getSampleInstance()
+            if (prefab != null && sample != null) {
+                EditorState.selection = selection
+                    .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
+                    .filterIsInstance<Inspectable>()
+                EditorState.fineSelection = fineSelection
+                    .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
+                    .filterIsInstance<Inspectable>()
+                EditorState.lastSelection = lastSelection.run {
+                    if (this is Path) Hierarchy.getInstanceAt(sample, this) else (this as? Inspectable)
+                }
+            }
+            PropertyInspector.invalidateUI(true)
+        }
 
         private val LOGGER = LogManager.getLogger(RemsEngine::class)
         var instance2: RemsEngine? = null

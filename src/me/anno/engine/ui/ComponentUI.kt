@@ -174,7 +174,7 @@ object ComponentUI {
                 val arrayType = getArrayType(property, value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
                     override fun onChange() {
-                        property.set(this, content.toTypedArray2(value))
+                        property.set(this, values.toTypedArray2(value))
                     }
                 }.apply { setValues(value.toList()) }
             }
@@ -183,7 +183,7 @@ object ComponentUI {
                 val arrayType = getArrayType(property, value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
                     override fun onChange() {
-                        property.set(this, content)
+                        property.set(this, values)
                     }
                 }.apply { setValues(value.toList()) }
             }
@@ -192,7 +192,7 @@ object ComponentUI {
                 val arrayType = getArrayType(property, value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
                     override fun onChange() {
-                        property.set(this, content.toSet())
+                        property.set(this, values.toSet())
                     }
                 }.apply { setValues(value.toList()) }
             }
@@ -203,7 +203,7 @@ object ComponentUI {
                 val valueType = annotation?.valueType ?: getType(value.values.iterator(), name) ?: return null
                 return object : AnyMapPanel(title, visibilityKey, keyType, valueType, style) {
                     override fun onChange() {
-                        property.set(this, content.associate { it.first to it.first }.toMutableMap())
+                        property.set(this, values.associate { it.first to it.first }.toMutableMap())
                     }
                 }.apply {
                     setValues(value.map { MutablePair(it.key, it.value) })
@@ -808,7 +808,7 @@ object ComponentUI {
             "ByteArray", "Byte[]", "byte[]" -> {
                 return object : AnyArrayPanel(title, visibilityKey, "Byte", style) {
                     override fun onChange() {
-                        property.set(this, ByteArray(content.size) { content[it] as Byte })
+                        property.set(this, ByteArray(values.size) { values[it] as Byte })
                     }
                 }.apply {
                     property.init(this)
@@ -818,7 +818,7 @@ object ComponentUI {
             "ShortArray", "Short[]", "short[]" -> {
                 return object : AnyArrayPanel(title, visibilityKey, "Short", style) {
                     override fun onChange() {
-                        property.set(this, ShortArray(content.size) { content[it] as Short })
+                        property.set(this, ShortArray(values.size) { values[it] as Short })
                     }
                 }.apply {
                     property.init(this)
@@ -828,7 +828,7 @@ object ComponentUI {
             "IntArray", "IntegerArray", "Integer[]", "integer[]", "Int[]", "int[]" -> {
                 return object : AnyArrayPanel(title, visibilityKey, "Int", style) {
                     override fun onChange() {
-                        property.set(this, IntArray(content.size) { content[it] as Int })
+                        property.set(this, IntArray(values.size) { values[it] as Int })
                     }
                 }.apply {
                     property.init(this)
@@ -838,7 +838,7 @@ object ComponentUI {
             "LongArray", "Long[]", "long[]" -> {
                 return object : AnyArrayPanel(title, visibilityKey, "Long", style) {
                     override fun onChange() {
-                        property.set(this, LongArray(content.size) { content[it] as Long })
+                        property.set(this, LongArray(values.size) { values[it] as Long })
                     }
                 }.apply {
                     property.init(this)
@@ -848,7 +848,7 @@ object ComponentUI {
             "FloatArray", "Float[]", "float[]" -> {
                 return object : AnyArrayPanel(title, visibilityKey, "Float", style) {
                     override fun onChange() {
-                        property.set(this, FloatArray(content.size) { content[it] as Float })
+                        property.set(this, FloatArray(values.size) { values[it] as Float })
                     }
                 }.apply {
                     property.init(this)
@@ -858,7 +858,7 @@ object ComponentUI {
             "DoubleArray", "Double[]", "double[]" -> {
                 return object : AnyArrayPanel(title, visibilityKey, "Double", style) {
                     override fun onChange() {
-                        property.set(this, DoubleArray(content.size) { content[it] as Double })
+                        property.set(this, DoubleArray(values.size) { values[it] as Double })
                     }
                 }.apply {
                     property.init(this)
@@ -921,7 +921,7 @@ object ComponentUI {
                                 value as Array<*>
                                 return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                     override fun onChange() {
-                                        property.set(this, content.toTypedArray2(value))
+                                        property.set(this, values.toTypedArray2(value))
                                     }
                                 }.apply {
                                     property.init(this)
@@ -932,7 +932,7 @@ object ComponentUI {
                                 value as List<*>
                                 return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                     override fun onChange() {
-                                        property.set(this, content)
+                                        property.set(this, values)
                                     }
                                 }.apply {
                                     property.init(this)
@@ -943,7 +943,7 @@ object ComponentUI {
                                 value as Set<*>
                                 return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                     override fun onChange() {
-                                        property.set(this, content.toHashSet())
+                                        property.set(this, values.toHashSet())
                                     }
                                 }.apply {
                                     property.init(this)
@@ -956,7 +956,7 @@ object ComponentUI {
                                 value as Map<*, *>
                                 return object : AnyMapPanel(title, visibilityKey, genericKey, genericValue, style) {
                                     override fun onChange() {
-                                        property.set(this, content.associate { it.first to it.second }.toMutableMap())
+                                        property.set(this, values.associate { it.first to it.second }.toMutableMap())
                                     }
                                 }.apply {
                                     property.init(this)

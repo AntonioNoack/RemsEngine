@@ -18,7 +18,7 @@ class BGRAFrame(w: Int, h: Int) : GPUFrame(w, h, 1) {
         val data = input.readNBytes2(s0, Texture2D.bufferPool)
         blankDetector.putRGBA(data)
         acquire(true, creationLimiter)
-        GFX.addGPUTask(w, h) {
+        GFX.addGPUTask("BGRA", w, h) {
             bgra.createRGBA(data, true)
             Texture2D.bufferPool.returnBuffer(data)
             creationLimiter.release()

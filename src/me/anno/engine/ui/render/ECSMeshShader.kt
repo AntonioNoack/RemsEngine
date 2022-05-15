@@ -14,6 +14,27 @@ import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 
 open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
+    companion object {
+        val getAnimMatrix = "" +
+                loadMat4x3 +
+                "mat4x3 getAnimMatrix(int index, float time){\n" +
+                "   int timeI = int(time); float timeF = fract(time);\n" +
+                "   vec4 a = mix(texelFetch(animTexture, ivec2(index,  timeI), 0), texelFetch(animTexture, ivec2(index,  timeI+1), 0), timeF);\n" +
+                "   vec4 b = mix(texelFetch(animTexture, ivec2(index+1,timeI), 0), texelFetch(animTexture, ivec2(index+1,timeI+1), 0), timeF);\n" +
+                "   vec4 c = mix(texelFetch(animTexture, ivec2(index+2,timeI), 0), texelFetch(animTexture, ivec2(index+2,timeI+1), 0), timeF);\n" +
+                "   return loadMat4x3(a,b,c);\n" +
+                "}\n" +
+                "mat4x3 getAnimMatrix(int boneIndex){\n" +
+                "   int index = boneIndex * 3;\n" + // every matrix uses 3 pixels
+                "   mat4x3 t;\n" +
+                "   t  = getAnimMatrix(index,animIndices.x)*animWeights.x;\n" +
+                "   t += getAnimMatrix(index,animIndices.y)*animWeights.y;\n" +
+                "   t += getAnimMatrix(index,animIndices.z)*animWeights.z;\n" +
+                "   t += getAnimMatrix(index,animIndices.w)*animWeights.w;\n" +
+                "   return t;\n" +
+                "}\n"
+    }
+
     open fun createBuilder(): ShaderBuilder {
         val builder = ShaderBuilder(name, null)
         builder.ignored += Array(8) { "shadowMapPlanar$it" }
@@ -118,6 +139,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val defines = "" +
                 (if (isInstanced) "#define INSTANCED\n" else "") +
+                (if (isAnimated) "#define ANIMATED\n" else "") +
                 (if (colors) "#define COLORS\n" else "")
 
         val animationCode = if (useAnimTextures) {
@@ -133,24 +155,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "jointMat += jointTransforms[indices.z] * weights.z;\n" +
                     "jointMat += jointTransforms[indices.w] * weights.w;\n"
         }
-
-        val getAnimMatrix = "" +
-                loadMat4x3 +
-                "mat4x3 getAnimMatrix(int index, float time){\n" +
-                "   int timeI = int(time); float timeF = fract(time);\n" +
-                "   vec4 a = mix(texelFetch(animTexture, ivec2(index,  timeI), 0), texelFetch(animTexture, ivec2(index,  timeI+1), 0), timeF);\n" +
-                "   vec4 b = mix(texelFetch(animTexture, ivec2(index+1,timeI), 0), texelFetch(animTexture, ivec2(index+1,timeI+1), 0), timeF);\n" +
-                "   vec4 c = mix(texelFetch(animTexture, ivec2(index+2,timeI), 0), texelFetch(animTexture, ivec2(index+2,timeI+1), 0), timeF);\n" +
-                "   return loadMat4x3(a,b,c);\n" +
-                "}\n" +
-                "mat4x3 getAnimMatrix(int index){\n" +
-                "   mat4x3 t;\n" +
-                "   t  = getAnimMatrix(index,animIndices.x)*animWeights.x;\n" +
-                "   t += getAnimMatrix(index,animIndices.y)*animWeights.y;\n" +
-                "   t += getAnimMatrix(index,animIndices.z)*animWeights.z;\n" +
-                "   t += getAnimMatrix(index,animIndices.w)*animWeights.w;\n" +
-                "   return t;\n" +
-                "}\n"
 
         val stage = ShaderStage(
             "vertex",

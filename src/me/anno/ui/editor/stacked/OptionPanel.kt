@@ -31,7 +31,6 @@ class OptionPanel(
             button.isRight -> {
                 val index = indexInParent
                 openMenu(windowStack, stackPanel.options.map { option ->
-                    // todo translate
                     MenuOption(
                         NameDesc("Prepend %1", option.description, "ui.option.prepend").with(
                             "%1",

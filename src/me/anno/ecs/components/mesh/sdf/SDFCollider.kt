@@ -88,5 +88,6 @@ class SDFCollider : Collider() {
         return clone
     }
 
+    override val className = "SDFCollider"
 
 }

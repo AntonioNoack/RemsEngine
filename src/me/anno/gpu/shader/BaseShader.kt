@@ -55,7 +55,10 @@ open class BaseShader(
 
     /** shader for forward rendering */
     open fun createForwardShader(
-        postProcessing: ShaderStage?, isInstanced: Boolean, isAnimated: Boolean, geoShader: GeoShader?
+        postProcessing: ShaderStage?,
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        geoShader: GeoShader?
     ): Shader {
 
         val varying = varyings
@@ -137,8 +140,10 @@ open class BaseShader(
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
                     val geoMode = OpenGL.geometryShader.currentValue
-                    flatShader.getOrPut(renderer, stateId, geoMode) { r, i, g ->
-                        val shader = createForwardShader(r.getPostProcessing(), i.and(1) != 0, i.and(2) != 0, g)
+                    flatShader.getOrPut(renderer, stateId, geoMode) { r, stateId2, g ->
+                        val isInstanced = stateId2.and(1) != 0
+                        val isAnimated = stateId2.and(2) != 0
+                        val shader = createForwardShader(r.getPostProcessing(), isInstanced, isAnimated, g)
                         r.uploadDefaultUniforms(shader)
                         // LOGGER.info(shader.fragmentSource)
                         shader

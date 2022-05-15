@@ -18,6 +18,16 @@ import kotlin.math.sqrt
  * */
 abstract class WorkSplitter(val numThreads: Int) {
 
+    data class IntPair(val a: Int, val b: Int)
+
+    fun interface Task1d {
+        fun work(x0: Int, x1: Int)
+    }
+
+    fun interface Task2d {
+        fun work(x0: Int, y0: Int, x1: Int, y1: Int)
+    }
+
     companion object {
         private val LOGGER = LogManager.getLogger(WorkSplitter::class)
     }
@@ -29,13 +39,13 @@ abstract class WorkSplitter(val numThreads: Int) {
         return (a.toLong() * b.toLong() / c.toLong()).toInt()
     }
 
-    fun splitWork(w: Int, h: Int, threads: Int, maxRatio: Float = 2f): Pair<Int, Int> {
-        if (threads <= 1) return Pair(1, 1)
+    fun splitWork(w: Int, h: Int, threads: Int, maxRatio: Float = 2f): IntPair {
+        if (threads <= 1) return IntPair(1, 1)
         val bestRatio = w.toFloat() / h.toFloat()
         val goldenX = sqrt(threads * bestRatio)
         var bestX = goldenX.roundToInt()
-        if (bestX < 1) return Pair(1, threads)
-        if (bestX >= threads) return Pair(threads, 1)
+        if (bestX < 1) return IntPair(1, threads)
+        if (bestX >= threads) return IntPair(threads, 1)
         var bestY = threads / bestX
         var bestScore = bestX * bestY
         val minX = ceil(goldenX / maxRatio).toInt()
@@ -49,78 +59,78 @@ abstract class WorkSplitter(val numThreads: Int) {
                 bestY = y
             }
         }
-        return Pair(bestX, bestY)
+        return IntPair(bestX, bestY)
     }
 
 
-    inline fun processUnbalanced(i0: Int, i1: Int, heavy: Boolean, crossinline func: (i0: Int, i1: Int) -> Unit) {
+    fun processUnbalanced(i0: Int, i1: Int, heavy: Boolean, func: Task1d) {
         processUnbalanced(i0, i1, if (heavy) 1 else 5, func)
     }
 
-    inline fun processUnbalanced(
+    fun processUnbalanced(
         i0: Int,
         i1: Int,
         minCountPerThread: Int,
-        crossinline func: (i0: Int, i1: Int) -> Unit
+        func: Task1d
     ) {
         val count = i1 - i0
         val threadCount = Maths.clamp(count / max(1, minCountPerThread), 1, numThreads)
         if (threadCount <= 1) {
             // we need to wait anyways, so just use this thread
-            func(i0, i1)
+            func.work(i0, i1)
         } else {
             val counter = AtomicInteger(threadCount + i0)
             for (threadId in 1 until threadCount) {
                 // spawn #threads workers
                 plusAssign {
                     val index = threadId + i0
-                    func(index, index + 1)
+                    func.work(index, index + 1)
                     while (true) {
                         val nextIndex = counter.incrementAndGet()
                         if (nextIndex >= i1) break
-                        func(nextIndex, nextIndex + 1)
+                        func.work(nextIndex, nextIndex + 1)
                     }
                 }
             }
-            func(i0, i0 + 1)
+            func.work(i0, i0 + 1)
             while (true) {
                 val nextIndex = counter.incrementAndGet()
                 if (nextIndex >= i1) break
-                func(nextIndex, nextIndex + 1)
+                func.work(nextIndex, nextIndex + 1)
             }
         }
     }
 
-    inline fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, crossinline func: (i0: Int, i1: Int) -> Unit) {
+    fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, func: Task1d) {
         val count = i1 - i0
         val threadCount = Maths.clamp(count / max(1, minCountPerThread), 1, numThreads)
         if (threadCount <= 1) {
-            func(i0, i1)
+            func.work(i0, i1)
         } else {
             val counter = AtomicInteger(threadCount - 1)
             for (threadId in 1 until threadCount) {
                 plusAssign {
                     val startIndex = i0 + partition(threadId, count, threadCount)
                     val endIndex = i0 + partition(threadId + 1, count, threadCount)
-                    func(startIndex, endIndex)
+                    func.work(startIndex, endIndex)
                     counter.decrementAndGet()
                 }
             }
             // process first
             val endIndex = i0 + partition(1, count, threadCount)
-            func(i0, endIndex)
+            func.work(i0, endIndex)
             waitUntil(true) { counter.get() <= 0 }
         }
     }
 
-    inline fun processBalanced(i0: Int, i1: Int, heavy: Boolean, crossinline func: (i0: Int, i1: Int) -> Unit) {
+    fun processBalanced(i0: Int, i1: Int, heavy: Boolean, func: Task1d) {
         processBalanced(i0, i1, if (heavy) 1 else 512, func)
     }
 
-    private inline fun process2d(
+    private fun process2d(
         x0: Int, y0: Int, x1: Int, y1: Int, tileSize: Int,
         tx0: Int, ty0: Int, tx1: Int, ty1: Int,
-        func: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
+        func: Task2d
     ) {
         for (ty in ty0 until ty1) {
             val yi = y0 + ty * tileSize
@@ -128,14 +138,14 @@ abstract class WorkSplitter(val numThreads: Int) {
             for (tx in tx0 until tx1) {
                 val xi = x0 + tx * tileSize
                 val xj = Maths.min(xi + tileSize, x1)
-                func(xi, yi, xj, yj)
+                func.work(xi, yi, xj, yj)
             }
         }
     }
 
-    private inline fun process2d(
+    private fun process2d(
         x0: Int, y0: Int, x1: Int, y1: Int,
-        tileSize: Int, func: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
+        tileSize: Int, func: Task2d
     ) {
         var yi = y0
         while (yi < y1) {
@@ -143,7 +153,7 @@ abstract class WorkSplitter(val numThreads: Int) {
             val yj = Maths.min(yi + tileSize, y1)
             while (xi < x1) {
                 val xj = Maths.min(xi + tileSize, x1)
-                func(xi, yi, xj, yj)
+                func.work(xi, yi, xj, yj)
                 xi = xj
             }
             yi = yj
@@ -194,7 +204,7 @@ abstract class WorkSplitter(val numThreads: Int) {
     fun processBalanced2d(
         x0: Int, y0: Int, x1: Int, y1: Int, tileSize: Int,
         minTilesPerThread: Int,
-        func: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
+        func: Task2d
     ) {
         val tilesX = Maths.ceilDiv(x1 - x0, tileSize)
         val tilesY = Maths.ceilDiv(y1 - y0, tileSize)

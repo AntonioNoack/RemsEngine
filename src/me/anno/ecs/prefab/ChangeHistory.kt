@@ -32,7 +32,7 @@ class ChangeHistory : StringHistory() {
         }
         LOGGER.debug("invalidated instance")
         prefab.invalidateInstance()
-        PropertyInspector.invalidateUI()
+        PropertyInspector.invalidateUI(true)
     }
 
     override val className: String = "ChangeHistory"

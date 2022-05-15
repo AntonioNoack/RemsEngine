@@ -277,13 +277,13 @@ abstract class FileExplorer(
                 // be cancellable
                 Thread.sleep(0)
 
-                GFX.addGPUTask(1) {
+                addEvent {
                     removeOldFiles()
                 }
 
                 val parent = folder.getParent()
                 if (parent != null) {
-                    GFX.addGPUTask(1) {
+                    addEvent {
                         // option to go up a folder
                         val fe = FileExplorerEntry(this, true, parent, style)
                         content += fe

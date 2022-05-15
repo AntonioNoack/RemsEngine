@@ -64,7 +64,7 @@ abstract class VideoBackgroundTask(
          * */
         val ri = renderingIndex.get()
         if (ri < totalFrameCount && ri < savingIndex.get() + 2) {
-            GFX.addGPUTask(video.w, video.h, ::tryRenderingFrame)
+            GFX.addGPUTask("VideoBackgroundTask", video.w, video.h, ::tryRenderingFrame)
         } else {
             // waiting for saving to ffmpeg
             threadWithName("VBT/2") { addNextTask() }
@@ -165,7 +165,7 @@ abstract class VideoBackgroundTask(
     abstract fun renderScene(time: Double, flipY: Boolean, renderer: Renderer)
 
     private fun destroy() {
-        GFX.addGPUTask(video.w, video.h) {
+        GFX.addGPUTask("VideoBackgroundTask.destroy()", video.w, video.h) {
             partialFrame.destroy()
             averageFrame.destroy()
         }

@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package me.anno.utils.types
 
 import me.anno.config.DefaultConfig
@@ -246,9 +248,11 @@ object Strings {
         }
     }
 
-    // the normal isBlank() allocates memory, even though it's just a test
+    /**
+     * allocation free isBlank()
+     * */
     fun CharSequence.isBlank2(): Boolean {
-        for (index in 0 until length) {
+        for (index in 0 until length + 0) {
             when (this[index]) {
                 '\u0009', in '\u000a'..'\u000d',
                 '\u0020', '\u0085', '\u00a0',

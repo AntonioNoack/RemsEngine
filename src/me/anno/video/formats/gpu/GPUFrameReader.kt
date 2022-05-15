@@ -54,7 +54,7 @@ class GPUFrameReader(
                 val f0 = frames[0]
                 // delete them over time? it seems like it's really expensive on my Envy x360 xD
                 for (frame in frames) {
-                    GFX.addGPUTask(f0.w, f0.h) { frame.destroy() }
+                    GFX.addGPUTask("GPUFrameReader.destroy()", f0.w, f0.h) { frame.destroy() }
                 }
             }
             frames.clear()

@@ -75,6 +75,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
+    fun removeFileEntry(file: FileReference) {
+        removeDualEntry(file, file.lastModified)
+    }
+
     fun getFileEntry(
         file: FileReference,
         allowDirectories: Boolean,

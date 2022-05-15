@@ -14,9 +14,6 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
@@ -63,7 +60,7 @@ open class AnimRenderer : MeshComponent() {
     override val hasAnimation: Boolean
         get() {
             val skeleton = SkeletonCache[skeleton]
-            return skeleton != null && animations.isNotEmpty()
+            return skeleton != null // && animations.isNotEmpty()
         }
 
     override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
@@ -88,10 +85,12 @@ open class AnimRenderer : MeshComponent() {
 
         if (animations.isEmpty()) {
             lastWarning = "No animation was found"
+            return
         }
 
-        if (animations.isEmpty() || location <= 0) {
+        if (location <= 0) {
             shader.v1b("hasAnimation", false)
+            lastWarning = "Shader '${shader.name}' is missing location"
             return
         }
 
@@ -135,8 +134,15 @@ open class AnimRenderer : MeshComponent() {
 
             shader.v4f("animWeights", bestWeights)
             shader.v4f("animIndices", bestIndices)
-            (animTexture.getTexture() ?: whiteTexture)
-                .bind(shader, "animTexture", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+
+            val animTexture2 = animTexture.getTexture()
+            if (animTexture2 == null) {
+                shader.v1b("hasAnimation", false)
+                lastWarning = "AnimTexture is invalid"
+                return
+            }
+
+            animTexture2.bindTrulyNearest(shader, "animTexture")
 
             JomlPools.vec4f.sub(2)
 

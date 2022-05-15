@@ -374,7 +374,7 @@ class PipelineStage(
             GFX.drawnId = request.clickId
 
             val hasAnimation = (request.component as? MeshComponentBase)?.hasAnimation ?: false
-            OpenGL.animated.use(hasAnimation){
+            OpenGL.animated.use(hasAnimation) {
 
                 val mesh = request.mesh
                 val entity = request.entity
@@ -549,7 +549,7 @@ class PipelineStage(
             }
             GFX.check()
             mesh.drawInstanced(shader, materialIndex, buffer)
-            if (buffer !== meshInstanceBuffer) addGPUTask(1) { buffer.destroy() }
+            // if (buffer !== meshInstanceBuffer) addGPUTask("PipelineStage.drawColor", 1) { buffer.destroy() }
         }
     }
 

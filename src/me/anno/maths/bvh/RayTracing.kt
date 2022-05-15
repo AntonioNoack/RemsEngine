@@ -53,7 +53,7 @@ object RayTracing {
             "   );\n" +
             "}\n"
 
-    val glslBLASIntersection = "" +
+    val glslBLASIntersectionCompute = "" +
             "" +
             "void intersectBLAS(\n" +
             "       uint nodeIndex, vec3 pos, vec3 dir, vec3 invDir,\n" +
@@ -62,24 +62,24 @@ object RayTracing {
             "   ivec2 nodeTexSize = imageSize(nodes);\n" +
             "   ivec2 triTexSize = imageSize(triangles);\n" +
             "   uint nextNodeStack[BLAS_DEPTH];\n" +
-            "   uint stackIndex = 0;\n" +
-            "   uint k=nodeCtr+512;\n" +
+            "   uint stackIndex = 0u;\n" +
+            "   uint k=nodeCtr + 512u;\n" +
             "   while(nodeCtr++<k){\n" + // could be k<bvh.count() or true or 2^depth
             // fetch node data
-            "       uint pixelIndex = nodeIndex * $PIXELS_PER_BLAS_NODE;\n" +
+            "       uint pixelIndex = nodeIndex * ${PIXELS_PER_BLAS_NODE}u;\n" +
             "       uint nodeX = pixelIndex % nodeTexSize.x;\n" +
             "       uint nodeY = pixelIndex / nodeTexSize.x;\n" +
-            "       vec4 d0 = imageLoad(nodes, ivec2(nodeX,  nodeY));\n" +
-            "       vec4 d1 = imageLoad(nodes, ivec2(nodeX+1,nodeY));\n" +
+            "       vec4 d0 = imageLoad(nodes, ivec2(nodeX,   nodeY));\n" +
+            "       vec4 d1 = imageLoad(nodes, ivec2(nodeX+1u,nodeY));\n" +
             "       if(intersectAABB(pos,invDir,d0.xyz,d1.xyz,distance)){\n" + // bounds check
             "           uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
-            "           if(v01.y < 3){\n" +
+            "           if(v01.y < 3u){\n" +
             // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
             "               if(dir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
             "                   nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
             "                   nodeIndex++;\n" + // search child next
             "               } else {\n" +
-            "                   nextNodeStack[stackIndex++] = nodeIndex + 1;\n" + // mark other child for later
+            "                   nextNodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark other child for later
             "                   nodeIndex += v01.x;\n" + // search child next
             "               }\n" +
             "           } else {\n" +
@@ -88,21 +88,75 @@ object RayTracing {
             "               uint index = v01.x, end = index + v01.y;\n" +
             "               uint triX = index % triTexSize.x;\n" +
             "               uint triY = index / triTexSize.x;\n" +
-            "               for(;index<end;index += $PIXELS_PER_TRIANGLE){\n" + // triangle index -> load triangle data
-            "                   vec3 p0 = imageLoad(triangles, ivec2(triX,  triY)).rgb;\n" +
-            "                   vec3 p1 = imageLoad(triangles, ivec2(triX+1,triY)).rgb;\n" +
-            "                   vec3 p2 = imageLoad(triangles, ivec2(triX+2,triY)).rgb;\n" +
+            "               for(;index<end;index += ${PIXELS_PER_TRIANGLE}u){\n" + // triangle index -> load triangle data
+            "                   vec3 p0 = imageLoad(triangles, ivec2(triX,   triY)).rgb;\n" +
+            "                   vec3 p1 = imageLoad(triangles, ivec2(triX+1u,triY)).rgb;\n" +
+            "                   vec3 p2 = imageLoad(triangles, ivec2(triX+2u,triY)).rgb;\n" +
             "                   intersectTriangle(pos, dir, p0, p1, p2, normal, distance);\n" +
-            "                   triX += $PIXELS_PER_TRIANGLE;\n" +
+            "                   triX += ${PIXELS_PER_TRIANGLE}u;\n" +
             "                   if(triX >= triTexSize.x){\n" + // switch to next row of data if needed
-            "                       triX=0;triY++;\n" +
+            "                       triX=0u;triY++;\n" +
             "                   }\n" +
             "               }\n" + // next node
-            "               if(stackIndex < 1) break;\n" +
+            "               if(stackIndex < 1u) break;\n" +
             "               nodeIndex = nextNodeStack[--stackIndex];\n" +
             "          }\n" +
             "       } else {\n" + // next node
-            "           if(stackIndex < 1) break;\n" +
+            "           if(stackIndex < 1u) break;\n" +
+            "           nodeIndex = nextNodeStack[--stackIndex];\n" +
+            "       }\n" +
+            "   }\n" +
+            "}\n"
+
+    val glslBLASIntersectionGraphics = "" +
+            "void intersectBLAS(\n" +
+            "       uint nodeIndex, vec3 pos, vec3 dir, vec3 invDir,\n" +
+            "       inout vec3 normal, inout float distance, inout uint nodeCtr\n" +
+            "){\n" +
+            "   uvec2 nodeTexSize = uvec2(textureSize(nodes,0));\n" +
+            "   uvec2 triTexSize  = uvec2(textureSize(triangles,0));\n" +
+            "   uint nextNodeStack[BLAS_DEPTH];\n" +
+            "   uint stackIndex = 0u;\n" +
+            "   uint k=nodeCtr + 512u;\n" +
+            "   while(nodeCtr++<k){\n" + // could be k<bvh.count() or true or 2^depth
+            // fetch node data
+            "       uint pixelIndex = nodeIndex * ${PIXELS_PER_BLAS_NODE}u;\n" +
+            "       uint nodeX = pixelIndex % nodeTexSize.x;\n" +
+            "       uint nodeY = pixelIndex / nodeTexSize.x;\n" +
+            "       vec4 d0 = texelFetch(nodes, ivec2(nodeX,   nodeY), 0);\n" +
+            "       vec4 d1 = texelFetch(nodes, ivec2(nodeX+1u,nodeY), 0);\n" +
+            "       if(intersectAABB(pos,invDir,d0.xyz,d1.xyz,distance)){\n" + // bounds check
+            "           uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
+            "           if(v01.y < 3u){\n" +
+            // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
+            "               if(dir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
+            "                   nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
+            "                   nodeIndex++;\n" + // search child next
+            "               } else {\n" +
+            "                   nextNodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark other child for later
+            "                   nodeIndex += v01.x;\n" + // search child next
+            "               }\n" +
+            "           } else {\n" +
+            // this node is a leaf
+            // check all triangles for intersections
+            "               uint index = v01.x, end = index + v01.y;\n" +
+            "               uint triX = index % triTexSize.x;\n" +
+            "               uint triY = index / triTexSize.x;\n" +
+            "               for(;index<end;index += ${PIXELS_PER_TRIANGLE}u){\n" + // triangle index -> load triangle data
+            "                   vec3 p0 = texelFetch(triangles, ivec2(triX,   triY), 0).rgb;\n" +
+            "                   vec3 p1 = texelFetch(triangles, ivec2(triX+1u,triY), 0).rgb;\n" +
+            "                   vec3 p2 = texelFetch(triangles, ivec2(triX+2u,triY), 0).rgb;\n" +
+            "                   intersectTriangle(pos, dir, p0, p1, p2, normal, distance);\n" +
+            "                   triX += ${PIXELS_PER_TRIANGLE}u;\n" +
+            "                   if(triX >= triTexSize.x){\n" + // switch to next row of data if needed
+            "                       triX=0u;triY++;\n" +
+            "                   }\n" +
+            "               }\n" + // next node
+            "               if(stackIndex < 1u) break;\n" +
+            "               nodeIndex = nextNodeStack[--stackIndex];\n" +
+            "          }\n" +
+            "       } else {\n" + // next node
+            "           if(stackIndex < 1u) break;\n" +
             "           nodeIndex = nextNodeStack[--stackIndex];\n" +
             "       }\n" +
             "   }\n" +

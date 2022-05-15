@@ -46,6 +46,11 @@ open class MeshComponent() : MeshComponentBase() {
         return true
     }
 
+    override fun ensureBuffer() {
+        super.ensureBuffer()
+        getMesh()?.ensureBuffer()
+    }
+
     // far into the future:
     // todo instanced animations for hundreds of humans:
     // todo bake animations into textures, and use indices + weights

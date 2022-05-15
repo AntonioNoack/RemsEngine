@@ -26,7 +26,7 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
         val yData = input.readNBytes2(s0, bufferPool)
         blankDetector.putChannel(yData, 0)
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask(w, h) {
+        GFX.addGPUTask("I420-Y", w, h) {
             y.createMonochrome(yData, true)
             creationLimiter.release()
         }
@@ -39,7 +39,7 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
         val interlaced = interlaceReplace(uData, vData)
         // create the uv texture
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask(w2, h2) {
+        GFX.addGPUTask("I420-UV", w2, h2) {
             uv.createRG(interlaced, true)
             creationLimiter.release()
         }

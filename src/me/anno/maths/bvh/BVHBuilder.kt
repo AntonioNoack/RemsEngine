@@ -1,5 +1,6 @@
 package me.anno.maths.bvh
 
+import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.raycast.RayHit
 import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
@@ -15,13 +16,10 @@ import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ
 import me.anno.utils.types.AABBs.transformSet
 import me.anno.utils.types.Booleans.toInt
-import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -93,24 +91,12 @@ abstract class BVHBuilder(
 
         fun buildTLAS(
             scene: PipelineStage, // filled with meshes
-            cameraPosition: Vector3d,
-            worldScale: Double,
-            splitMethod: SplitMethod,
-            maxNodeSize: Int
+            cameraPosition: Vector3d, worldScale: Double, splitMethod: SplitMethod, maxNodeSize: Int
         ): TLASNode {
             val objects = ArrayList<TLASLeaf>(scene.size)
             // add non-instanced objects
             val dr = scene.drawRequests
-            for (index in dr.indices) {
-                val dri = dr[index]
-                // to do theoretically, we'd need to respect material override as well,
-                // but idk how to do materials yet...
-                val mesh = dri.mesh
-                val blas = blasCache.getOrPut(mesh) {
-                    buildBLAS(mesh, splitMethod, maxNodeSize)
-                } ?: continue
-                val entity = dri.entity
-                val transform = entity.transform
+            fun add(mesh: Mesh, blas: BLASNode, transform: Transform) {
                 val drawMatrix = transform.getDrawMatrix()
                 val localToWorld = Matrix4x3f().set4x3delta(drawMatrix, cameraPosition, worldScale)
                 val worldToLocal = Matrix4x3f()
@@ -123,7 +109,41 @@ abstract class BVHBuilder(
                 localBounds.transformSet(localToWorld, globalBounds)
                 objects.add(TLASLeaf(centroid, localToWorld, worldToLocal, blas, globalBounds))
             }
-            // todo add all instanced objects
+            for (index in dr.indices) {
+                val dri = dr[index]
+                // to do theoretically, we'd need to respect material override as well,
+                // but idk how to do materials yet...
+                val mesh = dri.mesh
+                val blas = blasCache.getOrPut(mesh) {
+                    buildBLAS(mesh, splitMethod, maxNodeSize)
+                } ?: continue
+                val entity = dri.entity
+                val transform = entity.transform
+                add(mesh, blas, transform)
+            }
+            // add all instanced objects
+            scene.instancedMeshes1.forEach { mesh, matWithId, stack ->
+                val blas = blasCache.getOrPut(mesh) {
+                    buildBLAS(mesh, splitMethod, maxNodeSize)
+                }
+                if (blas != null) {
+                    for (i in 0 until stack.size) {
+                        val transform = stack.transforms[i]!!
+                        add(mesh, blas, transform)
+                    }
+                }
+            }
+            scene.instancedMeshes2.forEach { mesh, material, stack ->
+                val blas = blasCache.getOrPut(mesh) {
+                    buildBLAS(mesh, splitMethod, maxNodeSize)
+                }
+                if (blas != null) {
+                    for (i in 0 until stack.size) {
+                        val transform = stack.transforms[i]!!
+                        add(mesh, blas, transform)
+                    }
+                }
+            }
             return recursiveBuildTLAS(objects, 0, objects.size, splitMethod)
         }
 
@@ -145,8 +165,7 @@ abstract class BVHBuilder(
         }
 
         private fun recursiveBuildTLAS(
-            objects: ArrayList<TLASLeaf>,
-            start: Int, end: Int, // triangle indices
+            objects: ArrayList<TLASLeaf>, start: Int, end: Int, // triangle indices
             splitMethod: SplitMethod
         ): TLASNode {
             val count = end - start
@@ -195,8 +214,8 @@ abstract class BVHBuilder(
                                 t0.centroid[dim].compareTo(t1.centroid[dim])
                             }
                         }
-                        SplitMethod.SURFACE_AREA_HEURISTIC -> TODO()
-                        SplitMethod.HIERARCHICAL_LINEAR -> TODO()
+                        SplitMethod.SURFACE_AREA_HEURISTIC -> throw NotImplementedError()
+                        SplitMethod.HIERARCHICAL_LINEAR -> throw NotImplementedError()
                     }
                 }
 
@@ -275,8 +294,8 @@ abstract class BVHBuilder(
                         //debug(positions, indices, start, mid)
                         //debug(positions, indices, mid, end)
                     }
-                    SplitMethod.SURFACE_AREA_HEURISTIC -> TODO()
-                    SplitMethod.HIERARCHICAL_LINEAR -> TODO()
+                    SplitMethod.SURFACE_AREA_HEURISTIC -> throw NotImplementedError()
+                    SplitMethod.HIERARCHICAL_LINEAR -> throw NotImplementedError()
                 }
             }
             val n0 = recursiveBuildBLAS(positions, indices, start, mid, maxNodeSize, splitMethod, newPositions)
@@ -313,10 +332,7 @@ abstract class BVHBuilder(
         }*/
 
         fun median(
-            objects: ArrayList<TLASLeaf>,
-            start: Int,
-            end: Int,
-            condition: (t0: TLASLeaf, t1: TLASLeaf) -> Int
+            objects: ArrayList<TLASLeaf>, start: Int, end: Int, condition: (t0: TLASLeaf, t1: TLASLeaf) -> Int
         ) {
             // not optimal performance, but at least it will 100% work
             objects.subList(start, end).sortWith(condition)
@@ -351,7 +367,10 @@ abstract class BVHBuilder(
         }
 
         private fun comp(
-            positions: FloatArray, indices: IntArray, i: Int, j: Int,
+            positions: FloatArray,
+            indices: IntArray,
+            i: Int,
+            j: Int,
             condition: (a0: Vector3f, b0: Vector3f, c0: Vector3f, a1: Vector3f, b1: Vector3f, c1: Vector3f) -> Int
         ): Int {
             val a0 = JomlPools.vec3f.create()
@@ -374,7 +393,10 @@ abstract class BVHBuilder(
         }
 
         private fun partition(
-            positions: FloatArray, indices: IntArray, start: Int, end: Int,
+            positions: FloatArray,
+            indices: IntArray,
+            start: Int,
+            end: Int,
             condition: (Vector3f, Vector3f, Vector3f) -> Boolean
         ): Int {
 
@@ -395,8 +417,7 @@ abstract class BVHBuilder(
         }
 
         private fun partition(
-            objects: ArrayList<TLASLeaf>, start: Int, end: Int,
-            condition: (TLASLeaf) -> Boolean
+            objects: ArrayList<TLASLeaf>, start: Int, end: Int, condition: (TLASLeaf) -> Boolean
         ): Int {
 
             var i = start

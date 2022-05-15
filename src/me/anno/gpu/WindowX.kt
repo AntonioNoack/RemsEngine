@@ -165,9 +165,9 @@ open class WindowX(var title: String) {
         lastMouseTargetNanos = Engine.nanoTime
     }
 
+    private val xs = DoubleArray(1)
+    private val ys = DoubleArray(1)
     fun updateMousePosition() {
-        val xs = DoubleArray(1)
-        val ys = DoubleArray(1)
         GLFW.glfwGetCursorPos(pointer, xs, ys)
         Input.onMouseMove(this, xs[0].toFloat(), ys[0].toFloat())
     }
@@ -194,7 +194,6 @@ open class WindowX(var title: String) {
                         if (w != width || h != height) {
                             width = w
                             height = h
-                            // todo why is the screen becoming black for a few frames after changing the size?
                             Input.invalidateLayout()
                             Input.framesSinceLastInteraction = 0
                         }

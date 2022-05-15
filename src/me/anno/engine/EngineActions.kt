@@ -1,9 +1,12 @@
 package me.anno.engine
 
+import me.anno.Build
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.gpu.GFX
-import me.anno.gpu.drawLogo
+import me.anno.gpu.OpenGL
+import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.input.ActionManager
+import me.anno.input.Input
 import me.anno.input.Modifiers
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
@@ -18,20 +21,20 @@ object EngineActions {
     fun register() {
 
         val actions = listOf(
-            "ToggleFullscreen" to { GFX.focussedWindow?.toggleFullscreen(); true },
+            "ToggleFullscreen" to { GFX.focusedWindow?.toggleFullscreen(); true },
             "PrintLayout" to { printLayout();true },
             "DragEnd" to {
 
                 val dragged = StudioBase.dragged
 
-                LOGGER.debug("Executing DragEnd, $dragged")
+                // LOGGER.debug("Executing DragEnd, $dragged")
 
                 if (dragged != null) {
 
                     val type = dragged.getContentType()
                     val data = dragged.getContent()
 
-                    val window = GFX.focussedWindow
+                    val window = GFX.focusedWindow
                     if (window != null) when (type) {
                         "File" -> {
                             val hp = GFX.hoveredPanel
@@ -79,6 +82,52 @@ object EngineActions {
                     }
                     true
                 } else */false
+            },
+            "Save" to {
+                StudioBase.instance?.save()
+                true
+            },
+            "Paste" to {
+                Input.paste(GFX.someWindow)
+                true
+            },
+            "Copy" to {
+                Input.copy(GFX.someWindow)
+                true
+            },
+            "Duplicate" to {
+                val window = GFX.someWindow
+                Input.copy(window)
+                Input.paste(window)
+                true
+            },
+            "Cut" to {
+                val window = GFX.someWindow
+                Input.copy(window)
+                Input.empty(window)
+                true
+            },
+            "Import" to {
+                Input.import()
+                true
+            },
+            "OpenHistory" to {
+                StudioBase.instance?.openHistory()
+                true
+            },
+            "SelectAll" to {
+                val ws = GFX.someWindow.windowStack
+                val inFocus0 = ws.inFocus0
+                inFocus0?.onSelectAll(ws.mouseX, ws.mouseY)
+                true
+            },
+            "DebugGPUStorage" to {
+                DebugGPUStorage.openMenu()
+                true
+            },
+            "ResetOpenGLSession" to {
+                StudioBase.addEvent { OpenGL.newSession() }
+                true
             }
         )
 
@@ -101,6 +150,20 @@ object EngineActions {
          * - while down -> press
          * - up -> up
          * */
+
+        // todo add these into Rem's Studio
+        register["global.s.t.c", "Save"]
+        register["global.c.t.c", "Copy"]
+        register["global.v.t.c", "Paste"]
+        register["global.d.t.c", "Duplicate"]
+        register["global.i.t.c", "Import"]
+        register["global.h.t.c", "OpenHistory"]
+        register["global.a.t.c", "SelectAll"]
+
+        if (Build.isDebug) {
+            register["global.m.t.c", "DebugGPUStorage"]
+            register["global.l.t.c", "ResetOpenGLSession"]
+        }
 
         register["global.space.down.${Modifiers[false, false]}", "Play|Pause"]
         register["global.space.down.${Modifiers[false, true]}", "PlaySlow|Pause"]

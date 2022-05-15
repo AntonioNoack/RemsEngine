@@ -253,7 +253,7 @@ class IndexBuffer(
     override fun destroy() {
         val buffer = pointer
         if (buffer >= 0) {
-            GFX.addGPUTask(1) {
+            GFX.addGPUTask("IndexBuffer.destroy()",1) {
                 Buffer.onDestroyBuffer(buffer)
                 glDeleteBuffers(buffer)
             }

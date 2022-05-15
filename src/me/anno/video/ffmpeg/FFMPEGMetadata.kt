@@ -66,9 +66,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             // todo only try this for images...
             val suffix = Signature.findName(file)
             if (suffix != null) {
-                val iter: Iterator<ImageReader> = ImageIO.getImageReadersBySuffix(suffix)
-                while (iter.hasNext()) {
-                    val reader: ImageReader = iter.next()
+                for (reader in ImageIO.getImageReadersBySuffix(suffix)) {
                     try {
                         file.inputStream().use {
                             reader.input = ImageIO.createImageInputStream(it)
@@ -78,7 +76,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                             hasVideo = true
                         }
                         break
-                    } catch (e: IOException) {
+                    } catch (_: IOException) {
                     } finally {
                         reader.dispose()
                     }

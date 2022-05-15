@@ -1,3 +1,3 @@
 package me.anno.gpu
 
-typealias Task = Pair<Int, () -> Unit>
+class Task(val name: String, val cost: Int, val work: () -> Unit)

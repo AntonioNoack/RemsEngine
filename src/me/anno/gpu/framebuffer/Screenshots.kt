@@ -153,7 +153,7 @@ object Screenshots {
         name += ".png"
         if (folder.getChild(name).exists) return // image already exists somehow...
 
-        GFX.addGPUTask(w, h) {
+        GFX.addGPUTask("Screenshots.take", w, h) {
 
             GFX.check()
 

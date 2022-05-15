@@ -319,6 +319,14 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         }
     }
 
+    fun writeSomething(self: ISaveable?, type: String, name: String, value: Any?, forceSaving: Boolean) {
+        when (type) {
+            // todo all types
+            // especially of interest: List<List<...>>, Array<Array<...>>, ...
+            else -> writeSomething(self, name, value, forceSaving)
+        }
+    }
+
     /**
      * this is a general function to save a value
      * if you know the type, please use one of the other functions,
@@ -344,8 +352,6 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 // try to save the list
                 if (value.isNotEmpty()) {
                     when (val sample = value[0]) {
-
-                        // todo all types
 
                         is Boolean -> writeBooleanArray(
                             name,
@@ -403,13 +409,15 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         // is PrefabSaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
                         is ISaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
                         is FileReference -> writeFileArray(name, toArray(value), forceSaving)
+
+                        // todo 2d stuff...
                         else -> throw RuntimeException("Not yet implemented: saving a list of '$name' ${sample?.javaClass}")
                     }
                 } // else if is force saving, then this won't work, because of the weak generics in Java :/
             }
             is Array<*> -> {
                 if (value.isNotEmpty()) {
-                    @Suppress("UNCHECKED_CAST")
+                    @Suppress("unchecked_cast")
                     when (val sample = value[0]) {
 
                         is String -> writeStringArray(name, cast(value), forceSaving)
@@ -449,10 +457,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
 
                         is PrefabSaveable -> writeNullableObjectArray(
-                            self,
-                            name,
-                            value as Array<ISaveable?>,
-                            forceSaving
+                            self, name, value as Array<ISaveable?>, forceSaving
                         )
                         is ISaveable -> writeNullableObjectArray(self, name, value as Array<ISaveable?>, forceSaving)
                         is FileReference -> writeFileArray(name, cast(value), forceSaving)

@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
@@ -28,6 +29,8 @@ class CubemapTexture(
     var isCreated = false
     var isDestroyed = false
     var pointer = -1
+    var session = 0
+    var createdSize = 0
 
     var locallyAllocated = 0L
 
@@ -59,7 +62,14 @@ class CubemapTexture(
     }
 
     fun checkSession() {
-        TODO()
+        if (session != OpenGL.session) {
+            session = OpenGL.session
+            pointer = -1
+            isCreated = false
+            isDestroyed = false
+            locallyAllocated = Texture2D.allocate(locallyAllocated, 0L)
+            createdSize = 0
+        }
     }
 
     private fun bindBeforeUpload() {
@@ -150,6 +160,7 @@ class CubemapTexture(
         filtering(filtering)
         clamping()
         GFX.check()
+        createdSize = size
         if (isDestroyed) destroy()
     }
 
@@ -211,7 +222,7 @@ class CubemapTexture(
         val pointer = pointer
         if (pointer > -1) {
             if (GFX.isGFXThread()) destroy(pointer)
-            else GFX.addGPUTask(1) { destroy(pointer) }
+            else GFX.addGPUTask("CubemapTexture.destroy()", 1) { destroy(pointer) }
         }
         this.pointer = -1
     }

@@ -194,7 +194,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
         val buffer = pointer
         val vao = vao
         if (buffer > -1) {
-            GFX.addGPUTask(1) {
+            GFX.addGPUTask("Buffer.destroy()",1) {
                 onDestroyBuffer(buffer)
                 GL15.glDeleteBuffers(buffer)
                 if (vao >= 0) {

@@ -285,7 +285,7 @@ object Functions {
             ).toDouble()
         }
 
-        // todo function, which takes double and vector...
+        // to do function, which takes double and vector...
         /*functions2["harmonics"] = { time, harmonics ->
             val w0 = time * 2.0 * PI
             harmonics as Vector

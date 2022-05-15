@@ -5,6 +5,8 @@ class ParallelHashSet<V>(initialCapacity: Int = 16) {
     private var addable = HashSet<V>(initialCapacity)
     private var removable = HashSet<V>(initialCapacity)
 
+    val size get() = addable.size
+
     fun add(element: V) {
         val addable = addable
         synchronized(addable) {

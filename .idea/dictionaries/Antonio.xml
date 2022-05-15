@@ -29,6 +29,7 @@
       <w>bokeh</w>
       <w>branchless</w>
       <w>brdf</w>
+      <w>broadphase</w>
       <w>burlywood</w>
       <w>bvec</w>
       <w>cacheable</w>
@@ -37,6 +38,7 @@
       <w>cbrt</w>
       <w>cholesky</w>
       <w>clickability</w>
+      <w>codec</w>
       <w>codepoint</w>
       <w>codepoints</w>
       <w>collada</w>
@@ -86,6 +88,7 @@
       <w>dodgerblue</w>
       <w>dokumente</w>
       <w>dont</w>
+      <w>draggables</w>
       <w>easu</w>
       <w>emissive</w>
       <w>endianness</w>

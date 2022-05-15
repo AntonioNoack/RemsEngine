@@ -14,7 +14,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
-import me.anno.mesh.assimp.createMeshComponent
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
@@ -26,8 +25,7 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toRGB
 import me.anno.utils.OS.documents
-import me.anno.utils.OS.downloads
-import me.anno.utils.hpc.HeavyProcessing
+import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.AABBs.volume
@@ -39,9 +37,9 @@ import kotlin.math.pow
 
 fun main() {
     ECSRegistry.initNoGFX()
-    val meshSource = documents.getChild("TestScene.fbx")
+    val meshSource = documents.getChild("monkey.obj")
     val mesh = MeshCache[meshSource]!!
-    val blas = BVHBuilder.buildBLAS(mesh,SplitMethod.MEDIAN,2)!!
+    val blas = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN, 8)!!
     blas.print()
     main2(blas, Vector3f(), Quaternionf(), 1f)
 }
@@ -111,14 +109,16 @@ fun main2(
 
         fun computeSpeed(w: Int, h: Int, dt: Long) = dt / (w * h)
 
+        val pipeline = ProcessingGroup("brt", 1f)
+
         list.add(TestDrawPanel {
 
             it.clear()
 
             // render cpu side
             // render at lower resolution because of performance
-            val w = it.w / 4
-            val h = it.h / 4
+            val w = it.w / 2
+            val h = it.h / 2
 
             val relativeScale = 0.25f
 
@@ -129,10 +129,10 @@ fun main2(
             fun nextFrame() {
                 val tmpPos = Vector3f(cameraPosition)
                 val tmpRot = Quaternionf(cameraRotation)
-                HeavyProcessing.addTask("") {
+                pipeline += {
                     val cpuBuffer = Texture2D.bufferPool[w * h * 4, false, false]
                     val t0 = System.nanoTime()
-                    HeavyProcessing.processBalanced2d(0, 0, w, h, 8, 1) { x0, y0, x1, y1 ->
+                    pipeline.processBalanced2d(0, 0, w, h, 8, 1) { x0, y0, x1, y1 ->
                         for (y in y0 until y1) {
                             for (x in x0 until x1) {
                                 val dir = JomlPools.vec3f.create()
@@ -162,7 +162,7 @@ fun main2(
                     val dt = max(t1 - t0, 1L)
                     cpuSpeed = computeSpeed(w, h, dt)
                     cpuFPS = SECONDS_TO_NANOS / dt
-                    GFX.addGPUTask(1) {
+                    GFX.addGPUTask("brt-cpu", 1) {
                         cpuTexture.w = w
                         cpuTexture.h = h
                         cpuTexture.createRGBA(cpuBuffer, false)
@@ -184,15 +184,15 @@ fun main2(
 
         val triangles = bvh.createTriangleTexture()
         val blasNodes = bvh.createBLASTexture()
-        val shader = createShader(true,bvh.maxDepth(),null)
+        val shader = createComputeShader(true, bvh.maxDepth(), null)
 
         list.add(TestDrawPanel {
 
             it.clear()
 
             // render gpu side
-            val w = it.w / 2
-            val h = it.h / 2
+            val w = it.w
+            val h = it.h
 
             val relativeScale = 0.5f
 

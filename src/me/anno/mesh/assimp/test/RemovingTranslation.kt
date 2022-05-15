@@ -1,5 +1,3 @@
-@file:Suppress("SpellCheckingInspection")
-
 package me.anno.mesh.assimp.test
 
 import me.anno.ecs.components.anim.ImportedAnimation
@@ -16,6 +14,7 @@ import kotlin.math.sqrt
 
 // todo most bones only experience rotation, not translation:
 // todo remove the translation parameter, and calculate it only using the rotation (and bind pose / original pose)
+@Suppress("SpellCheckingInspection")
 fun main() {
 
     ECSRegistry.init()

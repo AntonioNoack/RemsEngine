@@ -1,5 +1,6 @@
 package me.anno.utils.structures.arrays
 
+import me.anno.utils.LOGGER
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
@@ -21,7 +22,13 @@ class ExpandingIntArray(
         val array = array
         if (array == null || requestedSize >= array.size) {
             val suggestedSize = if (array == null) initCapacity else max(array.size * 2, 16)
-            val newArray = IntArray(max(suggestedSize, requestedSize))
+            val newSize = max(suggestedSize, requestedSize)
+            val newArray = try {
+                IntArray(newSize)
+            } catch (e: OutOfMemoryError) {
+                LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingIntArray")
+                throw e
+            }
             if (array != null) System.arraycopy(array, 0, newArray, 0, this.size)
             this.array = newArray
         }

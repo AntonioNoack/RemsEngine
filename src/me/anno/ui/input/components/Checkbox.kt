@@ -41,6 +41,10 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     private var changeListener: ((Boolean) -> Unit)? = null
     private var wasHovered = false
 
+    override fun isOpaqueAt(x: Int, y: Int): Boolean {
+        return true
+    }
+
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         minW = size + 2

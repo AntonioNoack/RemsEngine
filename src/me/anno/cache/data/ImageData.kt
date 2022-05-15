@@ -102,7 +102,7 @@ class ImageData(file: FileReference) : ICacheData {
             getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
         }
         frame.waitToLoad()
-        GFX.addGPUTask(frame.w, frame.h) {
+        GFX.addGPUTask("ImageData.useFFMPEG($file)", frame.w, frame.h) {
             frameToFramebuffer(frame, frame.w, frame.h, this)
         }
     }
@@ -114,7 +114,7 @@ class ImageData(file: FileReference) : ICacheData {
     fun load(file: FileReference) {
         if (texture.isCreated) texture.reset() // shouldn't really happen, I think
         if (file is ImageReadable) {
-            texture.create("ImageData", file.readImage(), true)
+            texture.create(file.toString(), file.readImage(), true)
         } else {
             when (Signature.findName(file)) {
                 "hdr" -> loadHDR(file)
@@ -122,7 +122,7 @@ class ImageData(file: FileReference) : ICacheData {
                 else -> {
                     val image = ImageCPUCache.getImage(file, 50, false)
                     if (image != null) {
-                        texture.create("ImageData", image, true)
+                        texture.create(file.toString(), image, true)
                         texture.rotation = getRotation(file)
                     } else {
                         when (val fileExtension = file.lcExtension) {
@@ -143,7 +143,7 @@ class ImageData(file: FileReference) : ICacheData {
         val img = HDRImage(file)
         val w = img.width
         val h = img.height
-        GFX.addGPUTask(w, h) {
+        GFX.addGPUTask("ImageData.loadHDR($file)", w, h) {
             texture.setSize(w, h)
             img.createTexture(texture, true)
         }
@@ -179,7 +179,7 @@ class ImageData(file: FileReference) : ICacheData {
     private fun tryGetImage1(file: FileReference) {
         val image = tryGetImage(file)
         if (image != null) {
-            texture.create("ImageData", image, checkRedundancy = true)
+            texture.create(file.toString(), image, checkRedundancy = true)
             texture.rotation = getRotation(file)
         } else {
             LOGGER.warn("Could not load $file")

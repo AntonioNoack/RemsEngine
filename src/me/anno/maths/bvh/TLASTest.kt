@@ -17,10 +17,15 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.attr0List
+import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
-import me.anno.maths.bvh.RayTracing.glslBLASIntersection
+import me.anno.maths.bvh.RayTracing.glslBLASIntersectionCompute
+import me.anno.maths.bvh.RayTracing.glslBLASIntersectionGraphics
 import me.anno.maths.bvh.RayTracing.glslIntersections
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.maths.bvh.TLASNode.Companion.PIXELS_PER_TLAS_NODE
@@ -96,7 +101,140 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
 
 }
 
-fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Texture2D> {
+fun createGraphicsShader(tlas: TLASNode): Quad<Shader, Texture2D, Texture2D, Texture2D> {
+
+    val uniqueMeshes = HashSet<BLASNode>(tlas.countTLASLeaves())
+    tlas.forEach {
+        if (it is TLASLeaf) {
+            uniqueMeshes.add(it.mesh)
+        }
+    }
+
+    val meshes = uniqueMeshes
+        .sortedByDescending { it.countNodes() } // complex meshes first for testing and consistency
+        .toList()
+
+    val triangles = createTriangleTexture(meshes)
+    val blasNodes = createBLASTexture(meshes)
+    val tlasNodes = tlas.createTLASTexture() // needs to be created after blas nodes
+
+    triangles.write(desktop.getChild("bvh/sponza-tri.png"), false, withAlpha = false)
+    blasNodes.write(desktop.getChild("bvh/sponza-blas.png"), false, withAlpha = false)
+    tlasNodes.write(desktop.getChild("bvh/sponza-tlas.png"), false, withAlpha = false)
+
+    val maxTLASDepth = tlas.maxDepth()
+    val maxBLASDepth = meshes.maxOf { it.maxDepth() }
+
+    return Quad(
+        Shader(
+            "bvh-traversal", attr0List, attr0VShader, uvList, listOf(), "" +
+                    "out vec4 dst;\n" +
+                    "uniform sampler2D triangles, blasNodes, tlasNodes;\n" +
+                    "uniform ivec2 size;\n" +
+                    "uniform vec3 worldPos;\n" +
+                    "uniform vec4 worldRot;\n" +
+                    "uniform vec3 cameraOffset;\n" +
+                    "uniform vec3 sky0, sky1;\n" +
+                    "uniform int drawMode;\n" +
+                    "#define Infinity 1e15\n" + // don't make too large, we need to be able to calculate stuff with it
+                    glslIntersections +
+                    quatRot +
+                    boundingBoxSDF + // for debugging
+                    "#define nodes blasNodes\n" +
+                    "#define BLAS_DEPTH $maxBLASDepth\n" +
+                    loadMat4x3 +
+                    glslBLASIntersectionGraphics +
+                    "void main(){\n" +
+                    "   ivec2 pos = ivec2(gl_FragCoord.xy);\n" +
+                    "       uint nodeStack[$maxTLASDepth];\n" +
+                    "       for(int i=${maxTLASDepth-1};i>=0;i--) nodeStack[i]=0u;\n" +
+                    "       uint nodeIndex = 0u;\n" +
+                    "       uint stackIndex = 0u;\n" +
+                    "       vec3 worldNormal = vec3(0.0);\n" +
+                    "       float worldDistance = Infinity;\n" +
+                    "       uvec2 tlasTexSize = uvec2(textureSize(tlasNodes,0));\n" +
+                    "       vec3 worldDir = vec3(vec2(pos)-cameraOffset.xy, cameraOffset.z);\n" +
+                    "       worldDir = quatRot(worldDir, worldRot);\n" +
+                    "       worldDir = normalize(worldDir);\n" +
+                    "       vec3 worldInvDir = 1.0 / worldDir;\n" +
+                    "       uint k=512u,numIntersections=0u,nodeCtr=0u;\n" +
+                    "while(k-- > 0u){\n" + // start of tlas
+                    // fetch tlas node data
+                    "   uint pixelIndex = nodeIndex * ${PIXELS_PER_TLAS_NODE}u;\n" +
+                    "   uint nodeX = pixelIndex % tlasTexSize.x;\n" +
+                    "   uint nodeY = pixelIndex / tlasTexSize.x;\n" +
+                    "   vec4 d0 = texelFetch(tlasNodes, ivec2(nodeX,   nodeY), 0);\n" +
+                    "   vec4 d1 = texelFetch(tlasNodes, ivec2(nodeX+1u,nodeY), 0);\n" + // tlas bounds check
+                    "   if(intersectAABB(worldPos,worldInvDir,d0.xyz,d1.xyz,worldDistance)){\n" +
+                    "       uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
+                    "       if(v01.y < 3u){\n" + // tlas branch
+                    // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
+                    "           if(worldDir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
+                    "               nodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
+                    "               nodeIndex++;\n" + // search child next
+                    "           } else {\n" +
+                    "               nodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark other child for later
+                    "               nodeIndex += v01.x;\n" + // search child next
+                    "           }\n" +
+                    "       } else {\n" + // tlas leaf
+                    "           numIntersections++;\n" +
+                    // load more data and then transform ray into local coordinates
+                    "           vec4 d10 = texelFetch(tlasNodes, ivec2(nodeX+2u,nodeY), 0);\n" +
+                    "           vec4 d11 = texelFetch(tlasNodes, ivec2(nodeX+3u,nodeY), 0);\n" +
+                    "           vec4 d12 = texelFetch(tlasNodes, ivec2(nodeX+4u,nodeY), 0);\n" +
+                    "           mat4x3 worldToLocal = loadMat4x3(d10,d11,d12);\n" +
+                    // transform ray into local coordinates
+                    "           vec3 localPos = worldToLocal * vec4(worldPos, 1.0);\n" +
+                    "           vec3 localDir = normalize(worldToLocal * vec4(worldDir, 0.0));\n" +
+                    "           vec3 localInvDir = 1.0 / localDir;\n" +
+                    // transform world distance into local coordinates
+                    "           float localDistance = worldDistance * length(worldToLocal * vec4(worldDir, 0.0));\n" +
+                    "           float localDistanceOld = localDistance;\n" +
+                    "           vec3 localNormal = vec3(0.0);\n" +
+                    "           intersectBLAS(v01.x, localPos, localDir, localInvDir, localNormal, localDistance, nodeCtr);\n" +
+                    "           if(localDistance < localDistanceOld){\n" + // we hit something
+                    "               vec4 d20 = texelFetch(tlasNodes, ivec2(nodeX+5u,nodeY), 0);\n" +
+                    "               vec4 d21 = texelFetch(tlasNodes, ivec2(nodeX+6u,nodeY), 0);\n" +
+                    "               vec4 d22 = texelFetch(tlasNodes, ivec2(nodeX+7u,nodeY), 0);\n" +
+                    "               mat4x3 localToWorld = loadMat4x3(d20,d21,d22);\n" +
+                    // transform result into global coordinates
+                    // theoretically we could get z-fighting here
+                    "               float worldDistance1 = localDistance * length(localToWorld * vec4(localDir, 0.0));\n" +
+                    "               if(worldDistance1 < worldDistance){\n" + // could be false by numerical errors
+                    // transform hit normal into world coordinates
+                    "                   worldDistance = worldDistance1;\n" +
+                    "                   worldNormal = localToWorld * vec4(localNormal, 0.0);\n" +
+                    "               }\n" +
+                    "           }\n" + // end of blas; get next tlas node*/
+                    "           if(stackIndex < 1u) break;\n" +
+                    "           nodeIndex = nodeStack[--stackIndex];\n" +
+                    "       }\n" +
+                    "   } else {\n" + // next tlas node
+                    "       if(stackIndex < 1u) break;\n" +
+                    "       nodeIndex = nodeStack[--stackIndex];\n" +
+                    "   }\n" +
+                    "}\n" + // end of tlas
+                    // save result to texture
+                    "       vec3 result = vec3(float(nodeCtr)*0.01);\n" +
+                    "       if(drawMode == 0) if(dot(worldNormal,worldNormal)>0.0){\n" +
+                    "           worldNormal = normalize(worldNormal);\n" +
+                    "           result = worldNormal*.5+.5;\n" +
+                    "       } else {\n" +
+                    // compute sky color
+                    "           float f = length(worldDir.xy);\n" +
+                    "           result = sky1;//sqrt(mix(sky0*sky0,sky1*sky1,f));\n" +
+                    "       }\n" +
+                    "       dst = vec4(result, 1.0);\n" +
+                    "}\n"
+        ).apply {
+            glslVersion = 330 // for floatBitsToUint
+            setTextureIndices("triangles", "blasNodes", "tlasNodes")
+        }, triangles, blasNodes, tlasNodes
+    )
+
+}
+
+fun createComputeShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Texture2D> {
 
     val uniqueMeshes = HashSet<BLASNode>(tlas.countTLASLeaves())
     tlas.forEach {
@@ -140,13 +278,14 @@ fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Text
                     "#define nodes blasNodes\n" +
                     "#define BLAS_DEPTH $maxBLASDepth\n" +
                     loadMat4x3 +
-                    glslBLASIntersection +
+                    glslBLASIntersectionCompute +
                     "void main(){\n" +
                     "   ivec2 pos = ivec2(gl_GlobalInvocationID.xy);\n" +
                     "   if(all(lessThan(pos,size))){\n" +
                     "       uint nodeStack[$maxTLASDepth];\n" +
-                    "       uint nodeIndex = 0;\n" +
-                    "       uint stackIndex = 0;\n" +
+                    "       for(int i=${maxTLASDepth-1};i>=0;i--) nodeStack[i]=0u;\n" +
+                    "       uint nodeIndex = 0u;\n" +
+                    "       uint stackIndex = 0u;\n" +
                     "       vec3 worldNormal = vec3(0.0);\n" +
                     "       float worldDistance = Infinity;\n" +
                     "       ivec2 tlasTexSize = imageSize(tlasNodes);\n" +
@@ -154,31 +293,31 @@ fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Text
                     "       worldDir = quatRot(worldDir, worldRot);\n" +
                     "       worldDir = normalize(worldDir);\n" +
                     "       vec3 worldInvDir = 1.0 / worldDir;\n" +
-                    "       uint k=512,numIntersections=0,nodeCtr=0;\n" +
-                    "while(k-- > 0){\n" + // start of tlas
+                    "       uint k=512u,numIntersections=0u,nodeCtr=0u;\n" +
+                    "while(k-- > 0u){\n" + // start of tlas
                     // fetch tlas node data
-                    "   uint pixelIndex = nodeIndex * $PIXELS_PER_TLAS_NODE;\n" +
+                    "   uint pixelIndex = nodeIndex * ${PIXELS_PER_TLAS_NODE}u;\n" +
                     "   uint nodeX = pixelIndex % tlasTexSize.x;\n" +
                     "   uint nodeY = pixelIndex / tlasTexSize.x;\n" +
-                    "   vec4 d0 = imageLoad(tlasNodes, ivec2(nodeX,  nodeY));\n" +
-                    "   vec4 d1 = imageLoad(tlasNodes, ivec2(nodeX+1,nodeY));\n" + // tlas bounds check
+                    "   vec4 d0 = imageLoad(tlasNodes, ivec2(nodeX,   nodeY));\n" +
+                    "   vec4 d1 = imageLoad(tlasNodes, ivec2(nodeX+1u,nodeY));\n" + // tlas bounds check
                     "   if(intersectAABB(worldPos,worldInvDir,d0.xyz,d1.xyz,worldDistance)){\n" +
                     "       uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
-                    "       if(v01.y < 3){\n" + // tlas branch
+                    "       if(v01.y < 3u){\n" + // tlas branch
                     // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
                     "           if(worldDir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
                     "               nodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
                     "               nodeIndex++;\n" + // search child next
                     "           } else {\n" +
-                    "               nodeStack[stackIndex++] = nodeIndex + 1;\n" + // mark other child for later
+                    "               nodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark other child for later
                     "               nodeIndex += v01.x;\n" + // search child next
                     "           }\n" +
                     "       } else {\n" + // tlas leaf
                     "           numIntersections++;\n" +
                     // load more data and then transform ray into local coordinates
-                    "           vec4 d10 = imageLoad(tlasNodes, ivec2(nodeX+2,nodeY));\n" +
-                    "           vec4 d11 = imageLoad(tlasNodes, ivec2(nodeX+3,nodeY));\n" +
-                    "           vec4 d12 = imageLoad(tlasNodes, ivec2(nodeX+4,nodeY));\n" +
+                    "           vec4 d10 = imageLoad(tlasNodes, ivec2(nodeX+2u,nodeY));\n" +
+                    "           vec4 d11 = imageLoad(tlasNodes, ivec2(nodeX+3u,nodeY));\n" +
+                    "           vec4 d12 = imageLoad(tlasNodes, ivec2(nodeX+4u,nodeY));\n" +
                     "           mat4x3 worldToLocal = loadMat4x3(d10,d11,d12);\n" +
                     // transform ray into local coordinates
                     "           vec3 localPos = worldToLocal * vec4(worldPos, 1.0);\n" +
@@ -187,12 +326,12 @@ fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Text
                     // transform world distance into local coordinates
                     "           float localDistance = worldDistance * length(worldToLocal * vec4(worldDir, 0.0));\n" +
                     "           float localDistanceOld = localDistance;\n" +
-                    "           vec3 localNormal;\n" +
+                    "           vec3 localNormal = vec3(0.0);\n" +
                     "           intersectBLAS(v01.x, localPos, localDir, localInvDir, localNormal, localDistance, nodeCtr);\n" +
                     "           if(localDistance < localDistanceOld){\n" + // we hit something
-                    "               vec4 d20 = imageLoad(tlasNodes, ivec2(nodeX+5,nodeY));\n" +
-                    "               vec4 d21 = imageLoad(tlasNodes, ivec2(nodeX+6,nodeY));\n" +
-                    "               vec4 d22 = imageLoad(tlasNodes, ivec2(nodeX+7,nodeY));\n" +
+                    "               vec4 d20 = imageLoad(tlasNodes, ivec2(nodeX+5u,nodeY));\n" +
+                    "               vec4 d21 = imageLoad(tlasNodes, ivec2(nodeX+6u,nodeY));\n" +
+                    "               vec4 d22 = imageLoad(tlasNodes, ivec2(nodeX+7u,nodeY));\n" +
                     "               mat4x3 localToWorld = loadMat4x3(d20,d21,d22);\n" +
                     // transform result into global coordinates
                     // theoretically we could get z-fighting here
@@ -203,11 +342,11 @@ fun createShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Text
                     "                   worldNormal = localToWorld * vec4(localNormal, 0.0);\n" +
                     "               }\n" +
                     "           }\n" + // end of blas; get next tlas node*/
-                    "           if(stackIndex < 1) break;\n" +
+                    "           if(stackIndex < 1u) break;\n" +
                     "           nodeIndex = nodeStack[--stackIndex];\n" +
                     "       }\n" +
                     "   } else {\n" + // next tlas node
-                    "       if(stackIndex < 1) break;\n" +
+                    "       if(stackIndex < 1u) break;\n" +
                     "       nodeIndex = nodeStack[--stackIndex];\n" +
                     "   }\n" +
                     "}\n" + // end of tlas
@@ -300,7 +439,7 @@ fun main() {
         val result = Texture2D("colors", w, h, 1)
         result.create(TargetType.FloatTarget4)
 
-        val (shader, tri, blas, tlas2) = createShader(tlas)
+        val (shader, tri, blas, tlas2) = createComputeShader(tlas)
         render(
             shader, w, h, cameraPosition, cameraRotation,
             cx.toFloat(), cy.toFloat(), fovZ.toFloat(),

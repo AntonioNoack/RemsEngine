@@ -291,32 +291,7 @@ object Input {
                     } else inFocus0?.onEscapeKey(mouseX, mouseY)
                 } else inFocus0?.onEscapeKey(mouseX, mouseY)
             }
-            else -> {
-                if (isControlDown) {
-                    if (action == GLFW.GLFW_PRESS) {
-                        // todo use the keymap to decide these things
-                        when (key) {
-                            GLFW.GLFW_KEY_S -> instance?.save()
-                            GLFW.GLFW_KEY_V -> paste(window)
-                            GLFW.GLFW_KEY_C -> copy(window)
-                            GLFW.GLFW_KEY_D -> {// duplicate selection
-                                copy(window)
-                                paste(window)
-                            }
-                            GLFW.GLFW_KEY_X -> {// cut
-                                copy(window)
-                                empty(window)
-                            }
-                            GLFW.GLFW_KEY_I -> import()
-                            GLFW.GLFW_KEY_H -> instance?.openHistory()
-                            GLFW.GLFW_KEY_A -> inFocus0?.onSelectAll(mouseX, mouseY)
-                            GLFW.GLFW_KEY_M -> if (Build.isDebug) DebugGPUStorage.openMenu()
-                            GLFW.GLFW_KEY_L -> addEvent { OpenGL.newSession() }
-                        }
-                    }
-                }
-                inFocus0?.onKeyTyped(mouseX, mouseY, key)
-            }
+            else -> inFocus0?.onKeyTyped(mouseX, mouseY, key)
         }
     }
 
@@ -611,6 +586,42 @@ object Input {
         Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
     }
 
+    /**
+     * @return null, String or List<FileReference>
+     * */
+    fun getClipboardContent(): Any? {
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        try {
+            val data = clipboard.getData(stringFlavor)
+            if (data is String) {
+                return data
+            }
+        } catch (_: UnsupportedFlavorException) {
+        }
+        try {
+            val data = clipboard.getData(javaFileListFlavor) as? List<*>
+            val data2 = data?.filterIsInstance<File>()
+            if (data2 != null && data2.isNotEmpty()) {
+                return data2.map { getReference(it) }
+            }
+        } catch (_: UnsupportedFlavorException) {
+        }
+        try {
+            val data = clipboard.getData(imageFlavor) as RenderedImage
+            val folder = instance!!.getPersistentStorage()
+            val file0 = folder.getChild("PastedImage.png")
+            val file1 = findNextFile(file0, 3, '-', 1)
+            file1.outputStream().use { ImageIO.write(data, "png", it) }
+            LOGGER.info("Pasted image of size ${data.width} x ${data.height}, placed into $file1")
+            return listOf(file1)
+        } catch (_: UnsupportedFlavorException) {
+
+        } catch (e: ClassNotFoundException) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
     fun paste(window: WindowX, panel: Panel? = window.windowStack.inFocus0) {
         if (panel == null) return
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
@@ -627,7 +638,7 @@ object Input {
                 panel.onPaste(window.mouseX, window.mouseY, data, "")
                 return
             }
-        } catch (e: UnsupportedFlavorException) {
+        } catch (_: UnsupportedFlavorException) {
         }
         /*try {
             val data = clipboard.getData(getTextPlainUnicodeFlavor())

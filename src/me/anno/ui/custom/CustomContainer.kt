@@ -20,7 +20,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     PanelContainer(default, Padding(0), style) {
 
     // todo when dragging on the cross, or maybe left corners as well, split UI there like Blender
-    // todo but also allow merging
+    //  but also allow merging
 
     init {
         if (default is CustomContainer) LOGGER.warn(

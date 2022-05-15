@@ -154,7 +154,8 @@ object PrefabCache : CacheSection("Prefab") {
                     if (prefab is Prefab) prefab.source = file
                     if (prefab != null) return prefab
                 } catch (e: InvalidFormatException) {
-                    if (printJsonErrors) LOGGER.warn("$e by $file", e)
+                    if (printJsonErrors && file.lcExtension == "json")
+                        LOGGER.warn("$e by $file", e)
                     // don't care
                 } catch (e: Exception) {
                     // might be interesting
@@ -342,7 +343,9 @@ object PrefabCache : CacheSection("Prefab") {
             throw StackOverflowError("Circular dependency in $prefab")
         }
         val depth1 = depth - 1
-        return PrefabCache[prefab, depth1]?.createInstance(depth1) ?: ISaveable.create(clazz) as PrefabSaveable
+        val instance = PrefabCache[prefab, depth1]?.createInstance(depth1) ?: ISaveable.create(clazz) as PrefabSaveable
+        instance.prefabPath = Path.ROOT_PATH
+        return instance
     }
 
     fun loadScenePrefab(file: FileReference): Prefab {

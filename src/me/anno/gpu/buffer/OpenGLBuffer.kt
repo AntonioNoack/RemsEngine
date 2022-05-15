@@ -8,11 +8,8 @@ import me.anno.gpu.shader.Shader
 import me.anno.input.Input
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
-import org.lwjgl.opengl.GL33.glDrawArraysInstanced
-import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import java.nio.ByteBuffer
 import kotlin.math.max
 
@@ -110,7 +107,7 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
         val buffer = pointer
         val vao = if (this is Buffer) vao else -1
         if (buffer > -1) {
-            GFX.addGPUTask(1) {
+            GFX.addGPUTask("OpenGLBuffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
                 GL15.glDeleteBuffers(buffer)
                 if (vao >= 0) {
@@ -140,32 +137,7 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
             get() = Input.isShiftDown
             set(_) {}
 
-        var renewVAOs = true
-
         var alwaysBindBuffer = true
-
-        fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
-            val instanceDivisor = if (instanced) 1 else 0
-            val index = shader.getAttributeLocation(attr.name)
-            return if (index > -1) {
-                val type = attr.type
-                if (attr.isNativeInt) {
-                    glVertexAttribIPointer(index, attr.components, type.glType, attr.stride, attr.offset)
-                } else {
-                    glVertexAttribPointer(
-                        index,
-                        attr.components,
-                        type.glType,
-                        type.normalized,
-                        attr.stride,
-                        attr.offset
-                    )
-                }
-                glVertexAttribDivisor(index, instanceDivisor)
-                glEnableVertexAttribArray(index)
-                true
-            } else false
-        }
 
         private var boundVAO = -1
         fun bindVAO(vao: Int) {
@@ -199,11 +171,6 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
                     bindBuffer(slot, 0)
                 }
             }
-        }
-
-        fun invalidateBinding() {
-            boundBuffers.fill(0)
-            boundVAO = -1
         }
 
         var allocated = 0L

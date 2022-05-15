@@ -18,6 +18,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
 import me.anno.engine.ui.render.RenderView.Companion.mouseDir
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.input.Touch
@@ -66,6 +67,11 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
     private val dirZ = Vector3d()
     private val rotQuad = Quaterniond()
     private val velocity = Vector3d()
+
+    /**
+     * add extra meshes like gizmos, and draggables into the scene
+     * */
+    open fun fill(pipeline: Pipeline) {}
 
     // transfer events
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

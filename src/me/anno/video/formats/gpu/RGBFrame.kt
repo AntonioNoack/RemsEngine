@@ -33,7 +33,7 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, -1) {
         data.flip()
         blankDetector.putRGBA(data)
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask(w, h) {
+        GFX.addGPUTask("RGB", w, h) {
             rgb.createRGB(data, true)
             creationLimiter.release()
         }

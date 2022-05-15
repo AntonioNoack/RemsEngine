@@ -15,9 +15,9 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 // file change watcher
-// todo why are meshes disappearing, but not re-appearing?
-// todo also watch mesh files, e.g. for parallel tinkering e.g. in Blender with meshes :)
-// todo if we can work together with Blender nicely, we can skip a lot of own mesh generation :)
+// to do why are meshes disappearing, but not re-appearing?
+// to do also watch mesh files, e.g. for parallel tinkering e.g. in Blender with meshes :)
+// to do if we can work together with Blender nicely, we can skip a lot of own mesh generation :)
 // https://docs.oracle.com/javase/tutorial/essential/io/notification.html
 // http://jnotify.sourceforge.net/
 

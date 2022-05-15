@@ -1,40 +1,45 @@
 package me.anno.engine.ui.control
 
+import me.anno.animation.Type
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MaterialCache
-import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.sdf.SDFComponent
+import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
+import me.anno.ecs.components.mesh.sdf.shapes.SDFShape
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.RenderView.Companion.camDirection
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.DepthMode
 import me.anno.gpu.OpenGL
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.input.Touch
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.SQRT3
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.sceneView.Gizmos
+import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
+import me.anno.ui.input.FloatInput
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Matrices.distance
@@ -42,8 +47,10 @@ import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Matrices.set2
 import org.apache.logging.log4j.LogManager
 import org.joml.Math
+import org.joml.Planed
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.round
 
 // done controls
 // done show the scene
@@ -55,41 +62,61 @@ import org.joml.Vector3f
 // todo mode to place it on top of things using mesh bounds
 // todo xyz keys to rotate 90° on that axis
 // todo shift for dynamic angles
+
+// todo rotate base grid for working at angles?
+
 // automatically attach it to that object, that is being targeted? mmh.. no, use the selection for that
-
 // done draw the gizmos
-
-// todo shift to activate g/s/r-number control modes for exact scaling? mmh..
 
 class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     var mode = Mode.TRANSLATING
 
+    // todo mode where hanging plants are automatically rotated to match a wall
+
+    // todo apply snapping to <when moving things around> as well
+
+    var snapX = false
+    var snapY = false
+    var snapZ = false
+
+    var snapCenter = false
+
+    var snapSize = 1.0
+
     init {
         // todo debugging view selection
         val topLeft = PanelListX(style)
         topLeft.add(EnumInput(
-            "Draw Mode", "", view.renderMode.name,
-            RenderMode.values().map { NameDesc(it.name) }, style
+            "Draw Mode", "", view.renderMode.name, RenderMode.values().map { NameDesc(it.name) }, style
         ).setChangeListener { _, index, _ ->
             view.renderMode = RenderMode.values()[index]
         })
-        topLeft.add(TextButton("Play", "Start the game", false, style)
-            .addLeftClickListener {
-                ECSSceneTabs.currentTab?.play()
-                // todo also set this instance text to "Back"
-            })
+        topLeft.add(TextButton("Play", "Start the game", false, style).addLeftClickListener {
+            ECSSceneTabs.currentTab?.play()
+            // todo also set this instance text to "Back"
+        })
         if (view.playMode == PlayMode.PLAY_TESTING) {
-            topLeft.add(TextButton("Pause", "", false, style)
-                .addLeftClickListener {
-                    // todo pause/unpause
-                    // todo change text accordingly,
-                })
-            topLeft.add(TextButton("Restart", "", false, style)
-                .addLeftClickListener {
-                    view.getWorld()?.prefab?.invalidateInstance()
-                })
+            topLeft.add(TextButton("Pause", "", false, style).addLeftClickListener {
+                // todo pause/unpause
+                // todo change text accordingly,
+            })
+            topLeft.add(TextButton("Restart", "", false, style).addLeftClickListener {
+                view.getWorld()?.prefab?.invalidateInstance()
+            })
         }
+        val snaps = PanelListY(style)
+        // todo separate settings panel for snapping? :)
+        // todo buttons with changing background colors for this (Snap: XYZ)
+        snaps.add(BooleanInput("SnapX", snapX, false, style).setChangeListener { snapX = it })
+        snaps.add(BooleanInput("SnapY", snapY, false, style).setChangeListener { snapY = it })
+        snaps.add(BooleanInput("SnapZ", snapZ, false, style).setChangeListener { snapZ = it })
+        snaps.add(BooleanInput("Center", snapCenter, false, style).setChangeListener { snapCenter = it })
+        topLeft.add(FloatInput("Snap Size", "", snapSize, Type.FLOAT_PLUS_EXP, style)
+            .setChangeListener { snapSize = it })
+        // snaps.makeBackgroundTransparent()
+        // topLeft.makeBackgroundTransparent()
+        topLeft.add(snaps)
         add(topLeft)
     }
 
@@ -98,10 +125,10 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         if (dragged != null) invalidateDrawing() // might be displayable
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun fill(pipeline: Pipeline) {
+        super.fill(pipeline)
         val dragged = dragged
-        if (dragged != null) {
+        if (dragged != null && isHovered) {
             // if something is dragged, draw it as a preview
             if (dragged.getContentType() == "File") {
                 val original = dragged.getOriginal()
@@ -113,67 +140,38 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                     // to do another solution would be to add it temporarily to the hierarchy, and remove it if it is cancelled
 
                     val prefab = PrefabCache[file] ?: continue
-                    // sdf component, mesh component, light components and colliders would be fine as well
-                    val sample = prefab.getSampleInstance() as? Entity ?: continue
+                    // todo sdf component, mesh component, light components and colliders would be fine as well
+                    val sample = prefab.createInstance() // a little waste of allocations...
 
                     // find where to draw it
                     findDropPosition(file, pos)
 
-                    // draw it
-                    val stack = RenderView.stack
-                    stack.set(RenderView.cameraMatrix)
-                    stack.translate(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())
-                    val rot0 = sample.transform.localRotation
-                    stack.rotate(rot0.x.toFloat(), rot0.y.toFloat(), rot0.z.toFloat(), rot0.w.toFloat())
-                    val sca0 = sample.transform.localPosition
-                    stack.scale(sca0.x.toFloat(), sca0.y.toFloat(), sca0.z.toFloat())
-
-                    // todo how can we use the same depth as the scene?
-
-                    fun draw(entity: Entity) {
-                        for (component in entity.components) {
-                            if (component.isEnabled) when (component) {
-                                is MeshComponentBase -> {
-                                    // todo draw
-                                    val mesh = component.getMesh()
-                                    if (mesh != null) {
-                                        for (i in 0 until mesh.numMaterials) {
-                                            val material = MaterialCache[component.materials.getOrNull(i)]
-                                                ?: MaterialCache[mesh.materials.getOrNull(i)] ?: defaultMaterial
-                                        }
-                                    }
-                                }
-                                is LightComponentBase -> {
-                                    // todo draw... how?
-                                    // would need to be integrated in the scene...
-
-                                }
-                            }
-                        }
-                        for (child in entity.children) {
-                            if (child.isEnabled) {
-                                stack.pushMatrix()
-                                val transform = child.transform
-                                val pos1 = transform.localPosition
-                                stack.translate(pos1.x.toFloat(), pos1.y.toFloat(), pos1.z.toFloat())
-                                val rot1 = transform.localRotation
-                                stack.rotate(rot1.x.toFloat(), rot1.y.toFloat(), rot1.z.toFloat(), rot1.w.toFloat())
-                                val sca1 = transform.localScale
-                                stack.scale(sca1.x.toFloat(), sca1.y.toFloat(), sca1.z.toFloat())
-                                draw(child)
-                                stack.popMatrix()
-                            }
-                        }
+                    movedSample.removeAllChildren()
+                    movedSample.transform.localPosition = pos
+                    when (sample) {
+                        is Component -> movedSample.add(sample)
+                        is Entity -> movedSample.add(sample)
+                        // else ...
                     }
+                    movedSample.validateTransform()
+                    if (sample is Entity) sample.validateTransform()
 
-                    draw(sample)
+                    pipeline.fill(movedSample, RenderView.camPosition, view.worldScale)
 
                     // draw its gui
-                    view.drawGizmos(sample, RenderView.camPosition, false)
+                    // todo add them as normal meshes instead
+                    // view.drawGizmos(sample, pos, false)
+
                 }
                 JomlPools.vec3d.sub(1)
             }
         }
+    }
+
+    val movedSample = Entity()
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
         // show the mode
         drawSimpleTextCharByChar(
             x, y, 2, when (mode) {
@@ -187,7 +185,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     override fun drawGizmos() {
         OpenGL.depthMode.use(DepthMode.ALWAYS) {
-            OpenGL.depthMask.use(RenderView.currentInstance?.renderMode == RenderMode.DEPTH) {
+            OpenGL.depthMask.use(view.renderMode == RenderMode.DEPTH) {
                 drawGizmos2()
             }
         }
@@ -273,10 +271,6 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         return true
     }
 
-    fun turn(dx: Float, dy: Float) {
-        // todo turn the camera
-    }
-
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (EditorState.control?.onMouseMoved(x, y, dx, dy) == true) return
         if (EditorState.editMode?.onEditMove(x, y, dx, dy) == true) return
@@ -318,7 +312,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
 
                 // rotate around the direction
                 // we could use the average mouse position as center; this probably would be easier
-                val dir = camDirection
+                val dir = RenderView.camDirection
                 val rx = (x - (this.x + this.w * 0.5)) / h
                 val ry = (y - (this.y + this.h * 0.5)) / h // [-.5,+.5]
                 val rotationAngle = rx * dy - ry * dx
@@ -334,16 +328,13 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                                 val distance = camTransform.distance(global)
                                 if (distance > 0.0) {
                                     global.translateLocal(// correct
-                                        offset.x * distance,
-                                        offset.y * distance,
-                                        offset.z * distance
+                                        offset.x * distance, offset.y * distance, offset.z * distance
                                     )
                                 }
                             }
                             Mode.ROTATING -> {
                                 val tmpQ = JomlPools.quat4d.borrow()
-                                tmpQ.identity()
-                                    .fromAxisAngleDeg(dir.x, dir.y, dir.z, rotationAngle)
+                                tmpQ.identity().fromAxisAngleDeg(dir.x, dir.y, dir.z, rotationAngle)
                                 global.rotate(tmpQ)// correct
 
                             }
@@ -381,13 +372,9 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                             }
                             Mode.ROTATING -> {
                                 val tmpQ = JomlPools.quat4f.borrow()
-                                tmpQ.identity()
-                                    .fromAxisAngleDeg(
-                                        dir.x.toFloat(),
-                                        dir.y.toFloat(),
-                                        dir.z.toFloat(),
-                                        rotationAngle.toFloat()
-                                    )
+                                tmpQ.identity().fromAxisAngleDeg(
+                                    dir.x.toFloat(), dir.y.toFloat(), dir.z.toFloat(), rotationAngle.toFloat()
+                                )
                                 global.rotate(tmpQ)// correct
                             }
                             Mode.SCALING -> {
@@ -410,9 +397,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                         if (parentGlobalTransform == null) {
                             localTransform.set(globalTransform)
                         } else {
-                            localTransform.set(parentGlobalTransform)
-                                .invert()
-                                .mul(globalTransform)
+                            localTransform.set(parentGlobalTransform).invert().mul(globalTransform)
                         }
                         // we have no better / other choice
                         if (!localTransform.isFinite) {
@@ -481,24 +466,53 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         }
         val hovEntity = hovered.first
         val hovComponent = hovered.second
+        val results = ArrayList<PrefabSaveable>()
+        val ci = PrefabInspector.currentInspector!!
         for (file in files) {
-            // todo load as prefab (?)
-            // todo when a material, assign it to the hovered mesh-component
             val prefab = PrefabCache[file] ?: continue
-            when (prefab.getSampleInstance()) {
+            val dropPosition = findDropPosition(file, Vector3d())
+            fun addToParent(root: PrefabSaveable, type: Char, position: Any?) {
+                val path = ci.addNewChild(root, type, prefab)!!
+                if (position != null) ci.prefab[path, "position"] = position
+                val sample = Hierarchy.getInstanceAt(ci.root, path)
+                if (sample != null) results.add(sample)
+            }
+            when (val sampleInstance = prefab.getSampleInstance()) {
                 is Material -> {
-                    val meshComponent = hovComponent as? MeshComponent
-                    if (meshComponent != null) {
-                        val mesh = meshComponent.getMesh()
-                        val numMaterials = mesh?.numMaterials ?: 1
-                        if (numMaterials < 2 || true) {
-                            // assign material
-                            meshComponent.materials = listOf(file)
-                            meshComponent.prefab?.set(meshComponent, "materials", meshComponent.materials)
+                    val sdfComponent = hovComponent as? SDFShape
+                    if (sdfComponent != null) {
+                        val materialId = sdfComponent.materialId
+                        val root = sdfComponent.getRoot(SDFComponent::class)
+                        val oldList = root.sdfMaterials
+                        if (materialId >= 0 && (materialId < oldList.size + 3)) {
+                            val newSize = max(materialId + 1, oldList.size)
+                            val newList = ArrayList<FileReference>(newSize)
+                            for (i in 0 until newSize) {
+                                newList.add(oldList.getOrNull(i) ?: InvalidRef)
+                            }
+                            newList[materialId] = file
+                            root.sdfMaterials = newList
+                            root.prefab?.set(root, "sdfMaterials", newList)
                         } else {
-                            // todo ask for slot to place material
-                            // todo what if there are multiple materials being dragged? :)
-                            // todo set this material in the prefab
+                            if (materialId >= 0) LOGGER.warn("Material id is unexpectedly large: $materialId > ${oldList.size} + 3")
+                            else LOGGER.warn("Invalid material id, must be non-negative")
+                        }
+                    } else {
+                        val meshComponent = hovComponent as? MeshComponent
+                        if (meshComponent != null) {
+                            val mesh = meshComponent.getMesh()
+                            val numMaterials = mesh?.numMaterials ?: 1
+                            if (numMaterials < 2 || true) {
+                                // assign material
+                                meshComponent.materials = listOf(file)
+                                meshComponent.prefab?.set(meshComponent, "materials", meshComponent.materials)
+                            } else {
+                                // todo ask for slot to place material
+                                // todo what if there are multiple materials being dragged? :)
+                                // todo set this material in the prefab
+
+                                // todo or find what material is used at that triangle :), maybe draw component ids + material ids for this
+                            }
                         }
                     }
                     // todo if the prefab is not writable, create a prefab for that mesh, and replace the mesh...
@@ -508,7 +522,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                         val inspector = PrefabInspector.currentInspector
                         if (inspector != null) {
                             val path = mesh.pathInRoot2(inspector.root, true)
-                            // inject the mesh into the path
+                            // inject the mesh into the path;
                             path.setLast(mesh.name, 0, 'm')
                             inspector.change(path, "materials", mesh.materials)
                         }
@@ -517,40 +531,100 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 is Entity -> {
                     // add this to the scene
                     // where? selected / root
-                    // todo while dragging this, show preview
-                    // todo place it where the preview was drawn
+                    // done while dragging this, show preview
+                    // done place it where the preview was drawn
                     val root = library.selection.firstInstanceOrNull<Entity>() ?: view.getWorld()
-                    if (root is Entity) PrefabInspector.currentInspector!!.addNewChild(root, 'e', prefab)
-                    else LOGGER.warn("Could not drop $file onto ${root?.className}")
+                    if (root is Entity) {
+                        val position = Vector3d(sampleInstance.transform.localPosition)
+                        position.add(dropPosition)
+                        addToParent(root, 'c', position)
+                    } else LOGGER.warn("Could not drop $file onto ${root?.className}")
                 }
-                /*is SDFComponent -> {
-                    // todo add this...
-                }*/
+                is SDFComponent -> {
+                    if (hovComponent is SDFGroup) {
+                        // todo calculate position of hovComponent
+                        addToParent(hovComponent, 'c', dropPosition)
+                    } else if (hovEntity != null) {
+                        dropPosition.sub(hovEntity.transform.globalPosition)
+                        addToParent(hovEntity, 'c', dropPosition)
+                    } else {
+                        val root = library.selection.firstInstanceOrNull<SDFGroup>()
+                            ?: library.selection.firstInstanceOrNull<Entity>() ?: view.getWorld()
+                        when (root) {
+                            is Entity -> {
+                                dropPosition.sub(root.transform.globalPosition)
+                                addToParent(root, 'c', dropPosition)
+                            }
+                            is SDFGroup -> {
+                                // todo calculate position of root
+                                addToParent(root, 'c', dropPosition)
+                            }
+                            else -> LOGGER.warn("Don't know how to add SDFComponent")
+                        }
+                    }
+                }
                 is Component -> {
                     if (hovEntity != null) {
-                        PrefabInspector.currentInspector!!.addNewChild(hovEntity, 'c', prefab)
+                        val path = ci.addNewChild(hovEntity, 'c', prefab)!!
+                        val sample = Hierarchy.getInstanceAt(ci.root, path)
+                        if (sample != null) results.add(sample)
                     }
                 }
                 // todo general listener in the components, which listens for drag events? they could be useful for custom stuff...
                 else -> {
-                    // mmmh...
-                    // todo add that component?
+                    // todo try to add it to all available, hovered and selected instances
                 }
             }
             LOGGER.info("pasted $file")
         }
+        if (results.isNotEmpty()) {
+            EditorState.selection = results
+            EditorState.fineSelection = results
+            EditorState.lastSelection = results.last()
+            dragged = null
+            requestFocus(true) // because we dropped sth here
+        }
     }
 
-    // todo use this for the preview
-    fun findDropPosition(drop: FileReference, dst: Vector3d): Vector3d? {
-        val prefab = PrefabCache[drop] ?: return null
-        val sample = prefab.getSampleInstance() as? Entity ?: return null
+    fun findDropPosition(drop: FileReference, dst: Vector3d): Vector3d {
+        // val prefab = PrefabCache[drop] ?: return null
+        // val sample = prefab.getSampleInstance() as? Entity ?: return null
         // todo depending on mode, use other strategies to find zero-point on object
-        // todo use mouse wheel to change height? maybe...
-        // todo depending on settings, we also can use snapping
-        val distance = view.radius
-        // todo camDirection will only be correct, if this was the last drawn instance
-        return dst.set(RenderView.mouseDir).mul(distance).add(RenderView.camPosition)
+        // to do use mouse wheel to change height? maybe...
+        // done depending on settings, we also can use snapping
+        val cp = RenderView.camPosition
+        val cd = RenderView.mouseDir
+        val plane = Planed(0.0, 1.0, 0.0, 0.0)
+        var distance =
+            (cd.dot(plane.a, plane.b, plane.c) - cp.dot(plane.a, plane.b, plane.c)) / cd.dot(plane.a, plane.b, plane.c)
+        val world = view.getWorld()
+        if (world is Entity) {
+            val cast = Raycast.raycast(world, cp, cd, 0.0, 0.0, 1e9, -1)
+            if (cast != null) {
+                distance = cast.distance
+            }
+        }
+        // to do camDirection will only be correct, if this was the last drawn instance
+        dst.set(RenderView.mouseDir).mul(distance).add(RenderView.camPosition)
+        applySnapping(dst)
+        return dst
+    }
+
+    fun applySnapping(dst: Vector3d) {
+        if (snapSize > 0.0) {
+            if (snapX) dst.x = snap(dst.x)
+            if (snapY) dst.y = snap(dst.y)
+            if (snapZ) dst.z = snap(dst.z)
+        }
+    }
+
+    fun snap(v: Double): Double {
+        val s = snapSize
+        return if (snapCenter) {
+            (round(v / s - 0.5f) + 0.5f) * s
+        } else {
+            round(v / s) * s
+        }
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
@@ -567,6 +641,35 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 }
             }
         }
+        // remove it from the selection
+        EditorState.selection = EditorState.selection.filter { it !in EditorState.fineSelection }
+        EditorState.fineSelection = EditorState.fineSelection.filter { it !is PrefabSaveable || it.parent == null }
+    }
+
+    val blenderAddon = BlenderControlsAddon()
+
+    override fun onCharTyped(x: Float, y: Float, key: Int) {
+        if (!blenderAddon.onCharTyped(x, y, key)) super.onCharTyped(x, y, key)
+    }
+
+    override fun onEscapeKey(x: Float, y: Float) {
+        if (!blenderAddon.onEscapeKey(x, y)) super.onEscapeKey(x, y)
+    }
+
+    override fun onBackSpaceKey(x: Float, y: Float) {
+        if (!blenderAddon.onBackSpaceKey(x, y)) super.onBackSpaceKey(x, y)
+    }
+
+    override fun onEnterKey(x: Float, y: Float) {
+        if (!blenderAddon.onEnterKey(x, y)) super.onEnterKey(x, y)
+    }
+
+    override fun isKeyInput(): Boolean {
+        return true
+    }
+
+    override fun acceptsChar(char: Int): Boolean {
+        return true
     }
 
     override val className: String = "SceneView"

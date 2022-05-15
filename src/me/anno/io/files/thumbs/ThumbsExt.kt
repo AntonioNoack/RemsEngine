@@ -106,11 +106,18 @@ object ThumbsExt {
 
     fun Collider.drawAssimp(
         stack: Matrix4f,
+        localStack: Matrix4x3f?
+    ) {
+        drawShape()
+        finishLines(stack, localStack)
+    }
+
+    fun Collider.findLocalStack(
+        stack: Matrix4f,
         centerMesh: Boolean,
         normalizeScale: Boolean
-    ) {
-
-        val localStack = if (normalizeScale || centerMesh) {
+    ): Matrix4x3f? {
+        return if (normalizeScale || centerMesh) {
             val aabb = AABBd()
             fillSpace(Matrix4x3d(), aabb)
             val localStack = Matrix4x3f()
@@ -123,11 +130,15 @@ object ThumbsExt {
             }
             localStack
         } else null
+    }
 
-        drawShape()
-
-        finishLines(stack, localStack)
-
+    fun Collider.drawAssimp(
+        stack: Matrix4f,
+        centerMesh: Boolean,
+        normalizeScale: Boolean
+    ) {
+        val localStack = findLocalStack(stack, centerMesh, normalizeScale)
+        drawAssimp(stack, localStack)
     }
 
     fun finishLines(cameraMatrix: Matrix4f, worldMatrix: Matrix4x3f? = null): Boolean {

@@ -250,8 +250,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
     }
 
     override fun getParent(element: ISaveable): ISaveable? {
-        element as PrefabSaveable
-        return element.parent
+        return (element as? PrefabSaveable)?.parent
     }
 
     override fun getName(element: ISaveable): String {
@@ -292,7 +291,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
                         child.prefabPath = path
                         child.prefab = prefab
                         parent.addChild(child)
-                        PropertyInspector.invalidateUI()
+                        PropertyInspector.invalidateUI(true)
                     }
                 }
             )

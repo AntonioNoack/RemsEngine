@@ -26,7 +26,7 @@ class DelayedTask(
             } catch (e: Exception) {
                 e.printStackTrace()
                 // something went wrong;
-                // we need to unlock it anyways
+                // we need to unlock it anyway
             }
             isWorking = false
         }

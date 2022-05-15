@@ -21,7 +21,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
         val yData = input.readNBytes2(s0, Texture2D.bufferPool)
         blankDetector.putChannel(yData, 0)
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask(w, h) {
+        GFX.addGPUTask("I444-Y", w, h) {
             y.createMonochrome(yData, true)
             creationLimiter.release()
         }
@@ -33,7 +33,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
         val interlaced = interlaceReplace(uData, vData)
         // create the uv texture
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask(w, h) {
+        GFX.addGPUTask("I444-UV", w, h) {
             uv.createRG(interlaced, true)
             creationLimiter.release()
         }

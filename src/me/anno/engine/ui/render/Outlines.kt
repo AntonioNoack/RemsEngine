@@ -24,9 +24,11 @@ object Outlines {
 
     fun drawOutline(entity: Entity, worldScale: Double) {
         whiteTexture.bind(0) // for the albedo
-        DrawAABB.drawAABB(entity.aabb, worldScale, RenderView.aabbColorHovered)
-        LineBuffer.finish(RenderView.cameraMatrix)
-        drawOutlineInternally(entity, worldScale)
+        OpenGL.animated.use(true) {
+            DrawAABB.drawAABB(entity.aabb, worldScale, RenderView.aabbColorHovered)
+            LineBuffer.finish(RenderView.cameraMatrix)
+            drawOutlineInternally(entity, worldScale)
+        }
     }
 
     private fun drawOutlineInternally(entity: Entity, worldScale: Double) {

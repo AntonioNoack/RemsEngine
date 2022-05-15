@@ -16,6 +16,26 @@ object Lists {
     }
 
     /**
+     * allocation-free any()
+     * */
+    inline fun <V> List<V>.all2(test: (V) -> Boolean): Boolean {
+        for (index in indices) {
+            if (!test(this[index])) return false
+        }
+        return true
+    }
+
+    /**
+     * allocation-free any()
+     * */
+    inline fun <V> List<V>.none2(test: (V) -> Boolean): Boolean {
+        for (index in indices) {
+            if (test(this[index])) return false
+        }
+        return true
+    }
+
+    /**
      * allocation-free count()
      * */
     inline fun <V> List<V>.count2(test: (V) -> Boolean): Int {

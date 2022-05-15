@@ -42,6 +42,45 @@ open class MeshData : ICacheData {
         normalizeScale: Boolean,
         drawSkeletons: Boolean
     ) {
+        val localStack = findLocalStack(cameraMatrix, centerMesh, normalizeScale)
+        drawAssimp(
+            useECSShader, cameraMatrix, localStack, time, color, animationName,
+            useMaterials, drawSkeletons
+        )
+    }
+
+    fun findLocalStack(
+        cameraMatrix: Matrix4fArrayList,
+        centerMesh: Boolean,
+        normalizeScale: Boolean
+    ): Matrix4x3fArrayList {
+
+        val model0 = assimpModel!!
+
+        val localStack = Matrix4x3fArrayList()
+        if (normalizeScale) {
+            val scale = getScaleFromAABB(model0.staticAABB.value)
+            localStack.scale(scale)
+        }
+
+        if (centerMesh) {
+            centerMesh(null, cameraMatrix, localStack, model0)
+        }
+
+        return localStack
+
+    }
+
+    fun drawAssimp(
+        useECSShader: Boolean,
+        cameraMatrix: Matrix4fArrayList,
+        localStack: Matrix4x3fArrayList,
+        time: Double,
+        color: Vector4fc,
+        animationName: String,
+        useMaterials: Boolean,
+        drawSkeletons: Boolean
+    ) {
 
         RenderView.currentInstance = null
 
@@ -61,17 +100,6 @@ open class MeshData : ICacheData {
                 model0.uploadJointMatrices(shader, animation!!, time)
             } else null
             shader.v1b("hasAnimation", skinningMatrices != null)
-
-            val localStack = Matrix4x3fArrayList()
-
-            if (normalizeScale) {
-                val scale = getScaleFromAABB(model0.staticAABB.value)
-                localStack.scale(scale)
-            }
-
-            if (centerMesh) {
-                centerMesh(null, cameraMatrix, localStack, model0)
-            }
 
             transformUniform(shader, cameraMatrix)
 

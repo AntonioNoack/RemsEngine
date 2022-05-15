@@ -87,7 +87,7 @@ fun testImage(file: FileReference) {
         ImageIO.write(smaller, "png", it)
     }
     // also write image to the gpu, and then get it back to test the uploading
-    Thumbs.renderToBufferedImage(file, file.dst2(), false, Renderer.colorRenderer, true, {}, w, h) {
+    Thumbs.renderToBufferedImage(file, file, file.dst2(), false, Renderer.colorRenderer, true, {}, w, h) {
         val texture = ImageGPUCache.getImage(file, 10_000, false)!!
         drawTexture(0, 0, w, h, texture, -1, null)
     }
@@ -131,7 +131,7 @@ fun main() {
     }*/
 
     // like Rem's CLI instantiate OpenGL
-    HiddenOpenGLContext.createOpenGL(size/4, size/4)
+    HiddenOpenGLContext.createOpenGL(size / 4, size / 4)
     ShaderLib.init()
     ECSShaderLib.init()
 

@@ -216,7 +216,7 @@ class BlankFrameDetector {
             renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb) { callback ->
                 thread(name = "frame$frameIndex") {
                     val frame = getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!
-                    GFX.addGPUTask(1) {
+                    GFX.addGPUTask("bfd", 1) {
                         useFrame(fb) {
                             val stack = Matrix4fArrayList()
                             stack.scale(meta.videoHeight / meta.videoWidth.toFloat(), -1f, 1f)

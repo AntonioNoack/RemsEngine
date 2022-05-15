@@ -1,7 +1,9 @@
 package me.anno.ui.editor
 
+import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.language.translation.Dict
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.studio.Inspectable
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
@@ -97,7 +99,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             ) {
                 // only the value needs to be updated
                 // no one to be notified
-                @Suppress("unused")
+                @Suppress("unused", "unchecked_cast")
                 (oldPanel as? InputPanel<Any?>)?.apply {
                     oldPanel.setValue(newPanel.lastValue, false)
                 }
@@ -157,9 +159,14 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         }
 
         /** expensive operation if something major was changed */
-        fun invalidateUI() {
-            for (window in GFX.windows) {
-                invalidateUI(window.windowStack)
+        var lastInvalidated = 0L
+        fun invalidateUI(major: Boolean) {
+            val time = Engine.gameTime
+            if (time != lastInvalidated) {
+                lastInvalidated = time + (if(major) 0L else 500L * MILLIS_TO_NANOS)
+                for (window in GFX.windows) {
+                    invalidateUI(window.windowStack)
+                }
             }
         }
 

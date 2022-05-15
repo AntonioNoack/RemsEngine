@@ -72,6 +72,7 @@ import me.anno.io.files.thumbs.ThumbsExt.createPerspective
 import me.anno.io.files.thumbs.ThumbsExt.createPerspectiveList
 import me.anno.io.files.thumbs.ThumbsExt.defaultAngleY
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
+import me.anno.io.files.thumbs.ThumbsExt.findLocalStack
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFolder
@@ -116,7 +117,6 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.test.assertNull
 
 /**
  * creates and caches small versions of image and video resources
@@ -235,7 +235,7 @@ object Thumbs {
 
     private fun upload(srcFile: FileReference, dst: Image, callback: (Texture2D) -> Unit) {
         val rotation = ImageData.getRotation(srcFile)
-        GFX.addGPUTask(dst.width, dst.height) {
+        GFX.addGPUTask("Thumbs.upload($srcFile)", dst.width, dst.height) {
             val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
             dst.createTexture(texture, true)
             texture.rotation = rotation
@@ -247,7 +247,7 @@ object Thumbs {
         val texture = (fb.msBuffer?.textures ?: fb.textures).first()
         texture.rotation = ImageData.getRotation(srcFile)
         callback(texture)
-        GFX.addGPUTask(1) { fb.destroyExceptTextures(true) }
+        GFX.addGPUTask("Thumbs.destroy()", 1) { fb.destroyExceptTextures(true) }
     }
 
     private fun upload(srcFile: FileReference, dst: BufferedImage, callback: (Texture2D) -> Unit) {
@@ -257,7 +257,7 @@ object Thumbs {
             texture.rotation = rotation
             callback(texture)
         } else {
-            GFX.addGPUTask(dst.width, dst.height) {
+            GFX.addGPUTask("Thumbs.upload()", dst.width, dst.height) {
                 val texture = Texture2D(dst, true)
                 texture.rotation = rotation
                 callback(texture)
@@ -373,6 +373,7 @@ object Thumbs {
     }
 
     fun renderToBufferedImage(
+        src: FileReference,
         srcForRotation: FileReference,
         dstFile: FileReference,
         withDepth: Boolean,
@@ -387,7 +388,7 @@ object Thumbs {
                 flipY, callback, w, h, render
             )
         } else {
-            GFX.addGPUTask(w, h) {
+            GFX.addGPUTask("Thumbs.render($src)", w, h) {
                 renderToBufferedImage2(
                     srcForRotation, dstFile, withDepth, renderer,
                     flipY, callback, w, h, render
@@ -462,7 +463,7 @@ object Thumbs {
 
         waitForGFXThread(true) { src.isCreated }
 
-        renderToBufferedImage(srcFile, dstFile, false, colorRenderer, false, callback, w, h) {
+        renderToBufferedImage(srcFile, srcFile, dstFile, false, colorRenderer, false, callback, w, h) {
             drawTexture(src)
         }
 
@@ -485,7 +486,7 @@ object Thumbs {
 
         val transform = Matrix4fArrayList()
         transform.scale((buffer.maxY / buffer.maxX).toFloat(), 1f, 1f)
-        renderToBufferedImage(InvalidRef, dstFile, false, colorRenderer, true, callback, w, h) {
+        renderToBufferedImage(srcFile, InvalidRef, dstFile, false, colorRenderer, true, callback, w, h) {
             SVGxGFX.draw3DSVG(
                 transform, buffer, whiteTexture,
                 white4, Filtering.NEAREST,
@@ -506,7 +507,7 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         if (waitForTextures) waitForTextures(data, srcFile)
-        renderToBufferedImage(InvalidRef, dstFile, true, renderer, true, callback, size, size) {
+        renderToBufferedImage(srcFile, InvalidRef, dstFile, true, renderer, true, callback, size, size) {
             data.drawAssimp(
                 true, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
                 useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = false
@@ -558,6 +559,16 @@ object Thumbs {
             } else false
         }
         waitForTextures(textures)
+    }
+
+    private fun waitForMeshes(data: MeshData) {
+        // wait for all textures
+        data.assimpModel!!.hierarchy.forAll {
+            if (it is MeshComponentBase) {
+                // does the CPU part -> not perfect, but maybe good enough
+                it.ensureBuffer()
+            }
+        }
     }
 
     private fun collectTextures(entity: Entity, textures: MutableSet<FileReference>) {
@@ -619,14 +630,17 @@ object Thumbs {
     ) {
         val data = MeshData()
         data.assimpModel = AnimGameItem(entity)
-        // todo draw gui (colliders), entity positions
-        waitForTextures(data, srcFile)
         entity.validateTransform()
+        val cameraMatrix = createPerspectiveList(defaultAngleY, 1f)
+        val localStack = data.findLocalStack(cameraMatrix, centerMesh = true, normalizeScale = true)
+        // todo draw gui (colliders), entity positions
+        waitForMeshes(data)
+        waitForTextures(data, srcFile)
         val drawSkeletons = !entity.hasComponent(MeshComponentBase::class)
-        renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
+        renderToBufferedImage(srcFile, InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             data.drawAssimp(
-                true, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
-                useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = drawSkeletons
+                useECSShader = true, cameraMatrix, localStack, 0.0, white4, "",
+                useMaterials = true, drawSkeletons = drawSkeletons
             )
         }
     }
@@ -639,10 +653,10 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         unused(srcFile)
-        renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
-            collider.drawAssimp(
-                createPerspectiveList(defaultAngleY, 1f), centerMesh = true, normalizeScale = true
-            )
+        val stack = createPerspectiveList(defaultAngleY, 1f)
+        val localStack = collider.findLocalStack(stack, centerMesh = true, normalizeScale = true)
+        renderToBufferedImage(srcFile, InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
+            collider.drawAssimp(stack, localStack)
         }
     }
 
@@ -658,7 +672,7 @@ object Thumbs {
         waitForTextures(mesh, srcFile)
         // sometimes black: because of vertex colors, which are black
         // render everything without color
-        renderToBufferedImage(InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
+        renderToBufferedImage(srcFile, InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
                 createPerspective(defaultAngleY, 1f),
                 null,
@@ -682,7 +696,7 @@ object Thumbs {
         waitForTextures(comp, mesh, srcFile)
         // sometimes black: because of vertex colors, which are black
         // render everything without color
-        renderToBufferedImage(InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
+        renderToBufferedImage(srcFile, InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
                 createPerspective(defaultAngleY, 1f), comp,
                 useMaterials = true,
@@ -717,7 +731,10 @@ object Thumbs {
         val mesh = sphereMesh.clone()
         mesh.material = srcFile
         waitForTextures(material)
-        renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
+        renderToBufferedImage(
+            srcFile, InvalidRef, dstFile, true, previewRenderer,
+            true, callback, size, size
+        ) {
             OpenGL.blendMode.use(BlendMode.DEFAULT) {
                 mesh.drawAssimp(
                     materialCamTransform,
@@ -749,6 +766,7 @@ object Thumbs {
     }
 
     fun generateMaterialFrame(
+        srcFile: FileReference,
         dstFile: FileReference,
         materials: List<FileReference>,
         size: Int,
@@ -757,7 +775,7 @@ object Thumbs {
         sphereMesh.ensureBuffer()
         waitForTextures(materials.mapNotNull { MaterialCache[it] })
         renderMultiWindowImage(
-            dstFile, materials.size, size, false,
+            srcFile, dstFile, materials.size, size, false,
             previewRenderer, callback
         ) { it, _ ->
             OpenGL.blendMode.use(BlendMode.DEFAULT) {
@@ -775,6 +793,7 @@ object Thumbs {
     }
 
     fun renderMultiWindowImage(
+        srcFile: FileReference,
         dstFile: FileReference,
         count: Int, size: Int,
         // whether the aspect ratio of the parts can be adjusted to keep the result quadratic
@@ -792,8 +811,8 @@ object Thumbs {
         val h = if (changeSubFrameAspectRatio) w else sizePerElement * sy
         val aspect = if (changeSubFrameAspectRatio) (w * sy).toFloat() / (h * sx) else 1f
         renderToBufferedImage(
-            InvalidRef, dstFile, true, renderer0, true,
-            callback, w, h
+            srcFile, InvalidRef, dstFile, true,
+            renderer0, true, callback, w, h
         ) {
             val frame = OpenGL.currentBuffer!!
             val renderer = OpenGL.currentRenderer
@@ -835,6 +854,7 @@ object Thumbs {
     }
 
     fun generateAnimationFrame(
+        srcFile: FileReference,
         dstFile: FileReference,
         animation: Animation,
         size: Int,
@@ -851,7 +871,7 @@ object Thumbs {
         val meshVertices = Texture2D.floatArrayPool[bones.size * boneMeshVertices.size, false, true]
         mesh.positions = meshVertices
         val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
-        renderMultiWindowImage(dstFile, count, size, true, simpleNormalRenderer, callback) { it, aspect ->
+        renderMultiWindowImage(srcFile, dstFile, count, size, true, simpleNormalRenderer, callback) { it, aspect ->
             val time = it * dt
             // generate the matrices
             animation.getMatrices(entity, time, skinningMatrices)
@@ -915,7 +935,7 @@ object Thumbs {
             normalizeScale = true
         )
         Texture2D.floatArrayPool.returnBuffer(meshVertices)
-        mesh.description
+        mesh.destroy()
     }
 
     private fun listTextures(materialReference: FileReference): List<FileReference> {
@@ -982,7 +1002,7 @@ object Thumbs {
             is Mesh -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
             is Material -> generateMaterialFrame(srcFile, dstFile, asset, size, callback)
             is Skeleton -> generateSkeletonFrame(srcFile, dstFile, asset, size, callback)
-            is Animation -> generateAnimationFrame(dstFile, asset, size, callback)
+            is Animation -> generateAnimationFrame(srcFile, dstFile, asset, size, callback)
             is Entity -> generateEntityFrame(srcFile, dstFile, size, asset, callback)
             is MeshComponentBase -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
             is Collider -> generateColliderFrame(srcFile, dstFile, size, asset, callback)
@@ -1010,7 +1030,7 @@ object Thumbs {
             if (image == null) LOGGER.warn("Could not read $dstFile")
             else {
                 val rotation = ImageData.getRotation(srcFile)
-                GFX.addGPUTask(image.width, image.height) {
+                GFX.addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
                     val texture = Texture2D(image, true)
                     texture.rotation = rotation
                     callback(texture)
@@ -1171,7 +1191,7 @@ object Thumbs {
                         }
                     }
                     "tga" -> {
-                        val src = use(srcFile.inputStream()) { TGAImage.read(it, false) }
+                        val src = srcFile.inputStream().use { TGAImage.read(it, false) }
                         val dst = findScale(src, srcFile, size, callback) ?: return
                         saveNUpload(srcFile, dstFile, dst, callback)
                     }
@@ -1182,7 +1202,8 @@ object Thumbs {
                         if (children.isNotEmpty()) {
                             val maxSize = 25 // with more, too many details are lost
                             generateMaterialFrame(
-                                dstFile, if (children.size < maxSize) children else
+                                srcFile, dstFile,
+                                if (children.size < maxSize) children else
                                     children.subList(0, maxSize), size, callback
                             )
                         } else {
@@ -1259,7 +1280,7 @@ object Thumbs {
             val lineCount = lines.size
             val key = Font(DefaultConfig.defaultFontName, size * 1.5f / lineCount, isBold = false, isItalic = false)
             val font2 = FontManager.getFont(key)
-            GFX.addGPUTask(100) {
+            GFX.addGPUTask("Thumbs.generateTextImage()", 100) {
                 GFX.loadTexturesSync.push(true)
                 val texture = font2.generateTexture(
                     text, key.size, -1, -1,

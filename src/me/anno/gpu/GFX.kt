@@ -106,20 +106,20 @@ object GFX : GFXBase() {
 
     var glThread: Thread? = null
 
-    fun addGPUTask(w: Int, h: Int, task: () -> Unit) {
-        addGPUTask(w, h, false, task)
+    fun addGPUTask(name: String, w: Int, h: Int, task: () -> Unit) {
+        addGPUTask(name, w, h, false, task)
     }
 
-    fun addGPUTask(weight: Int, task: () -> Unit) {
-        addGPUTask(weight, false, task)
+    fun addGPUTask(name: String, weight: Int, task: () -> Unit) {
+        addGPUTask(name, weight, false, task)
     }
 
-    fun addGPUTask(w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
-        addGPUTask((w * h / 1e5).toInt(), lowPriority, task)
+    fun addGPUTask(name: String, w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
+        addGPUTask(name, ((w * h.toLong()) / 10_000).toInt(), lowPriority, task)
     }
 
-    fun addGPUTask(weight: Int, lowPriority: Boolean, task: () -> Unit) {
-        (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += weight to task
+    fun addGPUTask(name: String, weight: Int, lowPriority: Boolean, task: () -> Unit) {
+        (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += Task(name, weight, task)
     }
 
     inline fun useWindowXY(x: Int, y: Int, buffer: Framebuffer?, process: () -> Unit) {
@@ -298,12 +298,19 @@ object GFX : GFXBase() {
         ECSShaderLib.init()
     }
 
+
+    fun workQueue(queue: ConcurrentLinkedQueue<Task>, timeLimit: Float, all: Boolean): Boolean {
+        return workQueue(queue, if (all) Float.POSITIVE_INFINITY else timeLimit)
+    }
+
     /**
      * time limit in seconds
      * returns whether time is left
      * */
-    fun workQueue(queue: ConcurrentLinkedQueue<Task>, timeLimit: Float, all: Boolean): Boolean {
+    fun workQueue(queue: ConcurrentLinkedQueue<Task>, timeLimit: Float): Boolean {
+
         // async work section
+        val startTime = Engine.nanoTime
 
         // work 1/5th of the tasks by weight...
 
@@ -311,22 +318,24 @@ object GFX : GFXBase() {
         val framesForWork = 5
         if (Thread.currentThread() == glThread) check()
 
-        val workTodo = max(1000, queue.sumOf { it.first } / framesForWork)
+        val workTodo = max(1000, queue.sumOf { it.cost } / framesForWork)
         var workDone = 0
-        val workTime0 = System.nanoTime()
         while (true) {
-            val nextTask = queue.poll() ?: return true
+            val task = queue.poll() ?: return true
             try {
-                nextTask.second()
+                task.work()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
             if (Thread.currentThread() == glThread) check()
-            workDone += nextTask.first
-            if (workDone >= workTodo && !all) return false
-            val workTime1 = System.nanoTime()
-            val workTime = abs(workTime1 - workTime0) * 1e-9f
-            if (workTime > timeLimit && !all) return false // too much work
+            workDone += task.cost
+            val currentTime = Engine.nanoTime
+            val workTime = abs(currentTime - startTime) * 1e-9f
+            if (workTime > 2f * timeLimit) {
+                LOGGER.warn("Spent ${workTime}s on '${task.name}' with cost ${task.cost}")
+            }
+            if (workDone >= workTodo) return false
+            if (workTime > timeLimit) return false // too much work
             FBStack.reset() // so we can reuse resources in different tasks
         }
 
@@ -336,9 +345,17 @@ object GFX : GFXBase() {
         FBStack.reset()
     }
 
+    var gpuTaskBudget = 1f / 90f
+
     fun workGPUTasks(all: Boolean) {
-        if (workQueue(gpuTasks, 1f / 60f, all)) {
-            workQueue(lowPriorityGPUTasks, 1f / 120f, all)
+        val t0 = Engine.nanoTime
+        if (workQueue(gpuTasks, gpuTaskBudget, all)) {
+            val remainingTime = Engine.nanoTime - t0
+            workQueue(lowPriorityGPUTasks, remainingTime * 1e-9f, all)
+        }
+        val dt = (Engine.nanoTime - t0) * 1e-9f
+        if (dt > 1.5f * gpuTaskBudget) {
+            LOGGER.warn("Spent too long in workGPUTasks(): ${dt}s")
         }
     }
 

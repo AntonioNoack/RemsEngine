@@ -25,7 +25,7 @@ import kotlin.math.sin
 
 /**
  * docs: https://box2d.org/documentation/
- * todo stepping like BulletPhysics, maybe join them
+ * done stepping like BulletPhysics, maybe join them
  * todo:
  *  - Stable stacking
  *  - Fast persistent contact solver
@@ -45,9 +45,6 @@ import kotlin.math.sin
  * Serialization? idk, should be done by the engine
  * */
 class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
-
-    // todo reset button that loads all elements from disk again = resets the scene
-    // todo or better: implement restart button, start, stop, and don't execute scripts in edit mode
 
     var velocityIterations = 6
     var positionIterations = 2
@@ -113,7 +110,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             val transform = entity.transform
             val global = transform.globalTransform
             def.position.set(global.m30().toFloat(), global.m31().toFloat())
-            def.angle = atan2(global.m10(), global.m00()).toFloat() // not perfect, but good enough probably
+            def.angle = -atan2(global.m10(), global.m00()).toFloat() // not perfect, but good enough probably
             def.type = if (mass > 0f) BodyType.DYNAMIC else BodyType.STATIC // set that depending on state... Kinematic?
             def.bullet = rigidBody.preventTunneling
             def.gravityScale = rigidBody.gravityScale

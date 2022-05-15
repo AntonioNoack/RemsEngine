@@ -101,9 +101,9 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
             // todo check whether this inversion is really needed
             for (i in intData.indices) {// argb -> abgr
                 val argb = intData[i]
-                val r = (argb and 0xff0000).shr(16)
+                val r = argb.shr(16) and 0xff
                 val b = (argb and 0xff).shl(16)
-                intData[i] = argb and 0xff00ff00.toInt() or r or b
+                intData[i] = (argb and 0xff00ff00.toInt()) or r or b
             }
         } else {
             for (i in intData.indices) {// argb -> rgba
@@ -114,7 +114,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
             }
         }
         if (sync) createRGBA8(intData)
-        else GFX.addGPUTask(img.width, img.height) {
+        else GFX.addGPUTask("Texture3D.create()", img.width, img.height) {
             createRGBA8(intData)
         }
     }
@@ -246,7 +246,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         val pointer = pointer
         if (pointer > -1) {
             if (GFX.isGFXThread()) destroy(pointer)
-            else GFX.addGPUTask(1) { destroy(pointer) }
+            else GFX.addGPUTask("Texture3D.destroy()", 1) { destroy(pointer) }
         }
         this.pointer = -1
     }

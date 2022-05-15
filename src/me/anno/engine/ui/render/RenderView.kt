@@ -801,7 +801,7 @@ open class RenderView(
                             shader.v3f("ambientLight", pipeline.ambient)
 
                             buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                            ssao.bind(shader, "ambientOcclusion", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                            ssao.bindTrulyNearest(shader, "ambientOcclusion")
                             lightBuffer.bindTexture0(shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
                             flat01.draw(shader)
@@ -840,7 +840,7 @@ open class RenderView(
                                 shader.v1b("applyToneMapping", true)
 
                                 buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                ssao.bind(shader, "ambientOcclusion", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                ssao.bindTrulyNearest(shader, "ambientOcclusion")
                                 lightBuffer.bindTexture0(
                                     shader,
                                     "finalLight",
@@ -1096,7 +1096,9 @@ open class RenderView(
         }
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
+        pipeline.resetClickId()
         if (world != null) pipeline.fill(world, camPosition, worldScale)
+        controlScheme?.fill(pipeline)
         if (pipeline.lightPseudoStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
             // if the scene would be dark, define lights, so we can see something
             pipeline.ambient.set(0.5f)

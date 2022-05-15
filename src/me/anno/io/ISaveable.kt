@@ -1,10 +1,12 @@
 package me.anno.io
 
 import me.anno.Build
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.CachedReflections
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.util.concurrent.ConcurrentHashMap
@@ -185,9 +187,12 @@ interface ISaveable {
         for ((name, field) in reflections.declaredProperties) {
             if (field.serialize) {
                 val value = field.getter.call(this)
-                // todo if the type is explicitly given, however not deductible (empty array), and the saving is forced,
-                // todo use the field.type
-                writer.writeSomething(this, name, value, field.forceSaving ?: (value is Boolean))
+                val type = (field.annotations.firstOrNull2 { it is Type } as? Type)?.type
+                if (type != null) {
+                    writer.writeSomething(this, type, name, value, field.forceSaving ?: (value is Boolean))
+                } else {
+                    writer.writeSomething(this, name, value, field.forceSaving ?: (value is Boolean))
+                }
             }
         }
     }

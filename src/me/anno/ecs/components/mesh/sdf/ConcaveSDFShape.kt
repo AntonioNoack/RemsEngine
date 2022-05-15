@@ -7,11 +7,17 @@ import com.bulletphysics.collision.shapes.TriangleCallback
 import com.bulletphysics.linearmath.Transform
 import me.anno.maths.Maths.mix
 import me.anno.maths.geometry.MarchingCubes
+import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
 class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConcaveShape() {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ConcaveSDFShape::class)
+    }
 
     private var margin = BulletGlobals.CONVEX_DISTANCE_MARGIN
 
@@ -68,6 +74,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
 
         // else not really defined
         if (min2.x < max2.x && min2.y < max2.y && min2.z < max2.z) {
+
             // sizes could be adjusted to match the "aspect ratio" of the aabb better
             val fx = 6
             val fy = 6
@@ -93,14 +100,18 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
             }
 
             val triangle = Array(3) { javax.vecmath.Vector3d() }
+            var ctr = 0
             MarchingCubes.march(fx, fy, fz, field, 0f, false) { a, b, c ->
                 // is the order correct? (front/back sides)
                 // or is this ignored by Bullet?
                 triangle[0].set(a.x.toDouble(), a.y.toDouble(), a.z.toDouble())
                 triangle[1].set(b.x.toDouble(), b.y.toDouble(), b.z.toDouble())
                 triangle[2].set(c.x.toDouble(), c.y.toDouble(), c.z.toDouble())
-                callback.processTriangle(triangle, 0, 0)
+                callback.processTriangle(triangle, 0, ctr++)
             }
-        }
+
+            LOGGER.debug("Generated $ctr triangles")
+
+        } else LOGGER.debug("Bounds were empty")
     }
 }

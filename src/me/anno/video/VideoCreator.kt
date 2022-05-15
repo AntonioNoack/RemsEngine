@@ -226,7 +226,7 @@ open class VideoCreator(
             fun writeFrame() {
                 creator.writeFrame(fb, frameCount.toLong()) {
                     if (++frameCount <= numUpdates) {
-                        GFX.addGPUTask(1) {
+                        GFX.addGPUTask("VideoCreator",1) {
                             update(::writeFrame)
                         }
                     } else {
@@ -235,7 +235,7 @@ open class VideoCreator(
                     }
                 }
             }
-            GFX.addGPUTask(1) { writeFrame() }
+            GFX.addGPUTask("VideoCreator",1) { writeFrame() }
             GFX.workGPUTasksUntilShutdown()
         }
 
@@ -269,7 +269,7 @@ open class VideoCreator(
                             if (GFX.isGFXThread()) {
                                 writeFrame()
                             } else {
-                                GFX.addGPUTask(1) {
+                                GFX.addGPUTask("VideoCreator", 1) {
                                     writeFrame()
                                 }
                             }
@@ -283,7 +283,7 @@ open class VideoCreator(
             if (GFX.isGFXThread()) {
                 writeFrame()
             } else {
-                GFX.addGPUTask(1) { writeFrame() }
+                GFX.addGPUTask("VideoCreator", 1) { writeFrame() }
             }
             if (shutdown) GFX.workGPUTasksUntilShutdown()
         }

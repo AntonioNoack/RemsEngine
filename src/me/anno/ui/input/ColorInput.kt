@@ -146,7 +146,7 @@ open class ColorInput(
         // - add controls on the bottom, or somewhere..., with a preview of the color
         // - select on click, or when dragging + enter then
         val windowX = GFX.activeWindow ?: GFX.someWindow
-        GFX.addGPUTask(1) {// delay, so the original menu can disappear
+        GFX.addGPUTask("ColorInput.pickColor()", 1) {// delay, so the original menu can disappear
             val screenshot = Screenshots.takeSystemScreenshot()
             val colorPicker = if (screenshot == null) {
                 val ws = windowStack

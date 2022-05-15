@@ -32,6 +32,13 @@ interface ITexture2D : ICacheData {
 
     fun bindTrulyNearest(index: Int) = bind(index, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
+    fun bindTrulyNearest(shader: Shader, texName: String): Boolean {
+        val index = shader.getTextureIndex(texName)
+        return if (index >= 0) {
+            bind(index, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        } else false
+    }
+
     fun write(dst: FileReference, flipY: Boolean, withAlpha: Boolean) {
         FramebufferToMemory.createImage(this, flipY, withAlpha)
             .write(dst)

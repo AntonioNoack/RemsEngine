@@ -240,7 +240,7 @@ open class IntVectorInput(
    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
        super.onMouseMoved(x, y, dx, dy)
        if (mouseIsDown) {
-          // todo scale like the int input does it
+          // to do scale like the int input does it
          val size = 20f * shiftSlowdown * (if (selectedTransform is Camera) -1f else 1f) / max(GFX.width, GFX.height)
           val dx0 = dx * size
           val dy0 = dy * size

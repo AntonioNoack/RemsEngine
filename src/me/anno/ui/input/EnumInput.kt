@@ -10,7 +10,9 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.components.EnumValuePanel
 import me.anno.ui.style.Style
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
 
@@ -65,12 +67,19 @@ open class EnumInput(
 
     override var isInputAllowed = true
         set(value) {
-            // todo show text less opaque if not allowed
             if (field != value) {
                 field = value
                 invalidateDrawing()
             }
         }
+
+    override fun tickUpdate() {
+        val alpha = if (isInputAllowed) 1f else 0.5f
+        val titleView = titleView
+        if (titleView != null) titleView.textColor = titleView.textColor.withAlpha(alpha)
+        inputPanel.textColor = inputPanel.textColor.withAlpha(alpha)
+        super.tickUpdate()
+    }
 
     override var lastValue =
         options.firstOrNull { it.name == startValue }

@@ -325,10 +325,10 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         val numUVs = numUVs
         pts@ while (true) {
             when (val next = nextChar()) {
-                ' ', '\t' -> {
+                ' ', '\t', '\r' -> {
                 }
                 '\n' -> break@pts
-                else -> {
+                '+', '-', in '0'..'9' -> {
                     putBack(next)
                     val vertexIndex = readIndex(numPositions)
                     var uvIndex = -1
@@ -343,6 +343,12 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
                     }
                     points.ensureCapacity(points.size + 3)
                     points.addUnsafe(vertexIndex * 3, normalIndex * 3, uvIndex * 2)
+                    if (points.size % 250 == 0) LOGGER.warn("Large polygon in $file, ${points.size / 3} points, '$next'")
+                }
+                else -> {
+                    LOGGER.warn("Unexpected character $next in face line")
+                    skipLine()
+                    return
                 }
             }
         }

@@ -14,18 +14,29 @@ import org.joml.Matrix4x3f
 import java.nio.FloatBuffer
 import kotlin.math.min
 
-// todo for low end gpus
+// done for low end gpus
 //  a) change the jointTransforms to a texture
-// todo jointTransforms could be baked over all available/used animations, as we just send the weights directly to the shader <3
+// done jointTransforms could be baked over all available/used animations, as we just send the weights directly to the shader <3
 //  this would allow us to render animated meshes instanced as well <3, and with independent animations [just manually created animations would need extra care]
 //  b) or separate the shader all together
+
+// todo still not working for outlines... why?
+
+// done RTX 3070 just like GT 1030 have the same bone uniform count problem
+//  - transform this uniform array to textures instead; this would allow for instanced animations as well, which would be nice :)
 
 // done integrate this into AnimRenderer
 // done merge this into ECSMeshShader
 // todo merge multiple skeletons if needed, so we don't have duplicate textures...
 class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
-    class AnimTexIndex(val anim: Animation, val retargeting: Retargeting, val index: Int, val start: Int, val length: Int)
+    class AnimTexIndex(
+        val anim: Animation,
+        val retargeting: Retargeting,
+        val index: Int,
+        val start: Int,
+        val length: Int
+    )
 
     private val animationMap = HashMap<Animation, AnimTexIndex>()
     private val animationList = ArrayList<AnimTexIndex>()
@@ -70,6 +81,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             fillData(data, animation, retargeting)
             data.position(0)
             texture.overridePartially(buffer, 0, nextIndex, texture.w, numFrames, TargetType.FloatTarget4)
+            println("overrode texture partially")
             Texture2D.bufferPool.returnBuffer(buffer)
         } else {
             // create new texture
@@ -78,6 +90,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             fillData(data)
             data.position(0)
             texture.create(TargetType.FloatTarget4, buffer)
+            println("created new texture")
             Texture2D.bufferPool.returnBuffer(buffer)
         }
         nextIndex += numFrames
@@ -93,10 +106,16 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         fillData(data, anim, retargeting, tmp, 0)
     }
 
-    private fun fillData(data: FloatBuffer, anim: Animation, retargeting: Retargeting, tmp: Array<Matrix4x3f>, frameIndex: Int) {
+    private fun fillData(
+        data: FloatBuffer,
+        anim: Animation,
+        retargeting: Retargeting,
+        tmp: Array<Matrix4x3f>,
+        frameIndex: Int
+    ) {
         val tmpBoneCount = min(skeleton.bones.size, tmp.size)
         // get frame
-        anim.getMappedMatricesSafely(frameIndex,tmp, retargeting)
+        anim.getMappedMatricesSafely(frameIndex, tmp, retargeting)
         anim.getMatrices(frameIndex, tmp)
         // put into texture
         val startPosition = data.position()
@@ -132,12 +151,13 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
     companion object {
 
-        var useAnimTextures = false
+        var useAnimTextures = true
 
         @JvmStatic
         fun main(args: Array<String>) {
+            // create a test texture, so we can see whether the texture is correctly created
             ECSRegistry.initWithGFX()
-            val source = downloads.getChild("3d/Rumba Dancing.fbx")
+            val source = downloads.getChild("3d/Rumba Dancing.fbx") // animated mesh file
             val skeletonSource = source.getChild("Skeleton.json")
             val animationsSources = source.getChild("animations").listChildren()!!
             val skeleton = SkeletonCache[skeletonSource]!!

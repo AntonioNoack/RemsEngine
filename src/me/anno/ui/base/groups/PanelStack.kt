@@ -12,7 +12,9 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         super.calculateSize(w, h)
         var minW = 0
         var minH = 0
-        for (child in children) {
+        val children = children
+        for (index in children.indices) {
+            val child = children[index]
             child.calculateSize(w, h)
             minW = max(minW, child.minW)
             minH = max(minH, child.minH)
@@ -23,8 +25,9 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
-        for (child in children) {
-            child.setPosSize(x, y, w, h)
+        val children = children
+        for (index in children.indices) {
+            children[index].setPosSize(x, y, w, h)
         }
     }
 

@@ -156,7 +156,7 @@ class IndexedStaticBuffer(
     fun destroyIndexBuffer() {
         val buffer = elementVBO
         if (buffer >= 0) {
-            GFX.addGPUTask(1) {
+            GFX.addGPUTask("IndexedStaticBuffer.destroyIndexBuffer()", 1) {
                 onDestroyBuffer(buffer)
                 glDeleteBuffers(buffer)
             }

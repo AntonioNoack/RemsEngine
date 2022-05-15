@@ -15,11 +15,11 @@ import kotlin.math.min
 
 class RectCollider : Collider2d() {
 
-    // todo can we update the shape at simulation time?
     var halfExtends = Vector2f(1f)
         set(value) {
             field.set(value)
-            invalidateRigidbody()
+            (box2dInstance?.shape as? PolygonShape)
+                ?.setAsBox(value.x, value.y)
         }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {

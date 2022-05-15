@@ -85,9 +85,9 @@ class PrefabInspector(val reference: FileReference) {
         }
     }
 
-    fun onChange() {
+    fun onChange(major: Boolean) {
         savingTask.update()
-        invalidateUI()
+        invalidateUI(major)
     }
 
     fun reset(path: Path?) {
@@ -96,7 +96,7 @@ class PrefabInspector(val reference: FileReference) {
         // if (sets.removeIf { it.path == path }) {
         if (sets.removeMajorIf { it == path }) {
             prefab.invalidateInstance()
-            onChange()
+            onChange(true)
             ECSSceneTabs.updatePrefab(prefab)
         }
     }
@@ -108,7 +108,7 @@ class PrefabInspector(val reference: FileReference) {
         if (sets.contains(path, name)) {
             sets.remove(path, name)
             prefab.invalidateInstance()
-            onChange()
+            onChange(true)
             ECSSceneTabs.updatePrefab(prefab)
         }
     }
@@ -127,7 +127,7 @@ class PrefabInspector(val reference: FileReference) {
         instance[name] = value
         path ?: return
         prefab[path, name] = value
-        onChange()
+        onChange(false)
     }
 
     fun inspect(instance: PrefabSaveable, list: PanelListY, style: Style) {
@@ -250,7 +250,7 @@ class PrefabInspector(val reference: FileReference) {
             list.add(TextButton(title, false, style)
                 .addLeftClickListener {
                     action.call(instance)
-                    invalidateUI() // typically sth would have changed -> show that automatically
+                    invalidateUI(true) // typically sth would have changed -> show that automatically
                 })
         }
 
@@ -378,10 +378,10 @@ class PrefabInspector(val reference: FileReference) {
         } else true
     }
 
-    fun addNewChild(parent: Entity, type: Char, prefab: Prefab) {
-        if (!checkDependencies(parent, prefab.source)) return
+    fun addNewChild(parent: PrefabSaveable, type: Char, prefab: Prefab): Path? {
+        if (!checkDependencies(parent, prefab.source)) return null
         val path = parent.prefabPath!!
-        this.prefab.add(path, type, prefab.clazzName, Path.generateRandomId(), prefab.source)
+        return this.prefab.add(path, type, prefab.clazzName, Path.generateRandomId(), prefab.source)
     }
 
     fun save() {

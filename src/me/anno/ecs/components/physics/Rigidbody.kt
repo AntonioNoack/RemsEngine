@@ -9,6 +9,7 @@ import me.anno.ecs.annotations.*
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
 import me.anno.ecs.components.physics.constraints.Constraint
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.NotSerializedProperty
@@ -93,7 +94,7 @@ open class Rigidbody : Component() {
                 bulletInstance?.setGravity(castB(value))
         }
 
-    @Docs("How heavy it is")
+    @Docs("How heavy it is; 0 means static")
     @SerializedProperty
     var mass = 0.0
         set(value) {

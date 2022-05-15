@@ -1,6 +1,7 @@
 package org.apache.logging.log4j
 
 import me.anno.Engine
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import org.apache.commons.logging.Log
 import java.util.*
 import java.util.logging.Level
@@ -26,13 +27,23 @@ class LoggerImpl(val prefix: String?) : Logger, Log {
 
     private val suffix = if (prefix == null) "" else ":$prefix"
 
+    private var lastTime = 0L
+    private var lastString = ""
     private fun getTimeStamp(): String {
-        val calendar = Calendar.getInstance()
-        val seconds = calendar.get(Calendar.SECOND)
-        val minutes = calendar.get(Calendar.MINUTE)
-        val hours = calendar.get(Calendar.HOUR_OF_DAY)
-        return "%2d:%2d:%2d".format(hours, minutes, seconds)
-            .replace(' ', '0')
+        val updateInterval = 500 * MILLIS_TO_NANOS
+        val time = Engine.nanoTime / updateInterval
+        synchronized(Unit) {
+            if (time == lastTime && lastString.isNotEmpty())
+                return lastString
+            val calendar = Calendar.getInstance()
+            val seconds = calendar.get(Calendar.SECOND)
+            val minutes = calendar.get(Calendar.MINUTE)
+            val hours = calendar.get(Calendar.HOUR_OF_DAY)
+            lastTime = time
+            lastString = "%2d:%2d:%2d".format(hours, minutes, seconds)
+                .replace(' ', '0')
+            return lastString
+        }
     }
 
     fun print(prefix: String, msg: String) {
