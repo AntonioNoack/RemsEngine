@@ -99,8 +99,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 attributes += Variable(GLSLType.V4F, "tint", VariableMode.OUT)
             }
             if (isAnimated && useAnimTextures) {
-                attributes += Variable(GLSLType.V4F, "animWeights")
-                attributes += Variable(GLSLType.V4F, "animIndices")
+                attributes += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
+                attributes += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
+                attributes += Variable(GLSLType.V4F, "animWeights", VariableMode.ATTR)
+                attributes += Variable(GLSLType.V4F, "animIndices", VariableMode.ATTR)
                 attributes += Variable(GLSLType.S2D, "animTexture")
                 attributes += Variable(GLSLType.BOOL, "hasAnimation")
             }
@@ -163,14 +165,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     defines +
                     "#ifdef INSTANCED\n" +
                     "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
-                    "   localPosition = coords;\n" +
-                    "   finalPosition = localTransform * vec4(coords, 1.0);\n" +
                     "   #ifdef COLORS\n" +
-                    "       normal = localTransform * vec4(normals, 0.0);\n" +
-                    "       tangent = localTransform * vec4(tangents, 0.0);\n" +
                     "       tint = instanceTint;\n" +
                     "   #endif\n" + // colors
-                    "#else\n" + // instanced
+                    "#endif\n" + // instanced
                     "   #ifdef ANIMATED\n" +
                     "   if(hasAnimation){\n" +
                     "       mat4x3 jointMat;\n" + animationCode +
@@ -194,7 +192,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "       normal = localTransform * vec4(normal, 0.0);\n" +
                     "       tangent = localTransform * vec4(tangent, 0.0);\n" +
                     "   #endif\n" + // colors
-                    "#endif\n" + // not instanced
                     // normal only needs to be normalized, if we show the normal
                     // todo only activate on viewing it...
                     "#ifdef COLORS\n" +

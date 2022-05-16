@@ -122,6 +122,9 @@ object OpenGL {
         }
     }
 
+    /**
+     * a flag for shaders weather their animated version (slower) is used
+     * */
     val animated = object : SecureBoolStack(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             // nothing changes on the OpenGL side,

@@ -75,7 +75,9 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
                         /*"Ni" -> material.refractionIndex = readValue()*/
                         "Tr" -> {
                             if (!hadOpacity) {
-                                color.w = 1f - readValue()
+                                // todo mark Tr as reversed, if the value is 1.0f? maybe :)
+                                val v = readValue()
+                                color.w = if (v == 1f) 1f else 1f - v
                             } else skipLine()
                         }
                         @Suppress("SpellCheckingInspection")

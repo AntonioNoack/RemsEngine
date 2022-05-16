@@ -14,12 +14,14 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4x3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL21
 import kotlin.math.max
 import kotlin.math.min
@@ -35,7 +37,7 @@ open class AnimRenderer : MeshComponent() {
     @Docs("Maps time & bone index onto local transform")
     @Type("List<AnimationState>")
     @SerializedProperty
-    var animations = ArrayList<AnimationState>()
+    var animations: List<AnimationState> = emptyList()
 
     open fun onAnimFinished(anim: AnimationState) {
         val instance = AnimationCache[anim.source]
@@ -60,16 +62,32 @@ open class AnimRenderer : MeshComponent() {
     override val hasAnimation: Boolean
         get() {
             val skeleton = SkeletonCache[skeleton]
-            return skeleton != null // && animations.isNotEmpty()
+            return skeleton != null && (useDefaultAnimation || animations.isNotEmpty())
         }
 
-    override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
+    @Docs("If no animation is set, use default?")
+    var useDefaultAnimation = true
+
+    fun addState(state: AnimationState) {
+        synchronized(this) {
+            val animations = animations
+            if (animations is MutableList) {
+                animations.add(state)
+            } else {
+                val newList = ArrayList<AnimationState>(animations.size + 4)
+                newList.addAll(animations)
+                newList.add(state)
+                this.animations = newList
+            }
+        }
+    }
+
+    override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh): Boolean {
 
         val skeleton = SkeletonCache[skeleton]
         if (skeleton == null) {
-            shader.v1b("hasAnimation", false)
             lastWarning = "Skeleton missing"
-            return
+            return false
         }
 
         shader.use()
@@ -77,21 +95,46 @@ open class AnimRenderer : MeshComponent() {
         // check whether the shader actually uses bones
         val location = shader[if (useAnimTextures) "animWeights" else "jointTransforms"]
 
-        // todo remove that; just for debugging
-        if (animations.isEmpty() && skeleton.animations.isNotEmpty()) {
-            val sample = skeleton.animations.entries.first().value
-            animations.add(AnimationState(sample, 0f, 0f, 0f, LoopingState.PLAY_LOOP))
-        }
-
-        if (animations.isEmpty()) {
-            lastWarning = "No animation was found"
-            return
+        if (useDefaultAnimation && animations.isEmpty() && skeleton.animations.isNotEmpty()) {
+            val sample = skeleton.animations.entries.firstOrNull()?.value
+            if (sample != null) {
+                addState(AnimationState(sample, 0f, 0f, 0f, LoopingState.PLAY_LOOP))
+            } else {
+                lastWarning = "No animation was found"
+                return false
+            }
+        } else if (animations.isEmpty()) {
+            lastWarning = "No animation is set"
+            return false
         }
 
         if (location <= 0) {
-            shader.v1b("hasAnimation", false)
             lastWarning = "Shader '${shader.name}' is missing location"
-            return
+            return false
+        }
+
+        if (useAnimTextures) {
+
+            val bestWeights = JomlPools.vec4f.create()
+            val bestIndices = JomlPools.vec4f.create()
+            getAnimState(bestWeights, bestIndices)
+
+            shader.v4f("animWeights", bestWeights)
+            shader.v4f("animIndices", bestIndices)
+
+            val animTexture = AnimationCache[skeleton]
+            val animTexture2 = animTexture.getTexture()
+            if (animTexture2 == null) {
+                if (lastWarning == null) lastWarning = "AnimTexture is invalid"
+                return false
+            }
+
+            animTexture2.bindTrulyNearest(shader, "animTexture")
+
+            JomlPools.vec4f.sub(2)
+
+            return true
+
         }
 
         // todo find retargeting from the skeleton to the new skeleton...
@@ -103,76 +146,99 @@ open class AnimRenderer : MeshComponent() {
         // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
         // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
         val animations = animations
-        if (useAnimTextures) {
 
-            // find major weights & indices in anim texture
-            val animTexture = AnimationCache[skeleton]
-            val bestWeights = JomlPools.vec4f.create().set(0f)
-            val bestIndices = JomlPools.vec4f.create().set(0f)
-            var writeIndex = 0
-            for (index in animations.indices) {
-                val animState = animations[index]
-                if (animState.weight > bestWeights[bestWeights.maxComponent()]) {
-                    val animation = AnimationCache[animState.source] ?: continue
-                    val frameIndex = animState.progress / animation.duration * animation.numFrames
-                    val internalIndex = animTexture.getIndex(animation, retargeting, frameIndex)
-                    val weight = animState.weight
-                    if (writeIndex < 4) {
-                        bestIndices.setComponent(writeIndex, internalIndex)
-                        bestWeights.setComponent(writeIndex, weight)
-                        writeIndex++
-                    } else {
-                        val nextIndex = bestWeights.minComponent()
-                        bestIndices.setComponent(nextIndex, internalIndex)
-                        bestWeights.setComponent(nextIndex, weight)
-                    }
+        lateinit var matrices: Array<Matrix4x3f>
+        var sumWeight = 0f
+        for (index in animations.indices) {
+            val anim = animations[index]
+            val weight = anim.weight
+            val relativeWeight = weight / (sumWeight + weight)
+            val time = anim.progress
+            val animationI = AnimationCache[anim.source] ?: continue
+            if (index == 0) {
+                matrices = animationI.getMappedMatricesSafely(entity, time, tmpMapping0, retargeting)
+            } else if (relativeWeight > 0f) {
+                val matrix = animationI.getMappedMatricesSafely(entity, time, tmpMapping1, retargeting)
+                for (j in matrices.indices) {
+                    matrices[j].lerp(matrix[j], relativeWeight)
                 }
             }
-
-            // normalize weights
-            bestWeights.div(max(1e-7f, bestWeights.dot(white4)))
-
-            shader.v4f("animWeights", bestWeights)
-            shader.v4f("animIndices", bestIndices)
-
-            val animTexture2 = animTexture.getTexture()
-            if (animTexture2 == null) {
-                shader.v1b("hasAnimation", false)
-                lastWarning = "AnimTexture is invalid"
-                return
-            }
-
-            animTexture2.bindTrulyNearest(shader, "animTexture")
-
-            JomlPools.vec4f.sub(2)
-
-        } else {
-
-            lateinit var matrices: Array<Matrix4x3f>
-            var sumWeight = 0f
-            for (index in animations.indices) {
-                val anim = animations[index]
-                val weight = anim.weight
-                val relativeWeight = weight / (sumWeight + weight)
-                val time = anim.progress
-                val animationI = AnimationCache[anim.source] ?: continue
-                if (index == 0) {
-                    matrices = animationI.getMappedMatricesSafely(entity, time, dst0, retargeting)
-                } else if (relativeWeight > 0f) {
-                    val matrix = animationI.getMappedMatricesSafely(entity, time, dst1, retargeting)
-                    for (j in matrices.indices) {
-                        matrices[j].lerp(matrix[j], relativeWeight)
-                    }
-                }
-                sumWeight += max(0f, weight)
-            }
-
-            // upload the matrices
-            upload(location, matrices)
-
+            sumWeight += max(0f, weight)
         }
 
-        shader.v1b("hasAnimation", true)
+        // upload the matrices
+        upload(location, matrices)
+
+        return true
+
+    }
+
+    open fun getAnimTexture(): Texture2D? {
+        val skeleton = SkeletonCache[skeleton] ?: return null
+        val animTexture = AnimationCache[skeleton]
+        return animTexture.getTexture()
+    }
+
+    open fun getAnimState(dstWeights: Vector4f, dstIndices: Vector4f): Boolean {
+
+        val skeleton = SkeletonCache[skeleton]
+        if (skeleton == null) {
+            lastWarning = "Skeleton missing"
+            return false
+        }
+
+        if (useDefaultAnimation && animations.isEmpty() && skeleton.animations.isNotEmpty()) {
+            val sample = skeleton.animations.entries.firstOrNull()?.value
+            if (sample != null) {
+                addState(AnimationState(sample, 0f, 0f, 0f, LoopingState.PLAY_LOOP))
+            } else {
+                lastWarning = "No animation was found"
+                return false
+            }
+        } else if (animations.isEmpty()) {
+            lastWarning = "No animation is set"
+            return false
+        }
+
+        // todo find retargeting from the skeleton to the new skeleton...
+        // todo if not found, generate it automatically, and try our best to do it perfectly
+        // todo retargeting probably needs to include a max/min-angle and angle multiplier and change of base matrices
+        // (or all animations need to be defined in some common animation space)
+        val retargeting = Retargeting()
+
+        // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
+        // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
+        val animations = animations
+
+        dstWeights.set(1f, 0f, 0f, 0f)
+        dstIndices.set(0f)
+
+        // find major weights & indices in anim texture
+        val animTexture = AnimationCache[skeleton]
+        var writeIndex = 0
+        for (index in animations.indices) {
+            val animState = animations[index]
+            val weight = animState.weight
+            if (weight > dstWeights[dstWeights.minComponent()]) {
+                val animation = AnimationCache[animState.source] ?: continue
+                val frameIndex = animState.progress / animation.duration * animation.numFrames
+                val internalIndex = animTexture.getIndex(animation, retargeting, frameIndex)
+                if (writeIndex < 4) {
+                    dstIndices.setComponent(writeIndex, internalIndex)
+                    dstWeights.setComponent(writeIndex, weight)
+                    writeIndex++
+                } else {
+                    val nextIndex = dstWeights.minComponent()
+                    dstIndices.setComponent(nextIndex, internalIndex)
+                    dstWeights.setComponent(nextIndex, weight)
+                }
+            }
+        }
+
+        // normalize weights
+        dstWeights.div(max(1e-7f, dstWeights.dot(white4)))
+
+        return true
 
     }
 
@@ -201,8 +267,8 @@ open class AnimRenderer : MeshComponent() {
 
     companion object {
 
-        val dst0 = Array(256) { Matrix4x3f() }
-        val dst1 = Array(256) { Matrix4x3f() }
+        private val tmpMapping0 = Array(256) { Matrix4x3f() }
+        private val tmpMapping1 = Array(256) { Matrix4x3f() }
 
         fun upload(location: Int, matrices: Array<Matrix4x3f>) {
             val boneCount = min(matrices.size, AnimGameItem.maxBones)

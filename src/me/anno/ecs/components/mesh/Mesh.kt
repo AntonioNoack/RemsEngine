@@ -123,6 +123,8 @@ class Mesh : PrefabSaveable() {
     @HideInInspector
     var boneIndices: ByteArray? = null
 
+    val hasBones get() = boneWeights != null && boneIndices != null
+
     // todo find lines, and display them
     // triangle (a,b,c), where (a==b||b==c||c==a) && (a!=b||b!=c||c!=a)
     @HideInInspector

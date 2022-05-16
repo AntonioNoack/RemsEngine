@@ -20,17 +20,25 @@ import kotlin.math.min
 //  this would allow us to render animated meshes instanced as well <3, and with independent animations [just manually created animations would need extra care]
 //  b) or separate the shader all together
 
-// todo still not working for outlines... why?
-
-// done RTX 3070 just like GT 1030 have the same bone uniform count problem
-//  - transform this uniform array to textures instead; this would allow for instanced animations as well, which would be nice :)
-
 // done integrate this into AnimRenderer
 // done merge this into ECSMeshShader
-// todo merge multiple skeletons if needed, so we don't have duplicate textures...
+// todo merge multiple skeletons if needed, so we don't have duplicate textures
+// todo compact animation if no movement takes place
+// todo allow for bone-by-bone animation with dynamic anim textures
+
+// todo instanced anim rendering
+
+// todo first frame should be identity for default transform
+
+/**
+ * a texture saving joint transforms;
+ * 1) better than joints, because doesn't take up uniforms;
+ * 2) better than joints, because can be used with instanced rendering;
+ * 3) better than joints, because saves bandwidth, because data is sent only once
+ * */
 class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
-    class AnimTexIndex(
+    data class AnimTexIndex(
         val anim: Animation,
         val retargeting: Retargeting,
         val index: Int,
@@ -49,7 +57,6 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         else null
     }
 
-    @Suppress("unused")
     fun addAnimation(anim: Animation, retargeting: Retargeting): AnimTexIndex {
         return animationMap.getOrPut(anim) {
             val ni = nextIndex
@@ -81,7 +88,6 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             fillData(data, animation, retargeting)
             data.position(0)
             texture.overridePartially(buffer, 0, nextIndex, texture.w, numFrames, TargetType.FloatTarget4)
-            println("overrode texture partially")
             Texture2D.bufferPool.returnBuffer(buffer)
         } else {
             // create new texture
@@ -90,7 +96,6 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             fillData(data)
             data.position(0)
             texture.create(TargetType.FloatTarget4, buffer)
-            println("created new texture")
             Texture2D.bufferPool.returnBuffer(buffer)
         }
         nextIndex += numFrames
@@ -151,13 +156,15 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
     companion object {
 
+        // will become default, when everything works
+        // then we can remove the old code
         var useAnimTextures = true
 
         @JvmStatic
         fun main(args: Array<String>) {
             // create a test texture, so we can see whether the texture is correctly created
             ECSRegistry.initWithGFX()
-            val source = downloads.getChild("3d/Rumba Dancing.fbx") // animated mesh file
+            val source = downloads.getChild("3d/azeria/scene.gltf") // animated mesh file
             val skeletonSource = source.getChild("Skeleton.json")
             val animationsSources = source.getChild("animations").listChildren()!!
             val skeleton = SkeletonCache[skeletonSource]!!

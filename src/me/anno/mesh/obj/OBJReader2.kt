@@ -1,5 +1,6 @@
 package me.anno.mesh.obj
 
+import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
@@ -16,6 +17,7 @@ import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.findNextName
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.IOException
@@ -133,11 +135,18 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     private var meshCountInObject = 0
 
     private fun newGroup() {
-        lastGroupPath = scenePrefab.add(
-            CAdd(Path.ROOT_PATH, 'e', "Entity", lastGroupName),
-            groupCountInScene++, -1
-        )
-        objectCountInGroup = 0
+        // this check could be accelerated for huge obj files (currently O(n²))
+        if (scenePrefab.adds.any2 { it.path == Path.ROOT_PATH && it.nameId == lastGroupName }) {
+            // group was already used
+            lastGroupPath = Path.ROOT_PATH.added(lastGroupName, 0, 'e')
+            objectCountInGroup = 1 // we don't really know it
+        } else {
+            lastGroupPath = scenePrefab.add(
+                CAdd(Path.ROOT_PATH, 'e', "Entity", lastGroupName),
+                groupCountInScene++, -1
+            )
+            objectCountInGroup = 0
+        }
         newObject()
     }
 
@@ -145,13 +154,20 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         if (lastGroupName.isNotEmpty() && lastGroupPath.isEmpty()) {
             newGroup()
         }
-        lastObjectPath = scenePrefab.add(
-            CAdd(lastGroupPath, 'e', "Entity", lastObjectName),
-            objectCountInGroup++, -1
-        )
-        // in case there is no new name, create one ourselves
-        lastObjectName = findNextName(lastObjectName, '.')
-        meshCountInObject = 0
+        // if entity already exists, find new name
+        // this check could be accelerated for huge obj files (currently O(n²))
+        if (scenePrefab.adds.any2 { it.path == lastGroupPath && it.nameId == lastObjectName }) {
+            lastObjectPath = lastGroupPath.added(lastObjectName, 0, 'e')
+            meshCountInObject = 1 // we don't really know it
+        } else {
+            lastObjectPath = scenePrefab.add(
+                CAdd(lastGroupPath, 'e', "Entity", lastObjectName),
+                objectCountInGroup++, -1
+            )
+            // in case there is no new name, create one ourselves
+            lastObjectName = findNextName(lastObjectName, '.')
+            meshCountInObject = 0
+        }
     }
 
     private fun finishMesh() {
@@ -488,18 +504,27 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
 
         @JvmStatic
         fun main(args: Array<String>) {
-            val source = downloads.getChild("ogldev-source/crytek_sponza/sponza.obj")
+            val source = downloads.getChild("San_Miguel/san-miguel.obj")
             // 20MB, so larger than the L3 cache of my CPU
             // so the theoretical speed limit is my memory bandwidth
             // 3.2Gb/s -> 400MB/s -> 20MB file should be readable within 0.05s
-            val data = source.readText() // remove material references for clearer reading performance
-                .replace("mtllib", "#mtllib")
-                .toByteArray()
-            val clock = Clock()
-            for (i in 0 until 1000) {
-                clock.start()
-                OBJReader2(data.inputStream(), source)
-                clock.stop("Reading OBJ with 20MB", data.size)
+            if (source.length() < 100e6) {
+                val data = source.readText() // remove material references for clearer reading performance
+                    .replace("mtllib", "#mtllib")
+                    .toByteArray()
+                val clock = Clock()
+                for (i in 0 until 1000) {
+                    clock.start()
+                    OBJReader2(data.inputStream(), source)
+                    clock.stop("Reading OBJ with 20MB", data.size)
+                }
+            } else {
+                val clock = Clock()
+                for (i in 0 until 1000) {
+                    clock.start()
+                    OBJReader2(source.inputStream(), source)
+                    clock.stop("Reading OBJ with 20MB", source.length().toInt())
+                }
             }
             // 0.5s, so 10x slower than possible... ok, but slow...
             // goes down to 0.13s after the first 10 runs

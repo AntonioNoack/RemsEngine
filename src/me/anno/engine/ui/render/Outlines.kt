@@ -3,6 +3,7 @@ package me.anno.engine.ui.render
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.pipeline.CullMode
@@ -24,11 +25,9 @@ object Outlines {
 
     fun drawOutline(entity: Entity, worldScale: Double) {
         whiteTexture.bind(0) // for the albedo
-        OpenGL.animated.use(true) {
-            DrawAABB.drawAABB(entity.aabb, worldScale, RenderView.aabbColorHovered)
-            LineBuffer.finish(RenderView.cameraMatrix)
-            drawOutlineInternally(entity, worldScale)
-        }
+        DrawAABB.drawAABB(entity.aabb, worldScale, RenderView.aabbColorHovered)
+        LineBuffer.finish(RenderView.cameraMatrix)
+        drawOutlineInternally(entity, worldScale)
     }
 
     private fun drawOutlineInternally(entity: Entity, worldScale: Double) {
@@ -100,21 +99,25 @@ object Outlines {
             val cullMode = if (mesh.inverseOutline) CullMode.BACK else CullMode.FRONT
             OpenGL.cullMode.use(cullMode) {
                 val baseShader = ShaderLib.monochromeModelShader
-                val shader = baseShader.value
-                shader.use()
-                shader.m4x4("transform", RenderView.cameraMatrix)
+                val animated = meshComponent.hasAnimation
+                OpenGL.animated.use(animated) {
 
-                shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
-                shader.v1f("worldScale", worldScale.toFloat())
-                shader.v4f("tint", -1)
+                    val shader = baseShader.value
+                    shader.use()
+                    shader.m4x4("transform", RenderView.cameraMatrix)
 
-                meshComponent.defineVertexTransform(shader, entity, mesh)
+                    shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
+                    shader.v1f("worldScale", worldScale.toFloat())
+                    shaderColor(shader, "tint", -1)
 
-                mesh.draw(shader, 0)
+                    val hasAnim = animated && meshComponent.defineVertexTransform(shader, entity, mesh)
+                    shader.v1b("hasAnimation", hasAnim)
+
+                    mesh.draw(shader, 0)
+
+                }
             }
         }
-
     }
-
 
 }

@@ -59,7 +59,7 @@ object PlaneShapes {
 
     }
 
-    val buffer = PipelineStage.meshInstanceBuffer
+    val buffer = PipelineStage.instancedBuffer
 
     var size = 0
 

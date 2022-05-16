@@ -102,8 +102,8 @@ abstract class MeshComponentBase : CollidingComponent() {
 
     open val hasAnimation: Boolean = false
 
-    open fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
-        shader.v1b("hasAnimation", false)
+    open fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh): Boolean {
+        return false
     }
 
     fun draw(shader: Shader, materialIndex: Int) {

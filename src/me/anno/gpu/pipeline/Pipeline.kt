@@ -114,12 +114,18 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             val m1 = m0 ?: materials.getOrNull(index)
             val material = MaterialCache[m1, defaultMaterial]
             val stage = material.pipelineStage ?: defaultStage
-            stage.addInstanced(mesh, entity, material, index, clickId)
+            stage.addInstanced(mesh, renderer, entity, material, index, clickId)
         }
     }
 
-    private fun addMeshInstancedDepth(mesh: Mesh, entity: Entity, material: Material, materialIndex: Int) {
-        defaultStage.addInstanced(mesh, entity, material, materialIndex, 0)
+    private fun addMeshInstancedDepth(
+        mesh: Mesh,
+        component: MeshComponentBase,
+        entity: Entity,
+        material: Material,
+        materialIndex: Int
+    ) {
+        defaultStage.addInstanced(mesh, component, entity, material, materialIndex, 0)
     }
 
     private fun addLight(light: LightComponent, entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
@@ -145,7 +151,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
 
     fun drawDepth(cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
         GFX.check()
-        defaultStage.drawDepth(this, cameraMatrix, cameraPosition, worldScale)
+        defaultStage.drawDepths(this, cameraMatrix, cameraPosition, worldScale)
         GFX.check()
     }
 
@@ -321,7 +327,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                             if (mesh.proceduralLength <= 0) {
                                 val material2 = material ?: defaultMaterial
                                 val stage = material2.pipelineStage ?: defaultStage
-                                stage.addInstanced(mesh, transform, material2, clickId)
+                                stage.addInstanced(mesh, null, transform, material2, clickId)
                             } else {
                                 if (mesh.numMaterials > 1) {
                                     LOGGER.warn("Procedural meshes in MeshSpawner cannot support multiple materials")
@@ -396,7 +402,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                             for (materialIndex in 0 until mesh.numMaterials) {
                                 val material = MaterialCache[component.materials.getOrNull(materialIndex)
                                     ?: mesh.materials.getOrNull(materialIndex), defaultMaterial]
-                                addMeshInstancedDepth(mesh, entity, material, materialIndex)
+                                addMeshInstancedDepth(mesh, component, entity, material, materialIndex)
                             }
                         } else {
                             addMeshDepth(mesh, component, entity)
@@ -422,7 +428,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             val c = components[i]
             if (c.isEnabled) {
                 // this probably should be more generic...
-                if (c is MeshComponentBase || c is SDFComponent) {
+                if (c is MeshComponentBase) {
                     // LOGGER.debug("[C] ${c.clickId.toString(16)} vs ${searchedId.toString(16)}")
                     if (c.clickId == searchedId) return c
                 }

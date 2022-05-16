@@ -71,6 +71,12 @@ open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage
         }
     }
 
+    fun put(v: FloatArray, index: Int, length: Int) {
+        for (i in index until index + length) {
+            put(v[i])
+        }
+    }
+
     fun put(v: Vector3fc) {
         put(v.x(), v.y(), v.z())
     }

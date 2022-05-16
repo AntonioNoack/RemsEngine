@@ -2,7 +2,10 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.Transform
 
-class InstancedStack {
+/**
+ * container for instanced transforms and their click ids
+ * */
+open class InstancedStack {
 
     var transforms = arrayOfNulls<Transform>(16)
     var clickIds = IntArray(16)
@@ -15,7 +18,7 @@ class InstancedStack {
     fun isNotEmpty() = size > 0
     fun isEmpty() = size == 0
 
-    fun add(transform: Transform, clickId: Int) {
+    open fun add(transform: Transform, clickId: Int) {
         if (size >= transforms.size) {
             // resize
             val newSize = transforms.size * 2

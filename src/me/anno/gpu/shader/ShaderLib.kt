@@ -664,11 +664,12 @@ object ShaderLib {
                 "$attribute ivec4 indices;\n" +
                 "uniform bool hasAnimation;\n" +
                 "uniform mat4x3 localTransform;\n" +
-                "uniform mat4x3 jointTransforms[${min(128, maxBones)}];\n" +
                 (if (useAnimTextures) "" +
                         "uniform sampler2D animTexture;\n" +
                         "uniform vec4 animWeights, animIndices;\n" +
-                        getAnimMatrix else "") +
+                        getAnimMatrix else "" +
+                        "uniform mat4x3 jointTransforms[${min(128, maxBones)}];\n" +
+                        "") +
                 "void main(){\n" +
                 (if (useAnimTextures) "" +
                         "   if(hasAnimation && textureSize(animTexture,0).x > 1.0){\n" +
@@ -726,7 +727,7 @@ object ShaderLib {
                     "   float finalAlpha = color.a;\n" +
                     "   vec3 finalPosition = finalPosition;\n" +
                     "   vec3 finalNormal = normal;\n" +
-                    "}", listOf("tex")
+                    "}", listOf("albedoTex", "animTexture")
         )
         shaderAssimp.glslVersion = 330
 
@@ -744,7 +745,7 @@ object ShaderLib {
                     "   vec3 finalEmissive = tint.rgb;\n" +
                     "   float finalRoughness = 1.0;" +
                     "   float finalMetallic = 0.0;\n" +
-                    "}", listOf("tex")
+                    "}", listOf("tex", "animTexture")
         )
         monochromeModelShader.glslVersion = 330
         monochromeModelShader.ignoreUniformWarnings("worldScale")

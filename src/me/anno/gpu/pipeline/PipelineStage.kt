@@ -4,6 +4,7 @@ import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
+import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightType
@@ -17,7 +18,6 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.OpenGL
 import me.anno.gpu.blending.BlendMode
@@ -60,7 +60,7 @@ class PipelineStage(
         private val tmp3x3 = Matrix3f()
 
         // is rotation, position and scale enough?...
-        private val meshInstancedAttributes = listOf(
+        private val instancedAttributes = listOf(
             Attribute("instanceTrans0", 3),
             Attribute("instanceTrans1", 3),
             Attribute("instanceTrans2", 3),
@@ -68,10 +68,21 @@ class PipelineStage(
             Attribute("instanceTint", AttributeType.UINT8_NORM, 4)
         )
 
+        private val instancedAttributesA = listOf(
+            Attribute("instanceTrans0", 3),
+            Attribute("instanceTrans1", 3),
+            Attribute("instanceTrans2", 3),
+            Attribute("instanceTrans3", 3),
+            Attribute("animWeights", 4),
+            Attribute("animIndices", 4),
+            Attribute("instanceTint", AttributeType.UINT8_NORM, 4)
+        )
+
         // 16k is ~ 20% better than 1024: 9 fps instead of 7 fps with 150k instanced lights on my RX 580
         const val instancedBatchSize = 1024 * 16
 
-        val meshInstanceBuffer = StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
+        val instancedBuffer = StaticBuffer(instancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
+        val instancedBufferA = StaticBuffer(instancedAttributesA, instancedBatchSize, GL_DYNAMIC_DRAW)
 
         val tmpAABBd = AABBd()
 
@@ -421,9 +432,10 @@ class PipelineStage(
                 // not if the material has changed
                 // this updates the skeleton and such
                 if (entity !== lastEntity || lastMesh !== mesh || lastShader !== shader) {
-                    if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
+                    val hasAnim = if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
                         renderer.defineVertexTransform(shader, entity, mesh)
-                    else shader.v1b("hasAnimation", false)
+                    else false
+                    shader.v1b("hasAnimation", hasAnim)
                     lastEntity = entity
                     lastMesh = mesh
                     lastShader = shader
@@ -452,7 +464,7 @@ class PipelineStage(
                 for ((mi, values) in list) {
                     val (material, materialIndex) = mi
                     if (values.isNotEmpty()) {
-                        drawColor(
+                        drawColors(
                             mesh, material, materialIndex,
                             pipeline, needsLightUpdateForEveryMesh,
                             time, cameraPosition, cameraMatrix, worldScale, values
@@ -464,7 +476,7 @@ class PipelineStage(
             for ((mesh, list) in instancedMeshes2.values) {
                 for ((material, values) in list) {
                     if (values.isNotEmpty()) {
-                        drawColor(
+                        drawColors(
                             mesh, material, 0,
                             pipeline, needsLightUpdateForEveryMesh,
                             time, cameraPosition, cameraMatrix, worldScale, values
@@ -481,11 +493,11 @@ class PipelineStage(
 
     }
 
-    private fun drawColor(
+    private fun drawColors(
         mesh: Mesh, material: Material, materialIndex: Int,
         pipeline: Pipeline, needsLightUpdateForEveryMesh: Boolean,
         time: Long, cameraPosition: Vector3d, cameraMatrix: Matrix4fc, worldScale: Double,
-        values: InstancedStack
+        instances: InstancedStack
     ) {
 
         val receiveShadows = true
@@ -496,64 +508,77 @@ class PipelineStage(
 
         val localAABB = mesh.aabb
 
-        val shader = getShader(material)
-        shader.use()
+        val useAnimations = instances is InstancedAnimStack && instances.texture != null
+        OpenGL.animated.use(true) {
+            val shader = getShader(material)
+            shader.use()
 
-        // update material and light properties
-        val previousMaterial = lastMaterial.put(shader, material)
-        if (previousMaterial == null) {
-            initShader(shader, cameraMatrix, pipeline)
-        }
-
-        if (previousMaterial == null && !needsLightUpdateForEveryMesh) {
-            aabb.clear()
-            pipeline.frustum.union(aabb)
-            setupLights(pipeline, shader, cameraPosition, worldScale, aabb, true)
-        }
-
-        material.defineShader(shader)
-        shaderColor(shader, "tint", -1)
-        shader.v1i("drawMode", GFX.drawMode.id)
-        shader.v1b("hasAnimation", false)
-        shader.v1b("hasVertexColors", mesh.hasVertexColors)
-        shader.v2i("randomIdData", mesh.numTriangles, 0)
-        GFX.check()
-        // draw them in batches of size <= batchSize
-        val instanceCount = values.size
-        for (baseIndex in 0 until instanceCount step batchSize) {
-            // creating a new buffer allows the gpu some time to sort things out
-            val buffer = meshInstanceBuffer//StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
-            buffer.clear()
-            val nioBuffer = buffer.nioBuffer!!
-            // fill the data
-            val trs = values.transforms
-            val ids = values.clickIds
-            for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
-                m4x3delta(
-                    trs[index]!!.getDrawMatrix(time),
-                    cameraPosition,
-                    worldScale,
-                    nioBuffer,
-                    false
-                )
-                buffer.putInt(ids[index])
+            // update material and light properties
+            val previousMaterial = lastMaterial.put(shader, material)
+            if (previousMaterial == null) {
+                initShader(shader, cameraMatrix, pipeline)
             }
-            if (needsLightUpdateForEveryMesh) {
-                // calculate the lights for each group
-                // todo cluster them cheaply?
+
+            if (previousMaterial == null && !needsLightUpdateForEveryMesh) {
                 aabb.clear()
-                for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
-                    localAABB.transformUnion(trs[index]!!.getDrawMatrix(), aabb)
-                }
-                setupLights(pipeline, shader, cameraPosition, worldScale, aabb, receiveShadows)
+                pipeline.frustum.union(aabb)
+                setupLights(pipeline, shader, cameraPosition, worldScale, aabb, true)
+            }
+
+            material.defineShader(shader)
+            shaderColor(shader, "tint", -1)
+            shader.v1i("drawMode", GFX.drawMode.id)
+            shader.v1b("hasAnimation", useAnimations)
+            shader.v1b("hasVertexColors", mesh.hasVertexColors)
+            shader.v2i("randomIdData", mesh.numTriangles, 0)
+            if (useAnimations) {
+                (instances as InstancedAnimStack).texture!!
+                    .bind(shader, "animTexture", GPUFiltering.LINEAR, Clamping.CLAMP)
             }
             GFX.check()
-            mesh.drawInstanced(shader, materialIndex, buffer)
-            // if (buffer !== meshInstanceBuffer) addGPUTask("PipelineStage.drawColor", 1) { buffer.destroy() }
+            // draw them in batches of size <= batchSize
+            val instanceCount = instances.size
+            // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580
+            val buffer = if (useAnimations) instancedBufferA else instancedBuffer
+            // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
+            val nioBuffer = buffer.nioBuffer!!
+            // fill the data
+            val trs = instances.transforms
+            val ids = instances.clickIds
+            val anim = (instances as? InstancedAnimStack)?.animData
+            for (baseIndex in 0 until instanceCount step batchSize) {
+                buffer.clear()
+                for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
+                    m4x3delta(
+                        trs[index]!!.getDrawMatrix(time),
+                        cameraPosition,
+                        worldScale,
+                        nioBuffer,
+                        false
+                    )
+                    if (useAnimations) {
+                        // put animation data
+                        buffer.put(anim!!, index * 8, 8)
+                    }
+                    buffer.putInt(ids[index])
+                }
+                if (needsLightUpdateForEveryMesh) {
+                    // calculate the lights for each group
+                    // todo cluster them cheaply?
+                    aabb.clear()
+                    for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
+                        localAABB.transformUnion(trs[index]!!.getDrawMatrix(), aabb)
+                    }
+                    setupLights(pipeline, shader, cameraPosition, worldScale, aabb, receiveShadows)
+                }
+                GFX.check()
+                mesh.drawInstanced(shader, materialIndex, buffer)
+                // if (buffer !== meshInstanceBuffer) addGPUTask("PipelineStage.drawColor", 1) { buffer.destroy() }
+            }
         }
     }
 
-    fun drawDepth(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
+    fun drawDepths(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
 
         var lastEntity: Entity? = null
         var lastMesh: Mesh? = null
@@ -584,9 +609,10 @@ class PipelineStage(
             // not if the material has changed
             // this updates the skeleton and such
             if (entity !== lastEntity || lastMesh !== mesh) {
-                if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
+                val hasAnim = if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
                     renderer.defineVertexTransform(shader, entity, mesh)
-                else shader.v1b("hasAnimation", false)
+                else false
+                shader.v1b("hasAnimation", hasAnim)
                 lastEntity = entity
                 lastMesh = mesh
             }
@@ -602,6 +628,7 @@ class PipelineStage(
         GFX.check()
 
         // draw instanced meshes
+        // todo support animations
         OpenGL.instanced.use(true) {
             val shader2 = defaultShader.value
             shader2.use()
@@ -609,7 +636,7 @@ class PipelineStage(
             for ((mesh, list) in instancedMeshes1.values) {
                 for ((_, values) in list) {
                     if (values.isNotEmpty()) {
-                        drawDepth(shader2, mesh, values, time, cameraPosition, worldScale)
+                        drawDepthsInstanced(shader2, mesh, values, time, cameraPosition, worldScale)
                         drawnTriangles += mesh.numTriangles * values.size
                     }
                 }
@@ -617,7 +644,7 @@ class PipelineStage(
             for ((mesh, list) in instancedMeshes2.values) {
                 for ((_, values) in list) {
                     if (values.isNotEmpty()) {
-                        drawDepth(shader2, mesh, values, time, cameraPosition, worldScale)
+                        drawDepthsInstanced(shader2, mesh, values, time, cameraPosition, worldScale)
                         drawnTriangles += mesh.numTriangles * values.size
                     }
                 }
@@ -630,21 +657,21 @@ class PipelineStage(
 
     }
 
-    private fun drawDepth(
-        shader: Shader, mesh: Mesh, values: InstancedStack,
+    private fun drawDepthsInstanced(
+        shader: Shader, mesh: Mesh, instances: InstancedStack,
         time: Long, cameraPosition: Vector3d, worldScale: Double
     ) {
         mesh.ensureBuffer()
         shader.v1b("hasAnimation", false)
         shader.v1b("hasVertexColors", mesh.hasVertexColors)
         val batchSize = instancedBatchSize
-        val buffer = meshInstanceBuffer
-        val instanceCount = values.size
+        val buffer = instancedBuffer
+        val instanceCount = instances.size
         for (baseIndex in 0 until instanceCount step batchSize) {
             buffer.clear()
             val nioBuffer = buffer.nioBuffer!!
             // fill the data
-            val trs = values.transforms
+            val trs = instances.transforms
             for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
                 m4x3delta(
                     trs[index]!!.getDrawMatrix(time),
@@ -702,21 +729,54 @@ class PipelineStage(
         nextInsertIndex++
     }
 
-    fun addInstanced(mesh: Mesh, entity: Entity, material: Material, materialIndex: Int, clickId: Int) {
-        addInstanced(mesh, entity.transform, material, materialIndex, clickId)
+    fun addInstanced(
+        mesh: Mesh,
+        component: MeshComponentBase?,
+        entity: Entity,
+        material: Material,
+        materialIndex: Int,
+        clickId: Int
+    ) {
+        addInstanced(mesh, component, entity.transform, material, materialIndex, clickId)
     }
 
-    fun addInstanced(mesh: Mesh, transform: Transform, material: Material, materialIndex: Int, clickId: Int) {
-        val stack = instancedMeshes1.getOrPut(mesh, Pair(material, materialIndex)) { _, _ -> InstancedStack() }
-        // instanced animations not supported (entity not saved); they would need to be the same, and that's probably very rare...
-        stack.add(transform, clickId)
-        instancedSize++
+    val tmpWeights = Vector4f()
+    val tmpIndices = Vector4f()
+
+    fun addInstanced(
+        mesh: Mesh,
+        component: MeshComponentBase?,
+        transform: Transform,
+        material: Material,
+        materialIndex: Int,
+        clickId: Int
+    ) {
+        val stack = instancedMeshes1.getOrPut(mesh, Pair(material, materialIndex)) { mesh1, _ ->
+            if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
+        }
+        addToStack(stack, component, transform, clickId)
     }
 
-    fun addInstanced(mesh: Mesh, transform: Transform, material: Material, clickId: Int) {
-        val stack = instancedMeshes2.getOrPut(mesh, material) { _, _ -> InstancedStack() }
-        // instanced animations not supported (entity not saved); they would need to be the same, and that's probably very rare...
-        stack.add(transform, clickId)
+    fun addInstanced(
+        mesh: Mesh,
+        component: MeshComponentBase?,
+        transform: Transform,
+        material: Material,
+        clickId: Int
+    ) {
+        val stack = instancedMeshes2.getOrPut(mesh, material) { mesh1, _ ->
+            if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
+        }
+        addToStack(stack, component, transform, clickId)
+    }
+
+    fun addToStack(stack: InstancedStack, component: MeshComponentBase?, transform: Transform, clickId: Int) {
+        if (stack is InstancedAnimStack && component is AnimRenderer) {
+            if (component.getAnimState(tmpWeights, tmpIndices)) {
+                val texture = component.getAnimTexture()
+                stack.add(transform, clickId, texture, tmpWeights, tmpIndices)
+            } else stack.add(transform, clickId)
+        } else stack.add(transform, clickId)
         instancedSize++
     }
 

@@ -324,7 +324,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         hierarchyPrefab: Prefab,
         skeleton: Prefab,
         skeletonPath: FileReference,
-        sampleAnimations: List<AnimationState>
+        sampleAnimations: ArrayList<AnimationState>
     ): Prefab {
         val adds = hierarchyPrefab.adds
         for (change in adds) {
