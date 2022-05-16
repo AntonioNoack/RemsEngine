@@ -224,7 +224,7 @@ object ShaderLib {
             "   return sumUVs;\n" +
             "}\n"
 
-    val uvForceFieldBuffer: FloatBuffer = ByteBuffer
+    val uvForceFieldBuffer: FloatBuffer = ByteBufferPool
         .allocateDirect(3 * maxUVForceFields)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer()

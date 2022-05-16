@@ -199,9 +199,9 @@ open class GFXBase {
             val width = instance.width
             val height = instance.height
             val sharedWindow = windows.firstOrNull { it.pointer != 0L }?.pointer ?: 0L
-            val window = GLFW.glfwCreateWindow(width, height, projectName, MemoryUtil.NULL, sharedWindow)
+            val window = GLFW.glfwCreateWindow(width, height, projectName, 0L, sharedWindow)
             instance.pointer = window
-            if (window == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
+            if (window == 0L) throw RuntimeException("Failed to create the GLFW window")
             windows.add(instance)
 
             tick?.stop("Create window")

@@ -33,7 +33,7 @@ object ThreadTest {
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
         run = true
         val threads = Array(titles.size){
-            val window = GLFW.glfwCreateWindow(200, 200, titles[it], MemoryUtil.NULL, MemoryUtil.NULL)
+            val window = GLFW.glfwCreateWindow(200, 200, titles[it], 0L, 0L)
             check(window != MemoryUtil.NULL) { "Failed to create GLFW window." }
             GLFW.glfwSetKeyCallback(window) { windowHnd: Long, key: Int, _: Int, action: Int, _: Int ->
                 if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_RELEASE) {

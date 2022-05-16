@@ -13,6 +13,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.OS
+import me.anno.utils.pooling.ByteBufferPool
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.max
@@ -23,8 +24,7 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
     val height = width / 4
 
     private val texture = Texture2D("frameTimes", width, 1, 1)
-    private val floats = ByteBuffer
-        .allocateDirect(4 * width)
+    private val floats = Texture2D.bufferPool[4 * width, false, false]
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer()
 

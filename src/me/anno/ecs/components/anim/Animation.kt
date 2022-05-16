@@ -7,10 +7,11 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.fract
+import me.anno.maths.Maths.min
 import org.joml.Matrix4x3f
 
-// todo blend animations...
-// todo allow procedural animations; for that we'd need more knowledge about the model...
+// done blend animations...
+// todo allow procedural animations; for that we'd need more knowledge about the model
 abstract class Animation : PrefabSaveable {
 
     constructor() : super()
@@ -47,64 +48,82 @@ abstract class Animation : PrefabSaveable {
         entity: Entity?,
         time: Float,
         dst: Array<Matrix4x3f>,
-        retargeting: Retargeting
+        retargeting: Retargeting?
     ): Array<Matrix4x3f>? {
         val base = getMatrices(entity, time, dst) ?: return null
-        if (retargeting.isIdentityMapping) return base
+        if (retargeting == null || retargeting.isIdentityMapping) return base
         if (retargeting.srcSkeleton != skeleton) throw RuntimeException("Incompatible skeletons!")
-        retargeting.validate()
-        for (it in SkeletonCache[retargeting.dstSkeleton]!!.bones.indices) {
-            val bm = base.getOrNull(retargeting.mapping[it])
-            if (bm != null) dst[it].set(bm)
-            else dst[it].identity()
-        }
-        return dst
+        return getMappedMatrices(base, dst, SkeletonCache[retargeting.dstSkeleton]!!, retargeting)
     }
 
     fun getMappedMatrices(
         frameIndex: Int,
         dst: Array<Matrix4x3f>,
-        retargeting: Retargeting
+        dstSkeleton: Skeleton,
+        retargeting: Retargeting?
     ): Array<Matrix4x3f>? {
         val base = getMatrices(frameIndex, dst) ?: return null
-        if (retargeting.isIdentityMapping) return base
+        if (retargeting == null || retargeting.isIdentityMapping) return base
         if (retargeting.srcSkeleton != skeleton) throw RuntimeException("Incompatible skeletons!")
+        return getMappedMatrices(base, dst, dstSkeleton, retargeting)
+    }
+
+    private fun getMappedMatrices(
+        srcMatrices: Array<Matrix4x3f>,
+        dstMatrices: Array<Matrix4x3f>,
+        dstSkeleton: Skeleton,
+        retargeting: Retargeting
+    ): Array<Matrix4x3f> {
         retargeting.validate()
-        for (it in SkeletonCache[retargeting.dstSkeleton]!!.bones.indices) {
-            val bm = base.getOrNull(retargeting.mapping[it])
-            if (bm != null) dst[it].set(bm)
-            else dst[it].identity()
+        val dstToSrc = retargeting.dstToSrc
+        val dstToSrcM = retargeting.dstToSrcM
+        val srcToDstM = retargeting.srcToDstM
+        val dstSize = min(dstMatrices.size, dstSkeleton.bones.size)
+        val dstMapSize = dstToSrc.size
+        for (i in 0 until dstMapSize) {
+            val src = srcMatrices.getOrNull(dstToSrc[i])
+            val dst = dstMatrices[i]
+            if (src != null) {
+                dst.set(srcToDstM[i])
+                dst.mul(src)
+                dst.mul(dstToSrcM[i])
+            } else dst.identity()
         }
-        return dst
+        for (i in dstMapSize until dstSize) {
+            dstMatrices[i].identity()
+        }
+        return dstMatrices
     }
 
     fun getMappedMatricesSafely(
         entity: Entity?,
         time: Float,
         dst: Array<Matrix4x3f>,
-        retargeting: Retargeting
+        dstSkeleton: Skeleton,
+        retargeting: Retargeting?
     ): Array<Matrix4x3f> {
         val base = getMappedMatrices(entity, time, dst, retargeting)
-        if (base == null) {
-            for (i in SkeletonCache[retargeting.dstSkeleton]!!.bones.indices) {
+        return if (base == null) {
+            for (i in dstSkeleton.bones.indices) {
                 dst[i].identity()
             }
-        }
-        return dst
+            dst
+        } else base
     }
 
     fun getMappedMatricesSafely(
         frameIndex: Int,
         dst: Array<Matrix4x3f>,
-        retargeting: Retargeting
+        dstSkeleton: Skeleton,
+        retargeting: Retargeting?
     ): Array<Matrix4x3f> {
-        val base = getMappedMatrices(frameIndex, dst, retargeting)
-        if (base == null) {
-            for (i in SkeletonCache[retargeting.dstSkeleton]!!.bones.indices) {
+        val base = getMappedMatrices(frameIndex, dst, dstSkeleton, retargeting)
+        return if (base == null) {
+            for (i in dstSkeleton.bones.indices) {
                 dst[i].identity()
             }
-        }
-        return dst
+            dst
+        } else base
     }
 
     override fun save(writer: BaseWriter) {
@@ -120,7 +139,7 @@ abstract class Animation : PrefabSaveable {
         }
     }
 
-    override fun readFloat(name: String, value:Float) {
+    override fun readFloat(name: String, value: Float) {
         when (name) {
             "duration" -> duration = value
             else -> super.readFloat(name, value)

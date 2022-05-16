@@ -9,7 +9,6 @@ import org.lwjgl.openal.AL10.*
 import org.lwjgl.stb.STBVorbis.*
 import org.lwjgl.stb.STBVorbisInfo
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.system.MemoryUtil.NULL
 import org.newdawn.slick.openal.WaveData
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
@@ -91,7 +90,7 @@ class SoundBuffer() : ICacheData {
             val error = stack.mallocInt(1)
             val decoder = stb_vorbis_open_memory(rawBytes, error, null)
             ALBase.check()
-            if (decoder == NULL) {
+            if (decoder == 0L) {
                 bufferPool.returnBuffer(rawBytes)
                 throw RuntimeException("Failed to open Ogg Vorbis file. Error: " + error[0])
             }

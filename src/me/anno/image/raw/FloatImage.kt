@@ -3,6 +3,7 @@ package me.anno.image.raw
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
+import me.anno.utils.pooling.ByteBufferPool
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -50,8 +51,8 @@ class FloatImage(
     }
 
     fun toFloatBufferImage(
-        data: FloatBuffer = ByteBuffer.allocateDirect(width * height * numChannels * 4)
-            .order(ByteOrder.nativeOrder())
+        data: FloatBuffer = ByteBufferPool
+            .allocateDirect(width * height * numChannels * 4)
             .asFloatBuffer()
     ): FloatBufferImage {
         val ownData = this.data

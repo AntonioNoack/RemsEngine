@@ -28,6 +28,8 @@ import kotlin.math.min
 
 open class AnimRenderer : MeshComponent() {
 
+    // todo in debug mode, we could render the skeleton as well/instead :)
+
     @Docs("Maps bone indices to names & hierarchy")
     @Type("Skeleton/Reference")
     @SerializedProperty
@@ -137,12 +139,6 @@ open class AnimRenderer : MeshComponent() {
 
         }
 
-        // todo find retargeting from the skeleton to the new skeleton...
-        // todo if not found, generate it automatically, and try our best to do it perfectly
-        // todo retargeting probably needs to include a max/min-angle and angle multiplier and change of base matrices
-        // (or all animations need to be defined in some common animation space)
-        val retargeting = Retargeting()
-
         // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
         // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
         val animations = animations
@@ -150,15 +146,16 @@ open class AnimRenderer : MeshComponent() {
         lateinit var matrices: Array<Matrix4x3f>
         var sumWeight = 0f
         for (index in animations.indices) {
-            val anim = animations[index]
-            val weight = anim.weight
+            val animSource = animations[index]
+            val weight = animSource.weight
             val relativeWeight = weight / (sumWeight + weight)
-            val time = anim.progress
-            val animationI = AnimationCache[anim.source] ?: continue
+            val time = animSource.progress
+            val animation = AnimationCache[animSource.source] ?: continue
+            val retargeting = findRetargeting(this.skeleton, animation)
             if (index == 0) {
-                matrices = animationI.getMappedMatricesSafely(entity, time, tmpMapping0, retargeting)
+                matrices = animation.getMappedMatricesSafely(entity, time, tmpMapping0, skeleton, retargeting)
             } else if (relativeWeight > 0f) {
-                val matrix = animationI.getMappedMatricesSafely(entity, time, tmpMapping1, retargeting)
+                val matrix = animation.getMappedMatricesSafely(entity, time, tmpMapping1, skeleton, retargeting)
                 for (j in matrices.indices) {
                     matrices[j].lerp(matrix[j], relativeWeight)
                 }
@@ -177,6 +174,14 @@ open class AnimRenderer : MeshComponent() {
         val skeleton = SkeletonCache[skeleton] ?: return null
         val animTexture = AnimationCache[skeleton]
         return animTexture.getTexture()
+    }
+
+    fun findRetargeting(
+        dstSkeleton: FileReference,
+        animation: Animation
+    ): Retargeting? {
+        val srcSkeleton = animation.skeleton
+        return Retargeting.getRetargeting(srcSkeleton, dstSkeleton)
     }
 
     open fun getAnimState(dstWeights: Vector4f, dstIndices: Vector4f): Boolean {
@@ -200,11 +205,6 @@ open class AnimRenderer : MeshComponent() {
             return false
         }
 
-        // todo find retargeting from the skeleton to the new skeleton...
-        // todo if not found, generate it automatically, and try our best to do it perfectly
-        // todo retargeting probably needs to include a max/min-angle and angle multiplier and change of base matrices
-        // (or all animations need to be defined in some common animation space)
-        val retargeting = Retargeting()
 
         // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
         // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
@@ -222,6 +222,7 @@ open class AnimRenderer : MeshComponent() {
             if (weight > dstWeights[dstWeights.minComponent()]) {
                 val animation = AnimationCache[animState.source] ?: continue
                 val frameIndex = animState.progress / animation.duration * animation.numFrames
+                val retargeting = findRetargeting(this.skeleton, animation)
                 val internalIndex = animTexture.getIndex(animation, retargeting, frameIndex)
                 if (writeIndex < 4) {
                     dstIndices.setComponent(writeIndex, internalIndex)

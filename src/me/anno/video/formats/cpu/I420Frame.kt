@@ -1,11 +1,13 @@
 package me.anno.video.formats.cpu
 
+import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.image.raw.IntImage
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -195,9 +197,9 @@ object I420Frame : CPUFrame() {
             val s1 = w2 * h2
 
             val data = IntArray(w * h)
-            val yData = ByteBuffer.allocateDirect(s0)
-            val uData = ByteBuffer.allocateDirect(s1)
-            val vData = ByteBuffer.allocateDirect(s1)
+            val yData = bufferPool[s0, false, false]
+            val uData = bufferPool[s1, false, false]
+            val vData = bufferPool[s1, false, false]
 
             val t0 = System.nanoTime()
 

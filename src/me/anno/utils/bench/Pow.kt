@@ -14,6 +14,7 @@ import me.anno.gpu.shader.ShaderLib.attr0List
 import me.anno.gpu.shader.ShaderLib.attr0VShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.f2
 import org.lwjgl.opengl.GL11C.*
 import java.nio.ByteBuffer
@@ -99,7 +100,7 @@ fun main() {
                     shader.use()
                 }
 
-                val pixels = ByteBuffer.allocateDirect(4)
+                val pixels = ByteBufferPool.allocateDirect(4)
 
                 Frame.bind()
 

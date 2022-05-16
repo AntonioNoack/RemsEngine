@@ -1,6 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
+import me.anno.gpu.texture.Texture2D
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.opengl.GL11C.*
 import org.lwjgl.opengl.GL15
@@ -31,8 +32,7 @@ object DrawLinesBuffer {
             lineBuffer = glGenBuffers()
             if (lineBuffer < 0) throw RuntimeException("Failed to create buffer")
             bindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
-            val nioBytes = ByteBufferPool
-                .allocateDirect(4 * lineBufferLength)
+            val nioBytes = Texture2D.bufferPool[4 * lineBufferLength, false, false]
             val nioBuffer = nioBytes
                 .asIntBuffer()
             nioBuffer.position(0)

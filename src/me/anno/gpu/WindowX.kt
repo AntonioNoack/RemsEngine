@@ -8,7 +8,6 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback
 import org.lwjgl.glfw.GLFWKeyCallback
-import org.lwjgl.system.MemoryUtil
 import kotlin.math.abs
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
@@ -113,7 +112,7 @@ open class WindowX(var title: String) {
             }
         } else {
             GLFW.glfwSetWindowMonitor(
-                pointer, MemoryUtil.NULL,
+                pointer, 0L,
                 savedX, savedY, savedWidth, savedHeight,
                 GLFW.GLFW_DONT_CARE
             )

@@ -19,6 +19,7 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.OS
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
@@ -93,8 +94,8 @@ object Reduction {
 
     private const val reduction = 16
 
-    private val buffer = ByteBuffer.allocateDirect(reduction * reduction * 4 * 4)
-        .order(ByteOrder.nativeOrder())
+    private val buffer = ByteBufferPool
+        .allocateDirect(reduction * reduction * 4 * 4)
         .asFloatBuffer()
 
     private val shaderByType = HashMap<Operation, Shader>()

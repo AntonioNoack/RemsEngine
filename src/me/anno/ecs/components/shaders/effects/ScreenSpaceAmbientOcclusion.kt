@@ -26,6 +26,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.roundDiv
+import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Matrix4f
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -37,7 +38,7 @@ object ScreenSpaceAmbientOcclusion {
     // could be set lower for older hardware, would need restart
     private val MAX_SAMPLES = max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
 
-    private val sampleKernel = ByteBuffer
+    private val sampleKernel = ByteBufferPool
         .allocateDirect(4 * MAX_SAMPLES * 3)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer()
@@ -63,7 +64,7 @@ object ScreenSpaceAmbientOcclusion {
     // because of that, we probably could store it in the shader itself
     // 2*16 values ~ just two matrices
     private fun generateRandomTexture(random: Random, w: Int, h: Int = w): Texture2D {
-        val data = ByteBuffer.allocateDirect(3 * w * h)
+        val data = ByteBufferPool.allocateDirect(3 * w * h)
         for (i in 0 until w * h) {
             val nx = random.nextFloat() * 2 - 1
             val ny = random.nextFloat() * 2 - 1

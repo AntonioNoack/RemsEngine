@@ -35,12 +35,8 @@ class ImportedAnimation : Animation() {
 
     }
 
-    override fun getMatrices(index: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
-        val frame = frames[index]
-        for (i in 0 until min(dst.size, frame.size)) {
-            dst[i].set(frame[i])
-        }
-        return dst
+    override fun getMatrices(index: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f> {
+        return frames[index]
     }
 
     override fun clone(): ImportedAnimation {
