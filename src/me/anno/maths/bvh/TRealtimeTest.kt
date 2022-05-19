@@ -14,11 +14,13 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
+import me.anno.studio.StudioBase
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.utils.Clock
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -35,10 +37,15 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.pow
 
-fun main() {
-    ECSRegistry.initNoGFX()
-    val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(4)
-    main(tlas, cameraPosition, cameraRotation, fovZFactor)
+object TRealtimeTest {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        ECSRegistry.initNoGFX()
+        val clock = Clock()
+        val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(16)
+        clock.stop("Loading & Generating TLAS", 0.0)
+        main(tlas, cameraPosition, cameraRotation, fovZFactor)
+    }
 }
 
 fun main(
@@ -50,8 +57,6 @@ fun main(
     LogManager.disableLogger("WorkSplitter")
 
     testUI {
-
-        GFX.someWindow.setVsyncEnabled(false)
 
         val main = PanelListY(style)
         val controls = OrbitControls()
@@ -67,8 +72,7 @@ fun main(
         controls.base = base
         controls.radius = 1f
         controls.movementSpeed = 0.2f * bvh.bounds.volume().pow(1f / 3f)
-        controls.rotationSpeed = 0.07f
-        controls.mouseWheelSpeed = 20f
+        controls.rotationSpeed = 0.15f
 
         val window = GFX.someWindow
         var lx = window.mouseX
@@ -76,10 +80,13 @@ fun main(
         var lz = Input.mouseWheelSumY
         main.add(SpyPanel(style) {
             if (window.windowStack.inFocus.any2 { it is TestDrawPanel }) {
-                if (Input.mouseKeysDown.isNotEmpty()) {
+                if (Input.isRightDown) {
                     val dx = window.mouseX - lx
                     val dy = window.mouseY - ly
                     controls.onMouseMoved(0f, 0f, dx, dy)
+                }
+                if (Input.wasKeyPressed('v')) {
+                    StudioBase.instance!!.toggleVsync()
                 }
                 val dw = Input.mouseWheelSumY - lz
                 controls.onMouseWheel(0f, 0f, 0f, dw, true)
@@ -115,9 +122,9 @@ fun main(
             val w = it.w / 4
             val h = it.h / 4
 
-            val cx = (w - 1) * 0.5f
-            val cy = (h - 1) * 0.5f
-            val fovZ = -w * fovZFactor
+            val cx = (it.uiParent!!.w * 0.5f - it.x) * 0.25f
+            val cy = (it.uiParent!!.h * 0.5f) * 0.25f
+            val fovZ = -it.uiParent!!.w * fovZFactor * 0.25f
 
             fun nextFrame() {
                 val tmpPos = Vector3f(cameraPosition)
@@ -176,10 +183,15 @@ fun main(
 
         })
 
-        val useComputeShader = false
+        val useComputeShader = true
         if (useComputeShader) {
 
+            val clock = Clock()
             val (shader, triangles, blasNodes, tlasNodes) = createComputeShader(bvh)
+            // println(shader.source)
+
+            clock.stop("Creating Shader & Uploading Data", 0.0)
+
             val gpuTexture = Texture2D("gpu", 1, 1, 1)
 
             list.add(TestDrawPanel {
@@ -190,9 +202,9 @@ fun main(
                 val w = it.w
                 val h = it.h
 
-                val cx = (w - 1) * 0.5f
-                val cy = (h - 1) * 0.5f
-                val fovZ = -w * fovZFactor
+                val cx = it.uiParent!!.w * 0.5f - it.x
+                val cy = it.uiParent!!.h * 0.5f
+                val fovZ = -it.uiParent!!.w * fovZFactor
 
                 if (!gpuTexture.isCreated || gpuTexture.w != w || gpuTexture.h != h) {
                     gpuTexture.w = w
@@ -220,19 +232,19 @@ fun main(
 
         } else {
 
+
+            val clock = Clock()
             val (shader, triangles, blasNodes, tlasNodes) = createGraphicsShader(bvh)
+            clock.stop("Creating Shader & Uploading Data", 0.0)
 
             list.add(TestDrawPanel {
 
                 it.clear()
 
                 // render gpu side
-                val w = it.w
-                val h = it.h
-
-                val cx = (w - 1) * 0.5f
-                val cy = (h - 1) * 0.5f
-                val fovZ = -w * fovZFactor * 0.5f
+                val cx = it.uiParent!!.w * 0.5f
+                val cy = it.uiParent!!.h * 0.5f
+                val fovZ = -it.uiParent!!.w * fovZFactor
 
                 shader.use()
                 shader.v3f("worldPos", cameraPosition)

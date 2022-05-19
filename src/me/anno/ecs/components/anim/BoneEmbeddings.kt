@@ -55,6 +55,7 @@ object BoneEmbeddings {
             synonym("breast", "chest")
             synonym("ball", "ankle")
             synonym("femur", "thigh")
+            synonym("leg", "shin") // in the mixamo example
             synonym("patella", "shin")
             synonym("tibia", "shin")
             synonym("skull", "head")

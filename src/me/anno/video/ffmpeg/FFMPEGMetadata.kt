@@ -17,10 +17,8 @@ import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import javax.imageio.ImageIO
-import javax.imageio.ImageReader
 import kotlin.math.ceil
 import kotlin.math.roundToInt
-
 
 class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
@@ -46,27 +44,24 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
         return "FFMPEGMetadata(file: $file, audio: $hasAudio, video: $hasVideo, $videoWidth x $videoHeight, $videoFrameCount)"
     }
 
-    private fun isGimpFile(): Boolean {
-        return Signature.find(file)?.name == "gimp"
-    }
-
     init {
 
-        if (isGimpFile()) {
-
-            // Gimp files are a special case, which is not covered by FFMPEG
-            val (w, h) = file.inputStream().use { GimpImage.findSize(it) }
-            hasVideo = true
-            videoWidth = w
-            videoHeight = h
-
-        } else if (!OS.isAndroid && file is FileFileRef) {// Android doesn't have FFMPEG
-            loadFFMPEG()
-        } else {
-            // todo only try this for images...
-            val suffix = Signature.findName(file)
-            if (suffix != null) {
-                for (reader in ImageIO.getImageReadersBySuffix(suffix)) {
+        when (val signature = Signature.findName(file)) {
+            "gimp" -> {
+                // Gimp files are a special case, which is not covered by FFMPEG
+                val (w, h) = file.inputStream().use { GimpImage.findSize(it) }
+                hasVideo = true
+                videoWidth = w
+                videoHeight = h
+            }
+            // only load ffmpeg for ffmpeg files
+            "gif", "media" -> {
+                if (!OS.isAndroid && file is FileFileRef) {
+                    loadFFMPEG()
+                }
+            }
+            "png", "jpg", "psd", "ico", "dds", "exr", "qoi" -> {
+                for (reader in ImageIO.getImageReadersBySuffix(signature)) {
                     try {
                         file.inputStream().use {
                             reader.input = ImageIO.createImageInputStream(it)
@@ -82,6 +77,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                     }
                 }
             }
+            // else unknown
         }
 
     }

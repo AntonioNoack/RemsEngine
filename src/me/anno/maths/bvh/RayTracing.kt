@@ -17,7 +17,7 @@ object RayTracing {
             "    vec3 cp2 = cross(ba, p2 - a);\n" +
             "    return step(0.0, dot(cp1, cp2));\n" +
             "}\n" +
-            "void intersectTriangle(vec3 pos, vec3 dir, vec3 p0, vec3 p1, vec3 p2, out vec3 normal, inout float bestDistance){\n" +
+            "void intersectTriangle(vec3 pos, vec3 dir, vec3 p0, vec3 p1, vec3 p2, inout vec3 normal, inout float bestDistance){\n" +
             "   vec3 N = cross(p1-p0, p2-p0);\n" +
             "   float dnn = dot(dir, N);\n" +
             "   float distance = dot(p0-pos, N) / dnn;\n" +
@@ -28,6 +28,7 @@ object RayTracing {
             "       pointInOrOn(px, p0, p1, p2) *\n" +
             "       pointInOrOn(px, p1, p2, p0) *\n" +
             "       pointInOrOn(px, p2, p0, p1) *\n" +
+            "       step(0.0, distance) *\n" +
             "       step(0.0, bestDistance - distance) > 0.0;\n" +
             "   bestDistance = hit ? distance : bestDistance;\n" +
             "   normal = hit ? N : normal;\n" +
@@ -51,6 +52,16 @@ object RayTracing {
             "       vec3(b.zw, c.x),\n" +
             "       c.yzw\n" +
             "   );\n" +
+            "}\n"
+
+    const val coloring = "" +
+            "vec3 coloring(float t){\n" +
+            "   float base = fract(t)*.8+.2;\n" +
+            "   vec3 a = vec3(97.0,130.0,234.0)/255.0;\n" +
+            "   vec3 b = vec3(220.0,94.0,75.0)/255.0;\n" +
+            "   vec3 c = vec3(221.0,220.0,219.0)/255.0;\n" +
+            "   t = clamp(t*0.05,0.0,2.0);\n" +
+            "   return base * (t < 1.0 ? mix(a,b,t) : mix(b,c,t-1.0));\n" +
             "}\n"
 
     val glslBLASIntersectionCompute = "" +

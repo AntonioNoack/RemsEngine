@@ -344,7 +344,11 @@ class FileExplorerEntry(
         if (isHovered) {
             // todo reset time when not hovered
             val animSample = try {
-                if (file.lcExtension == "json") PrefabCache.getPrefabInstance(file) else null
+                if (when (file.lcExtension) {
+                        "json", "gltf", "fbx" -> true
+                        else -> false
+                    }
+                ) PrefabCache.getPrefabInstance(file) else null
             } catch (e: Exception) {
                 null // just not an animation
             }

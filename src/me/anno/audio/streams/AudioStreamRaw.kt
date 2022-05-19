@@ -9,6 +9,8 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
+import me.anno.utils.structures.tuples.FloatPair
+import me.anno.utils.structures.tuples.ShortPair
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.getAudioSequence
 import kotlin.math.max
@@ -50,8 +52,8 @@ class AudioStreamRaw(
                 getMaxAmplitudesSync(mnI + 1, s1)
                 val fract = fract(mni + mxi).toFloat()
                 dst.set(
-                    mix(s0.left, s1.left, fract),
-                    mix(s0.right, s1.right, fract)
+                    mix(s0.first, s1.first, fract),
+                    mix(s0.second, s1.second, fract)
                 )
             } else {
                 // time is changing
@@ -61,12 +63,12 @@ class AudioStreamRaw(
                 getMaxAmplitudesSync(mxI, s1)
                 val f0i = 1f - (mni - mnI).toFloat() // x.2f -> 0.8f
                 val f1i = (mxi - mxI).toFloat() // x.2f -> 0.2f
-                var b0 = s0.left * f0i + s1.left * f1i
-                var b1 = s0.right * f0i + s1.right * f1i
+                var b0 = s0.first * f0i + s1.first * f1i
+                var b1 = s0.second * f0i + s1.second * f1i
                 for (index in mnI + 1 until mxI) {
                     getMaxAmplitudesSync(index, s2)
-                    b0 += s2.left
-                    b1 += s2.right
+                    b0 += s2.first
+                    b1 += s2.second
                 }
                 val dt = (mxi - mni).toFloat()
                 // average the values over the time span
@@ -156,8 +158,8 @@ class AudioStreamRaw(
             averageSamples(mni, mxi, s0, s1, s2, dst, this::getAmplitudeSync)
 
             // write the data
-            leftBuffer[sampleIndex] = dst.left
-            rightBuffer[sampleIndex] = dst.right
+            leftBuffer[sampleIndex] = dst.first
+            rightBuffer[sampleIndex] = dst.second
 
             indexI = indexJ
 

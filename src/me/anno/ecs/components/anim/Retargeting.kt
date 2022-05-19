@@ -97,7 +97,6 @@ class Retargeting : NamedSaveable() {
                 }
                 srcBoneMapping = newNames
             }
-            LOGGER.info("Total Mapping: ${this.srcBoneMapping}")
             val dstToSrcM = dstToSrcM
             val srcToDstM = srcToDstM
             for (dstBoneIndex in 0 until size) {
@@ -176,7 +175,7 @@ class Retargeting : NamedSaveable() {
         }
     }
 
-    override val className: String = "Retargeting"
-    override val approxSize: Int = 20
+    override val className = "Retargeting"
+    override val approxSize = 20
 
 }

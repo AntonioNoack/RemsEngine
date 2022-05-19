@@ -57,7 +57,7 @@ object GFX : GFXBase() {
 
     private val LOGGER = LogManager.getLogger(GFX::class)
 
-    // for final rendering we need to use the GPU anyways;
+    // for final rendering we need to use the GPU anyway;
     // so just use a static variable
     var isFinalRendering = false
 
@@ -276,7 +276,9 @@ object GFX : GFXBase() {
         LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
         LOGGER.info("GLSL Version " + glGetString(GL_SHADING_LANGUAGE_VERSION))
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
+        val capabilities = capabilities
         supportsAnisotropicFiltering = capabilities?.GL_EXT_texture_filter_anisotropic ?: false
+        LOGGER.info("OpenGL supports NV mesh shader? ${capabilities?.GL_NV_mesh_shader}")
         LOGGER.info("OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
         if (supportsAnisotropicFiltering) {
             val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
@@ -353,10 +355,10 @@ object GFX : GFXBase() {
             val remainingTime = Engine.nanoTime - t0
             workQueue(lowPriorityGPUTasks, remainingTime * 1e-9f, all)
         }
-        val dt = (Engine.nanoTime - t0) * 1e-9f
+        /*val dt = (Engine.nanoTime - t0) * 1e-9f
         if (dt > 1.5f * gpuTaskBudget) {
             LOGGER.warn("Spent too long in workGPUTasks(): ${dt}s")
-        }
+        }*/
     }
 
     fun workGPUTasksUntilShutdown() {
@@ -491,28 +493,30 @@ object GFX : GFXBase() {
 
     fun getName(i: Int): String {
         if (glConstants.isEmpty()) {
-            discoverOpenGLTypeNames()
+            discoverOpenGLNames()
         }
         return glConstants[i] ?: "$i"
     }
 
     private val glConstants = HashMap<Int, String>()
 
-    private fun discoverOpenGLTypeNames() {
-        var clazz: KClass<*> = GL46::class
-        while (true) {
-            for (p in clazz.staticProperties) {
-                if (p.name.length > 3 &&
-                    p.name.startsWith("GL_")
-                ) {
-                    val value = p.get()
-                    if (value is Int) {
-                        glConstants[value] = p.name.substring(3)
-                    }
+    fun discoverOpenGLNames() {
+        discoverOpenGLNames(GL46::class)
+    }
+
+    fun discoverOpenGLNames(clazz: KClass<*>) {
+        for (p in clazz.staticProperties) {
+            if (p.name.length > 3 &&
+                p.name.startsWith("GL_")
+            ) {
+                val value = p.get()
+                if (value is Int) {
+                    glConstants[value] = p.name.substring(3)
                 }
             }
-            clazz = clazz.superclasses
-                .firstOrNull() ?: break
+        }
+        for (parent in clazz.superclasses) {
+            discoverOpenGLNames(parent)
         }
     }
 

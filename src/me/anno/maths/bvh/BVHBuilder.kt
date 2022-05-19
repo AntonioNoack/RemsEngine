@@ -7,6 +7,7 @@ import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
+import me.anno.utils.Clock
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
@@ -93,6 +94,7 @@ abstract class BVHBuilder(
             scene: PipelineStage, // filled with meshes
             cameraPosition: Vector3d, worldScale: Double, splitMethod: SplitMethod, maxNodeSize: Int
         ): TLASNode {
+            val clock = Clock()
             val objects = ArrayList<TLASLeaf>(scene.size)
             // add non-instanced objects
             val dr = scene.drawRequests
@@ -144,7 +146,10 @@ abstract class BVHBuilder(
                     }
                 }
             }
-            return recursiveBuildTLAS(objects, 0, objects.size, splitMethod)
+            clock.stop("Creating BLASes")
+            val tlas = recursiveBuildTLAS(objects, 0, objects.size, splitMethod)
+            clock.stop("Creating TLAS")
+            return tlas
         }
 
         fun buildBLAS(mesh: Mesh, splitMethod: SplitMethod, maxNodeSize: Int): BLASNode? {
@@ -173,11 +178,6 @@ abstract class BVHBuilder(
                 // leaf was already created by parent buildTLAS()
                 return objects[start]
             } else {
-
-                val bounds = AABBf()
-                for (i in start until end) {
-                    bounds.union(objects[i].bounds)
-                }
 
                 // bounds of center of primitives for efficient split dimension
                 val centroidBounds = AABBf()
@@ -222,6 +222,9 @@ abstract class BVHBuilder(
                 val n0 = recursiveBuildTLAS(objects, start, mid, splitMethod)
                 val n1 = recursiveBuildTLAS(objects, mid, end, splitMethod)
 
+                val bounds = AABBf(n0.bounds)
+                bounds.union(n1.bounds)
+
                 return TLASBranch(dim, n0, n1, bounds)
             }
 
@@ -236,14 +239,13 @@ abstract class BVHBuilder(
             newPositions: FloatArray,
         ): BLASNode {
 
-            val bounds = AABBf()
-            for (i in start * 3 until end * 3) {
-                val ci = indices[i] * 3
-                bounds.union(positions[ci], positions[ci + 1], positions[ci + 2])
-            }
-
             val count = end - start
             if (end - start <= maxNodeSize) { // create leaf
+                val bounds = AABBf()
+                for (i in start * 3 until end * 3) {
+                    val ci = indices[i] * 3
+                    bounds.union(positions[ci], positions[ci + 1], positions[ci + 2])
+                }
                 return BLASLeaf(start, count, newPositions, bounds)
             }
 
@@ -298,8 +300,12 @@ abstract class BVHBuilder(
                     SplitMethod.HIERARCHICAL_LINEAR -> throw NotImplementedError()
                 }
             }
+
             val n0 = recursiveBuildBLAS(positions, indices, start, mid, maxNodeSize, splitMethod, newPositions)
             val n1 = recursiveBuildBLAS(positions, indices, mid, end, maxNodeSize, splitMethod, newPositions)
+
+            val bounds = AABBf(n0.bounds)
+            bounds.union(n1.bounds)
 
             return BLASBranch(dim, n0, n1, bounds)
         }

@@ -13,7 +13,10 @@ object DefaultRenderingHints {
     val hints: MutableMap<*, *>
 
     // display-independent hints, without subpixel rendering: scalable without color artefacts
-    val portableHints = mutableMapOf(RenderingHints.KEY_FRACTIONALMETRICS to RenderingHints.VALUE_FRACTIONALMETRICS_ON)
+    val portableHints = mutableMapOf(
+        RenderingHints.KEY_FRACTIONALMETRICS to RenderingHints.VALUE_FRACTIONALMETRICS_ON,
+        RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON
+    )
 
     init {
         val desktopHints = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints")

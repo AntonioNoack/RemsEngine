@@ -142,13 +142,13 @@ open class ByteBufferPool(val size: Int, var entryTimeoutNanos: Long = 5_000_000
         fun free(buffer: IntBuffer?) {
             buffer ?: return
             MemoryUtil.memFree(buffer)
-            allocated.addAndGet(-buffer.capacity().toLong() * 2L)
+            allocated.addAndGet(-buffer.capacity().toLong() * 4L)
         }
 
         fun free(buffer: FloatBuffer?) {
             buffer ?: return
             MemoryUtil.memFree(buffer)
-            allocated.addAndGet(-buffer.capacity().toLong() * 2L)
+            allocated.addAndGet(-buffer.capacity().toLong() * 4L)
         }
 
     }

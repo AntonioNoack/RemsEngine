@@ -27,7 +27,9 @@ abstract class InnerFile(
     init {
         if (_parent is InnerFolder) {
             val old = _parent.children.put(name, this)
+            _parent.childrenList.add(this)
             if (old != null) {
+                _parent.childrenList.remove(old)
                 old.folder = this
                 _parent.children[name] = old
                 // LOGGER.warn("Overrode $old")

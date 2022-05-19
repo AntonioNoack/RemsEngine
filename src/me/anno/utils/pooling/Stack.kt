@@ -15,6 +15,7 @@ class Stack<V : Any>(private val createInstance: () -> V) {
         var tmp: Array<Any?> = Array(64) { createInstance() }
         var index = 0
         var localFloor = 0
+        val capacity get() = tmp.size
         fun ensure() {
             if (index >= tmp.size) {
                 val newSize = tmp.size * 2
@@ -77,6 +78,8 @@ class Stack<V : Any>(private val createInstance: () -> V) {
         val instance = storage.get()
         instance.localFloor = 0
     }
+
+    val capacity get() = storage.get().capacity
 
     var index: Int
         get() = storage.get().index

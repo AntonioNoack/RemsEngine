@@ -24,12 +24,14 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
+import me.anno.maths.bvh.RayTracing.coloring
 import me.anno.maths.bvh.RayTracing.glslBLASIntersectionCompute
 import me.anno.maths.bvh.RayTracing.glslBLASIntersectionGraphics
 import me.anno.maths.bvh.RayTracing.glslIntersections
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.maths.bvh.TLASNode.Companion.PIXELS_PER_TLAS_NODE
 import me.anno.utils.Clock
+import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
@@ -53,7 +55,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
         downloads.getChild("3d/XYZ arrows.obj")
     )
 
-    val source = sources[0]
+    val source = sources[2]
     val pipeline = Pipeline(DeferredSettingsV2(listOf(DeferredLayerType.COLOR), false))
     pipeline.defaultStage = PipelineStage(
         "default", Sorting.NO_SORTING, 0, null, DepthMode.ALWAYS, true,
@@ -97,7 +99,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
     }
 
     val tlas = BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, worldScale, SplitMethod.MEDIAN, maxNodeSize)
-    return Quad(tlas, Vector3f().set(cameraPosition), Quaternionf(cameraRotation), 1f)
+    return Quad(tlas, Vector3f().set(cameraPosition), Quaternionf(cameraRotation), 0.2f)
 
 }
 
@@ -185,10 +187,11 @@ fun createGraphicsShader(tlas: TLASNode): Quad<Shader, Texture2D, Texture2D, Tex
                     "           mat4x3 worldToLocal = loadMat4x3(d10,d11,d12);\n" +
                     // transform ray into local coordinates
                     "           vec3 localPos = worldToLocal * vec4(worldPos, 1.0);\n" +
-                    "           vec3 localDir = normalize(worldToLocal * vec4(worldDir, 0.0));\n" +
+                    "           vec3 localDir0 = worldToLocal * vec4(worldDir, 0.0);\n" +
+                    "           vec3 localDir = normalize(localDir0);\n" +
                     "           vec3 localInvDir = 1.0 / localDir;\n" +
                     // transform world distance into local coordinates
-                    "           float localDistance = worldDistance * length(worldToLocal * vec4(worldDir, 0.0));\n" +
+                    "           float localDistance = worldDistance * length(localDir0);\n" +
                     "           float localDistanceOld = localDistance;\n" +
                     "           vec3 localNormal = vec3(0.0);\n" +
                     "           intersectBLAS(v01.x, localPos, localDir, localInvDir, localNormal, localDistance, nodeCtr);\n" +
@@ -258,6 +261,8 @@ fun createComputeShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2
     val maxTLASDepth = tlas.maxDepth()
     val maxBLASDepth = meshes.maxOf { it.maxDepth() }
 
+    LOGGER.debug("Max TLAS depth: $maxTLASDepth, max BLAS depth: $maxBLASDepth")
+
     return Quad(
         ComputeShader(
             "bvh-traversal", Vector2i(16), "" +
@@ -279,6 +284,7 @@ fun createComputeShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2
                     "#define BLAS_DEPTH $maxBLASDepth\n" +
                     loadMat4x3 +
                     glslBLASIntersectionCompute +
+                    coloring +
                     "void main(){\n" +
                     "   ivec2 pos = ivec2(gl_GlobalInvocationID.xy);\n" +
                     "   if(all(lessThan(pos,size))){\n" +
@@ -321,10 +327,11 @@ fun createComputeShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2
                     "           mat4x3 worldToLocal = loadMat4x3(d10,d11,d12);\n" +
                     // transform ray into local coordinates
                     "           vec3 localPos = worldToLocal * vec4(worldPos, 1.0);\n" +
-                    "           vec3 localDir = normalize(worldToLocal * vec4(worldDir, 0.0));\n" +
+                    "           vec3 localDir0 = worldToLocal * vec4(worldDir, 0.0);\n" +
+                    "           vec3 localDir = normalize(localDir0);\n" +
                     "           vec3 localInvDir = 1.0 / localDir;\n" +
                     // transform world distance into local coordinates
-                    "           float localDistance = worldDistance * length(worldToLocal * vec4(worldDir, 0.0));\n" +
+                    "           float localDistance = worldDistance * length(localDir0);\n" +
                     "           float localDistanceOld = localDistance;\n" +
                     "           vec3 localNormal = vec3(0.0);\n" +
                     "           intersectBLAS(v01.x, localPos, localDir, localInvDir, localNormal, localDistance, nodeCtr);\n" +
@@ -351,7 +358,7 @@ fun createComputeShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2
                     "   }\n" +
                     "}\n" + // end of tlas
                     // save result to texture
-                    "       vec3 result = vec3(float(nodeCtr)*0.01);\n" +
+                    "       vec3 result = coloring(float(nodeCtr) * 0.03);\n" +
                     "       if(drawMode == 0) if(dot(worldNormal,worldNormal)>0.0){\n" +
                     "           worldNormal = normalize(worldNormal);\n" +
                     "           result = worldNormal*.5+.5;\n" +

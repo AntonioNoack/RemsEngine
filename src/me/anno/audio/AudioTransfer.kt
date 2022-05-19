@@ -1,6 +1,6 @@
 package me.anno.audio
 
-import me.anno.audio.streams.FloatPair
+import me.anno.utils.structures.tuples.FloatPair
 import me.anno.maths.Maths.mix
 import me.anno.utils.types.Floats.f2
 
@@ -11,8 +11,8 @@ open class AudioTransfer(var l2l: Float, var r2r: Float, var l2r: Float, var r2l
     open fun l2r(f: Float, s: AudioTransfer) = mix(l2r, s.l2r, f)
     open fun r2l(f: Float, s: AudioTransfer) = mix(r2l, s.r2l, f)
 
-    open fun getLeft(p: FloatPair, f: Float, s: AudioTransfer) = getLeft(p.left, p.right, f, s)
-    open fun getRight(p: FloatPair, f: Float, s: AudioTransfer) = getRight(p.left, p.right, f, s)
+    open fun getLeft(p: FloatPair, f: Float, s: AudioTransfer) = getLeft(p.first, p.second, f, s)
+    open fun getRight(p: FloatPair, f: Float, s: AudioTransfer) = getRight(p.first, p.second, f, s)
 
     open fun getLeft(left: Float, right: Float, f: Float, s: AudioTransfer) =
         left * l2l(f, s) + right * r2l(f, s)

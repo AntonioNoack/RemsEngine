@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.math.roundToInt
 
+@Suppress("unused")
 object PDFCache : CacheSection("PDFCache") {
 
     class AtomicCountedDocument(val doc: PDDocument) {

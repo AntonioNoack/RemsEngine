@@ -74,8 +74,7 @@ fun main2(
         controls.base = base
         controls.radius = 1f
         controls.movementSpeed = 0.2f * bvh.bounds.volume().pow(1f / 3f)
-        controls.rotationSpeed = 0.07f
-        controls.mouseWheelSpeed = 20f
+        controls.rotationSpeed = 0.15f
 
         val window = GFX.someWindow
         var lx = window.mouseX
@@ -83,7 +82,7 @@ fun main2(
         var lz = Input.mouseWheelSumY
         main.add(SpyPanel(style) {
             if (window.windowStack.inFocus.any2 { it is TestDrawPanel }) {
-                if (Input.mouseKeysDown.isNotEmpty()) {
+                if (Input.isRightDown) {
                     val dx = window.mouseX - lx
                     val dy = window.mouseY - ly
                     controls.onMouseMoved(0f, 0f, dx, dy)
