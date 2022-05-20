@@ -10,23 +10,6 @@ import kotlin.math.max
 
 object PathFinding {
 
-    // avoid allocations by using functional interfaces
-    fun interface Callback1x1<Node> {
-        fun call(to: Node, distance: Double)
-    }
-
-    fun interface Callback1x2<Node> {
-        fun call(from: Node, callback: Callback1x1<Node>)
-    }
-
-    fun interface Callback2x1<Node> {
-        fun call(to: Node, dist: Double, distToEnd: Double)
-    }
-
-    fun interface Callback2x2<Node> {
-        fun call(from: Node, callback: Callback2x1<Node>)
-    }
-
     private val LOGGER = LogManager.getLogger(PathFinding::class)
 
     private object FoundEndException : RuntimeException()
@@ -57,17 +40,16 @@ object PathFinding {
      * searches for the shortest path within a graph;
      * if you have node positions, please use A* instead, because it is more efficient
      * @return list of nodes from start to end; without start and end; null if no path is found
-     * @warn todo this is sometimes incorrect and doesn't find the shortest path
      * */
     fun <Node> dijkstra(
         start: Node,
         end: Node,
         distStartEnd: Double,
         numNodesInRange: Int,
-        queryForward: Callback1x2<Node>
+        queryForward: (from: Node, (to: Node, dist: Double) -> Unit) -> Unit
     ) = genericSearch(start, end, distStartEnd, false, numNodesInRange) { from, callback ->
-        queryForward.call(from) { to, distance ->
-            callback.call(to, distance, 0.0)
+        queryForward(from) { to, distance ->
+            callback(to, distance, 0.0)
         }
     }
 
@@ -82,7 +64,7 @@ object PathFinding {
         end: Node,
         distStartEnd: Double,
         numNodesInRange: Int,
-        queryForward: Callback2x2<Node>
+        queryForward: (from: Node, (to: Node, distFromTo: Double, distToEnd: Double) -> Unit) -> Unit
     ) = genericSearch(start, end, distStartEnd, true, numNodesInRange, queryForward)
 
     // thread local variants are only up to 10-20% faster, so use the local variant, where we have control over the size
@@ -103,7 +85,7 @@ object PathFinding {
         distStartEnd: Double,
         earlyExit: Boolean,
         numNodesInRange: Int,
-        queryForward: Callback2x2<Node>
+        queryForward: (from: Node, (to: Node, distFromTo: Double, distToEnd: Double) -> Unit) -> Unit
     ): List<Node>? {
         if (start == end) return emptyList()
         // forward tracking
@@ -131,10 +113,13 @@ object PathFinding {
             while (queue.isNotEmpty()) {
                 val from = queue.poll()
                 // LOGGER.debug("Checking $from at ${cache[from]}")
-                if (!earlyExit && from == end) throw FoundEndException
+                if (!earlyExit && from == end){
+                    // LOGGER.debug("Found end, remaining: ${queue.map { "$it at ${cache[it]}" }}")
+                    throw FoundEndException
+                }
                 val currentData = cache[from]!!
                 val currentDistance = currentData.distance
-                queryForward.call(from) { to, distFromTo, distToEnd ->
+                queryForward(from) { to, distFromTo, distToEnd ->
                     if (from == to) throw IllegalStateException("Node must not link to itself")
                     if (distFromTo < 0.0 || distToEnd < 0.0) LOGGER.warn("Distances must be non-negative")
                     val newDistance = currentDistance + distFromTo
@@ -153,11 +138,10 @@ object PathFinding {
                     } else {
                         if (newDistance < oldScore.distance) {
                             // point is in queue, remove it and reinsert it
-                            // LOGGER.debug("Updating $to from ${oldScore.score} to $newScore, >= ${currentData.score}")
-                            queue.remove(from)
+                            // LOGGER.debug("Updating $to from ${oldScore.score},${oldScore.distance} to $newScore,$newDistance, >= ${currentData.score}")
+                            queue.remove(to)
                             oldScore.score = newScore
-                            queue.add(from)
-                            // LOGGER.debug("Improved distance of $to from ${oldScore.distance} to $newDistance")
+                            queue.add(to)
                             oldScore.set(newDistance, from)
                         }
                     }

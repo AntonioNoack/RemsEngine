@@ -3,6 +3,7 @@ package me.anno.maths.paths
 import me.anno.Engine
 import me.anno.image.raw.BIImage
 import me.anno.maths.Maths
+import me.anno.maths.Maths.length
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.LOGGER
 import me.anno.utils.OS
@@ -27,11 +28,11 @@ class TestNode(var x: Float, var y: Float, val i: Int, val j: Int, val id: Int) 
     override fun toString() = "$id"
 }
 
-class Link(val node: TestNode, val dist: Double)
+class Link(val to: TestNode, var dist: Double)
 
 class TestGraph(
     val nodes: Array<TestNode>,
-    val disabled: HashSet<Int>,
+    val disabled: Set<Int>,
     val extra: HashMap<Int, ArrayList<Int>>
 ) {
     fun connect(a: Int, b: Int) {
@@ -43,7 +44,8 @@ class TestGraph(
 }
 
 fun distance(a: TestNode, b: TestNode): Double {
-    return (abs(b.x - a.x) + abs(b.y - a.y)).toDouble()
+    // return (abs(b.x - a.x) + abs(b.y - a.y)).toDouble()
+    return length(b.x - a.x, b.y - a.y).toDouble()
 }
 
 fun distance(start: TestNode, end: TestNode, path: List<TestNode>?): Double {
@@ -117,57 +119,38 @@ fun forward(graph: TestGraph, sx: Int, sy: Int) =
 
     }
 
-object ForwardV2x1: PathFinding.Callback2x2<TestNode> {
-    override fun call(from: TestNode, callback: PathFinding.Callback2x1<TestNode>) {
-        val links = from.links
-        for (i in links.indices) {
-            val link = links[i]
-            val other = link.node
-            callback.call(other, link.dist, other.distToEnd)
-        }
-    }
-}
-
-object ForwardV2x2: PathFinding.Callback1x2<TestNode> {
-    override fun call(from: TestNode, callback: PathFinding.Callback1x1<TestNode>) {
-        val links = from.links
-        for (i in links.indices) {
-            val link = links[i]
-            callback.call(link.node, link.dist)
-        }
-    }
-}
-
-/*fun forwardV2x1(from: TestNode, callback: (TestNode, Double, Double) -> Unit) {
+fun forwardV2x1(from: TestNode, callback: (TestNode, Double, Double) -> Unit) {
     val links = from.links
     for (i in links.indices) {
         val link = links[i]
-        val other = link.node
-        callback(other, link.dist, other.distToEnd)
+        val to = link.to
+        callback(to, link.dist, to.distToEnd)
     }
-}*/
+}
 
-/*fun forwardV2x2(from: TestNode, callback: (TestNode, Double) -> Unit) {
+fun forwardV2x2(from: TestNode, callback: (TestNode, Double) -> Unit) {
     val links = from.links
     for (i in links.indices) {
         val link = links[i]
-        callback(link.node, link.dist)
+        callback(link.to, link.dist)
     }
-}*/
+}
 
 fun main() {
 
-    val sx = 5
-    val sy = 4
+    // 1) testing the implementation
+    // 2) benchmarking it
+    // 3) I had a bug, and searched for it; I found it with this code :)
 
-    val indent = 0
+    val sx = 4
+    val sy = 4
 
     val w = (sx + sy) * 50
     val padding = 20
+    val startNode = 0
+    val endNode = sx * sy - 1
 
-    val disabled = hashSetOf(
-        0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 15, 16, 17
-    )
+    val disabled = emptySet<Int>()
 
     val nodes = Array(sx * sy) { id ->
         val i = id % sx
@@ -180,26 +163,18 @@ fun main() {
     }
 
     val graph = TestGraph(nodes, disabled, hashMapOf())
-    graph.connect(12, 18)
 
-    val start = graph.nodes[7]
-    val end = graph.nodes[graph.nodes.lastIndex - (1 + sx) * indent]
+    val start = graph.nodes[startNode]
+    val end = graph.nodes[endNode]
 
-    val fw = forward(graph, sx, sy)
+    val fw1 = forward(graph, sx, sy)
     for (node in graph.nodes) {
         if (node.id !in graph.disabled) {
-            node.distToEnd = distance(node, end)
-            var linkCount = 0
-            fw(node) { _, _ ->
-                linkCount++
+            val links = ArrayList<Link>(16)
+            fw1(node) { other, dist ->
+                links.add(Link(other, dist))
             }
-            if (linkCount > 0) {
-                val links = ArrayList<Link>(linkCount)
-                fw(node) { other, dist ->
-                    links.add(Link(other, dist))
-                }
-                node.links = links
-            }
+            node.links = links
         }
     }
 
@@ -210,7 +185,7 @@ fun main() {
         val cx = (sx - 1) * 0.5f
         val cy = (sy - 1) * 0.5f
         val random = Random(seed)
-        val randomness = 2f
+        val randomness = 5f
         for (id in nodes.indices) {
             val i = id % sx
             val j = id / sx
@@ -224,21 +199,28 @@ fun main() {
         }
     }
 
-    var seed: Long = 6043488
+    var seed: Long = 1
     var lastSeed = seed
     var lastTime = Engine.nanoTime
     var path0: List<TestNode>
     var path1: List<TestNode>
     do {
         generate(seed)
+        for (id in graph.nodes.indices) {
+            val node = graph.nodes[id]
+            node.distToEnd = distance(node, end)
+            for (link in node.links) {
+                link.dist = distance(node, link.to)
+            }
+        }
         // functional interfaces
         // 1700ns/seed
-        path0 = PathFinding.aStar(start, end, distance(start, end), sx * sy, ForwardV2x1)!!
-        path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, ForwardV2x2)!!
+        // path0 = PathFinding.aStar(start, end, distance(start, end), sx * sy, ForwardV2x1)!!
+        // path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, ForwardV2x2)!!
         // with and without inlining, we get the same performance of 1500ns/seed
         // 1500ns/seed
-        // path0 = PathFinding.aStar(start, end, distance(start, end), sx * sy, ::forwardV2x1)!!
-        // path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, ::forwardV2x2)!!
+        path0 = PathFinding.aStar(start, end, distance(start, end), sx * sy, ::forwardV2x1)!!
+        path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, ::forwardV2x2)!!
         // 2100ns/seed
         // path0 = PathFinding.aStar(start, end, distance(start, end), sx * sy, forward(graph, sx, sy, end))!!
         // path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, forward(graph, sx, sy))!!
@@ -250,8 +232,14 @@ fun main() {
             lastSeed = seed
             lastTime = time
         }
+        // this has been fixed; fill no longer occur
         if (distance1 < distance2) {
             LOGGER.debug("Found invalid sample: $seed, $distance1 < $distance2")
+            break
+        }
+        // this will be found a few times
+        if (distance1 > distance2) {
+            LOGGER.debug("Found sample, where Dijkstra is better")
             break
         }
         seed++
