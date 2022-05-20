@@ -1,6 +1,7 @@
 package me.anno.utils.structures.lists
 
 import me.anno.graph.knn.Heap
+import me.anno.maths.bvh.BVHBuilder
 import kotlin.math.max
 
 object Lists {
@@ -152,32 +153,57 @@ object Lists {
 
     fun <V> List<V>.getOrPrevious(index: Int) = if (index > 0) this[index - 1] else this.getOrNull(0)
 
-    fun <V> List<V>.one(func: (V) -> Boolean): Boolean {
-        for (entry in this) {
-            if (func(entry)) return true
-        }
-        return false
-    }
+    // before I knew there was any()
+    /* fun <V> List<V>.one(func: (V) -> Boolean): Boolean {
+         for (entry in this) {
+             if (func(entry)) return true
+         }
+         return false
+     }
 
-    fun <V> Set<V>.one(func: (V) -> Boolean): Boolean {
-        for (entry in this) {
-            if (func(entry)) return true
-        }
-        return false
-    }
+     fun <V> Set<V>.one(func: (V) -> Boolean): Boolean {
+         for (entry in this) {
+             if (func(entry)) return true
+         }
+         return false
+     }
 
-    fun <V> Sequence<V>.one(func: (V) -> Boolean): Boolean {
-        for (entry in this) {
-            if (func(entry)) return true
-        }
-        return false
-    }
+     fun <V> Sequence<V>.one(func: (V) -> Boolean): Boolean {
+         for (entry in this) {
+             if (func(entry)) return true
+         }
+         return false
+     }
 
-    fun <K, V> Map<K, V>.one(func: (Map.Entry<K, V>) -> Boolean): Boolean {
-        for (entry in this) {
-            if (func(entry)) return true
+     fun <K, V> Map<K, V>.one(func: (Map.Entry<K, V>) -> Boolean): Boolean {
+         for (entry in this) {
+             if (func(entry)) return true
+         }
+         return false
+     }*/
+
+    fun <V>  ArrayList<V>.partition1(
+        start: Int, end: Int, condition: (V) -> Boolean
+    ): Int {
+
+        var i = start
+        var j = end - 1
+
+        while (i < j) {
+            // while front is fine, progress front
+            while (i < j && condition(this[i])) i++
+            // while back is fine, progress back
+            while (i < j && !condition(this[j])) j--
+            // if nothing works, swap i and j
+            if (i < j) {
+                val t = this[i]
+                this[i] = this[j]
+                this[j] = t
+            }
         }
-        return false
+
+        return i
+
     }
 
     fun <V> List<V>.binarySearch(compare: (V) -> Int): Int {

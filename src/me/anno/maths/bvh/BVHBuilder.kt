@@ -7,8 +7,10 @@ import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.utils.Clock
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.partition1
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
 import me.anno.utils.types.AABBs.avgZ
@@ -21,6 +23,7 @@ import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import java.util.Random
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -30,9 +33,7 @@ import kotlin.math.sqrt
 /**
  * creates a bounding volume hierarchy for triangle meshes
  * */
-abstract class BVHBuilder(
-    val bounds: AABBf
-) {
+abstract class BVHBuilder(val bounds: AABBf) {
 
     // https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
     var nodeId = 0
@@ -199,18 +200,18 @@ abstract class BVHBuilder(
                     when (splitMethod) {
                         SplitMethod.MIDDLE -> {
                             val midF = (centroidBounds.getMin(dim) + centroidBounds.getMax(dim)) * 0.5f
-                            mid = partition(objects, start, end) { t ->
+                            mid = objects.partition1(start, end) { t ->
                                 t.centroid[dim] < midF
                             }
                             if (mid == start || mid >= end - 1) {// middle didn't work -> use more elaborate scheme
-                                mid = (start + end) / 2
-                                median(objects, start, end) { t0, t1 ->
+                                // mid = (start + end) / 2
+                                mid = objects.median(start, end) { t0, t1 ->
                                     t0.centroid[dim].compareTo(t1.centroid[dim])
                                 }
                             }
                         }
                         SplitMethod.MEDIAN -> {
-                            median(objects, start, end) { t0, t1 ->
+                            mid = objects.median(start, end) { t0, t1 ->
                                 t0.centroid[dim].compareTo(t1.centroid[dim])
                             }
                         }
@@ -337,12 +338,43 @@ abstract class BVHBuilder(
             file.writeText(builder.toString())
         }*/
 
-        fun median(
-            objects: ArrayList<TLASLeaf>, start: Int, end: Int, condition: (t0: TLASLeaf, t1: TLASLeaf) -> Int
-        ) {
+        fun <V> ArrayList<V>.median(
+            start: Int, end: Int,
+            condition: (t0: V, t1: V) -> Int
+        ): Int {
             // not optimal performance, but at least it will 100% work
-            objects.subList(start, end).sortWith(condition)
+            subList(start, end).sortWith(condition)
+            return (start + end) ushr 1
+            // new, on avg O(n) way, based on nth_element:
+            // ... has the same performance ...
+            /*val random = Random() // to do only create a single random instance per tlas
+            // we could reduce this +/- 1 accuracy if there are e.g. max 16 nodes/element
+            val avg = (start + end) / 2
+            val mid = median2(start, end, avg, random, condition)
+            return clamp(partition1(start, end) {
+                condition(it, mid) < 0
+            }, start + 1, end - 2)*/
         }
+
+        /*fun <V> ArrayList<V>.median2(
+            start: Int,
+            end: Int,
+            avg: Int,
+            random: Random,
+            condition: (t0: V, t1: V) -> Int
+        ): V {
+            val randomElement = this[start + random.nextInt(end - start)]
+            val mid = partition1(start, end) { a ->
+                condition(a, randomElement) > 0
+            }
+            return if (mid < avg) {
+                // partition mid ... end
+                median2(mid + 1, end, avg, random, condition)
+            } else if (mid > avg) {
+                // partition start .. mid
+                median2(start, mid, avg, random, condition)
+            } else randomElement// else done :)
+        }*/
 
         fun median(
             positions: FloatArray,
@@ -354,6 +386,13 @@ abstract class BVHBuilder(
             // not optimal performance, but at least it will 100% work
             val count = end - start
             val solution = Array(count) { start + it }
+            /*val sol2 = ArrayList(solution.toList())
+            sol2.median2(0, count, count / 2, Random()) { a, b ->
+                comp(positions, indices, a, b, condition)
+            }
+            for (i in solution.indices) {
+                solution[i] = sol2[i]
+            }*/
             solution.sortWith { a, b ->
                 comp(positions, indices, a, b, condition)
             }
@@ -415,27 +454,17 @@ abstract class BVHBuilder(
                 // while back is fine, progress back
                 while (i < j && !cond(positions, indices, j, condition)) j--
                 // if nothing works, swap i and j
-                if (i < j) swap(indices, i, j)
-            }
-
-            return i
-
-        }
-
-        private fun partition(
-            objects: ArrayList<TLASLeaf>, start: Int, end: Int, condition: (TLASLeaf) -> Boolean
-        ): Int {
-
-            var i = start
-            var j = end - 1
-
-            while (i < j) {
-                // while front is fine, progress front
-                while (i < j && condition(objects[i])) i++
-                // while back is fine, progress back
-                while (i < j && !condition(objects[j])) j--
-                // if nothing works, swap i and j
-                if (i < j) swap(objects, i, j)
+                if (i < j) {
+                    var i3 = i * 3
+                    var j3 = j * 3
+                    for (k in 0 until 3) {
+                        val t = indices[i3]
+                        indices[i3] = indices[j3]
+                        indices[j3] = t
+                        i3++
+                        j3++
+                    }
+                }
             }
 
             return i
@@ -459,24 +488,6 @@ abstract class BVHBuilder(
 
         private fun Vector3f.set(positions: FloatArray, ai: Int) {
             set(positions[ai], positions[ai + 1], positions[ai + 2])
-        }
-
-        private fun <V> swap(list: ArrayList<V>, i: Int, j: Int) {
-            val tmp = list[i]
-            list[i] = list[j]
-            list[j] = tmp
-        }
-
-        private fun swap(indices: IntArray, i: Int, j: Int) {
-            var i3 = i * 3
-            var j3 = j * 3
-            for (k in 0 until 3) {
-                val t = indices[i3]
-                indices[i3] = indices[j3]
-                indices[j3] = t
-                i3++
-                j3++
-            }
         }
 
         private fun AABBf.maxDim(): Int {
