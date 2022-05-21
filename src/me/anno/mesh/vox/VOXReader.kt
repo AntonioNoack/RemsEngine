@@ -209,7 +209,7 @@ class VOXReader {
                 val glow = if (hasGlow) bytes.float else 0f // ?
                 val isTotalPower = (properties and 128) != 0
                 while (matIndex > materials.size) {
-                    materials.add(Material.create().ref!!)
+                    materials.add(Material().ref)
                 }
                 val material = (materials[matIndex] as PrefabReadable).readPrefab()
                 material[Path.ROOT_PATH, "roughnessMinMax"] = Vector2f(0f, roughness)

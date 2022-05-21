@@ -72,7 +72,7 @@ class Skeleton : PrefabSaveable() {
             shader.v1b("hasAnimation", false)
         }
 
-        defaultMaterial.defineShader(shader)
+        defaultMaterial.bind(shader)
         mesh.draw(shader, 0)
     }
 

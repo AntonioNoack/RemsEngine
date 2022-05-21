@@ -105,7 +105,7 @@ object PlaneShapes {
         shader.v1b("hasVertexColors", mesh.hasVertexColors)
         shader.v1b("hasAnimation", false)
         shader.v1i("numberOfLightsPtr", 0)
-        material.defineShader(shader)
+        material.bind(shader)
         // update buffer
         buffer.isUpToDate = false
         buffer.ensureBufferWithoutResize()

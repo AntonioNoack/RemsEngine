@@ -11,6 +11,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.io.zip.InnerPrefabFile
+import me.anno.io.zip.InnerTmpFile
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.CountMap
@@ -52,7 +54,12 @@ class Prefab : Saveable {
     // (we don't need to override twice or more times)
 
     var history: ChangeHistory? = null
-    var isValid = false
+    var isValid: Boolean
+        get() = _sampleInstance != null
+        set(value) {
+            if (value) throw IllegalArgumentException()
+            invalidateInstance()
+        }
 
     @NotSerializedProperty
     var isWritable = true
@@ -62,7 +69,6 @@ class Prefab : Saveable {
         synchronized(this) {
             _sampleInstance?.destroy()
             _sampleInstance = null
-            isValid = false
         }
         // todo all child prefab instances would need to be invalidated as well
     }
@@ -217,7 +223,7 @@ class Prefab : Saveable {
                 adds.add(change)
             }
         }
-        isValid = false
+        invalidateInstance()
         return change
     }
 
@@ -342,7 +348,6 @@ class Prefab : Saveable {
                 }
                 // assign super instance? we should really cache that...
                 _sampleInstance = instance
-                isValid = true
                 instance
             } else _sampleInstance!!
         }

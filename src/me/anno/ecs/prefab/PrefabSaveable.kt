@@ -4,8 +4,10 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.io.zip.InnerTmpFile
 import me.anno.studio.Inspectable
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -36,7 +38,18 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     fun getOriginalOrDefault() = getOriginal() ?: getSuperInstance(className)
 
-    val ref get() = prefab?.source
+    val refOrNull get() = prefab?.source
+    val ref: FileReference
+        get() {
+            var prefab = prefab
+            if (prefab == null) {
+                prefab = Prefab()
+                prefab.source = InnerTmpFile.InnerTmpPrefabFile(prefab)
+                prefab._sampleInstance = this
+                this.prefab = prefab
+            }
+            return prefab.source
+        }
 
     /**
      * only defined while building the game

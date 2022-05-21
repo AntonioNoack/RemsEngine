@@ -29,6 +29,10 @@ abstract class ChunkSystem<Chunk, Element>(
     val maskY = sizeY - 1
     val maskZ = sizeZ - 1
 
+    val dx by lazy { getIndex(1, 0, 0) }
+    val dy by lazy { getIndex(0, 1, 0) }
+    val dz by lazy { getIndex(0, 0, 1) }
+
     abstract fun createChunk(
         chunkX: Int, chunkY: Int, chunkZ: Int,
         size: Int
@@ -36,15 +40,15 @@ abstract class ChunkSystem<Chunk, Element>(
 
     abstract fun getElement(
         container: Chunk, localX: Int, localY: Int, localZ: Int,
-        yzxIndex: Int
+        index: Int
     ): Element
 
     abstract fun setElement(
         container: Chunk, localX: Int, localY: Int, localZ: Int,
-        yzxIndex: Int, element: Element
+        index: Int, element: Element
     ): Boolean
 
-    fun getChunk(chunkX: Int, chunkY: Int, chunkZ: Int, generateIfMissing: Boolean): Chunk? {
+    open fun getChunk(chunkX: Int, chunkY: Int, chunkZ: Int, generateIfMissing: Boolean): Chunk? {
         val key = Vector3i(chunkX, chunkY, chunkZ)
         return if (generateIfMissing) {
             synchronized(chunks) {
@@ -57,48 +61,65 @@ abstract class ChunkSystem<Chunk, Element>(
         } else chunks[key]
     }
 
-    fun getChunkAt(globalX: Double, globalY: Double, globalZ: Double, generateIfMissing: Boolean): Chunk? {
+    open fun getChunkAt(globalX: Double, globalY: Double, globalZ: Double, generateIfMissing: Boolean): Chunk? {
         val cx = globalX.toInt() shr bitsX
         val cy = globalY.toInt() shr bitsY
         val cz = globalZ.toInt() shr bitsZ
         return getChunk(cx, cy, cz, generateIfMissing)
     }
 
-    fun getChunkAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): Chunk? {
+    open fun getChunkAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): Chunk? {
         val cx = globalX shr bitsX
         val cy = globalY shr bitsY
         val cz = globalZ shr bitsZ
         return getChunk(cx, cy, cz, generateIfMissing)
     }
 
-    fun getElementAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): Element? {
+    open fun getElementAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): Element? {
         val chunk = getChunkAt(globalX, globalY, globalZ, generateIfMissing) ?: return null
         val lx = globalX and maskX
         val ly = globalY and maskY
         val lz = globalZ and maskZ
         return getElement(
             chunk, lx, ly, lz,
-            getYZXIndex(lx, ly, lz)
+            getIndex(lx, ly, lz)
         )
     }
 
-    fun setElementAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean, element: Element): Boolean {
+    open fun getElementAt(globalX: Int, globalY: Int, globalZ: Int): Element {
+        val chunk = getChunkAt(globalX, globalY, globalZ, true)!!
+        val lx = globalX and maskX
+        val ly = globalY and maskY
+        val lz = globalZ and maskZ
+        return getElement(
+            chunk, lx, ly, lz,
+            getIndex(lx, ly, lz)
+        )
+    }
+
+    open fun setElementAt(
+        globalX: Int,
+        globalY: Int,
+        globalZ: Int,
+        generateIfMissing: Boolean,
+        element: Element
+    ): Boolean {
         val chunk = getChunkAt(globalX, globalY, globalZ, generateIfMissing) ?: return false
         val lx = globalX and maskX
         val ly = globalY and maskY
         val lz = globalZ and maskZ
         return setElement(
             chunk, lx, ly, lz,
-            getYZXIndex(lx, ly, lz),
+            getIndex(lx, ly, lz),
             element
         )
     }
 
-    fun getYZXIndex(localX: Int, localY: Int, localZ: Int): Int {
+    open fun getIndex(localX: Int, localY: Int, localZ: Int): Int {
         return localX + (localZ + localY.shl(bitsZ)).shl(bitsX)
     }
 
-    fun decodeYZXIndex(yzx: Int, dst: Vector3i = Vector3i()): Vector3i {
+    open fun decodeIndex(yzx: Int, dst: Vector3i = Vector3i()): Vector3i {
         dst.x = yzx and maskX
         val yz = yzx shr bitsX
         dst.z = yz and maskZ
@@ -140,7 +161,7 @@ abstract class ChunkSystem<Chunk, Element>(
                         val maxZ2 = min(max.z, baseZ + sizeZ)
                         for (y in minY2 until maxY2) {
                             for (z in minZ2 until maxZ2) {
-                                var yzxIndex = getYZXIndex(minX2, y, z)
+                                var yzxIndex = getIndex(minX2, y, z)
                                 for (x in minX2 until maxX2) {
                                     val element = getElement(chunk, x, y, z, yzxIndex++)
                                     processor(x, y, z, element)

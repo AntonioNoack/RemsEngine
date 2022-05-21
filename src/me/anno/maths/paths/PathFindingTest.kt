@@ -20,7 +20,7 @@ import kotlin.math.abs
 import kotlin.math.round
 import kotlin.random.Random
 
-val enableCrossLinks = false
+val enableCrossLinks = true
 
 class TestNode(var x: Float, var y: Float, val i: Int, val j: Int, val id: Int) {
     var distToEnd = 0.0
@@ -30,18 +30,7 @@ class TestNode(var x: Float, var y: Float, val i: Int, val j: Int, val id: Int) 
 
 class Link(val to: TestNode, var dist: Double)
 
-class TestGraph(
-    val nodes: Array<TestNode>,
-    val disabled: Set<Int>,
-    val extra: HashMap<Int, ArrayList<Int>>
-) {
-    fun connect(a: Int, b: Int) {
-        extra[a] = extra[a] ?: arrayListOf()
-        extra[b] = extra[b] ?: arrayListOf()
-        extra[a]!! += b
-        extra[b]!! += a
-    }
-}
+typealias TestGraph = Array<TestNode>
 
 fun distance(a: TestNode, b: TestNode): Double {
     // return (abs(b.x - a.x) + abs(b.y - a.y)).toDouble()
@@ -58,6 +47,15 @@ fun distance(start: TestNode, end: TestNode, path: List<TestNode>?): Double {
     return sum
 }
 
+fun distance(path: List<TestNode>?): Double {
+    if (path == null) return Double.POSITIVE_INFINITY
+    var sum = 0.0
+    for (i in 1 until path.size) {
+        sum += distance(path[i - 1], path[i])
+    }
+    return sum
+}
+
 fun forward(graph: TestGraph, sx: Int, sy: Int, end: TestNode) =
     { from: TestNode, callback: (TestNode, Double, Double) -> Unit ->
 
@@ -66,13 +64,8 @@ fun forward(graph: TestGraph, sx: Int, sy: Int, end: TestNode) =
         val id = from.id
 
         fun callback1(otherId: Int) {
-            val to = graph.nodes[otherId]
-            if (to.id !in graph.disabled)
-                callback(to, distance(from, to), distance(to, end))
-        }
-
-        for (extra in graph.extra[id] ?: emptyList()) {
-            callback1(extra)
+            val to = graph[otherId]
+            callback(to, distance(from, to), distance(to, end))
         }
 
         if (i > 0) callback1(id - 1)
@@ -97,12 +90,8 @@ fun forward(graph: TestGraph, sx: Int, sy: Int) =
         val id = from.id
 
         fun callback1(otherId: Int) {
-            val to = graph.nodes[otherId]
-            if (to.id !in graph.disabled) callback(to, distance(from, to))
-        }
-
-        for (extra in graph.extra[id] ?: emptyList()) {
-            callback1(extra)
+            val to = graph[otherId]
+            callback(to, distance(from, to))
         }
 
         if (i > 0) callback1(id - 1)
@@ -142,15 +131,18 @@ fun main() {
     // 2) benchmarking it
     // 3) I had a bug, and searched for it; I found it with this code :)
 
-    val sx = 4
-    val sy = 4
+    // A* vs Dijkstra
+    //  4 x  4 -> 1.2x faster
+    // 16 x 16 -> 1.04x faster
+    // 20 x 20 with crosses -> up to 14x faster
+    // 50 x 50 with crosses -> up to 7.5x faster
+    val sx = 20
+    val sy = 20
 
     val w = (sx + sy) * 50
     val padding = 20
     val startNode = 0
     val endNode = sx * sy - 1
-
-    val disabled = emptySet<Int>()
 
     val nodes = Array(sx * sy) { id ->
         val i = id % sx
@@ -162,20 +154,16 @@ fun main() {
         )
     }
 
-    val graph = TestGraph(nodes, disabled, hashMapOf())
+    val start = nodes[startNode]
+    val end = nodes[endNode]
 
-    val start = graph.nodes[startNode]
-    val end = graph.nodes[endNode]
-
-    val fw1 = forward(graph, sx, sy)
-    for (node in graph.nodes) {
-        if (node.id !in graph.disabled) {
-            val links = ArrayList<Link>(16)
-            fw1(node) { other, dist ->
-                links.add(Link(other, dist))
-            }
-            node.links = links
+    val fw1 = forward(nodes, sx, sy)
+    for (node in nodes) {
+        val links = ArrayList<Link>(16)
+        fw1(node) { other, dist ->
+            links.add(Link(other, dist))
         }
+        node.links = links
     }
 
     fun generate(seed: Long) {
@@ -185,7 +173,7 @@ fun main() {
         val cx = (sx - 1) * 0.5f
         val cy = (sy - 1) * 0.5f
         val random = Random(seed)
-        val randomness = 5f
+        val randomness = 0f
         for (id in nodes.indices) {
             val i = id % sx
             val j = id / sx
@@ -194,8 +182,8 @@ fun main() {
             val dy = j - cy
             val f = sx * 0.3f / (1f + dx * dx + dy * dy)
             val node = nodes[id]
-            node.x = round((i + dx * f + random.nextFloat() * randomness) * 3f)
-            node.y = round((j + dy * f + random.nextFloat() * randomness) * 3f)
+            node.x = i + dx * f + random.nextFloat() * randomness
+            node.y = j + dy * f + random.nextFloat() * randomness
         }
     }
 
@@ -204,10 +192,15 @@ fun main() {
     var lastTime = Engine.nanoTime
     var path0: List<TestNode>
     var path1: List<TestNode>
+    var cost0 = 0L
+    var cost1 = 0L
+    val maxDistance = Double.POSITIVE_INFINITY
+    val includeStart = true
+    val includeEnd = true
     do {
         generate(seed)
-        for (id in graph.nodes.indices) {
-            val node = graph.nodes[id]
+        for (id in nodes.indices) {
+            val node = nodes[id]
             node.distToEnd = distance(node, end)
             for (link in node.links) {
                 link.dist = distance(node, link.to)
@@ -218,19 +211,32 @@ fun main() {
         // path0 = PathFinding.aStar(start, end, distance(start, end), sx * sy, ForwardV2x1)!!
         // path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, ForwardV2x2)!!
         // with and without inlining, we get the same performance of 1500ns/seed
-        // 1500ns/seed
-        path0 = PathFinding.aStar(start, end, distance(start, end), sx * sy, ::forwardV2x1)!!
-        path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, ::forwardV2x2)!!
-        // 2100ns/seed
-        // path0 = PathFinding.aStar(start, end, distance(start, end), sx * sy, forward(graph, sx, sy, end))!!
-        // path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, forward(graph, sx, sy))!!
-        val distance1 = distance(start, end, path0)
-        val distance2 = distance(start, end, path1)
+        // 1500ns/seed | 32k ns/seed
+        val t0 = Engine.nanoTime
+        path0 = PathFinding.aStar(
+            start, end, distance(start, end), maxDistance,
+            sx * sy, includeStart, includeEnd, ::forwardV2x1
+        )!!
+        val t1 = Engine.nanoTime
+        path1 = PathFinding.dijkstra(
+            start, end, distance(start, end), maxDistance,
+            sx * sy, includeStart, includeEnd, ::forwardV2x2
+        )!!
+        val t2 = Engine.nanoTime
+        cost0 += (t1 - t0)
+        cost1 += (t2 - t1)
+        // 2100ns/seed | 70k ns/seed
+        // path0 = PathFinding.aStar(start, end, distance(start, end), sx * sy, forward(nodes, sx, sy, end))!!
+        // path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, forward(nodes, sx, sy))!!
+        val distance1 = distance(path0)
+        val distance2 = distance(path1)
         val time = Engine.nanoTime
         if (time - lastTime > 1e9) {
-            LOGGER.info("Checking seed $seed, ${(time - lastTime) / (seed - lastSeed)} ns/seed")
+            LOGGER.info("Checking seed $seed, ${(time - lastTime) / (seed - lastSeed)} ns/seed, A* is ${cost1.toFloat() / cost0}x faster")
             lastSeed = seed
             lastTime = time
+            cost0 = 0L
+            cost1 = 0L
         }
         // this has been fixed; fill no longer occur
         if (distance1 < distance2) {
@@ -238,7 +244,7 @@ fun main() {
             break
         }
         // this will be found a few times
-        if (distance1 > distance2) {
+        if (distance1 > distance2 * 1.0001f) {
             LOGGER.debug("Found sample, where Dijkstra is better")
             break
         }
@@ -246,16 +252,14 @@ fun main() {
     } while (true)
 
     val bounds = AABBf()
-    for (id in graph.nodes.indices) {
-        if (id !in graph.disabled) {
-            val node = graph.nodes[id]
-            bounds.union(node.x, node.y, 0f)
-        }
+    for (id in nodes.indices) {
+        val node = nodes[id]
+        bounds.union(node.x, node.y, 0f)
     }
 
     // move everything left
-    for (id in graph.nodes.indices) {
-        val node = graph.nodes[id]
+    /*for (id in nodes.indices) {
+        val node = nodes[id]
         node.x -= bounds.minX
         node.y -= bounds.minY
     }
@@ -263,20 +267,18 @@ fun main() {
     bounds.maxX -= bounds.minX
     bounds.maxY -= bounds.minY
     bounds.minX = 0f
-    bounds.minY = 0f
+    bounds.minY = 0f*/
 
-    val pointsByPosition = HashMap<Int, List<Int>>()
-    for (id in graph.nodes.indices) {
-        if (id !in graph.disabled) {
-            val node = graph.nodes[id]
-            val index = node.x.toInt() + 256 * node.y.toInt()
-            pointsByPosition[index] = (pointsByPosition[index] ?: emptyList()) + id
-        }
+    /*val pointsByPosition = HashMap<Int, List<Int>>()
+    for (id in nodes.indices) {
+        val node = nodes[id]
+        val index = node.x.toInt() + 256 * node.y.toInt()
+        pointsByPosition[index] = (pointsByPosition[index] ?: emptyList()) + id
     }
 
     for ((index, ids) in pointsByPosition) {
         println("${index.shr(8)},${index.and(255)}: $ids")
-    }
+    }*/
 
     val h = ((w - padding) * bounds.deltaY() / bounds.deltaX() + padding).toInt()
 
@@ -293,9 +295,8 @@ fun main() {
 
     // draw connections
     gfx.color = Color.GRAY
-    val forward1 = forward(graph, sx, sy, end)
+    val forward1 = forward(nodes, sx, sy, end)
     for (from in nodes) {
-        if (from.id in disabled) continue
         val x0 = (ox + from.x * scale).toInt()
         val y0 = (oy + from.y * scale).toInt()
         forward1(from) { to, distance, _ ->
@@ -309,22 +310,20 @@ fun main() {
     // draw nodes
     gfx.color = Color.WHITE
     for (node in nodes) {
-        if (node.id in disabled) continue
         val x = (ox + node.x * scale).toInt()
         val y = (oy + node.y * scale).toInt()
         gfx.fillOval(x - 2, y - 2, 5, 5)
         gfx.drawString("${node.id}", x, y - 8)
     }
 
-    fun drawPath(path0: List<TestNode>, name: String, index: Int, color: Color) {
-        val path = path0 + end
+    fun drawPath(path: List<TestNode>, name: String, index: Int, color: Color) {
         var ni = start
         var x0 = (ox + ni.x * scale).toInt()
         var y0 = (oy + ni.y * scale).toInt()
         // draw path
         gfx.color = color
         var distance = 0.0
-        for (j in path.indices) {
+        for (j in 1 until path.size) {
             val nj = path[j]
             val x1 = (ox + nj.x * scale).toInt()
             val y1 = (oy + nj.y * scale).toInt()

@@ -422,7 +422,7 @@ class PipelineStage(
                 if (previousMaterialByShader != material || previousMaterialInScene != material) {
                     // bind textures for the material
                     // bind all default properties, e.g. colors, roughness, metallic, clear coat/sheen, ...
-                    material.defineShader(shader)
+                    material.bind(shader)
                     previousMaterialInScene = material
                 }
 
@@ -525,7 +525,7 @@ class PipelineStage(
                 setupLights(pipeline, shader, cameraPosition, worldScale, aabb, true)
             }
 
-            material.defineShader(shader)
+            material.bind(shader)
             shaderColor(shader, "tint", -1)
             shader.v1i("drawMode", GFX.drawMode.id)
             shader.v1b("hasAnimation", useAnimations)

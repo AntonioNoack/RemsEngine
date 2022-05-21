@@ -25,12 +25,22 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
     // if outside the model, must return 0
     abstract fun getBlock(x: Int, y: Int, z: Int): Int
 
-    open fun fill(palette: IntArray, dst: IntArray) {
+    open fun fill(palette: IntArray?, dst: IntArray) {
         var i = 0
-        for (x in 0 until sizeX) {
-            for (y in 0 until sizeY) {
-                for (z in 0 until sizeZ) {
-                    dst[i++] = palette[getBlock(x, y, z)]
+        if (palette != null) {
+            for (x in 0 until sizeX) {
+                for (y in 0 until sizeY) {
+                    for (z in 0 until sizeZ) {
+                        dst[i++] = palette[getBlock(x, y, z)]
+                    }
+                }
+            }
+        } else {
+            for (x in 0 until sizeX) {
+                for (y in 0 until sizeY) {
+                    for (z in 0 until sizeZ) {
+                        dst[i++] = getBlock(x, y, z)
+                    }
                 }
             }
         }

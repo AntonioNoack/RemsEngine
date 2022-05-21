@@ -7,7 +7,7 @@ import org.joml.Vector3i
 
 class VoxelMeshBuildInfo(
     // input
-    val palette: IntArray,
+    val palette: IntArray?,
     // output
     val vertices: ExpandingFloatArray,
     val colors: ExpandingIntArray?,
@@ -28,10 +28,6 @@ class VoxelMeshBuildInfo(
         ox = x
         oy = y
         oz = z
-    }
-
-    fun setColor(type: Byte) {
-        color = palette[type.toInt() and 255]
     }
 
     fun setNormal(side: BlockSide) {

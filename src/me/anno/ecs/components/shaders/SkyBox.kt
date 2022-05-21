@@ -32,7 +32,7 @@ class SkyBox : MeshComponentBase() {
         }
 
     @NotSerializedProperty
-    val material = Material.create()
+    val material = Material()
 
     init {
         material.shader = defaultShader
@@ -40,7 +40,7 @@ class SkyBox : MeshComponentBase() {
         material.shaderOverrides["cirrus"] = TypeValue(GLSLType.V1F, 0.4f)
         material.shaderOverrides["cumulus"] = TypeValue(GLSLType.V1F, 0.8f)
         material.shaderOverrides["sunDir"] = TypeValue(GLSLType.V3F, Vector3f(0.7f, 0.7f, 0f))
-        materials = listOf(material.ref!!)
+        materials = listOf(material.ref)
     }
 
     override fun getMesh() = mesh

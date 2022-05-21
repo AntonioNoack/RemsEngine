@@ -7,13 +7,13 @@ import kotlin.random.Random
 @Suppress("MemberVisibilityCanBePrivate")
 class PerlinNoise(
     seed: Long,
-    octaves: Int,
-    falloff: Float,
+    octaves: Int, // 0 .. Int.Max
+    falloff: Float, // 0 .. 1
     min: Float,
     max: Float
 ) {
 
-    private var generators: Array<FullNoise>? = null
+    private var levels: Array<FullNoise>? = null
     private var factors = FloatArray(octaves)
 
     private var offset = min
@@ -67,7 +67,7 @@ class PerlinNoise(
     private fun createGenerators() {
         val random = Random(seed)
         val octaves = octaves
-        var generators = generators
+        var generators = levels
         if (generators == null || generators.size != octaves) {
             generators = Array(octaves) { FullNoise(random.nextLong()) }
         } else {
@@ -75,7 +75,7 @@ class PerlinNoise(
                 generators[i] = FullNoise(random.nextLong())
             }
         }
-        this.generators = generators
+        this.levels = generators
     }
 
     private fun calculateFactors() {
@@ -101,7 +101,7 @@ class PerlinNoise(
 
     operator fun get(x: Float): Float {
         var sum = offset
-        val generators = generators!!
+        val generators = levels!!
         val factors = factors
         var vx = x
         for (i in factors.indices) {
@@ -113,7 +113,7 @@ class PerlinNoise(
 
     operator fun get(x: Float, y: Float): Float {
         var sum = offset
-        val generators = generators!!
+        val generators = levels!!
         val factors = factors
         var vx = x
         var vy = y
@@ -127,7 +127,7 @@ class PerlinNoise(
 
     operator fun get(x: Float, y: Float, z: Float): Float {
         var sum = offset
-        val generators = generators!!
+        val generators = levels!!
         val factors = factors
         var vx = x
         var vy = y
@@ -143,7 +143,7 @@ class PerlinNoise(
 
     operator fun get(x: Float, y: Float, z: Float, w: Float): Float {
         var sum = offset
-        val generators = generators!!
+        val generators = levels!!
         val factors = factors
         var vx = x
         var vy = y
@@ -161,7 +161,7 @@ class PerlinNoise(
 
     fun getSmooth(x: Float): Float {
         var sum = offset
-        val generators = generators!!
+        val generators = levels!!
         val factors = factors
         var vx = x
         for (i in factors.indices) {
@@ -173,7 +173,7 @@ class PerlinNoise(
 
     fun getSmooth(x: Float, y: Float): Float {
         var sum = offset
-        val generators = generators!!
+        val generators = levels!!
         val factors = factors
         var vx = x
         var vy = y
@@ -187,7 +187,7 @@ class PerlinNoise(
 
     fun getSmooth(x: Float, y: Float, z: Float): Float {
         var sum = offset
-        val generators = generators!!
+        val generators = levels!!
         val factors = factors
         var vx = x
         var vy = y
@@ -203,7 +203,7 @@ class PerlinNoise(
 
     fun getSmooth(x: Float, y: Float, z: Float, w: Float): Float {
         var sum = offset
-        val generators = generators!!
+        val generators = levels!!
         val factors = factors
         var vx = x
         var vy = y

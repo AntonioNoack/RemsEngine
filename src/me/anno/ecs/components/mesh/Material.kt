@@ -3,10 +3,8 @@ package me.anno.ecs.components.mesh
 import me.anno.Engine
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
@@ -20,7 +18,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.io.zip.InnerTmpFile
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
@@ -135,7 +132,7 @@ open class Material : PrefabSaveable() {
         shaderOverrides[name] = value
     }
 
-    fun defineShader(shader: Shader) {
+    open fun bind(shader: Shader) {
 
         // all the data, the shader needs to know from the material
 
@@ -290,19 +287,6 @@ open class Material : PrefabSaveable() {
                 LOGGER.warn("Didn't find texture $name in ${shader.name}")
                 null
             }
-        }
-
-        /**
-         * create a procedural material:
-         * @return material instance, and file reference (which then can be set in mesh components, meshes and such)
-         * */
-        fun create(): Material {
-            val prefab = Prefab("Material")
-            val material = prefab.getSampleInstance() as Material
-            material.prefab = prefab
-            material.prefabPath = Path.ROOT_PATH
-            prefab.source = InnerTmpFile.InnerTmpPrefabFile(prefab)
-            return material
         }
 
         @JvmStatic

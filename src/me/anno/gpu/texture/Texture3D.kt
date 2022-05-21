@@ -135,6 +135,24 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         bufferPool.returnBuffer(byteBuffer)
     }
 
+    fun createMonochrome(getValue: (x: Int, y: Int, z: Int) -> Byte) {
+        val w = w
+        val h = h
+        val d = d
+        val size = w * h * d
+        val byteBuffer = bufferPool[size, false, false]
+        for (z in 0 until d) {
+            for (y in 0 until h) {
+                for (x in 0 until w) {
+                    byteBuffer.put(getValue(x, y, z))
+                }
+            }
+        }
+        byteBuffer.flip()
+        createMonochrome(byteBuffer)
+        bufferPool.returnBuffer(byteBuffer)
+    }
+
     fun createMonochrome(data: ByteBuffer) {
         if (w * h * d != data.remaining()) throw RuntimeException("incorrect size!")
         beforeUpload(w)

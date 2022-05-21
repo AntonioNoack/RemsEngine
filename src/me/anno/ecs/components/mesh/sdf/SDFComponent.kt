@@ -96,7 +96,7 @@ open class SDFComponent : ProceduralMesh() {
     @HideInInspector("isSDFChild")
     var debugMode = DebugMode.DEFAULT
 
-    val material by lazy { Material.create() }
+    val material = Material()
 
     @Type("List<Material/Reference>")
     @SerializedProperty

@@ -342,12 +342,13 @@ open class Window(
                 panel.ly0,
                 panel.lx1 - panel.lx0,
                 panel.ly1 - panel.ly0,
-                0x33ff0000
+                redrawColor
             )
         }
     }
 
     companion object {
+        private const val redrawColor = 0x33ff0000
         private val LOGGER = LogManager.getLogger(Window::class.java)
         private val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
     }

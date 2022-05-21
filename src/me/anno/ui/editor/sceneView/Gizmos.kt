@@ -76,7 +76,7 @@ object Gizmos {
         local.scale(scale)
         shader.m4x3delta("localTransform", local, camPosition, worldScale)
         shader.v1f("worldScale", worldScale.toFloat())
-        material.defineShader(shader)
+        material.bind(shader)
         shader.v4f("diffuseBase", color or (255 shl 24))
         shaderColor(shader, "tint", color or (255 shl 24))
         shader.v1b("hasAnimation", false)

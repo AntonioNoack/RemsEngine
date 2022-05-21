@@ -21,17 +21,13 @@ import kotlin.math.max
  * if you want a textured cuboid only, use a different material!
  * (this one is recursive = expensive)
  * */
-abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
+abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
 
-    // todo for multiple instances, we should not use multiple shader programs!!!
-
-    val size = Vector3i(1)
-
-    override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
+    /*override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
         super.bind(shader, renderer, instanced)
         shader.v3i("bounds", size)
         shader.v1i("maxSteps", max(1, size.x + size.y + size.z)) // max amount of blocks that can be traversed
-    }
+    }*/
 
     // needs to be adjusted as well for accurate shadows
     // I hope this gets optimized well, because no material data is actually required...
@@ -90,6 +86,7 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
         return ShaderStage(
             "material", createFragmentVariables(isInstanced, isAnimated), "" +
                     // step by step define all material properties
+                    "if(!gl_FrontFacing) discard;\n" +
                     "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
                     "vec3 bounds1 = vec3(bounds-1);\n" +
                     // start our ray on the surface of the cube: we don't need to project the ray onto the box

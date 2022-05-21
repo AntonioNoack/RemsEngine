@@ -47,6 +47,9 @@ object Shapes {
         constructor(base: FBBMesh, scale: Float) :
                 this(scale(base.positions, abs(scale)), base.indices, base.normals)
 
+        fun scaled(scale: Float) =
+            FBBMesh(this, scale)
+
         val front = Mesh()
         val back = Mesh()
         val both = Mesh()

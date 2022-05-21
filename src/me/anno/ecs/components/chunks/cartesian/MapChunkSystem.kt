@@ -22,9 +22,9 @@ abstract class MapChunkSystem<Element>(
         localX: Int,
         localY: Int,
         localZ: Int,
-        yzxIndex: Int
+        index: Int
     ): Element {
-        return container[yzxIndex] ?: defaultElement
+        return container[index] ?: defaultElement
     }
 
     override fun setElement(
@@ -32,10 +32,10 @@ abstract class MapChunkSystem<Element>(
         localX: Int,
         localY: Int,
         localZ: Int,
-        yzxIndex: Int,
+        index: Int,
         element: Element
     ): Boolean {
-        container[yzxIndex] = element
+        container[index] = element
         return true
     }
 

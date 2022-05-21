@@ -12,13 +12,9 @@ abstract class ArrayChunkSystem<Element>(
     abstract fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: Array<Element>)
 
     override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int): Array<Element> {
-        val data = if (defaultElement == null) {
-            @Suppress("UNCHECKED_CAST")
-            arrayOfNulls<Any?>(size) as Array<Element>
-        } else {
-            @Suppress("UNCHECKED_CAST")
-            Array<Any?>(size) { defaultElement } as Array<Element>
-        }
+        @Suppress("UNCHECKED_CAST")
+        val data = arrayOfNulls<Any>(size) as Array<Element>
+        data.fill(defaultElement)
         generateChunk(chunkX, chunkY, chunkZ, data)
         return data
     }
@@ -26,18 +22,18 @@ abstract class ArrayChunkSystem<Element>(
     override fun getElement(
         container: Array<Element>,
         localX: Int, localY: Int, localZ: Int,
-        yzxIndex: Int
+        index: Int
     ): Element {
-        return container[yzxIndex]
+        return container[index]
     }
 
     override fun setElement(
         container: Array<Element>,
         localX: Int, localY: Int, localZ: Int,
-        yzxIndex: Int,
+        index: Int,
         element: Element
     ): Boolean {
-        container[yzxIndex] = element
+        container[index] = element
         return true
     }
 

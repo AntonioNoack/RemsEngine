@@ -34,6 +34,7 @@ import me.anno.ecs.components.player.RemotePlayer
 import me.anno.ecs.components.script.QuickInputScriptComponent
 import me.anno.ecs.components.script.QuickScriptComponent
 import me.anno.ecs.components.script.ScriptComponent
+import me.anno.ecs.components.shaders.CuboidMesh
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TestVehicleController
@@ -170,6 +171,7 @@ object ECSRegistry {
         registerCustomClass(SplineMesh())
         registerCustomClass(SplineControlPoint())
         registerCustomClass(PathProfile())
+        registerCustomClass(CuboidMesh())
 
         // lights
         registerCustomClass(SpotLight())

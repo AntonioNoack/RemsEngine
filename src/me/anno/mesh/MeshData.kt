@@ -181,7 +181,7 @@ open class MeshData : ICacheData {
                             val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
                             val m1 = m0 ?: materials.getOrNull(index)
                             val material = MaterialCache[m1, defaultMaterial]
-                            material.defineShader(shader)
+                            material.bind(shader)
                             mesh.draw(shader, index)
                         }
                     } else warnMissingMesh(comp, mesh)
@@ -189,7 +189,7 @@ open class MeshData : ICacheData {
                 }
             } else {
                 val material = defaultMaterial
-                material.defineShader(shader)
+                material.bind(shader)
                 entity.anyComponent(MeshComponentBase::class) { comp ->
                     val mesh = comp.getMesh()
                     if (mesh?.positions != null) {

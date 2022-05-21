@@ -80,13 +80,13 @@ object ThumbsExt {
                 val material = MaterialCache[m1, Mesh.defaultMaterial]
                 val shader2 = material.shader?.value ?: shader
                 bindShader(shader2, stack, localStack)
-                material.defineShader(shader2)
+                material.bind(shader2)
                 mesh.draw(shader2, index)
             }
         } else {
             bindShader(shader, stack, localStack)
             val material = Mesh.defaultMaterial
-            material.defineShader(shader)
+            material.bind(shader)
             for (materialIndex in 0 until max(1, materials.size)) {
                 mesh.draw(shader, materialIndex)
             }

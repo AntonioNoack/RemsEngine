@@ -326,7 +326,7 @@ object Input {
             if (!byMouse && abs(dx) > abs(dy)) userCanScrollX = true // e.g. by touchpad: use can scroll x
             if (clicked != null) {
                 if (!userCanScrollX && byMouse && (isShiftDown || isControlDown)) {
-                    clicked.onMouseWheel(mouseX, mouseY, -dy, dx, byMouse)
+                    clicked.onMouseWheel(mouseX, mouseY, -dy, dx, byMouse = true)
                 } else {
                     clicked.onMouseWheel(mouseX, mouseY, dx, dy, byMouse)
                 }
