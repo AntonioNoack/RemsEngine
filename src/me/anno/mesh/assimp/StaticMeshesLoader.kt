@@ -16,6 +16,7 @@ import me.anno.io.zip.InnerFolder
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.io.AIFileIOImpl
 import me.anno.utils.Color.rgba
+import me.anno.utils.LOGGER
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -255,10 +256,10 @@ open class StaticMeshesLoader {
         if (normalMap != InvalidRef) prefab.setProperty("normalMap", normalMap)
 
         @Suppress("SpellCheckingInspection")
-        /*val baseColor2 = getPath(
-            aiScene, aiMaterial, loadedTextures,
-            AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, texturesDir
-        )*/
+                /*val baseColor2 = getPath(
+                    aiScene, aiMaterial, loadedTextures,
+                    AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, texturesDir
+                )*/
         // println("base color 2: $baseColor2")
 
         val metallicRoughness = getPath(
@@ -363,7 +364,12 @@ open class StaticMeshesLoader {
         val isCompressed = height == 0
 
         val size = if (isCompressed) width else width * height * 4
-        val data = bufferToBytes(texture, size)
+        val data = /*if (isCompressed) {
+        // new assimp version, that is broken
+            bufferToBytes(texture.pcDataCompressed(), size)
+        } else {*/
+            bufferToBytes(texture.pcData(size/4), size)
+        //}
 
         val fileName = texture.mFilename().dataString().ifEmpty {
             if (isCompressed) {
@@ -395,20 +401,30 @@ open class StaticMeshesLoader {
         return ByteArray(limit()) { get(it) }
     }
 
-    private fun bufferToBytes(texture: AITexture, size: Int): ByteArray {
-        val buffer = texture.pcData(size / 4)
-        return bufferToBytes(buffer, size)
-    }
-
     private fun bufferToBytes(buffer: AITexel.Buffer, size: Int): ByteArray {
         val bytes = ByteArray(size)
         var j = 0
-        for (i in 0 until size / 4) {
+        if (buffer.remaining() != size / 4) {
+            LOGGER.warn("Size doesn't match, ${buffer.position()}, ${buffer.capacity()}, ${buffer.remaining()} vs ${size / 4}")
+        }
+        for (i in 0 until buffer.remaining()) {
             bytes[j++] = buffer.b()
             bytes[j++] = buffer.g()
             bytes[j++] = buffer.r()
             bytes[j++] = buffer.a()
             buffer.get()
+        }
+        return bytes
+    }
+
+    private fun bufferToBytes(buffer: ByteBuffer, size: Int): ByteArray {
+        val bytes = ByteArray(size)
+        var j = 0
+        for (i in 0 until buffer.remaining() / 4) {
+            bytes[j++] = buffer.get()
+            bytes[j++] = buffer.get()
+            bytes[j++] = buffer.get()
+            bytes[j++] = buffer.get()
         }
         return bytes
     }

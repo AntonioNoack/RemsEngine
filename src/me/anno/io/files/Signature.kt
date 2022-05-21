@@ -191,6 +191,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("gimp", 0, GimpImage.MAGIC), // gimp file
             // todo qoi support?, https://github.com/phoboslab/qoi, https://github.com/saharNooby/qoi-java
             Signature("qoi", 0, "qoif"),
+            // todo test and use tinyEXR library for that from LWJGL
             // todo exr reader, https://openexr.readthedocs.io/en/latest/OpenEXRFileLayout.html
             Signature("exr", 0, listOf(0x76, 0x2f, 0x31, 0x01)), // HDR image format, can be exported from Blender
             // other

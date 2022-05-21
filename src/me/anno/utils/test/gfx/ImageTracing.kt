@@ -31,13 +31,11 @@ object ImageTracing {
 
     @Throws(IOException::class)
     fun computeOutline(w: Int, h: Int, pixels: IntArray) {
-        run {
-            var i = 0
-            val l = pixels.size
-            while (i < l) {
-                pixels[i] = (pixels[i] ushr 24) - 128
-                i++
-            }
+        var i2 = 0
+        val l = pixels.size
+        while (i2 < l) {
+            pixels[i2] = (pixels[i2] ushr 24) - 128
+            i2++
         }
         val ops = IntArrayList(64)
         val data = FloatArrayList(256, 0f)
@@ -69,8 +67,8 @@ object ImageTracing {
                     moveTo(p[0], p[1], ops, data)
                     run {
                         var k = 1
-                        val l = edge.size
-                        while (k < l) {
+                        val l2 = edge.size
+                        while (k < l2) {
                             edgeToPoint(edge.getValue(k), w, pixels, p)
                             lineTo(p[0], p[1], ops, data)
                             k++
@@ -79,8 +77,8 @@ object ImageTracing {
                     close(ops)
                     for (k in pixels.indices) ii.setRGB(k % w, k / w, 0)
                     var k = 0
-                    val l = edge.size - 1
-                    while (k < l) {
+                    val l3 = edge.size - 1
+                    while (k < l3) {
                         edgeToPoint(edge.getValue(k), w, pixels, p)
                         edgeToPoint(edge.getValue(k + 1), w, pixels, p2)
                         for (m in 0 until s * 2) {
@@ -129,9 +127,8 @@ object ImageTracing {
         var dir = 1
         while (true) {
             var i3 = dir * 3
-            var i: Int
             var vEdge = dir and 1 == 1
-            i = 0
+            var i = 0
             while (i < 3) {
                 val x2 = x + dx[i3]
                 val y2 = y + dy[i3++]

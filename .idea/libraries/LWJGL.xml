@@ -5,7 +5,6 @@
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-linux-arm64.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-linux.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-macos.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows-touch.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows-x86.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw.jar!/" />
@@ -43,6 +42,8 @@
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-windows.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-macos-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows-arm64.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
