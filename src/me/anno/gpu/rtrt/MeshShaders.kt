@@ -4,21 +4,23 @@ import me.anno.Engine
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.discoverOpenGLNames
-import me.anno.gpu.shader.OpenGLShader
 import org.lwjgl.opengl.GL11C.glGetIntegerv
-import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.NVMeshShader
 import org.lwjgl.opengl.NVMeshShader.*
 
 fun main() {
+
+    // trying to understand Mesh shaders and Task shaders...
+    // they came with RTX GPUs, but unfortunately are not raytracing related
+    // they are used for culling with mesh-lets
 
     // https://www.khronos.org/registry/OpenGL/extensions/NV/NV_mesh_shader.txt
 
     // init OpenGL
     ECSRegistry.initWithGFX()
 
-    // todo get raytracing on opengl working Nvidia: GL_NV_mesh_shader
-    // todo is there an extension for AMD?
+    // to do get raytracing on opengl working Nvidia: GL_NV_mesh_shader
+    // to do is there an extension for AMD?
 
     // task shader
     // mesh shader
@@ -66,7 +68,7 @@ fun main() {
         GL_MAX_MESH_WORK_GROUP_SIZE_NV,
         GL_MAX_TASK_WORK_GROUP_SIZE_NV,
 
-    )
+        )
 
     // find property names
     discoverOpenGLNames(NVMeshShader::class)
@@ -109,36 +111,9 @@ fun main() {
         MAX_TASK_WORK_GROUP_SIZE_NV: 32
     * */
 
-    open class SimpleShader(name: String, val source: String, val shaderType: Int) : OpenGLShader(name) {
-        override fun compile() {
-
-            val program = GL20.glCreateProgram()
-            GFX.check()
-            updateSession()
-            GFX.check()
-
-            val vertexShader = compile(name, program, shaderType, source)
-
-            GFX.check()
-
-            GL20.glLinkProgram(program)
-            // these could be reused...
-            GL20.glDeleteShader(vertexShader)
-
-            postPossibleError(name, program, false, source, "")
-
-            GFX.check()
-
-            this.program = program
-
-        }
-
-        override fun sourceContainsWord(word: String): Boolean = false
-    }
-
+    /*
     class MeshShader(name: String, source: String) : SimpleShader(name, source, GL_MESH_SHADER_NV)
-    class TaskShader(name: String, source: String) : SimpleShader(name, source, GL_TASK_SHADER_NV)
-
+    class TaskShader(name: String, source: String) : SimpleShader(name, source, GL_TASK_SHADER_NV)*/
 
     // shut down
     Engine.requestShutdown()

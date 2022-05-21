@@ -4,11 +4,9 @@ import me.anno.engine.raycast.RayHit
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.volume
-import me.anno.utils.types.Vectors.fract
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
-import java.io.IOException
 
 class TLASLeaf(
     val centroid: Vector3f,

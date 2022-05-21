@@ -160,8 +160,7 @@ class Mesh : PrefabSaveable() {
         get() = MaterialCache[material]
         set(value) {
             material = if (value == defaultMaterial || value == null) null
-            else if (value.prefab != null) value.prefab!!.source
-            else throw IllegalArgumentException("Use Material.create() to create your material!")
+            else value.ref
         }
 
     /**

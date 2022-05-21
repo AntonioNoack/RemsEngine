@@ -10,6 +10,7 @@ import me.anno.utils.structures.lists.Lists.any2
 
 /**
  * accelerates many requests on large graphs by grouping them into proxies;
+ * quality will be lower than without this accelerator;
  * todo cache partial queries (?)
  * */
 abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(

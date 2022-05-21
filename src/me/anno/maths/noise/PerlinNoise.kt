@@ -4,7 +4,7 @@ import me.anno.image.ImageWriter
 import org.apache.logging.log4j.LogManager
 import kotlin.random.Random
 
-@Suppress("MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 class PerlinNoise(
     seed: Long,
     octaves: Int, // 0 .. Int.Max
