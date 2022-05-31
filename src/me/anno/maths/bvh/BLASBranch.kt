@@ -30,7 +30,7 @@ class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABB
     override fun maxDepth() = 1 + kotlin.math.max(n0.maxDepth(), n1.maxDepth())
 
     // compact positions are saved in both nodes, and they are identical
-    override fun findCompactPositions() = n0.findCompactPositions()
+    override fun findGeometryData() = n0.findGeometryData()
 
     override fun forEach(run: (BLASNode) -> Unit) {
         run(this)

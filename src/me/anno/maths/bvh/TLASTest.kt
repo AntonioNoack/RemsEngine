@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.DepthMode
+import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.TargetType
@@ -22,14 +23,20 @@ import me.anno.gpu.shader.ShaderLib.attr0List
 import me.anno.gpu.shader.ShaderLib.attr0VShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Texture2D
+import me.anno.maths.bvh.BLASNode.Companion.createBLASBuffer
 import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
+import me.anno.maths.bvh.BLASNode.Companion.createTriangleBuffer
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
 import me.anno.maths.bvh.RayTracing.coloring
-import me.anno.maths.bvh.RayTracing.glslBLASIntersectionCompute
-import me.anno.maths.bvh.RayTracing.glslBLASIntersectionGraphics
+import me.anno.maths.bvh.RayTracing.glslBLASIntersection
+import me.anno.maths.bvh.RayTracing.glslComputeDefines
+import me.anno.maths.bvh.RayTracing.glslGraphicsDefines
 import me.anno.maths.bvh.RayTracing.glslIntersections
+import me.anno.maths.bvh.RayTracing.glslRandomGen
+import me.anno.maths.bvh.RayTracing.glslTLASIntersection
 import me.anno.maths.bvh.RayTracing.loadMat4x3
-import me.anno.maths.bvh.TLASNode.Companion.PIXELS_PER_TLAS_NODE
+import me.anno.maths.bvh.RayTracing2.glslBLASIntersection2
+import me.anno.maths.bvh.RayTracing2.glslTLASIntersection2
 import me.anno.utils.Clock
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
@@ -38,6 +45,7 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.structures.tuples.Quad
 import org.joml.*
 import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL43C.glGetProgramResourceIndex
 
 fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Float> {
 
@@ -51,7 +59,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
         downloads.getChild("3d/XYZ arrows.obj")
     )
 
-    val source = sources[2]
+    val source = sources[0]
     val pipeline = Pipeline(DeferredSettingsV2(listOf(DeferredLayerType.COLOR), false))
     pipeline.defaultStage = PipelineStage(
         "default", Sorting.NO_SORTING, 0, null, DepthMode.ALWAYS, true,
@@ -99,6 +107,54 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
 
 }
 
+val random = "uint seed = initRand(pixelId, uint(frameIndex));\n"
+
+val shading = "" +
+        "   float alpha = 1.0 / float(frameIndex + 1);\n" +
+        "   float distance = Infinity;\n" +
+        "   vec3 pos = worldPos, dir = worldDir;\n" +
+        "   vec3 normal = vec3(0.0), normal0 = worldDir;\n" +
+        "   vec3 color = vec3(1.0);\n" +
+        //
+        "   float roughness = 0.9;\n" +
+        "   int limit = 8;" +
+        "   for(int i=ZERO;i<limit;i++){\n" +
+        "       distance = Infinity;\n" +
+        "       intersectTLAS(pos,dir,distance,normal);\n" +
+        "       if(distance < Infinity){\n" +
+        // todo textures, different materials, ...
+        // mix color with hit color (at the moment: light gray)
+        "           color *= 0.95;\n" +
+        // continue raytracing by readjusting pos & normal
+        // find new ray direction depending on BRDF
+        "           pos = pos + dir * distance;\n" +
+        // diffuse:
+        "           dir = normalize(normal + nextRand3(seed));\n" +
+        // metallic:
+        // "           dir = normalize(reflect(dir, normalize(normal)) + roughness * nextRand3(seed));\n" +
+        // add small offset, so we don't have shadow acne
+        "           pos += dir * 0.01;\n" +
+        "           if(i==limit-1) color = vec3(0.0);\n" +
+        "           normal0 = normal;\n" +
+        "       } else {\n" +
+        // we hit the sky -> query the sky color
+        "           normal = normalize(normal0);\n" +
+        "           color *= 20.0 * mix(sky0,sky1,normal.y*.5+.5);\n" +
+        "           break;\n" +
+        "       }\n" +
+        "   }\n" +
+        // simple coloring
+        /*"   uint a = intersectTLAS(pos,dir,distance,normal);\n" +
+        /*"   if(dot(normal,normal)>0.0){\n" +
+        "      normal = normalize(normal);\n" +
+        "      color = normal*.5+.5;\n" +
+        "   } else {\n" +
+        // compute sky color
+        "       color = sky1;\n" +
+        "   }\n" +*/
+        "   color = vec3(float(a)*0.1);\n" +*/
+        ""
+
 fun createGraphicsShader(tlas: TLASNode): Quad<Shader, Texture2D, Texture2D, Texture2D> {
 
     val uniqueMeshes = HashSet<BLASNode>(tlas.countTLASLeaves())
@@ -134,96 +190,29 @@ fun createGraphicsShader(tlas: TLASNode): Quad<Shader, Texture2D, Texture2D, Tex
                     "uniform vec3 cameraOffset;\n" +
                     "uniform vec3 sky0, sky1;\n" +
                     "uniform int drawMode;\n" +
+                    "uniform int frameIndex;\n" +
+                    "uniform int ZERO;\n" +
                     "#define Infinity 1e15\n" + // don't make too large, we need to be able to calculate stuff with it
                     glslIntersections +
                     quatRot +
                     boundingBoxSDF + // for debugging
                     "#define nodes blasNodes\n" +
                     "#define BLAS_DEPTH $maxBLASDepth\n" +
+                    "#define TLAS_DEPTH $maxTLASDepth\n" +
                     loadMat4x3 +
-                    glslBLASIntersectionGraphics +
+                    glslGraphicsDefines +
+                    glslBLASIntersection +
+                    glslTLASIntersection +
+                    glslRandomGen +
+                    coloring +
                     "void main(){\n" +
-                    "   ivec2 pos = ivec2(gl_FragCoord.xy);\n" +
-                    "       uint nodeStack[$maxTLASDepth];\n" +
-                    "       for(int i=${maxTLASDepth-1};i>=0;i--) nodeStack[i]=0u;\n" +
-                    "       uint nodeIndex = 0u;\n" +
-                    "       uint stackIndex = 0u;\n" +
-                    "       vec3 worldNormal = vec3(0.0);\n" +
-                    "       float worldDistance = Infinity;\n" +
-                    "       uvec2 tlasTexSize = uvec2(textureSize(tlasNodes,0));\n" +
-                    "       vec3 worldDir = vec3(vec2(pos)-cameraOffset.xy, cameraOffset.z);\n" +
-                    "       worldDir = quatRot(worldDir, worldRot);\n" +
-                    "       worldDir = normalize(worldDir);\n" +
-                    "       vec3 worldInvDir = 1.0 / worldDir;\n" +
-                    "       uint k=512u,numIntersections=0u,nodeCtr=0u;\n" +
-                    "while(k-- > 0u){\n" + // start of tlas
-                    // fetch tlas node data
-                    "   uint pixelIndex = nodeIndex * ${PIXELS_PER_TLAS_NODE}u;\n" +
-                    "   uint nodeX = pixelIndex % tlasTexSize.x;\n" +
-                    "   uint nodeY = pixelIndex / tlasTexSize.x;\n" +
-                    "   vec4 d0 = texelFetch(tlasNodes, ivec2(nodeX,   nodeY), 0);\n" +
-                    "   vec4 d1 = texelFetch(tlasNodes, ivec2(nodeX+1u,nodeY), 0);\n" + // tlas bounds check
-                    "   if(intersectAABB(worldPos,worldInvDir,d0.xyz,d1.xyz,worldDistance)){\n" +
-                    "       uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
-                    "       if(v01.y < 3u){\n" + // tlas branch
-                    // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
-                    "           if(worldDir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
-                    "               nodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
-                    "               nodeIndex++;\n" + // search child next
-                    "           } else {\n" +
-                    "               nodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark other child for later
-                    "               nodeIndex += v01.x;\n" + // search child next
-                    "           }\n" +
-                    "       } else {\n" + // tlas leaf
-                    "           numIntersections++;\n" +
-                    // load more data and then transform ray into local coordinates
-                    "           vec4 d10 = texelFetch(tlasNodes, ivec2(nodeX+2u,nodeY), 0);\n" +
-                    "           vec4 d11 = texelFetch(tlasNodes, ivec2(nodeX+3u,nodeY), 0);\n" +
-                    "           vec4 d12 = texelFetch(tlasNodes, ivec2(nodeX+4u,nodeY), 0);\n" +
-                    "           mat4x3 worldToLocal = loadMat4x3(d10,d11,d12);\n" +
-                    // transform ray into local coordinates
-                    "           vec3 localPos = worldToLocal * vec4(worldPos, 1.0);\n" +
-                    "           vec3 localDir0 = worldToLocal * vec4(worldDir, 0.0);\n" +
-                    "           vec3 localDir = normalize(localDir0);\n" +
-                    "           vec3 localInvDir = 1.0 / localDir;\n" +
-                    // transform world distance into local coordinates
-                    "           float localDistance = worldDistance * length(localDir0);\n" +
-                    "           float localDistanceOld = localDistance;\n" +
-                    "           vec3 localNormal = vec3(0.0);\n" +
-                    "           intersectBLAS(v01.x, localPos, localDir, localInvDir, localNormal, localDistance, nodeCtr);\n" +
-                    "           if(localDistance < localDistanceOld){\n" + // we hit something
-                    "               vec4 d20 = texelFetch(tlasNodes, ivec2(nodeX+5u,nodeY), 0);\n" +
-                    "               vec4 d21 = texelFetch(tlasNodes, ivec2(nodeX+6u,nodeY), 0);\n" +
-                    "               vec4 d22 = texelFetch(tlasNodes, ivec2(nodeX+7u,nodeY), 0);\n" +
-                    "               mat4x3 localToWorld = loadMat4x3(d20,d21,d22);\n" +
-                    // transform result into global coordinates
-                    // theoretically we could get z-fighting here
-                    "               float worldDistance1 = localDistance * length(localToWorld * vec4(localDir, 0.0));\n" +
-                    "               if(worldDistance1 < worldDistance){\n" + // could be false by numerical errors
-                    // transform hit normal into world coordinates
-                    "                   worldDistance = worldDistance1;\n" +
-                    "                   worldNormal = localToWorld * vec4(localNormal, 0.0);\n" +
-                    "               }\n" +
-                    "           }\n" + // end of blas; get next tlas node*/
-                    "           if(stackIndex < 1u) break;\n" +
-                    "           nodeIndex = nodeStack[--stackIndex];\n" +
-                    "       }\n" +
-                    "   } else {\n" + // next tlas node
-                    "       if(stackIndex < 1u) break;\n" +
-                    "       nodeIndex = nodeStack[--stackIndex];\n" +
-                    "   }\n" +
-                    "}\n" + // end of tlas
-                    // save result to texture
-                    "       vec3 result = vec3(float(nodeCtr)*0.01);\n" +
-                    "       if(drawMode == 0) if(dot(worldNormal,worldNormal)>0.0){\n" +
-                    "           worldNormal = normalize(worldNormal);\n" +
-                    "           result = worldNormal*.5+.5;\n" +
-                    "       } else {\n" +
-                    // compute sky color
-                    "           float f = length(worldDir.xy);\n" +
-                    "           result = sky1;//sqrt(mix(sky0*sky0,sky1*sky1,f));\n" +
-                    "       }\n" +
-                    "       dst = vec4(result, 1.0);\n" +
+                    "   ivec2 uv = ivec2(gl_FragCoord.xy);\n" +
+                    "   uint pixelId = uint(gl_FragCoord.x + gl_FragCoord.y * size.x);\n" +
+                    random +
+                    "   vec3 worldDir = vec3(vec2(uv)+(nextRand2(seed)-0.5)-cameraOffset.xy, cameraOffset.z);\n" +
+                    "   worldDir = normalize(quatRot(worldDir, worldRot));\n" +
+                    shading +
+                    "   dst = vec4(color, alpha);\n" +
                     "}\n"
         ).apply {
             glslVersion = 330 // for floatBitsToUint
@@ -250,9 +239,9 @@ fun createComputeShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2
     val blasNodes = createBLASTexture(meshes)
     val tlasNodes = tlas.createTLASTexture() // needs to be created after blas nodes
 
-    triangles.write(desktop.getChild("bvh/sponza-tri.png"), false, withAlpha = false)
-    blasNodes.write(desktop.getChild("bvh/sponza-blas.png"), false, withAlpha = false)
-    tlasNodes.write(desktop.getChild("bvh/sponza-tlas.png"), false, withAlpha = false)
+    // triangles.write(desktop.getChild("bvh/sponza-tri.png"), false, withAlpha = false)
+    // blasNodes.write(desktop.getChild("bvh/sponza-blas.png"), false, withAlpha = false)
+    // tlasNodes.write(desktop.getChild("bvh/sponza-tlas.png"), false, withAlpha = false)
 
     val maxTLASDepth = tlas.maxDepth()
     val maxBLASDepth = meshes.maxOf { it.maxDepth() }
@@ -272,103 +261,124 @@ fun createComputeShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2
                     "uniform vec3 cameraOffset;\n" +
                     "uniform vec3 sky0, sky1;\n" +
                     "uniform int drawMode;\n" +
+                    "uniform int frameIndex;\n" +
+                    "uniform int ZERO;\n" +
                     "#define Infinity 1e15\n" + // don't make too large, we need to be able to calculate stuff with it
                     glslIntersections +
                     quatRot +
                     boundingBoxSDF + // for debugging
                     "#define nodes blasNodes\n" +
                     "#define BLAS_DEPTH $maxBLASDepth\n" +
+                    "#define TLAS_DEPTH $maxTLASDepth\n" +
                     loadMat4x3 +
-                    glslBLASIntersectionCompute +
+                    glslComputeDefines +
+                    glslBLASIntersection +
+                    glslTLASIntersection +
+                    glslRandomGen +
                     coloring +
                     "void main(){\n" +
-                    "   ivec2 pos = ivec2(gl_GlobalInvocationID.xy);\n" +
-                    "   if(all(lessThan(pos,size))){\n" +
-                    "       uint nodeStack[$maxTLASDepth];\n" +
-                    "       for(int i=${maxTLASDepth-1};i>=0;i--) nodeStack[i]=0u;\n" +
-                    "       uint nodeIndex = 0u;\n" +
-                    "       uint stackIndex = 0u;\n" +
-                    "       vec3 worldNormal = vec3(0.0);\n" +
-                    "       float worldDistance = Infinity;\n" +
-                    "       ivec2 tlasTexSize = imageSize(tlasNodes);\n" +
-                    "       vec3 worldDir = vec3(vec2(pos)-cameraOffset.xy, cameraOffset.z);\n" +
-                    "       worldDir = quatRot(worldDir, worldRot);\n" +
-                    "       worldDir = normalize(worldDir);\n" +
-                    "       vec3 worldInvDir = 1.0 / worldDir;\n" +
-                    "       uint k=512u,numIntersections=0u,nodeCtr=0u;\n" +
-                    "while(k-- > 0u){\n" + // start of tlas
-                    // fetch tlas node data
-                    "   uint pixelIndex = nodeIndex * ${PIXELS_PER_TLAS_NODE}u;\n" +
-                    "   uint nodeX = pixelIndex % tlasTexSize.x;\n" +
-                    "   uint nodeY = pixelIndex / tlasTexSize.x;\n" +
-                    "   vec4 d0 = imageLoad(tlasNodes, ivec2(nodeX,   nodeY));\n" +
-                    "   vec4 d1 = imageLoad(tlasNodes, ivec2(nodeX+1u,nodeY));\n" + // tlas bounds check
-                    "   if(intersectAABB(worldPos,worldInvDir,d0.xyz,d1.xyz,worldDistance)){\n" +
-                    "       uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
-                    "       if(v01.y < 3u){\n" + // tlas branch
-                    // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
-                    "           if(worldDir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
-                    "               nodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
-                    "               nodeIndex++;\n" + // search child next
-                    "           } else {\n" +
-                    "               nodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark other child for later
-                    "               nodeIndex += v01.x;\n" + // search child next
-                    "           }\n" +
-                    "       } else {\n" + // tlas leaf
-                    "           numIntersections++;\n" +
-                    // load more data and then transform ray into local coordinates
-                    "           vec4 d10 = imageLoad(tlasNodes, ivec2(nodeX+2u,nodeY));\n" +
-                    "           vec4 d11 = imageLoad(tlasNodes, ivec2(nodeX+3u,nodeY));\n" +
-                    "           vec4 d12 = imageLoad(tlasNodes, ivec2(nodeX+4u,nodeY));\n" +
-                    "           mat4x3 worldToLocal = loadMat4x3(d10,d11,d12);\n" +
-                    // transform ray into local coordinates
-                    "           vec3 localPos = worldToLocal * vec4(worldPos, 1.0);\n" +
-                    "           vec3 localDir0 = worldToLocal * vec4(worldDir, 0.0);\n" +
-                    "           vec3 localDir = normalize(localDir0);\n" +
-                    "           vec3 localInvDir = 1.0 / localDir;\n" +
-                    // transform world distance into local coordinates
-                    "           float localDistance = worldDistance * length(localDir0);\n" +
-                    "           float localDistanceOld = localDistance;\n" +
-                    "           vec3 localNormal = vec3(0.0);\n" +
-                    "           intersectBLAS(v01.x, localPos, localDir, localInvDir, localNormal, localDistance, nodeCtr);\n" +
-                    "           if(localDistance < localDistanceOld){\n" + // we hit something
-                    "               vec4 d20 = imageLoad(tlasNodes, ivec2(nodeX+5u,nodeY));\n" +
-                    "               vec4 d21 = imageLoad(tlasNodes, ivec2(nodeX+6u,nodeY));\n" +
-                    "               vec4 d22 = imageLoad(tlasNodes, ivec2(nodeX+7u,nodeY));\n" +
-                    "               mat4x3 localToWorld = loadMat4x3(d20,d21,d22);\n" +
-                    // transform result into global coordinates
-                    // theoretically we could get z-fighting here
-                    "               float worldDistance1 = localDistance * length(localToWorld * vec4(localDir, 0.0));\n" +
-                    "               if(worldDistance1 < worldDistance){\n" + // could be false by numerical errors
-                    // transform hit normal into world coordinates
-                    "                   worldDistance = worldDistance1;\n" +
-                    "                   worldNormal = localToWorld * vec4(localNormal, 0.0);\n" +
-                    "               }\n" +
-                    "           }\n" + // end of blas; get next tlas node*/
-                    "           if(stackIndex < 1u) break;\n" +
-                    "           nodeIndex = nodeStack[--stackIndex];\n" +
-                    "       }\n" +
-                    "   } else {\n" + // next tlas node
-                    "       if(stackIndex < 1u) break;\n" +
-                    "       nodeIndex = nodeStack[--stackIndex];\n" +
-                    "   }\n" +
-                    "}\n" + // end of tlas
-                    // save result to texture
-                    "       vec3 result = coloring(float(nodeCtr) * 0.03);\n" +
-                    "       if(drawMode == 0) if(dot(worldNormal,worldNormal)>0.0){\n" +
-                    "           worldNormal = normalize(worldNormal);\n" +
-                    "           result = worldNormal*.5+.5;\n" +
-                    "       } else {\n" +
-                    // compute sky color
-                    "           float f = length(worldDir.xy);\n" +
-                    "           result = sky1;//sqrt(mix(sky0*sky0,sky1*sky1,f));\n" +
-                    "       }\n" +
-                    "       imageStore(dst, pos, vec4(result, 1.0));\n" +
+                    "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy);\n" +
+                    "   if(all(lessThan(uv,size))){\n" +
+                    "       uint pixelId = uint(gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * size.x);\n" +
+                    random +
+                    "       vec3 worldDir = vec3(vec2(uv)+(nextRand2(seed)-0.5)-cameraOffset.xy, cameraOffset.z);\n" +
+                    "       worldDir = normalize(quatRot(worldDir, worldRot));\n" +
+                    shading +
+                    "       vec3 oldColor = imageLoad(dst, uv).rgb;\n" +
+                    "       color = mix(oldColor, color, alpha);\n" +
+                    "       imageStore(dst, uv, vec4(color, 1.0));\n" +
                     "   }\n" +
                     "}\n"
         ), triangles, blasNodes, tlasNodes
     )
+}
 
+fun createComputeShaderV2(tlas: TLASNode): Quad<ComputeShader, ComputeBuffer, ComputeBuffer, ComputeBuffer> {
+
+    val uniqueMeshes = HashSet<BLASNode>(tlas.countTLASLeaves())
+    tlas.forEach {
+        if (it is TLASLeaf) {
+            uniqueMeshes.add(it.mesh)
+        }
+    }
+
+    val meshes = uniqueMeshes
+        .sortedByDescending { it.countNodes() } // complex meshes first for testing and consistency
+        .toList()
+
+    val triangles = createTriangleBuffer(meshes)
+    val blasNodes = createBLASBuffer(meshes)
+    val tlasNodes = tlas.createTLASBuffer() // needs to be created after blas nodes
+
+    val maxTLASDepth = tlas.maxDepth()
+    val maxBLASDepth = meshes.maxOf { it.maxDepth() }
+
+    LOGGER.debug("Max TLAS depth: $maxTLASDepth, max BLAS depth: $maxBLASDepth")
+
+    val shader = ComputeShader(
+        "bvh-traversal", Vector2i(16), "" +
+                "struct Vertex {\n" +
+                "   vec3 pos;\n" +
+                "   uint _pad0;\n" +
+                "   vec3 nor;\n" +
+                "   uint color;\n" +
+                "};\n" +
+                "struct BLASNode {\n" +
+                "   vec3 min;\n" +
+                "   uint v0;\n" +
+                "   vec3 max;\n" +
+                "   uint v1;\n" +
+                "};\n" +
+                "struct TLASNode {\n" +
+                /*"   vec3    min;\n" +
+                "   uint    v0;\n" +
+                "   vec3    max;\n" +
+                "   uint    v1;\n" +*/
+                "   vec4 d0;\n" +
+                "   vec4 d1;\n" +
+                //"   vec4 x0,x1,x2;\n" + // mat4x3 worldToLocal
+                //"   vec4 x3,x4,x5;\n" + // mat4x3 localToWorld
+                "};\n" +
+                // std430 needed? yes, core since 4.3
+                "layout(std140, shared, binding = 0) readonly buffer triangles  { Vertex vertices[]; };\n" +
+                "layout(std140, shared, binding = 1) readonly buffer blasBuffer { BLASNode blasNodes[]; };\n" +
+                "layout(std140, shared, binding = 2) readonly buffer tlasBuffer { TLASNode tlasNodes[]; };\n" +
+                "layout(rgba32f, binding = 3) uniform image2D dst;\n" +
+                "uniform ivec2 size;\n" +
+                "uniform vec3 worldPos;\n" +
+                "uniform vec4 worldRot;\n" +
+                "uniform vec3 cameraOffset;\n" +
+                "uniform vec3 sky0, sky1;\n" +
+                "uniform int drawMode;\n" +
+                "uniform int frameIndex;\n" +
+                "uniform int ZERO;\n" +
+                "#define Infinity 1e15\n" + // don't make too large, we need to be able to calculate stuff with it
+                glslIntersections +
+                quatRot +
+                boundingBoxSDF + // for debugging
+                "#define BLAS_DEPTH $maxBLASDepth\n" +
+                "#define TLAS_DEPTH $maxTLASDepth\n" +
+                // glslComputeDefines +
+                glslBLASIntersection2 +
+                glslTLASIntersection2 +
+                glslRandomGen +
+                coloring +
+                "void main(){\n" +
+                "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy);\n" +
+                "   if(all(lessThan(uv,size))){\n" +
+                "       uint pixelId = uint(gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * size.x);\n" +
+                random +
+                "       vec3 worldDir = vec3(vec2(uv)+(nextRand2(seed)-0.5)-cameraOffset.xy, cameraOffset.z);\n" +
+                "       worldDir = normalize(quatRot(worldDir, worldRot));\n" +
+                shading +
+                "       vec3 oldColor = imageLoad(dst, uv).rgb;\n" +
+                "       color = mix(oldColor, color, alpha);\n" +
+                "       imageStore(dst, uv, vec4(color, 1.0));\n" +
+                "   }\n" +
+                "}\n"
+    )
+
+    return Quad(shader, triangles, blasNodes, tlasNodes)
 }
 
 fun render(

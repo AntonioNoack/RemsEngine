@@ -6,7 +6,11 @@ import me.anno.utils.types.Triangles
 import org.joml.AABBf
 import org.joml.Vector3f
 
-class BLASLeaf(val start: Int, val length: Int, val pos: FloatArray, bounds: AABBf) : BLASNode(bounds) {
+class BLASLeaf(
+    val start: Int, val length: Int,
+    val geometry: GeometryData,
+    bounds: AABBf
+) : BLASNode(bounds) {
 
     override fun print(depth: Int) {
         println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $start += $length")
@@ -32,7 +36,7 @@ class BLASLeaf(val start: Int, val length: Int, val pos: FloatArray, bounds: AAB
             var bestLocalDistance = hit.distance.toFloat()
             val bld0 = bestLocalDistance
 
-            val p = this.pos
+            val p = this.geometry.positions
 
             var i3 = start * 9
             val j3 = i3 + length * 9
@@ -64,6 +68,6 @@ class BLASLeaf(val start: Int, val length: Int, val pos: FloatArray, bounds: AAB
         }
     }
 
-    override fun findCompactPositions() = pos
+    override fun findGeometryData() = geometry
 
 }

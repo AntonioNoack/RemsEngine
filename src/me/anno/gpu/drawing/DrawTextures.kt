@@ -59,6 +59,32 @@ object DrawTextures {
         GFX.check()
     }
 
+    fun drawTexture(
+        x: Int, y: Int, w: Int, h: Int,
+        texture: ITexture2D, ignoreAlpha: Boolean,
+        color: Vector4fc, tiling: Vector4fc? = null,
+        applyToneMapping: Boolean = false
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = flatShaderTexture.value
+        shader.use()
+        posSize(shader, x, y, w, h)
+        defineAdvancedGraphicalFeatures(shader)
+        shader.v4f("color", color)
+        shader.v1i("alphaMode", ignoreAlpha.toInt())
+        shader.v1b("applyToneMapping", applyToneMapping)
+        GFXx2D.tiling(shader, tiling)
+        val tex = texture as? Texture2D
+        texture.bind(
+            0,
+            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.clamping ?: Clamping.CLAMP
+        )
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
     fun drawDepthTexture(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D

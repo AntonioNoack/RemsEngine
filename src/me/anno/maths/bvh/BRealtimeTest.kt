@@ -14,6 +14,8 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
+import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
+import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
@@ -180,8 +182,8 @@ fun main2(
 
         })
 
-        val triangles = bvh.createTriangleTexture()
-        val blasNodes = bvh.createBLASTexture()
+        val triangles = createTriangleTexture(bvh)
+        val blasNodes = createBLASTexture(bvh)
         val shader = createComputeShader(true, bvh.maxDepth(), null)
 
         list.add(TestDrawPanel {

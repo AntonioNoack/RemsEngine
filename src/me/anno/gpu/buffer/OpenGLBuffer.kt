@@ -7,12 +7,17 @@ import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
 import me.anno.input.Input
+import me.anno.maths.Maths
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector2fc
+import org.joml.Vector3fc
+import org.joml.Vector4fc
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val usage: Int) :
     ICacheData {
@@ -102,6 +107,96 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
     fun ensureBufferWithoutResize() {
         checkSession()
         if (!isUpToDate) upload(false)
+    }
+
+    fun put(v: Vector2fc) {
+        put(v.x(), v.y())
+    }
+
+    fun put(v: FloatArray) {
+        for (vi in v) {
+            put(vi)
+        }
+    }
+
+    fun put(v: FloatArray, index: Int, length: Int) {
+        for (i in index until index + length) {
+            put(v[i])
+        }
+    }
+
+    fun put(v: Vector3fc) {
+        put(v.x(), v.y(), v.z())
+    }
+
+    fun put(v: Vector4fc) {
+        put(v.x(), v.y(), v.z(), v.w())
+    }
+
+    fun put(x: Float, y: Float, z: Float, w: Float, a: Float) {
+        put(x)
+        put(y)
+        put(z)
+        put(w)
+        put(a)
+    }
+
+    fun put(x: Float, y: Float, z: Float, w: Float) {
+        put(x)
+        put(y)
+        put(z)
+        put(w)
+    }
+
+    fun put(x: Float, y: Float, z: Float) {
+        put(x)
+        put(y)
+        put(z)
+    }
+
+    fun put(x: Float, y: Float) {
+        put(x)
+        put(y)
+    }
+
+    fun put(f: Float) {
+        nioBuffer!!.putFloat(f)
+        isUpToDate = false
+    }
+
+    fun putByte(b: Byte) {
+        nioBuffer!!.put(b)
+        isUpToDate = false
+    }
+
+    fun putByte(f: Float) {
+        val asInt = Maths.clamp(f * 127f, -127f, +127f).roundToInt()
+        putByte(asInt.toByte())
+    }
+
+    fun putUByte(b: Int) {
+        nioBuffer!!.put(b.toByte())
+        isUpToDate = false
+    }
+
+    fun putShort(b: Short) {
+        nioBuffer!!.putShort(b)
+        isUpToDate = false
+    }
+
+    fun putUShort(b: Int) {
+        nioBuffer!!.putShort(b.toShort())
+        isUpToDate = false
+    }
+
+    fun putInt(b: Int) {
+        nioBuffer!!.putInt(b)
+        isUpToDate = false
+    }
+
+    fun putDouble(d: Double) {
+        nioBuffer!!.putDouble(d)
+        isUpToDate = false
     }
 
     override fun destroy() {

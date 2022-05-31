@@ -145,17 +145,29 @@ abstract class BVHBuilder(val bounds: AABBf) {
         }
 
         fun buildBLAS(mesh: Mesh, splitMethod: SplitMethod, maxNodeSize: Int): BLASNode? {
-            val positions = mesh.positions ?: return null
-            val indices = mesh.indices ?: IntArray(positions.size / 3) { it }
+            val srcPos = mesh.positions ?: return null
+            if (mesh.normals == null) mesh.calculateNormals(smooth = true)
+            val srcNor = mesh.normals!!
+            val srcCol = mesh.color0
+            val indices = mesh.indices ?: IntArray(srcPos.size / 3) { it }
             val numTriangles = indices.size / 3
             val dstPos = FloatArray(numTriangles * 9)
-            val root = recursiveBuildBLAS(positions, indices, 0, numTriangles, maxNodeSize, splitMethod, dstPos)
+            val dstNor = FloatArray(numTriangles * 9)
+            val dstCol = IntArray(numTriangles * 3)
+            val geometryData = GeometryData(dstPos, dstNor, dstCol)
+            val root = recursiveBuildBLAS(srcPos, indices, 0, numTriangles, maxNodeSize, splitMethod, geometryData)
             var i3 = 0
-            for (i in 0 until numTriangles * 3) {
-                var j3 = indices[i] * 3
-                dstPos[i3++] = positions[j3++]
-                dstPos[i3++] = positions[j3++]
-                dstPos[i3++] = positions[j3]
+            for (di1 in 0 until numTriangles * 3) {
+                val si1 = indices[di1]
+                val si3 = si1 * 3
+                dstPos[i3] = srcPos[si3]
+                dstPos[i3+1] = srcPos[si3+1]
+                dstPos[i3+2] = srcPos[si3+2]
+                dstNor[i3] = srcNor[si3]
+                dstNor[i3+1] = srcNor[si3+1]
+                dstNor[i3+2] = srcNor[si3+2]
+                dstCol[di1] = if (srcCol == null) -1 else srcCol[si1]
+                i3 += 3
             }
             if (dstPos.size != i3) throw IllegalStateException()
             return root
@@ -228,7 +240,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
             start: Int, end: Int, // triangle indices
             maxNodeSize: Int,
             splitMethod: SplitMethod,
-            newPositions: FloatArray,
+            geometryData: GeometryData,
         ): BLASNode {
 
             val count = end - start
@@ -238,7 +250,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
                     val ci = indices[i] * 3
                     bounds.union(positions[ci], positions[ci + 1], positions[ci + 2])
                 }
-                return BLASLeaf(start, count, newPositions, bounds)
+                return BLASLeaf(start, count, geometryData, bounds)
             }
 
             // bounds of center of primitives for efficient split dimension
@@ -293,8 +305,8 @@ abstract class BVHBuilder(val bounds: AABBf) {
                 }
             }
 
-            val n0 = recursiveBuildBLAS(positions, indices, start, mid, maxNodeSize, splitMethod, newPositions)
-            val n1 = recursiveBuildBLAS(positions, indices, mid, end, maxNodeSize, splitMethod, newPositions)
+            val n0 = recursiveBuildBLAS(positions, indices, start, mid, maxNodeSize, splitMethod, geometryData)
+            val n1 = recursiveBuildBLAS(positions, indices, mid, end, maxNodeSize, splitMethod, geometryData)
 
             val bounds = AABBf(n0.bounds)
             bounds.union(n1.bounds)

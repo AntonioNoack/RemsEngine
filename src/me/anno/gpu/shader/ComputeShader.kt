@@ -1,6 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
@@ -66,6 +67,10 @@ class ComputeShader(
         Companion.bindTexture(slot, texture, mode)
     }
 
+    fun bindBuffer(slot: Int, buffer: ComputeBuffer) {
+        Companion.bindBuffer(slot, buffer)
+    }
+
     /**
      * for array textures to bind a single layer
      * */
@@ -106,6 +111,11 @@ class ComputeShader(
         // todo can we dynamically create shaders for the cases that we need? probably best :)
         fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
             glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, texture.internalFormat)
+        }
+
+        fun bindBuffer(slot: Int, buffer: ComputeBuffer) {
+            buffer.ensureBuffer()
+            glBindBufferBase(buffer.type, slot, buffer.pointer)
         }
 
         /**

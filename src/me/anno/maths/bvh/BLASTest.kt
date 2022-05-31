@@ -19,7 +19,9 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.mixARGB2
-import me.anno.maths.bvh.RayTracing.glslBLASIntersectionCompute
+import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
+import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
+import me.anno.maths.bvh.RayTracing.glslBLASIntersection
 import me.anno.maths.bvh.RayTracing.glslIntersections
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.utils.Clock
@@ -95,7 +97,7 @@ fun createComputeShader(useBVH: Boolean, maxDepth: Int, mesh: Mesh?): ComputeSha
                 quatRot +
                 "#define BLAS_DEPTH $maxDepth\n" +
                 loadMat4x3 +
-                glslBLASIntersectionCompute +
+                glslBLASIntersection +
                 "void main(){\n" +
                 "   uint nodeCtr=0;\n" +
                 "   ivec2 pos = ivec2(gl_GlobalInvocationID.xy);\n" +
@@ -224,8 +226,8 @@ fun main() {
 
     // we could use https://www.khronos.org/opengl/wiki/Shader_Storage_Buffer_Object SSBOs instead of textures
     if (gpuRaw || gpuBVH) {
-        val triangles = bvh.createTriangleTexture()
-        val nodes = bvh.createBLASTexture()
+        val triangles = createTriangleTexture(bvh)
+        val nodes = createBLASTexture(bvh)
         triangles.write(desktop.getChild("bvh/tri.png"), flipY = false, withAlpha = false)
         nodes.write(desktop.getChild("bvh/blas.png"), flipY = false, withAlpha = false)
         val result = Texture2D("colors", w, h, 1)

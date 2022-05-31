@@ -1,6 +1,8 @@
 package me.anno.maths.bvh
 
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
@@ -85,9 +87,122 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
 
     }
 
+    fun createTLASBuffer(): ComputeBuffer {
+
+        GFX.checkIsGFXThread()
+        var nodeId = 0
+        forEach {
+            it.nodeId = nodeId++
+        }
+
+        val numNodes = nodeId
+        val buffer = ComputeBuffer(numNodes, tlasAttr)
+
+        fun writeMatrix(m: Matrix4x3f) {
+            // send data column major
+            // as that's the way for the constructor it seems
+            val data = buffer.nioBuffer!!
+
+            if (true) {
+                data.putFloat(m.m00())
+                data.putFloat(m.m01())
+                data.putFloat(m.m02())
+
+                data.putFloat(m.m10())
+                data.putFloat(m.m11())
+                data.putFloat(m.m12())
+
+                data.putFloat(m.m20())
+                data.putFloat(m.m21())
+                data.putFloat(m.m22())
+
+                data.putFloat(m.m30())
+                data.putFloat(m.m31())
+                data.putFloat(m.m32())
+            } else {
+                data.putFloat(m.m00())
+                data.putFloat(m.m10())
+                data.putFloat(m.m20())
+                data.putFloat(m.m30())
+
+                data.putFloat(m.m01())
+                data.putFloat(m.m11())
+                data.putFloat(m.m21())
+                data.putFloat(m.m31())
+
+                data.putFloat(m.m02())
+                data.putFloat(m.m12())
+                data.putFloat(m.m22())
+                data.putFloat(m.m32())
+            }
+
+            // val pos = data.position()
+            // m.get(data)
+            // data.position(pos + 12)
+        }
+
+        val data = buffer.nioBuffer!!
+        forEach {
+
+            val v0: Int
+            val v1: Int
+
+            if (it is TLASBranch) {
+                v0 = it.n1.nodeId - it.nodeId
+                v1 = it.axis
+            } else {
+                it as TLASLeaf
+                // offset is like an id
+                v0 = it.mesh.nodeId
+                v1 = 3 // = max axis + 1
+            }
+
+            val b = it.bounds
+            buffer.put(b.minX)
+            buffer.put(b.minY)
+            buffer.put(b.minZ)
+            buffer.put(Float.fromBits(v0))
+
+            buffer.put(b.maxX)
+            buffer.put(b.maxY)
+            buffer.put(b.maxZ)
+            buffer.put(Float.fromBits(v1))
+
+            /*if (it is TLASLeaf) {
+                writeMatrix(it.worldToLocal)
+            } else {
+                // skip 12 elements
+                data.position(data.position() + 12)
+            }
+
+            if (it is TLASLeaf) {
+                writeMatrix(it.localToWorld)
+            } else {
+                // skip 12 elements
+                data.position(data.position() + 12)
+            }*/
+
+           //data.position(data.position() + 12)
+           //data.position(data.position() + 12)
+
+        }
+        return buffer
+    }
+
     companion object {
+
+        val tlasAttr = listOf(
+            Attribute("min", 3),
+            Attribute("v0", 1),
+            Attribute("max", 3),
+            Attribute("v1", 1),
+           //Attribute("worldToLocal", 12),
+          // Attribute("localToWorld", 12),
+        )
+
         val PIXELS_PER_TLAS_NODE = 8
         private val LOGGER = LogManager.getLogger(TLASNode::class)
+
     }
 
 }
