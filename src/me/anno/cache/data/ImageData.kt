@@ -143,10 +143,8 @@ class ImageData(file: FileReference) : ICacheData {
         val img = HDRImage(file)
         val w = img.width
         val h = img.height
-        GFX.addGPUTask("ImageData.loadHDR($file)", w, h) {
-            texture.setSize(w, h)
-            img.createTexture(texture, true)
-        }
+        texture.setSize(w, h)
+        img.createTexture(texture, sync = false, checkRedundancy = true)
     }
 
     fun loadTGA(file: FileReference) {

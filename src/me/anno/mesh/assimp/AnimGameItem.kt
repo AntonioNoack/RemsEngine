@@ -8,9 +8,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.set
-import me.anno.utils.types.AABBs.transformProjectUnion
 import me.anno.utils.types.Matrices.mul2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -172,13 +169,6 @@ class AnimGameItem(
             entity.validateTransform()
             entity.transform.teleportUpdate(0)
             for (child in entity.children) updateTransforms(child)
-        }
-
-        private fun AABBf.toDouble(): AABBd {
-            return AABBd(
-                minX.toDouble(), minY.toDouble(), minZ.toDouble(),
-                maxX.toDouble(), maxY.toDouble(), maxZ.toDouble()
-            )
         }
 
         private fun calculateAABB(root: Entity): AABBd {

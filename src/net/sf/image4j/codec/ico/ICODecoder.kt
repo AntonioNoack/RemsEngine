@@ -153,12 +153,12 @@ object ICODecoder {
                         val size = e.iSizeInBytes - 8
                         val pngData = ByteArray(size)
                         input1.readFully(pngData)
-                        val bout = ByteArrayOutputStream()
-                        val dout = DataOutputStream(bout)
-                        dout.writeInt(PNG_MAGIC)
-                        dout.writeInt(PNG_MAGIC2)
-                        dout.write(pngData)
-                        val pngData2 = bout.toByteArray()
+                        val out1 = ByteArrayOutputStream()
+                        val out2 = DataOutputStream(out1)
+                        out2.writeInt(PNG_MAGIC)
+                        out2.writeInt(PNG_MAGIC2)
+                        out2.write(pngData)
+                        val pngData2 = out1.toByteArray()
                         val bin = ByteArrayInputStream(pngData2)
                         val input = ImageIO.createImageInputStream(bin)
                         val reader = reader

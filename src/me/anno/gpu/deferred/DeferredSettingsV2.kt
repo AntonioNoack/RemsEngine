@@ -2,13 +2,9 @@ package me.anno.gpu.deferred
 
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.joml.Vector4f
@@ -94,7 +90,7 @@ class DeferredSettingsV2(
                 when (needsHighPrecision[i]) {
                     BufferQuality.LOW_8 -> TargetType.UByteTarget4
                     BufferQuality.MEDIUM_12 -> TargetType.Normal12Target4
-                    BufferQuality.HIGH_16 -> TargetType.HalfFloatTarget4
+                    BufferQuality.HIGH_16 -> TargetType.FP16Target4
                     else -> TargetType.FloatTarget4
                 }
             )

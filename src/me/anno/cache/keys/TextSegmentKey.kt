@@ -2,6 +2,7 @@ package me.anno.cache.keys
 
 import java.awt.Font
 
+@Suppress("unused")
 data class TextSegmentKey(
     val font: Font,
     val isBold: Boolean, val isItalic: Boolean,

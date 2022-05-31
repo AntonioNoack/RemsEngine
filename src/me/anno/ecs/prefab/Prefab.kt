@@ -1,6 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.Build
+import me.anno.ecs.Entity
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path

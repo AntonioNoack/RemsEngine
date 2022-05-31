@@ -8,12 +8,6 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.style.Style
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
-import me.anno.utils.types.AABBs.isEmpty
 import org.joml.AABBf
 
 abstract class CalibrationPanel(

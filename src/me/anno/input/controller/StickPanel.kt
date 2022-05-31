@@ -6,10 +6,6 @@ import me.anno.input.Controller
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.ui.style.Style
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.Floats.f3s
 import org.apache.logging.log4j.LogManager
 

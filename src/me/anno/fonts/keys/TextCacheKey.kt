@@ -12,6 +12,7 @@ class TextCacheKey(
     val heightLimit: Int
 ) {
 
+    @Suppress("unused")
     constructor(
         text: String, fontName: String, fontSizeIndex: Int, isBold: Boolean, isItalic: Boolean,
         widthLimit: Int, heightLimit: Int
@@ -32,6 +33,7 @@ class TextCacheKey(
     var hashCode = generateHashCode()
     override fun hashCode() = hashCode
 
+    @Suppress("unused")
     fun updateHashCode() {
         hashCode = generateHashCode()
     }

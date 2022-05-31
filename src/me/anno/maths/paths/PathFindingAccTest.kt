@@ -40,6 +40,7 @@ import kotlin.math.abs
 fun main() {
 
     /**
+     * (tested without secondary hops)
      * chunk size 8x8:
      *  - 20x-60x faster after warmup :3 (partial results)
      *  - 16-88x faster after warmup with full results...
@@ -58,6 +59,9 @@ fun main() {
     // use the partial procedure; it is way faster than a full result
     val partialResults = false
 
+    // slightly better, ~2x more expensive
+    val useSecondaryHops = false
+
     // generate a voxel world
     val air = 0.toByte()
     val dirt = 1.toByte()
@@ -69,7 +73,10 @@ fun main() {
     val dirtColor = 0x684530
     val grassColor = 0x2f8d59
     val colors = mapOf(
-        dirt to dirtColor, grass to grassColor, log to 0x463125, leaves to 0x067e3c
+        dirt to dirtColor,
+        grass to grassColor,
+        log to 0x463125,
+        leaves to 0x067e3c
     )
 
     val sx = 256 * 4
@@ -154,7 +161,7 @@ fun main() {
         return null
     }
 
-    val accelerator = object : PathFindingAccelerator<ByteArray, Node>() {
+    val accelerator = object : PathFindingAccelerator<ByteArray, Node>(useSecondaryHops) {
 
         override fun isProxy(node: Node) = node.isProxy
 
@@ -276,7 +283,7 @@ fun main() {
             val palette = colors.flatten(0) { blockType -> blockType.toInt() }
             object : VoxelModel(sx, sy, sz) {
                 override fun getBlock(x: Int, y: Int, z: Int) = world.getElementAt(x, y, z).toInt()
-            }.createMesh(palette, { _, _, _ -> false }, mesh.mesh2)
+            }.createMesh(palette, { _, _, _ -> false }, mesh.data)
             mesh
 
         }

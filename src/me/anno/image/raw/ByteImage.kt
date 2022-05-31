@@ -56,7 +56,8 @@ open class ByteImage(
         return image
     }
 
-    override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+        // todo optimize for async scenario
         when (channelsInData) {
             1 -> texture.createMonochrome(data, checkRedundancy)
             2 -> texture.createRG(data, checkRedundancy)

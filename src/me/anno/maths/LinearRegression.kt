@@ -1,34 +1,42 @@
 package me.anno.maths
 
-import me.anno.maths.LinearAlgebra.inv
-import me.anno.maths.LinearAlgebra.mulNT
-import me.anno.maths.LinearAlgebra.mulNV
-import me.anno.maths.LinearAlgebra.mulTN
-import me.anno.maths.LinearAlgebra.mulTV
+import me.anno.maths.LinearAlgebra.inverse
+import me.anno.maths.LinearAlgebra.setAx
+import me.anno.maths.LinearAlgebra.setABt
+import me.anno.maths.LinearAlgebra.setAtB
+import me.anno.maths.LinearAlgebra.setAtX
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4d
-import org.joml.Vector2d
-import org.joml.Vector3d
-import org.joml.Vector4d
+import org.joml.*
 import kotlin.math.abs
 
 @Suppress("unused")
 object LinearRegression {
 
-    fun solve(x: DoubleArray, y: DoubleArray, ps: Int, fs: Int): DoubleArray? {
-        // beta = (XtX)^-1 * Xt * Y
-        val xtx = mulTN(x, x, ps, fs, ps)
-        val xty = mulTV(x, y, ps, fs)
-        val xtxInv = inv(xtx, fs) ?: return null
-        return mulNV(xtxInv, xty, fs, fs)
+    /**
+     * @param A feature matrix, row major, [points x features]
+     * @param y solution vector, f(x)
+     * @return x such that Ax = b
+     * */
+    fun solve(A: DoubleArray, y: DoubleArray): DoubleArray? {
+        val numPts = y.size
+        val degree = A.size / numPts
+        // y = (XtX)^-1 * Xt * b
+        // y = (XtX)^-1 * (Xt * b)
+        val xtx = setAtB(A, A, degree, numPts, degree)
+        val xty = setAtX(A, y, degree, numPts)
+        val xtxInv = inverse(xtx, degree) ?: return null
+        return setAx(xtxInv, xty, degree, degree)
     }
 
-    fun solveT(xt: DoubleArray, y: DoubleArray, ps: Int, fs: Int): DoubleArray? {
+    // not tested!
+    fun solveT(At: DoubleArray, y: DoubleArray): DoubleArray? {
+        val numPts = y.size
+        val degree = At.size / numPts
         // beta = (XtX)^-1 * Xt * Y
-        val xtx = mulNT(xt, xt, ps, fs, ps)
-        val xty = mulTV(xt, y, ps, fs)
-        val xtxInv = inv(xtx, fs) ?: return null
-        return mulNV(xtxInv, xty, fs, fs)
+        val xtx = setABt(At, At, degree, numPts, degree)
+        val xty = setAtX(At, y, degree, numPts)
+        val xtxInv = inverse(xtx, degree) ?: return null
+        return setAx(xtxInv, xty, degree, degree)
     }
 
     private fun crossMapDoubleT(points: List<Vector2d>, functions: List<(Double) -> Double>): DoubleArray {
@@ -47,30 +55,29 @@ object LinearRegression {
         val xt = crossMapDoubleT(points, functions)
         val y = DoubleArray(points.size) { points[it].y }
         // beta = (XtX)^-1 * Xt * Y
-        val xtx = mulNT(xt, xt, points.size, functions.size, points.size)
-        val xty = mulNV(xt, y, points.size, functions.size)
-        val xtxInv = inv(xtx, functions.size) ?: return null
-        return mulNV(xtxInv, xty, functions.size, functions.size)
+        val xtx = setABt(xt, xt, points.size, functions.size, points.size)
+        val xty = setAx(xt, y, points.size, functions.size)
+        val xtxInv = inverse(xtx, functions.size) ?: return null
+        return setAx(xtxInv, xty, functions.size, functions.size)
     }
 
-    fun findPolynomialCoefficients(points: List<Vector2d>): DoubleArray? {
-        // return solve(points, Array(points.size) { exponent -> { x: Double -> pow(x, exponent.toDouble()) } }.toList())
+    fun findPolynomialCoefficients(points: List<Vector2d>, dimensions: Int = points.size): DoubleArray? {
         // the same as above, just more efficient
         val size = points.size
-        val xt = DoubleArray(size * size)
-        for (i in 0 until size) xt[i * size] = 1.0
+        val xt = DoubleArray(size * dimensions)
+        for (i in 0 until size) xt[i * dimensions] = 1.0
         for (i in 0 until size) {
             val px = points[i].x
-            var j = i * size + 1
+            var j = i * dimensions + 1
             xt[j] = px
-            for (pow in 2 until size) {
+            for (pow in 2 until dimensions) {
                 val k = j + 1
                 xt[k] = px * xt[j]
                 j = k
             }
         }
         val y = DoubleArray(size) { points[it].y }
-        return solve(xt, y, size, size)
+        return solve(xt, y)
     }
 
     fun evaluatePolynomial(x: Double, polynomial: DoubleArray): Double {
@@ -90,24 +97,24 @@ object LinearRegression {
         }
     }
 
-    fun findPolynomialCoefficients(y: DoubleArray): DoubleArray? {
+    fun findPolynomialCoefficients(y: DoubleArray, dimensions: Int = y.size): DoubleArray? {
         // return solve(points, Array(points.size) { exponent -> { x: Double -> pow(x, exponent.toDouble()) } }.toList())
         // the same as above, just more efficient
         val size = y.size
-        val xt = DoubleArray(size * size)
-        for (i in 0 until size) xt[i * size] = 1.0
+        val xt = DoubleArray(size * dimensions)
+        for (i in 0 until size) xt[i * dimensions] = 1.0
         val half = size.shr(1).toDouble()
         for (i in 0 until size) {
             val px = i - half
-            var j = i * size + 1
+            var j = i * dimensions + 1
             xt[j] = px
-            for (pow in 2 until size) {
+            for (pow in 2 until dimensions) {
                 val k = j + 1
                 xt[k] = px * xt[j]
                 j = k
             }
         }
-        return solve(xt, y, size, size)
+        return solve(xt, y)
     }
 
     fun calcXtX4(X: List<Vector3d>): Matrix4d {

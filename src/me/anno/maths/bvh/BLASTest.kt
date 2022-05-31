@@ -28,9 +28,6 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.avgZ
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector2i

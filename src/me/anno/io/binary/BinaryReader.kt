@@ -30,24 +30,34 @@ import me.anno.io.binary.BinaryTypes.LONG_ARRAY
 import me.anno.io.binary.BinaryTypes.LONG_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX2X2D
 import me.anno.io.binary.BinaryTypes.MATRIX2X2D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX2X2D_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX2X2F
 import me.anno.io.binary.BinaryTypes.MATRIX2X2F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX2X2F_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX3X2D
 import me.anno.io.binary.BinaryTypes.MATRIX3X2D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X2D_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX3X2F
 import me.anno.io.binary.BinaryTypes.MATRIX3X2F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X2F_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX3X3D
 import me.anno.io.binary.BinaryTypes.MATRIX3X3D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X3D_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX3X3F
 import me.anno.io.binary.BinaryTypes.MATRIX3X3F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X3F_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX4X3D
 import me.anno.io.binary.BinaryTypes.MATRIX4X3D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X3D_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX4X3F
 import me.anno.io.binary.BinaryTypes.MATRIX4X3F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X3F_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX4X4D
 import me.anno.io.binary.BinaryTypes.MATRIX4X4D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X4D_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX4X4F
 import me.anno.io.binary.BinaryTypes.MATRIX4X4F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X4F_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.OBJECTS_HOMOGENOUS_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY_2D
@@ -326,6 +336,11 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     MATRIX3X3F_ARRAY -> obj.readMatrix3x3fArray(name, readArray { readMatrix3x3f() })
                     MATRIX4X3F_ARRAY -> obj.readMatrix4x3fArray(name, readArray { readMatrix4x3f() })
                     MATRIX4X4F_ARRAY -> obj.readMatrix4x4fArray(name, readArray { readMatrix4x4f() })
+                    MATRIX2X2F_ARRAY_2D -> obj.readMatrix2x2fArray(name, readArray { readMatrix2x2f() })
+                    MATRIX3X2F_ARRAY_2D -> obj.readMatrix3x2fArray2D(name, readArray2D { readMatrix3x2f() })
+                    MATRIX3X3F_ARRAY_2D -> obj.readMatrix3x3fArray2D(name, readArray2D { readMatrix3x3f() })
+                    MATRIX4X3F_ARRAY_2D -> obj.readMatrix4x3fArray2D(name, readArray2D { readMatrix4x3f() })
+                    MATRIX4X4F_ARRAY_2D -> obj.readMatrix4x4fArray2D(name, readArray2D { readMatrix4x4f() })
 
                     MATRIX2X2D -> obj.readMatrix2x2d(name, readMatrix2x2d())
                     MATRIX3X2D -> obj.readMatrix3x2d(name, readMatrix3x2d())
@@ -337,6 +352,11 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     MATRIX3X3D_ARRAY -> obj.readMatrix3x3dArray(name, readArray { readMatrix3x3d() })
                     MATRIX4X3D_ARRAY -> obj.readMatrix4x3dArray(name, readArray { readMatrix4x3d() })
                     MATRIX4X4D_ARRAY -> obj.readMatrix4x4dArray(name, readArray { readMatrix4x4d() })
+                    MATRIX2X2D_ARRAY_2D -> obj.readMatrix2x2dArray2D(name, readArray2D { readMatrix2x2d() })
+                    MATRIX3X2D_ARRAY_2D -> obj.readMatrix3x2dArray2D(name, readArray2D { readMatrix3x2d() })
+                    MATRIX3X3D_ARRAY_2D -> obj.readMatrix3x3dArray2D(name, readArray2D { readMatrix3x3d() })
+                    MATRIX4X3D_ARRAY_2D -> obj.readMatrix4x3dArray2D(name, readArray2D { readMatrix4x3d() })
+                    MATRIX4X4D_ARRAY_2D -> obj.readMatrix4x4dArray2D(name, readArray2D { readMatrix4x4d() })
 
                     else -> throw RuntimeException("Unknown type ${typeName.type}")
                 }

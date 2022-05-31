@@ -12,9 +12,6 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.mesh.assimp.Bone
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
-import me.anno.utils.types.AABBs.deltaZ
 import me.anno.utils.types.Vectors
 import org.joml.AABBf
 import org.joml.Matrix3f
@@ -24,7 +21,7 @@ import org.joml.Vector3f
 class Skeleton : PrefabSaveable() {
 
     @SerializedProperty
-    var bones = ArrayList<Bone>()
+    var bones: List<Bone> = emptyList()
 
     @Type("Map<String, Animation/Reference>")
     @SerializedProperty
@@ -86,8 +83,7 @@ class Skeleton : PrefabSaveable() {
         clone as Skeleton
         clone.animations.clear()
         clone.animations.putAll(animations)
-        clone.bones.clear()
-        clone.bones.addAll(bones)
+        clone.bones = ArrayList(bones)
     }
 
     override val className: String = "Skeleton"

@@ -7,8 +7,6 @@ import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes
-import me.anno.utils.types.AABBs.all
-import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.set2
 import org.joml.*
 

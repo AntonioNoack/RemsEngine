@@ -11,6 +11,7 @@ import me.anno.gpu.OpenGL.depthMode
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
@@ -34,6 +35,7 @@ import me.anno.utils.Clock
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
+import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3fc
@@ -66,6 +68,7 @@ object GFX : GFXBase() {
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
     var maxSamples = 1
+    var supportsClipControl = !OS.isAndroid
 
     var maxFragmentUniformComponents = 0
     var maxVertexUniformComponents = 0
@@ -115,7 +118,7 @@ object GFX : GFXBase() {
     }
 
     fun addGPUTask(name: String, w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
-        addGPUTask(name, ((w * h.toLong()) / 10_000).toInt(), lowPriority, task)
+        addGPUTask(name, max(1, ((w * h.toLong()) / 10_000).toInt()), lowPriority, task)
     }
 
     fun addGPUTask(name: String, weight: Int, lowPriority: Boolean, task: () -> Unit) {
@@ -327,7 +330,8 @@ object GFX : GFXBase() {
             try {
                 task.work()
             } catch (e: Throwable) {
-                e.printStackTrace()
+                RuntimeException(task.name, e)
+                    .printStackTrace()
             }
             if (Thread.currentThread() == glThread) check()
             workDone += task.cost
@@ -383,9 +387,9 @@ object GFX : GFXBase() {
         OpenGLShader.invalidateBinding()
         Texture2D.destroyTextures()
         Texture2D.invalidateBinding()
-        Buffer.invalidateBinding()
+        OpenGLBuffer.invalidateBinding()
 
-        Texture2D.bufferPool.freeUnusedEntries()
+        Texture2D.freeUnusedEntries()
         AudioStream.bufferPool.freeUnusedEntries()
 
         setFrameNullSize(window)
@@ -461,11 +465,11 @@ object GFX : GFXBase() {
         // assumes that the first access is indeed from the OpenGL thread
         if (isDebug) {
             checkIsGFXThread()
-            val error = glGetError()
+            /*val error = glGetError()
             if (error != 0) {
                 val title = "GLException: ${getErrorTypeName(error)}"
                 throw RuntimeException(title)
-            }
+            }*/
         }
     }
 

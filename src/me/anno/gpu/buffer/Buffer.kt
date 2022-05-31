@@ -1,9 +1,6 @@
 package me.anno.gpu.buffer
 
-import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
-import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.shader.Shader
 import me.anno.input.Input
 import me.anno.utils.pooling.ByteBufferPool
@@ -13,8 +10,6 @@ import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL33.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
-import java.nio.ByteBuffer
-import kotlin.math.max
 
 abstract class Buffer(attributes: List<Attribute>, usage: Int) :
     OpenGLBuffer(GL_ARRAY_BUFFER, attributes, usage), Drawable {
@@ -138,8 +133,15 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
         }
     }
 
-    override fun unbind(shader: Shader) {
-        super.unbind(shader)
+    open fun unbind(shader: Shader) {
+        bindBuffer(GL_ARRAY_BUFFER, 0)
+        if (!useVAOs) {
+            for (index in attributes.indices) {
+                val attr = attributes[index]
+                val loc = shader.getAttributeLocation(attr.name)
+                if (loc >= 0) glDisableVertexAttribArray(loc)
+            }
+        }
         bindVAO(0)
     }
 
@@ -194,7 +196,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
         val buffer = pointer
         val vao = vao
         if (buffer > -1) {
-            GFX.addGPUTask("Buffer.destroy()",1) {
+            GFX.addGPUTask("Buffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
                 GL15.glDeleteBuffers(buffer)
                 if (vao >= 0) {
@@ -215,18 +217,6 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
     companion object {
 
         private val LOGGER = LogManager.getLogger(Buffer::class)
-
-        // monkey & stuff is invisible with vaos
-        // because VAOs need default values (probably)
-
-        // todo change back to use it constantly, or to be configurable
-        var useVAOs
-            get() = Input.isShiftDown
-            set(_) {}
-
-        var renewVAOs = true
-
-        var alwaysBindBuffer = true
 
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
@@ -251,50 +241,6 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
             } else false
         }
 
-        private var boundVAO = -1
-        fun bindVAO(vao: Int) {
-            val vao2 = if (useVAOs) vao else 0
-            if (vao2 >= 0 && (alwaysBindBuffer || boundVAO != vao)) {
-                boundVAO = vao2
-                glBindVertexArray(vao2)
-            }
-        }
-
-        // element buffer is stored in VAO -> cannot cache it here
-        // (at least https://www.khronos.org/opengl/wiki/Vertex_Specification says so)
-        var boundBuffers = IntArray(1) { 0 }
-        fun bindBuffer(slot: Int, buffer: Int, force: Boolean = false) {
-            val index = slot - GL_ARRAY_BUFFER
-            if (alwaysBindBuffer || index !in boundBuffers.indices) {
-                glBindBuffer(slot, buffer)
-            } else {
-                if (boundBuffers[index] != buffer || force) {
-                    if (buffer < 0) throw IllegalArgumentException("Buffer is invalid!")
-                    boundBuffers[index] = buffer
-                    glBindBuffer(slot, buffer)
-                }
-            }
-        }
-
-        fun onDestroyBuffer(buffer: Int) {
-            for (index in boundBuffers.indices) {
-                if (buffer == boundBuffers[index]) {
-                    val slot = index + GL_ARRAY_BUFFER
-                    bindBuffer(slot, 0)
-                }
-            }
-        }
-
-        fun invalidateBinding() {
-            boundBuffers.fill(0)
-            boundVAO = -1
-        }
-
-        var allocated = 0L
-        fun allocate(oldValue: Long, newValue: Long): Long {
-            allocated += newValue - oldValue
-            return newValue
-        }
 
     }
 

@@ -166,10 +166,13 @@ object AnimationLoader {
             val boneOffsetMatrix = bone.inverseBindPose
             val skinningMatrix = skinningMatrices[bone.id]
             if (globalTransform == null) {
-                skinningMatrix.set(localTransform).mul(boneOffsetMatrix)
+                skinningMatrix
+                    .set(localTransform)
+                    .mul(boneOffsetMatrix)
             } else {
                 // the same, just converting the vertices temporarily into local global space and then back
-                skinningMatrix.set(globalInverseTransform)
+                skinningMatrix
+                    .set(globalInverseTransform)
                     .mul(localTransform)
                     .mul(boneOffsetMatrix)
                     .mul(globalTransform)

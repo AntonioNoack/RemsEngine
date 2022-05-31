@@ -2,7 +2,6 @@ package me.anno.engine.ui.render
 
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths.sq
-import me.anno.utils.types.AABBs.isEmpty
 import org.joml.*
 import kotlin.math.*
 
@@ -77,10 +76,10 @@ class Frustum {
         positions[3].set(0.0, -sizeY, 0.0)
         normals[3].set(0.0, -1.0, 0.0)
 
-        positions[4].set(0.0, 0.0, -near)
-        normals[4].set(0.0, 0.0, +1.0)
-        positions[5].set(0.0, 0.0, -far)
-        normals[5].set(0.0, 0.0, -1.0)
+        positions[4].set(0.0, 0.0, +near)
+        normals[4].set(0.0, 0.0, -1.0)
+        positions[5].set(0.0, 0.0, +far)
+        normals[5].set(0.0, 0.0, +1.0)
 
         for (i in 0 until 6) {
             cameraRotation.transform(normals[i])
@@ -96,6 +95,9 @@ class Frustum {
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.identity()
             .rotate(cameraRotation)
+
+        // todo code this properly
+        setToEverything(cameraPosition, cameraRotation)
 
     }
 
@@ -316,22 +318,14 @@ class Frustum {
             // mat3 * vec ~ 15 flops -> much more effective
             // val transformedBounds = cameraRotation.transform(tmp.set(xx - mx, xy - my, xz - mz))
             // abs(transformedBounds.x * transformedBounds.y) // area
-            val guessedSize = calculateArea(cameraRotation, xx - mx, xy - my, xz - mz) // area
-
+            val guessedSize = calculateArea(cameraRotation, aabb.deltaX(), aabb.deltaY(), aabb.deltaZ()) // area
             val guessedDistance = sq(min(-mx, xx), min(-my, xy), min(-mz, xz)) // distance²
             val relativeSizeGuess = guessedSize / guessedDistance // (bounds / distance)²
             return relativeSizeGuess > sizeThreshold
 
         } else {
 
-            val mx = aabb.minX
-            val my = aabb.minY
-            val mz = aabb.minZ
-            val xx = aabb.maxX
-            val xy = aabb.maxY
-            val xz = aabb.maxZ
-
-            val guessedSize = calculateArea(cameraRotation, xx - mx, xy - my, xz - mz) // area
+            val guessedSize = calculateArea(cameraRotation, aabb.deltaX(), aabb.deltaY(), aabb.deltaZ()) // area
             return guessedSize > sizeThreshold
 
         }

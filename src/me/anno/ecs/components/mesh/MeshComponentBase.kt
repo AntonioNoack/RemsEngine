@@ -1,9 +1,10 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.CollidingComponent
+import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
@@ -11,7 +12,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.types.AABBs.transformUnion
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -47,6 +47,14 @@ abstract class MeshComponentBase : CollidingComponent() {
     @Docs("For displaying random triangle colors")
     @NotSerializedProperty
     val randomTriangleId = (Math.random() * 1e9).toInt()
+
+    @DebugProperty
+    @NotSerializedProperty
+    val localAABB = AABBd()
+
+    @DebugProperty
+    @NotSerializedProperty
+    val globalAABB = AABBd()
 
     @Docs("Ensure the mesh was loaded")
     open fun ensureBuffer() {
@@ -89,7 +97,11 @@ abstract class MeshComponentBase : CollidingComponent() {
         ensureBuffer()
         val mesh = getMesh()
         if (mesh != null) {
-            fillSpace(mesh, globalTransform, aabb)
+            mesh.ensureBuffer()
+            localAABB.set(mesh.aabb)
+            globalAABB.clear()
+            mesh.aabb.transformUnion(globalTransform, globalAABB)
+            aabb.union(globalAABB)
         }
         return true
     }

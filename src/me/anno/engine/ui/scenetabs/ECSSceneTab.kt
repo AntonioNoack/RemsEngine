@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.physics.BulletPhysics
+import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
@@ -31,12 +32,6 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.utils.hpc.SyncMaster
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.avgZ
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
-import me.anno.utils.types.AABBs.deltaZ
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
@@ -137,14 +132,6 @@ class ECSSceneTab(
             resetCamera(root)
         }
 
-        val prefab = inspector.prefab
-        if (prefab.clazzName == "Entity") {
-            val instance = prefab.getSampleInstance() as Entity
-            instance.create()
-            val physics = instance.getComponent(BulletPhysics::class, false)
-            if (physics != null) instance.rebuildPhysics(physics)
-        }
-
         for (window in window?.windowStack ?: emptyList()) {
             window.panel.forAll {
                 if (it is RenderView) {
@@ -171,7 +158,7 @@ class ECSSceneTab(
                     }
                 }
             }
-        } catch (e: RuntimeException) {
+        } catch (_: RuntimeException) {
         }
     }
 

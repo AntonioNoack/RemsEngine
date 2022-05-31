@@ -7,23 +7,14 @@ import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
-import me.anno.maths.Maths.clamp
 import me.anno.utils.Clock
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.partition1
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.avgZ
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
-import me.anno.utils.types.AABBs.deltaZ
-import me.anno.utils.types.AABBs.transformSet
 import me.anno.utils.types.Booleans.toInt
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import java.util.Random
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -488,17 +479,6 @@ abstract class BVHBuilder(val bounds: AABBf) {
 
         private fun Vector3f.set(positions: FloatArray, ai: Int) {
             set(positions[ai], positions[ai + 1], positions[ai + 2])
-        }
-
-        private fun AABBf.maxDim(): Int {
-            val dx = deltaX()
-            val dy = deltaY()
-            val dz = deltaZ()
-            return when {
-                dx >= max(dy, dz) -> 0
-                dy >= dz -> 1
-                else -> 2
-            }
         }
 
         fun createTexture(name: String, numElements: Int, pixelsPerElement: Int): Texture2D {

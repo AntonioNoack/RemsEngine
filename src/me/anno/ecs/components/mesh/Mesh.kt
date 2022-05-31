@@ -21,8 +21,6 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4f
@@ -269,9 +267,13 @@ class Mesh : PrefabSaveable() {
 
     @Suppress("unused")
     fun calculateNormals(smooth: Boolean) {
-        if (smooth && indices == null) LOGGER.warn("Meshes without indices cannot be rendered smoothly (for now)!")
-        normals = FloatArray(positions!!.size)
-        NormalCalculator.checkNormals(positions!!, normals!!, indices)
+        val positions = positions!!
+        if (smooth && indices == null) {
+            indices = NormalCalculator.generateIndices(positions, uvs, color0, materialIndices, boneIndices, boneWeights)
+            LOGGER.debug("Generated indices for mesh")
+        }
+        normals = FloatArray(positions.size)
+        NormalCalculator.checkNormals(positions, normals!!, indices)
     }
 
     /**

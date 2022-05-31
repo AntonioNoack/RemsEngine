@@ -1,6 +1,8 @@
 package me.anno.utils.pooling
 
-open class FloatArrayPool(size: Int) : BufferPool<FloatArray>(size) {
+open class FloatArrayPool(size: Int) : BufferPool<FloatArray>(size,4) {
+
+    override fun prepare(buffer: FloatArray, size: Int) {}
 
     override fun createBuffer(size: Int) = FloatArray(size)
 
@@ -9,5 +11,7 @@ open class FloatArrayPool(size: Int) : BufferPool<FloatArray>(size) {
     override fun clear(buffer: FloatArray, size: Int) {
         buffer.fill(0f, 0, size)
     }
+
+    override fun destroy(buffer: FloatArray) {}
 
 }

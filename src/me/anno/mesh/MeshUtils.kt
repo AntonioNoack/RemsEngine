@@ -4,13 +4,6 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.ISaveable
 import me.anno.mesh.assimp.AnimGameItem
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
-import me.anno.utils.types.AABBs.isEmpty
-import me.anno.utils.types.AABBs.set
-import me.anno.utils.types.AABBs.transformProject
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max

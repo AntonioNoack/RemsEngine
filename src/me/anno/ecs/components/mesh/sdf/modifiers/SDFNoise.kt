@@ -4,7 +4,6 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.widen
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
@@ -120,7 +119,7 @@ class SDFNoise : DistanceMapper() {
     }
 
     override fun applyTransform(bounds: AABBf) {
-        bounds.widen(abs(amplitude) + offset)
+        bounds.addMargin(abs(amplitude) + offset)
     }
 
     override fun calcTransform(pos: Vector4f, distance: Float): Float {

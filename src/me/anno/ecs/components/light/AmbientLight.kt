@@ -2,7 +2,6 @@ package me.anno.ecs.components.light
 
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.utils.types.AABBs.all
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3f

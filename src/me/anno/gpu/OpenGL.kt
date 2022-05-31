@@ -2,8 +2,10 @@ package me.anno.gpu
 
 import me.anno.cache.instances.TextCache
 import me.anno.cache.instances.VideoCache
+import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -15,7 +17,6 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache
-import me.anno.utils.OS
 import me.anno.utils.structures.stacks.SecureBoolStack
 import me.anno.utils.structures.stacks.SecureStack
 import org.lwjgl.opengl.GL20.GL_LOWER_LEFT
@@ -37,7 +38,7 @@ object OpenGL {
         GFX.gpuTasks.clear() // they all have become invalid
         OpenGLShader.invalidateBinding()
         Texture2D.invalidateBinding()
-        Buffer.invalidateBinding()
+        OpenGLBuffer.invalidateBinding()
         // clear all caches, which contain gpu data
         FBStack.clear()
         TextCache.clear()
@@ -81,7 +82,6 @@ object OpenGL {
                 glEnable(GL_DEPTH_TEST)
                 glDepthFunc(newValue.func)
                 val reversedDepth = newValue.reversedDepth
-                val supportsClipControl = !OS.isAndroid
                 if (supportsClipControl) {
                     glClearDepth(if (reversedDepth) 0.0 else 1.0)
                     glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)

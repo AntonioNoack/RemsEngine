@@ -22,15 +22,29 @@ open class Shader(
 ) : OpenGLShader(shaderName) {
 
     constructor(
-        shaderName: String, vsUniforms: List<Variable>, vertex: String,
-        varying: List<Variable>, fsUniforms: List<Variable>, fragment: String
+        shaderName: String,
+        vsUniforms: List<Variable>,
+        vertex: String,
+        varying: List<Variable>,
+        fsUniforms: List<Variable>,
+        fragment: String
     ) : this(shaderName, null, vsUniforms, vertex, varying, fsUniforms, fragment)
 
-    constructor(shaderName: String, geometry: String?, vertex: String, varying: List<Variable>, fragment: String) :
-            this(shaderName, geometry, emptyList(), vertex, varying, emptyList(), fragment)
+    constructor(
+        shaderName: String,
+        geometry: String?,
+        vertex: String,
+        varying: List<Variable>,
+        fragment: String
+    ) : this(shaderName, geometry, emptyList(), vertex, varying, emptyList(), fragment)
 
-    constructor(shaderName: String, vertex: String, varying: List<Variable>, fragment: String) :
-            this(shaderName, null, vertex, varying, fragment)
+    constructor(shaderName: String, vertex: String, varying: List<Variable>, fragment: String) : this(
+        shaderName,
+        null,
+        vertex,
+        varying,
+        fragment
+    )
 
     var vertexSource = ""
     var fragmentSource = ""
@@ -68,9 +82,7 @@ open class Shader(
             }
             geo = geo.replace("#varying", varyings.joinToString("\n") { "\t${it.type.glslName} ${it.name};" })
             geo = geo.replace("#inOutVarying", varyings.joinToString("") {
-                "" +
-                        "${it.modifiers} in ${it.type.glslName} ${it.vShaderName}[];\n" +
-                        "${it.modifiers} out ${it.type.glslName} ${it.fShaderName};\n"
+                "" + "${it.modifiers} in ${it.type.glslName} ${it.vShaderName}[];\n" + "${it.modifiers} out ${it.type.glslName} ${it.fShaderName};\n"
             })
             compile(name, program, GL_GEOMETRY_SHADER, geo)
         } else -1
@@ -78,9 +90,16 @@ open class Shader(
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
         val builder = StringBuilder()
         builder.append(versionString)
+
+        for (line in vertexShader.split('\n')
+            .filter { it.trim().startsWith("#extension ") }) {
+            builder.append(line).append('\n')
+        }
+
         // todo only set them, if not already specified
         builder.append("precision mediump float;\n")
         builder.append("precision mediump int;\n")
+
         for (v in vertexVariables) {
             when (v.inOutMode) {
                 VariableMode.ATTR -> {
@@ -108,13 +127,21 @@ open class Shader(
             builder.append(v.vShaderName)
             builder.append(";\n")
         }
-        builder.append(vertexShader.replaceVaryingNames(true, varyings))
+        builder.append(
+            vertexShader
+                .replaceVaryingNames(true, varyings)
+                .replace("#extension ", "// #extension ")
+        )
         vertexSource = builder.toString()
         builder.clear()
 
         val vertexShader = compile(name, program, GL_VERTEX_SHADER, vertexSource)
 
         builder.append(versionString)
+        for (extension in fragmentShader.split('\n')
+            .filter { it.trim().startsWith("#extension ") }) {
+            builder.append(extension).append('\n')
+        }
         builder.append("precision mediump float;\n")
         builder.append("precision mediump int;\n")
         for (v in varyings) {
@@ -141,16 +168,14 @@ open class Shader(
             builder.append(";\n")
         }
         val base =
-            (if (!fragmentShader.contains("out ") &&
-                glslVersion == DefaultGLSLVersion &&
-                fragmentShader.contains("gl_FragColor") &&
-                fragmentVariables.none { it.isOutput }
-            ) {
-                "" +
-                        "out vec4 glFragColor;\n" +
-                        fragmentShader.replace("gl_FragColor", "glFragColor")
+            (if (!fragmentShader.contains("out ") && glslVersion == DefaultGLSLVersion && fragmentShader.contains("gl_FragColor") && fragmentVariables.none { it.isOutput }) {
+                "" + "out vec4 glFragColor;\n" + fragmentShader.replace("gl_FragColor", "glFragColor")
             } else fragmentShader)
-        builder.append(base.replaceVaryingNames(false, varyings))
+        builder.append(
+            base
+                .replaceVaryingNames(false, varyings)
+                .replace("#extension ", "// #extension ")
+        )
 
         fragmentSource = builder.toString()
         builder.clear()

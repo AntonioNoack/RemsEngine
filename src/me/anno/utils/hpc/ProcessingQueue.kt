@@ -4,12 +4,13 @@ import me.anno.Engine.shutdown
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
+import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.concurrent.thread
 
 open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter(numThreads) {
 
-    private val tasks = LinkedBlockingQueue<() -> Unit>()
+    private val tasks = LinkedList<() -> Unit>()
 
     private var hasBeenStarted = false
     private var shouldStop = false
@@ -30,7 +31,7 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
             while (!shutdown && !shouldStop) {
                 try {
                     // will block, until we have new work
-                    val task = tasks.poll() ?: null
+                    val task = synchronized(tasks) { tasks.poll() } ?: null
                     if (task == null) {
                         sleepShortly(true)
                     } else {
@@ -49,7 +50,15 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
 
     override operator fun plusAssign(task: () -> Unit) {
         if (!hasBeenStarted) start()
-        tasks += task
+        synchronized(tasks) { tasks += task }
+    }
+
+    fun addPrioritized(highPriority: Boolean, task: () -> Unit) {
+        if (!hasBeenStarted) start()
+        synchronized(tasks) {
+            if (highPriority) tasks.add(0, task)
+            else tasks.add(task)
+        }
     }
 
     companion object {

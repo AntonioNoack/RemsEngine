@@ -2,6 +2,7 @@ package me.anno.utils.process
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
+import me.anno.io.files.FileReference
 import me.anno.utils.OS
 import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
@@ -13,6 +14,11 @@ class BetterProcessBuilder(
     ownArgumentCount: Int,
     isLowPriority: Boolean
 ) {
+
+    constructor(
+        program: FileReference, ownArgumentCount: Int,
+        isLowPriority: Boolean
+    ) : this(program.absolutePath, ownArgumentCount, isLowPriority)
 
     val args = ArrayList<String>(ownArgumentCount + 1 + (if (isLowPriority) 3 else 0))
 
@@ -52,16 +58,24 @@ class BetterProcessBuilder(
         args += arguments
     }
 
-    fun add(argument: String) {
+    fun add(argument: String): BetterProcessBuilder {
         args += argument
+        return this
     }
 
-    fun addAll(arguments: Collection<String>) {
-        args += arguments
+    fun add(vararg argument: String): BetterProcessBuilder {
+        args += argument
+        return this
     }
 
-    fun addAll(arguments: Array<out String>) {
+    fun addAll(arguments: Collection<String>): BetterProcessBuilder {
         args += arguments
+        return this
+    }
+
+    fun addAll(arguments: Array<out String>): BetterProcessBuilder {
+        args += arguments
+        return this
     }
 
     fun start(): Process {

@@ -90,7 +90,7 @@ object DrawTextures {
         GFX.check()
         val shader = flatShaderTexture.value
         shader.use()
-        GFXx2D.posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h)
         defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1i("alphaMode", 2)

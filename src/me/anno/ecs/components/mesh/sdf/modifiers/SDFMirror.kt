@@ -8,7 +8,6 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace.Companion.dot
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.sq
-import me.anno.utils.types.AABBs.clear
 import org.joml.AABBf
 import org.joml.Planef
 import org.joml.Vector3f

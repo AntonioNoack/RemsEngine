@@ -40,6 +40,7 @@
     <orderEntry type="library" name="luaj-jse-3.0.2" level="project" />
     <orderEntry type="library" name="JBox2d" level="project" />
     <orderEntry type="library" name="Coroutines" level="project" />
-    <orderEntry type="library" name="lwjgl-vulkan" level="project" />
+    <orderEntry type="library" name="lwjgl-tinyexr-natives-linux-arm32" level="project" />
+    <orderEntry type="library" name="LWJGL-TinyEXR" level="project" />
   </component>
 </module>

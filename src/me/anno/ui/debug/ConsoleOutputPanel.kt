@@ -116,10 +116,11 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                     Thread.sleep(10)
                     val newMemory = runtime.totalMemory() - runtime.freeMemory()
                     LOGGER.info(
-                        "Called Garbage Collector\n" +
-                                "  old: ${oldMemory.formatFileSize()}\n" +
-                                "  new: ${newMemory.formatFileSize()}\n" +
-                                "  freed ${max(0L, oldMemory - newMemory).formatFileSize()}"
+                        "" +
+                                "Called Garbage Collector:\n" +
+                                "  old:   ${oldMemory.formatFileSize()}\n" +
+                                "  new:   ${newMemory.formatFileSize()}\n" +
+                                "  freed: ${max(0L, oldMemory - newMemory).formatFileSize()}"
                     )
                 }
             }

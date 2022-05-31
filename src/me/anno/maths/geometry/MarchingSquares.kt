@@ -159,11 +159,21 @@ object MarchingSquares {
         return polygons
     }
 
-    fun debugPolygons(w: Int, h: Int, values: FloatArray, polygons: List<List<Vector2f>>) {
-        if (polygons.isEmpty()) {
-            println("no polygons were found!")
-            return
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val w = 32
+        val h = 16
+        val t = (w * w + h * h) * 0.1f
+        val random = Random(1234L)
+        val values = FloatArray(w * h) {
+            val xi = it % w
+            val yi = it / w
+            val x = xi - (w - 1f) / 2f
+            val y = yi - (h - 1f) / 2f
+            (x * x + y * y) * 2f - t
+            // random.nextFloat() - 0.5f
         }
+        val polygons = march(w, h, values, 0f)
         val scale = 8
         val f0 = 1f / scale
         val f1 = 3f / scale
@@ -187,24 +197,6 @@ object MarchingSquares {
             val f = clamp(unmix(f0, f1, distance))
             mix(1f, fieldScale * field.getValue(px, py), f)
         }
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val w = 32
-        val h = 16
-        val t = (w * w + h * h) * 0.1f
-        val random = Random(1234L)
-        val values = FloatArray(w * h) {
-            val xi = it % w
-            val yi = it / w
-            val x = xi - (w - 1f) / 2f
-            val y = yi - (h - 1f) / 2f
-            (x * x + y * y) * 2f - t
-            // random.nextFloat() - 0.5f
-        }
-        val polygons = march(w, h, values, 0f)
-        debugPolygons(w, h, values, polygons)
     }
 
 }

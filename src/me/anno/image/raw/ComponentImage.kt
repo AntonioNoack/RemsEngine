@@ -1,6 +1,8 @@
 package me.anno.image.raw
 
 import me.anno.config.DefaultStyle.black
+import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
@@ -56,7 +58,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         return image
     }
 
-    override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
         val size = width * height
         val bytes = bufferPool[size, false, false]
         when (src) {
@@ -85,7 +87,14 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
                 }
             }
         }
-        texture.createMonochrome(bytes, checkRedundancy)
+        if (sync && GFX.isGFXThread()) {
+            texture.createMonochrome(bytes, checkRedundancy)
+        } else {
+            if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
+            GFX.addGPUTask("ComponentImage", width, height) {
+                texture.createMonochrome(bytes, checkRedundancy = false)
+            }
+        }
     }
 
     fun getValue(index: Int): Int {

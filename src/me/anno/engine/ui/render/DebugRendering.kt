@@ -65,6 +65,7 @@ object DebugRendering {
         val c1 = EditorState.selection.filterIsInstance<Camera>()
         val camera = (c1 + c0).firstOrNull()
         if (camera != null && !Input.isShiftDown) {
+            // todo this is incorrect for orthographic cameras, I think
             // calculate size of sub camera
             val w = (x1 - x0 + 1) / 3
             val h = (y1 - y0 + 1) / 3

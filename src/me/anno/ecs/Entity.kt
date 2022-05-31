@@ -3,11 +3,12 @@ package me.anno.ecs
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
-import me.anno.ecs.components.CollidingComponent
+import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.physics.BulletPhysics
+import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.twod.Box2dPhysics
 import me.anno.ecs.components.physics.twod.Rigidbody2d
@@ -25,9 +26,6 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.all
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.Floats.f2s
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -106,6 +104,8 @@ class Entity() : PrefabSaveable(), Inspectable {
         for (index in components.indices) {
             components[index].onCreate()
         }
+        val physics = getComponent(Physics::class, false)
+        if (physics != null) rebuildPhysics(physics)
     }
 
     val transform = Transform(this)
@@ -243,12 +243,13 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
-    fun rebuildPhysics(physics: BulletPhysics) {
-        if (hasComponent(Rigidbody::class)) {
+    fun rebuildPhysics(physics: Physics<*, *>) {
+        if (hasComponent(physics.rigidComponentClass)) {
             physics.invalidate(this)
         } else {
-            for (child in children) {
-                child.rebuildPhysics(physics)
+            val children = children
+            for (index in children.indices) {
+                children[index].rebuildPhysics(physics)
             }
         }
     }

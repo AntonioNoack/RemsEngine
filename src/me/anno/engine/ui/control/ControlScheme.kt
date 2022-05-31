@@ -163,12 +163,12 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         invalidateDrawing()
         if (control?.onMouseWheel(x, y, dx, dy, byMouse) == true) return
-        // not supported, always will be zooming
+        // not supported, will always be zooming
         // if (editMode?.onEditWheel(x, y, dx, dy) == true) return
         if (isSelected) {
             val factor = Maths.pow(0.5f, dy / 16f)
             view.radius *= factor
-            camera.fovOrthographic = view.radius.toFloat()
+            camera.fovOrthographic *= factor
             view.updateEditorCameraTransform()
             invalidateDrawing()
         }

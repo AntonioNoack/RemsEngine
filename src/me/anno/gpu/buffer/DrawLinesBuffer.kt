@@ -1,6 +1,6 @@
 package me.anno.gpu.buffer
 
-import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
+import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.opengl.GL11C.*

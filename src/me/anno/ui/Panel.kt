@@ -8,10 +8,12 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.MouseButton
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
+import me.anno.maths.Maths.length
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Corner.drawRoundedRect
 import me.anno.ui.base.components.Padding
@@ -30,6 +32,7 @@ import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.arrays.ExpandingGenericArray
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -41,8 +44,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
     var minY = 0
     var minW = 1
     var minH = 1
-
-    val depth: Int get() = 1 + (uiParent?.depth ?: 0)
 
     var alignmentX = AxisAlignment.MIN
         set(value) {
@@ -91,6 +92,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
 
     val windowStack get() = window!!.windowStack
+
+    val depth: Int get() = 1 + (uiParent?.depth ?: 0)
 
     fun toggleVisibility() {
         visibility = if (visibility == Visibility.VISIBLE) Visibility.GONE else Visibility.VISIBLE
@@ -280,12 +283,13 @@ open class Panel(val style: Style) : PrefabSaveable() {
                 val uip = uiParent
                 val bg = if (uip == null) 0 else uip.backgroundColor and 0xffffff
                 val radius = backgroundRadius
+                val backgroundRadiusCorners = backgroundRadiusCorners
                 drawRoundedRect(
                     x + dx, y + dy, w - 2 * dx, h - 2 * dy,
-                    if (backgroundRadiusCorners and 1 != 0) radius else 0f,
-                    if (backgroundRadiusCorners and 2 != 0) radius else 0f,
-                    if (backgroundRadiusCorners and 4 != 0) radius else 0f,
-                    if (backgroundRadiusCorners and 8 != 0) radius else 0f,
+                    if (backgroundRadiusCorners and CORNER_TOP_RIGHT != 0) radius else 0f,
+                    if (backgroundRadiusCorners and CORNER_TOP_LEFT != 0) radius else 0f,
+                    if (backgroundRadiusCorners and CORNER_BOTTOM_RIGHT != 0) radius else 0f,
+                    if (backgroundRadiusCorners and CORNER_BOTTOM_LEFT != 0) radius else 0f,
                     backgroundOutlineThickness,
                     backgroundColor, backgroundOutlineColor, bg,
                     1f
@@ -783,8 +787,18 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun getMultiSelectablePanel(): Panel? = uiParent?.getMultiSelectablePanel()
 
     open fun isOpaqueAt(x: Int, y: Int): Boolean {
-        // todo check rounded corners
-        return backgroundColor.a() >= minOpaqueAlpha
+        return backgroundColor.a() >= minOpaqueAlpha && if (hasRoundedCorners) {
+            val cornerMasks = ((x - this.x) * 2 < this.w).toInt(2) + ((y - this.y) * 2 > this.h).toInt()
+            if ((1 shl cornerMasks) and backgroundRadiusCorners != 0) {
+                val px = ((x - this.x) * 2 - this.w)
+                val py = ((y - this.y) * 2 - this.h)
+                val r = backgroundRadius * 2
+                val qx = abs(px) - this.w + r
+                val qy = abs(py) - this.h + r
+                // println("$x,$y -> $px,$py -> $qx,$qy -> ${length(max(qx, 0f),max(qy, 0f)) + min(0f, max(qx, qy)) - r}")
+                length(max(qx, 0f), max(qy, 0f)) + min(0f, max(qx, qy)) - r <= 0
+            } else contains(x, y)
+        } else contains(x, y)
     }
 
     open fun getPanelAt(x: Int, y: Int): Panel? {
@@ -860,6 +874,16 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
     }
 
+    override fun readString(name: String, value: String?) {
+        if(name == "tooltip") tooltip = value
+        else super.readString(name, value)
+    }
+
+    override fun readObject(name: String, value: ISaveable?) {
+        if(name == "tooltipPanel") tooltipPanel = value as? Panel
+        else super.readObject(name, value)
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("x", x)
@@ -870,9 +894,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
         writer.writeInt("minH", minH)
         writer.writeEnum("alignmentX", alignmentX)
         writer.writeEnum("alignmentY", alignmentY)
-        // maybe...
-        // writer.writeObjectList(this, "layoutConstraints", layoutConstraints)
-        // todo all other properties...
+        // to do save this stuff somehow, maybe...
+        // writer.writeObjectList(this, "clickListeners", clickListeners)
+        writer.writeObjectList(this, "layoutConstraints", layoutConstraints)
         writer.writeFloat("weight", weight)
         writer.writeEnum("visibility", visibility)
         writer.writeColor("background", backgroundColor)
@@ -880,11 +904,19 @@ open class Panel(val style: Style) : PrefabSaveable() {
         writer.writeColor("backgroundOutline", backgroundOutlineColor)
         writer.writeFloat("backgroundRadius", backgroundRadius)
         writer.writeFloat("backgroundOutlineThickness", backgroundOutlineThickness)
+        writer.writeString("tooltip", tooltip)
+        writer.writeObject(this, "tooltipPanel", tooltipPanel)
     }
 
     override val className: String = "Panel"
 
     companion object {
+
+        const val CORNER_TOP_RIGHT = 1
+        const val CORNER_BOTTOM_RIGHT = 2
+        const val CORNER_TOP_LEFT = 4
+        const val CORNER_BOTTOM_LEFT = 8
+
         private val LOGGER = LogManager.getLogger(Panel::class)
         val interactionPadding get() = Maths.max(0, DefaultConfig["ui.interactionPadding", 6])
         val minOpaqueAlpha = 63

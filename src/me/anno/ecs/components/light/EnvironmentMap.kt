@@ -26,7 +26,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.rotate2
 import org.apache.logging.log4j.LogManager
 import org.joml.*

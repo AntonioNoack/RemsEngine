@@ -6,8 +6,6 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.set
 import org.joml.AABBf
 import org.joml.Vector4f
 

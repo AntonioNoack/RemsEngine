@@ -2,21 +2,27 @@ package me.anno.image
 
 object BoxBlur {
 
-    fun gaussianBlur(image: FloatArray, w: Int, h: Int, thickness: Int) {
+    fun gaussianBlur(image: FloatArray, w: Int, h: Int, thickness: Int): Boolean {
         // box blur 3x with a third of the thickness is a nice gaussian blur approximation :),
         // which in turn is a bokeh-blur approximation
         val f0 = thickness / 3
         val f1 = thickness - 2 * f0
+        if (f0 < 2 && f1 < 2) return false
         val tmp = FloatArray(w)
         // if the first row in the result is guaranteed to be zero,
         // we could use the image itself as buffer; (but only we waste space in the first place ->
         // don't optimize that case)
-        boxBlurX(image, w, h, f0)
-        boxBlurY(image, w, h, f0, tmp)
-        boxBlurX(image, w, h, f0)
-        boxBlurY(image, w, h, f0, tmp)
-        boxBlurX(image, w, h, f1)
-        boxBlurY(image, w, h, f1, tmp)
+        if (f0 > 1) {
+            boxBlurX(image, w, h, f0)
+            boxBlurY(image, w, h, f0, tmp)
+            boxBlurX(image, w, h, f0)
+            boxBlurY(image, w, h, f0, tmp)
+        }
+        if (f1 > 1) {
+            boxBlurX(image, w, h, f1)
+            boxBlurY(image, w, h, f1, tmp)
+        }
+        return true
     }
 
     fun boxBlurX(image: FloatArray, w: Int, h: Int, thickness: Int) {

@@ -132,18 +132,22 @@ abstract class TreeView<V>(
     // if the size of the tree is large, this can use up
     // quite a lot of time -> only update when necessary
     private fun updateTree() {
-        needsTreeUpdate = false
-        var index = 0
-        val sources = sources
-        for (i in sources.indices) {
-            val element = sources[i]
-            index = addToTreeList(element, 0, index)
-        }
-        // make the rest invisible (instead of deleting them)
-        val children = list.children
-        for (i in index until children.size) {
-            val child = children[i]
-            child.visibility = Visibility.GONE
+        try {
+            var index = 0
+            val sources = sources
+            for (i in sources.indices) {
+                val element = sources[i]
+                index = addToTreeList(element, 0, index)
+            }
+            // make the rest invisible (instead of deleting them)
+            val children = list.children
+            for (i in index until children.size) {
+                val child = children[i]
+                child.visibility = Visibility.GONE
+            }
+            needsTreeUpdate = false
+        } catch (e: Exception) {
+            lastWarning = e.message ?: lastWarning
         }
     }
 

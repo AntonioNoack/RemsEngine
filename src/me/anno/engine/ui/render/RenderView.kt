@@ -61,6 +61,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.maths.Maths.clamp
@@ -74,7 +75,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -120,9 +120,7 @@ import kotlin.math.tan
 // todo define the render pipeline from the editor? maybe from the code in an elegant way? top level element?
 
 open class RenderView(
-    val library: EditorState,
-    var playMode: PlayMode,
-    style: Style
+    val library: EditorState, var playMode: PlayMode, style: Style
 ) : Panel(style) {
 
     private var bloomStrength = 0.5f
@@ -169,9 +167,7 @@ open class RenderView(
 
     val pipeline = Pipeline(deferred)
     private val stage0 = PipelineStage(
-        "default", Sorting.NO_SORTING, MAX_FORWARD_LIGHTS,
-        null, DepthMode.GREATER, true, CullMode.BACK,
-        pbrModelShader
+        "default", Sorting.NO_SORTING, MAX_FORWARD_LIGHTS, null, DepthMode.GREATER, true, CullMode.BACK, pbrModelShader
     )
 
     init {
@@ -198,7 +194,7 @@ open class RenderView(
         val cameraNode = editorCameraNode
         val tmpQ = JomlPools.quat4d.borrow()
         cameraNode.transform.localRotation = rotation.toQuaternionDegrees(tmpQ)
-        camera.far = 1e300
+        camera.far = 5000.0
         camera.near = if (renderMode == RenderMode.DEPTH) {
             0.2
         } else {
@@ -287,18 +283,7 @@ open class RenderView(
         val showOverdraw = renderMode == RenderMode.OVERDRAW
         val showSpecialBuffer = showIds || showOverdraw || isKeyDown('j')
         var useDeferredRendering = when (renderMode) {
-            RenderMode.DEFAULT,
-            RenderMode.CLICK_IDS,
-            RenderMode.DEPTH,
-            RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4,
-            RenderMode.FSR_SQRT2, RenderMode.FSR_X2, RenderMode.NEAREST_X4,
-            RenderMode.GHOSTING_DEBUG,
-            RenderMode.INVERSE_DEPTH,
-            RenderMode.WITHOUT_POST_PROCESSING,
-            RenderMode.LINES, RenderMode.LINES_MSAA,
-            RenderMode.FRONT_BACK,
-            RenderMode.SHOW_TRIANGLES,
-            RenderMode.MSAA_X8 -> false
+            RenderMode.DEFAULT, RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4, RenderMode.FSR_SQRT2, RenderMode.FSR_X2, RenderMode.NEAREST_X4, RenderMode.GHOSTING_DEBUG, RenderMode.INVERSE_DEPTH, RenderMode.WITHOUT_POST_PROCESSING, RenderMode.LINES, RenderMode.LINES_MSAA, RenderMode.FRONT_BACK, RenderMode.SHOW_TRIANGLES, RenderMode.MSAA_X8 -> false
             else -> true
         }
 
@@ -343,10 +328,7 @@ open class RenderView(
                 useDeferredRendering = true
                 DeferredRenderer
             }
-            RenderMode.FORCE_NON_DEFERRED,
-            RenderMode.MSAA_X8,
-            RenderMode.FSR_MSAA_X4,
-            RenderMode.LINES, RenderMode.LINES_MSAA -> {
+            RenderMode.FORCE_NON_DEFERRED, RenderMode.MSAA_X8, RenderMode.FSR_MSAA_X4, RenderMode.LINES, RenderMode.LINES_MSAA -> {
                 useDeferredRendering = false
                 pbrRenderer
             }
@@ -358,8 +340,7 @@ open class RenderView(
                 useDeferredRendering = false
                 Renderer.triangleVisRenderer
             }
-            else -> if (useDeferredRendering)
-                DeferredRenderer else pbrRenderer
+            else -> if (useDeferredRendering) DeferredRenderer else pbrRenderer
         }
 
         val dlt = renderMode.dlt
@@ -369,37 +350,34 @@ open class RenderView(
         }
 
         val buffer = when {
-            renderMode == RenderMode.MSAA_X8 ||
-                    renderMode == RenderMode.LINES_MSAA ||
-                    renderMode == RenderMode.FSR_MSAA_X4 -> FBStack["", w, h, 4, false, 8, true]
+            renderMode == RenderMode.MSAA_X8 || renderMode == RenderMode.LINES_MSAA || renderMode == RenderMode.FSR_MSAA_X4 -> FBStack["", w, h, 4, false, 8, true]
             renderer == DeferredRenderer -> baseNBuffer
             else -> base1Buffer
         }
 
         drawScene(
-            x0, y0, x1, y1, camera0, camera1, blending, renderer,
-            buffer, useDeferredRendering,
+            x0, y0, x1, y1,
+            camera0, camera1, blending,
+            renderer, buffer,
+            useDeferredRendering,
             size, cols, rows, layers.size
         )
 
         if (world == null) {
             DrawTexts.drawSimpleTextCharByChar(
-                x + w / 2, y + h / 2, 4, "World Not Found!",
-                AxisAlignment.CENTER, AxisAlignment.CENTER
+                x + w / 2, y + h / 2, 4, "World Not Found!", AxisAlignment.CENTER, AxisAlignment.CENTER
             )
         }
 
         if (showSpecialBuffer) {
             DrawTexts.drawSimpleTextCharByChar(
-                x + 20, y, 2,
-                renderMode.name
+                x + 20, y, 2, renderMode.name
             )
         }
 
         if (useDeferredRendering) {
             DrawTexts.drawSimpleTextCharByChar(
-                x + w, y, 2,
-                "DEFERRED", AxisAlignment.MAX
+                x + w, y, 2, "DEFERRED", AxisAlignment.MAX
             )
         }
 
@@ -425,8 +403,10 @@ open class RenderView(
             val count1 = PipelineStage.drawnTriangles
             val deltaCount = count1 - count0
             DrawTexts.drawSimpleTextCharByChar(
-                x, y + h - 2 - DrawTexts.monospaceFont.sizeInt,
-                2, "$deltaCount",
+                x,
+                y + h - 2 - DrawTexts.monospaceFont.sizeInt,
+                2,
+                "$deltaCount",
                 FrameTimes.textColor,
                 FrameTimes.backgroundColor
             )
@@ -441,12 +421,20 @@ open class RenderView(
     private val mayChangeSize get() = (Engine.frameIndex % 20 == 0)
 
     private fun drawScene(
-        x0: Int, y0: Int, x1: Int, y1: Int,
-        camera0: Camera, camera1: Camera,
+        x0: Int,
+        y0: Int,
+        x1: Int,
+        y1: Int,
+        camera0: Camera,
+        camera1: Camera,
         blending: Float,
-        renderer: Renderer, buffer: IFramebuffer,
+        renderer: Renderer,
+        buffer: IFramebuffer,
         useDeferredRendering: Boolean,
-        size: Int, cols: Int, rows: Int, layersSize: Int
+        size: Int,
+        cols: Int,
+        rows: Int,
+        layersSize: Int
     ) {
 
         var w = x1 - x0
@@ -462,9 +450,7 @@ open class RenderView(
                 w = (w + 1) / 2
                 h = (h + 1) / 2
             }
-            RenderMode.FSR_X4,
-            RenderMode.FSR_MSAA_X4,
-            RenderMode.NEAREST_X4 -> {
+            RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4, RenderMode.NEAREST_X4 -> {
                 w = (w + 2) / 4
                 h = (h + 2) / 4
             }
@@ -577,18 +563,15 @@ open class RenderView(
                     drawGizmos(world, buffer, renderer, camPosition, true)
                     val strength = max(ssao.strength, 0.01f)
                     val ssao = ScreenSpaceAmbientOcclusion.compute(
-                        buffer, deferred, cameraMatrix,
-                        ssao.radius, strength, ssao.samples
+                        buffer, deferred, cameraMatrix, ssao.radius, strength, ssao.samples
                     )
                     drawTexture(
-                        x, y + h - 1, w, -h, ssao ?: buffer.getTexture0(),
-                        true, -1, null
+                        x, y + h - 1, w, -h, ssao ?: buffer.getTexture0(), true, -1, null
                     )
                     if (ssao == null) {
                         // write warning message
                         DrawTexts.drawSimpleTextCharByChar(
-                            x + w / 2, y + h / 2, 2, "SSAO not supported",
-                            AxisAlignment.CENTER, AxisAlignment.CENTER
+                            x + w / 2, y + h / 2, 2, "SSAO not supported", AxisAlignment.CENTER, AxisAlignment.CENTER
                         )
                     }
                     return
@@ -628,8 +611,7 @@ open class RenderView(
                     drawTexture(x, y + h - 1, w, -h, result ?: buffer.getTexture0(), true, -1, null)
                     if (result == null) {
                         DrawTexts.drawSimpleTextCharByChar(
-                            x + w / 2, y + h / 2, 2, "SSR not supported",
-                            AxisAlignment.CENTER, AxisAlignment.CENTER
+                            x + w / 2, y + h / 2, 2, "SSR not supported", AxisAlignment.CENTER, AxisAlignment.CENTER
                         )
                     }
                     return
@@ -678,7 +660,8 @@ open class RenderView(
                         if (index < layersSize) clip2(
                             if (y12 - y02 > x12 - x02) x02 else mix(x02, x12, f),
                             if (y12 - y02 > x12 - x02) mix(y02, y12, f) else y02,
-                            x12, y12
+                            x12,
+                            y12
                         ) { // draw alpha on right/bottom side
                             drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture)
                         }
@@ -727,8 +710,7 @@ open class RenderView(
                         // y flipped, because it would be incorrect otherwise
                         drawTexture(x02, y12, tw, -th, texture, true, -1, null)
                         DrawTexts.drawSimpleTextCharByChar(
-                            (x02 + x12) / 2, (y02 + y12) / 2, 2,
-                            layer.name, AxisAlignment.CENTER, AxisAlignment.CENTER
+                            (x02 + x12) / 2, (y02 + y12) / 2, 2, layer.name, AxisAlignment.CENTER, AxisAlignment.CENTER
                         )
 
                     }
@@ -784,8 +766,7 @@ open class RenderView(
 
                     val ssaoStrength = ssao.strength
                     val ssao = if (ssaoStrength > 0f) ScreenSpaceAmbientOcclusion.compute(
-                        buffer, deferred, cameraMatrix,
-                        ssao.radius, ssaoStrength, ssao.samples
+                        buffer, deferred, cameraMatrix, ssao.radius, ssaoStrength, ssao.samples
                     ) ?: blackTexture else blackTexture
 
                     // use the existing depth buffer for the 3d ui
@@ -810,8 +791,7 @@ open class RenderView(
 
                         // screen space reflections
                         val ssReflections = ScreenSpaceReflections.compute(
-                            buffer, illuminated.getTexture0(), deferred, cameraMatrix,
-                            false
+                            buffer, illuminated.getTexture0(), deferred, cameraMatrix, false
                         ) ?: illuminated.getTexture0()
 
                         useFrame(w, h, true, dstBuffer0) {
@@ -842,10 +822,7 @@ open class RenderView(
                                 buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                                 ssao.bindTrulyNearest(shader, "ambientOcclusion")
                                 lightBuffer.bindTexture0(
-                                    shader,
-                                    "finalLight",
-                                    GPUFiltering.TRULY_NEAREST,
-                                    Clamping.CLAMP
+                                    shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP
                                 )
 
                                 flat01.draw(shader)
@@ -880,23 +857,38 @@ open class RenderView(
                 pipeline.applyToneMapping = false
                 val tmp = FBStack["scene", w, h, 4, true, buffer.samples, true]
                 drawScene(
-                    w, h, camera0, camera1, blending, renderer, tmp,
-                    changeSize = true, doDrawGizmos = true, toneMappedColors = true
+                    w,
+                    h,
+                    camera0,
+                    camera1,
+                    blending,
+                    renderer,
+                    tmp,
+                    changeSize = true,
+                    doDrawGizmos = true,
+                    toneMappedColors = true
                 )
                 useFrame(w, h, true, dstBuffer) {
                     Bloom.bloom(tmp.getTexture0(), bloomOffset, bloomStrength, true)
                 }
             } else {
                 drawScene(
-                    w, h, camera0, camera1, blending, renderer, buffer,
-                    changeSize = true, doDrawGizmos = true, toneMappedColors = true
+                    w,
+                    h,
+                    camera0,
+                    camera1,
+                    blending,
+                    renderer,
+                    buffer,
+                    changeSize = true,
+                    doDrawGizmos = true,
+                    toneMappedColors = true
                 )
             }
         }
 
         val useFSR = when (renderMode) {
-            RenderMode.FSR_X2, RenderMode.FSR_SQRT2,
-            RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4 -> true
+            RenderMode.FSR_X2, RenderMode.FSR_SQRT2, RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4 -> true
             else -> false
         }
 
@@ -925,8 +917,7 @@ open class RenderView(
     }
 
     fun resolveClick(
-        px: Float,
-        py: Float
+        px: Float, py: Float
     ): Pair<Entity?, Component?> {
 
         // pipeline should already be filled
@@ -963,7 +954,11 @@ open class RenderView(
     }
 
     fun getWorld(): PrefabSaveable? {
-        return library.prefab?.getSampleInstance()// ?: library.world
+        return try {
+            library.prefab?.getSampleInstance()
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private val tmp4f = Vector4f()
@@ -1010,7 +1005,6 @@ open class RenderView(
         val rotInv = rot0.slerp(rot1, blendF)
         val rot = rot1.set(rotInv).conjugate() // conjugate is quickly inverting, when already normalized
 
-
         val centerX = mix(previousCamera.center.x, camera.center.x, blendF)
         val centerY = mix(previousCamera.center.x, camera.center.y, blendF)
 
@@ -1022,25 +1016,40 @@ open class RenderView(
         val scaledFar = (far * worldScale)
         RenderView.scaledNear = scaledNear
         RenderView.scaledFar = scaledFar
+        RenderView.isPerspective = isPerspective
         if (isPerspective) {
             val fovYRadians = toRadians(fov)
             Companion.fovYRadians = fovYRadians
             Perspective.setPerspective(
-                cameraMatrix,
-                fovYRadians,
-                aspectRatio,
-                scaledNear.toFloat(),
-                scaledFar.toFloat(),
-                centerX, centerY
+                cameraMatrix, fovYRadians, aspectRatio, scaledNear.toFloat(), scaledFar.toFloat(), centerX, centerY
             )
         } else {
-            // todo get projection working correctly & respect inverse depth
-            fovYRadians = 1f // not really defined
+            fovYRadians = fov // not really defined
+            val sceneScaleXY = 2f / fov // 2, because OpenGL goes from -1 to +1
+            val n: Float
+            val f: Float
+            // todo only devices may not support 01-range, so make this optional
+            val range01 = reverseDepth
+            if (reverseDepth) {
+                // range is 0 .. 1
+                n = scaledNear.toFloat()
+                f = scaledFar.toFloat()
+            } else {
+                // range is -1 .. 1 instead of 0 .. 1
+                n = scaledFar.toFloat()
+                f = scaledNear.toFloat()
+            }
+            val sceneScaleZ = 1f / (f - n)
+            val reverseDepth = OpenGL.depthMode.currentValue.reversedDepth
+            var m22 = if (reverseDepth) +sceneScaleZ else -sceneScaleZ
+            var z0 = 1f - n * sceneScaleZ
+            if (!range01) {
+                m22 *= 2f
+                z0 = z0 * 2f - 1f
+            }
+            // todo respect near
             cameraMatrix.set(
-                height / (fov * width), 0f, 0f, 0f,
-                0f, 1f / fov, 0f, 0f,
-                0f, 0f, -1f / fov, 0f,
-                0f, 0f, 0.5f, 1f
+                height * sceneScaleXY / width, 0f, 0f, 0f, 0f, sceneScaleXY, 0f, 0f, 0f, 0f, m22, 0f, 0f, 0f, z0, 1f
             )
         }
         cameraMatrix.rotate(rot)
@@ -1070,10 +1079,18 @@ open class RenderView(
 
         currentInstance = this
 
-        if (update && world is Entity) {
-            world.update()
-            world.updateVisible()
-            world.validateTransform()
+        if (update) {
+            when (world) {
+                is Entity -> {
+                    world.update()
+                    world.updateVisible()
+                    world.validateTransform()
+                }
+                is Component -> {
+                    world.onUpdate()
+                    world.onVisibleUpdate()
+                }
+            }
         }
 
         if (world is Material && world.prefab?.source?.exists != true) {
@@ -1089,10 +1106,9 @@ open class RenderView(
             )
         } else {
             pipeline.frustum.defineOrthographic(
-                fov.toDouble(), aspectRatio.toDouble(),
-                near, far, width,
-                camPosition, camRotation
+                fov.toDouble(), aspectRatio.toDouble(), near, far, width, camPosition, camRotation
             )
+            // pipeline.frustum.showPlanes()
         }
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
@@ -1122,11 +1138,7 @@ open class RenderView(
     private val depthMode get() = if (reverseDepth) DepthMode.GREATER else DepthMode.FORWARD_LESS
 
     private fun setClearColor(
-        renderer: Renderer,
-        previousCamera: Camera,
-        camera: Camera,
-        blending: Float,
-        toneMappedColors: Boolean
+        renderer: Renderer, previousCamera: Camera, camera: Camera, blending: Float, toneMappedColors: Boolean
     ) {
         if (renderer.isFakeColor) {
             glClearColor(0f, 0f, 0f, 0f)
@@ -1147,11 +1159,17 @@ open class RenderView(
         OpenGL.blendMode.use(null) {
             OpenGL.depthMode.use(DepthMode.ALWAYS) {
                 // don't write depth, only all buffers
+                // todo this buffer is very small in orthographic case
                 OpenGL.depthMask.use(false) {
                     // draw huge cube with default values for all buffers
                     val shader = clearingPbrModelShader.value
                     shader.use()
-                    shader.m4x4("transform", cameraMatrix)
+                    // todo origin of problem: cameraMatrix contains scale
+                    val m = JomlPools.mat4f.borrow()
+                    m.set(cameraMatrix)
+                    val fov = fovYRadians
+                    m.scale(100f / fov) // todo adjust with aspect ratio
+                    shader.m4x4("transform", m)
                     Shapes.cube11Smooth.draw(shader, 0)
                 }
             }
@@ -1159,7 +1177,8 @@ open class RenderView(
     }
 
     fun drawScene(
-        w: Int, h: Int,
+        w: Int,
+        h: Int,
         camera: Camera,
         previousCamera: Camera,
         blending: Float,
@@ -1173,7 +1192,7 @@ open class RenderView(
         GFX.check()
 
         val isDeferred = dst.numTextures > 1
-        val specialClear = isDeferred && renderer === DeferredRenderer
+        val specialClear = false // isDeferred && renderer === DeferredRenderer
         val world = getWorld()
 
         val preDrawDepth = renderMode == RenderMode.WITH_PRE_DRAW_DEPTH
@@ -1356,7 +1375,7 @@ open class RenderView(
 
                     if (drawAABBs) {
                         val aabb = entity.aabb
-                        val hit = AABBs.testLineAABB(aabb, camPosition, mouseDir, 1e10)
+                        val hit = aabb.testLine(camPosition, mouseDir, 1e10)
                         drawAABB(aabb, worldScale, if (hit) aabbColorHovered else aabbColorDefault)
                     }
 
@@ -1385,9 +1404,7 @@ open class RenderView(
      * todo for other cameras: can be used for virtual mice
      * */
     fun getMouseRayDirection(
-        cx: Float = window!!.mouseX,
-        cy: Float = window!!.mouseY,
-        dst: Vector3d = Vector3d()
+        cx: Float = window!!.mouseX, cy: Float = window!!.mouseY, dst: Vector3d = Vector3d()
     ): Vector3d {
         val rx = (cx - x) / w * +2f - 1f
         val ry = (cy - y) / h * -2f + 1f
@@ -1427,6 +1444,7 @@ open class RenderView(
         // infinity
         var far = 1e10
         var scaledFar = 1e10
+        var isPerspective = true
 
         val cameraMatrix = Matrix4f()
 

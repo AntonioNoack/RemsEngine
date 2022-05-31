@@ -34,8 +34,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.io.Saveable
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.maps.KeyPairMap
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.transformUnion
+import me.anno.utils.types.Matrices.set2
 import org.joml.*
 import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
 import org.lwjgl.opengl.GL20
@@ -57,6 +56,7 @@ class PipelineStage(
         var drawnTriangles = 0
 
         val lastMaterial = HashMap<Shader, Material>(64)
+        private val tmp4x3 = Matrix4x3f()
         private val tmp3x3 = Matrix3f()
 
         // is rotation, position and scale enough?...
@@ -104,12 +104,8 @@ class PipelineStage(
 
             val invLocalUniform = shader["invLocalTransform"]
             if (invLocalUniform >= 0) {
-                val invLocal = tmp3x3.set(
-                    drawTransform.m00().toFloat(), drawTransform.m01().toFloat(), drawTransform.m02().toFloat(),
-                    drawTransform.m10().toFloat(), drawTransform.m11().toFloat(), drawTransform.m12().toFloat(),
-                    drawTransform.m20().toFloat(), drawTransform.m21().toFloat(), drawTransform.m22().toFloat(),
-                ).invert()
-                shader.m3x3(invLocalUniform, invLocal)
+                val invLocal = tmp4x3.set2(drawTransform).invert()
+                shader.m4x3(invLocalUniform, invLocal)
             }
 
         }

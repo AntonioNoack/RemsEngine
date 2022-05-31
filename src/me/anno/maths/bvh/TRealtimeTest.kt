@@ -26,11 +26,10 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toRGB
-import me.anno.utils.hpc.HeavyProcessing
+import me.anno.utils.LOGGER
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.types.AABBs.volume
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
@@ -45,6 +44,7 @@ object TRealtimeTest {
         val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(16)
         clock.stop("Loading & Generating TLAS", 0.0)
         main(tlas, cameraPosition, cameraRotation, fovZFactor)
+        LOGGER.debug("Finished")
     }
 }
 

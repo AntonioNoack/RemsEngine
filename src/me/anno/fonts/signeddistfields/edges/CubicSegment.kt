@@ -7,11 +7,11 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.mix
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
+import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
 import org.joml.Vector2f
@@ -71,8 +71,8 @@ class CubicSegment(
 
     override fun union(bounds: AABBf, tmp: FloatArray) {
 
-        union(bounds, p0)
-        union(bounds, p3)
+        bounds.union(p0.x(), p0.y(), 0f)
+        bounds.union(p3.x(), p3.y(), 0f)
 
         val a0 = JomlPools.vec2f.create()
         val a1 = JomlPools.vec2f.create()

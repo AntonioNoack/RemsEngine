@@ -5,6 +5,7 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -66,7 +67,7 @@ object Bloom {
             // x blur pass
             wi = max((wi + 1) shr 1, 1)
             shaderX.use()
-            val bufferX = FBStack["bloomX", wi, hi, 4, true, 1, false]
+            val bufferX = FBStack["bloomX", wi, hi, 4, BufferQuality.HIGH_16, 1, false]
             useFrame(bufferX, renderer) {
                 previous.bindTrulyNearest(0)
                 flat01.draw(shaderX)
@@ -76,7 +77,7 @@ object Bloom {
             // y blur pass
             hi = max((hi + 1) shr 1, 1)
             shaderY.use()
-            val bufferY = FBStack["bloomY", wi, hi, 4, true, 1, false]
+            val bufferY = FBStack["bloomY", wi, hi, 4, BufferQuality.HIGH_16, 1, false]
             useFrame(bufferY, renderer) {
                 previous.bindTrulyNearest(0)
                 flat01.draw(shaderY)
@@ -208,7 +209,7 @@ object Bloom {
     fun bloom2(
         source: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean,
         dst: IFramebuffer = FBStack["bloom", source.w, source.h,
-                if (applyToneMapping) TargetType.UByteTarget4 else TargetType.HalfFloatTarget4, 1, false]
+                if (applyToneMapping) TargetType.UByteTarget4 else TargetType.FP16Target4, 1, false]
     ): IFramebuffer {
         useFrame(dst) {
             bloom(source, offset, strength, applyToneMapping)

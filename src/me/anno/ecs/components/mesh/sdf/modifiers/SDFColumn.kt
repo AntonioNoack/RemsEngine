@@ -5,7 +5,6 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.widen
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths
@@ -122,7 +121,7 @@ class SDFColumn : DistanceMapper() {
         val delta = amplitude
         if (delta > 0f) {
             // not the most accurate, but probably good enough
-            bounds.widen(delta)
+            bounds.addMargin(delta)
         }
     }
 

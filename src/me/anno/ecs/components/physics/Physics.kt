@@ -18,7 +18,6 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.structures.sets.ParallelHashSet
-import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -29,7 +28,7 @@ import kotlin.math.abs
 import kotlin.reflect.KClass
 
 abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
-    private val internalRigidBodyClass: KClass<InternalRigidBody>
+    val rigidComponentClass: KClass<InternalRigidBody>
 ) : Component() {
 
     companion object {
@@ -81,7 +80,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     @DebugAction
     fun invalidateAll() {
         entity?.forAll {
-            if (internalRigidBodyClass.isInstance(it)) {
+            if (rigidComponentClass.isInstance(it)) {
                 val e = (it as? Component)?.entity
                 if (e != null) invalidate(e)
             }
@@ -118,7 +117,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
             @Suppress("unchecked_cast")
             yieldAll(entity.components.filter { it.isEnabled && clazz.isInstance(it) } as List<V>)
             for (child in entity.children) {
-                if (child.isEnabled && !child.hasComponent(internalRigidBodyClass, false)) {
+                if (child.isEnabled && !child.hasComponent(rigidComponentClass, false)) {
                     yieldAll(getValidComponents(child, clazz))
                 }
             }
@@ -171,7 +170,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     fun addOrGet(entity: Entity): ExternalRigidBody? {
         // LOGGER.info("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
-        val rigidbody = entity.getComponent(internalRigidBodyClass, false) ?: return null
+        val rigidbody = entity.getComponent(rigidComponentClass, false) ?: return null
         return if (rigidbody.isEnabled) {
             getRigidbody(rigidbody)
         } else null

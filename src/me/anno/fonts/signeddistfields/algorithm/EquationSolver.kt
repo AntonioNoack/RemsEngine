@@ -51,7 +51,7 @@ object EquationSolver {
             if (t < -1) t = -1f
             if (t > 1) t = 1f
             t = acos(t)
-            a /= 3
+            a /= 3f
             q = -2 * sqrt(q)
             x[0] = q * cos(t / 3) - a
             x[1] = q * cos((t + 2 * M_PI) / 3) - a
@@ -61,7 +61,7 @@ object EquationSolver {
             A = -pow(abs(r) + sqrt(r2 - q3), 1f / 3f)
             if (r < 0) A = -A
             B = if (A == 0f) 0f else q / A
-            a /= 3
+            a /= 3f
             x[0] = A + B - a
             x[1] = -0.5f * (A + B) - a
             x[2] = +0.5f * sqrt(3f) * (A - B)

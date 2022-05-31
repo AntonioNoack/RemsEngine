@@ -15,7 +15,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.Shapes
-import me.anno.utils.types.AABBs.all
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3f

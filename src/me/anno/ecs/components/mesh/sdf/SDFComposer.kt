@@ -18,12 +18,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.length
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.avgZ
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
-import me.anno.utils.types.AABBs.deltaZ
 import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.collections.component1
@@ -84,16 +78,30 @@ object SDFComposer {
         val uniforms = HashMap<String, TypeValue>()
         val shapeDependentShader = StringBuilder()
         tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions)
-        uniforms["localStart"] = TypeValueV3(GLSLType.V3F, Vector3f()) { localStart ->
+        uniforms["localCamPos"] = TypeValueV3(GLSLType.V3F, Vector3f()) { dst ->
             val dt = tree.transform?.getDrawMatrix()
             if (dt != null) {
                 val pos = JomlPools.vec3d.create()
                 val dtInverse = JomlPools.mat4x3d.create()
                 dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
                 dtInverse.transformPosition(RenderView.camPosition, pos)
-                localStart.set(pos)
+                dst.set(pos)
                 JomlPools.vec3d.sub(1)
                 JomlPools.mat4x3d.sub(1)
+            }
+        }
+        uniforms["localCamDir"] = TypeValueV3(GLSLType.V3F, Vector3f()) { dst ->
+            if (RenderView.isPerspective) {
+                val dt = tree.transform?.getDrawMatrix()
+                if (dt != null) {
+                    val pos = JomlPools.vec3d.create()
+                    val dtInverse = JomlPools.mat4x3d.create()
+                    dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
+                    dtInverse.transformDirection(RenderView.camDirection, pos)
+                    dst.set(pos).normalize()
+                    JomlPools.vec3d.sub(1)
+                    JomlPools.mat4x3d.sub(1)
+                }
             }
         }
         uniforms["sdfReliability"] = TypeValueV2(GLSLType.V1F) { tree.globalReliability }
@@ -136,7 +144,7 @@ object SDFComposer {
             val b = tree.localAABB
             it.set(b.maxX, b.maxY, b.maxZ)
         }
-        uniforms["perspectiveCamera"] = TypeValue(GLSLType.BOOL) { RenderView.camInverse.m33() == 0.0 }
+        uniforms["perspectiveCamera"] = TypeValue(GLSLType.BOOL) { RenderView.isPerspective }
         uniforms["debugMode"] = TypeValue(GLSLType.V1I) { tree.debugMode.id }
 
         val materials = tree.sdfMaterials.map { MaterialCache[it] }
@@ -168,13 +176,14 @@ object SDFComposer {
                 val fragmentVariables = listOf(
                     Variable(GLSLType.M4x4, "transform"),
                     Variable(GLSLType.M4x3, "localTransform"),
-                    Variable(GLSLType.M3x3, "invLocalTransform"),
+                    Variable(GLSLType.M4x3, "invLocalTransform"),
+                    Variable(GLSLType.V3F, "localCamPos"),
+                    Variable(GLSLType.V3F, "localCamDir"),
                     Variable(GLSLType.V1I, "maxSteps"),
                     Variable(GLSLType.V2F, "distanceBounds"),
                     Variable(GLSLType.V3F, "localMin"),
                     Variable(GLSLType.V3F, "localMax"),
                     Variable(GLSLType.V1I, "debugMode"), // 0 = default, 1 = #steps, 2 = sdf planes
-                    Variable(GLSLType.V3F, "localStart"),
                     Variable(GLSLType.BOOL, "perspectiveCamera"),
                     Variable(GLSLType.V1F, "sdfReliability"),
                     Variable(GLSLType.V1F, "sdfNormalEpsilon"),
@@ -232,13 +241,13 @@ object SDFComposer {
                             "if(!gl_FrontFacing) discard;\n" +
                             "vec3 localDir, localPos;\n" +
                             "if(perspectiveCamera){\n" +
-                            "   localDir = normalize(invLocalTransform * finalPosition);\n" +
-                            "   localPos = localStart;\n" +
+                            "   localDir = normalize(invLocalTransform * vec4(finalPosition, 0.0));\n" +
+                            "   localPos = localCamPos;\n" +
                             "} else {\n" +
-                            // todo correct ortho transform:
-                            // same dir, different start pos
-                            "   localDir = normalize(invLocalTransform * finalPosition);\n" +
-                            "   localPos = localStart;\n" +
+                            // todo this is close, but not yet perfect...
+                            "   localDir = localCamDir;\n" +
+                            "   vec3 localHit = invLocalTransform * vec4(finalPosition, 1.0);\n" +
+                            "   localPos = localHit - localDir * dot(localDir, localHit - localCamPos);\n" +
                             "}\n" +
                             "vec2 ray = map(localPos,localDir,localPos);\n" +
                             "int steps;\n" +

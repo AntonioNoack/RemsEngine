@@ -23,9 +23,9 @@ open class OpaqueImage(
 
     override fun getRGB(index: Int): Int = src.getRGB(index) or black
 
-    override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
         if (!src.hasAlphaChannel) {
-            src.createTexture(texture, checkRedundancy)
+            src.createTexture(texture, sync, checkRedundancy)
         } else {
             when (src) {
                 is IntImage -> {
@@ -35,7 +35,7 @@ open class OpaqueImage(
                 }
                 is ByteImage -> {
                     when (src.numChannels) {
-                        1, 2, 3 -> src.createTexture(texture, checkRedundancy)
+                        1, 2, 3 -> src.createTexture(texture, sync, checkRedundancy)
                         4 -> {
                             val width = src.width
                             val height = src.height
@@ -55,7 +55,7 @@ open class OpaqueImage(
                         else -> throw RuntimeException("Cannot create OpaqueImage from image with more than 4 channels")
                     }
                 }
-                else -> super.createTexture(texture, checkRedundancy)
+                else -> super.createTexture(texture, sync, checkRedundancy)
             }
         }
     }

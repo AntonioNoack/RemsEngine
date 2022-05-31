@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-@Suppress("unused")
 object PDFCache : CacheSection("PDFCache") {
 
     class AtomicCountedDocument(val doc: PDDocument) {
@@ -114,6 +113,7 @@ object PDFCache : CacheSection("PDFCache") {
         return if (tex?.isCreated == true) tex else null
     }
 
+    @Suppress("unused")
     fun getImageCached(doc: PDDocument, dpi: Float, pageNumber: Int): BufferedImage {
         val data = getEntry(Triple(doc, dpi, pageNumber), 10_000, false) {
             CacheData(getImage(doc, dpi, pageNumber))
@@ -128,6 +128,7 @@ object PDFCache : CacheSection("PDFCache") {
         return data.value as BufferedImage
     }
 
+    @Suppress("unused")
     fun getImageCachedByHeight(doc: PDDocument, height: Int, pageNumber: Int): BufferedImage {
         val data = getEntry(Triple(doc, height, pageNumber), 10_000, false) {
             CacheData(getImageByHeight(doc, height, pageNumber))

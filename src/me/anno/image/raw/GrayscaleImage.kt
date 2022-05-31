@@ -1,6 +1,7 @@
 package me.anno.image.raw
 
 import me.anno.config.DefaultStyle.black
+import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.hdr.HDRImage
@@ -12,14 +13,14 @@ open class GrayscaleImage(
 
     override fun getRGB(index: Int): Int = (getLuminance(src.getRGB(index)) * 0x10101) or black
 
-    override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
-        createTexture(texture, checkRedundancy, src)
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+        createTexture(texture, sync, checkRedundancy, src)
     }
 
-    private fun createTexture(texture: Texture2D, checkRedundancy: Boolean, src: Image) {
+    private fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean, src: Image) {
         val size = width * height
         if (src.numChannels == 1) {
-            src.createTexture(texture, checkRedundancy)
+            src.createTexture(texture, sync, checkRedundancy)
         } else when (src) {
             is IntImage -> {
                 val data = src.data
@@ -27,7 +28,14 @@ open class GrayscaleImage(
                 for (i in 0 until size) {
                     bytes.put(i, getLuminance(data[i]).toByte())
                 }
-                texture.createMonochrome(bytes, checkRedundancy)
+                if (sync && GFX.isGFXThread()) {
+                    texture.createMonochrome(bytes, checkRedundancy)
+                } else {
+                    if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
+                    GFX.addGPUTask("GrayscaleImage.IntImage", width, height) {
+                        texture.createMonochrome(bytes, checkRedundancy = false)
+                    }
+                }
             }
             is ByteImage -> {
                 val data = src.data
@@ -36,13 +44,21 @@ open class GrayscaleImage(
                     val j = i * 4
                     bytes.put(i, getLuminance(data[j + 1], data[j + 2], data[j + 3]).toByte())
                 }
-                texture.createMonochrome(bytes, checkRedundancy)
+                if (sync && GFX.isGFXThread()) {
+                    texture.createMonochrome(bytes, checkRedundancy)
+                } else {
+                    if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
+                    GFX.addGPUTask("GrayscaleImage.ByteImage", width, height) {
+                        texture.createMonochrome(bytes, checkRedundancy = false)
+                    }
+                }
             }
-            is HDRImage -> createTexture(texture, checkRedundancy, src.createIntImage())
-            is ComponentImage -> src.createTexture(texture, checkRedundancy)
-            is CachedImage -> createTexture(texture, checkRedundancy, src.base!!)
-            is OpaqueImage -> createTexture(texture, checkRedundancy, src.src)
-            else -> super.createTexture(texture, checkRedundancy)
+            // todo we could upload mono-grayscale instead
+            is HDRImage -> createTexture(texture, sync, checkRedundancy, src.createIntImage())
+            is ComponentImage -> src.createTexture(texture, sync, checkRedundancy)
+            is CachedImage -> createTexture(texture, sync, checkRedundancy, src.base!!)
+            is OpaqueImage -> createTexture(texture, sync, checkRedundancy, src.src)
+            else -> super.createTexture(texture, sync, checkRedundancy)
         }
     }
 

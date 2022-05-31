@@ -44,6 +44,8 @@ import org.apache.logging.log4j.LogManager
 // which platforms support Compute Shaders? we need them for forward+
 // Windows, Android with OpenGL 3.0
 
+// todo foliage rendering... how ever we can do that at all scales...
+
 // todo runtime-only-PrefabSaveables must show warning in UI, that they are temporary
 // todo must be editable -> no CSet/CAdd, just instance changes
 

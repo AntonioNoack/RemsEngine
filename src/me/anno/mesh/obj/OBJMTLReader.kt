@@ -120,6 +120,22 @@ open class OBJMTLReader(val reader: InputStream) {
         }
     }
 
+    fun readUntilNewline(): String {
+        val builder = StringBuilder()
+        while (true) {
+            when (val char = next()) {
+                newLine2 -> {}
+                newLine -> {
+                    putBack(char)
+                    return builder.toString()
+                }
+                else -> {
+                    builder.append(char.toChar())
+                }
+            }
+        }
+    }
+
     // not perfect, but maybe faster
     // uses no allocations :)
     fun readFloat(): Float {
@@ -193,10 +209,10 @@ open class OBJMTLReader(val reader: InputStream) {
     }
 
     fun readFile(parent: FileReference): FileReference {
-        skipSpaces()
-        var path = readUntilSpace()
+        var path = readUntilNewline()
             .replace('\\', '/')
             .replace("//", "/")
+            .trim()
         skipLine()
         if (path.startsWith("./")) path = path.substring(2)
         val file = getReference(parent.getParent(), path)

@@ -10,8 +10,6 @@ object SDFMaths {
 
     fun nonZeroSign(f: Float) = if (f >= 0) +1 else -1
 
-    fun mix(a: Float, b: Float, f: Float) = (1 - f) * a + b * f
-    fun mix(a: Vector2fc, b: Vector2fc, f: Float) = Vector2f(mix(a.x(), b.x(), f), mix(a.y(), b.y(), f))
     fun crossProduct(a: Vector2fc, b: Vector2fc) = a.x() * b.y() - a.y() * b.x()
 
     fun crossProductXYY(x: Vector2fc, y0: Vector2fc, y1: Vector2fc) =

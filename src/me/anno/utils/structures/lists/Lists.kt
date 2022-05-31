@@ -61,6 +61,17 @@ object Lists {
     /**
      * allocation-free firstOrNull()
      * */
+    inline fun <V> List<V>.first2(test: (V) -> Boolean): V {
+        for (index in indices) {
+            val element = this[index]
+            if (test(element)) return element
+        }
+        throw IllegalStateException("Did not find element")
+    }
+
+    /**
+     * allocation-free firstOrNull()
+     * */
     fun <V> List<V>.firstOrNull2(): V? {
         return if (isEmpty()) null else this[0]
     }

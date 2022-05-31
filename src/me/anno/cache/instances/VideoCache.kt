@@ -37,6 +37,7 @@ object VideoCache : CacheSection("Videos") {
         DrawRectangles.drawRect(x, y, w, h, status.color or black)
     }
 
+    @Suppress("unused")
     fun drawLoadingStatus(
         x0: Int, y0: Int, x1: Int, y1: Int,
         file: FileReference, fps: Double = 0.0,
@@ -197,6 +198,7 @@ object VideoCache : CacheSection("Videos") {
     /**
      * returned frames are guaranteed to be created
      * */
+    @Suppress("unused")
     fun getVideoFrameWithoutGenerator(
         meta: FFMPEGMetadata,
         index: Int,

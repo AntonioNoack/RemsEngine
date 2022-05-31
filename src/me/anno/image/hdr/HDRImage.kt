@@ -1,5 +1,6 @@
 package me.anno.image.hdr
 
+import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
@@ -86,8 +87,16 @@ class HDRImage : Image {
         return IntImage(width, height, data, hasAlphaChannel)
     }
 
-    override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
-        texture.createRGB(pixels, checkRedundancy)
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+        val data = pixels
+        val data2 = if (checkRedundancy) texture.checkRedundancy(data) else data
+        if (sync && GFX.isGFXThread()) {
+            texture.createRGB(data2, false)
+        } else {
+            GFX.addGPUTask("HDRImage", width, height) {
+                texture.createRGB(data2, false)
+            }
+        }
     }
 
     // Construction method if the input is a InputStream.
@@ -179,11 +188,11 @@ class HDRImage : Image {
             }
             for (x in 0 until width) {
                 val i2 = x * 4
-                val exp: Int = lineBuffer[i2 + 3].toInt() and 255
+                val exp = lineBuffer[i2 + 3].toInt() and 255
                 if (exp == 0) {
                     index += 3 // 0 is default
                 } else {
-                    val exponent = Math.pow(2.0, (exp - 128 - 8).toDouble()).toFloat()
+                    val exponent = 2f.pow(exp - 128 - 8)
                     pixels[index++] = (lineBuffer[i2].toInt() and 255) * exponent
                     pixels[index++] = (lineBuffer[i2 + 1].toInt() and 255) * exponent
                     pixels[index++] = (lineBuffer[i2 + 2].toInt() and 255) * exponent
@@ -335,7 +344,8 @@ class HDRImage : Image {
         @JvmStatic
         fun main(args: Array<String>) {
             // test HDR writer using the working HDR reader
-            val ref = getReference("C:/XAMPP/htdocs/DigitalCampus/images/environment/kloofendal_38d_partly_cloudy_2k.hdr")
+            val ref =
+                getReference("C:/XAMPP/htdocs/DigitalCampus/images/environment/kloofendal_38d_partly_cloudy_2k.hdr")
             val correctInput = HDRImage(ref)
             val createdStream = ByteArrayOutputStream(correctInput.width * correctInput.height * 4)
             writeHDR(correctInput.width, correctInput.height, correctInput.pixels, createdStream)

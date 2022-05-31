@@ -73,7 +73,12 @@ open class Window(
 
     // the graphics may want to draw directly on the panel in 3D, so we need a depth texture
     // we could use multiple samples, but for performance reasons, let's not do that, when it's not explicitly requested
-    val buffer = Framebuffer("window-${panel.className}", 1, 1, 1, 1, false, DepthBufferType.TEXTURE)
+    // to do use buffer without depth, if no component uses it
+    val buffer = Framebuffer(
+        "window-${panel.className}",
+        1, 1, 1, 1,
+        false, DepthBufferType.TEXTURE_16
+    )
 
     init {
         panel.window = this

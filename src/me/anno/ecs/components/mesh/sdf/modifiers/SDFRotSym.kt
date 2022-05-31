@@ -11,8 +11,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.set
 import org.joml.AABBf
 import org.joml.Quaternionf
 import org.joml.Vector3f

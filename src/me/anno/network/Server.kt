@@ -153,6 +153,8 @@ open class Server : Closeable {
 
     open fun onClientDisconnected(client: TCPClient) {}
 
+    var logRejections = true
+
     private fun runTCP(socket: ServerSocket) {
         try {
             while (run) {
@@ -183,7 +185,7 @@ open class Server : Closeable {
                                             onClientDisconnected(tcpClient)
                                         }
                                     } else {
-                                        LOGGER.info("Handshake rejected")
+                                        if (logRejections) LOGGER.info("Handshake rejected")
                                         clientSocket.close()
                                     }
                                 } finally {
@@ -193,6 +195,9 @@ open class Server : Closeable {
                                 LOGGER.info("Protocol ${str32(magic)} is unknown")
                                 clientSocket.close()
                             }
+                        } catch (e: EOFException) {
+                            // unregister client
+                            clientSocket.close()
                         } catch (e: IOException) {
                             // unregister client
                             if (run) e.printStackTrace()
@@ -279,7 +284,12 @@ open class Server : Closeable {
     }
 
     private fun InputStream.readBE32(): Int {
-        return read().shl(24) + read().shl(16) + read().shl(8) + read()
+        val a = read()
+        val b = read()
+        val c = read()
+        val d = read()
+        if (a < 0 || b < 0 || c < 0 || d < 0) throw EOFException()
+        return a.shl(24) + b.shl(16) + c.shl(8) + d
     }
 
     private fun findTcpClient(address: InetAddress, randomId: Int): TCPClient? {

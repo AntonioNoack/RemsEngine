@@ -29,24 +29,34 @@ import me.anno.io.binary.BinaryTypes.LONG_ARRAY
 import me.anno.io.binary.BinaryTypes.LONG_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX2X2D
 import me.anno.io.binary.BinaryTypes.MATRIX2X2D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX2X2D_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX2X2F
 import me.anno.io.binary.BinaryTypes.MATRIX2X2F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX2X2F_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX3X2D
 import me.anno.io.binary.BinaryTypes.MATRIX3X2D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X2D_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX3X2F
 import me.anno.io.binary.BinaryTypes.MATRIX3X2F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X2F_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX3X3D
 import me.anno.io.binary.BinaryTypes.MATRIX3X3D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X3D_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX3X3F
 import me.anno.io.binary.BinaryTypes.MATRIX3X3F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X3F_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX4X3D
 import me.anno.io.binary.BinaryTypes.MATRIX4X3D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X3D_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX4X3F
 import me.anno.io.binary.BinaryTypes.MATRIX4X3F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X3F_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX4X4D
 import me.anno.io.binary.BinaryTypes.MATRIX4X4D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X4D_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.MATRIX4X4F
 import me.anno.io.binary.BinaryTypes.MATRIX4X4F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X4F_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.OBJECTS_HOMOGENOUS_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY_2D
@@ -392,13 +402,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {
-        if (force || values.isNotEmpty()) {
-            writeAttributeStart(name, STRING_ARRAY_2D)
-            output.writeInt(values.size)
-            for (vs in values) {
-                output.writeInt(vs.size)
-                for (v in vs) writeEfficientString(v)
-            }
+        writeGenericArray2D(name, STRING_ARRAY_2D, values, force) {
+            writeEfficientString(it)
         }
     }
 
@@ -598,32 +603,18 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) =
         writeGenericArray(name, values, force, QUATERNION32_ARRAY) { writeQuaternion(it) }
 
-    override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {
-        writeAttributeStart(name, QUATERNION32_ARRAY_2D)
-        output.writeInt(values.size)
-        for (i in values.indices) {
-            val values2 = values[i]
-            output.writeInt(values2.size)
-            for (j in values2.indices) {
-                writeQuaternion(values2[j])
-            }
+    override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) =
+        writeGenericArray2D(name, QUATERNION32_ARRAY_2D, values, force) {
+            writeQuaternion(it)
         }
-    }
 
     override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) =
         writeGenericArray(name, values, force, QUATERNION64_ARRAY) { writeQuaternion(it) }
 
-    override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) {
-        writeAttributeStart(name, QUATERNION64_ARRAY_2D)
-        output.writeInt(values.size)
-        for (i in values.indices) {
-            val values2 = values[i]
-            output.writeInt(values2.size)
-            for (j in values2.indices) {
-                writeQuaternion(values2[j])
-            }
+    override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) =
+        writeGenericArray2D(name, QUATERNION64_ARRAY_2D, values, force) {
+            writeQuaternion(it)
         }
-    }
 
     private fun writeMatrix(value: Matrix2fc) {
         output.writeFloat(value.m00())
@@ -727,45 +718,35 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4fc>, force: Boolean) =
         writeGenericArray(name, values, force, MATRIX4X4F_ARRAY) { writeMatrix(it) }
 
-    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2fc>>, force: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2fc>>, force: Boolean) =
+        writeGenericArray2D(name, MATRIX2X2F_ARRAY_2D, values, force) { writeMatrix(it) }
 
-    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2fc>>, force: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2fc>>, force: Boolean) =
+        writeGenericArray2D(name, MATRIX3X2F_ARRAY_2D, values, force) { writeMatrix(it) }
 
-    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3fc>>, force: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3fc>>, force: Boolean) =
+        writeGenericArray2D(name, MATRIX3X3F_ARRAY_2D, values, force) { writeMatrix(it) }
 
-    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3fc>>, force: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3fc>>, force: Boolean) =
+        writeGenericArray2D(name, MATRIX4X3F_ARRAY_2D, values, force) { writeMatrix(it) }
 
-    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4fc>>, force: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4fc>>, force: Boolean) =
+        writeGenericArray2D(name, MATRIX4X4F_ARRAY_2D, values, force) { writeMatrix(it) }
 
-    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2dc>>, force: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2dc>>, force: Boolean) =
+        writeGenericArray2D(name, MATRIX2X2D_ARRAY_2D, values, force) { writeMatrix(it) }
 
-    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2dc>>, force: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2dc>>, force: Boolean) =
+        writeGenericArray2D(name, MATRIX3X2D_ARRAY_2D, values, force) { writeMatrix(it) }
 
-    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3dc>>, force: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3dc>>, force: Boolean) =
+        writeGenericArray2D(name, MATRIX3X3D_ARRAY_2D, values, force) { writeMatrix(it) }
 
-    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3dc>>, force: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3dc>>, force: Boolean) =
+        writeGenericArray2D(name, MATRIX4X3D_ARRAY_2D, values, force) { writeMatrix(it) }
 
-    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4dc>>, force: Boolean) {
-        TODO("Not yet implemented")
-    }
+    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4dc>>, force: Boolean) =
+        writeGenericArray2D(name, MATRIX4X4D_ARRAY_2D, values, force) { writeMatrix(it) }
 
     private fun writeMatrix(value: Matrix2dc) {
         output.writeDouble(value.m00())
@@ -943,6 +924,24 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
             output.writeInt(elements.size)
             for (index in elements.indices) {
                 writeInstance(elements[index])
+            }
+        }
+    }
+
+    fun <V> writeGenericArray2D(
+        name: String,
+        type: Int,
+        values: Array<Array<V>>,
+        force: Boolean,
+        writeInstance: (V) -> Unit
+    ) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, type)
+            output.writeInt(values.size)
+            for (i in values.indices) {
+                val vs = values[i]
+                output.writeInt(vs.size)
+                for (j in vs.indices) writeInstance(vs[j])
             }
         }
     }

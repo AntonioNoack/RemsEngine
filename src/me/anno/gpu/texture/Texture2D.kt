@@ -7,13 +7,16 @@ import me.anno.gpu.GFX.check
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.OpenGL
-import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
+import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.image.Image
 import me.anno.image.RotateJPEG
+import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.utils.hpc.Threads.threadWithName
+import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.FloatArrayPool
@@ -22,14 +25,17 @@ import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
+import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
 import org.lwjgl.opengl.GL32.glTexImage2DMultisample
 import org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA
 import org.lwjgl.opengl.GL43
+import org.lwjgl.opengl.GL45C.glUnmapNamedBuffer
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.nio.*
+import kotlin.concurrent.thread
 
 @Suppress("unused")
 open class Texture2D(
@@ -48,7 +54,7 @@ open class Texture2D(
 
     var internalFormat = 0
 
-    override fun toString() = "$name $w $h $samples"
+    override fun toString() = "Tex2D(\"$name\", $w $h $samples)"
 
     private val withMultisampling = samples > 1
 
@@ -124,7 +130,7 @@ open class Texture2D(
         bindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
     }
 
-    fun setAlignmentAndBuffer(w: Int, dataFormat: Int, dataType: Int) {
+    fun setAlignmentAndBuffer(w: Int, dataFormat: Int, dataType: Int, unbind: Boolean) {
         val typeSize = when (dataType) {
             GL_UNSIGNED_BYTE, GL_BYTE -> 1
             GL_UNSIGNED_SHORT, GL_SHORT -> 2
@@ -148,14 +154,14 @@ open class Texture2D(
             }
         }
         writeAlignment(w * typeSize * numChannels)
-        unbindUnpackBuffer()
+        if (unbind) unbindUnpackBuffer()
     }
 
-    fun texImage2D(internalFormat: Int, dataFormat: Int, dataType: Int, data: Any?) {
+    fun texImage2D(internalFormat: Int, dataFormat: Int, dataType: Int, data: Any?, unbind: Boolean = true) {
         val w = w
         val h = h
         if (createdW == w && createdH == h && data != null && !withMultisampling) {
-            setAlignmentAndBuffer(w, dataFormat, dataType)
+            setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
             when (data) {
                 is ByteBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
                 is ShortBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
@@ -170,7 +176,7 @@ open class Texture2D(
                 glTexImage2DMultisample(target, samples, internalFormat, w, h, false)
                 check()
             } else {
-                if (data != null) setAlignmentAndBuffer(w, dataFormat, dataType)
+                if (data != null) setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
                 when (data) {
                     is ByteBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is ShortBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
@@ -195,15 +201,33 @@ open class Texture2D(
         }
     }
 
+    fun texSubImage2D(
+        level: Int,
+        x: Int, y: Int, w: Int, h: Int,
+        dataFormat: Int,
+        dataType: Int,
+        data: Any,
+        unbind: Boolean = true
+    ) {
+        setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
+        when (data) {
+            is ByteBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
+            is ShortBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
+            is IntBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
+            is FloatBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
+            is DoubleBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
+            is IntArray -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
+            else -> throw RuntimeException("${data.javaClass}")
+        }
+    }
+
     fun texImage2D(type: TargetType, data: ByteBuffer?) {
         texImage2D(type.internalFormat, type.uploadFormat, type.fillType, data)
     }
 
-    fun createRGBA() {
-        beforeUpload(0, 0)
-        texImage2D(TargetType.UByteTarget4, null)
-        afterUpload(false, 4 * samples)
-    }
+    fun createRGB() = create(TargetType.UByteTarget3)
+    fun createRGBA() = create(TargetType.UByteTarget4)
+    fun createFP32() = create(TargetType.FloatTarget4)
 
     fun create(type: TargetType) {
         beforeUpload(0, 0)
@@ -217,10 +241,10 @@ open class Texture2D(
         afterUpload(type.isHDR, type.bytesPerPixel)
     }
 
-    fun createFP32() {
+    fun create(creationType: TargetType, uploadType: TargetType, data: Any) {
         beforeUpload(0, 0)
-        texImage2D(TargetType.FloatTarget4, null)
-        afterUpload(true, 4 * 4 * samples)
+        texImage2D(creationType.internalFormat, uploadType.uploadFormat, uploadType.fillType, data)
+        afterUpload(creationType.isHDR, creationType.bytesPerPixel)
     }
 
     /**
@@ -231,7 +255,7 @@ open class Texture2D(
         val requiredBudget = textureBudgetUsed + w * h
         if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || !isGFXThread()) {
             if (forceSync) {
-                GFX.addGPUTask("Texture2D.create2($name)", w, h) {
+                GFX.addGPUTask("Texture2D.create0($name)", w, h) {
                     if (!isDestroyed) {
                         create(createImage(), true, checkRedundancy)
                     }
@@ -253,14 +277,10 @@ open class Texture2D(
         if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
         val requiredBudget = textureBudgetUsed + w * h
         if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || !isGFXThread()) {
-            GFX.addGPUTask("Texture2D.create($name)", w, h) {
-                if (!isDestroyed) {
-                    image.createTexture(this, checkRedundancy)
-                } else LOGGER.warn("Image was already destroyed")
-            }
+            create(image, false, checkRedundancy)
         } else {
             textureBudgetUsed += requiredBudget
-            image.createTexture(this, checkRedundancy)
+            image.createTexture(this, true, checkRedundancy)
         }
     }
 
@@ -271,9 +291,13 @@ open class Texture2D(
 
     fun create(image: Image, sync: Boolean, checkRedundancy: Boolean) {
         if (sync && isGFXThread()) {
-            image.createTexture(this, checkRedundancy)
-        } else GFX.addGPUTask("Texture2D.create($name)", w, h) {
-            image.createTexture(this, checkRedundancy)
+            image.createTexture(this, true, checkRedundancy)
+        } else if (isGFXThread() && (w * h > 10_000)) {// large -> avoid the load and create it async
+            thread(name = name) {
+                image.createTexture(this, false, checkRedundancy)
+            }
+        } else {
+            image.createTexture(this, false, checkRedundancy)
         }
     }
 
@@ -307,7 +331,7 @@ open class Texture2D(
                 } else {
                     val data2 = if (checkRedundancy) checkRedundancy(data) else data
                     switchRGB2BGR(data2)
-                    GFX.addGPUTask("Texture2D-RGB", w, h) {
+                    GFX.addGPUTask("Texture2D-RGB($w x $h)", w, h) {
                         createRGB(data2, checkRedundancy)
                     }
                 }
@@ -364,11 +388,10 @@ open class Texture2D(
         }
     }
 
-    fun overridePartially(data: ByteBuffer, x: Int, y: Int, w: Int, h: Int, type: TargetType) {
+    fun overridePartially(data: Any, level: Int, x: Int, y: Int, w: Int, h: Int, type: TargetType) {
         ensurePointer()
         bindBeforeUpload()
-        val level = 0
-        glTexSubImage2D(target, level, x, y, w, h, type.uploadFormat, type.fillType, data)
+        texSubImage2D(level, x, y, w, h, type.uploadFormat, type.fillType, data)
         check()
     }
 
@@ -438,7 +461,7 @@ open class Texture2D(
         if (isDestroyed) destroy()
     }
 
-    private fun checkRedundancy(data: IntArray): IntArray {
+    fun checkRedundancy(data: IntArray): IntArray {
         if (w * h <= 1) return data
         val c0 = data[0]
         for (i in 1 until w * h) {
@@ -448,7 +471,7 @@ open class Texture2D(
         return intArrayOf(c0)
     }
 
-    private fun checkRedundancy(data: IntBuffer) {
+    fun checkRedundancy(data: IntBuffer) {
         if (w * h <= 1) return
         val c0 = data[0]
         for (i in 1 until w * h) {
@@ -458,7 +481,7 @@ open class Texture2D(
         data.limit(1)
     }
 
-    private fun checkRedundancyMonochrome(data: ByteBuffer) {
+    fun checkRedundancyMonochrome(data: ByteBuffer) {
         if (w * h <= 1) return
         val c0 = data[0]
         for (i in 1 until w * h) {
@@ -468,7 +491,7 @@ open class Texture2D(
         data.limit(1)
     }
 
-    private fun checkRedundancyMonochrome(data: FloatBuffer) {
+    fun checkRedundancyMonochrome(data: FloatBuffer) {
         val c0 = data[0]
         for (i in 1 until w * h) {
             if (c0 != data[i]) return
@@ -477,7 +500,7 @@ open class Texture2D(
         data.limit(1)
     }
 
-    private fun checkRedundancyMonochrome(data: ByteArray): ByteArray {
+    fun checkRedundancyMonochrome(data: ByteArray): ByteArray {
         val c0 = data[0]
         for (i in 1 until w * h) {
             if (c0 != data[i]) return data
@@ -486,7 +509,7 @@ open class Texture2D(
         return byteArrayOf(c0)
     }
 
-    private fun checkRedundancy(data: FloatArray): FloatArray {
+    fun checkRedundancy(data: FloatArray): FloatArray {
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -498,7 +521,7 @@ open class Texture2D(
         return floatArrayOf(c0, c1, c2, c3)
     }
 
-    private fun checkRedundancy(data: FloatBuffer) {
+    fun checkRedundancy(data: FloatBuffer) {
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -510,7 +533,7 @@ open class Texture2D(
         data.limit(4)
     }
 
-    private fun checkRedundancy(data: ByteArray): ByteArray {
+    fun checkRedundancy(data: ByteArray): ByteArray {
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -522,7 +545,7 @@ open class Texture2D(
         return byteArrayOf(c0, c1, c2, c3)
     }
 
-    private fun checkRedundancyRG(data: ByteArray): ByteArray {
+    fun checkRedundancyRG(data: ByteArray): ByteArray {
         val c0 = data[0]
         val c1 = data[1]
         for (i in 2 until w * h * 2 step 2) {
@@ -532,7 +555,7 @@ open class Texture2D(
         return byteArrayOf(c0, c1)
     }
 
-    private fun checkRedundancy(data: ByteBuffer, rgbOnly: Boolean) {
+    fun checkRedundancy(data: ByteBuffer, rgbOnly: Boolean) {
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -550,7 +573,7 @@ open class Texture2D(
         data.limit(4)
     }
 
-    private fun checkRedundancyRG(data: ByteBuffer) {
+    fun checkRedundancyRG(data: ByteBuffer) {
         // when rgbOnly, check rgb only?
         val c0 = data[0]
         val c1 = data[1]
@@ -648,6 +671,111 @@ open class Texture2D(
         afterUpload(false, 4)
     }
 
+    fun createTiled(
+        creationType: TargetType,
+        uploadingType: TargetType,
+        dataI: Buffer,
+        data1: ByteBuffer?
+    ) {
+        val width = w
+        val height = h
+        val tiles = Maths.max(Maths.roundDiv(height, Maths.max(1, (1024) / width)), 1)
+        val useTiles = tiles >= 4 && dataI.capacity() > 16
+        if (useTiles) {
+            GFX.addGPUTask("IntImage", width, height) {
+                create(creationType)
+                isCreated = false // mark as non-finished
+            }
+            for (y in 0 until tiles) {
+                val y0 = WorkSplitter.partition(y, height, tiles)
+                val y1 = WorkSplitter.partition(y + 1, height, tiles)
+                val dy = y1 - y0
+                GFX.addGPUTask("IntImage", width, dy) {
+                    if (!isDestroyed) {
+                        isCreated = true // reset to true state
+                        dataI.position(y0 * width)
+                        dataI.limit(y1 * width)
+                        overridePartially(
+                            dataI, 0, 0, y0, width, dy,
+                            uploadingType
+                        )
+                        // mark as non-finished again, if we're not done yet
+                        if (y1 < height) isCreated = false
+                    }
+                    if (y1 == height) bufferPool.returnBuffer(data1)
+                }
+            }
+        } else {
+            GFX.addGPUTask("IntImage", width, height) {
+                create(creationType, uploadingType, dataI)
+                bufferPool.returnBuffer(data1)
+            }
+        }
+    }
+
+    /**
+     * for testing, create a pixel buffer object for uploading;
+     * not faster on Win10 at least
+     * */
+    fun testRGBPBO(data: IntArray) {
+
+        val t0 = System.nanoTime()
+
+        // pbo
+        val pbo = object : OpenGLBuffer(GL_PIXEL_UNPACK_BUFFER, emptyList(), GL_STREAM_DRAW) {
+
+            override fun createNioBuffer() {
+                throw NotImplementedError()
+            }
+
+            override fun upload(allowResize: Boolean) {
+                if (pointer <= 0) pointer = glGenBuffers()
+                if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
+                bindBuffer(type, pointer)
+                val size = data.size * 4
+                locallyAllocated = allocate(locallyAllocated, size.toLong())
+                val t0i = System.nanoTime()
+                // todo why is this taking 1s/GB, when we send no data???
+                GL15.glBufferData(type, size.toLong(), usage)
+                val t1i = System.nanoTime()
+                println("used ${(t1i - t0i) / 1e9}s for p0/$this")
+                isUpToDate = true
+                DebugGPUStorage.buffers.add(this)
+            }
+        }
+        pbo.simpleBind() // create it without data
+
+        val ptr = glMapBuffer(pbo.type, GL_WRITE_ONLY)
+        if (ptr != null) {
+            // upload data into ptr
+            ptr.asIntBuffer().put(data)
+            glUnmapNamedBuffer(pbo.pointer) // release ptr to mapping buffer
+        } else LOGGER.warn("glMapBuffer returned null")
+        pbo.unbind()
+
+        val t1 = System.nanoTime()
+        println("used ${(t1 - t0) / 1e9}s for p1/$this")
+
+        // then create texture
+        thread(name = name) {
+            Thread.sleep(500)
+            GFX.addGPUTask(name, w, h) {
+                val t2 = System.nanoTime()
+                beforeUpload(1, data.size)
+                writeAlignment(4 * w)
+                pbo.simpleBind()
+                texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, null, unbind = false)
+                afterUpload(false, 4)
+                pbo.unbind()
+
+                val t3 = System.nanoTime()
+                println("used ${(t3 - t2) / 1e9}s for p2/$this")
+
+                pbo.destroy()
+            }
+        }
+    }
+
     fun createMonochrome(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyMonochrome(data)
@@ -683,6 +811,17 @@ open class Texture2D(
         if (checkRedundancy) checkRedundancyMonochrome(data)
         writeAlignment(4 * w)
         texImage2D(GL_R32F, GL_RED, GL_FLOAT, data)
+        afterUpload(true, 4)
+    }
+
+    /**
+     * creates a monochrome float16 image on the GPU
+     * */
+    fun createMonochromeFP16(data: FloatBuffer, checkRedundancy: Boolean) {
+        beforeUpload(1, data.remaining())
+        if (checkRedundancy) checkRedundancyMonochrome(data)
+        writeAlignment(4 * w)
+        texImage2D(GL_R16F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4)
     }
 
@@ -912,6 +1051,13 @@ open class Texture2D(
         val intArrayPool = IntArrayPool(64)
         val floatArrayPool = FloatArrayPool(64)
 
+        fun freeUnusedEntries() {
+            bufferPool.freeUnusedEntries()
+            byteArrayPool.freeUnusedEntries()
+            intArrayPool.freeUnusedEntries()
+            floatArrayPool.freeUnusedEntries()
+        }
+
         var allocated = 0L
         fun allocate(oldValue: Long, newValue: Long): Long {
             allocated += newValue - oldValue
@@ -982,12 +1128,25 @@ open class Texture2D(
 
         fun switchRGB2BGR(values: IntArray) {
             // convert argb to abgr
+            val agMask = 0xff00ff00.toInt()
             for (i in values.indices) {
                 val v = values[i]
                 val r = v.shr(16).and(0xff)
-                val ag = v.and(0xff00ff00.toInt())
+                val ag = v.and(agMask)
                 val b = v.and(0xff)
                 values[i] = ag or r or b.shl(16)
+            }
+        }
+
+        fun switchRGB2BGR(values: IntBuffer) {
+            // convert argb to abgr
+            val agMask = 0xff00ff00.toInt()
+            for (i in 0 until values.limit()) {
+                val v = values[i]
+                val r = v.shr(16).and(0xff)
+                val ag = v.and(agMask)
+                val b = v.and(0xff)
+                values.put(i, ag or r or b.shl(16))
             }
         }
 

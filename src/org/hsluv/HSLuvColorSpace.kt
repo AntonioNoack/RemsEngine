@@ -349,15 +349,10 @@ object HSLuvColorSpace {
     }
 
     fun lchToRgb(src: Vector3d, dst: Vector3d = src) = xyzToRgb(luvToXyz(lchToLuv(src), dst), dst)
-
     fun rgbToLch(src: Vector3d, dst: Vector3d = src) = luvToLch(xyzToLuv(rgbToXyz(src, dst), dst), dst)
-
     fun hsluvToRgb(src: Vector3d, dst: Vector3d = src) = lchToRgb(hsluvToLch(src, dst), dst)
-
     fun rgbToHsluv(src: Vector3d, dst: Vector3d = src) = lchToHsluv(rgbToLch(src, dst), dst)
-
     fun hpluvToRgb(src: Vector3d, dst: Vector3d = src) = lchToRgb(hpluvToLch(src, dst), dst)
-
     fun rgbToHpluv(src: Vector3d, dst: Vector3d = src) = lchToHpluv(rgbToLch(src, dst), dst)
 
 }

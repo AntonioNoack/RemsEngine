@@ -76,7 +76,7 @@ class GimpImage {
         }
 
         fun readImage(file: FileReference): GimpImage {
-            val data = file.readByteBuffer()
+            val data = file.readByteBuffer(false)
                 .order(ByteOrder.BIG_ENDIAN)
             return readImage(data)
         }

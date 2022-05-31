@@ -1,5 +1,6 @@
 package me.anno.maths
 
+import me.anno.utils.LOGGER
 import me.anno.utils.types.Floats.f5s
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -9,6 +10,8 @@ import kotlin.math.sqrt
  * N = matrix
  * T = transposed matrix
  * V = vector
+ *
+ * row major
  * */
 @Suppress("unused")
 object LinearAlgebra {
@@ -16,13 +19,13 @@ object LinearAlgebra {
     /**
      * C += At * B
      * */
-    fun mulTN(
+    fun addAtB(
         a: DoubleArray, b: DoubleArray, m: Int, n: Int, k: Int,
-        c: DoubleArray = DoubleArray(m * k)
+        c: DoubleArray
     ): DoubleArray {
-        if (a.size < m * n) throw RuntimeException("a has wrong dimensions")
-        if (b.size < n * k) throw RuntimeException("b has wrong dimensions")
-        if (c.size < m * k) throw RuntimeException("c has wrong dimensions")
+        if (a.size != m * n) throw RuntimeException("a has incorrect size, expected $m * $n, got ${a.size}")
+        if (b.size != n * k) throw RuntimeException("b has incorrect size, expected $n * $k, got ${b.size}")
+        if (c.size != m * k) throw RuntimeException("c has incorrect size, expected $m * $k, got ${c.size}")
         for (ni in 0 until n) {
             val mn = ni * m
             val kn = ni * k
@@ -38,15 +41,30 @@ object LinearAlgebra {
     }
 
     /**
-     * C += A * Bt
+     * C = At * B
      * */
-    fun mulNT(
+    fun setAtB(
         a: DoubleArray, b: DoubleArray, m: Int, n: Int, k: Int,
         c: DoubleArray = DoubleArray(m * k)
     ): DoubleArray {
-        if (a.size < m * n) throw RuntimeException("a has wrong dimensions")
-        if (b.size < n * k) throw RuntimeException("b has wrong dimensions")
-        if (c.size < m * k) throw RuntimeException("c has wrong dimensions")
+        if (a.size != m * n) throw RuntimeException("a has incorrect size, expected $m * $n, got ${a.size}")
+        if (b.size != n * k) throw RuntimeException("b has incorrect size, expected $n * $k, got ${b.size}")
+        if (c.size != m * k) throw RuntimeException("c has incorrect size, expected $m * $k, got ${c.size}")
+        c.fill(0.0)
+        addAtB(a, b, m, n, k, c)
+        return c
+    }
+
+    /**
+     * C += A * Bt
+     * */
+    fun addABt(
+        a: DoubleArray, b: DoubleArray, m: Int, n: Int, k: Int,
+        c: DoubleArray
+    ): DoubleArray {
+        if (a.size != m * n) throw RuntimeException("a has incorrect size, expected $m * $n, got ${a.size}")
+        if (b.size != n * k) throw RuntimeException("b has incorrect size, expected $n * $k, got ${b.size}")
+        if (c.size != m * k) throw RuntimeException("c has incorrect size, expected $m * $k, got ${c.size}")
         for (mi in 0 until m) {
             val mk = mi * k
             for (ki in 0 until k) {
@@ -63,12 +81,27 @@ object LinearAlgebra {
     }
 
     /**
+     * C = A * Bt
+     * */
+    fun setABt(
+        a: DoubleArray, b: DoubleArray, m: Int, n: Int, k: Int,
+        c: DoubleArray = DoubleArray(m * k)
+    ): DoubleArray {
+        if (a.size != m * n) throw RuntimeException("a has incorrect size, expected $m * $n, got ${a.size}")
+        if (b.size != n * k) throw RuntimeException("b has incorrect size, expected $n * $k, got ${b.size}")
+        if (c.size != m * k) throw RuntimeException("c has incorrect size, expected $m * $k, got ${c.size}")
+        c.fill(0.0)
+        addABt(a, b, m, n, k, c)
+        return c
+    }
+
+    /**
      * y += At * x
      * */
-    fun mulTV(a: DoubleArray, x: DoubleArray, m: Int, n: Int, y: DoubleArray = DoubleArray(m)): DoubleArray {
-        if (a.size < m * n) throw RuntimeException("a has wrong dimensions")
-        if (x.size < n * 1) throw RuntimeException("x has wrong dimensions")
-        if (y.size < m * 1) throw RuntimeException("y has wrong dimensions")
+    fun addAtX(a: DoubleArray, x: DoubleArray, m: Int, n: Int, y: DoubleArray): DoubleArray {
+        if (a.size != m * n) throw RuntimeException("a has wrong dimensions, expected $m * $n, got ${a.size}")
+        if (x.size != n * 1) throw RuntimeException("x has wrong dimensions, expected $n * 1, got ${x.size}")
+        if (y.size != m * 1) throw RuntimeException("y has wrong dimensions, expected $m * 1, got ${y.size}")
         for (ni in 0 until n) {
             val xi = x[ni]
             var nm = ni * m
@@ -80,9 +113,21 @@ object LinearAlgebra {
     }
 
     /**
+     * y = At * x
+     * */
+    fun setAtX(a: DoubleArray, x: DoubleArray, m: Int, n: Int, y: DoubleArray = DoubleArray(m)): DoubleArray {
+        if (a.size != m * n) throw RuntimeException("a has wrong dimensions, expected $m * $n, got ${a.size}")
+        if (x.size != n * 1) throw RuntimeException("x has wrong dimensions, expected $n * 1, got ${x.size}")
+        if (y.size != m * 1) throw RuntimeException("y has wrong dimensions, expected $m * 1, got ${y.size}")
+        y.fill(0.0)
+        addAtX(a, x, m, n, y)
+        return y
+    }
+
+    /**
      * C = A * B
      * */
-    fun mulNN(
+    fun setAB(
         a: DoubleArray,
         b: DoubleArray,
         m: Int,
@@ -90,9 +135,9 @@ object LinearAlgebra {
         k: Int,
         c: DoubleArray = DoubleArray(m * k)
     ): DoubleArray {
-        if (a.size < m * n) throw RuntimeException("a has wrong dimensions")
-        if (b.size < n * k) throw RuntimeException("b has wrong dimensions")
-        if (c.size < m * k) throw RuntimeException("c has wrong dimensions")
+        if (a.size != m * n) throw RuntimeException("a has wrong dimensions")
+        if (b.size != n * k) throw RuntimeException("b has wrong dimensions")
+        if (c.size != m * k) throw RuntimeException("c has wrong dimensions")
         for (mi in 0 until m) {
             val mn = mi * n
             val mk = mi * k
@@ -110,10 +155,10 @@ object LinearAlgebra {
     /**
      * y = Ax
      * */
-    fun mulNV(a: DoubleArray, x: DoubleArray, m: Int, n: Int, y: DoubleArray = DoubleArray(m)): DoubleArray {
-        if (a.size < m * n) throw RuntimeException("a has wrong dimensions")
-        if (x.size < n * 1) throw RuntimeException("x has wrong dimensions")
-        if (y.size < m * 1) throw RuntimeException("y has wrong dimensions")
+    fun setAx(a: DoubleArray, x: DoubleArray, m: Int, n: Int, y: DoubleArray = DoubleArray(m)): DoubleArray {
+        if (a.size != m * n) throw RuntimeException("a has wrong dimensions")
+        if (x.size != n * 1) throw RuntimeException("x has wrong dimensions")
+        if (y.size != m * 1) throw RuntimeException("y has wrong dimensions")
         for (mi in 0 until m) {
             var sum = 0.0
             var mn = mi * n
@@ -125,7 +170,10 @@ object LinearAlgebra {
         return y
     }
 
-    fun inv(a: DoubleArray, size: Int, b: DoubleArray = DoubleArray(size * size)): DoubleArray? {
+    fun inverse(a: DoubleArray, size: Int, b: DoubleArray = DoubleArray(size * size)): DoubleArray? {
+
+        if (a.size != size * size || b.size != size * size)
+            throw RuntimeException("Dimensions don't match array size, expected $size² = ${size * size}, got ${a.size}, ${b.size}")
 
         // make b a unit matrix
         b.fill(0.0)
@@ -151,7 +199,10 @@ object LinearAlgebra {
                 }
             }
 
-            if (a[bestRow * size + m] == 0.0) return null // matrix is not invertible
+            if (a[bestRow * size + m] == 0.0) { // matrix is not invertible
+                LOGGER.debug("$size x $size matrix is not invertible, ${a.size}, ${b.size}")
+                return null
+            }
 
             // switch the rows m and bestRow
             if (bestRow != m) {

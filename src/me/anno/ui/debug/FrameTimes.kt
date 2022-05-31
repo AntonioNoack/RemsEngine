@@ -121,7 +121,7 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
                     floats.put(x - x0, max(v * scale, 0f))
                 }
 
-                texture.createMonochrome(floats, false)
+                texture.createMonochromeFP16(floats, false)
 
                 GFX.check()
                 val shader = shader.value

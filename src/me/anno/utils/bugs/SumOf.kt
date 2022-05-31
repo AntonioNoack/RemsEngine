@@ -3,6 +3,7 @@ package me.anno.utils.bugs
 object SumOf {
 
     // because currently Kotlin or Intellij Idea is too stupid to parse sumOf
+    // or there is no float variant
     fun <V> sumOf(iterable: Iterable<V>, mapping: (V) -> Float): Float {
         var sum = 0f
         if (iterable is List<V>) {

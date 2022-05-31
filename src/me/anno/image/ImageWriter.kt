@@ -19,12 +19,9 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced2d
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
+import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.awt.Color
 import java.awt.Graphics2D
@@ -323,7 +320,9 @@ object ImageWriter {
     }
 
     fun writeImageCurve(
-        wr: Int, hr: Int, minColor: Int, maxColor: Int,
+        wr: Int, hr: Int,
+        autoScale: Boolean,
+        minColor: Int, maxColor: Int,
         thickness: Int,
         points: List<Vector2f>, name: String
     ) {
@@ -333,6 +332,16 @@ object ImageWriter {
         // do all line sections
         var ctr = 0f
         val t0 = System.nanoTime()
+
+        val transform = Matrix3x2f()
+        if (autoScale) {
+            val bounds = AABBf()
+            for (p in points) bounds.union(p)
+            transform.translate(w / 2f, h / 2f)
+            transform.scale(0.95f * min(w / bounds.deltaX(), h / bounds.deltaY()))
+            transform.translate(-bounds.avgX(), -bounds.avgY())
+            for (p in points) transform.transformPosition(p)
+        }
         for (i in 1 until points.size) {
             val p0 = points[i - 1]
             val p1 = points[i]
@@ -368,11 +377,12 @@ object ImageWriter {
         }
         // bokeh-blur would be nicer, and correcter,
         // but this is a pretty good trade-off between visuals and performance :)
-        gaussianBlur(image, w, h, thickness)
-        val scale = 1f / (thickness * thickness * sqrt(thickness.toFloat()))
-        for (i in 0 until w * h) image[i] *= scale
+        if (gaussianBlur(image, w, h, thickness)) {
+            val scale = 1f / max(image.maxOrNull()!!, 1e-7f)
+            for (i in 0 until w * h) image[i] *= scale
+        }
         val t1 = System.nanoTime()
-        // nano seconds per pixel
+        // nanoseconds per pixel
         // ~ 24ns/px for everything, including copy;
         // for 2048² pixels, and thickness = 75
         LOGGER.info("${(t1 - t0).toFloat() / (w * h)}ns/px")

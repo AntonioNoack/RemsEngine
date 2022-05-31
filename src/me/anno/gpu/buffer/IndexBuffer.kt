@@ -44,13 +44,13 @@ class IndexBuffer(
             session = OpenGL.session
             pointer = -1
             isUpToDate = false
-            locallyAllocated = Buffer.allocate(locallyAllocated, 0L)
+            locallyAllocated = OpenGLBuffer.allocate(locallyAllocated, 0L)
             vao = -1
         }
     }
 
     private fun ensureVAO() {
-        if (Buffer.useVAOs) {
+        if (OpenGLBuffer.useVAOs) {
             if (vao <= 0) vao = glGenVertexArrays()
             if (vao <= 0) throw OutOfMemoryError("Could not allocate vertex array")
         }
@@ -62,8 +62,8 @@ class IndexBuffer(
 
         ensureVAO()
 
-        Buffer.bindVAO(vao)
-        Buffer.bindBuffer(GL_ARRAY_BUFFER, base.pointer)
+        OpenGLBuffer.bindVAO(vao)
+        OpenGLBuffer.bindBuffer(GL_ARRAY_BUFFER, base.pointer)
         var hasAttr = false
         val attributes = base.attributes
         for (index in attributes.indices) {
@@ -85,15 +85,15 @@ class IndexBuffer(
         ensureVAO()
         base.ensureBuffer()
 
-        Buffer.bindVAO(vao)
-        Buffer.bindBuffer(GL_ARRAY_BUFFER, base.pointer)
+        OpenGLBuffer.bindVAO(vao)
+        OpenGLBuffer.bindBuffer(GL_ARRAY_BUFFER, base.pointer)
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
         for (attr in base.attributes) {
             Buffer.bindAttribute(shader, attr, false)
         }
 
         instanceData.ensureBuffer()
-        Buffer.bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
+        OpenGLBuffer.bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
         for (attr in instanceData.attributes) {
             Buffer.bindAttribute(shader, attr, true)
         }
@@ -113,7 +113,7 @@ class IndexBuffer(
 
         if (pointer <= 0) pointer = glGenBuffers()
         if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL buffer")
-        Buffer.bindBuffer(target, pointer)
+        OpenGLBuffer.bindBuffer(target, pointer)
 
         if (isUpToDate) return
         isUpToDate = true
@@ -142,7 +142,7 @@ class IndexBuffer(
                 } else {
                     glBufferData(target, buffer, usage)
                 }
-                locallyAllocated = Buffer.allocate(locallyAllocated, indices.size * 2L)
+                locallyAllocated = OpenGLBuffer.allocate(locallyAllocated, indices.size * 2L)
                 MemoryUtil.memFree(buffer)
             }
             else -> {
@@ -152,7 +152,7 @@ class IndexBuffer(
                 } else {
                     glBufferData(target, indices, usage)
                 }
-                locallyAllocated = Buffer.allocate(locallyAllocated, indices.size * 4L)
+                locallyAllocated = OpenGLBuffer.allocate(locallyAllocated, indices.size * 4L)
             }
         }
         // GFX.check()
@@ -179,9 +179,9 @@ class IndexBuffer(
         checkSession()
         // todo cache vao by shader? typically, we only need 4 shaders for a single mesh
         // todo alternatively, we could specify the location in the shader
-        if (vao <= 0 || shader !== lastShader || !Buffer.useVAOs) {
+        if (vao <= 0 || shader !== lastShader || !OpenGLBuffer.useVAOs) {
             createVAO(shader)
-        } else Buffer.bindVAO(vao)
+        } else OpenGLBuffer.bindVAO(vao)
         lastShader = shader
         GFX.check()
     }
@@ -198,14 +198,14 @@ class IndexBuffer(
             shader !== lastShader ||
             base.attributes != baseAttributes ||
             instanceAttributes != instanceData.attributes ||
-            !Buffer.useVAOs || Buffer.renewVAOs
+            !OpenGLBuffer.useVAOs || OpenGLBuffer.renewVAOs
         ) {
             lastShader = shader
             baseAttributes = base.attributes
             instanceAttributes = instanceData.attributes
             lastInstanceBuffer = instanceData
             createVAOInstanced(shader, instanceData)
-        } else Buffer.bindVAO(vao)
+        } else OpenGLBuffer.bindVAO(vao)
         GFX.check()
     }
 
@@ -253,12 +253,12 @@ class IndexBuffer(
     override fun destroy() {
         val buffer = pointer
         if (buffer >= 0) {
-            GFX.addGPUTask("IndexBuffer.destroy()",1) {
-                Buffer.onDestroyBuffer(buffer)
+            GFX.addGPUTask("IndexBuffer.destroy()", 1) {
+                OpenGLBuffer.onDestroyBuffer(buffer)
                 glDeleteBuffers(buffer)
             }
             pointer = -1
-            locallyAllocated = Buffer.allocate(locallyAllocated, 0)
+            locallyAllocated = OpenGLBuffer.allocate(locallyAllocated, 0)
         }
     }
 

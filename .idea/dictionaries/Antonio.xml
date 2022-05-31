@@ -75,6 +75,7 @@
       <w>decomp</w>
       <w>deeppink</w>
       <w>deepskyblue</w>
+      <w>deers</w>
       <w>deflater</w>
       <w>deformer</w>
       <w>deformers</w>
@@ -89,6 +90,7 @@
       <w>dokumente</w>
       <w>dont</w>
       <w>draggables</w>
+      <w>earcut</w>
       <w>easu</w>
       <w>emissive</w>
       <w>endianness</w>
@@ -297,6 +299,7 @@
       <w>saveables</w>
       <w>scifi</w>
       <w>sdfs</w>
+      <w>sdkmanager</w>
       <w>sdna</w>
       <w>seagreen</w>
       <w>segoe</w>
@@ -323,8 +326,10 @@
       <w>subarrays</w>
       <w>submesh</w>
       <w>submeshes</w>
+      <w>subpass</w>
       <w>substr</w>
       <w>superfast</w>
+      <w>swapchain</w>
       <w>symbola</w>
       <w>targa</w>
       <w>texel</w>

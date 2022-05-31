@@ -3,7 +3,6 @@ package me.anno.maths.bvh
 import me.anno.engine.raycast.RayHit
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.volume
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3f

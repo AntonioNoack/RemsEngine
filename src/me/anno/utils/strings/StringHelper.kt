@@ -12,12 +12,12 @@ object StringHelper {
         } else this
     }
 
-    fun String.indexOf2(query: Char, index: Int): Int {
+    fun String.indexOf2(query: Char, index: Int = 0): Int {
         val i = indexOf(query, index)
         return if (i < 0) length else i
     }
 
-    fun String.indexOf2(query: String, index: Int): Int {
+    fun String.indexOf2(query: String, index: Int = 0): Int {
         val i = indexOf(query, index)
         return if (i < 0) length else i
     }
@@ -26,6 +26,8 @@ object StringHelper {
     fun String.splitCamelCase(): String {
         return replace('_', ' ') // snake case replacements
             .replace(splitCamelCaseRegex, " ") // camelCase -> camel Case
+            .replace("    ", " ")
+            .replace("  ", " ")
             .replace("  ", " ")
     }
 

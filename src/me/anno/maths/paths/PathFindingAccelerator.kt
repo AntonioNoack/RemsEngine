@@ -14,6 +14,7 @@ import me.anno.utils.structures.lists.Lists.any2
  * todo cache partial queries (?)
  * */
 abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
+    val useSecondaryHops: Boolean, // slightly better (because longer partial paths are created around chunk-grid-corners), ~2x slower
     val nodesPerChunkGuess: Int = 64
 ) {
 
@@ -121,9 +122,14 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
             true, capacityGuess, includeStart, includeEnd
         ) { from, callback ->
             // callback neighbor proxies
-            val data = getProxyData(from)!!
-            for (to in data.neighborProxies.value) {
+            for (to in getProxyData(from)!!.neighborProxies.value) {
                 callback(to, distance(from, to), distance(to, end))
+                if (useSecondaryHops) {
+                    for (to2 in getProxyData(to)!!.neighborProxies.value) {
+                        if (to2 != from)
+                            callback(to2, distance(from, to2), distance(to2, end))
+                    }
+                }
             }
         } ?: return null
         // build bridges from normal space to proxy space and back

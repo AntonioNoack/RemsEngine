@@ -113,9 +113,9 @@ class SplineMesh : ProceduralMesh() {
     }
 
     fun set(t: SplineTmpMesh) {
-        mesh2.positions = t.positions
-        mesh2.normals = t.normals
-        mesh2.color0 = t.colors
+        data.positions = t.positions
+        data.normals = t.normals
+        data.color0 = t.colors
     }
 
     fun replace(v0: IntArray?, size: Int) = if (v0 != null && v0.size == size) v0 else IntArray(size)
@@ -124,9 +124,9 @@ class SplineMesh : ProceduralMesh() {
     fun set(ts: List<SplineTmpMesh>) {
         val colSize = ts.sumOf { it.colors.size }
         val posSize = colSize * 3
-        val col = replace(mesh2.color0, colSize)
-        val pos = replace(mesh2.positions, posSize)
-        val nor = replace(mesh2.normals, posSize)
+        val col = replace(data.color0, colSize)
+        val pos = replace(data.positions, posSize)
+        val nor = replace(data.normals, posSize)
         var i = 0
         var j = 0
         for (t in ts) {
@@ -139,9 +139,9 @@ class SplineMesh : ProceduralMesh() {
             i += pi.size
             j += ci.size
         }
-        mesh2.positions = pos
-        mesh2.normals = nor
-        mesh2.color0 = col
+        data.positions = pos
+        data.normals = nor
+        data.color0 = col
     }
 
     override fun generateMesh(mesh: Mesh) {
@@ -336,7 +336,7 @@ class SplineMesh : ProceduralMesh() {
                 points.add(Vector2f(dst.x.toFloat(), dst.y.toFloat()))
             }
 
-            writeImageCurve(size, size, 255 shl 24, -1, 5, points, "spline1.png")
+            writeImageCurve(size, size, false, 255 shl 24, -1, 5, points, "spline1.png")
 
         }
 

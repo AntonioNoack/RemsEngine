@@ -5,7 +5,6 @@ import kotlin.math.abs
 class SignedDistance(var distance: Float, var dot: Float) : Comparable<SignedDistance> {
 
     constructor() : this(-1e38f, 1f)
-    constructor(src: SignedDistance) : this(src.distance, src.dot)
 
     fun clear() {
         distance = -1e38f

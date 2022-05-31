@@ -1,4 +1,4 @@
-package me.anno.ecs.components
+package me.anno.ecs.components.collider
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity

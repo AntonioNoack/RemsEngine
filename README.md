@@ -92,6 +92,7 @@ graph TB
 
 ## Planned Features
 - easy local multiplayer
+- usable Multiplayer, local and tcp/udp
 - environment maps as lights
 - compute environment maps from the scene for reflections
 - animation trees
@@ -99,7 +100,6 @@ graph TB
 - transparent meshes
 - export to Windows/Linux
 - usable Gizmos 🙈
-- usable Multiplayer, local and tcp/udp
 - fully supported Lua scripting
 
 ## Maybe Later Features
@@ -119,7 +119,33 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 - [Cellular Automata](https://github.com/AntonioNoack/CellularAutomata)
 - [Tsunami Simulation](https://github.com/AntonioNoack/RemsTsunamis)
 - [Voxel World](https://github.com/AntonioNoack/RemsEngine-VoxelWorld)
-- a few more, non published (yet?)
+- a few more, non-published (yet?)
+
+## Getting Started
+- Download an IDE of your choice. I prefer Intellij Idea, but have worked with Eclipse in the past.
+- Download either the engine source code, and compile it yourself, or download a pre-compiled jar.
+  - If there is no release available yet, just ask for a build, and I'll create one :)
+- Add the engine jar as a dependency to your project.
+- Either create an extension (mod), or work directly with the engine.
+
+## Samples
+Besides my personal projects that use Rem's Engine, there is also quite a few samples within the engine source code.
+
+Some tests, starting the whole engine:
+- MarchingCubes.kl
+- PathfindingTest.kt
+
+Some feature tests:
+- MarchingSquares.kt
+- SDFTest.kt
+- Hierarchy.kt
+- Reduction.kt
+- FSR.kt
+- JsonFormatter.kt
+- DrawCurves.kt
+- AnimTest.kt
+
+To find more examples, search for "fun main(args: Array<String>)" in the source code.
 
 ## Ports
 - [Android](https://github.com/AntonioNoack/RemsEngine-Android)

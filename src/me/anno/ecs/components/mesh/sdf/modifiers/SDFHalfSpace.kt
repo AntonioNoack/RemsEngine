@@ -11,7 +11,6 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFMirror.Companion.normalize3
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
-import me.anno.utils.types.AABBs.clear
 import org.joml.AABBf
 import org.joml.Planef
 import org.joml.Vector3f

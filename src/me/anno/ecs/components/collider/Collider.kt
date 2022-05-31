@@ -6,7 +6,6 @@ import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.physics.BulletPhysics.Companion.convertMatrix
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit

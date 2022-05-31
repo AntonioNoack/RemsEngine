@@ -4,13 +4,37 @@ import me.anno.Engine
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.discoverOpenGLNames
+import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.attr0List
+import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import org.lwjgl.opengl.GL11C.glGetIntegerv
 import org.lwjgl.opengl.NVMeshShader
 
 fun main() {
 
+    // todo get raytracing on opengl working Nvidia
+    // todo is there an extension for AMD?
+
     // GL_NV_ray_tracing
     // https://github.com/KhronosGroup/GLSL/blob/master/extensions/nv/GLSL_NV_ray_tracing.txt
+
+    // not supported :/
+    /*HiddenOpenGLContext.createOpenGL()
+    val testShader = Shader("rt", attr0List, attr0VShader, uvList,
+        listOf(), "" +
+                // to do what does the first one do?
+                "#extension GL_ARB_separate_shader_objects : enable\n" +
+                // not supported :/
+                "#extension GL_EXT_ray_tracing : enable\n" +
+                "#extension GL_EXT_ray_query : enable\n" +
+                "" +
+                "void main(){\n" +
+                "" +
+                "}")
+    testShader.glslVersion = 460 // needed for raytracing extension
+    testShader.use()*/
 
     // [l060] new stages:
     // [l060] ray generation, intersection, any hit, closest hit, miss stages
@@ -67,9 +91,6 @@ fun main() {
     // init OpenGL
     ECSRegistry.initWithGFX()
 
-    // todo get raytracing on opengl working Nvidia
-    // todo is there an extension for AMD?
-
     // task shader
     // mesh shader
 
@@ -78,7 +99,7 @@ fun main() {
 
     val properties = listOf<Int>(
 
-        )
+    )
 
     // find property names
     discoverOpenGLNames(NVMeshShader::class)

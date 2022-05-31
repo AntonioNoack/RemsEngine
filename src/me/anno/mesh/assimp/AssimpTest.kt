@@ -3,7 +3,7 @@ package me.anno.mesh.assimp
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
+import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
@@ -11,13 +11,9 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.mesh.assimp.AnimHierarchy.loadSkeletonFromAnimations
 import me.anno.mesh.assimp.AnimatedMeshesLoader.createNodeCache
-import me.anno.utils.Color.a
 import me.anno.utils.Color.a01
-import me.anno.utils.Color.b
 import me.anno.utils.Color.b01
-import me.anno.utils.Color.g
 import me.anno.utils.Color.g01
-import me.anno.utils.Color.r
 import me.anno.utils.Color.r01
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop

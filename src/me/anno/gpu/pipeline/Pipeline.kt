@@ -4,7 +4,10 @@ import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.anim.Animation
+import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
@@ -20,20 +23,20 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
+import me.anno.gpu.texture.Texture2D
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.thumbs.Thumbs.threadLocalBoneMatrices
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.sorting.MergeSort.mergeSort
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.SmallestKList
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.avgZ
 import me.anno.utils.types.Matrices.distanceSquared
 import org.apache.logging.log4j.LogManager
 import org.joml.*
+import kotlin.math.min
 
 /**
  * collects meshes for sorting (transparency, overdraw), and for instanced rendering
@@ -200,7 +203,50 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                 mesh.material = materialSource
                 stage.add(sampleMeshComponent, mesh, sampleEntity, 0, clickId)
             }
-            // todo animation, skeleton, ...
+            is Animation -> {
+                // todo optimize this (avoid allocations)
+                val skeleton = SkeletonCache[rootElement.skeleton] ?: return
+                val bones = skeleton.bones
+                val mesh = Mesh()
+                val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
+                val size = (bones.size - 1) * Skeleton.boneMeshVertices.size
+                mesh.positions = Texture2D.floatArrayPool[size, false, true]
+                mesh.normals = Texture2D.floatArrayPool[size, true, true]
+                val time = Engine.gameTimeF % rootElement.duration
+                // generate the matrices
+                rootElement.getMatrices(null, time, skinningMatrices)
+                // apply the matrices to the bone positions
+                for (i in 0 until min(animPositions.size, bones.size)) {
+                    val position = animPositions[i].set(bones[i].bindPosition)
+                    skinningMatrices[i].transformPosition(position)
+                }
+                Skeleton.generateSkeleton(bones, animPositions, mesh.positions!!, null)
+                mesh.invalidateGeometry()
+                fill(mesh, cameraPosition, worldScale)
+                GFX.addGPUTask("free", 1) {
+                    Texture2D.floatArrayPool.returnBuffer(mesh.positions)
+                    Texture2D.floatArrayPool.returnBuffer(mesh.normals)
+                    mesh.destroy()
+                }
+            }
+            is Skeleton -> {
+                // todo optimize this (avoid allocations)
+                val bones = rootElement.bones
+                if (bones.isEmpty()) return
+                val mesh = Mesh()
+                // in a tree with N nodes, there is N-1 lines
+                val size = (bones.size - 1) * Skeleton.boneMeshVertices.size
+                mesh.positions = Texture2D.floatArrayPool[size, false, true]
+                mesh.normals = Texture2D.floatArrayPool[size, true, true]
+                val bonePositions = Array(bones.size) { bones[it].bindPosition }
+                Skeleton.generateSkeleton(bones, bonePositions, mesh.positions!!, null)
+                fill(mesh, cameraPosition, worldScale)
+                GFX.addGPUTask("free", 1) {
+                    Texture2D.floatArrayPool.returnBuffer(mesh.positions)
+                    Texture2D.floatArrayPool.returnBuffer(mesh.normals)
+                    mesh.destroy()
+                }
+            }
             else -> {
                 LOGGER.warn("Don't know how to draw ${rootElement.className}")
             }

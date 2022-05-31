@@ -61,7 +61,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
             Variable(GLSLType.V3F, "localPosition"),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.M4x3, "localTransform"),
-            Variable(GLSLType.M3x3, "invLocalTransform"),
+            Variable(GLSLType.M4x3, "invLocalTransform"),
             Variable(GLSLType.V1I, "maxSteps"),
             Variable(GLSLType.V1F, "worldScale"),
             Variable(GLSLType.V3I, "bounds"),
@@ -90,7 +90,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
                     "vec3 bounds1 = vec3(bounds-1);\n" +
                     // start our ray on the surface of the cube: we don't need to project the ray onto the box
-                    "vec3 dir = normalize(invLocalTransform * finalPosition);\n" +
+                    "vec3 dir = normalize(invLocalTransform * vec4(finalPosition, 0.0));\n" +
                     // prevent divisions by zero
                     "if(abs(dir.x) < 1e-7) dir.x = 1e-7;\n" +
                     "if(abs(dir.y) < 1e-7) dir.y = 1e-7;\n" +

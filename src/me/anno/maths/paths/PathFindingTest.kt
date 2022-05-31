@@ -7,17 +7,11 @@ import me.anno.maths.Maths.length
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.LOGGER
 import me.anno.utils.OS
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
 import org.joml.AABBf
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
-import kotlin.math.abs
-import kotlin.math.round
 import kotlin.random.Random
 
 val enableCrossLinks = true

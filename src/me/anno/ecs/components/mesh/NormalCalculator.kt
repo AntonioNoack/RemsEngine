@@ -2,6 +2,8 @@ package me.anno.ecs.components.mesh
 
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
+import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
 import kotlin.math.abs
@@ -133,6 +135,122 @@ object NormalCalculator {
         normals[j + 0] += normal.x
         normals[j + 1] += normal.y
         normals[j + 2] += normal.z
+    }
+
+    fun generateIndices(
+        positions: FloatArray,
+        uvs: FloatArray?,
+        color0: IntArray?,
+        materialIndices: IntArray?,
+        boneIndices: ByteArray?,
+        boneWeights: FloatArray?
+    ): IntArray {
+
+        // todo we probably should be able to specify a merging radius, so close points get merged
+        // for that however, we need other acceleration structures like oct-trees to accelerate the queries
+
+        // what defines a unique point:
+        // position, uvs, material index, bone indices and bone weights
+        // in the future, we should maybe support all colors...
+        class Point(
+            var x: Float, var y: Float, var z: Float,
+            var u: Float, var v: Float,
+            var color0: Int,
+            var materialIndex: Int,
+            var b0: Byte, var b1: Byte, var b2: Byte, var b3: Byte,
+            var w0: Float, var w1: Float, var w2: Float, var w3: Float,
+        ) {
+
+            constructor(x: Float, y: Float, z: Float) :
+                    this(x, y, z, 0f, 0f, 0, 0, 0, 0, 0, 0, 0f, 0f, 0f, 0f)
+
+            // I would use a data class, if they were mutable...
+            var hashCode = 0
+            override fun hashCode(): Int {
+                if (hashCode != 0) return hashCode
+                var hashCode = x.hashCode() * 31
+                hashCode = hashCode * 31 + y.hashCode()
+                hashCode = hashCode * 31 + z.hashCode()
+                hashCode = hashCode * 31 + u.hashCode()
+                hashCode = hashCode * 31 + v.hashCode()
+                hashCode = hashCode * 31 + this.color0.hashCode()
+                hashCode = hashCode * 31 + materialIndex.hashCode()
+                hashCode = hashCode * 31 + b0.hashCode()
+                hashCode = hashCode * 31 + b1.hashCode()
+                hashCode = hashCode * 31 + b2.hashCode()
+                hashCode = hashCode * 31 + b3.hashCode()
+                hashCode = hashCode * 31 + w0.hashCode()
+                hashCode = hashCode * 31 + w1.hashCode()
+                hashCode = hashCode * 31 + w2.hashCode()
+                hashCode = hashCode * 31 + w3.hashCode()
+                this.hashCode = hashCode
+                return hashCode
+            }
+
+            override fun equals(other: Any?): Boolean {
+                if (other !is Point) return false
+                return x == other.x && y == other.y && z == other.z &&
+                        other.u == u && other.v == v &&
+                        other.color0 == this.color0 &&
+                        other.materialIndex == materialIndex &&
+                        other.b0 == b0 && other.b1 == b1 && other.b2 == b2 && other.b3 == b3 &&
+                        other.w0 == w0 && other.w1 == w1 && other.w2 == w2 && other.w3 == w3
+            }
+        }
+
+        // generate all points
+        val points = Array(positions.size / 3) {
+            val i3 = it * 3
+            Point(positions[i3], positions[i3 + 1], positions[i3 + 2])
+        }
+
+        if (uvs != null) {
+            for (i in 0 until min(uvs.size shr 1, points.size)) {
+                val i2 = i + i
+                val p = points[i]
+                p.u = uvs[i2]
+                p.v = uvs[i2 + 1]
+            }
+        }
+
+        if (color0 != null) {
+            for (i in 0 until min(color0.size, points.size)) {
+                points[i].materialIndex = color0[i]
+            }
+        }
+
+        if (materialIndices != null) {
+            for (i in 0 until min(materialIndices.size, points.size)) {
+                points[i].materialIndex = materialIndices[i]
+            }
+        }
+
+        if (boneWeights != null && boneIndices != null) {
+            for (i in 0 until min(min(boneWeights.size, boneIndices.size) shr 2, points.size)) {
+                val i4 = i shl 2
+                val p = points[i]
+                p.b0 = boneIndices[i4]
+                p.b1 = boneIndices[i4 + 1]
+                p.b2 = boneIndices[i4 + 2]
+                p.b3 = boneIndices[i4 + 3]
+                p.w0 = boneWeights[i4]
+                p.w1 = boneWeights[i4 + 1]
+                p.w2 = boneWeights[i4 + 2]
+                p.w3 = boneWeights[i4 + 3]
+            }
+        }
+
+        val uniquePoints = HashMap<Point, Int>()
+        for (i in points.lastIndex downTo 0) {
+            uniquePoints[points[i]] = i
+        }
+
+        LOGGER.debug("Merged ${points.size} into ${uniquePoints.size} points")
+
+        return IntArray(points.size) {
+            uniquePoints[points[it]]!!
+        }
+
     }
 
 

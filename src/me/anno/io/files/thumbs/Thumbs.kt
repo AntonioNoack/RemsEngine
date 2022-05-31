@@ -99,6 +99,7 @@ import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.structures.lists.CountingList.Companion.isCounted
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
@@ -184,7 +185,7 @@ object Thumbs {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, file.lastModified, file.isDirectory, size)
 
-        return ImageGPUCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
+        val texture = ImageGPUCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
             if (async) {
                 thread(name = "Thumbs/${key.file.name}") {
                     try {
@@ -198,6 +199,8 @@ object Thumbs {
                 }
             } else generate(file, size, callback)
         }?.texture
+        return if (texture != null && (texture as? Texture2D)?.isCreated != false) texture
+        else null
     }
 
     private fun FileReference.getCacheFile(size: Int): FileReference {
@@ -235,12 +238,11 @@ object Thumbs {
 
     private fun upload(srcFile: FileReference, dst: Image, callback: (Texture2D) -> Unit) {
         val rotation = ImageData.getRotation(srcFile)
-        GFX.addGPUTask("Thumbs.upload($srcFile)", dst.width, dst.height) {
-            val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
-            dst.createTexture(texture, true)
-            texture.rotation = rotation
-            callback(texture)
-        }
+        val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
+        dst.createTexture(texture, sync = false, checkRedundancy = true)
+        texture.rotation = rotation
+        waitUntil(true) { texture.isCreated || texture.isDestroyed }
+        callback(texture)
     }
 
     private fun upload(srcFile: FileReference, fb: Framebuffer, callback: (Texture2D) -> Unit) {
@@ -257,11 +259,11 @@ object Thumbs {
             texture.rotation = rotation
             callback(texture)
         } else {
-            GFX.addGPUTask("Thumbs.upload()", dst.width, dst.height) {
-                val texture = Texture2D(dst, true)
-                texture.rotation = rotation
-                callback(texture)
-            }
+            val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
+            texture.create(dst, sync = false, checkRedundancy = false)
+            texture.rotation = rotation
+            waitUntil(true) { texture.isCreated || texture.isDestroyed }
+            callback(texture)
         }
     }
 
@@ -438,7 +440,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
-        callback: (Texture2D) -> Unit,
+        callback: (ITexture2D) -> Unit,
         wantedTime: Double
     ) {
 
@@ -504,7 +506,7 @@ object Thumbs {
         size: Int,
         renderer: Renderer,
         waitForTextures: Boolean,
-        callback: (Texture2D) -> Unit
+        callback: (ITexture2D) -> Unit
     ) {
         if (waitForTextures) waitForTextures(data, srcFile)
         renderToBufferedImage(srcFile, InvalidRef, dstFile, true, renderer, true, callback, size, size) {
@@ -634,8 +636,10 @@ object Thumbs {
         val cameraMatrix = createPerspectiveList(defaultAngleY, 1f)
         val localStack = data.findLocalStack(cameraMatrix, centerMesh = true, normalizeScale = true)
         // todo draw gui (colliders), entity positions
-        waitForMeshes(data)
-        waitForTextures(data, srcFile)
+        for (i in 0 until 3) { // make sure both are loaded
+            waitForMeshes(data)
+            waitForTextures(data, srcFile)
+        }
         val drawSkeletons = !entity.hasComponent(MeshComponentBase::class)
         renderToBufferedImage(srcFile, InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             data.drawAssimp(
@@ -836,6 +840,9 @@ object Thumbs {
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
+
+        // todo the transform can be different from the original...
+        // todo can we show it with the default transform somehow?
 
         // on working skeletons, this works
         // therefore it probably is correct
@@ -1062,7 +1069,7 @@ object Thumbs {
         return src.createBufferedImage(w, h)
     }
 
-    private fun generate(srcFile: FileReference, size: Int, callback: (Texture2D) -> Unit) {
+    private fun generate(srcFile: FileReference, size: Int, callback: (ITexture2D) -> Unit) {
 
         if (size < 3) return
 
@@ -1114,10 +1121,16 @@ object Thumbs {
                 saveNUpload(srcFile, dstFile, dst, callback)
             }
             "pdf" -> {
-                val ref = PDFCache.getDocumentRef(srcFile, borrow = true, async = false) ?: return
-                val image = PDFCache.getImageCachedBySize(ref.doc, size, 0)
-                ref.returnInstance()
-                saveNUpload(srcFile, dstFile, image, callback)
+                try {
+                    val ref = PDFCache.getDocumentRef(srcFile, borrow = true, async = false) ?: return
+                    val image = PDFCache.getImageCachedBySize(ref.doc, size, 0)
+                    ref.returnInstance()
+                    saveNUpload(srcFile, dstFile, image, callback)
+                } catch (_: NullPointerException) {
+                    // can happen ^^
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
             "png", "jpg", "bmp", "ico", "psd" -> generateImage(srcFile, dstFile, size, callback)
             "blend" -> generateSomething(
@@ -1247,15 +1260,16 @@ object Thumbs {
     private fun generateTextImage(
         srcFile: FileReference,
         size: Int,
-        callback: (Texture2D) -> Unit
+        callback: (ITexture2D) -> Unit
     ) {
+        // todo draw text with cheap/mono letters, if possible
         // todo html preview???
         // todo markdown preview (?)
         // generate text preview
         // scale text with size?
-        val maxLineCount = clamp((size + 8) / 16, 3, 40)
+        val maxLineCount = clamp(size / 24, 3, 40)
         val maxLineLength = maxLineCount * 5 / 2
-        val maxLength = min(2048, maxLineCount * maxLineLength)
+        val maxLength = 64 * 1024
         val bytes = srcFile.inputStream().use {
             it.readNBytes2(maxLength, false)
         }
@@ -1278,19 +1292,19 @@ object Thumbs {
             val text = lines
                 .joinToString("\n")
             val lineCount = lines.size
-            val key = Font(DefaultConfig.defaultFontName, size * 1.5f / lineCount, isBold = false, isItalic = false)
+            val key = Font(DefaultConfig.defaultFontName, size * 0.7f / lineCount, isBold = false, isItalic = false)
             val font2 = FontManager.getFont(key)
-            GFX.addGPUTask("Thumbs.generateTextImage()", 100) {
-                GFX.loadTexturesSync.push(true)
-                val texture = font2.generateTexture(
-                    text, key.size, -1, -1,
-                    portableImages = true,
-                    textColor = 255 shl 24,
-                    backgroundColor = -1,
-                    extraPadding = key.sizeInt / 2
-                )
-                if (texture != null) callback(texture as Texture2D)
-                GFX.loadTexturesSync.pop()
+            val texture = font2.generateTexture(
+                text, key.size, size * 2, size * 2,
+                portableImages = true,
+                textColor = 255 shl 24,
+                backgroundColor = -1,
+                extraPadding = key.sizeInt / 2
+            )
+            if (texture is ITexture2D) {
+                if (texture is Texture2D)
+                    waitUntil(true) { texture.isCreated || texture.isDestroyed }
+                callback(texture)
             }
         }
     }
@@ -1299,7 +1313,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
-        callback: (Texture2D) -> Unit
+        callback: (ITexture2D) -> Unit
     ) {
         // small timeout, because we need that image shortly only
         val totalNanos = 30_000_000_000L

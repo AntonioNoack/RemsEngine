@@ -9,6 +9,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.Stack
+import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
@@ -19,6 +20,7 @@ import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.*
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
+import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -27,7 +29,6 @@ import kotlin.math.sin
  * docs: https://box2d.org/documentation/
  * done stepping like BulletPhysics, maybe join them
  * todo:
- *  - Stable stacking
  *  - Fast persistent contact solver
  *  - Dynamic tree broadphase
  *  - Edges and polygons
@@ -36,6 +37,8 @@ import kotlin.math.sin
  *  - Ray casts
  *  - Sensors
  *  - Liquid particle simulation from Google's LiquidFun ( https://google.github.io/liquidfun/ )
+ * done and partially tested:
+ * stable stacking
  * Dynamic, Kinematic, and Static bodies; Kinematic skipped for now, as I don't understand it's use-case yet
  * Rigid body physics
  * Continuous collision detection (accurate solving of fast bodies)
@@ -80,22 +83,34 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
                         // rotation doesn't matter
                     }
                     is PolygonShape -> {
-                        val vertices = shape.vertices
-                        // transform all vertices individually
-                        // translation, rotation and scale are all included automatically :)
-                        for (i in 0 until shape.m_count) {
-                            val vert = vertices[i]
-                            val vx = vert.x
-                            val vy = vert.y
-                            vert.set(
-                                (trans.m00() * vx + trans.m10() * vy + trans.m30()).toFloat(),
-                                (trans.m01() * vx + trans.m11() * vy + trans.m31()).toFloat(),
+                        if (
+                            abs(trans.m00() - 1.0) +
+                            abs(trans.m10()) +
+                            abs(trans.m30()) +
+                            abs(trans.m11() - 1.0) +
+                            abs(trans.m11()) +
+                            abs(trans.m31()) > 1e-5
+                        ) {
+                            val v0 = shape.vertices
+                            // copy is unfortunately needed
+                            val vertices = Array(v0.size) { i -> Vec2(v0[i]) }
+                            // transform all vertices individually
+                            // translation, rotation and scale are all included automatically :)
+                            for (i in 0 until shape.m_count) {
+                                // this is correct, at least for an identity transform
+                                val vert = vertices[i]
+                                val vx = vert.x
+                                val vy = vert.y
+                                vert.set(
+                                    (trans.m00() * vx + trans.m10() * vy + trans.m30()).toFloat(),
+                                    (trans.m01() * vx + trans.m11() * vy + trans.m31()).toFloat(),
+                                )
+                            }
+                            shape.set(
+                                vertices,
+                                shape.m_count
                             )
                         }
-                        shape.set(
-                            vertices,
-                            shape.m_count
-                        )
                     }
                     else -> LOGGER.warn("todo implement shape ${shape::class}")
                 }
@@ -120,7 +135,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             def.angularDamping = rigidBody.angularDamping
             def.angularVelocity = rigidBody.angularVelocity
             def.fixedRotation = rigidBody.preventRotation
-            def.userData = rigidBody // maybe for callbacks :)
+            // def.userData = rigidBody // maybe for callbacks :)
 
             val body = world.createBody(def)
             body.isSleepingAllowed = !rigidBody.alwaysActive
@@ -136,7 +151,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
                 fixDef.restitution = collider.restitution
                 fixDef.isSensor = !collider.hasPhysics
                 fixDef.filter.maskBits = collider.collisionMask
-                fixDef.userData = collider // maybe could be used :)
+                // fixDef.userData = collider // maybe could be used :)
                 body.createFixture(fixDef)
             }
 
@@ -230,13 +245,14 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             fixtureDef.friction = 0.3f
             boxBody.createFixture(fixtureDef)
             for (i in 0 until 10) {
-                LOGGER.info(boxBody.position)
+                LOGGER.info(boxBody.position.toString() + ", " + boxBody.angle.toDegrees() + "°")
                 world.step(1f, 1, 1)
             }
         }
 
         private fun test2() {
             // why is the result slightly different?
+            // todo why is it rotating???
             LOGGER.info("Own World Test")
             // create the same world as in test 1, now just with our own classes
             // create test world
@@ -269,7 +285,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             for (i in 0 until 10) {
                 box.validateTransform()
                 ground.validateTransform()
-                LOGGER.info(box.position.print())
+                LOGGER.info(box.position.print() + ", " + (box.rotation.getEulerAnglesYXZ(Vector3d()).z.toDegrees()) + "°")
                 physics.step(MILLIS_TO_NANOS * 1000, false)
             }
         }

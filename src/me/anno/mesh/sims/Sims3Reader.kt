@@ -2,6 +2,7 @@ package me.anno.mesh.sims
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
+import me.anno.maths.Maths.hasFlag
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import org.apache.logging.log4j.LogManager
@@ -35,7 +36,7 @@ object Sims3Reader {
         // dst.listChildren()?.map { it.delete() }
         // DBPP would be encrypted data
 
-        val input = ref.readByteBuffer()
+        val input = ref.readByteBuffer(false)
             .order(ByteOrder.LITTLE_ENDIAN)
 
         val magic = input.int
@@ -252,8 +253,6 @@ object Sims3Reader {
             )
         )
     }
-
-    fun Int.hasFlag(flag: Int) = (this and flag) == flag
 
     fun ByteBuffer.skip(n: Int) {
         position(position() + n)

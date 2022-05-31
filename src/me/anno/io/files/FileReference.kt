@@ -16,6 +16,7 @@ import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.Files.use
 import me.anno.utils.files.LocalFile.toLocalPath
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -293,7 +294,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     val hasValidName = !absolutePath.isBlank2()
     fun hasValidName() = hasValidName
 
-    var isHidden = name.startsWith('.') || (lcExtension == "meta" && "/Assets/" in absolutePath) // hidden file in Linux, or file in unity package
+    var isHidden =
+        name.startsWith('.') || (lcExtension == "meta" && "/Assets/" in absolutePath) // hidden file in Linux, or file in unity package
 
     fun hide() {
         isHidden = true
@@ -333,8 +335,15 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     open fun readText(charset: Charset) = String(readBytes(), charset)
 
     open fun readBytes() = inputStream().readBytes()
-    fun readByteBuffer(): ByteBuffer {
-        return ByteBuffer.wrap(readBytes())
+    fun readByteBuffer(native: Boolean): ByteBuffer {
+        val bytes = readBytes()
+        return if (native) {
+            val buffer = ByteBufferPool.allocateDirect(bytes.size)
+            buffer.put(bytes).flip()
+            buffer
+        } else {
+            ByteBuffer.wrap(bytes)
+        }
     }
 
     // todo read as sequence? :)

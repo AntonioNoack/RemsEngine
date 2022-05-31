@@ -3,6 +3,7 @@ package me.anno.gpu.debug
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures
@@ -19,6 +20,9 @@ import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
+import org.lwjgl.opengl.GL14C.*
+import org.lwjgl.opengl.GL30C.GL_DEPTH32F_STENCIL8
 import kotlin.math.min
 
 /**
@@ -34,7 +38,7 @@ object DebugGPUStorage {
 
     val fbs = HashSet<Framebuffer>()
 
-    val buffers = HashSet<Buffer>()
+    val buffers = HashSet<OpenGLBuffer>()
 
     val fontSize get() = monospaceFont.sizeInt
 
@@ -69,15 +73,37 @@ object DebugGPUStorage {
 
     }
 
-    class TexturePanel(name: String, val tex: Texture2D) : TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
+    class TexturePanel(name: String, val tex: Texture2D, val flipY: Boolean) :
+        TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
 
         override fun getTexW(): Int = tex.w
         override fun getTexH(): Int = tex.h
         override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
-            DrawTextures.drawTexture(x, y, w, h, tex, -1, null)
+            when (tex.internalFormat) {
+                GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24,
+                GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT32F, GL_DEPTH32F_STENCIL8 ->
+                    DrawTextures.drawDepthTexture(x, y, w, h, tex) // flipped automatically
+                else -> {
+                    var y2 = y
+                    var h2 = h
+                    if (flipY) {
+                        y2 = y + h
+                        h2 = -h
+                    }
+                    DrawTextures.drawTexture(x, y2, w, h2, tex, -1, null)
+                }
+            }
         }
+
+        override fun tickUpdate() {
+            super.tickUpdate()
+            invalidateDrawing()
+        }
+
+        override fun getTooltipText(x: Float, y: Float) =
+            "${tex.w} x ${tex.h} x ${tex.samples}, ${GFX.getName(tex.internalFormat)}"
 
     }
 
@@ -96,39 +122,40 @@ object DebugGPUStorage {
     fun openMenu() {
         val window = GFX.someWindow
         Menu.openMenu(window.windowStack, listOf(
-            MenuOption(NameDesc("Texture2Ds")) {
+            MenuOption(NameDesc("Texture2Ds (${tex2d.size})")) {
                 createListOfPanels("Texture2Ds") { list ->
-                    for (tex in tex2d) {
-                        list.add(TexturePanel(tex.name, tex))
+                    for (tex in tex2d.sortedBy { it.w * it.h }) {
+                        list.add(TexturePanel(tex.name, tex, false))
                     }
                 }
             },
-            MenuOption(NameDesc("Texture3Ds")) {
-                // how can we display them?
+            MenuOption(NameDesc("Texture3Ds (${tex3d.size})")) {
+                // how can we display them? as slices...
                 LOGGER.warn("Not yet implemented")
             },
-            MenuOption(NameDesc("CubemapTextures")) {
+            MenuOption(NameDesc("CubemapTextures (${texCd.size})")) {
                 // todo test this in Rem's Studio
                 createListOfPanels("CubemapTextures") { list ->
-                    for (tex in texCd) {
+                    for (tex in texCd.sortedBy { it.w }) {
                         list.add(TexturePanel3D("", tex))
                     }
                 }
             },
-            MenuOption(NameDesc("Framebuffers")) {
+            MenuOption(NameDesc("Framebuffers (${fbs.size})")) {
                 createListOfPanels("Framebuffers") { list ->
-                    for (fb in fbs) {
+                    for (fb in fbs.sortedBy { it.w * it.h }) {
                         for (tex in fb.textures) {
-                            list.add(TexturePanel(tex.name, tex))
+                            list.add(TexturePanel(tex.name, tex, true))
                         }
                         val dt = fb.depthTexture
-                        if (dt != null) list.add(TexturePanel(dt.name, dt))
+                        if (dt != null) list.add(TexturePanel(dt.name, dt, true))
                     }
                 }
             },
-            MenuOption(NameDesc("Buffers")) {
+            MenuOption(NameDesc("Buffers (${buffers.size})")) {
                 // how can we display them?
                 // maybe like in RenderDoc, or as plain list with attributes, vertex count and such
+                // we have name data, so we could show colors, uvs, coordinates and such :)
                 LOGGER.warn("Not yet implemented")
             }
         ))

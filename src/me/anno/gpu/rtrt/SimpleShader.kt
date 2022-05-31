@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.shader.OpenGLShader
 import org.lwjgl.opengl.GL20
 
-open class SimpleShader(name: String, val source: String, val shaderType: Int) : OpenGLShader(name) {
+/*open class SimpleShader(name: String, val source: String, val shaderType: Int) : OpenGLShader(name) {
     override fun compile() {
 
         val program = GL20.glCreateProgram()
@@ -29,4 +29,4 @@ open class SimpleShader(name: String, val source: String, val shaderType: Int) :
     }
 
     override fun sourceContainsWord(word: String): Boolean = false
-}
+}*/

@@ -5,15 +5,46 @@ import me.anno.network.Protocol
 import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.utils.Warning.unused
+import me.anno.utils.strings.StringHelper.indexOf2
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.IOException
+import kotlin.math.min
 
 abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000) :
     Protocol(methodToMagic(method), NetworkProtocol.TCP) {
 
     override fun serverHandshake(server: Server, client: TCPClient, magic: Int): Boolean {
         handleRequest(server, client, magic)
+        server.logRejections = false
         return false // http clients are not registered
+    }
+
+    var ignoreAnchor = false
+
+    /**
+     * split path into pure-path, arguments;
+     * "index.html?v=165&x=1" -> "index.html", mapOf("v" to "165", "x" to "1")
+     * */
+    open fun parsePath(path: String): Pair<String, Map<String, String>> {
+        var j = min(
+            if (ignoreAnchor) path.length else path.indexOf2('#'),
+            min(path.indexOf2('?'), path.indexOf2('&'))
+        )
+        if (j >= path.length) return Pair(path, emptyMap())
+        val realPath = path.substring(0, j)
+        val args = HashMap<String, String>()
+        while (j < path.length) {
+            val k = min(
+                if (ignoreAnchor) path.length else path.indexOf2('#', j + 1),
+                min(path.indexOf2('?', j + 1), path.indexOf2('&', j + 1))
+            )
+            val assignIndex = min(path.indexOf2('=', j + 1), k)
+            val key = path.substring(j + 1, assignIndex)
+            val value = if (assignIndex < k) path.substring(assignIndex + 1, k) else ""
+            args[key] = value
+            j = k
+        }
+        return Pair(realPath, args)
     }
 
     private fun handleRequest(server: Server, client: TCPClient, magic: Int) {
@@ -22,7 +53,7 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
         val header = ri.readLine()!! // 1.1 200 OK
         val si = header.indexOf(' ')
         if (si < 0) throw IOException("Invalid header")
-        val path = header.substring(0, si)
+        val (path, args) = parsePath(header.substring(0, si))
         // version = header.substring(si+1)
         val meta = HashMap<String, String>()
         while (true) {
@@ -40,7 +71,7 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
         if (capacity in 0..maxCapacity) {
             val data = client.dis.readNBytes2(capacity, false)
             try {
-                handleRequest(server, client, path, meta, data)
+                handleRequest(server, client, path, args, meta, data)
             } catch (e: Exception) {
                 e.printStackTrace()
                 sendResponse(client, 500)
@@ -56,10 +87,12 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
         server: Server,
         client: TCPClient,
         path: String,
-        meta: HashMap<String, String>,
+        args: Map<String, String>,
+        meta: Map<String, String>,
         data: ByteArray
     )
 
+    @Suppress("unused")
     fun sendResponse(client: TCPClient, message: String) {
         sendResponse(
             client, 200, getCodeName(200)!!, mapOf(
@@ -83,6 +116,7 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
         )
     }
 
+    @Suppress("unused")
     fun sendResponse(client: TCPClient, code: Int, codeName: String, meta: Map<String, Any>, data: ByteArray?) {
         sendResponse(client, code, codeName, meta)
         if (data != null) {
@@ -116,6 +150,7 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
     }
 
     companion object {
+
         private fun methodToMagic(method: String): String {
             return when (method.length) {
                 0 -> "    "
@@ -129,6 +164,7 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
 
         fun getCodeName(code: Int): String? {
             // from https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+            @Suppress("unused")
             return when (code) {
                 100 -> "Continue"
                 101 -> "Switching Protocols"

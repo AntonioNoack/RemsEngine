@@ -1,6 +1,5 @@
 package me.anno.mesh.obj
 
-import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
@@ -91,7 +90,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         facePositions.addUnsafe(positions[vertex + 2])
         val faceNormals = faceNormals
         faceNormals.ensureExtra(3)
-        if (normal >= 0) {
+        if (normal in 0 until normals.size - 2) {
             val normals = normals
             faceNormals.addUnsafe(normals[normal])
             faceNormals.addUnsafe(normals[normal + 1])
@@ -101,7 +100,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         }
         val faceUVs = faceUVs
         faceUVs.ensureExtra(2)
-        if (uv >= 0) {
+        if (uv in 0 until uvs.size - 1) {
             val uvs = uvs
             faceUVs.addUnsafe(uvs[uv], uvs[uv + 1])
         } else {

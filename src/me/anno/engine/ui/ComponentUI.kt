@@ -59,8 +59,6 @@ import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
-import me.anno.utils.types.AABBs.getMax2
-import me.anno.utils.types.AABBs.getMin2
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
@@ -989,16 +987,6 @@ object ComponentUI {
                             }
                         }
 
-                        fun instanceOf(clazz: KClass<*>, clazzName: String): Boolean {
-                            if (clazz.simpleName == clazzName || clazz.qualifiedName == clazzName) return true
-                            if (clazz.superclasses.any { instanceOf(it, clazzName) }) return true
-                            return false
-                        }
-
-                        fun instanceOf(sample: Any, clazzName: String): Boolean {
-                            return instanceOf(sample::class, clazzName)
-                        }
-
                         val clazzName = type0.substring(0, type0.lastIndexOf('/'))
                         val project = (StudioBase.instance as? RemsEngine)?.currentProject
                         val options = ArrayList<Prefab?>()
@@ -1179,6 +1167,22 @@ object ComponentUI {
             is ULong -> this
             else -> throw RuntimeException()
         }
+    }
+
+    fun instanceOf(clazz: KClass<*>, clazzName: String): Boolean {
+        if (clazz.simpleName == clazzName || clazz.qualifiedName == clazzName) return true
+        if (clazz.superclasses.any { instanceOf(it, clazzName) }) return true
+        return false
+    }
+
+    fun instanceOf(clazz: KClass<*>, parent: KClass<*>): Boolean {
+        if (clazz == parent) return true
+        if (clazz.superclasses.any { instanceOf(it, parent) }) return true
+        return false
+    }
+
+    fun instanceOf(sample: Any, clazzName: String): Boolean {
+        return instanceOf(sample::class, clazzName)
     }
 
 }

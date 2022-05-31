@@ -1,6 +1,8 @@
 package me.anno.utils.pooling
 
-open class IntArrayPool(size: Int) : BufferPool<IntArray>(size) {
+open class IntArrayPool(size: Int) : BufferPool<IntArray>(size, 4) {
+
+    override fun prepare(buffer: IntArray, size: Int) {}
 
     override fun createBuffer(size: Int) = IntArray(size)
 
@@ -9,5 +11,7 @@ open class IntArrayPool(size: Int) : BufferPool<IntArray>(size) {
     }
 
     override fun getSize(buffer: IntArray) = buffer.size
+
+    override fun destroy(buffer: IntArray) {}
 
 }

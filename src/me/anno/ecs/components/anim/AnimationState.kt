@@ -53,9 +53,9 @@ class AnimationState(
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFile("source", source)
-        writer.writeFloat("weight", weight)
-        writer.writeFloat("progress", progress)
-        writer.writeFloat("speed", speed)
+        writer.writeFloat("weight", weight, true)
+        writer.writeFloat("progress", progress, true)
+        writer.writeFloat("speed", speed, true)
         writer.writeEnum("repeat", repeat)
     }
 

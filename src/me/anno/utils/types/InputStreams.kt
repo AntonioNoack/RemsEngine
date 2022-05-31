@@ -62,7 +62,7 @@ object InputStreams {
 
         val tmp = tmpBuffer.get()
 
-        // don't request a buffer from the pool, if we won't need one anyways
+        // don't request a buffer from the pool, if we won't need one anyway
         val numReadChars0 = read(tmp, 0, min(n, tmp.size))
         if (numReadChars0 < 0) {
             throw EOFException()

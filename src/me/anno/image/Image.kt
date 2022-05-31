@@ -3,6 +3,7 @@ package me.anno.image
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
+import me.anno.image.hdr.HDRImage
 import me.anno.image.raw.BIImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
@@ -109,8 +110,8 @@ abstract class Image(
         return getRGB(getIndex(x, y))
     }
 
-    open fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
-        texture.create(createBufferedImage(), sync = true, checkRedundancy = true)
+    open fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+        texture.create(createBufferedImage(), sync = sync, checkRedundancy = true)
     }
 
     open fun createBufferedImage(dstWidth: Int, dstHeight: Int): BufferedImage {

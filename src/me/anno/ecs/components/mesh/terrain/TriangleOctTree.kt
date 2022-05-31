@@ -5,10 +5,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.graph.octtree.OctTree
 import me.anno.graph.octtree.SplitResult
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.avgZ
-import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3d
 import org.joml.Vector3f

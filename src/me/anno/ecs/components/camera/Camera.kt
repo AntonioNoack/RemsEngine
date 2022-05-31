@@ -4,10 +4,15 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.camera.effects.CameraEffect
+import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
+import me.anno.engine.ui.render.DrawAABB
+import me.anno.engine.ui.render.RenderView
 import me.anno.maths.Maths.clamp
+import me.anno.utils.pooling.JomlPools
+import org.joml.AABBd
 import org.joml.Vector2f
 import org.joml.Vector4f
 
@@ -29,7 +34,7 @@ class Camera : Component() {
     /**
      * the fov when orthographic, in base units
      * */
-    var fovOrthographic = 500f
+    var fovOrthographic = 5f
 
     // val pipeline = lazy { Pipeline() }
 
@@ -85,8 +90,25 @@ class Camera : Component() {
     }
 
     override fun onDrawGUI(all: Boolean) {
-        // todo draw camera symbol with all the properties
         LineShapes.drawArrowZ(entity, 0.0, 1.0) // not showing up?
+        if (isPerspective) {
+            // todo draw camera symbol with all the properties
+
+        } else {
+            // todo respect aspect ratio
+            // where do we get that from?
+            val sx = fovOrthographic / 2.0
+            val sy = fovOrthographic / 2.0
+            DrawAABB.drawAABB(
+                transform?.getDrawMatrix(),
+                JomlPools.aabbd.create()
+                    .setMin(-sx, -sy, -far)
+                    .setMax(+sx, +sy, -near),
+                RenderView.worldScale,
+                Collider.guiLineColor
+            )
+            JomlPools.aabbd.sub(1)
+        }
     }
 
     override fun copy(clone: PrefabSaveable) {

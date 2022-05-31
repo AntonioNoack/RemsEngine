@@ -11,9 +11,6 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.types.AABBs.all
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.intersect
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
@@ -154,11 +151,11 @@ class SDFGroup : SDFComponent() {
                     CombinationMode.ENGRAVE,
                     CombinationMode.GROOVE -> { // use first only, the rest is cut off
                         children.first { it.isEnabled }.calculateBounds(dst)
-                        if (type == CombinationMode.GROOVE) dst.widen(smoothness)
+                        if (type == CombinationMode.GROOVE) dst.addMargin(smoothness)
                     }
                     CombinationMode.TONGUE -> { // use first only, then widen
                         children.first { it.isEnabled }.calculateBounds(dst)
-                        dst.widen(smoothness)
+                        dst.addMargin(smoothness)
                     }
                     CombinationMode.DIFFERENCE2 -> {// use last only, the rest is cut off
                         children.last { it.isEnabled }.calculateBounds(dst)
@@ -213,7 +210,7 @@ class SDFGroup : SDFComponent() {
                                 dst.intersect(tmp)
                             }
                         }
-                        if (type == CombinationMode.PIPE) dst.widen(smoothness)
+                        if (type == CombinationMode.PIPE) dst.addMargin(smoothness)
                     }
                 }
                 JomlPools.aabbf.sub(1)

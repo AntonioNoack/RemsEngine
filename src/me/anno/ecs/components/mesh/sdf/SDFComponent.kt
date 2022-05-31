@@ -25,15 +25,6 @@ import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.avgZ
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
-import me.anno.utils.types.AABBs.deltaZ
-import me.anno.utils.types.AABBs.set
-import me.anno.utils.types.AABBs.transformSet
 import me.anno.utils.types.Matrices.set2
 import org.joml.*
 import kotlin.math.abs
@@ -256,7 +247,7 @@ open class SDFComponent : ProceduralMesh() {
         if (hasInvalidBounds) {
             hasInvalidBounds = false
             // recalculate bounds & recreate mesh
-            updateMesh(mesh2, false)
+            updateMesh(data, false)
             invalidateAABB()
         }
         val components = internalComponents
@@ -786,15 +777,6 @@ open class SDFComponent : ProceduralMesh() {
 
         fun mod(x: Float, y: Float): Float {
             return x - y * floor(x / y)
-        }
-
-        fun AABBf.widen(r: Float) {
-            minX -= r
-            minY -= r
-            minZ -= r
-            maxX += r
-            maxY += r
-            maxZ += r
         }
 
         fun StringBuilder.appendVec(v: Vector2f): StringBuilder {

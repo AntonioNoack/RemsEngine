@@ -13,26 +13,26 @@ import org.joml.Vector4fc
 
 object DefaultStyle {
 
-    val black = 0xff000000.toInt()
-    val nearWhite = black or 0xdddddd
-    val lightGray = black or 0xcccccc
-    val midGray = black or 0xaaaaaa
-    val deepDark = black or 0x2b2b2b
+    const val black = 0xff000000.toInt()
+    const val nearWhite = black or 0xdddddd
+    const val lightGray = black or 0xcccccc
+    const val midGray = black or 0xaaaaaa
+    const val deepDark = black or 0x2b2b2b
     val reallyDark = mixARGB(black, deepDark, 0.5f)
-    val flatDark = black or 0x3c3f41
-    val scrollGray = black or 0x595b5d
-    val iconGray = black or 0xafb1b3
+    const val flatDark = black or 0x3c3f41
+    const val scrollGray = black or 0x595b5d
+    const val iconGray = black or 0xafb1b3
 
-    val fontGray = black or 0xbbbbbb
-    val white = -1
+    const val fontGray = black or 0xbbbbbb
+    const val white = -1
 
     val black4: Vector4fc = Vector4f(0f)
     val black3: Vector3fc = Vector3f(0f)
     val white4: Vector4fc = Vector4f(1f)
     val white3: Vector3fc = Vector3f(1f)
 
-    val shinyBlue = black or 0x4986f5
-    val brightYellow = black or 0xffba50
+    const val shinyBlue = black or 0x4986f5
+    const val brightYellow = black or 0xffba50
 
     val baseTheme = Style(null, null)
 

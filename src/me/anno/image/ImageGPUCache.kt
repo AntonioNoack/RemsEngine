@@ -19,6 +19,7 @@ import java.io.FileNotFoundException
 import javax.imageio.ImageIO
 import kotlin.math.sqrt
 
+// todo if async, upload huge textures (e.g. C:/Users/Antonio/Downloads/Abbeanum_new.glb/textures/0.jpg) piece by piece, maybe 1024² or 2048²
 object ImageGPUCache : CacheSection("Images") {
 
     private val LOGGER = LogManager.getLogger(ImageGPUCache::class)

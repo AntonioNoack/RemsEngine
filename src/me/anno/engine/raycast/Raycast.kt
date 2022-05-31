@@ -1,17 +1,12 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.print
-import me.anno.utils.types.AABBs.set
-import me.anno.utils.types.AABBs.testLineAABB
-import me.anno.utils.types.AABBs.transformAABB
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Triangles.computeConeInterpolation
 import me.anno.utils.types.Triangles.rayTriangleIntersection
@@ -101,7 +96,7 @@ object Raycast {
         for (i in children.indices) {
             val child = children[i]
             if ((includeDisabled || child.isEnabled) && child.canCollide(collisionMask)) {
-                if (testLineAABB(child.aabb, start, direction, result.distance)) {
+                if (child.aabb.testLine(start, direction, result.distance)) {
                     if (raycast(
                             child, start, direction, end,
                             radiusAtOrigin, radiusPerUnit,
@@ -282,14 +277,14 @@ object Raycast {
             val localMaxDistance = localSrt.distance(localEnd)
 
             // test whether we intersect the aabb of this mesh
-            if (testLineAABB(
-                    mesh.aabb,
+            if (mesh.aabb.testLine(
                     localSrt,
                     localDir,
                     localRadiusAtOrigin,
                     localRadiusPerUnit,
                     localMaxDistance
-                )) {
+                )
+            ) {
 
                 // test whether we intersect any triangle of this mesh
                 val localMaxDistance2 = localMaxDistance + extraDistance
@@ -326,9 +321,9 @@ object Raycast {
 
             // first test whether the aabbs really overlap
             val globalAABB = result.tmpAABBd.set(mesh.aabb)
-            transformAABB(globalAABB, globalTransform)
+            globalAABB.transformAABB(globalTransform)
 
-            if (testLineAABB(globalAABB, start, direction, result.distance)) {
+            if (globalAABB.testLine(start, direction, result.distance)) {
 
                 val tmp = result.tmpVector3ds
                 mesh.forEachTriangle(tmp[2], tmp[3], tmp[4]) { a, b, c ->
@@ -390,7 +385,7 @@ object Raycast {
             aabb.union(x * (1 - f), y * (1 - f), z * (1 - f))
             aabb.union(x * (1 + f), y * (1 + f), z * (1 + f))
 
-            val result = testLineAABB(aabb, start, dir, 2e3)
+            val result = aabb.testLine(start, dir, 2e3)
             if (!result) throw RuntimeException("${start.print()} + t * ${dir.print()} does not intersect ${aabb.print()}")
 
         }
@@ -420,7 +415,7 @@ object Raycast {
             aabb.union(x * (1 - f), y * (1 - f), z * (1 - f))
             aabb.union(x * (1 + f), y * (1 + f), z * (1 + f))
 
-            val result = testLineAABB(aabb, start, dir, 2e20)
+            val result = aabb.testLine(start, dir, 2e20)
             if (!result) throw RuntimeException("${start.print()} + t * ${dir.print()} does not intersect ${aabb.print()}")
 
         }

@@ -21,7 +21,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
 import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT

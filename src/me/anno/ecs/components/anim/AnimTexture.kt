@@ -87,7 +87,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             val data = buffer.asFloatBuffer()
             fillData(data, animation, retargeting)
             data.position(0)
-            texture.overridePartially(buffer, 0, nextIndex, texture.w, numFrames, TargetType.FloatTarget4)
+            texture.overridePartially(buffer,0, 0, nextIndex, texture.w, numFrames, TargetType.FloatTarget4)
             Texture2D.bufferPool.returnBuffer(buffer)
         } else {
             // create new texture

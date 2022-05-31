@@ -6,6 +6,7 @@
  */
 package me.anno.image.tar
 
+import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
@@ -30,13 +31,20 @@ class TGAImage(// bgra, even if the implementation calls it rgba
 ) : Image(width, height, channels, channels > 3) {
     var originalImageType = 0
     var originalPixelDepth = 0
-    override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
-        when (numChannels) {
-            1 -> texture.createMonochrome(data, checkRedundancy)
-            2 -> texture.createRG(data, checkRedundancy)
-            3 -> texture.createBGR(data, checkRedundancy)
-            4 -> texture.createBGRA(data, checkRedundancy)
-            else -> throw RuntimeException("$numChannels channels?")
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+        if (sync && GFX.isGFXThread()) {
+            when (numChannels) {
+                1 -> texture.createMonochrome(data, checkRedundancy)
+                2 -> texture.createRG(data, checkRedundancy)
+                3 -> texture.createBGR(data, checkRedundancy)
+                4 -> texture.createBGRA(data, checkRedundancy)
+                else -> throw RuntimeException("$numChannels channels?")
+            }
+        } else {
+            // todo optimize
+            GFX.addGPUTask("TGAImage", width, height) {
+                createTexture(texture, sync, checkRedundancy)
+            }
         }
     }
 

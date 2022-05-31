@@ -16,8 +16,6 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.mesh.Shapes
-import me.anno.utils.types.AABBs.clear
-import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.mirror
 import me.anno.utils.types.Matrices.mul2
 import me.anno.utils.types.Vectors.toVector3f

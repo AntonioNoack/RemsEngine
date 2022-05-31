@@ -96,7 +96,6 @@ object CRC64 {
         // apply len2 zeros to crc1 (first square will put the operator for one
         // zero byte, eight zero bits, in even)
         var crc1 = summ1
-        val crc2 = summ2
         do {
             // apply zeros operator for this bit of len2
             gf2MatrixSquare(even, odd)
@@ -115,7 +114,7 @@ object CRC64 {
         } while (len2 != 0L)
 
         // return combined crc.
-        crc1 = crc1 xor crc2
+        crc1 = crc1 xor summ2
         return crc1
     }
 
@@ -165,13 +164,13 @@ object CRC64 {
         var idx = off
         while (len >= 8) {
             value = (table[7][(value and 0xff xor (b[idx].toLong() and 0xff)).toInt()]
-                    xor table[6][(value ushr 8 and 0xff xor (b[idx + 1].toLong() and 0xff)).toInt()]
-                    xor table[5][(value ushr 16 and 0xff xor (b[idx + 2].toLong() and 0xff)).toInt()]
-                    xor table[4][(value ushr 24 and 0xff xor (b[idx + 3].toLong() and 0xff)).toInt()]
-                    xor table[3][(value ushr 32 and 0xff xor (b[idx + 4].toLong() and 0xff)).toInt()]
-                    xor table[2][(value ushr 40 and 0xff xor (b[idx + 5].toLong() and 0xff)).toInt()]
-                    xor table[1][(value ushr 48 and 0xff xor (b[idx + 6].toLong() and 0xff)).toInt()]
-                    xor table[0][(value ushr 56 xor b[idx + 7].toLong() and 0xff).toInt()])
+                    xor table[6][((value ushr 8) and 0xff xor (b[idx + 1].toLong() and 0xff)).toInt()]
+                    xor table[5][((value ushr 16) and 0xff xor (b[idx + 2].toLong() and 0xff)).toInt()]
+                    xor table[4][((value ushr 24) and 0xff xor (b[idx + 3].toLong() and 0xff)).toInt()]
+                    xor table[3][((value ushr 32) and 0xff xor (b[idx + 4].toLong() and 0xff)).toInt()]
+                    xor table[2][((value ushr 40) and 0xff xor (b[idx + 5].toLong() and 0xff)).toInt()]
+                    xor table[1][((value ushr 48) and 0xff xor (b[idx + 6].toLong() and 0xff)).toInt()]
+                    xor table[0][((value ushr 56) xor b[idx + 7].toLong() and 0xff).toInt()])
             idx += 8
             len -= 8
         }

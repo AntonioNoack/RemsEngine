@@ -23,7 +23,7 @@ import me.anno.utils.Warning.unused
  * todo add left-padding to all fields...
  * */
 abstract class StackPanel(
-    val titleText: String,
+    titleText: String,
     tooltipText: String,
     val options: List<Option>,
     val values: List<Inspectable>,
@@ -46,16 +46,15 @@ abstract class StackPanel(
 
     fun showMenu() {
         openMenu(windowStack, options.map { option ->
-                MenuOption(
-                    NameDesc(
-                        "Append %1", "Add an element at the end of the list",
-                        "ui.option.append"
-                    ).with("%1", option.title)
-                ) {
-                    addComponent(option, content.children.size, true)
-                }
+            MenuOption(
+                NameDesc(
+                    "Append %1", "Add an element at the end of the list",
+                    "ui.option.append"
+                ).with("%1", option.title)
+            ) {
+                addComponent(option, content.children.size, true)
             }
-        )
+        })
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {

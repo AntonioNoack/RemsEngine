@@ -15,7 +15,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.types.AABBs.clear
 import org.joml.AABBf
 import org.joml.Vector2f
 import java.awt.Font

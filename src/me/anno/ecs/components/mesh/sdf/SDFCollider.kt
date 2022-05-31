@@ -8,9 +8,6 @@ import me.anno.ecs.components.collider.MeshCollider.Companion.defaultShape
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderView
 import me.anno.maths.Maths.sq
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
-import me.anno.utils.types.AABBs.deltaZ
 import org.joml.Vector3d
 import kotlin.math.max
 import kotlin.math.min

@@ -4,6 +4,7 @@ import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
 import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
@@ -127,7 +128,7 @@ class CubemapTexture(
     fun create(type: TargetType) {
         beforeUpload(0, 0)
         val size = size
-        Buffer.bindBuffer(GL30.GL_PIXEL_UNPACK_BUFFER, 0)
+        OpenGLBuffer.bindBuffer(GL30.GL_PIXEL_UNPACK_BUFFER, 0)
         for (i in 0 until 6) {
             glTexImage2D(
                 getTarget(i), 0, type.internalFormat, size, size,

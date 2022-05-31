@@ -1,7 +1,12 @@
 package me.anno.image.raw
 
+import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.roundDiv
+import me.anno.utils.hpc.WorkSplitter
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 
@@ -38,12 +43,24 @@ open class IntImage(
         return image
     }
 
-    override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
         // data cloning is required, because the function in Texture2D switches the red and blue channels
-        if (hasAlphaChannel) {
-            texture.createRGBASwizzle(cloneData(), checkRedundancy)
+        if (sync && GFX.isGFXThread()) {
+            if (hasAlphaChannel) texture.createRGBASwizzle(cloneData(), checkRedundancy)
+            else texture.createRGBSwizzle(cloneData(), checkRedundancy)
         } else {
-            texture.createRGBSwizzle(cloneData(), checkRedundancy)
+            val data1 = Texture2D.bufferPool[data.size * 4, false, false]
+            val dataI = data1.asIntBuffer()
+            dataI.put(this.data).position(0)
+            if (checkRedundancy) texture.checkRedundancy(dataI)
+            Texture2D.switchRGB2BGR(dataI)
+            // for testing, convert the data into a byte buffer
+            // -> 33% faster, partially because of wrong alignment and using 25% less data effectively
+            texture.createTiled(
+                if (hasAlphaChannel) TargetType.UByteTarget4 else TargetType.UByteTarget3,
+                TargetType.UByteTarget4,
+                dataI, data1
+            )
         }
     }
 

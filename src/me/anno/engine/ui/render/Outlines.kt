@@ -11,10 +11,6 @@ import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.avgZ
-import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4d
 
 object Outlines {

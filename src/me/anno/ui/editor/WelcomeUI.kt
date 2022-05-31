@@ -287,7 +287,7 @@ abstract class WelcomeUI {
             val file = fileInput.file
             var state = "ok"
             var msg = ""
-            val writeAccessTestFile = file.getChild(".${Engine.nanoTime}.txt")
+            val writeAccessTestFile = (file.getParent() ?: InvalidRef).getChild(".${Engine.nanoTime}.txt")
             when {
                 !rootIsOk(file) -> {
                     state = "error"

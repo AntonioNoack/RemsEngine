@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
+import kotlin.reflect.KClass
 
 object ExtensionLoader {
 
@@ -156,6 +157,7 @@ object ExtensionLoader {
         return extensions
     }
 
+    @Suppress("unused")
     fun reloadPlugins() {
         PluginManager.disable()
         val extInfos0 = getInfos()
@@ -167,27 +169,44 @@ object ExtensionLoader {
     }
 
     fun load(ex: ExtensionInfo): Extension? {
-        val className = ex.mainClass
-            .replace('\\', '.')
-            .replace('/', '.')
-        try {
-            // create the main extension instance
-            // load the classes
-            val exFile = ex.file
-            val urlClassLoader =
-                if (exFile.exists) URLClassLoader(arrayOf(exFile.toUri().toURL()), javaClass.classLoader)
-                else ClassLoader.getSystemClassLoader()
-            Thread.currentThread().contextClassLoader = urlClassLoader
-            val classToLoad = Class.forName(className, true, urlClassLoader)
-            // call with arguments??..., e.g. config or StudioBase or sth...
-            val ext = classToLoad.newInstance() as? Extension
-            ext?.setInfo(ex)
-            ext?.isRunning = true
-            return ext
-        } catch (e: Exception) {
-            LOGGER.error("Error while loading ${ex.file}, class '$className'", e)
+        // create the main extension instance
+        val clazz = ex.clazz
+        if (clazz != null) {
+            try {
+                // call with arguments??..., e.g. config or StudioBase or sth...
+                val ext = clazz.constructors
+                    .first { it.parameters.isEmpty() }
+                    .call() as? Extension
+                ext?.setInfo(ex)
+                ext?.isRunning = true
+                return ext
+            } catch (e: Exception) {
+                LOGGER.error("Error while loading ${ex.file}, class '$clazz'", e)
+            }
+            return null
+        } else {
+            val className = ex.mainClass
+                .replace('\\', '.')
+                .replace('/', '.')
+            try {
+                // create the main extension instance
+                // load the classes
+                val exFile = ex.file
+                val urlClassLoader =
+                    if (exFile.exists) URLClassLoader(arrayOf(exFile.toUri().toURL()), javaClass.classLoader)
+                    else ClassLoader.getSystemClassLoader()
+                Thread.currentThread().contextClassLoader = urlClassLoader
+                val classToLoad = Class.forName(className, true, urlClassLoader)
+                // call with arguments??..., e.g. config or StudioBase or sth...
+                val ext = classToLoad.newInstance() as? Extension
+                ext?.setInfo(ex)
+                ext?.isRunning = true
+                return ext
+            } catch (e: Exception) {
+                LOGGER.error("Error while loading ${ex.file}, class '$className'", e)
+            }
+            return null
         }
-        return null
     }
 
     /**
@@ -206,8 +225,8 @@ object ExtensionLoader {
             if (toRemove.isEmpty()) {
                 break
             } else {
-                remaining.removeAll(toRemove)
-                remainingUUIDs.removeAll(toRemove.map { it.uuid })
+                remaining.removeAll(toRemove.toSet())
+                remainingUUIDs.removeAll(toRemove.map { it.uuid }.toSet())
                 toRemove.clear()
             }
         }
@@ -219,7 +238,7 @@ object ExtensionLoader {
         ZipInputStream(file.inputStream()).use { zis ->
             while (true) {
                 val entry = zis.nextEntry ?: break
-                if (entry.name == "extension.info") {
+                if (entry.name.startsWith("extension.info")) {
                     return loadInfoFromTxt(file, zis)
                 }
             }
@@ -227,10 +246,23 @@ object ExtensionLoader {
         return null
     }
 
-    fun loadMainInfo() {
-        val extensionSource = getReference("res://extension.info")
-        val info = loadInfoFromTxt(InvalidRef, extensionSource)!!
+    /**
+     * loads the extension within the current mod project;
+     * very useful for setting up a quick project
+     * */
+    @Suppress("unused")
+    fun loadMainInfo(fileName: String = "res://extension.info") {
+        val extensionSource = getReference(fileName)
+        loadInternally(loadInfoFromTxt(InvalidRef, extensionSource)!!)
+    }
+
+    fun loadInternally(info: ExtensionInfo) {
         internally.add(info)
+    }
+
+    @Suppress("unused")
+    fun loadInternally(clazz: KClass<*>) {
+        loadInternally(ExtensionInfo(clazz))
     }
 
     fun loadInfoFromTxt(modFile: FileReference, infoFile: FileReference = modFile): ExtensionInfo? {

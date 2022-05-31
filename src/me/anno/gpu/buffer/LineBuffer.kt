@@ -179,6 +179,21 @@ object LineBuffer {
     }
 
     fun addLine(
+        x0: Double, y0: Double, z0: Double,
+        x1: Double, y1: Double, z1: Double,
+        color: Int
+    ) {
+        addLine(
+            x0.toFloat(), y0.toFloat(), z0.toFloat(),
+            x1.toFloat(), y1.toFloat(), z1.toFloat(),
+            color.r().toByte(),
+            color.g().toByte(),
+            color.b().toByte(),
+            color.a().toByte()
+        )
+    }
+
+    fun addLine(
         v0: Vector3f, v1: Vector3f,
         r: Double, g: Double, b: Double, a: Double = 1.0
     ) {

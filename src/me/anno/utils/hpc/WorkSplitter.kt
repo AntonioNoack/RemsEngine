@@ -30,14 +30,13 @@ abstract class WorkSplitter(val numThreads: Int) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(WorkSplitter::class)
+        /** a * b / c */
+        fun partition(a: Int, b: Int, c: Int): Int {
+            return (a.toLong() * b.toLong() / c.toLong()).toInt()
+        }
     }
 
     abstract operator fun plusAssign(task: () -> Unit)
-
-    /** a * b / c */
-    fun partition(a: Int, b: Int, c: Int): Int {
-        return (a.toLong() * b.toLong() / c.toLong()).toInt()
-    }
 
     fun splitWork(w: Int, h: Int, threads: Int, maxRatio: Float = 2f): IntPair {
         if (threads <= 1) return IntPair(1, 1)

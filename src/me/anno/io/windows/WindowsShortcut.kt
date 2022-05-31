@@ -101,18 +101,14 @@ class WindowsShortcut {
             val flags = link[0x14].toInt()
 
             // get the file attributes byte
-            val fileAttributesOffset = 0x18
-            val fileAttributes = link[fileAttributesOffset].toInt()
-            val isDirMask = 0x10
-            isDirectory = fileAttributes and isDirMask > 0
+            val fileAttributes = link[0x18].toInt()
+            isDirectory = fileAttributes and 0x10 > 0
 
             // if the shell settings are present, skip them
-            val shellOffset = 0x4c
-            val hasShellMask = 0x01
             var shellLen = 0
-            if (flags and hasShellMask > 0) {
+            if (flags and 1 > 0) {
                 // the plus 2 accounts for the length marker itself
-                shellLen = readLE16(link, shellOffset) + 2
+                shellLen = readLE16(link, 0x4c) + 2
             }
 
             // get to the file settings
@@ -121,18 +117,14 @@ class WindowsShortcut {
             val fileLocationInfoFlag = link[fileStart + fileLocationInfoFlagOffsetOffset].toInt()
             isLocal = fileLocationInfoFlag and 1 == 1
             // get the local volume and local system values
-            //final int localVolumeTable_offset_offset = 0x0C;
-            val basenameOffsetOffset = 0x10
-            val networkVolumeTableOffsetOffset = 0x14
-            val finalNameOffsetOffset = 0x18
-            val finalNameOffset = readLE32(link, fileStart + finalNameOffsetOffset) + fileStart
+            val finalNameOffset = readLE32(link, fileStart + 0x18) + fileStart
             val finalName = getNullDelimitedString(link, finalNameOffset)
             absolutePath = if (isLocal) {
-                val basenameOffset = readLE32(link, fileStart + basenameOffsetOffset) + fileStart
+                val basenameOffset = readLE32(link, fileStart + 0x10) + fileStart
                 val basename = getNullDelimitedString(link, basenameOffset)
                 basename + finalName
             } else {
-                val networkVolumeTableOffset = link[fileStart + networkVolumeTableOffsetOffset] + fileStart
+                val networkVolumeTableOffset = link[fileStart + 0x14] + fileStart
                 val shareNameOffsetOffset = 0x08
                 val shareNameOffset = link[networkVolumeTableOffset + shareNameOffsetOffset] + networkVolumeTableOffset
                 val shareName = getNullDelimitedString(link, shareNameOffset)
@@ -205,9 +197,7 @@ class WindowsShortcut {
         }
 
         private fun isMagicPresent(link: ByteArray): Boolean {
-            val magic = 0x0000004C
-            val magicOffset = 0x00
-            return link.size >= 32 && readLE32(link, magicOffset) == magic
+            return link.size >= 32 && readLE32(link, 0) == 0x4C
         }
 
         private fun getNullDelimitedString(bytes: ByteArray, start: Int): String {
@@ -219,19 +209,17 @@ class WindowsShortcut {
             return String(bytes, start, index - start)
         }
 
-        private fun readUTF16LE(bytes: ByteArray, off: Int, len: Int): String {
-            return String(bytes, off, len, StandardCharsets.UTF_16LE)
-        }
+        private fun readUTF16LE(bytes: ByteArray, off: Int, len: Int) =
+            String(bytes, off, len, StandardCharsets.UTF_16LE)
 
         /**
          * convert two bytes into a short note, this is little endian because it's for an Intel only OS.
          */
-        private fun readLE16(bytes: ByteArray, off: Int): Int {
-            return ((bytes[off + 1].toInt() and 0xff) shl 8) or (bytes[off].toInt() and 0xff)
-        }
+        private fun readLE16(bytes: ByteArray, off: Int) =
+            ((bytes[off + 1].toInt() and 0xff) shl 8) or (bytes[off].toInt() and 0xff)
 
-        private fun readLE32(bytes: ByteArray, off: Int): Int {
-            return readLE16(bytes, off + 2) shl 16 or readLE16(bytes, off)
-        }
+        private fun readLE32(bytes: ByteArray, off: Int) =
+            readLE16(bytes, off + 2) shl 16 or readLE16(bytes, off)
+
     }
 }

@@ -36,10 +36,6 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.tuples.Quad
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaZ
 import org.joml.*
 import org.lwjgl.opengl.GL11C
 
