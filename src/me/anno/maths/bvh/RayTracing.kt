@@ -126,6 +126,13 @@ object RayTracing {
             "}\n" +
             "vec3 nextRand3(inout uint seed){\n" +
             "   return vec3(nextRand(seed),nextRand(seed),nextRand(seed));\n" +
+            "}\n" +
+            "vec3 nextRandS3(inout uint seed){\n" +
+            "   for(int i=0;i<10;i++){\n" +
+            "       vec3 v = vec3(nextRand(seed),nextRand(seed),nextRand(seed));\n" +
+            "       if(dot(v,v) <= 1.0) return v;\n" +
+            "   }\n" +
+            "   return vec3(1.0,0.0,0.0);\n" +
             "}\n"
 
     val glslBLASIntersection = "" +
@@ -278,35 +285,11 @@ object RayTracing {
         return planeAB.dot(hitPoint) >= 0f && planeBC.dot(hitPoint) >= 0f && planeCA.dot(hitPoint) >= 0f
     }*/
 
-    fun isRayIntersectingAABB(rayOrigin: Vector3f, invRayDirection: Vector3f, aabb: AABBf): Boolean {
-        val rx = rayOrigin.x
-        val ry = rayOrigin.y
-        val rz = rayOrigin.z
-        val rdx = invRayDirection.x
-        val rdy = invRayDirection.y
-        val rdz = invRayDirection.z
-        val sx0 = (aabb.minX - rx) * rdx
-        val sy0 = (aabb.minY - ry) * rdy
-        val sz0 = (aabb.minZ - rz) * rdz
-        val sx1 = (aabb.maxX - rx) * rdx
-        val sy1 = (aabb.maxY - ry) * rdy
-        val sz1 = (aabb.maxZ - rz) * rdz
-        val nearX = min(sx0, sx1)
-        val farX = max(sx0, sx1)
-        val nearY = min(sy0, sy1)
-        val farY = max(sy0, sy1)
-        val nearZ = min(sz0, sz1)
-        val farZ = max(sz0, sz1)
-        val far = min(farX, min(farY, farZ))
-        val near = max(max(nearX, max(nearY, nearZ)), 0f)
-        return far >= near
-    }
-
     fun isRayIntersectingAABB(
         rayOrigin: Vector3f,
         invRayDirection: Vector3f,
         aabb: AABBf,
-        maxDistance: Float
+        maxDistance: Float = Float.POSITIVE_INFINITY
     ): Boolean {
         val rx = rayOrigin.x
         val ry = rayOrigin.y
@@ -331,35 +314,11 @@ object RayTracing {
         return far >= near && near < maxDistance
     }
 
-    fun isRayIntersectingAABB(rayOrigin: Vector3d, invRayDirection: Vector3d, aabb: AABBd): Boolean {
-        val rx = rayOrigin.x
-        val ry = rayOrigin.y
-        val rz = rayOrigin.z
-        val rdx = invRayDirection.x
-        val rdy = invRayDirection.y
-        val rdz = invRayDirection.z
-        val sx0 = (aabb.minX - rx) * rdx
-        val sy0 = (aabb.minY - ry) * rdy
-        val sz0 = (aabb.minZ - rz) * rdz
-        val sx1 = (aabb.maxX - rx) * rdx
-        val sy1 = (aabb.maxY - ry) * rdy
-        val sz1 = (aabb.maxZ - rz) * rdz
-        val nearX = min(sx0, sx1)
-        val farX = max(sx0, sx1)
-        val nearY = min(sy0, sy1)
-        val farY = max(sy0, sy1)
-        val nearZ = min(sz0, sz1)
-        val farZ = max(sz0, sz1)
-        val far = min(farX, min(farY, farZ))
-        val near = max(max(nearX, max(nearY, nearZ)), 0.0)
-        return far >= near
-    }
-
     fun isRayIntersectingAABB(
         rayOrigin: Vector3d,
         invRayDirection: Vector3d,
         aabb: AABBd,
-        maxDistance: Double
+        maxDistance: Double = Double.POSITIVE_INFINITY
     ): Boolean {
         val rx = rayOrigin.x
         val ry = rayOrigin.y

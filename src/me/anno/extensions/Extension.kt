@@ -2,6 +2,7 @@ package me.anno.extensions
 
 import me.anno.extensions.events.Event
 import me.anno.extensions.events.EventHandler
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
@@ -62,7 +63,8 @@ abstract class Extension {
                 !Modifier.isAbstract(modifiers) &&
                 !Modifier.isStatic(modifiers)
             ) {
-                val eventHandler = method.annotations.firstOrNull { it is EventHandler } as? EventHandler
+                val eventHandler = method.annotations
+                    .firstOrNull { it is EventHandler } as? EventHandler
                 if (eventHandler != null) {
                     val types = method.parameterTypes
                     if (types.size == 1) {
@@ -87,9 +89,13 @@ abstract class Extension {
         if (event.isCancelled) return
         val listeners = listeners[event.javaClass] ?: return
         for (data in listeners) {
-            data.method.invoke(data.listener, event)
-            if (event.isCancelled) {
-                break
+            try {
+                data.method.invoke(data.listener, event)
+                if (event.isCancelled) {
+                    break
+                }
+            } catch (e: InvocationTargetException) {
+                e.printStackTrace()
             }
         }
     }

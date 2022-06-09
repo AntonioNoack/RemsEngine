@@ -41,7 +41,7 @@ class Variable(
     }
 
     val size = when (type) {
-        GLSLType.BOOL -> 5
+        GLSLType.V1B -> 5
         GLSLType.V1I -> 7
         GLSLType.V1F -> 10
         GLSLType.V2I, GLSLType.V2F -> 20

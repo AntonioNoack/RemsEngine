@@ -9,7 +9,7 @@ import org.joml.Vector3f
 class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABBf) : TLASNode(bounds) {
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit) {
-        if (intersectBounds(pos, invDir, dirIsNeg, hit.distance.toFloat())) {
+        if (RayTracing.isRayIntersectingAABB(pos, invDir, bounds, hit.distance.toFloat())) {
             // put far bvh node on stack, advance to near
             if (dirIsNeg.and(1 shl axis) != 0) {
                 n1.intersect(pos, dir, invDir, dirIsNeg, hit)

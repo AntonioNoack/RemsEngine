@@ -38,7 +38,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             val step = 10f
             val iList = -10..10
             val buffer = StaticBuffer(
-                listOf(Attribute("attr0", 2)),
+                listOf(Attribute("coords", 2)),
                 6 * (4 * iList.toList().size - 3)
             )
             for ((index, i) in iList.withIndex()) {
@@ -84,7 +84,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
                 Vector2f(0f, 1f),
                 Vector2f(1f, 1f),
                 Vector2f(1f, 0f)
-            ), intArrayOf(0, 1, 2, 0, 2, 3), "attr0"
+            ), intArrayOf(0, 1, 2, 0, 2, 3), "coords"
         )
 
         fun splitIndices(numSegments: Int): IntArray {
@@ -120,31 +120,31 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
         val flat11x3 = StaticBuffer(
             splitVertices(3, -1f, +1f),
             splitIndices(3),
-            listOf(Attribute("attr0", 2))
+            listOf(Attribute("coords", 2))
         )
 
         val flat11x6 = StaticBuffer(
             splitVertices(6, -1f, +1f),
             splitIndices(6),
-            listOf(Attribute("attr0", 2))
+            listOf(Attribute("coords", 2))
         )
 
         val flat11x12 = StaticBuffer(
             splitVertices(12, -1f, +1f),
             splitIndices(12),
-            listOf(Attribute("attr0", 2))
+            listOf(Attribute("coords", 2))
         )
 
         val flat11x25 = StaticBuffer(
             splitVertices(25, -1f, +1f),
             splitIndices(25),
-            listOf(Attribute("attr0", 2))
+            listOf(Attribute("coords", 2))
         )
 
         val flat11x50 = StaticBuffer(
             splitVertices(50, -1f, +1f),
             splitIndices(50),
-            listOf(Attribute("attr0", 2))
+            listOf(Attribute("coords", 2))
         )
 
         val flatLarge = createFlatLarge()
@@ -157,7 +157,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
                 listOf(+1f, -1f, 0f, 1f, 0f)
             ),
             listOf(
-                Attribute("attr0", 3),
+                Attribute("coords", 3),
                 Attribute("attr1", 2)
             ),
             intArrayOf(0, 1, 2, 0, 2, 3)
@@ -218,7 +218,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             StaticBuffer(
                 jointData,
                 listOf(
-                    Attribute("attr0", 3),
+                    Attribute("coords", 3),
                     Attribute("attr1", 2)
                 )
             )
@@ -231,13 +231,13 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
                 Vector2f(-1f, 1f),
                 Vector2f(1f, 1f),
                 Vector2f(1f, -1f)
-            ), intArrayOf(0, 1, 2, 0, 2, 3), "attr0"
+            ), intArrayOf(0, 1, 2, 0, 2, 3), "coords"
         )
 
         val circleBuffer by lazy {
             val n = 36 * 4
             // angle, scaling
-            val buffer = StaticBuffer(listOf(Attribute("attr0", 2)), 3 * 2 * n)
+            val buffer = StaticBuffer(listOf(Attribute("coords", 2)), 3 * 2 * n)
             fun put(index: Int, scaling: Float) {
                 buffer.put(index.toFloat() / n, scaling)
             }

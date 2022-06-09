@@ -19,8 +19,8 @@ import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.attr0List
-import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.bvh.BLASNode.Companion.createBLASBuffer
@@ -45,7 +45,6 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.structures.tuples.Quad
 import org.joml.*
 import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL43C.glGetProgramResourceIndex
 
 fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Float> {
 
@@ -81,7 +80,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
     pipeline.frustum.setToEverything(cameraPosition, cameraRotation)
     pipeline.fill(scene, cameraPosition, worldScale)
 
-    if (true) {
+    if (true) {// duplicate object 25 times for testing
         val dx = aabb.deltaX() * 1.1
         val dy = 0.0
         val dz = aabb.deltaZ() * 1.1
@@ -116,7 +115,8 @@ val shading = "" +
         "   vec3 normal = vec3(0.0), normal0 = worldDir;\n" +
         "   vec3 color = vec3(1.0);\n" +
         //
-        "   float roughness = 0.9;\n" +
+        "if(drawMode==0){\n" +
+        "   float roughness = 0.1;\n" +
         "   int limit = 8;" +
         "   for(int i=ZERO;i<limit;i++){\n" +
         "       distance = Infinity;\n" +
@@ -129,9 +129,9 @@ val shading = "" +
         // find new ray direction depending on BRDF
         "           pos = pos + dir * distance;\n" +
         // diffuse:
-        "           dir = normalize(normal + nextRand3(seed));\n" +
+        // "           dir = normalize(normal + nextRandS3(seed));\n" +
         // metallic:
-        // "           dir = normalize(reflect(dir, normalize(normal)) + roughness * nextRand3(seed));\n" +
+        "           dir = normalize(reflect(dir, normalize(normal)) + roughness * nextRandS3(seed));\n" +
         // add small offset, so we don't have shadow acne
         "           pos += dir * 0.01;\n" +
         "           if(i==limit-1) color = vec3(0.0);\n" +
@@ -143,17 +143,20 @@ val shading = "" +
         "           break;\n" +
         "       }\n" +
         "   }\n" +
+        "} else {" +
+        "uint a = intersectTLAS(pos,dir,distance,normal);\n" +
+        "if(drawMode==1) {\n" +
         // simple coloring
-        /*"   uint a = intersectTLAS(pos,dir,distance,normal);\n" +
-        /*"   if(dot(normal,normal)>0.0){\n" +
+        "   if(dot(normal,normal)>0.0){\n" +
         "      normal = normalize(normal);\n" +
         "      color = normal*.5+.5;\n" +
         "   } else {\n" +
         // compute sky color
-        "       color = sky1;\n" +
-        "   }\n" +*/
-        "   color = vec3(float(a)*0.1);\n" +*/
-        ""
+        "       color = mix(sky0,sky1,dir.y*.5+.5);\n" +
+        "   }\n" +
+        "} else {\n" +
+        "   color = coloring(float(a)*0.1);\n" +
+        "}}\n"
 
 fun createGraphicsShader(tlas: TLASNode): Quad<Shader, Texture2D, Texture2D, Texture2D> {
 
@@ -181,7 +184,7 @@ fun createGraphicsShader(tlas: TLASNode): Quad<Shader, Texture2D, Texture2D, Tex
 
     return Quad(
         Shader(
-            "bvh-traversal", attr0List, attr0VShader, uvList, listOf(), "" +
+            "bvh-traversal", coordsList, coordsVShader, uvList, listOf(), "" +
                     "out vec4 dst;\n" +
                     "uniform sampler2D triangles, blasNodes, tlasNodes;\n" +
                     "uniform ivec2 size;\n" +

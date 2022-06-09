@@ -4,9 +4,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.roundDiv
-import me.anno.utils.hpc.WorkSplitter
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 
@@ -46,8 +43,8 @@ open class IntImage(
     override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
         // data cloning is required, because the function in Texture2D switches the red and blue channels
         if (sync && GFX.isGFXThread()) {
-            if (hasAlphaChannel) texture.createRGBASwizzle(cloneData(), checkRedundancy)
-            else texture.createRGBSwizzle(cloneData(), checkRedundancy)
+            if (hasAlphaChannel) texture.createBGRA(cloneData(), checkRedundancy)
+            else texture.createBGR(cloneData(), checkRedundancy)
         } else {
             val data1 = Texture2D.bufferPool[data.size * 4, false, false]
             val dataI = data1.asIntBuffer()

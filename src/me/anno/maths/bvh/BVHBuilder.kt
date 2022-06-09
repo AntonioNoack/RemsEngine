@@ -54,22 +54,6 @@ abstract class BVHBuilder(val bounds: AABBf) {
         return min(min(a, b), c)
     }
 
-    fun intersectBounds(pos: Vector3f, invDir: Vector3f, dirIsNeg: Int, maxDistance: Float): Boolean {
-        val b = bounds
-        val xNeg = dirIsNeg.and(1) != 0
-        val yNeg = dirIsNeg.and(2) != 0
-        val zNeg = dirIsNeg.and(4) != 0
-        val cx = if (xNeg) b.maxX else b.minX
-        val cy = if (yNeg) b.maxY else b.minY
-        val cz = if (zNeg) b.maxZ else b.minZ
-        val fx = if (xNeg) b.minX else b.maxX
-        val fy = if (yNeg) b.minY else b.maxY
-        val fz = if (zNeg) b.minZ else b.maxZ
-        val tMin = max((cx - pos.x) * invDir.x, (cy - pos.y) * invDir.y, (cz - pos.z) * invDir.z)
-        val tMax = min((fx - pos.x) * invDir.x, (fy - pos.y) * invDir.y, (fz - pos.z) * invDir.z)
-        return max(tMin, 0f) <= min(tMax, maxDistance)
-    }
-
     companion object {
 
         // private val LOGGER = LogManager.getLogger(BVHBuilder::class)
@@ -161,11 +145,11 @@ abstract class BVHBuilder(val bounds: AABBf) {
                 val si1 = indices[di1]
                 val si3 = si1 * 3
                 dstPos[i3] = srcPos[si3]
-                dstPos[i3+1] = srcPos[si3+1]
-                dstPos[i3+2] = srcPos[si3+2]
+                dstPos[i3 + 1] = srcPos[si3 + 1]
+                dstPos[i3 + 2] = srcPos[si3 + 2]
                 dstNor[i3] = srcNor[si3]
-                dstNor[i3+1] = srcNor[si3+1]
-                dstNor[i3+2] = srcNor[si3+2]
+                dstNor[i3 + 1] = srcNor[si3 + 1]
+                dstNor[i3 + 2] = srcNor[si3 + 2]
                 dstCol[di1] = if (srcCol == null) -1 else srcCol[si1]
                 i3 += 3
             }

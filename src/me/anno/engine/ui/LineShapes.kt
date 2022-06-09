@@ -1,14 +1,13 @@
 package me.anno.engine.ui
 
+import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
-import me.anno.gpu.pipeline.PipelineStage.Companion.getDrawMatrix
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.findSystem
 import me.anno.utils.types.Vectors.setAxis
 import org.joml.Matrix4x3d
-import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.cos
@@ -18,6 +17,10 @@ object LineShapes {
 
     private val tmpVec3f = Array(16) { Vector3f() }
     private val tmpVec3d = Array(16) { Vector3d() }
+
+    fun getDrawMatrix(entity: Entity?, time: Long = Engine.gameTime): Matrix4x3d? {
+        return entity?.transform?.getDrawMatrix(time)
+    }
 
     val zToX: Matrix4x3d = Matrix4x3d()
         .rotateY(Math.PI / 2)
@@ -212,7 +215,17 @@ object LineShapes {
         putRelativeLine(positions[2], positions[0], color)
     }
 
-    fun drawPoint(entity: Entity?, center: Vector3d, sideLength: Double, color: Int = Collider.guiLineColor) {
+    fun drawPoint(entity: Entity?, center: Vector3d, sideLength: Double, color: Int = Collider.guiLineColor) =
+        drawPoint(entity, center.x, center.y, center.z, sideLength, color)
+
+    fun drawPoint(
+        entity: Entity?,
+        cx: Double,
+        cy: Double,
+        cz: Double,
+        sideLength: Double,
+        color: Int = Collider.guiLineColor
+    ) {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
@@ -227,7 +240,7 @@ object LineShapes {
         for (i in 0 until 6) {
             val posI = positions[i]
             posI.mul(sideLength)
-            posI.add(center)
+            posI.add(cx, cy, cz)
             transform?.transformPosition(posI)
         }
 
@@ -236,6 +249,10 @@ object LineShapes {
         putRelativeLine(positions[4], positions[5], color)
 
     }
+
+    fun drawPoint(
+        entity: Entity?, cx: Float, cy: Float, cz: Float, sideLength: Double, color: Int = Collider.guiLineColor
+    ) = drawPoint(entity, cx.toDouble(), cy.toDouble(), cz.toDouble(), sideLength, color)
 
     fun drawLine(
         entity: Entity?,

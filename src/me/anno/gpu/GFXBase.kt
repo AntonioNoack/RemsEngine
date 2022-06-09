@@ -99,10 +99,12 @@ open class GFXBase {
 
     fun getWindow(window: Long) = windows.first { it.pointer == window }
 
-    /** must be executed before OpenGL-init */
+    /** must be executed before OpenGL-init;
+     * must be disabled for Nvidia Nsight */
+    var disableRenderDoc = false
     fun loadRenderDoc() {
         val enabled = DefaultConfig["debug.renderdoc.enabled", isDebug]
-        if (enabled) {
+        if (enabled && !disableRenderDoc) {
             forceLoadRenderDoc(null)
         }
     }

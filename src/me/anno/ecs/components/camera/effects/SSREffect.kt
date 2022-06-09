@@ -1,5 +1,6 @@
 package me.anno.ecs.components.camera.effects
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.shaders.effects.ScreenSpaceReflections
 import me.anno.ecs.prefab.PrefabSaveable
@@ -19,8 +20,9 @@ class SSREffect : ToneMappedEffect() {
     @Range(0.0, 1e38)
     var maxDistance = 8f
 
+    @Docs("10 are enough, if there are only rough surfaces")
     @Range(1.0, 512.0)
-    var fineSteps = 10 // 10 are enough, if there are only rough surfaces
+    var fineSteps = 10
 
     override fun listInputs() = inputs
 

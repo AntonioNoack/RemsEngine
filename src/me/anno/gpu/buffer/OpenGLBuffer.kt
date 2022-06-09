@@ -8,6 +8,7 @@ import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
 import me.anno.input.Input
 import me.anno.maths.Maths
+import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2fc
@@ -53,7 +54,7 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
 
     var elementCount = 0
 
-   open fun upload(allowResize: Boolean = true) {
+    open fun upload(allowResize: Boolean = true) {
 
         checkSession()
 
@@ -88,12 +89,26 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
 
     }
 
-    fun simpleBind(){
+    /**
+     * free this buffer on the CPU side;
+     * you will no longer be able to implicitly, partially update it (-> state frozen)
+     * todo except explicitly, implement that
+     * */
+    fun freeze(force: Boolean = false) {
+        if (force || !OS.isAndroid) {
+            if (nioBuffer != null) {
+                ByteBufferPool.free(nioBuffer)
+                nioBuffer = null
+            }
+        } else LOGGER.warn("Freezing is not supported on Android, because the context might reset")
+    }
+
+    fun simpleBind() {
         ensureBuffer()
         bindBuffer(type, pointer)
     }
 
-    fun unbind(){
+    fun unbind() {
         bindBuffer(type, 0)
     }
 
@@ -218,8 +233,8 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
         if (this is Buffer) this.vao = -1
         if (nioBuffer != null) {
             ByteBufferPool.free(nioBuffer)
+            nioBuffer = null
         }
-        nioBuffer = null
     }
 
     companion object {

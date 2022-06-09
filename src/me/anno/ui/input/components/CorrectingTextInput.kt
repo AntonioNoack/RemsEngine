@@ -5,15 +5,13 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
+import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.code.CodeEditor.Companion.drawSquiggles
 import me.anno.ui.style.Style
 
 abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
-
-    init {
-        instantTextLoading = true
-    }
 
     var drawingOffset = 0
     var allowFirstLowercase = true
@@ -29,6 +27,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(true)
+        instantTextLoading = true
         super.onDraw(x0, y0, x1, y1)
         drawSuggestionLines()
         loadTexturesSync.pop()
@@ -83,20 +82,32 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
     abstract fun onCharTyped2(x: Float, y: Float, key: Int)
     abstract fun onEnterKey2(x: Float, y: Float)
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
+    fun tryApplySuggestion(): Boolean {
         val suggestion = lastSuggestion
-        if (key == '\t'.code && suggestion?.improvements?.isNotEmpty() == true) {
-            applySuggestion(suggestion, suggestion.improvements[0])
-        } else {
+        return if (suggestion != null && suggestion.improvements.isNotEmpty()) {
+            if (suggestion.improvements.size > 1) {
+                Menu.openMenu(windowStack,
+                    suggestion.improvements.map {
+                        MenuOption(it, "") {
+                            applySuggestion(suggestion, it)
+                        }
+                    }
+                )
+            } else {
+                applySuggestion(suggestion, suggestion.improvements[0])
+            }
+            true
+        } else false
+    }
+
+    override fun onCharTyped(x: Float, y: Float, key: Int) {
+        if (!(key == '\t'.code && tryApplySuggestion())) {
             onCharTyped2(x, y, key)
         }
     }
 
     override fun onEnterKey(x: Float, y: Float) {
-        val suggestion = lastSuggestion
-        if (suggestion != null && suggestion.improvements.isNotEmpty()) {
-            applySuggestion(suggestion, suggestion.improvements[0])
-        } else {
+        if (!tryApplySuggestion()) {
             onEnterKey2(x, y)
         }
     }

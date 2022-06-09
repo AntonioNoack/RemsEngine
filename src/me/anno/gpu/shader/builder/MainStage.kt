@@ -309,7 +309,7 @@ class MainStage {
                 if (param.isOutput && param !in defined) {
                     param.declare(code, null)
                     // write default value if name matches deferred layer
-                    // if the shader works properly, it is overridden anyways
+                    // if the shader works properly, it is overridden anyway
                     val dlt = DeferredLayerType.byName[param.name]
                     if (dlt != null && dlt.dimensions == param.type.components) {
                         code.append(param.name).append("=")

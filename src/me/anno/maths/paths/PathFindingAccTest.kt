@@ -4,32 +4,21 @@ import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.chunks.cartesian.ByteArrayChunkSystem
-import me.anno.ecs.components.mesh.ManualProceduralMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.shaders.CuboidMesh
-import me.anno.ecs.components.shaders.Texture3DBTMaterial
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
-import me.anno.gpu.texture.Texture3D
-import me.anno.input.Input
+import me.anno.input.MouseButton
 import me.anno.maths.Maths.sq
-import me.anno.maths.noise.FullNoise
-import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.Shapes
-import me.anno.mesh.vox.model.VoxelModel
-import me.anno.ui.base.SpyPanel
-import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestStudio.Companion.testUI
-import me.anno.utils.Color.toVecRGB
 import me.anno.utils.LOGGER
-import me.anno.utils.structures.maps.Maps.flatten
 import org.apache.logging.log4j.LogManager
 import java.util.*
 import kotlin.math.abs
@@ -52,7 +41,7 @@ fun main() {
      *  - 20x-70x faster after warmup on full results
      * */
 
-    // slower, just another technique
+    // slower, just another rendering technique
     val rayTracing = false
     // when you just need the direction,
     // and the result may change over time,
@@ -62,99 +51,23 @@ fun main() {
     // slightly better, ~2x more expensive
     val useSecondaryHops = false
 
-    // generate a voxel world
-    val air = 0.toByte()
-    val dirt = 1.toByte()
-    val grass = 2.toByte()
-    // raytracing currently only supports two colors with my default shader
-    val log = if (rayTracing) dirt else 3.toByte()
-    val leaves = if (rayTracing) grass else 4.toByte()
+    val world = TestWorld
 
-    val dirtColor = 0x684530
-    val grassColor = 0x2f8d59
-    val colors = mapOf(
-        dirt to dirtColor,
-        grass to grassColor,
-        log to 0x463125,
-        leaves to 0x067e3c
-    )
-
-    val sx = 256 * 4
+    // if you use raytracing, make these smaller :D
+    val sx = 512
     val sy = 32
-    val sz = 256 * 4
+    val sz = 512
+    val x0 = 0
+    val y0 = 0
+    val z0 = 0
 
     data class Node(val x: Int, val y: Int, val z: Int, val isProxy: Boolean) {
         override fun toString() = if (isProxy) "Proxy[$x,$y,$z]" else "Node[$x,$y,$z]"
     }
 
-    // this world surely could be useful in a few other instances as well 😄
-    val treeRandom = FullNoise(1234L)
-    val noise = PerlinNoise(1234L, 3, 0.5f, 0f, 1f)
-    val world = object : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
-
-        val scale = 0.05f
-        val scaleY = scale * 0.5f
-        val treeChance = 0.013f
-
-        fun isSolid(x: Int, y: Int, z: Int) = (y == 0) || noise[x * scale, y * scaleY, z * scale] - y * scaleY > 0.1f
-
-        fun plantTree(chunk: ByteArray, lx: Int, ly: Int, lz: Int) {
-            // tree crone
-            for (j in -2..2) {
-                for (k in -2..2) {
-                    val sq = j * j + k * k
-                    if (sq < 8) {
-                        chunk[getIndex(lx + j, ly + 3, lz + k)] = leaves
-                        chunk[getIndex(lx + j, ly + 4, lz + k)] = leaves
-                        if (sq < 4) {
-                            chunk[getIndex(lx + j, ly + 5, lz + k)] = leaves
-                            if (sq < 2) chunk[getIndex(lx + j, ly + 6, lz + k)] = leaves
-                        }
-                    }
-                }
-            }
-            // stem
-            for (i in 0 until 5) chunk[getIndex(lx, ly + i, lz)] = log
-        }
-
-        override fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: ByteArray) {
-            val x0 = chunkX shl bitsX
-            val y0 = chunkY shl bitsY
-            val z0 = chunkZ shl bitsZ
-            for (x in x0 until x0 + sizeX) {
-                for (z in z0 until z0 + sizeZ) {
-                    var index = getIndex(x - x0, sizeY - 1, z - z0)
-                    var aboveIsSolid = isSolid(x, y0 + sizeY, z)
-                    for (y in y0 + sizeY - 1 downTo y0) {
-                        val isSolid = isSolid(x, y, z)
-                        val block = if (isSolid) if (aboveIsSolid) dirt else grass else air
-                        if (block != air) chunk[index] = block
-                        aboveIsSolid = isSolid
-                        if (block == grass) {
-                            // with a chance, place a tree here
-                            // our cheap method only works distanced from chunk borders
-                            if (x - x0 in 2 until sizeX - 2 && y - y0 in 1 until sizeY - 7 && z - z0 in 2 until sizeZ - 2 && treeRandom.getValue(
-                                    x.toFloat(),
-                                    y.toFloat(),
-                                    z.toFloat()
-                                ) < treeChance
-                            ) plantTree(chunk, x - x0, y - y0, z - z0)
-                        }
-                        index -= dy
-                    }
-                }
-            }
-        }
-
-    }
-
-    fun isAir(x: Int, y: Int, z: Int) = world.getElementAt(x, y, z) == air
-    fun isSolid(x: Int, y: Int, z: Int) = world.getElementAt(x, y, z) != air
-    fun canStand(x: Int, y: Int, z: Int) = isAir(x, y, z) && isAir(x, y + 1, z) && isSolid(x, y - 1, z)
-
     fun findPoint(x: Int, z: Int): Node? {
         for (y in 0 until 256) {
-            if (canStand(x, y, z)) {
+            if (world.canStand(x, y, z)) {
                 return Node(x, y, z, false)
             }
         }
@@ -194,10 +107,10 @@ fun main() {
                 // could be optimized
                 for (dy in -1..1) {
                     val y = from.y + dy
-                    if (canStand(from.x, y, from.z + 1)) callback(Node(from.x, y, from.z + 1, false))
-                    if (canStand(from.x, y, from.z - 1)) callback(Node(from.x, y, from.z - 1, false))
-                    if (canStand(from.x + 1, y, from.z)) callback(Node(from.x + 1, y, from.z, false))
-                    if (canStand(from.x - 1, y, from.z)) callback(Node(from.x - 1, y, from.z, false))
+                    if (world.canStand(from.x, y, from.z + 1)) callback(Node(from.x, y, from.z + 1, false))
+                    if (world.canStand(from.x, y, from.z - 1)) callback(Node(from.x, y, from.z - 1, false))
+                    if (world.canStand(from.x + 1, y, from.z)) callback(Node(from.x + 1, y, from.z, false))
+                    if (world.canStand(from.x - 1, y, from.z)) callback(Node(from.x - 1, y, from.z, false))
                 }
             }// else throw IllegalArgumentException("Proxies neighbor or out-of-bounds requested, $from")
         }
@@ -259,33 +172,10 @@ fun main() {
         ECSRegistry.init()
 
         val mesh = if (rayTracing) {
-
-            // slower, but avoids triangles ^^
-
-            val texture = Texture3D("blocks", sx, sy, sz)
-            texture.createMonochrome { x, y, z -> world.getElementAt(x, y, z) }
-            texture.clamping(false)
-
-            val material = Texture3DBTMaterial()
-            material.color0 = dirtColor.toVecRGB()
-            material.color1 = grassColor.toVecRGB()
-            material.limitColors(2)
-            material.blocks = texture
-
-            val mesh = CuboidMesh()
-            mesh.size.set(-sx * 1f, -sy * 1f, -sz * 1f)
-            mesh.materials = listOf(material.ref)
-            mesh
-
+            // slower, currently less color support, but avoids triangles ^^
+            world.createRaytracingMeshV2(x0, y0, z0, sx, sy, sz)
         } else {
-
-            val mesh = ManualProceduralMesh()
-            val palette = colors.flatten(0) { blockType -> blockType.toInt() }
-            object : VoxelModel(sx, sy, sz) {
-                override fun getBlock(x: Int, y: Int, z: Int) = world.getElementAt(x, y, z).toInt()
-            }.createMesh(palette, { _, _, _ -> false }, mesh.data)
-            mesh
-
+            world.createTriangleMesh(x0, y0, z0, sx, sy, sz)
         }
 
         val scene = Entity()
@@ -350,38 +240,87 @@ fun main() {
 
         updateCubes()
 
-        val list = PanelListY(style)
-        list.add(SpyPanel {
-            fun raycastPoint(): Node? {
-                val maxDistance = 1e3
-                val hit = Raycast.raycast(
-                    scene, RenderView.camPosition, RenderView.camDirection, 0.0, 0.0, maxDistance, -1
-                )
-                return if (hit != null) {
-                    // convert ws position to local space
-                    val x = (hit.positionWS.x + dx).toInt()
-                    val z = (hit.positionWS.z + dz).toInt()
-                    if (x in 0 until sx && z in 0 until sz) {
-                        findPoint(x, z)
-                    } else null
+        fun raycastPoint(): Node? {
+            val maxDistance = 1e3
+            val hit = Raycast.raycast(
+                scene,
+                RenderView.camPosition,
+                RenderView.mouseDir,
+                0.0, 0.0,
+                maxDistance, -1
+            )
+            return if (hit != null) {
+                // convert ws position to local space
+                hit.normalWS.normalize()
+                val x = (hit.positionWS.x + hit.normalWS.x + dx).toInt()
+                val z = (hit.positionWS.z + hit.normalWS.z + dz).toInt()
+                if (x in 0 until sx && z in 0 until sz) {
+                    findPoint(x, z)
                 } else null
+            } else null
+        }
+
+        val view = SceneView(EditorState, PlayMode.EDITING, style)
+        view.setWeight(1f)
+        view.editControls = object : DraggingControls(view.renderer) {
+
+            override fun onKeyTyped(x: Float, y: Float, key: Int) {
+                if (key.toChar() in "rR") {
+                    randomizePoints()
+                    updateCubes()
+                } else super.onKeyTyped(x, y, key)
             }
-            // todo intercept left and right click somehow
-            /*if (Input.isLeftDown) {
-                start = raycastPoint() ?: start
-                updateCubes()
+
+            override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+                if (!long) {
+                    if (button.isLeft) {
+                        start = raycastPoint() ?: start
+                        updateCubes()
+                        return
+                    } else if (button.isRight) {
+                        end = raycastPoint() ?: end
+                        updateCubes()
+                        return
+                    }
+                }
+                super.onMouseClicked(x, y, button, long)
             }
-            if (Input.isRightDown) {
-                end = raycastPoint() ?: end
-                updateCubes()
-            }*/
-            if (Input.wasKeyPressed('r')) {
-                randomizePoints()
-                updateCubes()
+        }
+
+        // another way to receive input events
+        /*EventBroadcasting.instance.registerListener(object : Any() {
+
+            @EventHandler
+            @Suppress("unused") // is found using reflection
+            fun onPressR(e: UIEvent) {
+                if (e.type == UIEventType.KEY_TYPED && view.isAnyChildInFocus) {
+                    randomizePoints()
+                    updateCubes()
+                }
             }
-        })
-        list.add(SceneView(EditorState, PlayMode.EDITING, style).setWeight(1f))
-        list.setWeight(1f)
+
+            @EventHandler
+            @Suppress("unused") // is found using reflection
+            fun onClick(e: UIEvent) {
+                if (e.type == UIEventType.MOUSE_CLICK && view.isAnyChildInFocus) {
+                    when {
+                        e.button.isLeft -> {
+                            start = raycastPoint() ?: start
+                            updateCubes()
+                            e.cancel()
+                        }
+                        e.button.isRight -> {
+                            end = raycastPoint() ?: end
+                            updateCubes()
+                            e.cancel()
+                        }
+                    }
+                }
+            }
+        })*/
+
+        view.setWeight(1f)
+
     }
 
 }

@@ -70,11 +70,16 @@ class SkyBox : MeshComponentBase() {
         // https://github.com/shff/opengl_sky/blob/master/main.c
         val defaultShader = object : ECSMeshShader("sky") {
 
-            override fun createVertexStage(isInstanced: Boolean, isAnimated: Boolean, colors: Boolean): ShaderStage {
+            override fun createVertexStage(
+                isInstanced: Boolean,
+                isAnimated: Boolean,
+                colors: Boolean,
+                motionVectors: Boolean
+            ): ShaderStage {
                 val defines = if (colors) "#define COLORS\n" else ""
                 return ShaderStage(
                     "vertex",
-                    createVertexVariables(isInstanced, isAnimated, colors),
+                    createVertexVariables(isInstanced, isAnimated, colors, motionVectors),
                     "" +
                             defines +
                             "localPosition = 1e15 * sign(coords);\n" +
@@ -87,7 +92,11 @@ class SkyBox : MeshComponentBase() {
                 )
             }
 
-            override fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean): ShaderStage {
+            override fun createFragmentStage(
+                isInstanced: Boolean,
+                isAnimated: Boolean,
+                motionVectors: Boolean
+            ): ShaderStage {
 
                 val funcNoise = "" +
                         "float noise(vec3 x){\n" +

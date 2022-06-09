@@ -10,8 +10,8 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.attr0List
-import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.utils.pooling.ByteBufferPool
@@ -23,7 +23,7 @@ import kotlin.math.roundToInt
 fun main() {
 
     fun createShader(code: String) = Shader(
-        "", attr0List, attr0VShader,
+        "", coordsList, coordsVShader,
         uvList, listOf(), "void main(){$code}"
     )
 

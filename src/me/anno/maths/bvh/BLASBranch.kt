@@ -7,16 +7,16 @@ import org.joml.Vector3f
 
 class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABBf) : BLASNode(bounds) {
 
+    val mask = 1 shl axis
+
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit) {
-        if (intersectBounds(pos, invDir, dirIsNeg, hit.distance.toFloat())) {
+        if (RayTracing.isRayIntersectingAABB(pos, invDir, bounds, hit.distance.toFloat())) {
             // put far bvh node on stack, advance to near
-            if (dirIsNeg.and(1 shl axis) != 0) {
-                n1.intersect(pos, dir, invDir, dirIsNeg, hit)
-                n0.intersect(pos, dir, invDir, dirIsNeg, hit)
-            } else {
-                n0.intersect(pos, dir, invDir, dirIsNeg, hit)
-                n1.intersect(pos, dir, invDir, dirIsNeg, hit)
-            }
+            val v = dirIsNeg.and(mask) != 0
+            val p0 = if (v) n1 else n0
+            val p1 = if (v) n0 else n1
+            p0.intersect(pos, dir, invDir, dirIsNeg, hit)
+            p1.intersect(pos, dir, invDir, dirIsNeg, hit)
         }
     }
 

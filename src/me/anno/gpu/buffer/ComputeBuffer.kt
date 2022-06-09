@@ -12,8 +12,7 @@ class ComputeBuffer(elementCount: Int, attr: List<Attribute>) : OpenGLBuffer(GL_
 
     override fun createNioBuffer() {
         val byteSize = elementCount * attributes.sumOf { it.byteSize }
-        val nio = ByteBufferPool.allocateDirect(byteSize)
-        nioBuffer = nio
+        nioBuffer = ByteBufferPool.allocateDirect(byteSize)
     }
 
 }

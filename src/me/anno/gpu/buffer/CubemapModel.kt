@@ -13,7 +13,7 @@ object CubemapModel {
 
     val cubemapModel = StaticBuffer(
         listOf(
-            Attribute("attr0", 3),
+            Attribute("coords", 3),
             Attribute("attr1", 2)
         ), 6 * 6
     ).apply {
@@ -53,7 +53,7 @@ object CubemapModel {
 
     val cubemapLineModel = StaticBuffer(
         listOf(
-            Attribute("attr0", 3),
+            Attribute("coords", 3),
             Attribute("attr1", 2)
         ), 6 * 6 * 2
     ).apply {

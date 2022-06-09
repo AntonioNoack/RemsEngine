@@ -31,7 +31,9 @@ import kotlin.math.abs
 import kotlin.streams.toList
 
 open class PureTextInputML(style: Style) :
-    ScrollPanelXY(Padding(0), style), InputPanel<String>, TextStyleable {
+    ScrollPanelXY(Padding(0), style),
+    InputPanel<String>,
+    TextStyleable {
 
     private val cursor1 = CursorPosition(0, 0)
     private val cursor2 = CursorPosition(0, 0)
@@ -196,7 +198,7 @@ open class PureTextInputML(style: Style) :
     override fun tickUpdate() {
         super.tickUpdate()
         val blinkVisible = ((Engine.gameTime / 500_000_000L) % 2L == 0L)
-        val isInFocus = isInFocus || content.isInFocus || (content as PanelList).children.any2 { it.isInFocus }
+        val isInFocus = isAnyChildInFocus
         val oldShowBars = showBars
         showBars = isInFocus && (blinkVisible || wasJustChanged)
         if (isInFocus || showBars != oldShowBars) invalidateDrawing()

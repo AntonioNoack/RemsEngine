@@ -10,6 +10,7 @@ import me.anno.gpu.drawing.Perspective.setPerspective2
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.mesh.Shapes.cube11Smooth
 import me.anno.mesh.vox.meshing.BlockBuffer
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
@@ -92,7 +93,7 @@ class SpotLight() : LightComponent(LightType.SPOT) {
 
     companion object {
 
-        val coneFunction = "clamp((localNormal.z-(1.0-coneAngle))/coneAngle,0.0,1.0)"
+        // val coneFunction = "clamp((localNormal.z-(1.0-coneAngle))/coneAngle,0.0,1.0)"
         // val coneFunction = "smoothstep(0.0, 1.0, (localNormal.z-(1.0-coneAngle))/coneAngle)"
 
         val halfCubeMesh = Mesh()

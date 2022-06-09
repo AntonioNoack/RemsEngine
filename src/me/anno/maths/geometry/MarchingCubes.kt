@@ -9,7 +9,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.unmix
-import me.anno.maths.noise.FullNoise
+import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.LOGGER
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
@@ -320,15 +320,15 @@ object MarchingCubes {
     @JvmStatic
     fun main(args: Array<String>) {
 
-        val w = 32
-        val h = 32
-        val d = 32
+        val w = 128
+        val h = 128
+        val d = 128
 
         val thin = false
 
         val t = (w * w + h * h + d * d) * 0.1f
         val wh = w * h
-        val random = FullNoise(1234L)
+        val random = PerlinNoise(1234L, 4, 0.5f, -1f, +1f)
         val values = FloatArray(w * h * d) { i1 ->
             val i2 = i1 % wh
             val xi = i2 % w
@@ -338,7 +338,8 @@ object MarchingCubes {
             val y = yi - (h - 1f) / 2f
             val z = if (thin) zi - d * 1.5f else zi - (d - 1f) / 2f // so we can see an effect
             (x * x + y * y + z * z) * 2f - t
-            random.getValue(x, y, z * 0.2f) - 0.5f
+            if (thin) random.getSmooth(x, y, z * 0.2f)
+            else random.getSmooth(x * 0.03f, y * 0.03f, z * 0.03f) + y * 0.01f
         }
 
         fun testOnTexture() {

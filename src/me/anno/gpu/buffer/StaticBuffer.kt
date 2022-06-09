@@ -78,8 +78,7 @@ open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage
 
     final override fun createNioBuffer() {
         val byteSize = vertexCount * attributes.sumOf { it.byteSize }
-        val nio = ByteBufferPool.allocateDirect(byteSize)
-        nioBuffer = nio
+        nioBuffer = ByteBufferPool.allocateDirect(byteSize)
     }
 
     companion object {

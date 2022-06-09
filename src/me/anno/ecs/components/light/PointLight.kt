@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.ui.LineShapes.drawSphere
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.OpenGL
 import me.anno.gpu.drawing.Perspective.setPerspective
@@ -78,9 +79,10 @@ class PointLight : LightComponent(LightType.POINT) {
         val transform = entity.transform
         val resolution = shadowMapResolution
         val global = transform.globalTransform
-        val position = global.getTranslation(JomlPools.vec3d.create())
-        val rotation = global.getUnnormalizedRotation(JomlPools.quat4d.create())
+        val position = global.getTranslation(RenderView.camPosition)
+        val rotation = global.getUnnormalizedRotation(RenderView.camRotation)
         val worldScale = SQRT3 / global.getScaleLength()
+        RenderView.worldScale = worldScale
         // only fill pipeline once?
 
         val texture = shadowTextures!![0] as CubemapFramebuffer
@@ -88,10 +90,10 @@ class PointLight : LightComponent(LightType.POINT) {
         val far = 1.0
 
         val deg90 = Math.PI * 0.5
-        val rotInvert = rotation.invert()
+        val rotInvert = rotation.invert(JomlPools.quat4d.create())
         val rot3 = JomlPools.quat4d.create()
 
-        val cameraMatrix = JomlPools.mat4f.create()
+        val cameraMatrix = RenderView.cameraMatrix
         val root = entity.getRoot(Entity::class)
         OpenGL.depthMode.use(DepthMode.GREATER) {
             texture.draw(resolution, Renderer.depthRenderer) { side ->
@@ -107,12 +109,10 @@ class PointLight : LightComponent(LightType.POINT) {
                     position, rot3.invert()
                 )
                 pipeline.fillDepth(root, position, worldScale)
-                pipeline.drawDepth(cameraMatrix, position, worldScale)
+                pipeline.drawDepth()
             }
         }
 
-        JomlPools.vec3d.sub(1)
-        JomlPools.mat4f.sub(1)
         JomlPools.quat4d.sub(2)
 
     }

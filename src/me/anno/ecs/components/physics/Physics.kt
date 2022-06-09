@@ -126,7 +126,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     open fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         val rigid = rigidBodies.remove(entity) ?: return
-        LOGGER.debug("- ${entity.prefabPath}")
+        LOGGER.debug("- ${entity.prefabPath ?: entity.name.ifBlank { entity.className }}")
         nonStaticRigidBodies.remove(entity)
         worldRemoveRigidbody(rigid.body)
     }
@@ -163,7 +163,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
             // after creating and registering, so
             // it works for circular constraint dependencies
             onCreateRigidbody(entity, rigidBody, bodyWithScale)
-            LOGGER.debug("+ ${entity.prefabPath}")
+            LOGGER.debug("+ ${entity.prefabPath ?: entity.name.ifBlank { entity.className }}")
         }
         return bodyWithScale?.body
     }
@@ -171,9 +171,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     fun addOrGet(entity: Entity): ExternalRigidBody? {
         // LOGGER.info("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
         val rigidbody = entity.getComponent(rigidComponentClass, false) ?: return null
-        return if (rigidbody.isEnabled) {
-            getRigidbody(rigidbody)
-        } else null
+        return if (rigidbody.isEnabled) getRigidbody(rigidbody) else null
     }
 
     private fun callUpdates() {
@@ -204,6 +202,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                 field = value
             }
         }
+
+    var showDebug = false
 
     @DebugAction
     fun reloadScene() {
@@ -306,6 +306,12 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         dstTransform: Matrix4x3d
     )
 
+    @DebugAction
+    fun manualStep() {
+        // dt = 1e9 / 60
+        step(16_666_667L, true)
+    }
+
     open fun step(dt: Long, printSlack: Boolean) {
 
         // clock.start()
@@ -324,7 +330,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
         this.timeNanos += dt
 
-        // is not correct for the physics, but we use it for gfx only anyways
+        // is not correct for the physics, but we use it for gfx only anyway
         // val time = Engine.gameTime
 
         val deadEntities = ArrayList<Entity>()

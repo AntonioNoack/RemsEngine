@@ -11,6 +11,8 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.Streams.readLE16
+import me.anno.io.xml.XMLReader.skipN
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.io.DataInputStream
@@ -22,8 +24,8 @@ import kotlin.math.min
  * @author Mark Powell
  * @author Joshua Slack - cleaned, commented, added ability to read 16bit true color and color-mapped TGAs.
  * @author Kirill Vainer - ported to jME3
- * @author Antonio Noack - added black & white support; fixed naming (?), tested with crytek sponza; fixed 32 bit color order(?)
- * at least for my test cases, everything was correct, and the same as Gimp
+ * @author Antonio Noack - added black & white support; fixed naming (?), tested with crytek sponza; fixed 32-bit color order(?)
+ * at least for my test cases, everything was correct, and the same as Gimp; optimized it a bit
  * @version $Id: TGALoader.java 4131 2009-03-19 20:15:28Z blaine.dev $
  */
 class TGAImage(// bgra, even if the implementation calls it rgba
@@ -41,9 +43,41 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                 else -> throw RuntimeException("$numChannels channels?")
             }
         } else {
-            // todo optimize
-            GFX.addGPUTask("TGAImage", width, height) {
-                createTexture(texture, sync, checkRedundancy)
+            val data = data
+            when (numChannels) {
+                1 -> {
+                    val data2 = if (checkRedundancy) texture.checkRedundancyMonochrome(data) else data
+                    val buffer = Texture2D.bufferPool[data2.size, false, false]
+                    buffer.put(data2).flip()
+                    GFX.addGPUTask("TGAImage", width, height) {
+                        texture.createMonochrome(buffer, false)
+                    }
+                }
+                2 -> {
+                    val data2 = if (checkRedundancy) texture.checkRedundancyRG(data) else data
+                    val buffer = Texture2D.bufferPool[data.size, false, false]
+                    buffer.put(data2).flip()
+                    GFX.addGPUTask("TGAImage", width, height) {
+                        texture.createRG(buffer, false)
+                    }
+                }
+                3 -> {
+                    val data2 = if (checkRedundancy) texture.checkRedundancyRGB(data) else data
+                    val buffer = Texture2D.bufferPool[data2.size, false, false]
+                    buffer.put(data2).flip()
+                    GFX.addGPUTask("TGAImage", width, height) {
+                        texture.createBGR(buffer, false)
+                    }
+                }
+                4 -> {
+                    val data2 = if (checkRedundancy) texture.checkRedundancy(data) else data
+                    val buffer = Texture2D.bufferPool[data2.size, false, false]
+                    buffer.put(data2).flip()
+                    GFX.addGPUTask("TGAImage", width, height) {
+                        texture.createBGRA(buffer, false)
+                    }
+                }
+                else -> throw RuntimeException("$numChannels channels?")
             }
         }
     }
@@ -165,26 +199,21 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             return r and 255 shl 16 or (g and 255 shl 8) or (b and 255) or (a and 255 shl 24)
         }
 
-        // 0 - no image data in file
-        private const val TYPE_NO_IMAGE = 0
+        private const val NO_IMAGE = 0
+        private const val COLORMAPPED = 1
+        private const val TRUE_COLOR = 2
+        private const val GRAYSCALE = 3
+        private const val COLORMAPPED_RLE = 9
+        private const val TRUE_COLOR_RLE = 10
+        private const val GRAYSCALE_RLE = 11
 
-        // 1 - uncompressed, color-mapped image
-        private const val TYPE_COLORMAPPED = 1
-
-        // 2 - uncompressed, true-color image
-        private const val TYPE_TRUECOLOR = 2
-
-        // 3 - uncompressed, black and white image
-        private const val TYPE_BLACKANDWHITE = 3
-
-        // 9 - run-length encoded, color-mapped image
-        private const val TYPE_COLORMAPPED_RLE = 9
-
-        // 10 - run-length encoded, true-color image
-        private const val TYPE_TRUECOLOR_RLE = 10
-
-        // 11 - run-length encoded, black and white image
-        private const val TYPE_BLACKANDWHITE_RLE = 11
+        @Throws(IOException::class)
+        fun findSize(input: InputStream): Pair<Int, Int> {
+            input.skipN(12)
+            val width = input.readLE16()
+            val height =  input.readLE16()
+            return Pair(width, height)
+        }
 
         /**
          * `loadImage` is a manual image loader which is entirely
@@ -234,9 +263,9 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             // int yOffset = flipEndian(dis.readShort());
             dis.readShort()
             // width of image - in pixels
-            val width = flipEndian(dis.readShort()).toInt()
+            val width = flipEndian(dis.readShort())
             // height of image - in pixels
-            val height = flipEndian(dis.readShort()).toInt()
+            val height = flipEndian(dis.readShort())
             // bits per pixel in image.
             val pixelDepth = dis.readUnsignedByte()
             val imageDescriptor = dis.readUnsignedByte()
@@ -265,24 +294,28 @@ class TGAImage(// bgra, even if the implementation calls it rgba
 
                 // Only go to the trouble of constructing the color map
                 // table if this is declared a color mapped image.
-                if (imageType == TYPE_COLORMAPPED || imageType == TYPE_COLORMAPPED_RLE) {
-                    cMapEntries = IntArray(cMapLength.toInt())
+                if (imageType == COLORMAPPED || imageType == COLORMAPPED_RLE) {
+                    cMapEntries = IntArray(cMapLength)
                     val alphaSize = cMapDepth - 3 * bitsPerColor
-                    val scalar = 255f / ((1 shl bitsPerColor) - 1)
-                    val alphaScalar = 255f / ((1 shl alphaSize) - 1)
-                    var r: Int
-                    var g: Int
-                    var b: Int
-                    var a = 255
-                    for (i in 0 until cMapLength) {
-                        val offset = cMapDepth * i
-                        b = (getBitsAsByte(cMapData, offset, bitsPerColor) * scalar).toInt()
-                        g = (getBitsAsByte(cMapData, offset + bitsPerColor, bitsPerColor) * scalar).toInt()
-                        r = (getBitsAsByte(cMapData, offset + 2 * bitsPerColor, bitsPerColor) * scalar).toInt()
-                        if (alphaSize > 0) {
-                            a = (getBitsAsByte(cMapData, offset + 3 * bitsPerColor, alphaSize) * alphaScalar).toInt()
+                    val scalar = (1 shl bitsPerColor) - 1
+                    val alphaScalar = (1 shl alphaSize) - 1
+                    if (alphaSize > 0) {
+                        for (i in 0 until cMapLength) {
+                            val offset = cMapDepth * i
+                            val b = (bitsToByte(cMapData, offset, bitsPerColor) * 255 / scalar)
+                            val g = (bitsToByte(cMapData, offset + bitsPerColor, bitsPerColor) * 255 / scalar)
+                            val r = (bitsToByte(cMapData, offset + 2 * bitsPerColor, bitsPerColor) * 255 / scalar)
+                            val a = (bitsToByte(cMapData, offset + 3 * bitsPerColor, alphaSize) * 255 / alphaScalar)
+                            cMapEntries[i] = abgr(r, g, b, a)
                         }
-                        cMapEntries[i] = abgr(r, g, b, a)
+                    } else {
+                        for (i in 0 until cMapLength) {
+                            val offset = cMapDepth * i
+                            val b = (bitsToByte(cMapData, offset, bitsPerColor) * 255 / scalar)
+                            val g = (bitsToByte(cMapData, offset + bitsPerColor, bitsPerColor) * 255 / scalar)
+                            val r = (bitsToByte(cMapData, offset + 2 * bitsPerColor, bitsPerColor) * 255 / scalar)
+                            cMapEntries[i] = abgr(r, g, b)
+                        }
                     }
                 }
             }
@@ -290,17 +323,19 @@ class TGAImage(// bgra, even if the implementation calls it rgba
 
             // Allocate image data array
             val format: Int
-            val dl =
-                if (pixelDepth == 32) 4 else if (imageType == TYPE_BLACKANDWHITE || imageType == TYPE_BLACKANDWHITE_RLE) 1 else 3
-            val rawData = ByteArray(width * height * dl)
+            val dl = if (pixelDepth == 32) 4 else
+                if (imageType == GRAYSCALE || imageType == GRAYSCALE_RLE) 1 else 3
+            val rawDataSize = width * height * dl
+            if (rawDataSize < 0) throw IOException("Invalid size: $width x $height x $dl")
+            val rawData = ByteArray(rawDataSize)
             format = when (imageType) {
-                TYPE_TRUECOLOR -> readTrueColor(pixelDepth, width, height, flipY, rawData, dl, dis)
-                TYPE_TRUECOLOR_RLE -> readTrueColorRLE(pixelDepth, width, height, flipY, rawData, dl, dis)
-                TYPE_COLORMAPPED -> readColorMapped(pixelDepth, width, height, flipY, rawData, dl, dis, cMapEntries)
-                TYPE_NO_IMAGE -> throw IOException("No image is not supported")
-                TYPE_BLACKANDWHITE -> readGrayscale(pixelDepth, width, height, flipY, rawData, dl, dis)
-                TYPE_COLORMAPPED_RLE -> throw IOException("Colormapped RLE is not supported")
-                TYPE_BLACKANDWHITE_RLE -> throw IOException("Black & White RLE is not supported")
+                TRUE_COLOR -> readTrueColor(pixelDepth, width, height, flipY, rawData, dl, dis)
+                TRUE_COLOR_RLE -> readTrueColorRLE(pixelDepth, width, height, flipY, rawData, dl, dis)
+                COLORMAPPED -> readColorMapped(pixelDepth, width, height, flipY, rawData, dl, dis, cMapEntries!!)
+                NO_IMAGE -> throw IOException("No image is not supported")
+                GRAYSCALE -> readGrayscale(pixelDepth, width, height, flipY, rawData, dl, dis)
+                COLORMAPPED_RLE -> throw IOException("Colormapped RLE is not supported")
+                GRAYSCALE_RLE -> throw IOException("Black & White RLE is not supported")
                 else -> throw IOException("Unknown TGA type $imageType")
             }
             input.close()
@@ -321,7 +356,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             rawData: ByteArray,
             dl: Int,
             dis: DataInputStream,
-            cMapEntries: IntArray?
+            cMapEntries: IntArray
         ): Int {
             var rawDataIndex = 0
             when (val bytesPerIndex = pixelDepth / 8) {
@@ -332,9 +367,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                         }
                         for (j in 0 until width) {
                             val index = dis.readUnsignedByte()
-                            if (index >= cMapEntries!!.size) {
-                                throw IOException("TGA: Invalid color map entry referenced: $index")
-                            }
                             val entry = cMapEntries[index]
                             rawData[rawDataIndex++] = (entry shr 16).toByte()
                             rawData[rawDataIndex++] = (entry shr 8).toByte()
@@ -350,17 +382,22 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                         if (!flip) {
                             rawDataIndex = (height - 1 - i) * width * dl
                         }
-                        for (j in 0 until width) {
-                            val index = flipEndian(dis.readShort()).toInt()
-                            if (index >= cMapEntries!!.size || index < 0) {
-                                throw IOException("TGA: Invalid color map entry referenced: $index")
-                            }
-                            val entry = cMapEntries[index]
-                            rawData[rawDataIndex++] = (entry shr 16).toByte()
-                            rawData[rawDataIndex++] = (entry shr 8).toByte()
-                            rawData[rawDataIndex++] = entry.toByte()
-                            if (dl == 4) {
+                        if (dl == 4) {
+                            for (j in 0 until width) {
+                                val index = flipEndian(dis.readShort())
+                                val entry = cMapEntries[index]
+                                rawData[rawDataIndex++] = (entry shr 16).toByte()
+                                rawData[rawDataIndex++] = (entry shr 8).toByte()
+                                rawData[rawDataIndex++] = entry.toByte()
                                 rawData[rawDataIndex++] = (entry shr 24).toByte()
+                            }
+                        } else {
+                            for (j in 0 until width) {
+                                val index = flipEndian(dis.readShort())
+                                val entry = cMapEntries[index]
+                                rawData[rawDataIndex++] = (entry shr 16).toByte()
+                                rawData[rawDataIndex++] = (entry shr 8).toByte()
+                                rawData[rawDataIndex++] = entry.toByte()
                             }
                         }
                     }
@@ -387,25 +424,18 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             // just make a separate loop for each.
             return when (pixelDepth) {
                 16 -> {
-                    val data = ByteArray(2)
-                    val scalar = 255f / 31f
                     for (i in 0 until height) {
                         if (!flip) {
                             rawDataIndex = (height - 1 - i) * width * dl
                         }
                         for (j in 0 until width) {
-                            data[1] = dis.readByte()
-                            data[0] = dis.readByte()
-                            rawData[rawDataIndex++] = (getBitsAsByte(data, 1, 5) * scalar).toInt().toByte()
-                            rawData[rawDataIndex++] = (getBitsAsByte(data, 6, 5) * scalar).toInt().toByte()
-                            rawData[rawDataIndex++] = (getBitsAsByte(data, 11, 5) * scalar).toInt().toByte()
+                            val v = (dis.read() shl 8) + dis.read()
+                            rawData[rawDataIndex++] = (((v ushr 1) and 31) * 255 / 31).toByte()
+                            rawData[rawDataIndex++] = (((v ushr 6) and 31) * 255 / 31).toByte()
+                            rawData[rawDataIndex++] = (((v ushr 11) and 31) * 255 / 31).toByte()
                             if (dl == 4) {
                                 // create an alpha channel
-                                var a = getBitsAsByte(data, 0, 1)
-                                if (a.toInt() == 1) {// what, why?
-                                    a = 255.toByte()
-                                }
-                                rawData[rawDataIndex++] = a
+                                rawData[rawDataIndex++] = ((v and 1) * 255).toByte()
                             }
                         }
                     }
@@ -482,7 +512,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                             // Get the number of pixels the next chunk covers (either packed or unpacked)
                             var count = dis.readByte().toInt()
                             if (count and 0x80 != 0) {
-                                // Its an RLE packed block - use the following 1 pixel for the next <count> pixels
+                                // It's an RLE packed block - use the following 1 pixel for the next <count> pixels
                                 count = count and 0x07f
                                 x += count
                                 b = dis.readByte()
@@ -523,7 +553,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                             // Get the number of pixels the next chunk covers (either packed or unpacked)
                             var count = dis.readByte().toInt()
                             if (count and 0x80 != 0) {
-                                // Its an RLE packed block - use the following 1 pixel for the next <count> pixels
+                                // It's an RLE packed block - use the following 1 pixel for the next <count> pixels
                                 count = count and 0x07f
                                 x += count
                                 r = dis.readByte()
@@ -552,8 +582,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                     format = 3
                 }
                 16 -> {
-                    val data = ByteArray(2)
-                    val scalar = 255f / 31f
                     for (y in 0 until height) {
                         rawDataIndex = (if (flip) y else height - 1 - y) * width * dl
                         var x = 0
@@ -562,31 +590,29 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                             // Get the number of pixels the next chunk covers (either packed or unpacked)
                             var count = dis.readByte().toInt()
                             if (count and 0x80 != 0) {
-                                // Its an RLE packed block - use the following 1 pixel for the next <count> pixels
+                                // It's an RLE packed block - use the following 1 pixel for the next <count> pixels
                                 count = count and 0x07f
                                 x += count
-                                data[1] = dis.readByte()
-                                data[0] = dis.readByte()
-                                r = (getBitsAsByte(data, 1, 5) * scalar).toInt().toByte()
-                                g = (getBitsAsByte(data, 6, 5) * scalar).toInt().toByte()
-                                b = (getBitsAsByte(data, 11, 5) * scalar).toInt().toByte()
+                                val v = (dis.read() shl 8) + dis.read()
+                                b = (((v ushr 1) and 31) * 255 / 31).toByte()
+                                g = (((v ushr 6) and 31) * 255 / 31).toByte()
+                                r = (((v ushr 11) and 31) * 255 / 31).toByte()
                                 while (count-- >= 0) {
-                                    rawData[rawDataIndex++] = b
-                                    rawData[rawDataIndex++] = g
                                     rawData[rawDataIndex++] = r
+                                    rawData[rawDataIndex++] = g
+                                    rawData[rawDataIndex++] = b
                                 }
                             } else {
                                 // It's not RLE packed, but the next <count> pixels are raw.
                                 x += count
                                 while (count-- >= 0) {
-                                    data[1] = dis.readByte()
-                                    data[0] = dis.readByte()
-                                    r = (getBitsAsByte(data, 1, 5) * scalar).toInt().toByte()
-                                    g = (getBitsAsByte(data, 6, 5) * scalar).toInt().toByte()
-                                    b = (getBitsAsByte(data, 11, 5) * scalar).toInt().toByte()
-                                    rawData[rawDataIndex++] = b
-                                    rawData[rawDataIndex++] = g
+                                    val v = (dis.read() shl 8) + dis.read()
+                                    b = (((v ushr 1) and 31) * 255 / 31).toByte()
+                                    g = (((v ushr 6) and 31) * 255 / 31).toByte()
+                                    r = (((v ushr 11) and 31) * 255 / 31).toByte()
                                     rawData[rawDataIndex++] = r
+                                    rawData[rawDataIndex++] = g
+                                    rawData[rawDataIndex++] = b
                                 }
                             }
                             x++
@@ -599,14 +625,13 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             return format
         }
 
-        private fun getBitsAsByte(data: ByteArray, offset: Int, length: Int): Byte {
-            var offsetBytes = offset / 8
-            var indexBits = offset % 8
+        private fun bitsToByte(data: ByteArray, offset: Int, length: Int): Int {
+            var offsetBytes = offset shr 3
+            var indexBits = offset and 7
             var rVal = 0
 
             // start at data[offsetBytes]...  spill into next byte as needed.
-            var i = length
-            while (--i >= 0) {
+            for (i in length - 1 downTo 0) {
                 val b = data[offsetBytes]
                 val test = if (indexBits == 7) 1 else 2 shl 6 - indexBits
                 if (b.toInt() and test != 0) {
@@ -622,23 +647,20 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                     offsetBytes++
                 }
             }
-            return rVal.toByte()
+            return rVal
         }
 
-        /**
-         * `flipEndian` is used to flip the endian bit of the header
-         * file.
-         *
-         * @param signedShort the bit to flip.
-         * @return the flipped bit.
-         */
-        private fun flipEndian(signedShort: Short): Short {
-            val input: Int = signedShort.toInt() and 0xFFFF
-            return (input shl 8 or (input and 0xFF00) ushr 8).toShort()
+        private fun flipEndian(asShort: Short): Int {
+            val asInt = asShort.toInt() and 0xffff
+            return ((asInt shl 8) or (asInt ushr 8)) and 0xffff
         }
 
         private fun abgr(r: Int, g: Int, b: Int, a: Int): Int {
             return b and 255 shl 16 or (g and 255 shl 8) or (r and 255) or (a and 255 shl 24)
+        }
+
+        private fun abgr(r: Int, g: Int, b: Int): Int {
+            return b and 255 shl 16 or (g and 255 shl 8) or (r and 255) or (255 shl 24)
         }
     }
 }

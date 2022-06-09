@@ -15,24 +15,25 @@ import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     companion object {
-        val getAnimMatrix = "" +
-                loadMat4x3 +
-                "mat4x3 getAnimMatrix(int index, float time){\n" +
-                "   int timeI = int(time); float timeF = fract(time);\n" +
-                "   vec4 a = mix(texelFetch(animTexture, ivec2(index,  timeI), 0), texelFetch(animTexture, ivec2(index,  timeI+1), 0), timeF);\n" +
-                "   vec4 b = mix(texelFetch(animTexture, ivec2(index+1,timeI), 0), texelFetch(animTexture, ivec2(index+1,timeI+1), 0), timeF);\n" +
-                "   vec4 c = mix(texelFetch(animTexture, ivec2(index+2,timeI), 0), texelFetch(animTexture, ivec2(index+2,timeI+1), 0), timeF);\n" +
-                "   return loadMat4x3(a,b,c);\n" +
-                "}\n" +
-                "mat4x3 getAnimMatrix(int boneIndex){\n" +
-                "   int index = boneIndex * 3;\n" + // every matrix uses 3 pixels
-                "   mat4x3 t;\n" +
-                "   t  = getAnimMatrix(index,animIndices.x)*animWeights.x;\n" +
-                "   t += getAnimMatrix(index,animIndices.y)*animWeights.y;\n" +
-                "   t += getAnimMatrix(index,animIndices.z)*animWeights.z;\n" +
-                "   t += getAnimMatrix(index,animIndices.w)*animWeights.w;\n" +
-                "   return t;\n" +
-                "}\n"
+        const val getAnimMatrix =
+            "" + loadMat4x3 +
+                    "mat4x3 getAnimMatrix(int index, float time){\n" +
+                    "   int timeI = int(time); float timeF = fract(time);\n" +
+                    "   vec4 a = mix(texelFetch(animTexture, ivec2(index,  timeI), 0), texelFetch(animTexture, ivec2(index,  timeI+1), 0), timeF);\n" +
+                    "   vec4 b = mix(texelFetch(animTexture, ivec2(index+1,timeI), 0), texelFetch(animTexture, ivec2(index+1,timeI+1), 0), timeF);\n" +
+                    "   vec4 c = mix(texelFetch(animTexture, ivec2(index+2,timeI), 0), texelFetch(animTexture, ivec2(index+2,timeI+1), 0), timeF);\n" +
+                    "   return loadMat4x3(a,b,c);\n" +
+                    "}\n" +
+                    "mat4x3 getAnimMatrix(int boneIndex, vec4 animIndices, vec4 animWeights){\n" +
+                    "   int index = boneIndex * 3;\n" + // every matrix uses 3 pixels
+                    "   mat4x3 t;\n" +
+                    "   t  = getAnimMatrix(index,animIndices.x)*animWeights.x;\n" +
+                    "   t += getAnimMatrix(index,animIndices.y)*animWeights.y;\n" +
+                    "   t += getAnimMatrix(index,animIndices.z)*animWeights.z;\n" +
+                    "   t += getAnimMatrix(index,animIndices.w)*animWeights.w;\n" +
+                    "   return t;\n" +
+                    "}\n" +
+                    "mat4x3 getAnimMatrix(int boneIndex){ return getAnimMatrix(boneIndex, animIndices, animWeights); }\n"
     }
 
     open fun createBuilder(): ShaderBuilder {
@@ -51,60 +52,64 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
     }
 
-    open fun createBase(isInstanced: Boolean, isAnimated: Boolean, colors: Boolean): ShaderBuilder {
+    open fun createBase(
+        isInstanced: Boolean, isAnimated: Boolean, colors: Boolean, motionVectors: Boolean
+    ): ShaderBuilder {
         val builder = createBuilder()
-        builder.addVertex(createVertexStage(isInstanced, isAnimated, colors))
+        builder.addVertex(createVertexStage(isInstanced, isAnimated, colors, motionVectors))
         builder.addVertex(createRandomIdStage())
-        builder.addFragment(createFragmentStage(isInstanced, isAnimated))
+        builder.addFragment(createFragmentStage(isInstanced, isAnimated, motionVectors))
         return builder
     }
 
-    open fun createVertexVariables(isInstanced: Boolean, isAnimated: Boolean, colors: Boolean): ArrayList<Variable> {
+    open fun createVertexVariables(
+        isInstanced: Boolean, isAnimated: Boolean, colors: Boolean, motionVectors: Boolean
+    ): ArrayList<Variable> {
 
-        val attributes = ArrayList<Variable>(32)
-        attributes += Variable(GLSLType.V3F, "coords", VariableMode.ATTR)
+        val variables = ArrayList<Variable>(32)
+        variables += Variable(GLSLType.V3F, "coords", VariableMode.ATTR)
 
         if (colors) {
-            attributes += Variable(GLSLType.V2F, "uvs", VariableMode.ATTR)
-            attributes += Variable(GLSLType.V3F, "normals", VariableMode.ATTR)
-            attributes += Variable(GLSLType.V3F, "tangents", VariableMode.ATTR)
-            attributes += Variable(GLSLType.V4F, "colors", VariableMode.ATTR)
+            variables += Variable(GLSLType.V2F, "uvs", VariableMode.ATTR)
+            variables += Variable(GLSLType.V3F, "normals", VariableMode.ATTR)
+            variables += Variable(GLSLType.V3F, "tangents", VariableMode.ATTR)
+            variables += Variable(GLSLType.V4F, "colors", VariableMode.ATTR)
         }
 
         // uniforms
-        attributes += Variable(GLSLType.M4x4, "transform")
+        variables += Variable(GLSLType.M4x4, "transform")
         if (colors) {
-            attributes += Variable(GLSLType.BOOL, "hasVertexColors")
+            variables += Variable(GLSLType.V1B, "hasVertexColors")
         }
 
         // outputs
-        attributes += Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
-        attributes += Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
-        attributes += Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
+        variables += Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
+        variables += Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
+        variables += Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
 
         if (colors) {
-            attributes += Variable(GLSLType.V2F, "uv", false)
-            attributes += Variable(GLSLType.V3F, "normal", false)
-            attributes += Variable(GLSLType.V3F, "tangent", false)
-            attributes += Variable(GLSLType.V4F, "vertexColor", false)
+            variables += Variable(GLSLType.V2F, "uv", false)
+            variables += Variable(GLSLType.V3F, "normal", false)
+            variables += Variable(GLSLType.V3F, "tangent", false)
+            variables += Variable(GLSLType.V4F, "vertexColor", false)
         }
 
         if (isInstanced) {
-            attributes += Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR)
-            attributes += Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR)
-            attributes += Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR)
-            attributes += Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR)
+            variables += Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR)
+            variables += Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR)
+            variables += Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR)
+            variables += Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR)
             if (colors) {
-                attributes += Variable(GLSLType.V4F, "instanceTint", VariableMode.ATTR)
-                attributes += Variable(GLSLType.V4F, "tint", VariableMode.OUT)
+                variables += Variable(GLSLType.V4F, "instanceTint", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4F, "tint", VariableMode.OUT)
             }
             if (isAnimated && useAnimTextures) {
-                attributes += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
-                attributes += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
-                attributes += Variable(GLSLType.V4F, "animWeights", VariableMode.ATTR)
-                attributes += Variable(GLSLType.V4F, "animIndices", VariableMode.ATTR)
-                attributes += Variable(GLSLType.S2D, "animTexture")
-                attributes += Variable(GLSLType.BOOL, "hasAnimation")
+                variables += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4F, "animWeights", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4F, "animIndices", VariableMode.ATTR)
+                variables += Variable(GLSLType.S2D, "animTexture")
+                variables += Variable(GLSLType.V1B, "hasAnimation")
             }
         } else {
 
@@ -116,33 +121,51 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
             // attributes
             if (isAnimated) {
-                attributes += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
-                attributes += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
                 if (useAnimTextures) {
-                    attributes += Variable(GLSLType.V4F, "animWeights")
-                    attributes += Variable(GLSLType.V4F, "animIndices")
-                    attributes += Variable(GLSLType.S2D, "animTexture")
-                    attributes += Variable(GLSLType.BOOL, "hasAnimation")
+                    variables += Variable(GLSLType.V4F, "animWeights")
+                    variables += Variable(GLSLType.V4F, "animIndices")
+                    variables += Variable(GLSLType.S2D, "animTexture")
+                    variables += Variable(GLSLType.V1B, "hasAnimation")
                 } else {
                     // not required for the instanced rendering, because this is instance specific,
                     // and therefore not supported for instanced rendering
-                    attributes += Variable(GLSLType.M4x3, "jointTransforms", maxBones)
-                    attributes += Variable(GLSLType.BOOL, "hasAnimation")
+                    variables += Variable(GLSLType.M4x3, "jointTransforms", maxBones)
+                    variables += Variable(GLSLType.V1B, "hasAnimation")
                 }
             }
-            attributes += Variable(GLSLType.M4x3, "localTransform")
+            variables += Variable(GLSLType.M4x3, "localTransform")
             // Variable(GLSLType.V4F, "weight", false),
         }
 
-        return attributes
+        if (motionVectors) {
+            variables += Variable(GLSLType.M4x4, "prevTransform")
+            if (isInstanced) {
+                variables += Variable(GLSLType.V3F, "prevInstanceTrans0", VariableMode.ATTR)
+                variables += Variable(GLSLType.V3F, "prevInstanceTrans1", VariableMode.ATTR)
+                variables += Variable(GLSLType.V3F, "prevInstanceTrans2", VariableMode.ATTR)
+                variables += Variable(GLSLType.V3F, "prevInstanceTrans3", VariableMode.ATTR)
+            } else {
+                variables += Variable(GLSLType.M4x3, "prevLocalTransform")
+            }
+            variables += Variable(GLSLType.V3F, "currPosition", VariableMode.OUT)
+            variables += Variable(GLSLType.V3F, "prevPosition", VariableMode.OUT)
+        }
+
+        return variables
     }
 
-    open fun createVertexStage(isInstanced: Boolean, isAnimated: Boolean, colors: Boolean): ShaderStage {
+    open fun createVertexStage(
+        isInstanced: Boolean, isAnimated: Boolean, colors: Boolean, motionVectors: Boolean
+    ): ShaderStage {
 
-        val defines = "" +
-                (if (isInstanced) "#define INSTANCED\n" else "") +
-                (if (isAnimated) "#define ANIMATED\n" else "") +
-                (if (colors) "#define COLORS\n" else "")
+        val defines =
+            "" +
+                    (if (isInstanced) "#define INSTANCED\n" else "") +
+                    (if (isAnimated) "#define ANIMATED\n" else "") +
+                    (if (colors) "#define COLORS\n" else "") +
+                    (if (motionVectors) "#define MOTION_VECTORS\n" else "")
 
         val animationCode = if (useAnimTextures) {
             "" +
@@ -158,12 +181,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "jointMat += jointTransforms[indices.w] * weights.w;\n"
         }
 
+        val variables = createVertexVariables(isInstanced, isAnimated, colors, motionVectors)
         val stage = ShaderStage(
             "vertex",
-            createVertexVariables(isInstanced, isAnimated, colors),
-            "" +
-                    defines +
-                    "#ifdef INSTANCED\n" +
+            variables,
+            "" + defines + "#ifdef INSTANCED\n" +
                     "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
                     "   #ifdef COLORS\n" +
                     "       tint = instanceTint;\n" +
@@ -171,7 +193,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "#endif\n" + // instanced
                     "   #ifdef ANIMATED\n" +
                     "   if(hasAnimation){\n" +
-                    "       mat4x3 jointMat;\n" + animationCode +
+                    "       mat4x3 jointMat;\n" +
+                    animationCode +
+                    // todo if motion vectors, use previous jointMat
                     "       localPosition = jointMat * vec4(coords, 1.0);\n" +
                     "       #ifdef COLORS\n" +
                     "           normal = jointMat * vec4(normals, 0.0);\n" +
@@ -192,14 +216,16 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "       normal = localTransform * vec4(normal, 0.0);\n" +
                     "       tangent = localTransform * vec4(tangent, 0.0);\n" +
                     "   #endif\n" + // colors
-                    // normal only needs to be normalized, if we show the normal
-                    // todo only activate on viewing it...
                     "#ifdef COLORS\n" +
                     "   normal = normalize(normal);\n" + // here? nah ^^
                     "   vertexColor = hasVertexColors ? colors : vec4(1.0);\n" +
                     "   uv = uvs;\n" +
                     "#endif\n" +
                     "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                    "#ifdef MOTION_VECTORS\n" +
+                    "   currPosition = gl_Position.xyw;\n" +
+                    "   prevPosition = (prevTransform * vec4(prevLocalTransform * vec4(localPosition, 1.0), 1.0)).xyw;\n" +
+                    "#endif\n" +
                     ShaderLib.positionPostProcessing
         )
 
@@ -211,8 +237,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     }
 
-    open fun createFragmentVariables(isInstanced: Boolean, isAnimated: Boolean): ArrayList<Variable> {
-        return arrayListOf(
+    open fun createFragmentVariables(
+        isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean
+    ): ArrayList<Variable> {
+        val list = arrayListOf(
             // input textures
             Variable(GLSLType.S2D, "diffuseMap"),
             Variable(GLSLType.S2D, "normalMap"),
@@ -252,7 +280,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V2F, "finalClearCoatRoughMetallic", VariableMode.INOUT),
             // for reflections;
             // we could support multiple
-            Variable(GLSLType.BOOL, "hasReflectionPlane"),
+            Variable(GLSLType.V1B, "hasReflectionPlane"),
             Variable(GLSLType.V3F, "reflectionPlaneNormal"),
             Variable(GLSLType.S2D, "reflectionPlane"),
             Variable(GLSLType.V4F, "reflectionCullingPlane"),
@@ -261,13 +289,21 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V4F, "clearCoat"),
             Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
         )
+        if (motionVectors) {
+            list += Variable(GLSLType.V3F, "currPosition")
+            list += Variable(GLSLType.V3F, "prevPosition")
+            list += Variable(GLSLType.V2F, "finalMotion", VariableMode.OUT)
+        }
+        return list
     }
 
     // just like the gltf pbr shader define all material properties
-    open fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean): ShaderStage {
+    open fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): ShaderStage {
 
         return ShaderStage(
-            "material", createFragmentVariables(isInstanced, isAnimated), "" +
+            "material",
+            createFragmentVariables(isInstanced, isAnimated, motionVectors),
+            "" +
                     "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
 
                     // step by step define all material properties
@@ -287,8 +323,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   vec3 normalFromTex = texture(normalMap, uv).rgb * 2.0 - 1.0;\n" +
                     "        normalFromTex = tbn * normalFromTex;\n" +
                     "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
-                    "}\n" +
-                    "finalEmissive  = texture(emissiveMap, uv).rgb * emissiveBase;\n" +
+                    "}\n" + "finalEmissive  = texture(emissiveMap, uv).rgb * emissiveBase;\n" +
                     "finalOcclusion = (1.0 - texture(occlusionMap, uv).r) * occlusionStrength;\n" +
                     "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv).r), 0.0, 1.0);\n" +
                     "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r), 0.0, 1.0);\n" +
@@ -296,8 +331,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     // reflections
                     // use roughness instead?
                     // "   if(finalMetallic > 0.0) finalColor = mix(finalColor, texture(reflectionPlane,uv).rgb, finalMetallic);\n" +
-                    "if(hasReflectionPlane){\n" +
-                    "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1.0 - finalRoughness);\n" +
+                    "if(hasReflectionPlane){\n" + "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1.0 - finalRoughness);\n" +
                     "   float factor = clamp((effect-.3)*1.4, 0.0, 1.0);\n" +
                     "   if(factor > 0.0){\n" +
                     "       vec3 newColor = vec3(0.0);\n" +
@@ -308,8 +342,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "       finalColor = mix(finalColor, newColor, factor);\n" +
                     // "       finalRoughness = 0;\n" +
                     // "       finalMetallic = 0;\n" +
-                    "   }\n" +
-                    "};\n" +
+                    "   }\n" + "};\n" +
 
                     // sheen calculation
                     "vec3 V0 = normalize(-finalPosition);\n" +
@@ -334,16 +367,18 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   finalRoughness = mix(finalRoughness, finalClearCoatRoughMetallic.x, clearCoatEffect);\n" +
                     "   finalMetallic = mix(finalMetallic, finalClearCoatRoughMetallic.y, clearCoatEffect);\n" +
                     "   finalColor = mix(finalColor, finalClearCoat.rgb, clearCoatEffect);\n" +
-                    "}\n"
+                    "}\n" +
+                    (if (motionVectors) "finalMotion = currPosition.xy/currPosition.z - prevPosition.xy/prevPosition.z;\n" else "") +
+                    ""
 
         )
 
     }
 
-    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean): Shader {
+    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): Shader {
 
         val builder = createBuilder()
-        builder.addVertex(createVertexStage(isInstanced, isAnimated, false))
+        builder.addVertex(createVertexStage(isInstanced, isAnimated, false, motionVectors))
         // no random id required
 
         // for the future, we could respect transparency from textures :)
@@ -361,10 +396,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         postProcessing: ShaderStage?,
         isInstanced: Boolean,
         isAnimated: Boolean,
+        motionVectors: Boolean,
         geoShader: GeoShader?
     ): Shader {
 
-        val base = createBase(isInstanced, isAnimated, true)
+        val base = createBase(isInstanced, isAnimated, true, motionVectors)
 
         // <3, this is crazily easy
         base.addFragment(postProcessing)
@@ -380,10 +416,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         deferred: DeferredSettingsV2,
         isInstanced: Boolean,
         isAnimated: Boolean,
+        motionVectors: Boolean,
         geoShader: GeoShader?
     ): Shader {
 
-        val base = createBase(isInstanced, isAnimated, true)
+        val base = createBase(isInstanced, isAnimated, colors = true, motionVectors)
         base.outputs = deferred
 
         // build & finish

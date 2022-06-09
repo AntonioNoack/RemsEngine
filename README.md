@@ -1,6 +1,6 @@
 # Game Engine: Rem's Engine
 
-Parallel to this video editor, I am developing my own game engine. I have often written the beginnings of small games,
+Parallel to my video editor "Rem's Engine", I am developing my own game engine. I have often written the beginnings of small games,
 but they always had much in common, so I decided to write my own engine.
 
 - direct Java/Kotlin support
@@ -21,8 +21,8 @@ quick to develop in, like a tool box.
 I was writing the game engine in this same repository as [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), because
 
 - they share a lot of code,
-- I want to base the video studio on the engine in the future
-- currently, the engine needs to be based on the video editor
+- I wanted to base the video studio on the engine in the future
+- the engine needed to be based on the video editor
 - when I started the engine, the video studio already was a huge project
 
 To develop them properly, I ofc had to split them. I finished the split in Q1 2022.
@@ -55,29 +55,38 @@ graph TB
 ## Features
 
 - entity - component based system
-    - because I like the system from Unity more than that of Godot (still imperfect)
+  - because I like the system from Unity more than that of Godot (still imperfect)
 - 64 bit fp transformations for universe simulations
 - supports loading all kinds of formats
+  - Image formats (ffmpeg, ImageIO, Image4j, custom): png, jpg, tga, ico, dds, exr, hdr, svg, pcx, xcf (Gimp)
+  - Video formats (ffmpeg): wav, mp3, mp4, avi, flv, gif
+  - Mesh formats (Assimp, custom) obj, fbx, gltf, dae, blend, vox, md2, md5mesh
+  - Package formats (Apache Compress, JUnRar): zip, tar, tar.gz, rar, 7z, bz2, lz4, xar, oar
+  - Metadata formats (custom): json, csv, yaml
+  - Others (Apache PDFBox, custom): pdf, tar/text-based Unity-packages
+  - Note: not all are fully supported
 - can load files from compressed folders
 - pbr workflow
 - Bullet as 3d physics engine
-    - running on a separate thread for uninterrupted graphics (currently disabled)
+    - running on a separate thread for uninterrupted graphics (optional)
     - running with 64 bit floating precision for accuracy / universe simulations
 - Box2d as 2d physics engine
     - currently a prototype
 - mods / plugins from the start: your game is a mod for the engine
 - event based
-- auto switch between forward- and deferred rendering
+- simple switch between forward- and deferred rendering
     - for beautiful MSAA with a few lights,
     - or thousands of lights without performance hit
-    - forward rendering does not support ssr nor ssao
+    - forward rendering does not support SSR nor SSAO
 - depth-edge-detection based anti-aliasing (like FXAA)
-- shadows with cascades (directional, spot, point)
+- different light types, with shadow support: directional, spot, point
+- shadows with cascades (directional)
 - planar reflections
-- screen space reflections (ssr)
-- screen space ambient occlusion (ssao)
+- screen space reflections (SSR)
+- screen space ambient occlusion (SSAO)
 - static, animated and procedural meshes
-- SDF "meshes"
+- static and animated meshes can be instanced
+- signed distance functions as mesh replacement
 - aabb optimized scene hierarchy
 - bloom to convey brightness
 - AMD FSR: dynamic upscaling and sharpening
@@ -85,10 +94,11 @@ graph TB
 - controller support
     - works for UI automatically
     - you can even use your controller in other programs as a mouse, while Rem's Engine/Studio is running :3
-- bare-bones support for .blend files from Blender, so you don't have to export manually
 - automatic file reload, on file change
 - Android-inspired UI with integrated spellchecking
 - very basic Lua scripting
+- utilities like path-finding
+- spellchecking in most input fields
 
 ## Planned Features
 - easy local multiplayer
@@ -101,6 +111,7 @@ graph TB
 - export to Windows/Linux
 - usable Gizmos 🙈
 - fully supported Lua scripting
+- surfel based global illumination
 
 ## Maybe Later Features
 - export to Web
@@ -110,7 +121,6 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 - light baking for realistic graphics
 - trees for much stuff: animations, shaders
 - visual coding?
-- path finding algorithms
 - support separate mice / keyboards for local multiplayer?
 - when we have no videos, we could ship without ffmpeg
 
@@ -131,19 +141,19 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 ## Samples
 Besides my personal projects that use Rem's Engine, there is also quite a few samples within the engine source code.
 
-Some tests, starting the whole engine:
-- MarchingCubes.kl
-- PathfindingTest.kt
+Some tests, starting the whole engine, like a small game:
+- [GFX: MarchingCubes.kt](src/me/anno/maths/geometry/MarchingCubes.kt)
+- [Math: PathfindingAccTest.kt](src/me/anno/maths/paths/PathFindingAccTest.kt)
 
 Some feature tests:
-- MarchingSquares.kt
-- SDFTest.kt
-- Hierarchy.kt
-- Reduction.kt
-- FSR.kt
-- JsonFormatter.kt
-- DrawCurves.kt
-- AnimTest.kt
+- [Math: SDFTest.kt](src/me/anno/ecs/components/collider/SDFTest.kt)
+- [Internal: Hierarchy.kt](src/me/anno/ecs/prefab/Hierarchy.kt)
+- [GFX: MarchingSquares.kt](src/me/anno/maths/geometry/MarchingSquares.kt)
+- [GFX: Reduction.kt](src/me/anno/gpu/shader/Reduction.kt)
+- [GFX: FSR.kt](src/me/anno/ecs/components/shaders/effects/FSR.kt)
+- [Debug: JsonFormatter.kt](src/me/anno/io/json/JsonFormatter.kt)
+- [UI: DrawCurves.kt](src/me/anno/gpu/drawing/DrawCurves.kt)
+- [UI: AnimTest.kt](src/me/anno/ui/anim/AnimTest.kt)
 
 To find more examples, search for "fun main(args: Array<String>)" in the source code.
 
@@ -152,8 +162,8 @@ To find more examples, search for "fun main(args: Array<String>)" in the source 
 
 ## Used libraries
 
-* [LWJGL](https://www.lwjgl.org/) (Graphics and Audio; OpenGL + GLFW + OpenAL + stb + jemalloc)
-* [Assimp](https://github.com/assimp/assimp) (loading 3d meshes, from LWJGL)
+* [LWJGL](https://www.lwjgl.org/) (Graphics and Audio; OpenGL + GLFW + OpenAL + stb (audio))
+* [Assimp](https://github.com/assimp/assimp) (loading 3d meshes; from LWJGL)
 * [JOML](https://github.com/JOML-CI/JOML) (Matrix calculations and transforms for rendering)
 * [FFMpeg](https://ffmpeg.org/) (Video/Image/Audio Import & Export)
 * [HSLuv](https://github.com/hsluv/hsluv-java) (HSL alternative with constant brightness)
@@ -174,7 +184,7 @@ To find more examples, search for "fun main(args: Array<String>)" in the source 
 
 ## Build It
 
-The project can be built similar to [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), just the main class now is *me.anno.engine.RemsEngine*.
+The project can be built similar to [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), just the main class now is [me.anno.engine.RemsEngine](src/me/anno/engine/RemsEngine.kt).
 All listed libraries need to be added to the project in some way.
 
 ## Use It

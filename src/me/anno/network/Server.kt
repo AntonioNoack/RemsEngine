@@ -1,6 +1,7 @@
 package me.anno.network
 
 import me.anno.Engine
+import me.anno.io.Streams.readBE32
 import me.anno.utils.Color.hex32
 import me.anno.utils.structures.lists.UnsafeArrayList
 import org.apache.logging.log4j.LogManager
@@ -281,15 +282,6 @@ open class Server : Closeable {
         val cl = hashedClients[hash(client)]
         synchronized(cl) { cl.remove(client) }
         synchronized(clients) { clients.remove(client) }
-    }
-
-    private fun InputStream.readBE32(): Int {
-        val a = read()
-        val b = read()
-        val c = read()
-        val d = read()
-        if (a < 0 || b < 0 || c < 0 || d < 0) throw EOFException()
-        return a.shl(24) + b.shl(16) + c.shl(8) + d
     }
 
     private fun findTcpClient(address: InetAddress, randomId: Int): TCPClient? {

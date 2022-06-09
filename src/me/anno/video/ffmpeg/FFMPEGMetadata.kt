@@ -3,6 +3,7 @@ package me.anno.video.ffmpeg
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.image.gimp.GimpImage
+import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -49,10 +50,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
         when (val signature = Signature.findName(file)) {
             "gimp" -> {
                 // Gimp files are a special case, which is not covered by FFMPEG
-                val (w, h) = file.inputStream().use { GimpImage.findSize(it) }
-                hasVideo = true
-                videoWidth = w
-                videoHeight = h
+                setImage(file.inputStream().use { GimpImage.findSize(it) })
             }
             // only load ffmpeg for ffmpeg files
             "gif", "media" -> {
@@ -65,10 +63,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                     try {
                         file.inputStream().use {
                             reader.input = ImageIO.createImageInputStream(it)
-                            videoWidth = reader.getWidth(reader.minIndex)
-                            videoHeight = reader.getHeight(reader.minIndex)
-                            videoFrameCount = 1
-                            hasVideo = true
+                            setImage(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
                         }
                         break
                     } catch (_: IOException) {
@@ -77,9 +72,25 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                     }
                 }
             }
+            null -> {
+                if (file.lcExtension == "tga") {
+                    setImage(file.inputStream().use { TGAImage.findSize(it) })
+                }
+            }
             // else unknown
         }
 
+    }
+
+    fun setImage(wh: Pair<Int, Int>) {
+        setImage(wh.first, wh.second)
+    }
+
+    fun setImage(w: Int, h: Int) {
+        hasVideo = true
+        videoWidth = w
+        videoHeight = h
+        videoFrameCount = 1
     }
 
     fun loadFFMPEG() {

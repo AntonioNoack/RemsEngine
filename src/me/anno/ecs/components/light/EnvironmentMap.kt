@@ -163,7 +163,7 @@ class EnvironmentMap : LightComponentBase() {
                 )
                 pipeline.applyToneMapping = false
                 pipeline.fill(root, position, worldScale)
-                pipeline.draw(cameraMatrix, position, worldScale)
+                pipeline.draw()
             }
         }
         JomlPools.mat4f.sub(1)

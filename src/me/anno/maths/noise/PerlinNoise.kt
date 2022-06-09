@@ -5,6 +5,14 @@ import org.apache.logging.log4j.LogManager
 import kotlin.random.Random
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
+/**
+ * class to create cloud-like noise;
+ * @param seed seed for random values
+ * @param octaves levels of detail
+ * @param falloff how much each detail level is weaker; [0,1)
+ * @param min minimum output value
+ * @param max maximum output value
+ * */
 class PerlinNoise(
     seed: Long,
     octaves: Int, // 0 .. Int.Max

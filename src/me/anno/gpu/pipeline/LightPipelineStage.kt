@@ -37,7 +37,6 @@ import org.joml.Vector3d
 import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
 
 class LightPipelineStage(
-    var depthMode: DepthMode,
     val deferred: DeferredSettingsV2
 ) : Saveable() {
 
@@ -99,10 +98,10 @@ class LightPipelineStage(
                 builder.addVertex(
                     ShaderStage(
                         "v", listOf(
-                            Variable(GLSLType.V2F, "attr0", VariableMode.ATTR),
+                            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
                             Variable(GLSLType.V2F, "uv", VariableMode.OUT)
-                        ), "gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
-                                "uv = attr0;\n"
+                        ), "gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
+                                "uv = coords;\n"
                     )
                 )
 
@@ -112,7 +111,7 @@ class LightPipelineStage(
                         Variable(GLSLType.V3F, "finalPosition"),
                         Variable(GLSLType.V1F, "finalOcclusion"),
                         Variable(GLSLType.V3F, "finalEmissive"),
-                        Variable(GLSLType.BOOL, "applyToneMapping"),
+                        Variable(GLSLType.V1B, "applyToneMapping"),
                         Variable(GLSLType.S2D, "finalLight"),
                         Variable(GLSLType.S2D, "ambientOcclusion"),
                         Variable(GLSLType.V3F, "ambientLight"),
@@ -253,7 +252,7 @@ class LightPipelineStage(
                         Variable(GLSLType.S2D, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
                         // - point lights
                         Variable(GLSLType.SCube, "shadowMapCubic", 1),
-                        Variable(GLSLType.BOOL, "receiveShadows"),
+                        Variable(GLSLType.V1B, "receiveShadows"),
                         // Variable(GLSLType.V3F, "finalColor"), // not really required
                         Variable(GLSLType.V3F, "finalPosition"),
                         Variable(GLSLType.V3F, "finalNormal"),
@@ -344,7 +343,7 @@ class LightPipelineStage(
                         "   }\n" +
                         "}\n", listOf(), "" +
                         "out vec4 glFragColor;\n" +
-                        "void main(){ glFragColor = vec4(${1.0 / 8.0}); }"
+                        "void main(){ glFragColor = vec4(1.0); }"
             )
         }
 
@@ -378,9 +377,10 @@ class LightPipelineStage(
 
     var visualizeLightCount = false
 
-    val blendMode = BlendMode.ADD
-    val writeDepth = false
-    val cullMode = CullMode.FRONT
+    var depthMode = DepthMode.ALWAYS
+    var blendMode = BlendMode.ADD
+    var writeDepth = false
+    var cullMode = CullMode.FRONT
 
     // not yet optimized
     val environmentMaps = ArrayList<EnvironmentMap>()
@@ -536,7 +536,7 @@ class LightPipelineStage(
 
                 shader.v1b("fullscreen", light is DirectionalLight && light.cutoff <= 0.0)
 
-                setupLocalTransform(shader, transform, cameraPosition, worldScale, time)
+                setupLocalTransform(shader, transform, time)
 
                 val m = transform.getDrawMatrix(time)
 

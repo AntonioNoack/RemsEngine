@@ -2,7 +2,6 @@ package me.anno.gpu.debug
 
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
@@ -17,8 +16,11 @@ import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelList2D
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
+import me.anno.utils.files.Files.formatFileSize
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
 import org.lwjgl.opengl.GL14C.*
@@ -123,7 +125,7 @@ object DebugGPUStorage {
         val window = GFX.someWindow
         Menu.openMenu(window.windowStack, listOf(
             MenuOption(NameDesc("Texture2Ds (${tex2d.size})")) {
-                createListOfPanels("Texture2Ds") { list ->
+                create2DListOfPanels("Texture2Ds") { list ->
                     for (tex in tex2d.sortedBy { it.w * it.h }) {
                         list.add(TexturePanel(tex.name, tex, false))
                     }
@@ -135,14 +137,14 @@ object DebugGPUStorage {
             },
             MenuOption(NameDesc("CubemapTextures (${texCd.size})")) {
                 // todo test this in Rem's Studio
-                createListOfPanels("CubemapTextures") { list ->
+                create2DListOfPanels("CubemapTextures") { list ->
                     for (tex in texCd.sortedBy { it.w }) {
                         list.add(TexturePanel3D("", tex))
                     }
                 }
             },
             MenuOption(NameDesc("Framebuffers (${fbs.size})")) {
-                createListOfPanels("Framebuffers") { list ->
+                create2DListOfPanels("Framebuffers") { list ->
                     for (fb in fbs.sortedBy { it.w * it.h }) {
                         for (tex in fb.textures) {
                             list.add(TexturePanel(tex.name, tex, true))
@@ -154,17 +156,37 @@ object DebugGPUStorage {
             },
             MenuOption(NameDesc("Buffers (${buffers.size})")) {
                 // how can we display them?
-                // maybe like in RenderDoc, or as plain list with attributes, vertex count and such
+                // todo maybe like in RenderDoc, or as plain list with attributes, vertex count and such
                 // we have name data, so we could show colors, uvs, coordinates and such :)
-                LOGGER.warn("Not yet implemented")
+                // first, easy way:
+                createListOfPanels("Buffers") { list ->
+                    for (buff in buffers.sortedBy { it.locallyAllocated }) {
+                        list.add(TextPanel("${GFX.getName(buff.type)}, " +
+                                "${buff.elementCount} x ${buff.attributes}, " +
+                                "total: ${buff.locallyAllocated.formatFileSize()}", style))
+                    }
+                }
             }
         ))
     }
 
-    private fun createListOfPanels(title: String, fillList: (PanelList) -> Unit) {
+    private fun create2DListOfPanels(title: String, fillList: (PanelList) -> Unit) {
         val list = PanelList2D(style)
         list.childWidth *= 2
         list.childHeight *= 2
+        fillList(list)
+        val window = GFX.someWindow
+        Menu.openMenuByPanels(
+            window.windowStack,
+            window.mouseX.toInt(),
+            window.mouseY.toInt(),
+            NameDesc(title),
+            listOf(list)
+        )
+    }
+
+    private fun createListOfPanels(title: String, fillList: (PanelList) -> Unit) {
+        val list = PanelListY(style)
         fillList(list)
         val window = GFX.someWindow
         Menu.openMenuByPanels(

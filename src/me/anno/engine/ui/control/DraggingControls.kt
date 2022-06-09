@@ -68,7 +68,7 @@ import kotlin.math.round
 // automatically attach it to that object, that is being targeted? mmh.. no, use the selection for that
 // done draw the gizmos
 
-class DraggingControls(view: RenderView) : ControlScheme(view) {
+open class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     var mode = Mode.TRANSLATING
 

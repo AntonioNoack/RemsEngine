@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.utils.Color.rgb
@@ -58,6 +59,12 @@ open class ByteImage(
 
     override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
         // todo optimize for async scenario
+        if (!GFX.isGFXThread()) {
+            GFX.addGPUTask("ByteImage", width, height) {
+                createTexture(texture, true, checkRedundancy)
+            }
+            return
+        }
         when (channelsInData) {
             1 -> texture.createMonochrome(data, checkRedundancy)
             2 -> texture.createRG(data, checkRedundancy)

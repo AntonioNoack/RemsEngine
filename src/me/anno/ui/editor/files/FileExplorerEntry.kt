@@ -337,7 +337,12 @@ class FileExplorerEntry(
 
     val ref1 get() = getReferenceAsync(path)
 
-    private fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawImageOrThumb(
+        x0: Int, y0: Int,
+        x1: Int, y1: Int,
+        x2: Int, y2: Int,
+        x3: Int, y3: Int
+    ) {
         val w = x1 - x0
         val h = y1 - y0
         val file = ref1 ?: InvalidRef
@@ -374,7 +379,12 @@ class FileExplorerEntry(
                     GFX.copy(tmp)
                 } else {
                     // use current buffer directly
-                    OpenGL.useFrame(x0, y0, w, h, false, OpenGL.currentBuffer, Renderers.simpleNormalRenderer) {
+                    OpenGL.useFrame(
+                        x0, y0, w, h,
+                        false, OpenGL.currentBuffer,
+                        Renderers.simpleNormalRenderer
+                    ) {
+                        // todo clip to correct area
                         OpenGL.depthMode.use(DepthMode.GREATER) {
                             glClear(GL_DEPTH_BUFFER_BIT)
                             Thumbs.drawAnimatedSkeleton(animSample, time.toFloat(), w.toFloat() / h)
@@ -463,7 +473,12 @@ class FileExplorerEntry(
         }
     }
 
-    private fun drawThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawThumb(
+        x0: Int, y0: Int,
+        x1: Int, y1: Int,
+        x2: Int, y2: Int,
+        x3: Int, y3: Int
+    ) {
         /*if (file.isDirectory) {
             return drawDefaultIcon(x0, y0, x1, y1)
         }*/
@@ -475,7 +490,7 @@ class FileExplorerEntry(
                 if (meta != null) {
                     if (meta.videoWidth > 0) {
                         if (time == 0.0) { // not playing
-                            drawImageOrThumb(x0, y0, x1, y1)
+                            drawImageOrThumb(x0, y0, x1, y1, x2, y2, x3, y3)
                         } else {
                             drawVideo(x0, y0, x1, y1)
                         }
@@ -485,7 +500,7 @@ class FileExplorerEntry(
                     }
                 } else drawDefaultIcon(x0, y0, x1, y1)
             }
-            else -> drawImageOrThumb(x0, y0, x1, y1)
+            else -> drawImageOrThumb(x0, y0, x1, y1, x2, y2, x3, y3)
         }
     }
 
@@ -604,8 +619,12 @@ class FileExplorerEntry(
             y + padding,
             x + remainingW,
             y + padding + imageH,
-            ::drawThumb
-        )
+        ) { x2, y2, x3, y3 ->
+            drawThumb(
+                x2, y2, x3, y3,
+                x0, y0, x1, y2
+            )
+        }
 
         if (showTitle) clip2Dual(
             x0, y0, x1, y1,

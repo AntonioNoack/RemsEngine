@@ -3,6 +3,7 @@ package me.anno.gpu
 import me.anno.Engine
 import me.anno.input.Input
 import me.anno.studio.StudioBase
+import me.anno.ui.Window
 import me.anno.ui.utils.WindowStack
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
@@ -63,6 +64,11 @@ open class WindowX(var title: String) {
 
     var enableVsync = true
     private var lastVsyncInterval = -1
+
+    val currentWindow: Window? get() {
+        // todo find window at coordinates
+        return windowStack.lastOrNull()
+    }
 
     fun hasActiveMouseTargets(): Boolean {
         return abs(lastMouseTargetNanos - Engine.nanoTime) < 1e9

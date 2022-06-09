@@ -364,7 +364,7 @@ class TextMesh(
         private val LOGGER = LogManager.getLogger(TextMesh::class)
 
         val attributes = listOf(
-            Attribute("attr0", 2)
+            Attribute("coords", 2)
         )
 
         const val DEFAULT_LINE_HEIGHT = 0.2f

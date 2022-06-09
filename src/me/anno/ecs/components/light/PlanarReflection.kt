@@ -174,7 +174,7 @@ class PlanarReflection : LightComponentBase() {
                             glScissor(x0, y0, x1 - x0, y1 - y0)
                             // glClearColor(1f, 0f, 0f, 1f)
                             // glClear(GL_COLOR_BUFFER_BIT)
-                            pipeline.draw(camMatrix, reflectedCameraPosition, RenderView.worldScale)
+                            pipeline.draw()
                         }
                     }
                 }

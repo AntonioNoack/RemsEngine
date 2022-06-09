@@ -63,6 +63,7 @@ class Transform() : Saveable() {
         checkDrawTransform()
     }
 
+    @Suppress("unused")
     fun getDrawnMatrix(time: Long = Engine.gameTime): Matrix4x3d {
         getDrawMatrix(time) // update matrices
         return drawnTransform
@@ -114,18 +115,6 @@ class Transform() : Saveable() {
         this.state = state
         smoothUpdate(time)
     }
-
-    /*fun update(time: Long, entity: Entity, calculateMatrices: Boolean) {
-        update(time)
-        val children = entity.children
-        for (i in children.indices) {
-            val child = children[i]
-            if (!child.isPhysicsControlled) {
-                if (calculateMatrices) child.transform.calculateGlobalTransform(this)
-                child.transform.update(time, child, calculateMatrices)
-            }
-        }
-    }*/
 
     private fun updateDrawingLerpFactor(time: Long = Engine.gameTime): Double {
         val v = calculateDrawingLerpFactor(time)
@@ -183,6 +172,7 @@ class Transform() : Saveable() {
             invalidateGlobal()
         }
 
+    @Suppress("unused")
     fun setLocalEulerAngle(x: Double, y: Double, z: Double) {
         localRotation.set(Quaterniond().rotateY(y).rotateX(x).rotateZ(z))
     }
@@ -293,6 +283,7 @@ class Transform() : Saveable() {
         state = State.VALID_LOCAL
     }
 
+    @Suppress("unused")
     fun setLocal(values: Matrix4f) {
         localTransform.set(
             values.m00().toDouble(), values.m01().toDouble(), values.m02().toDouble(),
@@ -313,6 +304,7 @@ class Transform() : Saveable() {
         return x * x + y * y + z * z
     }
 
+    @Suppress("unused")
     fun dotViewDir(pos2: Vector3d, dir: Vector3d): Double {
         val w = globalTransform
         val x = w.m30() - pos2.x
@@ -401,6 +393,7 @@ class Transform() : Saveable() {
         return this
     }
 
+    @Suppress("unused")
     fun resetLocalRotation(): Transform {
         localRotation = localRotation.identity()
         return this
@@ -416,6 +409,7 @@ class Transform() : Saveable() {
         return this
     }
 
+    @Suppress("unused")
     fun rotateZLocal(angleRadians: Double): Transform {
         localRotation = localRotation.rotateZ(angleRadians)
         return this

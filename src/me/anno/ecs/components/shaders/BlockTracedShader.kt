@@ -3,13 +3,10 @@ package me.anno.ecs.components.shaders
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import org.joml.Vector3i
-import kotlin.math.max
 
 /**
  * a material, that is defined by blocks (which may be empty);
@@ -31,10 +28,10 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
 
     // needs to be adjusted as well for accurate shadows
     // I hope this gets optimized well, because no material data is actually required...
-    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean): Shader {
+    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): Shader {
         val builder = createBuilder()
-        builder.addVertex(createVertexStage(isInstanced, isAnimated, false))
-        builder.addFragment(createFragmentStage(isInstanced, isAnimated))
+        builder.addVertex(createVertexStage(isInstanced, isAnimated, false, motionVectors))
+        builder.addFragment(createFragmentStage(isInstanced, isAnimated, motionVectors))
         GFX.check()
         val shader = builder.create()
         shader.glslVersion = glslVersion
@@ -43,8 +40,9 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
     }
 
     open fun initProperties(instanced: Boolean): String = ""
-    open fun checkIfIsAir(instanced: Boolean): String = ""
+    open fun processBlock(instanced: Boolean): String = ""
     open fun modifyDepth(instanced: Boolean): String = ""
+    open fun onFinish(instanced: Boolean): String = ""
 
     open fun computeMaterialProperties(instanced: Boolean): String {
         return "" +
@@ -55,7 +53,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                 "finalRoughness = 0.5;\n"
     }
 
-    override fun createFragmentVariables(isInstanced: Boolean, isAnimated: Boolean): ArrayList<Variable> {
+    override fun createFragmentVariables(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): ArrayList<Variable> {
         return arrayListOf(
             // input varyings
             Variable(GLSLType.V3F, "localPosition"),
@@ -75,16 +73,16 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
             Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
             // for reflections
-            Variable(GLSLType.BOOL, "hasReflectionPlane"),
+            Variable(GLSLType.V1B, "hasReflectionPlane"),
             Variable(GLSLType.V3F, "reflectionPlaneNormal"),
             Variable(GLSLType.S2D, "reflectionPlane"),
             Variable(GLSLType.V4F, "reflectionCullingPlane"),
         )
     }
 
-    override fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean): ShaderStage {
+    override fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): ShaderStage {
         return ShaderStage(
-            "material", createFragmentVariables(isInstanced, isAnimated), "" +
+            "material", createFragmentVariables(isInstanced, isAnimated, motionVectors), "" +
                     // step by step define all material properties
                     "if(!gl_FrontFacing) discard;\n" +
                     "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
@@ -115,22 +113,24 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     "bool done = false;\n" +
                     "for(i=0;i<maxSteps;i++){\n" +
                     "   nextDist = min(s.x, min(s.y, s.z));\n" +
-                    "   bool isAir = false;\n" +
-                    checkIfIsAir(isInstanced) +
-                    "   if(isAir){\n" + // continue traversal
+                    "   bool continueTracing = false;\n" +
+                    "   bool setNormal = true;\n" +
+                    processBlock(isInstanced) +
+                    "   if(continueTracing){\n" + // continue traversal
                     "       if(nextDist == s.x){\n" +
-                    "           blockPosition.x += dn.x; s.x += ds.x; lastNormal = 0;\n" +
-                    "           if(blockPosition.x < 0.0 || blockPosition.x > bounds1.x){ discard; }\n" +
+                    "           blockPosition.x += dn.x; s.x += ds.x; if(setNormal) lastNormal = 0;\n" +
+                    "           if(blockPosition.x < 0.0 || blockPosition.x > bounds1.x){ break; }\n" +
                     "       } else if(nextDist == s.y){\n" +
-                    "           blockPosition.y += dn.y; s.y += ds.y; lastNormal = 1;\n" +
-                    "           if(blockPosition.y < 0.0 || blockPosition.y > bounds1.y){ discard; }\n" +
+                    "           blockPosition.y += dn.y; s.y += ds.y; if(setNormal) lastNormal = 1;\n" +
+                    "           if(blockPosition.y < 0.0 || blockPosition.y > bounds1.y){ break; }\n" +
                     "       } else {\n" +
-                    "           blockPosition.z += dn.z; s.z += ds.z; lastNormal = 2;\n" +
-                    "           if(blockPosition.z < 0.0 || blockPosition.z > bounds1.z){ discard; }\n" +
+                    "           blockPosition.z += dn.z; s.z += ds.z; if(setNormal) lastNormal = 2;\n" +
+                    "           if(blockPosition.z < 0.0 || blockPosition.z > bounds1.z){ break; }\n" +
                     "       }\n" +
                     "       dist = nextDist;\n" +
                     "   } else break;\n" + // hit something :)
                     "}\n" +
+                    onFinish(isInstanced) +
                     // compute normal
                     "vec3 localNormal = vec3(0.0);\n" +
                     "if(lastNormal == 0){ localNormal.x = -dn.x; } else\n" +

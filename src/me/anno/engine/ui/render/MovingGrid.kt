@@ -2,24 +2,29 @@ package me.anno.engine.ui.render
 
 import me.anno.config.DefaultConfig.defaultFont
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.GridColors.colorX
 import me.anno.engine.ui.render.GridColors.colorY
 import me.anno.engine.ui.render.GridColors.colorZ
 import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMeshGroup
+import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
+import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
-import kotlin.math.floor
-import kotlin.math.log10
-import kotlin.math.round
-import kotlin.math.roundToInt
+import org.joml.Matrix4f
+import org.joml.Matrix4x3d
+import kotlin.math.*
 
 object MovingGrid {
 
@@ -29,110 +34,164 @@ object MovingGrid {
             if (RenderView.currentInstance?.renderMode != RenderMode.DEPTH) {
                 // don't write depth, we want to stack it
                 OpenGL.depthMask.use(false) {
-                    drawGrid2(radius)
+                    drawGrid3(radius)
                 }
             } else {
-                drawGrid2(radius)
+                drawGrid3(radius)
             }
         }
     }
 
-    private fun drawGrid2(radius: Double) {
+    fun drawGrid3(radius0: Double) {
 
-        val log = log10(radius)
+        val log = log10(radius0)
         val floorLog = floor(log)
-        val f = (log - floorLog).toFloat()
-        val g = 1f - f
-        val radius2 = Maths.pow(10.0, floorLog)
-
-        drawGrid(radius2 * 1e1, g)
-        drawGrid(radius2 * 1e2, 1f)
-        drawGrid(radius2 * 1e3, f)
-
-        drawAxes(radius)
-
-        LineBuffer.finish(RenderView.cameraMatrix)
-
-    }
-
-    private fun drawGrid(radius: Double, f: Float) {
-
+        alphas[2] = (log - floorLog).toFloat()
+        alphas[1] = 1f
+        alphas[0] = 1f - alphas[2]
+        val radius1 = Maths.pow(10.0, floorLog + 1)
         val position = RenderView.currentInstance?.position ?: RenderView.camPosition
 
-        val dx = round(position.x / radius) * radius
-        val dz = round(position.z / radius) * radius
+        for (i in 0 until 3) {
 
-        val gridAlpha = 0.05f * f
-        val alpha = if (RenderView.currentInstance?.renderMode != RenderMode.DEPTH) gridAlpha else 1f
-        val color = (alpha * 255).roundToInt() * 0x10101 or black
+            val scale = 10.0.pow(i)
+            val radius2 = radius1 * scale
 
-        // default grid didn't work correctly with depth -> using lines
-        for (i in -100..100) {
-            val v = 0.01 * radius * i
-            LineShapes.drawLine(null, v + dx, 0.0, radius + dz, v + dx, 0.0, -radius + dz, color)
-            LineShapes.drawLine(null, radius + dx, 0.0, v + dz, -radius + dx, 0.0, v + dz, color)
+            val dx = round(position.x / radius2) * radius2
+            val dz = round(position.z / radius2) * radius2
+
+            transform.identity()
+                .translate(dx, 0.0, dz)
+                .scale(radius2)
+
+            alpha = 0.05f * alphas[i]
+            if(alpha > 1f/255f){
+                drawMesh(gridMesh)
+
+                alpha *= 2f
+                val textSize = radius2 * 0.01
+                drawTextMesh(textSize, 1)
+                drawTextMesh(textSize, 5)
+            }
+
         }
 
-        val textAlpha = 0.1f * f
-        drawText(radius * 0.01, 1, textAlpha)
-        drawText(radius * 0.01, 5, textAlpha)
+        // to do replace with one mesh
+        drawAxes(radius0)
 
     }
 
-    // val clock = Clock()
+    fun drawMesh(mesh: Mesh) {
+        val shader = ShaderLib.shader3D.value
+        shader.use()
+        GFXx2D.disableAdvancedGraphicalFeatures(shader)
+        camera.set(RenderView.cameraMatrix)
+            .mul4x3delta(transform, RenderView.camPosition, RenderView.worldScale)
+        shader.m4x4("transform", camera)
+        shader.v3f("offset", 0f)
+        shader.v1i("drawMode", GFX.drawMode.id)
+        GFX.shaderColor(shader, "tint", alpha, alpha, alpha, 1f)
+        whiteTexture.bind(0)
+        mesh.draw(shader, 0)
+        GFX.check()
+    }
 
-    fun drawText(baseSize: Double, factor: Int, alpha: Float) {
-        val size = baseSize * factor
-        // clock.start()
-        val tmg = texts.getOrPut(size) {
-            // format size
-            val suffix = when (val power = round(log10(baseSize)).toInt()) {
-                -12 -> "pm"
-                -11 -> "0pm"
-                -10 -> "00pm"
-                -9 -> "nm"
-                -8 -> "0nm"
-                -7 -> "00nm"
-                -6 -> "µm"
-                -5 -> "0µm"
-                -4 -> "00µm"
-                -3 -> "mm"
-                -2 -> "cm"
-                -1 -> "0cm"
-                0 -> "m"
-                1 -> "0m"
-                2 -> "00m"
-                3 -> "km"
-                4 -> "0km"
-                5 -> "00km"
-                6 -> "Mm"
-                7 -> "0Mm"
-                8 -> "00Mm"
-                100 -> "Googol m"
-                else -> "e${power}m"
-            }
-            val text = "$factor$suffix"
-            val font = FontManager.getFont(defaultFont).font
-            TextMeshGroup(font, text, 0f, false, debugPieces = false)
+    val gridMesh = Mesh()
+
+    val alphas = FloatArray(3)
+    var alpha = 0f
+    val transform = Matrix4x3d()
+    val camera = Matrix4f()
+
+    init {
+
+        val numLines = 201 * 2 // +/- 100, y; x and z
+        val numPoints = numLines * 2
+        var i = 0
+        val positions = FloatArray(numPoints * 3)
+        val indices = IntArray(numPoints * 3)
+
+        val di = 1f
+        for (line in -100..+100) {
+            val dj = di * 0.01f * line
+
+            positions[i++] = +dj
+            positions[i++] = 0f
+            positions[i++] = +di
+            positions[i++] = +dj
+            positions[i++] = 0f
+            positions[i++] = -di
+
+            positions[i++] = +di
+            positions[i++] = 0f
+            positions[i++] = +dj
+            positions[i++] = -di
+            positions[i++] = 0f
+            positions[i++] = +dj
         }
-        if (tmg.buffer == null) tmg.createStaticBuffer()
-        // clock.stop { "Generating text ${tmg.text}" }, 1ms on average
-        val buffer = tmg.buffer ?: return
-        val offset = JomlPools.vec3f.create().set(0f)
-        // position correctly
-        val stack = RenderView.stack
-        stack.set(RenderView.cameraMatrix)
-        val pos = RenderView.camPosition
-        val ws = RenderView.worldScale
-        stack.translate(-(pos.x * ws).toFloat(), -(pos.y * ws).toFloat(), -(pos.z * ws).toFloat())
-        stack.rotateX(-PIf * 0.5f)
-        val sizeF = (size * ws).toFloat()
-        stack.translate(sizeF, 0f, 0f)
-        stack.scale(sizeF, sizeF, sizeF)
-        GFXx3D.draw3DText(offset, stack, buffer, (-1).withAlpha(alpha))
+
+        var j = 0
+        var k = 0
+        for (line in 0 until numLines) {
+            indices[j++] = k++
+            indices[j++] = k
+            indices[j++] = k++
+        }
+
+        gridMesh.positions = positions
+        gridMesh.indices = indices
+
+    }
+
+    fun drawTextMesh(
+        baseSize: Double,
+        factor: Int
+    ) {
+        val size = baseSize * factor
+        val mesh = texts2.getOrPut(size) {
+            val text = "$factor${getSuffix(baseSize)}" // format size
+            val font = FontManager.getFont(defaultFont).font
+            val meshGroup = TextMeshGroup(font, text, 0f, false, debugPieces = false)
+            meshGroup.createMesh()
+        }
+        transform
+            .identity()
+            .translate(size, 0.0, -size * 0.02)
+            .rotateX(-PI * 0.5)
+            .scale(size)
+        drawMesh(mesh)
+    }
+
+    fun getSuffix(baseSize: Double): String {
+        return when (val power = round(log10(baseSize)).toInt()) {
+            -12 -> "pm"
+            -11 -> "0pm"
+            -10 -> "00pm"
+            -9 -> "nm"
+            -8 -> "0nm"
+            -7 -> "00nm"
+            -6 -> "µm"
+            -5 -> "0µm"
+            -4 -> "00µm"
+            -3 -> "mm"
+            -2 -> "cm"
+            -1 -> "0cm"
+            0 -> "m"
+            1 -> "0m"
+            2 -> "00m"
+            3 -> "km"
+            4 -> "0km"
+            5 -> "00km"
+            6 -> "Mm"
+            7 -> "0Mm"
+            8 -> "00Mm"
+            100 -> "Googol m"
+            else -> "e${power}m"
+        }
     }
 
     val texts = HashMap<Double, TextMeshGroup>()
+    val texts2 = HashMap<Double, Mesh>()
 
     private fun drawAxes(scale: Double) {
         val length = 1e3 * scale

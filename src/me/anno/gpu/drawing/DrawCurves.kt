@@ -17,7 +17,7 @@ object DrawCurves {
     private fun parametricShader(name: String, parametricFunction: String, numParams: Int): BaseShader {
         return BaseShader(
             name, "" +
-                    "${OpenGLShader.attribute} vec2 attr0;\n" + // we need to use a high-def mesh here
+                    "${OpenGLShader.attribute} vec2 coords;\n" + // we need to use a high-def mesh here
                     "uniform vec2 pos, size;\n" +
                     "uniform mat4 transform;\n" +
                     "uniform float extrusion, tScale;\n" +
@@ -28,12 +28,12 @@ object DrawCurves {
                     "    $parametricFunction;\n" +
                     "}\n" +
                     "void main(){\n" +
-                    "   t = .5 + (attr0.x-.5) * tScale;\n" +
+                    "   t = .5 + (coords.x-.5) * tScale;\n" +
                     "   float dt = 0.01;\n" +
                     "   vec2 p0 = point(t - dt);\n" +
                     "   vec2 p1 = point(t);\n" +
                     "   vec2 p2 = point(t + dt);\n" +
-                    "   uv = p1 + rot90(normalize(p2-p0)) * attr0.y * extrusion;\n" +
+                    "   uv = p1 + rot90(normalize(p2-p0)) * coords.y * extrusion;\n" +
                     "   gl_Position = transform * vec4((pos + uv * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V1F, "t")), "" +
                     "uniform vec4 ${(0 until numParams).joinToString { "c$it" }}, backgroundColor;\n" +

@@ -1,7 +1,6 @@
 package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.*
-import com.bulletphysics.util.ObjectArrayList
 import me.anno.Engine
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
@@ -231,7 +230,7 @@ open class MeshCollider() : Collider() {
             // calculate convex hull
             // simplify it maybe
 
-            val points = ObjectArrayList<javax.vecmath.Vector3d>(positions.size / 3)
+            val points = ArrayList<javax.vecmath.Vector3d>(positions.size / 3)
             for (i in positions.indices step 3) {
                 points.add(
                     javax.vecmath.Vector3d(

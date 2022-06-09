@@ -1,9 +1,12 @@
 package me.anno.ecs.components.ui
 
 import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.extensions.events.Event
 import me.anno.input.MouseButton
+import me.anno.ui.Window
 
 class UIEvent(
+    var window: Window?,
     var x: Float,
     var y: Float,
     var dx: Float,
@@ -14,18 +17,24 @@ class UIEvent(
     var isLong: Boolean,
     var type: UIEventType,
     var action: String = ""
-) {
+) : Event() {
 
-    constructor(x: Float, y: Float, key: Int, type: UIEventType) :
-            this(x, y, 0f, 0f, key, false, MouseButton.UNKNOWN, false, type)
+    override fun toString(): String {
+        // todo depending on type
+        return "$x $y += $dx $dy, $key, ($byMouse, $button, $isLong), $type, $action"
+    }
+
+    constructor(window: Window?, x: Float, y: Float, key: Int, type: UIEventType) :
+            this(window, x, y, 0f, 0f, key, false, MouseButton.UNKNOWN, false, type)
 
     constructor() : this(
+        null,
         0f, 0f, 0f, 0f, 0, false,
         MouseButton.UNKNOWN, false, UIEventType.MOUSE_WHEEL
     )
 
-    constructor(x: Float, y: Float, byMouse: Boolean, button: MouseButton, type: UIEventType) :
-            this(x, y, 0f, 0f, 0, byMouse, button, false, type)
+    constructor(window: Window?, x: Float, y: Float, byMouse: Boolean, button: MouseButton, type: UIEventType) :
+            this(window, x, y, 0f, 0f, 0, byMouse, button, false, type)
 
     fun call(r: ControlReceiver): Boolean {
         return when (type) {

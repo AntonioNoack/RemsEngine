@@ -1,13 +1,14 @@
 package me.anno.gpu.deferred
 
 import me.anno.utils.Color.toVecRGBA
+import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector4fc
 
 open class DeferredLayerType(
     val name: String,
     val glslName: String,
     val dimensions: Int,
-    val minimumQuality: BufferQuality, // todo this depends on the platform
+    val minimumQuality: BufferQuality, // todo this depends on the platform; todo or we could use a mapping between attributes :)
     val highDynamicRange: Boolean,
     val defaultValueARGB: Vector4fc,
     val map01: String,
@@ -161,6 +162,11 @@ open class DeferredLayerType(
             BufferQuality.HIGH_32, true, 0, "", ""
         )
 
+        val MOTION = DeferredLayerType(
+            "MOTION", "finalMotion", 2,
+            BufferQuality.HIGH_16, true, 0, "", ""
+        )
+
         val values = arrayListOf(
             COLOR,
             EMISSIVE,
@@ -185,10 +191,14 @@ open class DeferredLayerType(
             SDR_RESULT,
             LIGHT_SUM,
             COLOR_EMISSIVE,
+            MOTION,
             DEPTH
         )
 
-        val byName = values.associateBy { it.glslName }
+        val byName = LazyMap({ name: String ->
+            // O(n), but should be called only for new types (which are rare)
+            values.firstOrNull { it.glslName == name }
+        }).putAll(values.associateBy { it.glslName }) // avoid O(n²)
 
     }
 

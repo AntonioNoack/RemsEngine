@@ -1,8 +1,8 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.shader.OpenGLShader.Companion.attribute
-import me.anno.gpu.shader.ShaderLib.attr0List
-import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.blacklist
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -10,7 +10,7 @@ import me.anno.gpu.shader.builder.Variable
 object FlatShaders {
 
     val copyShader = ShaderLib.createShader(
-        "copy", attr0List, attr0VShader, uvList, listOf(
+        "copy", coordsList, coordsVShader, uvList, listOf(
             Variable(GLSLType.S2D, "tex"),
             Variable(GLSLType.V1F, "am1")
         ), "" +
@@ -19,20 +19,20 @@ object FlatShaders {
                 "}", listOf("tex")
     )
 
-    val attr0PosSize = attr0List + listOf(
+    val coordsPosSize = coordsList + listOf(
         Variable(GLSLType.V2F, "pos"),
         Variable(GLSLType.V2F, "size")
     )
 
-    val attr0PosSizeVShader = "" +
+    val coordsPosSizeVShader = "" +
             "void main(){\n" +
-            "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
+            "   gl_Position = vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
             "}"
 
     // color only for a rectangle
     // (can work on more complex shapes)
     val flatShader = BaseShader(
-        "flatShader", attr0PosSize, attr0PosSizeVShader,
+        "flatShader", coordsPosSize, coordsPosSizeVShader,
         emptyList(), listOf(Variable(GLSLType.V4F, "color")), "" +
                 "void main(){\n" +
                 "   gl_FragColor = color;\n" +
@@ -41,7 +41,7 @@ object FlatShaders {
 
 
     val flatShaderStriped = BaseShader(
-        "flatShader", attr0PosSize, attr0PosSizeVShader,
+        "flatShader", coordsPosSize, coordsPosSizeVShader,
         emptyList(), listOf(
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V1I, "offset"),
@@ -56,7 +56,7 @@ object FlatShaders {
 
     val flatShaderGradient = ShaderLib.createShader(
         "flatShaderGradient", "" +
-                "$attribute vec2 attr0;\n" +
+                "$attribute vec2 coords;\n" +
                 "uniform vec2 pos, size;\n" +
                 "uniform mat4 transform;\n" +
                 "uniform vec4 uvs;\n" +
@@ -64,10 +64,10 @@ object FlatShaders {
                 "uniform vec4 lColor, rColor;\n" +
                 "uniform bool inXDirection;\n" +
                 "void main(){\n" +
-                "   gl_Position = transform * vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                "   color = (inXDirection ? attr0.x : attr0.y) < 0.5 ? lColor : rColor;\n" +
+                "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
+                "   color = (inXDirection ? coords.x : coords.y) < 0.5 ? lColor : rColor;\n" +
                 "   color = color * color;\n" + // srgb -> linear
-                "   uv = mix(uvs.xy, uvs.zw, attr0);\n" +
+                "   uv = mix(uvs.xy, uvs.zw, coords);\n" +
                 "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V4F, "color")), "" +
                 "uniform int code;\n" +
                 "uniform sampler2D tex0,tex1;\n" +
@@ -117,12 +117,12 @@ object FlatShaders {
 
     val flatShaderCubemap = BaseShader(
         "flatShaderCubemap", "" +
-                "$attribute vec2 attr0;\n" +
+                "$attribute vec2 coords;\n" +
                 "uniform vec2 pos, size;\n" +
                 "uniform mat4 transform;\n" +
                 "void main(){\n" +
-                "   gl_Position = transform * vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                "   uv = (attr0 - 0.5) * vec2(${Math.PI * 2},${Math.PI});\n" +
+                "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
+                "   uv = (coords - 0.5) * vec2(${Math.PI * 2},${Math.PI});\n" +
                 "}", listOf(Variable(GLSLType.V2F, "uv")), "" +
                 "uniform samplerCube tex;\n" +
                 "uniform vec4 color;\n" +

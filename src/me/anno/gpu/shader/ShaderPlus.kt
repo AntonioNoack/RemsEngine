@@ -5,8 +5,8 @@ import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.shader.ShaderLib.attr0List
-import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -33,7 +33,8 @@ object ShaderPlus {
         return Shader(
             name, geometry,
             vertexVariables, vertex, varying,
-            fragmentVariables, makeFragmentShaderUniversal(varying, fragment)
+            fragmentVariables,
+            makeFragmentShaderUniversal(varying, fragment)
         )
     }
 
@@ -43,6 +44,7 @@ object ShaderPlus {
         val hasFinalColor = "finalColor" in fragmentSource
         val hasZDistance = "zDistance" in varyingSource.map { it.name }
         val hasTint = "vec4 tint;" in fragmentSource || "tint" in varyingSource.map { it.name }
+        val hasMotionVectors = "finalMotion" in fragmentSource
         val raw = fragmentSource.trim()
         if (!raw.endsWith("}")) throw RuntimeException("Source needs to end with }")
         return "" +
@@ -52,6 +54,7 @@ object ShaderPlus {
                 "" + raw.substring(0, raw.length - 1) + "" +
                 (if (hasZDistance) "" else "float zDistance = 0.0;\n") +
                 (if (hasFinalColor) "" else "vec3 finalColor = gl_FragColor.rgb;float finalAlpha = gl_FragColor.a;\n") +
+                (if (hasMotionVectors) "" else "vec2 finalMotion = vec2(0.0);\n") +
                 randomFunc +
                 "switch(drawMode){\n" +
                 "   case ${DrawMode.COLOR_SQUARED.id}:\n" +
@@ -75,6 +78,10 @@ object ShaderPlus {
                 "   case ${DrawMode.TINT.id}:\n" +
                 "       fragColor = tint;\n" +
                 "       break;\n" +
+                "   case ${DrawMode.MOTION_VECTOR.id}:\n" + // add depth² for variance shadow maps? :), depth is saved in depth buffer anyway
+                "       if(finalAlpha < 0.01) discard;\n" +
+                "       fragColor = vec4(finalMotion, zDistance*zDistance, finalAlpha);\n" +
+                "       break;\n" +
                 "   default:" +
                 "       fragColor = vec4(1.0,0.0,1.0,1.0);\n" +
                 "       break;\n" +
@@ -93,6 +100,7 @@ object ShaderPlus {
             Variable(GLSLType.V1F, "finalAlpha"),
             Variable(GLSLType.V1I, "drawMode"),
             Variable(GLSLType.V1I, "randomId"),
+            Variable(GLSLType.V2F, "finalMotion"),
             Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
         )
         val code = "" +
@@ -124,6 +132,10 @@ object ShaderPlus {
                 "       vec2 seed = vec2(sin(flRandomId), cos(flRandomId));\n" +
                 "       fragColor = vec4(GET_RANDOM(seed.xy), GET_RANDOM(seed.yx), GET_RANDOM(100.0 - seed.yx), 1.0);\n" +
                 "       break;\n" +
+                "   case ${DrawMode.MOTION_VECTOR.id}:\n" + // add depth² for variance shadow maps? :), depth is saved in depth buffer anyway
+                "       if(finalAlpha < 0.01) discard;\n" +
+                "       fragColor = vec4(finalMotion, zDistance*zDistance, finalAlpha);\n" +
+                "       break;\n" +
                 "   default:" +
                 "       fragColor = vec4(1.0,0.0,0.5,1.0);\n" +
                 "       break;\n" +
@@ -132,7 +144,7 @@ object ShaderPlus {
     }
 
     val randomShader = Shader(
-        "random", attr0List, attr0VShader, uvList,
+        "random", coordsList, coordsVShader, uvList,
         listOf(Variable(GLSLType.S2D, "source")), "" +
                 randomFunc +
                 "void main(){\n" +
@@ -158,6 +170,8 @@ object ShaderPlus {
         override fun clone() = this // illegal
     }
 
+    // todo change everything from gl_FragColor or fractColor to finalColor, finalAlpha,
+    //  and then use renderers, and delete this DrawMode-legacy-stuff
     enum class DrawMode(val id: Int) {
         COLOR_SQUARED(0),
         COLOR(1),
@@ -165,7 +179,8 @@ object ShaderPlus {
         DEPTH_DSQ(5), // needs a float buffer
         COPY(6),
         TINT(7),
-        RANDOM_ID(8)
+        RANDOM_ID(8),
+        MOTION_VECTOR(9)
     }
 
 }

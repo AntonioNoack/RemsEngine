@@ -212,4 +212,12 @@ object Matrices {
                 transformPosition(Vector3f(0f, 0f, 1f)).distanceSquared(other.transformPosition(Vector3f(0f, 0f, 1f)))
     }
 
+    fun Matrix4x3d.transformPosition2(v: Vector3f, dst: Vector3f = v): Vector3f {
+        return dst.set(
+            m00() * v.x + m10() * v.y + m20() * v.z + m30(),
+            m01() * v.x + m11() * v.y + m21() * v.z + m31(),
+            m02() * v.x + m12() * v.y + m22() * v.z + m32()
+        )
+    }
+
 }

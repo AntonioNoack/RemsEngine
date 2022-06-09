@@ -58,10 +58,10 @@ import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.maths.Maths.clamp
@@ -158,7 +158,8 @@ open class RenderView(
     private val baseSameDepth = baseNBuffer.attachFramebufferToDepth(1, false)
     val base1Buffer = Framebuffer("debug", 1, 1, 1, 4, false, DepthBufferType.TEXTURE)
 
-    private val lightBuffer = Framebuffer("lights", w, h, 1, 1, deferred.settingsV1.fpLights, DepthBufferType.NONE)
+    private val light1Buffer = base1Buffer.attachFramebufferToDepth(1, deferred.settingsV1.fpLights)
+    private val lightNBuffer = baseNBuffer.attachFramebufferToDepth(1, deferred.settingsV1.fpLights)
 
     private val clock = Clock()
     private var lastPhysics: BulletPhysics? = null
@@ -180,11 +181,12 @@ open class RenderView(
     override fun destroy() {
         super.destroy()
         // all framebuffers that we own need to be freed
+        light1Buffer.destroy()
+        lightNBuffer.destroy()
+        baseSameDepth.destroy()
         base1Buffer.destroy()
         baseNBuffer.destroy()
-        baseSameDepth.destroy()
         editorCameraNode.destroy()
-        lightBuffer.destroy()
     }
 
     fun updateEditorCameraTransform() {
@@ -283,7 +285,11 @@ open class RenderView(
         val showOverdraw = renderMode == RenderMode.OVERDRAW
         val showSpecialBuffer = showIds || showOverdraw || isKeyDown('j')
         var useDeferredRendering = when (renderMode) {
-            RenderMode.DEFAULT, RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4, RenderMode.FSR_SQRT2, RenderMode.FSR_X2, RenderMode.NEAREST_X4, RenderMode.GHOSTING_DEBUG, RenderMode.INVERSE_DEPTH, RenderMode.WITHOUT_POST_PROCESSING, RenderMode.LINES, RenderMode.LINES_MSAA, RenderMode.FRONT_BACK, RenderMode.SHOW_TRIANGLES, RenderMode.MSAA_X8 -> false
+            RenderMode.DEFAULT, RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.FSR_X4,
+            RenderMode.FSR_MSAA_X4, RenderMode.FSR_SQRT2, RenderMode.FSR_X2, RenderMode.NEAREST_X4,
+            RenderMode.GHOSTING_DEBUG, RenderMode.INVERSE_DEPTH, RenderMode.WITHOUT_POST_PROCESSING,
+            RenderMode.LINES, RenderMode.LINES_MSAA, RenderMode.FRONT_BACK,
+            RenderMode.SHOW_TRIANGLES, RenderMode.MSAA_X8 -> false
             else -> true
         }
 
@@ -294,8 +300,8 @@ open class RenderView(
 
         val layers = deferred.settingsV1.layers
         val size = when (renderMode) {
-            RenderMode.ALL_DEFERRED_BUFFERS -> layers.size + 1
-            RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size// + 1
+            RenderMode.ALL_DEFERRED_BUFFERS -> layers.size + 1 /* 1 for light */
+            RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size + 2 /* 1 for motion vectors, 1 for light */
             else -> 1
         }
 
@@ -328,7 +334,9 @@ open class RenderView(
                 useDeferredRendering = true
                 DeferredRenderer
             }
-            RenderMode.FORCE_NON_DEFERRED, RenderMode.MSAA_X8, RenderMode.FSR_MSAA_X4, RenderMode.LINES, RenderMode.LINES_MSAA -> {
+            RenderMode.FORCE_NON_DEFERRED, RenderMode.MSAA_X8,
+            RenderMode.FSR_MSAA_X4, RenderMode.LINES,
+            RenderMode.LINES_MSAA -> {
                 useDeferredRendering = false
                 pbrRenderer
             }
@@ -340,7 +348,8 @@ open class RenderView(
                 useDeferredRendering = false
                 Renderer.triangleVisRenderer
             }
-            else -> if (useDeferredRendering) DeferredRenderer else pbrRenderer
+            else -> if (useDeferredRendering)
+                DeferredRenderer else pbrRenderer
         }
 
         val dlt = renderMode.dlt
@@ -350,7 +359,10 @@ open class RenderView(
         }
 
         val buffer = when {
-            renderMode == RenderMode.MSAA_X8 || renderMode == RenderMode.LINES_MSAA || renderMode == RenderMode.FSR_MSAA_X4 -> FBStack["", w, h, 4, false, 8, true]
+            renderMode == RenderMode.MSAA_X8 ||
+                    renderMode == RenderMode.LINES_MSAA ||
+                    renderMode == RenderMode.FSR_MSAA_X4 ->
+                FBStack["", w, h, 4, false, 8, true]
             renderer == DeferredRenderer -> baseNBuffer
             else -> base1Buffer
         }
@@ -403,8 +415,7 @@ open class RenderView(
             val count1 = PipelineStage.drawnTriangles
             val deltaCount = count1 - count0
             DrawTexts.drawSimpleTextCharByChar(
-                x,
-                y + h - 2 - DrawTexts.monospaceFont.sizeInt,
+                x, y + h - 2 - DrawTexts.monospaceFont.sizeInt,
                 2,
                 "$deltaCount",
                 FrameTimes.textColor,
@@ -412,8 +423,18 @@ open class RenderView(
             )
         }
 
+        updatePrevState()
         // clock.total("drawing the scene", 0.1)
 
+    }
+
+    private val lastCamPos = Vector3d()
+    private val lastCamMat = Matrix4f()
+    private var lastWorldScale = worldScale
+    fun updatePrevState() {
+        lastCamPos.set(camPosition)
+        lastCamMat.set(cameraMatrix)
+        lastWorldScale = worldScale
     }
 
     // be more conservative with framebuffer size changes,
@@ -482,14 +503,9 @@ open class RenderView(
             when {
                 renderMode.dlt != null -> {
                     drawScene(
-                        w,
-                        h,
-                        camera0,
-                        camera1,
-                        blending,
-                        renderer,
-                        buffer,
-                        true,
+                        w, h, camera0, camera1,
+                        blending, renderer, buffer,
+                        changeSize = true,
                         doDrawGizmos = false,
                         toneMappedColors = false
                     )
@@ -500,14 +516,9 @@ open class RenderView(
                 renderMode == RenderMode.DEPTH -> {
                     val depth = FBStack["depth", w, h, 1, false, 1, true]
                     drawScene(
-                        w,
-                        h,
-                        camera0,
-                        camera1,
-                        blending,
-                        renderer,
-                        depth,
-                        true,
+                        w, h, camera0, camera1,
+                        blending, renderer, depth,
+                        changeSize = true,
                         doDrawGizmos = false,
                         toneMappedColors = false
                     )
@@ -517,18 +528,13 @@ open class RenderView(
                 }
                 renderMode == RenderMode.LIGHT_SUM -> {
                     drawScene(
-                        w,
-                        h,
-                        camera0,
-                        camera1,
-                        blending,
-                        renderer,
-                        buffer,
-                        true,
+                        w, h, camera0, camera1,
+                        blending, renderer, buffer,
+                        changeSize = true,
                         doDrawGizmos = false,
                         toneMappedColors = false
                     )
-                    val lightBuffer = lightBuffer
+                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
                     drawGizmos(world, lightBuffer, renderer, camPosition, true)
@@ -536,27 +542,34 @@ open class RenderView(
                     return
                 }
                 renderMode == RenderMode.LIGHT_COUNT -> {
-                    val lightBuffer = lightBuffer
+                    // draw scene for depth
+                    drawScene(
+                        w, h, camera0, camera1,
+                        blending, renderer, buffer,
+                        changeSize = true,
+                        doDrawGizmos = false,
+                        toneMappedColors = false
+                    )
+                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                     pipeline.lightPseudoStage.visualizeLightCount = true
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
                     drawGizmos(world, lightBuffer, renderer, camPosition, false)
                     // todo special shader to better differentiate the values than black-white
                     // (1 is extremely dark, nearly black)
-                    drawTexture(x, y + h - 1, w, -h, lightBuffer.getTexture0(), true, -1, null)
+                    drawTexture(
+                        x, y + h - 1, w, -h,
+                        lightBuffer.getTexture0(), true,
+                        -1, null, true
+                    )
                     pipeline.lightPseudoStage.visualizeLightCount = false
                     return
                 }
                 renderMode == RenderMode.SSAO -> {
                     // 0.1f as radius seems pretty ideal with our world scale :)
                     drawScene(
-                        w,
-                        h,
-                        camera0,
-                        camera1,
-                        blending,
-                        renderer,
-                        buffer,
-                        true,
+                        w, h, camera0, camera1,
+                        blending, renderer, buffer,
+                        changeSize = true,
                         doDrawGizmos = false,
                         toneMappedColors = false
                     )
@@ -565,9 +578,8 @@ open class RenderView(
                     val ssao = ScreenSpaceAmbientOcclusion.compute(
                         buffer, deferred, cameraMatrix, ssao.radius, strength, ssao.samples
                     )
-                    drawTexture(
-                        x, y + h - 1, w, -h, ssao ?: buffer.getTexture0(), true, -1, null
-                    )
+                    val tex = ssao ?: buffer.getTexture0()
+                    drawTexture(x, y + h - 1, w, -h, tex, true, -1, null)
                     if (ssao == null) {
                         // write warning message
                         DrawTexts.drawSimpleTextCharByChar(
@@ -578,19 +590,14 @@ open class RenderView(
                 }
                 renderMode == RenderMode.SS_REFLECTIONS -> {
                     drawScene(
-                        w,
-                        h,
-                        camera0,
-                        camera1,
-                        blending,
-                        renderer,
-                        buffer,
-                        true,
+                        w, h, camera0, camera1,
+                        blending, renderer, buffer,
+                        changeSize = true,
                         doDrawGizmos = false,
                         toneMappedColors = false
                     )
                     drawGizmos(world, buffer, renderer, camPosition, true)
-                    val lightBuffer = lightBuffer
+                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
                     val illuminated = FBStack["ill", w, h, 4, true, 1, false]
@@ -619,20 +626,15 @@ open class RenderView(
                 renderMode == RenderMode.ALL_DEFERRED_BUFFERS -> {
 
                     drawScene(
-                        w,
-                        h,
-                        camera0,
-                        camera1,
-                        blending,
-                        renderer,
-                        buffer,
-                        true,
+                        w, h, camera0, camera1,
+                        blending, renderer, buffer,
+                        changeSize = true,
                         doDrawGizmos = false,
                         toneMappedColors = false
                     )
                     drawGizmos(world, buffer, renderer, camPosition, true)
 
-                    val lightBuffer = lightBuffer
+                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
 
@@ -649,9 +651,7 @@ open class RenderView(
                         // draw the light buffer as the last stripe
                         val texture = if (index < layersSize) {
                             buffer.getTextureI(index)
-                        } else {
-                            lightBuffer.textures[0]
-                        }
+                        } else lightBuffer.getTexture0()
 
                         // y flipped, because it would be incorrect otherwise
                         val name = if (texture is Texture2D) texture.name else texture.toString()
@@ -672,12 +672,26 @@ open class RenderView(
                 }
                 renderMode == RenderMode.ALL_DEFERRED_LAYERS -> {
 
+                    drawScene(
+                        w, h, camera0, camera1,
+                        blending, renderer, buffer,
+                        changeSize = true,
+                        doDrawGizmos = false,
+                        toneMappedColors = false
+                    )
+                    drawGizmos(world, buffer, renderer, camPosition, true)
+                    drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightNBuffer)
+
                     // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
-                    // todo also draw light as last one
 
                     val tw = w / cols
                     val th = h / rows
                     val tmp = FBStack["tmp-layers", tw, th, 4, false, 1, true]
+                    val settings = deferredRenderer.deferredSettings!!
+                    val layers = HashMap(settings.layerTypes.associateWith {
+                        settings.findTexture(buffer, it)!!
+                            .wrapAsFramebuffer()
+                    })
                     for (index in 0 until size) {
 
                         // rows x N field
@@ -688,29 +702,37 @@ open class RenderView(
                         val y02 = y + (y1 - y0) * (row + 0) / rows
                         val y12 = y + (y1 - y0) * (row + 1) / rows
 
-                        // draw the light buffer as the last stripe
-                        val layer = deferred.layerTypes[index]
-                        val layerRenderer = attributeRenderers[layer]!!
+                        val name: String
+                        val texture: ITexture2D
+                        if (index < deferred.layerTypes.size) {
+                            // draw the light buffer as the last stripe
+                            val layer = deferred.layerTypes[index]
+                            name = layer.name
+                            /*val layerRenderer = attributeRenderers[layer]!!
+                            drawScene(
+                                tw, th, camera0, camera1,
+                                blending, layerRenderer, tmp,
+                                false,
+                                doDrawGizmos = false,
+                                toneMappedColors = false
+                            )
+                            drawGizmos(world, tmp, renderer, camPosition, true) */
+                            // instead of drawing the scene again, use a post-processing shader
+                            useFrame(tmp) {
+                                val layerRenderer = Renderers.attributeEffects[layer to settings]!!
+                                layerRenderer.render(buffer, settings, layers)
+                            }
+                            texture = tmp.getTexture0()
+                        } else {
+                            texture = lightNBuffer.getTexture0()
+                            name = "Light"
+                        }
 
-                        drawScene(
-                            tw,
-                            th,
-                            camera0,
-                            camera1,
-                            blending,
-                            layerRenderer,
-                            tmp,
-                            false,
-                            doDrawGizmos = false,
-                            toneMappedColors = false
-                        )
-                        drawGizmos(world, tmp, renderer, camPosition, true)
-
-                        val texture = tmp.getTexture0()
                         // y flipped, because it would be incorrect otherwise
                         drawTexture(x02, y12, tw, -th, texture, true, -1, null)
                         DrawTexts.drawSimpleTextCharByChar(
-                            (x02 + x12) / 2, (y02 + y12) / 2, 2, layer.name, AxisAlignment.CENTER, AxisAlignment.CENTER
+                            (x02 + x12) / 2, (y02 + y12) / 2, 2,
+                            name, AxisAlignment.CENTER, AxisAlignment.CENTER
                         )
 
                     }
@@ -721,14 +743,9 @@ open class RenderView(
                     // todo is tonemapping used here???
                     val isToneMappingUsed = false
                     drawScene(
-                        w,
-                        h,
-                        camera0,
-                        camera1,
-                        blending,
-                        renderer,
-                        buffer,
-                        true,
+                        w, h, camera0, camera1,
+                        blending, renderer, buffer,
+                        changeSize = true,
                         doDrawGizmos = false,
                         toneMappedColors = isToneMappingUsed
                     )
@@ -746,21 +763,18 @@ open class RenderView(
                 }
                 else -> {
 
-                    if (buffer != baseNBuffer) throw IllegalStateException("Expected baseBuffer, but got ${buffer.name} for $renderMode")
+                    if (buffer != baseNBuffer)
+                        throw IllegalStateException("Expected baseBuffer, but got ${buffer.name} for $renderMode")
 
                     drawScene(
-                        w,
-                        h,
-                        camera0,
-                        camera1,
-                        blending,
-                        renderer,
-                        buffer,
+                        w, h, camera0, camera1,
+                        blending, renderer, buffer,
                         true,
                         doDrawGizmos = false,
                         toneMappedColors = true
                     )
-                    val lightBuffer = lightBuffer
+
+                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
 
@@ -857,13 +871,8 @@ open class RenderView(
                 pipeline.applyToneMapping = false
                 val tmp = FBStack["scene", w, h, 4, true, buffer.samples, true]
                 drawScene(
-                    w,
-                    h,
-                    camera0,
-                    camera1,
-                    blending,
-                    renderer,
-                    tmp,
+                    w, h, camera0, camera1,
+                    blending, renderer, tmp,
                     changeSize = true,
                     doDrawGizmos = true,
                     toneMappedColors = true
@@ -873,13 +882,8 @@ open class RenderView(
                 }
             } else {
                 drawScene(
-                    w,
-                    h,
-                    camera0,
-                    camera1,
-                    blending,
-                    renderer,
-                    buffer,
+                    w, h, camera0, camera1,
+                    blending, renderer, buffer,
                     changeSize = true,
                     doDrawGizmos = true,
                     toneMappedColors = true
@@ -1049,7 +1053,10 @@ open class RenderView(
             }
             // todo respect near
             cameraMatrix.set(
-                height * sceneScaleXY / width, 0f, 0f, 0f, 0f, sceneScaleXY, 0f, 0f, 0f, 0f, m22, 0f, 0f, 0f, z0, 1f
+                height * sceneScaleXY / width, 0f, 0f, 0f,
+                0f, sceneScaleXY, 0f, 0f,
+                0f, 0f, m22, 0f,
+                0f, 0f, z0, 1f
             )
         }
         cameraMatrix.rotate(rot)
@@ -1076,6 +1083,9 @@ open class RenderView(
         }
 
         // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
+        prevCamMatrix.set(lastCamMat)
+        prevCamPosition.set(lastCamPos)
+        prevWorldScale = lastWorldScale
 
         currentInstance = this
 
@@ -1127,59 +1137,59 @@ open class RenderView(
     private val reverseDepth get() = renderMode != RenderMode.INVERSE_DEPTH
 
     private fun setClearDepth() {
-        stage0.depthMode = depthMode
-        pipeline.lightPseudoStage.depthMode = depthMode
         val stages = pipeline.stages
         for (index in stages.indices) {
             stages[index].depthMode = depthMode
         }
+        stage0.depthMode = depthMode
+        /**
+         * the depth mode is a little convoluted:
+         * - we need to draw the backsides (far) of lights to ensure that we can see them, even if we are inside them
+         * - we want to use the depth test for optimization
+         * - if we choose the normal mode, we wouldn't see it ->
+         * - use the inverse mode, and discard lights that are too close instead of those that are too far
+         * */
+        pipeline.lightPseudoStage.depthMode = invDepthMode
     }
 
     private val depthMode get() = if (reverseDepth) DepthMode.GREATER else DepthMode.FORWARD_LESS
+    private val invDepthMode get() = if (reverseDepth) DepthMode.LESS else DepthMode.FORWARD_GREATER
 
-    private fun setClearColor(
-        renderer: Renderer, previousCamera: Camera, camera: Camera, blending: Float, toneMappedColors: Boolean
+    private fun clearDeferred(
+        previousCamera: Camera, camera: Camera,
+        blending: Float, toneMappedColors: Boolean
     ) {
-        if (renderer.isFakeColor) {
-            glClearColor(0f, 0f, 0f, 0f)
-        } else {
-            val c = tmp4f
-            c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
-            if (toneMappedColors) {
-                // inverse reinhard tonemapping
-                glClearColor(c.x / (1f - c.x), c.y / (1f - c.y), c.z / (1f - c.z), 1f)
-            } else {
-                glClearColor(c.x, c.y, c.z, 1f)
-            }
-        }
-    }
-
-    private fun clearDeferred() {
         Frame.bind()
         OpenGL.blendMode.use(null) {
             OpenGL.depthMode.use(DepthMode.ALWAYS) {
                 // don't write depth, only all buffers
-                // todo this buffer is very small in orthographic case
+                // todo this buffer is very small in orthographic case, because the camera matrix contains scale, which it shouldn't
                 OpenGL.depthMask.use(false) {
                     // draw huge cube with default values for all buffers
                     val shader = clearingPbrModelShader.value
                     shader.use()
-                    // todo origin of problem: cameraMatrix contains scale
-                    val m = JomlPools.mat4f.borrow()
-                    m.set(cameraMatrix)
-                    val fov = fovYRadians
-                    m.scale(100f / fov) // todo adjust with aspect ratio
-                    shader.m4x4("transform", m)
+                    shader.m4x4("transform", cameraMatrix)
+                    shader.m4x4("prevTransform", prevCamMatrix)
+                    val c = tmp4f
+                    c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
+                    if (toneMappedColors) {
+                        // inverse reinhard tonemapping
+                        shader.v3f("finalColor", c.x / (1f - c.x), c.y / (1f - c.y), c.z / (1f - c.z))
+                    } else {
+                        shader.v3f("finalColor", c.x, c.y, c.z)
+                    }
+                    shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
+                    shader.v1f("finalAlpha", 1f)
                     Shapes.cube11Smooth.draw(shader, 0)
+                    // LOGGER.warn(shader.fragmentSource)
                 }
             }
         }
     }
 
     fun drawScene(
-        w: Int,
-        h: Int,
-        camera: Camera,
+        w: Int, h: Int,
+        currentCamera: Camera,
         previousCamera: Camera,
         blending: Float,
         renderer: Renderer,
@@ -1191,8 +1201,8 @@ open class RenderView(
 
         GFX.check()
 
-        val isDeferred = dst.numTextures > 1
-        val specialClear = false // isDeferred && renderer === DeferredRenderer
+        // val deferred = renderer.deferredSettings != null
+
         val world = getWorld()
 
         val preDrawDepth = renderMode == RenderMode.WITH_PRE_DRAW_DEPTH
@@ -1203,14 +1213,13 @@ open class RenderView(
 
                 OpenGL.depthMode.use(depthMode) {
                     setClearDepth()
-                    setClearColor(renderer, previousCamera, camera, blending, toneMappedColors)
-                    glClear(if (specialClear) GL_DEPTH_BUFFER_BIT else GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                    glClear(GL_DEPTH_BUFFER_BIT)
                 }
 
                 OpenGL.depthMode.use(depthMode) {
                     OpenGL.cullMode.use(CullMode.BACK) {
                         OpenGL.blendMode.use(null) {
-                            stage0.draw(pipeline, cameraMatrix, camPosition, worldScale)
+                            stage0.draw(pipeline)
                         }
                     }
                 }
@@ -1225,12 +1234,11 @@ open class RenderView(
                 Frame.bind()
                 OpenGL.depthMode.use(depthMode) {
                     setClearDepth()
-                    setClearColor(renderer, previousCamera, camera, blending, toneMappedColors)
-                    glClear(if (specialClear) GL_DEPTH_BUFFER_BIT else GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                    glClear(GL_DEPTH_BUFFER_BIT)
                 }
             }
 
-            if (specialClear) clearDeferred()
+            clearDeferred(previousCamera, currentCamera, blending, toneMappedColors)
 
             if (doDrawGizmos) {
                 if (!renderer.isFakeColor && !isFinalRendering) {
@@ -1245,7 +1253,7 @@ open class RenderView(
 
             GFX.check()
 
-            pipeline.draw(cameraMatrix, camPosition, worldScale)
+            pipeline.draw()
 
             GFX.check()
 
@@ -1275,10 +1283,9 @@ open class RenderView(
         previousCamera: Camera,
         blending: Float,
         renderer: Renderer,
-        src: IFramebuffer,
+        deferred: IFramebuffer,
         dst: IFramebuffer
     ) {
-
         useFrame(w, h, true, dst, renderer) {
 
             Frame.bind()
@@ -1286,12 +1293,11 @@ open class RenderView(
             tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
 
             glClearColor(0f, 0f, 0f, 0f)
-            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            glClear(GL_COLOR_BUFFER_BIT)
 
-            pipeline.lightPseudoStage.bindDraw(src, cameraMatrix, camPosition, worldScale)
+            pipeline.lightPseudoStage.bindDraw(deferred, cameraMatrix, camPosition, worldScale)
 
         }
-
     }
 
     private fun drawGizmos(
@@ -1454,6 +1460,10 @@ open class RenderView(
         val camDirection = Vector3d()
         val camRotation = Quaterniond()
         val mouseDir = Vector3d()
+
+        val prevCamMatrix = Matrix4f()
+        val prevCamPosition = Vector3d()
+        var prevWorldScale = worldScale
 
         val scaledMin = Vector4d()
         val scaledMax = Vector4d()

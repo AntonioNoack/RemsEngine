@@ -39,6 +39,7 @@ open class Renderer(
         val depthRenderer = Renderer("depth", true, ShaderPlus.DrawMode.DEPTH_DSQ, null)
         val copyRenderer = Renderer("copy", false, ShaderPlus.DrawMode.COPY, null)
         val triangleVisRenderer = Renderer("randomId", true, ShaderPlus.DrawMode.RANDOM_ID, null)
+        val motionVectorRenderer = Renderer("motionVector", true, ShaderPlus.DrawMode.MOTION_VECTOR, null)
 
         // color deficiency renderers
         /*val grayscaleRenderer = Renderer("grayscale", true, ShaderPlus.DrawMode.COLOR, null)

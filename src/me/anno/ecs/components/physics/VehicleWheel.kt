@@ -26,14 +26,14 @@ class VehicleWheel : Component() {
     var suspensionRestLength = 1.0
         set(value) {
             field = value
-            bulletInstance?.suspensionRestLength1 = value
+            bulletInstance?.suspensionRestLength = value
         }
 
     @SerializedProperty
     var radius = 1.0
         set(value) {
             field = value
-            bulletInstance?.wheelsRadius = value
+            bulletInstance?.wheelRadius = value
         }
 
     @SerializedProperty

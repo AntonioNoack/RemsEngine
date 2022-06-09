@@ -52,18 +52,31 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
         this.margin = margin
     }
 
+    val fx = 6
+    val fy = 6
+    val fz = 6
+    val field = FloatArray(fx * fy * fz)
+
+    val min2 = javax.vecmath.Vector3d()
+    val max2 = javax.vecmath.Vector3d()
+
     override fun processAllTriangles(
-        callback: TriangleCallback, aabbMin: javax.vecmath.Vector3d, // bounds that need to be included
+        callback: TriangleCallback,
+        aabbMin: javax.vecmath.Vector3d, // bounds that need to be included
         aabbMax: javax.vecmath.Vector3d
     ) {
+
+        LOGGER.debug("Requesting ConcaveSDFShape.processAllTriangles($aabbMin, $aabbMax)")
+
+        // todo is this local or global?
 
         // it looks like we need to meshify our sdf before we can use bullet physics
         // to do dual contouring for a better mesh
         // small walls just are ignored by this method
 
         // shrink bounds by aabb, so we use a minimal space
-        val min2 = javax.vecmath.Vector3d(aabbMin)
-        val max2 = javax.vecmath.Vector3d(aabbMax)
+        val min2 = min2; min2.set(aabbMin)
+        val max2 = max2; max2.set(aabbMax)
         val bounds = sdf.globalAABB
         min2.x = max(min2.x, bounds.minX)
         min2.y = max(min2.y, bounds.minY)
@@ -76,10 +89,6 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
         if (min2.x < max2.x && min2.y < max2.y && min2.z < max2.z) {
 
             // sizes could be adjusted to match the "aspect ratio" of the aabb better
-            val fx = 6
-            val fy = 6
-            val fz = 6
-            val field = FloatArray(fx * fy * fz)
             var i = 0
             val pos = JomlPools.vec4f.create()
             val ffx = 1.0 / (fx - 1.0)
@@ -91,9 +100,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
                     val yf = y * ffy
                     for (x in 0 until fx) {
                         val xf = x * ffx
-                        pos.set(
-                            mix(min2.x, max2.x, xf), mix(min2.y, max2.y, yf), mix(min2.z, max2.z, zf), 0.0
-                        )
+                        pos.set(mix(min2.x, max2.x, xf), mix(min2.y, max2.y, yf), mix(min2.z, max2.z, zf), 0.0)
                         field[i++] = sdf.computeSDF(pos)
                     }
                 }

@@ -8,12 +8,6 @@
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows-x86.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-jemalloc-natives-linux-arm32.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-jemalloc-natives-linux-arm64.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-jemalloc-natives-linux.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-jemalloc-natives-windows-x86.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-jemalloc-natives-windows.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-jemalloc.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-natives-linux-arm32.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-natives-linux-arm64.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-natives-linux.jar!/" />

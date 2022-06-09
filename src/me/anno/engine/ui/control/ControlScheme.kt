@@ -250,7 +250,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         val velocity = velocity.mul(1.0 - factor)
         val radius = view.radius
         val s = factor * radius * 1.2
-        if (isSelected) {
+        if (isSelected && !Input.isControlDown && !Input.isShiftDown && !Input.isAltDown) {
             if (Input.isKeyDown('a')) velocity.x -= s
             if (Input.isKeyDown('d')) velocity.x += s
             if (Input.isKeyDown('w')) velocity.z -= s

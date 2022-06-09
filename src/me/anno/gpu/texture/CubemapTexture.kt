@@ -6,6 +6,7 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -98,7 +99,7 @@ class CubemapTexture(
         for (i in 0 until 6) {
             byteBuffer.position(0)
             byteBuffer.put(sides[i])
-            byteBuffer.position(0)
+            byteBuffer.flip()
             glTexImage2D(
                 getTarget(i), 0, GL_RGB8,
                 size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, byteBuffer
@@ -181,6 +182,10 @@ class CubemapTexture(
 
     override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
         return bind(index, filtering)
+    }
+
+    override fun wrapAsFramebuffer(): IFramebuffer {
+        throw NotImplementedError()
     }
 
     private fun clamping() {

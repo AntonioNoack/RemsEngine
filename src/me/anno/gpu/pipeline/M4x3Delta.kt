@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths
 import org.joml.Matrix4f
@@ -9,11 +10,12 @@ import org.joml.Vector3d
 import org.lwjgl.opengl.GL21
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
+import java.nio.FloatBuffer
 
 object M4x3Delta {
 
-    val buffer16 = MemoryUtil.memAllocFloat(16)
-    val buffer16x256 = MemoryUtil.memAllocFloat(16 * 256)
+    val buffer16: FloatBuffer = MemoryUtil.memAllocFloat(16)
+    val buffer16x256: FloatBuffer = MemoryUtil.memAllocFloat(16 * 256)
 
     fun Shader.v3delta(location: String, a: Matrix4x3d, b: Vector3d) {
         val uniformIndex = this[location]
@@ -71,66 +73,74 @@ object M4x3Delta {
         }
     }
 
-
     /**
      * uploads the transform, minus some offset, to the GPU uniform <location>
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
-    fun Shader.m4x3delta(location: String, m: Matrix4x3d?, pos: Vector3d, worldScale: Double) {
+    fun Shader.m4x3delta(
+        location: String, m: Matrix4x3d?,
+        pos: Vector3d = RenderView.camPosition,
+        worldScale: Double = RenderView.worldScale
+    ) {
         val uniformIndex = this[location]
-        if (uniformIndex >= 0) {
+        if (uniformIndex >= 0) m4x3delta(uniformIndex, m, pos, worldScale)
+    }
 
-            // false = column major, however the labelling of these things is awkward
-            // A_ji, as far, as I can see
+    fun m4x3delta(
+        uniformIndex: Int, m: Matrix4x3d?,
+        pos: Vector3d = RenderView.camPosition,
+        worldScale: Double = RenderView.worldScale
+    ) {
+        // false = column major, however the labelling of these things is awkward
+        // A_ji, as far, as I can see
 
-            buffer16.limit(12)
-            buffer16.position(0)
+        buffer16.limit(12)
+        buffer16.position(0)
 
-            if(m != null){
+        if (m != null) {
 
-                buffer16.put((m.m00() * worldScale).toFloat())
-                buffer16.put((m.m01() * worldScale).toFloat())
-                buffer16.put((m.m02() * worldScale).toFloat())
+            buffer16.put((m.m00() * worldScale).toFloat())
+            buffer16.put((m.m01() * worldScale).toFloat())
+            buffer16.put((m.m02() * worldScale).toFloat())
 
-                buffer16.put((m.m10() * worldScale).toFloat())
-                buffer16.put((m.m11() * worldScale).toFloat())
-                buffer16.put((m.m12() * worldScale).toFloat())
+            buffer16.put((m.m10() * worldScale).toFloat())
+            buffer16.put((m.m11() * worldScale).toFloat())
+            buffer16.put((m.m12() * worldScale).toFloat())
 
-                buffer16.put((m.m20() * worldScale).toFloat())
-                buffer16.put((m.m21() * worldScale).toFloat())
-                buffer16.put((m.m22() * worldScale).toFloat())
+            buffer16.put((m.m20() * worldScale).toFloat())
+            buffer16.put((m.m21() * worldScale).toFloat())
+            buffer16.put((m.m22() * worldScale).toFloat())
 
-                buffer16.put(((m.m30() - pos.x) * worldScale).toFloat())
-                buffer16.put(((m.m31() - pos.y) * worldScale).toFloat())
-                buffer16.put(((m.m32() - pos.z) * worldScale).toFloat())
+            buffer16.put(((m.m30() - pos.x) * worldScale).toFloat())
+            buffer16.put(((m.m31() - pos.y) * worldScale).toFloat())
+            buffer16.put(((m.m32() - pos.z) * worldScale).toFloat())
 
-            } else {
+        } else {
 
-                val ws = worldScale.toFloat()
+            val ws = worldScale.toFloat()
 
-                buffer16.put(ws)
-                buffer16.put(0f)
-                buffer16.put(0f)
+            buffer16.put(ws)
+            buffer16.put(0f)
+            buffer16.put(0f)
 
-                buffer16.put(0f)
-                buffer16.put(ws)
-                buffer16.put(0f)
+            buffer16.put(0f)
+            buffer16.put(ws)
+            buffer16.put(0f)
 
-                buffer16.put(0f)
-                buffer16.put(0f)
-                buffer16.put(ws)
+            buffer16.put(0f)
+            buffer16.put(0f)
+            buffer16.put(ws)
 
-                buffer16.put((-pos.x * worldScale).toFloat())
-                buffer16.put((-pos.y * worldScale).toFloat())
-                buffer16.put((-pos.z * worldScale).toFloat())
-
-            }
-
-            buffer16.position(0)
-
-            GL21.glUniformMatrix4x3fv(uniformIndex, false, buffer16)
+            buffer16.put((-pos.x * worldScale).toFloat())
+            buffer16.put((-pos.y * worldScale).toFloat())
+            buffer16.put((-pos.z * worldScale).toFloat())
 
         }
+
+        buffer16.position(0)
+
+        GL21.glUniformMatrix4x3fv(uniformIndex, false, buffer16)
+
     }
 
     /**
@@ -139,45 +149,44 @@ object M4x3Delta {
      * */
     fun m4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double, buffer16: ByteBuffer, transpose: Boolean) {
 
-       if(transpose){
+        if (transpose) {
 
-           buffer16.putFloat((m.m00() * worldScale).toFloat())
-           buffer16.putFloat((m.m10() * worldScale).toFloat())
-           buffer16.putFloat((m.m20() * worldScale).toFloat())
-           buffer16.putFloat(((m.m30() - pos.x) * worldScale).toFloat())
+            buffer16.putFloat((m.m00() * worldScale).toFloat())
+            buffer16.putFloat((m.m10() * worldScale).toFloat())
+            buffer16.putFloat((m.m20() * worldScale).toFloat())
+            buffer16.putFloat(((m.m30() - pos.x) * worldScale).toFloat())
 
-           buffer16.putFloat((m.m01() * worldScale).toFloat())
-           buffer16.putFloat((m.m11() * worldScale).toFloat())
-           buffer16.putFloat((m.m21() * worldScale).toFloat())
-           buffer16.putFloat(((m.m31() - pos.y) * worldScale).toFloat())
+            buffer16.putFloat((m.m01() * worldScale).toFloat())
+            buffer16.putFloat((m.m11() * worldScale).toFloat())
+            buffer16.putFloat((m.m21() * worldScale).toFloat())
+            buffer16.putFloat(((m.m31() - pos.y) * worldScale).toFloat())
 
-           buffer16.putFloat((m.m02() * worldScale).toFloat())
-           buffer16.putFloat((m.m12() * worldScale).toFloat())
-           buffer16.putFloat((m.m22() * worldScale).toFloat())
-           buffer16.putFloat(((m.m32() - pos.z) * worldScale).toFloat())
+            buffer16.putFloat((m.m02() * worldScale).toFloat())
+            buffer16.putFloat((m.m12() * worldScale).toFloat())
+            buffer16.putFloat((m.m22() * worldScale).toFloat())
+            buffer16.putFloat(((m.m32() - pos.z) * worldScale).toFloat())
 
-       } else {
+        } else {
 
-           buffer16.putFloat((m.m00() * worldScale).toFloat())
-           buffer16.putFloat((m.m01() * worldScale).toFloat())
-           buffer16.putFloat((m.m02() * worldScale).toFloat())
+            buffer16.putFloat((m.m00() * worldScale).toFloat())
+            buffer16.putFloat((m.m01() * worldScale).toFloat())
+            buffer16.putFloat((m.m02() * worldScale).toFloat())
 
-           buffer16.putFloat((m.m10() * worldScale).toFloat())
-           buffer16.putFloat((m.m11() * worldScale).toFloat())
-           buffer16.putFloat((m.m12() * worldScale).toFloat())
+            buffer16.putFloat((m.m10() * worldScale).toFloat())
+            buffer16.putFloat((m.m11() * worldScale).toFloat())
+            buffer16.putFloat((m.m12() * worldScale).toFloat())
 
-           buffer16.putFloat((m.m20() * worldScale).toFloat())
-           buffer16.putFloat((m.m21() * worldScale).toFloat())
-           buffer16.putFloat((m.m22() * worldScale).toFloat())
+            buffer16.putFloat((m.m20() * worldScale).toFloat())
+            buffer16.putFloat((m.m21() * worldScale).toFloat())
+            buffer16.putFloat((m.m22() * worldScale).toFloat())
 
-           buffer16.putFloat(((m.m30() - pos.x) * worldScale).toFloat())
-           buffer16.putFloat(((m.m31() - pos.y) * worldScale).toFloat())
-           buffer16.putFloat(((m.m32() - pos.z) * worldScale).toFloat())
+            buffer16.putFloat(((m.m30() - pos.x) * worldScale).toFloat())
+            buffer16.putFloat(((m.m31() - pos.y) * worldScale).toFloat())
+            buffer16.putFloat(((m.m32() - pos.z) * worldScale).toFloat())
 
-       }
+        }
 
     }
-
 
     /**
      * uploads the transform, minus some offset, to the GPU uniform <location>
@@ -185,7 +194,7 @@ object M4x3Delta {
      * */
     fun m4x3x(m: Matrix4x3f, buffer16: ByteBuffer, transpose: Boolean) {
 
-        if(transpose){
+        if (transpose) {
 
             buffer16.putFloat(m.m00())
             buffer16.putFloat(m.m10())

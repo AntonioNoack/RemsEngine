@@ -186,9 +186,9 @@ open class Shader(
 
         glLinkProgram(program)
         // these could be reused...
-        glDeleteShader(vertexShader)
-        glDeleteShader(fragmentShader)
-        if (geometryShader >= 0) glDeleteShader(geometryShader)
+        // glDeleteShader(vertexShader)
+        // glDeleteShader(fragmentShader)
+        // if (geometryShader >= 0) glDeleteShader(geometryShader)
         logShader(name, vertexSource, fragmentSource)
 
         postPossibleError(name, program, false, vertexSource, fragmentSource)

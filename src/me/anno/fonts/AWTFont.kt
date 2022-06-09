@@ -1,5 +1,6 @@
 package me.anno.fonts
 
+import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.GFX
@@ -8,6 +9,7 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitForGFXThread
@@ -26,10 +28,7 @@ import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
+import kotlin.math.*
 import kotlin.streams.toList
 
 class AWTFont(val font: Font) {
@@ -204,8 +203,7 @@ class AWTFont(val font: Font) {
 
         }
 
-        if (text.length == 1)
-            waitForGFXThread(true) { texture.isCreated || texture.isDestroyed }
+        wait(text, texture)
 
         return texture
 
@@ -232,6 +230,7 @@ class AWTFont(val font: Font) {
 
     @Suppress("unused")
     val ascent by lazy { exampleLayout.ascent }
+
     @Suppress("unused")
     val descent by lazy { exampleLayout.descent }
 
@@ -496,11 +495,21 @@ class AWTFont(val font: Font) {
 
         }
 
-        if (text.length == 1)
-            waitForGFXThread(true) { texture.isCreated || texture.isDestroyed }
+        wait(text, texture)
 
         return texture
 
+    }
+
+    fun wait(text: CharSequence, texture: Texture2D) {
+        if (GFX.loadTexturesSync.peek()) {
+            val timeout = (if (text.length == 1) 1000 else 30) * MILLIS_TO_NANOS
+            val t0 = Engine.nanoTime
+            waitForGFXThread(true) {
+                texture.isCreated || texture.isDestroyed ||
+                        Engine.nanoTime - t0 > timeout
+            }
+        }
     }
 
     companion object {
@@ -508,10 +517,10 @@ class AWTFont(val font: Font) {
         val asciiStrings = Array(128) { it.toChar().toString() }
 
         val splittingOrder: List<Collection<Int>> = listOf(
-            listOf(' ').map { it.code },
-            listOf('-').map { it.code },
+            listOf(' '.code),
+            listOf('-'.code),
             listOf('/', '\\', ':', '-', '*', '?', '=', '&', '|', '!', '#').map { it.code }.toSortedSet(),
-            listOf(',', '.').map { it.code }
+            listOf(','.code, '.'.code)
         )
 
         const val debugJVMResults = false

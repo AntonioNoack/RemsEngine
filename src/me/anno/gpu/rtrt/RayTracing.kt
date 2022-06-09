@@ -6,8 +6,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.discoverOpenGLNames
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.attr0List
-import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import org.lwjgl.opengl.GL11C.glGetIntegerv
 import org.lwjgl.opengl.NVMeshShader
@@ -22,7 +22,7 @@ fun main() {
 
     // not supported :/
     /*HiddenOpenGLContext.createOpenGL()
-    val testShader = Shader("rt", attr0List, attr0VShader, uvList,
+    val testShader = Shader("rt", coordsList, coordsVShader, uvList,
         listOf(), "" +
                 // to do what does the first one do?
                 "#extension GL_ARB_separate_shader_objects : enable\n" +

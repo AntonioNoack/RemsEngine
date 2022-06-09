@@ -1,10 +1,12 @@
 package org.joml
 
 import me.anno.maths.Maths
+import me.anno.utils.types.Floats.f3
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+@Suppress("unused")
 class AABBd(
     var minX: Double, var minY: Double, var minZ: Double,
     var maxX: Double, var maxY: Double, var maxZ: Double
@@ -14,7 +16,9 @@ class AABBd(
     constructor(min: Double, max: Double) : this(min, min, min, max, max, max)
     constructor() : this(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY)
 
-    override fun toString() = "($minX,$minY,$minZ)-($maxX,$maxY,$maxZ)"
+    override fun toString() = "" +
+            "(${minX.f3()},${minY.f3()},${minZ.f3()})-" +
+            "(${maxX.f3()},${maxY.f3()},${maxZ.f3()})"
 
     fun setMin(v: Vector3d) =
         setMin(v.x, v.y, v.z)

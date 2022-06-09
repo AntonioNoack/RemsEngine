@@ -58,7 +58,7 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
 
         // from https://gist.github.com/jcdickinson/580b7fb5cc145cee8740, http://www.daltonize.org/search/label/Daltonize
         val shader = Shader(
-            "colorblindness", ShaderLib.attr0List, ShaderLib.attr0VShader, ShaderLib.uvList,
+            "colorblindness", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1I, "mode"),
                 Variable(GLSLType.V1F, "strength"),

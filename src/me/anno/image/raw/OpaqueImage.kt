@@ -1,6 +1,8 @@
 package me.anno.image.raw
 
 import me.anno.config.DefaultStyle.black
+import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import kotlin.math.min
@@ -29,28 +31,24 @@ open class OpaqueImage(
         } else {
             when (src) {
                 is IntImage -> {
-                    val clone = src.cloneData()
-                    texture.createRGBSwizzle(clone, checkRedundancy)
-                    Texture2D.intArrayPool.returnBuffer(clone)
+                    val data = src.cloneData()
+                    val data2 = if (checkRedundancy) texture.checkRedundancy(data) else data
+                    if (sync && GFX.isGFXThread()) texture.createBGR(data2, false)
+                    else GFX.addGPUTask("OpaqueImage", width, height) {
+                        texture.createBGR(data2, false)
+                    }
                 }
                 is ByteImage -> {
                     when (src.numChannels) {
                         1, 2, 3 -> src.createTexture(texture, sync, checkRedundancy)
                         4 -> {
-                            val width = src.width
-                            val height = src.height
-                            val cloned = Texture2D.bufferPool[3 * width * height, false, false]
-                            var j = 0
                             val data = src.data
-                            for (i in 0 until width * height) {
-                                j++ // skip alpha
-                                cloned.put(data[j++])
-                                cloned.put(data[j++])
-                                cloned.put(data[j++])
+                            val data2 = if (checkRedundancy) texture.checkRedundancy(data) else data
+                            // to do check whether this is correct; should be correct :)
+                            if (sync && GFX.isGFXThread()) texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, data2)
+                            else GFX.addGPUTask("OpaqueImage", width, height) {
+                                texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, data2)
                             }
-                            cloned.flip()
-                            texture.createRGB(cloned, checkRedundancy)
-                            // buffer is returned automatically
                         }
                         else -> throw RuntimeException("Cannot create OpaqueImage from image with more than 4 channels")
                     }

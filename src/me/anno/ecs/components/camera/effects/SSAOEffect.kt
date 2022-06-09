@@ -15,6 +15,9 @@ class SSAOEffect : CameraEffect() {
     @Range(0.0, 1e10)
     var radius = 2f // 0.1 of world size looks pretty good :)
 
+    // why is this soo expensive on my RTX3070?
+    // memory limited...
+
     @Range(0.0, 4096.0)
     var samples = max(1, DefaultConfig["gpu.ssao.samples", 128])
 

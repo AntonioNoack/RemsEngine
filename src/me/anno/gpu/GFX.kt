@@ -37,6 +37,7 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AnyToInt.get
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3fc
 import org.joml.Vector4fc
@@ -206,6 +207,13 @@ object GFX : GFXBase() {
         }
     }
 
+    fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) {
+        when (currentRenderer) {
+            idRenderer -> shaderId(shader, name)
+            else -> shader.v4f(name, r, g, b, a)
+        }
+    }
+
     fun shaderColor(shader: Shader, name: String, color: Vector3fc?) {
         when (currentRenderer) {
             idRenderer -> shaderId(shader, name)
@@ -252,10 +260,13 @@ object GFX : GFXBase() {
         check()
     }
 
-
     fun copyNoAlpha(buffer: IFramebuffer) {
+        copyNoAlpha(buffer.getTexture0())
+    }
+
+    fun copyNoAlpha(buffer: ITexture2D) {
         Frame.bind()
-        buffer.getTexture0().bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        buffer.bindTrulyNearest(0)
         copyNoAlpha()
     }
 

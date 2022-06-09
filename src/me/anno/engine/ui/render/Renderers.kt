@@ -1,24 +1,34 @@
 package me.anno.engine.ui.render
 
+import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.*
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderFuncLib.reinhardToneMapping
+import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.length
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20
 
@@ -54,11 +64,11 @@ object Renderers {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage("pbr", listOf(
                 // rendering
-                Variable(GLSLType.BOOL, "applyToneMapping"),
+                Variable(GLSLType.V1B, "applyToneMapping"),
                 // light data
                 Variable(GLSLType.V3F, "ambientLight"),
                 Variable(GLSLType.V1I, "numberOfLights"),
-                Variable(GLSLType.BOOL, "receiveShadows"),
+                Variable(GLSLType.V1B, "receiveShadows"),
                 Variable(GLSLType.M4x3, "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
                 Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
                 Variable(GLSLType.V4F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
@@ -69,7 +79,7 @@ object Renderers {
                 // - point lights
                 Variable(GLSLType.SCube, "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
                 // reflection plane for rivers or perfect mirrors
-                Variable(GLSLType.BOOL, "hasReflectionPlane"),
+                Variable(GLSLType.V1B, "hasReflectionPlane"),
                 Variable(GLSLType.S2D, "reflectionPlane"),
                 // reflection cubemap or irradiance map
                 Variable(GLSLType.SCube, "reflectionMap"),
@@ -293,13 +303,13 @@ object Renderers {
         }
     }
 
-    val attributeRenderers: Map<DeferredLayerType, Renderer> = DeferredLayerType.values.associateWith { type ->
+    val attributeRenderers = LazyMap({ type: DeferredLayerType ->
         val variables = if (type == DeferredLayerType.COLOR) {
             listOf(Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT))
         } else {
             listOf(
-                Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, true),
-                Variable(GLSLType.V3F, "finalColor", false)
+                Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, VariableMode.IN),
+                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT)
             )
         }
         val shaderCode = if (type == DeferredLayerType.COLOR) "" else {
@@ -318,7 +328,49 @@ object Renderers {
         val name = type.name
         val stage = ShaderStage(name, variables, shaderCode)
         SimpleRenderer(name, false, ShaderPlus.DrawMode.COLOR, stage)
-    }
+    }, DeferredLayerType.values.size)
+
+    val attributeEffects: Map<Pair<DeferredLayerType, DeferredSettingsV2>, CameraEffect> =
+        LazyMap({ (type, settings) ->
+            val layer = settings.findLayer(type)
+            if (layer != null) {
+                val type2 = GLSLType.floats[type.dimensions - 1].glslName
+                val shader1 = BaseShader(
+                    type.name, coordsList, coordsVShader, uvList, listOf(
+                        Variable(GLSLType.S2D, "source"),
+                        Variable(GLSLType.V4F, "result", VariableMode.OUT)
+                    ), "" +
+                            "void main(){\n" +
+                            "   $type2 data = texture(source.uv)${layer.mapping}${type.map01};\n" +
+                            "   vec3 color = " +
+                            when (type.dimensions) {
+                                1 -> "vec3(data)"
+                                2 -> "vec3(data,0.0)"
+                                3 -> "data"
+                                else -> "data.rgb;\n"
+                            } + ";\n" +
+                            (if (type.highDynamicRange) {
+                                "color /= (1.0+abs(color));\n"
+                            } else "") +
+                            "   result = vec4(color, 1.0);\n" +
+                            "}"
+                )
+                object : CameraEffect() {
+                    override fun listInputs() = listOf(type)
+                    override fun clone() = throw NotImplementedError()
+                    override fun render(
+                        buffer: IFramebuffer,
+                        format: DeferredSettingsV2,
+                        layers: MutableMap<DeferredLayerType, IFramebuffer>
+                    ) {
+                        val shader = shader1.value
+                        shader.use()
+                        layers[type]!!.bindDirectly()
+                        flat01.draw(shader)
+                    }
+                }
+            } else null
+        }, DeferredLayerType.values.size)
 
     val MAX_PLANAR_LIGHTS = 8
     val MAX_CUBEMAP_LIGHTS = 8

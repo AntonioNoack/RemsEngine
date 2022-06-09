@@ -7,6 +7,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
@@ -167,10 +168,11 @@ abstract class LightComponent(
         val drawTransform = transform.getDrawMatrix()
         val resolution = shadowMapResolution
         val global = transform.globalTransform
-        val position = global.getTranslation(JomlPools.vec3d.create())
+        val position = global.getTranslation(RenderView.camPosition)
         val rotation = global.getUnnormalizedRotation(JomlPools.quat4d.create())
         val worldScale = SQRT3 / global.getScaleLength()
-        val cameraMatrix = JomlPools.mat4f.create()
+        RenderView.worldScale = worldScale
+        val cameraMatrix = RenderView.cameraMatrix
         val shadowTextures = shadowTextures
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
@@ -191,12 +193,11 @@ abstract class LightComponent(
                 useFrame(resolution, resolution, true, texture, renderer) {
                     Frame.bind()
                     glClear(GL_DEPTH_BUFFER_BIT)
-                    pipeline.drawDepth(cameraMatrix, position, worldScale)
+                    pipeline.drawDepth()
                 }
             }
         }
-        // why is this causing a BufferUnderFlow?
-        // JomlPools.vec3d.sub(1)
+
         JomlPools.quat4d.sub(1)
         JomlPools.mat4f.sub(1)
     }

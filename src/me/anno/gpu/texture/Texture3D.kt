@@ -125,6 +125,12 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         afterUpload(GL_RGBA8, 4)
     }
 
+    fun createBGRA8(data: ByteBuffer) {
+        beforeUpload(w * 4)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
+        afterUpload(GL_RGBA8, 4)
+    }
+
     fun createMonochrome(data: ByteArray) {
         if (w * h * d != data.size) throw RuntimeException("incorrect size!")
         val byteBuffer = bufferPool[data.size, false, false]
@@ -150,6 +156,24 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         }
         byteBuffer.flip()
         createMonochrome(byteBuffer)
+        bufferPool.returnBuffer(byteBuffer)
+    }
+
+    fun createRGBA8(getValue: (x: Int, y: Int, z: Int) -> Int) {
+        val w = w
+        val h = h
+        val d = d
+        val size = 4 * w * h * d
+        val byteBuffer = bufferPool[size, false, false]
+        for (z in 0 until d) {
+            for (y in 0 until h) {
+                for (x in 0 until w) {
+                    byteBuffer.putInt(getValue(x, y, z))
+                }
+            }
+        }
+        byteBuffer.flip()
+        createBGRA8(byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
     }
 

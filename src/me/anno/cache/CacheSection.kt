@@ -75,9 +75,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun removeFileEntry(file: FileReference) {
-        removeDualEntry(file, file.lastModified)
-    }
+    fun removeFileEntry(file: FileReference) = removeDualEntry(file, file.lastModified)
 
     fun getFileEntry(
         file: FileReference,
@@ -109,9 +107,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         timeout: Long,
         asyncGenerator: Boolean,
         generator: (Triple<String, String, Int>) -> ICacheData?
-    ): ICacheData? {
-        return getEntry(Triple(major, minor, sub), timeout, asyncGenerator, generator)
-    }
+    ) = getEntry(Triple(major, minor, sub), timeout, asyncGenerator, generator)
 
     /**
      * get the value, no matter whether it actually exists
@@ -157,9 +153,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
      * get the value, no matter whether it actually exists
      * useful for LODs, if others work as well, just are not as good
      * */
-    fun hasFileEntry(key: FileReference, delta: Long = 1L): Boolean {
-        return hasDualEntry(key, key.lastModified, delta)
-    }
+    fun hasFileEntry(key: FileReference, delta: Long = 1L) =
+        hasDualEntry(key, key.lastModified, delta)
 
     fun override(key: Any, data: ICacheData?, timeoutMillis: Long) {
         checkKey(key)
@@ -198,8 +193,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     private fun checkKey(key: Any) {
-        if (key != key) throw IllegalStateException("Key must equal itself")
-        if (key.hashCode() != key.hashCode()) throw IllegalStateException("Hash-function of a key must be the same")
+        if (key != key) throw IllegalStateException("${key::class.qualifiedName}.equals() is incorrect!")
+        if (key.hashCode() != key.hashCode()) throw IllegalStateException("${key::class.qualifiedName}.hashCode() is inconsistent!")
     }
 
     private val limiter = AtomicInteger()
@@ -421,23 +416,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     }
 
-    fun <V> getEntry(key: V, timeoutMillis: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData?): ICacheData? {
-        return getEntryWithCallback(key, timeoutMillis, asyncGenerator, generator, null)
-    }
+    fun <V> getEntry(key: V, timeoutMillis: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData?) =
+        getEntryWithCallback(key, timeoutMillis, asyncGenerator, generator, null)
 
     fun <V, W> getEntry(
-        key0: V,
-        key1: W,
-        timeoutMillis: Long,
-        asyncGenerator: Boolean,
+        key0: V, key1: W, timeoutMillis: Long, asyncGenerator: Boolean,
         generator: (V, W) -> ICacheData?
-    ): ICacheData? {
-        return getEntryWithCallback(key0, key1, timeoutMillis, asyncGenerator, generator, null)
-    }
+    ) = getEntryWithCallback(key0, key1, timeoutMillis, asyncGenerator, generator, null)
 
-    fun <V> getEntry(key: V, timeoutMillis: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?): ICacheData? {
-        return getEntryWithCallback(key, timeoutMillis, queue, generator, null)
-    }
+    fun <V> getEntry(key: V, timeoutMillis: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?) =
+        getEntryWithCallback(key, timeoutMillis, queue, generator, null)
 
     fun update() {
         val time = gameTime

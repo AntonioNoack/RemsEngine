@@ -27,7 +27,7 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
 
     companion object {
         val dxShader = Shader(
-            "dx", ShaderLib.attr0List, ShaderLib.attr0VShader, ShaderLib.uvList,
+            "dx", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.S2D, "src"),
                 Variable(GLSLType.V2F, "delta")
@@ -37,14 +37,14 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
                     "}"
         )
         val absDiffShader = Shader(
-            "abs", ShaderLib.attr0List, ShaderLib.attr0VShader, ShaderLib.uvList,
+            "abs", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.S2D, "a"),
                 Variable(GLSLType.S2D, "b")
             ), "void main(){ gl_FragColor = abs(texture(a,uv)-texture(b,uv)); }"
         ).apply { setTextureIndices("a", "b") }
         val linearShader = Shader(
-            "m*x+n", ShaderLib.attr0List, ShaderLib.attr0VShader, ShaderLib.uvList,
+            "m*x+n", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.S2D, "src"),
                 Variable(GLSLType.V2F, "mn")
@@ -55,7 +55,7 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
                     "}"
         )
         val sumShader = Shader(
-            "abs", ShaderLib.attr0List, ShaderLib.attr0VShader, ShaderLib.uvList,
+            "abs", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.S2D, "a"),
                 Variable(GLSLType.S2D, "b"),
@@ -63,7 +63,7 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
             ), "void main(){ gl_FragColor = texture(a,uv)+texture(b,uv)+texture(c,uv); }"
         ).apply { setTextureIndices("a", "b", "c") }
         val iterationShader = Shader(
-            "abs", ShaderLib.attr0List, ShaderLib.attr0VShader, ShaderLib.uvList,
+            "abs", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.S2D, "src"),
                 Variable(GLSLType.S2D, "dx"),
@@ -89,7 +89,7 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
                     "}"
         ).apply { setTextureIndices("src", "dx", "dy", "blurred") }
         val unsignedBlur = Shader(
-            "signed-blur", ShaderLib.attr0List, ShaderLib.attr0VShader, ShaderLib.uvList,
+            "signed-blur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.S2D, "src"),
                 Variable(GLSLType.V2F, "delta"),
@@ -112,7 +112,7 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
                     "}"
         )
         val signedBlur = Shader(
-            "signed-blur", ShaderLib.attr0List, ShaderLib.attr0VShader, ShaderLib.uvList,
+            "signed-blur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.S2D, "src"),
                 Variable(GLSLType.V2F, "delta"),

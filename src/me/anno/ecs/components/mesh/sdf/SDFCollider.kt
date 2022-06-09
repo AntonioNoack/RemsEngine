@@ -2,17 +2,24 @@ package me.anno.ecs.components.mesh.sdf
 
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
+import cz.advel.stack.Stack
 import me.anno.ecs.Component
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.MeshCollider.Companion.defaultShape
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths.sq
+import me.anno.maths.geometry.MarchingCubes
+import me.anno.utils.types.Matrices.transformPosition2
+import org.joml.AABBd
+import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import kotlin.math.max
 import kotlin.math.min
 
-// todo test this
+// todo high gravity -> tunneling
+// todo position is effecting collider incorrectly (visuals != physics != displayed bounds != visuals)
 class SDFCollider : Collider() {
 
     // could be assigned by hand...
@@ -30,14 +37,15 @@ class SDFCollider : Collider() {
         aabbMin.set(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
         aabbMax.set(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY)
 
-        val tmp = javax.vecmath.Vector3d()
+        val tmp = Stack.newVec()
+        val basis = t.basis
         for (i in 0 until 8) {
             tmp.set(
                 if (i.and(1) != 0) bounds.minX else bounds.maxX,
                 if (i.and(2) != 0) bounds.minY else bounds.maxY,
                 if (i.and(4) != 0) bounds.minZ else bounds.maxZ
             )
-            t.transform(tmp)
+            basis.transform(tmp)
             aabbMin.x = min(aabbMin.x, tmp.x)
             aabbMin.y = min(aabbMin.y, tmp.y)
             aabbMin.z = min(aabbMin.z, tmp.z)
@@ -45,6 +53,9 @@ class SDFCollider : Collider() {
             aabbMax.y = max(aabbMax.y, tmp.y)
             aabbMax.z = max(aabbMax.z, tmp.z)
         }
+        aabbMin.add(t.origin)
+        aabbMax.add(t.origin)
+        Stack.subVec(1)
     }
 
     fun calculateLocalInertia(mass: Double, inertia: javax.vecmath.Vector3d) {
@@ -57,26 +68,57 @@ class SDFCollider : Collider() {
             val x2 = sq(bounds.deltaX())
             val y2 = sq(bounds.deltaY())
             val z2 = sq(bounds.deltaZ())
-            inertia.set(
-                y2 + z2, z2 + x2, x2 + y2
-            )
+            inertia.set(y2 + z2, z2 + x2, x2 + y2)
             inertia.scale(base)
         } else inertia.set(base, base, base)
     }
 
+    var shape: CollisionShape? = null
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         val sdf = sdf ?: return defaultShape
-        return if (isConvex) {
+        shape = if (isConvex) {
             ConvexSDFShape(sdf, this)
         } else {
             ConcaveSDFShape(sdf, this)
+        }
+        return shape!!
+    }
+
+    override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+        val sdf = sdf ?: return
+        sdf.localAABB.apply {
+            union(globalTransform, aabb, tmp, minX, minY, minZ)
+            union(globalTransform, aabb, tmp, minX, minY, maxZ)
+            union(globalTransform, aabb, tmp, minX, maxY, minZ)
+            union(globalTransform, aabb, tmp, minX, maxY, maxZ)
+            union(globalTransform, aabb, tmp, maxX, minY, minZ)
+            union(globalTransform, aabb, tmp, maxX, minY, maxZ)
+            union(globalTransform, aabb, tmp, maxX, maxY, minZ)
+            union(globalTransform, aabb, tmp, maxX, maxY, maxZ)
         }
     }
 
     override fun drawShape() {
         // how? draw bounds...
         val sdf = sdf ?: return
-        DrawAABB.drawAABB(sdf.globalAABB, RenderView.worldScale, guiLineColor)
+        val color = guiLineColor
+        val transform = transform?.getDrawMatrix()
+        (shape as? ConcaveSDFShape)?.run {
+            // draw last used triangles for debugging
+            MarchingCubes.march(fx, fy, fz, field, 0f, false) { a, b, c ->
+                if (transform != null) {
+                    transform.transformPosition2(a)
+                    transform.transformPosition2(b)
+                    transform.transformPosition2(c)
+                }
+                LineBuffer.addLine(a, b, color)
+                LineBuffer.addLine(b, c, color)
+                LineBuffer.addLine(c, a, color)
+            }
+        }
+        // draw local aabb
+        // DrawAABB.drawAABB(sdf.globalAABB, RenderView.worldScale, color)
+        DrawAABB.drawAABB(transform, sdf.localAABB, RenderView.worldScale, color)
     }
 
     override fun clone(): Component {

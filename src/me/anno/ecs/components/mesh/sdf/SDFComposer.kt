@@ -144,7 +144,7 @@ object SDFComposer {
             val b = tree.localAABB
             it.set(b.maxX, b.maxY, b.maxZ)
         }
-        uniforms["perspectiveCamera"] = TypeValue(GLSLType.BOOL) { RenderView.isPerspective }
+        uniforms["perspectiveCamera"] = TypeValue(GLSLType.V1B) { RenderView.isPerspective }
         uniforms["debugMode"] = TypeValue(GLSLType.V1I) { tree.debugMode.id }
 
         val materials = tree.sdfMaterials.map { MaterialCache[it] }
@@ -171,7 +171,11 @@ object SDFComposer {
         if (needsSwitch) builder.append("}\n")
 
         val shader = object : ECSMeshShader("raycasting-${tree.hashCode()}") {
-            override fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean): ShaderStage {
+            override fun createFragmentStage(
+                isInstanced: Boolean,
+                isAnimated: Boolean,
+                motionVectors: Boolean
+            ): ShaderStage {
                 // instancing is not supported
                 val fragmentVariables = listOf(
                     Variable(GLSLType.M4x4, "transform"),
@@ -184,7 +188,7 @@ object SDFComposer {
                     Variable(GLSLType.V3F, "localMin"),
                     Variable(GLSLType.V3F, "localMax"),
                     Variable(GLSLType.V1I, "debugMode"), // 0 = default, 1 = #steps, 2 = sdf planes
-                    Variable(GLSLType.BOOL, "perspectiveCamera"),
+                    Variable(GLSLType.V1B, "perspectiveCamera"),
                     Variable(GLSLType.V1F, "sdfReliability"),
                     Variable(GLSLType.V1F, "sdfNormalEpsilon"),
                     Variable(GLSLType.V1F, "sdfMaxRelativeError"),
@@ -215,7 +219,7 @@ object SDFComposer {
                     Variable(GLSLType.V2F, "finalClearCoatRoughMetallic", VariableMode.INOUT),
                     // for reflections;
                     // we could support multiple
-                    Variable(GLSLType.BOOL, "hasReflectionPlane"),
+                    Variable(GLSLType.V1B, "hasReflectionPlane"),
                     Variable(GLSLType.V3F, "reflectionPlaneNormal"),
                     Variable(GLSLType.S2D, "reflectionPlane"),
                     Variable(GLSLType.V4F, "reflectionCullingPlane"),
@@ -319,7 +323,7 @@ object SDFComposer {
 
                             "} else {\n" +// inside an object
 
-                            "   finalColor = vec3(0.5);\n" +
+                            /*"   finalColor = vec3(0.5);\n" +
                             "   finalAlpha = 0.5;\n" +
                             "   finalEmissive  = vec3(0.0);\n" +
                             "   finalMetallic  = 0.0;\n" +
@@ -334,7 +338,9 @@ object SDFComposer {
 
                             // calculate depth
                             "   vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
-                            "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                            "   gl_FragDepth = newVertex.z/newVertex.w;\n" +*/
+                            // todo make this behaviour modifiable
+                            "   discard;\n" +
 
                             "}\n" +
 

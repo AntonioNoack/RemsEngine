@@ -1,7 +1,6 @@
 package me.anno.utils.structures.lists
 
 import me.anno.graph.knn.Heap
-import me.anno.maths.bvh.BVHBuilder
 import kotlin.math.max
 
 object Lists {

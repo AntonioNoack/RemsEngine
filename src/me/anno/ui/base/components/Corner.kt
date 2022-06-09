@@ -38,7 +38,7 @@ object Corner {
 
     }
 
-    private val cornerAttr = listOf(Attribute("attr0", 2))
+    private val cornerAttr = listOf(Attribute("coords", 2))
     val topLeft = corner(true, my = true)
     val topRight = corner(false, my = true)
     val bottomLeft = corner(true, my = false)

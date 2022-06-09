@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.copying.FramebufferToMemory
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.utils.OS
@@ -43,5 +44,7 @@ interface ITexture2D : ICacheData {
         FramebufferToMemory.createImage(this, flipY, withAlpha)
             .write(dst)
     }
+
+    fun wrapAsFramebuffer(): IFramebuffer
 
 }

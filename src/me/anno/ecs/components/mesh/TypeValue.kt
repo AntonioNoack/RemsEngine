@@ -27,7 +27,7 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
     fun bind(shader: Shader, location: Int) {
         val value = value
         when (type) {
-            GLSLType.BOOL -> when (value) {
+            GLSLType.V1B -> when (value) {
                 is Boolean -> shader.v1b(location, value)
                 is Int -> shader.v1b(location, value != 0)
                 is Float -> shader.v1b(location, value.isFinite() && value != 0f)

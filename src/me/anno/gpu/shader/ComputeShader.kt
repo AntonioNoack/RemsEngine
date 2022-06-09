@@ -39,7 +39,7 @@ class ComputeShader(
         val shader = compile(name, program, GL_COMPUTE_SHADER, source)
         glLinkProgram(program)
         postPossibleError(name, program, false, source)
-        glDeleteShader(shader)
+        // glDeleteShader(shader)
         logShader(name, source)
 
         GFX.check()

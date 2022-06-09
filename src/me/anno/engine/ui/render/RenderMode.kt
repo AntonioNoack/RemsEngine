@@ -26,6 +26,7 @@ enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffe
     OCCLUSION(DeferredLayerType.OCCLUSION),
     SHEEN(DeferredLayerType.SHEEN),
     ANISOTROPY(DeferredLayerType.ANISOTROPIC),
+    MOTION_VECTORS(DeferredLayerType.MOTION),
 
     // ALPHA, // currently not defined
     LIGHT_SUM, // todo implement dust-light-spilling for impressive fog

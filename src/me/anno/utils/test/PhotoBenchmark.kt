@@ -11,8 +11,8 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Reduction
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.attr0List
-import me.anno.gpu.shader.ShaderLib.attr0VShader
+import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -53,8 +53,8 @@ fun main() {
 
     val differenceShader = Shader(
         "difference",
-        attr0List,
-        attr0VShader,
+        coordsList,
+        coordsVShader,
         uvList,
         listOf(
             Variable(GLSLType.S2D, "tex0"),

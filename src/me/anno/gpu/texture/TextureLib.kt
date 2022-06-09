@@ -21,7 +21,7 @@ object TextureLib {
                 isDestroyed = false
                 when (creationData) {
                     is ByteArray -> createRGBA(creationData, false)
-                    is IntArray -> createRGBASwizzle(
+                    is IntArray -> createBGRA(
                         IntArray(creationData.size) { creationData[it] },
                         false
                     )
@@ -69,9 +69,9 @@ object TextureLib {
             }
         }
 
-        override fun bind(index: Int, nearest: GPUFiltering) {
+        override fun bind(index: Int, filtering: GPUFiltering) {
             checkExistence()
-            super.bind(index, nearest)
+            super.bind(index, filtering)
         }
 
     }

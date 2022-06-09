@@ -12,7 +12,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.Clock
 import me.anno.utils.pooling.ByteBufferPool
-import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
@@ -45,35 +44,35 @@ object ShaderLib {
      * */
     const val maxOutlineColors = 6
 
-    val attr0List = listOf(Variable(GLSLType.V2F, "attr0", VariableMode.ATTR))
-    const val attr0VShader = "" +
+    val coordsList = listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR))
+    const val coordsVShader = "" +
             "void main(){\n" +
-            "   gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
-            "   uv = attr0;\n" +
+            "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
+            "   uv = coords;\n" +
             "}"
 
     val simplestVertexShader = "" +
-            "$attribute vec2 attr0;\n" +
+            "$attribute vec2 coords;\n" +
             "void main(){\n" +
-            "   gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
-            "   uv = attr0;\n" +
+            "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
+            "   uv = coords;\n" +
             "}"
 
     val simplestVertexShader2 = "" +
-            "$attribute vec2 attr0;\n" +
+            "$attribute vec2 coords;\n" +
             "void main(){\n" +
-            "   gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
+            "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
             "}"
 
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
     val simpleVertexShader = "" +
-            "$attribute vec2 attr0;\n" +
+            "$attribute vec2 coords;\n" +
             "uniform vec2 pos, size;\n" +
             "uniform vec4 tiling;\n" +
             "uniform mat4 transform;\n" +
             "void main(){\n" +
-            "   gl_Position = transform * vec4((pos + attr0 * size)*2.0-1.0, 0.5, 1.0);\n" +
-            "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+            "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.5, 1.0);\n" +
+            "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "}"
 
     const val brightness = "" +
@@ -299,15 +298,15 @@ object ShaderLib {
             "   normal = vec3(0.0, 0.0, 1.0);\n"
 
     val v3D = v3DBase +
-            "$attribute vec3 attr0;\n" +
+            "$attribute vec3 coords;\n" +
             "$attribute vec2 attr1;\n" +
             "uniform vec4 tiling;\n" +
             "void main(){\n" +
-            "   finalPosition = attr0;\n" +
+            "   finalPosition = coords;\n" +
             "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
             positionPostProcessing +
             "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
-            "   uvw = attr0;\n" +
+            "   uvw = coords;\n" +
             flatNormal +
             "}"
 
@@ -331,9 +330,9 @@ object ShaderLib {
             "}"
 
     val v3DMasked = v3DBase +
-            "$attribute vec2 attr0;\n" +
+            "$attribute vec2 coords;\n" +
             "void main(){\n" +
-            "   finalPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
+            "   finalPosition = vec3(coords*2.0-1.0, 0.0);\n" +
             "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
             "   uv = gl_Position.xyw;\n" +
             positionPostProcessing +
@@ -359,15 +358,15 @@ object ShaderLib {
         subpixelCorrectTextShader = BaseShader(
             "subpixelCorrectTextShader",
             "" +
-                    "$attribute vec2 attr0;\n" +
+                    "$attribute vec2 coords;\n" +
                     "uniform vec2 pos, size;\n" +
                     "uniform mat4 transform;\n" + // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
                     "uniform vec2 windowSize;\n" +
                     "void main(){\n" +
-                    "   vec2 localPos = pos + attr0 * size;\n" +
+                    "   vec2 localPos = pos + coords * size;\n" +
                     "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
                     "   position = localPos * windowSize;\n" +
-                    "   uv = attr0;\n" +
+                    "   uv = coords;\n" +
                     "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V2F, "position")), "" +
                     "uniform vec4 textColor, backgroundColor;\n" +
                     "uniform vec2 windowSize;\n" +
@@ -389,17 +388,17 @@ object ShaderLib {
         )
         subpixelCorrectTextShader.setTextureIndices(listOf("tex"))
 
-        shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
-        shader3DText = createShaderPlus(
+        shader3D = createShader("3d", v3D, y3D, f3D, listOf("tex"))
+        shader3DText = createShader(
             "3d-text", v3DBase +
-                    "$attribute vec3 attr0;\n" +
+                    "$attribute vec3 coords;\n" +
                     "$attribute vec2 attr1;\n" +
                     "uniform vec3 offset;\n" +
                     getUVForceFieldLib +
                     "void main(){\n" +
-                    "   vec3 localPos0 = attr0 + offset;\n" +
+                    "   vec3 localPos0 = coords + offset;\n" +
                     "   vec2 pseudoUV2 = getForceFieldUVs(localPos0.xy*.5+.5);\n" +
-                    "   finalPosition = $hasForceFieldUVs ? vec3(pseudoUV2*2.0-1.0, attr0.z + offset.z) : localPos0;\n" +
+                    "   finalPosition = $hasForceFieldUVs ? vec3(pseudoUV2*2.0-1.0, coords.z + offset.z) : localPos0;\n" +
                     "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                     flatNormal +
                     positionPostProcessing +
@@ -416,15 +415,15 @@ object ShaderLib {
         )
         shader3DText.ignoreUniformWarnings("tiling", "forceFieldUVCount")
 
-        shaderSDFText = createShaderPlus(
+        shaderSDFText = createShader(
             "3d-text-withOutline", v3DBase +
-                    "$attribute vec3 attr0;\n" +
+                    "$attribute vec3 coords;\n" +
                     "$attribute vec2 attr1;\n" +
                     "uniform vec2 offset, scale;\n" +
                     getUVForceFieldLib +
                     "void main(){\n" +
-                    "   uv = attr0.xy * 0.5 + 0.5;\n" +
-                    "   vec2 localPos0 = attr0.xy * scale + offset;\n" +
+                    "   uv = coords.xy * 0.5 + 0.5;\n" +
+                    "   vec2 localPos0 = coords.xy * scale + offset;\n" +
                     "   vec2 pseudoUV2 = getForceFieldUVs(localPos0*.5+.5);\n" +
                     "   finalPosition = vec3($hasForceFieldUVs ? pseudoUV2*2.0-1.0 : localPos0, 0);\n" +
                     "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
@@ -471,24 +470,24 @@ object ShaderLib {
         )
 
         val v3DPolygon = v3DBase +
-                "$attribute vec3 attr0;\n" +
+                "$attribute vec3 coords;\n" +
                 "$attribute vec2 attr1;\n" +
                 "uniform float inset;\n" +
                 "void main(){\n" +
-                "   vec2 betterUV = attr0.xy;\n" +
+                "   vec2 betterUV = coords.xy;\n" +
                 "   betterUV *= mix(1.0, attr1.r, inset);\n" +
-                "   finalPosition = vec3(betterUV, attr0.z);\n" +
+                "   finalPosition = vec3(betterUV, coords.z);\n" +
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 flatNormal +
                 positionPostProcessing +
                 "   uv = attr1.yx;\n" +
                 "}"
-        shader3DPolygon = createShaderPlus("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"))
+        shader3DPolygon = createShader("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"))
         shader3DPolygon.ignoreUniformWarnings("tiling", "forceFieldUVCount")
 
         // somehow becomes dark for large |steps|-values
         shader3DBoxBlur = createShader(
-            "3d-blur", attr0List, attr0VShader, uvList, listOf(), "" +
+            "3d-blur", coordsList, coordsVShader, uvList, listOf(), "" +
                     "precision highp float;\n" + // why?
                     "uniform sampler2D tex;\n" +
                     "uniform vec2 stepSize;\n" +
@@ -595,14 +594,14 @@ object ShaderLib {
                 "   }" +
                 "}"
 
-        shader3DSVG = createShaderPlus("3d-svg", vSVG, ySVG, fSVG, listOf("tex"))
+        shader3DSVG = createShader("3d-svg", vSVG, ySVG, fSVG, listOf("tex"))
 
         val v3DCircle = v3DBase +
-                "$attribute vec2 attr0;\n" + // angle, inner/outer
+                "$attribute vec2 coords;\n" + // angle, inner/outer
                 "uniform vec3 circleParams;\n" + // 1 - inner r, start, end
                 "void main(){\n" +
-                "   float angle = mix(circleParams.y, circleParams.z, attr0.x);\n" +
-                "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * attr0.y);\n" +
+                "   float angle = mix(circleParams.y, circleParams.z, coords.x);\n" +
+                "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * coords.y);\n" +
                 "   finalPosition = vec3(betterUV, 0.0);\n" +
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 flatNormal +
@@ -615,7 +614,7 @@ object ShaderLib {
                 "   gl_FragColor = ($hasForceFieldColor) ? getForceFieldColor() : vec4(1);\n" +
                 "}"
 
-        shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DCircle, listOf())
+        shader3DCircle = createShader("3dCircle", v3DCircle, y3D, f3DCircle, listOf())
         shader3DCircle.ignoreUniformWarnings(
             listOf(
                 "filtering",
@@ -628,7 +627,7 @@ object ShaderLib {
         )
 
         // create the obj+mtl shader
-        shaderObjMtl = createShaderPlus(
+        shaderObjMtl = createShader(
             "obj/mtl",
             v3DBase +
                     "$attribute vec3 coords;\n" +
@@ -712,7 +711,7 @@ object ShaderLib {
             Variable(GLSLType.V4F, "vertexColor")
         )
 
-        shaderAssimp = createShaderPlus(
+        shaderAssimp = createShader(
             "assimp",
             assimpVertex, assimpVarying, "" +
                     "uniform sampler2D albedoTex;\n" +
@@ -731,7 +730,7 @@ object ShaderLib {
         )
         shaderAssimp.glslVersion = 330
 
-        monochromeModelShader = createShaderPlus(
+        monochromeModelShader = createShader(
             "monochrome-model",
             assimpVertex, assimpVarying, "" +
                     "uniform vec4 tint;\n" +
@@ -753,7 +752,7 @@ object ShaderLib {
         // create the fbx shader
         // shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
 
-        shader3DYUV = createShaderPlus(
+        shader3DYUV = createShader(
             "3d-yuv",
             v3D, y3D, "" +
                     "uniform sampler2D texY, texUV;\n" +
@@ -779,7 +778,7 @@ object ShaderLib {
         )
 
         fun createSwizzleShader(swizzle: String): BaseShader {
-            return createShaderPlus(
+            return createShader(
                 "3d-${swizzle.ifEmpty { "rgba" }}",
                 v3D, y3D, "" +
                         "uniform sampler2D tex;\n" +
@@ -803,10 +802,10 @@ object ShaderLib {
 
         lineShader3D = BaseShader(
             "3d-lines",
-            "$attribute vec3 attr0;\n" +
+            "$attribute vec3 coords;\n" +
                     "uniform mat4 transform;\n" +
                     "void main(){" +
-                    "   gl_Position = transform * vec4(attr0, 1.0);\n" +
+                    "   gl_Position = transform * vec4(coords, 1.0);\n" +
                     positionPostProcessing +
                     "}", listOf(Variable(GLSLType.V1F, "zDistance")), "" +
                     "uniform vec4 color;\n" +
@@ -849,32 +848,6 @@ object ShaderLib {
 
         tick.stop("creating default shaders")
 
-    }
-
-    // once was used to skip over abbreviation symbols;
-    // however, the overhead shouldn't be a problem -> ignored
-    fun createShaderNoShorts(
-        shaderName: String,
-        vertexShader: String,
-        varyings: List<Variable>,
-        fragmentShader: String,
-        textures: List<String>
-    ): BaseShader {
-        val shader = BaseShader(shaderName, vertexShader, varyings, fragmentShader)
-        shader.setTextureIndices(textures)
-        return shader
-    }
-
-    fun createShaderPlus(
-        shaderName: String,
-        vertexShader: String,
-        varyings: List<Variable>,
-        fragmentShader: String,
-        textures: List<String>
-    ): BaseShader {
-        val shader = BaseShader(shaderName, vertexShader, varyings, fragmentShader)
-        shader.setTextureIndices(textures)
-        return shader
     }
 
     fun createShader(

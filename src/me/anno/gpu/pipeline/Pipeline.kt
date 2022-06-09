@@ -19,7 +19,6 @@ import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.Frustum
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
@@ -58,8 +57,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     @SerializedProperty
     val stages = ArrayList<PipelineStage>()
 
-    // depth doesn't matter for lights
-    val lightPseudoStage = LightPipelineStage(DepthMode.ALWAYS, deferred)
+    val lightPseudoStage = LightPipelineStage(deferred)
 
     lateinit var defaultStage: PipelineStage
 
@@ -146,15 +144,19 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         stage.add(light, entity)
     }
 
-    fun draw(cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
+    fun draw() {
         for (stage in stages) {
-            stage.bindDraw(this, cameraMatrix, cameraPosition, worldScale)
+            stage.bindDraw(this)
         }
     }
 
-    fun drawDepth(cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
+    /**
+     * drawing only the depth of a scene;
+     * for light-shadows or pre-depth
+     * */
+    fun drawDepth() {
         GFX.check()
-        defaultStage.drawDepths(this, cameraMatrix, cameraPosition, worldScale)
+        defaultStage.drawDepths(this)
         GFX.check()
     }
 

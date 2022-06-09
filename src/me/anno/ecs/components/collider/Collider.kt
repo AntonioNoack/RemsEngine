@@ -6,7 +6,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.physics.BulletPhysics.Companion.convertMatrix
+import me.anno.ecs.components.physics.BulletPhysics.Companion.mat4x3ToTransform
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
@@ -106,48 +106,48 @@ abstract class Collider : CollidingComponent() {
             val r1 = SQRT1_2 * r0
             when (axis) {
                 0 -> {
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, +r0, 0.0)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, -r0, 0.0)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, 0.0, +r)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, 0.0, -r)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, +r1, +r1)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, +r1, -r1)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, -r1, +r1)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, -r1, -r1)))
+                    union(globalTransform, aabb, tmp, h, +r0, 0.0)
+                    union(globalTransform, aabb, tmp, h, -r0, 0.0)
+                    union(globalTransform, aabb, tmp, h, 0.0, +r)
+                    union(globalTransform, aabb, tmp, h, 0.0, -r)
+                    union(globalTransform, aabb, tmp, h, +r1, +r1)
+                    union(globalTransform, aabb, tmp, h, +r1, -r1)
+                    union(globalTransform, aabb, tmp, h, -r1, +r1)
+                    union(globalTransform, aabb, tmp, h, -r1, -r1)
                 }
                 1 -> {
-                    aabb.union(globalTransform.transformPosition(tmp.set(+r1, h, +r1)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(+r1, h, -r1)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(-r1, h, +r1)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(-r1, h, -r1)))
+                    union(globalTransform, aabb, tmp, +r1, h, +r1)
+                    union(globalTransform, aabb, tmp, +r1, h, -r1)
+                    union(globalTransform, aabb, tmp, -r1, h, +r1)
+                    union(globalTransform, aabb, tmp, -r1, h, -r1)
                 }
                 2 -> {
-                    aabb.union(globalTransform.transformPosition(tmp.set(+r1, +r1, h)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(+r1, -r1, h)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(-r1, +r1, h)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(-r1, -r1, h)))
+                    union(globalTransform, aabb, tmp, +r1, +r1, h)
+                    union(globalTransform, aabb, tmp, +r1, -r1, h)
+                    union(globalTransform, aabb, tmp, -r1, +r1, h)
+                    union(globalTransform, aabb, tmp, -r1, -r1, h)
                 }
             }
         } else {
             // approximate the circle as a quad
             when (axis) {
                 0 -> {
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, +r, +r)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, +r, -r)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, -r, +r)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(h, -r, -r)))
+                    union(globalTransform, aabb, tmp, h, +r, +r)
+                    union(globalTransform, aabb, tmp, h, +r, -r)
+                    union(globalTransform, aabb, tmp, h, -r, +r)
+                    union(globalTransform, aabb, tmp, h, -r, -r)
                 }
                 1 -> {
-                    aabb.union(globalTransform.transformPosition(tmp.set(+r, h, +r)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(+r, h, -r)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(-r, h, +r)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(-r, h, -r)))
+                    union(globalTransform, aabb, tmp, +r, h, +r)
+                    union(globalTransform, aabb, tmp, +r, h, -r)
+                    union(globalTransform, aabb, tmp, -r, h, +r)
+                    union(globalTransform, aabb, tmp, -r, h, -r)
                 }
                 2 -> {
-                    aabb.union(globalTransform.transformPosition(tmp.set(+r, +r, h)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(+r, -r, h)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(-r, +r, h)))
-                    aabb.union(globalTransform.transformPosition(tmp.set(-r, -r, h)))
+                    union(globalTransform, aabb, tmp, +r, +r, h)
+                    union(globalTransform, aabb, tmp, +r, -r, h)
+                    union(globalTransform, aabb, tmp, -r, +r, h)
+                    union(globalTransform, aabb, tmp, -r, -r, h)
                 }
             }
         }
@@ -156,25 +156,29 @@ abstract class Collider : CollidingComponent() {
     open fun unionCube(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, hx: Double, hy: Double, hz: Double) {
         // union the most typical layout: a sphere
         // 001,010,100,-001,-010,-100
-        aabb.union(globalTransform.transformPosition(tmp.set(+hx, +hy, +hz)))
-        aabb.union(globalTransform.transformPosition(tmp.set(+hx, +hy, -hz)))
-        aabb.union(globalTransform.transformPosition(tmp.set(+hx, -hy, +hz)))
-        aabb.union(globalTransform.transformPosition(tmp.set(+hx, -hy, -hz)))
-        aabb.union(globalTransform.transformPosition(tmp.set(-hx, +hy, +hz)))
-        aabb.union(globalTransform.transformPosition(tmp.set(-hx, +hy, -hz)))
-        aabb.union(globalTransform.transformPosition(tmp.set(-hx, -hy, +hz)))
-        aabb.union(globalTransform.transformPosition(tmp.set(-hx, -hy, -hz)))
+        union(globalTransform, aabb, tmp, +hx, +hy, +hz)
+        union(globalTransform, aabb, tmp, +hx, +hy, -hz)
+        union(globalTransform, aabb, tmp, +hx, -hy, +hz)
+        union(globalTransform, aabb, tmp, +hx, -hy, +hz)
+        union(globalTransform, aabb, tmp, -hx, +hy, +hz)
+        union(globalTransform, aabb, tmp, -hx, +hy, -hz)
+        union(globalTransform, aabb, tmp, -hx, -hy, +hz)
+        union(globalTransform, aabb, tmp, -hx, -hy, +hz)
+    }
+
+    fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, x: Double, y: Double, z: Double) {
+        aabb.union(globalTransform.transformPosition(tmp.set(x, y, z)))
     }
 
     open fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union a sample layout
         // 001,010,100,-001,-010,-100
-        aabb.union(globalTransform.transformPosition(tmp.set(+1.0, 0.0, 0.0)))
-        aabb.union(globalTransform.transformPosition(tmp.set(-1.0, 0.0, 0.0)))
-        aabb.union(globalTransform.transformPosition(tmp.set(0.0, +1.0, 0.0)))
-        aabb.union(globalTransform.transformPosition(tmp.set(0.0, -1.0, 0.0)))
-        aabb.union(globalTransform.transformPosition(tmp.set(0.0, 0.0, +1.0)))
-        aabb.union(globalTransform.transformPosition(tmp.set(0.0, 0.0, -1.0)))
+        union(globalTransform, aabb, tmp, +1.0, 0.0, 0.0)
+        union(globalTransform, aabb, tmp, -1.0, 0.0, 0.0)
+        union(globalTransform, aabb, tmp, 0.0, +1.0, 0.0)
+        union(globalTransform, aabb, tmp, 0.0, -1.0, 0.0)
+        union(globalTransform, aabb, tmp, 0.0, 0.0, +1.0)
+        union(globalTransform, aabb, tmp, 0.0, 0.0, -1.0)
     }
 
     fun and2SDFs(deltaPos: Vector3f, roundness: Float = this.roundness.toFloat()): Float {
@@ -200,7 +204,7 @@ abstract class Collider : CollidingComponent() {
         val extraScale = transform0.getScale(Vector3d())
         val totalScale = Vector3d(scale).mul(extraScale)
         val shape = createBulletShape(totalScale)
-        val transform = Transform(convertMatrix(transform0, extraScale))
+        val transform = mat4x3ToTransform(transform0, extraScale)
         return transform to shape
     }
 
@@ -290,7 +294,10 @@ abstract class Collider : CollidingComponent() {
 
     // a collider needs to be drawn
     override fun onDrawGUI(all: Boolean) {
-        if (all || RenderView.currentInstance?.renderMode == RenderMode.PHYSICS) drawShape()
+        if (all ||
+            entity?.physics?.showDebug == true ||
+            RenderView.currentInstance?.renderMode == RenderMode.PHYSICS
+        ) drawShape()
         // todo draw transformation gizmos for easy collider manipulation
     }
 

@@ -45,11 +45,21 @@ abstract class OpenGLShader(val name: String) : ICacheData {
             return if (OS.isAndroid) "#version $version es\n" else "#version $version\n"
         }
 
+        // needs to be cleared when the opengl session changes
+        private val shaderCache = HashMap<Pair<Int, String>, Int>(256)
+        private var shaderCacheSession = -1
+
         fun compile(shaderName: String, program: Int, type: Int, source: String): Int {
-            // ("$shaderName/$type: $source")
-            val shader = glCreateShader(type)
-            glShaderSource(shader, source)
-            glCompileShader(shader)
+            if (shaderCacheSession != OpenGL.session) {
+                shaderCacheSession = OpenGL.session
+                shaderCache.clear()
+            }
+            val shader = shaderCache.getOrPut(type to source) {
+                val shader = glCreateShader(type)
+                glShaderSource(shader, source)
+                glCompileShader(shader)
+                shader
+            }
             glAttachShader(program, shader)
             postPossibleError(shaderName, shader, true, source)
             return shader
@@ -283,6 +293,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    fun v1f(name: String, x: Double) = v1f(name, x.toFloat())
     fun v1f(name: String, x: Float) = v1f(getUniformLocation(name), x)
     fun v1f(loc: Int, x: Float) {
         if (loc > -1) {

@@ -1,6 +1,7 @@
 package me.anno.mesh
 
 import me.anno.ecs.components.mesh.Mesh
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -13,6 +14,15 @@ object Shapes {
     fun scale(src: FloatArray, scale: Float, dst: FloatArray = FloatArray(src.size)): FloatArray {
         for (i in src.indices) {
             dst[i] = src[i] * scale
+        }
+        return dst
+    }
+
+    fun linear(src: FloatArray, offset: Vector3f, scale: Vector3f, dst: FloatArray = FloatArray(src.size)): FloatArray {
+        for (i in src.indices step 3) {
+            dst[i] = src[i] * scale.x + offset.x
+            dst[i + 1] = src[i + 1] * scale.y + offset.y
+            dst[i + 2] = src[i + 2] * scale.z + offset.z
         }
         return dst
     }
@@ -49,6 +59,9 @@ object Shapes {
 
         fun scaled(scale: Float) =
             FBBMesh(this, scale)
+
+        fun linear(offset: Vector3f, scale: Vector3f) =
+            FBBMesh(linear(positions, offset, scale), indices)
 
         val front = Mesh()
         val back = Mesh()

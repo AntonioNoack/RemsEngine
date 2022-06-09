@@ -464,6 +464,7 @@ object ComponentUI {
                     }
                 }
             }
+            // todo slider type, which returns a float in 01 range
             "Float" -> {
                 val type = Type(default as? Float ?: throw RuntimeException("$title is not float"),
                     { clamp(it as Float, range.minFloat(), range.maxFloat()) }, { it })

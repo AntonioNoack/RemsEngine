@@ -252,7 +252,6 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
         private fun test2() {
             // why is the result slightly different?
-            // todo why is it rotating???
             LOGGER.info("Own World Test")
             // create the same world as in test 1, now just with our own classes
             // create test world

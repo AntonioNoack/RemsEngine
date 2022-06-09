@@ -15,43 +15,43 @@ class PlayControls(renderer: RenderView) : ControlScheme(renderer) {
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        callEvent(UIEvent(x, y, true, button, UIEventType.MOUSE_DOWN))
+        callEvent(UIEvent(window, x, y, true, button, UIEventType.MOUSE_DOWN))
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        callEvent(UIEvent(x, y, true, button, UIEventType.MOUSE_UP))
+        callEvent(UIEvent(window, x, y, true, button, UIEventType.MOUSE_UP))
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        callEvent(UIEvent(x, y, 0f, 0f, 0, true, button, long, UIEventType.MOUSE_CLICK))
+        callEvent(UIEvent(window, x, y, 0f, 0f, 0, true, button, long, UIEventType.MOUSE_CLICK))
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        callEvent(UIEvent(x, y, dx, dy, 0, true, MouseButton.UNKNOWN, false, UIEventType.MOUSE_MOVE))
+        callEvent(UIEvent(window, x, y, dx, dy, 0, true, MouseButton.UNKNOWN, false, UIEventType.MOUSE_MOVE))
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
-        callEvent(UIEvent(x, y, dx, dy, 0, byMouse, MouseButton.UNKNOWN, false, UIEventType.MOUSE_WHEEL))
+        callEvent(UIEvent(window, x, y, dx, dy, 0, byMouse, MouseButton.UNKNOWN, false, UIEventType.MOUSE_WHEEL))
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Int) {
-        callEvent(UIEvent(x, y, key, UIEventType.KEY_DOWN))
+        callEvent(UIEvent(window, x, y, key, UIEventType.KEY_DOWN))
     }
 
     override fun onKeyUp(x: Float, y: Float, key: Int) {
-        callEvent(UIEvent(x, y, key, UIEventType.KEY_UP))
+        callEvent(UIEvent(window, x, y, key, UIEventType.KEY_UP))
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
-        callEvent(UIEvent(x, y, key, UIEventType.KEY_TYPED))
+        callEvent(UIEvent(window, x, y, key, UIEventType.KEY_TYPED))
     }
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
-        callEvent(UIEvent(x, y, key, UIEventType.CHAR_TYPED))
+        callEvent(UIEvent(window,x, y, key, UIEventType.CHAR_TYPED))
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        callEvent(UIEvent(x, y, dx, dy, 0, false, MouseButton.UNKNOWN, false, UIEventType.ACTION, action))
+        callEvent(UIEvent(window,x, y, dx, dy, 0, false, MouseButton.UNKNOWN, false, UIEventType.ACTION, action))
         return true
     }
 

@@ -3,6 +3,7 @@ package me.anno.io
 import me.anno.Engine
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.hpc.Threads.threadWithName
+import java.io.EOFException
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.Reader
@@ -60,6 +61,29 @@ object Streams {
                 input.copyTo(output)
             }
         }
+    }
+
+    fun InputStream.readBE16(): Int {
+        val a = read()
+        val b = read()
+        if (a < 0 || b < 0 ) throw EOFException()
+        return a.shl(8) + b
+    }
+
+    fun InputStream.readLE16(): Int {
+        val a = read()
+        val b = read()
+        if (a < 0 || b < 0 ) throw EOFException()
+        return a + b.shl(8)
+    }
+
+    fun InputStream.readBE32(): Int {
+        val a = read()
+        val b = read()
+        val c = read()
+        val d = read()
+        if (a < 0 || b < 0 || c < 0 || d < 0) throw EOFException()
+        return a.shl(24) + b.shl(16) + c.shl(8) + d
     }
 
 }

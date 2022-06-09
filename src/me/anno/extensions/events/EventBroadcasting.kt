@@ -1,12 +1,18 @@
 package me.anno.extensions.events
 
+import me.anno.extensions.Extension
 import me.anno.extensions.ExtensionLoader.managers
 
 object EventBroadcasting {
 
+    val instance = object : Extension() {}
+
     fun callEventNullable(event: Event?): Event? {
 
         event ?: return null
+        if (event.isCancelled) return null
+
+        instance.onEvent(event)
         if (event.isCancelled) return null
 
         for (manager in managers) {
@@ -21,7 +27,7 @@ object EventBroadcasting {
     }
 
     fun callEvent(event: Event): Event {
-        if (callEventNullable(event) == null) event.isCancelled = true
+        callEventNullable(event)
         return event
     }
 

@@ -4,7 +4,10 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
+import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
+import kotlin.math.max
+import kotlin.math.min
 
 class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexShape() {
 
@@ -42,40 +45,48 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
     }
 
     override fun localGetSupportingVertex(
-        vec: javax.vecmath.Vector3d, out: javax.vecmath.Vector3d // = pos + margin * normal
+        dir: javax.vecmath.Vector3d,
+        out: javax.vecmath.Vector3d // = margin * normal
+    ) = localGetSupportingVertex(dir, out, margin)
+
+    fun localGetSupportingVertex(
+        dir: javax.vecmath.Vector3d,
+        out: javax.vecmath.Vector3d,
+        margin: Double
     ): javax.vecmath.Vector3d {
-        // to do: do we need an exact solution here?
-        // this currently is just a quick guess
-        val hit = JomlPools.vec3f.create()
-        val normal = JomlPools.vec3f.create()
-        val pos = JomlPools.vec4f.create()
-        pos.set(vec.x, vec.y, vec.z, 0.0)
-        hit.set(vec.x, vec.y, vec.z)
-        sdf.calcNormal(hit, normal)
-        val distance = sdf.computeSDF(pos) + margin
-        out.set(normal.x * distance, normal.y * distance, normal.z * distance)
+
+        // this shape is convex, and the center is supposed to be central, so we need to query the first intersection from outside
+
+        LOGGER.debug("localGetSupportingVertex($dir)")
+
+        val bounds = sdf.localAABB
+        val maxDistance =
+            max(
+                dir.x / (if (dir.x < 0f) bounds.minX else bounds.maxX),
+                max(
+                    dir.y / (if (dir.y < 0f) bounds.minY else bounds.maxY),
+                    dir.z / (if (dir.z < 0f) bounds.minZ else bounds.maxZ)
+                )
+            ).toFloat()
+        val start = JomlPools.vec3f.create()
+            .set(dir.x, dir.y, dir.z).mul(maxDistance)
+        val dir2 = JomlPools.vec3f.create()
+            .set(dir.x, dir.y, dir.z)
+
+        // todo how accurate do we need to be?
+        val distance = maxDistance - min(sdf.raycast(start, dir2, 0f, maxDistance), maxDistance) + margin
+
+        out.set(dir)
+        out.scale(distance)
+
         JomlPools.vec3f.sub(2)
-        JomlPools.vec4f.sub(1)
         return out
     }
 
     override fun localGetSupportingVertexWithoutMargin(
-        vec: javax.vecmath.Vector3d, out: javax.vecmath.Vector3d
-    ): javax.vecmath.Vector3d {
-        // to do: do we need an exact solution here?
-        // this currently is just a quick guess
-        val hit = JomlPools.vec3f.create()
-        val normal = JomlPools.vec3f.create()
-        val pos = JomlPools.vec4f.create()
-        pos.set(vec.x, vec.y, vec.z, 0.0)
-        hit.set(vec.x, vec.y, vec.z)
-        sdf.calcNormal(hit, normal)
-        val distance = sdf.computeSDF(pos).toDouble()
-        out.set(normal.x * distance, normal.y * distance, normal.z * distance)
-        JomlPools.vec3f.sub(2)
-        JomlPools.vec4f.sub(1)
-        return out
-    }
+        dir: javax.vecmath.Vector3d,
+        out: javax.vecmath.Vector3d
+    ) = localGetSupportingVertex(dir, out, 0.0)
 
     override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
         vectors: Array<out javax.vecmath.Vector3d>,
