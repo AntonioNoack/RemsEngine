@@ -26,6 +26,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Matrix4f
 import java.util.*
@@ -90,7 +91,7 @@ object ScreenSpaceAmbientOcclusion {
             "ssao-occlusion",
             coordsList, coordsVShader, uvList, emptyList(), "" +
                     "layout(location=0) out vec4 glFragColor;\n" +
-                    "uniform float radius, strength;\n" +
+                    "uniform float radius, strength, skipRadiusSq;\n" +
                     "uniform ivec2 size;\n" +
                     "uniform int numSamples;\n" +
                     "uniform mat4 transform;\n" +
@@ -99,7 +100,7 @@ object ScreenSpaceAmbientOcclusion {
                     "float dot2(vec3 p){ return dot(p,p); }\n" +
                     "void main(){\n" +
                     "   vec3 origin = texture(finalPosition, uv).xyz;\n" +
-                    "   if(dot2(origin) > 1e20){\n" + // sky and such can be skipped automatically
+                    "   if(dot2(origin) > skipRadiusSq){\n" + // sky and such can be skipped automatically
                     "       glFragColor = vec4(0.0);\n" +
                     "   } else {\n" +
                     // "  float originDepth = length(origin);\n" +
@@ -210,8 +211,8 @@ object ScreenSpaceAmbientOcclusion {
         // costs compute, but saves bandwidth
 
         // scale down source to reduce vram bandwidth
-        val pos = copy(position, FBStack["ssao-pos", tw,th, 4, BufferQuality.HIGH_16, 1, false])
-        val nor = copy(normal, FBStack["ssao-nor", tw,th, 4, BufferQuality.LOW_8, 1, false])
+        val pos = copy(position, FBStack["ssao-pos", tw, th, 4, BufferQuality.HIGH_16, 1, false])
+        val nor = copy(normal, FBStack["ssao-nor", tw, th, 4, BufferQuality.LOW_8, 1, false])
 
         val dst = FBStack["ssao-1st", fw, fh, 1, false, 1, false]
         useFrame(dst, Renderer.copyRenderer) {
@@ -231,6 +232,7 @@ object ScreenSpaceAmbientOcclusion {
             // define all uniforms
             shader.v2i("size", fw, fh)
             shader.v1f("radius", radius)
+            shader.v1f("skipRadiusSq", sq(radius * 20f))
             shader.m4x4("transform", transform)
             shader.v1i("numSamples", samples)
             shader.v1f("strength", strength)

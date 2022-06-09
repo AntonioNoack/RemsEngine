@@ -5,8 +5,12 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib.simpleVertexShader
+import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2
+import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2List
 import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
@@ -29,12 +33,16 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
         .asFloatBuffer()
 
     private val shader = BaseShader(
-        "frameTimes", "" +
-                simpleVertexShader, uvList, "" +
-                "uniform vec4 color, background;\n" +
-                "uniform sampler2D tex;\n" +
+        "frameTimes",
+        simpleVertexShaderV2List,
+        simpleVertexShaderV2, uvList, listOf(
+            Variable(GLSLType.V4F, "color"),
+            Variable(GLSLType.V4F, "background"),
+            Variable(GLSLType.S2D, "tex"),
+            Variable(GLSLType.V1F, "height")
+        ), "" +
                 "void main(){\n" +
-                "   float v = min((texture(tex, uv).x + uv.y - 1.0) * $height.0 + 0.5, 1.0);\n" +
+                "   float v = min((texture(tex, uv).x + uv.y - 1.0) * height + 0.5, 1.0);\n" +
                 "   if(v <= 0.0) discard;\n" +
                 "   gl_FragColor = mix(background, color, v);\n" +
                 "}"
@@ -126,6 +134,7 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
                 GFX.check()
                 val shader = shader.value
                 shader.use()
+                shader.v1f("height", height.toFloat())
                 GFXx2D.posSize(shader, x, y, w, h)
                 shader.v4f("color", barColor)
                 shader.v4f("background", backgroundColor)

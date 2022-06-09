@@ -8,6 +8,7 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.length
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 
@@ -16,12 +17,17 @@ object DrawCurves {
 
     private fun parametricShader(name: String, parametricFunction: String, numParams: Int): BaseShader {
         return BaseShader(
-            name, "" +
-                    "${OpenGLShader.attribute} vec2 coords;\n" + // we need to use a high-def mesh here
-                    "uniform vec2 pos, size;\n" +
-                    "uniform mat4 transform;\n" +
-                    "uniform float extrusion, tScale;\n" +
-                    "uniform vec2 ${(0 until numParams).joinToString { "p$it" }};\n" + // control points of cubic bezier curve, [0,1]²
+            name, listOf(
+                Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+                Variable(GLSLType.V2F, "pos"),
+                Variable(GLSLType.V2F, "size"),
+                Variable(GLSLType.M4x4, "transform"),
+                Variable(GLSLType.V1F, "extrusion"),
+                Variable(GLSLType.V1F, "tScale")
+            ) + (0 until numParams).map {
+                Variable(GLSLType.V2F, "p$it")
+            },  // control points of cubic bezier curve, [0,1]²
+            "" +// we need to use a high-def mesh here
                     "vec2 rot90(vec2 v){ return vec2(-v.y, v.x); }\n" +
                     "vec2 point(float t){\n" +
                     "    float s = 1.0-t;\n" +
@@ -35,10 +41,14 @@ object DrawCurves {
                     "   vec2 p2 = point(t + dt);\n" +
                     "   uv = p1 + rot90(normalize(p2-p0)) * coords.y * extrusion;\n" +
                     "   gl_Position = transform * vec4((pos + uv * size)*2.0-1.0, 0.0, 1.0);\n" +
-                    "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V1F, "t")), "" +
-                    "uniform vec4 ${(0 until numParams).joinToString { "c$it" }}, backgroundColor;\n" +
-                    "uniform vec2 ${(0 until numParams).joinToString { "p$it" }};\n" + // control points of cubic bezier curve
-                    "uniform float thickness, smoothness;\n" +
+                    "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V1F, "t")), listOf(
+                Variable(GLSLType.V4F, "backgroundColor"),
+                Variable(GLSLType.V1F, "thickness"),
+                Variable(GLSLType.V1F, "smoothness")
+            ) + // control points of cubic bezier curve
+                    (0 until numParams).map { Variable(GLSLType.V4F, "c$it") } +
+                    (0 until numParams).map { Variable(GLSLType.V2F, "p$it") },
+            "" +
                     "float length2(in vec2 v) { return dot(v,v); }\n" +
                     "float sdSegmentSq(in vec2 p, in vec2 a, in vec2 b){\n" +
                     "   vec2 pa = p-a, ba = b-a;\n" +

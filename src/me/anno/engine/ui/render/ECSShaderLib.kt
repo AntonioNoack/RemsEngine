@@ -2,13 +2,15 @@ package me.anno.engine.ui.render
 
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 
 object ECSShaderLib {
 
     lateinit var pbrModelShader: BaseShader
-    lateinit var clearingPbrModelShader: BaseShader
+    lateinit var clearPbrModelShader: BaseShader
 
     fun init() {
 
@@ -29,40 +31,57 @@ object ECSShaderLib {
 
         shader.glslVersion = 330
 
-        val clearingShader = BaseShader(
-            "clear-pbr", listOf(
-                Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-                Variable(GLSLType.M4x4, "transform"),
-                Variable(GLSLType.M4x4, "prevTransform"),
-            ), "" +
-                    "void main(){\n" +
-                    "   vec3 finalPosition = coords;\n" +
-                    "   finalNormal = normalize(coords);\n" +
-                    "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
-                    // motion vectors
-                    "   currPosition = gl_Position.xyw;\n" +
-                    "   prevPosition = (prevTransform * vec4(finalPosition, 1.0)).xyw;\n" +
-                    "   finalPosition *= 1e36;\n" +
-                    "}",
-            listOf(
-                Variable(GLSLType.V3F, "finalNormal"),
-                Variable(GLSLType.V3F, "currPosition"),
-                Variable(GLSLType.V3F, "prevPosition")
-            ), listOf(
-                Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
-                Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT),
-            ), "" +
-                    "void main(){\n" +
-                    // tricking the detection for variable definitions,
-                    // because it doesn't check the varyings, it seems
-                    "   // finalNormal, finalMotion, finalColor, finalAlpha\n" +
-                    "   vec2 finalMotion = currPosition.xy/currPosition.z - prevPosition.xy/prevPosition.z;\n" +
-                    "   vec3 finalPosition = finalNormal * 1e36;\n" + // 1e38 is max for float
-                    "}"
-        )
-        clearingShader.glslVersion = 330
-        clearingShader.ignoreUniformWarnings("normals", "tint", "uvs", "colors", "drawMode", "tangents")
-        clearingPbrModelShader = clearingShader
+        clearPbrModelShader = object : ECSMeshShader("clear") {
+            override fun createVertexStage(
+                isInstanced: Boolean,
+                isAnimated: Boolean,
+                colors: Boolean,
+                motionVectors: Boolean
+            ): ShaderStage {
+                return ShaderStage(
+                    "vertex", listOf(
+                        Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                        Variable(GLSLType.M4x4, "transform"),
+                        Variable(GLSLType.M4x4, "prevTransform"),
+                        Variable(GLSLType.V3F, "currPosition", VariableMode.OUT),
+                        Variable(GLSLType.V3F, "prevPosition", VariableMode.OUT),
+                        Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
+                        Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
+                    ), "" +
+                            "gl_Position = transform * vec4(coords, 1.0);\n" +
+                            "finalNormal = coords;\n" +
+                            "currPosition = gl_Position.xyw;\n" +
+                            "prevPosition = (prevTransform * vec4(coords, 1.0)).xyw;\n" +
+                            ShaderLib.positionPostProcessing
+                )
+            }
+
+            override fun createFragmentStage(
+                isInstanced: Boolean,
+                isAnimated: Boolean,
+                motionVectors: Boolean
+            ): ShaderStage {
+                return ShaderStage(
+                    "material",
+                    listOf(
+                        Variable(GLSLType.V3F, "finalNormal", VariableMode.INOUT),
+                        Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
+                        Variable(GLSLType.V3F, "currPosition"),
+                        Variable(GLSLType.V3F, "prevPosition"),
+                        Variable(GLSLType.V4F, "color"),
+                        Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                        Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+                        Variable(GLSLType.V2F, "finalMotion", VariableMode.OUT),
+                    ),
+                    "" +
+                            "finalNormal = normalize(finalNormal);\n" +
+                            "finalPosition = finalNormal * 1e36;\n" + // 1e38 is max for float
+                            "finalMotion = currPosition.xy/currPosition.z - prevPosition.xy/prevPosition.z;\n" +
+                            "finalColor = color.rgb;\n" +
+                            "finalAlpha = color.a;\n"
+                )
+            }
+        }
 
     }
 

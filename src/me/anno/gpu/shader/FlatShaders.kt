@@ -33,12 +33,13 @@ object FlatShaders {
     // (can work on more complex shapes)
     val flatShader = BaseShader(
         "flatShader", coordsPosSize, coordsPosSizeVShader,
-        emptyList(), listOf(Variable(GLSLType.V4F, "color")), "" +
+        emptyList(), listOf(
+            Variable(GLSLType.V4F, "color")
+        ), "" +
                 "void main(){\n" +
                 "   gl_FragColor = color;\n" +
                 "}"
     )
-
 
     val flatShaderStriped = BaseShader(
         "flatShader", coordsPosSize, coordsPosSizeVShader,
@@ -90,11 +91,12 @@ object FlatShaders {
     )
 
     val flatShaderTexture = BaseShader(
-        "flatShaderTexture", "" +
-                ShaderLib.simpleVertexShader, uvList, "" +
-                "uniform sampler2D tex;\n" +
-                "uniform vec4 color;\n" +
-                "uniform int alphaMode;\n" + // 0 = rgba, 1 = rgb, 2 = a
+        "flatShaderTexture", ShaderLib.simpleVertexShaderV2List, ShaderLib.simpleVertexShaderV2, uvList,
+        listOf(
+            Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
+            Variable(GLSLType.V4F, "color"),
+            Variable(GLSLType.S2D, "tex")
+        ), "" +
                 "void main(){\n" +
                 "   vec4 col = color;\n" +
                 "   if(alphaMode == 0) col *= texture(tex, uv);\n" +
@@ -105,9 +107,9 @@ object FlatShaders {
     )
 
     val depthShader = BaseShader(
-        "depth", "" +
-                ShaderLib.simpleVertexShader, uvList, "" +
-                "uniform sampler2D tex;\n" +
+        "depth", ShaderLib.simpleVertexShaderV2List, ShaderLib.simpleVertexShaderV2, uvList, listOf(
+            Variable(GLSLType.S2D, "tex")
+        ), "" +
                 "void main(){\n" +
                 "   float depth0 = texture(tex, uv).x;\n" +
                 "   float depth1 = 0.1 + 0.9 * fract(log2(abs(depth0)));\n" +

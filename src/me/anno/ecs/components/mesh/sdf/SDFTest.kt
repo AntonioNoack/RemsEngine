@@ -39,7 +39,7 @@ fun testCPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
         val distance = finalShape.raycast(camPosition, dir, 0.1f, 100f, 200, 0.5f)
         dir.mul(distance).add(camPosition)
         if (distance.isFinite()) {
-            val normal = finalShape.calcNormal(dir, dir).mul(0.5f).add(0.5f,0.5f,0.5f)
+            val normal = finalShape.calcNormal(dir, dir).mul(0.5f).add(0.5f, 0.5f, 0.5f)
             if (normal.x in -1f..1f) {
                 rgba(normal.x, normal.y, normal.z, 1f)
                 /*val color = ((normal.x * 100f).toInt() + 155) * 0x10101
@@ -58,37 +58,42 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
     val uniforms = HashMap<String, TypeValue>()
     val shapeDependentShader = StringBuilder()
     tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions)
-    return uniforms to BaseShader("raycasting", ShaderLib.simplestVertexShader, ShaderLib.uvList, "" +
-            uniforms.entries.joinToString("") { (k, v) -> "uniform ${v.type.glslName} $k;\n" } +
-            "uniform mat3 camMatrix;\n" +
-            "uniform vec2 camScale;\n" +
-            "uniform vec3 camPosition;\n" +
-            "uniform vec2 distanceBounds;\n" +
-            "uniform vec3 sunDir;\n" +
-            "uniform int maxSteps;\n" +
-            "uniform float sdfReliability, sdfNormalEpsilon, sdfMaxRelativeError;\n" + // [0,1.5], can be 1.0 in most cases; higher = faster convergence
-            "uniform vec3 depthParams;\n" + // near, far, reversedZ
-            "#define Infinity 1e20\n" +
-            functions.joinToString("") +
-            "vec2 map(in vec3 pos0){\n" +
-            "   vec2 res0;\n" +
-            // here comes the shape dependant shader
-            shapeDependentShader.toString() +
-            "   return res0;\n" +
-            "}\n" +
-            SDFComposer.raycasting +
-            SDFComposer.normal +
-            "void main(){\n" +
-            // define ray origin and ray direction from projection matrix
-            "   vec3 dir = vec3((uv*2.0-1.0)*camScale, -1.0);\n" +
-            "   dir = normalize(camMatrix * dir);\n" +
-            "   vec2 ray = raycast(camPosition, dir);\n" +
-            "   if(ray.y < 0.0) discard;\n" +
-            "   vec3 hit = camPosition + ray.x * dir;\n" +
-            "   vec3 normal = calcNormal(hit, sdfNormalEpsilon);\n" +
-            // "   gl_FragColor = vec4(vec3(dot(normal,sunDir)*.4+.8), 1.0);\n" +
-            "   gl_FragColor = vec4(normal*.5+.5, 1.0);\n" +
-            "}")
+    return uniforms to BaseShader("raycasting",
+        ShaderLib.coordsList,
+        ShaderLib.coordsVShader,
+        ShaderLib.uvList,
+        listOf(),
+        "" +
+                uniforms.entries.joinToString("") { (k, v) -> "uniform ${v.type.glslName} $k;\n" } +
+                "uniform mat3 camMatrix;\n" +
+                "uniform vec2 camScale;\n" +
+                "uniform vec3 camPosition;\n" +
+                "uniform vec2 distanceBounds;\n" +
+                "uniform vec3 sunDir;\n" +
+                "uniform int maxSteps;\n" +
+                "uniform float sdfReliability, sdfNormalEpsilon, sdfMaxRelativeError;\n" + // [0,1.5], can be 1.0 in most cases; higher = faster convergence
+                "uniform vec3 depthParams;\n" + // near, far, reversedZ
+                "#define Infinity 1e20\n" +
+                functions.joinToString("") +
+                "vec2 map(in vec3 pos0){\n" +
+                "   vec2 res0;\n" +
+                // here comes the shape dependant shader
+                shapeDependentShader.toString() +
+                "   return res0;\n" +
+                "}\n" +
+                SDFComposer.raycasting +
+                SDFComposer.normal +
+                "void main(){\n" +
+                // define ray origin and ray direction from projection matrix
+                "   vec3 dir = vec3((uv*2.0-1.0)*camScale, -1.0);\n" +
+                "   dir = normalize(camMatrix * dir);\n" +
+                "   vec2 ray = raycast(camPosition, dir);\n" +
+                "   if(ray.y < 0.0) discard;\n" +
+                "   vec3 hit = camPosition + ray.x * dir;\n" +
+                "   vec3 normal = calcNormal(hit, sdfNormalEpsilon);\n" +
+                // "   gl_FragColor = vec4(vec3(dot(normal,sunDir)*.4+.8), 1.0);\n" +
+                "   gl_FragColor = vec4(normal*.5+.5, 1.0);\n" +
+                "}")
 }
 
 fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {

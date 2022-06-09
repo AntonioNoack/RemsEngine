@@ -7,8 +7,12 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.FlatShaders.flatShader
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib.simpleVertexShader
+import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2
+import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2List
 import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.Color.a
 import kotlin.math.PI
 import kotlin.math.cos
@@ -45,11 +49,16 @@ object Corner {
     val bottomRight = corner(false, my = false)
 
     val roundedShader = BaseShader(
-        "roundedRectShader", simpleVertexShader, uvList, "" +
-                "uniform vec4 centerColor, outlineColor, backgroundColor;\n" +
-                "uniform vec4 radius;\n" +
-                "uniform vec2 size2;\n" +
-                "uniform float smoothness, outlineThickness;\n" +
+        "roundedRectShader", simpleVertexShaderV2List, simpleVertexShaderV2, uvList,
+        listOf(
+            Variable(GLSLType.V4F, "centerColor"),
+            Variable(GLSLType.V4F, "outlineColor"),
+            Variable(GLSLType.V4F, "backgroundColor"),
+            Variable(GLSLType.V4F, "radius"),
+            Variable(GLSLType.V2F, "size2"),
+            Variable(GLSLType.V1F, "smoothness"),
+            Variable(GLSLType.V1F, "outlineThickness")
+        ), "" +
                 // https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
                 "float sdRoundedBox(vec2 p, vec2 b, vec4 r){\n" +
                 "   r.xy = (p.x>0.0) ? r.xy : r.zw;\n" +

@@ -323,7 +323,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   vec3 normalFromTex = texture(normalMap, uv).rgb * 2.0 - 1.0;\n" +
                     "        normalFromTex = tbn * normalFromTex;\n" +
                     "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
-                    "}\n" + "finalEmissive  = texture(emissiveMap, uv).rgb * emissiveBase;\n" +
+                    "}\n" +
+                    "finalEmissive  = texture(emissiveMap, uv).rgb * emissiveBase;\n" +
                     "finalOcclusion = (1.0 - texture(occlusionMap, uv).r) * occlusionStrength;\n" +
                     "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv).r), 0.0, 1.0);\n" +
                     "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r), 0.0, 1.0);\n" +
@@ -331,7 +332,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     // reflections
                     // use roughness instead?
                     // "   if(finalMetallic > 0.0) finalColor = mix(finalColor, texture(reflectionPlane,uv).rgb, finalMetallic);\n" +
-                    "if(hasReflectionPlane){\n" + "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1.0 - finalRoughness);\n" +
+                    "if(hasReflectionPlane){\n" +
+                    "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1.0 - finalRoughness);\n" +
                     "   float factor = clamp((effect-.3)*1.4, 0.0, 1.0);\n" +
                     "   if(factor > 0.0){\n" +
                     "       vec3 newColor = vec3(0.0);\n" +

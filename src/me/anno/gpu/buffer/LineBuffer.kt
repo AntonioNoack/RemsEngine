@@ -8,6 +8,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -32,14 +33,18 @@ object LineBuffer {
     private val LOGGER = LogManager.getLogger(LineBuffer::class)
 
     val shader = BaseShader(
-        "DebugLines", "" +
-                "$attribute vec3 position;\n" +
-                "$attribute vec4 color;\n" +
-                "uniform mat4 transform;\n" +
+        "DebugLines", listOf(
+            Variable(GLSLType.V3F, "position", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "color", VariableMode.ATTR),
+            Variable(GLSLType.M4x4, "transform")
+        ), "" +
                 "void main(){" +
                 "   gl_Position = transform * vec4(position, 1);\n" +
                 "   vColor = color;\n" +
-                "}", listOf(Variable(GLSLType.V4F, "vColor")), "" +
+                "}", listOf(Variable(GLSLType.V4F, "vColor")), listOf(
+            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+        ), "" +
                 "void main(){\n" +
                 "   vec3 finalColor = vColor.rgb;\n" +
                 "   float finalAlpha = vColor.a;\n" +

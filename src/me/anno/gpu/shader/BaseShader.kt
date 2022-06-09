@@ -26,14 +26,8 @@ open class BaseShader(
     val fragmentShader: String
 ) { // Saveable or PrefabSaveable?
 
-    constructor(name: String, vertexSource: String, varyingSource: List<Variable>, fragmentSource: String) : this(
-        name,
-        emptyList(),
-        vertexSource,
-        varyingSource,
-        emptyList(),
-        fragmentSource
-    )
+    constructor(name: String, vertexSource: String, varyingSource: List<Variable>, fragmentSource: String) :
+            this(name, emptyList(), vertexSource, varyingSource, emptyList(), fragmentSource)
 
     constructor() : this("", "", emptyList(), "")
 

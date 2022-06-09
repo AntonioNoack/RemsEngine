@@ -23,7 +23,7 @@ import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun
 import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
-import me.anno.engine.ui.render.ECSShaderLib.clearingPbrModelShader
+import me.anno.engine.ui.render.ECSShaderLib.clearPbrModelShader
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Outlines.drawOutline
@@ -1166,20 +1166,16 @@ open class RenderView(
                 // todo this buffer is very small in orthographic case, because the camera matrix contains scale, which it shouldn't
                 OpenGL.depthMask.use(false) {
                     // draw huge cube with default values for all buffers
-                    val shader = clearingPbrModelShader.value
+                    val shader = clearPbrModelShader.value
                     shader.use()
                     shader.m4x4("transform", cameraMatrix)
                     shader.m4x4("prevTransform", prevCamMatrix)
                     val c = tmp4f
                     c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
-                    if (toneMappedColors) {
-                        // inverse reinhard tonemapping
-                        shader.v3f("finalColor", c.x / (1f - c.x), c.y / (1f - c.y), c.z / (1f - c.z))
-                    } else {
-                        shader.v3f("finalColor", c.x, c.y, c.z)
-                    }
+                    // inverse reinhard tonemapping
+                    if (toneMappedColors) c.div(1f - c.x, 1f - c.y, 1f - c.z, 1f)
+                    shader.v4f("color", c.x, c.y, c.z, 1f)
                     shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
-                    shader.v1f("finalAlpha", 1f)
                     Shapes.cube11Smooth.draw(shader, 0)
                     // LOGGER.warn(shader.fragmentSource)
                 }

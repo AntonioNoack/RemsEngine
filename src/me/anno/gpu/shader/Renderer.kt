@@ -41,12 +41,6 @@ open class Renderer(
         val triangleVisRenderer = Renderer("randomId", true, ShaderPlus.DrawMode.RANDOM_ID, null)
         val motionVectorRenderer = Renderer("motionVector", true, ShaderPlus.DrawMode.MOTION_VECTOR, null)
 
-        // color deficiency renderers
-        /*val grayscaleRenderer = Renderer("grayscale", true, ShaderPlus.DrawMode.COLOR, null)
-        val protanopiaRenderer = Renderer("protanopia", true, ShaderPlus.DrawMode.COLOR, null)
-        val deuteranopiaRenderer = Renderer("deuteranopia", true, ShaderPlus.DrawMode.COLOR, null)
-        val tritanopiaRenderer = Renderer("tritanopia", true, ShaderPlus.DrawMode.COLOR, null)*/
-
     }
 
 }
