@@ -7,8 +7,8 @@ import me.anno.utils.OS
 
 fun main() {
 
-    // todo compare the two models
-    // todo their rendered result must be identical!
+    // to do compare the two models
+    // to do their rendered result must be identical!
 
     val fbxPath = getReference(OS.downloads, "3d/trooper fbx/source/silly_dancing.fbx")
     val glbPath = getReference(OS.downloads, "3d/trooper gltf/scene.gltf")

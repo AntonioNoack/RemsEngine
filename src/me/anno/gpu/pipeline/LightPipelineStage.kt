@@ -368,11 +368,11 @@ class LightPipelineStage(
                         "   }\n" +
                         "}", listOf(), "" +
                         "out vec4 glFragColor;\n" +
-                        "void main(){ glFragColor = vec4(${1.0 / 8.0}); }"
-            )
-
+                        "void main(){ glFragColor = vec4(1.0); }"
+            ).apply {
+                ignoreNameWarnings("normals", "uvs", "tangents", "colors", "receiveShadows")
+            }
         }
-
     }
 
     var visualizeLightCount = false
@@ -515,7 +515,7 @@ class LightPipelineStage(
             shader.use()
 
             shader.v4f("tint", -1)
-            shader.v1b("receiveShadows",true)
+            shader.v1b("receiveShadows", true)
 
             initShader(shader, cameraMatrix)
 
@@ -624,7 +624,7 @@ class LightPipelineStage(
         shader.use()
 
         shader.v1b("isDirectional", type == LightType.DIRECTIONAL)
-        shader.v1b("receiveShadows",true)
+        shader.v1b("receiveShadows", true)
 
         val cameraMatrix = cameraMatrix!!
         val cameraPosition = cameraPosition!!

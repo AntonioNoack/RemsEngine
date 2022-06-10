@@ -37,7 +37,7 @@ fun main() {
 
     val size = 512
 
-    // todo test animation / skeleton
+    // done test animation / skeleton
     @Suppress("SpellCheckingInspection")
     val file = getReference(downloads, "3d/taryk/scene.gltf")
     val aiScene = AnimatedMeshesLoader.loadFile(file, StaticMeshesLoader.defaultFlags)

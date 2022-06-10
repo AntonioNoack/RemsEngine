@@ -19,8 +19,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-// todo visualize a bvh structure in-engine
-// todo for sun-shadow checks, we can skip everything once we found something
+// to do visualize a bvh structure in-engine
+// todo special query type: for sun-shadow checks, we can skip everything once we found something
 /**
  * creates a bounding volume hierarchy for triangle meshes
  * */

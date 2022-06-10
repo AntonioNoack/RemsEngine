@@ -2,6 +2,7 @@ package me.anno.engine.ui.control
 
 import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig.style
+import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -230,16 +231,16 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         )
         if (hit == null) {
             // draw red point in front of the camera
-            debugPoints.add(DebugPoint(Vector3d(mouseDir).mul(20.0).add(cam), 0xff0000))
+            debugPoints.add(DebugPoint(Vector3d(mouseDir).mul(20.0).add(cam), black or 0xff0000))
         } else {
             val pos = Vector3d(hit.positionWS)
             val normal = Vector3d(hit.normalWS).normalize(
-                0.1f * hit.positionWS.distance(camPosition)
+                0.05 * hit.positionWS.distance(camPosition)
             )
             // draw collision point
             debugPoints.add(DebugPoint(pos, -1))
             // draw collision normal
-            debugLines.add(DebugLine(pos, normal.add(pos), 0x00ff00))
+            debugLines.add(DebugLine(pos, normal.add(pos), black or 0x00ff00))
         }
     }
 

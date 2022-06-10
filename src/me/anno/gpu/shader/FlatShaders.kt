@@ -21,12 +21,13 @@ object FlatShaders {
 
     val coordsPosSize = coordsList + listOf(
         Variable(GLSLType.V2F, "pos"),
-        Variable(GLSLType.V2F, "size")
+        Variable(GLSLType.V2F, "size"),
+        Variable(GLSLType.M4x4, "transform")
     )
 
     val coordsPosSizeVShader = "" +
             "void main(){\n" +
-            "   gl_Position = vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
+            "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
             "}"
 
     // color only for a rectangle
@@ -42,7 +43,7 @@ object FlatShaders {
     )
 
     val flatShaderStriped = BaseShader(
-        "flatShader", coordsPosSize, coordsPosSizeVShader,
+        "flatShaderStriped", coordsPosSize, coordsPosSizeVShader,
         emptyList(), listOf(
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V1I, "offset"),
@@ -91,7 +92,9 @@ object FlatShaders {
     )
 
     val flatShaderTexture = BaseShader(
-        "flatShaderTexture", ShaderLib.simpleVertexShaderV2List, ShaderLib.simpleVertexShaderV2, uvList,
+        "flatShaderTexture",
+        ShaderLib.simpleVertexShaderV2List,
+        ShaderLib.simpleVertexShaderV2, uvList,
         listOf(
             Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
             Variable(GLSLType.V4F, "color"),
@@ -104,7 +107,7 @@ object FlatShaders {
                 "   else col.rgb *= texture(tex, uv).a;\n" +
                 "   gl_FragColor = col;\n" +
                 "}"
-    )
+    ).ignoreNameWarnings("applyToneMapping")
 
     val depthShader = BaseShader(
         "depth", ShaderLib.simpleVertexShaderV2List, ShaderLib.simpleVertexShaderV2, uvList, listOf(

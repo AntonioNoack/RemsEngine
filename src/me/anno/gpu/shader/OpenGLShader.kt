@@ -226,12 +226,14 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         ignoredNames += names
     }
 
-    fun ignoreNameWarnings(vararg names: String) {
+    fun ignoreNameWarnings(vararg names: String): OpenGLShader {
         ignoredNames += names
+        return this
     }
 
-    fun ignoreNameWarnings(name: String) {
+    fun ignoreNameWarnings(name: String): OpenGLShader {
         ignoredNames += name
+        return this
     }
 
     fun getUniformLocation(name: String): Int {

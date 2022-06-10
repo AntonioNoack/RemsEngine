@@ -20,13 +20,12 @@ object ECSShaderLib {
         val shader = ECSMeshShader("model")
         pbrModelShader = shader
         shader.ignoreNameWarnings(
-            listOf(
-                "finalSheen", "finalTranslucency", "metallicMinMax",
-                "emissiveBase", "normalStrength", "ambientLight",
-                "occlusionStrength", "invLocalTransform",
-                "numberOfLights", "roughnessMinMax", "finalClearCoat",
-                "worldScale"
-            )
+            "finalSheen", "finalTranslucency", "metallicMinMax",
+            "emissiveBase", "normalStrength", "ambientLight",
+            "occlusionStrength", "invLocalTransform",
+            "numberOfLights", "roughnessMinMax", "finalClearCoat",
+            "worldScale", "drawMode", "applyToneMapping",
+            "colors"
         )
 
         shader.glslVersion = 330
@@ -49,7 +48,7 @@ object ECSShaderLib {
                         Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
                     ), "" +
                             "gl_Position = transform * vec4(coords, 1.0);\n" +
-                            "finalNormal = coords;\n" +
+                            "finalNormal = -coords;\n" +
                             "currPosition = gl_Position.xyw;\n" +
                             "prevPosition = (prevTransform * vec4(coords, 1.0)).xyw;\n" +
                             ShaderLib.positionPostProcessing
@@ -75,13 +74,13 @@ object ECSShaderLib {
                     ),
                     "" +
                             "finalNormal = normalize(finalNormal);\n" +
-                            "finalPosition = finalNormal * 1e36;\n" + // 1e38 is max for float
+                            "finalPosition = -finalNormal * 1e36;\n" + // 1e38 is max for float
                             "finalMotion = currPosition.xy/currPosition.z - prevPosition.xy/prevPosition.z;\n" +
                             "finalColor = color.rgb;\n" +
                             "finalAlpha = color.a;\n"
                 )
             }
-        }
+        }.ignoreNameWarnings("drawMode", "tint", "normals", "uvs", "tangents", "colors")
 
     }
 

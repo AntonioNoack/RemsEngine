@@ -380,8 +380,8 @@ open class StaticMeshesLoader {
                 "$index.bmp"
             }
         }
-        // todo make unique
 
+        // todo make unique
         return if (isCompressed) {
             // LOGGER.info("Loading compressed texture: $index, $width bytes")
             // width is the buffer size in bytes

@@ -30,7 +30,8 @@ object Color {
                 b.toInt().and(255) or
                 0xff.shl(24)
 
-    fun rgb(r: Int, g: Int, b: Int): Int = clamp(r, 0, 255).shl(16) or
+    fun rgb(r: Int, g: Int, b: Int): Int =
+        clamp(r, 0, 255).shl(16) or
             clamp(g, 0, 255).shl(8) or
             clamp(b, 0, 255) or
             0xff.shl(24)

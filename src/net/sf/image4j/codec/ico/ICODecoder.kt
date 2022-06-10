@@ -8,11 +8,13 @@ package net.sf.image4j.codec.ico
 
 import me.anno.image.Image
 import me.anno.image.raw.BIImage
+import me.anno.io.Streams.readLE16
+import me.anno.io.Streams.readLE32
+import me.anno.utils.types.InputStreams.readNBytes2
 import net.sf.image4j.codec.bmp.BMPDecoder
 import net.sf.image4j.codec.bmp.InfoHeader
 import net.sf.image4j.io.CountingInputStream
 import net.sf.image4j.io.Utils
-import net.sf.image4j.io.LittleEndianInputStream
 import org.apache.logging.log4j.LogManager
 import java.io.*
 import javax.imageio.ImageIO
@@ -43,16 +45,16 @@ object ICODecoder {
     fun read(input0: InputStream): List<Image> {
 
         // long t = System.currentTimeMillis()
-        val input1 = LittleEndianInputStream(CountingInputStream(input0))
+        val input1 = CountingInputStream(input0)
 
         // Reserved 2 byte =0
-        input1.readShortLE()
+        input1.readLE16()
 
         // Type 2 byte =1
-        input1.readShortLE()
+        input1.readLE16()
 
         // Count 2 byte Number of Icons in this file
-        val sCount = input1.readShortLE().toInt().and(0xffff)
+        val sCount = input1.readLE16().and(0xffff)
 
         // Entries Count * 16 list of icons
         val entries = Array(sCount) { IconEntry(input1) }
@@ -66,10 +68,10 @@ object ICODecoder {
 
                 // Make sure we're at the right file offset!
                 val fileOffset = input1.count
-                if (fileOffset != entries[i].iFileOffset) {
+                if (fileOffset != entries[i].fileOffset) {
                     throw IOException("Cannot read image #$i starting at unexpected file offset.")
                 }
-                val info = input1.readIntLE()
+                val info = input1.readLE32()
                 LOGGER.info("Image #$i @ ${input1.count} info = ${Utils.toInfoString(info)}")
 
                 when (info) {
@@ -78,11 +80,11 @@ object ICODecoder {
                         // BMPDecoder bmp = new BMPDecoder(is);
                         val infoHeader = BMPDecoder.readInfoHeader(input1, info)
                         val andHeader = InfoHeader(infoHeader)
-                        andHeader.iHeight = infoHeader.iHeight / 2
+                        andHeader.height = infoHeader.height / 2
                         val xorHeader = InfoHeader(infoHeader)
-                        xorHeader.iHeight = andHeader.iHeight
-                        andHeader.sBitCount = 1
-                        andHeader.iNumColors = 2
+                        xorHeader.height = andHeader.height
+                        andHeader.bitCount = 1
+                        andHeader.numColors = 2
 
                         // for now, just read all the raster data (xor + and)
                         // and store as separate images
@@ -99,23 +101,22 @@ object ICODecoder {
                         // Or just add it to the output list:
                         // img.add(xor);
                         val andColorTable = intArrayOf(-1, 0)
-                        if (infoHeader.sBitCount == 32) {
+                        if (infoHeader.bitCount == 32) {
 
                             // transparency from alpha
                             // ignore bytes after XOR bitmap
-                            val size = entries[i].iSizeInBytes
-                            val infoHeaderSize = infoHeader.iSize
+                            val size = entries[i].sizeInBytes
+                            val infoHeaderSize = infoHeader.size
                             // data size = w * h * 4
-                            val dataSize = xorHeader.iWidth * xorHeader.iHeight * 4
+                            val dataSize = xorHeader.width * xorHeader.height * 4
                             val skip = size - infoHeaderSize - dataSize
                             // int skip2 = entries[i].iFileOffset + size - in.getCount();
 
-                            // ignore AND bitmap since alpha channel stores
-                            // transparency
-                            if (input1.skip(skip, false) < skip && i < sCount - 1) {
+                            // ignore AND bitmap since alpha channel stores transparency
+                            if (input1.skip(skip.toLong()) < skip && i < sCount - 1) {
                                 throw EOFException("Unexpected end of input")
                             }
-                            // If we skipped less bytes than expected, the AND mask
+                            // If we skipped fewer bytes than expected, the AND mask
                             // is probably badly formatted.
                             // If we're at the last/only entry in the file, silently
                             // ignore and continue processing...
@@ -144,15 +145,15 @@ object ICODecoder {
                         ret.add(img)
                     }
                     PNG_MAGIC_LE -> {
-                        val info2 = input1.readIntLE()
+                        val info2 = input1.readLE32()
                         if (info2 != PNG_MAGIC2_LE) {
                             throw IOException("Unrecognized icon format for image #$i")
                         }
 
                         val e = entries[i]
-                        val size = e.iSizeInBytes - 8
+                        val size = e.sizeInBytes - 8
                         val pngData = ByteArray(size)
-                        input1.readFully(pngData)
+                        input1.readNBytes2(size, pngData, true)
                         val out1 = ByteArrayOutputStream()
                         val out2 = DataOutputStream(out1)
                         out2.writeInt(PNG_MAGIC)

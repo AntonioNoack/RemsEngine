@@ -169,12 +169,14 @@ open class BaseShader(
         ignoredNameWarnings += names
     }
 
-    fun ignoreNameWarnings(vararg names: String) {
+    fun ignoreNameWarnings(vararg names: String): BaseShader {
         ignoredNameWarnings += names
+        return this
     }
 
-    fun ignoreUniformWarning(name: String) {
+    fun ignoreUniformWarning(name: String) : BaseShader {
         ignoredNameWarnings += name
+        return this
     }
 
     fun setTextureIndices(textures: List<String>?) {

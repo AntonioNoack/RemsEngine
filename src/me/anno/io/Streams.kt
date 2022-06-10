@@ -77,6 +77,15 @@ object Streams {
         return a + b.shl(8)
     }
 
+    fun InputStream.readLE32(): Int {
+        val a = read()
+        val b = read()
+        val c = read()
+        val d = read()
+        if (a < 0 || b < 0 || c < 0 || d < 0) throw EOFException()
+        return d.shl(24) + c.shl(16) + b.shl(8) + a
+    }
+
     fun InputStream.readBE32(): Int {
         val a = read()
         val b = read()

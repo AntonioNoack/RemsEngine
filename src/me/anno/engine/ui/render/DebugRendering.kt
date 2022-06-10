@@ -91,7 +91,7 @@ object DebugRendering {
         for (index in points.indices) {
             val point = points[index]
             // visualize a point
-            drawDebugPoint(view, point.position, point.color)
+            drawDebugPoint(point.position, point.color)
         }
         for (index in lines.indices) {
             val line = lines[index]
@@ -107,7 +107,7 @@ object DebugRendering {
             val dir = ray.direction
             val color = ray.color
             val length = view.radius * 100.0
-            drawDebugPoint(view, pos, color)
+            drawDebugPoint(pos, color)
             LineBuffer.putRelativeVector(
                 pos, dir, length,
                 camPosition, worldScale,
@@ -120,20 +120,21 @@ object DebugRendering {
         rays.removeIf { it.timeOfDeath < time }
     }
 
-    fun drawDebugPoint(view: RenderView, p: Vector3d, color: Int) {
-        val worldScale = view.worldScale
+    fun drawDebugPoint(p: Vector3d, color: Int) {
+        val camPosition = RenderView.camPosition
+        val worldScale = RenderView.worldScale
         val d = p.distance(RenderView.camPosition) * 0.01
         LineBuffer.putRelativeLine(
             p.x - d, p.y, p.z, p.x + d, p.y, p.z,
-            RenderView.camPosition, worldScale, color
+            camPosition, worldScale, color
         )
         LineBuffer.putRelativeLine(
             p.x, p.y - d, p.z, p.x, p.y + d, p.z,
-            RenderView.camPosition, worldScale, color
+            camPosition, worldScale, color
         )
         LineBuffer.putRelativeLine(
             p.x, p.y, p.z - d, p.x, p.y, p.z + d,
-            RenderView.camPosition, worldScale, color
+            camPosition, worldScale, color
         )
     }
 

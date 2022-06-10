@@ -8,7 +8,7 @@ import me.anno.gpu.shader.builder.VariableMode
 object FlatSymbols {
 
     val flatShaderHalfArrow = BaseShader(
-        "flatShaderTexture",
+        "flatShaderHalfArrow",
         coordsList, coordsVShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V4F, "backgroundColor"),
@@ -27,7 +27,7 @@ object FlatSymbols {
     )
 
     val flatShaderCircle = BaseShader(
-        "flatShaderTexture",
+        "flatShaderCircle",
         coordsList, coordsVShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "innerColor"),
             Variable(GLSLType.V4F, "circleColor"),

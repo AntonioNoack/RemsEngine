@@ -17,7 +17,7 @@ import kotlin.math.sqrt
 @Suppress("SpellCheckingInspection")
 fun main() {
 
-    ECSRegistry.init()
+    ECSRegistry.initNoGFX()
 
     // fox skeleton
     val file = getReference(downloads, "3d/azeria/scene.gltf")
@@ -72,9 +72,9 @@ fun main() {
                 println(localB.f2())
                 // todo jackpot: all translations are roughly the same
                 // todo we can
-                // todo - encode animations as just rotations (except root)
-                // todo - extract the inherit rotation
-                // todo - using an rotation, rotate a bone
+                //  - encode animations as just rotations (except root)
+                //  - extract the inherit rotation
+                //  - using an rotation, rotate a bone
                 println(invLocalB.f2())
             }
 

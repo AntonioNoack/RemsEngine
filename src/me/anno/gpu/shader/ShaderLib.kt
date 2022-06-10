@@ -580,7 +580,11 @@ object ShaderLib {
 
     }
 
-    val shader3D = createShader("3d", v3D, y3D, f3D, listOf("tex"))
+    val shader3D = createShader(
+        "3d", v3D, y3D, f3D, listOf("tex"),
+        "cgSlope", "cgOffset", "cgPower", "cgSaturation",
+        "normals", "uvs", "tangents", "colors", "drawMode", "tint"
+    )
     val shader3DPolygon = createShader("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"), "tiling", "forceFieldUVCount")
     val shader3DRGBA = createSwizzleShader(".rgba")
     val shader3DARGB = createSwizzleShader(".gbar")

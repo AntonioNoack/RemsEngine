@@ -5,7 +5,6 @@ import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -49,7 +48,7 @@ object LineBuffer {
                 "   vec3 finalColor = vColor.rgb;\n" +
                 "   float finalAlpha = vColor.a;\n" +
                 "}\n"
-    )
+    ).ignoreNameWarnings("drawMode", "lines")
 
     // drawing all these lines is horribly slow -> speed it up by caching them
     // we also could calculate their position in 2D on the CPU and just upload them xD
@@ -61,7 +60,7 @@ object LineBuffer {
     // whenever this is updated, nioBuffer in buffer needs to be updated as well
 
     private val buffer = StaticBuffer(attributes, 1024, GL_STREAM_DRAW)
-    val lineSize = 2 * (3 * 4 + 4)
+    const val lineSize = 2 * (3 * 4 + 4)
 
     init {
         buffer.drawMode = GL_LINES
@@ -138,6 +137,7 @@ object LineBuffer {
         bytes.put(a)
     }
 
+    @Suppress("unused")
     fun addLine(
         x0: Float, y0: Float, z0: Float,
         x1: Float, y1: Float, z1: Float,
@@ -153,6 +153,7 @@ object LineBuffer {
         )
     }
 
+    @Suppress("unused")
     fun addLine(
         x0: Float, y0: Float, z0: Float,
         x1: Float, y1: Float, z1: Float,
@@ -168,6 +169,7 @@ object LineBuffer {
         )
     }
 
+    @Suppress("unused")
     fun addLine(
         x0: Float, y0: Float, z0: Float,
         x1: Float, y1: Float, z1: Float,
@@ -198,6 +200,7 @@ object LineBuffer {
         )
     }
 
+    @Suppress("unused")
     fun addLine(
         v0: Vector3f, v1: Vector3f,
         r: Double, g: Double, b: Double, a: Double = 1.0
@@ -212,6 +215,7 @@ object LineBuffer {
         )
     }
 
+    @Suppress("unused")
     fun addLine(
         v0: Vector3f, v1: Vector3f,
         r: Float, g: Float, b: Float, a: Float = 1f
@@ -240,6 +244,7 @@ object LineBuffer {
         )
     }
 
+    @Suppress("unused")
     fun putRelativeLine(
         x0: Double, y0: Double, z0: Double,
         x1: Double, y1: Double, z1: Double,
@@ -345,6 +350,7 @@ object LineBuffer {
         bytes.put(a)
     }
 
+    @Suppress("unused")
     fun putRelativeLine(
         v0: org.joml.Vector3d,
         x1: Double, y1: Double, z1: Double,
@@ -420,6 +426,7 @@ object LineBuffer {
         )
     }
 
+    @Suppress("unused")
     fun putRelativeLine(
         v0: Vector3d, v1: Vector3d,
         cam: org.joml.Vector3d,
@@ -436,6 +443,7 @@ object LineBuffer {
         )
     }
 
+    @Suppress("unused")
     fun putRelativeLine(
         v0: org.joml.Vector3d, v1: org.joml.Vector3d,
         cam: org.joml.Vector3d,

@@ -1180,7 +1180,7 @@ open class RenderView(
                     if (toneMappedColors) c.div(1f - c.x, 1f - c.y, 1f - c.z, 1f)
                     shader.v4f("color", c.x, c.y, c.z, 1f)
                     shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
-                    Shapes.cube11Smooth.draw(shader, 0)
+                    Shapes.smoothCube.back.draw(shader, 0)
                     // LOGGER.warn(shader.fragmentSource)
                 }
             }
