@@ -463,6 +463,15 @@ open class Texture2D(
         data.limit(1)
     }
 
+    fun checkRedundancyMonochrome(data: FloatArray): FloatArray {
+        val c0 = data[0]
+        for (i in 1 until w * h) {
+            if (c0 != data[i]) return data
+        }
+        setSize1x1()
+        return floatArrayOf(data[0])
+    }
+
     fun checkRedundancyMonochrome(data: FloatBuffer) {
         val c0 = data[0]
         for (i in 1 until w * h) {
@@ -481,7 +490,7 @@ open class Texture2D(
         return byteArrayOf(c0)
     }
 
-    fun checkRedundancy(data: FloatArray): FloatArray {
+    fun checkRedundancyRGBA(data: FloatArray): FloatArray {
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -493,7 +502,29 @@ open class Texture2D(
         return floatArrayOf(c0, c1, c2, c3)
     }
 
-    fun checkRedundancy(data: FloatBuffer) {
+    fun checkRedundancyRGB(data: FloatArray): FloatArray {
+        val c0 = data[0]
+        val c1 = data[1]
+        val c2 = data[2]
+        for (i in 3 until w * h * 3 step 3) {
+            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return data
+        }
+        setSize1x1()
+        return floatArrayOf(c0, c1, c2)
+    }
+
+    fun checkRedundancyRGB(data: FloatBuffer) {
+        val c0 = data[0]
+        val c1 = data[1]
+        val c2 = data[2]
+        for (i in 3 until w * h * 3 step 3) {
+            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return
+        }
+        setSize1x1()
+        data.limit(3)
+    }
+
+    fun checkRedundancyRGBA(data: FloatBuffer) {
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -537,6 +568,16 @@ open class Texture2D(
         }
         setSize1x1()
         return byteArrayOf(c0, c1)
+    }
+
+    fun checkRedundancyRG(data: FloatArray): FloatArray {
+        val c0 = data[0]
+        val c1 = data[1]
+        for (i in 2 until w * h * 2 step 2) {
+            if (c0 != data[i] || c1 != data[i + 1]) return data
+        }
+        setSize1x1()
+        return floatArrayOf(c0, c1)
     }
 
     fun checkRedundancyRGB(data: ByteArray): ByteArray {
@@ -613,7 +654,7 @@ open class Texture2D(
 
     fun createRGB(data: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(3, data.size)
-        val floats2 = if (checkRedundancy) checkRedundancy(data) else data
+        val floats2 = if (checkRedundancy) checkRedundancyRGB(data) else data
         writeAlignment(12 * w)
         texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, floats2)
         afterUpload(true, 12)
@@ -621,7 +662,7 @@ open class Texture2D(
 
     fun createRGB(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(3, data.capacity())
-        if (checkRedundancy) checkRedundancy(data)
+        if (checkRedundancy) checkRedundancyRGB(data)
         writeAlignment(12 * w)
         texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, data)
         afterUpload(true, 12)
@@ -795,6 +836,16 @@ open class Texture2D(
         afterUpload(false, 2)
     }
 
+    fun createRG(data: FloatArray, checkRedundancy: Boolean) {
+        beforeUpload(2, data.size)
+        val data2 = if (checkRedundancy) checkRedundancyRG(data) else data
+        val buffer = bufferPool[data.size, false, false]
+        buffer.asFloatBuffer().put(data2)
+        texImage2D(GL_RG, GL_RG, GL_UNSIGNED_BYTE, buffer)
+        bufferPool.returnBuffer(buffer)
+        afterUpload(false, 8)
+    }
+
     fun createRG(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(2, data.remaining())
         if (checkRedundancy) checkRedundancyRG(data)
@@ -812,6 +863,18 @@ open class Texture2D(
         if (checkRedundancy) checkRedundancyMonochrome(data)
         writeAlignment(4 * w)
         texImage2D(GL_R32F, GL_RED, GL_FLOAT, data)
+        afterUpload(true, 4)
+    }
+
+    /**
+     * creates a monochrome float32 image on the GPU
+     * used by SDF
+     * */
+    fun createMonochrome(data: FloatArray, checkRedundancy: Boolean) {
+        beforeUpload(1, data.size)
+        val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
+        writeAlignment(4 * w)
+        texImage2D(GL_R32F, GL_RED, GL_FLOAT, data2)
         afterUpload(true, 4)
     }
 
@@ -855,26 +918,20 @@ open class Texture2D(
     }
 
     fun createRGBA(data: FloatArray, checkRedundancy: Boolean) {
-
         beforeUpload(4, data.size)
-        val data2 = if (checkRedundancy && w * h > 1) checkRedundancy(data) else data
-
+        val data2 = if (checkRedundancy && w * h > 1) checkRedundancyRGBA(data) else data
         val byteBuffer = bufferPool[data2.size * 4, false, false]
-
-        val floatBuffer = byteBuffer.asFloatBuffer()
-        floatBuffer.put(data2).flip()
-
+        byteBuffer.asFloatBuffer().put(data2).flip()
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         texImage2D(TargetType.FloatTarget4, byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
         afterUpload(true, 16)
-
     }
 
     fun createRGBA(data: FloatBuffer, buffer: ByteBuffer, checkRedundancy: Boolean) {
 
         beforeUpload(4, data.capacity())
-        if (checkRedundancy && w * h > 1) checkRedundancy(data)
+        if (checkRedundancy && w * h > 1) checkRedundancyRGBA(data)
 
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         texImage2D(TargetType.FloatTarget4, buffer)

@@ -13,16 +13,35 @@ import me.anno.ui.base.text.TextPanel
 import org.lwjgl.glfw.GLFW
 import java.util.function.BiConsumer
 
+/**
+ * displays pressed keys for tutorials & debugging
+ * */
 object ShowKeys {
 
     val activeKeys = ArrayList<Key>()
     val activeKeysMap = HashMap<Int, Key>()
-    val decaySpeed = 1f
+    var decaySpeed = 1f
 
     val font = style.getFont("tutorialText")
-    val colors = TextPanel("", style)
+    val template = TextPanel("", style)
 
-    class Key(val keyCode: Int, val isSuperKey: Boolean, var time: Float)
+    class Key(
+        val keyCode: Int,
+        val isSuperKey: Boolean,
+        var time: Float,
+        val state: KeyMap.InputState = KeyMap.InputState()
+    ) {
+        var stateId = KeyMap.stateId
+        var name = findName()
+        fun findName(): String {
+            // this can be incorrect as long as we don't know the correct mapping
+            val text1 = KeyMap.inputMap[state]
+            val text2 = if (text1 != null && text1 != 32 && text1 != 9 && text1 != 10) // space, \n, \r
+                String(Character.toChars(text1)) else null
+            val text0 = KeyCombination.keyMapping.reverse[keyCode]
+            return text2 ?: text0 ?: keyCode.toString()
+        }
+    }
 
     private const val lower = 0.8f // full strength while hold
     private fun addKey(keyCode: Int, isSuperKey: Boolean) {
@@ -40,8 +59,8 @@ object ShowKeys {
 
     private fun drawKey(text: String, alpha: Float, x0: Int, hmy: Int): Int {
 
-        val bgColor = colors.backgroundColor
-        val textColor = colors.textColor
+        val bgColor = template.backgroundColor
+        val textColor = template.textColor
         val fontSize = font.sizeInt
 
         // background
@@ -100,9 +119,10 @@ object ShowKeys {
                     for (index in activeKeys.indices) {
                         val key = activeKeys[index]
                         val alpha = key.time
-                        val text0 = KeyCombination.keyMapping.reverse[key.keyCode]
-                        val text = text0 ?: key.keyCode.toString()
-                        x0 = drawKey(text, alpha, x0, h - y)
+                        if (key.stateId != KeyMap.stateId) {
+                            key.name = key.findName()
+                        }
+                        x0 = drawKey(key.name, alpha, x0, h - y)
                     }
                 }
                 true

@@ -199,16 +199,14 @@ object Input {
 
     fun onCharTyped(window: WindowX, codepoint: Int, mods: Int) {
         framesSinceLastInteraction = 0
+        KeyMap.onCharTyped(codepoint)
         if (!UIEvent(
                 window.currentWindow,
                 window.mouseX,
                 window.mouseY, codepoint,
                 UIEventType.CHAR_TYPED
             ).call().isCancelled
-        ) {
-            window.windowStack.inFocus0?.onCharTyped(window.mouseX, window.mouseY, codepoint)
-            KeyMap.onCharTyped(codepoint)
-        }
+        ) window.windowStack.inFocus0?.onCharTyped(window.mouseX, window.mouseY, codepoint)
         keyModState = mods
     }
 

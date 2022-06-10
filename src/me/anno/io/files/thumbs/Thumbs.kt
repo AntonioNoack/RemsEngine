@@ -60,6 +60,7 @@ import me.anno.image.ImageGPUCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.hdr.HDRImage
+import me.anno.image.raw.BIImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.ISaveable
 import me.anno.io.base.InvalidClassException
@@ -87,7 +88,9 @@ import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
 import me.anno.utils.Clock
 import me.anno.utils.Color.hex4
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.OS
+import me.anno.utils.OS.desktop
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
@@ -97,6 +100,7 @@ import me.anno.utils.Warning.unused
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.CountingList.Companion.isCounted
@@ -104,10 +108,8 @@ import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
+import org.joml.*
 import org.joml.Math.sqrt
-import org.joml.Matrix4fArrayList
-import org.joml.Matrix4x3f
-import org.joml.Vector3f
 import org.lwjgl.opengl.GL11C.*
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -123,6 +125,8 @@ import kotlin.math.roundToInt
  * creates and caches small versions of image and video resources
  * */
 object Thumbs {
+
+    // todo some qoi images, scaled, have incorrect colors...
 
     // todo right click option in file explorer to invalidate a thumbs image
     // todo right click option for images: open large image viewer panel
@@ -357,11 +361,10 @@ object Thumbs {
         if (min(sw, sh) < 1) return
 
         // if it matches the size, just upload it
-        // we have loaded it anyways already
+        // we have loaded it anyway already
         if (max(sw, sh) < size) {
             saveNUpload(srcFile, dstFile, src, callback)
             return
-            // return generate(srcFile, size / 2, callback)
         }
 
         val (w, h) = scaleMax(sw, sh, size)
@@ -713,7 +716,6 @@ object Thumbs {
     private val materialCamTransform = createPerspective(0f, 1f).scale(0.62f)
 
     // todo if we have preview images, we could use them as cheaper textures
-    // todo for some scales, the image is just blank
     fun generateMaterialFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -1014,8 +1016,12 @@ object Thumbs {
             is MeshComponentBase -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
             is Collider -> generateColliderFrame(srcFile, dstFile, size, asset, callback)
             is Component -> {
-                // todo render component somehow... just return an icon?
-                // todo render debug ui :)
+                val gt = JomlPools.mat4x3d.borrow()
+                val ab = JomlPools.aabbd.borrow()
+                if (asset.fillSpace(gt, ab)) {
+                    // todo render component somehow... just return an icon?
+                    // todo render debug ui :)
+                }
             }
             is Prefab -> {
                 val instance = asset.getSampleInstance()
@@ -1132,7 +1138,8 @@ object Thumbs {
                     e.printStackTrace()
                 }
             }
-            "png", "jpg", "bmp", "ico", "psd" -> generateImage(srcFile, dstFile, size, callback)
+            "png", "jpg", "bmp", "ico", "psd", "qoi" ->
+                generateImage(srcFile, dstFile, size, callback)
             "blend" -> generateSomething(
                 PrefabCache.getPrefabInstance(srcFile),
                 srcFile,

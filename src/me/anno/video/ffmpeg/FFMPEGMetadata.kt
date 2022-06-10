@@ -15,6 +15,7 @@ import me.anno.utils.OS
 import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Strings.parseTime
+import me.saharnooby.qoi.QOIImage
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import javax.imageio.ImageIO
@@ -52,13 +53,16 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                 // Gimp files are a special case, which is not covered by FFMPEG
                 setImage(file.inputStream().use { GimpImage.findSize(it) })
             }
+            "qoi" -> {// we have a simple reader, so use it :)
+                setImage(file.inputStream().use { QOIImage.findSize(it) })
+            }
             // only load ffmpeg for ffmpeg files
             "gif", "media" -> {
                 if (!OS.isAndroid && file is FileFileRef) {
                     loadFFMPEG()
                 }
             }
-            "png", "jpg", "psd", "ico", "dds", "exr", "qoi" -> {
+            "png", "jpg", "psd", "ico", "dds", "exr" -> {
                 for (reader in ImageIO.getImageReadersBySuffix(signature)) {
                     try {
                         file.inputStream().use {

@@ -10,7 +10,7 @@ import java.awt.image.DataBufferInt
 
 open class ByteImage(
     width: Int, height: Int,
-    val channelsInData: Int,
+    channelsInData: Int,
     val data: ByteArray = ByteArray(width * height * channelsInData),
     hasAlphaChannel: Boolean = channelsInData > 3
 ) : Image(width, height, channelsInData, hasAlphaChannel) {
@@ -19,7 +19,7 @@ open class ByteImage(
             this(width, height, channelsInData, ByteArray(width * height * channelsInData), hasAlphaChannel)
 
     override fun getRGB(index: Int): Int {
-        return when (channelsInData) {
+        return when (numChannels) {
             1 -> data[index].toInt().and(255) * 0x10101
             2 -> {
                 val i = index * 2
@@ -29,32 +29,12 @@ open class ByteImage(
                 val i = index * 3
                 rgb(data[i], data[i + 1], data[i + 2])
             }
-            4 -> {
+            4 -> {// RGBA, todo may be ARGB, then we should use another class or add an option for that
                 val i = index * 4
-                rgba(data[i + 1], data[i + 2], data[i + 3], data[i])
+                rgba(data[i], data[i + 1], data[i + 2], data[i + 3])
             }
             else -> throw RuntimeException("Only 1..4 channels are supported")
         }
-    }
-
-    override fun createBufferedImage(): BufferedImage {
-        val image = BufferedImage(width, height, if (hasAlphaChannel) 2 else 1)
-        val src = data
-        val raster = image.raster
-        val dst = (raster.dataBuffer as DataBufferInt).data
-        when (channelsInData) {
-            1 -> {
-                for (i in 0 until width * height) {
-                    dst[i] = src[i].toInt().and(255) * 0x10101
-                }
-            }
-            else -> {
-                for (i in 0 until width * height) {
-                    dst[i] = getRGB(i)
-                }
-            }
-        }
-        return image
     }
 
     override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
@@ -65,7 +45,7 @@ open class ByteImage(
             }
             return
         }
-        when (channelsInData) {
+        when (numChannels) {
             1 -> texture.createMonochrome(data, checkRedundancy)
             2 -> texture.createRG(data, checkRedundancy)
             3 -> createRGBFrom3StridedData(texture, width, height, checkRedundancy, data)

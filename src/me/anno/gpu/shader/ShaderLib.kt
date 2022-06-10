@@ -81,7 +81,7 @@ object ShaderLib {
             "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
             "}\n"
 
-    fun brightness(r: Float, g: Float, b: Float) = sqrt(sqrt(0.299f * r * r + 0.587f * g * g + 0.114f * b * b))
+    fun brightness(r: Float, g: Float, b: Float) = sqrt(0.299f * r * r + 0.587f * g * g + 0.114f * b * b)
 
     // https://community.khronos.org/t/quaternion-functions-for-glsl/50140/3
     const val quaternionTransform = "" +

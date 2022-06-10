@@ -1,6 +1,7 @@
 package me.anno.image.hdr
 
 import me.anno.gpu.GFX
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
@@ -32,10 +33,6 @@ class HDRImage : Image {
 
     constructor(file: FileReference) : super(0, 0, 3, false) {
         optimizeStream(file.inputStream()).use { input -> read(input) }
-    }
-
-    constructor(file: File) : super(0, 0, 3, false) {
-        optimizeStream(FileInputStream(file)).use { input -> read(input) }
     }
 
     fun optimizeStream(input: InputStream): InputStream {
@@ -87,42 +84,106 @@ class HDRImage : Image {
         return IntImage(width, height, data, hasAlphaChannel)
     }
 
+    fun createMonoTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+
+        when (numChannels) {
+            1 -> createTexture(texture, sync, checkRedundancy)
+            2 -> {
+                val data = pixels
+                val data3 = FloatArray(width * height)
+                var j = 0
+                for (i in data3.indices) {
+                    val r = data[j++]
+                    val g = data[j++]
+                    data3[i] = (r + g) * 0.5f
+                }
+                val data2 = if (checkRedundancy) texture.checkRedundancyMonochrome(data3) else data3
+                if (sync && GFX.isGFXThread()) {
+                    texture.createMonochrome(data2, false)
+                } else {
+                    GFX.addGPUTask("HDRImage", width, height) {
+                        texture.createMonochrome(data2, false)
+                    }
+                }
+            }
+            else -> {
+                val data = pixels
+                val data3 = FloatArray(width * height)
+                var j = 0
+                val offset = numChannels - 3
+                for (i in data3.indices) {
+                    val r = data[j++]
+                    val g = data[j++]
+                    val b = data[j++]
+                    data3[i] = ShaderLib.brightness(r, g, b)
+                    j += offset
+                }
+                val data2 = if (checkRedundancy) texture.checkRedundancyMonochrome(data3) else data3
+                if (sync && GFX.isGFXThread()) {
+                    texture.createMonochrome(data2, false)
+                } else {
+                    GFX.addGPUTask("HDRImage", width, height) {
+                        texture.createMonochrome(data2, false)
+                    }
+                }
+            }
+        }
+    }
+
     override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
         val data = pixels
-        val data2 = if (checkRedundancy) texture.checkRedundancy(data) else data
+        val data2 = if (checkRedundancy) {
+            when (numChannels) {
+                1 -> texture.checkRedundancyMonochrome(data)
+                2 -> texture.checkRedundancyRG(data)
+                3 -> texture.checkRedundancyRGB(data)
+                4 -> texture.checkRedundancyRGBA(data)
+                else -> throw NotImplementedError()
+            }
+        } else data
         if (sync && GFX.isGFXThread()) {
-            texture.createRGB(data2, false)
+            createTex(texture, data2)
         } else {
             GFX.addGPUTask("HDRImage", width, height) {
-                texture.createRGB(data2, false)
+                createTex(texture, data2)
             }
+        }
+    }
+
+    private fun createTex(texture: Texture2D, data2: FloatArray) {
+        when (numChannels) {
+            1 -> texture.createMonochrome(data2, false)
+            2 -> texture.createRG(data2, false)
+            3 -> texture.createRGB(data2, false)
+            4 -> texture.createRGBA(data2, false)
+            else -> throw NotImplementedError()
         }
     }
 
     // Construction method if the input is a InputStream.
     // Parse the HDR file by its format. HDR format encode can be seen in Radiance HDR(.pic,.hdr) file format
     @Throws(IOException::class)
-    private fun read(`in`: InputStream) {
+    private fun read(input: InputStream) {
         // Parse HDR file's header line
         // readLine(InputStream in) method will be introduced later.
 
         // The first line of the HDR file. If it is a HDR file, the first line should be "#?RADIANCE"
         // If not, we will throw a IllegalArgumentException.
-        val isHDR = readLine(`in`)
+        val isHDR = readLine(input)
         require(isHDR == HDR_MAGIC) { "Unrecognized format: $isHDR" }
 
-        // Besides the first line, there are serval lines describe the different information of this HDR file.
+        // Besides the first line, there are serveral lines describing the different information of this HDR file.
         // Maybe it will have the exposure time, format(Must be either"32-bit_rle_rgbe" or "32-bit_rle_xyze")
         // Also the owner's information, the software's version, etc.
 
         // The above information is not so important for us.
         // The only important information for us is the Resolution which shows the size of the HDR image
         // The resolution information's format is fixed. Usually, it will be -Y 1024 +X 2048 something like this.
-        var inform = readLine(`in`)
+        var inform = readLine(input)
         while (inform != "") {
-            inform = readLine(`in`)
+            inform = readLine(input)
         }
-        inform = readLine(`in`)
+        inform = readLine(input)
         val tokens = inform.split(" ".toRegex(), 4).toTypedArray()
         if (tokens[0][1] == 'Y') {
             width = tokens[3].toInt()
@@ -137,7 +198,7 @@ class HDRImage : Image {
         // In the above, the basic information has been collected. Now, we will deal with the pixel data.
         // According to the HDR format document, each pixel is stored as 4 bytes, one bytes mantissa for each r,g,b and a shared one byte exponent.
         // The pixel data may be stored uncompressed or using a straightforward run length encoding scheme.
-        val din: DataInput = DataInputStream(`in`)
+        val din: DataInput = DataInputStream(input)
         pixels = FloatArray(height * width * 3)
 
         // optimized from the original; it does not need to be full image size; one row is enough
@@ -202,17 +263,14 @@ class HDRImage : Image {
     }
 
     @Throws(IOException::class)
-    private fun readLine(`in`: InputStream): String {
-        val bout = ByteArrayOutputStream()
+    private fun readLine(input: InputStream): String {
+        val bout = ByteArrayOutputStream(256)
         var i = 0
         while (true) {
-            val b = `in`.read()
-            if (b == '\n'.toInt() || b == -1) {
-                break
-            } else require(i != 500) {  // 100 seems short and unsure ;)
-                "Line too long"
-            }
-            if (b != '\r'.toInt()) {
+            val b = input.read()
+            if (b == '\n'.code || b == -1) break
+            else if (i > 256) throw IOException("Line too long") // 100 seems short and unsure ;)
+            if (b != '\r'.code) {
                 bout.write(b)
             }
             i++
@@ -236,15 +294,6 @@ class HDRImage : Image {
         // with the reinhard tonemapping, the average brightness of pixels is expected to be
         // more than just 1, and more like 5
         var typicalBrightness = 5f
-        private fun bytesToFloats(r: Byte, g: Byte, b: Byte, a: Byte, pixels: FloatArray, index: Int) {
-            val exp: Int = a.toInt() and 255
-            if (exp > 0) {
-                val exponent = 2f.pow(exp - 128 - 8)
-                pixels[index] = (r.toInt() and 255) * exponent
-                pixels[index + 1] = (g.toInt() and 255) * exponent
-                pixels[index + 2] = (b.toInt() and 255) * exponent
-            }
-        }
 
         @Throws(IOException::class)
         fun writeHDR(w: Int, h: Int, pixels: FloatArray, out0: OutputStream?) {

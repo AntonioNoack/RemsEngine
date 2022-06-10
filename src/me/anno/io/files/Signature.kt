@@ -189,7 +189,6 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("dds", 0, "DDS "), // direct x image file format
             Signature("gif", 0, "GIF8"), // graphics interchange format, often animated
             Signature("gimp", 0, GimpImage.MAGIC), // gimp file
-            // todo qoi support?, https://github.com/phoboslab/qoi, https://github.com/saharNooby/qoi-java
             Signature("qoi", 0, "qoif"),
             Signature("exr", 0, listOf(0x76, 0x2f, 0x31, 0x01)), // HDR image format, can be exported from Blender
             // other

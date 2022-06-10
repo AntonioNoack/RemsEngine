@@ -53,8 +53,7 @@ open class GrayscaleImage(
                     }
                 }
             }
-            // todo we could upload mono-grayscale instead
-            is HDRImage -> createTexture(texture, sync, checkRedundancy, src.createIntImage())
+            is HDRImage -> src.createMonoTexture(texture, sync, checkRedundancy)
             is ComponentImage -> src.createTexture(texture, sync, checkRedundancy)
             is CachedImage -> createTexture(texture, sync, checkRedundancy, src.base!!)
             is OpaqueImage -> createTexture(texture, sync, checkRedundancy, src.src)

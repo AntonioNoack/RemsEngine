@@ -181,6 +181,7 @@ To find more examples, search for "fun main(args: Array<String>)" in the source 
 * [Bullet](http://jbullet.advel.cz/) (3d Physics, adjusted to be FP64 instead of FP32)
 * [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
 * [LuaJ](https://github.com/luaj/luaj) (Lua scripting)
+* [QOI-Java](https://github.com/saharNooby/qoi-java) (QOI image format)
 
 ## Build It
 

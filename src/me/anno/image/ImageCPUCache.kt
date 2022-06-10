@@ -16,6 +16,7 @@ import me.anno.maths.Maths.min
 import me.anno.utils.Sleep
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
+import me.saharnooby.qoi.QOIImage
 import net.sf.image4j.codec.ico.ICODecoder
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
@@ -56,6 +57,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         registerStreamReader("ico") { tryIco(it) }
         registerStreamReader("gimp") { GimpImage.createThumbnail(it) }
         registerStreamReader("exr") { EXRReader.read(it) }
+        registerStreamReader("qoi") { QOIImage.read(it) }
     }
 
     // eps: like svg, we could implement it, but we don't really need it that dearly...

@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.io.BufferedIO.useBuffered
+import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
 import java.io.OutputStream
@@ -14,15 +15,12 @@ class BundledRef(
 
     constructor(resName: String) : this(resName, "$prefix$resName", false)
 
-    override fun getChild(name: String): FileReference {
+    // todo for the most important directories, e.g. asset directories,
+    // todo we could add index.txt files or sth like that, where all sub-files are listed
 
-        // todo for the most important directories, e.g. asset directories,
-        // todo we could add index.txt files or sth like that, where all sub-files are listed
+    // todo or we could identify where the zip jar is located, and traverse/index it
 
-        // todo or we could identify where the zip jar is located, and traverse/index it
-
-        TODO("Not yet implemented")
-    }
+    override fun getChild(name: String) = getReference(zipFileForDirectory, name)
 
     override fun inputStream(): InputStream {
         // needs to be the same package
@@ -87,8 +85,13 @@ class BundledRef(
 
         const val prefix = "res://"
         private val jarAsZip = lazy<FileReference?> {
-            // todo find this jar file as zip
-            null
+            // find this jar file as zip
+            getReference(File(Companion::class.java
+                .protectionDomain
+                .codeSource
+                .location
+                .toURI()
+            ))
         }
     }
 
