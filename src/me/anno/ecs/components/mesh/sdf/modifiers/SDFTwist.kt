@@ -14,7 +14,7 @@ class SDFTwist : PositionMapper() {
 
     private val sourceParams = Vector4f(0f, 1f, 0f, 0f)
 
-    // todo apply this transform to the bounding box somehow...
+    // todo apply this transform to the bounding box somehow
 
     /**
      * source for rotation

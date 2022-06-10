@@ -33,7 +33,7 @@ open class BaseShader(
 
     var glslVersion = OpenGLShader.DefaultGLSLVersion
     var textures: List<String>? = null
-    var ignoredUniforms = HashSet<String>()
+    var ignoredNameWarnings = HashSet<String>()
 
     private val flatShader = KeyTripleMap<Renderer, Int, GeoShader?, Shader>()
     private val deferredShaders = KeyTripleMap<DeferredSettingsV2, Int, GeoShader?, Shader>()
@@ -119,7 +119,7 @@ open class BaseShader(
         )
         shader.glslVersion = glslVersion
         shader.setTextureIndices(textures)
-        shader.ignoreNameWarnings(ignoredUniforms)
+        shader.ignoreNameWarnings(ignoredNameWarnings)
         shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
         shader.v4f("tint", 1f, 1f, 1f, 1f)
         GFX.check()
@@ -165,16 +165,16 @@ open class BaseShader(
         shader.v1i("drawMode", renderer.drawMode.id)
     }
 
-    fun ignoreUniformWarnings(names: Collection<String>) {
-        ignoredUniforms += names
+    fun ignoreNameWarnings(names: Collection<String>) {
+        ignoredNameWarnings += names
     }
 
-    fun ignoreUniformWarnings(vararg names: String) {
-        ignoredUniforms += names
+    fun ignoreNameWarnings(vararg names: String) {
+        ignoredNameWarnings += names
     }
 
     fun ignoreUniformWarning(name: String) {
-        ignoredUniforms += name
+        ignoredNameWarnings += name
     }
 
     fun setTextureIndices(textures: List<String>?) {
@@ -208,7 +208,7 @@ open class BaseShader(
         shader.glslVersion = glslVersion
         shader.use()
         shader.setTextureIndices(textures)
-        shader.ignoreNameWarnings(ignoredUniforms)
+        shader.ignoreNameWarnings(ignoredNameWarnings)
         shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
         shader.v4f("tint", 1f, 1f, 1f, 1f)
         GFX.check()

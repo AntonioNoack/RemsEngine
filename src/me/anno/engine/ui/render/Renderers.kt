@@ -5,16 +5,13 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.*
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
@@ -335,13 +332,13 @@ object Renderers {
             val layer = settings.findLayer(type)
             if (layer != null) {
                 val type2 = GLSLType.floats[type.dimensions - 1].glslName
-                val shader1 = BaseShader(
+                val shader = Shader(
                     type.name, coordsList, coordsVShader, uvList, listOf(
                         Variable(GLSLType.S2D, "source"),
                         Variable(GLSLType.V4F, "result", VariableMode.OUT)
                     ), "" +
                             "void main(){\n" +
-                            "   $type2 data = texture(source.uv)${layer.mapping}${type.map01};\n" +
+                            "   $type2 data = texture(source,uv).${layer.mapping}${type.map01};\n" +
                             "   vec3 color = " +
                             when (type.dimensions) {
                                 1 -> "vec3(data)"
@@ -363,9 +360,9 @@ object Renderers {
                         format: DeferredSettingsV2,
                         layers: MutableMap<DeferredLayerType, IFramebuffer>
                     ) {
-                        val shader = shader1.value
                         shader.use()
-                        layers[type]!!.bindDirectly()
+                        layers[type]!!.getTexture0()
+                            .bindTrulyNearest(0)
                         flat01.draw(shader)
                     }
                 }

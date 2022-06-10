@@ -45,7 +45,15 @@ object AudioFXCache : CacheSection("AudioFX0") {
 
         fun withDelta(deltaIndex: Int): PipelineKey {
             if (deltaIndex == 0) return this
-            TODO()
+            // todo is this the intended sample rate?
+            val dt = (deltaIndex * bufferSize).toDouble() / playbackSampleRate
+            return PipelineKey(
+                file,
+                time0 + dt,
+                time1 + dt,
+                bufferSize,
+                repeat
+            )
         }
 
         override fun equals(other: Any?): Boolean {

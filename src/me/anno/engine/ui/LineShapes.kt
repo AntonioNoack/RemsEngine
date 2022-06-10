@@ -6,7 +6,6 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.findSystem
-import me.anno.utils.types.Vectors.setAxis
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -413,13 +412,40 @@ object LineShapes {
             val angle = i * Math.PI * 2.0 / segments
             val position = positions[i]
             position.set(otherAxis)
-            position.setAxis(cosAxis, cos(angle) * radius)
-            position.setAxis(sinAxis, sin(angle) * radius)
+            position.setComponent(cosAxis, cos(angle) * radius)
+            position.setComponent(sinAxis, sin(angle) * radius)
             if (offset != null) position.add(offset)
             transform?.transformPosition(position)
         }
         for (i in 0 until segments) {
             putRelativeLine(positions[i], positions[(i + 1) % segments], color)
+        }
+    }
+
+    fun drawHalfCircle(
+        entity: Entity?,
+        startAngle: Double,
+        radius: Double,
+        cosAxis: Int,
+        sinAxis: Int,
+        otherAxis: Double,
+        offset: Vector3d? = null,
+        color: Int = Collider.guiLineColor
+    ) {
+        val segments = 6
+        val transform = getDrawMatrix(entity)
+        val positions = tmpVec3d
+        for (i in 0..segments) {
+            val angle = startAngle + i * Math.PI / segments
+            val position = positions[i]
+            position.set(otherAxis)
+            position.setComponent(cosAxis, cos(angle) * radius)
+            position.setComponent(sinAxis, sin(angle) * radius)
+            if (offset != null) position.add(offset)
+            transform?.transformPosition(position)
+        }
+        for (i in 0 until segments) {
+            putRelativeLine(positions[i], positions[i + 1], color)
         }
     }
 

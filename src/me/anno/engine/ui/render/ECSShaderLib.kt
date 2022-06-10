@@ -19,7 +19,7 @@ object ECSShaderLib {
 
         val shader = ECSMeshShader("model")
         pbrModelShader = shader
-        shader.ignoreUniformWarnings(
+        shader.ignoreNameWarnings(
             listOf(
                 "finalSheen", "finalTranslucency", "metallicMinMax",
                 "emissiveBase", "normalStrength", "ambientLight",

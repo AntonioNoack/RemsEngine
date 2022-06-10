@@ -1,5 +1,7 @@
 package me.anno.gpu.shader
 
+import me.anno.engine.ui.render.Renderers.attributeRenderers
+import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.builder.ShaderStage
 
@@ -39,7 +41,7 @@ open class Renderer(
         val depthRenderer = Renderer("depth", true, ShaderPlus.DrawMode.DEPTH_DSQ, null)
         val copyRenderer = Renderer("copy", false, ShaderPlus.DrawMode.COPY, null)
         val triangleVisRenderer = Renderer("randomId", true, ShaderPlus.DrawMode.RANDOM_ID, null)
-        val motionVectorRenderer = Renderer("motionVector", true, ShaderPlus.DrawMode.MOTION_VECTOR, null)
+        val motionVectorRenderer = attributeRenderers[DeferredLayerType.MOTION]
 
     }
 

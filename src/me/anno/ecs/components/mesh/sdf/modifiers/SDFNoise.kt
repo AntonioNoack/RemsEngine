@@ -17,9 +17,6 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.sin
 
-// todo dunes
-// todo voronoi patterns
-
 @Suppress("unused")
 class SDFNoise : DistanceMapper() {
 

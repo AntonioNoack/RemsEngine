@@ -57,8 +57,8 @@ object FlatSymbols {
     )
 
     init {
-        flatShaderHalfArrow.ignoreUniformWarnings(ShaderLib.blacklist)
-        flatShaderCircle.ignoreUniformWarnings(ShaderLib.blacklist)
+        flatShaderHalfArrow.ignoreNameWarnings(ShaderLib.blacklist)
+        flatShaderCircle.ignoreNameWarnings(ShaderLib.blacklist)
     }
 
 }

@@ -318,11 +318,7 @@ object Vectors {
     }
 
     fun Vector3d.setAxis(axis: Int, value: Double): Vector3d {
-        when (axis) {
-            0 -> x = value
-            1 -> y = value
-            2 -> z = value
-        }
+        setComponent(axis,value)
         return this
     }
 

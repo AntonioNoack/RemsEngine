@@ -33,8 +33,8 @@ class CapsuleCollider : Collider() {
         unionRing(globalTransform, aabb, tmp, axis, r, +h, preferExact)
         unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
         val s = h + r
-        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setAxis(axis, +s)))
-        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setAxis(axis, -s)))
+        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis, +s)))
+        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis, -s)))
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {

@@ -10,11 +10,10 @@ package me.anno
 // todo pack Zip/Rar/PDF/EXR into mods
 // todo SDF Physics
 // todo animated collisions
-// todo fix: physics only load partial scene
 // todo get Anim -> rotation + translate only working (as a step towards bone-controllable meshes for inverse kinematics)
 
 // done Unity Raytracing
-// todo Unity Raytracing Reflections Asset for Store
+// to do Unity Raytracing Reflections Asset for Store
 // todo Unity Tsunami Extension for Store
 
 

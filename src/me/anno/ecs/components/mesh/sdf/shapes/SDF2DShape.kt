@@ -13,7 +13,7 @@ import org.joml.Planef
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-// todo more 2d shapes
+// to do more 2d shapes
 // https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
 // https://www.shadertoy.com/playlist/MXdSRf&from=36&num=12
 

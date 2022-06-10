@@ -78,10 +78,6 @@ object ShaderPlus {
                 "   case ${DrawMode.TINT.id}:\n" +
                 "       fragColor = tint;\n" +
                 "       break;\n" +
-                "   case ${DrawMode.MOTION_VECTOR.id}:\n" + // add depth² for variance shadow maps? :), depth is saved in depth buffer anyway
-                "       if(finalAlpha < 0.01) discard;\n" +
-                "       fragColor = vec4(finalMotion, zDistance*zDistance, finalAlpha);\n" +
-                "       break;\n" +
                 "   default:" +
                 "       fragColor = vec4(1.0,0.0,1.0,1.0);\n" +
                 "       break;\n" +
@@ -132,10 +128,6 @@ object ShaderPlus {
                 "       vec2 seed = vec2(sin(flRandomId), cos(flRandomId));\n" +
                 "       fragColor = vec4(GET_RANDOM(seed.xy), GET_RANDOM(seed.yx), GET_RANDOM(100.0 - seed.yx), 1.0);\n" +
                 "       break;\n" +
-                "   case ${DrawMode.MOTION_VECTOR.id}:\n" + // add depth² for variance shadow maps? :), depth is saved in depth buffer anyway
-                "       if(finalAlpha < 0.01) discard;\n" +
-                "       fragColor = vec4(finalMotion, zDistance*zDistance, finalAlpha);\n" +
-                "       break;\n" +
                 "   default:" +
                 "       fragColor = vec4(1.0,0.0,0.5,1.0);\n" +
                 "       break;\n" +
@@ -172,6 +164,7 @@ object ShaderPlus {
 
     // todo change everything from gl_FragColor or fractColor to finalColor, finalAlpha,
     //  and then use renderers, and delete this DrawMode-legacy-stuff
+    @Deprecated("This will soon be removed; use Renderers instead")
     enum class DrawMode(val id: Int) {
         COLOR_SQUARED(0),
         COLOR(1),
@@ -179,8 +172,7 @@ object ShaderPlus {
         DEPTH_DSQ(5), // needs a float buffer
         COPY(6),
         TINT(7),
-        RANDOM_ID(8),
-        MOTION_VECTOR(9)
+        RANDOM_ID(8)
     }
 
 }

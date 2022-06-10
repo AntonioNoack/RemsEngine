@@ -142,8 +142,8 @@ object FlatShaders {
     )
 
     init {
-        flatShaderTexture.ignoreUniformWarnings(blacklist)
-        flatShaderCubemap.ignoreUniformWarnings(blacklist)
+        flatShaderTexture.ignoreNameWarnings(blacklist)
+        flatShaderCubemap.ignoreNameWarnings(blacklist)
     }
 
 }

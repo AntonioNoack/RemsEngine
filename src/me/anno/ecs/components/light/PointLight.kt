@@ -165,9 +165,6 @@ class PointLight : LightComponent(LightType.POINT) {
                             "   float depthFromShader = near/maxAbsComponent;\n" +
                             // todo how can we get rid of this (1,-1,-1), what rotation is missing?
                             "   float depthFromTex = texture_array_depth_shadowMapCubic(shadowMapIdx0, dir*vec3(+1,-1,-1), depthFromShader);\n" +
-                            // "   float val = texture_array_shadowMapCubic(shadowMapIdx0, dir*vec3(+1,-1,-1)).r;\n" +
-                            // "   effectiveDiffuse = lightColor * vec3(vec2(val),depthFromShader);\n" + // nice for debugging
-                            //"   effectiveDiffuse = lightColor * (dir*.5+.5);\n" +
                             "   lightColor *= 1.0 - depthFromTex;\n" +
                             "}\n"
                     else "") +

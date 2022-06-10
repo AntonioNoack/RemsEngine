@@ -37,10 +37,10 @@ import kotlin.math.PI
 //  - b) environment illumination map
 
 // todo or render from shader
-// todo always find closest to object
-// todo bake surrounding lighting for reflections
-// todo blur
-// todo hdr
+// todo - always find closest to object
+// todo - bake surrounding lighting for reflections
+// todo - blur
+// todo - hdr
 
 // is this a light component?
 //  - only 1 per object
@@ -226,14 +226,7 @@ class EnvironmentMap : LightComponentBase() {
 
         fun rotateForCubemap(rot3: Quaterniond, side: Int) {
             // rotate based on direction
-            /*
-            * POSITIVE_X = 34069;
-            * NEGATIVE_X = 34070;
-            * POSITIVE_Y = 34071;
-            * NEGATIVE_Y = 34072;
-            * POSITIVE_Z = 34073;
-            * NEGATIVE_Z = 34074;
-            * */
+            // POSITIVE_X, NEGATIVE_X, POSITIVE_Y, NEGATIVE_Y, POSITIVE_Z, NEGATIVE_Z
             when (side) {
                 0 -> rot3.rotateY(+PI * 0.5)
                 1 -> rot3.rotateY(-PI * 0.5)

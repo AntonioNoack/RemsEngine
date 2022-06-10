@@ -17,8 +17,6 @@ class CameraState : Component() {
         return 1
     }
 
-    // todo method to draw first cam 1, then cam 2, and then blend them together
-
     override fun clone(): CameraState {
         val clone = CameraState()
         copy(clone)

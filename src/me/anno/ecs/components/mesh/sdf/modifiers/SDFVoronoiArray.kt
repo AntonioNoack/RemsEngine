@@ -24,8 +24,6 @@ import kotlin.math.sin
 
 class SDFVoronoiArray : PositionMapper() {
 
-    // todo all arrays should have the option to evaluate the neighbors for correct sdfs without gaps
-
     // we could beautify the result when the shapes are overlapping by repeatedly calling the child...
     // would be pretty expensive...
 

@@ -301,7 +301,7 @@ open class RenderView(
         val layers = deferred.settingsV1.layers
         val size = when (renderMode) {
             RenderMode.ALL_DEFERRED_BUFFERS -> layers.size + 1 /* 1 for light */
-            RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size + 2 /* 1 for motion vectors, 1 for light */
+            RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size + 1 /* 1 for light */
             else -> 1
         }
 
@@ -1155,10 +1155,14 @@ open class RenderView(
     private val depthMode get() = if (reverseDepth) DepthMode.GREATER else DepthMode.FORWARD_LESS
     private val invDepthMode get() = if (reverseDepth) DepthMode.LESS else DepthMode.FORWARD_GREATER
 
+    var skipClear = false
+
     private fun clearDeferred(
         previousCamera: Camera, camera: Camera,
         blending: Float, toneMappedColors: Boolean
     ) {
+        // this can be skipped, if we have a sky
+        if (skipClear) return
         Frame.bind()
         OpenGL.blendMode.use(null) {
             OpenGL.depthMode.use(DepthMode.ALWAYS) {

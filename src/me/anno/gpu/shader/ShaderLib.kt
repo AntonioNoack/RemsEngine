@@ -573,7 +573,7 @@ object ShaderLib {
                     "}", listOf("tex", "animTexture")
         )
         monochromeModelShader.glslVersion = 330
-        monochromeModelShader.ignoreUniformWarnings("worldScale")
+        monochromeModelShader.ignoreNameWarnings("worldScale")
 
         // create the fbx shader
         // shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
@@ -839,7 +839,7 @@ object ShaderLib {
     ): BaseShader {
         val shader = BaseShader(shaderName, vertexShader, varyings, fragmentShader)
         shader.setTextureIndices(textures)
-        shader.ignoreUniformWarnings(ignored.toList())
+        shader.ignoreNameWarnings(ignored.toList())
         return shader
     }
 
@@ -855,7 +855,7 @@ object ShaderLib {
     ): BaseShader {
         val shader = BaseShader(shaderName, vertexVariables, vertexShader, varyings, fragmentVariables, fragmentShader)
         shader.setTextureIndices(textures)
-        shader.ignoreUniformWarnings(ignored.toList())
+        shader.ignoreNameWarnings(ignored.toList())
         return shader
     }
 

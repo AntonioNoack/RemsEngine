@@ -125,7 +125,7 @@ object WaveReader {
                 }
                 else -> throw RuntimeException("Unsupported number of audio channels: $channels")
             }
-        } catch (e: EOFException) {
+        } catch (_: EOFException) {
         }
 
         if (stereoB0.position() > 0) stereoB0.flip()

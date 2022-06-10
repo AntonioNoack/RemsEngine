@@ -374,7 +374,7 @@ object SDFComposer {
             }
         }
         // why are those not ignored?
-        shader.ignoreUniformWarnings(
+        shader.ignoreNameWarnings(
             "sheenNormalMap", "occlusionMap", "metallicMap", "roughnessMap",
             "emissiveMap", "normalMap", "diffuseMap", "diffuseBase", "emissiveBase", "drawMode", "applyToneMapping",
             "ambientLight"

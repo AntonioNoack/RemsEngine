@@ -40,7 +40,7 @@ class ConeCollider : Collider() {
         val h = height * 0.5
         val r = radius
         unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
-        tmp.setAxis(axis, +h)
+        tmp.setComponent(axis, +h)
         aabb.union(globalTransform.transformPosition(tmp))
     }
 
