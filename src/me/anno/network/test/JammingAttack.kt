@@ -75,7 +75,7 @@ fun test1() {
                 evilClient.sendTCP(PingPacket())
                 Thread.sleep(10)
             }
-        } catch (e: IOException) {
+        } catch (_: IOException) {
         }
     }
 

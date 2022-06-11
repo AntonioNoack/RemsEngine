@@ -7,6 +7,7 @@ import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.drawTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeX
@@ -17,6 +18,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.mixARGB
+import me.anno.ui.Keys.isClickKey
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
@@ -24,7 +26,6 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
-import me.anno.ui.Keys.isClickKey
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
@@ -42,7 +43,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         tooltip = nameDesc.desc
     }
 
-    fun setTextAlpha(alpha: Float){
+    fun setTextAlpha(alpha: Float) {
         textColor = textColor.withAlpha(alpha)
         invalidateDrawing()
     }
@@ -169,11 +170,11 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             }
         }
 
-    fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
+    open fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
         val x = this.x + dx + padding.left
         val y = this.y + dy + padding.top
         return if (useMonospaceCharacters) {
-            DrawTexts.drawTextCharByChar(
+            drawTextCharByChar(
                 x, y, font, text, color,
                 backgroundColor, widthLimit, heightLimit,
                 AxisAlignment.MIN, AxisAlignment.MIN, true
@@ -183,21 +184,17 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         }
     }
 
-    fun drawText(dx: Int, dy: Int, color: Int): Int {
+    open fun drawText(dx: Int, dy: Int, color: Int): Int {
         val x = this.x + dx + padding.left
         val y = this.y + dy + padding.top
         return if (useMonospaceCharacters) {
-            DrawTexts.drawTextCharByChar(
-                x, y, font, text, color,
-                backgroundColor, widthLimit, heightLimit,
-                AxisAlignment.MIN, AxisAlignment.MIN, true
-            )
+            drawText(dx, dy, text, color)
         } else {
             DrawTexts.drawText(x, y, font, textCacheKey, color, backgroundColor)
         }
     }
 
-    fun drawText(color: Int = effectiveTextColor) {
+    open fun drawText(color: Int = effectiveTextColor) {
         val offset = if (textAlignment == AxisAlignment.MIN) 0
         else textAlignment.getOffset(w, getMaxWidth())
         drawText(offset, 0, color)

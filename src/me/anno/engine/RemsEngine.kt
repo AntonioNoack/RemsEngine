@@ -36,8 +36,6 @@ import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
-// todo after dragging, nothing can be clicked anymore... why???
-
 // todo loading is slow: all tabs are loaded, even if only a single one is actually used
 
 // todo forward-plus rendering
@@ -47,10 +45,6 @@ import org.apache.logging.log4j.LogManager
 // todo foliage rendering... how ever we can do that at all scales...
 
 // todo runtime-only-PrefabSaveables must show warning in UI, that they are temporary
-// todo must be editable -> no CSet/CAdd, just instance changes
-
-
-// to do color input sometimes janky... why?
 
 // todo to reduce the size of the engine, physics engines could be turned into mods
 // todo libraries like jpeg2000, pdf and such should become mods as well
@@ -60,14 +54,9 @@ import org.apache.logging.log4j.LogManager
 // todo right click on a path:
 // todo - mutate -> create an asset based on that and replace the path, then inspect
 // todo - inspect -> show it in the editor
-// todo right click on file input -> open in file explorer
 
 // todo reduce skeletal animations to a single translation plus rotations only?
 // todo animation matrices then can be reduced to rotation + translation
-
-// could not reproduce it lately -> was it fixed?
-// to do bug: long text field is broken...
-
 
 // games, which we want to develop:
 //  - city builder

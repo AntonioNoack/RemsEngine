@@ -801,6 +801,32 @@ object ShaderLib {
                     "}", listOf("tex")
         )
 
+    val textShader = createShader(
+        "textShader",
+        "" +
+                "$attribute vec2 coords;\n" +
+                "uniform vec2 pos, size;\n" +
+                "uniform mat4 transform;\n" + // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
+                "uniform vec2 windowSize;\n" +
+                "void main(){\n" +
+                "   vec2 localPos = pos + coords * size;\n" +
+                "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
+                "   position = localPos * windowSize;\n" +
+                "   uv = coords;\n" +
+                "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V2F, "position")), "" +
+                "uniform vec4 textColor, backgroundColor;\n" +
+                "uniform vec2 windowSize;\n" +
+                "uniform sampler2D tex;\n" +
+                brightness +
+                "void main(){\n" +
+                "   float mixing = brightness(texture(tex, uv).rgb) * textColor.a;\n" +
+                "   vec4 color = mix(backgroundColor, textColor, mixing);\n" +
+                "   if(color.a < 0.001) discard;\n" +
+                "   vec3 finalColor = color.rgb;\n" +
+                "   float finalAlpha = color.a;\n" +
+                "}", listOf("tex")
+    )
+
     val subpixelCorrectTextShader = createShader(
         "subpixelCorrectTextShader",
         "" +
@@ -820,7 +846,7 @@ object ShaderLib {
                 brightness +
                 "void main(){\n" +
                 "   vec3 textMask = texture(tex, uv).rgb;\n" +
-                "   vec3 mixing = brightness(textColor) > brightness(backgroundColor) ? textMask.rgb : textMask.rgb;\n" +
+                "   vec3 mixing = textMask.rgb;\n" +
                 "   mixing *= textColor.a;\n" +
                 "   float mixingAlpha = brightness(mixing);\n" +
                 // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g. x on my screen

@@ -25,6 +25,9 @@ class FullNoise(val seed: Long) {
 
     private val invMax = 1f / 0xffff
 
+    /**
+     * returns a random value in [0,1]
+     * */
     fun getValue(x: Int): Float {
         var a = x * sx
         var b = (a shl 16) or (a ushr 16)

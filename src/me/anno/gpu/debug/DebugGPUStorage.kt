@@ -14,6 +14,7 @@ import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListY
@@ -172,6 +173,7 @@ object DebugGPUStorage {
 
     private fun create2DListOfPanels(title: String, fillList: (PanelList) -> Unit) {
         val list = PanelList2D(style)
+        list.alignmentX = AxisAlignment.FILL
         list.childWidth *= 2
         list.childHeight *= 2
         fillList(list)

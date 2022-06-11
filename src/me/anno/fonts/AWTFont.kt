@@ -2,9 +2,7 @@ package me.anno.fonts
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
-import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.GFX
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
@@ -28,7 +26,10 @@ import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
-import kotlin.math.*
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.streams.toList
 
 class AWTFont(val font: Font) {
@@ -54,15 +55,7 @@ class AWTFont(val font: Font) {
 
     private fun getStringWidth(group: TextGroup) = group.offsets.last() - group.offsets.first()
 
-    private fun getGroup(text: CharSequence) = object : TextGroup(font, text, 0.0) {
-        override fun draw(
-            startIndex: Int,
-            endIndex: Int,
-            drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
-        ) {
-            throw RuntimeException("Operation not supported")
-        }
-    }
+    private fun getGroup(text: CharSequence) = TextGroup(font, text, 0.0)
 
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,

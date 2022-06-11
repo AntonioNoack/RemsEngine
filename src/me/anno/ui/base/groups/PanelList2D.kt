@@ -16,6 +16,7 @@ import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
 import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
+import kotlin.math.min
 
 class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style), ScrollableY {
 
@@ -83,7 +84,9 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
             children.sortWith(sorter)
         }
 
-        updateSize(w, h)
+        val w2 = min(w, childWidth * children.size)
+        val h2 = min(h, childHeight * children.size)
+        updateSize(w2, h2)
         for (i in children.indices) {
             val child = children[i]
             if (child.visibility != Visibility.GONE) {
@@ -178,7 +181,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
         updateCount()
         updateScale()
         minW = max(w, calcChildWidth)
-        minH = max((calcChildHeight + spacing) * rows - spacing, h)
+        minH = (calcChildHeight + spacing) * rows - spacing
         minH2 = minH
     }
 

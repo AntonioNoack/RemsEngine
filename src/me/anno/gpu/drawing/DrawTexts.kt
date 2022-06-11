@@ -1,7 +1,9 @@
 package me.anno.gpu.drawing
 
+import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.fonts.FontManager
+import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.posSize
@@ -14,6 +16,7 @@ import me.anno.maths.Maths
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimes
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
@@ -152,52 +155,102 @@ object DrawTexts {
             return GFXx2D.getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
         }
 
-        val charWidth = if (equalSpaced) getTextSizeX(font, "x", widthLimit, heightLimit) else 0
+        if(equalSpaced){
 
-        val dx = getOffset(charWidth * text.length, alignX)
-        val dy = getOffset(font.sampleHeight, alignY)
+            val charWidth = getTextSizeX(font, "x", widthLimit, heightLimit)
+            val textWidth =  charWidth * text.length
 
-        // todo width limit...
+            val dx = getOffset(textWidth, alignX)
+            val dy = getOffset(font.sampleHeight, alignY)
+            val y2 = y + dy
 
-        val shader = ShaderLib.subpixelCorrectTextShader.value
-        shader.use()
-        shader.v4f("textColor", color)
-        shader.v4f("backgroundColor", backgroundColor)
+            // todo respect width limit
 
-        GFX.loadTexturesSync.push(true)
+            val shader = ShaderLib.subpixelCorrectTextShader.value
+            shader.use()
+            shader.v4f("textColor", color)
+            shader.v4f("backgroundColor", backgroundColor)
 
-        var fx = x + dx
-        var h = font.sizeInt
-        for (char in text) {
-            val txt = char.toString()
-            val size = FontManager.getSize(font, txt, -1, -1)
-            val sizeX = GFXx2D.getSizeX(size)
-            h = GFXx2D.getSizeY(size)
-            val w = if (equalSpaced) charWidth else sizeX
-            if (!txt.isBlank2()) {
-                val texture = FontManager.getTexture(font, txt, -1, -1)
-                if (texture != null && (texture !is Texture2D || texture.isCreated)) {
-                    texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                    val x2 = fx + (w - sizeX) / 2
-                    posSize(shader, x2, y + dy, sizeX, h)
-                    GFX.flat01.draw(shader)
-                    GFX.check()
-                } else {
-                    LOGGER.warn(
-                        "Texture for '$txt' is ${
-                            if (texture == null) "null"
-                            else if (texture is Texture2D && texture.isDestroyed) "destroyed"
-                            else "not created"
-                        }, $texture"
-                    )
+            GFX.loadTexturesSync.push(true)
+
+            var fx = x + dx
+            var h = font.sizeInt
+            for (codepoint in text.codePoints()) {
+                val txt = String(Character.toChars(codepoint))
+                val size = FontManager.getSize(font, txt, -1, -1)
+                h = GFXx2D.getSizeY(size)
+                if (!txt.isBlank2()) {
+                    val texture = FontManager.getTexture(font, txt, -1, -1)
+                    if (texture != null && (texture !is Texture2D || texture.isCreated)) {
+                        texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                        val x2 = fx + (charWidth - texture.w) / 2
+                        posSize(shader, x2, y2, texture.w, texture.h)
+                        GFX.flat01.draw(shader)
+                        GFX.check()
+                    } else {
+                        LOGGER.warn(
+                            "Texture for '$txt' is ${
+                                if (texture == null) "null"
+                                else if (texture is Texture2D && texture.isDestroyed) "destroyed"
+                                else "not created"
+                            }, $texture"
+                        )
+                    }
                 }
+                fx += charWidth
             }
-            fx += w
+
+            GFX.loadTexturesSync.pop()
+
+            return GFXx2D.getSize(fx - (x + dx), h)
+
+        } else {
+
+            val font2 = FontManager.getFont(font).font
+            val group = TextGroup(font2, text, 0.0)
+
+            val textWidth = group.offsets.last().toFloat()
+
+            val dxi = getOffset(textWidth.roundToInt(), alignX)
+            val dyi = getOffset(font.sampleHeight, alignY)
+
+            val shader = ShaderLib.subpixelCorrectTextShader.value
+            shader.use()
+            shader.v4f("textColor", color)
+            shader.v4f("backgroundColor", backgroundColor)
+
+            GFX.loadTexturesSync.push(true)
+
+            val y2 = (y + dyi).toFloat()
+
+            var h = font.sizeInt
+            var index = 0
+            for (codepoint in text.codePoints()) {
+                val txt = String(Character.toChars(codepoint))
+                val size = FontManager.getSize(font, txt, -1, -1)
+                val o0 = group.offsets[index].toFloat()
+                val o1 = group.offsets[index + 1].toFloat()
+                val fx = x + dxi + o0
+                val w = o1 - o0
+                h = GFXx2D.getSizeY(size)
+                if (!txt.isBlank2()) {
+                    val texture = FontManager.getTexture(font, txt, -1, -1)
+                    if (texture != null && (texture !is Texture2D || texture.isCreated)) {
+                        texture.bindTrulyNearest(0)
+                        val x2 = fx + (w - texture.w) / 2
+                        posSize(shader, x2, y2, texture.w.toFloat(), texture.h.toFloat())
+                        GFX.flat01.draw(shader)
+                        GFX.check()
+                    }
+                }
+                index++
+            }
+
+            GFX.loadTexturesSync.pop()
+
+            return GFXx2D.getSize(textWidth.roundToInt(), h)
+
         }
-
-        GFX.loadTexturesSync.pop()
-
-        return GFXx2D.getSize(fx - (x + dx), h)
 
     }
 
@@ -266,7 +319,8 @@ object DrawTexts {
         font: Font, key: TextCacheKey,
         color: Int, backgroundColor: Int,
         alignX: AxisAlignment = AxisAlignment.MIN,
-        alignY: AxisAlignment = AxisAlignment.MIN
+        alignY: AxisAlignment = AxisAlignment.MIN,
+        equalSpaced: Boolean = false
     ): Int {
 
         GFX.check()
@@ -280,7 +334,7 @@ object DrawTexts {
                 key.widthLimit,
                 key.heightLimit,
                 alignX, alignY,
-                false
+                equalSpaced
             )
         }
 
