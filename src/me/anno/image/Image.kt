@@ -202,6 +202,14 @@ abstract class Image(
     override fun destroy() {}
 
     companion object {
+
+        fun argb(a: Byte, r: Byte, g: Byte, b: Byte): Int {
+            return argb(
+                a.toUInt().toInt(), r.toUInt().toInt(),
+                g.toUInt().toInt(), b.toUInt().toInt()
+            )
+        }
+
         fun argb(a: Int, r: Int, g: Int, b: Int): Int {
             return (a shl 24) + (r shl 16) + (g shl 8) + b
         }

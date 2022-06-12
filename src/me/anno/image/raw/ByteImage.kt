@@ -1,22 +1,26 @@
 package me.anno.image.raw
 
 import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.utils.Color.rgb
 import me.anno.utils.Color.rgba
-import java.awt.image.BufferedImage
-import java.awt.image.DataBufferInt
 
+/**
+ * image class with ByteArray data;
+ * @param rgba set this to true, if your image is 4 channel RGBA, and to false if it is 4 channel ARGB; ignored for < 4 channels
+ * */
 open class ByteImage(
     width: Int, height: Int,
     channelsInData: Int,
     val data: ByteArray = ByteArray(width * height * channelsInData),
+    val rgba: Boolean = true,
     hasAlphaChannel: Boolean = channelsInData > 3
 ) : Image(width, height, channelsInData, hasAlphaChannel) {
 
-    constructor(width: Int, height: Int, channelsInData: Int, hasAlphaChannel: Boolean) :
-            this(width, height, channelsInData, ByteArray(width * height * channelsInData), hasAlphaChannel)
+    constructor(width: Int, height: Int, channelsInData: Int, rgba: Boolean, hasAlphaChannel: Boolean) :
+            this(width, height, channelsInData, ByteArray(width * height * channelsInData), rgba, hasAlphaChannel)
 
     override fun getRGB(index: Int): Int {
         return when (numChannels) {
@@ -29,9 +33,14 @@ open class ByteImage(
                 val i = index * 3
                 rgb(data[i], data[i + 1], data[i + 2])
             }
-            4 -> {// RGBA, todo may be ARGB, then we should use another class or add an option for that
-                val i = index * 4
-                rgba(data[i], data[i + 1], data[i + 2], data[i + 3])
+            4 -> {
+                if (rgba) {
+                    val i = index * 4
+                    rgba(data[i], data[i + 1], data[i + 2], data[i + 3])
+                } else { // ARGB
+                    val i = index * 4
+                    argb(data[i], data[i + 1], data[i + 2], data[i + 3])
+                }
             }
             else -> throw RuntimeException("Only 1..4 channels are supported")
         }
@@ -51,9 +60,14 @@ open class ByteImage(
             3 -> createRGBFrom3StridedData(texture, width, height, checkRedundancy, data)
             4 -> {
                 if (hasAlphaChannel && hasAlpha(data)) {
-                    texture.createRGBA(data, checkRedundancy)
+                    if (rgba) texture.createRGBA(data, checkRedundancy)
+                    else texture.createARGB(data, checkRedundancy)
                 } else {
-                    texture.createRGB(data, checkRedundancy)
+                    if (rgba) texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, data)
+                    else {
+                        // todo we don't need alpha here
+                        texture.createARGB(data, checkRedundancy)
+                    }
                 }
             }
             else -> throw RuntimeException()

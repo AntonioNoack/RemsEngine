@@ -6,6 +6,9 @@ package me.anno
 // todo Anim-Model blending (top/bottom) around rest-pose by plane or spherical distance
 // todo disable/flag Anim normalization
 
+// todo respect sRGB vs linear space... encode framebuffers depending on context; colors are sRGB, display is sRGB, light must be computed as linear
+// x², then x/(1+x) is ok, and nearly x for the most part :)
+
 // todo Android Build
 // todo pack Zip/Rar/PDF/EXR into mods
 // todo SDF Physics

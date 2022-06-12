@@ -265,24 +265,16 @@ object Functions {
         // random
         functions1["rand"] = { seed -> Random(seed.toLong()).nextDouble() }
         functions2["rand"] = { seed, x ->
-            FullNoise(seed.toLong()).getValue(
-                x.toFloat()
-            ).toDouble()
+            FullNoise(seed.toLong())[x]
         }
         functions3["rand"] = { seed, x, y ->
-            FullNoise(seed.toLong()).getValue(
-                x.toFloat(), y.toFloat()
-            ).toDouble()
+            FullNoise(seed.toLong())[x, y]
         }
         functions4["rand"] = { seed, x, y, z ->
-            FullNoise(seed.toLong()).getValue(
-                x.toFloat(), y.toFloat(), z.toFloat()
-            ).toDouble()
+            FullNoise(seed.toLong())[x, y, z]
         }
         functions5["rand"] = { seed, x, y, z, w ->
-            FullNoise(seed.toLong()).getValue(
-                x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()
-            ).toDouble()
+            FullNoise(seed.toLong())[x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()].toDouble()
         }
 
         // to do function, which takes double and vector...

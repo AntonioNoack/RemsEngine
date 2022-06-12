@@ -3,6 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.Engine
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.MouseButton
+import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
@@ -86,7 +87,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
 
         val w2 = min(w, childWidth * children.size)
         val h2 = min(h, childHeight * children.size)
-        updateSize(w2, h2)
+        updateSize(w2)
         for (i in children.indices) {
             val child = children[i]
             if (child.visibility != Visibility.GONE) {
@@ -177,16 +178,16 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
         calcChildHeight = if (scaleChildren) (childHeight * childScale).toInt() else childHeight
     }
 
-    private fun updateSize(w: Int, h: Int) {
+    private fun updateSize(w: Int) {
         updateCount()
         updateScale()
-        minW = max(w, calcChildWidth)
+        minW = min(w, children.size * (calcChildWidth + spacing) + spacing)
         minH = (calcChildHeight + spacing) * rows - spacing
         minH2 = minH
     }
 
     override fun setSize(w: Int, h: Int) {
-        updateSize(w, h)
+        updateSize(w)
         super.setSize(w, h)
     }
 

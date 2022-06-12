@@ -1,4 +1,4 @@
-package me.anno.ui.base.text
+package me.anno.ui.anim
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
@@ -21,9 +21,11 @@ import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.smoothStep
 import me.anno.maths.noise.FullNoise
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.style.Style
+import me.anno.utils.Color.a
 import me.anno.utils.Color.toRGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
@@ -121,12 +123,13 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                         val x2 = fx + (charWidth - texture.w) / 2
                         if (resetTransform) transform.set(backup)
                         val color2 = animate(time, index, x2 + texture.w / 2f, y2 + texture.h / 2f)
-                        shader.m4x4("transform", transform)
-                        GFXx2D.posSize(shader, x2, y2, texture.w, texture.h)
-                        if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
-                        shader.v4f("textColor", color2)
-                        GFX.flat01.draw(shader)
-                        GFX.check()
+                        if (color2.a() > 0) {
+                            shader.m4x4("transform", transform)
+                            GFXx2D.posSize(shader, x2, y2, texture.w, texture.h)
+                            if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
+                            shader.v4f("textColor", color2)
+                            GFX.flat01.draw(shader)
+                        }
                     }
                 }
                 fx += charWidth
@@ -169,12 +172,13 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                         val x2 = fx + (w - texture.w) / 2
                         if (resetTransform) transform.set(backup)
                         val color2 = animate(time, index, x2 + texture.w / 2f, y2 + texture.h / 2f)
-                        shader.m4x4("transform", transform)
-                        GFXx2D.posSize(shader, x2, y2, texture.w.toFloat(), texture.h.toFloat())
-                        if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
-                        shader.v4f("textColor", color2)
-                        GFX.flat01.draw(shader)
-                        GFX.check()
+                        if (color2.a() > 0) {
+                            shader.m4x4("transform", transform)
+                            GFXx2D.posSize(shader, x2, y2, texture.w.toFloat(), texture.h.toFloat())
+                            if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
+                            shader.v4f("textColor", color2)
+                            GFX.flat01.draw(shader)
+                        }
                     }
                 }
                 index++
@@ -228,32 +232,67 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         fun limitFps(time: Float, fps: Float) =
             round(time * fps) / fps
 
+        fun px(cx: Float) = +((cx - (GFX.viewportX + GFX.viewportWidth / 2)) / (GFX.viewportWidth)) * 2f
+        fun py(cy: Float) = -((cy - (GFX.viewportY + GFX.viewportHeight / 2)) / (GFX.viewportHeight)) * 2f
+
         /**
-         * rotate the current letter around (cx,cy) by angleRadians radians
+         * rotate the current letter around the pixel coordinates (cx,cy) by angleRadians;
+         * use cx,cy from the parameters in AnimTextPanel.animate()
          * */
         fun rotate(angleRadians: Float, cx: Float, cy: Float) {
             val transform = GFXx2D.transform
-            val px = -((cx - (GFX.viewportX + GFX.viewportWidth / 2)) / (GFX.viewportWidth)) * 2f
-            val py = +((cy - (GFX.viewportY + GFX.viewportHeight / 2)) / (GFX.viewportHeight)) * 2f
+            val px = px(cx)
+            val py = py(cy)
             val a = GFX.viewportWidth.toFloat() / GFX.viewportHeight
-            transform.translate(-px, -py, 0f)
+            transform.translate(+px, +py, 0f)
             transform.scale(1f, a, 1f)
             transform.rotateZ(angleRadians)
             transform.scale(1f, 1f / a, 1f)
-            transform.translate(+px, +py, 0f)
+            transform.translate(-px, -py, 0f)
         }
 
+        /**
+         * scale the current letter by the factor (sx,sy)
+         * */
         fun scale(sx: Float, sy: Float = sx) {
             GFXx2D.transform.scale(sx, sy, 1f)
         }
 
+        /**
+         * translate the current letter by (dx,dy) pixels
+         * */
         fun translate(dx: Float, dy: Float) {
             GFXx2D.transform.translate(dx * 2f / GFX.viewportWidth, -dy * 2f / GFX.viewportHeight, 0f)
         }
 
+        /**
+         * create a hsluv color from an angle, saturation and luma value
+         * */
         fun hsluv(angleRadians: Float, saturation: Float = 1f, luma: Float = 0.7f): Int {
             val vec = JomlPools.vec3f.borrow()
             return HSLuv.toRGB(vec.set(angleRadians / (2f * PIf), saturation, luma)).toRGB()
+        }
+
+        /**
+         * not fully implemented, can/will change in the future
+         * */
+        fun perspective(cx: Float, cy: Float, rx: Float, ry: Float) {
+            // todo apply this effect gradually. fov vs scale...
+            // apply a perspective effect
+            val transform = GFXx2D.transform
+            val a = GFX.viewportWidth.toFloat() / GFX.viewportHeight
+            val m = JomlPools.mat4f.borrow()
+            val px = px(cx)
+            val py = py(cy)
+            m.perspective(PIf / 2f, 1f, 0f, 2f)
+            transform.translate(+px, +py, 0f)
+            transform.scale(1f, a, 1f)
+            transform.mul(m)
+            transform.translate(0f, 0f, -1f)
+            transform.rotateX(rx)
+            transform.rotateY(ry)
+            transform.scale(1f, 1f / a, 1f)
+            transform.translate(-px, -py, 0f)
         }
 
         @JvmStatic
@@ -324,9 +363,32 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                     val pos = index * 5f + seed
                     val y = seed * 0.3f
                     val scale = 5f
-                    translate(noise.getValue(pos, y) * scale, noise.getValue(pos, y + 0.1f) * scale)
-                    rotate(noise.getValue(pos, y + 3f) - 0.5f, cx, cy)
-                    sketchPalette[(noise.getValue(pos) * 1e5).toInt() % sketchPalette.size] // choose a random color
+                    translate(
+                        (noise[pos, y] - 0.5f) * scale,
+                        (noise[pos, y + 0.1f] - 0.5f) * scale
+                    )
+                    rotate(noise[pos, y + 3f] - 0.5f, cx, cy)
+                    sketchPalette[(noise[pos] * 1e5).toInt() % sketchPalette.size] // choose a random color
+                })
+                list.add(SimpleAnimTextPanel("Sketchy²", style) { p, time, index, cx, cy ->
+                    p.font = font
+                    val seed = limitFps(time, 3f) * 3f
+                    val pos = index * 5f + seed
+                    val y = seed * 0.3f
+                    val scale = 5f
+                    translate(
+                        (noise[pos, y] - 0.5f) * scale,
+                        (noise[pos, y + 0.1f] - 0.5f) * scale
+                    )
+                    rotate(noise[pos, y + 3f] - 0.5f, cx, cy)
+                    val scale2 = 1.5f
+                    // todo why is every 2nd letter missing???
+                    perspective(
+                        cx, cy,
+                        (noise[pos, y + 7f] - 0.5f) * scale2,
+                        (noise[pos, y + 9.3f] - 0.5f) * scale2
+                    )
+                    sketchPalette[(noise[pos] * 1e5).toInt() % sketchPalette.size] // choose a random color
                 })
                 list
             }

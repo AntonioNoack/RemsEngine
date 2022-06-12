@@ -92,7 +92,7 @@ object TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
                         if (x - x0 in 2 until sizeX - 2 &&
                             y - y0 in 1 until sizeY - 7 &&
                             z - z0 in 2 until sizeZ - 2 &&
-                            treeRandom.getValue(x.toFloat(), y.toFloat(), z.toFloat()) < treeChance
+                            treeRandom.get(x.toFloat(), y.toFloat(), z.toFloat()) < treeChance
                         ) plantTree(chunk, x - x0, y - y0, z - z0)
                     }
                     index -= dy

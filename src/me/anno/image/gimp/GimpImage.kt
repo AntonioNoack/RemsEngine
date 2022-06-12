@@ -2,6 +2,7 @@ package me.anno.image.gimp
 
 import me.anno.image.hdr.HDRImage
 import me.anno.image.Image
+import me.anno.image.ImageCPUCache
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
@@ -18,6 +19,7 @@ import me.anno.utils.OS.desktop
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import java.io.DataInputStream
@@ -67,12 +69,18 @@ class GimpImage {
 
         }
 
-
         @JvmStatic
         fun main(args: Array<String>) {
-            val file = getReference(OS.documents, "stupla-ws2122.xcf")
-            createThumbnail(file)
-                .write(getReference(desktop, file.name + ".png"))
+            val file = getReference(OS.documents, "Watch Dogs 2 Background.xcf")
+            val name = file.nameWithoutExtension
+            ImageCPUCache.getImage(file, false)!!
+                .apply { println(this.getRGB(0).toHexColor()) }
+                .write(getReference(desktop, "$name.png"))
+            for (it in file.listChildren()!!) {
+                ImageCPUCache.getImage(it, false)!!
+                    .apply { println(this.getRGB(0).toHexColor()) }
+                    .write(getReference(desktop, "$name.${it.nameWithoutExtension}.png"))
+            }
         }
 
         fun readImage(file: FileReference): GimpImage {
@@ -288,7 +296,7 @@ class GimpImage {
         return when (format) {
             DataType.U8_LINEAR,
             DataType.U8_NON_LINEAR,
-            DataType.U8_PERCEPTUAL -> ByteImage(width, height, channels, hasAlpha)
+            DataType.U8_PERCEPTUAL -> ByteImage(width, height, channels, false, hasAlpha)
             else -> {
                 LOGGER.warn("Got format $format, just using float image")
                 HDRImage(width, height, 1)

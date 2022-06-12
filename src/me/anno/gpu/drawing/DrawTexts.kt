@@ -1,6 +1,5 @@
 package me.anno.gpu.drawing
 
-import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
@@ -16,7 +15,6 @@ import me.anno.maths.Maths
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimes
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
@@ -155,10 +153,23 @@ object DrawTexts {
             return GFXx2D.getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
         }
 
-        if(equalSpaced){
+
+        var h = font.sizeInt
+        if (text.isEmpty())
+            return GFXx2D.getSize(0, h)
+
+        GFX.check()
+        val shader = ShaderLib.subpixelCorrectTextShader.value
+        shader.use()
+
+        shader.v4f("textColor", color)
+        shader.v4f("backgroundColor", backgroundColor)
+        GFX.check()
+
+        if (equalSpaced) {
 
             val charWidth = getTextSizeX(font, "x", widthLimit, heightLimit)
-            val textWidth =  charWidth * text.length
+            val textWidth = charWidth * text.length
 
             val dx = getOffset(textWidth, alignX)
             val dy = getOffset(font.sampleHeight, alignY)
@@ -166,15 +177,9 @@ object DrawTexts {
 
             // todo respect width limit
 
-            val shader = ShaderLib.subpixelCorrectTextShader.value
-            shader.use()
-            shader.v4f("textColor", color)
-            shader.v4f("backgroundColor", backgroundColor)
-
             GFX.loadTexturesSync.push(true)
 
             var fx = x + dx
-            var h = font.sizeInt
             for (codepoint in text.codePoints()) {
                 val txt = String(Character.toChars(codepoint))
                 val size = FontManager.getSize(font, txt, -1, -1)
@@ -184,6 +189,7 @@ object DrawTexts {
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                         texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                         val x2 = fx + (charWidth - texture.w) / 2
+                        shader.use()
                         posSize(shader, x2, y2, texture.w, texture.h)
                         GFX.flat01.draw(shader)
                         GFX.check()
@@ -214,16 +220,10 @@ object DrawTexts {
             val dxi = getOffset(textWidth.roundToInt(), alignX)
             val dyi = getOffset(font.sampleHeight, alignY)
 
-            val shader = ShaderLib.subpixelCorrectTextShader.value
-            shader.use()
-            shader.v4f("textColor", color)
-            shader.v4f("backgroundColor", backgroundColor)
-
             GFX.loadTexturesSync.push(true)
 
             val y2 = (y + dyi).toFloat()
 
-            var h = font.sizeInt
             var index = 0
             for (codepoint in text.codePoints()) {
                 val txt = String(Character.toChars(codepoint))
@@ -237,8 +237,11 @@ object DrawTexts {
                     val texture = FontManager.getTexture(font, txt, -1, -1)
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                         texture.bindTrulyNearest(0)
+                        shader.use()
                         val x2 = fx + (w - texture.w) / 2
+                        GFX.check()
                         posSize(shader, x2, y2, texture.w.toFloat(), texture.h.toFloat())
+                        GFX.check()
                         GFX.flat01.draw(shader)
                         GFX.check()
                     }

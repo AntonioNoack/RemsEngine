@@ -170,7 +170,7 @@ open class Texture2D(
                 is FloatBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
                 is DoubleBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
                 is IntArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
-                else -> throw RuntimeException("${data.javaClass}")
+                else -> throw IllegalArgumentException("${data.javaClass.name} is not supported")
             }
         } else {
             if (withMultisampling) {
@@ -179,6 +179,7 @@ open class Texture2D(
             } else {
                 if (data != null) setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
                 when (data) {
+                    is ByteArray -> throw IllegalArgumentException("ByteArray is not supported")
                     is ByteBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is ShortBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is IntBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
@@ -187,7 +188,7 @@ open class Texture2D(
                     is IntArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is FloatArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     null -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, null as ByteBuffer?)
-                    else -> throw RuntimeException("${data.javaClass}")
+                    else -> throw IllegalArgumentException("${data.javaClass.name} is not supported")
                 }
                 check()
             }
@@ -892,10 +893,10 @@ open class Texture2D(
     fun createBGR(data: ByteArray, checkRedundancy: Boolean) {
         beforeUpload(3, data.size)
         val data2 = if (checkRedundancy) checkRedundancyRGB(data) else data
-        val byteBuffer = bufferPool[data2.size, false, false]
-        byteBuffer.put(data2).flip()
-        texImage2D(GL_RGBA8, GL_BGR, GL_UNSIGNED_BYTE, byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        val buffer = bufferPool[data2.size, false, false]
+        buffer.put(data2).flip()
+        texImage2D(GL_RGBA8, GL_BGR, GL_UNSIGNED_BYTE, buffer)
+        bufferPool.returnBuffer(buffer)
         afterUpload(false, 3)
     }
 
@@ -910,10 +911,10 @@ open class Texture2D(
     fun createMonochrome(data: ByteArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
-        val byteBuffer = bufferPool[data2.size, false, false]
-        byteBuffer.put(data2).flip()
-        texImage2D(TargetType.UByteTarget1, byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        val buffer = bufferPool[data2.size, false, false]
+        buffer.put(data2).flip()
+        texImage2D(TargetType.UByteTarget1, buffer)
+        bufferPool.returnBuffer(buffer)
         afterUpload(false, 1)
     }
 
@@ -964,6 +965,20 @@ open class Texture2D(
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
         val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
+        createRGBA(buffer, false)
+    }
+
+    fun createARGB(data: ByteArray, checkRedundancy: Boolean) {
+        checkSize(4, data.size)
+        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        val buffer = bufferPool[data2.size, false, false]
+        for (i in 0 until w * h * 4 step 4) {
+            buffer.put(data2[i + 1]) // r
+            buffer.put(data2[i + 2]) // g
+            buffer.put(data2[i + 3]) // b
+            buffer.put(data2[i]) // a
+        }
+        buffer.flip()
         createRGBA(buffer, false)
     }
 

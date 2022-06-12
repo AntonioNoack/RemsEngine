@@ -476,11 +476,11 @@ object GFX : GFXBase() {
         // assumes that the first access is indeed from the OpenGL thread
         if (isDebug) {
             checkIsGFXThread()
-            /*val error = glGetError()
+            val error = glGetError()
             if (error != 0) {
                 val title = "GLException: ${getErrorTypeName(error)}"
                 throw RuntimeException(title)
-            }*/
+            }
         }
     }
 

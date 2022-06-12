@@ -393,7 +393,7 @@ open class StaticMeshesLoader {
             // best possible format: raw
             // ARGB8888
             // check whether image actually has alpha channel
-            parentFolder.createImageChild(fileName, ByteImage(width, height, 4, data, hasAlpha(data)))
+            parentFolder.createImageChild(fileName, ByteImage(width, height, 4, data, false, hasAlpha(data)))
         }
     }
 

@@ -6,7 +6,11 @@ import me.anno.maths.Maths.smoothStepUnsafe
 import kotlin.math.floor
 import kotlin.random.Random
 
-@Suppress("CanBeParameter")
+/**
+ * noise map;
+ * not all functions are implemented; ask for help, if you miss one
+ * */
+@Suppress("unused", "CanBeParameter")
 class FullNoise(val seed: Long) {
 
     // longs can be used as well, but are slightly slower (long->int, 17->16, 26->13, 26->23, 48->32, ns/sample)
@@ -23,12 +27,10 @@ class FullNoise(val seed: Long) {
         sw = random.nextInt()
     }
 
-    private val invMax = 1f / 0xffff
-
     /**
      * returns a random value in [0,1]
      * */
-    fun getValue(x: Int): Float {
+    operator fun get(x: Int): Float {
         var a = x * sx
         var b = (a shl 16) or (a ushr 16)
         b *= 1911520717
@@ -37,7 +39,7 @@ class FullNoise(val seed: Long) {
         return a.shr(16).and(0xffff) * invMax
     }
 
-    fun getValue(x: Int, y: Int): Float {
+    operator fun get(x: Int, y: Int): Float {
         var a = x * sx
         var b = y * sy xor ((a shl 16) or (a ushr 16))
         b *= 1911520717
@@ -46,7 +48,7 @@ class FullNoise(val seed: Long) {
         return a.shr(16).and(0xffff) * invMax
     }
 
-    fun getValue(x: Int, y: Int, z: Int): Float {
+    operator fun get(x: Int, y: Int, z: Int): Float {
         var a = x * sx
         var b = y * sy
         val c = z * sz
@@ -59,7 +61,7 @@ class FullNoise(val seed: Long) {
         return a.shr(16).and(0xffff) * invMax
     }
 
-    fun getValue(x: Int, y: Int, z: Int, w: Int): Float {
+    operator fun get(x: Int, y: Int, z: Int, w: Int): Float {
         var a = x * sx
         var b = y * sy
         val c = z * sz
@@ -75,28 +77,35 @@ class FullNoise(val seed: Long) {
         return a.shr(16).and(0xffff) * invMax
     }
 
-    fun getValue(x: Float): Float {
+    operator fun get(x: Float): Float {
         val xi = floor(x)
         val ix = xi.toInt()
         val xf = x - xi
         // 4.7-4.8ns/run -> 17 ns with actually good noise
-        val v0 = getValue(ix)
-        val v1 = getValue(ix + 1)
+        val v0 = get(ix)
+        val v1 = get(ix + 1)
         return v0 * (1f - xf) + v1 * xf
     }
 
-    @Suppress("unused")
-    fun getValueSmooth(x: Float): Float {
+    operator fun get(x: Double): Double {
         val xi = floor(x)
         val ix = xi.toInt()
         val xf = x - xi
-        // 4.7-4.8ns/run -> 17 ns with actually good noise
-        val v0 = getValue(ix)
-        val v1 = getValue(ix + 1)
+        val v0 = get(ix)
+        val v1 = get(ix + 1)
+        return v0 * (1.0 - xf) + v1 * xf
+    }
+
+    fun getSmooth(x: Float): Float {
+        val xi = floor(x)
+        val ix = xi.toInt()
+        val xf = x - xi
+        val v0 = get(ix)
+        val v1 = get(ix + 1)
         return smoothStepUnsafe(v0, v1, xf)
     }
 
-    fun getValue(x: Float, y: Float): Float {
+    operator fun get(x: Float, y: Float): Float {
         val xi = floor(x)
         val yi = floor(y)
         val ix = xi.toInt()
@@ -104,36 +113,51 @@ class FullNoise(val seed: Long) {
         val xf = x - xi
         val yf = y - yi
         // 11ns/run -> 26 ns with actually good noise
-        val v00 = getValue(ix, iy)
-        val v01 = getValue(ix, iy + 1)
-        val v10 = getValue(ix + 1, iy)
-        val v11 = getValue(ix + 1, iy + 1)
+        val v00 = get(ix, iy)
+        val v01 = get(ix, iy + 1)
+        val v10 = get(ix + 1, iy)
+        val v11 = get(ix + 1, iy + 1)
         val yg = 1f - yf
         val v0 = v00 * yg + v01 * yf
         val v1 = v10 * yg + v11 * yf
         return v0 * (1f - xf) + v1 * xf
     }
 
-    @Suppress("unused")
-    fun getValueSmooth(x: Float, y: Float): Float {
+    operator fun get(x: Double, y: Double): Double {
+        val xi = floor(x)
+        val yi = floor(y)
+        val ix = xi.toInt()
+        val iy = yi.toInt()
+        val xf = x - xi
+        val yf = y - yi
+        val v00 = get(ix, iy)
+        val v01 = get(ix, iy + 1)
+        val v10 = get(ix + 1, iy)
+        val v11 = get(ix + 1, iy + 1)
+        val yg = 1.0 - yf
+        val v0 = v00 * yg + v01 * yf
+        val v1 = v10 * yg + v11 * yf
+        return v0 * (1.0 - xf) + v1 * xf
+    }
+
+    fun getSmooth(x: Float, y: Float): Float {
         val xi = floor(x)
         val yi = floor(y)
         val ix = xi.toInt()
         val iy = yi.toInt()
         val xf = smoothStep(x - xi)
         val yf = smoothStep(y - yi)
-        // 11ns/run -> 26 ns with actually good noise
-        val v00 = getValue(ix, iy)
-        val v01 = getValue(ix, iy + 1)
-        val v10 = getValue(ix + 1, iy)
-        val v11 = getValue(ix + 1, iy + 1)
+        val v00 = get(ix, iy)
+        val v01 = get(ix, iy + 1)
+        val v10 = get(ix + 1, iy)
+        val v11 = get(ix + 1, iy + 1)
         val yg = 1f - yf
         val v0 = v00 * yg + v01 * yf
         val v1 = v10 * yg + v11 * yf
         return v0 * (1f - xf) + v1 * xf
     }
 
-    fun getValue(x: Float, y: Float, z: Float): Float {
+    operator fun get(x: Float, y: Float, z: Float): Float {
         val xi = floor(x)
         val yi = floor(y)
         val zi = floor(z)
@@ -144,14 +168,14 @@ class FullNoise(val seed: Long) {
         val yf = y - yi
         val zf = z - zi
         // 17-18ns/run -> 24 ns with actually good noise
-        val v000 = getValue(ix, iy, iz)
-        val v001 = getValue(ix, iy, iz + 1)
-        val v010 = getValue(ix, iy + 1, iz)
-        val v011 = getValue(ix, iy + 1, iz + 1)
-        val v100 = getValue(ix + 1, iy, iz)
-        val v101 = getValue(ix + 1, iy, iz + 1)
-        val v110 = getValue(ix + 1, iy + 1, iz)
-        val v111 = getValue(ix + 1, iy + 1, iz + 1)
+        val v000 = get(ix, iy, iz)
+        val v001 = get(ix, iy, iz + 1)
+        val v010 = get(ix, iy + 1, iz)
+        val v011 = get(ix, iy + 1, iz + 1)
+        val v100 = get(ix + 1, iy, iz)
+        val v101 = get(ix + 1, iy, iz + 1)
+        val v110 = get(ix + 1, iy + 1, iz)
+        val v111 = get(ix + 1, iy + 1, iz + 1)
         val zg = 1f - zf
         val v00 = v000 * zg + v001 * zf
         val v01 = v010 * zg + v011 * zf
@@ -163,8 +187,36 @@ class FullNoise(val seed: Long) {
         return v0 * (1f - xf) + v1 * xf
     }
 
-    @Suppress("unused")
-    fun getValueSmooth(x: Float, y: Float, z: Float): Float {
+    operator fun get(x: Double, y: Double, z: Double): Double {
+        val xi = floor(x)
+        val yi = floor(y)
+        val zi = floor(z)
+        val ix = xi.toInt()
+        val iy = yi.toInt()
+        val iz = zi.toInt()
+        val xf = x - xi
+        val yf = y - yi
+        val zf = z - zi
+        val v000 = get(ix, iy, iz)
+        val v001 = get(ix, iy, iz + 1)
+        val v010 = get(ix, iy + 1, iz)
+        val v011 = get(ix, iy + 1, iz + 1)
+        val v100 = get(ix + 1, iy, iz)
+        val v101 = get(ix + 1, iy, iz + 1)
+        val v110 = get(ix + 1, iy + 1, iz)
+        val v111 = get(ix + 1, iy + 1, iz + 1)
+        val zg = 1.0 - zf
+        val v00 = v000 * zg + v001 * zf
+        val v01 = v010 * zg + v011 * zf
+        val v10 = v100 * zg + v101 * zf
+        val v11 = v110 * zg + v111 * zf
+        val yg = 1.0 - yf
+        val v0 = v00 * yg + v01 * yf
+        val v1 = v10 * yg + v11 * yf
+        return v0 * (1.0 - xf) + v1 * xf
+    }
+
+    fun getSmooth(x: Float, y: Float, z: Float): Float {
         val xi = floor(x)
         val yi = floor(y)
         val zi = floor(z)
@@ -174,15 +226,14 @@ class FullNoise(val seed: Long) {
         val xf = smoothStep(x - xi)
         val yf = smoothStep(y - yi)
         val zf = smoothStep(z - zi)
-        // 17-18ns/run -> 24 ns with actually good noise
-        val v000 = getValue(ix, iy, iz)
-        val v001 = getValue(ix, iy, iz + 1)
-        val v010 = getValue(ix, iy + 1, iz)
-        val v011 = getValue(ix, iy + 1, iz + 1)
-        val v100 = getValue(ix + 1, iy, iz)
-        val v101 = getValue(ix + 1, iy, iz + 1)
-        val v110 = getValue(ix + 1, iy + 1, iz)
-        val v111 = getValue(ix + 1, iy + 1, iz + 1)
+        val v000 = get(ix, iy, iz)
+        val v001 = get(ix, iy, iz + 1)
+        val v010 = get(ix, iy + 1, iz)
+        val v011 = get(ix, iy + 1, iz + 1)
+        val v100 = get(ix + 1, iy, iz)
+        val v101 = get(ix + 1, iy, iz + 1)
+        val v110 = get(ix + 1, iy + 1, iz)
+        val v111 = get(ix + 1, iy + 1, iz + 1)
         val zg = 1f - zf
         val v00 = v000 * zg + v001 * zf
         val v01 = v010 * zg + v011 * zf
@@ -194,7 +245,7 @@ class FullNoise(val seed: Long) {
         return v0 * (1f - xf) + v1 * xf
     }
 
-    fun getValue(x: Float, y: Float, z: Float, w: Float): Float {
+    operator fun get(x: Float, y: Float, z: Float, w: Float): Float {
         val xi = floor(x)
         val yi = floor(y)
         val zi = floor(z)
@@ -208,22 +259,22 @@ class FullNoise(val seed: Long) {
         val zf = z - zi
         val wf = w - wi
         // 48 ns/run
-        val v0000 = getValue(ix, iy, iz, iw)
-        val v0010 = getValue(ix, iy, iz + 1, iw)
-        val v0100 = getValue(ix, iy + 1, iz, iw)
-        val v0110 = getValue(ix, iy + 1, iz + 1, iw)
-        val v1000 = getValue(ix + 1, iy, iz, iw)
-        val v1010 = getValue(ix + 1, iy, iz + 1, iw)
-        val v1100 = getValue(ix + 1, iy + 1, iz, iw)
-        val v1110 = getValue(ix + 1, iy + 1, iz + 1, iw)
-        val v0001 = getValue(ix, iy, iz, iw + 1)
-        val v0011 = getValue(ix, iy, iz + 1, iw + 1)
-        val v0101 = getValue(ix, iy + 1, iz, iw + 1)
-        val v0111 = getValue(ix, iy + 1, iz + 1, iw + 1)
-        val v1001 = getValue(ix + 1, iy, iz, iw + 1)
-        val v1011 = getValue(ix + 1, iy, iz + 1, iw + 1)
-        val v1101 = getValue(ix + 1, iy + 1, iz, iw + 1)
-        val v1111 = getValue(ix + 1, iy + 1, iz + 1, iw + 1)
+        val v0000 = get(ix, iy, iz, iw)
+        val v0010 = get(ix, iy, iz + 1, iw)
+        val v0100 = get(ix, iy + 1, iz, iw)
+        val v0110 = get(ix, iy + 1, iz + 1, iw)
+        val v1000 = get(ix + 1, iy, iz, iw)
+        val v1010 = get(ix + 1, iy, iz + 1, iw)
+        val v1100 = get(ix + 1, iy + 1, iz, iw)
+        val v1110 = get(ix + 1, iy + 1, iz + 1, iw)
+        val v0001 = get(ix, iy, iz, iw + 1)
+        val v0011 = get(ix, iy, iz + 1, iw + 1)
+        val v0101 = get(ix, iy + 1, iz, iw + 1)
+        val v0111 = get(ix, iy + 1, iz + 1, iw + 1)
+        val v1001 = get(ix + 1, iy, iz, iw + 1)
+        val v1011 = get(ix + 1, iy, iz + 1, iw + 1)
+        val v1101 = get(ix + 1, iy + 1, iz, iw + 1)
+        val v1111 = get(ix + 1, iy + 1, iz + 1, iw + 1)
         val wg = 1f - wf
         val v000 = v0000 * wg + v0001 * wf
         val v001 = v0010 * wg + v0011 * wf
@@ -244,8 +295,7 @@ class FullNoise(val seed: Long) {
         return v0 * (1f - xf) + v1 * xf
     }
 
-    @Suppress("unused")
-    fun getValueSmooth(x: Float, y: Float, z: Float, w: Float): Float {
+    fun getSmooth(x: Float, y: Float, z: Float, w: Float): Float {
         val xi = floor(x)
         val yi = floor(y)
         val zi = floor(z)
@@ -258,23 +308,22 @@ class FullNoise(val seed: Long) {
         val yf = smoothStep(y - yi)
         val zf = smoothStep(z - zi)
         val wf = smoothStep(w - wi)
-        // 48 ns/run
-        val v0000 = getValue(ix, iy, iz, iw)
-        val v0010 = getValue(ix, iy, iz + 1, iw)
-        val v0100 = getValue(ix, iy + 1, iz, iw)
-        val v0110 = getValue(ix, iy + 1, iz + 1, iw)
-        val v1000 = getValue(ix + 1, iy, iz, iw)
-        val v1010 = getValue(ix + 1, iy, iz + 1, iw)
-        val v1100 = getValue(ix + 1, iy + 1, iz, iw)
-        val v1110 = getValue(ix + 1, iy + 1, iz + 1, iw)
-        val v0001 = getValue(ix, iy, iz, iw + 1)
-        val v0011 = getValue(ix, iy, iz + 1, iw + 1)
-        val v0101 = getValue(ix, iy + 1, iz, iw + 1)
-        val v0111 = getValue(ix, iy + 1, iz + 1, iw + 1)
-        val v1001 = getValue(ix + 1, iy, iz, iw + 1)
-        val v1011 = getValue(ix + 1, iy, iz + 1, iw + 1)
-        val v1101 = getValue(ix + 1, iy + 1, iz, iw + 1)
-        val v1111 = getValue(ix + 1, iy + 1, iz + 1, iw + 1)
+        val v0000 = get(ix, iy, iz, iw)
+        val v0010 = get(ix, iy, iz + 1, iw)
+        val v0100 = get(ix, iy + 1, iz, iw)
+        val v0110 = get(ix, iy + 1, iz + 1, iw)
+        val v1000 = get(ix + 1, iy, iz, iw)
+        val v1010 = get(ix + 1, iy, iz + 1, iw)
+        val v1100 = get(ix + 1, iy + 1, iz, iw)
+        val v1110 = get(ix + 1, iy + 1, iz + 1, iw)
+        val v0001 = get(ix, iy, iz, iw + 1)
+        val v0011 = get(ix, iy, iz + 1, iw + 1)
+        val v0101 = get(ix, iy + 1, iz, iw + 1)
+        val v0111 = get(ix, iy + 1, iz + 1, iw + 1)
+        val v1001 = get(ix + 1, iy, iz, iw + 1)
+        val v1011 = get(ix + 1, iy, iz + 1, iw + 1)
+        val v1101 = get(ix + 1, iy + 1, iz, iw + 1)
+        val v1111 = get(ix + 1, iy + 1, iz + 1, iw + 1)
         val wg = 1f - wf
         val v000 = v0000 * wg + v0001 * wf
         val v001 = v0010 * wg + v0011 * wf
@@ -297,6 +346,9 @@ class FullNoise(val seed: Long) {
 
     companion object {
 
+        private const val invMax = 1f / 0xffff
+        private const val invMaxD = 1.0 / 0xffff
+
         // benchmark vs simplex noise
         // simplex noise: less computation, more unpredictable branches
         @JvmStatic
@@ -311,16 +363,16 @@ class FullNoise(val seed: Long) {
         private fun noiseQualityTest() {
             val noise = FullNoise(1234L)
             ImageWriter.writeImageFloat(512, 512, "n1d.png", 512, false) { x, y, _ ->
-                noise.getValue(x + y * 512)
+                noise[x + y * 512]
             }
             ImageWriter.writeImageFloat(512, 512, "n2d.png", 512, false) { x, y, _ ->
-                noise.getValue(x, y)
+                noise[x, y]
             }
             ImageWriter.writeImageFloat(512, 512, "n3d.png", 512, false) { x, y, _ ->
-                noise.getValue(x, x - y, y)
+                noise[x, x - y, y]
             }
             ImageWriter.writeImageFloat(512, 512, "n4d.png", 512, false) { x, y, _ ->
-                noise.getValue(x + y, x - y, x, y)
+                noise[x + y, x - y, x, y]
             }
         }
 

@@ -113,7 +113,7 @@ class PerlinNoise(
         val factors = factors
         var vx = x
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].getValue(vx)
+            sum += factors[i] * generators[i].get(vx)
             vx *= 2f
         }
         return sum
@@ -126,7 +126,7 @@ class PerlinNoise(
         var vx = x
         var vy = y
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].getValue(vx, vy)
+            sum += factors[i] * generators[i].get(vx, vy)
             vx *= 2f
             vy *= 2f
         }
@@ -141,7 +141,7 @@ class PerlinNoise(
         var vy = y
         var vz = z
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].getValue(vx, vy, vz)
+            sum += factors[i] * generators[i].get(vx, vy, vz)
             vx *= 2f
             vy *= 2f
             vz *= 2f
@@ -158,7 +158,7 @@ class PerlinNoise(
         var vz = z
         var vw = w
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].getValue(vx, vy, vz, vw)
+            sum += factors[i] * generators[i].get(vx, vy, vz, vw)
             vx *= 2f
             vy *= 2f
             vz *= 2f
@@ -173,7 +173,7 @@ class PerlinNoise(
         val factors = factors
         var vx = x
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].getValueSmooth(vx)
+            sum += factors[i] * generators[i].getSmooth(vx)
             vx *= 2f
         }
         return sum
@@ -186,7 +186,7 @@ class PerlinNoise(
         var vx = x
         var vy = y
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].getValueSmooth(vx, vy)
+            sum += factors[i] * generators[i].getSmooth(vx, vy)
             vx *= 2f
             vy *= 2f
         }
@@ -201,7 +201,7 @@ class PerlinNoise(
         var vy = y
         var vz = z
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].getValueSmooth(vx, vy, vz)
+            sum += factors[i] * generators[i].getSmooth(vx, vy, vz)
             vx *= 2f
             vy *= 2f
             vz *= 2f
@@ -218,7 +218,7 @@ class PerlinNoise(
         var vz = z
         var vw = w
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].getValueSmooth(vx, vy, vz, vw)
+            sum += factors[i] * generators[i].getSmooth(vx, vy, vz, vw)
             vx *= 2f
             vy *= 2f
             vz *= 2f
