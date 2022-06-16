@@ -8,7 +8,7 @@ class Keyframe<V>(
     var interpolation: Interpolation
 ) : TimeValue<V>(time,value), Comparable<Keyframe<V>> {
 
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("unchecked_cast")
     constructor() : this(0.0, 0f as V, Interpolation.SPLINE)
     constructor(time: Double, value: V) : this(time, value, Interpolation.SPLINE)
 
@@ -31,7 +31,7 @@ class Keyframe<V>(
     }
 
     fun setValueUnsafe(value: Any?) {
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         this.value = value as V
     }
 

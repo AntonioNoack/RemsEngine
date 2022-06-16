@@ -789,7 +789,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             else getNewClassInstance(clazz)
         }
         var (type, name) = splitTypeName(typeName)
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         when (type) {
             "i1", "b" -> obj.readBoolean(name, readBool())
             "c" -> obj.readChar(name, readChar())

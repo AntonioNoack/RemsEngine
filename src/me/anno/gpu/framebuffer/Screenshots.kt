@@ -120,10 +120,12 @@ object Screenshots {
 
         val radius = diameter shr 1
 
+        val mask = 0xffffff
+
         // convert that color to an id
         for ((index, value) in idBuffer.withIndex()) {
             val depth = depthBuffer[index]
-            val result = value.and(0xffffff)
+            val result = value.and(mask)
             val x = (index % diameter) - radius
             val y = (index / diameter) - radius
             val distance = depth * depthImportance + x * x + y * y

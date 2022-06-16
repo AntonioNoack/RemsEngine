@@ -25,7 +25,7 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
     }
 
     override fun get(index: Int): V {
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         return backend[index] as V
     }
 
@@ -102,7 +102,7 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
 
             override fun previous(): V  {
                 nextIndex = findPreviousIndex(nextIndex)
-                @Suppress("UNCHECKED_CAST")
+                @Suppress("unchecked_cast")
                 return backend[nextIndex] as V
             }
 
@@ -115,7 +115,7 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
             override fun hasNext(): Boolean = nextIndex < size
 
             override fun next(): V {
-                @Suppress("UNCHECKED_CAST")
+                @Suppress("unchecked_cast")
                 val obj = backend[nextIndex] as V
                 nextIndex = findNextIndex(nextIndex)
                 return obj
@@ -147,7 +147,7 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
     }
 
     override fun removeAt(index: Int): V {
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         val obj = backend[index] as V
         removed[index] = true
         backend[index] = null // for GC ;)
@@ -171,7 +171,7 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
         val old = backend[index]
         backend[index] = element
         startIndex = min(startIndex, index)
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         return old as V
     }
 

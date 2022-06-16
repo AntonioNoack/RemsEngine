@@ -40,7 +40,7 @@ object Sims3Reader {
             .order(ByteOrder.LITTLE_ENDIAN)
 
         val magic = input.int
-        if (magic != bgra('D', 'B', 'P', 'F')) throw IOException("Incorrect magic: $magic")
+        if (magic != leMagic('D', 'B', 'P', 'F')) throw IOException("Incorrect magic: $magic")
 
         val major = input.int
         val minor = input.int
@@ -258,11 +258,11 @@ object Sims3Reader {
         position(position() + n)
     }
 
-    fun bgra(b: Char, g: Char, r: Char, a: Char): Int {
+    fun leMagic(b: Char, g: Char, r: Char, a: Char): Int {
         return (a.code shl 24) or (r.code shl 16) or (g.code shl 8) or b.code
     }
 
-    fun argb(a: Char, r: Char, g: Char, b: Char): Int {
+    fun beMagic(a: Char, r: Char, g: Char, b: Char): Int {
         return (a.code shl 24) or (r.code shl 16) or (g.code shl 8) or b.code
     }
 

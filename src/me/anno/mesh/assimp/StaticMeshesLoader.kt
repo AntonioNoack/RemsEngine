@@ -5,7 +5,6 @@ import me.anno.ecs.Transform
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.image.raw.ByteImage
-import me.anno.image.raw.ByteImage.Companion.hasAlpha
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -25,6 +24,8 @@ import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 open class StaticMeshesLoader {
 
@@ -333,13 +334,14 @@ open class StaticMeshesLoader {
             aiMaterial, type, 0, path, null as IntBuffer?,
             null, null, null, null, null
         )
-        val path0 = path.dataString() ?: return InvalidRef
+        var path0 = path.dataString() ?: return InvalidRef
         if (path0.isBlank2()) return InvalidRef
         if (path0.startsWith('*')) {
             val index = path0.substring(1).toIntOrNull() ?: return InvalidRef
             if (index !in 0 until aiScene.mNumTextures()) return InvalidRef
             return loadedTextures.getOrNull(index) ?: InvalidRef
         }
+        if (path0.startsWith("./")) path0 = path0.substring(2)
         // replace double slashes
         val path1 = path0.replace("//", "/")
         // check whether it may be a global path, not a local one
@@ -368,7 +370,7 @@ open class StaticMeshesLoader {
         // new assimp version, that is broken
             bufferToBytes(texture.pcDataCompressed(), size)
         } else {*/
-            bufferToBytes(texture.pcData(size/4), size)
+            bufferToBytes(texture.pcData(size / 4), size)
         //}
 
         val fileName = texture.mFilename().dataString().ifEmpty {
@@ -382,6 +384,7 @@ open class StaticMeshesLoader {
         }
 
         // todo make unique
+        // (name collisions might occur -> prevent that)
         return if (isCompressed) {
             // LOGGER.info("Loading compressed texture: $index, $width bytes")
             // width is the buffer size in bytes
@@ -393,7 +396,7 @@ open class StaticMeshesLoader {
             // best possible format: raw
             // ARGB8888
             // check whether image actually has alpha channel
-            parentFolder.createImageChild(fileName, ByteImage(width, height, 4, data, false, hasAlpha(data)))
+            parentFolder.createImageChild(fileName, ByteImage(width, height, ByteImage.Format.ARGB, data))
         }
     }
 
@@ -419,13 +422,7 @@ open class StaticMeshesLoader {
 
     private fun bufferToBytes(buffer: ByteBuffer, size: Int): ByteArray {
         val bytes = ByteArray(size)
-        var j = 0
-        for (i in 0 until buffer.remaining() / 4) {
-            bytes[j++] = buffer.get()
-            bytes[j++] = buffer.get()
-            bytes[j++] = buffer.get()
-            bytes[j++] = buffer.get()
-        }
+        buffer.get(bytes, 0, min(buffer.remaining(), size))
         return bytes
     }
 
@@ -529,6 +526,14 @@ open class StaticMeshesLoader {
         return dst
     }
 
+    // custom function, because there may be NaNs
+    // (NewSponza_Main_Blender_glTF.gltf from Intel contains NaNs)
+    private fun f2i(v: Float): Int {
+        return if (v <= 0f) 0
+        else if (v < 1f) (v * 255).roundToInt()
+        else 1
+    }
+
     private fun processVertexColors(aiMesh: AIMesh, index: Int, vertexCount: Int): IntArray? {
         val src = aiMesh.mColors(index)
         return if (src != null) {
@@ -537,9 +542,13 @@ open class StaticMeshesLoader {
             val dst = IntArray(vertexCount)
             while (src.remaining() > 0 && j < vertexCount) {
                 src.get(vec)
-                dst[j++] = rgba(vec.r(), vec.g(), vec.b(), vec.a())
+                val r = f2i(vec.r())
+                val g = f2i(vec.g())
+                val b = f2i(vec.b())
+                val a = f2i(vec.a())
+                dst[j++] = rgba(r, g, b, a)
             }
-            // when every one is black or white, it doesn't actually have data
+            // when every pixel is black or white, it doesn't actually have data
             if (dst.all { it == -1 } || dst.all { it == 0 }) return null
             dst
         } else null

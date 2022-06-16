@@ -42,15 +42,15 @@ object ECSShaderLib {
                         Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
                         Variable(GLSLType.M4x4, "transform"),
                         Variable(GLSLType.M4x4, "prevTransform"),
-                        Variable(GLSLType.V3F, "currPosition", VariableMode.OUT),
-                        Variable(GLSLType.V3F, "prevPosition", VariableMode.OUT),
+                        Variable(GLSLType.V4F, "currPosition", VariableMode.OUT),
+                        Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
                         Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
                     ), "" +
                             "gl_Position = transform * vec4(coords, 1.0);\n" +
                             "finalNormal = -coords;\n" +
-                            "currPosition = gl_Position.xyw;\n" +
-                            "prevPosition = (prevTransform * vec4(coords, 1.0)).xyw;\n" +
+                            "currPosition = gl_Position;\n" +
+                            "prevPosition = (prevTransform * vec4(coords, 1.0));\n" +
                             ShaderLib.positionPostProcessing
                 )
             }
@@ -65,17 +65,17 @@ object ECSShaderLib {
                     listOf(
                         Variable(GLSLType.V3F, "finalNormal", VariableMode.INOUT),
                         Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
-                        Variable(GLSLType.V3F, "currPosition"),
-                        Variable(GLSLType.V3F, "prevPosition"),
+                        Variable(GLSLType.V4F, "currPosition"),
+                        Variable(GLSLType.V4F, "prevPosition"),
                         Variable(GLSLType.V4F, "color"),
                         Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
                         Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-                        Variable(GLSLType.V2F, "finalMotion", VariableMode.OUT),
+                        Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT),
                     ),
                     "" +
                             "finalNormal = normalize(finalNormal);\n" +
                             "finalPosition = -finalNormal * 1e36;\n" + // 1e38 is max for float
-                            "finalMotion = currPosition.xy/currPosition.z - prevPosition.xy/prevPosition.z;\n" +
+                            "finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" +
                             "finalColor = color.rgb;\n" +
                             "finalAlpha = color.a;\n"
                 )

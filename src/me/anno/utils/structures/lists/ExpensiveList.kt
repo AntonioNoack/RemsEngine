@@ -26,7 +26,7 @@ class ExpensiveList<V>(val length: Int, val generator: (Int) -> V) : List<V> {
             v = generator(index)
             cache[index] = v
         }
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         return v as V
     }
 

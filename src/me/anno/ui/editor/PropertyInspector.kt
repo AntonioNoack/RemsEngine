@@ -84,7 +84,8 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         val oldSize = oldPanels.size
         val newPanelIter = newPanels.iterator()
         val oldPanelIter = oldPanels.iterator()
-        if (newPanelIter.hasNext()) newPanelIter.next() // skip search panel
+        // todo why doesn't it have to be skipped?
+        // if (newPanelIter.hasNext()) newPanelIter.next() // skip search panel
         // works as long as the structure stays the same
         while (newPanelIter.hasNext() and oldPanelIter.hasNext()) {
             val newPanel = newPanelIter.next()

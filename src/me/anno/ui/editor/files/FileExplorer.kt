@@ -208,7 +208,7 @@ abstract class FileExplorer(
             Padding(1),
             style,
             AxisAlignment.MIN
-        ).setWeight(1f)
+        )
         uContent += content.setWeight(3f)
 
     }

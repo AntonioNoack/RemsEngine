@@ -30,7 +30,7 @@ class Stack<V : Any>(private val createInstance: () -> V) {
 
         fun create(): V {
             ensure()
-            @Suppress("UNCHECKED_CAST")
+            @Suppress("unchecked_cast")
             return tmp[index++] as V
         }
 
@@ -38,7 +38,7 @@ class Stack<V : Any>(private val createInstance: () -> V) {
             ensure()
             // remove in final build
             if (index < localFloor) throw BufferUnderflowException()
-            @Suppress("UNCHECKED_CAST")
+            @Suppress("unchecked_cast")
             return tmp[index] as V
         }
 

@@ -3,7 +3,6 @@ package me.anno.image
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
-import me.anno.image.hdr.HDRImage
 import me.anno.image.raw.BIImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
@@ -214,25 +213,5 @@ abstract class Image(
             return (a shl 24) + (r shl 16) + (g shl 8) + b
         }
 
-        fun createRGBFrom3StridedData(
-            texture: Texture2D,
-            width: Int,
-            height: Int,
-            checkRedundancy: Boolean,
-            data: ByteArray
-        ) {
-            // add a padding for alpha, because OpenGL needs it that way
-            val buffer = bufferPool[width * height * 4, false, false]
-            var j = 0
-            var k = 0
-            val l = width * height * 3
-            while (k < l) {
-                buffer.put(j++, 255.toByte()) // a
-                buffer.put(j++, data[k++]) // r
-                buffer.put(j++, data[k++]) // g
-                buffer.put(j++, data[k++]) // b
-            }
-            texture.createRGB(buffer, checkRedundancy)
-        }
     }
 }

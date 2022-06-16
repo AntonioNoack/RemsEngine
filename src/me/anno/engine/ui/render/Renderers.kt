@@ -309,18 +309,25 @@ object Renderers {
                 Variable(GLSLType.V3F, "finalColor", VariableMode.OUT)
             )
         }
-        val shaderCode = if (type == DeferredLayerType.COLOR) "" else {
-            "finalColor = ${
-                when (type.dimensions) {
-                    1 -> "vec3(${type.glslName}${type.map01})"
-                    2 -> "vec3(${type.glslName}${type.map01},1)"
-                    3 -> "(${type.glslName}${type.map01})"
-                    4 -> "(${type.glslName}${type.map01}).rgb"
-                    else -> ""
-                }
-            };\n" + if (type.highDynamicRange) {
-                "finalColor = finalColor / (1+abs(finalColor));\n"
-            } else ""
+        val shaderCode = when (type) {
+            DeferredLayerType.COLOR -> "" // is HDR
+            DeferredLayerType.MOTION -> "" +
+                    "finalColor = ${type.glslName}${type.map01};" +
+                    "finalColor /= 1.0 + abs(finalColor);\n" +
+                    "finalColor += 0.5;\n"
+            else -> {
+                "finalColor = ${
+                    when (type.dimensions) {
+                        1 -> "vec3(${type.glslName}${type.map01})"
+                        2 -> "vec3(${type.glslName}${type.map01},1)"
+                        3 -> "(${type.glslName}${type.map01})"
+                        4 -> "(${type.glslName}${type.map01}).rgb"
+                        else -> ""
+                    }
+                };\n" + if (type.highDynamicRange) {
+                    "finalColor /= 1.0 + abs(finalColor);\n"
+                } else ""
+            }
         }
         val name = type.name
         val stage = ShaderStage(name, variables, shaderCode)
@@ -348,6 +355,9 @@ object Renderers {
                             } + ";\n" +
                             (if (type.highDynamicRange) {
                                 "color /= (1.0+abs(color));\n"
+                            } else "") +
+                            (if (type == DeferredLayerType.MOTION) {
+                                "color += 0.5;\n"
                             } else "") +
                             "   result = vec4(color, 1.0);\n" +
                             "}"

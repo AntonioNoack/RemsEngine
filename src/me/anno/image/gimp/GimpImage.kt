@@ -1,28 +1,28 @@
 package me.anno.image.gimp
 
-import me.anno.image.hdr.HDRImage
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
+import me.anno.image.hdr.HDRImage
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.IntImage
+import me.anno.io.Streams.readBE32
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.zip.InnerFolder
+import me.anno.maths.Maths.ceilDiv
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import me.anno.mesh.sims.Sims3Reader.skip
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.OS
 import me.anno.utils.OS.desktop
-import me.anno.maths.Maths.ceilDiv
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
-import me.anno.utils.Color.toHexColor
+import me.anno.utils.OS.documents
+import me.anno.utils.OS.downloads
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
-import java.io.DataInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.BufferUnderflowException
@@ -48,38 +48,34 @@ class GimpImage {
         const val MAGIC = "gimp xcf "
 
         fun findSize(data: InputStream): Pair<Int, Int> {
-
             for (char in MAGIC) {
-                if (data.read() != char.code) throw IOException("Magic doesn't match")
+                if (data.read() != char.code)
+                    throw IOException("Magic doesn't match")
             }
-
             // could be made more efficient, but probably doesn't matter
             val fileThing = String(ByteArray(5) { data.read().toByte() })
             if (!fileThing.startsWith("file") && !(fileThing[0] == 'v' && fileThing[4] == 0.toChar())) {
                 throw IOException("Expected 'file' or 'v'-version")
             }
-
-            // could be made more efficient as well, but probably doesn't matter
-            val dis = DataInputStream(data)
-            val width = dis.readInt()
-            val height = dis.readInt()
+            val width = data.readBE32()
+            val height = data.readBE32()
             if (width <= 0 || height <= 0) throw IOException("Image must not be empty $width x $height")
-
-            return width to height
-
+            return Pair(width, height)
         }
 
         @JvmStatic
         fun main(args: Array<String>) {
-            val file = getReference(OS.documents, "Watch Dogs 2 Background.xcf")
-            val name = file.nameWithoutExtension
-            ImageCPUCache.getImage(file, false)!!
-                .apply { println(this.getRGB(0).toHexColor()) }
-                .write(getReference(desktop, "$name.png"))
-            for (it in file.listChildren()!!) {
-                ImageCPUCache.getImage(it, false)!!
-                    .apply { println(this.getRGB(0).toHexColor()) }
-                    .write(getReference(desktop, "$name.${it.nameWithoutExtension}.png"))
+            for (file in listOf(
+                documents.getChild("Watch Dogs 2 Background.xcf"),
+                downloads.getChild("2d/gimp-sample.xcf")
+            )) {
+                val name = file.nameWithoutExtension
+                ImageCPUCache.getImage(file, false)!!
+                    .write(getReference(desktop, "$name.png"))
+                for (it in file.listChildren()!!) {
+                    ImageCPUCache.getImage(it, false)!!
+                        .write(getReference(desktop, "$name.${it.nameWithoutExtension}.png"))
+                }
             }
         }
 
@@ -96,27 +92,25 @@ class GimpImage {
             return readImage(data)
         }
 
-        fun createThumbnail(file: FileReference, maxSize: Int = Int.MAX_VALUE): Image {
-            val info = readImage(file)
-            return createThumbnail(info, maxSize)
+        fun read(file: FileReference): Image {
+            return combineLayers(readImage(file))
         }
 
-        fun createThumbnail(input: InputStream, maxSize: Int = Int.MAX_VALUE): Image {
-            val info = readImage(input)
-            return createThumbnail(info, maxSize)
+        fun read(input: InputStream): Image {
+            return combineLayers(readImage(input))
         }
 
-        fun createThumbnail(info: GimpImage, maxSize: Int = max(info.width, info.height)): Image {
-            val hasAlpha = info.layers.any {
+        fun combineLayers(gimpImage: GimpImage): Image {
+            val hasAlpha = gimpImage.layers.any {
                 val image = it.image
                 image != null && (image.hasAlphaChannel || it.opacity < 255)
             }
-            val w = info.width
-            val h = info.height
+            val w = gimpImage.width
+            val h = gimpImage.height
             // todo if the source has HDR contents, use HDR here as well
             val result = IntImage(w, h, hasAlpha)
             val dst = result.data
-            for (layer in info.layers) {
+            for (layer in gimpImage.layers) {
                 val image = layer.image
                 if (layer.isVisible && image != null && layer.opacity > 0) {
                     val dx = layer.x
@@ -131,6 +125,7 @@ class GimpImage {
                         for (y in y0 until y1) {
                             var dstIndex = x0 + y * w
                             var srcIndex = (x0 - dx) + (y - dy) * layer.width
+                            layer.blendSpace
                             for (x in x0 until x1) {
                                 // todo theoretically, we would need to apply the correct blending function here
                                 val color = image.getRGB(srcIndex++)
@@ -153,15 +148,13 @@ class GimpImage {
         }
 
         private fun readImage(data: ByteBuffer): GimpImage {
-
             for (char in MAGIC) {
-                if (data.get() != char.code.toByte()) throw IOException("Magic doesn't match")
+                if (data.get() != char.code.toByte())
+                    throw IOException("Magic doesn't match")
             }
-
             val image = GimpImage()
             image.readContent(data)
             return image
-
         }
 
         private fun blend(dst: Int, src: Int, opacity: Int): Int {
@@ -296,7 +289,16 @@ class GimpImage {
         return when (format) {
             DataType.U8_LINEAR,
             DataType.U8_NON_LINEAR,
-            DataType.U8_PERCEPTUAL -> ByteImage(width, height, channels, false, hasAlpha)
+            DataType.U8_PERCEPTUAL -> ByteImage(
+                width, height,
+                when (channels) {
+                    1 -> ByteImage.Format.R
+                    2 -> ByteImage.Format.RG
+                    3 -> ByteImage.Format.RGB
+                    4 -> ByteImage.Format.ARGB
+                    else -> throw IOException("Too many channels in image")
+                }
+            )
             else -> {
                 LOGGER.warn("Got format $format, just using float image")
                 HDRImage(width, height, 1)
@@ -620,9 +622,7 @@ class GimpImage {
                         IntArray(size) { it * 0x10101 }
                         // data is already filled :)
                     } else {
-                        IntArray(size) {
-                            rgba(data.get(), data.get(), data.get(), 255.toByte())
-                        }
+                        IntArray(size) { rgba(data.get(), data.get(), data.get(), -1) }
                     }
                     if (imageType == ImageType.INDEXED) {
                         colorMap = colors

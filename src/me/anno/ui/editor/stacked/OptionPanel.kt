@@ -32,10 +32,8 @@ class OptionPanel(
                 val index = indexInParent
                 openMenu(windowStack, stackPanel.options.map { option ->
                     MenuOption(
-                        NameDesc("Prepend %1", option.description, "ui.option.prepend").with(
-                            "%1",
-                            option.title
-                        )
+                        NameDesc("Prepend %1", option.description, "ui.option.prepend")
+                            .with("%1", option.title)
                     ) {
                         stackPanel.addComponent(option, index, true)
                     }

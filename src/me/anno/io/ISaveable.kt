@@ -274,7 +274,7 @@ interface ISaveable {
             var clazz = clazz0
             while (true) {
                 superTypeRegistry[clazz.simpleName!!] = clazz
-                @Suppress("UNCHECKED_CAST")
+                @Suppress("unchecked_cast")
                 clazz = clazz.superclasses.firstOrNull() as? KClass<out ISaveable> ?: break
             }
         }

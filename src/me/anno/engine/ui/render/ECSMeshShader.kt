@@ -149,8 +149,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             } else {
                 variables += Variable(GLSLType.M4x3, "prevLocalTransform")
             }
-            variables += Variable(GLSLType.V3F, "currPosition", VariableMode.OUT)
-            variables += Variable(GLSLType.V3F, "prevPosition", VariableMode.OUT)
+            variables += Variable(GLSLType.V4F, "currPosition", VariableMode.OUT)
+            variables += Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT)
         }
 
         return variables
@@ -223,8 +223,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "#endif\n" +
                     "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                     "#ifdef MOTION_VECTORS\n" +
-                    "   currPosition = gl_Position.xyw;\n" +
-                    "   prevPosition = (prevTransform * vec4(prevLocalTransform * vec4(localPosition, 1.0), 1.0)).xyw;\n" +
+                    "   currPosition = gl_Position;\n" +
+                    "   prevPosition = prevTransform * vec4(prevLocalTransform * vec4(localPosition, 1.0), 1.0);\n" +
                     "#endif\n" +
                     ShaderLib.positionPostProcessing
         )
@@ -290,9 +290,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
         )
         if (motionVectors) {
-            list += Variable(GLSLType.V3F, "currPosition")
-            list += Variable(GLSLType.V3F, "prevPosition")
-            list += Variable(GLSLType.V2F, "finalMotion", VariableMode.OUT)
+            list += Variable(GLSLType.V4F, "currPosition")
+            list += Variable(GLSLType.V4F, "prevPosition")
+            list += Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT)
         }
         return list
     }
@@ -370,7 +370,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   finalMetallic = mix(finalMetallic, finalClearCoatRoughMetallic.y, clearCoatEffect);\n" +
                     "   finalColor = mix(finalColor, finalClearCoat.rgb, clearCoatEffect);\n" +
                     "}\n" +
-                    (if (motionVectors) "finalMotion = currPosition.xy/currPosition.z - prevPosition.xy/prevPosition.z;\n" else "") +
+                    (if (motionVectors) "finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" else "") +
                     ""
 
         )

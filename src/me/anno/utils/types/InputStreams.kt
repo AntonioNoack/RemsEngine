@@ -12,9 +12,8 @@ object InputStreams {
     private val tmpBuffer = ThreadLocal2 { ByteArray(1024) }
 
     // defined with a 2, if already present (newer Java versions)
-    fun InputStream.readNBytes2(n: Int, throwEOF: Boolean): ByteArray {
-        return readNBytes2(n, ByteArray(n), throwEOF)
-    }
+    fun InputStream.readNBytes2(n: Int, throwEOF: Boolean) =
+        readNBytes2(n, ByteArray(n), throwEOF)
 
     @Throws(EOFException::class)
     fun InputStream.readNBytes2(n: Int, bytes: ByteArray, throwEOF: Boolean): ByteArray {
@@ -32,6 +31,17 @@ object InputStreams {
                     return sub
                 }
             }
+            i += numReadChars
+        }
+        return bytes
+    }
+
+    @Throws(EOFException::class)
+    fun InputStream.readNBytes2(bytes: ByteArray, startIndex: Int, length: Int): ByteArray {
+        var i = 0
+        while (i < length) {
+            val numReadChars = read(bytes, i + startIndex, length - i)
+            if (numReadChars < 0) throw EOFException()
             i += numReadChars
         }
         return bytes

@@ -48,7 +48,7 @@ class Type(
 
     fun withDefault(defaultValue: Any) = withDefaultValue(defaultValue)
 
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("unchecked_cast")
     fun <V> clamp(value: V): V = if (clampFunc != null) clampFunc.invoke(value) as V else value
 
     companion object {

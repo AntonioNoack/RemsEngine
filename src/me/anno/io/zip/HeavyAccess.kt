@@ -27,7 +27,7 @@ object HeavyAccess {
                     false
                 } else {
                     lockedFiles.add(source)
-                    @Suppress("UNCHECKED_CAST")
+                    @Suppress("unchecked_cast")
                     waiting = waitingRequests.remove(source) as List<IHeavyAccess<Stream>>?
                     true
                 }

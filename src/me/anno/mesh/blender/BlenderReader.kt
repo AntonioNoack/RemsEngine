@@ -329,7 +329,7 @@ object BlenderReader {
         clock.stop("read blender file")
         // data.printTypes()
 
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         val materialsInFile = file.instances["Material"] as? List<BMaterial> ?: emptyList()
 
         // find where the materials are referenced

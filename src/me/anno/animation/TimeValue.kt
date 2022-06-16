@@ -29,7 +29,7 @@ open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
     override fun readSomething(name: String, value: Any?) {
         when (name) {
             "value" -> {
-                @Suppress("UNCHECKED_CAST")
+                @Suppress("unchecked_cast")
                 this.value = value as V
             }
             else -> super.readSomething(name, value)
@@ -37,7 +37,7 @@ open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
     }
 
     fun setValue(index: Int, v: Float, type: Type) {
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         value = type.clamp(
             when (val value = value) {
                 is Int -> v.toInt()

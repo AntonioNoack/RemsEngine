@@ -46,7 +46,7 @@ class MinHeap<Value>(
     private fun minHeapify(pos: Int) {
         // If the node is a non-leaf node and greater
         // than any of its child
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         if (!isLeaf(pos)) {
             val x = values[pos] as Value
             val l = values[leftChild(pos)] as Value
@@ -75,7 +75,7 @@ class MinHeap<Value>(
         var current = size++
         values[current] = element
         // while less than parent, swap this with parent
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         while (comparator.compare(values[current] as Value, values[parent(current)] as Value) < 0) {
             swapNodes(current, parent(current))
             current = parent(current)
@@ -105,12 +105,12 @@ class MinHeap<Value>(
         val popped = values[i]
         values[i] = values[--size]
         if (i < size) minHeapify(i)
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         return popped as Value
     }
 
     fun peak(): Value? {
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         return values[0] as? Value
     }
 

@@ -1,12 +1,13 @@
 package me.anno.ecs.prefab
 
 import me.anno.config.DefaultStyle.black
-import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.RemsEngine.Companion.collectSelected
+import me.anno.engine.RemsEngine.Companion.restoreSelected
 import me.anno.engine.ui.ComponentUI
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -278,7 +279,7 @@ class PrefabInspector(val reference: FileReference) {
 
         // todo place actions into these groups
 
-        // bold/non bold for other properties
+        // bold/plain for other properties
         for ((clazz, propertyNames) in reflections.propertiesByClass.value.reversed()) {
 
             var hadIntro = false
@@ -386,7 +387,11 @@ class PrefabInspector(val reference: FileReference) {
 
     fun save() {
         if (reference == InvalidRef) throw IllegalStateException("Prefab doesn't have source!!")
+        val selected = collectSelected()
+        // save -> changes last modified -> selection becomes invalid
+        // remember selection, and apply it later (in maybe 500-1000ms)
         TextWriter.save(prefab, reference, StudioBase.workspace)
+        DelayedTask { addEvent { restoreSelected(selected) } }.update()
     }
 
     override fun toString(): String = TextWriter.toText(prefab, StudioBase.workspace)

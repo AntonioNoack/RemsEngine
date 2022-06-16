@@ -152,15 +152,6 @@ class Mesh : PrefabSaveable() {
             else emptyList()
         }
 
-    @HideInInspector
-    @NotSerializedProperty
-    var materialInst: Material?
-        get() = MaterialCache[material]
-        set(value) {
-            material = if (value == defaultMaterial || value == null) null
-            else value.ref
-        }
-
     /**
      * one index per triangle
      * */

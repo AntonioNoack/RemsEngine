@@ -108,7 +108,7 @@ class CachedProperty(
         private fun hide(it: HideInInspector, name: String, clazz: KClass<*>): (Any) -> Boolean {
             if (it.hideIfVariableIsTrue.isBlank2()) return { _ -> true }
             else {
-                @Suppress("UNCHECKED_CAST")
+                @Suppress("unchecked_cast")
                 val getter1 = clazz.memberProperties
                     .firstOrNull { p -> p.name == it.hideIfVariableIsTrue } as? KProperty1<Any, Boolean>
                 if (getter1 != null) return { instance -> getter1.invoke(instance) }

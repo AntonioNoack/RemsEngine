@@ -163,7 +163,7 @@ open class DeferredLayerType(
         )
 
         val MOTION = DeferredLayerType(
-            "MOTION", "finalMotion", 2,
+            "MOTION", "finalMotion", 3,
             BufferQuality.HIGH_16, true, 0, "", ""
         )
 

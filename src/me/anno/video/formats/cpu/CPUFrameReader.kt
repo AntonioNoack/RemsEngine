@@ -32,9 +32,9 @@ class CPUFrameReader(
                 else -> throw RuntimeException("Unsupported Codec $codec for $file")
             }
             return frame.load(w, h, input)
-        } catch (e: LastFrame) {
+        } catch (_: LastFrame) {
 
-        } catch (e: IOException) {
+        } catch (_: IOException) {
 
         } catch (e: Exception) {
             e.printStackTrace()

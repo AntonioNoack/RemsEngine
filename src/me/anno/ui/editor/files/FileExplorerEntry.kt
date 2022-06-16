@@ -353,7 +353,7 @@ class FileExplorerEntry(
                         "json", "gltf", "fbx" -> true
                         else -> false
                     }
-                ) PrefabCache.getPrefabInstance(file) else null
+                ) PrefabCache.getPrefabInstance(file, true) else null
             } catch (e: Exception) {
                 null // just not an animation
             }

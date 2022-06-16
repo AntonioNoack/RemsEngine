@@ -55,7 +55,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         registerStreamReader("hdr") { HDRImage(it) }
         registerStreamReader("tga") { TGAImage.read(it, false) }
         registerStreamReader("ico") { tryIco(it) }
-        registerStreamReader("gimp") { GimpImage.createThumbnail(it) }
+        registerStreamReader("gimp") { GimpImage.read(it) }
         registerStreamReader("exr") { EXRReader.read(it) }
         registerStreamReader("qoi") { QOIImage.read(it) }
     }

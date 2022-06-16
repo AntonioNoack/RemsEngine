@@ -535,9 +535,8 @@ open class RenderView(
                         toneMappedColors = false
                     )
                     val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
-                    buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-                    drawGizmos(world, lightBuffer, renderer, camPosition, true)
+                    drawGizmos(world, lightBuffer, simpleNormalRenderer, camPosition, true)
                     drawTexture(x, y + h - 1, w, -h, lightBuffer.getTexture0(), true, -1, null)
                     return
                 }
@@ -553,7 +552,7 @@ open class RenderView(
                     val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                     pipeline.lightPseudoStage.visualizeLightCount = true
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-                    drawGizmos(world, lightBuffer, renderer, camPosition, false)
+                    drawGizmos(world, lightBuffer, simpleNormalRenderer, camPosition, false)
                     // todo special shader to better differentiate the values than black-white
                     // (1 is extremely dark, nearly black)
                     drawTexture(
@@ -598,7 +597,6 @@ open class RenderView(
                     )
                     drawGizmos(world, buffer, renderer, camPosition, true)
                     val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
-                    buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
                     val illuminated = FBStack["ill", w, h, 4, true, 1, false]
                     useFrame(illuminated, copyRenderer) {
@@ -635,7 +633,6 @@ open class RenderView(
                     drawGizmos(world, buffer, renderer, camPosition, true)
 
                     val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
-                    buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
 
                     for (index in 0 until size) {
@@ -775,7 +772,6 @@ open class RenderView(
                     )
 
                     val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
-                    buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
 
                     val ssaoStrength = ssao.strength
@@ -949,7 +945,7 @@ open class RenderView(
         val clickedId = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
         val clicked = if (clickedId == 0 || world !is Entity) null
         else pipeline.findDrawnSubject(clickedId, world)
-        // LOGGER.info("$clickedId -> $clicked")
+        LOGGER.info("${ids.joinToString()} x ${depths.joinToString()} -> $clickedId -> $clicked")
         // val ids2 = world.getComponentsInChildren(MeshComponent::class, false).map { it.clickId }
         // LOGGER.info(ids2.joinToString())
         // LOGGER.info(clickedId in ids2)
@@ -1169,7 +1165,7 @@ open class RenderView(
                 // don't write depth, only all buffers
                 // todo this buffer is very small in orthographic case, because the camera matrix contains scale, which it shouldn't
                 OpenGL.depthMask.use(false) {
-                    // draw huge cube with default values for all buffers
+                    // draw a huge cube with default values for all buffers
                     val shader = clearPbrModelShader.value
                     shader.use()
                     shader.m4x4("transform", cameraMatrix)
@@ -1287,16 +1283,11 @@ open class RenderView(
         dst: IFramebuffer
     ) {
         useFrame(w, h, true, dst, renderer) {
-
             Frame.bind()
-
             tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
-
             glClearColor(0f, 0f, 0f, 0f)
             glClear(GL_COLOR_BUFFER_BIT)
-
             pipeline.lightPseudoStage.bindDraw(deferred, cameraMatrix, camPosition, worldScale)
-
         }
     }
 

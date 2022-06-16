@@ -410,10 +410,7 @@ class SDFGroup : SDFComponent() {
                             CombinationMode.INTERSECTION -> sMaxCubic(d0, d1, k)
                             CombinationMode.DIFFERENCE1 -> sMaxCubic(+d0, -d1, k)
                             CombinationMode.DIFFERENCE2 -> sMaxCubic(-d0, +d1, k)
-                            CombinationMode.DIFFERENCE_SYM -> sMaxCubic(
-                                +sMinCubic(d0, d1, k),
-                                -sMinCubic(d0, d1, k), k
-                            )
+                            CombinationMode.DIFFERENCE_SYM -> sMaxCubic(sMinCubic(d0,d1,k), sMaxCubic(d0,d1,k), k)
                             CombinationMode.INTERPOLATION -> {
                                 if (activeIndex == 1) d0 *= max(1f - abs(progress), 0f)
                                 d0 + d1 * max(1f - abs(progress - activeIndex), 0f)

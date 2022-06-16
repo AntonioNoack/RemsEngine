@@ -178,6 +178,9 @@ object PrefabCache : CacheSection("Prefab") {
         return prefab
     }
 
+    fun getPrefabInstance(resource: FileReference?, async: Boolean) =
+        getPrefabInstance(resource, maxPrefabDepth, async)
+
     fun getPrefabInstance(
         resource: FileReference?,
         depth: Int = maxPrefabDepth,

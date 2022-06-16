@@ -98,6 +98,7 @@
       <w>equirectangular</w>
       <w>expm</w>
       <w>exponentials</w>
+      <w>extremum</w>
       <w>fadein</w>
       <w>farneback</w>
       <w>fastdecode</w>
@@ -378,6 +379,7 @@
       <w>xyzw</w>
       <w>yellowgreen</w>
       <w>zerolatency</w>
+      <w>zlib</w>
     </words>
   </dictionary>
 </component>

@@ -115,4 +115,8 @@ class FloatArrayList(val capacity: Int, val defaultValue: Float = 0f) {
         return dst
     }
 
+    override fun toString(): String {
+        return toFloatArray().joinToString()
+    }
+
 }

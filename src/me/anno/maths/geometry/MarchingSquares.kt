@@ -9,7 +9,6 @@ import me.anno.maths.Maths.unmix
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 import kotlin.math.sqrt
-import kotlin.random.Random
 
 object MarchingSquares {
 
@@ -19,7 +18,7 @@ object MarchingSquares {
     /**
      * finds the intersection with the x-axis between (0,a) and (1,b)
      * */
-    private fun findZero(a: Float, b: Float): Float {
+    fun findZero(a: Float, b: Float): Float {
         return a / (a - b)
     }
 
@@ -34,7 +33,7 @@ object MarchingSquares {
      * */
     fun march(w: Int, h: Int, values: FloatArray, threshold: Float): List<List<Vector2f>> {
 
-        // the values on the edge need to be enforced to have the same sign
+        // the values on the edge must be enforced to have the same sign
         val firstValue = values[0]
         val firstSign = firstValue >= threshold
         fun checkValue(v: Float): Float {
@@ -55,7 +54,7 @@ object MarchingSquares {
         // return list of all polygons at level zero
         // first collect all segments, later combine them
 
-        // there is at max 1 point per edge & they always will be on edges
+        // there is at max 1 point per edge & they will always be on edges
 
         val edges = Array(4) { Vector2f() }
         val next = HashMap<Vector2f, Vector2f>()
@@ -69,7 +68,7 @@ object MarchingSquares {
 
         fun registerEdge1(a: Vector2f, b: Vector2f) {
             if (a == b) return
-            // switch them, if they are in reverse
+            // switch them, if they are reversed
             // check order
             val e = 0.01f
             val mx = (a.x + b.x) * 0.5f
@@ -164,7 +163,7 @@ object MarchingSquares {
         val w = 32
         val h = 16
         val t = (w * w + h * h) * 0.1f
-        val random = Random(1234L)
+        // val random = Random(1234L)
         val values = FloatArray(w * h) {
             val xi = it % w
             val yi = it / w

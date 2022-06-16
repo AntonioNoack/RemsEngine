@@ -193,7 +193,7 @@ object ObjectMapper {
                         }
                         else -> {
                             val clazz = getClass(clazzName)
-                            @Suppress("UNCHECKED_CAST")
+                            @Suppress("unchecked_cast")
                             val array = java.lang.reflect.Array.newInstance(clazz, value.content.size) as Array<Any>
                             val childType = type.getChild()
                             value.content.forEachIndexed { index, any ->
@@ -205,7 +205,7 @@ object ObjectMapper {
                 }
                 else -> {
                     val clazz = IntArray(0).javaClass // let's hope it doesn't matter ;)
-                    @Suppress("UNCHECKED_CAST")
+                    @Suppress("unchecked_cast")
                     val array = java.lang.reflect.Array.newInstance(clazz, value.content.size) as Array<Any>
                     val childType = type.getChild()
                     value.content.forEachIndexed { index, any ->

@@ -210,7 +210,7 @@ open class BlendData(
             val addressInBlock = address - block.header.address
             val remainingSize = block.header.size - addressInBlock
             val length = (remainingSize / typeSize).toInt()
-            @Suppress("UNCHECKED_CAST")
+            @Suppress("unchecked_cast")
             val instance = file.getOrCreate(struct, className, block, address) as? V ?: return null
             return BInstantList(length, instance)
         } else throw RuntimeException()

@@ -42,6 +42,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FloatInput
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Matrices.distance
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Matrices.set2
@@ -75,6 +76,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     // todo mode where hanging plants are automatically rotated to match a wall
 
     // todo apply snapping to <when moving things around> as well
+    // todo we could snap rotations, and maybe scale, as well
 
     var snapX = false
     var snapY = false
@@ -300,7 +302,9 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                     return
                 }
 
-                // drag the selected object
+                /**
+                 * drag the selected object
+                 **/
                 // for that transform dx,dy into global space,
                 // and then update the local space
                 val fovYRadians = view.editorCamera.fovY
@@ -317,103 +321,97 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 val ry = (y - (this.y + this.h * 0.5)) / h // [-.5,+.5]
                 val rotationAngle = rx * dy - ry * dx
 
-                val targets = selectedEntities
-                if (targets.isNotEmpty()) {
-                    val sorted = targets.sortedBy { it.depthInHierarchy }
-                    for (inst in sorted) {// for correct transformation when parent and child are selected together
-                        val transform = inst.transform
-                        val global = transform.globalTransform
-                        when (mode) {
-                            Mode.TRANSLATING -> {
-                                val distance = camTransform.distance(global)
-                                if (distance > 0.0) {
-                                    global.translateLocal(// correct
-                                        offset.x * distance, offset.y * distance, offset.z * distance
-                                    )
-                                }
-                            }
-                            Mode.ROTATING -> {
-                                val tmpQ = JomlPools.quat4d.borrow()
-                                tmpQ.identity().fromAxisAngleDeg(dir.x, dir.y, dir.z, rotationAngle)
-                                global.rotate(tmpQ)// correct
+                val targets2 = selectedSDFs
+                val targets3 = selectedEntities + targets2
+                // remove all targets of which there is a parent selected
+                targets3.filter { target ->
+                    val loh = target.listOfHierarchy.toHashSet()
+                    targets3.none2 {
+                        it !== target && it in loh
+                    }
+                }
+                if (targets3.isNotEmpty()) {
+                    val sdfTransform = JomlPools.mat4x3f.create()
+                    for (index in targets3.indices) {// for correct transformation when parent and child are selected together
+                        when (val inst = targets3[index]) {
+                            is Entity -> {
+                                val transform = inst.transform
+                                val global = transform.globalTransform
+                                when (mode) {
+                                    Mode.TRANSLATING -> {
+                                        val distance = camTransform.distance(global)
+                                        if (distance > 0.0) {
+                                            global.translateLocal(// correct
+                                                offset.x * distance, offset.y * distance, offset.z * distance
+                                            )
+                                        }
+                                    }
+                                    Mode.ROTATING -> {
+                                        val tmpQ = JomlPools.quat4d.borrow()
+                                        tmpQ.identity().fromAxisAngleDeg(dir.x, dir.y, dir.z, rotationAngle)
+                                        global.rotate(tmpQ)// correct
 
+                                    }
+                                    Mode.SCALING -> {
+                                        val scale = pow(2.0, (dx - dy).toDouble() / h)
+                                        global.scale(scale, scale, scale) // correct
+                                    }
+                                    else -> throw NotImplementedError()
+                                }
+                                transform.invalidateLocal()
+                                transform.teleportUpdate()
+                                onChangeTransform(inst)
                             }
-                            Mode.SCALING -> {
-                                val scale = pow(2.0, (dx - dy).toDouble() / h)
-                                global.scale(scale, scale, scale) // correct
-                            }
-                            Mode.NOTHING -> {
+                            is SDFComponent -> {
+                                val global = inst.computeGlobalTransform(sdfTransform)
+                                when (mode) {
+                                    Mode.TRANSLATING -> {
+                                        val distance = camTransform.distance(global)
+                                        if (distance > 0.0) {
+                                            global.translateLocal(// correct
+                                                (offset.x * distance).toFloat(),
+                                                (offset.y * distance).toFloat(),
+                                                (offset.z * distance).toFloat()
+                                            )
+                                        }
+                                    }
+                                    Mode.ROTATING -> {
+                                        val tmpQ = JomlPools.quat4f.borrow()
+                                        tmpQ.identity().fromAxisAngleDeg(
+                                            dir.x.toFloat(), dir.y.toFloat(), dir.z.toFloat(), rotationAngle.toFloat()
+                                        )
+                                        global.rotate(tmpQ)// correct
+                                    }
+                                    Mode.SCALING -> {
+                                        val scale = pow(2f, (dx - dy) / h)
+                                        global.scale(scale, scale, scale) // correct
+                                    }
+                                    else -> throw NotImplementedError()
+                                }
+                                val localTransform = JomlPools.mat4x3f.create()
+                                val parentGlobalTransform = when (val parent = inst.parent) {
+                                    is Entity -> JomlPools.mat4x3f.create().set2(parent.transform.globalTransform)
+                                    is SDFComponent -> parent.computeGlobalTransform(JomlPools.mat4x3f.create())
+                                    else -> null
+                                }
+                                if (parentGlobalTransform == null) localTransform.set(global)
+                                else localTransform.set(parentGlobalTransform).invert().mul(global)
+                                // we have no better / other choice
+                                if (!localTransform.isFinite) localTransform.identity()
+                                localTransform.getTranslation(inst.position)
+                                localTransform.getUnnormalizedRotation(inst.rotation)
+                                inst.scale = localTransform.getScaleLength() / SQRT3.toFloat()
+                                // trigger recompilation, if needed
+                                inst.position = inst.position
+                                inst.rotation = inst.rotation
+                                // return matrix to pool
+                                if (parentGlobalTransform != null) JomlPools.mat4x3f.sub(1)
+                                onChangeTransform(inst)
                             }
                         }
-                    }
-                    for (entity in sorted) {
-                        val transform = entity.transform
-                        transform.invalidateLocal()
-                        transform.teleportUpdate()
-                        onChangeTransform(entity)
                     }
                     JomlPools.vec3d.sub(1)
-                }
-                val targets2 = selectedSDFs
-                if (targets2.isNotEmpty()) {
-                    val sorted = targets2.sortedBy { it.depthInHierarchy }
-                        .map { Pair(it, it.computeGlobalTransform(JomlPools.mat4x3f.create().identity())) }
-                    for ((_, global) in sorted) {
-                        when (mode) {
-                            Mode.TRANSLATING -> {
-                                val distance = camTransform.distance(global)
-                                if (distance > 0.0) {
-                                    global.translateLocal(// correct
-                                        (offset.x * distance).toFloat(),
-                                        (offset.y * distance).toFloat(),
-                                        (offset.z * distance).toFloat()
-                                    )
-                                }
-                            }
-                            Mode.ROTATING -> {
-                                val tmpQ = JomlPools.quat4f.borrow()
-                                tmpQ.identity().fromAxisAngleDeg(
-                                    dir.x.toFloat(), dir.y.toFloat(), dir.z.toFloat(), rotationAngle.toFloat()
-                                )
-                                global.rotate(tmpQ)// correct
-                            }
-                            Mode.SCALING -> {
-                                val scale = pow(2f, (dx - dy) / h)
-                                global.scale(scale, scale, scale) // correct
-                            }
-                            Mode.NOTHING -> {
-                            }
-                        }
-                    }
-                    // just like for Entities
-                    for ((inst, globalTransform) in sorted) {
-                        // = Transform.invalidateLocal() + update()
-                        val localTransform = JomlPools.mat4x3f.create()
-                        val parentGlobalTransform = when (val parent = inst.parent) {
-                            is Entity -> JomlPools.mat4x3f.create().set2(parent.transform.globalTransform)
-                            is SDFComponent -> parent.computeGlobalTransform(JomlPools.mat4x3f.create())
-                            else -> null
-                        }
-                        if (parentGlobalTransform == null) {
-                            localTransform.set(globalTransform)
-                        } else {
-                            localTransform.set(parentGlobalTransform).invert().mul(globalTransform)
-                        }
-                        // we have no better / other choice
-                        if (!localTransform.isFinite) {
-                            localTransform.identity()
-                        }
-                        localTransform.getTranslation(inst.position)
-                        localTransform.getUnnormalizedRotation(inst.rotation)
-                        inst.scale = localTransform.getScaleLength() / SQRT3.toFloat()
-                        // trigger recompilation, if needed
-                        inst.position = inst.position
-                        inst.rotation = inst.rotation
-                        // return matrix to pool
-                        if (parentGlobalTransform != null) JomlPools.mat4x3f.sub(1)
-                        onChangeTransform(inst)
-                    }
-                    JomlPools.mat4x3f.sub(sorted.size)
+                    JomlPools.mat4x3f.sub(1)
                 }
             }
         }
@@ -664,13 +662,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         if (!blenderAddon.onEnterKey(x, y)) super.onEnterKey(x, y)
     }
 
-    override fun isKeyInput(): Boolean {
-        return true
-    }
-
-    override fun acceptsChar(char: Int): Boolean {
-        return true
-    }
+    override fun isKeyInput() = true
+    override fun acceptsChar(char: Int) = true
 
     override val className: String = "SceneView"
 

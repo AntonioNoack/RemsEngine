@@ -54,7 +54,7 @@ object ShaderPlus {
                 "" + raw.substring(0, raw.length - 1) + "" +
                 (if (hasZDistance) "" else "float zDistance = 0.0;\n") +
                 (if (hasFinalColor) "" else "vec3 finalColor = gl_FragColor.rgb;float finalAlpha = gl_FragColor.a;\n") +
-                (if (hasMotionVectors) "" else "vec2 finalMotion = vec2(0.0);\n") +
+                (if (hasMotionVectors) "" else "vec3 finalMotion = vec3(0.0);\n") +
                 randomFunc +
                 "switch(drawMode){\n" +
                 "   case ${DrawMode.COLOR_SQUARED.id}:\n" +

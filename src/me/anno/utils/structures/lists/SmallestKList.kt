@@ -2,7 +2,7 @@ package me.anno.utils.structures.lists
 
 class SmallestKList<V>(val k: Int, val comparator: Comparator<V>) {
 
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("unchecked_cast")
     private val content = arrayOfNulls<Any>(k) as Array<V>
 
     var size = 0
