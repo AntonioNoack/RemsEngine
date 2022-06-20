@@ -96,17 +96,10 @@ import kotlin.math.tan
 // todo usable editing of materials: own color + indent + super material selector
 // todo + add & remove materials
 
-// todo clickable & draggable gizmos, e.g. for translation, rotation scaling:
-// todo thick arrows for 1d, and planes for 2d, and a center cube for 3d
-
-// todo drag stuff onto surfaces using raytracing
-// todo or drag and keep it in the same distance
-
 // done render in different modes: overdraw, color blindness, normals, color, before-post-process, with-post-process
 // done nice ui for that: drop down menus at top or bottom
 
 // to do blend between multiple cameras, only allow 2? yes :)
-
 
 // todo easily allow for multiple players in the same instance, with just player key mapping
 // -> camera cannot be global, or todo it must be switched whenever the player changes

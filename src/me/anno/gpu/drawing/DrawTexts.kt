@@ -153,7 +153,6 @@ object DrawTexts {
             return GFXx2D.getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
         }
 
-
         var h = font.sizeInt
         if (text.isEmpty())
             return GFXx2D.getSize(0, h)

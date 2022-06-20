@@ -19,9 +19,4 @@ abstract class FixedControlFlowNode : ControlFlowNode {
         return c
     }
 
-    override fun canAddInput(): Boolean = false
-    override fun canAddOutput(): Boolean = false
-    override fun canRemoveInput(): Boolean = false
-    override fun canRemoveOutput(): Boolean = false
-
 }

@@ -20,6 +20,9 @@ import org.lwjgl.opengl.GL11C
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * virtual window within one GLFW window
+ * */
 open class Window(
     panel: Panel,
     var isTransparent: Boolean,

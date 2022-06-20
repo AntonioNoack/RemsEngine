@@ -185,7 +185,7 @@ To find more examples, search for "fun main(args: Array<String>)" in the source 
 
 ## Build It
 
-The project can be built similar to [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), just the main class now is [me.anno.engine.RemsEngine](src/me/anno/engine/RemsEngine.kt).
+The project can be built like [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), just the main class now is [me.anno.engine.RemsEngine](src/me/anno/engine/RemsEngine.kt).
 All listed libraries need to be added to the project in some way.
 
 ## Use It
@@ -196,7 +196,7 @@ A release of [Rem's Studio](https://github.com/AntonioNoack/RemsStudio) would wo
 
 ## Documentation
 
-The documentation is mainly done within the code itself, so I recommend you to download the engine source code.
+The code is mainly documented within itself, so I recommend you to download the engine source code.
 You can also take a look at the Wiki. There, I describe the serialization system, how to create a mod, and supported file formats.
 
 ## Wiki

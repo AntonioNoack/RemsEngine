@@ -3,8 +3,8 @@ package me.anno.ecs
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
-import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.physics.BulletPhysics
@@ -624,6 +624,9 @@ class Entity() : PrefabSaveable(), Inspectable {
                     it !is MeshComponentBase && it !is LightComponentBase &&
                             it.fillSpace(transform.globalTransform, tmpAABB)
                 }
+        for (idx in components.indices) {
+            components[idx].onChangeStructure(this)
+        }
         JomlPools.aabbd.sub(1)
     }
 

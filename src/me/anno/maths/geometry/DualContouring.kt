@@ -11,6 +11,7 @@ import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.unmix
+import me.anno.maths.Optimization
 import me.anno.maths.geometry.DualContouring.Func2d
 import me.anno.maths.geometry.DualContouring.Grad2d
 import me.anno.maths.geometry.MarchingSquares.findZero
@@ -22,7 +23,8 @@ import org.joml.Vector3f
 import kotlin.math.*
 
 /**
- * test of dual contouring; currently unusable, because of awkward bugs...
+ * theoretically nice, practically pretty bad :/
+ * use MarchingSquares instead
  * */
 object DualContouring {
 
@@ -114,12 +116,11 @@ object DualContouring {
     fun findBestVertex2d(
         i0: Int, di: Int,
         values: FloatArray,
-        gradient: Grad2d,
+        fn: Func2d, gradient: Grad2d,
         x0: Float, x1: Float,
         y0: Float, y1: Float,
         g: Vector2f, qef: QEF2d,
-        wi: Int,
-        vertices: Array<Vector2f?>,
+        wi: Int, vertices: Array<Vector2f?>,
     ) {
         val v00 = values[i0]
         val v01 = values[i0 + di]
@@ -157,9 +158,22 @@ object DualContouring {
             }
 
             qef.findExtremum(g)
-            
-            vertices[wi] = Vector2f(x0,y0).add(g)
-            
+
+            val s = Optimization.simplexAlgorithm(
+                floatArrayOf(g.x + x0, g.y + y0),
+                0.25f, 0f, 32
+            ) {
+                Maths.sq(fn.calc(it[0], it[1])) +
+                        10f * (0f +
+                        max(0f, x0 - it[0]) +
+                        max(0f, y0 - it[1]) +
+                        max(0f, it[0] - x1) +
+                        max(0f, it[1] - y1)
+                        )
+            }
+
+            vertices[wi] = Vector2f(s)
+
         }
     }
 
@@ -180,12 +194,12 @@ object DualContouring {
                 values[vIndex++] = func.calc(px, py)
             }
         }
-        return contour2d(sx, sy, values, grad)
+        return contour2d(sx, sy, values, func, grad)
     }
 
     fun contour2d(
         sx: Int, sy: Int,
-        values: FloatArray, gradient: Grad2d
+        values: FloatArray, func: Func2d, gradient: Grad2d
     ): List<Vector2f> {
         val vertices = arrayOfNulls<Vector2f>(sx * sy)
         var writeIndex = 0
@@ -200,7 +214,7 @@ object DualContouring {
                 val x0 = x.toFloat()
                 val x1 = x0 + 1f
                 findBestVertex2d(
-                    vIndex++, di, values, gradient,
+                    vIndex++, di, values, func, gradient,
                     x0, x1, y0, y1, tmp, qef,
                     writeIndex++, vertices
                 )

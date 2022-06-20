@@ -8,7 +8,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayHit
-import me.anno.engine.raycast.Raycast
+import me.anno.engine.raycast.Raycast.raycastTriangleMesh
 import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ComputeShader
@@ -22,6 +22,7 @@ import me.anno.maths.Maths.mixARGB2
 import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
 import me.anno.maths.bvh.RayTracing.glslBLASIntersection
+import me.anno.maths.bvh.RayTracing.glslComputeDefines
 import me.anno.maths.bvh.RayTracing.glslIntersections
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.utils.Clock
@@ -61,7 +62,7 @@ fun renderOnCPU(
         val hit = localResult.get()
         hit.ctr = 0
         hit.normalWS.set(0.0)
-        val maxDistance = 1e15
+        val maxDistance = 1e10
         hit.distance = maxDistance
         try {
             bvh.intersect(start2, dir, hit)
@@ -97,6 +98,7 @@ fun createComputeShader(useBVH: Boolean, maxDepth: Int, mesh: Mesh?): ComputeSha
                 quatRot +
                 "#define BLAS_DEPTH $maxDepth\n" +
                 loadMat4x3 +
+                glslComputeDefines +
                 glslBLASIntersection +
                 "void main(){\n" +
                 "   uint nodeCtr=0;\n" +
@@ -113,12 +115,12 @@ fun createComputeShader(useBVH: Boolean, maxDepth: Int, mesh: Mesh?): ComputeSha
                             "intersectBLAS(0, worldPos, worldDir, invDir, normal, distance, nodeCtr);\n"
                 } else {
                     "" +
-                            "ivec2 triTexSize = imageSize(triangles);\n" +
+                            "int triTexSize = TEXTURE_SIZE(triangles).x;\n" +
                             "for(uint triangleIndex=0;triangleIndex<${mesh!!.numTriangles};triangleIndex++){\n" + // triangle index
                             // load triangle data
                             "    uint pixelIndex = triangleIndex * 3;\n" + // 3 = pixels per triangle
-                            "    uint triX = pixelIndex % triTexSize.x;\n" +
-                            "    uint triY = pixelIndex / triTexSize.x;\n" +
+                            "    uint triX = pixelIndex % triTexSize;\n" +
+                            "    uint triY = pixelIndex / triTexSize;\n" +
                             "    vec3 p0 = imageLoad(triangles, ivec2(triX,triY)).rgb;\n" +
                             "    vec3 p1 = imageLoad(triangles, ivec2(triX+1,triY)).rgb;\n" +
                             "    vec3 p2 = imageLoad(triangles, ivec2(triX+2,triY)).rgb;\n" +
@@ -195,20 +197,18 @@ fun main() {
         ImageWriter.writeImageInt(
             w, h, false, "bvh/cpu-raw.png", 64
         ) { x, y, _ ->
-            val direction = JomlPools.vec3d.create()
+            val dir = JomlPools.vec3d.create()
             val end = JomlPools.vec3d.create()
-            direction.set(x - cx, cy - y, fovZ).normalize()
-            end.set(direction).mul(maxDistance).add(start)
+            dir.set(x - cx, cy - y, fovZ).normalize()
+            end.set(dir).mul(maxDistance).add(start)
             val result = localResult.get()
             result.distance = maxDistance
-            val color = if (Raycast.raycastTriangleMesh(
-                    entity, meshComponent, mesh, start, direction, end, 0.0, 0.0, result
-                )
-            ) {
+            val hit = raycastTriangleMesh(entity, meshComponent, mesh, start, dir, end, 0.0, 0.0, result)
+            val color = if (hit) {
                 val normal = result.normalWS
                 normal.normalize()
                 (normal.x * 60 + 150).toInt() * 0x10101
-            } else mixARGB2(sky0, sky1, 10f * length(direction.x.toFloat(), direction.y.toFloat()))
+            } else mixARGB2(sky0, sky1, 10f * length(dir.x.toFloat(), dir.y.toFloat()))
             JomlPools.vec3d.sub(2)
             color
         }

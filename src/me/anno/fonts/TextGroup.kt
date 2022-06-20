@@ -31,15 +31,17 @@ open class TextGroup(
 
         val ctx = FontRenderContext(null, true, true)
         offsets = DoubleArray(codepoints.size + 1)
+        var firstCodePoint = codepoints[0]
+        if (firstCodePoint == '\t'.code || firstCodePoint == '\n'.code) firstCodePoint = ' '.code
         for (index in 1 until codepoints.size) {
-            val firstCodePoint = codepoints[index - 1]
-            val secondCodePoint = codepoints[index]
+            var secondCodePoint = codepoints[index]
+            if (secondCodePoint == '\t'.code || secondCodePoint == '\n'.code) secondCodePoint = ' '.code
             offsets[index] = charSpacing + getOffset(ctx, firstCodePoint, secondCodePoint)
+            firstCodePoint = secondCodePoint
         }
         offsets[codepoints.size] = getOffset(ctx, codepoints.last(), 32)
         offsets.accumulate()
 
-        if ('\t' in text || '\n' in text) throw RuntimeException("\t and \n are not allowed in FontMesh2!")
         val layout = TextLayout(".", font, ctx)
         baseScale = TextMesh.DEFAULT_LINE_HEIGHT.toDouble() / (layout.ascent + layout.descent)
         minX = 0f

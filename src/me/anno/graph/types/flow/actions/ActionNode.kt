@@ -13,6 +13,9 @@ abstract class ActionNode : FixedControlFlowNode {
 
     abstract fun executeAction(graph: FlowGraph)
 
+    /**
+     * executes and returns first output node
+     * */
     override fun execute(graph: FlowGraph): NodeOutput {
         executeAction(graph)
         return getOutputNodes(0)

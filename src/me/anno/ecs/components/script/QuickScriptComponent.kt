@@ -105,7 +105,7 @@ open class QuickScriptComponent : Component() {
             val c = QuickScriptComponent()
             val e = Entity()
             e.add(c)
-            c.createScript = "print(entity)"
+            c.createScript = "print(entity);print(17)"
             c.onCreate()
         }
 

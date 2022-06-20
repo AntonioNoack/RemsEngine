@@ -4,6 +4,9 @@ import me.anno.graph.Node
 import me.anno.graph.NodeInput
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.flow.actions.PrintNode
+import me.anno.graph.types.flow.config.ConfigGetBoolNode
+import me.anno.graph.types.flow.config.ConfigGetFloatNode
+import me.anno.graph.types.flow.config.ConfigGetIntNode
 import me.anno.graph.types.flow.control.ForNode
 import me.anno.graph.types.flow.control.IfElseNode
 import me.anno.graph.types.flow.control.WhileNode
@@ -30,6 +33,9 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
         val flowNodes = NodeLibrary(
             { GetLocalVariableNode() },
             { SetLocalVariableNode() },
+            { ConfigGetBoolNode() },
+            { ConfigGetIntNode() },
+            { ConfigGetFloatNode() },
             { ForNode() },
             { IfElseNode() },
             { WhileNode() },

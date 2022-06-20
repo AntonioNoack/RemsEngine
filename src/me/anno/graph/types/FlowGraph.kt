@@ -15,9 +15,9 @@ import me.anno.graph.types.flow.maths.MathD2Node
 import me.anno.graph.types.flow.maths.MathL2Node
 import org.apache.logging.log4j.LogManager
 
-// = visual coding language
+// visual coding language
 // we enter the graph somewhere, do processing, and then exit some time
-class FlowGraph : Graph() {
+open class FlowGraph : Graph() {
 
     // todo probably nodes should be able to compute their values
     // todo maybe we need to evaluate nodes every time: internal values may have changed
@@ -94,6 +94,8 @@ class FlowGraph : Graph() {
         return input.castGetValue(this, validId)
     }
 
+    override val className = "FlowGraph"
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(FlowGraph::class)
@@ -139,13 +141,15 @@ class FlowGraph : Graph() {
             mulNode.connectTo(0, setNode, 2)
             g.execute(initNode)
             g.requestId()
-            g.addAll(listOf(
-                initNode,
-                forNode,
-                mulNode,
-                getNode,
-                setNode
-            ))
+            g.addAll(
+                listOf(
+                    initNode,
+                    forNode,
+                    mulNode,
+                    getNode,
+                    setNode
+                )
+            )
             LOGGER.info(g.localVariables["var"])
             return g
         }

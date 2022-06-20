@@ -10,7 +10,6 @@ import org.joml.AABBf
 
 abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
 
-
     abstract fun findGeometryData(): GeometryData
 
     abstract fun forEach(run: (BLASNode) -> Unit)

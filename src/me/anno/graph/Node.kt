@@ -39,12 +39,12 @@ abstract class Node() : PrefabSaveable() {
     // todo use this color, if defined
     var color = 0
 
-    abstract fun canAddInput(): Boolean
-    abstract fun canAddOutput(): Boolean
-    abstract fun canRemoveInput(): Boolean
-    abstract fun canRemoveOutput(): Boolean
-    abstract fun supportsMultipleInputs(con: NodeConnector): Boolean
-    abstract fun supportsMultipleOutputs(con: NodeConnector): Boolean
+    open fun canAddInput(type: String) = false
+    open fun canAddOutput(type: String) = false
+    open fun canRemoveInput(type: String) = false
+    open fun canRemoveOutput(type: String) = false
+    open fun supportsMultipleInputs(con: NodeConnector) = false
+    open fun supportsMultipleOutputs(con: NodeConnector) = false
 
     fun setOutput(value: Any?, index: Int) {
         val node = outputs!![index]

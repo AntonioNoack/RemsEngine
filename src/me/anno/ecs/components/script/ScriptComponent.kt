@@ -16,6 +16,7 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.luaj.vm2.*
 import org.luaj.vm2.lib.DebugLib
+import org.luaj.vm2.lib.LibFunction
 import org.luaj.vm2.lib.OneArgFunction
 import org.luaj.vm2.lib.ZeroArgFunction
 import org.luaj.vm2.lib.jse.CoerceJavaToLua
@@ -113,7 +114,7 @@ open class ScriptComponent : Component() {
             val g = JsePlatform.standardGlobals()
             g.set("getTime", object : ZeroArgFunction() {
                 override fun call(): LuaValue {
-                    return LuaValue.valueOf(Engine.gameTime.toDouble() / 1e9)
+                    return LuaValue.valueOf(Engine.gameTime / 1e9)
                 }
             })
             g.set("getName", object : OneArgFunction() {
@@ -121,7 +122,6 @@ open class ScriptComponent : Component() {
                     return if (p0.isuserdata()) {
                         when (val data = p0.touserdata()) {
                             is NamedSaveable -> LuaValue.valueOf(data.name)
-                            is PrefabSaveable -> LuaValue.valueOf(data.name)
                             else -> LuaValue.NIL
                         }
                     } else LuaValue.NIL
@@ -182,10 +182,30 @@ open class ScriptComponent : Component() {
             if (func is LuaValue && func.isfunction()) {
                 init(globals)
                 return if (Build.isDebug) {
+                    // this is expensive memory-wise
+                    // if a function was guaranteed to run only in a single scope,
+                    // we could wrap it
                     wrapIntoLimited(func, globals, 10_000)
                 } else func
             }
             return LuaValue.NIL
+        }
+
+        @Suppress("unchecked_cast")
+        fun getFunction(code: String, key: Any?, init: (scope: LuaValue) -> Unit): Pair<Globals, LuaValue>? {
+            if (code.isBlank2()) return null
+            val funcObj = luaCache.getEntry(code, key, timeout, false) { code1, _ ->
+                val vm = global.get()
+                val func = try {
+                    val func = vm.load(code1)
+                    init(vm)
+                    wrapIntoLimited(func, vm, 10_000)
+                } catch (error: LuaError) {
+                    error
+                }
+                CacheData(Pair(vm, func))
+            }
+            return (funcObj as? CacheData<*>)?.value as? Pair<Globals, LuaValue>
         }
 
         @JvmStatic
@@ -206,6 +226,39 @@ open class ScriptComponent : Component() {
             }
         }
 
+        private val lDebug = LuaString.valueOf("debug")
+        private val lSetHook = LuaString.valueOf("set" + "hook")
+
+        class WhileTrueYield(
+            val globals: Globals,
+            val func: LuaValue,
+            val setHook: LuaValue,
+            val instructionLimit: Int
+        ) : LibFunction() {
+            lateinit var thread: LuaThread
+            override fun invoke(varargs: Varargs?): Varargs {
+                var run = 0L
+                while (true) {
+                    // reset limit
+                    // todo this will crash after 2B instructions...
+                    // todo reset debug counter
+                    val limit = instructionLimit * run++
+                    if (limit < Int.MAX_VALUE - 65000) {
+                        setHook.invoke(
+                            varargs(
+                                thread,
+                                ErrorFunction,
+                                LuaValue.EMPTYSTRING,
+                                LuaValue.valueOf(limit.toInt())
+                            )
+                        )
+                    }// else will crash...
+                    val ret = func.call()
+                    globals.yield(ret)
+                }
+            }
+        }
+
         fun wrapIntoLimited(
             function: LuaValue,
             globals: Globals,
@@ -213,22 +266,12 @@ open class ScriptComponent : Component() {
         ): LuaValue {
 
             globals.load(DebugLib())
+            val setHook = globals.get(lDebug).get(lSetHook)
+            globals.set(lDebug, LuaValue.NIL)
 
-            val setHook = globals.get("debug").get("set" + "hook")
-            globals.set("debug", LuaValue.NIL)
-
-            val thread = LuaThread(globals, function)
-
-            setHook.invoke()
-            setHook.invoke(
-                varargs(
-                    thread,
-                    ErrorFunction,
-                    LuaValue.EMPTYSTRING,
-                    LuaValue.valueOf(instructionLimit)
-                )
-            )
-
+            val func = WhileTrueYield(globals, function, setHook, instructionLimit)
+            val thread = LuaThread(globals, func)
+            func.thread = thread
             return SafeFunction(thread)
 
         }

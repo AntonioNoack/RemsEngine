@@ -15,8 +15,6 @@ import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sqrt
 
 // to do visualize a bvh structure in-engine
@@ -46,13 +44,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
 
     abstract fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit)
 
-    private fun max(a: Float, b: Float, c: Float): Float {
-        return max(max(a, b), c)
-    }
-
-    private fun min(a: Float, b: Float, c: Float): Float {
-        return min(min(a, b), c)
-    }
+    abstract fun intersect(group: RayGroup)
 
     companion object {
 

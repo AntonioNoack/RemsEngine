@@ -5,6 +5,8 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.*
+import me.anno.ecs.components.anim.graph.AnimController
+import me.anno.ecs.components.anim.graph.AnimStateNode
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.FirstPersonController
 import me.anno.ecs.components.camera.control.OrbitControls
@@ -58,6 +60,7 @@ import me.anno.io.utils.StringMap
 import me.anno.mesh.assimp.Bone
 import me.anno.ui.Panel
 import me.anno.ui.anim.AnimContainer
+import me.anno.ui.anim.LuaAnimTextPanel
 import me.anno.ui.anim.MoveAnimation
 import me.anno.ui.anim.ScaleAnimation
 import me.anno.ui.base.Font
@@ -79,7 +82,6 @@ import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.input.*
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.input.components.PureTextInputML
-import me.anno.utils.LOGGER
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 
@@ -138,6 +140,7 @@ object ECSRegistry {
         registerCustomClass { AnimContainer(style) }
         registerCustomClass(MoveAnimation())
         registerCustomClass(ScaleAnimation())
+        registerCustomClass { LuaAnimTextPanel(style) }
 
         // ui content
         registerCustomClass { TextPanel(style) }
@@ -165,13 +168,17 @@ object ECSRegistry {
         registerCustomClass(Mesh())
         registerCustomClass(Material())
         registerCustomClass(MeshComponent())
-        registerCustomClass(AnimRenderer())
-        registerCustomClass(AnimationState())
         registerCustomClass(LODMeshComponent())
         registerCustomClass(SplineMesh())
         registerCustomClass(SplineControlPoint())
         registerCustomClass(PathProfile())
         registerCustomClass(CuboidMesh())
+
+        // animated meshes
+        AnimStateNode.register()
+        registerCustomClass(AnimRenderer())
+        registerCustomClass(AnimationState())
+        registerCustomClass(AnimController())
 
         // lights
         registerCustomClass(SpotLight())

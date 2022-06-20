@@ -139,16 +139,30 @@ object Triangles {
      * calculates ((b-a) x (c-a)) * n
      * without any allocations
      * */
-    fun subCrossDot(a: Vector3fc, b: Vector3fc, c: Vector3fc, n: Vector3fc): Float {
+    fun subCrossDot(a: Vector3fc, b: Vector3fc, c: Vector3fc, n: Vector3f): Float {
         val x0 = b.x() - a.x()
         val y0 = b.y() - a.y()
         val z0 = b.z() - a.z()
         val x1 = c.x() - a.x()
         val y1 = c.y() - a.y()
         val z1 = c.z() - a.z()
-        val rx = y0 * z1 - y1 * z0
+        val rx = y0 * z1 - z0 * y1
         val ry = z0 * x1 - x0 * z1
         val rz = x0 * y1 - y0 * x1
+        return n.dot(rx, ry, rz)
+    }
+
+    /**
+     * calculates ((b-a) x (c-a)) * n
+     * without any allocations
+     * */
+    fun halfSubCrossDot(ba: Vector3f, a: Vector3f, c: Vector3f, n: Vector3fc): Float {
+        val x1 = c.x - a.x
+        val y1 = c.y - a.y
+        val z1 = c.z - a.z
+        val rx = ba.y * z1 - ba.z * y1
+        val ry = ba.z * x1 - ba.x * z1
+        val rz = ba.x * y1 - ba.y * x1
         return n.dot(rx, ry, rz)
     }
 

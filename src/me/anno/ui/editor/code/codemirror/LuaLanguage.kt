@@ -119,6 +119,7 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : Language {
         }
     }
 
+    val reg = Regex("/[\\[=]/")
     fun normal(stream: Stream, state: State): TokenType {
         val ch = stream.next()
         if (ch == '-' && stream.eat('-')) {
@@ -135,7 +136,7 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : Language {
             state.cur = string(ch)
             return state.cur(stream, state)
         }
-        if (ch == '[' && Regex("/[\\[=]/").matches(stream.peek())) {
+        if (ch == '[' && reg.matches(stream.peek())) {
             state.cur = bracketed(readBracket(stream), TokenType.STRING)
             return state.cur(stream, state)
         }

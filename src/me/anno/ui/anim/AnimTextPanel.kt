@@ -3,6 +3,7 @@ package me.anno.ui.anim
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.annotations.Docs
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.gpu.GFX
@@ -32,11 +33,10 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.*
 
-/**
- * text panel with char-wise animation
- * */
+@Docs("Text panel with char-wise animation")
 open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
+    @Docs("AnimTextPanel, which can be created with a lambda")
     class SimpleAnimTextPanel(
         text: String, style: Style,
         val animation: (SimpleAnimTextPanel, time: Float, index: Int, cx: Float, cy: Float) -> Int,
@@ -314,6 +314,14 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                     rotate(sin(s) * 0.1f, cx, cy)
                     hsluv(time * 2f - index / 2f)
                 })
+                // test of a panel with a lua script :3
+                list.add(LuaAnimTextPanel(
+                    "Lua Rainbow Text", "" +
+                            "s = time*5+index/3\n" +
+                            "translate(0,math.sin(s)*5)\n" +
+                            "rotate(math.sin(s)*0.1)\n" +
+                            "return hsluv(time*2-index/2)", style
+                ).apply { this.font = font })
                 list.add(SimpleAnimTextPanel("Growing Text", style) { p, time, index, _, _ ->
                     p.font = font
                     val growTime = 0.4f

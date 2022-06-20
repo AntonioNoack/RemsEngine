@@ -305,12 +305,21 @@ interface ISaveable {
         }
 
         @JvmStatic
-        fun registerCustomClass(clazz: Class<ISaveable>) {
+        fun <V: ISaveable> registerCustomClass(clazz: Class<V>) {
             val constructor = clazz.getConstructor()
             val instance0 = constructor.newInstance()
             checkInstance(instance0)
             val className = instance0.className
             register(className, RegistryEntry(instance0) { constructor.newInstance() })
+        }
+
+        @JvmStatic
+        fun <V: ISaveable> registerCustomClass(clazz: KClass<V>) {
+            val constructor = clazz.constructors.first { it.parameters.isEmpty() }
+            val instance0 = constructor.call()
+            checkInstance(instance0)
+            val className = instance0.className
+            register(className, RegistryEntry(instance0) { constructor.call() })
         }
 
         @JvmStatic

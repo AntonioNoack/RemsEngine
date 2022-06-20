@@ -1,11 +1,14 @@
 package me.anno.maths.bvh
 
 import me.anno.engine.raycast.RayHit
+import me.anno.maths.Maths.sq
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Vectors.print
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
+import kotlin.math.sqrt
 
 class TLASLeaf(
     val centroid: Vector3f,
@@ -84,6 +87,93 @@ class TLASLeaf(
             }
 
             JomlPools.vec3f.sub(4)
+
+        }
+    }
+
+    override fun intersect(group: RayGroup) {
+        if (group.intersects(bounds)) {
+
+            // todo this doesn't work :/, where is the mistake?
+
+            // transform from global to local coordinates
+            // and trace the ray inside the local bounds
+
+            val local = group.local!!
+            val worldToLocal = worldToLocal
+
+            val v0 = JomlPools.vec3f.create()
+            val v1 = JomlPools.vec3f.create()
+
+            // transform distances
+            val dxs = local.dxs
+            val dys = local.dys
+
+            local.normalX.fill(0f)
+            local.normalY.fill(0f)
+            local.normalZ.fill(0f)
+
+            for (i in 0 until group.size) {
+
+                v0.set(group.dir)
+                group.dxm.mulAdd(dxs[i], v0, v0)
+                group.dym.mulAdd(dys[i], v0, v0)
+                v0.mul(group.depths[i])
+
+                worldToLocal.transformDirection(v0, v0)
+                local.depths[i] = v0.length()
+
+            }
+
+            // transform main directions and position
+            worldToLocal.transformPosition(group.pos, local.pos)
+            worldToLocal.transformDirection(group.dir, local.dir)
+            worldToLocal.transformDirection(group.dx, local.dx)
+            worldToLocal.transformDirection(group.dy, local.dy)
+
+            // transform local dxm,dym
+            local.dxm.set(local.dx).sub(local.dir)
+            local.dym.set(local.dy).sub(local.dir)
+
+            // transform minimum and maximum direction
+            worldToLocal.transformDirection(group.min, v0)
+            worldToLocal.transformDirection(group.max, v1)
+            local.min.set(v0).min(v1)
+            local.max.set(v0).max(v1)
+
+            local.finishSetup()
+
+            mesh.intersect(local)
+
+            val localToWorld = localToWorld
+            val dxm = local.dxm
+            val dym = local.dym
+            for (i in 0 until group.size) {
+
+                v1.set(local.normalX[i], local.normalY[i], local.normalZ[i])
+                if (v1.lengthSquared() > 0f) {
+
+                    // local dir
+                    v0.set(local.dir)
+                    dxm.mulAdd(dxs[i], v0, v0)
+                    dym.mulAdd(dys[i], v0, v0)
+                    v0.mul(local.depths[i])
+
+                    localToWorld.transformDirection(v0)
+                    val globalDistSq = v0.lengthSquared()
+                    println("hit sth, $globalDistSq vs ${sq(group.depths[i])}")
+                    if (globalDistSq < sq(group.depths[i])) {
+                        group.depths[i] = sqrt(globalDistSq)
+                        // transform normal from local to world
+                        localToWorld.transformDirection(v1) // is normalized later
+                        group.normalX[i] = v1.x
+                        group.normalY[i] = v1.y
+                        group.normalZ[i] = v1.z
+                    }
+                }
+            }
+
+            JomlPools.vec3f.sub(2)
 
         }
     }

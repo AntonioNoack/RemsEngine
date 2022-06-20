@@ -2,6 +2,7 @@ package me.anno.maths.geometry
 
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.sdf.SDFGroup
+import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
 import me.anno.ecs.components.mesh.sdf.shapes.SDFSphere
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
@@ -18,7 +19,8 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 
 /**
- * test of dual contouring; currently unusable, because of awkward bugs...
+ * theoretically nice, practically pretty bad :/
+ * use MarchingCubes instead
  * */
 object DualContouring3d {
 
@@ -220,10 +222,10 @@ object DualContouring3d {
             q.findExtremum(g)
 
             // optimize the theoretical extremum
-            val gx = g.x + x0
-            val gy = g.y + y0
-            val gz = g.z + z0
-            val s = simplexAlgorithm(floatArrayOf(gx, gy, gz), 0.25f, 0f, 32) {
+            val s = simplexAlgorithm(
+                floatArrayOf(g.x + x0, g.y + y0, g.z + z0),
+                0.25f, 0f, 32
+            ) {
                 sq(fn.calc(it[0], it[1], it[2])) +
                         10f * (0f +
                         max(0f, x0 - it[0]) +
@@ -234,13 +236,8 @@ object DualContouring3d {
                         max(0f, it[2] - z1)
                         )
             }
-            g.set(s[0], s[1], s[2])
-            val l = length(s[0] / 16f - 0.5f, s[1] / 16f - 0.5f, s[2] / 16f - 0.5f) * 2.5f
-            if (l !in 0.99f..1.01f) println("${fn.calc(s[0], s[1], s[2])} for $l")
 
-            // todo this is good and correct, but why are the faces still messed up???
-
-            vertices[wi] = Vector3f(gx, gy, gz)
+            vertices[wi] = Vector3f(s)
 
         }
     }
@@ -362,19 +359,19 @@ object DualContouring3d {
     @JvmStatic
     fun main(args: Array<String>) {
 
-        val sx = 16
-        val sy = 16
-        val sz = 16
+        val sx = 64
+        val sy = 64
+        val sz = 64
 
-        val s = 2.5f
+        val s = 3.5f
         val comp = SDFGroup()
         val d = 0.43f
         comp.addChild(SDFSphere().apply {
-            // position.sub(d, d, 0f)
+            position.sub(d, d, 0f)
         })
-        /*comp.addChild(SDFBox().apply {
+        comp.addChild(SDFBox().apply {
             position.add(d, d, 0f)
-        })*/
+        })
         comp.style = SDFGroup.Style.STAIRS
         comp.smoothness = 1f
         comp.type = SDFGroup.CombinationMode.TONGUE
@@ -419,7 +416,7 @@ object DualContouring3d {
                 indices[i++] = j + 2
             }
             mesh.indices = indices
-            mesh.calculateNormals(false)
+            // mesh.calculateNormals(false)
         }
     }
 
