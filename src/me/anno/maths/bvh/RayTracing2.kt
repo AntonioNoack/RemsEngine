@@ -53,21 +53,21 @@ object RayTracing2 {
             "   while(k-- > 0u){\n" + // start of tlas
             // fetch tlas node data
             "       TLASNode node = tlasNodes[nodeIndex];\n" +
-            "       if(intersectAABB(worldPos,worldInvDir,node.d0.xyz,node.d1.xyz,worldDistance)){\n" +
-            "           uvec2 v01 = floatBitsToUint(vec2(node.d0.w,node.d1.w));\n" +
+            "       if(intersectAABB(worldPos,worldInvDir,node.min,node.max,worldDistance)){\n" +
+            "           uvec2 v01 = uvec2(node.v0,node.v1);\n" +
             "           if(v01.y < 3u){\n" + // tlas branch
             // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
             "               if(worldDir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
-            "                   nodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
+            "                   nodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark the other child for later
             "                   nodeIndex++;\n" + // search child next
             "               } else {\n" +
-            "                   nodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark other child for later
+            "                   nodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark the other child for later
             "                   nodeIndex += v01.x;\n" + // search child next
             "               }\n" +
             "           } else {\n" + // tlas leaf
             "               numIntersections++;\n" +
             // transform ray into local coordinates
-            /*"               vec3 localPos = node.worldToLocal * vec4(worldPos, 1.0);\n" +
+            "               vec3 localPos = node.worldToLocal * vec4(worldPos, 1.0);\n" +
             "               vec3 localDir0 = node.worldToLocal * vec4(worldDir, 0.0);\n" +
             "               vec3 localDir = normalize(localDir0);\n" +
             "               vec3 localInvDir = 1.0 / localDir;\n" +
@@ -85,7 +85,7 @@ object RayTracing2 {
             "                       worldDistance = worldDistance1;\n" +
             "                       worldNormal = node.localToWorld * vec4(localNormal, 0.0);\n" +
             "                   }\n" +
-            "               }\n" + // end of blas; get next tlas node*/
+            "               }\n" + // end of blas; get next tlas node
             "               if(stackIndex < 1u) break;\n" +
             "               nodeIndex = nodeStack[--stackIndex];\n" +
             "           }\n" +

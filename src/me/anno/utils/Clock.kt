@@ -1,8 +1,12 @@
 package me.anno.utils
 
+import me.anno.utils.types.Floats.f1
+import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Floats.f3
+import me.anno.utils.types.Floats.f4
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import kotlin.math.roundToInt
 
 /**
  * a class for measuring performance
@@ -28,14 +32,27 @@ class Clock(
         stop(wasUsedFor, minTime)
     }
 
-    fun stop(wasUsedFor: () -> String, elementCount: Int) {
+    fun stop(wasUsedFor: () -> String, elementCount: Long) {
         val time = System.nanoTime()
         val dt0 = time - lastTime
         val dt = dt0 * 1e-9
         lastTime = time
         if (dt > minTime) {
-            val nanosPerElement = dt0 / elementCount
-            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for ${wasUsedFor()}, ${nanosPerElement}ns/e")
+            val nanosPerElement = dt0.toDouble() / elementCount
+            LOGGER.info(
+                "Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s" +
+                        " for ${wasUsedFor()}, ${format(nanosPerElement)}ns/e"
+            )
+        }
+    }
+
+    fun format(nanos: Double): String {
+        return when {
+            nanos < 1.0 -> nanos.f4()
+            nanos < 10.0 -> nanos.f3()
+            nanos < 100.0 -> nanos.f2()
+            nanos < 1e3 -> nanos.f1()
+            else -> nanos.roundToInt().toString()
         }
     }
 
@@ -43,14 +60,20 @@ class Clock(
         stop(wasUsedFor, minTime)
     }
 
-    fun stop(wasUsedFor: String, elementCount: Int) {
+    fun stop(wasUsedFor: String, elementCount: Int) =
+        stop(wasUsedFor, elementCount.toLong())
+
+    fun stop(wasUsedFor: String, elementCount: Long) {
         val time = System.nanoTime()
         val dt0 = time - lastTime
         val dt = dt0 * 1e-9
         lastTime = time
         if (dt > minTime) {
-            val nanosPerElement = dt0 / elementCount
-            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for $wasUsedFor, ${nanosPerElement}ns/e")
+            val nanosPerElement = dt0.toDouble() / elementCount
+            LOGGER.info(
+                "Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s " +
+                        "for $wasUsedFor, ${format(nanosPerElement)}ns/e"
+            )
         }
     }
 
@@ -101,6 +124,23 @@ class Clock(
         }
     }
 
+    fun benchmark(warmupRuns: Int, measuredRuns: Int, usedFor: String, run: (Int) -> Unit) =
+        benchmark(warmupRuns, measuredRuns, 1, usedFor, run)
+
+    fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Int, usedFor: String, run: (Int) -> Unit) =
+        benchmark(warmupRuns, measuredRuns, numElements.toLong(), usedFor, run)
+
+    fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Long, usedFor: String, run: (Int) -> Unit) {
+        for (i in 0 until warmupRuns) {
+            run(i - warmupRuns)
+        }
+        start()
+        for (i in 0 until measuredRuns) {
+            run(i)
+        }
+        stop(usedFor, measuredRuns * numElements)
+    }
+
     companion object {
         private val LOGGER = LogManager.getLogger(Clock::class)
         fun print(t0: Long, times: List<Pair<Long, String>>) {
@@ -109,6 +149,7 @@ class Clock(
                 LOGGER.info("Used ${dt.f3()}s for $title")
             }
         }
+
         fun <V> measure(name: String, func: () -> V): V {
             val c = Clock()
             val value = func()

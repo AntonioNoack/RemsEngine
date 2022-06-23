@@ -1,18 +1,21 @@
-package me.anno.network.test
+package me.anno.network.http
 
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.network.Server
 import me.anno.network.TCPClient
-import me.anno.network.http.HttpProtocol
 import org.apache.logging.log4j.LogManager
-import kotlin.math.log
+import java.util.TreeSet
 
 /**
  * a sample web server, implemented on top of the server class;
  * this shows how a webserver could run on the same port as the game server
  * */
 fun main() {
+
+    val s = TreeSet<Int>()
+    s.add(0)
+
     // WARNING: do not copy this 1:1, as this has a lot of security flaws, e.g. you can access all files on the computer this is hosted on
     val logger = LogManager.getLogger("HttpServerTest")
     val server = Server()

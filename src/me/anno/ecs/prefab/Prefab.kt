@@ -158,10 +158,17 @@ class Prefab : Saveable {
      * it assumes, that it does not yet exist
      * */
     fun setUnsafe(path: Path, name: String, value: Any?) {
-        /*ensureMutableLists()
-        (sets as MutableList).add(CSet(path, name, value))*/
         if (!isWritable) throw ImmutablePrefabException(source)
-        sets[path, name] = value
+        sets.setUnsafe(path, name, value)
+    }
+
+    /**
+     * does not check, whether the change already exists;
+     * it assumes, that it does not yet exist
+     * */
+    fun setUnsafe(name: String, value: Any?) {
+        if (!isWritable) throw ImmutablePrefabException(source)
+        sets.setUnsafe(ROOT_PATH, name, value)
     }
 
     fun add(parentPath: Path, typeChar: Char, type: String, nameId: String, index: Int, insertIndex: Int = -1): Path {

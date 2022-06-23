@@ -4,7 +4,6 @@ import me.anno.engine.raycast.RayHit
 import me.anno.maths.Maths.sq
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.print
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
@@ -23,7 +22,6 @@ class TLASLeaf(
         println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $worldToLocal, ${mesh.nodeId}")
     }
 
-    // idk, we could go deeper if we wanted
     override fun countNodes() = 1
     override fun maxDepth() = 1
     override fun forEach(run: (TLASNode) -> Unit) = run(this)

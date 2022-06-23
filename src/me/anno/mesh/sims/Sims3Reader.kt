@@ -5,6 +5,7 @@ import me.anno.io.files.Signature
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
+import me.anno.utils.types.Buffers.skip
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -252,10 +253,6 @@ object Sims3Reader {
                 i.and(255).toChar()
             )
         )
-    }
-
-    fun ByteBuffer.skip(n: Int) {
-        position(position() + n)
     }
 
     fun leMagic(b: Char, g: Char, r: Char, a: Char): Int {

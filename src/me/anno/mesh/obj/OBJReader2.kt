@@ -83,19 +83,12 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         val normal = points[index + 1]
         val uv = points[index + 2]
         val positions = positions
-        val facePositions = facePositions
-        facePositions.ensureExtra(3)
-        facePositions.addUnsafe(positions[vertex])
-        facePositions.addUnsafe(positions[vertex + 1])
-        facePositions.addUnsafe(positions[vertex + 2])
+        facePositions.add(positions, vertex, 3)
         val faceNormals = faceNormals
-        faceNormals.ensureExtra(3)
         if (normal in 0 until normals.size - 2) {
-            val normals = normals
-            faceNormals.addUnsafe(normals[normal])
-            faceNormals.addUnsafe(normals[normal + 1])
-            faceNormals.addUnsafe(normals[normal + 2])
+            faceNormals.add(normals, normal, 3)
         } else {
+            faceNormals.ensureExtra(3)
             faceNormals.addUnsafe(0f, 0f, 0f)
         }
         val faceUVs = faceUVs
@@ -111,14 +104,9 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     private fun putLinePoint(index: Int) {
         val vertex = index * 3
         try {
-            facePositions += positions[vertex]
-            facePositions += positions[vertex + 1]
-            facePositions += positions[vertex + 2]
-            faceNormals += 0f
-            faceNormals += 0f
-            faceNormals += 0f
-            faceUVs += 0f
-            faceUVs += 0f
+            facePositions.add(positions, vertex, 3)
+            faceNormals.add(0f, 0f, 0f)
+            faceUVs.add(0f, 0f)
         } catch (e: ArrayIndexOutOfBoundsException) {
             e.printStackTrace()
         }
@@ -175,10 +163,10 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             val mesh = Prefab("Mesh")
             val name = lastObjectPath.nameId
             var fileName = "$name.json"
-            mesh.setProperty("material", lastMaterial)
-            mesh.setProperty("positions", facePositions.toFloatArray())
-            mesh.setProperty("normals", faceNormals.toFloatArray())
-            mesh.setProperty("uvs", faceUVs.toFloatArray())
+            mesh.setUnsafe("material", lastMaterial)
+            mesh.setUnsafe("positions", facePositions.toFloatArray())
+            mesh.setUnsafe("normals", faceNormals.toFloatArray())
+            mesh.setUnsafe("uvs", faceUVs.toFloatArray())
             val meshesFolder = meshesFolder
             // find good new name for mesh
             if (meshesFolder.getChild(fileName) != InvalidRef) {
@@ -192,10 +180,10 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             val meshRef = meshesFolder.createPrefabChild(fileName, mesh)
             mesh.source = meshRef
             var prefabName = name
-            var add: Path
+            var meshPath: Path
             nameSearch@ while (true) {
                 try {
-                    add = scenePrefab.add(lastObjectPath, 'c', "MeshComponent", prefabName, meshCountInObject)
+                    meshPath = scenePrefab.add(lastObjectPath, 'c', "MeshComponent", prefabName, meshCountInObject)
                     break@nameSearch
                 } catch (e: IllegalArgumentException) {
                     // continue searching a better name...
@@ -203,7 +191,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
                 }
             }
             meshCountInObject++
-            scenePrefab[add, "mesh"] = meshRef
+            scenePrefab[meshPath, "mesh"] = meshRef
             // LOGGER.debug("Clearing at ${facePositions.size / 3}")
             facePositions.clear()
             faceNormals.clear()
@@ -332,90 +320,38 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         }
     }
 
-    private fun readFacePoints() {
+    private fun readFace() {
+
         val points = points
         points.clear()
+        var pointCount = 0
         val numPositions = numPositions
         val numNormals = numNormals
         val numUVs = numUVs
-        pts@ while (true) {
-            when (val next = nextChar()) {
-                ' ', '\t', '\r' -> {
-                }
-                '\n' -> break@pts
-                '+', '-', in '0'..'9' -> {
-                    putBack(next)
-                    val vertexIndex = readIndex(numPositions)
-                    var uvIndex = -1
-                    var normalIndex = -1
-                    if (putBack == '/'.code) {
-                        nextChar()
-                        uvIndex = readIndex(numUVs)
-                        if (putBack == '/'.code) {
-                            nextChar()
-                            normalIndex = readIndex(numNormals)
-                        }
+        findPoints@ while (true) {
+            skipSpaces()
+            val next = next()
+            if (next in 48..58 || next == minus) {
+                putBack(next)
+                val vertexIndex = readIndex(numPositions)
+                var uvIndex = -1
+                var normalIndex = -1
+                if (putBack == slash) {
+                    putBack = -1
+                    uvIndex = readIndex(numUVs)
+                    if (putBack == slash) {
+                        putBack = -1
+                        normalIndex = readIndex(numNormals)
                     }
-                    points.ensureCapacity(points.size + 3)
-                    points.addUnsafe(vertexIndex * 3, normalIndex * 3, uvIndex * 2)
-                    if (points.size % 250 == 0) LOGGER.warn("Large polygon in $file, ${points.size / 3} points, '$next'")
                 }
-                else -> {
-                    LOGGER.warn("Unexpected character $next in face line")
-                    skipLine()
-                    return
-                }
-            }
-        }
-    }
-
-    private fun triangulateFace() {
-
-        // triangulate the points correctly
-        // currently is the most expensive step, because of so many allocations:
-        // points, the array, the return list, ...
-
-        val points2 = Array(points.size / 3) {
-            val point = Point.stack.create()
-            val vi = points[it * 3]
-            val ni = points[it * 3 + 1]
-            val ui = points[it * 3 + 2]
-            point.position.set(
-                positions[vi],
-                positions[vi + 1],
-                positions[vi + 2]
-            )
-            if (ni >= 0) {
-                point.normal.set(
-                    normals[ni],
-                    normals[ni + 1],
-                    normals[ni + 2]
-                )
-            } else point.normal.set(0f)
-            if (ui >= 0) {
-                point.uv!!.set(
-                    uvs[ui],
-                    uvs[ui + 1]
-                )
-            } else point.uv!!.set(0f)
-            point
-        }
-        val triangles = Triangulation.ringToTrianglesPoint(points2)
-        for (i in triangles.indices step 3) {
-            putPoint(triangles[i])
-            putPoint(triangles[i + 1])
-            putPoint(triangles[i + 2])
+                points.add(vertexIndex * 3, normalIndex * 3, uvIndex * 2)
+                pointCount++
+                if (pointCount and 63 == 0)
+                    LOGGER.warn("Large polygon in $file, $pointCount points, '$next'")
+            } else break@findPoints
         }
 
-        Point.stack.sub(points2.size)
-
-    }
-
-    private fun readFace() {
-
-        readFacePoints()
-
-        when (points.size / 3) {
+        when (pointCount) {
             0 -> {
             } // nothing...
             1 -> {
@@ -443,7 +379,47 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
                 putPoint(9)
                 putPoint(0)
             }
-            else -> triangulateFace()
+            else -> {
+
+                // triangulate the points correctly
+                // currently is the most expensive step, because of so many allocations:
+                // points, the array, the return list, ...
+
+                val points2 = Array(points.size / 3) {
+                    val point = Point.stack.create()
+                    val vi = points[it * 3]
+                    val ni = points[it * 3 + 1]
+                    val ui = points[it * 3 + 2]
+                    point.position.set(
+                        positions[vi],
+                        positions[vi + 1],
+                        positions[vi + 2]
+                    )
+                    if (ni >= 0) {
+                        point.normal.set(
+                            normals[ni],
+                            normals[ni + 1],
+                            normals[ni + 2]
+                        )
+                    } else point.normal.set(0f)
+                    if (ui >= 0) {
+                        point.uv!!.set(
+                            uvs[ui],
+                            uvs[ui + 1]
+                        )
+                    } else point.uv!!.set(0f)
+                    point
+                }
+                val triangles = Triangulation.ringToTrianglesPoint(points2)
+                for (i in triangles.indices step 3) {
+                    putPoint(triangles[i])
+                    putPoint(triangles[i + 1])
+                    putPoint(triangles[i + 2])
+                }
+
+                Point.stack.sub(points2.size)
+
+            }
         }
     }
 
@@ -451,14 +427,10 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
 
         try {
 
-            while (true) {
+            lines@ while (true) {
                 // read the line
                 skipSpaces()
                 when (val char0 = nextChar()) {
-                    '#' -> skipLine()
-                    'o' -> readNewObject()
-                    'g' -> readNewGroup()
-                    'u' -> readUseMaterial()
                     'v' -> {
                         when (nextChar()) {
                             ' ', '\t' -> readPosition()
@@ -467,13 +439,17 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
                             else -> skipLine()
                         }
                     }
+                    'f' -> readFace()
+                    'l' -> readLine()
+                    '#' -> skipLine()
+                    'o' -> readNewObject()
+                    'g' -> readNewGroup()
+                    'u' -> readUseMaterial()
                     // smoothness -> ignore?
                     // at least Blender sets smoothness by normals
                     // what would it be otherwise???...
                     's' -> skipLine()
                     'm' -> readMaterialLib()
-                    'l' -> readLine()
-                    'f' -> readFace()
                     else -> {
                         putBack(char0)
                         val tagName = readUntilSpace()

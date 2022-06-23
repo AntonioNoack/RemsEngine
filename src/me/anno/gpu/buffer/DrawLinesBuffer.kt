@@ -3,11 +3,7 @@ package me.anno.gpu.buffer
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.pooling.ByteBufferPool
-import org.lwjgl.opengl.GL11C.*
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL15C.GL_ELEMENT_ARRAY_BUFFER
-import org.lwjgl.opengl.GL15C.glGenBuffers
-import org.lwjgl.opengl.GL31C.glDrawElementsInstanced
+import org.lwjgl.opengl.GL31C.*
 import kotlin.math.min
 
 object DrawLinesBuffer {
@@ -47,10 +43,10 @@ object DrawLinesBuffer {
                 nioBuffer.put(j)
             }
             nioBuffer.position(0)
-            GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, nioBuffer, GL15.GL_STATIC_DRAW)
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, nioBuffer, GL_STATIC_DRAW)
             ByteBufferPool.free(nioBytes)
             // GFX.check()
-        } else bindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
+        } else bindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
     }
 
 }

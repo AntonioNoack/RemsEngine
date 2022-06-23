@@ -8,6 +8,7 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.utils.Clock
+import me.anno.utils.Warning.unused
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.partition1
 import me.anno.utils.types.Booleans.toInt
@@ -81,7 +82,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
             }
             for (index in dr.indices) {
                 val dri = dr[index]
-                // to do theoretically, we'd need to respect material override as well,
+                // to do theoretically, we'd need to respect the material override as well,
                 // but idk how to do materials yet...
                 val mesh = dri.mesh
                 val blas = blasCache.getOrPut(mesh) {
@@ -93,6 +94,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
             }
             // add all instanced objects
             scene.instancedMeshes1.forEach { mesh, matWithId, stack ->
+                unused(matWithId)
                 val blas = blasCache.getOrPut(mesh) {
                     buildBLAS(mesh, splitMethod, maxNodeSize)
                 }
@@ -104,6 +106,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
                 }
             }
             scene.instancedMeshes2.forEach { mesh, material, stack ->
+                unused(material)
                 val blas = blasCache.getOrPut(mesh) {
                     buildBLAS(mesh, splitMethod, maxNodeSize)
                 }
@@ -356,11 +359,11 @@ abstract class BVHBuilder(val bounds: AABBf) {
         }*/
 
         fun median(
-            positions: FloatArray,
-            indices: IntArray,
-            start: Int,
-            end: Int,
-            condition: (a0: Vector3f, b0: Vector3f, c0: Vector3f, a1: Vector3f, b1: Vector3f, c1: Vector3f) -> Int
+            positions: FloatArray, indices: IntArray, start: Int, end: Int,
+            condition: (
+                Vector3f, Vector3f, Vector3f,
+                Vector3f, Vector3f, Vector3f
+            ) -> Int
         ) {
             // not optimal performance, but at least it will 100% work
             val count = end - start
@@ -391,11 +394,11 @@ abstract class BVHBuilder(val bounds: AABBf) {
         }
 
         private fun comp(
-            positions: FloatArray,
-            indices: IntArray,
-            i: Int,
-            j: Int,
-            condition: (a0: Vector3f, b0: Vector3f, c0: Vector3f, a1: Vector3f, b1: Vector3f, c1: Vector3f) -> Int
+            positions: FloatArray, indices: IntArray, i: Int, j: Int,
+            condition: (
+                Vector3f, Vector3f, Vector3f,
+                Vector3f, Vector3f, Vector3f
+            ) -> Int
         ): Int {
             val a0 = JomlPools.vec3f.create()
             val b0 = JomlPools.vec3f.create()
@@ -429,9 +432,9 @@ abstract class BVHBuilder(val bounds: AABBf) {
 
             while (i < j) {
                 // while front is fine, progress front
-                while (i < j && cond(positions, indices, i, condition)) i++
+                while (i < j && condition2(positions, indices, i, condition)) i++
                 // while back is fine, progress back
-                while (i < j && !cond(positions, indices, j, condition)) j--
+                while (i < j && !condition2(positions, indices, j, condition)) j--
                 // if nothing works, swap i and j
                 if (i < j) {
                     var i3 = i * 3
@@ -450,8 +453,9 @@ abstract class BVHBuilder(val bounds: AABBf) {
 
         }
 
-        private fun cond(
-            positions: FloatArray, indices: IntArray, i: Int, condition: (Vector3f, Vector3f, Vector3f) -> Boolean
+        private fun condition2(
+            positions: FloatArray, indices: IntArray, i: Int,
+            condition: (Vector3f, Vector3f, Vector3f) -> Boolean
         ): Boolean {
             val a = JomlPools.vec3f.create()
             val b = JomlPools.vec3f.create()

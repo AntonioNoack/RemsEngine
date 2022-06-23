@@ -38,7 +38,7 @@ object ImageTracing {
             i2++
         }
         val ops = IntArrayList(64)
-        val data = FloatArrayList(256, 0f)
+        val data = FloatArrayList(256)
         val edge = IntArrayList(64)
         val p = FloatArray(2)
         val p2 = FloatArray(2)

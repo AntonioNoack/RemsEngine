@@ -17,13 +17,15 @@ import me.anno.gpu.texture.ITexture2D
 
 object ShaderPlus {
 
-    fun create(name: String, vertex: String, varying: List<Variable>, fragment: String): Shader {
+    /*fun create(name: String, vertex: String, varying: List<Variable>, fragment: String): Shader {
         return Shader(name, null, vertex, varying, makeFragmentShaderUniversal(varying, fragment))
-    }
+    }*/
 
-    fun create(name: String, geometry: String?, vertex: String, varying: List<Variable>, fragment: String): Shader {
+    /*fun create(name: String, geometry: String?, vertex: String, varying: List<Variable>, fragment: String): Shader {
         return Shader(name, geometry, vertex, varying, makeFragmentShaderUniversal(varying, fragment))
-    }
+    }*/
+
+    private const val randomFunc = "#define GET_RANDOM(co) fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453)\n"
 
     fun create(
         name: String, geometry: String?,
@@ -38,8 +40,6 @@ object ShaderPlus {
         )
     }
 
-    val randomFunc = "#define GET_RANDOM(co) fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453)\n"
-
     fun makeFragmentShaderUniversal(varyingSource: List<Variable>, fragmentSource: String): String {
         val hasFinalColor = "finalColor" in fragmentSource
         val hasZDistance = "zDistance" in varyingSource.map { it.name }
@@ -53,7 +53,7 @@ object ShaderPlus {
                 (if (hasTint) "" else "uniform vec4 tint;\n") +
                 "" + raw.substring(0, raw.length - 1) + "" +
                 (if (hasZDistance) "" else "float zDistance = 0.0;\n") +
-                (if (hasFinalColor) "" else "vec3 finalColor = gl_FragColor.rgb;float finalAlpha = gl_FragColor.a;\n") +
+                (if (hasFinalColor) "" else "vec3 finalColor = gl_FragColor.rgb; float finalAlpha = gl_FragColor.a;\n") +
                 (if (hasMotionVectors) "" else "vec3 finalMotion = vec3(0.0);\n") +
                 randomFunc +
                 "switch(drawMode){\n" +

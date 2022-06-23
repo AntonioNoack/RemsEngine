@@ -129,9 +129,9 @@ val shading = "" +
         // find new ray direction depending on BRDF
         "           pos = pos + dir * distance;\n" +
         // diffuse:
-        // "           dir = normalize(normal + nextRandS3(seed));\n" +
+        "           dir = normalize(normal + nextRandS3(seed));\n" +
         // metallic:
-        "           dir = normalize(reflect(dir, normalize(normal)) + roughness * nextRandS3(seed));\n" +
+        // "           dir = normalize(reflect(dir, normalize(normal)) + roughness * nextRandS3(seed));\n" +
         // add small offset, so we don't have shadow acne
         "           pos += dir * 0.01;\n" +
         "           if(i==limit-1) color = vec3(0.0);\n" +
@@ -333,14 +333,12 @@ fun createComputeShaderV2(tlas: TLASNode): Quad<ComputeShader, ComputeBuffer, Co
                 "   uint v1;\n" +
                 "};\n" +
                 "struct TLASNode {\n" +
-                /*"   vec3    min;\n" +
+                "   vec3    min;\n" +
                 "   uint    v0;\n" +
                 "   vec3    max;\n" +
-                "   uint    v1;\n" +*/
-                "   vec4 d0;\n" +
-                "   vec4 d1;\n" +
-                //"   vec4 x0,x1,x2;\n" + // mat4x3 worldToLocal
-                //"   vec4 x3,x4,x5;\n" + // mat4x3 localToWorld
+                "   uint    v1;\n" +
+                "   mat4x3 worldToLocal;\n" +
+                "   mat4x3 localToWorld;\n" +
                 "};\n" +
                 // std430 needed? yes, core since 4.3
                 "layout(std140, shared, binding = 0) readonly buffer triangles  { Vertex vertices[]; };\n" +

@@ -35,7 +35,7 @@ object Utils {
      * @return the converted value
      */
     private fun swapInteger(value: Int): Int {
-        return (value and -0x1000000 shr 24 or (value and 0x00FF0000 shr 8) or (value and 0x0000FF00 shl 8) or (value and 0x000000FF shl 24))
+        return (value ushr 24) + ((value ushr 8) and 0xff00) + ((value shl 8) and 0xff0000) + (value shl 24)
     }
 
     private fun toHexString(i0: Int, littleEndian: Boolean): String {

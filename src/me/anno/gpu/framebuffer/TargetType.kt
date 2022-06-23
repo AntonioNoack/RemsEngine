@@ -1,7 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX.getName
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL30C.*
 
 class TargetType(
     val name: String,

@@ -16,6 +16,7 @@ import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Strings.parseTime
 import me.saharnooby.qoi.QOIImage
+import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import javax.imageio.ImageIO
@@ -62,7 +63,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                     loadFFMPEG()
                 }
             }
-            "png", "jpg", "psd", "ico", "dds", "exr" -> {
+            "png", "jpg", "psd", "dds", "exr" -> {
                 for (reader in ImageIO.getImageReadersBySuffix(signature)) {
                     try {
                         file.inputStream().use {
@@ -76,12 +77,14 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                     }
                 }
             }
+            "ico" -> setImage(file.inputStream().use { ICOReader.findSize(it) })
             null -> {
-                if (file.lcExtension == "tga") {
-                    setImage(file.inputStream().use { TGAImage.findSize(it) })
+                when (file.lcExtension) {
+                    "tga" -> setImage(file.inputStream().use { TGAImage.findSize(it) })
+                    "ico" -> setImage(file.inputStream().use { ICOReader.findSize(it) })
+                    // else unknown
                 }
             }
-            // else unknown
         }
 
     }

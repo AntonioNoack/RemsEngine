@@ -58,8 +58,9 @@ class ExpandingFloatArray(
     fun ensureExtra(extra: Int) {
         val array = array
         if (array == null || size + extra > array.size) {
-            val newArray =
-                FloatArray(if (array == null) max(initCapacity, extra) else max(max(array.size * 2, 16), size + extra))
+            val newSize = if (array == null) max(initCapacity, extra)
+            else max(max(array.size * 2, 16), size + extra)
+            val newArray = FloatArray(newSize)
             if (array != null) System.arraycopy(array, 0, newArray, 0, size)
             this.array = newArray
         }
@@ -115,7 +116,25 @@ class ExpandingFloatArray(
         this.size = size
     }
 
-    fun add(v: FloatArray, startIndex: Int, length: Int) {
+    fun add(x: Float, y: Float) {
+        ensureExtra(2)
+        addUnsafe(x)
+        addUnsafe(y)
+    }
+
+    fun add(x: Float, y: Float, z: Float) {
+        ensureExtra(3)
+        addUnsafe(x)
+        addUnsafe(y)
+        addUnsafe(z)
+    }
+
+    fun add(v: FloatArray, srcStartIndex: Int, length: Int) {
+        ensureExtra(length)
+        addUnsafe(v, srcStartIndex, length)
+    }
+
+    fun add(v: ExpandingFloatArray, startIndex: Int, length: Int) {
         ensureExtra(length)
         addUnsafe(v, startIndex, length)
     }
@@ -127,6 +146,13 @@ class ExpandingFloatArray(
             array[size + i] = v[startIndex + i]
         }
         this.size = size + length
+    }
+
+    fun addUnsafe(v: ExpandingFloatArray, startIndex: Int, length: Int) {
+        val dst = array!!
+        val src = v.array!!
+        System.arraycopy(src, startIndex, dst, size, length)
+        this.size += length
     }
 
     operator fun get(index: Int) = array!![index]

@@ -1,7 +1,7 @@
 package me.anno.mesh.unreal
 
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.mesh.sims.Sims3Reader.skip
+import me.anno.utils.types.Buffers.skip
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -53,7 +53,7 @@ object UnrealReader {
             // todo read license version
             val customVersionContainer =
                 if (legacyFileVersion <= -2) readArray { readCustomVersion() } else emptyArray()
-            if(fileVersionUE4 == 0 && fileVersionUE5 == 0 && fileVersionLicensee == 0){
+            if (fileVersionUE4 == 0 && fileVersionUE5 == 0 && fileVersionLicensee == 0) {
                 unversioned = true
                 fileVersionUE = 0 // todo Ar.Ver
                 fileVersionLicensee // ...
@@ -84,7 +84,7 @@ object UnrealReader {
         TODO()
     }
 
-    fun readCustomVersion(){
+    fun readCustomVersion() {
         TODO()
     }
 

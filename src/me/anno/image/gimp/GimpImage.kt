@@ -12,7 +12,6 @@ import me.anno.io.zip.InnerFolder
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
-import me.anno.mesh.sims.Sims3Reader.skip
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -22,6 +21,7 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Buffers.skip
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream

@@ -5,12 +5,15 @@ import me.anno.image.raw.ComponentImage
 import me.anno.image.raw.GrayscaleImage
 import me.anno.image.raw.OpaqueImage
 import me.anno.io.files.FileReference
+import me.anno.io.files.Signature
 import me.anno.io.zip.InnerFolder
+import net.sf.image4j.codec.ico.ICOReader
 import java.io.IOException
 
+/**
+ * an easy interface to read any image as rgba and individual channels
+ * */
 object ImageReader {
-
-    // easy interface to read any image as rgba and individual channels
 
     fun readAsFolder(file: FileReference): InnerFolder {
 
@@ -18,6 +21,7 @@ object ImageReader {
         // (overriding color)
 
         val folder = InnerFolder(file)
+
         // add the most common swizzles: r,g,b,a
         // to do maybe bgra or similar in the future
         val image = ImageCPUCache.getImage(file, false) ?: throw IOException("Could not read $file as image")
@@ -45,6 +49,21 @@ object ImageReader {
 
         // rgb without alpha, if alpha exists
         if (hasA) createComponent(folder, "rgb1.png", OpaqueImage(image))
+
+        if (file.lcExtension == "ico") {
+            val sign = Signature.findName(file)
+            if (sign == null || sign == "ico") {
+                try {
+                    val layers = ICOReader.readAllLayers(file.inputStream())
+                    for (index in layers.indices) {
+                        val layer = layers[index]
+                        folder.createImageChild("layer$index", layer)
+                    }
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+        }
 
         return folder
     }

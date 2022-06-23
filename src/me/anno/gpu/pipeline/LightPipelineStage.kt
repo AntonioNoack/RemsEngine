@@ -34,7 +34,7 @@ import me.anno.utils.structures.lists.SmallestKList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4fc
 import org.joml.Vector3d
-import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
+import org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW
 
 class LightPipelineStage(
     val deferred: DeferredSettingsV2

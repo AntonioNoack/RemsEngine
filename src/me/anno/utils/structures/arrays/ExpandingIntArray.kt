@@ -1,12 +1,13 @@
 package me.anno.utils.structures.arrays
 
 import me.anno.utils.LOGGER
+import me.anno.utils.search.BinarySearch
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 class ExpandingIntArray(
     private val initCapacity: Int
-) : List<Int> {
+) : Collection<Int> {
 
     override var size = 0
 
@@ -63,6 +64,25 @@ class ExpandingIntArray(
         this.size = size
     }
 
+    fun add(values: ExpandingIntArray, srcStartIndex: Int = 0, srcEndIndex: Int = values.size) {
+        val length = srcEndIndex - srcStartIndex
+        if (length <= 0) return
+        ensureCapacity(size + length)
+        val dst = array!!
+        val src = values.array!!
+        System.arraycopy(src, srcStartIndex, dst, size, length)
+        this.size += length
+    }
+
+    fun joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
+        val builder = StringBuilder(endIndex - startIndex)
+        // could be optimized
+        for (index in startIndex until endIndex) {
+            builder.append(Character.toChars(get(index)))
+        }
+        return builder
+    }
+
     fun removeAt(index: Int) {
         val array = array ?: return
         System.arraycopy(array, index + 1, array, index, size - index - 1)
@@ -82,7 +102,7 @@ class ExpandingIntArray(
 
     fun last() = array!![size - 1]
 
-    override operator fun get(index: Int) = array!![index]
+    operator fun get(index: Int) = array!![index]
 
     fun addUnsafe(x: Int) {
         array!![size++] = x
@@ -93,6 +113,16 @@ class ExpandingIntArray(
         var size = size
         array[size++] = x
         array[size++] = y
+        this.size = size
+    }
+
+    fun add(x: Int, y: Int, z: Int) {
+        ensureCapacity(size + 3)
+        val array = array!!
+        var size = size
+        array[size++] = x
+        array[size++] = y
+        array[size++] = z
         this.size = size
     }
 
@@ -116,15 +146,15 @@ class ExpandingIntArray(
         return indexOf(element) >= 0
     }
 
-    override fun indexOf(element: Int): Int {
+    fun indexOf(element: Int): Int {
         val array = array ?: return -1
-        for (i in 0 until size) {
+        for (i in indices) {
             if (array[i] == element) return i
         }
         return -1
     }
 
-    override fun lastIndexOf(element: Int): Int {
+    fun lastIndexOf(element: Int): Int {
         val array = array ?: return -1
         for (i in size - 1 downTo 0) {
             if (array[i] == element) return i
@@ -132,15 +162,8 @@ class ExpandingIntArray(
         return -1
     }
 
-    override fun iterator(): Iterator<Int> {
-        return listIterator()
-    }
-
-    override fun listIterator(): ListIterator<Int> {
-        return listIterator(0)
-    }
-
-    override fun listIterator(index: Int): ListIterator<Int> {
+    override fun iterator() = listIterator()
+    fun listIterator(index: Int = 0): ListIterator<Int> {
         val array = array!!
         return object : ListIterator<Int> {
             var i = index
@@ -153,9 +176,15 @@ class ExpandingIntArray(
         }
     }
 
-    override fun subList(fromIndex: Int, toIndex: Int): List<Int> {
+    fun subList(fromIndex: Int, toIndex: Int): List<Int> {
         val array = array ?: return emptyList()
         return IntArray(toIndex - fromIndex) { array[fromIndex + it] }.toList()
+    }
+
+    fun binarySearch(element: Int): Int {
+        return BinarySearch.binarySearch(size) {
+            it.compareTo(element)
+        }
     }
 
     override fun containsAll(elements: Collection<Int>): Boolean {

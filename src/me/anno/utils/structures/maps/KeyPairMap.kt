@@ -31,6 +31,18 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         if (list.replaceOrAddMap(k2, v)) size++
     }
 
+    fun setUnsafe(
+        k1: KManifold,
+        k2: KFewOnly,
+        v: Value
+    ) {
+        // if (k1 == Path.ROOT_PATH && k2 == "gravity") throw RuntimeException()
+        // LOGGER.info("('$k1','$k2') = '$v'")
+        val list = values.getOrPut(k1) { PairArrayList(8) }
+        list.add(k2, v)
+        size++
+    }
+
     inline fun getOrPut(
         k1: KManifold,
         k2: KFewOnly,

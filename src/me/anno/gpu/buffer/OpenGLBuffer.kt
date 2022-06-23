@@ -5,7 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.debug.DebugGPUStorage
-import me.anno.gpu.shader.Shader
 import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.utils.OS
@@ -14,7 +13,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2fc
 import org.joml.Vector3fc
 import org.joml.Vector4fc
-import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 import kotlin.math.max
@@ -76,10 +74,10 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
         nio.limit(elementCount * stride)
         if (allowResize && locallyAllocated > 0 && newLimit in locallyAllocated / 2..locallyAllocated) {
             // just keep the buffer
-            GL15.glBufferSubData(type, 0, nio)
+            glBufferSubData(type, 0, nio)
         } else {
             locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
-            GL15.glBufferData(type, nio, usage)
+            glBufferData(type, nio, usage)
         }
 
         GFX.check()
@@ -221,7 +219,7 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
         if (buffer > -1) {
             GFX.addGPUTask("OpenGLBuffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
-                GL15.glDeleteBuffers(buffer)
+                glDeleteBuffers(buffer)
                 if (vao >= 0) {
                     bindVAO(0)
                     glDeleteVertexArrays(vao)

@@ -1,7 +1,7 @@
 package me.anno.gpu.blending
 
 import me.anno.language.translation.NameDesc
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL30C.*
 
 // todo custom blend modes? -> maybe... could be customizable...
 class BlendMode(
@@ -90,23 +90,28 @@ class BlendMode(
             .set(GL_ONE, GL_ONE)
             .set(BlendFunc.SUB)*/
         // doesn't work
+        @Suppress("unused")
         val SUB_ALPHA = BlendMode(NameDesc("Override Masking", "", "gpu.blendMode.override"), "Override Masking")
             .set(GL_ONE, GL_ZERO, GL_SRC_ALPHA, GL_ZERO)
             .set(BlendFunc.ADD)
 
+        @Suppress("unused")
         val SUB = ADD.copy(NameDesc("Sub", "", "gpu.blendMode.sub"), "Subtract")
             .set(BlendFunc.REV_SUB)
 
         // a way to remove alpha from an image
+        @Suppress("unused")
         val NO_ALPHA = BlendMode(NameDesc("No Alpha", "", "gpu.blendMode.noAlpha"), "No Alpha")
             .set(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO)
             .set(BlendFunc.ADD)
 
+        @Suppress("unused")
         val SUB_COLOR = ADD.copy(NameDesc("Sub Color", "", "gpu.blendMode.subColor"), "Subtract Color")
             .set(GL_ONE, GL_ONE)
             .set(BlendFunc.REV_SUB, BlendFunc.ADD)
 
         // a way to remove alpha from an image
+        @Suppress("unused")
         val DST_ALPHA = BlendMode(NameDesc("Dst Alpha", "", "gpu.blendMode.dstAlpha"), "Dst Alpha")
             .set(GL_ONE, GL_ZERO, GL_ZERO, GL_ONE)
             .set(BlendFunc.ADD)

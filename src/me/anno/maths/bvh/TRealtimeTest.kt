@@ -42,7 +42,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
-import me.anno.utils.types.Floats.f2
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -244,14 +243,14 @@ object TRealtimeTest {
 
             })
 
-            val testGPU = false
+            val testGPU = true
             if (testGPU) {
 
                 /**
                  * GPU
                  * */
                 val useComputeShader = true
-                val useComputeBuffer = false
+                val useComputeBuffer = false // not working :/
                 val scale = 4
 
                 val avgBuffer = Framebuffer("avg", 1, 1, 1, 1, true, DepthBufferType.NONE)

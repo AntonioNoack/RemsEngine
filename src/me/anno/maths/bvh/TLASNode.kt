@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.types.Buffers.skip
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -103,7 +104,7 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             // as that's the way for the constructor it seems
             val data = buffer.nioBuffer!!
 
-            if (true) {
+            if (false) {
                 data.putFloat(m.m00())
                 data.putFloat(m.m01())
                 data.putFloat(m.m02())
@@ -152,7 +153,7 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
                 v1 = it.axis
             } else {
                 it as TLASLeaf
-                // offset is like an id
+                // offset is like an ID
                 v0 = it.mesh.nodeId
                 v1 = 3 // = max axis + 1
             }
@@ -168,22 +169,12 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             buffer.put(b.maxZ)
             buffer.put(Float.fromBits(v1))
 
-            /*if (it is TLASLeaf) {
-                writeMatrix(it.worldToLocal)
-            } else {
-                // skip 12 elements
-                data.position(data.position() + 12)
-            }
-
             if (it is TLASLeaf) {
+                writeMatrix(it.worldToLocal)
                 writeMatrix(it.localToWorld)
             } else {
-                // skip 12 elements
-                data.position(data.position() + 12)
-            }*/
-
-           //data.position(data.position() + 12)
-           //data.position(data.position() + 12)
+                data.skip(2 * 12 * 4)
+            }
 
         }
         return buffer
@@ -196,8 +187,8 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             Attribute("v0", 1),
             Attribute("max", 3),
             Attribute("v1", 1),
-           //Attribute("worldToLocal", 12),
-          // Attribute("localToWorld", 12),
+            Attribute("worldToLocal", 12),
+            Attribute("localToWorld", 12),
         )
 
         val PIXELS_PER_TLAS_NODE = 8

@@ -59,6 +59,8 @@ class IconEntry(input: CountingInputStream) {
      */
     var fileOffset = input.readLE32()
 
+    var index = 0
+
     /**
      * A string representation of this IconEntry structure.
      */

@@ -25,14 +25,9 @@ import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL30.*
-import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
-import org.lwjgl.opengl.GL32.glTexImage2DMultisample
-import org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA
-import org.lwjgl.opengl.GL43
-import org.lwjgl.opengl.GL45C.glUnmapNamedBuffer
+import org.lwjgl.opengl.GL11.GL_R // legacy, here if sb mistypes it
+import org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP // not core?
+import org.lwjgl.opengl.GL45C.*
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.nio.*
@@ -369,6 +364,7 @@ open class Texture2D(
                 val buffer2 = bufferPool[data2.size * 4, false, false]
                 val buffer2i = buffer2.asIntBuffer()
                 buffer2i.put(data2)
+                buffer2i.flip()
                 GFX.addGPUTask("Texture2D.createRGB($name)", w, h) {
                     createRGB(buffer2i, checkRedundancy)
                     intArrayPool.returnBuffer(data)
@@ -383,6 +379,7 @@ open class Texture2D(
                 switchRGB2BGR(data2)
                 val buffer2 = bufferPool[data2.size * 4, false, false]
                 buffer2.asIntBuffer().put(data2)
+                buffer2.position(0)
                 GFX.addGPUTask("Texture2D.createRGBA($name)", w, h) {
                     createRGBA(buffer2, false)
                     intArrayPool.returnBuffer(data)
@@ -779,7 +776,7 @@ open class Texture2D(
                 locallyAllocated = allocate(locallyAllocated, size.toLong())
                 val t0i = System.nanoTime()
                 // todo why is this taking 1s/GB, when we send no data???
-                GL15.glBufferData(type, size.toLong(), usage)
+                glBufferData(type, size.toLong(), usage)
                 val t1i = System.nanoTime()
                 println("used ${(t1i - t0i) / 1e9}s for p0/$this")
                 isUpToDate = true
@@ -1197,7 +1194,7 @@ open class Texture2D(
         fun bindTexture(mode: Int, pointer: Int): Boolean {
             if (pointer < 0) throw IllegalArgumentException("Pointer must be valid")
             if (wasModifiedInComputePipeline) {
-                GL43.glMemoryBarrier(GL43.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+                glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
                 wasModifiedInComputePipeline = false
             }
             return if (alwaysBindTexture || boundTextures[boundTextureSlot] != pointer) {

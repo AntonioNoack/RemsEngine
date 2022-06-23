@@ -2,11 +2,7 @@ package me.anno.gpu.buffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
-import org.lwjgl.opengl.GL11C.GL_UNSIGNED_INT
-import org.lwjgl.opengl.GL11C.glDrawElements
-import org.lwjgl.opengl.GL15C.*
-import org.lwjgl.opengl.GL30C
-import org.lwjgl.opengl.GL31C.glDrawElementsInstanced
+import org.lwjgl.opengl.GL31C.*
 import org.lwjgl.system.MemoryUtil
 
 /**
@@ -102,9 +98,9 @@ class IndexedStaticBuffer(
                 for (i in indices) buffer.put(i.toShort())
                 buffer.flip()
                 if (indices.size * 2L == locallyAllocated2) {
-                    glBufferSubData(GL30C.GL_ELEMENT_ARRAY_BUFFER, 0, buffer)
+                    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, buffer)
                 } else {
-                    glBufferData(GL30C.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
+                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
                 }
                 locallyAllocated2 = allocate(locallyAllocated2, indices.size * 2L)
                 MemoryUtil.memFree(buffer)
@@ -112,9 +108,9 @@ class IndexedStaticBuffer(
             else -> {
                 elementsType = GL_UNSIGNED_INT
                 if (indices.size * 4L == locallyAllocated2) {
-                    glBufferSubData(GL30C.GL_ELEMENT_ARRAY_BUFFER, 0, indices)
+                    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices)
                 } else {
-                    glBufferData(GL30C.GL_ELEMENT_ARRAY_BUFFER, indices, usage)
+                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, usage)
                 }
                 locallyAllocated2 = allocate(locallyAllocated2, indices.size * 4L)
             }

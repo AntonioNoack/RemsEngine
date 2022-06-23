@@ -13,7 +13,7 @@ open class OBJMTLReader(val reader: InputStream) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(OBJMTLReader::class)
-        private const val minus = '-'.code
+        const val minus = '-'.code
         private const val zero = '0'.code
         private const val nine = '9'.code
         private const val dot = '.'.code
@@ -23,18 +23,17 @@ open class OBJMTLReader(val reader: InputStream) {
         private const val tab = '\t'.code
         private const val newLine = '\n'.code
         private const val newLine2 = '\r'.code
+        const val slash = '/'.code
     }
 
-    fun skipSpaces(skipNewLine: Boolean = false) {
+    fun skipSpaces() {
         while (true) {
             when (val next = next()) {
                 space, tab, newLine2 -> {
                 }
                 newLine -> {
-                    if (!skipNewLine) {
-                        putBack(next)
-                        return
-                    }
+                    putBack(next)
+                    return
                 }
                 else -> {
                     putBack(next)
@@ -45,9 +44,14 @@ open class OBJMTLReader(val reader: InputStream) {
     }
 
     fun skipLine() {
+        if (next() == newLine) {
+            // done :)
+            return
+        }
+        val reader = reader
         while (true) {
-            if (next() == newLine) {
-                // done :)
+            val code = reader.read()
+            if (code == newLine || code == -1) {
                 return
             }
         }
@@ -79,28 +83,24 @@ open class OBJMTLReader(val reader: InputStream) {
         } else v - 1 // indices, starting at 1
     }
 
-    fun readInt(default: Int = 0): Int {
-        var number = 0
-        var sign = +1
-        when (val char = next()) {
-            minus -> sign = -1
-            in zero..nine -> {
-                number = char - 48
-            }
-            else -> {
-                putBack(char)
-                return default
-            }
+    fun readInt(): Int {
+        var char = next()
+        if (char == minus) return -readInt()
+        var code = (char - 48) and 255
+        if (code > 9) {
+            putBack = char
+            return 0
         }
+        var number = code
         val reader = reader
         while (true) {
-            val char = reader.read()
-            if (char in zero..nine) {
-                number = 10 * number + char - 48
-            } else {
-                putBack(char)
-                return sign * number
+            char = reader.read()
+            code = (char - 48) and 255
+            if (code > 9) {
+                putBack = char
+                return number
             }
+            number = 10 * number + code
         }
     }
 
@@ -113,9 +113,7 @@ open class OBJMTLReader(val reader: InputStream) {
                     putBack(char)
                     return builder.toString()
                 }
-                else -> {
-                    builder.append(char.toChar())
-                }
+                else -> builder.append(char.toChar())
             }
         }
     }
@@ -136,38 +134,45 @@ open class OBJMTLReader(val reader: InputStream) {
         }
     }
 
+    private fun readFloatExp(sign: Float, number: Float): Float {
+        var exponent = 0.1f
+        var fraction = 0f
+        while (true) {
+            when (val char2 = reader.read()) {
+                in zero..nine -> {
+                    fraction += exponent * (char2 - 48)
+                    exponent *= 0.1f
+                }
+                smallE, largeE -> {
+                    val power = readInt()
+                    return sign * (number + fraction) * 10f.pow(power)
+                }
+                else -> {
+                    putBack = char2
+                    return sign * (number + fraction)
+                }
+            }
+        }
+    }
+
     // not perfect, but maybe faster
     // uses no allocations :)
     fun readFloat(): Float {
         var sign = 1f
-        var number = 0
+        var number = 0L
         val reader = reader
+        when (val char = next()) {
+            minus -> sign = -sign
+            in zero..nine -> number = (char - 48).toLong()
+            dot -> return readFloatExp(sign, 0f)
+            // else should not happen
+        }
         while (true) {
-            when (val char = next()) {
-                minus -> sign = -sign
+            when (val char = reader.read()) {
                 in zero..nine -> {
                     number = number * 10 + char - 48
                 }
-                dot -> {
-                    var exponent = 0.1f
-                    var fraction = 0f
-                    while (true) {
-                        when (val char2 = reader.read()) {
-                            in zero..nine -> {
-                                fraction += exponent * (char2 - 48)
-                                exponent *= 0.1f
-                            }
-                            smallE, largeE -> {
-                                val power = readInt()
-                                return sign * (number + fraction) * 10f.pow(power)
-                            }
-                            else -> {
-                                putBack = char2
-                                return sign * (number + fraction)
-                            }
-                        }
-                    }
-                }
+                dot -> return readFloatExp(sign, number.toFloat())
                 smallE, largeE -> {
                     val power = readInt()
                     return sign * number * 10f.pow(power)

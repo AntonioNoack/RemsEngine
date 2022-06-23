@@ -60,7 +60,7 @@ import me.anno.image.ImageGPUCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.hdr.HDRImage
-import me.anno.image.raw.BIImage
+import me.anno.image.jpg.JPGReader
 import me.anno.image.tar.TGAImage
 import me.anno.io.ISaveable
 import me.anno.io.base.InvalidClassException
@@ -88,8 +88,6 @@ import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
 import me.anno.utils.Clock
 import me.anno.utils.Color.hex4
-import me.anno.utils.Color.toHexColor
-import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitForGFXThread
@@ -103,10 +101,10 @@ import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.strings.StringHelper.shorten
-import me.anno.utils.structures.lists.CountingList.Companion.isCounted
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
+import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.joml.Math.sqrt
@@ -1138,7 +1136,23 @@ object Thumbs {
                     e.printStackTrace()
                 }
             }
-            "png", "jpg", "bmp", "ico", "psd", "qoi" ->
+            "jpg" -> {
+                val data2 = JPGReader.extractThumbnail(srcFile)
+                if (data2 != null) {
+                    try {
+                        val image = ImageIO.read(data2.inputStream())
+                        transformNSaveNUpload(srcFile, image, dstFile, size, callback)
+                    } catch (e: Exception) {
+                        generateImage(srcFile, dstFile, size, callback)
+                    }
+                } else generateImage(srcFile, dstFile, size, callback)
+            }
+            // for ico we could find the best image from looking at the headers
+            "ico" -> {
+                val image = ICOReader.read(srcFile.inputStream(), size)
+                transformNSaveNUpload(srcFile, image, dstFile, size, callback)
+            }
+            "png", "bmp", "psd", "qoi" ->
                 generateImage(srcFile, dstFile, size, callback)
             "blend" -> generateSomething(
                 PrefabCache.getPrefabInstance(srcFile),
@@ -1251,6 +1265,10 @@ object Thumbs {
                     "lnk", "desktop" -> {
                         // not images, and I don't know yet how to get the image from them
                     }
+                    "ico" -> {
+                        val image = ICOReader.read(srcFile.inputStream(), size)
+                        transformNSaveNUpload(srcFile, image, dstFile, size, callback)
+                    }
                     "txt", "html", "md" -> generateTextImage(srcFile, size, callback)
                     // png, jpg, jpeg, ico, webp, mp4, ...
                     else -> generateImage(srcFile, dstFile, size, callback)
@@ -1322,7 +1340,7 @@ object Thumbs {
         size: Int,
         callback: (ITexture2D) -> Unit
     ) {
-        // small timeout, because we need that image shortly only
+        // a small timeout, because we need that image shortly only
         val totalNanos = 30_000_000_000L
         val timeout = 50L
         var image: Image? = null
@@ -1380,7 +1398,7 @@ object Thumbs {
     fun testGeneration(
         src: FileReference,
         readAsFolder: (FileReference) -> InnerFolder,
-        dst: FileReference = OS.desktop.getChild("test.png"),
+        dst: FileReference = desktop.getChild("test.png"),
         size: Int = 512
     ) {
         // time for debugger to attach

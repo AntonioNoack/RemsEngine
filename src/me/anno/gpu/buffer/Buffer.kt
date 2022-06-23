@@ -2,19 +2,14 @@ package me.anno.gpu.buffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
-import me.anno.input.Input
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL30.*
-import org.lwjgl.opengl.GL33.glDrawArraysInstanced
-import org.lwjgl.opengl.GL33.glVertexAttribDivisor
+import org.lwjgl.opengl.GL33C.*
 
 abstract class Buffer(attributes: List<Attribute>, usage: Int) :
     OpenGLBuffer(GL_ARRAY_BUFFER, attributes, usage), Drawable {
 
-    constructor(attributes: List<Attribute>) : this(attributes, GL15.GL_STATIC_DRAW)
+    constructor(attributes: List<Attribute>) : this(attributes, GL_STATIC_DRAW)
 
     var drawMode = GL_TRIANGLES
     var drawLength
@@ -25,12 +20,12 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
 
     @Deprecated("Not supported on mobile platforms nor modern OpenGL")
     fun quads(): Buffer {
-        drawMode = GL11C.GL_QUADS
+        drawMode = GL_QUADS
         return this
     }
 
     fun lines(): Buffer {
-        drawMode = GL11C.GL_LINES
+        drawMode = GL_LINES
         return this
     }
 
@@ -198,7 +193,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
         if (buffer > -1) {
             GFX.addGPUTask("Buffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
-                GL15.glDeleteBuffers(buffer)
+                glDeleteBuffers(buffer)
                 if (vao >= 0) {
                     bindVAO(0)
                     glDeleteVertexArrays(vao)

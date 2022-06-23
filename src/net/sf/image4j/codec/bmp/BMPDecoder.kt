@@ -70,7 +70,6 @@ class BMPDecoder(input: InputStream) {
          * @throws java.io.IOException if an error occurs
          */
         fun read(infoHeader: InfoHeader, lis: CountingInputStream): IntImage {
-
             // Color table (palette)
             var colorTable: IntArray? = null
             // color table is only present for 1, 4 or 8 bit (indexed) images
@@ -92,16 +91,18 @@ class BMPDecoder(input: InputStream) {
          * @throws java.io.IOException if any error occurs
          */
         fun read(infoHeader: InfoHeader, lis: CountingInputStream, colorTable: IntArray?): IntImage {
-            if (infoHeader.compression == BI_RGB) {
+            val image = if (infoHeader.compression == BI_RGB) {
                 when (infoHeader.bitCount) {
                     1 -> read1(infoHeader, lis, colorTable!!) // 1-bit (monochrome) uncompressed
                     4 -> read4(infoHeader, lis, colorTable!!) // 4-bit uncompressed
                     8 -> read8(infoHeader, lis, colorTable!!) // 8-bit uncompressed
                     24 -> read24(infoHeader, lis) // 24-bit uncompressed
                     32 -> read32(infoHeader, lis) // 32bit uncompressed
+                    else -> null
                 }
-            }
-            throw IOException("Unrecognized bitmap format: bit count=${infoHeader.bitCount}, compression=${infoHeader.compression}")
+            } else null
+            return image
+                ?: throw IOException("Unrecognized bitmap format: bit count=${infoHeader.bitCount}, compression=${infoHeader.compression}")
         }
 
         fun readColorTable(infoHeader: InfoHeader, lis: CountingInputStream) =

@@ -5,11 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.shader.Shader
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C.GL_UNSIGNED_INT
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL15C.*
-import org.lwjgl.opengl.GL30C.glGenVertexArrays
-import org.lwjgl.opengl.GL31C.glDrawElementsInstanced
+import org.lwjgl.opengl.GL31C.*
 import org.lwjgl.system.MemoryUtil
 
 // todo probably should be an OpenGLBuffer
@@ -133,7 +129,7 @@ class IndexBuffer(
                 GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
             }*/
             maxIndex < 65536 -> {
-                elementsType = GL15.GL_UNSIGNED_SHORT
+                elementsType = GL_UNSIGNED_SHORT
                 val buffer = MemoryUtil.memAllocShort(indices.size)
                 for (i in indices) buffer.put(i.toShort())
                 buffer.flip()

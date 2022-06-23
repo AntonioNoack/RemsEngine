@@ -1,18 +1,19 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.shader.OpenGLShader.Companion.attribute
+import me.anno.gpu.shader.ShaderLib.blacklist
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
-import me.anno.gpu.shader.ShaderLib.blacklist
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 
 object FlatShaders {
 
     val copyShader = ShaderLib.createShader(
         "copy", coordsList, coordsVShader, uvList, listOf(
             Variable(GLSLType.S2D, "tex"),
-            Variable(GLSLType.V1F, "am1")
+            Variable(GLSLType.V1F, "am1"),
         ), "" +
                 "void main(){\n" +
                 "   gl_FragColor = (1.0-am1) * texture(tex, uv);\n" +

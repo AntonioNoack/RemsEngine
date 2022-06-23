@@ -17,7 +17,7 @@ import me.anno.utils.Sleep
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.saharnooby.qoi.QOIImage
-import net.sf.image4j.codec.ico.ICODecoder
+import net.sf.image4j.codec.ico.ICOReader
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
@@ -54,7 +54,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
     init {
         registerStreamReader("hdr") { HDRImage(it) }
         registerStreamReader("tga") { TGAImage.read(it, false) }
-        registerStreamReader("ico") { tryIco(it) }
+        registerStreamReader("ico") { ICOReader.read(it) }
         registerStreamReader("gimp") { GimpImage.read(it) }
         registerStreamReader("exr") { EXRReader.read(it) }
         registerStreamReader("qoi") { QOIImage.read(it) }
@@ -124,14 +124,6 @@ object ImageCPUCache : CacheSection("BufferedImages") {
             tmp.delete()
             image
         }
-    }
-
-    private fun tryIco(input: InputStream): Image? {
-        val images = ICODecoder.read(input)
-        // image array? it happens for better scalable icons
-        if (images.size > 1) LOGGER.warn("Should implement array texture for ico files")
-        if (images.isEmpty()) return null
-        return images.maxByOrNull { it.width * it.height }!! // was blue ... why ever...
     }
 
     private fun tryGeneric(file: FileReference): Image? {

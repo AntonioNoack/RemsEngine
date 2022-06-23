@@ -36,9 +36,7 @@ import me.anno.maths.Maths.min
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Matrices.set2
 import org.joml.*
-import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL21
+import org.lwjgl.opengl.GL21C.*
 
 class PipelineStage(
     var name: String,
@@ -193,7 +191,7 @@ class PipelineStage(
                         light.invWorldMatrix.get(buffer)
                     }
                     buffer.position(0)
-                    GL21.glUniformMatrix4x3fv(invLightMatrices, false, buffer)
+                    glUniformMatrix4x3fv(invLightMatrices, false, buffer)
                 }
                 // and sharpness; implementation depending on type
                 val lightIntensities = shader["lightData0"]
@@ -215,7 +213,7 @@ class PipelineStage(
                         buffer.put(type + 0.25f)
                     }
                     buffer.position(0)
-                    GL20.glUniform4fv(lightIntensities, buffer)
+                    glUniform4fv(lightIntensities, buffer)
                 }
                 // type, and cone angle (or other data, if required)
                 // additional, whether we have a texture, and maybe other data
@@ -238,7 +236,7 @@ class PipelineStage(
 
                     }
                     buffer.flip()
-                    GL20.glUniform4fv(lightTypes, buffer)
+                    glUniform4fv(lightTypes, buffer)
                 }
                 val shadowData = shader["shadowData"]
                 if (shadowData >= 0) {
@@ -296,7 +294,7 @@ class PipelineStage(
                         }
                     }
                     buffer.position(0)
-                    GL20.glUniform4fv(shadowData, buffer)
+                    glUniform4fv(shadowData, buffer)
                 }
             }
         }
