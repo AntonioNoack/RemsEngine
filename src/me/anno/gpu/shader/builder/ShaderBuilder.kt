@@ -2,7 +2,6 @@ package me.anno.gpu.shader.builder
 
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
 import kotlin.math.max
@@ -22,8 +21,6 @@ class ShaderBuilder(val name: String) {
     }
 
     val fragment = MainStage()
-
-    val geometry: GeoShader? = null
 
     var outputs: DeferredSettingsV2? = null
 
@@ -96,7 +93,7 @@ class ShaderBuilder(val name: String) {
         val fragCode = fragment.createCode(true, outputs, bridgeVariables)
         val varying = (vertex.imported + vertex.exported).toList()
             .filter { it !in bridgeVariables } + bridgeVariables.values
-        val shader = Shader(name, geometry?.code, vertCode, varying, fragCode)
+        val shader = Shader(name, vertCode, varying, fragCode)
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))
         val textureIndices = ArrayList<String>()
         collectTextureIndices(textureIndices, vertex.uniforms)

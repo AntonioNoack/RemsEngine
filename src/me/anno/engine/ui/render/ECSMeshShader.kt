@@ -311,7 +311,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "if(color.a < ${1f / 255f}) discard;\n" +
                     "finalColor = color.rgb;\n" +
                     "finalAlpha = color.a;\n" +
-                    // "   vec3 finalNormal = normal;\n" +
                     "finalTangent   = normalize(tangent);\n" + // for debugging
                     "finalNormal    = normalize(normal);\n" +
                     "finalBitangent = normalize(cross(finalNormal, finalTangent));\n" +
@@ -398,8 +397,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         postProcessing: ShaderStage?,
         isInstanced: Boolean,
         isAnimated: Boolean,
-        motionVectors: Boolean,
-        geoShader: GeoShader?
+        motionVectors: Boolean
     ): Shader {
 
         val base = createBase(isInstanced, isAnimated, true, motionVectors)
@@ -418,8 +416,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         deferred: DeferredSettingsV2,
         isInstanced: Boolean,
         isAnimated: Boolean,
-        motionVectors: Boolean,
-        geoShader: GeoShader?
+        motionVectors: Boolean
     ): Shader {
 
         val base = createBase(isInstanced, isAnimated, colors = true, motionVectors)

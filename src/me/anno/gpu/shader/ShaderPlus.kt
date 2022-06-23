@@ -17,75 +17,7 @@ import me.anno.gpu.texture.ITexture2D
 
 object ShaderPlus {
 
-    /*fun create(name: String, vertex: String, varying: List<Variable>, fragment: String): Shader {
-        return Shader(name, null, vertex, varying, makeFragmentShaderUniversal(varying, fragment))
-    }*/
-
-    /*fun create(name: String, geometry: String?, vertex: String, varying: List<Variable>, fragment: String): Shader {
-        return Shader(name, geometry, vertex, varying, makeFragmentShaderUniversal(varying, fragment))
-    }*/
-
-    private const val randomFunc = "#define GET_RANDOM(co) fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453)\n"
-
-    fun create(
-        name: String, geometry: String?,
-        vertexVariables: List<Variable>, vertex: String, varying: List<Variable>,
-        fragmentVariables: List<Variable>, fragment: String
-    ): Shader {
-        return Shader(
-            name, geometry,
-            vertexVariables, vertex, varying,
-            fragmentVariables,
-            makeFragmentShaderUniversal(varying, fragment)
-        )
-    }
-
-    fun makeFragmentShaderUniversal(varyingSource: List<Variable>, fragmentSource: String): String {
-        val hasFinalColor = "finalColor" in fragmentSource
-        val hasZDistance = "zDistance" in varyingSource.map { it.name }
-        val hasTint = "vec4 tint;" in fragmentSource || "tint" in varyingSource.map { it.name }
-        val hasMotionVectors = "finalMotion" in fragmentSource
-        val raw = fragmentSource.trim()
-        if (!raw.endsWith("}")) throw RuntimeException("Source needs to end with }")
-        return "" +
-                "out vec4 fragColor;\n" +
-                "uniform int drawMode;\n" +
-                (if (hasTint) "" else "uniform vec4 tint;\n") +
-                "" + raw.substring(0, raw.length - 1) + "" +
-                (if (hasZDistance) "" else "float zDistance = 0.0;\n") +
-                (if (hasFinalColor) "" else "vec3 finalColor = gl_FragColor.rgb; float finalAlpha = gl_FragColor.a;\n") +
-                (if (hasMotionVectors) "" else "vec3 finalMotion = vec3(0.0);\n") +
-                randomFunc +
-                "switch(drawMode){\n" +
-                "   case ${DrawMode.COLOR_SQUARED.id}:\n" +
-                "       vec3 tmpCol = ${if (hasTint) "finalColor" else "finalColor * tint.rgb"};\n" +
-                "       fragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.COLOR.id}:\n" +
-                "       fragColor = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.ID.id}:\n" +
-                "       if(finalAlpha < 0.01) discard;\n" +
-                "       fragColor = vec4(tint.rgb, 1.0);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.DEPTH_DSQ.id}:\n" +
-                "       if(finalAlpha < 0.01) discard;\n" +
-                "       fragColor = vec4(zDistance, 0.0, zDistance * zDistance, finalAlpha);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.COPY.id}:\n" +
-                "       fragColor = vec4(finalColor, finalAlpha);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.TINT.id}:\n" +
-                "       fragColor = tint;\n" +
-                "       break;\n" +
-                "   default:" +
-                "       fragColor = vec4(1.0,0.0,1.0,1.0);\n" +
-                "       break;\n" +
-                // random id not supported here
-                "   }\n" +
-                "}"
-
-    }
+    const val randomFunc = "#define GET_RANDOM(co) fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453)\n"
 
     fun createShaderStage(hasTint: Boolean = true): ShaderStage {
         val callName = "applyShaderPlus"
@@ -97,39 +29,23 @@ object ShaderPlus {
             Variable(GLSLType.V1I, "drawMode"),
             Variable(GLSLType.V1I, "randomId"),
             Variable(GLSLType.V2F, "finalMotion"),
-            Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
+            Variable(GLSLType.V4F, "SPResult", VariableMode.OUT),
         )
         val code = "" +
                 randomFunc +
                 "switch(drawMode){\n" +
                 "   case ${DrawMode.COLOR_SQUARED.id}:\n" +
                 "       vec3 tmpCol = ${if (hasTint) "finalColor" else "finalColor * tint.rgb"};\n" +
-                "       fragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
+                "       SPResult = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
                 "       break;\n" +
                 "   case ${DrawMode.COLOR.id}:\n" +
-                "       fragColor = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.ID.id}:\n" +
-                "       if(finalAlpha < 0.01) discard;\n" +
-                "       fragColor = vec4(tint.rgb, 1.0);\n" +
-                "       break;\n" +
-                "   case ${DrawMode.DEPTH_DSQ.id}:\n" +
-                "       if(finalAlpha < 0.01) discard;\n" +
-                "       fragColor = vec4(zDistance, 0.0, zDistance * zDistance, finalAlpha);\n" +
+                "       SPResult = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
                 "       break;\n" +
                 "   case ${DrawMode.COPY.id}:\n" +
-                "      fragColor = vec4(finalColor, finalAlpha);\n" +
+                "      SPResult = vec4(finalColor, finalAlpha);\n" +
                 "      break;\n" +
-                "   case ${DrawMode.TINT.id}:\n" +
-                "      fragColor = tint;\n" +
-                "      break;\n" +
-                "   case ${DrawMode.RANDOM_ID.id}:\n" +
-                "       float flRandomId = float(randomId);\n" +
-                "       vec2 seed = vec2(sin(flRandomId), cos(flRandomId));\n" +
-                "       fragColor = vec4(GET_RANDOM(seed.xy), GET_RANDOM(seed.yx), GET_RANDOM(100.0 - seed.yx), 1.0);\n" +
-                "       break;\n" +
-                "   default:" +
-                "       fragColor = vec4(1.0,0.0,0.5,1.0);\n" +
+                "   default:\n" +
+                "       SPResult = vec4(1.0,0.0,0.5,1.0);\n" +
                 "       break;\n" +
                 "}\n"
         return ShaderStage(callName, variables, code)
@@ -168,11 +84,7 @@ object ShaderPlus {
     enum class DrawMode(val id: Int) {
         COLOR_SQUARED(0),
         COLOR(1),
-        ID(2),
-        DEPTH_DSQ(5), // needs a float buffer
         COPY(6),
-        TINT(7),
-        RANDOM_ID(8)
     }
 
 }

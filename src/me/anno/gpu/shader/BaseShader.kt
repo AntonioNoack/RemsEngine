@@ -1,13 +1,17 @@
 package me.anno.gpu.shader
 
+import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.hasFlag
-import me.anno.utils.structures.maps.KeyTripleMap
+import me.anno.utils.structures.lists.Lists.none2
+import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 
@@ -22,9 +26,9 @@ open class BaseShader(
     val vertexVariables: List<Variable>,
     val vertexShader: String,
     val varyings: List<Variable>,
-    val fragmentVariables: List<Variable>,
-    val fragmentShader: String
-) { // Saveable or PrefabSaveable?
+    var fragmentVariables: List<Variable>,
+    var fragmentShader: String
+) : ICacheData { // Saveable or PrefabSaveable?
 
     constructor(name: String, vertexSource: String, varyingSource: List<Variable>, fragmentSource: String) :
             this(name, emptyList(), vertexSource, varyingSource, emptyList(), fragmentSource)
@@ -35,8 +39,8 @@ open class BaseShader(
     var textures: List<String>? = null
     var ignoredNameWarnings = HashSet<String>()
 
-    private val flatShader = KeyTripleMap<Renderer, Int, GeoShader?, Shader>()
-    private val deferredShaders = KeyTripleMap<DeferredSettingsV2, Int, GeoShader?, Shader>()
+    private val flatShader = KeyPairMap<Renderer, Int, Shader>()
+    private val deferredShaders = KeyPairMap<DeferredSettingsV2, Int, Shader>()
     private val depthShader = Array(8) { lazy { createDepthShader(it.hasFlag(1), it.hasFlag(2), it.hasFlag(4)) } }
 
     /** shader for rendering the depth, e.g. for pre-depth */
@@ -53,77 +57,51 @@ open class BaseShader(
         postProcessing: ShaderStage?,
         isInstanced: Boolean,
         isAnimated: Boolean,
-        motionVectors: Boolean,
-        geoShader: GeoShader?
+        motionVectors: Boolean
     ): Shader {
 
-        val varying = varyings
-        var vertexShader = vertexShader
-        if (isInstanced) vertexShader = "#define INSTANCED\n$vertexShader"
-        if (isAnimated) vertexShader = "#define ANIMATED\n$vertexShader"
-        val vertex = vertexShader
-
-        val postProcessing1 = postProcessing?.functions?.firstOrNull { it.name == "main" }?.body ?: ""
-
-        // if it does not have variable "tint", then add it?
-        // what do we do if it writes glFragColor?
-        // option to use flat shading independent of rendering mode (?)
-        val fragment = StringBuilder()
-        if (isInstanced) fragment.append("#define INSTANCED\n")
-        val postMainIndex = postProcessing1.indexOf("void main")
-        var fragmentShader = fragmentShader
-        val hasLegacyFragColor = "gl_FragColor" in fragmentShader
-        if (hasLegacyFragColor) {
-            fragment.append("out vec4 glFragColor;\n")
+        var extraStage: ShaderStage? = null
+        if (fragmentVariables.none2 { it.isOutput } && fragmentShader.contains("gl_FragColor")) {
+            fragmentVariables += Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT)
             fragmentShader = fragmentShader.replace("gl_FragColor", "glFragColor")
-        }
-        if (postMainIndex > 0) {
-            // add the code before main
-            fragment.append(postProcessing1.substring(0, postMainIndex))
-        }
-        if (hasLegacyFragColor) {
-            fragment.append(fragmentShader.substring(0, fragmentShader.lastIndexOf('}')))
-            // finalColor, finalAlpha are missing
-            fragment.append(
-                "" + "vec3 finalColor = glFragColor.rgb;\n" + "float finalAlpha = glFragColor.a;\n"
+            extraStage = ShaderStage(
+                "extra", listOf(
+                    Variable(GLSLType.V4F, "glFragColor", VariableMode.IN),
+                    Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
+                ), "finalColor = glFragColor.rgb; finalAlpha = glFragColor.a;\n"
             )
-        } else {
-            fragment.append(fragmentShader.substring(0, fragmentShader.lastIndexOf('}')))
-            // finalColor, finalAlpha were properly defined
         }
-        if (postMainIndex >= 0 || !postProcessing1.isBlank2()) {
-            val pmi2 = if (postMainIndex < 0) -1 else postProcessing1.indexOf('{', postMainIndex + 9)
-            // define all variables with prefix "final", which are missing
-            for (type in DeferredLayerType.values) {
-                if (type.glslName in postProcessing1 && type.glslName !in fragment) {
-                    type.appendDefinition(fragment)
-                    fragment.append(" = ")
-                    type.appendDefaultValue(fragment)
-                    fragment.append(";\n")
-                }
-            }
-            fragment.append(postProcessing1.substring(pmi2 + 1))
-        } else {
-            if (!fragment.contains("out vec4 glFragColor"))
-                fragment.insert(0, "out vec4 glFragColor;\n")
-            fragment.append("glFragColor = vec4(finalColor, finalAlpha);\n")
-        }
-        if (postMainIndex < 0) {
-            fragment.append('}')
-        }
-        GFX.check()
-        val shader = ShaderPlus.create(
-            name, geoShader?.code, vertexVariables,
-            vertex, varying, fragmentVariables,
-            fragment.toString()
-        )
-        shader.glslVersion = glslVersion
-        shader.setTextureIndices(textures)
-        shader.ignoreNameWarnings(ignoredNameWarnings)
-        shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
-        shader.v4f("tint", 1f, 1f, 1f, 1f)
-        GFX.check()
-        return shader
+
+
+        val hasTint = "vec4 tint;" in fragmentShader || "tint" in varyings.map { it.name }
+        val shaderPlusStage = ShaderPlus.createShaderStage(hasTint)
+
+        val builder = ShaderBuilder(name)
+
+        val vs = ShaderStage(vertexVariables, varyings, true, vertexShader)
+        if (isInstanced) vs.define("INSTANCED")
+        if (isAnimated) vs.define("ANIMATED")
+        if (motionVectors) vs.define("MOTION_VECTORS")
+
+        val fs = ShaderStage(fragmentVariables, varyings, false, fragmentShader)
+        if (isInstanced) fs.define("INSTANCED")
+        if (isAnimated) fs.define("ANIMATED")
+        if (motionVectors) fs.define("MOTION_VECTORS")
+
+        builder.addVertex(vs)
+        builder.addFragment(fs)
+        builder.addFragment(extraStage)
+        builder.addFragment(postProcessing)
+        builder.addFragment(shaderPlusStage)
+
+        val shader1 = builder.create()
+        shader1.setTextureIndices(textures)
+        shader1.ignoreNameWarnings(ignoredNameWarnings)
+        shader1.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
+        shader1.v4f("tint", 1f)
+        return shader1
+
     }
 
     val value: Shader
@@ -138,21 +116,20 @@ open class BaseShader(
                 depthShader[stateId].value
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
-                    val geoMode = OpenGL.geometryShader.currentValue
-                    flatShader.getOrPut(renderer, stateId, geoMode) { r, stateId2, g ->
+                    flatShader.getOrPut(renderer, stateId) { r, stateId2 ->
                         val isInstanced = stateId2.hasFlag(1)
                         val isAnimated = stateId2.hasFlag(2)
                         val isMotionVectors = stateId2.hasFlag(4)
                         val shader = createForwardShader(
                             r.getPostProcessing(), isInstanced,
-                            isAnimated, isMotionVectors, g
+                            isAnimated, isMotionVectors
                         )
                         r.uploadDefaultUniforms(shader)
                         // LOGGER.info(shader.fragmentSource)
                         shader
                     }
                 }
-                else -> get(deferred, stateId, OpenGL.geometryShader.currentValue)
+                else -> get(deferred, stateId)
             }
             GFX.check()
             shader.use()
@@ -174,7 +151,7 @@ open class BaseShader(
         return this
     }
 
-    fun ignoreUniformWarning(name: String) : BaseShader {
+    fun ignoreUniformWarning(name: String): BaseShader {
         ignoredNameWarnings += name
         return this
     }
@@ -188,12 +165,10 @@ open class BaseShader(
         deferred: DeferredSettingsV2,
         isInstanced: Boolean,
         isAnimated: Boolean,
-        motionVectors: Boolean,
-        geoShader: GeoShader?
+        motionVectors: Boolean
     ): Shader {
         val shader = deferred.createShader(
             name,
-            geoShader?.code,
             isInstanced,
             vertexVariables,
             vertexShader,
@@ -216,20 +191,20 @@ open class BaseShader(
         GFX.check()
     }
 
-    operator fun get(settings: DeferredSettingsV2, stateId: Int, geoShader: GeoShader?): Shader {
-        return deferredShaders.getOrPut(settings, stateId, geoShader) { settings2, stateId2, geoShader2 ->
-            createDeferredShader(settings2, stateId2.hasFlag(1), stateId2.hasFlag(2), stateId2.hasFlag(4), geoShader2)
+    operator fun get(settings: DeferredSettingsV2, stateId: Int): Shader {
+        return deferredShaders.getOrPut(settings, stateId) { settings2, stateId2 ->
+            createDeferredShader(settings2, stateId2.hasFlag(1), stateId2.hasFlag(2), stateId2.hasFlag(4))
         }
     }
 
-    fun destroy() {
+    override fun destroy() {
         for (list in flatShader) {
-            for ((_, _, shader) in list) {
+            for ((_, shader) in list) {
                 shader.destroy()
             }
         }
         for (list in deferredShaders) {
-            for ((_, _, shader) in list) {
+            for ((_, shader) in list) {
                 shader.destroy()
             }
         }

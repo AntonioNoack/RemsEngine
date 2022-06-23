@@ -10,7 +10,9 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.OpenGL
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
@@ -146,6 +148,7 @@ object SDFComposer {
         }
         uniforms["perspectiveCamera"] = TypeValue(GLSLType.V1B) { RenderView.isPerspective }
         uniforms["debugMode"] = TypeValue(GLSLType.V1I) { tree.debugMode.id }
+        uniforms["renderIds"] = TypeValue(GLSLType.V1B) { OpenGL.currentRenderer == Renderer.idRenderer }
 
         val materials = tree.sdfMaterials.map { MaterialCache[it] }
         val builder = StringBuilder(max(1, materials.size) * 128)
@@ -228,6 +231,7 @@ object SDFComposer {
                     Variable(GLSLType.V4F, "clearCoat"),
                     Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
                     Variable(GLSLType.V1I, "drawMode"),
+                    Variable(GLSLType.V1B, "renderIds"),
                     // todo support bridges for uniform -> fragment1 -> fragment2 (inout)
                     Variable(GLSLType.V4F, "tint", VariableMode.OUT),
                 ) + uniforms.map { (k, v) -> Variable(v.type, k) }
@@ -345,7 +349,7 @@ object SDFComposer {
                             "}\n" +
 
                             // click ids of parts
-                            "if(drawMode == ${ShaderPlus.DrawMode.ID.id}){\n" +
+                            "if(renderIds){\n" +
                             "   int intId = int(ray.y);\n" +
                             "   tint = vec4(vec3(float(intId&255), float((intId>>8)&255), float((intId>>16)&255))/255.0, 1.0);\n" +
                             "} else tint = vec4(1.0);\n" +

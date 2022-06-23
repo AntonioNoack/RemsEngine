@@ -45,8 +45,8 @@ object LineBuffer {
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
         ), "" +
                 "void main(){\n" +
-                "   vec3 finalColor = vColor.rgb;\n" +
-                "   float finalAlpha = vColor.a;\n" +
+                "   finalColor = vColor.rgb;\n" +
+                "   finalAlpha = vColor.a;\n" +
                 "}\n"
     ).ignoreNameWarnings("drawMode", "lines")
 

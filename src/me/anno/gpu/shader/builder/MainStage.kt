@@ -246,9 +246,9 @@ class MainStage {
         if (isFragmentStage) {
             // fragment shader
             if (outputs == null) {
-                code.append("out vec4 glFragColor;\n")
+                code.append("layout(location=0) out vec4 BuildColor;\n")
             } else {
-                // register all of the layers
+                // register all layers
                 outputs.appendLayerDeclarators(code)
             }
             code.append('\n')
@@ -302,7 +302,7 @@ class MainStage {
         // write all stages
         for (i in stages.indices) {
             val stage = stages[i]
-            code.append("// start of stage ${stage.callName}\n")
+            code.append("// start of stage ").append(stage.callName).append('\n')
             val params = stage.variables
             // if this function defines a variable, which has been undefined before, define it
             for (param in params) {
@@ -342,7 +342,7 @@ class MainStage {
             }
         }
 
-        // write to outputs for fragment shader
+        // write to the outputs for fragment shader
         if (isFragmentStage) {
             if (outputs == null) {
                 // use last layer, if defined
@@ -351,13 +351,13 @@ class MainStage {
                 val outputSum = lastOutputs.sumOf { it.type.components }
                 when {
                     outputSum == 0 -> {
-                        code.append("glFragColor = vec4(1.0);\n")
+                        code.append("BuildColor = vec4(1.0);\n")
                     }
                     outputSum == 4 && lastOutputs.size == 1 -> {
-                        code.append("glFragColor = ${lastOutputs[0].name};\n")
+                        code.append("BuildColor = ${lastOutputs[0].name};\n")
                     }
                     outputSum in 1..4 -> {
-                        code.append("glFragColor = vec4(")
+                        code.append("BuildColor = vec4(")
                         for (i in lastOutputs.indices) {
                             if (i > 0) code.append(',')
                             code.append(lastOutputs[i].name)
@@ -368,7 +368,7 @@ class MainStage {
                         code.append(");\n")
                     }
                     else -> {
-                        code.append("glFragColor = vec4(finalColor, finalAlpha);\n")
+                        code.append("BuildColor = vec4(finalColor, finalAlpha);\n")
                     }
                 }
             } else {

@@ -106,7 +106,6 @@ class DeferredSettingsV2(
 
     fun createShader(
         shaderName: String,
-        geometrySource: String?,
         instanced: Boolean,
         vertexVariables: List<Variable>,
         vertexShader: String,
@@ -123,7 +122,7 @@ class DeferredSettingsV2(
         appendLayerDeclarators(fragment)
 
         val lio = fragmentShader.lastIndexOf('}')
-        if (lio < 0) throw RuntimeException("Expected to find } in fragment source, but only got '$vertexShader'/'$geometrySource'/'$fragmentShader'")
+        if (lio < 0) throw RuntimeException("Expected to find } in fragment source, but only got '$vertexShader'/'$fragmentShader'")
 
         val oldFragmentCode = fragmentShader
             .substring(0, lio)
@@ -143,9 +142,9 @@ class DeferredSettingsV2(
         fragment.append("}")
 
         val shader = Shader(
-            shaderName, geometrySource,
-            vertexVariables, vertex, varyings,
-            fragmentVariables, fragment.toString()
+            shaderName, vertexVariables,
+            vertex, varyings, fragmentVariables,
+            fragment.toString()
         )
         shader.glslVersion = 330
         shader.setTextureIndices(textures)

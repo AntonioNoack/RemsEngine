@@ -35,6 +35,9 @@ class Variable(
     constructor(type: GLSLType, name: String) :
             this(type, name, -1, VariableMode.IN)
 
+    constructor(base: Variable, mode: VariableMode):
+            this(base.type, base.name, base.arraySize, mode)
+
     fun flat(): Variable {
         isFlat = true
         return this

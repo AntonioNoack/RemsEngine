@@ -25,8 +25,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import org.joml.Vector4fc
 import org.lwjgl.opengl.GL11C
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlin.math.abs
 
 object Reduction {
@@ -108,7 +106,7 @@ object Reduction {
         val shader = shaderByType.getOrPut(op) {
             val v0 = "vec4(${op.startValue.x()}, ${op.startValue.y()}, ${op.startValue.z()}, ${op.startValue.w()})"
             Shader(
-                "reduce-${op.name}", null, simplestVertexShader2, emptyList(), "" +
+                "reduce-${op.name}", simplestVertexShader2, emptyList(), "" +
                         "uniform sampler2D src;\n" +
                         "#define reduce(a,b) ${op.function}\n" +
                         "void main(){\n" +

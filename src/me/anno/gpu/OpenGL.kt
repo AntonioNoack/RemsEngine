@@ -4,14 +4,12 @@ import me.anno.cache.instances.TextCache
 import me.anno.cache.instances.VideoCache
 import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.pipeline.CullMode
-import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
@@ -111,9 +109,6 @@ object OpenGL {
             glDepthMask(newValue)
         }
     }
-
-    @Deprecated("This is deprecated, because it's sometimes slow, and not supported on all devices")
-    val geometryShader = SecureStack<GeoShader?>(null)
 
     val instanced = object : SecureBoolStack(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {

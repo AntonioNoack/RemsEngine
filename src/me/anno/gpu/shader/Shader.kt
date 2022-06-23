@@ -5,7 +5,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.builder.Varying
 import org.lwjgl.opengl.GL20.*
-import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
 
 // todo locations for the varyings: for debugging with RenderDoc
 
@@ -13,7 +12,6 @@ import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
 
 open class Shader(
     shaderName: String,
-    private val geometryShader: String?,
     private val vertexVariables: List<Variable>,
     private val vertexShader: String,
     private val varyings: List<Variable>,
@@ -23,28 +21,10 @@ open class Shader(
 
     constructor(
         shaderName: String,
-        vsUniforms: List<Variable>,
-        vertex: String,
-        varying: List<Variable>,
-        fsUniforms: List<Variable>,
-        fragment: String
-    ) : this(shaderName, null, vsUniforms, vertex, varying, fsUniforms, fragment)
-
-    constructor(
-        shaderName: String,
-        geometry: String?,
         vertex: String,
         varying: List<Variable>,
         fragment: String
-    ) : this(shaderName, geometry, emptyList(), vertex, varying, emptyList(), fragment)
-
-    constructor(shaderName: String, vertex: String, varying: List<Variable>, fragment: String) : this(
-        shaderName,
-        null,
-        vertex,
-        varying,
-        fragment
-    )
+    ) : this(shaderName, emptyList(), vertex, varying, emptyList(), fragment)
 
     var vertexSource = ""
     var fragmentSource = ""
@@ -67,25 +47,6 @@ open class Shader(
         GFX.check()
 
         val versionString = formatVersion(glslVersion) + "\n// $name\n"
-        val geometryShader = if (geometryShader != null) {
-            for (v in varyings) v.makeDifferent()
-            var geo = versionString + geometryShader
-            while (true) {
-                // copy over all varyings for the shaders
-                val copyIndex = geo.indexOf("#copy")
-                if (copyIndex < 0) break
-                val indexVar = geo[copyIndex + "#copy[".length]
-                // frag.name = vertices[indexVar].name
-                geo = geo.substring(0, copyIndex) + varyings.joinToString("\n") {
-                    "\t${it.fShaderName} = ${it.vShaderName}[$indexVar];"
-                } + geo.substring(copyIndex + "#copy[i]".length)
-            }
-            geo = geo.replace("#varying", varyings.joinToString("\n") { "\t${it.type.glslName} ${it.name};" })
-            geo = geo.replace("#inOutVarying", varyings.joinToString("") {
-                "" + "${it.modifiers} in ${it.type.glslName} ${it.vShaderName}[];\n" + "${it.modifiers} out ${it.type.glslName} ${it.fShaderName};\n"
-            })
-            compile(name, program, GL_GEOMETRY_SHADER, geo)
-        } else -1
 
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
         val builder = StringBuilder()
