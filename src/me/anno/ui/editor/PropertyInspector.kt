@@ -82,12 +82,13 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         val oldPanels = oldValues.listOfAll.toList()
         val newSize = newPanels.size + searchPanel.listOfAll.size
         val oldSize = oldPanels.size
-        val newPanelIter = newPanels.iterator()
-        val oldPanelIter = oldPanels.iterator()
+        //val newPanelIter = newPanels.iterator()
+        //val oldPanelIter = oldPanels.iterator()
         // todo why doesn't it have to be skipped?
-        // if (newPanelIter.hasNext()) newPanelIter.next() // skip search panel
+        // todo why do we have to skip it sometimes???
+        //if (newPanelIter.hasNext()) newPanelIter.next() // skip search panel
         // works as long as the structure stays the same
-        while (newPanelIter.hasNext() and oldPanelIter.hasNext()) {
+        /*while (newPanelIter.hasNext() and oldPanelIter.hasNext()) {
             val newPanel = newPanelIter.next()
             val oldPanel = oldPanelIter.next()
             // don't change the value while the user is editing it
@@ -105,11 +106,11 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
                     oldPanel.setValue(newPanel.lastValue, false)
                 }
             }
-        }
-        if (newSize != oldSize && selected.isNotEmpty()) {
+        }*/
+        if (true || newSize != oldSize && selected.isNotEmpty()) {
             // we need to update the structure...
             // todo transfer focussed elements, so we don't loose focus
-            LOGGER.info("Whole structure needed update, new: ${newPanels.size} vs old: ${oldPanels.size}")
+            // LOGGER.info("Whole structure needed update, new: ${newPanels.size} vs old: ${oldPanels.size}")
             oldValues.clear()
             oldValues.add(searchPanel)
             oldValues.addAll(newValues.children)

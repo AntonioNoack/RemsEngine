@@ -497,7 +497,7 @@ class Mesh : PrefabSaveable() {
             normals = FloatArray(positions.size)
 
         if (tangents == null && uvs != null) // tangents are only computable, if we have uvs
-            tangents = FloatArray(positions.size)
+            tangents = FloatArray(positions.size / 3 * 4)
 
         val normals = normals!!
         val tangents = tangents
@@ -591,20 +591,26 @@ class Mesh : PrefabSaveable() {
                 } else buffer.put(0f, 0f)
 
                 if (tangents != null) {
-                    buffer.putByte(tangents[i3])
-                    buffer.putByte(tangents[i3 + 1])
-                    buffer.putByte(tangents[i3 + 2])
-                    buffer.putByte(0) // alignment
-                } else buffer.putInt(0)
+                    buffer.putByte(tangents[i4])
+                    buffer.putByte(tangents[i4 + 1])
+                    buffer.putByte(tangents[i4 + 2])
+                    buffer.putByte(tangents[i4 + 3])
+                } else {
+                    buffer.putByte(normals[i3])
+                    buffer.putByte(normals[i3 + 1])
+                    buffer.putByte(normals[i3 + 2])
+                    buffer.putByte(127) // positive ^^
+                }
 
             }
 
             if (hasColors) {
                 if (colors != null && colors.size > i) {
-                    buffer.putByte(colors[i].r().toByte())
-                    buffer.putByte(colors[i].g().toByte())
-                    buffer.putByte(colors[i].b().toByte())
-                    buffer.putByte(colors[i].a().toByte())
+                    val color = colors[i]
+                    buffer.putByte(color.r().toByte())
+                    buffer.putByte(color.g().toByte())
+                    buffer.putByte(color.b().toByte())
+                    buffer.putByte(color.a().toByte())
                 } else buffer.putInt(-1)
             }
 

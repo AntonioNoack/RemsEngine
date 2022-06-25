@@ -10,7 +10,6 @@ import me.anno.gpu.OpenGL.currentRenderer
 import me.anno.gpu.OpenGL.depthMode
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.FBStack
@@ -37,7 +36,6 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AnyToInt.get
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3fc
 import org.joml.Vector4fc
@@ -158,7 +156,7 @@ object GFX : GFXBase() {
         if (w < 1 || h < 1) throw java.lang.RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
         // val height = RenderState.currentBuffer?.h ?: height
         // val realY = height - (y + h)
-        useFrame(x, y, w, h, false) {
+        useFrame(x, y, w, h) {
             render()
         }
     }
@@ -513,26 +511,47 @@ object GFX : GFXBase() {
         return glConstants[i] ?: "$i"
     }
 
-    private val glConstants = HashMap<Int, String>()
+    // 1696 values in my testing
+    private val glConstants = HashMap<Int, String>(2048)
 
     fun discoverOpenGLNames() {
         discoverOpenGLNames(GL46::class)
     }
 
     fun discoverOpenGLNames(clazz: KClass<*>) {
-        for (p in clazz.staticProperties) {
-            if (p.name.length > 3 &&
-                p.name.startsWith("GL_")
-            ) {
-                val value = p.get()
+        // literally 300 times faster than the Kotlin code... what is Kotlin doing???
+        // 3.5 ms instead of 1000 ms
+        val t2 = Engine.nanoTime
+        discoverOpenGLNames(clazz.java)
+        val t3 = Engine.nanoTime
+        LOGGER.debug("took ${(t3 - t2) * 1e-9f}s for loading ${glConstants.size} OpenGL names")
+        /*val t0 = Engine.nanoTime
+        val properties = clazz.staticProperties // this call takes 1000 ms 
+        val t1 = Engine.nanoTime
+        println("took ${(t1 - t0) * 1e-9f}s for loading ${glConstants.size} OpenGL names")
+        for (property in properties) {
+            val name = property.name
+            if (name.startsWith("GL_")) {
+                val value = property.get()
                 if (value is Int) {
-                    glConstants[value] = p.name.substring(3)
+                    glConstants[value] = name.substring(3)
+                }
+            }
+        }*/
+    }
+
+    fun discoverOpenGLNames(clazz: Class<*>) {
+        val properties2 = clazz.declaredFields
+        for (property in properties2) {
+            val name = property.name
+            if (name.startsWith("GL_")) {
+                val value = property.get(null)
+                if (value is Int) {
+                    glConstants[value] = name.substring(3)
                 }
             }
         }
-        for (parent in clazz.superclasses) {
-            discoverOpenGLNames(parent)
-        }
+        discoverOpenGLNames(clazz.superclass ?: return)
     }
 
 }

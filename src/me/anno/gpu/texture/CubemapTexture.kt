@@ -3,7 +3,6 @@ package me.anno.gpu.texture
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
-import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -35,6 +34,7 @@ class CubemapTexture(
     var createdSize = 0
 
     var locallyAllocated = 0L
+    var internalFormat = 0
 
     override var isHDR = false
 
@@ -59,7 +59,7 @@ class CubemapTexture(
             // maybe we should use allocation free versions there xD
             GFX.check()
             if (pointer < 0) throw RuntimeException("Could not allocate texture pointer")
-            DebugGPUStorage.texCd.add(this)
+            DebugGPUStorage.tex3dCs.add(this)
         }
     }
 
@@ -96,34 +96,36 @@ class CubemapTexture(
         beforeUpload(6 * 3, sides[0].size)
         val size = size
         val byteBuffer = Texture2D.bufferPool[size * size * 3, false, false]
+        val internalFormat = GL_RGB8
         for (i in 0 until 6) {
             byteBuffer.position(0)
             byteBuffer.put(sides[i])
             byteBuffer.flip()
             glTexImage2D(
-                getTarget(i), 0, GL_RGB8,
+                getTarget(i), 0, internalFormat,
                 size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, byteBuffer
             )
         }
         Texture2D.bufferPool.returnBuffer(byteBuffer)
-        afterUpload(6 * 3)
+        afterUpload(internalFormat,6 * 3)
     }
 
     fun createRGBA(sides: List<ByteArray>) {
         beforeUpload(6 * 4, sides[0].size)
         val size = size
         val byteBuffer = Texture2D.bufferPool[size * size * 4, false, false]
+        val internalFormat = GL_RGBA8
         for (i in 0 until 6) {
             byteBuffer.position(0)
             byteBuffer.put(sides[i])
             byteBuffer.position(0)
             glTexImage2D(
-                getTarget(i), 0, GL_RGBA8,
+                getTarget(i), 0, internalFormat,
                 size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer
             )
         }
         Texture2D.bufferPool.returnBuffer(byteBuffer)
-        afterUpload(6 * 4)
+        afterUpload(internalFormat, 6 * 4)
     }
 
     fun create(type: TargetType) {
@@ -136,7 +138,7 @@ class CubemapTexture(
                 0, type.uploadFormat, type.fillType, null as ByteBuffer?
             )
         }
-        afterUpload(type.bytesPerPixel)
+        afterUpload(type.internalFormat, type.bytesPerPixel)
     }
 
     private fun getTarget(side: Int) = GL_TEXTURE_CUBE_MAP_POSITIVE_X + side
@@ -152,11 +154,12 @@ class CubemapTexture(
                 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0
             )
         }
-        afterUpload(if (lowQuality) 2 * 6 else 4 * 6)
+        afterUpload(format, if (lowQuality) 2 * 6 else 4 * 6)
     }
 
-    private fun afterUpload(bytesPerPixel: Int) {
+    private fun afterUpload(internalFormat: Int, bytesPerPixel: Int) {
         GFX.check()
+        this.internalFormat = internalFormat
         locallyAllocated = allocate(locallyAllocated, size * size * bytesPerPixel.toLong())
         isCreated = true
         filtering(filtering)
@@ -234,7 +237,7 @@ class CubemapTexture(
     }
 
     private fun destroy(pointer: Int) {
-        DebugGPUStorage.texCd.remove(this)
+        DebugGPUStorage.tex3dCs.remove(this)
         Texture2D.invalidateBinding()
         locallyAllocated = allocate(locallyAllocated, 0L)
         Texture2D.texturesToDelete.add(pointer)

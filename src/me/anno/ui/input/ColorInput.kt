@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -152,7 +153,9 @@ open class ColorInput(
                 val ws = windowStack
                 val fb = Framebuffer("colorPicker", ws.width, ws.height, 1, 1, false, DepthBufferType.INTERNAL)
                 fb.ensure()
-                windowStack.draw(fb.w, fb.h, didSomething0 = true, forceRedraw = true, dstBuffer = fb)
+                useFrame(fb) {
+                    windowStack.draw(fb.w, fb.h, didSomething0 = true, forceRedraw = true)
+                }
                 val imageData = FramebufferToMemory.createImage(fb, true, withAlpha = false)
                 ColorPicker(fb, fb.getTexture0() as Texture2D, imageData, true, style)
             } else {

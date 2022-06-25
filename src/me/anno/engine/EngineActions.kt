@@ -151,10 +151,10 @@ object EngineActions {
          * - up -> up
          * */
 
-        // todo add these into Rem's Studio
         register["global.s.t.c", "Save"]
         register["global.c.t.c", "Copy"]
         register["global.v.t.c", "Paste"]
+        register["global.x.t.c", "Cut"]
         register["global.d.t.c", "Duplicate"]
         register["global.i.t.c", "Import"]
         register["global.h.t.c", "OpenHistory"]

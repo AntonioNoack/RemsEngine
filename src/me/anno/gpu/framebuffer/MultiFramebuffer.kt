@@ -78,6 +78,10 @@ class MultiFramebuffer(
         return targetsI[0].attachFramebufferToDepth(targetCount, fpTargets)
     }
 
+    override fun attachFramebufferToDepth(targets: Array<TargetType>): IFramebuffer {
+        return targetsI[0].attachFramebufferToDepth(targets)
+    }
+
     override fun getTextureI(index: Int): ITexture2D {
         return targetsI[index / div].getTextureI(index % div)
     }

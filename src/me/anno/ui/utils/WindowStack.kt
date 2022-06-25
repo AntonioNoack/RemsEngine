@@ -3,7 +3,6 @@ package me.anno.ui.utils
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.WindowX
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -51,6 +50,9 @@ class WindowStack : Stack<Window>() {
 
     fun requestFocus(panel: Panel?, exclusive: Boolean) {
         if (StudioBase.dragged != null) return
+        if (panel != null && panel.windowStack.peek() != panel.window) {
+            LOGGER.warn("illegal focus request")
+        }
         val inFocus = inFocus
         if (exclusive) {
             for (index in inFocus.indices) {
@@ -76,10 +78,12 @@ class WindowStack : Stack<Window>() {
         getPanelAndWindowAt(x.toInt(), y.toInt())
 
     fun getPanelAndWindowAt(x: Int, y: Int): Pair<Panel, Window>? {
-        for (index in size - 1 downTo 0) {
-            val root = this[index]
-            val panel = root.panel.getPanelAt(x, y)
-            if (panel != null) return panel to root
+        for (windowIndex in size - 1 downTo 0) {
+            val window = this[windowIndex]
+            val panel = window.panel.getPanelAt(x, y)
+            if (panel != null) return Pair(panel, window)
+            else if (!window.isTransparent && window.panel.contains(x, y))
+                return Pair(window.panel, window)
         }
         return null
     }
@@ -87,9 +91,11 @@ class WindowStack : Stack<Window>() {
     fun getPanelAt(x: Float, y: Float) = getPanelAt(x.toInt(), y.toInt())
     fun getPanelAt(x: Int, y: Int): Panel? {
         for (i in size - 1 downTo 0) {
-            val root = this[i]
-            val panel = root.panel.getPanelAt(x, y)
+            val window = this[i]
+            val panel = window.panel.getPanelAt(x, y)
             if (panel != null) return panel
+            else if (!window.isTransparent && window.panel.contains(x, y))
+                return window.panel
         }
         return null
     }
@@ -123,7 +129,18 @@ class WindowStack : Stack<Window>() {
 
     }
 
-    fun updateTransform(window: WindowX, transform: Matrix4f, x0: Int, y0: Int, w0: Int, h0: Int, x1: Int, y1: Int, w1: Int, h1: Int) {
+    fun updateTransform(
+        window: WindowX,
+        transform: Matrix4f,
+        x0: Int,
+        y0: Int,
+        w0: Int,
+        h0: Int,
+        x1: Int,
+        y1: Int,
+        w1: Int,
+        h1: Int
+    ) {
 
         viewTransform.set(transform)
 
@@ -164,13 +181,13 @@ class WindowStack : Stack<Window>() {
 
     }
 
-    fun draw(w: Int, h: Int, didSomething0: Boolean, forceRedraw: Boolean, dstBuffer: Framebuffer?): Boolean {
+    fun draw(w: Int, h: Int, didSomething0: Boolean, forceRedraw: Boolean): Boolean {
         val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
         var didSomething = didSomething0
         val windowStack = this
         val lastFullscreenIndex = max(windowStack.indexOfLast { it.isFullscreen }, 0)
         for (index in lastFullscreenIndex until windowStack.size) {
-            didSomething = windowStack[index].draw(w, h, sparseRedraw, didSomething, forceRedraw, dstBuffer)
+            didSomething = windowStack[index].draw(w, h, sparseRedraw, didSomething, forceRedraw)
         }
         return didSomething
     }

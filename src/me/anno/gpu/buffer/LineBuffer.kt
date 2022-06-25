@@ -43,12 +43,14 @@ object LineBuffer {
                 "}", listOf(Variable(GLSLType.V4F, "vColor")), listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+            Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
         ), "" +
                 "void main(){\n" +
                 "   finalColor = vColor.rgb;\n" +
                 "   finalAlpha = vColor.a;\n" +
+                "   finalNormal = vec3(0.0);\n" +
                 "}\n"
-    ).ignoreNameWarnings("drawMode", "lines")
+    )
 
     // drawing all these lines is horribly slow -> speed it up by caching them
     // we also could calculate their position in 2D on the CPU and just upload them xD

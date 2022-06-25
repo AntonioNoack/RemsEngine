@@ -394,8 +394,11 @@ object ShaderLib {
         // with texture
         // somehow becomes dark for large |steps|-values
 
+        val vSVGl = listOf(
+            Variable(GLSLType.M4x4, "transform")
+        )
 
-        val vSVG = v3DBase +
+        val vSVG = "" +
                 "$attribute vec3 aLocalPosition;\n" +
                 "$attribute vec2 aLocalPos2;\n" +
                 "$attribute vec4 aFormula0;\n" +
@@ -431,9 +434,14 @@ object ShaderLib {
             Variable(GLSLType.V2F, "localPos2"),
         )
 
+        val fSVGl = listOf(
+            Variable(GLSLType.V4F, "uvLimits"),
+            Variable(GLSLType.S2D, "tex"),
+            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
+        )
+
         val fSVG = "" +
-                "uniform sampler2D tex;\n" +
-                "uniform vec4 uvLimits;\n" +
                 getTextureLib +
                 getColorForceFieldLib +
                 brightness +
@@ -480,21 +488,24 @@ object ShaderLib {
                 "   }" +
                 "}"
 
-        shader3DSVG = createShader("3d-svg", vSVG, ySVG, fSVG, listOf("tex"))
+        shader3DSVG = createShader("3d-svg", vSVGl, vSVG, ySVG, fSVGl, fSVG, listOf("tex"))
 
         // create the obj+mtl shader
 
         val maxBones = AnimGameItem.maxBones
-        val assimpVertex = v3DBase +
-                "$attribute vec3 coords;\n" +
-                "$attribute vec2 uvs;\n" +
-                "$attribute vec3 normals;\n" +
-                "$attribute vec3 tangents;\n" +
-                "$attribute vec4 colors;\n" +
-                "$attribute vec4 weights;\n" +
-                "$attribute ivec4 indices;\n" +
-                "uniform bool hasAnimation;\n" +
-                "uniform mat4x3 localTransform;\n" +
+        val assimpVertexList = listOf(
+            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "normals", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "tangents", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "colors", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "weights", VariableMode.ATTR),
+            Variable(GLSLType.V4I, "indices", VariableMode.ATTR),
+            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.M4x3, "localTransform"),
+            Variable(GLSLType.V1B, "hasAnimation"),
+        )
+        val assimpVertex = "" +
                 (if (useAnimTextures) "" +
                         "uniform sampler2D animTexture;\n" +
                         "uniform vec4 animWeights, animIndices;\n" +
@@ -519,14 +530,14 @@ object ShaderLib {
                         ) +
                 "       finalPosition = jointMat * vec4(coords, 1.0);\n" +
                 "       normal = jointMat * vec4(normals, 0.0);\n" +
-                "       tangent = jointMat * vec4(tangents, 0.0);\n" +
+                "       tangent.xyz = jointMat * vec4(tangents.xyz, 0.0);\n" +
                 "   } else {\n" +
                 "       finalPosition = coords;\n" +
                 "       normal = normals;\n" +
                 "       tangent = tangents;\n" +
                 "   }\n" +
                 "   normal = localTransform * vec4(normal, 0.0);\n" +
-                "   tangent = localTransform * vec4(tangent, 0.0);\n" +
+                "   tangent.xyz = localTransform * vec4(tangent.xyz, 0.0);\n" +
                 "   finalPosition = localTransform * vec4(finalPosition, 1.0);\n" +
                 // normal only needs to be normalized, if we show the normal
                 "   normal = normalize(normal);\n" + // here? nah ^^
@@ -538,16 +549,21 @@ object ShaderLib {
                 "}"
 
         val assimpVarying = y3D + listOf(
-            Variable(GLSLType.V3F, "tangent"),
+            Variable(GLSLType.V4F, "tangent"),
             // Variable(GLSLType.V4F, "weight"),
             Variable(GLSLType.V4F, "vertexColor")
         )
 
         shaderAssimp = createShader(
-            "assimp",
-            assimpVertex, assimpVarying, "" +
-                    "uniform sampler2D albedoTex;\n" +
-                    "uniform vec4 diffuseBase;\n" +
+            "assimp", assimpVertexList,
+            assimpVertex, assimpVarying, listOf(
+                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+                Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
+                Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
+                Variable(GLSLType.S2D, "albedoTex"),
+                Variable(GLSLType.V4F, "diffuseBase")
+            ), "" +
                     getTextureLib +
                     getColorForceFieldLib +
                     "void main(){\n" +
@@ -563,10 +579,18 @@ object ShaderLib {
         shaderAssimp.glslVersion = 330
 
         monochromeModelShader = createShader(
-            "monochrome-model",
-            assimpVertex, assimpVarying, "" +
-                    "uniform vec4 tint;\n" +
-                    "uniform sampler2D tex;\n" +
+            "monochrome-model", assimpVertexList,
+            assimpVertex, assimpVarying, listOf(
+                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+                Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
+                Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
+                Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
+                Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
+                Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
+                Variable(GLSLType.S2D, "tex"),
+                Variable(GLSLType.V4F, "tint"),
+            ), "" +
                     "void main(){\n" +
                     "   vec4 color = texture(tex, uv);\n" +
                     "   finalColor = color.rgb;\n" +

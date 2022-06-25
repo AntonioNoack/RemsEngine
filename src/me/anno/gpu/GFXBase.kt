@@ -52,8 +52,8 @@ import java.awt.Robot
 import kotlin.math.abs
 
 /**
- * Showcases how you can use multithreading in a GLFW application in order to
- * separate the (blocking) winproc handling from the render loop.
+ * Showcases how you can use multithreading in a GLFW application
+ * to separate the (blocking) winproc handling from the render loop.
  *
  * @author Kai Burjack
  *
@@ -68,7 +68,7 @@ import kotlin.math.abs
  */
 open class GFXBase {
 
-    private var debugProc: Callback? = null
+    private var debugMsgCallback: Callback? = null
     private var errorCallback: GLFWErrorCallback? = null
 
     val windows = ArrayList<WindowX>()
@@ -157,7 +157,7 @@ open class GFXBase {
                     windows.clear()
                 }
             }
-            if (debugProc != null) debugProc!!.free()
+            if (debugMsgCallback != null) debugMsgCallback!!.free()
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
@@ -265,9 +265,16 @@ open class GFXBase {
         tick.stop("OpenGL initialization")
         setupDebugging()
         tick.stop("Debugging Setup")
-        renderFrame0(window0)
+        // render first frames = render logo
+        // the engine will still be loading,
+        // so it has to be a still image
+        // alternatively we could play a small animation
+        val zeroFrames = 2
+        for (i in 0 until zeroFrames) {
+            renderFrame0(window0, i, zeroFrames)
+            GLFW.glfwSwapBuffers(window0.pointer)
+        }
         tick.stop("Render frame zero")
-        GLFW.glfwSwapBuffers(window0.pointer)
         renderStep0()
         tick.stop("Render step zero")
         GFX.onInit?.invoke()
@@ -329,7 +336,7 @@ open class GFXBase {
     }
 
     open fun setupDebugging() {
-        debugProc = GLUtil.setupDebugMessageCallback(LWJGLDebugCallback)
+        debugMsgCallback = GLUtil.setupDebugMessageCallback(LWJGLDebugCallback)
     }
 
     open fun renderStep0() {
@@ -350,8 +357,8 @@ open class GFXBase {
         checkIsGFXThread()
     }
 
-    open fun renderFrame0(window: WindowX) {
-        drawLogo(window)
+    open fun renderFrame0(window: WindowX, i: Int, n: Int) {
+        drawLogo(window, i == n - 1)
     }
 
     open fun renderStep(window: WindowX) {
@@ -405,8 +412,12 @@ open class GFXBase {
                 if (!window.shouldClose) {
                     if (GLFW.glfwWindowShouldClose(window.pointer)) {
                         val ws = window.windowStack
-                        if (DefaultConfig["window.close.directly", false]) break
-                        else {
+                        if (DefaultConfig["window.close.directly", false] ||
+                            ws.peek().isClosingQuestion
+                        ) {
+                            window.shouldClose = true
+                            GLFW.glfwSetWindowShouldClose(window.pointer, true)
+                        } else {
                             GLFW.glfwSetWindowShouldClose(window.pointer, false)
                             addGPUTask("close-request", 1) {
                                 ask(
@@ -415,12 +426,14 @@ open class GFXBase {
                                 ) {
                                     window.shouldClose = true
                                     GLFW.glfwSetWindowShouldClose(window.pointer, true)
-                                }
+                                }?.isClosingQuestion = true
                                 invalidateLayout()
                                 ws.peek().setAcceptsClickAway(false)
                             }
                         }
                     } else {
+                        // update small stuff, that may need to be updated;
+                        // currently only the title
                         window.updateTitle()
                     }
                 }
@@ -463,7 +476,7 @@ open class GFXBase {
     companion object {
 
         private val LOGGER: Logger = getLogger(GFXBase::class.java)
-        var projectName = "Rem's Engine"
+        var projectName = "RemsEngine"
 
         fun setIcon(window: Long) {
             val src = getReference(BundledRef.prefix + "icon.png")

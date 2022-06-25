@@ -416,11 +416,11 @@ object Thumbs {
 
         renderPurely {
             if (!withDepth) {
-                useFrame(0, 0, w, h, false, fb2, colorRenderer) {
+                useFrame(w, h, false, fb2, colorRenderer) {
                     drawTransparentBackground(0, 0, w, h)
                 }
             }
-            useFrame(0, 0, w, h, false, fb2, renderer) {
+            useFrame(w, h, false, fb2, renderer) {
                 if (withDepth) {
                     depthMode.use(DepthMode.GREATER) {
                         Frame.bind()
@@ -826,7 +826,7 @@ object Thumbs {
                 val x0 = ix * sizePerElement
                 val y0 = (iy * h) / sy
                 val y1 = (iy + 1) * h / sy
-                useFrame(x0, y0, sizePerElement, y1 - y0, false, frame, renderer) {
+                useFrame(x0, y0, sizePerElement, y1 - y0, frame, renderer) {
                     drawFunction(i, aspect)
                 }
             }

@@ -1,6 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey
@@ -82,7 +83,8 @@ object DrawTexts {
         alignY: AxisAlignment = AxisAlignment.MIN,
     ): Int = drawSimpleTextCharByChar(
         x, y, padding, text, FrameTimes.textColor,
-        FrameTimes.backgroundColor, alignX, alignY
+        FrameTimes.backgroundColor and black.inv(),
+        alignX, alignY
     )
 
     fun drawSimpleTextCharByChar(

@@ -1,5 +1,6 @@
 package me.anno.video.ffmpeg
 
+import me.anno.Engine
 import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.WaveReader
 import me.anno.io.files.FileReference
@@ -17,7 +18,7 @@ class FFMPEGAudio(file: FileReference?, val sampleRate: Int, val length: Double)
             val out = process.errorStream.bufferedReader()
             val parser = FFMPEGMetaParser()
             try {
-                while (true) {
+                while (!Engine.shutdown) {
                     val line = out.readLine() ?: break
                     parser.parseLine(line, this)
                 }

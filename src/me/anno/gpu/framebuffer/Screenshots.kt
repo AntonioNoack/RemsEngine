@@ -41,7 +41,7 @@ object Screenshots {
         drawScene: () -> Unit
     ): Any {
         val localYOpenGL = fb.h - ly
-        OpenGL.useFrame(0, 0, fb.w, fb.h, true, fb, renderer) {
+        OpenGL.useFrame(fb.w, fb.h, true, fb, renderer) {
             val radius = diameter shr 1
             val x0 = clamp(lx - radius, 0, fb.w)
             val y0 = clamp(localYOpenGL - radius, 0, fb.h)

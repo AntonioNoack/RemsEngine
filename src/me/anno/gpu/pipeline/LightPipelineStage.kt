@@ -198,7 +198,7 @@ class LightPipelineStage(
                                     "data0 = lightData0;\n" +
                                     "data1 = lightData1;\n" +
                                     "data2 = shadowData;\n" +
-                                    // cutoff = 0 -> scale onto whole screen, has effect everywhere
+                                    // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                                     "if(${type == LightType.DIRECTIONAL} && data2.a <= 0.0){\n" +
                                     "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                                     "} else {\n" +
@@ -217,7 +217,7 @@ class LightPipelineStage(
                                 Variable(GLSLType.V1F, "cutoff", VariableMode.IN),
                                 Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
                             ), "" +
-                                    // cutoff = 0 -> scale onto whole screen, has effect everywhere
+                                    // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                                     "if(${type == LightType.DIRECTIONAL} && cutoff <= 0.0){\n" +
                                     "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                                     "} else {\n" +
@@ -403,35 +403,22 @@ class LightPipelineStage(
             pointsIndex = 0
         }
 
+        private fun <V : LightComponent> add(
+            list: MutableList<LightRequest<V>>,
+            index: Int, light: V, transform: Transform
+        ) {
+            if (index >= list.size) {
+                list.add(LightRequest(light, transform))
+            } else {
+                list[index].set(light, transform)
+            }
+        }
+
         fun add(light: LightComponent, transform: Transform) {
             when (light) {
-                is DirectionalLight -> {
-                    val list = dirs
-                    val index = dirIndex++
-                    if (index >= list.size) {
-                        list.add(LightRequest(light, transform))
-                    } else {
-                        list[index].set(light, transform)
-                    }
-                }
-                is PointLight -> {
-                    val list = points
-                    val index = pointsIndex++
-                    if (index >= list.size) {
-                        list.add(LightRequest(light, transform))
-                    } else {
-                        list[index].set(light, transform)
-                    }
-                }
-                is SpotLight -> {
-                    val list = spots
-                    val index = spotIndex++
-                    if (index >= list.size) {
-                        list.add(LightRequest(light, transform))
-                    } else {
-                        list[index].set(light, transform)
-                    }
-                }
+                is DirectionalLight -> add(dirs, dirIndex++, light, transform)
+                is PointLight -> add(points, pointsIndex++, light, transform)
+                is SpotLight -> add(spots, spotIndex++, light, transform)
             }
         }
 
@@ -486,7 +473,7 @@ class LightPipelineStage(
 
     private fun initShader(shader: Shader, cameraMatrix: Matrix4fc) {
         // information for the shader, which is material agnostic
-        // add all things, the shader needs to know, e.g. light direction, strength, ...
+        // add all things, the shader needs to know, e.g., light direction, strength, ...
         // (for the cheap shaders, which are not deferred)
         shader.m4x4("transform", cameraMatrix)
     }
@@ -507,6 +494,8 @@ class LightPipelineStage(
         source.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
         nonInstanced.forEachType { lights, type, size ->
+
+            println("drawing non-instanced $lights, $type, $size")
 
             val sample = lights[0].light
             val mesh = sample.getLightPrimitive()
@@ -541,7 +530,7 @@ class LightPipelineStage(
                 val m = transform.getDrawMatrix(time)
 
                 // define the light data
-                // data0: color, type
+                // data0: color, type;
                 // type is ignored by the shader -> just use 1
                 shader.v4f("data0", light.color, 1f)
 
@@ -612,6 +601,14 @@ class LightPipelineStage(
     private var worldScale: Double = 1.0
 
     fun drawBatches(lights: List<LightRequest<*>>, type: LightType, size: Int) {
+        if (type == LightType.DIRECTIONAL) {
+            OpenGL.depthMode.use(DepthMode.ALWAYS) {
+                drawBatches2(lights, type, size)
+            }
+        } else drawBatches2(lights, type, size)
+    }
+
+    fun drawBatches2(lights: List<LightRequest<*>>, type: LightType, size: Int) {
 
         val batchSize = instancedBatchSize
         val visualizeLightCount = visualizeLightCount

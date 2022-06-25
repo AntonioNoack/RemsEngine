@@ -14,6 +14,7 @@ import me.anno.io.zip.InnerFile
 import me.anno.io.zip.InnerFolder
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.io.AIFileIOImpl
+import me.anno.parser.crossAny
 import me.anno.utils.Color.rgba
 import me.anno.utils.LOGGER
 import me.anno.utils.types.Strings.isBlank2
@@ -26,6 +27,7 @@ import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sign
 
 open class StaticMeshesLoader {
 
@@ -454,11 +456,10 @@ open class StaticMeshesLoader {
         val normals = processNormals(aiMesh, vertexCount)
         if (normals != null) {
             prefab.setProperty("normals", normals)
-        }
-
-        val tangents = processTangents(aiMesh, vertexCount)
-        if (tangents != null) {
-            prefab.setProperty("tangents", tangents)
+            val tangents = processTangents(aiMesh, vertexCount, normals)
+            if (tangents != null) {
+                prefab.setProperty("tangents", tangents)
+            }
         }
 
         val uvs = processUVs(aiMesh, vertexCount)
@@ -483,14 +484,17 @@ open class StaticMeshesLoader {
 
     }
 
-    private fun processTangents(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
+    private fun processTangents(aiMesh: AIMesh, vertexCount: Int, normals: FloatArray): FloatArray? {
         val src = aiMesh.mTangents()
-        return if (src != null && vertexCount > 0) processVec3(src, FloatArray(vertexCount * 3)) else null
+        val src2 = aiMesh.mBitangents()
+        return if (src != null && src2 != null && vertexCount > 0)
+            processTangents(normals, src, src2, FloatArray(vertexCount * 4)) else null
     }
 
     private fun processNormals(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
         val src = aiMesh.mNormals()
-        return if (src != null && vertexCount > 0) processVec3(src, FloatArray(vertexCount * 3)) else null
+        return if (src != null && vertexCount > 0)
+            processVec3(src, FloatArray(vertexCount * 3)) else null
     }
 
     private fun processUVs(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
@@ -524,6 +528,43 @@ open class StaticMeshesLoader {
             dst[j++] = vec.z()
         }
         return dst
+    }
+
+    private fun processTangents(
+        normals: FloatArray,
+        tangents: AIVector3D.Buffer,
+        bitangents: AIVector3D.Buffer,
+        dst: FloatArray
+    ): FloatArray {
+        var i = 0
+        var j = 0
+        val vec = AIVector3D.mallocStack()
+        while (tangents.hasRemaining() && bitangents.hasRemaining() && j < dst.size) {
+            tangents.get(vec)
+            val tx = vec.x()
+            val ty = vec.y()
+            val tz = vec.z()
+            dst[j++] = tx
+            dst[j++] = ty
+            dst[j++] = tz
+            val nx = normals[i++]
+            val ny = normals[i++]
+            val nz = normals[i++]
+            bitangents.get(vec)
+            dst[j++] = sign(crossDot(nx, ny, nz, tx, ty, tz, vec.x(), vec.y(), vec.z()))
+        }
+        return dst
+    }
+
+    private fun crossDot(
+        ax: Float, ay: Float, az: Float,
+        bx: Float, by: Float, bz: Float,
+        dx: Float, dy: Float, dz: Float
+    ): Float {
+        val cx = ay * bz - az * by
+        val cy = az * bx - ax * bz
+        val cz = ax * by - ay * bx
+        return cx * dx + cy * dy + cz * dz
     }
 
     // custom function, because there may be NaNs

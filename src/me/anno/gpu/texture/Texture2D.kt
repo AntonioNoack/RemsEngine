@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.config.DefaultConfig
+import me.anno.ecs.annotations.Docs
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.check
 import me.anno.gpu.GFX.isGFXThread
@@ -1126,6 +1127,8 @@ open class Texture2D(
             override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean) =
                 throw NotImplementedError()
 
+            override fun attachFramebufferToDepth(targets: Array<TargetType>) =
+                throw NotImplementedError()
 
             override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
                 if (offset == 0) this@Texture2D.bind(index, nearest, clamping)
@@ -1160,6 +1163,14 @@ open class Texture2D(
             byteArrayPool.freeUnusedEntries()
             intArrayPool.freeUnusedEntries()
             floatArrayPool.freeUnusedEntries()
+        }
+
+        @Docs("Remove all pooled entries")
+        fun gc() {
+            bufferPool.gc()
+            byteArrayPool.gc()
+            intArrayPool.gc()
+            floatArrayPool.gc()
         }
 
         var allocated = 0L

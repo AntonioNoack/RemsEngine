@@ -18,6 +18,7 @@ import java.util.*
  * http/https resource
  * todo get/put/post
  *
+ * todo if is redirect, automatically redirect?
  * todo watch dogs? we only can ask for changes every x seconds
  * */
 class WebRef(url: String, args: Map<Any?, Any?>) :
@@ -28,12 +29,24 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
     // doesn't really exist, or does it?
     override val isDirectory: Boolean = false
 
-    // todo we can answer that, when we got a response code, e.g. 404
+    // we can answer that, when we got a response code, e.g., 404
     override val exists: Boolean
-        get() = TODO("Not yet implemented")
+        get() = getHeaders(toURL(), valueTimeout, false) != null
 
-    // todo can we ever answer that?
-    override val lastModified: Long = 0L
+    // todo parse date
+    override val lastModified: Long
+        get() = getHeaders(toURL(), valueTimeout, false)
+            ?.get("Last-Modified")
+            ?.first()?.toLongOrNull() ?: 0L
+
+    val responseCode: Int // HTTP/1.1 200 OK
+        get() = getHeaders(toURL(), valueTimeout, false)
+            ?.get(null)?.first()?.run {
+                val i0 = indexOf(' ') + 1
+                val i1 = indexOf(' ', i0 + 1)
+                substring(i0, i1).toIntOrNull()
+            } ?: 404
+
     override val lastAccessed: Long = 0L
 
     fun toURL() = URL(absolutePath)
@@ -67,10 +80,8 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
     }
 
     override fun length(): Long {
-        val data = webCache.getEntry(absolutePath, valueTimeout, false) {
-            CacheData(getFileSize(toURL()))
-        } as? CacheData<*>
-        return data?.value as? Long ?: -1L
+        val headers = getHeaders(toURL(), valueTimeout, false) ?: return -1
+        return headers["content-length"]?.first()?.toLongOrNull() ?: -1L
     }
 
     override fun delete(): Boolean {
@@ -96,26 +107,39 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
 
     companion object {
 
-        /** returns -1 if the length is unknown */
-        private fun getFileSize(url: URL): Long {
-            var conn: URLConnection? = null
-            return try {
-                conn = url.openConnection()
-                if (conn is HttpURLConnection) {
-                    conn.requestMethod = "HEAD"
-                }
-                conn.getInputStream()
-                conn.contentLengthLong
-            } catch (e: IOException) {
-                throw RuntimeException(e)
-            } finally {
-                if (conn is HttpURLConnection) {
-                    conn.disconnect()
-                }
-            }
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val file = getReference("http://google.com/")
+            println(file.exists)
+            println(file.lastModified)
+            println(file.length())
+            println(getHeaders(file.toUri().toURL(), 1000L, false))
+            println((file as WebRef).responseCode)
         }
 
         val webCache = CacheSection("Web")
+
+        fun getHeaders(url: URL, timeout: Long, async: Boolean): Map<String?, List<String>>? {
+            val data = webCache.getEntry(url, timeout, async) {
+                var conn: URLConnection? = null
+                val data = try {
+                    conn = url.openConnection()
+                    if (conn is HttpURLConnection) {
+                        conn.requestMethod = "HEAD"
+                    }
+                    conn.headerFields
+                } catch (e: IOException) {
+                    throw RuntimeException(e)
+                } finally {
+                    if (conn is HttpURLConnection) {
+                        conn.disconnect()
+                    }
+                }
+                CacheData(data)
+            } as? CacheData<*>
+            @Suppress("unchecked_cast")
+            return data?.value as? Map<String?, List<String>>
+        }
 
         fun formatAccessURL(url: String, args: Map<Any?, Any?>): String {
             if ('#' in url) return formatAccessURL(url.substring(0, url.indexOf('#')), args)
@@ -130,7 +154,7 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
 
         // https://stackoverflow.com/a/10032289/4979303
         /** used for the encodeURIComponent function  */
-        private val allowedChars = BitSet(256)
+        private val allowedChars = BitSet(128)
 
         init {
             for (i in 'a'..'z') allowedChars.set(i.code)
@@ -152,23 +176,21 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
                 if (allowedChars.get(cp)) {
                     res.append(cp.toChar())
                 } else {
-                    val b = intToUTF8Bytes(cp)
-                    for (j in b.indices) {
+                    try {
+                        val b = String(intArrayOf(cp), 0, 1).toByteArray(Charsets.UTF_8)
+                        for (j in b.indices) {
+                            res.append('%')
+                            res.append(hex4(b[j].toInt().shr(4)))
+                            res.append(hex4(b[j].toInt()))
+                        }
+                    } catch (e: UnsupportedEncodingException) {
                         res.append('%')
-                        res.append(hex4(b[j].toInt().shr(4)))
-                        res.append(hex4(b[j].toInt()))
+                        res.append(hex4(cp.shr(4)))
+                        res.append(hex4(cp))
                     }
                 }
             }
             return res.toString()
-        }
-
-        private fun intToUTF8Bytes(cp: Int): ByteArray {
-            return try {
-                String(intArrayOf(cp), 0, 1).toByteArray(Charsets.UTF_8)
-            } catch (e: UnsupportedEncodingException) {
-                byteArrayOf(cp.toByte())
-            }
         }
     }
 

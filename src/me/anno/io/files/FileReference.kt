@@ -10,6 +10,7 @@ import me.anno.io.unity.UnityReader
 import me.anno.io.windows.WindowsShortcut
 import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.maths.Maths.min
 import me.anno.studio.StudioBase
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.Tabs
@@ -17,6 +18,7 @@ import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.Files.use
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.strings.StringHelper.indexOf2
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -274,9 +276,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     init {
         val lastIndex = absolutePath.lastIndexOf('/')
-        name = if (lastIndex < 0) {
-            absolutePath
-        } else absolutePath.substring(lastIndex + 1)
+        val endIndex = min(
+            absolutePath.indexOf2('?', lastIndex + 1),
+            absolutePath.indexOf2('&', lastIndex + 1)
+        )
+        name = absolutePath.substring(lastIndex + 1, endIndex)
         val extIndex = name.lastIndexOf('.')
         if (extIndex < 0) {
             extension = ""

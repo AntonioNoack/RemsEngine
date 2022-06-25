@@ -57,10 +57,9 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
                 val proxyFile = getReference(proxyFolder, uuid)
                 val data = CacheData<FileReference?>(null)
                 if (!proxyFile.exists) {
-                    createProxy(
-                        src, proxyFile, uuid,
-                        proxyFolder.getChild(proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")
-                    ) { data.value = proxyFile }
+                    val tmp = proxyFolder.getChild(proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")
+                    LOGGER.debug("$src -> $tmp -> $proxyFile")
+                    createProxy(src, proxyFile, uuid, tmp) { data.value = proxyFile }
                 } else {
                     markUsed(uuid)
                     data.value = proxyFile
@@ -89,17 +88,25 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         callback: () -> Unit
     ) {
         init()
-        val meta = FFMPEGMetadata.getMeta(src, false) ?: return // error
+        val meta = FFMPEGMetadata.getMeta(src, false)
+        if (meta == null) {
+            LOGGER.warn("Meta is null")
+            return
+        }
         val w = (meta.videoWidth / scale.toFloat()).roundToInt() and (1.inv())
         val h = (meta.videoHeight / scale.toFloat()).roundToInt() and (1.inv())
         // ffmpeg -i input.avi -filter:vf scale=720:-1 -c:a copy output.mkv
-        if (w < minSize || h < minSize) return
+        if (w < minSize || h < minSize) {
+            LOGGER.warn("Size too small: ($w, $h) < $minSize")
+            return
+        }
         dst.getParent()?.tryMkdirs()
         object : FFMPEGStream(null, true) {
             override fun process(process: Process, arguments: List<String>) {
                 // filter information, that we don't need (don't spam the console that much, rather create an overview for it)
-                devNull("error", process.errorStream)
-                devNull("input", process.inputStream)
+                // devNull("error", process.errorStream)
+                devLog("error", process.errorStream)
+                devLog("input", process.inputStream)
                 waitUntil(true) { !process.isAlive }
                 if (tmp.exists) {
                     if (dst.exists) dst.deleteRecursively()
@@ -112,7 +119,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
             }
 
             override fun destroy() {}
-        }.run(listOf("-i", src.absolutePath, "-filter:v", "scale=\"$w:$h\"", "-c:a", "copy", tmp.absolutePath))
+        }.run(listOf("-i", "\"${src.absolutePath}\"", "-filter:v", "scale=\"$w:$h\"", "-c:a", "copy", tmp.absolutePath))
     }
 
     private fun getUniqueFilename(file: FileReference): String {
@@ -121,7 +128,9 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         return "${file.nameWithoutExtension}-" +
                 "${completePath.hashCode().toUInt().toString(36)}-" +
                 "${lastModified.hashCode().toUInt().toString(36)}." +
-                file.extension
+                // just hoping the container is compatible;
+                // if not, we could use the signature to figure out a compatible extension
+                file.extension.ifBlank { "mp4" }
     }
 
     private fun deleteOldProxies() {

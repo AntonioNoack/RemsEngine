@@ -1,5 +1,6 @@
 package me.anno.ecs
 
+import me.anno.Engine
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
@@ -22,11 +23,13 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.studio.Inspectable
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
+import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -95,6 +98,8 @@ class Entity() : PrefabSaveable(), Inspectable {
     var isCreated = false
     fun create() {
         if (isCreated) return
+        transform.teleportUpdate()
+        invalidateAABBsCompletely()
         isCreated = true
         val children = internalChildren
         for (index in children.indices) {
@@ -407,6 +412,12 @@ class Entity() : PrefabSaveable(), Inspectable {
         )
         this.hasOnVisibleUpdate = hasUpdate
         return hasUpdate
+    }
+
+    fun invalidateUpdates() {
+        parentEntity?.invalidateUpdates()
+        hasOnVisibleUpdate = true
+        hasOnUpdate = true
     }
 
     fun invalidateVisibility() {
@@ -970,10 +981,10 @@ class Entity() : PrefabSaveable(), Inspectable {
     ) {
         // all tests can be removed
         // interpolation tests
-        /*list += UpdatingTextPanel(50, style) {
+        list += UpdatingTextPanel(50, style) {
             val t = transform
             "1x/${(t.lastUpdateDt * 1e-9).f3()}s, ${((Engine.gameTime - t.lastUpdateTime) * 1e-9).f3()}s ago"
-        }*/
+        }
         PrefabInspector.currentInspector!!.inspect(this, list, style)
     }
 

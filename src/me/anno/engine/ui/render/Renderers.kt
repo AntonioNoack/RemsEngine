@@ -224,14 +224,16 @@ object Renderers {
                     Variable(GLSLType.V4F, "lightData", previewLights.size),
                     Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
                     Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT),
-                    Variable(GLSLType.V1F, "finalRoughness"),
-                    Variable(GLSLType.V1F, "finalMetallic"),
+                    Variable(GLSLType.V3F, "finalPosition", VariableMode.IN),
+                    Variable(GLSLType.V1F, "finalRoughness", VariableMode.INOUT),
+                    Variable(GLSLType.V1F, "finalMetallic", VariableMode.INOUT),
                     Variable(GLSLType.V1F, "finalSheen"),
                     Variable(GLSLType.V3F, "finalSheenNormal"),
                     Variable(GLSLType.V4F, "finalClearCoat"),
                     Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
                     Variable(GLSLType.V3F, "finalNormal"),
-                    Variable(GLSLType.V3F, "finalEmissive")
+                    Variable(GLSLType.V3F, "finalEmissive"),
+                    Variable(GLSLType.V1F, "finalOcclusion"),
                 ), "" +
                         // shared pbr data
                         "   vec3 V = normalize(-finalPosition);\n" +

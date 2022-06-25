@@ -9,6 +9,7 @@ import me.anno.utils.hpc.HeavyProcessing.numThreads
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Floats.f3
+import me.anno.video.VideoProxyCreator
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrameReader
@@ -20,7 +21,7 @@ import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-// ffmpeg requires 100MB RAM per instance -> do we really need multiple instances, or does one work fine
+// ffmpeg requires 100 MB RAM per instance -> do we really need multiple instances, or does one work fine
 // done keep only a certain amount of ffmpeg instances running
 abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited: Boolean) {
 
@@ -28,7 +29,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         // could be limited by memory as well...
         // to help to keep the memory and cpu-usage below 100%
-        // 5GB = 50 processes, at 6 cores / 12 threads = 4 ratio
+        // 5 GB = 50 processes, at 6 cores / 12 threads = 4 ratio
         val processLimiter = Semaphore(max(2, numThreads), true)
         private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
         val frameCountByFile = HashMap<FileReference, Int>()
@@ -150,6 +151,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         builder += arguments
 
         val process = builder.start()
+        LOGGER.debug("started process")
         process(process, arguments)
         if (isProcessCountLimited) {
             waitForRelease(process)
@@ -177,9 +179,19 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                         stream.available() > 0 && stream.read() < 0
                     }
                 }
-            } catch (e: ShutdownException) {
-                // ignored
+            } catch (_: ShutdownException) {
             }
+        }
+    }
+
+    fun devLog(name: String, stream: InputStream) {
+        thread(name = name) {
+            val out = stream.bufferedReader()
+            while (!Engine.shutdown) {
+                val line = out.readLine() ?: break
+                LOGGER.info(line)
+            }
+            out.close()
         }
     }
 

@@ -8,6 +8,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
+import me.anno.io.files.WebRef
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
@@ -59,7 +60,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             }
             // only load ffmpeg for ffmpeg files
             "gif", "media" -> {
-                if (!OS.isAndroid && file is FileFileRef) {
+                if (!OS.isAndroid && (file is FileFileRef || file is WebRef)) {
                     loadFFMPEG()
                 }
             }

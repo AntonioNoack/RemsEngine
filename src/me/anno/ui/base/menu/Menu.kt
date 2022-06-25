@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.Window
@@ -43,21 +44,19 @@ object Menu {
         openMenu(windowStack, listOf(MenuOption(title) {}))
     }
 
-    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit) {
+    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit) =
         openMenu(windowStack, question, listOf(
             MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
             MenuOption(NameDesc("No", "", "ui.no")) {}
         ))
-    }
 
-    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit, onNo: () -> Unit) {
+    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit, onNo: () -> Unit) =
         openMenu(
             windowStack, question, listOf(
                 MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
                 MenuOption(NameDesc("No", "", "ui.no"), onNo)
             )
         )
-    }
 
     fun askName(
         windowStack: WindowStack,
@@ -66,8 +65,8 @@ object Menu {
         actionName: NameDesc,
         getColor: (String) -> Int,
         callback: (String) -> Unit
-    ) {
-        // GFX.updateMousePosition()
+    ) =
+    // GFX.updateMousePosition()
         // windowStack.updateMousePosition()
         askName(
             windowStack,
@@ -75,7 +74,6 @@ object Menu {
             windowStack.mouseYi - paddingY,
             title, value0, actionName, getColor, callback
         )
-    }
 
     fun askName(
         windowStack: WindowStack,
@@ -232,9 +230,21 @@ object Menu {
                 override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
                     if (leftDown) {
                         // move the window
-                        window.x += dx.roundToInt()
-                        window.y += dy.roundToInt()
-                        invalidateLayout()
+                        // padding, so the user cannot move the window off-screen
+                        val safetyPadding = 10
+                        window.x = clamp(
+                            window.x + dx.roundToInt(),
+                            safetyPadding - window.panel.w,
+                            windowStack.width - safetyPadding
+                                    // extra width, where we'd just grab the scrollbar instead of the panel
+                                    - container.interactionWidth
+                        )
+                        window.y = clamp(
+                            // we only can control the window at the top -> top needs to stay visible
+                            window.y + dy.roundToInt(), 0,
+                            windowStack.height - safetyPadding
+                        )
+                        window.panel.invalidateLayout()
                         return
                     } else if (rightDown) {
                         // todo scale somehow...
@@ -250,10 +260,11 @@ object Menu {
         }
 
         // search panel
+        var searchPanel: TextInput? = null
         if (panels.size >= DefaultConfig["ui.search.minItems", 5]) {
             val startIndex = list.children.size + 1
             val suggestions = DefaultConfig["ui.search.spellcheck", true]
-            val searchPanel = TextInput("Search", "", suggestions, style)
+            searchPanel = TextInput("Search", "", suggestions, style)
             searchPanel.addChangeListener { searchTerm ->
                 val search = Search(searchTerm)
                 val children = list.children
@@ -276,7 +287,6 @@ object Menu {
                 }
             }
             list += searchPanel
-            searchPanel.requestFocus()
         }
 
         // todo in the future, we also could create/allow groups for faster access
@@ -292,12 +302,14 @@ object Menu {
         container.calculateSize(maxWidth, maxHeight)
         container.setSize(min(container.minW, maxWidth), min(container.minH, maxHeight))
 
-        window.x = Maths.clamp(x, 0, max(windowStack.width - container.w, 0))
-        window.y = Maths.clamp(y, 0, max(windowStack.height - container.h, 0))
+        window.x = clamp(x, 0, max(windowStack.width - container.w, 0))
+        window.y = clamp(y, 0, max(windowStack.height - container.h, 0))
 
         container.forAllPanels { it.window = window }
 
         windowStack.add(window)
+        searchPanel?.requestFocus()
+
         GFX.loadTexturesSync.pop()
 
         return window

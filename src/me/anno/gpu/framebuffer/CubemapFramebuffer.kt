@@ -291,6 +291,19 @@ class CubemapFramebuffer(
         }
     }
 
+    override fun attachFramebufferToDepth(targets: Array<TargetType>): IFramebuffer {
+        return if (targets.size <= GFX.maxColorAttachments) {
+            val buffer = CubemapFramebuffer(name, size, samples, targets, DepthBufferType.ATTACHMENT)
+            buffer.depthAttachment = this
+            buffer
+        } else {
+            TODO("Cubemaps with attachment depth not yet implemented for ${targets.size} > ${GFX.maxColorAttachments}")
+            /*val buffer = MultiFramebuffer(name, size, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            for (it in buffer.targetsI) it.depthAttachment = this
+            buffer*/
+        }
+    }
+
     override fun toString(): String =
         "FBCubemap[n=$name, i=$pointer, size=$size t=${targets.joinToString()} d=$depthBufferType]"
 

@@ -6,6 +6,7 @@ import me.anno.gpu.OpenGL.renderDefault
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.drawing.DrawRectangles
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -21,7 +22,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * virtual window within one GLFW window
+ * a virtual window within one GLFW window
  * */
 open class Window(
     panel: Panel,
@@ -43,6 +44,8 @@ open class Window(
     val mouseYi get() = windowStack.mouseYi
     val mouseDownX get() = windowStack.mouseDownX
     val mouseDownY get() = windowStack.mouseDownY
+
+    var isClosingQuestion = false
 
     var panel: Panel = panel
         set(value) {
@@ -117,8 +120,7 @@ open class Window(
         w: Int, h: Int,
         sparseRedraw: Boolean,
         didSomething0: Boolean,
-        forceRedraw: Boolean,
-        dstBuffer: Framebuffer?
+        forceRedraw: Boolean
     ): Boolean {
 
         var didSomething = didSomething0
@@ -126,15 +128,17 @@ open class Window(
 
         panel.updateVisibility(mouseX.toInt(), mouseY.toInt())
 
-        val inFocus = windowStack.inFocus
-        for (index in inFocus.indices) {
-            val p = inFocus[index]
-            if (p.window == this@Window) {
-                p.isInFocus = true
-                var pi: Panel? = p
-                while (pi != null) {
-                    pi.isAnyChildInFocus = true
-                    pi = pi.parent as? Panel
+        if (this == windowStack.peek()) {
+            val inFocus = windowStack.inFocus
+            for (index in inFocus.indices) {
+                val p = inFocus[index]
+                if (p.window == this@Window) {
+                    p.isInFocus = true
+                    var pi: Panel? = p
+                    while (pi != null) {
+                        pi.isAnyChildInFocus = true
+                        pi = pi.parent as? Panel
+                    }
                 }
             }
         }
@@ -154,11 +158,11 @@ open class Window(
             // this somehow needs to be circumvented...
             when {
                 sparseRedraw -> {
-                    didSomething = sparseRedraw(panel, didSomething, forceRedraw, dstBuffer)
+                    didSomething = sparseRedraw(panel, didSomething, forceRedraw)
                 }
                 didSomething || forceRedraw -> {
                     needsRedraw.clear()
-                    fullRedraw(w, h, panel, dstBuffer)
+                    fullRedraw(w, h, panel)
                     didSomething = true
                 }
                 // else no buffer needs to be updated
@@ -182,7 +186,7 @@ open class Window(
                 // recalculate layout
                 p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)
                 p.setPosSize(p.lx0, p.ly0, p.lx1 - p.lx0, p.ly1 - p.ly0)
-                needsLayout.removeAll(p.listOfAll)
+                needsLayout.removeAll(p.listOfAll.toSet())
                 addNeedsRedraw(p)
             }
         }
@@ -190,8 +194,7 @@ open class Window(
 
     private fun fullRedraw(
         w: Int, h: Int,
-        panel0: Panel,
-        dstBuffer: Framebuffer?
+        panel0: Panel
     ) {
 
         GFX.loadTexturesSync.clear()
@@ -203,7 +206,7 @@ open class Window(
 
         val w2 = min(panel0.w, w)
         val h2 = min(panel0.h, h)
-        useFrame(panel0.x, panel0.y, w2, h2, false, dstBuffer, Renderer.colorRenderer) {
+        useFrame(panel0.x, panel0.y, w2, h2, Renderer.colorRenderer) {
             panel0.canBeSeen = true
             panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)
         }
@@ -213,8 +216,7 @@ open class Window(
     private val wasRedrawn = ArrayList<Panel>()
     private fun sparseRedraw(
         panel0: Panel, didSomething0: Boolean,
-        forceRedraw: Boolean,
-        dstBuffer: Framebuffer?
+        forceRedraw: Boolean
     ): Boolean {
 
         var didSomething = didSomething0
@@ -231,7 +233,7 @@ open class Window(
             Frame.reset()
 
             val buffer = buffer
-            GFX.useWindowXY(panel0.x, panel0.y, buffer) {
+            GFX.useWindowXY(max(panel0.x, 0), max(panel0.y, 0), buffer) {
                 renderDefault {
                     sparseRedraw2(panel0, wasRedrawn)
                 }
@@ -240,7 +242,7 @@ open class Window(
         }
 
         if (didSomething || forceRedraw) {
-            drawCachedImage(panel0, wasRedrawn, dstBuffer)
+            drawCachedImage(panel0, wasRedrawn)
         }// else no buffer needs to be updated
 
         return didSomething
@@ -257,7 +259,7 @@ open class Window(
 
         if (x1 > x0 && y1 > y0) {
 
-            if (panel0 in needsRedraw || // if the main panel is here, all needs to be redrawn anyways
+            if (panel0 in needsRedraw || // if the main panel is here, all needs to be redrawn anyway
                 needsRedraw.isFull() || // needs redraw is full = we didn't save everything that needs redrawing
                 // if we would need to redraw more pixels than the whole screen, just redraw it, doesn't matter
                 needsRedraw.sumOf {
@@ -270,10 +272,16 @@ open class Window(
                 GFX.loadTexturesSync.clear()
                 GFX.loadTexturesSync.push(true)
 
+                if (buffer.w != x1 - x0 || buffer.h != y1 - y0) {
+                    buffer.w = x1 - x0
+                    buffer.h = y1 - y0
+                    buffer.destroy()
+                }
+
                 // todo while the window is being rescaled, reuse the old fb
                 useFrame(
                     x0, y0, x1 - x0, y1 - y0,
-                    true, buffer, Renderer.colorRenderer
+                    buffer, Renderer.colorRenderer
                 ) {
                     Frame.bind()
                     GL11C.glClearColor(0f, 0f, 0f, 0f)
@@ -295,8 +303,7 @@ open class Window(
                         val x3 = panel.lx1 - panel.lx0
                         val y3 = panel.ly1 - panel.ly0
                         useFrame(
-                            x2, y2, x3, y3,
-                            false, buffer,
+                            x2, y2, x3, y3, buffer,
                             Renderer.colorRenderer,
                             panel::redraw
                         )
@@ -319,25 +326,27 @@ open class Window(
         }
     }
 
-    private fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>, dstBuffer: Framebuffer?) {
-        useFrame(panel.x, panel.y, panel.w, panel.h, false, dstBuffer) {
-            if (isTransparent) {
-                renderDefault {
-                    buffer.checkSession()
-                    GFX.copy(buffer)
-                    if (showRedraws) {
-                        showRedraws(wasRedrawn)
-                    }
-                }
-            } else {
-                renderPurely {
-                    buffer.checkSession()
-                    GFX.copy(buffer)
-                }
+    private fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>) {
+        val x0 = max(panel.x, 0)
+        val y0 = max(panel.y, 0)
+        // we don't need to draw more than is visible
+        val x1 = min(panel.x + panel.w, windowStack.width)
+        val y1 = min(panel.y + panel.h, windowStack.height)
+        val tex = buffer.getTexture0()
+        if (isTransparent) {
+            renderDefault {
+                drawTexture(x0, y1, x1 - x0, y0 - y1, tex, -1, null)
                 if (showRedraws) {
-                    renderDefault {
-                        showRedraws(wasRedrawn)
-                    }
+                    showRedraws(wasRedrawn)
+                }
+            }
+        } else {
+            renderPurely {
+                drawTexture(x0, y1, x1 - x0, y0 - y1, tex, -1, null)
+            }
+            if (showRedraws) {
+                renderDefault {
+                    showRedraws(wasRedrawn)
                 }
             }
         }

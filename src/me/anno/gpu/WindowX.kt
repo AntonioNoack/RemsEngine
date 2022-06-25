@@ -11,6 +11,9 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback
 import org.lwjgl.glfw.GLFWKeyCallback
 import kotlin.math.abs
 
+/**
+ * OS level window
+ * */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class WindowX(var title: String) {
 

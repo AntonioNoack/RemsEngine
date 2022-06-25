@@ -1,6 +1,7 @@
 package me.anno.utils.pooling
 
 import me.anno.Engine
+import me.anno.ecs.annotations.Docs
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 
 abstract class BufferPool<V>(
@@ -82,6 +83,20 @@ abstract class BufferPool<V>(
             for (i in available.indices) {
                 val element = available[i]
                 if (element != null && time - lastUsed[i] > timeoutNanos) {
+                    @Suppress("unchecked_cast")
+                    destroy(element as V)
+                    available[i] = null
+                }
+            }
+        }
+    }
+
+    @Docs("Remove all pooled entries")
+    fun gc() {
+        synchronized(this) {
+            for (i in available.indices) {
+                val element = available[i]
+                if (element != null) {
                     @Suppress("unchecked_cast")
                     destroy(element as V)
                     available[i] = null

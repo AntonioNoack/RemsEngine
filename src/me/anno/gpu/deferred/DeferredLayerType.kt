@@ -94,14 +94,15 @@ open class DeferredLayerType(
         // todo do we need the tangent? it is calculated from uvs, so maybe for anisotropy...
         // high precision is required for curved metallic objects; otherwise we get banding
         val TANGENT = DeferredLayerType(
-            "TANGENT",
-            "finalTangent",
-            3,
-            BufferQuality.MEDIUM_12,
-            false,
-            0x7777ff,
-            "*0.5+0.5",
-            "*2.0-1.0"
+            "TANGENT", "finalTangent",
+            3, BufferQuality.MEDIUM_12, false,
+            0x7777ff, "*0.5+0.5", "*2.0-1.0"
+        )
+
+        val BITANGENT = DeferredLayerType(
+            "BITANGENT", "finalBitangent",
+            3, BufferQuality.MEDIUM_12, false,
+            0x7777ff, "*0.5+0.5", "*2.0-1.0"
         )
 
         // may be in camera space, player space, or world space

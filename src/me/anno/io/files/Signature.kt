@@ -10,14 +10,9 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
     constructor(name: String, offset: Int, signature: String) : this(name, offset, signature.toByteArray())
 
-    constructor(name: String, offset: Int, signature: String, extraBytes: ByteArray) : this(
+    constructor(name: String, offset: Int, signature: String, vararg extraBytes: Int) : this(
         name, offset,
-        signature.toByteArray() + extraBytes
-    )
-
-    constructor(name: String, offset: Int, signature: String, extraBytes: List<Int>) : this(
-        name, offset,
-        signature.toByteArray() + extraBytes.map { it.toByte() }.toByteArray()
+        signature.toByteArray() + ByteArray(extraBytes.size) { extraBytes[it].toByte() }
     )
 
     constructor(name: String, offset: Int, prefix: ByteArray, signature: String, extraBytes: ByteArray) : this(
@@ -30,9 +25,9 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         prefix + signature.toByteArray()
     )
 
-    constructor(name: String, offset: Int, bytes: List<Int>) : this(
+    constructor(name: String, offset: Int, vararg bytes: Int) : this(
         name, offset,
-        bytes.map { it.toByte() }.toByteArray()
+        ByteArray(bytes.size) { it.toByte() }
     )
 
     fun matches(bytes: ByteBuffer): Boolean {
@@ -144,75 +139,71 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         @Suppress("SpellCheckingInspection")
         val signatures = arrayListOf(
             Signature("bz2", 0, "BZh"),
-            Signature("rar", 0, "Rar!", byteArrayOf(0x1a, 0x07)),
-            Signature("zip", 0, "PK", byteArrayOf(3, 4)),
-            Signature("zip", 0, "PK", byteArrayOf(5, 6)), // "empty archive" after wikipedia
-            Signature("zip", 0, "PK", byteArrayOf(7, 8)), // "spanned archive"
-            Signature("tar", 0, listOf(0x1F, 0x9D)), // lempel-ziv-welch
-            Signature("tar", 0, listOf(0x1F, 0xA0)),// lzh
+            Signature("rar", 0, "Rar!", 0x1a, 0x07),
+            Signature("zip", 0, "PK", 3, 4),
+            Signature("zip", 0, "PK", 5, 6), // "empty archive" after wikipedia
+            Signature("zip", 0, "PK", 7, 8), // "spanned archive"
+            Signature("tar", 0, 0x1F, 0x9D), // lempel-ziv-welch
+            Signature("tar", 0, 0x1F, 0xA0),// lzh
             // Signature("tar", 257, "ustar"), // this large offset is unfortunate; we'd have to adjust the signature readout for ALL others
-            Signature("gzip", 0, listOf(0x1F, 0x8B)), // gz/tar.gz
+            Signature("gzip", 0, 0x1F, 0x8B), // gz/tar.gz
             Signature("xz", 0, byteArrayOf(0xFD.toByte()), "7zXZ", byteArrayOf(0)), // xz compression
-            Signature("lz4", 0, byteArrayOf(0x04, 0x22, 0x4D, 0x18)), // another compression
-            Signature("7z", 0, "7z", listOf(0xBC, 0xAF, 0x27, 0x1C)),
+            Signature("lz4", 0, 0x04, 0x22, 0x4D, 0x18), // another compression
+            Signature("7z", 0, "7z", 0xBC, 0xAF, 0x27, 0x1C),
             Signature("xar", 0, "xar!"), // file compression for apple stuff?
             Signature("oar", 0, "OAR"), // oar compression (mmh)
-            Signature("java", 0, listOf(0xCA, 0xFE, 0xBA, 0xBE)), // java class
-            Signature("text", 0, listOf(0xEF, 0xBB, 0xBF)), // UTF8
-            Signature("text", 0, listOf(0xFF, 0xFE)), // UTF16
-            Signature("text", 0, listOf(0xFE, 0xFF)),
-            Signature("text", 0, listOf(0xFF, 0xFE, 0, 0)), // UTF32
-            Signature("text", 0, listOf(0xFE, 0xFF, 0, 0)),
+            Signature("java", 0, 0xCA, 0xFE, 0xBA, 0xBE), // java class
+            Signature("text", 0, 0xEF, 0xBB, 0xBF), // UTF8
+            Signature("text", 0, 0xFF, 0xFE), // UTF16
+            Signature("text", 0, 0xFE, 0xFF),
+            Signature("text", 0, 0xFF, 0xFE, 0, 0), // UTF32
+            Signature("text", 0, 0xFE, 0xFF, 0, 0),
             Signature("text", 0, "+/v8"), // UTF7
             Signature("text", 0, "+/v9"), // UTF7
             Signature("text", 0, "+/v+"), // UTF7
             Signature("text", 0, "+/v/"), // UTF7
-            Signature("text", 0, listOf(0x0E, 0xFE, 0xFF)), // SOSU compressed text
+            Signature("text", 0, 0x0E, 0xFE, 0xFF), // SOSU compressed text
             Signature("pdf", 0, "%PDF"),
             Signature("wasm", 0, byteArrayOf(0), "asm"),
-            Signature("ttf", 0, listOf(0, 1, 0, 0, 0)),// true type font
+            Signature("ttf", 0, 0, 1, 0, 0, 0),// true type font
             Signature("woff1", 0, "wOFF"),
             Signature("woff2", 0, "wOF2"),
             Signature("lua-bytecode", 0, byteArrayOf(0x1B), "Lua"),
             Signature("shell", 0, "#!"),
             // images
             Signature("png", 0, byteArrayOf(0x89.toByte()), "PNG", byteArrayOf(0xd, 0xa, 0x1a, 0x0a)),
-            Signature("jpg", 0, listOf(0xFF, 0xD8, 0xFF, 0xDB)),
-            Signature("jpg", 0, listOf(0xFF, 0xD8, 0xFF, 0xE0)),
-            Signature("jpg", 0, listOf(0xFF, 0xD8, 0xFF, 0xEE)),
-            Signature("jpg", 0, listOf(0xFF, 0xD8, 0xFF, 0xE1)),
+            Signature("jpg", 0, 0xFF, 0xD8, 0xFF, 0xDB),
+            Signature("jpg", 0, 0xFF, 0xD8, 0xFF, 0xE0),
+            Signature("jpg", 0, 0xFF, 0xD8, 0xFF, 0xEE),
+            Signature("jpg", 0, 0xFF, 0xD8, 0xFF, 0xE1),
             bmp,
             Signature("psd", 0, "8BPS"), // photoshop image format
             Signature("hdr", 0, "#?RADIANCE"), // high dynamic range
-            Signature("ico", 0, listOf(0x00, 0x00, 0x01, 0x00, 0x01)),// ico with 1 "image"
-            Signature("ico", 0, listOf(0x00, 0x00, 0x02, 0x00, 0x01)),// cursor with 1 "image"
+            Signature("ico", 0, 0x00, 0x00, 0x01, 0x00, 0x01),// ico with 1 "image"
+            Signature("ico", 0, 0x00, 0x00, 0x02, 0x00, 0x01),// cursor with 1 "image"
             Signature("dds", 0, "DDS "), // direct x image file format
             Signature("gif", 0, "GIF8"), // graphics interchange format, often animated
             Signature("gimp", 0, GimpImage.MAGIC), // gimp file
             Signature("qoi", 0, "qoif"),
-            Signature("exr", 0, listOf(0x76, 0x2f, 0x31, 0x01)), // HDR image format, can be exported from Blender
+            Signature("exr", 0, 0x76, 0x2f, 0x31, 0x01), // HDR image format, can be exported from Blender
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
             Signature("exe", 0, "MZ"),
             // media (video/audio)
-            Signature("media", 0, listOf(0x1A, 0x45, 0xDF, 0xA3)), // mkv, mka, mks, mk3d, webm
+            Signature("media", 0, 0x1A, 0x45, 0xDF, 0xA3), // mkv, mka, mks, mk3d, webm
             Signature("media", 0, "ID3"),// mp3 container
-            Signature("media", 0, listOf(0xFF, 0xFB)),// mp3
-            Signature("media", 0, listOf(0xFF, 0xF3)),// mp3
-            Signature("media", 0, listOf(0xFF, 0xF2)),// mp3
+            Signature("media", 0, 0xFF, 0xFB),// mp3
+            Signature("media", 0, 0xFF, 0xF3),// mp3
+            Signature("media", 0, 0xFF, 0xF2),// mp3
             Signature("media", 0, "OggS"),// ogg
-            Signature("media", 0, "RIFF"),// can be a lot of stuff, e.g. wav, avi
+            Signature("media", 0, "RIFF"),// can be a lot of stuff, e.g., wav, avi
             Signature("media", 0, "FLV"),// flv
-            Signature("media", 0, listOf(0x47)),// mpeg stream
-            Signature("media", 0, listOf(0x00, 0x00, 0x01, 0xBA)), // m2p, vob, mpg, mpeg
-            Signature("media", 0, listOf(0x00, 0x00, 0x01, 0xB3)),// mpg, mpeg
+            Signature("media", 0, 0x47),// mpeg stream
+            Signature("media", 0, 0x00, 0x00, 0x01, 0xBA), // m2p, vob, mpg, mpeg
+            Signature("media", 0, 0x00, 0x00, 0x01, 0xB3),// mpg, mpeg
             Signature("media", 4, "ftypisom"), // mp4
             Signature("media", 4, "ftypmp42"), // mp4
-            Signature(
-                "media",
-                0,
-                listOf(0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11)
-            ), // wmv, wma, asf (Windows Media file)
+            Signature("media", 0, 0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11), // wmv, wma, asf (Windows Media file)
             // meshes
             Signature("vox", 0, "VOX "),
             Signature("fbx", 0, "Kaydara FBX Binary"),

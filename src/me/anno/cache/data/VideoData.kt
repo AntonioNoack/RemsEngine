@@ -17,7 +17,7 @@ class VideoData(
         val meta = FFMPEGMetadata.getMeta(file, false)!!
         val frame0 = bufferIndex * bufferLength
         if (frame0 <= -bufferLength || frame0 >= max(1, meta.videoFrameCount))
-            LOGGER.warn("Access of frames is out of bounds: $frame0/$bufferLength/${meta.videoFrameCount}")
+            LOGGER.warn("Access of frames is out of bounds: $frame0/$bufferLength/${meta.videoFrameCount} by $file")
     }
 
     // what about video webp? I think it's pretty rare...

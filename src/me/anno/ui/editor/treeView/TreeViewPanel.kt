@@ -12,6 +12,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
@@ -95,10 +96,6 @@ class TreeViewPanel<V>(
 
     val font get() = (uiSymbol ?: text).font
 
-    fun Int.scaleRGB(f: Float): Int {
-        return rgba((r() * f).roundToInt(), (g() * f).roundToInt(), (b() * f).roundToInt(), a())
-    }
-
     override fun tickUpdate() {
         super.tickUpdate()
         val transform = getElement()
@@ -114,9 +111,8 @@ class TreeViewPanel<V>(
         } else null
         if (this.showAddIndex != showAddIndex) invalidateDrawing()
         this.showAddIndex = showAddIndex
-        val isInFocus =
-            isInFocus || text.isInFocus || (uiSymbol?.isInFocus == true) || StudioBase.instance?.isSelected(transform) == true
-        val textColor = treeView.getLocalColor(transform, isHovered, isInFocus).scaleRGB(180 / 255f)
+        val isInFocus = isAnyChildInFocus || StudioBase.instance?.isSelected(transform) == true
+        val textColor = mixARGB(black, treeView.getLocalColor(transform, isHovered, isInFocus), 180f / 255f)
         val colorDifference = sq(textColor.r() - backgroundColor.r()) +
                 sq(textColor.g() - backgroundColor.g()) +
                 sq(textColor.b() - backgroundColor.b())

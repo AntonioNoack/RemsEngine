@@ -195,11 +195,10 @@ object OpenGL {
         buffer: IFramebuffer?,
         renderer: Renderer,
         render: () -> Unit
-    ) = useFrame(0, 0, -1, -1, false, buffer, renderer, render)
+    ) = useFrame(0, 0, -1, -1, buffer, renderer, render)
 
     inline fun useFrame(
         x: Int, y: Int, w: Int, h: Int,
-        changeSize: Boolean,
         buffer: IFramebuffer?,
         renderer: Renderer,
         render: () -> Unit
@@ -209,7 +208,7 @@ object OpenGL {
         ys[index] = y
         ws[index] = w
         hs[index] = h
-        changeSizes[index] = changeSize
+        changeSizes[index] = false
         // todo depth must be cleared only once
         if (buffer is MultiFramebuffer) {
             val targets = buffer.targetsI
@@ -231,9 +230,6 @@ object OpenGL {
     inline fun useFrame(buffer: IFramebuffer?, render: () -> Unit) =
         useFrame(buffer, currentRenderer, render)
 
-    inline fun useFrame(w: Int, h: Int, changeSize: Boolean, buffer: IFramebuffer?, render: () -> Unit) =
-        useFrame(0, 0, w, h, changeSize, buffer, currentRenderer, render)
-
     inline fun useFrame(
         w: Int,
         h: Int,
@@ -241,19 +237,50 @@ object OpenGL {
         buffer: IFramebuffer?,
         renderer: Renderer,
         render: () -> Unit
-    ) = useFrame(0, 0, w, h, changeSize, buffer, renderer, render)
+    ) {
+        val index = framebuffer.size
+        xs[index] = 0
+        ys[index] = 0
+        ws[index] = w
+        hs[index] = h
+        changeSizes[index] = changeSize
+        // todo depth must be cleared only once
+        if (buffer is MultiFramebuffer) {
+            val targets = buffer.targetsI
+            for (targetIndex in targets.indices) {
+                val target = targets[targetIndex]
+                // split renderer by targets
+                renderers[index] = renderer.split(targetIndex, buffer.div)
+                framebuffer.use(target, render)
+            }
+        } else {
+            renderers[index] = renderer
+            framebuffer.use(buffer, render)
+        }
+    } //= useFrame(0, 0, w, h, changeSize, buffer, renderer, render)
 
-    inline fun useFrame(x: Int, y: Int, w: Int, h: Int, changeSize: Boolean, render: () -> Unit) =
-        useFrame(x, y, w, h, changeSize, currentBuffer, currentRenderer, render)
+    inline fun useFrame(w: Int, h: Int, changeSize: Boolean, buffer: IFramebuffer?, render: () -> Unit) =
+        useFrame(w, h, changeSize, buffer, currentRenderer, render)
+
+    inline fun useFrame(w: Int, h: Int, changeSize: Boolean, render: () -> Unit) =
+        useFrame(w, h, changeSize, currentBuffer, currentRenderer, render)
+
+    inline fun useFrame(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) =
+        useFrame(x, y, w, h, currentBuffer, currentRenderer, render)
 
     inline fun useFrame(
-        x: Int, y: Int, w: Int, h: Int, changeSize: Boolean,
+        x: Int, y: Int, w: Int, h: Int,
         buffer: IFramebuffer?, render: () -> Unit
-    ) = useFrame(x, y, w, h, changeSize, buffer, currentRenderer, render)
+    ) = useFrame(x, y, w, h, buffer, currentRenderer, render)
 
     inline fun useFrame(
-        x: Int, y: Int, w: Int, h: Int, changeSize: Boolean,
+       w: Int, h: Int, changeSize: Boolean,
         renderer: Renderer, render: () -> Unit
-    ) = useFrame(x, y, w, h, changeSize, currentBuffer, renderer, render)
+    ) = useFrame(w, h, changeSize, currentBuffer, renderer, render)
+
+    inline fun useFrame(
+        x: Int, y: Int, w: Int, h: Int,
+        renderer: Renderer, render: () -> Unit
+    ) = useFrame(x, y, w, h, currentBuffer, renderer, render)
 
 }

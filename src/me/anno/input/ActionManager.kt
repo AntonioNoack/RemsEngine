@@ -117,8 +117,8 @@ object ActionManager : StringMap() {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOUBLE), false)
     }
 
-    fun onKeyHoldDown(window: WindowX, dx: Float, dy: Float, key: Int, save: Boolean) {
-        val type = if (save) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE
+    fun onKeyHoldDown(window: WindowX, dx: Float, dy: Float, key: Int, isSafe: Boolean) {
+        val type = if (isSafe) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE
         onEvent(window, dx, dy, KeyCombination(key, Input.keyModState, type), true)
     }
 
@@ -137,8 +137,10 @@ object ActionManager : StringMap() {
     }
 
     fun onEvent(window: WindowX, dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
-        var panel = window.windowStack.inFocus0
-        // filter action keys, if they are typing keys and a typing field is in focus
+        val stack = window.windowStack
+        var panel = stack.inFocus0
+        if (stack.peek() != panel?.window) panel = null
+        // filter action keys, if they are typing keys, and a typing field is in focus
         val isWriting = combination.isWritingKey && (panel?.isKeyInput() == true)
         // LOGGER.debug("is writing: $isWriting, combination: $combination, has value? ${combination in globalKeyCombinations}")
         if (!isWriting) {

@@ -42,13 +42,29 @@ class Framebuffer(
      * but using the same depth values
      * */
     override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer {
-        // todo test this
         return if (targetCount <= GFX.maxColorAttachments) {
             val buffer = Framebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this
             buffer
         } else {
             val buffer = MultiFramebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            for (it in buffer.targetsI) it.depthAttachment = this
+            buffer
+        }
+    }
+
+    /**
+     * attach another framebuffer, which shares the depth buffer
+     * this can be used to draw 3D ui without deferred-rendering,
+     * but using the same depth values
+     * */
+    override fun attachFramebufferToDepth(targets: Array<TargetType>): IFramebuffer {
+        return if (targets.size <= GFX.maxColorAttachments) {
+            val buffer = Framebuffer(name, w, h, samples, targets, DepthBufferType.ATTACHMENT)
+            buffer.depthAttachment = this
+            buffer
+        } else {
+            val buffer = MultiFramebuffer(name, w, h, samples, targets, DepthBufferType.ATTACHMENT)
             for (it in buffer.targetsI) it.depthAttachment = this
             buffer
         }

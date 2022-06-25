@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.FlatShaders.depthShader
+import me.anno.gpu.shader.FlatShaders.flatShader3dSlice
 import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
 import me.anno.gpu.shader.FlatShaders.flatShaderTexture
 import me.anno.gpu.texture.*
@@ -18,7 +19,8 @@ object DrawTextures {
     fun drawProjection(
         x: Int, y: Int, w: Int, h: Int,
         texture: CubemapTexture, ignoreAlpha: Boolean, color: Int,
-        applyToneMapping: Boolean = false
+        applyToneMapping: Boolean,
+        showDepth: Boolean
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
@@ -29,6 +31,7 @@ object DrawTextures {
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)
         shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1b("showDepth", showDepth)
         texture.bind(0, texture.filtering, Clamping.CLAMP)
         GFX.flat01.draw(shader)
         GFX.check()
@@ -179,6 +182,31 @@ object DrawTextures {
         UVProjection.Planar.getBuffer().draw(shader)
         GFX.check()
 
+    }
+
+    fun draw3dSlice(
+        x: Int, y: Int, w: Int, h: Int,
+        z: Float,
+        texture: Texture3D,
+        ignoreAlpha: Boolean,
+        color: Int,
+        applyToneMapping: Boolean,
+        showDepth: Boolean
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = flatShader3dSlice.value
+        shader.use()
+        posSize(shader, x, y+h-1, w, -h)
+        defineAdvancedGraphicalFeatures(shader)
+        shader.v4f("color", color)
+        shader.v1b("ignoreTexAlpha", ignoreAlpha)
+        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1b("showDepth", showDepth)
+        shader.v1f("z", z)
+        texture.bind(0)
+        GFX.flat01.draw(shader)
+        GFX.check()
     }
 
 }

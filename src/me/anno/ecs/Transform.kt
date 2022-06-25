@@ -35,7 +35,6 @@ class Transform() : Saveable() {
     var entity: Entity? = null
     val parent get() = entity?.parentEntity?.transform
 
-    // two transforms could be used to interpolate between draw calls
     var lastUpdateTime = 0L
     var lastDrawTime = 0L
     var lastUpdateDt = 0L
@@ -58,8 +57,9 @@ class Transform() : Saveable() {
 
     fun teleportUpdate(time: Long = Engine.gameTime) {
         lastUpdateTime = time
-        lastUpdateDt = 1_000_000_000
+        lastUpdateDt = 0L
         drawTransform.set(globalTransform)
+        drawnTransform.set(globalTransform)
         checkDrawTransform()
     }
 
@@ -74,7 +74,7 @@ class Transform() : Saveable() {
         val factor = updateDrawingLerpFactor(time)
         if (factor > 0.0) {
             val extrapolatedTime = (Engine.gameTime - lastUpdateTime).toDouble() / lastUpdateDt
-            // needs to be changed, if the extrapolated time changes -> it changes if the phyisics engine is behind
+            // needs to be changed, if the extrapolated time changes -> it changes if the physics engine is behind
             // its target -> in the physics engine, we send the game time instead of the physics time,
             // and this way, it's relatively guaranteed to be roughly within [0,1]
             val fac2 = factor / (Maths.clamp(1.0 - extrapolatedTime, 0.001, 1.0))
@@ -87,6 +87,9 @@ class Transform() : Saveable() {
                 drawTransform.set(globalTransform)
                 checkDrawTransform()
             }
+        } else {
+            drawTransform.set(globalTransform)
+            checkDrawTransform()
         }
         return drawTransform
     }

@@ -104,7 +104,7 @@ abstract class VideoBackgroundTask(
         val shutterPercentage = getShutterPercentage(time)
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
-            useFrame(0, 0, video.w, video.h, false, averageFrame, renderer) {
+            useFrame(0, 0, video.w, video.h, averageFrame, renderer) {
                 try {
                     renderScene(time, true, renderer)
                     if (!GFX.isFinalRendering) throw RuntimeException()

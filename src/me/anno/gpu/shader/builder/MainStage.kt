@@ -4,6 +4,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader
+import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 
 class MainStage {
@@ -262,12 +263,33 @@ class MainStage {
         }
         if (uniforms.isNotEmpty()) code.append('\n')
 
-        // declare all bridge variables
-        // they are varyings, so they are done by Shader.kt
-        /*val bridgeKey = if (isFragmentStage) "in" else "out"
-        for ((_, varying) in bridgeVariables) {
-            varying.declare(code, bridgeKey)
-        }*/
+        // find Uniform -> Stage -> finalXXX bridges
+        val bridgeVariables2 = HashSet<Variable>()
+        if (isFragmentStage) {
+            for (index in stages.indices) {
+                val stage = stages[index]
+                vars@ for (variable in stage.variables) {
+                    if (variable.inOutMode == VariableMode.INOUT &&
+                        uniforms.any { it.name == variable.name }
+                    ) {
+                        for (i in 0 until index) {
+                            val previousStage = stages[i]
+                            if (previousStage.variables.any2 {
+                                    it.isOutput && it.name == variable.name
+                                }) {// we found the producer of our variable :)
+                                continue@vars
+                            }
+                        }
+                        bridgeVariables2.add(variable)
+                        // define helper function
+                        code.append(variable.type.glslName)
+                            .append(" get_").append(variable.name)
+                            .append("(){ return ").append(variable.name)
+                            .append("; }\n")
+                    }
+                }
+            }
+        }
 
         // define all required functions
         for ((_, func) in functions) code.append(func)
@@ -292,6 +314,11 @@ class MainStage {
             for ((local, varying) in bridgeVariables) {
                 local.declare(code, null)
                 code.append(local.name).append('=').append(varying.name).append(";\n")
+            }
+            for (variable in bridgeVariables2) {
+                variable.declare(code, null)
+                code.append(variable.name).append("=get_")
+                    .append(variable.name).append("();\n")
             }
         } else {
             for ((local, _) in bridgeVariables) {

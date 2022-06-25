@@ -1,6 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
@@ -188,6 +189,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
     }
 
     override fun destroy() {
+        DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
         val vao = vao
         if (buffer > -1) {

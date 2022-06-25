@@ -3,6 +3,7 @@ package me.anno.ui.debug
 import me.anno.Logging.lastConsoleLines
 import me.anno.config.DefaultStyle
 import me.anno.engine.RemsEngine
+import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
@@ -111,6 +112,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             rip.addLeftClickListener {
                 val runtime = Runtime.getRuntime()
                 val oldMemory = runtime.totalMemory() - runtime.freeMemory()
+                Texture2D.gc()
                 System.gc()
                 thread {// System.gc() is just a hint, so we wait a short moment, and then see whether sth changed
                     Thread.sleep(10)

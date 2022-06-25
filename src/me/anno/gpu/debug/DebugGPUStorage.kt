@@ -1,5 +1,6 @@
 package me.anno.gpu.debug
 
+import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.OpenGLBuffer
@@ -12,6 +13,8 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.fract
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
@@ -25,6 +28,7 @@ import me.anno.utils.files.Files.formatFileSize
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
 import org.lwjgl.opengl.GL14C.*
+import org.lwjgl.opengl.GL30C.GL_DEPTH24_STENCIL8
 import org.lwjgl.opengl.GL30C.GL_DEPTH32F_STENCIL8
 import kotlin.math.min
 
@@ -33,11 +37,9 @@ import kotlin.math.min
  * */
 object DebugGPUStorage {
 
-    private val LOGGER = LogManager.getLogger(DebugGPUStorage::class)
-
     val tex2d = HashSet<Texture2D>()
     val tex3d = HashSet<Texture3D>()
-    val texCd = HashSet<CubemapTexture>()
+    val tex3dCs = HashSet<CubemapTexture>()
 
     val fbs = HashSet<Framebuffer>()
 
@@ -76,6 +78,16 @@ object DebugGPUStorage {
 
     }
 
+    fun isDepthFormat(format: Int) = when (format) {
+        GL_DEPTH_COMPONENT16,
+        GL_DEPTH_COMPONENT24,
+        GL_DEPTH24_STENCIL8,
+        GL_DEPTH32F_STENCIL8,
+        GL_DEPTH_COMPONENT32,
+        GL_DEPTH_COMPONENT32F -> true
+        else -> false
+    }
+
     class TexturePanel(name: String, val tex: Texture2D, val flipY: Boolean) :
         TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
 
@@ -84,19 +96,16 @@ object DebugGPUStorage {
         override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
-            when (tex.internalFormat) {
-                GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24,
-                GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT32F, GL_DEPTH32F_STENCIL8 ->
-                    DrawTextures.drawDepthTexture(x, y, w, h, tex) // flipped automatically
-                else -> {
-                    var y2 = y
-                    var h2 = h
-                    if (flipY) {
-                        y2 = y + h
-                        h2 = -h
-                    }
-                    DrawTextures.drawTexture(x, y2, w, h2, tex, -1, null)
+            if (isDepthFormat(tex.internalFormat)) {
+                DrawTextures.drawDepthTexture(x, y, w, h, tex) // flipped automatically
+            } else {
+                var y2 = y
+                var h2 = h
+                if (flipY) {
+                    y2 = y + h
+                    h2 = -h
                 }
+                DrawTextures.drawTexture(x, y2, w, h2, tex, -1, null)
             }
         }
 
@@ -110,14 +119,43 @@ object DebugGPUStorage {
 
     }
 
-    class TexturePanel3D(name: String, val tex: CubemapTexture) : TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
+    class TexturePanel3D(name: String, val tex: Texture3D) :
+        TexturePanelBase("$name, ${tex.w} x ${tex.h} x ${tex.d}") {
 
         override fun getTexW(): Int = tex.w
         override fun getTexH(): Int = tex.h
         override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
+        val isDepth get() = isDepthFormat(tex.internalFormat)
+
+        // animated
+        override fun tickUpdate() {
+            super.tickUpdate()
+            invalidateDrawing()
+        }
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
-            DrawTextures.drawProjection(x, y, w, h, tex, false, -1)
+            // how can we display them? as slices...
+            // slide through slices
+            // a) automatically
+            // b) when hovering
+            // todo calculate min/max?
+            // todo better test? currently only black...
+            val z = if (isHovered) clamp((window!!.mouseX - x) / w)
+            else fract(Engine.gameTimeF / 5f)
+            DrawTextures.draw3dSlice(x, y, w, h, z, tex, true, -1, false, isDepth)
+        }
+
+    }
+
+    class TexturePanel3DC(name: String, val tex: CubemapTexture) : TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
+
+        override fun getTexW(): Int = tex.w
+        override fun getTexH(): Int = tex.h
+        override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
+        val isDepth get() = isDepthFormat(tex.internalFormat)
+
+        override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
+            DrawTextures.drawProjection(x, y, w, h, tex, false, -1, false, isDepth)
         }
 
     }
@@ -133,14 +171,18 @@ object DebugGPUStorage {
                 }
             },
             MenuOption(NameDesc("Texture3Ds (${tex3d.size})")) {
-                // how can we display them? as slices...
-                LOGGER.warn("Not yet implemented")
+                // todo test this
+                create2DListOfPanels("Texture3Ds") { list ->
+                    for (tex in tex3d.sortedBy { it.w * it.h }) {
+                        list.add(TexturePanel3D(tex.name, tex))
+                    }
+                }
             },
-            MenuOption(NameDesc("CubemapTextures (${texCd.size})")) {
-                // todo test this in Rem's Studio
+            MenuOption(NameDesc("CubemapTextures (${tex3dCs.size})")) {
+                // todo test this, e.g. with point light shadows
                 create2DListOfPanels("CubemapTextures") { list ->
-                    for (tex in texCd.sortedBy { it.w }) {
-                        list.add(TexturePanel3D("", tex))
+                    for (tex in tex3dCs.sortedBy { it.w }) {
+                        list.add(TexturePanel3DC("", tex))
                     }
                 }
             },
@@ -162,9 +204,12 @@ object DebugGPUStorage {
                 // first, easy way:
                 createListOfPanels("Buffers") { list ->
                     for (buff in buffers.sortedBy { it.locallyAllocated }) {
-                        list.add(TextPanel("${GFX.getName(buff.type)}, " +
-                                "${buff.elementCount} x ${buff.attributes}, " +
-                                "total: ${buff.locallyAllocated.formatFileSize()}", style))
+                        list.add(TextPanel(
+                            "${GFX.getName(buff.type)}, " +
+                                    "${buff.elementCount} x ${buff.attributes}, " +
+                                    "total: ${(buff.nioBuffer?.capacity() ?: 0).toLong().formatFileSize()}", style
+                        )
+                            .apply { breaksIntoMultiline = true })
                     }
                 }
             }

@@ -210,18 +210,12 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
             Frame.bind()
             glClearColor(0f, 0f, 0f, 0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-            OpenGL.depthMode.use(DepthMode.ALWAYS) {
-                OpenGL.blendMode.use(BlendMode.DEFAULT) {
-                    OpenGL.cullMode.use(CullMode.BOTH) {
-                        render(width, height, fb)
-                    }
-                }
-            }
+            render(width, height)
         }
         GFX.check()
     }
 
-    fun render(width: Int, height: Int, fb: Framebuffer?) {
+    fun render(width: Int, height: Int) {
         OpenGL.depthMode.use(DepthMode.ALWAYS) {
             OpenGL.blendMode.use(BlendMode.DEFAULT) {
                 OpenGL.cullMode.use(CullMode.BOTH) {
@@ -234,7 +228,7 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
                     }
                     val window = GFX.activeWindow!!
                     windowStack.updateTransform(window, transform, rv.x, rv.y, rv.w, rv.h, 0, 0, width, height)
-                    windowStack.draw(width, height, true, forceRedraw = true, fb)
+                    windowStack.draw(width, height, true, forceRedraw = true)
                     JomlPools.mat4f.sub(1)
                 }
             }

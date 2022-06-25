@@ -133,14 +133,39 @@ object FlatShaders {
                 "uniform samplerCube tex;\n" +
                 "uniform vec4 color;\n" +
                 "uniform bool ignoreTexAlpha;\n" +
+                "uniform bool showDepth;\n" +
                 // "uniform mat3 rotation;\n" +
                 "void main(){\n" +
                 "   vec2 sc = vec2(sin(uv.y),cos(uv.y));\n" +
                 "   vec3 uvw = vec3(sin(uv.x),1.0,cos(uv.x)) * sc.yxy;\n" +
                 // "   uvw = rotation * uvw;\n" +
                 "   vec4 col = color;\n" +
-                "   if(ignoreTexAlpha) col.rgb *= texture(tex, uvw).rgb;\n" +
-                "   else col *= texture(tex, uvw);\n" +
+                "   if(ignoreTexAlpha) col.rgb *= texture(tex, uvw).rgb; else col *= texture(tex, uvw);\n" +
+                "   if(showDepth) col = vec4(vec3(fract(log2(col.r))), 1.0);\n" +
+                "   gl_FragColor = col;\n" +
+                "}"
+    )
+
+
+    val flatShader3dSlice = BaseShader(
+        "flatShader3dSlice", "" +
+                "$attribute vec2 coords;\n" +
+                "uniform vec2 pos, size;\n" +
+                "uniform mat4 transform;\n" +
+                "uniform float z;\n" +
+                "void main(){\n" +
+                "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
+                "   uvw = vec3(coords, z);\n" +
+                "}", listOf(Variable(GLSLType.V3F, "uvw")), "" +
+                "uniform sampler3D tex;\n" +
+                "uniform vec4 color;\n" +
+                "uniform bool ignoreTexAlpha;\n" +
+                "uniform bool showDepth;\n" +
+                "void main(){\n" +
+                // "   uvw = rotation * uvw;\n" +
+                "   vec4 col = color;\n" +
+                "   if(ignoreTexAlpha) col.rgb *= texture(tex, uvw).rgb; else col *= texture(tex, uvw);\n" +
+                "   if(showDepth) col = vec4(vec3(fract(log2(col.r))), 1.0);\n" +
                 "   gl_FragColor = col;\n" +
                 "}"
     )

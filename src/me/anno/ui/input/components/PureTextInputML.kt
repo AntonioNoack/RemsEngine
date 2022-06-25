@@ -219,7 +219,7 @@ open class PureTextInputML(style: Style) :
         val font = examplePanel.font
         val textSize = font.sizeInt
         val textColor = examplePanel.textColor or black
-        val isReallyInFocus = isInFocus || children.any { it.isInFocus }
+        val isReallyInFocus = isAnyChildInFocus
         if (isReallyInFocus && (showBars || cursor1 != cursor2)) {
             ensureCursorBounds()
             val padding = textSize / 4

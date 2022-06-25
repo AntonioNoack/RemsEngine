@@ -11,13 +11,11 @@ import kotlin.math.abs
 // todo something seems to be incorrect... some blender meshes have broken normals
 object NormalCalculator {
 
-    fun needsNormalsComputation(normals: FloatArray): Boolean {
-        for (j in 0 until normals.size / 3) {
-            val i = j * 3
+    fun needsNormalsComputation(normals: FloatArray, stride: Int): Boolean {
+        for (j in 0 until normals.size / stride) {
+            val i = j * stride
             val normalL1 = abs(normals[i]) + abs(normals[i + 1]) + abs(normals[i + 2])
-            if (normalL1 < 0.001f) {
-                return true
-            }
+            if (normalL1 < 0.001f) return true
         }
         return false
     }
@@ -120,7 +118,7 @@ object NormalCalculator {
 
     fun checkNormals(positions: FloatArray, normals: FloatArray, indices: IntArray?) {
         // first an allocation free check
-        if (needsNormalsComputation(normals)) {
+        if (needsNormalsComputation(normals,3)) {
             if (indices == null) {
                 computeNormalsNonIndexed(positions, normals)
             } else {

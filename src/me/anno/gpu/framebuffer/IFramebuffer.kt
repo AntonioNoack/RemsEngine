@@ -28,6 +28,8 @@ interface IFramebuffer {
 
     fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer
 
+    fun attachFramebufferToDepth(targets: Array<TargetType>): IFramebuffer
+
     fun checkSession()
 
     fun bindTexture0(shader: Shader, texName: String, nearest: GPUFiltering, clamping: Clamping) {

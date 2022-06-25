@@ -368,7 +368,7 @@ class FileExplorerEntry(
                 )
                 if (samples > 1) {
                     val tmp = FBStack["tmp", w, h, 4, false, 8, true] // msaa; probably should depend on gfx settings
-                    OpenGL.useFrame(0, 0, w, h, false, tmp, Renderers.simpleNormalRenderer) {
+                    OpenGL.useFrame(0, 0, w, h, tmp, Renderers.simpleNormalRenderer) {
                         OpenGL.depthMode.use(DepthMode.GREATER) {
                             val bg = backgroundColor
                             glClearColor(bg.r01(), bg.g01(), bg.b01(), bg.a01())
@@ -381,7 +381,7 @@ class FileExplorerEntry(
                     // use current buffer directly
                     OpenGL.useFrame(
                         x0, y0, w, h,
-                        false, OpenGL.currentBuffer,
+                        OpenGL.currentBuffer,
                         Renderers.simpleNormalRenderer
                     ) {
                         // todo clip to correct area

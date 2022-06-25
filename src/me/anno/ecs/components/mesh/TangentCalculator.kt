@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.utils.pooling.JomlPools
 import kotlin.math.abs
+import kotlin.math.sign
 import kotlin.math.sqrt
 
 object TangentCalculator {
@@ -32,12 +33,15 @@ object TangentCalculator {
 
             val i02 = i0 + i0
             val i03 = i0 + i02
+            val i04 = i02 + i02
 
             val i12 = i1 + i1
             val i13 = i1 + i12
+            val i14 = i12 + i12
 
             val i22 = i2 + i2
             val i23 = i2 + i22
+            val i24 = i22 + i22
 
             val v0x = positions[i03]
             val v0y = positions[i03 + 1]
@@ -73,49 +77,49 @@ object TangentCalculator {
                 val sx = (t2 * x1 - t1 * x2) * r
                 val sy = (t2 * y1 - t1 * y2) * r
                 val sz = (t2 * z1 - t1 * z2) * r
-                add(tan1, i03, sx, sy, sz)
-                add(tan1, i13, sx, sy, sz)
-                add(tan1, i23, sx, sy, sz)
+                add(tan1, i04, sx, sy, sz)
+                add(tan1, i14, sx, sy, sz)
+                add(tan1, i24, sx, sy, sz)
 
                 val tx = (s1 * x2 - s2 * x1) * r
                 val ty = (s1 * y2 - s2 * y1) * r
                 val tz = (s1 * z2 - s2 * z1) * r
-                add(tan2, i03, tx, ty, tz)
-                add(tan2, i13, tx, ty, tz)
-                add(tan2, i23, tx, ty, tz)
+                add(tan2, i04, tx, ty, tz)
+                add(tan2, i14, tx, ty, tz)
+                add(tan2, i24, tx, ty, tz)
 
             }
-
         }
 
         val n = JomlPools.vec3f.create()
         val t = JomlPools.vec3f.create()
 
         // apply all the normals, smooth shading
-        for (i in positions.indices step 3) {
+        var j = 0
+        for (i in normals.indices step 3) {
 
             n.set(normals[i], normals[i + 1], normals[i + 2])
-            t.set(tan1[i], tan1[i + 1], tan1[i + 2])
+            t.set(tan1[j], tan1[j + 1], tan1[j + 2])
 
             // Gram-Schmidt orthogonalize
             val dot = n.dot(t)
             val tx = t.x - n.x * dot
             val ty = t.y - n.y * dot
             val tz = t.z - n.z * dot
-            var r = 1f / sqrt(tx * tx + ty * ty + tz * tz)
+            val r = 1f / sqrt(tx * tx + ty * ty + tz * tz)
             if (r.isFinite()) {
 
                 // theoretically normalize t, however we don't need the amplitude in the handedness, so do it later, when the sign is known
 
                 // n is no longer needed -> we can reuse it here
-                val hv = n.cross(tx, ty, tz).dot(tan2[i], tan2[i + 1], tan2[i + 2])
-                if (hv < 0f) r = -r
+                val hv = n.cross(tx, ty, tz).dot(tan2[j], tan2[j + 1], tan2[j + 2])
 
-                tan1[i + 0] = tx * r
-                tan1[i + 1] = ty * r
-                tan1[i + 2] = tz * r
+                tan1[j++] = tx * r
+                tan1[j++] = ty * r
+                tan1[j++] = tz * r
+                tan1[j++] = sign(hv)
 
-            } // else there was no data -> don't calculate NaNs
+            } else j += 4// else there was no data -> don't calculate NaNs
         }
         JomlPools.vec3f.sub(2)
     }
@@ -123,12 +127,12 @@ object TangentCalculator {
     private fun computeTangentsNonIndexed(
         positions: FloatArray,
         normals: FloatArray,
-        tangents: FloatArray,
+        tan1: FloatArray,
         uvs: FloatArray
     ) {
 
-        tangents.fill(0f) // in the future we could keep old values, probably not worth the effort
-        val tan2 = FloatArray(tangents.size)
+        tan1.fill(0f) // in the future we could keep old values, probably not worth the effort
+        val tan2 = FloatArray(tan1.size)
         for (i0 in 0 until positions.size / 3 step 3) {
 
             // https://gamedev.stackexchange.com/questions/68612/how-to-compute-tangent-and-bitangent-vectors
@@ -138,12 +142,15 @@ object TangentCalculator {
 
             val i02 = i0 + i0
             val i03 = i0 + i02
+            val i04 = i02 + i02
 
             val i12 = i1 + i1
             val i13 = i1 + i12
+            val i14 = i12 + i12
 
             val i22 = i2 + i2
             val i23 = i2 + i22
+            val i24 = i22 + i22
 
             val v0x = positions[i03]
             val v0y = positions[i03 + 1]
@@ -180,16 +187,16 @@ object TangentCalculator {
                 val sx = (t2 * x1 - t1 * x2) * r
                 val sy = (t2 * y1 - t1 * y2) * r
                 val sz = (t2 * z1 - t1 * z2) * r
-                add(tangents, i03, sx, sy, sz)
-                add(tangents, i13, sx, sy, sz)
-                add(tangents, i23, sx, sy, sz)
+                add(tan1, i04, sx, sy, sz)
+                add(tan1, i14, sx, sy, sz)
+                add(tan1, i24, sx, sy, sz)
 
                 val tx = (s1 * x2 - s2 * x1) * r
                 val ty = (s1 * y2 - s2 * y1) * r
                 val tz = (s1 * z2 - s2 * z1) * r
-                add(tan2, i03, tx, ty, tz)
-                add(tan2, i13, tx, ty, tz)
-                add(tan2, i23, tx, ty, tz)
+                add(tan2, i04, tx, ty, tz)
+                add(tan2, i14, tx, ty, tz)
+                add(tan2, i24, tx, ty, tz)
 
             }
 
@@ -199,10 +206,11 @@ object TangentCalculator {
         val t = JomlPools.vec3f.create()
 
         // apply all the normals, smooth shading
-        for (i in positions.indices step 3) {
+        var j = 0
+        for (i in normals.indices step 3) {
 
             n.set(normals[i], normals[i + 1], normals[i + 2])
-            t.set(tangents[i], tangents[i + 1], tangents[i + 2])
+            t.set(tan1[j], tan1[j + 1], tan1[j + 2])
 
             // Gram-Schmidt orthogonalize
             val dot = n.dot(t)
@@ -212,19 +220,20 @@ object TangentCalculator {
             val area2 = tx * tx + ty * ty + tz * tz
             if (area2 > 0f) {
 
-                var r = 1f / sqrt(area2)
+                val r = 1f / sqrt(area2)
 
                 // theoretically normalize t, however we don't need the amplitude in the handedness, so do it later, when the sign is known
 
                 // n is no longer needed -> we can destroy it here
-                val hv = n.cross(tx, ty, tz).dot(tan2[i], tan2[i + 1], tan2[i + 2])
-                if (hv < 0f) r = -r
+                val hv = n.cross(tx, ty, tz)
+                    .dot(tan2[j], tan2[j + 1], tan2[j + 2])
 
-                tangents[i + 0] = tx * r
-                tangents[i + 1] = ty * r
-                tangents[i + 2] = tz * r
+                tan1[j++] = tx * r
+                tan1[j++] = ty * r
+                tan1[j++] = tz * r
+                tan1[j++] = sign(hv)
 
-            } // else there was no data -> don't calculate NaNs
+            } else j += 4// else there was no data -> don't calculate NaNs
         }
 
         JomlPools.vec3f.sub(2)
@@ -239,7 +248,7 @@ object TangentCalculator {
     ) {
         // first an allocation free check
         if (uvs == null || tangents == null) return
-        if (NormalCalculator.needsNormalsComputation(tangents)) {
+        if (NormalCalculator.needsNormalsComputation(tangents, 4)) {
             if (indices == null) {
                 computeTangentsNonIndexed(positions, normals, tangents, uvs)
             } else {

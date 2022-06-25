@@ -48,7 +48,10 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
                 drawSquiggles(startX, endX, theY, 3, color)
                 // DrawRectangles.drawRect(startX, theY, endX - startX, 1, color)
             }
-            if (isHovered && !isInFocus) {
+            val window = window
+            if (isHovered && !isInFocus &&
+                window == window?.windowStack?.peek()
+            ) {
                 requestFocus()
                 // setCursor(text.length)
             }

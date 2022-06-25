@@ -137,7 +137,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         // its drawn position probably should be smoothed -> we probably should use the drawnMatrix instead of the global one
         // we may want to set a timestamp, so we don't update it twice? no, we fill the pipeline only once
         val invWorldTransform = light.invWorldMatrix
-        val drawTransform = entity.transform.getDrawMatrix(Engine.gameTime)
+        val drawTransform = entity.transform.getDrawMatrix()
         invWorldTransform
             .set4x3delta(drawTransform, cameraPosition, worldScale)
             .invert()
@@ -204,6 +204,10 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                 if (!materialSource.exists) throw IllegalArgumentException("Material must have source")
                 mesh.material = materialSource
                 stage.add(sampleMeshComponent, mesh, sampleEntity, 0, clickId)
+            }
+            is LightComponent -> {
+                // todo add floor, so we can see the light?
+                addLight(rootElement, rootElement.entity ?: sampleEntity, cameraPosition, worldScale)
             }
             is Animation -> {
                 // todo optimize this (avoid allocations)

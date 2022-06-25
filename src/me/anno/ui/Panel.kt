@@ -380,8 +380,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
     fun setPosSize(x: Int, y: Int, w: Int, h: Int) {
         setPosition(x, y)
         setSize(w, h)
-        // todo why is the menu-window depending on this?
-        if (true || this.x != x || this.y != y) {
+        // to do why is the menu-window depending on this?
+        // is this still incorrect? currently, I couldn't reproduce the bug,
+        // so maybe it has been fixed indirectly
+        if (this.x != x || this.y != y) {
             setPosition(this.x, this.y)
         } // else is already placed
     }

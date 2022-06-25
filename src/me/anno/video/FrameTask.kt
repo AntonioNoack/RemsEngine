@@ -121,7 +121,7 @@ abstract class FrameTask(
         var needsMoreSources = false
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
-            useFrame(0, 0, width, height, false, averageFrame) {
+            useFrame(0, 0, width, height, averageFrame) {
                 try {
                     renderScene(time, true, renderer)
                     if (!GFX.isFinalRendering) throw RuntimeException()

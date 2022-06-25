@@ -151,8 +151,8 @@ open class RenderView(
     private val baseSameDepth = baseNBuffer.attachFramebufferToDepth(1, false)
     val base1Buffer = Framebuffer("debug", 1, 1, 1, 4, false, DepthBufferType.TEXTURE)
 
-    private val light1Buffer = base1Buffer.attachFramebufferToDepth(1, deferred.settingsV1.fpLights)
-    private val lightNBuffer = baseNBuffer.attachFramebufferToDepth(1, deferred.settingsV1.fpLights)
+    private val light1Buffer = base1Buffer.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
+    private val lightNBuffer = baseNBuffer.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
 
     private val clock = Clock()
     private var lastPhysics: BulletPhysics? = null
@@ -490,9 +490,6 @@ open class RenderView(
 
         val renderMode = renderMode
         if (useDeferredRendering) {
-
-            // bind all the required buffers: position, normal
-
             when {
                 renderMode.dlt != null -> {
                     drawScene(
@@ -502,7 +499,7 @@ open class RenderView(
                         doDrawGizmos = false,
                         toneMappedColors = false
                     )
-                    drawGizmos(world, buffer, renderer, camPosition, true)
+                    drawGizmos(world, buffer, simpleNormalRenderer, camPosition, true)
                     GFX.copyNoAlpha(buffer)
                     return
                 }
@@ -739,7 +736,7 @@ open class RenderView(
                         doDrawGizmos = false,
                         toneMappedColors = isToneMappingUsed
                     )
-                    drawGizmos(world, buffer, renderer, camPosition, true)
+                    drawGizmos(world, buffer, simpleNormalRenderer, camPosition, true)
                     val effect = renderMode.effect
                     if (effect != null) {
                         val map = hashMapOf(DeferredLayerType.SDR_RESULT to buffer)
@@ -973,6 +970,22 @@ open class RenderView(
             world.invalidateVisibility()
         }
 
+        // must be called before we define our render settings
+        // so lights don't override our settings, or we'd have to repeat our definition
+        if (update) {
+            when (world) {
+                is Entity -> {
+                    world.update()
+                    world.updateVisible()
+                    world.validateTransform()
+                }
+                is Component -> {
+                    world.onUpdate()
+                    world.onVisibleUpdate()
+                }
+            }
+        }
+
         val blend = clamp(blending, 0f, 1f).toDouble()
         val blendF = blend.toFloat()
 
@@ -1078,20 +1091,6 @@ open class RenderView(
 
         currentInstance = this
 
-        if (update) {
-            when (world) {
-                is Entity -> {
-                    world.update()
-                    world.updateVisible()
-                    world.validateTransform()
-                }
-                is Component -> {
-                    world.onUpdate()
-                    world.onVisibleUpdate()
-                }
-            }
-        }
-
         if (world is Material && world.prefab?.source?.exists != true) {
             throw IllegalStateException("Material must have source")
         }
@@ -1117,7 +1116,8 @@ open class RenderView(
         if (pipeline.lightPseudoStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
             // if the scene would be dark, define lights, so we can see something
             pipeline.ambient.set(0.5f)
-            pipeline.lightPseudoStage.add(defaultSun, defaultSunEntity)
+            pipeline.fill(defaultSun, camPosition, worldScale)
+            // pipeline.lightPseudoStage.add(defaultSun, defaultSunEntity)
         }
         entityBaseClickId = pipeline.lastClickId
 

@@ -65,8 +65,7 @@ class ShaderBuilder(val name: String) {
 
         // LOGGER.info("Vertex-Defined: $vertexDefined, Vertex-Uniforms: $vertexUniforms")
 
-        val bridgeVariables =
-            HashMap<Variable, Variable>() // variables, that fragment imports & exports & vertex exports
+        val bridgeVariables = HashMap<Variable, Variable>() // variables, that fragment imports & exports & vertex exports
         for (variable in vertexDefined) {
             val name = variable.name
             if (vertex.stages.any { it.variables.any { v -> v.name == name && v.isOutput } }) {

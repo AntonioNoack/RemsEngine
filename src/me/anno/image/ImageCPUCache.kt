@@ -114,7 +114,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
             val sequence = FFMPEGStream.getImageSequenceCPU(
                 file, meta.videoWidth, meta.videoHeight, min(20, (meta.videoFrameCount - 1) / 3), 1, meta.videoFPS
             )
-            Sleep.waitUntil(true) { sequence.frames.size > 0 }
+            Sleep.waitUntil(true) { sequence.frames.size > 0 || sequence.isFinished }
             sequence.frames.first()
         } else {
             // todo when we have native ffmpeg, don't copy the file

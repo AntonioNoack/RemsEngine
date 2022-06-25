@@ -17,6 +17,7 @@ import me.anno.input.Input
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import org.joml.Vector3d
+import kotlin.math.min
 
 object DebugRendering {
 
@@ -30,27 +31,32 @@ object DebugRendering {
                 } else null
             }
         if (light != null) {
-            val texture: ITexture2D? = when (light) {
-                is LightComponent -> light.shadowTextures?.firstOrNull()?.depthTexture
-                is EnvironmentMap -> light.texture?.textures?.firstOrNull()
-                is PlanarReflection -> light.lastBuffer
-                else -> null
-            }
-            // draw the texture
             val x = view.x
             val y = view.y
             val w = view.w
             val h = view.h
+            val s = min(w, h) / 3
+            var texture: ITexture2D? = null
+            var isDepth = false
+            when (light) {
+                is LightComponent -> {
+                    texture = light.shadowTextures?.firstOrNull()?.depthTexture
+                    isDepth = true
+                }
+                is EnvironmentMap -> texture = light.texture?.textures?.firstOrNull()
+                is PlanarReflection -> texture = light.lastBuffer
+            }
+            // draw the texture
             when (texture) {
                 is CubemapTexture -> {
-                    val s = w / 4
-                    DrawTextures.drawProjection(x, y + s, s * 3 / 2, -s, texture, true, -1)
+                    DrawTextures.drawProjection(x, y + s, s * 3 / 2, -s, texture, true, -1, false, isDepth)
                 }
                 is ITexture2D -> {
                     if (Input.isShiftDown && light is PlanarReflection) {
                         DrawTextures.drawTexture(x, y + h, w, -h, texture, true, 0x33ffffff, null)
+                    } else if (isDepth) {
+                        DrawTextures.drawDepthTexture(x, y + s, s, -s, texture)
                     } else {
-                        val s = w / 3
                         DrawTextures.drawTexture(x, y + s, s, -s, texture, true, -1, null)
                     }
                 }

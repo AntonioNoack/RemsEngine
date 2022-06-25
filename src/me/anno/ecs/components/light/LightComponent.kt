@@ -1,6 +1,8 @@
 package me.anno.ecs.components.light
 
+import me.anno.Engine
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
@@ -48,6 +50,7 @@ abstract class LightComponent(
         set(value) {
             if (field != value) {
                 field = value
+                entity?.invalidateUpdates()
                 if (value < 1) {
                     ensureShadowBuffers()
                 }
@@ -160,7 +163,14 @@ abstract class LightComponent(
         resolution: Int, position: Vector3d, rotation: Quaterniond
     )
 
+    @NotSerializedProperty
+    @DebugProperty
+    var lastDraw = 0L
+
     open fun updateShadowMaps() {
+
+        lastDraw = Engine.nanoTime
+
         val pipeline = pipeline
         pipeline.reset()
         val entity = entity!!
@@ -199,7 +209,7 @@ abstract class LightComponent(
         }
 
         JomlPools.quat4d.sub(1)
-        JomlPools.mat4f.sub(1)
+
     }
 
     /**

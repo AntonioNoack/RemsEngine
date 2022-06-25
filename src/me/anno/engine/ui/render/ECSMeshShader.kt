@@ -72,7 +72,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         if (colors) {
             variables += Variable(GLSLType.V2F, "uvs", VariableMode.ATTR)
             variables += Variable(GLSLType.V3F, "normals", VariableMode.ATTR)
-            variables += Variable(GLSLType.V3F, "tangents", VariableMode.ATTR)
+            variables += Variable(GLSLType.V4F, "tangents", VariableMode.ATTR)
             variables += Variable(GLSLType.V4F, "colors", VariableMode.ATTR)
         }
 
@@ -90,7 +90,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         if (colors) {
             variables += Variable(GLSLType.V2F, "uv", false)
             variables += Variable(GLSLType.V3F, "normal", false)
-            variables += Variable(GLSLType.V3F, "tangent", false)
+            variables += Variable(GLSLType.V4F, "tangent", false)
             variables += Variable(GLSLType.V4F, "vertexColor", false)
         }
 
@@ -199,7 +199,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "       localPosition = jointMat * vec4(coords, 1.0);\n" +
                     "       #ifdef COLORS\n" +
                     "           normal = jointMat * vec4(normals, 0.0);\n" +
-                    "           tangent = jointMat * vec4(tangents, 0.0);\n" +
+                    "           tangent.xyz = jointMat * vec4(tangents.xyz, 0.0);\n" + // how is w behaving? stays the same, I think
                     "       #endif\n" +
                     "   } else {\n" +
                     "   #endif\n" + // animated
@@ -214,7 +214,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
                     "   #ifdef COLORS\n" +
                     "       normal = localTransform * vec4(normal, 0.0);\n" +
-                    "       tangent = localTransform * vec4(tangent, 0.0);\n" +
+                    "       tangent.xyz = localTransform * vec4(tangent.xyz, 0.0);\n" +
                     "   #endif\n" + // colors
                     "#ifdef COLORS\n" +
                     "   normal = normalize(normal);\n" + // here? nah ^^
@@ -252,7 +252,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             // input varyings
             Variable(GLSLType.V2F, "uv"),
             Variable(GLSLType.V3F, "normal"),
-            Variable(GLSLType.V3F, "tangent"),
+            Variable(GLSLType.V4F, "tangent"),
             Variable(GLSLType.V4F, "vertexColor"),
             Variable(GLSLType.V3F, "finalPosition"),
             Variable(GLSLType.V2F, "normalStrength"),
@@ -311,9 +311,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "if(color.a < ${1f / 255f}) discard;\n" +
                     "finalColor = color.rgb;\n" +
                     "finalAlpha = color.a;\n" +
-                    "finalTangent   = normalize(tangent);\n" + // for debugging
+                    "finalTangent   = normalize(tangent.xyz);\n" + // for debugging
                     "finalNormal    = normalize(normal);\n" +
-                    "finalBitangent = normalize(cross(finalNormal, finalTangent));\n" +
+                    "finalBitangent = normalize(cross(finalNormal, finalTangent) * tangent.w);\n" +
                     // bitangent: checked, correct transform
                     // can be checked with a lot of rotated objects in all orientations,
                     // and a shader with light from top/bottom

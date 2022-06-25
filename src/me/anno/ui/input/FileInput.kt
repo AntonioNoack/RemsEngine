@@ -26,6 +26,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 
 class FileInput(
     title: String, style: Style,

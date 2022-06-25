@@ -206,13 +206,13 @@ abstract class StudioBase(
         if (!window.isMinimized) {
 
             window.windowStack.updateTransform(window, w, h)
-            didSomething = window.windowStack.draw(w, h, didSomething, shallDraw(didSomething), null)
+            didSomething = window.windowStack.draw(w, h, didSomething, shallDraw(didSomething))
 
             Input.framesSinceLastInteraction++
 
             if (isFirstFrame) tick("Window drawing")
 
-            useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
+            useFrame(0, 0, w, h, null, Renderer.colorRenderer) {
                 if (drawUIOverlay(window, w, h)) didSomething = true
             }
 
@@ -266,7 +266,8 @@ abstract class StudioBase(
     }
 
     fun updateHoveredAndCursor(window: WindowX) {
-        val hovered = window.windowStack.getPanelAndWindowAt(window.mouseX, window.mouseY)
+        val hovered = window.windowStack
+            .getPanelAndWindowAt(window.mouseX, window.mouseY)
         GFX.hoveredPanel = hovered?.first
         GFX.hoveredWindow = hovered?.second
         updateCursor(window, hovered?.first)

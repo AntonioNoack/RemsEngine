@@ -18,6 +18,8 @@ enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffe
 
     COLOR(DeferredLayerType.COLOR),
     NORMAL(DeferredLayerType.NORMAL),
+    TANGENT(DeferredLayerType.TANGENT),
+    BITANGENT(DeferredLayerType.BITANGENT),
     EMISSIVE(DeferredLayerType.EMISSIVE),
     ROUGHNESS(DeferredLayerType.ROUGHNESS),
     METALLIC(DeferredLayerType.METALLIC),

@@ -24,7 +24,35 @@ import kotlin.math.min
 var logoBackgroundColor = 0
 var logoIconColor = 0x212256
 
-fun drawLogo(window: WindowX) {
+val shader by lazy {
+
+    val shader = Shader(
+        "logo", "" +
+                "$attribute vec3 coords;\n" +
+                "uniform vec3 size;\n" +
+                "void main(){\n" +
+                "   gl_Position = vec4(coords * size, 1.0);\n" +
+                "}", emptyList(), "" +
+                "void main(){\n" + // color uniform didn't want to work :/, why?
+                "   gl_FragColor = vec4(${logoIconColor.toVecRGB().run { "$x, $y, $z" }}, 1.0);\n" +
+                "}"
+    )
+
+    shader.use()
+    shader.ignoreNameWarnings("normals", "uvs", "tangents", "colors")
+
+    shader
+
+}
+
+val frame by lazy {
+    Framebuffer(
+        "logo", 1, 1, min(8, GFX.maxSamples),
+        1, false, DepthBufferType.NONE
+    )
+}
+
+fun drawLogo(window: WindowX, destroy: Boolean) {
 
     GFX.check()
 
@@ -44,38 +72,27 @@ fun drawLogo(window: WindowX) {
         sh = width.toFloat() / height
     }
 
-    val shader = Shader(
-        "logo", "" +
-                "$attribute vec3 coords;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4(coords * vec3($sw, $sh, 0.0), 1.0);\n" +
-                "}", emptyList(), "" +
-                "void main(){\n" + // color uniform didn't want to work :/, why?
-                "   gl_FragColor = vec4(${logoIconColor.toVecRGB().run { "$x, $y, $z" }}, 1.0);\n" +
-                "}"
-    )
-
+    val shader = shader
     shader.use()
-    shader.ignoreNameWarnings("normals", "uvs", "tangents", "colors")
+    shader.v3f("size", sw, sh, 0f)
 
     GFX.check()
 
     GFX.maxSamples = max(1, glGetInteger(GL30C.GL_MAX_SAMPLES))
-    val frame = if (GFX.maxSamples > 1) Framebuffer(
-        "logo", width, height, min(8, GFX.maxSamples),
-        1, false, DepthBufferType.NONE
-    ) else null
+    val frame = if (GFX.maxSamples > 1) frame else null
 
     if (frame != null) {
         GFX.setFrameNullSize(window)
-        useFrame(frame) {
+        useFrame(width, height, true, frame) {
             drawLogo(shader)
         }
         GFX.copy(frame)
-        frame.destroy()
     } else drawLogo(shader)
 
-    shader.destroy()
+    if (destroy) {
+        frame?.destroy()
+        shader.destroy()
+    }
 
     GFX.check()
 
