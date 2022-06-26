@@ -172,7 +172,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     }
 
     fun resetClickId() {
-        lastClickId = 0
+        lastClickId = 1
     }
 
     fun fill(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double) {

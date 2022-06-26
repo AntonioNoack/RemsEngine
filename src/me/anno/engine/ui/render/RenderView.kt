@@ -21,7 +21,6 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.PlaneShapes
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun
-import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.ECSShaderLib.clearPbrModelShader
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -37,6 +36,7 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2
 import me.anno.gpu.GFX.flat01
+import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.blending.BlendMode
@@ -55,6 +55,7 @@ import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
+import me.anno.gpu.shader.Renderer.Companion.nothingRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -923,12 +924,22 @@ open class RenderView(
         val world = getWorld()
 
         val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, buffer, idRenderer) {
-            drawScene(w, h, camera, camera, 0f, idRenderer, buffer, changeSize = false, doDrawGizmos = true, false)
+            drawScene(
+                w, h, camera, camera, 0f, idRenderer, buffer,
+                changeSize = false, doDrawGizmos = false, toneMappedColors = false
+            )
             drawGizmos(world, camPosition, false)
         }
 
+        for (idx in ids.indices) {
+            ids[idx] = ids[idx] and 0xffffff
+        }
+
         val depths = Screenshots.getFP32RPixels(diameter, px2, py2, buffer, depthRenderer) {
-            drawScene(w, h, camera, camera, 0f, depthRenderer, buffer, changeSize = false, doDrawGizmos = true, false)
+            drawScene(
+                w, h, camera, camera, 0f, depthRenderer, buffer,
+                changeSize = false, doDrawGizmos = false, toneMappedColors = false
+            )
             drawGizmos(world, camPosition, false)
         }
 
@@ -1113,11 +1124,10 @@ open class RenderView(
         pipeline.resetClickId()
         if (world != null) pipeline.fill(world, camPosition, worldScale)
         controlScheme?.fill(pipeline)
+        // if the scene would be dark, define lights, so we can see something
         if (pipeline.lightPseudoStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
-            // if the scene would be dark, define lights, so we can see something
             pipeline.ambient.set(0.5f)
             pipeline.fill(defaultSun, camPosition, worldScale)
-            // pipeline.lightPseudoStage.add(defaultSun, defaultSunEntity)
         }
         entityBaseClickId = pipeline.lastClickId
 
@@ -1168,6 +1178,7 @@ open class RenderView(
                     // inverse reinhard tonemapping
                     if (toneMappedColors) c.div(1f - c.x, 1f - c.y, 1f - c.z, 1f)
                     shader.v4f("color", c.x, c.y, c.z, 1f)
+                    shaderColor(shader, "tint", 0)
                     shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
                     Shapes.smoothCube.back.draw(shader, 0)
                     // LOGGER.warn(shader.fragmentSource)

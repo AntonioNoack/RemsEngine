@@ -186,7 +186,7 @@ abstract class LightComponent(
         val shadowTextures = shadowTextures
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
-        val renderer = Renderer.depthRenderer
+        val renderer = Renderer.nothingRenderer
         val depthMode = DepthMode.GREATER
         for (i in 0 until shadowMapCascades) {
             val cascadeScale = shadowMapPower.pow(-i.toDouble())

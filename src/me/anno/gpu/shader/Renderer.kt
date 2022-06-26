@@ -48,12 +48,13 @@ open class Renderer(
                 ), "if(finalAlpha < 0.01) discard; finalColor = tint.rgb; finalAlpha = 1.0;\n"
             )
         )
+        val nothingRenderer = SimpleRenderer("depth", true, ShaderPlus.DrawMode.COPY, ShaderStage(emptyList(), ""))
         val depthRenderer = SimpleRenderer(
             "depth", true, ShaderPlus.DrawMode.COPY,
             ShaderStage(
                 listOf(
-                    Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V1F, "zDistance"),
+                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT),
                     Variable(GLSLType.V3F, "finalColor", VariableMode.OUT)
                 ), "if(finalAlpha<0.01) discard; finalColor = vec3(zDistance, 0.0, zDistance * zDistance);\n"
             )

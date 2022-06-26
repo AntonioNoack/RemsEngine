@@ -495,8 +495,6 @@ class LightPipelineStage(
 
         nonInstanced.forEachType { lights, type, size ->
 
-            println("drawing non-instanced $lights, $type, $size")
-
             val sample = lights[0].light
             val mesh = sample.getLightPrimitive()
 

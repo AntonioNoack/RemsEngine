@@ -99,7 +99,7 @@ class PointLight : LightComponent(LightType.POINT) {
         val cameraMatrix = RenderView.cameraMatrix
         val root = entity.getRoot(Entity::class)
         OpenGL.depthMode.use(DepthMode.GREATER) {
-            texture.draw(resolution, Renderer.depthRenderer) { side ->
+            texture.draw(resolution, Renderer.nothingRenderer) { side ->
                 Frame.bind()
                 glClear(GL_DEPTH_BUFFER_BIT)
                 setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)

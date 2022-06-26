@@ -3,7 +3,6 @@ package me.anno.gpu.shader
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -43,7 +42,7 @@ open class BaseShader(
     private val deferredShaders = KeyPairMap<DeferredSettingsV2, Int, Shader>()
     private val depthShader = Array(8) { lazy { createDepthShader(it.hasFlag(1), it.hasFlag(2), it.hasFlag(4)) } }
 
-    /** shader for rendering the depth, e.g. for pre-depth */
+    /** shader for rendering the depth, e.g., for pre-depth */
     open fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): Shader {
         if (vertexShader.isBlank2()) throw RuntimeException()
         var vertexShader = vertexShader
@@ -112,7 +111,7 @@ open class BaseShader(
             val animated = OpenGL.animated.currentValue
             val motionVectors = renderer == Renderer.motionVectorRenderer
             val stateId = instanced.toInt() + animated.toInt(2) + motionVectors.toInt(4)
-            val shader = if (renderer == Renderer.depthRenderer) {
+            val shader = if (renderer == Renderer.nothingRenderer) {
                 depthShader[stateId].value
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
