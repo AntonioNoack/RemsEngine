@@ -82,11 +82,13 @@
       <w>deformers</w>
       <w>defs</w>
       <w>dequantize</w>
+      <w>deringing</w>
       <w>desaturate</w>
       <w>desktophints</w>
       <w>deuteranopia</w>
       <w>dimgray</w>
       <w>dimgrey</w>
+      <w>disocclusion</w>
       <w>doctype</w>
       <w>dodgerblue</w>
       <w>dokumente</w>
@@ -162,6 +164,7 @@
       <w>jacobian</w>
       <w>janky</w>
       <w>jemalloc</w>
+      <w>jittered</w>
       <w>joinable</w>
       <w>joml</w>
       <w>kaydara</w>
@@ -292,6 +295,8 @@
       <w>renderbuffer</w>
       <w>renderbuffers</w>
       <w>renderdoc</w>
+      <w>reproject</w>
+      <w>reprojection</w>
       <w>retargetings</w>
       <w>rgbe</w>
       <w>rigidbodies</w>
@@ -346,22 +351,27 @@
       <w>thinnen</w>
       <w>titlecase</w>
       <w>tlas</w>
+      <w>tonemap</w>
       <w>tonemapped</w>
       <w>tonemapping</w>
       <w>treemiddle</w>
       <w>triangulator</w>
       <w>tritanopia</w>
       <w>uchimura</w>
+      <w>uimage</w>
       <w>uint</w>
       <w>ultrafast</w>
       <w>unifont</w>
       <w>uniport</w>
       <w>unitypackage</w>
+      <w>unjittered</w>
       <w>unmix</w>
       <w>unprocessable</w>
       <w>unproject</w>
       <w>upsample</w>
+      <w>upsampled</w>
       <w>upscaled</w>
+      <w>usampler</w>
       <w>usemtl</w>
       <w>uvec</w>
       <w>uxxxx</w>
@@ -378,6 +388,7 @@
       <w>waifu</w>
       <w>whitesmoke</w>
       <w>wmav</w>
+      <w>writeonly</w>
       <w>xnor</w>
       <w>xxyy</w>
       <w>xyxy</w>

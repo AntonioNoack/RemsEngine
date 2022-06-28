@@ -20,6 +20,7 @@ import org.lwjgl.opengl.GL15C.GL_LINES
 import org.lwjgl.opengl.GL15C.GL_STREAM_DRAW
 import java.nio.ByteBuffer
 import javax.vecmath.Vector3d
+import kotlin.math.max
 
 /**
  * a buffer for rapidly drawing thousands of lines,
@@ -50,7 +51,7 @@ object LineBuffer {
                 "   finalAlpha = vColor.a;\n" +
                 "   finalNormal = vec3(0.0);\n" +
                 "}\n"
-    )
+    ).apply { glslVersion = max(glslVersion, 330) }
 
     // drawing all these lines is horribly slow -> speed it up by caching them
     // we also could calculate their position in 2D on the CPU and just upload them xD

@@ -212,8 +212,8 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     }
 
     fun setTextureIndices(textures: List<String>?) {
-        use()
         if (textures == null) return
+        use()
         textureNames = textures
         for ((index, name) in textures.withIndex()) {
             if (',' in name) throw IllegalArgumentException("Name must not contain comma!")

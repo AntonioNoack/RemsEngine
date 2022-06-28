@@ -10,10 +10,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.components.shaders.effects.Bloom
-import me.anno.ecs.components.shaders.effects.FSR
-import me.anno.ecs.components.shaders.effects.ScreenSpaceAmbientOcclusion
-import me.anno.ecs.components.shaders.effects.ScreenSpaceReflections
+import me.anno.ecs.components.shaders.effects.*
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.pbr.DeferredRenderer
@@ -31,6 +28,7 @@ import me.anno.engine.ui.render.Renderers.cheapRenderer
 import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.overdrawRenderer
 import me.anno.engine.ui.render.Renderers.pbrRenderer
+import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
@@ -41,6 +39,7 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
+import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.deferred.DepthBasedAntiAliasing
@@ -148,7 +147,7 @@ open class RenderView(
     private val deferredRenderer = DeferredRenderer
     private val deferred = deferredRenderer.deferredSettings!!
 
-    private val baseNBuffer = deferred.createBaseBuffer()
+    val baseNBuffer = deferred.createBaseBuffer()
     private val baseSameDepth = baseNBuffer.attachFramebufferToDepth(1, false)
     val base1Buffer = Framebuffer("debug", 1, 1, 1, 4, false, DepthBufferType.TEXTURE)
 
@@ -435,6 +434,8 @@ open class RenderView(
     // because they are expensive -> only change every 20th frame
     private val mayChangeSize get() = (Engine.frameIndex % 20 == 0)
 
+    private val fsr22 by lazy { FSR2v2() }
+
     private fun drawScene(
         x0: Int,
         y0: Int,
@@ -469,6 +470,10 @@ open class RenderView(
                 w = (w + 2) / 4
                 h = (h + 2) / 4
             }
+            RenderMode.FSR2_V2 -> {
+                w = (w + 1) / 8
+                h = (h + 1) / 8
+            }
             else -> {
             }
         }
@@ -502,6 +507,53 @@ open class RenderView(
                     )
                     drawGizmos(world, buffer, simpleNormalRenderer, camPosition, true)
                     GFX.copyNoAlpha(buffer)
+                    return
+                }
+                renderMode == RenderMode.FSR2_V2 -> {
+                    drawScene(
+                        w, h, camera0, camera1,
+                        blending, renderer, buffer,
+                        changeSize = true,
+                        doDrawGizmos = false,
+                        toneMappedColors = false
+                    )
+                    val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, true]
+                    drawScene(
+                        w, h, camera0, camera1, blending, rawAttributeRenderers[DeferredLayerType.MOTION]!!,
+                        motion, changeSize = false, doDrawGizmos = false, toneMappedColors = false
+                    )
+
+                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                    drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
+
+                    val ssao = blackTexture
+
+                    // use the existing depth buffer for the 3d ui
+                    val dstBuffer0 = baseSameDepth
+                    useFrame(w, h, true, dstBuffer0) {
+                        // don't write depth
+                        OpenGL.depthMask.use(false) {
+                            val shader = LightPipelineStage.getPostShader(deferred)
+                            shader.use()
+                            shader.v1b("applyToneMapping", true)
+                            buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                            ssao.bindTrulyNearest(shader, "ambientOcclusion")
+                            lightBuffer.bindTexture0(
+                                shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP
+                            )
+                            flat01.draw(shader)
+                        }
+                    }
+
+                    fsr22.calculate(
+                        dstBuffer0.getTexture0() as Texture2D,
+                        buffer.depthTexture as Texture2D, motion.getTexture0() as Texture2D,
+                        x1 - x0, y1 - y0
+                    )
+
+                    drawGizmos(world, camPosition, true)
+                    drawSelected()
+
                     return
                 }
                 renderMode == RenderMode.DEPTH -> {
@@ -728,7 +780,9 @@ open class RenderView(
 
                 }
                 renderer != DeferredRenderer -> {
-                    // todo is tonemapping used here???
+                    // is tonemapping used here???
+                    // todo we probably can just create a tone-mapped renderer :)
+                    // and then the answer is no :)
                     val isToneMappingUsed = false
                     drawScene(
                         w, h, camera0, camera1,
@@ -879,7 +933,10 @@ open class RenderView(
         }
 
         val useFSR = when (renderMode) {
-            RenderMode.FSR_X2, RenderMode.FSR_SQRT2, RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4 -> true
+            RenderMode.FSR_X2,
+            RenderMode.FSR_SQRT2,
+            RenderMode.FSR_X4,
+            RenderMode.FSR_MSAA_X4 -> true
             else -> false
         }
 
@@ -1072,7 +1129,13 @@ open class RenderView(
                 0f, 0f, z0, 1f
             )
         }
+
+        if (renderMode == RenderMode.FSR2_V2) {
+            fsr22.jitter(cameraMatrix, width, height)
+        }
+
         cameraMatrix.rotate(rot)
+
         if (!cameraMatrix.isFinite) throw RuntimeException(
             "camera matrix is NaN, by setPerspective, $fovYRadians, $aspectRatio, $near, $far, $worldScale, $rot"
         )

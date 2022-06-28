@@ -13,7 +13,6 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.OpenGL
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable

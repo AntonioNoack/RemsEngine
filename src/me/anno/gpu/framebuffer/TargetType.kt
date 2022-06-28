@@ -35,6 +35,14 @@ class TargetType(
         val Normal12Target4 = // not working, because compressed formats are not color-renderable :/, why ever...
             FP16Target4 // TargetType(GL_UNSIGNED_INT_10_10_10_2, GL_RGBA, GL_UNSIGNED_BYTE, 4, true)
         val FloatTarget4 = TargetType("f4", GL_RGBA32F, GL_RGBA, GL_FLOAT, 4 * 4, 4, true)
+
+        val R32UNorm = TargetType("u32norm", GL_R32UI, GL_RED_INTEGER, GL_INT, 4, 1, false)
+        val R16UInt = TargetType("u32norm", GL_R16UI, GL_RED_INTEGER, GL_INT, 2, 1, false)
+        val RG16UInt = TargetType("u32norm", GL_RG16UI, GL_RG_INTEGER, GL_INT, 4, 2, false)
+        val DEPTH32 = TargetType("depth32", GL_DEPTH_COMPONENT32, GL_DEPTH, GL_UNSIGNED_INT, 4, 1, false)
+        val DEPTH32F = TargetType("depth32f", GL_DEPTH_COMPONENT32F, GL_DEPTH, GL_FLOAT, 4, 1, false)
+        val R32U = TargetType("r32u", GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 4, 1, false)
+
     }
 
 }

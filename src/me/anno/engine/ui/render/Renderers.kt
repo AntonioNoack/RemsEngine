@@ -336,6 +336,30 @@ object Renderers {
         SimpleRenderer(name, false, ShaderPlus.DrawMode.COLOR, stage)
     }, DeferredLayerType.values.size)
 
+    val rawAttributeRenderers = LazyMap({ type: DeferredLayerType ->
+        val variables = if (type == DeferredLayerType.COLOR) {
+            listOf(Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT))
+        } else {
+            listOf(
+                Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, VariableMode.IN),
+                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT)
+            )
+        }
+        val shaderCode = "" +
+                "finalColor = ${
+                    when (type.dimensions) {
+                        1 -> "vec3(${type.glslName}${type.map01})"
+                        2 -> "vec3(${type.glslName}${type.map01},1)"
+                        3 -> "(${type.glslName}${type.map01})"
+                        4 -> "(${type.glslName}${type.map01}).rgb"
+                        else -> ""
+                    }
+                };\n"
+        val name = type.name
+        val stage = ShaderStage(name, variables, shaderCode)
+        SimpleRenderer(name, false, ShaderPlus.DrawMode.COLOR, stage)
+    }, DeferredLayerType.values.size)
+
     val attributeEffects: Map<Pair<DeferredLayerType, DeferredSettingsV2>, CameraEffect> =
         LazyMap({ (type, settings) ->
             val layer = settings.findLayer(type)

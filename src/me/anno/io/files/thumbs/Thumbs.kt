@@ -1217,6 +1217,7 @@ object Thumbs {
                             // try to read the file as an asset
                             val something = PrefabCache.getPrefabInstance(srcFile)
                             generateSomething(something, srcFile, dstFile, size, callback)
+                        } catch (_: ShutdownException) {
                         } catch (e: InvalidClassException) {
                             LOGGER.info("${e.message}; by $srcFile")
                         } catch (e: Throwable) {

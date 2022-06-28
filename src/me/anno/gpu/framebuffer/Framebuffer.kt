@@ -33,6 +33,12 @@ class Framebuffer(
             Array(targetCount) { TargetType.UByteTarget4 }, depthBufferType
     )
 
+    constructor(name: String, w: Int, h: Int, targets: Array<TargetType>, depthBufferType: DepthBufferType = DepthBufferType.NONE) :
+            this(name, w, h, 1, targets, depthBufferType)
+
+    constructor(name: String, w: Int, h: Int, target: TargetType, depthBufferType: DepthBufferType = DepthBufferType.NONE) :
+            this(name, w, h, 1, arrayOf(target), depthBufferType)
+
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
     override val numTextures: Int = targets.size
 

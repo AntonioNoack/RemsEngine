@@ -22,12 +22,6 @@ import me.anno.utils.OS
 
 object FSR {
 
-    /*fun String.removeComments(): String {
-        return split('\n')
-            .filter { !it.trim().startsWith("//") }
-            .joinToString("\n")
-    }*/
-
     private val vertex = ShaderLib.simpleVertexShader
 
     val code = lazy {
@@ -51,10 +45,10 @@ object FSR {
                     "#define ANNO 1\n" + // we use our custom version
                     defines +
                     "#define FSR_EASU_F 1\n" +
-                    "AF4 FsrEasuAF(vec2 p){ return textureGather(source,p,3); }\n" +
-                    "AF4 FsrEasuRF(vec2 p, vec4 alpha){ return mix(background.rrrr, textureGather(source,p,0), alpha); }\n" +
-                    "AF4 FsrEasuGF(vec2 p, vec4 alpha){ return mix(background.gggg, textureGather(source,p,1), alpha); }\n" +
-                    "AF4 FsrEasuBF(vec2 p, vec4 alpha){ return mix(background.bbbb, textureGather(source,p,2), alpha); }\n" +
+                    "vec4 FsrEasuAF(vec2 p){ return textureGather(source,p,3); }\n" +
+                    "vec4 FsrEasuRF(vec2 p, vec4 alpha){ return mix(background.rrrr, textureGather(source,p,0), alpha); }\n" +
+                    "vec4 FsrEasuGF(vec2 p, vec4 alpha){ return mix(background.gggg, textureGather(source,p,1), alpha); }\n" +
+                    "vec4 FsrEasuBF(vec2 p, vec4 alpha){ return mix(background.bbbb, textureGather(source,p,2), alpha); }\n" +
                     functions +
                     "layout(location=0) out vec4 glFragColor;\n" +
                     "uniform vec4 con0,con1,con2,con3;\n" +

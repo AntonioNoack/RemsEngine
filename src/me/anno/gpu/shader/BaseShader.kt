@@ -1,14 +1,19 @@
 package me.anno.gpu.shader
 
+import com.sun.javafx.sg.prism.NodeEffectInput.RenderType
 import me.anno.cache.data.ICacheData
+import me.anno.engine.ui.render.Renderers.attributeRenderers
+import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
+import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.hasFlag
+import me.anno.maths.Maths.max
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Booleans.toInt
@@ -95,6 +100,8 @@ open class BaseShader(
         builder.addFragment(shaderPlusStage)
 
         val shader1 = builder.create()
+        shader1.glslVersion = max(shader1.glslVersion, 330)
+        shader1.use()
         shader1.setTextureIndices(textures)
         shader1.ignoreNameWarnings(ignoredNameWarnings)
         shader1.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
@@ -109,7 +116,9 @@ open class BaseShader(
             val renderer = OpenGL.currentRenderer
             val instanced = OpenGL.instanced.currentValue
             val animated = OpenGL.animated.currentValue
-            val motionVectors = renderer == Renderer.motionVectorRenderer
+            val motionVectors = (renderer == Renderer.motionVectorRenderer ||
+                    renderer == attributeRenderers[DeferredLayerType.MOTION] ||
+                    renderer == rawAttributeRenderers[DeferredLayerType.MOTION])
             val stateId = instanced.toInt() + animated.toInt(2) + motionVectors.toInt(4)
             val shader = if (renderer == Renderer.nothingRenderer) {
                 depthShader[stateId].value

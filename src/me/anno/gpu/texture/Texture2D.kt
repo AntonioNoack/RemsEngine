@@ -17,6 +17,7 @@ import me.anno.image.Image
 import me.anno.image.RotateJPEG
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.min
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.ByteArrayPool
@@ -70,6 +71,16 @@ open class Texture2D(
             locallyAllocated = allocate(locallyAllocated, 0L)
             createdW = 0
             createdH = 0
+        }
+    }
+
+    fun resize(w: Int, h: Int, type: TargetType) {
+        if (w != this.w || h != this.h) {
+            this.w = w
+            this.h = h
+            destroy() // needed?
+            reset()
+            create(type)
         }
     }
 
@@ -157,6 +168,8 @@ open class Texture2D(
     fun texImage2D(internalFormat: Int, dataFormat: Int, dataType: Int, data: Any?, unbind: Boolean = true) {
         val w = w
         val h = h
+        val target = target
+        check()
         if (createdW == w && createdH == h && data != null && !withMultisampling) {
             setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
             when (data) {
@@ -1104,6 +1117,17 @@ open class Texture2D(
 
     fun isBoundToSlot(slot: Int): Boolean {
         return slot in boundTextures.indices && boundTextures[slot] == pointer
+    }
+
+    fun copyFrom(src: Texture2D) {
+        if(src.pointer <= 0 || pointer <= 0) throw IllegalArgumentException("Both textures need to be created for copyFrom()")
+        check()
+        invalidateBinding()
+        check()
+        bindTexture(target, pointer)
+        check()
+        glCopyTextureSubImage2D(src.pointer, 0, 0, 0, 0, 0, min(w, src.w), min(h, src.h))
+        check()
     }
 
     override fun wrapAsFramebuffer(): IFramebuffer {

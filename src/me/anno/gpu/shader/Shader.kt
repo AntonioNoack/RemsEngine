@@ -4,7 +4,9 @@ import me.anno.gpu.GFX
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.builder.Varying
+import me.anno.utils.structures.lists.Lists.any2
 import org.lwjgl.opengl.GL20.*
+import kotlin.math.max
 
 // todo locations for the varyings: for debugging with RenderDoc
 
@@ -46,6 +48,10 @@ open class Shader(
         updateSession()
         GFX.check()
 
+
+        if (glslVersion < 330 && fragmentVariables.any2 { it.isOutput })
+            glslVersion = 330 // needed for layout(location=x) qualifier
+
         val versionString = formatVersion(glslVersion) + "\n// $name\n"
 
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
@@ -67,7 +73,6 @@ open class Shader(
                     builder.append(attribute)
                     builder.append(' ')
                 }
-                // todo inout...
                 VariableMode.IN, VariableMode.INOUT -> {
                     builder.append("uniform ")
                 }
@@ -113,6 +118,7 @@ open class Shader(
             builder.append(v.fShaderName)
             builder.append(";\n")
         }
+        var outCtr = 0
         for (v in fragmentVariables) {
             when (v.inOutMode) {
                 VariableMode.IN, VariableMode.INOUT -> {
@@ -120,7 +126,8 @@ open class Shader(
                 }
                 VariableMode.ATTR -> throw IllegalArgumentException("Fragment variable must not have type ATTR")
                 VariableMode.OUT -> {
-                    builder.append("out ")
+                    builder.append("layout(location=")
+                        .append(outCtr++).append(") out ")
                 }
             }
             builder.append(v.type.glslName)
@@ -129,7 +136,7 @@ open class Shader(
             builder.append(";\n")
         }
         val base =
-            (if (!fragmentShader.contains("out ") && glslVersion == DefaultGLSLVersion && fragmentShader.contains("gl_FragColor") && fragmentVariables.none { it.isOutput }) {
+            (if ((outCtr == 0 && "out " !in fragmentShader) && glslVersion == DefaultGLSLVersion && "gl_FragColor" in fragmentShader && fragmentVariables.none { it.isOutput }) {
                 "" + "out vec4 glFragColor;\n" + fragmentShader.replace("gl_FragColor", "glFragColor")
             } else fragmentShader)
         builder.append(

@@ -47,6 +47,7 @@ enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffe
     FSR_X2,
     FSR_X4,
     FSR_MSAA_X4,
+    FSR2_V2,
     NEAREST_X4,
     LINES, LINES_MSAA,
     FRONT_BACK,

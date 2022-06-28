@@ -110,7 +110,23 @@ class ComputeShader(
         // texture type could be derived from the shader and texture -> verify it?
         // todo can we dynamically create shaders for the cases that we need? probably best :)
         fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
-            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, texture.internalFormat)
+            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
+        }
+
+        fun findFormat(format: Int) = when (format) {
+            GL_RGBA32F, GL_RGBA16F, GL_RG32F, GL_RG16F,
+            GL_R11F_G11F_B10F, GL_R32F, GL_R16F,
+            GL_RGBA32UI, GL_RGBA16UI,
+            GL_RGB10_A2UI, GL_RGBA8UI, GL_RG32UI,
+            GL_RG16UI, GL_RG8UI, GL_R32UI, GL_R16UI, GL_R8UI,
+            GL_RGBA32I, GL_RGBA16I, GL_RGBA8I,
+            GL_RG32I, GL_RG16I, GL_RG8I, GL_R32I,
+            GL_R16I, GL_R8I, GL_RGBA16, GL_RGB10_A2, GL_RGBA8,
+            GL_RG16, GL_RG8, GL_R16, GL_R8,
+            GL_RGBA16_SNORM, GL_RGBA8_SNORM, GL_RG16_SNORM, GL_RG8_SNORM,
+            GL_R16_SNORM, GL_R8_SNORM -> format
+            0 -> throw IllegalArgumentException("Texture hasn't been created yet")
+            else -> throw IllegalArgumentException("Format ${GFX.getName(format)} is not supported in Compute shaders (glBindImageTexture), use a sampler!")
         }
 
         fun bindBuffer(slot: Int, buffer: ComputeBuffer) {
@@ -122,11 +138,11 @@ class ComputeShader(
          * for array textures to bind a single layer
          * */
         fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, layer: Int) {
-            glBindImageTexture(slot, texture.pointer, 0, false, layer, mode.code, texture.internalFormat)
+            glBindImageTexture(slot, texture.pointer, 0, false, layer, mode.code, findFormat(texture.internalFormat))
         }
 
         fun bindTexture(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {
-            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, texture.internalFormat)
+            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
         }
 
     }

@@ -2,9 +2,11 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
+import me.anno.gpu.OpenGL.framebuffer
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader2
@@ -103,32 +105,7 @@ object Reduction {
         GFX.checkIsGFXThread()
 
         val buffer = buffer
-        val shader = shaderByType.getOrPut(op) {
-            val v0 = "vec4(${op.startValue.x()}, ${op.startValue.y()}, ${op.startValue.z()}, ${op.startValue.w()})"
-            Shader(
-                "reduce-${op.name}", simplestVertexShader2, emptyList(), "" +
-                        "uniform sampler2D src;\n" +
-                        "#define reduce(a,b) ${op.function}\n" +
-                        "void main(){\n" +
-                        "   ivec2 uv = ivec2(gl_FragCoord.xy);\n" +
-                        "   ivec2 inSize = ivec2(textureSize(src, 0));\n" +
-                        "   ivec2 uv0 = uv * $reduction, uv1 = min(uv0 + $reduction, inSize);\n" +
-                        "   vec4 result = $v0;\n" +
-                        // strided access is more efficient on GPUs, so iterate over y
-                        "   for(int x=uv0.x;x<uv1.x;x++){\n" +
-                        // the reduction is split into a xy-hierarchy,
-                        // so numerical issues accumulate slower (many small numbers would still be added with this approach)
-                        "       vec4 resultX = $v0;\n" +
-                        "       for(int y=uv0.y;y<uv1.y;y++){\n" +
-                        "           vec4 value = texelFetch(src, ivec2(x,y), 0);\n" +
-                        "           resultX = reduce(resultX, value);\n" +
-                        "       }\n" +
-                        "       result = reduce(result, resultX);\n" +
-                        "   }\n" +
-                        "   gl_FragColor = result;\n" +
-                        "}\n"
-            )
-        }
+        val shader = getShader(op)
 
         GFX.check()
 
@@ -187,6 +164,75 @@ object Reduction {
         }
 
         return dst
+    }
+
+    fun getShader(op: Operation): Shader {
+        return shaderByType.getOrPut(op) {
+            val v0 = "vec4(${op.startValue.x()}, ${op.startValue.y()}, ${op.startValue.z()}, ${op.startValue.w()})"
+            Shader(
+                "reduce-${op.name}", simplestVertexShader2, emptyList(), "" +
+                        "uniform sampler2D src;\n" +
+                        "uniform float scale;\n" +
+                        "#define reduce(a,b) ${op.function}\n" +
+                        "void main(){\n" +
+                        "   ivec2 uv = ivec2(gl_FragCoord.xy);\n" +
+                        "   ivec2 inSize = ivec2(textureSize(src, 0));\n" +
+                        "   ivec2 uv0 = uv * $reduction, uv1 = min(uv0 + $reduction, inSize);\n" +
+                        "   vec4 result = $v0;\n" +
+                        // strided access is more efficient on GPUs, so iterate over y
+                        "   for(int x=uv0.x;x<uv1.x;x++){\n" +
+                        // the reduction is split into a xy-hierarchy,
+                        // so numerical issues accumulate slower (many small numbers would still be added with this approach)
+                        "       vec4 resultX = $v0;\n" +
+                        "       for(int y=uv0.y;y<uv1.y;y++){\n" +
+                        "           vec4 value = texelFetch(src, ivec2(x,y), 0);\n" +
+                        "           resultX = reduce(resultX, value);\n" +
+                        "       }\n" +
+                        "       result = reduce(result, resultX);\n" +
+                        "   }\n" +
+                        "   gl_FragColor = scale * result;\n" +
+                        "}\n"
+            )
+        }
+    }
+
+    fun reduce(texture: ITexture2D, op: Operation, dst: Framebuffer) {
+
+        GFX.checkIsGFXThread()
+
+        val shader = getShader(op)
+
+        GFX.check()
+
+        var srcTexture = texture
+        while (srcTexture.w > 1 || srcTexture.h > 1) {
+
+            // reduce
+            shader.use()
+
+            val w = ceilDiv(srcTexture.w, reduction)
+            val h = ceilDiv(srcTexture.h, reduction)
+
+            var scale = 1f
+            val dstFramebuffer = if (w == 1 && h == 1) {
+                if (op.normalize) scale = 1f / (texture.w * texture.h)
+                dst
+            } else FBStack["reduction", w, h, TargetType.FloatTarget4, 1, false]
+
+            useFrame(dstFramebuffer, Renderer.copyRenderer) {
+                renderPurely {
+                    srcTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    shader.v1f("scale", scale)
+                    flat01.draw(shader)
+                }
+            }
+
+            srcTexture = dstFramebuffer.getTexture0()
+
+        }
+
+        GFX.check()
+
     }
 
     /**

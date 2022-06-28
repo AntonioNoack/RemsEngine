@@ -5,6 +5,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.joml.Vector4f
@@ -143,7 +144,9 @@ class DeferredSettingsV2(
 
         val shader = Shader(
             shaderName, vertexVariables,
-            vertex, varyings, fragmentVariables,
+            vertex, varyings,
+            fragmentVariables // out is defined by deferred layers
+                .filter { it.inOutMode != VariableMode.OUT },
             fragment.toString()
         )
         shader.glslVersion = 330
