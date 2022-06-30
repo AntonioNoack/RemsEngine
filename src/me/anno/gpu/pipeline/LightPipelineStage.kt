@@ -159,6 +159,8 @@ class LightPipelineStage(
             }
         }
 
+        var countPerPixel = 0.25f
+
         private val shaderCache = HashMap<Pair<DeferredSettingsV2, Int>, Shader>()
         fun getShader(settingsV2: DeferredSettingsV2, type: LightType): Shader {
             val isInstanced = OpenGL.instanced.currentValue
@@ -335,7 +337,7 @@ class LightPipelineStage(
                         "uniform mat4x3 localTransform;\n" +
                         "uniform bool fullscreen;\n" +
                         "void main(){\n" +
-                        // cutoff = 0 -> scale onto whole screen, has effect everywhere
+                        // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                         "   if(fullscreen){\n" +
                         "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                         "   } else {\n" +
@@ -343,7 +345,8 @@ class LightPipelineStage(
                         "   }\n" +
                         "}\n", listOf(), "" +
                         "out vec4 glFragColor;\n" +
-                        "void main(){ glFragColor = vec4(1.0); }"
+                        "uniform float countPerPixel;\n" +
+                        "void main(){ glFragColor = vec4(countPerPixel); }"
             )
         }
 
@@ -359,7 +362,7 @@ class LightPipelineStage(
                         "uniform mat4 transform;\n" +
                         "uniform bool isDirectional;\n" +
                         "void main(){\n" +
-                        // cutoff = 0 -> scale onto whole screen, has effect everywhere
+                        // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                         "   if(isDirectional && shadowData.a <= 0.0){\n" +
                         "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                         "   } else {\n" +
@@ -368,7 +371,8 @@ class LightPipelineStage(
                         "   }\n" +
                         "}", listOf(), "" +
                         "out vec4 glFragColor;\n" +
-                        "void main(){ glFragColor = vec4(1.0); }"
+                        "uniform float countPerPixel;\n" +
+                        "void main(){ glFragColor = vec4(countPerPixel); }"
             ).apply {
                 ignoreNameWarnings("normals", "uvs", "tangents", "colors", "receiveShadows")
             }
@@ -503,6 +507,7 @@ class LightPipelineStage(
 
             shader.v4f("tint", -1)
             shader.v1b("receiveShadows", true)
+            shader.v1f("countPerPixel", countPerPixel)
 
             initShader(shader, cameraMatrix)
 
@@ -620,6 +625,7 @@ class LightPipelineStage(
 
         shader.v1b("isDirectional", type == LightType.DIRECTIONAL)
         shader.v1b("receiveShadows", true)
+        shader.v1f("countPerPixel", countPerPixel)
 
         val cameraMatrix = cameraMatrix!!
         val cameraPosition = cameraPosition!!

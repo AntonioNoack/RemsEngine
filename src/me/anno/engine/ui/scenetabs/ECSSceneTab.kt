@@ -8,14 +8,13 @@ import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.physics.BulletPhysics
-import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
+import me.anno.engine.ui.scenetabs.ECSSceneTabs.findName
 import me.anno.gpu.Cursor
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -44,21 +43,22 @@ class ECSSceneTab(
     val syncMaster: SyncMaster,
     val inspector: PrefabInspector,
     val file: FileReference,
-    val playMode: PlayMode
-) : TextPanel(file.nameWithoutExtension, DefaultConfig.style) {
+    val playMode: PlayMode,
+    name: String = file.nameWithoutExtension
+) : TextPanel(name, DefaultConfig.style) {
 
     constructor(
         syncMaster: SyncMaster,
-        fileReference: FileReference,
+        file: FileReference,
         classNameIfNull: String,
-        playMode: PlayMode
-    ) : this(syncMaster, PrefabInspector(fileReference, classNameIfNull), fileReference, playMode)
+        playMode: PlayMode,
+        name: String = file.nameWithoutExtension
+    ) : this(syncMaster, PrefabInspector(file, classNameIfNull), file, playMode, name)
 
-    constructor(syncMaster: SyncMaster, reference: FileReference, playMode: PlayMode) :
-            this(syncMaster, PrefabInspector(reference), playMode)
-
-    constructor(syncMaster: SyncMaster, inspector: PrefabInspector, playMode: PlayMode) :
-            this(syncMaster, inspector, inspector.reference, playMode)
+    constructor(
+        syncMaster: SyncMaster, file: FileReference, playMode: PlayMode,
+        name: String = file.nameWithoutExtension
+    ) : this(syncMaster, PrefabInspector(file), file, playMode, name)
 
     init {
         LOGGER.info("Created tab with ${inspector.prefab.countTotalChanges(true)}+ changes")
@@ -188,7 +188,7 @@ class ECSSceneTab(
     fun play() {
         val tab = ECSSceneTabs.currentTab!!
         val playMode = if (playMode == PlayMode.EDITING) PlayMode.PLAY_TESTING else PlayMode.EDITING
-        ECSSceneTabs.open(ECSSceneTab(tab.syncMaster, tab.inspector, tab.file, playMode))
+        ECSSceneTabs.open(ECSSceneTab(tab.syncMaster, tab.inspector, tab.file, playMode, findName(tab.file)))
     }
 
     fun playFullscreen() {

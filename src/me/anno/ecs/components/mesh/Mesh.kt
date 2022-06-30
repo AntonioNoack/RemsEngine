@@ -791,6 +791,12 @@ class Mesh : PrefabSaveable() {
         } else StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
     }
 
+    fun drawMeshPurely(shader: Shader) {
+        ensureBuffer()
+        (triBuffer ?: buffer)?.draw(shader)
+        lineBuffer?.draw(shader)
+    }
+
     fun drawDepth(shader: Shader) {
         // all materials are assumed to behave the same
         // when we have vertex shaders by material, this will become wrong...

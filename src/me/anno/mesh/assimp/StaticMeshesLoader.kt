@@ -250,7 +250,12 @@ open class StaticMeshesLoader {
 
         // emissive
         val emissive = getColor(aiMaterial, color, AI_MATKEY_COLOR_EMISSIVE)
-        if (emissive != null) prefab.setProperty("emissiveBase", Vector3f(emissive.x, emissive.y, emissive.z))
+        if (emissive != null) {
+            emissive.mul(20f) // for brighter colors; 5.0 is our default because of Reinhard tonemapping
+            // 4x, because we want it to be impressive ^^, and to actually feel like glowing;
+            // the original 1 should be 100%, so I think it's kind of appropriate
+            prefab.setProperty("emissiveBase", Vector3f(emissive.x, emissive.y, emissive.z))
+        }
         val emissiveMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE, texturesDir)
         if (emissiveMap != InvalidRef) prefab.setProperty("emissiveMap", emissiveMap)
 

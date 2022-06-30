@@ -73,6 +73,7 @@ object ECSShaderLib {
                         Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT),
                     ),
                     "" +
+                            "#define SKIP_LIGHTS\n" +
                             "finalNormal = normalize(finalNormal);\n" +
                             "finalPosition = -finalNormal * 1e36;\n" + // 1e38 is max for float
                             "finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" +

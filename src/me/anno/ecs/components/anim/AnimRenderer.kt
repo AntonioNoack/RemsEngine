@@ -17,9 +17,9 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.assimp.AnimGameItem
-import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4x3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL21
@@ -84,6 +84,21 @@ open class AnimRenderer : MeshComponent() {
         }
     }
 
+    // animation state for motion vectors
+    @NotSerializedProperty
+    var prevTime = 0L
+    @NotSerializedProperty
+    val prevWeights = Vector4f()
+    @NotSerializedProperty
+    val prevIndices = Vector4f()
+
+    @NotSerializedProperty
+    var lastTime = 0L
+    @NotSerializedProperty
+    val currWeights = Vector4f()
+    @NotSerializedProperty
+    val currIndices = Vector4f()
+
     override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh): Boolean {
 
         val skeleton = SkeletonCache[skeleton]
@@ -117,12 +132,24 @@ open class AnimRenderer : MeshComponent() {
 
         if (useAnimTextures) {
 
-            val bestWeights = JomlPools.vec4f.create()
-            val bestIndices = JomlPools.vec4f.create()
-            getAnimState(bestWeights, bestIndices)
+            val time = Engine.gameTime
 
-            shader.v4f("animWeights", bestWeights)
-            shader.v4f("animIndices", bestIndices)
+            if (time > lastTime) {
+                lastTime = time
+                getAnimState(currWeights, currIndices)
+            }
+
+            shader.v4f("prevAnimWeights", prevWeights)
+            shader.v4f("prevAnimIndices", prevIndices)
+
+            shader.v4f("animWeights", currWeights)
+            shader.v4f("animIndices", currIndices)
+
+            if (time > prevTime) {
+                prevTime = time
+                prevWeights.set(currWeights)
+                prevIndices.set(currIndices)
+            }
 
             val animTexture = AnimationCache[skeleton]
             val animTexture2 = animTexture.getTexture()
@@ -132,9 +159,6 @@ open class AnimRenderer : MeshComponent() {
             }
 
             animTexture2.bindTrulyNearest(shader, "animTexture")
-
-            JomlPools.vec4f.sub(2)
-
             return true
 
         }

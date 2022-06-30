@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
-import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
@@ -60,7 +60,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
 
     fun updatePosition() {
         val oldPosition = position
-        position = mix(position, targetPosition, clamp(Engine.deltaTime * smoothingPerSeconds))
+        position = mix(position, targetPosition, Maths.dtTo01(Engine.deltaTime * smoothingPerSeconds))
         if (abs(position - oldPosition) > 1e-4) {
             invalidateDrawing()
         }

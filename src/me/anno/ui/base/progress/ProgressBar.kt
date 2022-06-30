@@ -3,7 +3,7 @@ package me.anno.ui.base.progress
 import me.anno.Engine
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
 
 class ProgressBar(val unit: String, var total: Double) {
@@ -55,8 +55,14 @@ class ProgressBar(val unit: String, var total: Double) {
                 (cancelTime != 0L && time - cancelTime > endShowDuration)
     }
 
+    /**
+     * how quickly it will converge to the actual value (for smoothing);
+     * high value = less smoothing
+     * */
+    var updateSpeed = 1.0
+
     fun draw(x: Int, y: Int, w: Int, h: Int, time: Long) {
-        val dt = clamp((time - lastDraw) * 1e-9 * 1.0, 0.0, 0.2)
+        val dt = Maths.dtTo01((time - lastDraw) * 1e-9 * updateSpeed)
         lastDraw = time
         val percentage = progress / total
         lastDrawnUpdate = mix(lastDrawnUpdate, percentage, dt)

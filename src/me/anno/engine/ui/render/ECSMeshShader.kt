@@ -28,9 +28,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   int index = boneIndex * 3;\n" + // every matrix uses 3 pixels
                     "   mat4x3 t;\n" +
                     "   t  = getAnimMatrix(index,animIndices.x)*animWeights.x;\n" +
-                    "   t += getAnimMatrix(index,animIndices.y)*animWeights.y;\n" +
-                    "   t += getAnimMatrix(index,animIndices.z)*animWeights.z;\n" +
-                    "   t += getAnimMatrix(index,animIndices.w)*animWeights.w;\n" +
+                    "   if(animWeights.y > 0.0) t += getAnimMatrix(index,animIndices.y)*animWeights.y;\n" +
+                    "   if(animWeights.z > 0.0) t += getAnimMatrix(index,animIndices.z)*animWeights.z;\n" +
+                    "   if(animWeights.w > 0.0) t += getAnimMatrix(index,animIndices.w)*animWeights.w;\n" +
                     "   return t;\n" +
                     "}\n" +
                     "mat4x3 getAnimMatrix(int boneIndex){ return getAnimMatrix(boneIndex, animIndices, animWeights); }\n"
@@ -149,6 +149,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             } else {
                 variables += Variable(GLSLType.M4x3, "prevLocalTransform")
             }
+            if (isAnimated) {
+                val type = if (isInstanced) VariableMode.ATTR else VariableMode.IN
+                variables += Variable(GLSLType.V4F, "prevAnimWeights", type)
+                variables += Variable(GLSLType.V4F, "prevAnimIndices", type)
+            }
             variables += Variable(GLSLType.V4F, "currPosition", VariableMode.OUT)
             variables += Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT)
         }
@@ -181,11 +186,28 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "jointMat += jointTransforms[indices.w] * weights.w;\n"
         }
 
+        val animationCode2 = if (useAnimTextures) {
+            "" +
+                    "mat4x3 jointMat2;\n" +
+                    "jointMat2  = getAnimMatrix(indices.x,prevAnimIndices,prevAnimWeights) * weights.x;\n" +
+                    "jointMat2 += getAnimMatrix(indices.y,prevAnimIndices,prevAnimWeights) * weights.y;\n" +
+                    "jointMat2 += getAnimMatrix(indices.z,prevAnimIndices,prevAnimWeights) * weights.z;\n" +
+                    "jointMat2 += getAnimMatrix(indices.w,prevAnimIndices,prevAnimWeights) * weights.w;\n" +
+                    "prevLocalPosition = jointMat2 * vec4(coords, 1.0);\n"
+        } else {
+            "prevLocalPosition = localPosition;\n"
+        }
+
         val variables = createVertexVariables(isInstanced, isAnimated, colors, motionVectors)
         val stage = ShaderStage(
             "vertex",
             variables,
-            "" + defines + "#ifdef INSTANCED\n" +
+            "" + defines +
+                    "localPosition = coords;\n" + // is output, so no declaration needed
+                    "#ifdef MOTION_VECTORS\n" +
+                    "vec3 prevLocalPosition = coords;\n" +
+                    "#endif\n" +
+                    "#ifdef INSTANCED\n" +
                     "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
                     "   #ifdef COLORS\n" +
                     "       tint = instanceTint;\n" +
@@ -195,15 +217,16 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   if(hasAnimation){\n" +
                     "       mat4x3 jointMat;\n" +
                     animationCode +
-                    // todo if motion vectors, use previous jointMat
                     "       localPosition = jointMat * vec4(coords, 1.0);\n" +
+                    "       #ifdef MOTION_VECTORS\n" +
+                    animationCode2 +
+                    "       #endif\n" +
                     "       #ifdef COLORS\n" +
                     "           normal = jointMat * vec4(normals, 0.0);\n" +
                     "           tangent.xyz = jointMat * vec4(tangents.xyz, 0.0);\n" + // how is w behaving? stays the same, I think
                     "       #endif\n" +
                     "   } else {\n" +
                     "   #endif\n" + // animated
-                    "       localPosition = coords;\n" +
                     "       #ifdef COLORS\n" +
                     "           normal = normals;\n" +
                     "           tangent = tangents;\n" +
@@ -224,7 +247,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                     "#ifdef MOTION_VECTORS\n" +
                     "   currPosition = gl_Position;\n" +
-                    "   prevPosition = prevTransform * vec4(prevLocalTransform * vec4(localPosition, 1.0), 1.0);\n" +
+                    "   prevPosition = prevTransform * vec4(prevLocalTransform * vec4(prevLocalPosition, 1.0), 1.0);\n" +
                     "#endif\n" +
                     ShaderLib.positionPostProcessing
         )

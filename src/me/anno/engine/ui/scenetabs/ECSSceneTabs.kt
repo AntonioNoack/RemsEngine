@@ -1,8 +1,6 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.Entity
-import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.RemsEngine
@@ -22,6 +20,8 @@ import me.anno.utils.structures.lists.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 
 object ECSSceneTabs : ScrollPanelX(style) {
+
+    // todo if a name is already in use, try a different one
 
     private val LOGGER = LogManager.getLogger(ECSSceneTabs::class)
 
@@ -48,7 +48,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
             open(opened)
             opened
         } else {
-            val tab = ECSSceneTab(syncMaster, reference, playMode)
+            val tab = ECSSceneTab(syncMaster, reference, playMode, findName(reference))
             content += tab
             open(tab)
             tab
@@ -64,10 +64,25 @@ object ECSSceneTabs : ScrollPanelX(style) {
     fun add(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String, playMode: PlayMode): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == file }
         return if (opened == null) {
-            val tab = ECSSceneTab(syncMaster, file, classNameIfNull, playMode)
+            val tab = ECSSceneTab(syncMaster, file, classNameIfNull, playMode, findName(file))
             content += tab
             tab
         } else opened
+    }
+
+    fun findName(file: FileReference): String {
+        var name = file.nameWithoutExtension
+        for (tab in children3) {
+            if (tab.file != file) {
+                var file1 = file
+                while (tab.text.equals(name, true)) {
+                    val parent = file1.getParent() ?: break
+                    name = parent.nameWithoutExtension
+                    file1 = parent
+                }
+            }
+        }
+        return name
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

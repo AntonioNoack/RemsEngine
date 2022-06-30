@@ -103,6 +103,7 @@ object Renderers {
                     // a try of depth dithering, which can be used for plants, but is really expensive...
                     // "   gl_FragDepth = 1.0/(1.0+zDistance) * (1.0 + 0.001 * random(finalPosition.xy));\n" +
                     // shared pbr data
+                    "#ifndef SKIP_LIGHTS\n" +
                     "   vec3 V = normalize(-finalPosition);\n" +
                     // light calculations
                     "   float NdotV = abs(dot(finalNormal,V));\n" +
@@ -162,6 +163,7 @@ object Renderers {
                     "   }\n" +
                     "   finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                     "   finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
+                    "#endif\n" +
                     "   if(applyToneMapping){\n" +
                     "       finalColor = toneMapping(finalColor);\n" +
                     "   }\n"
@@ -315,6 +317,7 @@ object Renderers {
             DeferredLayerType.COLOR -> "" // is HDR
             DeferredLayerType.MOTION -> "" +
                     "finalColor = ${type.glslName}${type.map01};" +
+                    "finalColor *= 10.0;\n" +
                     "finalColor /= 1.0 + abs(finalColor);\n" +
                     "finalColor += 0.5;\n"
             else -> {

@@ -142,19 +142,28 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
 
     // less than 90, so we always know forward when computing movement
     val limit = 90.0 - 0.0001
+    val rotationTarget = Vector3d(view.rotation)
 
-    fun rotateCameraTo(v: Vector3f) {
-        view.rotation.set(v)
-        view.updateEditorCameraTransform()
-        invalidateDrawing()
+    override fun tickUpdate() {
+        super.tickUpdate()
+        if (view.rotation.distanceSquared(rotationTarget) > 1e-4) {
+            view.rotation.lerp(rotationTarget, Maths.dtTo01(deltaTime * 25.0))
+            view.updateEditorCameraTransform()
+            invalidateDrawing()
+        }
     }
 
+    fun rotateCameraTo(vx: Float, vy: Float, vz: Float) =
+        rotateCameraTo(vx.toDouble(), vy.toDouble(), vz.toDouble())
+
+    fun rotateCameraTo(vx: Double, vy: Double, vz: Double) {
+        rotationTarget.set(vx, vy, vz)
+    }
+
+    fun rotateCameraTo(v: Vector3f) = rotateCameraTo(v.x, v.y, v.z)
+
     fun rotateCamera(vx: Float, vy: Float, vz: Float) {
-        view.rotation.apply {
-            set(clamp(x + vx, -limit, +limit), y + vy, z + vz)
-        }
-        view.updateEditorCameraTransform()
-        invalidateDrawing()
+        rotateCameraTo(clamp(rotationTarget.x + vx, -limit, +limit), rotationTarget.y + vy, rotationTarget.z + vz)
     }
 
     fun rotateCamera(v: Vector3f) {

@@ -54,7 +54,6 @@ import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
-import me.anno.gpu.shader.Renderer.Companion.nothingRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -180,6 +179,7 @@ open class RenderView(
         base1Buffer.destroy()
         baseNBuffer.destroy()
         editorCameraNode.destroy()
+        fsr22.destroy()
     }
 
     fun updateEditorCameraTransform() {
@@ -502,10 +502,9 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, buffer,
                         changeSize = true,
-                        doDrawGizmos = false,
                         toneMappedColors = false
                     )
-                    drawGizmos(world, buffer, simpleNormalRenderer, camPosition, true)
+                    drawGizmos(buffer, true)
                     GFX.copyNoAlpha(buffer)
                     return
                 }
@@ -514,19 +513,20 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, buffer,
                         changeSize = true,
-                        doDrawGizmos = false,
                         toneMappedColors = false
                     )
                     val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, true]
                     drawScene(
                         w, h, camera0, camera1, blending, rawAttributeRenderers[DeferredLayerType.MOTION]!!,
-                        motion, changeSize = false, doDrawGizmos = false, toneMappedColors = false
+                        motion, changeSize = false, toneMappedColors = false
                     )
 
-                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                    val lightBuffer = lightNBuffer
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
 
                     val ssao = blackTexture
+                    val pw = x1 - x0
+                    val ph = y1 - y0
 
                     // use the existing depth buffer for the 3d ui
                     val dstBuffer0 = baseSameDepth
@@ -538,21 +538,29 @@ open class RenderView(
                             shader.v1b("applyToneMapping", true)
                             buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                             ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                            lightBuffer.bindTexture0(
-                                shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP
-                            )
+                            lightBuffer.bindTexture0(shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                             flat01.draw(shader)
                         }
                     }
 
                     fsr22.calculate(
                         dstBuffer0.getTexture0() as Texture2D,
-                        buffer.depthTexture as Texture2D, motion.getTexture0() as Texture2D,
-                        x1 - x0, y1 - y0
+                        buffer.depthTexture as Texture2D,
+                        deferred.findTexture(buffer, DeferredLayerType.NORMAL) as Texture2D,
+                        motion.getTexture0() as Texture2D,
+                        pw, ph
                     )
 
+                    // todo which depth buffer is this using?
+                    // we would need the upscaled depth buffer here, ideally
+                    /*glClear(GL_DEPTH_BUFFER_BIT)
+                    val tmp = JomlPools.mat4f.create()
+                    tmp.set(cameraMatrix)
+                    fsr22.unjitter(cameraMatrix, camRotation, pw, ph)
                     drawGizmos(world, camPosition, true)
                     drawSelected()
+                    cameraMatrix.set(tmp)
+                    JomlPools.mat4f.sub(1)*/
 
                     return
                 }
@@ -562,10 +570,9 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, depth,
                         changeSize = true,
-                        doDrawGizmos = false,
                         toneMappedColors = false
                     )
-                    drawGizmos(world, depth, renderer, camPosition, true)
+                    drawGizmos(depth, true)
                     drawDepthTexture(x, y, w, h, depth.depthTexture!!)
                     return
                 }
@@ -574,12 +581,11 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, buffer,
                         changeSize = true,
-                        doDrawGizmos = false,
                         toneMappedColors = false
                     )
                     val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-                    drawGizmos(world, lightBuffer, simpleNormalRenderer, camPosition, true)
+                    drawGizmos(lightBuffer, true)
                     drawTexture(x, y + h - 1, w, -h, lightBuffer.getTexture0(), true, -1, null)
                     return
                 }
@@ -589,13 +595,12 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, buffer,
                         changeSize = true,
-                        doDrawGizmos = false,
                         toneMappedColors = false
                     )
                     val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                     pipeline.lightPseudoStage.visualizeLightCount = true
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-                    drawGizmos(world, lightBuffer, simpleNormalRenderer, camPosition, false)
+                    drawGizmos(lightBuffer, false)
                     // todo special shader to better differentiate the values than black-white
                     // (1 is extremely dark, nearly black)
                     drawTexture(
@@ -612,10 +617,9 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, buffer,
                         changeSize = true,
-                        doDrawGizmos = false,
                         toneMappedColors = false
                     )
-                    drawGizmos(world, buffer, renderer, camPosition, true)
+                    drawGizmos(buffer, true)
                     val strength = max(ssao.strength, 0.01f)
                     val ssao = ScreenSpaceAmbientOcclusion.compute(
                         buffer, deferred, cameraMatrix, ssao.radius, strength, ssao.samples
@@ -635,10 +639,9 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, buffer,
                         changeSize = true,
-                        doDrawGizmos = false,
                         toneMappedColors = false
                     )
-                    drawGizmos(world, buffer, renderer, camPosition, true)
+                    drawGizmos(buffer, true)
                     val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
                     val illuminated = FBStack["ill", w, h, 4, true, 1, false]
@@ -670,10 +673,9 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, buffer,
                         changeSize = true,
-                        doDrawGizmos = false,
                         toneMappedColors = false
                     )
-                    drawGizmos(world, buffer, renderer, camPosition, true)
+                    drawGizmos(buffer, true)
 
                     val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
@@ -716,10 +718,9 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, buffer,
                         changeSize = true,
-                        doDrawGizmos = false,
                         toneMappedColors = false
                     )
-                    drawGizmos(world, buffer, renderer, camPosition, true)
+                    drawGizmos(buffer, true)
                     drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightNBuffer)
 
                     // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
@@ -788,10 +789,9 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, buffer,
                         changeSize = true,
-                        doDrawGizmos = false,
                         toneMappedColors = isToneMappingUsed
                     )
-                    drawGizmos(world, buffer, simpleNormalRenderer, camPosition, true)
+                    drawGizmos(buffer, true)
                     val effect = renderMode.effect
                     if (effect != null) {
                         val map = hashMapOf(DeferredLayerType.SDR_RESULT to buffer)
@@ -812,7 +812,6 @@ open class RenderView(
                         w, h, camera0, camera1,
                         blending, renderer, buffer,
                         true,
-                        doDrawGizmos = false,
                         toneMappedColors = true
                     )
 
@@ -859,7 +858,7 @@ open class RenderView(
                             // todo use msaa for gizmos
                             // or use anti-aliasing, that works on color edges
                             // and supports lines
-                            drawGizmos(world, camPosition, true)
+                            drawGizmos(true)
                             drawSelected()
                         }
 
@@ -884,7 +883,7 @@ open class RenderView(
 
                             }
 
-                            drawGizmos(world, camPosition, true)
+                            drawGizmos(true)
                             drawSelected()
 
                         }
@@ -915,9 +914,9 @@ open class RenderView(
                     w, h, camera0, camera1,
                     blending, renderer, tmp,
                     changeSize = true,
-                    doDrawGizmos = true,
                     toneMappedColors = true
                 )
+                drawGizmos(tmp, true)
                 useFrame(w, h, true, dstBuffer) {
                     Bloom.bloom(tmp.getTexture0(), bloomOffset, bloomStrength, true)
                 }
@@ -926,9 +925,9 @@ open class RenderView(
                     w, h, camera0, camera1,
                     blending, renderer, buffer,
                     changeSize = true,
-                    doDrawGizmos = true,
                     toneMappedColors = true
                 )
+                drawGizmos(buffer, true)
             }
         }
 
@@ -983,9 +982,9 @@ open class RenderView(
         val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, buffer, idRenderer) {
             drawScene(
                 w, h, camera, camera, 0f, idRenderer, buffer,
-                changeSize = false, doDrawGizmos = false, toneMappedColors = false
+                changeSize = false, toneMappedColors = false
             )
-            drawGizmos(world, camPosition, false)
+            drawGizmos(false)
         }
 
         for (idx in ids.indices) {
@@ -995,9 +994,9 @@ open class RenderView(
         val depths = Screenshots.getFP32RPixels(diameter, px2, py2, buffer, depthRenderer) {
             drawScene(
                 w, h, camera, camera, 0f, depthRenderer, buffer,
-                changeSize = false, doDrawGizmos = false, toneMappedColors = false
+                changeSize = false, toneMappedColors = false
             )
-            drawGizmos(world, camPosition, false)
+            drawGizmos(false)
         }
 
         val clickedId = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
@@ -1219,7 +1218,7 @@ open class RenderView(
 
     var skipClear = false
 
-    private fun clearDeferred(
+    private fun clearColor(
         previousCamera: Camera, camera: Camera,
         blending: Float, toneMappedColors: Boolean
     ) {
@@ -1234,6 +1233,7 @@ open class RenderView(
                     // draw a huge cube with default values for all buffers
                     val shader = clearPbrModelShader.value
                     shader.use()
+                    LOGGER.warn(shader.fragmentSource)
                     shader.m4x4("transform", cameraMatrix)
                     shader.m4x4("prevTransform", prevCamMatrix)
                     val c = tmp4f
@@ -1241,9 +1241,9 @@ open class RenderView(
                     // inverse reinhard tonemapping
                     if (toneMappedColors) c.div(1f - c.x, 1f - c.y, 1f - c.z, 1f)
                     shader.v4f("color", c.x, c.y, c.z, 1f)
-                    shaderColor(shader, "tint", 0)
+                    shaderColor(shader, "tint", -1)
                     shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
-                    Shapes.smoothCube.back.draw(shader, 0)
+                    Shapes.smoothCube.back.drawMeshPurely(shader)
                     // LOGGER.warn(shader.fragmentSource)
                 }
             }
@@ -1258,15 +1258,10 @@ open class RenderView(
         renderer: Renderer,
         dst: IFramebuffer,
         changeSize: Boolean,
-        doDrawGizmos: Boolean,
         toneMappedColors: Boolean
     ) {
 
         GFX.check()
-
-        // val deferred = renderer.deferredSettings != null
-
-        val world = getWorld()
 
         val preDrawDepth = renderMode == RenderMode.WITH_PRE_DRAW_DEPTH
         if (preDrawDepth) {
@@ -1301,23 +1296,9 @@ open class RenderView(
                 }
             }
 
-            clearDeferred(previousCamera, currentCamera, blending, toneMappedColors)
-
-            if (doDrawGizmos) {
-                if (!renderer.isFakeColor && !isFinalRendering) {
-                    useFrame(w, h, changeSize, dst, simpleNormalRenderer) {
-                        drawGizmos(world, camPosition, true)
-                        drawSelected()
-                    }
-                } else if (renderer == idRenderer) {
-                    drawGizmos(world, camPosition, false)
-                }
-            }
-
+            clearColor(previousCamera, currentCamera, blending, toneMappedColors)
             GFX.check()
-
             pipeline.draw()
-
             GFX.check()
 
         }
@@ -1359,21 +1340,19 @@ open class RenderView(
     }
 
     private fun drawGizmos(
-        world: PrefabSaveable?,
         framebuffer: IFramebuffer,
-        renderer: Renderer,
-        camPosition: Vector3d,
         drawGridLines: Boolean
     ) {
-        useFrame(framebuffer, renderer) {
-            drawGizmos(world, camPosition, drawGridLines)
+        useFrame(framebuffer, simpleNormalRenderer) {
+            drawGizmos(drawGridLines)
         }
     }
 
-    fun drawGizmos(world: PrefabSaveable?, camPosition: Vector3d, drawGridLines: Boolean) {
+    fun drawGizmos(drawGridLines: Boolean) {
 
         if (playMode != PlayMode.EDITING) return
 
+        val world = getWorld()
         // draw UI
 
         // now works, after making the physics async :)

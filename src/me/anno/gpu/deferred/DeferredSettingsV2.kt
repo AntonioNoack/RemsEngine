@@ -122,14 +122,24 @@ class DeferredSettingsV2(
 
         appendLayerDeclarators(fragment)
 
-        val lio = fragmentShader.lastIndexOf('}')
-        if (lio < 0) throw RuntimeException("Expected to find } in fragment source, but only got '$vertexShader'/'$fragmentShader'")
+        val lastBracketIndex = fragmentShader.lastIndexOf('}')
+        val mainIndex = fragmentShader.indexOf("void main(")
+        if (mainIndex < 0 || lastBracketIndex < 0) throw RuntimeException("Expected to find } in fragment source, but only got '$vertexShader'/'$fragmentShader'")
 
-        val oldFragmentCode = fragmentShader
-            .substring(0, lio)
+        val oldFragmentCode1 = fragmentShader
+            .substring(fragmentShader.indexOf('{', mainIndex + 11) + 1, lastBracketIndex)
             .replace("gl_FragColor", "vec4 glFragColor")
 
-        fragment.append(oldFragmentCode)
+        fragment.append(fragmentShader, 0, mainIndex)
+        fragment.append("void main(){")
+
+        for (variable in fragmentVariables) {
+            if (variable.isOutput) {
+                variable.declare(fragment)
+            }
+        }
+
+        fragment.append(oldFragmentCode1)
 
         val hasFragColor = "gl_FragColor" in fragmentShader
         if (hasFragColor) {

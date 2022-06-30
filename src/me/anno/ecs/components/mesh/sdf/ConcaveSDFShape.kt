@@ -7,7 +7,6 @@ import com.bulletphysics.collision.shapes.TriangleCallback
 import com.bulletphysics.linearmath.Transform
 import me.anno.maths.Maths.mix
 import me.anno.maths.geometry.MarchingCubes
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max

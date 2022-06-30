@@ -211,6 +211,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             }
             is Animation -> {
                 // todo optimize this (avoid allocations)
+                // todo use AnimRenderer for motion vectors
                 val skeleton = SkeletonCache[rootElement.skeleton] ?: return
                 val bones = skeleton.bones
                 val mesh = Mesh()

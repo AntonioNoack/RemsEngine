@@ -57,18 +57,17 @@ object OpenGL {
             if (newValue == null) {
                 glDisable(GL_BLEND)
             } else {
-                // todo if is parent, then use the parent value
                 glEnable(GL_BLEND)
-                var self: BlendMode? = newValue
-                var index = index
-                if (self == BlendMode.INHERIT) {
+                // if is parent, then use the parent value
+                if (newValue == BlendMode.INHERIT) {
+                    var self: BlendMode? = newValue
+                    var index = index
                     while (self == BlendMode.INHERIT) {
                         self = values[index--]
                     }
-                    onChangeValue(self, oldValue)
-                } else {
-                    self?.forceApply()
+                    return onChangeValue(self, oldValue)
                 }
+                newValue.forceApply()
             }
         }
     }
@@ -274,7 +273,7 @@ object OpenGL {
     ) = useFrame(x, y, w, h, buffer, currentRenderer, render)
 
     inline fun useFrame(
-       w: Int, h: Int, changeSize: Boolean,
+        w: Int, h: Int, changeSize: Boolean,
         renderer: Renderer, render: () -> Unit
     ) = useFrame(w, h, changeSize, currentBuffer, renderer, render)
 
