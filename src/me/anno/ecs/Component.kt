@@ -1,11 +1,14 @@
 package me.anno.ecs
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.io.serialization.SerializedProperty
 import me.anno.studio.Inspectable
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -47,7 +50,25 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     @HideInInspector
     @NotSerializedProperty
-    var clickId = 0
+    var gfxId = 0
+        private set
+
+    @HideInInspector
+    @NotSerializedProperty
+    var clickId: Int
+        get() = gfxId and 0xffffff
+        set(value) {
+            gfxId = (gfxId and (255 shl 24)) or (value and 0xffffff)
+        }
+
+    @Docs("Group, e.g. for colored outlines")
+    @Range(0.0, 255.0)
+    @SerializedProperty
+    var groupId: Int
+        get() = gfxId ushr 24
+        set(value) {
+            gfxId = (value shl 24) or (gfxId and 0xffffff)
+        }
 
     /**
      * returns whether it needs any space in the AABBs for visibility updates / rendering

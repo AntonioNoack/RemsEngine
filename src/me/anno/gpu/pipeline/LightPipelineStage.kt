@@ -695,7 +695,7 @@ class LightPipelineStage(
         }
     }
 
-    fun reset() {
+    fun clear() {
         instanced.clear()
         nonInstanced.clear()
         environmentMaps.clear()

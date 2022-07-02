@@ -55,6 +55,9 @@ interface IFramebuffer {
 
     fun getTexture0() = getTextureI(0)
 
+    fun bindTrulyNearest(dstIndex: Int = 0) =
+        getTexture0().bindTrulyNearest(dstIndex)
+
     fun getTextureI(index: Int): ITexture2D
 
     val depthTexture: ITexture2D?

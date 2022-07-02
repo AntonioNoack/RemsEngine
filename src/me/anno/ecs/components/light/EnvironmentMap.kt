@@ -121,7 +121,7 @@ class EnvironmentMap : LightComponentBase() {
         val entity = entity!!
 
         val pipeline = pipeline
-        pipeline.reset()
+        pipeline.clear()
 
         // we don't want a positive feedback-loop
         pipeline.ignoredComponent = this
@@ -155,7 +155,7 @@ class EnvironmentMap : LightComponentBase() {
                 rot3.mul(rot2)
                 cameraMatrix.rotate2(rot3)
                 val rotation2 = rot3.invert()
-                pipeline.reset()
+                pipeline.clear()
                 pipeline.frustum.definePerspective(
                     near / worldScale, far / worldScale, deg90,
                     resolution, resolution, 1.0,

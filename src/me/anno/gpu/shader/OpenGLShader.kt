@@ -313,6 +313,14 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    fun v1fs(name: String, vs: FloatArray) = v1fs(getUniformLocation(name), vs)
+    fun v1fs(loc: Int, vs: FloatArray) {
+        if (loc > -1) {
+            potentiallyUse()
+            glUniform1fv(loc, vs)
+        }
+    }
+
     fun v2f(name: String, x: Float, y: Float) = v2f(getUniformLocation(name), x, y)
     fun v2f(loc: Int, x: Float, y: Float) {
         if (loc > -1) {
@@ -331,6 +339,14 @@ abstract class OpenGLShader(val name: String) : ICacheData {
                     glUniform2f(loc, x, y)
                 }
             }
+        }
+    }
+
+    fun v2fs(name: String, vs: FloatArray) = v2fs(getUniformLocation(name), vs)
+    fun v2fs(loc: Int, vs: FloatArray) {
+        if (loc > -1) {
+            potentiallyUse()
+            glUniform2fv(loc, vs)
         }
     }
 
@@ -384,6 +400,14 @@ abstract class OpenGLShader(val name: String) : ICacheData {
                     glUniform3f(loc, x, y, z)
                 }
             }
+        }
+    }
+
+    fun v3fs(name: String, vs: FloatArray) = v3fs(getUniformLocation(name), vs)
+    fun v3fs(loc: Int, vs: FloatArray) {
+        if (loc > -1) {
+            potentiallyUse()
+            glUniform3fv(loc, vs)
         }
     }
 
@@ -477,8 +501,16 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         )
     }
 
-    fun v4fs(name: String, color: Int) = v4fs(getUniformLocation(name), color)
-    fun v4fs(loc: Int, color: Int) {
+    fun v4fs(name: String, vs: FloatArray) = v4fs(getUniformLocation(name), vs)
+    fun v4fs(loc: Int, vs: FloatArray) {
+        if (loc > -1) {
+            potentiallyUse()
+            glUniform4fv(loc, vs)
+        }
+    }
+
+    fun v4fSq(name: String, color: Int) = v4fSq(getUniformLocation(name), color)
+    fun v4fSq(loc: Int, color: Int) {
         v4f(
             loc,
             sq((color.shr(16) and 255) / 255f),

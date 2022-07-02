@@ -53,7 +53,7 @@ class PlanarReflection : LightComponentBase() {
         val instance = RenderView.currentInstance!!
         val pipeline = instance.pipeline
 
-        pipeline.reset()
+        pipeline.clear()
 
         val w = instance.w
         val h = instance.h

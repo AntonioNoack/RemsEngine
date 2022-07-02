@@ -172,7 +172,7 @@ abstract class LightComponent(
         lastDraw = Engine.nanoTime
 
         val pipeline = pipeline
-        pipeline.reset()
+        pipeline.clear()
         val entity = entity!!
         val transform = entity.transform
         val drawTransform = transform.getDrawMatrix()

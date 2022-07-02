@@ -75,13 +75,13 @@ class Variable(
                 code.append(' ')
             }
             code.append(type.glslName)
-            code.append(' ')
-            code.append(name)
             if (arraySize > 0) {
                 code.append('[')
                 code.append(arraySize)
                 code.append(']')
             }
+            code.append(' ')
+            code.append(name)
             code.append(";\n")
         }
 

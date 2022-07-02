@@ -681,7 +681,7 @@ class PipelineStage(
     }
 
     private var hadTooMuchSpace = 0
-    fun reset() {
+    fun clear() {
 
         // there is too much space since 100 iterations
         if (nextInsertIndex < drawRequests.size shr 1) {

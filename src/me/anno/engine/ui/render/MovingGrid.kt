@@ -21,6 +21,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
@@ -65,7 +66,7 @@ object MovingGrid {
                 .scale(radius2)
 
             alpha = 0.05f * alphas[i]
-            if(alpha > 1f/255f){
+            if (alpha > 1f / 255f) {
                 drawMesh(gridMesh)
 
                 alpha *= 2f
@@ -90,6 +91,8 @@ object MovingGrid {
         shader.m4x4("transform", camera)
         shader.v3f("offset", 0f)
         shader.v1i("drawMode", GFX.drawMode.id)
+        shader.v3f("finalNormal", 1f, 0f, 0f)
+        shader.v3f("finalEmissive", 0f, 0f, 0f)
         GFX.shaderColor(shader, "tint", alpha, alpha, alpha, 1f)
         whiteTexture.bind(0)
         mesh.draw(shader, 0)

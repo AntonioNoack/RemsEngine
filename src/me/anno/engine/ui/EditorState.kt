@@ -39,14 +39,33 @@ object EditorState {
             if (value != null) control = null
         }
 
-    // todo we should be able to edit multiple values at the same time
+    // todo we should be able to edit multiple values of the same type at the same time
     var selection: List<Inspectable> = emptyList()
     var fineSelection: List<Inspectable> = selection
 
-    fun select(major: Inspectable?, minor: Inspectable? = major) {
-        selection = if (major == null) emptyList() else listOf(major)
-        fineSelection = if (minor == null) emptyList() else listOf(minor)
-        lastSelection = major ?: minor
+    fun select(major: Inspectable?, minor: Inspectable? = major, add: Boolean = false) {
+        if (add) {
+            if (major != null) selection = added(selection, major)
+            if (minor != null) fineSelection = added(fineSelection, minor)
+            lastSelection = major ?: minor
+        } else {
+            selection = if (major == null) emptyList() else listOf(major)
+            fineSelection = if (minor == null) emptyList() else listOf(minor)
+            lastSelection = major ?: minor
+        }
+    }
+
+    private fun <V> added(list: List<V>, element: V): List<V> {
+        return if (list is MutableList) {
+            try {
+                list.add(element)
+                list
+            } catch (e: UnsupportedOperationException) {
+                list + element
+            }
+        } else {
+            list + element
+        }
     }
 
     fun unselect(element: Inspectable) {

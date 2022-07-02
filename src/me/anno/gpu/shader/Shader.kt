@@ -68,22 +68,12 @@ open class Shader(
         builder.append("precision mediump int;\n")
 
         for (v in vertexVariables) {
-            when (v.inOutMode) {
-                VariableMode.ATTR -> {
-                    builder.append(attribute)
-                    builder.append(' ')
-                }
-                VariableMode.IN, VariableMode.INOUT -> {
-                    builder.append("uniform ")
-                }
-                VariableMode.OUT -> {
-                    builder.append("out ")
-                }
+            val prefix = when (v.inOutMode) {
+                VariableMode.ATTR -> attribute
+                VariableMode.IN, VariableMode.INOUT -> "uniform"
+                VariableMode.OUT -> "out"
             }
-            builder.append(v.type.glslName)
-            builder.append(' ')
-            builder.append(v.name)
-            builder.append(";\n")
+            v.declare(builder, prefix)
         }
         for (v in varyings) {
             builder.append(v.modifiers)
@@ -101,7 +91,8 @@ open class Shader(
         vertexSource = builder.toString()
         builder.clear()
 
-        val vertexShader = compile(name, program, GL_VERTEX_SHADER, vertexSource)
+        /*val vertexShader = */
+        compile(name, program, GL_VERTEX_SHADER, vertexSource)
 
         builder.append(versionString)
         for (extension in fragmentShader.split('\n')
@@ -118,27 +109,28 @@ open class Shader(
             builder.append(v.fShaderName)
             builder.append(";\n")
         }
+
         var outCtr = 0
         for (v in fragmentVariables) {
-            when (v.inOutMode) {
+            val prefix = when (v.inOutMode) {
                 VariableMode.IN, VariableMode.INOUT -> {
-                    builder.append("uniform ")
+                    "uniform"
                 }
                 VariableMode.ATTR -> throw IllegalArgumentException("Fragment variable must not have type ATTR")
                 VariableMode.OUT -> {
                     builder.append("layout(location=")
-                        .append(outCtr++).append(") out ")
+                        .append(outCtr++).append(") ")
+                    "out"
                 }
             }
-            builder.append(v.type.glslName)
-            builder.append(' ')
-            builder.append(v.name)
-            builder.append(";\n")
+            v.declare(builder, prefix)
         }
-        val base =
-            (if ((outCtr == 0 && "out " !in fragmentShader) && glslVersion == DefaultGLSLVersion && "gl_FragColor" in fragmentShader && fragmentVariables.none { it.isOutput }) {
-                "" + "out vec4 glFragColor;\n" + fragmentShader.replace("gl_FragColor", "glFragColor")
-            } else fragmentShader)
+
+        val base = if ((outCtr == 0 && "out " !in fragmentShader) && glslVersion == DefaultGLSLVersion &&
+            "gl_FragColor" in fragmentShader && fragmentVariables.none { it.isOutput }
+        ) "out vec4 glFragColor;\n" + fragmentShader.replace("gl_FragColor", "glFragColor")
+        else fragmentShader
+
         builder.append(
             base
                 .replaceVaryingNames(false, varyings)
@@ -148,7 +140,8 @@ open class Shader(
         fragmentSource = builder.toString()
         builder.clear()
 
-        val fragmentShader = compile(name, program, GL_FRAGMENT_SHADER, fragmentSource)
+        /*val fragmentShader = */
+        compile(name, program, GL_FRAGMENT_SHADER, fragmentSource)
 
         GFX.check()
 

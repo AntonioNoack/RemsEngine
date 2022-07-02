@@ -18,7 +18,7 @@ open class SDFShape : SDFComponent() {
         set(value) {
             if (field != value) {
                 field = value
-                if(!globalDynamic) invalidateShader()
+                if (!globalDynamic) invalidateShader()
             }
         }
 

@@ -18,7 +18,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.OpenGLShader
-import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
@@ -31,9 +30,6 @@ import me.anno.studio.StudioBase.Companion.workEventTasks
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.utils.Clock
-import me.anno.utils.Color.b
-import me.anno.utils.Color.g
-import me.anno.utils.Color.r
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
@@ -51,8 +47,6 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
-import kotlin.reflect.full.staticProperties
-import kotlin.reflect.full.superclasses
 
 object GFX : GFXBase() {
 
@@ -190,45 +184,22 @@ object GFX : GFXBase() {
         Input.initForGLFW(window)
     }
 
-    fun shaderColor(shader: Shader, name: String, color: Int) {
-        when (currentRenderer) {
-            idRenderer -> shaderId(shader, name)
-            else -> shader.v4f(name, color)
-        }
-    }
+    fun shaderColor(shader: Shader, name: String, color: Int) =
+        currentRenderer.shaderColor(shader, name, color)
 
-    fun shaderColor(shader: Shader, name: String, color: Vector4fc?) {
-        when (currentRenderer) {
-            idRenderer -> shaderId(shader, name)
-            else -> if (color != null) shader.v4f(name, color)
-            else shader.v4f(name, 1f)
-        }
-    }
+    fun shaderColor(shader: Shader, name: String, color: Vector4fc?) =
+        currentRenderer.shaderColor(shader, name, color)
 
-    fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) {
-        when (currentRenderer) {
-            idRenderer -> shaderId(shader, name)
-            else -> shader.v4f(name, r, g, b, a)
-        }
-    }
+    fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) =
+        currentRenderer.shaderColor(shader, name, r, g, b, a)
 
-    fun shaderColor(shader: Shader, name: String, color: Vector3fc?) {
-        when (currentRenderer) {
-            idRenderer -> shaderId(shader, name)
-            else -> if (color != null) shader.v4f(name, color, 1f)
-            else shader.v4f(name, 1f)
-        }
-    }
-
-    fun shaderId(shader: Shader, name: String) {
-        val id = drawnId
-        shader.v4f(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)
-    }
+    fun shaderColor(shader: Shader, name: String, color: Vector3fc?) =
+        currentRenderer.shaderColor(shader, name, color)
 
     fun toRadians(f: Float) = Math.toRadians(f.toDouble()).toFloat()
     fun toRadians(f: Double) = Math.toRadians(f)
 
-    fun copy(buffer: Framebuffer) {
+    fun copy(buffer: IFramebuffer) {
         Frame.bind()
         buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
         copy()

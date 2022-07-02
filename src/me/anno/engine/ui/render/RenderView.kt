@@ -1,10 +1,12 @@
 package me.anno.engine.ui.render
 
+// this list of imports is insane XD
 import me.anno.Engine
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
+import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -84,8 +86,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.tan
 
-// todo draw outline with post-processing, idRenderer and GFX.drawnId
-
 // todo create the different pipeline stages: opaque, transparent, post-processing, ...
 
 // to do render the grid slightly off position, so we don't get flickering, always closer to the camera, proportional to radius
@@ -111,9 +111,11 @@ import kotlin.math.tan
 
 // todo define the render pipeline from the editor? maybe from the code in an elegant way? top level element?
 
-open class RenderView(
-    val library: EditorState, var playMode: PlayMode, style: Style
-) : Panel(style) {
+/**
+ * a panel that renders the scene;
+ * no controls are provided by this class, it just draws
+ * */
+open class RenderView(val library: EditorState, var playMode: PlayMode, style: Style) : Panel(style) {
 
     private var bloomStrength = 0.5f
     private var bloomOffset = 10f
@@ -492,422 +494,427 @@ open class RenderView(
         // clock.stop("drawing scene", 0.05)
 
         var dstBuffer = buffer
-        val world = getWorld()
 
         val renderMode = renderMode
-        if (useDeferredRendering) {
-            when {
-                renderMode.dlt != null -> {
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, buffer,
-                        changeSize = true,
-                        toneMappedColors = false
-                    )
-                    drawGizmos(buffer, true)
-                    GFX.copyNoAlpha(buffer)
-                    return
-                }
-                renderMode == RenderMode.FSR2_V2 -> {
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, buffer,
-                        changeSize = true,
-                        toneMappedColors = false
-                    )
-                    val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, true]
-                    drawScene(
-                        w, h, camera0, camera1, blending, rawAttributeRenderers[DeferredLayerType.MOTION]!!,
-                        motion, changeSize = false, toneMappedColors = false
-                    )
-
-                    val lightBuffer = lightNBuffer
-                    drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-
-                    val ssao = blackTexture
-                    val pw = x1 - x0
-                    val ph = y1 - y0
-
-                    // use the existing depth buffer for the 3d ui
-                    val dstBuffer0 = baseSameDepth
-                    useFrame(w, h, true, dstBuffer0) {
-                        // don't write depth
-                        OpenGL.depthMask.use(false) {
-                            val shader = LightPipelineStage.getPostShader(deferred)
-                            shader.use()
-                            shader.v1b("applyToneMapping", true)
-                            buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                            ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                            lightBuffer.bindTexture0(shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                            flat01.draw(shader)
-                        }
-                    }
-
-                    fsr22.calculate(
-                        dstBuffer0.getTexture0() as Texture2D,
-                        buffer.depthTexture as Texture2D,
-                        deferred.findTexture(buffer, DeferredLayerType.NORMAL) as Texture2D,
-                        motion.getTexture0() as Texture2D,
-                        pw, ph
-                    )
-
-                    // todo which depth buffer is this using?
-                    // we would need the upscaled depth buffer here, ideally
-                    /*glClear(GL_DEPTH_BUFFER_BIT)
-                    val tmp = JomlPools.mat4f.create()
-                    tmp.set(cameraMatrix)
-                    fsr22.unjitter(cameraMatrix, camRotation, pw, ph)
-                    drawGizmos(world, camPosition, true)
-                    drawSelected()
-                    cameraMatrix.set(tmp)
-                    JomlPools.mat4f.sub(1)*/
-
-                    return
-                }
-                renderMode == RenderMode.DEPTH -> {
-                    val depth = FBStack["depth", w, h, 1, false, 1, true]
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, depth,
-                        changeSize = true,
-                        toneMappedColors = false
-                    )
-                    drawGizmos(depth, true)
-                    drawDepthTexture(x, y, w, h, depth.depthTexture!!)
-                    return
-                }
-                renderMode == RenderMode.LIGHT_SUM -> {
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, buffer,
-                        changeSize = true,
-                        toneMappedColors = false
-                    )
-                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
-                    drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-                    drawGizmos(lightBuffer, true)
-                    drawTexture(x, y + h - 1, w, -h, lightBuffer.getTexture0(), true, -1, null)
-                    return
-                }
-                renderMode == RenderMode.LIGHT_COUNT -> {
-                    // draw scene for depth
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, buffer,
-                        changeSize = true,
-                        toneMappedColors = false
-                    )
-                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
-                    pipeline.lightPseudoStage.visualizeLightCount = true
-                    drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-                    drawGizmos(lightBuffer, false)
-                    // todo special shader to better differentiate the values than black-white
-                    // (1 is extremely dark, nearly black)
-                    drawTexture(
-                        x, y + h - 1, w, -h,
-                        lightBuffer.getTexture0(), true,
-                        -1, null, true
-                    )
-                    pipeline.lightPseudoStage.visualizeLightCount = false
-                    return
-                }
-                renderMode == RenderMode.SSAO -> {
-                    // 0.1f as radius seems pretty ideal with our world scale :)
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, buffer,
-                        changeSize = true,
-                        toneMappedColors = false
-                    )
-                    drawGizmos(buffer, true)
-                    val strength = max(ssao.strength, 0.01f)
-                    val ssao = ScreenSpaceAmbientOcclusion.compute(
-                        buffer, deferred, cameraMatrix, ssao.radius, strength, ssao.samples
-                    )
-                    val tex = ssao ?: buffer.getTexture0()
-                    drawTexture(x, y + h - 1, w, -h, tex, true, -1, null)
-                    if (ssao == null) {
-                        // write warning message
-                        DrawTexts.drawSimpleTextCharByChar(
-                            x + w / 2, y + h / 2, 2, "SSAO not supported", AxisAlignment.CENTER, AxisAlignment.CENTER
+        when {
+            useDeferredRendering -> {
+                when {
+                    renderMode.dlt != null -> {
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            changeSize = true,
+                            toneMappedColors = false
                         )
+                        drawGizmos(buffer, true)
+                        GFX.copyNoAlpha(buffer)
+                        return
                     }
-                    return
-                }
-                renderMode == RenderMode.SS_REFLECTIONS -> {
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, buffer,
-                        changeSize = true,
-                        toneMappedColors = false
-                    )
-                    drawGizmos(buffer, true)
-                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
-                    drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-                    val illuminated = FBStack["ill", w, h, 4, true, 1, false]
-                    useFrame(illuminated, copyRenderer) {
-                        // apply lighting; don't write depth
-                        OpenGL.depthMask.use(false) {
-                            val shader = LightPipelineStage.getPostShader(deferred)
-                            shader.use()
-                            shader.v1b("applyToneMapping", !useBloom)
-                            buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                            whiteTexture.bind(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP) // ssao
-                            lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                            flat01.draw(shader)
-                        }
-                    }
-                    val result =
-                        ScreenSpaceReflections.compute(buffer, illuminated.getTexture0(), deferred, cameraMatrix, true)
-                    drawTexture(x, y + h - 1, w, -h, result ?: buffer.getTexture0(), true, -1, null)
-                    if (result == null) {
-                        DrawTexts.drawSimpleTextCharByChar(
-                            x + w / 2, y + h / 2, 2, "SSR not supported", AxisAlignment.CENTER, AxisAlignment.CENTER
+                    renderMode == RenderMode.FSR2_V2 -> {
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            changeSize = true,
+                            toneMappedColors = false
                         )
-                    }
-                    return
-                }
-                renderMode == RenderMode.ALL_DEFERRED_BUFFERS -> {
-
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, buffer,
-                        changeSize = true,
-                        toneMappedColors = false
-                    )
-                    drawGizmos(buffer, true)
-
-                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
-                    drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-
-                    for (index in 0 until size) {
-
-                        // rows x N field
-                        val col = index % cols
-                        val x02 = x + (x1 - x0) * (col + 0) / cols
-                        val x12 = x + (x1 - x0) * (col + 1) / cols
-                        val row = index / cols
-                        val y02 = y + (y1 - y0) * (row + 0) / rows
-                        val y12 = y + (y1 - y0) * (row + 1) / rows
-
-                        // draw the light buffer as the last stripe
-                        val texture = if (index < layersSize) {
-                            buffer.getTextureI(index)
-                        } else lightBuffer.getTexture0()
-
-                        // y flipped, because it would be incorrect otherwise
-                        val name = if (texture is Texture2D) texture.name else texture.toString()
-                        drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true)
-                        val f = 0.8f
-                        if (index < layersSize) clip2(
-                            if (y12 - y02 > x12 - x02) x02 else mix(x02, x12, f),
-                            if (y12 - y02 > x12 - x02) mix(y02, y12, f) else y02,
-                            x12,
-                            y12
-                        ) { // draw alpha on right/bottom side
-                            drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture)
-                        }
-                        DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, name)
-
-                    }
-                    return
-                }
-                renderMode == RenderMode.ALL_DEFERRED_LAYERS -> {
-
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, buffer,
-                        changeSize = true,
-                        toneMappedColors = false
-                    )
-                    drawGizmos(buffer, true)
-                    drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightNBuffer)
-
-                    // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
-
-                    val tw = w / cols
-                    val th = h / rows
-                    val tmp = FBStack["tmp-layers", tw, th, 4, false, 1, true]
-                    val settings = deferredRenderer.deferredSettings!!
-                    val layers = HashMap(settings.layerTypes.associateWith {
-                        settings.findTexture(buffer, it)!!
-                            .wrapAsFramebuffer()
-                    })
-                    for (index in 0 until size) {
-
-                        // rows x N field
-                        val col = index % cols
-                        val x02 = x + (x1 - x0) * (col + 0) / cols
-                        val x12 = x + (x1 - x0) * (col + 1) / cols
-                        val row = index / cols
-                        val y02 = y + (y1 - y0) * (row + 0) / rows
-                        val y12 = y + (y1 - y0) * (row + 1) / rows
-
-                        val name: String
-                        val texture: ITexture2D
-                        if (index < deferred.layerTypes.size) {
-                            // draw the light buffer as the last stripe
-                            val layer = deferred.layerTypes[index]
-                            name = layer.name
-                            /*val layerRenderer = attributeRenderers[layer]!!
-                            drawScene(
-                                tw, th, camera0, camera1,
-                                blending, layerRenderer, tmp,
-                                false,
-                                doDrawGizmos = false,
-                                toneMappedColors = false
-                            )
-                            drawGizmos(world, tmp, renderer, camPosition, true) */
-                            // instead of drawing the scene again, use a post-processing shader
-                            useFrame(tmp) {
-                                val layerRenderer = Renderers.attributeEffects[layer to settings]!!
-                                layerRenderer.render(buffer, settings, layers)
-                            }
-                            texture = tmp.getTexture0()
-                        } else {
-                            texture = lightNBuffer.getTexture0()
-                            name = "Light"
-                        }
-
-                        // y flipped, because it would be incorrect otherwise
-                        drawTexture(x02, y12, tw, -th, texture, true, -1, null)
-                        DrawTexts.drawSimpleTextCharByChar(
-                            (x02 + x12) / 2, (y02 + y12) / 2, 2,
-                            name, AxisAlignment.CENTER, AxisAlignment.CENTER
+                        val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, true]
+                        drawScene(
+                            w, h, camera0, camera1, blending, rawAttributeRenderers[DeferredLayerType.MOTION]!!,
+                            motion, changeSize = false, toneMappedColors = false
                         )
 
-                    }
-                    return
+                        val lightBuffer = lightNBuffer
+                        drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
 
-                }
-                renderer != DeferredRenderer -> {
-                    // is tonemapping used here???
-                    // todo we probably can just create a tone-mapped renderer :)
-                    // and then the answer is no :)
-                    val isToneMappingUsed = false
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, buffer,
-                        changeSize = true,
-                        toneMappedColors = isToneMappingUsed
-                    )
-                    drawGizmos(buffer, true)
-                    val effect = renderMode.effect
-                    if (effect != null) {
-                        val map = hashMapOf(DeferredLayerType.SDR_RESULT to buffer)
-                        val ds = DeferredSettingsV2(listOf(DeferredLayerType.SDR_RESULT), false)
-                        effect.render(buffer, ds, map)
-                        GFX.copyNoAlpha(map[DeferredLayerType.SDR_RESULT]!!)
-                    } else {
-                        drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
-                    }
-                    return
-                }
-                else -> {
+                        val ssao = blackTexture
+                        val pw = x1 - x0
+                        val ph = y1 - y0
 
-                    if (buffer != baseNBuffer)
-                        throw IllegalStateException("Expected baseBuffer, but got ${buffer.name} for $renderMode")
-
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, renderer, buffer,
-                        true,
-                        toneMappedColors = true
-                    )
-
-                    val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
-                    drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-
-                    val ssaoStrength = ssao.strength
-                    val ssao = if (ssaoStrength > 0f) ScreenSpaceAmbientOcclusion.compute(
-                        buffer, deferred, cameraMatrix, ssao.radius, ssaoStrength, ssao.samples
-                    ) ?: blackTexture else blackTexture
-
-                    // use the existing depth buffer for the 3d ui
-                    val dstBuffer0 = baseSameDepth
-                    if (useBloom) {
-
-                        val illuminated = FBStack["", w, h, 4, true, 1, false]
-                        useFrame(illuminated, copyRenderer) {// apply post processing
-
-                            val shader = LightPipelineStage.getPostShader(deferred)
-                            shader.use()
-                            shader.v1b("applyToneMapping", false)
-                            shader.v3f("ambientLight", pipeline.ambient)
-
-                            buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                            ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                            lightBuffer.bindTexture0(shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-
-                            flat01.draw(shader)
-
-                        }
-
-                        // screen space reflections
-                        val ssReflections = ScreenSpaceReflections.compute(
-                            buffer, illuminated.getTexture0(), deferred, cameraMatrix, false
-                        ) ?: illuminated.getTexture0()
-
+                        // use the existing depth buffer for the 3d ui
+                        val dstBuffer0 = baseSameDepth
                         useFrame(w, h, true, dstBuffer0) {
-
                             // don't write depth
                             OpenGL.depthMask.use(false) {
-                                Bloom.bloom(ssReflections, bloomOffset, bloomStrength, true)
-                            }
-
-                            // todo use msaa for gizmos
-                            // or use anti-aliasing, that works on color edges
-                            // and supports lines
-                            drawGizmos(true)
-                            drawSelected()
-                        }
-
-                    } else {
-
-                        useFrame(w, h, true, dstBuffer0) {
-
-                            // don't write depth
-                            OpenGL.depthMask.use(false) {
-
                                 val shader = LightPipelineStage.getPostShader(deferred)
                                 shader.use()
                                 shader.v1b("applyToneMapping", true)
+                                buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                ssao.bindTrulyNearest(shader, "ambientOcclusion")
+                                lightBuffer.bindTexture0(
+                                    shader,
+                                    "finalLight",
+                                    GPUFiltering.TRULY_NEAREST,
+                                    Clamping.CLAMP
+                                )
+                                flat01.draw(shader)
+                            }
+                        }
+
+                        fsr22.calculate(
+                            dstBuffer0.getTexture0() as Texture2D,
+                            buffer.depthTexture as Texture2D,
+                            deferred.findTexture(buffer, DeferredLayerType.NORMAL) as Texture2D,
+                            motion.getTexture0() as Texture2D,
+                            pw, ph
+                        )
+
+                        // todo which depth buffer is this using?
+                        // we would need the upscaled depth buffer here, ideally
+                        /*glClear(GL_DEPTH_BUFFER_BIT)
+                        val tmp = JomlPools.mat4f.create()
+                        tmp.set(cameraMatrix)
+                        fsr22.unjitter(cameraMatrix, camRotation, pw, ph)
+                        drawGizmos(world, camPosition, true)
+                        drawSelected()
+                        cameraMatrix.set(tmp)
+                        JomlPools.mat4f.sub(1)*/
+
+                        return
+                    }
+                    renderMode == RenderMode.DEPTH -> {
+                        val depth = FBStack["depth", w, h, 1, false, 1, true]
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, depth,
+                            changeSize = true,
+                            toneMappedColors = false
+                        )
+                        drawGizmos(depth, true)
+                        drawDepthTexture(x, y, w, h, depth.depthTexture!!)
+                        return
+                    }
+                    renderMode == RenderMode.LIGHT_SUM -> {
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            changeSize = true,
+                            toneMappedColors = false
+                        )
+                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                        drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
+                        drawGizmos(lightBuffer, true)
+                        drawTexture(x, y + h - 1, w, -h, lightBuffer.getTexture0(), true, -1, null)
+                        return
+                    }
+                    renderMode == RenderMode.LIGHT_COUNT -> {
+                        // draw scene for depth
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            changeSize = true,
+                            toneMappedColors = false
+                        )
+                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                        pipeline.lightPseudoStage.visualizeLightCount = true
+                        drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
+                        drawGizmos(lightBuffer, false)
+                        // todo special shader to better differentiate the values than black-white
+                        // (1 is extremely dark, nearly black)
+                        drawTexture(
+                            x, y + h - 1, w, -h,
+                            lightBuffer.getTexture0(), true,
+                            -1, null, true
+                        )
+                        pipeline.lightPseudoStage.visualizeLightCount = false
+                        return
+                    }
+                    renderMode == RenderMode.SSAO -> {
+                        // 0.1f as radius seems pretty ideal with our world scale :)
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            changeSize = true,
+                            toneMappedColors = false
+                        )
+                        drawGizmos(buffer, true)
+                        val strength = max(ssao.strength, 0.01f)
+                        val ssao = ScreenSpaceAmbientOcclusion.compute(
+                            buffer, deferred, cameraMatrix, ssao.radius, strength, ssao.samples
+                        )
+                        val tex = ssao ?: buffer.getTexture0()
+                        drawTexture(x, y + h - 1, w, -h, tex, true, -1, null)
+                        if (ssao == null) {
+                            // write warning message
+                            DrawTexts.drawSimpleTextCharByChar(
+                                x + w / 2,
+                                y + h / 2,
+                                2,
+                                "SSAO not supported",
+                                AxisAlignment.CENTER,
+                                AxisAlignment.CENTER
+                            )
+                        }
+                        return
+                    }
+                    renderMode == RenderMode.SS_REFLECTIONS -> {
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            changeSize = true,
+                            toneMappedColors = false
+                        )
+                        drawGizmos(buffer, true)
+                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                        drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
+                        val illuminated = FBStack["ill", w, h, 4, true, 1, false]
+                        useFrame(illuminated, copyRenderer) {
+                            // apply lighting; don't write depth
+                            OpenGL.depthMask.use(false) {
+                                val shader = LightPipelineStage.getPostShader(deferred)
+                                shader.use()
+                                shader.v1b("applyToneMapping", !useBloom)
+                                buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                whiteTexture.bind(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP) // ssao
+                                lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                flat01.draw(shader)
+                            }
+                        }
+                        val result =
+                            ScreenSpaceReflections.compute(
+                                buffer,
+                                illuminated.getTexture0(),
+                                deferred,
+                                cameraMatrix,
+                                true
+                            )
+                        drawTexture(x, y + h - 1, w, -h, result ?: buffer.getTexture0(), true, -1, null)
+                        if (result == null) {
+                            DrawTexts.drawSimpleTextCharByChar(
+                                x + w / 2, y + h / 2, 2, "SSR not supported", AxisAlignment.CENTER, AxisAlignment.CENTER
+                            )
+                        }
+                        return
+                    }
+                    renderMode == RenderMode.ALL_DEFERRED_BUFFERS -> {
+
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            changeSize = true,
+                            toneMappedColors = false
+                        )
+                        drawGizmos(buffer, true)
+
+                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                        drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
+
+                        for (index in 0 until size) {
+
+                            // rows x N field
+                            val col = index % cols
+                            val x02 = x + (x1 - x0) * (col + 0) / cols
+                            val x12 = x + (x1 - x0) * (col + 1) / cols
+                            val row = index / cols
+                            val y02 = y + (y1 - y0) * (row + 0) / rows
+                            val y12 = y + (y1 - y0) * (row + 1) / rows
+
+                            // draw the light buffer as the last stripe
+                            val texture = if (index < layersSize) {
+                                buffer.getTextureI(index)
+                            } else lightBuffer.getTexture0()
+
+                            // y flipped, because it would be incorrect otherwise
+                            val name = if (texture is Texture2D) texture.name else texture.toString()
+                            drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true)
+                            val f = 0.8f
+                            if (index < layersSize) clip2(
+                                if (y12 - y02 > x12 - x02) x02 else mix(x02, x12, f),
+                                if (y12 - y02 > x12 - x02) mix(y02, y12, f) else y02,
+                                x12,
+                                y12
+                            ) { // draw alpha on right/bottom side
+                                drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture)
+                            }
+                            DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, name)
+
+                        }
+                        return
+                    }
+                    renderMode == RenderMode.ALL_DEFERRED_LAYERS -> {
+
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            changeSize = true,
+                            toneMappedColors = false
+                        )
+                        drawGizmos(buffer, true)
+                        drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightNBuffer)
+
+                        // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
+
+                        val tw = w / cols
+                        val th = h / rows
+                        val tmp = FBStack["tmp-layers", tw, th, 4, false, 1, true]
+                        val settings = deferredRenderer.deferredSettings!!
+                        val layers = HashMap(settings.layerTypes.associateWith {
+                            settings.findTexture(buffer, it)!!
+                                .wrapAsFramebuffer()
+                        })
+                        for (index in 0 until size) {
+
+                            // rows x N field
+                            val col = index % cols
+                            val x02 = x + (x1 - x0) * (col + 0) / cols
+                            val x12 = x + (x1 - x0) * (col + 1) / cols
+                            val row = index / cols
+                            val y02 = y + (y1 - y0) * (row + 0) / rows
+                            val y12 = y + (y1 - y0) * (row + 1) / rows
+
+                            val name: String
+                            val texture: ITexture2D
+                            if (index < deferred.layerTypes.size) {
+                                // draw the light buffer as the last stripe
+                                val layer = deferred.layerTypes[index]
+                                name = layer.name
+                                /*val layerRenderer = attributeRenderers[layer]!!
+                                drawScene(
+                                    tw, th, camera0, camera1,
+                                    blending, layerRenderer, tmp,
+                                    false,
+                                    doDrawGizmos = false,
+                                    toneMappedColors = false
+                                )
+                                drawGizmos(world, tmp, renderer, camPosition, true) */
+                                // instead of drawing the scene again, use a post-processing shader
+                                useFrame(tmp) {
+                                    val layerRenderer = Renderers.attributeEffects[layer to settings]!!
+                                    layerRenderer.render(buffer, settings, layers)
+                                }
+                                texture = tmp.getTexture0()
+                            } else {
+                                texture = lightNBuffer.getTexture0()
+                                name = "Light"
+                            }
+
+                            // y flipped, because it would be incorrect otherwise
+                            drawTexture(x02, y12, tw, -th, texture, true, -1, null)
+                            DrawTexts.drawSimpleTextCharByChar(
+                                (x02 + x12) / 2, (y02 + y12) / 2, 2,
+                                name, AxisAlignment.CENTER, AxisAlignment.CENTER
+                            )
+
+                        }
+                        return
+                    }
+                    renderer != DeferredRenderer -> {
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            changeSize = true,
+                            toneMappedColors = false
+                        )
+                        drawGizmos(buffer, true)
+                        drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
+                        return
+                    }
+                    else -> {
+
+                        if (buffer != baseNBuffer)
+                            throw IllegalStateException("Expected baseBuffer, but got ${buffer.name} for $renderMode")
+
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            true,
+                            toneMappedColors = true
+                        )
+
+                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                        drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
+
+                        val ssaoStrength = ssao.strength
+                        val ssao = if (ssaoStrength > 0f) ScreenSpaceAmbientOcclusion.compute(
+                            buffer, deferred, cameraMatrix, ssao.radius, ssaoStrength, ssao.samples
+                        ) ?: blackTexture else blackTexture
+
+                        // use the existing depth buffer for the 3d ui
+                        val dstBuffer0 = baseSameDepth
+                        if (useBloom) {
+
+                            val illuminated = FBStack["", w, h, 4, true, 1, false]
+                            useFrame(illuminated, copyRenderer) {// apply post processing
+
+                                val shader = LightPipelineStage.getPostShader(deferred)
+                                shader.use()
+                                shader.v1b("applyToneMapping", false)
+                                shader.v3f("ambientLight", pipeline.ambient)
 
                                 buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                                 ssao.bindTrulyNearest(shader, "ambientOcclusion")
                                 lightBuffer.bindTexture0(
-                                    shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP
+                                    shader,
+                                    "finalLight",
+                                    GPUFiltering.TRULY_NEAREST,
+                                    Clamping.CLAMP
                                 )
 
                                 flat01.draw(shader)
 
                             }
 
-                            drawGizmos(true)
-                            drawSelected()
+                            // screen space reflections
+                            val ssReflections = ScreenSpaceReflections.compute(
+                                buffer, illuminated.getTexture0(), deferred, cameraMatrix, false
+                            ) ?: illuminated.getTexture0()
+
+                            useFrame(w, h, true, dstBuffer0) {
+
+                                // don't write depth
+                                OpenGL.depthMask.use(false) {
+                                    Bloom.bloom(ssReflections, bloomOffset, bloomStrength, true)
+                                }
+
+                                // todo use msaa for gizmos
+                                // or use anti-aliasing, that works on color edges
+                                // and supports lines
+                                drawGizmos(true)
+                                drawSelected()
+                            }
+
+                        } else {
+
+                            useFrame(w, h, true, dstBuffer0) {
+
+                                // don't write depth
+                                OpenGL.depthMask.use(false) {
+
+                                    val shader = LightPipelineStage.getPostShader(deferred)
+                                    shader.use()
+                                    shader.v1b("applyToneMapping", true)
+
+                                    buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                    ssao.bindTrulyNearest(shader, "ambientOcclusion")
+                                    lightBuffer.bindTexture0(
+                                        shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP
+                                    )
+
+                                    flat01.draw(shader)
+
+                                }
+
+                                drawGizmos(true)
+                                drawSelected()
+
+                            }
 
                         }
+
+                        // anti-aliasing
+                        if (buffer.depthTexture != null) {
+                            dstBuffer = FBStack["RenderView-dst", w, h, 4, false, 1, false]
+                            useFrame(w, h, true, dstBuffer) {
+                                DepthBasedAntiAliasing.render(dstBuffer0.getTexture0(), buffer.depthTexture!!)
+                            }
+                        } else LOGGER.warn("Depth buffer is null! ${buffer::class}")
 
                     }
-
-                    // anti-aliasing
-                    if (buffer.depthTexture != null) {
-                        dstBuffer = FBStack["RenderView-dst", w, h, 4, false, 1, false]
-                        useFrame(w, h, true, dstBuffer) {
-                            DepthBasedAntiAliasing.render(dstBuffer0.getTexture0(), buffer.depthTexture!!)
-                        }
-                    } else LOGGER.warn("Depth buffer is null! ${buffer::class}")
-
                 }
+                clock.stop("presenting deferred buffers", 0.1)
             }
-
-            clock.stop("presenting deferred buffers", 0.1)
-
-        } else {
-
-            // supports bloom
-            // screen-space reflections cannot be supported
-            if (useBloom) {
+            useBloom -> {
+                // supports bloom
+                // screen-space reflections cannot be supported
                 pipeline.applyToneMapping = false
                 val tmp = FBStack["scene", w, h, 4, true, buffer.samples, true]
                 drawScene(
@@ -920,7 +927,8 @@ open class RenderView(
                 useFrame(w, h, true, dstBuffer) {
                     Bloom.bloom(tmp.getTexture0(), bloomOffset, bloomStrength, true)
                 }
-            } else {
+            }
+            else -> {
                 drawScene(
                     w, h, camera0, camera1,
                     blending, renderer, buffer,
@@ -951,8 +959,30 @@ open class RenderView(
                 FSR.sharpen(tmp.getTexture0(), 0.5f, x, y, tw, th, flipY)
             }
             effect != null -> {
-                val map = hashMapOf(DeferredLayerType.SDR_RESULT to dstBuffer)
-                effect.render(dstBuffer, DeferredSettingsV2(listOf(DeferredLayerType.SDR_RESULT), false), map)
+                val map = if (effect is OutlineEffect) {
+                    // reset+set old selection IDs; not efficient
+                    // just for testing used here
+                    getWorld()?.forAll {
+                        if (it is MeshComponentBase) it.groupId = 0
+                    }
+                    for (thing in EditorState.selection) {
+                        (thing as? PrefabSaveable)?.forAll {
+                            if (it is MeshComponentBase) it.groupId = 1
+                        }
+                    }
+                    val ids = FBStack["ids", w, h, 4, true, buffer.samples, true]
+                    drawScene(
+                        w, h, camera0, camera1,
+                        blending, idRenderer, ids,
+                        changeSize = false,
+                        toneMappedColors = false
+                    )
+                    hashMapOf(
+                        DeferredLayerType.SDR_RESULT to dstBuffer,
+                        DeferredLayerType.ID to ids
+                    )
+                } else hashMapOf(DeferredLayerType.SDR_RESULT to dstBuffer)
+                effect.render(dstBuffer, deferred, map)
                 GFX.copyNoAlpha(map[DeferredLayerType.SDR_RESULT]!!)
             }
             else -> {
@@ -1002,7 +1032,7 @@ open class RenderView(
         val clickedId = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
         val clicked = if (clickedId == 0 || world !is Entity) null
         else pipeline.findDrawnSubject(clickedId, world)
-        LOGGER.info("${ids.joinToString()} x ${depths.joinToString()} -> $clickedId -> $clicked")
+        // LOGGER.info("${ids.joinToString()} x ${depths.joinToString()} -> $clickedId -> $clicked")
         // val ids2 = world.getComponentsInChildren(MeshComponent::class, false).map { it.clickId }
         // LOGGER.info(ids2.joinToString())
         // LOGGER.info(clickedId in ids2)
@@ -1168,7 +1198,7 @@ open class RenderView(
             throw IllegalStateException("Material must have source")
         }
 
-        pipeline.reset()
+        pipeline.clear()
         if (isPerspective) {
             pipeline.frustum.definePerspective(
                 near, far, fovYRadians.toDouble(),
@@ -1233,7 +1263,6 @@ open class RenderView(
                     // draw a huge cube with default values for all buffers
                     val shader = clearPbrModelShader.value
                     shader.use()
-                    LOGGER.warn(shader.fragmentSource)
                     shader.m4x4("transform", cameraMatrix)
                     shader.m4x4("prevTransform", prevCamMatrix)
                     val c = tmp4f
@@ -1244,7 +1273,6 @@ open class RenderView(
                     shaderColor(shader, "tint", -1)
                     shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
                     Shapes.smoothCube.back.drawMeshPurely(shader)
-                    // LOGGER.warn(shader.fragmentSource)
                 }
             }
         }
@@ -1406,7 +1434,7 @@ open class RenderView(
                     for (i in components.indices) {
                         val component = components[i]
                         if (component.isEnabled && component !is MeshComponentBase) {
-                            // mesh components already got their id
+                            // mesh components already got their ID
                             val componentClickId = clickId++
                             component.clickId = componentClickId
                             GFX.drawnId = componentClickId
@@ -1449,11 +1477,11 @@ open class RenderView(
     fun getMouseRayDirection(
         cx: Float = window!!.mouseX, cy: Float = window!!.mouseY, dst: Vector3d = Vector3d()
     ): Vector3d {
-        val rx = (cx - x) / w * +2f - 1f
-        val ry = (cy - y) / h * -2f + 1f
-        val tan = tan(fovYRadians * 0.5f)
+        val rx = (cx - x) / w * +2.0 - 1.0
+        val ry = (cy - y) / h * -2.0 + 1.0
+        val tanHalfFoV = tan(fovYRadians * 0.5)
         val aspectRatio = w.toFloat() / h
-        val dir = dst.set((rx * tan * aspectRatio).toDouble(), (ry * tan).toDouble(), -1.0)
+        val dir = dst.set(rx * tanHalfFoV * aspectRatio, ry * tanHalfFoV, -1.0)
         camRotation.transform(dir)
         dir.normalize()
         return dst

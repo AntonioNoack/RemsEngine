@@ -2,6 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.camera.effects.ColorBlindnessEffect
+import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.ShaderPlus
 
@@ -39,16 +40,18 @@ enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffe
 
     INVERSE_DEPTH,
     OVERDRAW,
-    MSAA_X8,
     WITH_PRE_DRAW_DEPTH,
     MONO_WORLD_SCALE,
     GHOSTING_DEBUG,
+
+    MSAA_X8,
     FSR_SQRT2,
     FSR_X2,
     FSR_X4,
     FSR_MSAA_X4,
     FSR2_V2,
     NEAREST_X4,
+
     LINES, LINES_MSAA,
     FRONT_BACK,
 
@@ -57,6 +60,8 @@ enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffe
 
     SHOW_AABB,
     PHYSICS,
+
+    POST_OUTLINE(OutlineEffect()),
 
     // color blindness modes
     GRAYSCALE(ColorBlindnessEffect(ColorBlindnessEffect.Mode.GRAYSCALE)),

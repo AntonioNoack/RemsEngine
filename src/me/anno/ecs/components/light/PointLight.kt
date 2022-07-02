@@ -106,7 +106,7 @@ class PointLight : LightComponent(LightType.POINT) {
                 EnvironmentMap.rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rotInvert)
                 cameraMatrix.rotate2(rot3)
-                pipeline.reset()
+                pipeline.clear()
                 pipeline.frustum.definePerspective(
                     near / worldScale, far / worldScale, deg90, resolution, resolution, 1.0,
                     position, rot3.invert()

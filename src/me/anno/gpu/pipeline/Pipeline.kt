@@ -160,14 +160,14 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         GFX.check()
     }
 
-    fun reset() {
+    fun clear() {
         ambient.set(0f)
-        lightPseudoStage.reset()
-        defaultStage.reset()
+        lightPseudoStage.clear()
+        defaultStage.clear()
         planarReflections.clear()
         lights.fill(null)
         for (stageIndex in stages.indices) {
-            stages[stageIndex].reset()
+            stages[stageIndex].clear()
         }
     }
 
@@ -188,40 +188,41 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         // LOGGER.debug("$contained/$nonContained")
     }
 
-    fun fill(rootElement: PrefabSaveable, cameraPosition: Vector3d, worldScale: Double) {
+    fun fill(root: PrefabSaveable, cameraPosition: Vector3d, worldScale: Double) {
         val clickId = lastClickId
-        when (rootElement) {
-            is Entity -> fill(rootElement, cameraPosition, worldScale)
+        when (root) {
+            is Entity -> fill(root, cameraPosition, worldScale)
             is MeshComponentBase -> {
-                val mesh = rootElement.getMesh()
-                if (mesh != null) addMesh(mesh, rootElement, sampleEntity, clickId)
+                root.clickId = clickId
+                val mesh = root.getMesh()
+                if (mesh != null) addMesh(mesh, root, sampleEntity, root.gfxId)
             }
-            is Mesh -> addMesh(rootElement, sampleMeshComponent, sampleEntity, clickId)
+            is Mesh -> addMesh(root, sampleMeshComponent, sampleEntity, clickId)
             is Material -> {
                 val mesh = sampleMesh
-                val stage = rootElement.pipelineStage ?: getDefaultStage(mesh, rootElement)
-                val materialSource = rootElement.prefab!!.source // should be defined
+                val stage = root.pipelineStage ?: getDefaultStage(mesh, root)
+                val materialSource = root.prefab!!.source // should be defined
                 if (!materialSource.exists) throw IllegalArgumentException("Material must have source")
                 mesh.material = materialSource
                 stage.add(sampleMeshComponent, mesh, sampleEntity, 0, clickId)
             }
             is LightComponent -> {
                 // todo add floor, so we can see the light?
-                addLight(rootElement, rootElement.entity ?: sampleEntity, cameraPosition, worldScale)
+                addLight(root, root.entity ?: sampleEntity, cameraPosition, worldScale)
             }
             is Animation -> {
                 // todo optimize this (avoid allocations)
                 // todo use AnimRenderer for motion vectors
-                val skeleton = SkeletonCache[rootElement.skeleton] ?: return
+                val skeleton = SkeletonCache[root.skeleton] ?: return
                 val bones = skeleton.bones
                 val mesh = Mesh()
                 val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
                 val size = (bones.size - 1) * Skeleton.boneMeshVertices.size
                 mesh.positions = Texture2D.floatArrayPool[size, false, true]
                 mesh.normals = Texture2D.floatArrayPool[size, true, true]
-                val time = Engine.gameTimeF % rootElement.duration
+                val time = Engine.gameTimeF % root.duration
                 // generate the matrices
-                rootElement.getMatrices(null, time, skinningMatrices)
+                root.getMatrices(null, time, skinningMatrices)
                 // apply the matrices to the bone positions
                 for (i in 0 until min(animPositions.size, bones.size)) {
                     val position = animPositions[i].set(bones[i].bindPosition)
@@ -238,7 +239,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             }
             is Skeleton -> {
                 // todo optimize this (avoid allocations)
-                val bones = rootElement.bones
+                val bones = root.bones
                 if (bones.isEmpty()) return
                 val mesh = Mesh()
                 // in a tree with N nodes, there is N-1 lines
@@ -255,7 +256,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                 }
             }
             else -> {
-                LOGGER.warn("Don't know how to draw ${rootElement.className}")
+                LOGGER.warn("Don't know how to draw ${root.className}")
             }
         }
     }
@@ -354,7 +355,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                         if (component.isInstanced && mesh.proceduralLength <= 0) {
                             addMeshInstanced(mesh, component, entity, clickId)
                         } else {
-                            addMesh(mesh, component, entity, clickId)
+                            addMesh(mesh, component, entity, component.gfxId)
                         }
                         clickId++
                         if (component is SDFGroup) {
@@ -368,7 +369,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                             if (component.isInstanced && mesh.proceduralLength <= 0) {
                                 addMeshInstanced(mesh, component, entity, clickId)
                             } else {
-                                addMesh(mesh, component, entity, clickId)
+                                addMesh(mesh, component, entity, component.gfxId)
                             }
                             clickId++
                         }
