@@ -6,7 +6,6 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib.simpleVertexShader
 import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2
 import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2List
 import me.anno.gpu.shader.ShaderLib.uvList
@@ -17,8 +16,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.OS
-import me.anno.utils.pooling.ByteBufferPool
-import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.max
 

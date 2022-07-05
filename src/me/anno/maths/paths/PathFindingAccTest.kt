@@ -191,7 +191,6 @@ fun main() {
             cube.teleportUpdate()
         }
 
-        val debugCubes = ArrayList<Transform>()
         val mat0 = Material().apply { diffuseBase.set(1.0f, 0.0f, 0.0f, 1f) }
         val mat1 = Material().apply { diffuseBase.set(0.0f, 0.3f, 0.9f, 1f) }
         val mat2 = Material().apply { emissiveBase.set(50f, 50f, 20f) }
@@ -203,13 +202,13 @@ fun main() {
             override fun clone() = throw NotImplementedError()
             override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
                 for (index in 0 until count0) {
-                    run(cubeMesh, mat0, debugCubes[index])
+                    run(cubeMesh, mat0, getTransform(index))
                 }
                 for (index in count0 until count1) {
-                    run(cubeMesh, mat1, debugCubes[index])
+                    run(cubeMesh, mat1, getTransform(index))
                 }
                 for (index in count1 until count2) {
-                    run(cubeMesh, mat2, debugCubes[index])
+                    run(cubeMesh, mat2, getTransform(index))
                 }
             }
         }
@@ -220,19 +219,21 @@ fun main() {
             if (pair != null) {
                 val (path0, path1) = pair
                 var i = 0
+                debugCubeSpawner.ensureTransforms(
+                    (path0?.size ?: 0) +
+                            (path1?.size ?: 0) +
+                            accelerator.proxyCache.size
+                )
                 for (point in path0 ?: emptyList()) {
-                    if (i >= debugCubes.size) debugCubes.add(Transform())
-                    setCubePosition(debugCubes[i++], point, +0.1)
+                    setCubePosition(debugCubeSpawner.getTransform(i++), point, +0.1)
                 }
                 count0 = i
                 for (point in path1 ?: emptyList()) {
-                    if (i >= debugCubes.size) debugCubes.add(Transform())
-                    setCubePosition(debugCubes[i++], point, -0.1)
+                    setCubePosition(debugCubeSpawner.getTransform(i++), point, -0.1)
                 }
                 count1 = i
                 for (point in accelerator.proxyCache.values.map { it.values.first().proxyNode }) {
-                    if (i >= debugCubes.size) debugCubes.add(Transform())
-                    setCubePosition(debugCubes[i++], point, 0.0)
+                    setCubePosition(debugCubeSpawner.getTransform(i++), point, 0.0)
                 }
                 count2 = i
             }

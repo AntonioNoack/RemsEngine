@@ -87,6 +87,7 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
             a, b, ta.origin, tb.origin,
             axisA, axisB
         )
+        instance.angularOnly = angularOnly
         instance.enableAngularMotor(enableMotor, motorVelocity, motorTorque)
         instance.setLimit(lowerLimit, upperLimit, limitSoftness, biasFactor, relaxation)
         return instance

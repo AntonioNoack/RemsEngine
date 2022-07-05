@@ -28,8 +28,6 @@ object ECSShaderLib {
             "colors"
         )
 
-        shader.glslVersion = 330
-
         clearPbrModelShader = object : ECSMeshShader("clear") {
             override fun createVertexStage(
                 isInstanced: Boolean,

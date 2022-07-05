@@ -1,5 +1,7 @@
 package me.anno.utils.structures.maps
 
+import java.util.function.BiConsumer
+
 object Maps {
 
     inline fun <K, V> MutableMap<K, V>.removeIf(filter: (Map.Entry<K, V>) -> Boolean): Int {
@@ -36,6 +38,33 @@ object Maps {
             }
             tr.size
         } else 0
+    }
+
+    /**
+     * removeIf without .iterator()
+     * */
+    @Suppress("JavaMapForEach")
+    fun <K, V> HashMap<K, V>.removeIf2(filter: Remover<K, V>): Int {
+        if (isEmpty()) return 0
+        val tr = filter.toRemove
+        tr.clear()
+        forEach(filter)
+        return if (tr.isNotEmpty()) {
+            for (index in tr.indices) {
+                remove(tr[index])
+            }
+            tr.size
+        } else 0
+    }
+
+    abstract class Remover<K, V> : BiConsumer<K, V> {
+        val toRemove = ArrayList<K>(256)
+        abstract fun filter(key: K, value: V): Boolean
+        override fun accept(key: K, value: V) {
+            if (filter(key, value)) {
+                toRemove.add(key)
+            }
+        }
     }
 
     fun Map<Int, Int>.flatten(default: Int): IntArray {

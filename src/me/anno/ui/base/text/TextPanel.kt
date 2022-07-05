@@ -35,10 +35,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     constructor(style: Style) : this("", style)
 
-    constructor(base: TextPanel) : this(base.text, base.style) {
-        base.copy(this)
-    }
-
     constructor(nameDesc: NameDesc, style: Style) : this(nameDesc.name, style) {
         tooltip = nameDesc.desc
     }
@@ -132,7 +128,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             }
         }
 
-    // can be disabled for parents to copy ALL lines, e.g. for a bug report :)
+    // can be disabled for parents to copy ALL lines, e.g., for a bug report :)
     var disableCopy = false
 
     @NotSerializedProperty
@@ -309,7 +305,11 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         return this
     }
 
-    override fun clone() = TextPanel(this)
+    override fun clone(): TextPanel {
+        val clone = TextPanel(style)
+        copy(clone)
+        return clone
+    }
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)

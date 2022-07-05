@@ -423,5 +423,6 @@ object Maths {
     fun align(size: Long, rem: Long) = ceilDiv(size, rem) * rem
 
     fun Int.hasFlag(flag: Int) = (this and flag) == flag
+    fun Long.hasFlag(flag: Long) = (this and flag) == flag
 
 }

@@ -1,13 +1,7 @@
 package me.anno.ecs.components.shaders
 
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture3D
-import me.anno.gpu.texture.TextureLib.whiteTex3d
-import org.joml.Vector3f
 
 /**
  * texture 3d - block traced shader

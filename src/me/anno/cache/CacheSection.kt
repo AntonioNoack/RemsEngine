@@ -8,6 +8,7 @@ import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.structures.maps.Maps
 import me.anno.utils.structures.maps.Maps.removeIf2
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
@@ -428,9 +429,18 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         getEntryWithCallback(key, timeoutMillis, queue, generator, null)
 
     fun update() {
-        val time = gameTime
-        remove { _, entry -> time > entry.timeoutNanoTime }
-        removeDual { _, _, entry -> time > entry.timeoutNanoTime }
+        synchronized(cache) {
+            // avoiding allocations for clean memory debugging XD
+            cache.removeIf2(remover)
+        }
+        synchronized(dualCache) {
+            dualCache.removeIf { _, _, v ->
+                if (gameTime > v.timeoutNanoTime) {
+                    v.destroy()
+                    true
+                } else false
+            }
+        }
     }
 
     init {
@@ -438,6 +448,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     companion object {
+
+        private val remover = object : Maps.Remover<Any, CacheEntry>() {
+            override fun filter(key: Any, value: CacheEntry) = gameTime > value.timeoutNanoTime
+        }
 
         private val caches = ConcurrentSkipListSet<CacheSection>()
 

@@ -7,7 +7,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.maths.Maths.max
-import me.anno.maths.Maths.unmix
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
 import org.joml.Vector3i

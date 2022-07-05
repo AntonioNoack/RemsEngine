@@ -13,9 +13,8 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
 
     var text = ""
         set(value) {
-            val value2 = value.trim()
-            if (field != value2) {
-                field = value2
+            if (field != value) {
+                field = value
                 invalidateDrawing()
             }
         }

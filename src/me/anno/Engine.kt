@@ -16,12 +16,12 @@ object Engine {
     val startDateTime = System.currentTimeMillis()
 
     /**
-     * time at this moment in time since the engine started; in nano seconds
+     * time at this moment since the engine started; in nanoseconds
      * */
     val nanoTime get() = System.nanoTime() - startTime
 
     /**
-     * time of current frame; since the engine started; in nano seconds
+     * time of current frame; since the engine started; in nanoseconds
      * use gameTimeF for a float value
      * */
     var gameTime = lastTime - startTime

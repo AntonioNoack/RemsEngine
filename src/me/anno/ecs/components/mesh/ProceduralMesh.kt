@@ -92,7 +92,7 @@ abstract class ProceduralMesh : MeshComponentBase() {
          * opens a new window, in which the mesh, which is being generated once, will be shown
          * this is meant for testing only
          * */
-        fun showProceduralMeshInScene(generate: (mesh: Mesh) -> Unit) {
+        fun testProceduralMesh(generate: (mesh: Mesh) -> Unit) {
             TestStudio.testUI {
                 EditorState.prefabSource = createProceduralMesh(generate).ref
                 SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)

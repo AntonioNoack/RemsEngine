@@ -388,7 +388,7 @@ object DualContouring3d {
 
         val grad = gradient(func)
         val edges = contour3d(sx, sy, sz, func, grad)
-        ProceduralMesh.showProceduralMeshInScene { mesh ->
+        ProceduralMesh.testProceduralMesh { mesh ->
             val positions = FloatArray(edges.size * 3)
             val normals = FloatArray(edges.size * 3)
             var i = 0

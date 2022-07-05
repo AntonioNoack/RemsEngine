@@ -71,7 +71,7 @@ class AWTFont(val font: Font) {
     private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextGroup?, x: Float, y: Float) {
         val group2 = group ?: getGroup(text)
         // some distances still are awkward, because it is using the closest position, not float
-        // (useful for 'I's)
+        // (useful for "I"s)
         // maybe we could implement detecting, which sections need int positions, and which don't...
         if (text.containsSpecialChar()) {
             var index = 0
@@ -125,7 +125,7 @@ class AWTFont(val font: Font) {
     ): ITexture2D? {
 
         if (text.isEmpty()) return null
-        if (text.containsSpecialChar() || widthLimit > 0) {
+        if (text.containsSpecialChar() || widthLimit < text.length * fontSize * 2f) {
             return generateTextureV3(
                 text, fontSize, widthLimit.toFloat(), heightLimit.toFloat(), portableImages,
                 textColor, backgroundColor, extraPadding
@@ -150,6 +150,7 @@ class AWTFont(val font: Font) {
             ).printStackTrace()
             return null
         }
+
         if (text.isBlank2()) {
             // we need some kind of wrapper around texture2D
             // and return an empty/blank texture
@@ -181,6 +182,7 @@ class AWTFont(val font: Font) {
             gfx.color = Color(textColor)
 
             val y = fontMetrics.ascent
+            println("generating texture for '$text', size $fontSize with ascent $ascent")
 
             if (lineCount == 1) {
                 drawString(gfx, text, group, y)
@@ -473,12 +475,12 @@ class AWTFont(val font: Font) {
             gfx.translate(extraPadding, extraPadding)
             gfx.color = Color(textColor)
 
-            val x = (image.width - width) * 0.5f
-            val y = (image.height - height) * 0.5f + exampleLayout.ascent
+            val y = exampleLayout.ascent
 
             for (it in result) {
                 gfx.font = it.font
-                drawString(gfx, it.text, null, it.xPos + x, it.yPos + y)
+                println("drawing string ${it.text} by layout at ${it.xPos}, ${it.yPos} + $y")
+                drawString(gfx, it.text, null, it.xPos, it.yPos + y)
             }
 
             gfx.dispose()
@@ -541,7 +543,7 @@ class AWTFont(val font: Font) {
             val cached = fallbackFonts[size]
             if (cached != null) return cached
             val fonts = fallbackFontList
-                .map { FontManager.getFont(it, size, false, false).font }
+                .map { FontManager.getFont(it, size, bold = false, italic = false).font }
             fallbackFonts[size] = fonts
             return fonts
         }

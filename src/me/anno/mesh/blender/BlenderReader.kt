@@ -435,11 +435,11 @@ object BlenderReader {
                         materialIndices,
                         prefab
                     )
-                    if (materialIndices != null) prefab.setProperty("materialIndices", materialIndices)
+                    if (materialIndices != null) prefab.setProperty("materialIds", materialIndices)
                 } else {
                     val materialIndices = if (materials.size > 1) IntArray(triCount) else null
                     collectIndices(positions, polygons, loopData, materialIndices, prefab)
-                    if (materialIndices != null) prefab.setProperty("materialIndices", materialIndices)
+                    if (materialIndices != null) prefab.setProperty("materialIds", materialIndices)
                 }
                 prefab.sealFromModifications()
                 mesh.fileRef = meshFolder.createPrefabChild("$name.json", prefab)

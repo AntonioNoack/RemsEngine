@@ -1,10 +1,7 @@
 package me.anno.io.files
 
 import me.anno.io.BufferedIO.useBuffered
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.net.URI
 
 // internally in the JAR
@@ -34,7 +31,27 @@ class BundledRef(
     }
 
     override val exists: Boolean = true // mmh...
-    override fun length(): Long = Int.MAX_VALUE.toLong() // mmh...
+    override fun length(): Long {
+        var length = 0L
+        inputStream().use {
+            when (it) {
+                is ByteArrayInputStream ->
+                    length = it.available().toLong()
+                else -> {
+                    // todo this doesn't work :/
+                    // https://stackoverflow.com/questions/34360826/get-the-size-of-a-resource might work, when we find the correct jar
+                    var test = 1L shl 16 // 65k .. as large as needed
+                    while (test > 0L) {
+                        val skipped = it.skip(test)
+                        if (skipped <= 0) break
+                        length += skipped
+                        test = test shl 1
+                    }
+                }
+            }
+        }
+        return length
+    }
 
     override fun delete(): Boolean {
         throw IllegalAccessException("Cannot write to internal files")
@@ -86,12 +103,15 @@ class BundledRef(
         const val prefix = "res://"
         private val jarAsZip = lazy<FileReference?> {
             // find this jar file as zip
-            getReference(File(Companion::class.java
-                .protectionDomain
-                .codeSource
-                .location
-                .toURI()
-            ))
+            getReference(
+                File(
+                    Companion::class.java
+                        .protectionDomain
+                        .codeSource
+                        .location
+                        .toURI()
+                )
+            )
         }
     }
 

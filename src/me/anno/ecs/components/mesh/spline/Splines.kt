@@ -173,7 +173,7 @@ object Splines {
             val dx = (n01.x + n11.x) - (n00.x + n10.x)
             val dy = (n01.y + n11.y) - (n00.y + n10.y)
             val dz = (n01.z + n11.z) - (n00.z + n10.z)
-            // compute which point comes first
+            // compute, which point comes first
             result[out++] = if (
                 n00.dot(dx, dy, dz) + n01.dot(dx, dy, dz) <
                 n10.dot(dx, dy, dz) + n11.dot(dx, dy, dz)

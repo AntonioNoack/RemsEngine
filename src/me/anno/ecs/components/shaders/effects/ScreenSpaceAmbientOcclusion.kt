@@ -60,7 +60,7 @@ object ScreenSpaceAmbientOcclusion {
         sampleKernel.createRGBA(data, false)
     }
 
-    // tiled across the screen; e.g. 4x4 texture size
+    // tiled across the screen; e.g., 4x4 texture size
     // because of that, we probably could store it in the shader itself
     // 2*16 values ~ just two matrices
     private fun generateRandomTexture(random: Random, w: Int, h: Int = w): Texture2D {
@@ -105,7 +105,7 @@ object ScreenSpaceAmbientOcclusion {
                     "   } else {\n" +
                     // "  float originDepth = length(origin);\n" +
                     "       vec3 normal = texture(finalNormal, uv).xyz * 2.0 - 1.0;\n" +
-                    // reverse back sides, e.g. for plants
+                    // reverse back sides, e.g., for plants
                     // could be done by the material as well...
                     "       if(dot(origin,normal) > 0.0) normal = -normal;\n" +
                     "       vec3 randomVector = texelFetch(random4x4, ivec2(gl_FragCoord.xy) & 3, 0).xyz * 2.0 - 1.0;\n" +

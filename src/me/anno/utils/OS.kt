@@ -1,5 +1,6 @@
 package me.anno.utils
 
+import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.process.BetterProcessBuilder
 import java.lang.management.ManagementFactory
@@ -29,6 +30,7 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
     val pictures = getReference(home, "Pictures")
     val videos = getReference(home, "Videos")
     val music = getReference(home, "Music")
+    val res = getReference(BundledRef.prefix)
 
     val screenshots = getReference(pictures, "Screenshots")
 

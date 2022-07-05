@@ -243,9 +243,9 @@ open class Material : PrefabSaveable() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Material
-        clone.diffuseBase = diffuseBase
+        clone.diffuseBase.set(diffuseBase)
         clone.diffuseMap = diffuseMap
-        clone.emissiveBase = emissiveBase
+        clone.emissiveBase.set(emissiveBase)
         clone.emissiveMap = emissiveMap
         clone.normalMap = normalMap
         clone.normalStrength = normalStrength
@@ -255,11 +255,11 @@ open class Material : PrefabSaveable() {
         clone.occlusionMap = occlusionMap
         clone.shaderOverrides.clear()
         clone.shaderOverrides.putAll(shaderOverrides)
-        clone.roughnessMinMax = roughnessMinMax
         clone.roughnessMap = roughnessMap
+        clone.roughnessMinMax.set(roughnessMinMax)
         clone.metallicMap = metallicMap
-        clone.metallicMinMax = metallicMinMax
-        clone.clearCoatColor = clearCoatColor
+        clone.metallicMinMax.set(metallicMinMax)
+        clone.clearCoatColor.set(clearCoatColor)
         clone.clearCoatRoughness = clearCoatRoughness
         clone.clearCoatMetallic = clearCoatMetallic
         clone.shader = shader

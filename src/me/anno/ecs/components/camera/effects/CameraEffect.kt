@@ -16,7 +16,7 @@ abstract class CameraEffect : PrefabSaveable() {
 
     // todo integrate this into RenderView
     // todo integrate all useful effects from Three.js
-    // todo pixel-local shaders: they could be stacked within one shader to reduce bandwidth requirements & rounding
+    // to do pixel-local shaders (ColorMapEffect): they could be stacked within one shader to reduce bandwidth requirements & rounding
     // (tone mapping, color correction, ...)
 
     open fun listInputs(): List<DeferredLayerType> = emptyList()

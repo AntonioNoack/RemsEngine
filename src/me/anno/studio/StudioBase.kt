@@ -198,7 +198,7 @@ abstract class StudioBase(
 
         if (isFirstFrame) tick("Before window drawing")
 
-        // be sure that always something is drawn
+        // be sure always something is drawn
         var didSomething = window.needsRefresh || Input.needsLayoutUpdate()
         window.needsRefresh = false
 
@@ -253,7 +253,7 @@ abstract class StudioBase(
 
     fun processMouseMovement(window: WindowX) {
         if (!Input.hadMouseMovement && window.isInFocus) {
-            // if our window doesn't have focus or the cursor is outside,
+            // if our window doesn't have focus, or the cursor is outside,
             // we need to ask for updates manually
             window.updateMousePosition()
             if (!Input.hadMouseMovement) {

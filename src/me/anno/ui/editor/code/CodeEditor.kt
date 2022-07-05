@@ -6,6 +6,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.DrawStriped.drawRectStriped
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.input.ActionManager
@@ -684,9 +685,23 @@ open class CodeEditor(style: Style) : Panel(style) {
     companion object {
 
         fun drawSquiggles(x0: Int, x1: Int, y: Int, h: Int, color: Int) {
-            // todo optimized shader for this instead of that many draw calls
-            for (x in x0 until x1) {
-                drawRect(x, y + wave(x, h), 1, 1, color)
+            when (h) {
+                1 -> drawRect(x0, y, x1 - x0, h, color)
+                2 -> {
+                    drawRectStriped(x0, y + 0, x1 - x0, 1, 0, 2, color)
+                    drawRectStriped(x0, y + 1, x1 - x0, 1, 1, 2, color)
+                }
+                3 -> {
+                    drawRectStriped(x0, y + 0, x1 - x0, 1, 0, 4, color)
+                    drawRectStriped(x0, y + 1, x1 - x0, 1, 1, 2, color)
+                    drawRectStriped(x0, y + 2, x1 - x0, 1, 2, 4, color)
+                }
+                else -> {
+                    // optimized shader for this instead of that many draw calls?
+                    for (x in x0 until x1) {
+                        drawRect(x, y + wave(x, h), 1, 1, color)
+                    }
+                }
             }
         }
 

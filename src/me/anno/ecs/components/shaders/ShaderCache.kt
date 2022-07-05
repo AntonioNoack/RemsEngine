@@ -28,6 +28,6 @@ object ShaderCache : CacheSection("Shader") {
         } as ShaderData
     }
 
-    private val timeout = 30_000L
+    private const val timeout = 30_000L
 
 }

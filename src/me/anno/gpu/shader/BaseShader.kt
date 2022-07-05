@@ -101,9 +101,9 @@ open class BaseShader(
 
         val shader1 = builder.create()
         shader1.glslVersion = max(shader1.glslVersion, 330)
-        shader1.use()
         shader1.setTextureIndices(textures)
         shader1.ignoreNameWarnings(ignoredNameWarnings)
+        shader1.use()
         shader1.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
         shader1.v4f("tint", 1f)
         return shader1

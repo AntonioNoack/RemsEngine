@@ -3,7 +3,6 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
@@ -157,11 +156,12 @@ class Mesh : PrefabSaveable() {
      * */
     @Type("IntArray?")
     @HideInInspector
-    var materialIndices: IntArray? = null
+    var materialIds: IntArray? = null
 
     var numMaterials = 1
 
-    private var helperMeshes: Array<Mesh?>? = null
+    @NotSerializedProperty
+    var helperMeshes: Array<Mesh?>? = null
 
     // to allow for quads, and strips and such
     var drawMode = GL_TRIANGLES
@@ -199,7 +199,7 @@ class Mesh : PrefabSaveable() {
         clone.indices = indices
         clone.boneWeights = boneWeights
         clone.boneIndices = boneIndices
-        clone.materialIndices = materialIndices
+        clone.materialIds = materialIds
         // morph targets
         clone.morphTargets = morphTargets
         // draw mode
@@ -260,7 +260,7 @@ class Mesh : PrefabSaveable() {
     fun calculateNormals(smooth: Boolean) {
         val positions = positions!!
         if (smooth && indices == null) {
-            indices = NormalCalculator.generateIndices(positions, uvs, color0, materialIndices, boneIndices, boneWeights)
+            indices = NormalCalculator.generateIndices(positions, uvs, color0, materialIds, boneIndices, boneWeights)
             LOGGER.debug("Generated indices for mesh")
         }
         normals = FloatArray(positions.size)
@@ -652,11 +652,11 @@ class Mesh : PrefabSaveable() {
 
         }
 
-        val materialIndices = materialIndices
-        val first = materialIndices?.firstOrNull() ?: 0
-        val hasMultipleMaterials = materialIndices != null && materialIndices.any { it != first && it >= 0 }
+        val materialIds = materialIds
+        val first = materialIds?.firstOrNull() ?: 0
+        val hasMultipleMaterials = materialIds != null && materialIds.any { it != first }
         if (hasMultipleMaterials) {
-            createHelperMeshes(materialIndices!!)
+            createHelperMeshes(materialIds!!)
         } else {
             destroyHelperMeshes()
             numMaterials = 1
@@ -683,12 +683,12 @@ class Mesh : PrefabSaveable() {
         }
     }
 
-    private fun createHelperMeshes(materialIndices: IntArray) {
+    private fun createHelperMeshes(materialIds: IntArray) {
         // todo use the same geometry data buffers: allow different index buffers per buffer
         // lines, per-material, all-together
         // creating separate buffers on the gpu,
         // split indices / data, would be of advantage here
-        val length = materialIndices.maxOrNull()!! + 1
+        val length = materialIds.maxOrNull()!! + 1
         if (length == 1) return
         if (drawMode != GL_TRIANGLES) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
         if (length > 1000) throw IllegalStateException("Material Id must be less than 1000!")
@@ -696,36 +696,43 @@ class Mesh : PrefabSaveable() {
         val indices = indices
         val materials = materials
         for (materialId in 0 until length) {
-            if (materialIndices.any { it == materialId }) {
+            val numTriangles = materialIds.count { it == materialId }
+            if (numTriangles > 0) {
                 val mesh = Mesh()
                 copy(mesh)
                 mesh.material = materials.getOrNull(materialId)
-                mesh.materialIndices = null
-                val triangles = materialIndices.count { it == materialId }
-                val partialIndices = IntArray(triangles * 3)
+                mesh.materialIds = null
+                val helperIndices = IntArray(numTriangles * 3)
                 var j = 0
+                var i3 = 0
                 if (indices == null) {
-                    for (i in materialIndices.indices) {
-                        val id = materialIndices[i]
+                    for (i in materialIds.indices) {
+                        val id = materialIds[i]
                         if (id == materialId) {
-                            val i3 = i * 3
-                            partialIndices[j++] = i3
-                            partialIndices[j++] = i3 + 1
-                            partialIndices[j++] = i3 + 2
-                        }
+                            helperIndices[j++] = i3++
+                            helperIndices[j++] = i3++
+                            helperIndices[j++] = i3++
+                        } else i3 += 3
                     }
                 } else {
-                    for (i in materialIndices.indices) {
-                        val id = materialIndices[i]
+                    if (indices.size != materialIds.size * 3)
+                        throw IllegalStateException("Material IDs must be exactly 3x smaller than indices")
+                    for (i in materialIds.indices) {
+                        val id = materialIds[i]
                         if (id == materialId) {
-                            val i3 = i * 3
-                            partialIndices[j++] = indices[i3]
-                            partialIndices[j++] = indices[i3 + 1]
-                            partialIndices[j++] = indices[i3 + 2]
-                        }
+                            helperIndices[j++] = indices[i3++]
+                            helperIndices[j++] = indices[i3++]
+                            helperIndices[j++] = indices[i3++]
+                        } else i3 += 3
                     }
                 }
-                mesh.indices = partialIndices
+                if (j != helperIndices.size) throw IllegalStateException("Ids must have changed while processing")
+                mesh.indices = helperIndices
+                // todo tri buffer could be shared
+                mesh.lineBuffer = null
+                mesh.triBuffer = null
+                mesh.buffer = null
+                mesh.debugLineBuffer = null
                 mesh.checkCompleteness()
                 mesh.invalidateGeometry()
                 helperMeshes[materialId] = mesh
@@ -774,9 +781,8 @@ class Mesh : PrefabSaveable() {
             val helperMeshes = helperMeshes
             when {
                 helperMeshes != null -> {
-                    helperMeshes
-                        .getOrNull(materialIndex)
-                        ?.draw(shader, 0)
+                    val helperMesh = helperMeshes[materialIndex] ?: return
+                    helperMesh.draw(shader, 0)
                 }
                 materialIndex == 0 -> {
                     if (drawDebugLines) {

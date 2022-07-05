@@ -14,9 +14,15 @@ class SliderConstraint() : Constraint<com.bulletphysics.dynamics.constraintsolve
         base.copy(this)
     }
 
+    @Suppress("unused")
     @DebugProperty
     val positionalError
         get() = bulletInstance?.linDepth ?: 0.0
+
+    @Suppress("unused")
+    @DebugProperty
+    val angularError
+        get() = bulletInstance?.angDepth ?: 0.0
 
     var lowerLimit = -1.0
         set(value) {

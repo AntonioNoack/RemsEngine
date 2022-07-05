@@ -2,17 +2,23 @@ package me.anno.ecs.components.mesh.spline
 
 import me.anno.Build
 import me.anno.Engine
+import me.anno.config.DefaultConfig
+import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.spline.Splines.getIntermediates
 import me.anno.ecs.components.mesh.spline.Splines.interpolate
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.render.PlayMode
+import me.anno.engine.ui.render.SceneView
 import me.anno.image.ImageWriter.writeImageCurve
 import me.anno.maths.Maths.mix
+import me.anno.ui.debug.TestStudio
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.toVector3f
 import org.apache.logging.log4j.LogManager
+import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -309,6 +315,28 @@ class SplineMesh : ProceduralMesh() {
 
             // test interpolation with 1 and 2 intermediate points
             // interpolation with 1 point: just a line, and therefore useless
+
+            // todo test mesh as well
+            TestStudio.testUI {
+                val mesh = SplineMesh()
+                val entity = Entity()
+                entity.add(mesh)
+                fun add(p: Vector3f, r: Quaternionf = Quaternionf()){
+                    val child = Entity()
+                    child.position = child.position.set(p)
+                    child.rotation = child.rotation.set(r)
+                    child.add(SplineControlPoint())
+                    entity.add(child)
+                }
+                add(Vector3f())
+                add(Vector3f(1f, 0f, 0f))
+                add(Vector3f(1f, 1f, 0f))
+                add(Vector3f(3f, 0f, 0f))
+                EditorState.prefabSource = entity.ref
+                SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
+                    .setWeight(1f)
+            }
+
 
             val size = 512
 

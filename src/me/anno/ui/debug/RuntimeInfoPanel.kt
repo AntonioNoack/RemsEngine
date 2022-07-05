@@ -19,7 +19,7 @@ import kotlin.math.abs
 
 class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
 
-    var updateInterval = 500_000_000
+    var updateInterval = 100_000_000
     var lastUpdate = 0L
 
     override fun tickUpdate() {

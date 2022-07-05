@@ -17,14 +17,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.utils.Color.a
-import me.anno.utils.Color.a01
-import me.anno.utils.Color.b01
-import me.anno.utils.Color.g01
-import me.anno.utils.Color.r01
 import org.joml.Vector4f
-import org.joml.Vector4fc
 import kotlin.math.min
 
 class OutlineEffect : CameraEffect() {
@@ -170,7 +163,8 @@ class OutlineEffect : CameraEffect() {
                     "   }\n" +
                     "   result = vec4(color, 1.0);\n" +
                     "}\n"
-        ).apply { setTextureIndices("colorTex", "idTex") }
+        ).setTextureIndices("colorTex", "idTex") as Shader
+
     }
 
 }

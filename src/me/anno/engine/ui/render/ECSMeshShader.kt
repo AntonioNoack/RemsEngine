@@ -11,6 +11,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
+import kotlin.math.max
 
 open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
@@ -34,6 +35,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   return t;\n" +
                     "}\n" +
                     "mat4x3 getAnimMatrix(int boneIndex){ return getAnimMatrix(boneIndex, animIndices, animWeights); }\n"
+    }
+
+    init {
+        glslVersion = max(glslVersion, 330)
     }
 
     open fun createBuilder(): ShaderBuilder {

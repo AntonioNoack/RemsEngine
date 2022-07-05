@@ -1,6 +1,6 @@
 package me.anno.maths.geometry
 
-import me.anno.ecs.components.mesh.ProceduralMesh.Companion.showProceduralMeshInScene
+import me.anno.ecs.components.mesh.ProceduralMesh.Companion.testProceduralMesh
 import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.image.ImageWriter
 import me.anno.image.raw.FloatImage
@@ -370,7 +370,7 @@ object MarchingCubes {
             }
         }
 
-        showProceduralMeshInScene { mesh ->
+        testProceduralMesh { mesh ->
             val points = march(w, h, d, values, 0f, false)
             val positions = FloatArray(points.size * 3)
             var i = 0

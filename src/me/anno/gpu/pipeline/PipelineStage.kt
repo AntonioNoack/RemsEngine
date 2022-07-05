@@ -447,6 +447,7 @@ class PipelineStage(
 
         // draw instanced meshes
         OpenGL.instanced.use(true) {
+            // with material indices
             for ((mesh, list) in instancedMeshes1.values) {
                 for ((mi, values) in list) {
                     val (material, materialIndex) = mi
@@ -460,6 +461,7 @@ class PipelineStage(
                     }
                 }
             }
+            // without material indices
             for ((mesh, list) in instancedMeshes2.values) {
                 for ((material, values) in list) {
                     if (values.isNotEmpty()) {

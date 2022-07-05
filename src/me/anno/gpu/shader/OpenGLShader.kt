@@ -207,19 +207,23 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         return str
     }
 
-    fun setTextureIndices(vararg textures: String) {
+    fun setTextureIndices(vararg textures: String) =
         setTextureIndices(textures.toList())
-    }
 
-    fun setTextureIndices(textures: List<String>?) {
-        if (textures == null) return
-        use()
-        textureNames = textures
-        for ((index, name) in textures.withIndex()) {
-            if (',' in name) throw IllegalArgumentException("Name must not contain comma!")
-            val texName = getUniformLocation(name)
-            if (texName >= 0) glUniform1i(texName, index)
+    fun setTextureIndices(textures: List<String>?): OpenGLShader {
+        if (textures == null) return this
+        if (pointer > 0) {
+            use()
+            textureNames = textures
+            for ((index, name) in textures.withIndex()) {
+                if (',' in name) throw IllegalArgumentException("Name must not contain comma!")
+                val texName = getUniformLocation(name)
+                if (texName >= 0) glUniform1i(texName, index)
+            }
+        } else {
+            textureNames = textures
         }
+        return this
     }
 
     fun ignoreNameWarnings(names: Collection<String>) {
@@ -313,6 +317,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    /**
+     * sets an array of float uniforms
+     * */
     fun v1fs(name: String, vs: FloatArray) = v1fs(getUniformLocation(name), vs)
     fun v1fs(loc: Int, vs: FloatArray) {
         if (loc > -1) {
@@ -342,6 +349,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    /**
+     * sets an array of vec2 uniforms
+     * */
     fun v2fs(name: String, vs: FloatArray) = v2fs(getUniformLocation(name), vs)
     fun v2fs(loc: Int, vs: FloatArray) {
         if (loc > -1) {
@@ -403,6 +413,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    /**
+     * sets an array of vec3 uniforms
+     * */
     fun v3fs(name: String, vs: FloatArray) = v3fs(getUniformLocation(name), vs)
     fun v3fs(loc: Int, vs: FloatArray) {
         if (loc > -1) {
@@ -501,6 +514,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         )
     }
 
+    /**
+     * sets an array of vec4 uniforms
+     * */
     fun v4fs(name: String, vs: FloatArray) = v4fs(getUniformLocation(name), vs)
     fun v4fs(loc: Int, vs: FloatArray) {
         if (loc > -1) {

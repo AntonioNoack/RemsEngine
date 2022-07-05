@@ -97,6 +97,7 @@ open class GFXBase {
 
     val idleFPS get() = DefaultConfig["ui.window.idleFPS", 10]
 
+    @Suppress("unused")
     fun getWindow(window: Long) = windows.first { it.pointer == window }
 
     /** must be executed before OpenGL-init;
@@ -189,6 +190,7 @@ open class GFXBase {
         window.addCallbacks()
     }
 
+    @Suppress("unused")
     fun createWindow(title: String, panel: Panel): WindowX {
         val window = WindowX(title)
         createWindow(window, null)
@@ -297,7 +299,7 @@ open class GFXBase {
                     abs(window.lastUpdate - time) * idleFPS > 1e9
                 ) {
                     window.lastUpdate = time
-                    // hopefully this is ok (calling it async to other glfw stuff)
+                    // this is hopefully ok (calling it async to other glfw stuff)
                     if (makeCurrent(window)) {
                         synchronized(openglLock) {
                             renderStep(window)
@@ -394,11 +396,12 @@ open class GFXBase {
         }
     }
 
+    @Suppress("unused")
     open fun windowLoop(window0: WindowX) {
 
         Thread.currentThread().name = "GLFW"
 
-        // Start new thread to have the OpenGL context current in and which does the rendering.
+        // Start new thread to have the OpenGL context current in and that does the rendering.
         Thread {
             runRenderLoop(window0)
             cleanUp()

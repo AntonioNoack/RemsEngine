@@ -20,6 +20,10 @@ object SetProperty : ThreeArgFunction() {
         value.isnumber() -> value.todouble()
         value.isstring() -> value.tostring()
         value.isuserdata() -> value.touserdata()
+        value.istable() -> value.checktable() // not really a java type 😅
+        value.isnil() -> null
+        value.isfunction() -> value.checkfunction()
+        value.isclosure() -> value.checkclosure()
         // todo add more types
         else -> null
     }
