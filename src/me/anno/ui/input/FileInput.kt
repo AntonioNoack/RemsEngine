@@ -169,13 +169,15 @@ class FileInput(
 
     override fun getTooltipPanel(x: Float, y: Float): Panel? {
         // only if the image is not the default one
-        val size = 64 - 64 / 20 // 1/20th is padding
+        val stdSize = 64
+        val size = stdSize - stdSize / 20 // 1/20th is padding
+        val file = file
         Thumbs.getThumbnail(file, size, true) ?: return null
         // could be cached...
-        val entry = FileExplorerEntry(null, false, lastValue, style)
+        val entry = FileExplorerEntry(false, file, style)
         entry.showTitle = false
         // I like this better than a transparent background
-        entry.backgroundRadius = 6f
+        entry.backgroundRadius = stdSize / 10f
         entry.backgroundColor = mixARGB(backgroundColor, -1, 0.5f)
         return entry
     }

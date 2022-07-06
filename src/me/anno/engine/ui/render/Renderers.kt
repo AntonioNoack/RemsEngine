@@ -109,7 +109,7 @@ object Renderers {
                     "   float NdotV = abs(dot(finalNormal,V));\n" +
                     "   vec3 diffuseColor = finalColor * (1.0 - finalMetallic);\n" +
                     "   vec3 specularColor = finalColor * finalMetallic;\n" +
-                    "   vec3 diffuseLight = ambientLight, specularLight = vec3(0);\n" +
+                    "   vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
                     "   bool hasSpecular = dot(specularColor,vec3(1.0)) > 0.001;\n" +
                     "   bool hasDiffuse = dot(diffuseColor,vec3(1.0)) > 0.001;\n" +
                     "   if(hasDiffuse || hasSpecular){\n" +
@@ -155,9 +155,7 @@ object Renderers {
                     // translucency; looks good and approximately correct
                     // sheen is a fresnel effect, which adds light
                     "           NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
-                    "           if(NdotL > 0.0){\n" +
-                    "               diffuseLight += effectiveDiffuse * min(NdotL, 1.0);\n" +
-                    "           }\n" +
+                    "           diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
                     "       }\n" +
                     specularBRDFv2NoDivInlined2End +
                     "   }\n" +
@@ -240,9 +238,9 @@ object Renderers {
                         // shared pbr data
                         "   vec3 V = normalize(-finalPosition);\n" +
                         // light calculations
-                        "   float NdotV = abs(dot(finalNormal,V));\n" +
+                        "   float NdotV = dot(finalNormal,V);\n" +
                         // fresnel for all fresnel based effects
-                        "   float fresnel = 1.0 - NdotV, fresnel3 = pow(fresnel, 3.0);\n" +
+                        "   float fresnel = 1.0 - abs(NdotV), fresnel3 = pow(fresnel, 3.0);\n" +
                         "   if(finalClearCoat.w > 0.0){\n" +
                         // cheap clear coat effect
                         "       float clearCoatEffect = fresnel3 * finalClearCoat.w;\n" +
@@ -255,16 +253,16 @@ object Renderers {
                         "   float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
                         // light calculation
                         "vec3 ambientLight = vec3(0.1);\n" +
-                        "vec3 diffuseLight = ambientLight, specularLight = vec3(0);\n" +
+                        "vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
                         "vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);\n" +
                         "vec3 specularColor = finalColor * finalMetallic;\n" +
                         "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
                         specularBRDFv2NoDivInlined2Start +
-                        "for(int i=0;i<${previewLights.size};i++){\n" +
+                        "if(NdotV > 0.001) for(int i=0;i<${previewLights.size};i++){\n" +
                         "   vec4 data = lightData[i];\n" +
                         "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
                         "   float NdotL = dot(finalNormal, lightDirection);\n" +
-                        "   if(NdotL > 0.0){\n" +
+                        "   if(NdotL > 0.001){\n" +
                         "       vec3 H = normalize(V + lightDirection);\n" +
                         "       if(hasSpecular){\n" +
                         specularBRDFv2NoDivInlined2 +
@@ -276,7 +274,7 @@ object Renderers {
                         specularBRDFv2NoDivInlined2End +
                         "finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                         "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
-                        "finalColor = finalColor/(1.0+finalColor);\n" +
+                        "finalColor = finalColor/(1.0+finalColor);\n" + // todo better tonemapping
                         // a preview probably doesn't need anti-banding
                         // "finalColor -= random(uv) * ${1.0 / 255.0};\n" +
                         // make the border opaque, so we can see it better -> doesn't work somehow...

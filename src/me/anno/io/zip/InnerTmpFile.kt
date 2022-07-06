@@ -7,17 +7,24 @@ import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
+import me.anno.utils.types.Strings.isBlank2
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
 
-abstract class InnerTmpFile private constructor(name: String) :
-    InnerFile(name, name, false, InvalidRef) {
+abstract class InnerTmpFile private constructor(
+    name: String,
+    @Suppress("unused_parameter") unused: Int // just for convenience
+) : InnerFile(name, name, false, InvalidRef) {
 
-    constructor() : this("tmp://${id.incrementAndGet()}")
+    constructor(ext: String) : this("", ext)
+    constructor(prefix: String, ext: String) : this(
+        if (prefix.isBlank2()) "tmp://${id.incrementAndGet()}.$ext"
+        else "tmp://$prefix.${id.incrementAndGet()}.$ext", 0
+    )
 
     @Suppress("unused")
-    class InnerTmpByteFile(bytes: ByteArray) : InnerTmpFile() {
+    class InnerTmpByteFile(bytes: ByteArray, ext: String = "bin") : InnerTmpFile(ext) {
 
         var bytes: ByteArray = bytes
             set(value) {
@@ -34,7 +41,7 @@ abstract class InnerTmpFile private constructor(name: String) :
     }
 
     @Suppress("unused")
-    class InnerTmpTextFile(text: String) : InnerTmpFile() {
+    class InnerTmpTextFile(text: String, ext: String = "txt") : InnerTmpFile(ext) {
 
         var text: String = text
             set(value) {
@@ -52,7 +59,10 @@ abstract class InnerTmpFile private constructor(name: String) :
 
     }
 
-    class InnerTmpPrefabFile(val prefab: Prefab) : InnerTmpFile(), PrefabReadable {
+    class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json") : InnerTmpFile(name, ext),
+        PrefabReadable {
+
+        constructor(prefab: Prefab) : this(prefab, prefab.getProperty("name") as? String ?: "")
 
         init {
             val size = Int.MAX_VALUE.toLong()
@@ -80,7 +90,7 @@ abstract class InnerTmpFile private constructor(name: String) :
 
     }
 
-    class InnerTmpImageFile(val image: Image) : InnerTmpFile(), ImageReadable {
+    class InnerTmpImageFile(val image: Image, ext: String = "png") : InnerTmpFile(ext), ImageReadable {
 
         init {
             val size = Int.MAX_VALUE.toLong()
@@ -99,7 +109,7 @@ abstract class InnerTmpFile private constructor(name: String) :
         override fun listChildren(): List<FileReference>? = null
 
         override fun readText() = text.value
-        override fun readBytes() = bytes.value!!
+        override fun readBytes(): ByteArray = bytes.value
 
         override fun getInputStream(): InputStream {
             return text.value.byteInputStream()

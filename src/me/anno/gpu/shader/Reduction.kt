@@ -114,6 +114,7 @@ object Reduction {
 
             // reduce
             shader.use()
+            shader.v1f("scale", 1f)
 
             val w = ceilDiv(srcTexture.w, reduction)
             val h = ceilDiv(srcTexture.h, reduction)

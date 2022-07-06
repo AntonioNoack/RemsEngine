@@ -31,9 +31,11 @@ object StringHelper {
             .replace("  ", " ")
     }
 
-    fun String.camelCaseToTitle(): String {
-        return splitCamelCase().titlecase()
-    }
+    fun String.camelCaseToTitle() =
+        splitCamelCase().titlecase()
+
+    fun String.upperSnakeCaseToTitle() =
+        lowercase().split('_').joinToString(" ") { it.titlecase() }
 
     fun setNumber(pos: Int, num: Int, dst: CharArray) {
         if (num in 0..99) {

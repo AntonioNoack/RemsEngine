@@ -31,7 +31,7 @@ object Maps {
                 toRemove!!.add(k)
             }
         }
-        return if (toRemove != null && toRemove!!.isNotEmpty()) {
+        return if (toRemove != null) {
             val tr = toRemove!!
             for (index in tr.indices) {
                 remove(tr[index])
@@ -49,12 +49,10 @@ object Maps {
         val tr = filter.toRemove
         tr.clear()
         forEach(filter)
-        return if (tr.isNotEmpty()) {
-            for (index in tr.indices) {
-                remove(tr[index])
-            }
-            tr.size
-        } else 0
+        for (index in tr.indices) {
+            remove(tr[index])
+        }
+        return tr.size
     }
 
     abstract class Remover<K, V> : BiConsumer<K, V> {
@@ -67,6 +65,7 @@ object Maps {
         }
     }
 
+    @Suppress("unused")
     fun Map<Int, Int>.flatten(default: Int): IntArray {
         val maxIndex = keys.maxOrNull() ?: 0
         val array = IntArray(maxIndex + 1) { default }
@@ -85,6 +84,7 @@ object Maps {
         return array
     }
 
+    @Suppress("unused")
     inline fun <reified V> Map<Int, V>.flatten(default: V): Array<V> {
         val maxIndex = keys.maxOrNull() ?: 0
         val array = Array(maxIndex + 1) { default }
@@ -94,6 +94,7 @@ object Maps {
         return array
     }
 
+    @Suppress("unused")
     inline fun <reified V, K> Map<K, V>.flatten(default: V, keyMapper: (K) -> Int): Array<V> {
         val maxIndex = keys.maxOfOrNull { keyMapper(it) } ?: 0
         val array = Array(maxIndex + 1) { default }

@@ -26,7 +26,7 @@ interface ISaveable {
 
     /**
      * a guess, small objects shouldn't contain large ones
-     * (e.g. human containing building vs building containing human)
+     * (e.g., human containing building vs building containing human)
      * */
     val approxSize: Int
 
@@ -315,7 +315,8 @@ interface ISaveable {
 
         @JvmStatic
         fun <V: ISaveable> registerCustomClass(clazz: KClass<V>) {
-            val constructor = clazz.constructors.first { it.parameters.isEmpty() }
+            val constructor = clazz.constructors.firstOrNull { it.parameters.isEmpty() }
+                ?:throw IllegalArgumentException("$clazz is missing constructor without parameters")
             val instance0 = constructor.call()
             checkInstance(instance0)
             val className = instance0.className

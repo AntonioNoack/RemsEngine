@@ -270,7 +270,7 @@ class LightPipelineStage(
                             "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
                             "bool hasSpecular = finalMetallic > 0.0;\n" +
                             "vec3 V = normalize(-finalPosition);\n" +
-                            "float NdotV = abs(dot(finalNormal,V));\n" +
+                            "float NdotV = dot(finalNormal,V);\n" +
                             "int shadowMapIdx0 = 0;\n" + // always 0 at the start
                             "int shadowMapIdx1 = int(data2.g);\n" +
                             // light properties, which are typically inside the loop
@@ -280,7 +280,7 @@ class LightPipelineStage(
                             "float NdotL = 0.0;\n" + // normal dot light
                             "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS = vec3(0.0);\n" +
                             coreFragment +
-                            "if(hasSpecular && dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
+                            "if(hasSpecular && NdotL > 0.0001 && NdotV > 0.0001){\n" +
                             "    vec3 H = normalize(V + lightDirWS);\n" +
                             specularBRDFv2NoColorStart +
                             specularBRDFv2NoColor +

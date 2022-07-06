@@ -303,7 +303,7 @@ class PipelineStage(
 
     fun initShader(shader: Shader, pipeline: Pipeline) {
         // information for the shader, which is material agnostic
-        // add all things, the shader needs to know, e.g. light direction, strength, ...
+        // add all things, the shader needs to know, e.g., light direction, strength, ...
         // (for the cheap shaders, which are not deferred)
         shader.m4x4("transform", RenderView.cameraMatrix)
         shader.m4x4("prevTransform", RenderView.prevCamMatrix)
@@ -355,7 +355,7 @@ class PipelineStage(
         val time = Engine.gameTime
 
         // we could theoretically cluster them to need fewer uploads
-        // but that would probably be quite hard to implement reliably
+        // but that would probably be hard to implement reliably
         val hasLights = maxNumberOfLights > 0
         val needsLightUpdateForEveryMesh = hasLights &&
                 pipeline.lightPseudoStage.size > maxNumberOfLights

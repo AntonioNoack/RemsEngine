@@ -90,6 +90,7 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         }
     }
 
+    @Suppress("unused")
     inline fun replaceValues(crossinline run: (k1: KManifold, k2: KFewOnly, v: Value) -> Value): Int {
         var changed = 0
         for ((k1, k2s) in values) {
@@ -138,6 +139,7 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         return sum
     }
 
+    @Suppress("unused")
     fun countMajor(test: (k1: KManifold) -> Boolean): Int {
         var sum = 0
         for ((k1, k2s) in values) {

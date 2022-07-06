@@ -261,9 +261,7 @@ abstract class FileExplorer(
                                     "unitypackage" -> file.isPacked.value
                                     else -> false
                                 }
-                            ) {
-                                nextLevel.addAll(file.listChildren() ?: continue)
-                            }
+                            ) nextLevel.addAll(file.listChildren() ?: continue)
                             Thread.sleep(0)
                         }
                         level0 = level0 + nextLevel
@@ -285,8 +283,7 @@ abstract class FileExplorer(
                 if (parent != null) {
                     addEvent {
                         // option to go up a folder
-                        val fe = FileExplorerEntry(this, true, parent, style)
-                        content += fe
+                        content += FileExplorerEntry(this, true, parent, style)
                     }
                 }
 

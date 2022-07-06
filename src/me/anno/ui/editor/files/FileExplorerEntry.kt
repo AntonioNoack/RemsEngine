@@ -75,6 +75,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11C.*
+import java.lang.ref.WeakReference
 import kotlin.math.*
 
 // todo when dragging files over the edge of the border, mark them as copied, or somehow make them draggable...
@@ -95,11 +96,17 @@ class FileExplorerEntry(
     val isParent: Boolean, file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
 
+    constructor(isParent: Boolean, file: FileReference, style: Style) :
+            this(null, isParent, file, style)
+
     // todo small file type (signature) icons
     // todo use search bar for sort parameters :)
     // todo or right click menu for sorting
 
     val path = file.absolutePath
+
+    val ref0 = if (path.startsWith("tmp://")) WeakReference(file) else null
+    val ref1 get() = ref0?.get() ?: getReferenceAsync(path)
 
     // todo when entering a json file, and leaving it, the icon should not be a folder!
 
@@ -132,9 +139,6 @@ class FileExplorerEntry(
     private val originalBackgroundColor = backgroundColor
     private val hoverBackgroundColor = mixARGB(black, originalBackgroundColor, 0.85f)
     private val darkerBackgroundColor = mixARGB(black, originalBackgroundColor, 0.7f)
-
-    private val size
-        get() = explorer?.entrySize?.toInt() ?: 64
 
     private val importType = file.extension.getImportType()
     private var iconPath = if (isParent || file.isDirectory) {
@@ -192,10 +196,10 @@ class FileExplorerEntry(
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
-        val size = size
+        val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
+        val size = min(w, h - titleSize)
         minW = size
-        minH = size
-        if (showTitle) minH += (titlePanel.font.sizeInt * 5 / 2)
+        minH = size + titleSize
         this.w = minW
         this.h = minH
     }
@@ -335,13 +339,9 @@ class FileExplorerEntry(
         }
     }
 
-    val ref1 get() = getReferenceAsync(path)
-
     private fun drawImageOrThumb(
         x0: Int, y0: Int,
-        x1: Int, y1: Int,
-        x2: Int, y2: Int,
-        x3: Int, y3: Int
+        x1: Int, y1: Int
     ) {
         val w = x1 - x0
         val h = y1 - y0
@@ -395,7 +395,9 @@ class FileExplorerEntry(
                 return
             }
         }
-        val image = Thumbs.getThumbnail(file, w, true) ?: getDefaultIcon() ?: whiteTexture
+        val img0 = Thumbs.getThumbnail(file, w, true)
+        val img1 = img0 ?: getDefaultIcon()
+        val image = img1 ?: whiteTexture
         val rot = (image as? Texture2D)?.rotation
         image.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         if (rot == null) {
@@ -475,9 +477,7 @@ class FileExplorerEntry(
 
     private fun drawThumb(
         x0: Int, y0: Int,
-        x1: Int, y1: Int,
-        x2: Int, y2: Int,
-        x3: Int, y3: Int
+        x1: Int, y1: Int
     ) {
         /*if (file.isDirectory) {
             return drawDefaultIcon(x0, y0, x1, y1)
@@ -490,7 +490,7 @@ class FileExplorerEntry(
                 if (meta != null) {
                     if (meta.videoWidth > 0) {
                         if (time == 0.0) { // not playing
-                            drawImageOrThumb(x0, y0, x1, y1, x2, y2, x3, y3)
+                            drawImageOrThumb(x0, y0, x1, y1)
                         } else {
                             drawVideo(x0, y0, x1, y1)
                         }
@@ -500,7 +500,7 @@ class FileExplorerEntry(
                     }
                 } else drawDefaultIcon(x0, y0, x1, y1)
             }
-            else -> drawImageOrThumb(x0, y0, x1, y1, x2, y2, x3, y3)
+            else -> drawImageOrThumb(x0, y0, x1, y1)
         }
     }
 
@@ -619,12 +619,8 @@ class FileExplorerEntry(
             y + padding,
             x + remainingW,
             y + padding + imageH,
-        ) { x2, y2, x3, y3 ->
-            drawThumb(
-                x2, y2, x3, y3,
-                x0, y0, x1, y2
-            )
-        }
+            ::drawThumb
+        )
 
         if (showTitle) clip2Dual(
             x0, y0, x1, y1,
