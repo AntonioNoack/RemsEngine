@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths
@@ -79,8 +80,8 @@ object M4x3Delta {
      * */
     fun Shader.m4x3delta(
         location: String, m: Matrix4x3d?,
-        pos: Vector3d = RenderView.camPosition,
-        worldScale: Double = RenderView.worldScale
+        pos: Vector3d = RenderState.cameraPosition,
+        worldScale: Double = RenderState.worldScale
     ) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) m4x3delta(uniformIndex, m, pos, worldScale)
@@ -88,8 +89,8 @@ object M4x3Delta {
 
     fun m4x3delta(
         uniformIndex: Int, m: Matrix4x3d?,
-        pos: Vector3d = RenderView.camPosition,
-        worldScale: Double = RenderView.worldScale
+        pos: Vector3d = RenderState.cameraPosition,
+        worldScale: Double = RenderState.worldScale
     ) {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see

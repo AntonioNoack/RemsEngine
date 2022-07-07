@@ -5,6 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawXYPlane
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
@@ -61,12 +62,12 @@ class PlanarReflection : LightComponentBase() {
 
         draw(
             pipeline, w, h,
-            RenderView.cameraMatrix,
-            RenderView.camPosition,
-            RenderView.camRotation, RenderView.worldScale
+            RenderState.cameraMatrix,
+            RenderState.cameraPosition,
+            RenderState.cameraRotation, RenderState.worldScale
         ) { pos, rot ->
             pipeline.frustum.definePerspective(
-                near, far, RenderView.fovYRadians.toDouble(),
+                near, far, RenderState.fovYRadians.toDouble(),
                 w, h, aspectRatio.toDouble(),
                 pos, rot
             )
@@ -132,7 +133,7 @@ class PlanarReflection : LightComponentBase() {
         pipeline.frustum.setToEverything(reflectedCameraPosition, camRot)
         // defineFrustum(camPos, camRot)
         // pipeline.frustum.applyTransform(mirror)
-        pipeline.fill(root, reflectedCameraPosition, RenderView.worldScale)
+        pipeline.fill(root, reflectedCameraPosition, RenderState.worldScale)
         pipeline.planarReflections.clear()
 
         pipeline.disableReflectionCullingPlane()

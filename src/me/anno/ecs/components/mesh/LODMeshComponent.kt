@@ -6,7 +6,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderState
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
@@ -62,7 +62,7 @@ class LODMeshComponent : MeshComponentBase() {
     }
 
     override fun getMesh(): Mesh? {
-        val pos = RenderView.camPosition
+        val pos = RenderState.cameraPosition
         val transform = transform
         val index = if (transform != null) {
             val lod1Dist = lod1Dist

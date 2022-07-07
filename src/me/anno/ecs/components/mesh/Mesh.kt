@@ -780,7 +780,7 @@ class Mesh : PrefabSaveable() {
             // respect the material index: only draw what belongs to the material
             val helperMeshes = helperMeshes
             when {
-                helperMeshes != null -> {
+                helperMeshes != null && materialIndex in helperMeshes.indices -> {
                     val helperMesh = helperMeshes[materialIndex] ?: return
                     helperMesh.draw(shader, 0)
                 }

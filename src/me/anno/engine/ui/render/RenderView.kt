@@ -140,7 +140,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             field = clamp(value, 1e-130, 1e130)
         }
 
-    val worldScale get() = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
+    open fun updateWorldScale() {
+        worldScale = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
+    }
 
     val position = Vector3d()
     val rotation = Vector3d(-20.0, 0.0, 0.0)
@@ -222,6 +224,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         super.tickUpdate()
         // we could optimize that: if not has updated in some time, don't redraw
         invalidateDrawing()
+        updateWorldScale()
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -235,6 +238,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         if (renderMode == RenderMode.GHOSTING_DEBUG) Thread.sleep(250)
 
         updateEditorCameraTransform()
+
+        setRenderState()
 
         val world = getWorld()
         if (world is Entity) {
@@ -253,6 +258,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 false
             }
         }
+
+        setRenderState()
 
         // done go through the rendering pipeline, and render everything
 
@@ -318,6 +325,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         clock.stop("initialization", 0.05)
 
         prepareDrawScene(w, h, aspect, camera0, camera1, blending, true)
+
+        setRenderState()
+
         if (pipeline.hasTooManyLights() || useBloom) useDeferredRendering = true
 
         clock.stop("preparing", 0.05)
@@ -421,15 +431,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         updatePrevState()
         // clock.total("drawing the scene", 0.1)
 
-    }
-
-    private val lastCamPos = Vector3d()
-    private val lastCamMat = Matrix4f()
-    private var lastWorldScale = worldScale
-    fun updatePrevState() {
-        lastCamPos.set(camPosition)
-        lastCamMat.set(cameraMatrix)
-        lastWorldScale = worldScale
     }
 
     // be more conservative with framebuffer size changes,
@@ -1113,16 +1114,16 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         // this needs to be separate from the stack
         // (for normal calculations and such)
-        RenderView.near = near
-        RenderView.far = far
+        this.near = near
+        this.far = far
         val scaledNear = (near * worldScale)
         val scaledFar = (far * worldScale)
-        RenderView.scaledNear = scaledNear
-        RenderView.scaledFar = scaledFar
-        RenderView.isPerspective = isPerspective
+        this.scaledNear = scaledNear
+        this.scaledFar = scaledFar
+        this.isPerspective = isPerspective
         if (isPerspective) {
             val fovYRadians = toRadians(fov)
-            Companion.fovYRadians = fovYRadians
+            this.fovYRadians = fovYRadians
             Perspective.setPerspective(
                 cameraMatrix, fovYRadians, aspectRatio, scaledNear.toFloat(), scaledFar.toFloat(), centerX, centerY
             )
@@ -1174,17 +1175,17 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         camTransform.set(previousCamera.entity!!.transform.globalTransform)
         camTransform.lerp(camera.entity!!.transform.globalTransform, blend)
 
-        camTransform.transformPosition(camPosition.set(0.0))
+        camTransform.transformPosition(cameraPosition.set(0.0))
         camInverse.set(camTransform).invert()
-        camRotation.set(rotInv)
+        cameraRotation.set(rotInv)
 
-        camRotation.transform(camDirection.set(0.0, 0.0, -1.0))
-        camDirection.normalize()
+        cameraRotation.transform(cameraDirection.set(0.0, 0.0, -1.0))
+        cameraDirection.normalize()
 
         // camera matrix and mouse position to ray direction
         if (update) {
             val window = window!!
-            getMouseRayDirection(window.mouseX, window.mouseY, mouseDir)
+            getMouseRayDirection(window.mouseX, window.mouseY, mouseDirection)
         }
 
         // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
@@ -1203,23 +1204,23 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             pipeline.frustum.definePerspective(
                 near, far, fovYRadians.toDouble(),
                 width, height, aspectRatio.toDouble(),
-                camPosition, camRotation,
+                cameraPosition, cameraRotation,
             )
         } else {
             pipeline.frustum.defineOrthographic(
-                fov.toDouble(), aspectRatio.toDouble(), near, far, width, camPosition, camRotation
+                fov.toDouble(), aspectRatio.toDouble(), near, far, width, cameraPosition, cameraRotation
             )
             // pipeline.frustum.showPlanes()
         }
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
         pipeline.resetClickId()
-        if (world != null) pipeline.fill(world, camPosition, worldScale)
+        if (world != null) pipeline.fill(world, cameraPosition, worldScale)
         controlScheme?.fill(pipeline)
         // if the scene would be dark, define lights, so we can see something
         if (pipeline.lightPseudoStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
             pipeline.ambient.set(0.5f)
-            pipeline.fill(defaultSun, camPosition, worldScale)
+            pipeline.fill(defaultSun, cameraPosition, worldScale)
         }
         entityBaseClickId = pipeline.lastClickId
 
@@ -1363,7 +1364,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
             glClearColor(0f, 0f, 0f, 0f)
             glClear(GL_COLOR_BUFFER_BIT)
-            pipeline.lightPseudoStage.bindDraw(deferred, cameraMatrix, camPosition, worldScale)
+            pipeline.lightPseudoStage.bindDraw(deferred, cameraMatrix, cameraPosition, worldScale)
         }
     }
 
@@ -1394,8 +1395,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                 controlScheme?.drawGizmos()
 
-                Companion.worldScale = worldScale
-
                 //val maximumCircleDistance = 200f
                 //val maxCircleLenSq = sq(maximumCircleDistance).toDouble()
 
@@ -1420,7 +1419,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                     val stack = stack
                     stack.pushMatrix()
-                    stack.mul4x3delta(globalTransform, camPosition, worldScale)
+                    stack.mul4x3delta(globalTransform, cameraPosition, worldScale)
 
                     // only draw the circle, if its size is larger than ~ a single pixel
                     /*if (doDrawCircle) {
@@ -1446,7 +1445,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                     if (drawAABBs) {
                         val aabb = entity.aabb
-                        val hit = aabb.testLine(camPosition, mouseDir, 1e10)
+                        val hit = aabb.testLine(cameraPosition, mouseDirection, 1e10)
                         drawAABB(aabb, worldScale, if (hit) aabbColorHovered else aabbColorDefault)
                     }
 
@@ -1482,7 +1481,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val tanHalfFoV = tan(fovYRadians * 0.5)
         val aspectRatio = w.toFloat() / h
         val dir = dst.set(rx * tanHalfFoV * aspectRatio, ry * tanHalfFoV, -1.0)
-        camRotation.transform(dir)
+        cameraRotation.transform(dir)
         dir.normalize()
         return dst
     }
@@ -1490,6 +1489,60 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         getMouseRayDirection(x, y, JomlPools.vec3d.create())
         super.onMouseMoved(x, y, dx, dy)
+    }
+
+    var scale = 1.0
+    var worldScale = 1.0
+
+    var fovYRadians = 1f
+
+    var near = 1e-10
+    var scaledNear = 1e-10
+
+    // infinity
+    var far = 1e10
+    var scaledFar = 1e10
+    var isPerspective = true
+
+    val cameraMatrix = Matrix4f()
+
+    val camTransform = Matrix4x3d()
+    val camInverse = Matrix4d()
+    val cameraPosition = Vector3d()
+    val cameraDirection = Vector3d()
+    val cameraRotation = Quaterniond()
+    val mouseDirection = Vector3d()
+
+    val prevCamMatrix = Matrix4f()
+    val prevCamPosition = Vector3d()
+    var prevWorldScale = worldScale
+
+    private val lastCamPos = Vector3d()
+    private val lastCamMat = Matrix4f()
+    private var lastWorldScale = worldScale
+
+    fun updatePrevState() {
+        lastCamPos.set(cameraPosition)
+        lastCamMat.set(cameraMatrix)
+        lastWorldScale = worldScale
+    }
+
+    fun setRenderState() {
+
+        RenderState.worldScale = worldScale
+        RenderState.prevWorldScale = prevWorldScale
+
+        RenderState.cameraPosition.set(cameraPosition)
+        RenderState.cameraRotation.set(cameraRotation)
+        RenderState.cameraDirection.set(cameraDirection)
+        RenderState.cameraMatrix.set(cameraMatrix)
+
+        RenderState.prevCamMatrix.set(prevCamMatrix)
+        RenderState.prevCameraPosition.set(prevCamPosition)
+
+        RenderState.isPerspective = isPerspective
+        RenderState.fovYRadians = fovYRadians
+
     }
 
     companion object {
@@ -1503,32 +1556,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
          * */
         val MAX_FORWARD_LIGHTS = 32
 
-        var scale = 1.0
-        var worldScale = 1.0
         val stack = Matrix4fArrayList()
-
-        var fovYRadians = 1f
-
-        var near = 1e-10
-        var scaledNear = 1e-10
-
-        // infinity
-        var far = 1e10
-        var scaledFar = 1e10
-        var isPerspective = true
-
-        val cameraMatrix = Matrix4f()
-
-        val camTransform = Matrix4x3d()
-        val camInverse = Matrix4d()
-        val camPosition = Vector3d()
-        val camDirection = Vector3d()
-        val camRotation = Quaterniond()
-        val mouseDir = Vector3d()
-
-        val prevCamMatrix = Matrix4f()
-        val prevCamPosition = Vector3d()
-        var prevWorldScale = worldScale
 
         val scaledMin = Vector4d()
         val scaledMax = Vector4d()

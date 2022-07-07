@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.engine.ui.render.ECSMeshShader
-import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.OpenGL
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
@@ -85,20 +85,20 @@ object SDFComposer {
                 val pos = JomlPools.vec3d.create()
                 val dtInverse = JomlPools.mat4x3d.create()
                 dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
-                dtInverse.transformPosition(RenderView.camPosition, pos)
+                dtInverse.transformPosition(RenderState.cameraPosition, pos)
                 dst.set(pos)
                 JomlPools.vec3d.sub(1)
                 JomlPools.mat4x3d.sub(1)
             }
         }
         uniforms["localCamDir"] = TypeValueV3(GLSLType.V3F, Vector3f()) { dst ->
-            if (RenderView.isPerspective) {
+            if (RenderState.isPerspective) {
                 val dt = tree.transform?.getDrawMatrix()
                 if (dt != null) {
                     val pos = JomlPools.vec3d.create()
                     val dtInverse = JomlPools.mat4x3d.create()
                     dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
-                    dtInverse.transformDirection(RenderView.camDirection, pos)
+                    dtInverse.transformDirection(RenderState.cameraDirection, pos)
                     dst.set(pos).normalize()
                     JomlPools.vec3d.sub(1)
                     JomlPools.mat4x3d.sub(1)
@@ -119,8 +119,8 @@ object SDFComposer {
                 val pos = JomlPools.vec3d.create()
                 val dtInverse = JomlPools.mat4x3d.create()
                 dt.invert(dtInverse)
-                dtInverse.transformPosition(RenderView.camPosition, pos)
-                // val dir = RenderView.camDirection
+                dtInverse.transformPosition(RenderState.cameraPosition, pos)
+                // val dir = RenderState.camDirection
                 val bounds = tree.localAABB
                 val dx = (pos.x - bounds.avgX()).toFloat()
                 val dy = (pos.y - bounds.avgY()).toFloat()
@@ -145,7 +145,7 @@ object SDFComposer {
             val b = tree.localAABB
             it.set(b.maxX, b.maxY, b.maxZ)
         }
-        uniforms["perspectiveCamera"] = TypeValue(GLSLType.V1B) { RenderView.isPerspective }
+        uniforms["perspectiveCamera"] = TypeValue(GLSLType.V1B) { RenderState.isPerspective }
         uniforms["debugMode"] = TypeValue(GLSLType.V1I) { tree.debugMode.id }
         uniforms["renderIds"] = TypeValue(GLSLType.V1B) { OpenGL.currentRenderer == Renderer.idRenderer }
 

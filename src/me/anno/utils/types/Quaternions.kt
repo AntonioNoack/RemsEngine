@@ -32,4 +32,8 @@ object Quaternions {
         return dst.identity().rotateYXZ(y, x, z)
     }
 
+    fun Quaterniond.mul2(q: Quaternionf) {// why ever this function is missing :annoyed:
+        mul(q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble())
+    }
+
 }

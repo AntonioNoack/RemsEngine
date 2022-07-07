@@ -240,6 +240,13 @@ abstract class FileExplorer(
         searchTask.destroy()
     }
 
+    /**
+     * decides whether a file shall be shown; e.g., to only show images
+     * */
+    open fun filterShownFiles(file: FileReference): Boolean {
+        return true
+    }
+
     fun createResults() {
         searchTask.compute {
 
@@ -290,7 +297,7 @@ abstract class FileExplorer(
 
                 val parent = folder.getParent()
                 if (parent != null) {
-                    addEvent {
+                    if (filterShownFiles(parent)) addEvent {
                         // option to go up a folder
                         content += FileExplorerEntry(this, true, parent, style)
                     }
@@ -306,8 +313,11 @@ abstract class FileExplorer(
                         addEvent {
                             // check if the folder is still the same
                             if (lastFiles === newFiles && lastSearch == newSearch) {
-                                for (file in list) {
-                                    content += FileExplorerEntry(this, false, file, style)
+                                for (idx in list.indices) {
+                                    val file = list[idx]
+                                    if (filterShownFiles(file)) {
+                                        content += FileExplorerEntry(this, false, file, style)
+                                    }
                                 }
                                 // force layout update
                                 Input.invalidateLayout()

@@ -7,6 +7,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.MeshCollider.Companion.defaultShape
 import me.anno.engine.ui.render.DrawAABB
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths.sq
@@ -118,7 +119,7 @@ class SDFCollider : Collider() {
         }
         // draw local aabb
         // DrawAABB.drawAABB(sdf.globalAABB, RenderView.worldScale, color)
-        DrawAABB.drawAABB(transform, sdf.localAABB, RenderView.worldScale, color)
+        DrawAABB.drawAABB(transform, sdf.localAABB, RenderState.worldScale, color)
     }
 
     override fun clone(): Component {

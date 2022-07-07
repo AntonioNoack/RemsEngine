@@ -12,7 +12,7 @@ import javax.vecmath.Vector3d
 object DrawAABB {
 
     fun transform(a: Vector3d, worldScale: Double, dst: Vector3f = Vector3f()): Vector3f {
-        val pos = RenderView.camPosition
+        val pos = RenderState.cameraPosition
         return dst.set(
             ((a.x - pos.x) * worldScale).toFloat(),
             ((a.y - pos.y) * worldScale).toFloat(),
@@ -35,7 +35,7 @@ object DrawAABB {
 
         if (aabb.isEmpty()) return
 
-        val pos = RenderView.camPosition
+        val pos = RenderState.cameraPosition
 
         val x0 = ((aabb.minX - pos.x) * worldScale)
         val y0 = ((aabb.minY - pos.y) * worldScale)
@@ -84,7 +84,7 @@ object DrawAABB {
         if (aabb.isEmpty()) return
         if (transform == null) return drawAABB(aabb, worldScale, color)
 
-        val pos = RenderView.camPosition
+        val pos = RenderState.cameraPosition
         val min = transform.transformPosition(aabb.getMin2(JomlPools.vec3d.create()))
         val max = transform.transformPosition(aabb.getMax2(JomlPools.vec3d.create()))
 

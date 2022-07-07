@@ -1,7 +1,6 @@
 package me.anno.engine.ui.render
 
 import me.anno.config.DefaultConfig.defaultFont
-import me.anno.config.DefaultStyle.black
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.GridColors.colorX
@@ -14,15 +13,10 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths
-import me.anno.maths.Maths.PIf
-import me.anno.utils.Color.withAlpha
-import me.anno.utils.LOGGER
-import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import kotlin.math.*
@@ -30,7 +24,7 @@ import kotlin.math.*
 object MovingGrid {
 
     fun drawGrid(radius: Double) {
-        LineBuffer.finish(RenderView.cameraMatrix)
+        LineBuffer.finish(RenderState.cameraMatrix)
         OpenGL.blendMode.use(BlendMode.ADD) {
             if (RenderView.currentInstance?.renderMode != RenderMode.DEPTH) {
                 // don't write depth, we want to stack it
@@ -51,7 +45,7 @@ object MovingGrid {
         alphas[1] = 1f
         alphas[0] = 1f - alphas[2]
         val radius1 = Maths.pow(10.0, floorLog + 1)
-        val position = RenderView.currentInstance?.position ?: RenderView.camPosition
+        val position = RenderView.currentInstance?.position ?: RenderState.cameraPosition
 
         for (i in 0 until 3) {
 
@@ -86,8 +80,8 @@ object MovingGrid {
         val shader = ShaderLib.shader3D.value
         shader.use()
         GFXx2D.disableAdvancedGraphicalFeatures(shader)
-        camera.set(RenderView.cameraMatrix)
-            .mul4x3delta(transform, RenderView.camPosition, RenderView.worldScale)
+        camera.set(RenderState.cameraMatrix)
+            .mul4x3delta(transform, RenderState.cameraPosition, RenderState.worldScale)
         shader.m4x4("transform", camera)
         shader.v3f("offset", 0f)
         shader.v1i("drawMode", GFX.drawMode.id)

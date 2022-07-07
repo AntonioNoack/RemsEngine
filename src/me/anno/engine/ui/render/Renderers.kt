@@ -37,9 +37,6 @@ object Renderers {
     // todo also maybe it should be customizable...
 
     // and banding prevention
-    val toneMappingOld =
-        "vec3 toneMapping(vec3 color){ return (color)/(1.0+color) - random(gl_FragCoord.xy) * ${1f / 255f}; }\n"
-
     var tonemapGLSL = "" +
             "vec3 tonemap(vec3 color){\n" +
             "   return color / (1.0 + max(max(color.r, color.g), max(color.b, 0.0))) - random(gl_FragCoord.xy) * ${1f / 255f};\n" +

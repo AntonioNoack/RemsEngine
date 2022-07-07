@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.shaders.effects.ScreenSpaceAmbientOcclusion
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -34,7 +34,7 @@ class SSAOEffect : CameraEffect() {
             ScreenSpaceAmbientOcclusion.compute(
                 layers[DeferredLayerType.POSITION]!!.getTexture0(),
                 layers[DeferredLayerType.NORMAL]!!.getTexture0(),
-                RenderView.cameraMatrix,
+                RenderState.cameraMatrix,
                 radius, strength, samples
             )
         )

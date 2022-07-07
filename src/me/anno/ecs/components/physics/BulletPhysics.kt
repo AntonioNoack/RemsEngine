@@ -29,9 +29,10 @@ import me.anno.ecs.components.physics.events.FallenOutOfWorld
 import me.anno.engine.physics.BulletDebugDraw
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.RenderView.Companion.camPosition
-import me.anno.engine.ui.render.RenderView.Companion.cameraMatrix
+import me.anno.engine.ui.render.RenderState.cameraPosition
+import me.anno.engine.ui.render.RenderState.cameraMatrix
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.ui.base.groups.PanelListY
@@ -345,7 +346,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
         // define camera transform
         debugDraw.stack.set(cameraMatrix)
-        debugDraw.cam.set(camPosition)
+        debugDraw.cam.set(cameraPosition)
 
         if (view == null || showDebug || view.renderMode == RenderMode.PHYSICS) {
             drawContactPoints()
@@ -365,7 +366,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 DrawAABB.drawLine(
                     cp.positionWorldOnB,
                     Vector3d(cp.positionWorldOnB).apply { add(cp.normalWorldOnB) },
-                    RenderView.worldScale, 0x777777
+                    RenderState.worldScale, 0x777777
                 )
             }
         }
@@ -419,7 +420,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 AABBd()
                     .setMin(minAabb.x, minAabb.y, minAabb.z)
                     .setMax(maxAabb.x, maxAabb.y, maxAabb.z),
-                RenderView.worldScale,
+                RenderState.worldScale,
                 color
             )
         }
@@ -432,7 +433,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         val axle = Vector3d()
         val tmp = Stack.newVec()
 
-        val worldScale = RenderView.worldScale
+        val worldScale = RenderState.worldScale
         val world = world ?: return
         val vehicles = world.vehicles ?: return
         for (i in 0 until vehicles.size) {

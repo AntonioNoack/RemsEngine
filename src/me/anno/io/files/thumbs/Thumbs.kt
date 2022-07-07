@@ -652,6 +652,7 @@ object Thumbs {
         comp: MeshComponentBase,
         callback: (Texture2D) -> Unit
     ) {
+        comp.ensureBuffer()
         val mesh = comp.getMesh() ?: return
         mesh.checkCompleteness()
         mesh.ensureBuffer()

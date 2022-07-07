@@ -107,6 +107,13 @@ object Matrices {
         return this
     }
 
+    fun Matrix4x3f.mul2(src: Matrix4x3d): Matrix4x3f {
+        val tmp = JomlPools.mat4x3f.borrow()
+        tmp.set2(src)
+        mul(tmp)
+        return this
+    }
+
     fun Matrix4x3f.getScale2(dst: Vector3d): Vector3d {
         return dst.set(getScale(JomlPools.vec3f.borrow()))
     }

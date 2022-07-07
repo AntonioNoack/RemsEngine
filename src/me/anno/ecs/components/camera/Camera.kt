@@ -11,6 +11,7 @@ import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.engine.ui.LineShapes.drawRect
 import me.anno.engine.ui.render.DrawAABB
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
@@ -130,7 +131,7 @@ class Camera : Component() {
                 JomlPools.aabbd.create()
                     .setMin(-sx, -sy, -far)
                     .setMax(+sx, +sy, -near),
-                RenderView.worldScale,
+                RenderState.worldScale,
                 guiLineColor
             )
             JomlPools.aabbd.sub(1)

@@ -14,6 +14,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
@@ -90,14 +91,14 @@ class PipelineStage(
 
             val drawTransform = transform.getDrawMatrix(time)
             shader.m4x3delta("localTransform", drawTransform)
-            shader.v1f("worldScale", RenderView.worldScale)
+            shader.v1f("worldScale", RenderState.worldScale)
 
             val oldTransform = shader["prevLocalTransform"]
             if (oldTransform >= 0) {
-                val prevWorldScale = RenderView.prevWorldScale
+                val prevWorldScale = RenderState.prevWorldScale
                 m4x3delta(
                     oldTransform, transform.getDrawnMatrix(time),
-                    RenderView.prevCamPosition, prevWorldScale
+                    RenderState.prevCameraPosition, prevWorldScale
                 )
                 shader.v1f("prevWorldScale", prevWorldScale)
             }
@@ -221,8 +222,8 @@ class PipelineStage(
                 if (lightTypes >= 0) {
 
                     buffer.limit(4 * numberOfLights)
-                    val cameraPosition = RenderView.camPosition
-                    val worldScale = RenderView.worldScale
+                    val cameraPosition = RenderState.cameraPosition
+                    val worldScale = RenderState.worldScale
                     for (i in 0 until numberOfLights) {
 
                         val lightI = lights[i]!!
@@ -305,8 +306,8 @@ class PipelineStage(
         // information for the shader, which is material agnostic
         // add all things, the shader needs to know, e.g., light direction, strength, ...
         // (for the cheap shaders, which are not deferred)
-        shader.m4x4("transform", RenderView.cameraMatrix)
-        shader.m4x4("prevTransform", RenderView.prevCamMatrix)
+        shader.m4x4("transform", RenderState.cameraMatrix)
+        shader.m4x4("prevTransform", RenderState.prevCamMatrix)
         shader.v3f("ambientLight", pipeline.ambient)
         shader.v1b("applyToneMapping", pipeline.applyToneMapping)
     }
@@ -327,7 +328,7 @@ class PipelineStage(
         // todo and light groups, so we don't need to update lights that often
 
         // val viewDir = pipeline.frustum.cameraRotation.transform(Vector3d(0.0, 0.0, 1.0))
-        val cameraPosition = RenderView.camPosition
+        val cameraPosition = RenderState.cameraPosition
         when (sorting) {
             Sorting.NO_SORTING -> {
             }
@@ -536,8 +537,8 @@ class PipelineStage(
             val trs = instances.transforms
             val ids = instances.clickIds
             val anim = (instances as? InstancedAnimStack)?.animData
-            val cameraPosition = RenderView.camPosition
-            val worldScale = RenderView.worldScale
+            val cameraPosition = RenderState.cameraPosition
+            val worldScale = RenderState.worldScale
             for (baseIndex in 0 until instanceCount step batchSize) {
                 buffer.clear()
                 for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
@@ -660,8 +661,8 @@ class PipelineStage(
         val batchSize = instancedBatchSize
         val buffer = instancedBuffer
         val instanceCount = instances.size
-        val cameraPosition = RenderView.camPosition
-        val worldScale = RenderView.worldScale
+        val cameraPosition = RenderState.cameraPosition
+        val worldScale = RenderState.worldScale
         for (baseIndex in 0 until instanceCount step batchSize) {
             buffer.clear()
             val nioBuffer = buffer.nioBuffer!!

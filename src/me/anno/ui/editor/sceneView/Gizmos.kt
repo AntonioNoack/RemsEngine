@@ -2,14 +2,15 @@ package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultStyle
 import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.GridColors.colorX
 import me.anno.engine.ui.render.GridColors.colorY
 import me.anno.engine.ui.render.GridColors.colorZ
-import me.anno.engine.ui.render.RenderView.Companion.camPosition
-import me.anno.engine.ui.render.RenderView.Companion.worldScale
+import me.anno.engine.ui.render.RenderState.cameraPosition
+import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -43,42 +44,53 @@ object Gizmos {
 
     fun drawMesh(cameraTransform: Matrix4f, position: Vector3d, scale: Double, clickId: Int, ref: FileReference) {
         val mesh = MeshCache[ref] ?: return
-        drawMesh(cameraTransform, position, scale, 0, colorX, clickId, mesh)
-        drawMesh(cameraTransform, position, scale, 1, colorY, clickId + 1, mesh)
-        drawMesh(cameraTransform, position, scale, 2, colorZ, clickId + 2, mesh)
+        drawMesh(cameraTransform, position, rotations[0], scale, colorX, clickId, mesh)
+        drawMesh(cameraTransform, position, rotations[1], scale, colorY, clickId + 1, mesh)
+        drawMesh(cameraTransform, position, rotations[2], scale, colorZ, clickId + 2, mesh)
     }
 
     // todo ui does not need lighting, and we can use pbr rendering
 
     val local = Matrix4x3d()
 
+    val rotations = arrayOf(
+        Quaterniond(),
+        Quaterniond().rotateZ(+Math.PI * 0.5),
+        Quaterniond().rotateY(-Math.PI * 0.5)
+    )
+
     fun drawMesh(
         cameraTransform: Matrix4f,
-        position: Vector3d,
-        scale: Double,
-        axis: Int,
-        color: Int,
-        clickId: Int,
-        mesh: Mesh
+        position: Vector3d, rotation: Quaterniond, scale: Double,
+        color: Int, clickId: Int, mesh: Mesh
+    ) = drawMesh(cameraTransform, position, rotation, scale, defaultMaterial, color, clickId, mesh)
+
+    fun drawMesh(
+        cameraTransform: Matrix4f,
+        position: Vector3d, rotation: Quaterniond, scale: Double,
+        material: Material, color: Int, clickId: Int, mesh: Mesh
+    ) {
+        val localTransform = local
+        localTransform.identity()
+        localTransform.translate(position)
+        localTransform.rotate(rotation)
+        localTransform.scale(scale)
+        drawMesh(cameraTransform, localTransform, material, color, clickId, mesh)
+    }
+
+    fun drawMesh(
+        cameraTransform: Matrix4f, localTransform: Matrix4x3d,
+        material: Material, color: Int, clickId: Int, mesh: Mesh
     ) {
         GFX.drawnId = clickId
-        val material = defaultMaterial
         val shader = (material.shader ?: pbrModelShader).value
         shader.use()
         shader.m4x4("transform", cameraTransform)
-        val local = local
-        local.identity()
-        local.translate(position)
-        when (axis) {
-            1 -> local.rotateZ(+Math.PI * 0.5)
-            2 -> local.rotateY(-Math.PI * 0.5)
-        }
-        local.scale(scale)
-        shader.m4x3delta("localTransform", local, camPosition, worldScale)
+        shader.m4x3delta("localTransform", localTransform, cameraPosition, worldScale)
         shader.v1f("worldScale", worldScale)
         material.bind(shader)
-        shader.v4f("diffuseBase", color or (255 shl 24))
-        shaderColor(shader, "tint", color or (255 shl 24))
+        shader.v4f("diffuseBase", color)
+        shaderColor(shader, "tint", color)
         shader.v1b("hasAnimation", false)
         shader.v1b("hasVertexColors", false)
         mesh.draw(shader, 0)

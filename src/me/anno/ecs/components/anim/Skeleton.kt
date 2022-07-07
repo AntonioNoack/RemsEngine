@@ -4,7 +4,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.RenderView.Companion.worldScale
+import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty

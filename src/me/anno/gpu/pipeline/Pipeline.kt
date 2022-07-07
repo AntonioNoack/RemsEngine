@@ -18,6 +18,7 @@ import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.Frustum
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
@@ -275,7 +276,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         // todo also use the size, and relative size to the camera
         val at = a.transform.getDrawMatrix()
         val bt = b.transform.getDrawMatrix()
-        val cam = RenderView.camPosition
+        val cam = RenderState.cameraPosition
         val scale = JomlPools.vec3d.borrow()
         val da = (at.distanceSquared(center) + at.distanceSquared(cam)) * bt.getScale(scale).lengthSquared()
         val db = (bt.distanceSquared(center) + bt.distanceSquared(cam)) * at.getScale(scale).lengthSquared()

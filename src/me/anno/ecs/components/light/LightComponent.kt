@@ -9,6 +9,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.OpenGL
@@ -178,11 +179,11 @@ abstract class LightComponent(
         val drawTransform = transform.getDrawMatrix()
         val resolution = shadowMapResolution
         val global = transform.globalTransform
-        val position = global.getTranslation(RenderView.camPosition)
+        val position = global.getTranslation(RenderState.cameraPosition)
         val rotation = global.getUnnormalizedRotation(JomlPools.quat4d.create())
         val worldScale = SQRT3 / global.getScaleLength()
-        RenderView.worldScale = worldScale
-        val cameraMatrix = RenderView.cameraMatrix
+        RenderState.worldScale = worldScale
+        val cameraMatrix = RenderState.cameraMatrix
         val shadowTextures = shadowTextures
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...

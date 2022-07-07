@@ -1,7 +1,7 @@
 package me.anno.gpu.buffer
 
-import me.anno.engine.ui.render.RenderView.Companion.camPosition
-import me.anno.engine.ui.render.RenderView.Companion.worldScale
+import me.anno.engine.ui.render.RenderState.cameraPosition
+import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -486,7 +486,7 @@ object LineBuffer {
         putRelativeLine(
             v0.x, v0.y, v0.z,
             v1.x, v1.y, v1.z,
-            camPosition, worldScale,
+            cameraPosition, worldScale,
             color
         )
     }
@@ -499,7 +499,7 @@ object LineBuffer {
         putRelativeLine(
             v0.x, v0.y, v0.z,
             v1.x, v1.y, v1.z,
-            camPosition, worldScale,
+            cameraPosition, worldScale,
             color
         )
     }

@@ -158,7 +158,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                     movedSample.validateTransform()
                     if (sample is Entity) sample.validateTransform()
 
-                    pipeline.fill(movedSample, RenderView.camPosition, view.worldScale)
+                    pipeline.fill(movedSample, view.cameraPosition, view.worldScale)
 
                     // draw its gui
                     // todo add them as normal meshes instead
@@ -204,7 +204,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 val scale = view.radius * 0.1
                 val transform = selected.transform.globalTransform
                 val pos = transform.getTranslation(JomlPools.vec3d.create())
-                val cam = RenderView.cameraMatrix
+                val cam = view.cameraMatrix
                 when (mode) {
                     Mode.TRANSLATING -> Gizmos.drawTranslateGizmos(cam, pos, scale, -12)
                     Mode.ROTATING -> Gizmos.drawRotateGizmos(cam, pos, scale, -12)
@@ -316,7 +316,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
 
                 // rotate around the direction
                 // we could use the average mouse position as center; this probably would be easier
-                val dir = RenderView.camDirection
+                val dir = view.cameraDirection
                 val rx = (x - (this.x + this.w * 0.5)) / h
                 val ry = (y - (this.y + this.h * 0.5)) / h // [-.5,+.5]
                 val rotationAngle = rx * dy - ry * dx
@@ -590,8 +590,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         // todo depending on mode, use other strategies to find zero-point on object
         // to do use mouse wheel to change height? maybe...
         // done depending on settings, we also can use snapping
-        val cp = RenderView.camPosition
-        val cd = RenderView.mouseDir
+        val cp = view.cameraPosition
+        val cd = view.mouseDirection
         val plane = Planed(0.0, 1.0, 0.0, 0.0)
         var distance =
             (cd.dot(plane.a, plane.b, plane.c) - cp.dot(plane.a, plane.b, plane.c)) / cd.dot(plane.a, plane.b, plane.c)
@@ -603,7 +603,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             }
         }
         // to do camDirection will only be correct, if this was the last drawn instance
-        dst.set(RenderView.mouseDir).mul(distance).add(RenderView.camPosition)
+        dst.set(view.mouseDirection).mul(distance).add(view.cameraPosition)
         applySnapping(dst)
         return dst
     }

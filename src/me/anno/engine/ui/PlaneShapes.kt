@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.PipelineStage
@@ -98,7 +99,7 @@ object PlaneShapes {
         val mesh = circleBuffer
         val material = defaultMaterial
         // init shader
-        val cameraMatrix = RenderView.cameraMatrix
+        val cameraMatrix = RenderState.cameraMatrix
         GFX.shaderColor(shader, "tint", -1)
         shader.m4x4("transform", cameraMatrix)
         shader.v3f("ambientLight", 1f)

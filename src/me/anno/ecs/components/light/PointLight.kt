@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.ui.LineShapes.drawSphere
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.OpenGL
@@ -82,10 +83,10 @@ class PointLight : LightComponent(LightType.POINT) {
         val transform = entity.transform
         val resolution = shadowMapResolution
         val global = transform.globalTransform
-        val position = global.getTranslation(RenderView.camPosition)
-        val rotation = global.getUnnormalizedRotation(RenderView.camRotation)
+        val position = global.getTranslation(RenderState.cameraPosition)
+        val rotation = global.getUnnormalizedRotation(RenderState.cameraRotation)
         val worldScale = SQRT3 / global.getScaleLength()
-        RenderView.worldScale = worldScale
+        RenderState.worldScale = worldScale
         // only fill pipeline once?
 
         val texture = shadowTextures!![0] as CubemapFramebuffer
@@ -96,7 +97,7 @@ class PointLight : LightComponent(LightType.POINT) {
         val rotInvert = rotation.invert(JomlPools.quat4d.create())
         val rot3 = JomlPools.quat4d.create()
 
-        val cameraMatrix = RenderView.cameraMatrix
+        val cameraMatrix = RenderState.cameraMatrix
         val root = entity.getRoot(Entity::class)
         OpenGL.depthMode.use(DepthMode.GREATER) {
             texture.draw(resolution, Renderer.nothingRenderer) { side ->

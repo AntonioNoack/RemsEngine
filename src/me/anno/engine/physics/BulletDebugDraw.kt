@@ -2,7 +2,7 @@ package me.anno.engine.physics
 
 import com.bulletphysics.linearmath.IDebugDraw
 import me.anno.engine.ui.LineShapes
-import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
@@ -22,7 +22,7 @@ class BulletDebugDraw : IDebugDraw() {
 
     var stack = Matrix4f()
     var cam = org.joml.Vector3d()
-    val worldScale get() = RenderView.worldScale
+    val worldScale get() = RenderState.worldScale
 
     /**
     public static final int NO_DEBUG              = 0;

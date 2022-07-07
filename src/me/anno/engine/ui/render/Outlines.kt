@@ -8,7 +8,6 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.pipeline.CullMode
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
-import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.utils.pooling.JomlPools
@@ -23,7 +22,7 @@ object Outlines {
     fun drawOutline(entity: Entity, worldScale: Double) {
         whiteTexture.bind(0) // for the albedo
         DrawAABB.drawAABB(entity.aabb, worldScale, RenderView.aabbColorHovered)
-        LineBuffer.finish(RenderView.cameraMatrix)
+        LineBuffer.finish(RenderState.cameraMatrix)
         drawOutlineInternally(entity, worldScale)
     }
 
@@ -50,10 +49,10 @@ object Outlines {
         val transform0 = entity.transform
 
         val transform = transform0.getDrawMatrix()
-        val camPosition = RenderView.camPosition
+        val camPosition = RenderState.cameraPosition
 
         // scale based on visual scale, or use a geometry shader for that
-        val joinedTransform = tmpMat4d.set(RenderView.cameraMatrix)
+        val joinedTransform = tmpMat4d.set(RenderState.cameraMatrix)
             .translate(-camPosition.x, -camPosition.y, -camPosition.z)
             .mul(transform)
         // = tmpMat4d.set(viewTransform).mul4x3delta(transform, camPosition, 1.0)
@@ -102,13 +101,13 @@ object Outlines {
                     val shader = baseShader.value
                     shader.use()
 
-                    shader.m4x4("transform", RenderView.cameraMatrix)
-                    shader.m4x4("prevTransform", RenderView.prevCamMatrix)
+                    shader.m4x4("transform", RenderState.cameraMatrix)
+                    shader.m4x4("prevTransform", RenderState.prevCamMatrix)
 
                     shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
                     shader.m4x3delta("prevLocalTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
                     shader.v1f("worldScale", worldScale)
-                    shader.v1f("prevWorldScale", RenderView.prevWorldScale)
+                    shader.v1f("prevWorldScale", RenderState.prevWorldScale)
                     shaderColor(shader, "tint", -1)
 
                     val hasAnim = animated && meshComponent.defineVertexTransform(shader, entity, mesh)

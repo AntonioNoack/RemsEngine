@@ -12,6 +12,7 @@ import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.PlayMode
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
@@ -223,7 +224,7 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
                     val transform = JomlPools.mat4f.create()
                     if (space == Space.WORLD_SPACE) {
                         // I believe this should be correct: screen space = camera transform * world transform * world pos
-                        transform.set(Matrix4d(RenderView.cameraMatrix).mul(entity!!.transform.globalTransform))
+                        transform.set(Matrix4d(RenderState.cameraMatrix).mul(entity!!.transform.globalTransform))
                         transform.invert()
                     }
                     val window = GFX.activeWindow!!

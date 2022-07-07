@@ -17,8 +17,6 @@ import me.anno.engine.ui.EditorState.control
 import me.anno.engine.ui.EditorState.editMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.RenderView.Companion.camPosition
-import me.anno.engine.ui.render.RenderView.Companion.mouseDir
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -230,21 +228,21 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         world.validateAABBs()
         world.validateTransform()
         // mouseDir.mul(100.0)
-        val cam = Vector3d(camPosition)
+        val cam = Vector3d(view.cameraPosition)
         // debugRays.add(DebugRay(cam, Vector3d(mouseDir), -1))
         // .add(camDirection.x * 20, camDirection.y * 20, camDirection.z * 20)
         // .add(Math.random()*20-10,Math.random()*20-10, Math.random()*20-10)
         val hit = Raycast.raycast(
-            world, cam, mouseDir, 0.0, 0.0, // 1.0 / max(h, 1)
+            world, cam, view.mouseDirection, 0.0, 0.0, // 1.0 / max(h, 1)
             view.radius * 1e3, -1, -1, false, hit
         )
         if (hit == null) {
             // draw red point in front of the camera
-            debugPoints.add(DebugPoint(Vector3d(mouseDir).mul(20.0).add(cam), black or 0xff0000))
+            debugPoints.add(DebugPoint(Vector3d(view.mouseDirection).mul(20.0).add(cam), black or 0xff0000))
         } else {
             val pos = Vector3d(hit.positionWS)
             val normal = Vector3d(hit.normalWS).normalize(
-                0.05 * hit.positionWS.distance(camPosition)
+                0.05 * hit.positionWS.distance(view.cameraPosition)
             )
             // draw collision point
             debugPoints.add(DebugPoint(pos, -1))

@@ -12,6 +12,7 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.PlayMode
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.input.MouseButton
@@ -241,12 +242,15 @@ fun main() {
 
         updateCubes()
 
+        val view = SceneView(EditorState, PlayMode.EDITING, style)
+        view.setWeight(1f)
+
         fun raycastPoint(): Node? {
             val maxDistance = 1e3
             val hit = Raycast.raycast(
                 scene,
-                RenderView.camPosition,
-                RenderView.mouseDir,
+                view.renderer.cameraPosition,
+                view.renderer.mouseDirection,
                 0.0, 0.0,
                 maxDistance, -1
             )
@@ -261,8 +265,6 @@ fun main() {
             } else null
         }
 
-        val view = SceneView(EditorState, PlayMode.EDITING, style)
-        view.setWeight(1f)
         view.editControls = object : DraggingControls(view.renderer) {
 
             override fun onKeyTyped(x: Float, y: Float, key: Int) {

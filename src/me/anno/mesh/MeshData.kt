@@ -9,7 +9,9 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
@@ -23,6 +25,7 @@ import me.anno.io.files.thumbs.ThumbsExt
 import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
+import me.anno.utils.types.Matrices.mul2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
@@ -51,7 +54,7 @@ open class MeshData : ICacheData {
     fun drawAssimp(
         useECSShader: Boolean,
         cameraMatrix: Matrix4f,
-        localStack: Matrix4x3fArrayList,
+        localTransform: Matrix4x3fArrayList,
         time: Double,
         color: Vector4fc,
         animationName: String,
@@ -81,21 +84,24 @@ open class MeshData : ICacheData {
             transformUniform(shader, cameraMatrix)
 
             // for GUI functions that use the camera matrix
-            RenderView.worldScale = 1.0
-            RenderView.camPosition.set(0.0)
-            RenderView.camDirection.set(0.0, 0.0, -1.0) // not correct, but approx. correct
-            RenderView.cameraMatrix.set(cameraMatrix)
+            RenderState.worldScale = 1.0
+            RenderState.cameraPosition.set(0.0)
+            RenderState.cameraDirection.set(0.0, 0.0, -1.0) // not correct, but approx. correct
+            RenderState.cameraMatrix.set(cameraMatrix)
             RenderView.currentInstance = null
 
             val cameraXPreGlobal = Matrix4f()
             cameraXPreGlobal.set(cameraMatrix)
-                .mul(localStack)
+                .mul(localTransform)
+
+            val localTransform0 = Matrix4x3f(localTransform)
 
             drawHierarchy(
                 shader,
                 cameraMatrix,
                 cameraXPreGlobal,
-                localStack,
+                localTransform,
+                localTransform0,
                 skinningMatrices,
                 color,
                 model0,
@@ -112,7 +118,8 @@ open class MeshData : ICacheData {
         shader: Shader,
         cameraMatrix: Matrix4f,
         cameraXPreGlobal: Matrix4f,
-        stack: Matrix4x3fArrayList,
+        localTransform: Matrix4x3fArrayList,
+        localTransform0: Matrix4x3f,
         skinningMatrices: Array<Matrix4x3f>?,
         color: Vector4fc,
         model0: AnimGameItem,
@@ -121,14 +128,14 @@ open class MeshData : ICacheData {
         drawSkeletons: Boolean
     ) {
 
-        stack.pushMatrix()
+        localTransform.pushMatrix()
 
         val transform = entity.transform
         val local = transform.localTransform
 
         // this moves the engine parts correctly, but ruins the rotation of the ghost
         // and scales it totally incorrectly
-        stack.mul(
+        localTransform.mul(
             Matrix4x3f(
                 local.m00().toFloat(), local.m01().toFloat(), local.m02().toFloat(),
                 local.m10().toFloat(), local.m11().toFloat(), local.m12().toFloat(),
@@ -140,7 +147,7 @@ open class MeshData : ICacheData {
         if (entity.hasComponent(MeshComponentBase::class)) {
 
             shader.use()
-            shader.m4x3("localTransform", stack)
+            shader.m4x3("localTransform", localTransform)
             shader.v1f("worldScale", 1f) // correct?
             GFX.shaderColor(shader, "tint", -1)
 
@@ -182,6 +189,58 @@ open class MeshData : ICacheData {
             }
         }
 
+        if (entity.hasComponent(MeshSpawner::class)) {
+
+            shader.use()
+            shader.v1f("worldScale", 1f) // correct?
+            GFX.shaderColor(shader, "tint", -1)
+
+            localTransform.pushMatrix()
+            if (useMaterials) {
+                entity.anyComponent(MeshSpawner::class) { comp ->
+                    comp.forEachMesh { mesh, material, transform ->
+                        if (mesh.positions != null) {
+                            mesh.checkCompleteness()
+                            mesh.ensureBuffer()
+                            localTransform
+                                .set(localTransform0)
+                                .mul2(transform.getDrawMatrix())
+                            shader.m4x3("localTransform", localTransform)
+                            shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                            val materials = mesh.materials
+                            for (index in 0 until mesh.numMaterials) {
+                                val material1 = material ?: MaterialCache[materials.getOrNull(index), defaultMaterial]
+                                material1.bind(shader)
+                                mesh.draw(shader, index)
+                            }
+                        }
+                    }
+                    false
+                }
+            } else {
+                val material = defaultMaterial
+                material.bind(shader)
+                entity.anyComponent(MeshSpawner::class) { comp ->
+                    comp.forEachMesh { mesh, _, transform ->
+                        if (mesh.positions != null) {
+                            mesh.checkCompleteness()
+                            mesh.ensureBuffer()
+                            localTransform
+                                .set(localTransform0)
+                                .mul2(transform.getDrawMatrix())
+                            shader.m4x3("localTransform", localTransform)
+                            shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                            for (i in 0 until mesh.numMaterials) {
+                                mesh.draw(shader, i)
+                            }
+                        }
+                    }
+                    false
+                }
+            }
+            localTransform.popMatrix()
+        }
+
         val components = entity.components
         for (index in components.indices) {
             val component = components[index]
@@ -193,19 +252,19 @@ open class MeshData : ICacheData {
         if (drawSkeletons) {
             val animMeshRenderer = entity.getComponent(AnimRenderer::class, false)
             if (animMeshRenderer != null) {
-                SkeletonCache[animMeshRenderer.skeleton]?.draw(shader, stack, skinningMatrices)
+                SkeletonCache[animMeshRenderer.skeleton]?.draw(shader, localTransform, skinningMatrices)
             }
         }
 
         val children = entity.children
         for (i in children.indices) {
             drawHierarchy(
-                shader, cameraMatrix, cameraXPreGlobal, stack, skinningMatrices,
-                color, model0, children[i], useMaterials, drawSkeletons
+                shader, cameraMatrix, cameraXPreGlobal, localTransform, localTransform0,
+                skinningMatrices, color, model0, children[i], useMaterials, drawSkeletons
             )
         }
 
-        stack.popMatrix()
+        localTransform.popMatrix()
     }
 
     override fun destroy() {

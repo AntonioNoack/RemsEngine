@@ -1,7 +1,7 @@
 package me.anno.ecs.components.shaders.effects
 
 import me.anno.Engine
-import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -343,7 +343,7 @@ class FSR2 {
             shader.v2f("renderSize", rw - 1f, rh - 1f)
             shader.v1f("threshold", 0.125f)
             shader.v1f("depthClipBaseScale", 4f)
-            val fov = RenderView.fovYRadians
+            val fov = RenderState.fovYRadians
             shader.v1f("sepFactor", 1.37e-5f * tan(fov * 0.5f) * rw / 2f)
             flat01.draw(shader)
         }
