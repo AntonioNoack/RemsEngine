@@ -140,21 +140,13 @@ class AnimGameItem(
         fun getScaleFromAABB(aabb: AABBf): Float {
             // calculate the scale, such that everything can be visible
             val delta = max(aabb.maxX - aabb.minX, max(aabb.maxY - aabb.minY, aabb.maxZ - aabb.minZ))
-            return 1f / delta
+            return 1f / max(delta, 1e-38f)
         }
 
         fun getScaleFromAABB(aabb: AABBd): Float {
             // calculate the scale, such that everything can be visible
             val delta = max(aabb.maxX - aabb.minX, max(aabb.maxY - aabb.minY, aabb.maxZ - aabb.minZ))
-            return 1f / delta.toFloat()
-        }
-
-        fun centerStackFromAABB(stack: Matrix4x3f, aabb: AABBf) {
-            stack.translate(
-                -(aabb.minX + aabb.maxX) / 2,
-                -(aabb.minY + aabb.maxY) / 2,
-                -(aabb.minZ + aabb.maxZ) / 2
-            )
+            return 1f / max(delta.toFloat(), 1e-38f)
         }
 
         fun centerStackFromAABB(stack: Matrix4x3f, aabb: AABBd) {
@@ -196,8 +188,10 @@ class AnimGameItem(
                         }
                         false
                     }
-                    local.transform(tmpM4.set(entity.transform.globalTransform))
-                    joint.union(local)
+                    if (!local.isEmpty()) {
+                        local.transform(tmpM4.set(entity.transform.globalTransform))
+                        joint.union(local)
+                    }
                 }
                 false
             }

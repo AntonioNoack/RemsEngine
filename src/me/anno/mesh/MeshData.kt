@@ -24,56 +24,31 @@ import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4x3f
+import org.joml.Matrix4x3fArrayList
+import org.joml.Vector4fc
 
 open class MeshData : ICacheData {
 
     var lastWarning: String? = null
     var assimpModel: AnimGameItem? = null
 
-    fun drawAssimp(
-        useECSShader: Boolean,
-        cameraMatrix: Matrix4fArrayList,
-        time: Double,
-        color: Vector4fc,
-        animationName: String,
-        useMaterials: Boolean,
-        centerMesh: Boolean,
-        normalizeScale: Boolean,
-        drawSkeletons: Boolean
-    ) {
-        val localStack = findLocalStack(cameraMatrix, centerMesh, normalizeScale)
-        drawAssimp(
-            useECSShader, cameraMatrix, localStack, time, color, animationName,
-            useMaterials, drawSkeletons
-        )
-    }
-
-    fun findLocalStack(
-        cameraMatrix: Matrix4fArrayList,
+    fun findModelMatrix(
+        cameraMatrix: Matrix4f,
         centerMesh: Boolean,
         normalizeScale: Boolean
     ): Matrix4x3fArrayList {
-
         val model0 = assimpModel!!
-
         val localStack = Matrix4x3fArrayList()
-        if (normalizeScale) {
-            val scale = getScaleFromAABB(model0.staticAABB.value)
-            localStack.scale(scale)
-        }
-
-        if (centerMesh) {
-            centerMesh(null, cameraMatrix, localStack, model0)
-        }
-
+        if (normalizeScale) localStack.scale(getScaleFromAABB(model0.staticAABB.value))
+        if (centerMesh) centerMesh(null, cameraMatrix, localStack, model0)
         return localStack
-
     }
 
     fun drawAssimp(
         useECSShader: Boolean,
-        cameraMatrix: Matrix4fArrayList,
+        cameraMatrix: Matrix4f,
         localStack: Matrix4x3fArrayList,
         time: Double,
         color: Vector4fc,

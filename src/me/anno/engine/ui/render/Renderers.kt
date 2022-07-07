@@ -268,9 +268,12 @@ object Renderers {
                     Variable(GLSLType.V1F, "finalOcclusion"),
                 ), "" +
                         // shared pbr data
+                        // todo finalPosition is wrong, somehow in the middle of the mesh...
+                        // todo this probably means "transform" contains translation and "localTransform" doesn't contain all of it
                         "   vec3 V = normalize(-finalPosition);\n" +
                         // light calculations
-                        "   float NdotV = abs(dot(finalNormal,V));\n" +
+                        // "   float NdotV = abs(dot(finalNormal,V));\n" +
+                        "   float NdotV = dot(finalNormal,V);\n" +
                         // fresnel for all fresnel based effects
                         "   float fresnel = 1.0 - NdotV, fresnel3 = pow(fresnel, 3.0);\n" +
                         "   if(finalClearCoat.w > 0.0){\n" +
@@ -307,6 +310,10 @@ object Renderers {
                         "finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                         "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
                         "finalColor = tonemap(finalColor);\n" +
+                        "" +
+                        "finalColor = vec3(fract(log2(length(finalPosition))));\n" +
+                        // "finalColor = finalPosition;\n" +
+                        // "finalColor = (NdotV > 0.0 ? vec3(1) : vec3(1,0,0)) * NdotV;\n" +
                         // a preview probably doesn't need anti-banding
                         // "finalColor -= random(uv) * ${1.0 / 255.0};\n" +
                         // make the border opaque, so we can see it better -> doesn't work somehow...
@@ -360,7 +367,7 @@ object Renderers {
                         else -> ""
                     }
                 };\n" + if (type.highDynamicRange) {
-                    "finalColor /= 1.0 + abs(finalColor);\n"
+                    "finalColor /= 1.0 + max(max(abs(finalColor).x,abs(finalColor).y),abs(finalColor).z);\n"
                 } else ""
             }
         }

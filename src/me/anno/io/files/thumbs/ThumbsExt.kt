@@ -11,43 +11,29 @@ import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.Shader
 import me.anno.mesh.MeshUtils.centerMesh
-import me.anno.mesh.assimp.AnimGameItem
+import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
+import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import org.joml.*
-import org.joml.Math
 import kotlin.math.max
 
 object ThumbsExt {
 
-    var defaultAngleY = -25f
-
-    fun createPerspective(y: Float, aspectRatio: Float, stack: Matrix4f) {
-
+    fun createPerspective(aspectRatio: Float): Matrix4f {
+        val stack = Matrix4f()
         Perspective.setPerspective(stack, 0.7f, aspectRatio, 0.001f, 10f, 0f, 0f)
         stack.translate(0f, 0f, -1f)// move the camera back a bit
         stack.rotateX(Math.toRadians(15f))// rotate it into a nice viewing angle
-        stack.rotateY(Math.toRadians(y))
+        stack.rotateY(Math.toRadians(-25f))
 
         // calculate the scale, such that everything can be visible
         // half, because it's half the size, 1.05f for a small border
         stack.scale(1.05f * 0.5f)
-
-    }
-
-    fun createPerspectiveList(y: Float, aspectRatio: Float): Matrix4fArrayList {
-        val stack = Matrix4fArrayList()
-        createPerspective(y, aspectRatio, stack)
-        return stack
-    }
-
-    fun createPerspective(y: Float, aspectRatio: Float): Matrix4f {
-        val stack = Matrix4f()
-        createPerspective(y, aspectRatio, stack)
         return stack
     }
 
     fun Mesh.drawAssimp(
-        stack: Matrix4f,
+        cameraMatrix: Matrix4f,
         comp: MeshComponentBase?,
         useMaterials: Boolean,
         centerMesh: Boolean,
@@ -57,50 +43,54 @@ object ThumbsExt {
         val shader = ECSShaderLib.pbrModelShader.value
         shader.use()
 
-        val localStack = if (normalizeScale || centerMesh) {
-            val localStack = Matrix4x3f()
-            if (normalizeScale) {
-                val scale = AnimGameItem.getScaleFromAABB(aabb)
-                localStack.scale(scale)
-            }
-            if (centerMesh) {
-                centerMesh(stack, localStack, this)
-            }
-            localStack
+        val modelMatrix = if (normalizeScale || centerMesh) {
+            val modelMatrix = JomlPools.mat4x3f.create()
+            if (normalizeScale) modelMatrix.scale(getScaleFromAABB(aabb))
+            if (centerMesh) centerMesh(cameraMatrix, modelMatrix, this)
+            modelMatrix
         } else null
 
-        val mesh = this
-        val materials = materials
-        val materialOverrides = comp?.materials ?: emptyList()
+        val materials0 = materials
+        val materials1 = comp?.materials
 
-        if (useMaterials && (materials.isNotEmpty() || materialOverrides.isNotEmpty())) {
-            for (index in materials.indices) {
-                val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
-                val m1 = m0 ?: materials.getOrNull(index)
+        if (useMaterials && (materials0.isNotEmpty() || (materials1 != null && materials1.isNotEmpty()))) {
+            for (index in materials0.indices) {
+                val m0 = materials1?.getOrNull(index)?.nullIfUndefined()
+                val m1 = m0 ?: materials0.getOrNull(index)
                 val material = MaterialCache[m1, Mesh.defaultMaterial]
                 val shader2 = material.shader?.value ?: shader
-                bindShader(shader2, stack, localStack)
+                bindShader(shader2, cameraMatrix, modelMatrix)
                 material.bind(shader2)
-                mesh.draw(shader2, index)
+                draw(shader2, index)
             }
         } else {
-            bindShader(shader, stack, localStack)
+            bindShader(shader, cameraMatrix, modelMatrix)
             val material = Mesh.defaultMaterial
             material.bind(shader)
-            for (materialIndex in 0 until max(1, materials.size)) {
-                mesh.draw(shader, materialIndex)
+            for (materialIndex in 0 until max(1, materials0.size)) {
+                draw(shader, materialIndex)
             }
         }
+
+        if (modelMatrix != null)
+            JomlPools.mat4x3f.sub(1)
+
     }
 
-    fun bindShader(shader: Shader, stack: Matrix4f, localStack: Matrix4x3f?) {
+    fun bindShader(shader: Shader, cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f?) {
         shader.use()
+        LOGGER.warn(shader.vertexSource)
+        LOGGER.warn(shader.fragmentSource)
+        println("drawing\n$cameraMatrix\n$modelMatrix")
+
+        // todo remove translation from cameraMatrix into modelMatrix
+
+
         shaderColor(shader, "tint", -1)
         shader.v1b("hasAnimation", false)
-        shader.m4x4("transform", stack)
-        shader.m4x3("localTransform", localStack)
+        shader.m4x3("localTransform", modelMatrix)
         shader.v1f("worldScale", 1f)
-        GFXx3D.shader3DUniforms(shader, stack, -1)
+        GFXx3D.shader3DUniforms(shader, cameraMatrix, -1)
         GFXx3D.uploadAttractors0(shader)
     }
 
@@ -121,13 +111,8 @@ object ThumbsExt {
             val aabb = AABBd()
             fillSpace(Matrix4x3d(), aabb)
             val localStack = Matrix4x3f()
-            if (normalizeScale) {
-                val scale = AnimGameItem.getScaleFromAABB(aabb)
-                localStack.scale(scale)
-            }
-            if (centerMesh) {
-                centerMesh(stack, localStack, this)
-            }
+            if (normalizeScale) localStack.scale(getScaleFromAABB(aabb))
+            if (centerMesh) centerMesh(stack, localStack, this)
             localStack
         } else null
     }

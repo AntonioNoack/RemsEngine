@@ -47,7 +47,6 @@ import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Filtering
@@ -70,8 +69,6 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.thumbs.ThumbsExt.createPerspective
-import me.anno.io.files.thumbs.ThumbsExt.createPerspectiveList
-import me.anno.io.files.thumbs.ThumbsExt.defaultAngleY
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.io.files.thumbs.ThumbsExt.findLocalStack
 import me.anno.io.text.TextReader
@@ -247,13 +244,6 @@ object Thumbs {
         callback(texture)
     }
 
-    private fun upload(srcFile: FileReference, fb: Framebuffer, callback: (Texture2D) -> Unit) {
-        val texture = (fb.msBuffer?.textures ?: fb.textures).first()
-        texture.rotation = ImageData.getRotation(srcFile)
-        callback(texture)
-        GFX.addGPUTask("Thumbs.destroy()", 1) { fb.destroyExceptTextures(true) }
-    }
-
     private fun upload(srcFile: FileReference, dst: BufferedImage, callback: (Texture2D) -> Unit) {
         val rotation = ImageData.getRotation(srcFile)
         if (isGFXThread()) {
@@ -280,23 +270,6 @@ object Thumbs {
             use(dstFile.outputStream()) { ImageIO.write(dst.createBufferedImage(), destinationFormat, it) }
         }
         upload(srcFile, dst, callback)
-    }
-
-    private fun saveNUpload(
-        srcFile: FileReference,
-        dstFile: FileReference,
-        fb: Framebuffer,
-        dst: BufferedImage,
-        callback: (Texture2D) -> Unit
-    ) {
-        if (useCacheFolder) {
-            // don't wait to upload the image
-            thread(name = "Writing ${dstFile.name} for cached thumbs") {
-                dstFile.getParent()?.tryMkdirs()
-                use(dstFile.outputStream()) { ImageIO.write(dst, destinationFormat, it) }
-            }
-        }
-        upload(srcFile, fb, callback)
     }
 
     private fun saveNUpload(
@@ -499,25 +472,6 @@ object Thumbs {
 
     }
 
-    // just render it using the simplest shader
-    fun generateFrame(
-        srcFile: FileReference,
-        dstFile: FileReference,
-        data: MeshData,
-        size: Int,
-        renderer: Renderer,
-        waitForTextures: Boolean,
-        callback: (ITexture2D) -> Unit
-    ) {
-        if (waitForTextures) waitForTextures(data, srcFile)
-        renderToBufferedImage(srcFile, InvalidRef, dstFile, true, renderer, true, callback, size, size) {
-            data.drawAssimp(
-                true, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
-                useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = false
-            )
-        }
-    }
-
     private fun waitForTextures(comp: MeshComponentBase, mesh: Mesh, srcFile: FileReference) {
         // wait for all textures
         val textures = HashSet<FileReference>()
@@ -634,8 +588,8 @@ object Thumbs {
         val data = MeshData()
         data.assimpModel = AnimGameItem(entity)
         entity.validateTransform()
-        val cameraMatrix = createPerspectiveList(defaultAngleY, 1f)
-        val localStack = data.findLocalStack(cameraMatrix, centerMesh = true, normalizeScale = true)
+        val cameraMatrix = createPerspective(1f)
+        val localStack = data.findModelMatrix(cameraMatrix, centerMesh = true, normalizeScale = true)
         // todo draw gui (colliders), entity positions
         for (i in 0 until 3) { // make sure both are loaded
             waitForMeshes(data)
@@ -658,7 +612,7 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         unused(srcFile)
-        val stack = createPerspectiveList(defaultAngleY, 1f)
+        val stack = createPerspective(1f)
         val localStack = collider.findLocalStack(stack, centerMesh = true, normalizeScale = true)
         renderToBufferedImage(srcFile, InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             collider.drawAssimp(stack, localStack)
@@ -679,7 +633,7 @@ object Thumbs {
         // render everything without color
         renderToBufferedImage(srcFile, InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
-                createPerspective(defaultAngleY, 1f),
+                createPerspective(1f),
                 null,
                 useMaterials = true,
                 centerMesh = true,
@@ -703,7 +657,7 @@ object Thumbs {
         // render everything without color
         renderToBufferedImage(srcFile, InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
-                createPerspective(defaultAngleY, 1f), comp,
+                createPerspective(1f), comp,
                 useMaterials = true,
                 centerMesh = true,
                 normalizeScale = true
@@ -711,7 +665,7 @@ object Thumbs {
         }
     }
 
-    private val materialCamTransform = createPerspective(0f, 1f).scale(0.62f)
+    private val materialCamTransform = createPerspective(1f).scale(0.62f)
 
     // todo if we have preview images, we could use them as cheaper textures
     fun generateMaterialFrame(
@@ -892,7 +846,7 @@ object Thumbs {
             // draw the skeleton in that portion of the frame
             mesh.ensureBuffer()
             mesh.drawAssimp(
-                createPerspective(defaultAngleY, aspect),
+                createPerspective(aspect),
                 null,
                 useMaterials = false,
                 centerMesh = true,
@@ -935,7 +889,7 @@ object Thumbs {
         // draw the skeleton in that portion of the frame
         mesh.ensureBuffer()
         mesh.drawAssimp(
-            createPerspective(defaultAngleY, aspect),
+            createPerspective(aspect),
             null,
             useMaterials = false,
             centerMesh = true,

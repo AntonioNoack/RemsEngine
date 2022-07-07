@@ -86,23 +86,23 @@ object GFXx3D {
         )
     }
 
-    fun shader3DUniforms(shader: Shader, stack: Matrix4f?, color: Int) {
-        transformUniform(shader, stack)
+    fun shader3DUniforms(shader: Shader, transform: Matrix4f?, color: Int) {
+        transformUniform(shader, transform)
         GFX.shaderColor(shader, "tint", color)
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
         shader.v1i("drawMode", GFX.drawMode.id)
     }
 
-    fun shader3DUniforms(shader: Shader, stack: Matrix4f, color: Vector4fc) {
-        transformUniform(shader, stack)
+    fun shader3DUniforms(shader: Shader, transform: Matrix4f, color: Vector4fc) {
+        transformUniform(shader, transform)
         GFX.shaderColor(shader, "tint", color)
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
         shader.v1i("drawMode", GFX.drawMode.id)
     }
 
-    fun transformUniform(shader: Shader, stack: Matrix4fc?) {
+    fun transformUniform(shader: Shader, transform: Matrix4fc?) {
         GFX.check()
-        shader.m4x4("transform", stack)
+        shader.m4x4("transform", transform)
     }
 
     fun draw3DText(
