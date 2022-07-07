@@ -36,14 +36,16 @@ open class MeshData : ICacheData {
 
     fun findModelMatrix(
         cameraMatrix: Matrix4f,
+        modelMatrix: Matrix4x3f,
         centerMesh: Boolean,
         normalizeScale: Boolean
     ): Matrix4x3fArrayList {
         val model0 = assimpModel!!
-        val localStack = Matrix4x3fArrayList()
-        if (normalizeScale) localStack.scale(getScaleFromAABB(model0.staticAABB.value))
-        if (centerMesh) centerMesh(null, cameraMatrix, localStack, model0)
-        return localStack
+        val modelMatrices = Matrix4x3fArrayList()
+        modelMatrices.set(modelMatrix)
+        if (normalizeScale) modelMatrices.scale(getScaleFromAABB(model0.staticAABB.value))
+        if (centerMesh) centerMesh(null, cameraMatrix, modelMatrices, model0)
+        return modelMatrices
     }
 
     fun drawAssimp(

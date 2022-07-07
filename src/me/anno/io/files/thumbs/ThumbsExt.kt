@@ -19,13 +19,17 @@ import kotlin.math.max
 
 object ThumbsExt {
 
-    fun createPerspective(aspectRatio: Float): Matrix4f {
+    fun createCameraMatrix(aspectRatio: Float): Matrix4f {
         val stack = Matrix4f()
         Perspective.setPerspective(stack, 0.7f, aspectRatio, 0.001f, 10f, 0f, 0f)
+        return stack
+    }
+
+    fun createModelMatrix(): Matrix4x3f {
+        val stack = Matrix4x3f()
         stack.translate(0f, 0f, -1f)// move the camera back a bit
         stack.rotateX(Math.toRadians(15f))// rotate it into a nice viewing angle
         stack.rotateY(Math.toRadians(-25f))
-
         // calculate the scale, such that everything can be visible
         // half, because it's half the size, 1.05f for a small border
         stack.scale(1.05f * 0.5f)
@@ -33,7 +37,21 @@ object ThumbsExt {
     }
 
     fun Mesh.drawAssimp(
+        aspectRatio: Float,
+        comp: MeshComponentBase?,
+        useMaterials: Boolean,
+        centerMesh: Boolean,
+        normalizeScale: Boolean
+    ) = drawAssimp(
+        createCameraMatrix(aspectRatio),
+        createModelMatrix(), comp,
+        useMaterials, centerMesh,
+        normalizeScale
+    )
+
+    fun Mesh.drawAssimp(
         cameraMatrix: Matrix4f,
+        modelMatrix: Matrix4x3f,
         comp: MeshComponentBase?,
         useMaterials: Boolean,
         centerMesh: Boolean,
@@ -43,12 +61,10 @@ object ThumbsExt {
         val shader = ECSShaderLib.pbrModelShader.value
         shader.use()
 
-        val modelMatrix = if (normalizeScale || centerMesh) {
-            val modelMatrix = JomlPools.mat4x3f.create()
+        if (normalizeScale || centerMesh) {
             if (normalizeScale) modelMatrix.scale(getScaleFromAABB(aabb))
             if (centerMesh) centerMesh(cameraMatrix, modelMatrix, this)
-            modelMatrix
-        } else null
+        }
 
         val materials0 = materials
         val materials1 = comp?.materials
@@ -72,20 +88,10 @@ object ThumbsExt {
             }
         }
 
-        if (modelMatrix != null)
-            JomlPools.mat4x3f.sub(1)
-
     }
 
-    fun bindShader(shader: Shader, cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f?) {
+    fun bindShader(shader: Shader, cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f) {
         shader.use()
-        LOGGER.warn(shader.vertexSource)
-        LOGGER.warn(shader.fragmentSource)
-        println("drawing\n$cameraMatrix\n$modelMatrix")
-
-        // todo remove translation from cameraMatrix into modelMatrix
-
-
         shaderColor(shader, "tint", -1)
         shader.v1b("hasAnimation", false)
         shader.m4x3("localTransform", modelMatrix)
@@ -102,28 +108,29 @@ object ThumbsExt {
         finishLines(stack, localStack)
     }
 
-    fun Collider.findLocalStack(
-        stack: Matrix4f,
+    fun Collider.findModelMatrix(
+        cameraMatrix: Matrix4f,
+        modelMatrix: Matrix4x3f,
         centerMesh: Boolean,
         normalizeScale: Boolean
-    ): Matrix4x3f? {
-        return if (normalizeScale || centerMesh) {
+    ): Matrix4x3f {
+        if (normalizeScale || centerMesh) {
             val aabb = AABBd()
             fillSpace(Matrix4x3d(), aabb)
-            val localStack = Matrix4x3f()
-            if (normalizeScale) localStack.scale(getScaleFromAABB(aabb))
-            if (centerMesh) centerMesh(stack, localStack, this)
-            localStack
-        } else null
+            if (normalizeScale) modelMatrix.scale(getScaleFromAABB(aabb))
+            if (centerMesh) centerMesh(cameraMatrix, modelMatrix, this)
+        }
+        return modelMatrix
     }
 
     fun Collider.drawAssimp(
-        stack: Matrix4f,
+        cameraMatrix: Matrix4f,
+        modelMatrix: Matrix4x3f,
         centerMesh: Boolean,
         normalizeScale: Boolean
     ) {
-        val localStack = findLocalStack(stack, centerMesh, normalizeScale)
-        drawAssimp(stack, localStack)
+        findModelMatrix(cameraMatrix, modelMatrix, centerMesh, normalizeScale)
+        drawAssimp(cameraMatrix, modelMatrix)
     }
 
     fun finishLines(cameraMatrix: Matrix4f, worldMatrix: Matrix4x3f? = null): Boolean {

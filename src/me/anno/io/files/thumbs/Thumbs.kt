@@ -68,9 +68,10 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.io.files.thumbs.ThumbsExt.createPerspective
+import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
+import me.anno.io.files.thumbs.ThumbsExt.createModelMatrix
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
-import me.anno.io.files.thumbs.ThumbsExt.findLocalStack
+import me.anno.io.files.thumbs.ThumbsExt.findModelMatrix
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFolder
@@ -96,15 +97,17 @@ import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
 import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
-import org.joml.*
 import org.joml.Math.sqrt
+import org.joml.Matrix4fArrayList
+import org.joml.Matrix4x3f
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL11C.*
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -588,8 +591,8 @@ object Thumbs {
         val data = MeshData()
         data.assimpModel = AnimGameItem(entity)
         entity.validateTransform()
-        val cameraMatrix = createPerspective(1f)
-        val localStack = data.findModelMatrix(cameraMatrix, centerMesh = true, normalizeScale = true)
+        val cameraMatrix = createCameraMatrix(1f)
+        val modelMatrices = data.findModelMatrix(cameraMatrix, createModelMatrix(), centerMesh = true, normalizeScale = true)
         // todo draw gui (colliders), entity positions
         for (i in 0 until 3) { // make sure both are loaded
             waitForMeshes(data)
@@ -598,7 +601,7 @@ object Thumbs {
         val drawSkeletons = !entity.hasComponent(MeshComponentBase::class)
         renderToBufferedImage(srcFile, InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             data.drawAssimp(
-                useECSShader = true, cameraMatrix, localStack, 0.0, white4, "",
+                useECSShader = true, cameraMatrix, modelMatrices, 0.0, white4, "",
                 useMaterials = true, drawSkeletons = drawSkeletons
             )
         }
@@ -612,10 +615,11 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         unused(srcFile)
-        val stack = createPerspective(1f)
-        val localStack = collider.findLocalStack(stack, centerMesh = true, normalizeScale = true)
+        val cameraMatrix = createCameraMatrix(1f)
+        val modelMatrix = createModelMatrix()
+        collider.findModelMatrix(cameraMatrix, modelMatrix, centerMesh = true, normalizeScale = true)
         renderToBufferedImage(srcFile, InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
-            collider.drawAssimp(stack, localStack)
+            collider.drawAssimp(cameraMatrix, modelMatrix)
         }
     }
 
@@ -633,8 +637,7 @@ object Thumbs {
         // render everything without color
         renderToBufferedImage(srcFile, InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
-                createPerspective(1f),
-                null,
+                1f, null,
                 useMaterials = true,
                 centerMesh = true,
                 normalizeScale = true
@@ -657,7 +660,7 @@ object Thumbs {
         // render everything without color
         renderToBufferedImage(srcFile, InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
-                createPerspective(1f), comp,
+                1f, comp,
                 useMaterials = true,
                 centerMesh = true,
                 normalizeScale = true
@@ -665,7 +668,8 @@ object Thumbs {
         }
     }
 
-    private val materialCamTransform = createPerspective(1f).scale(0.62f)
+    private val matCameraMatrix = createCameraMatrix(1f)
+    private val matModelMatrix = createModelMatrix().scale(0.62f)
 
     // todo if we have preview images, we could use them as cheaper textures
     fun generateMaterialFrame(
@@ -695,7 +699,8 @@ object Thumbs {
         ) {
             OpenGL.blendMode.use(BlendMode.DEFAULT) {
                 mesh.drawAssimp(
-                    materialCamTransform,
+                    matCameraMatrix,
+                    matModelMatrix,
                     null,
                     useMaterials = true,
                     centerMesh = false,
@@ -740,7 +745,8 @@ object Thumbs {
                 val mesh = sphereMesh.clone()
                 mesh.material = materials[it]
                 mesh.drawAssimp(
-                    materialCamTransform,
+                    matCameraMatrix,
+                    matModelMatrix,
                     null,
                     useMaterials = true,
                     centerMesh = false,
@@ -846,8 +852,7 @@ object Thumbs {
             // draw the skeleton in that portion of the frame
             mesh.ensureBuffer()
             mesh.drawAssimp(
-                createPerspective(aspect),
-                null,
+                aspect, null,
                 useMaterials = false,
                 centerMesh = true,
                 normalizeScale = true
@@ -889,8 +894,7 @@ object Thumbs {
         // draw the skeleton in that portion of the frame
         mesh.ensureBuffer()
         mesh.drawAssimp(
-            createPerspective(aspect),
-            null,
+            aspect, null,
             useMaterials = false,
             centerMesh = true,
             normalizeScale = true
