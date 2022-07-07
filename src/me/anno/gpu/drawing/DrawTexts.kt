@@ -190,7 +190,7 @@ object DrawTexts {
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                         texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                         val x2 = fx + (charWidth - texture.w) / 2
-                        println("cp[1] $codepoint, $x2 by $fx + ($charWidth - ${texture.w}) / 2")
+                        // println("cp[1] $codepoint, $x2 by $fx + ($charWidth - ${texture.w}) / 2")
                         shader.use()
                         posSize(shader, x2, y2, texture.w, texture.h)
                         GFX.flat01.draw(shader)
@@ -241,7 +241,7 @@ object DrawTexts {
                         texture.bindTrulyNearest(0)
                         shader.use()
                         val x2 = fx + (w - texture.w) / 2
-                        println("cp[2] $codepoint, $x2 by $fx + ($w - ${texture.w}) / 2")
+                        // println("cp[2] $codepoint, $x2 by $fx + ($w - ${texture.w}) / 2")
                         GFX.check()
                         posSize(shader, x2, y2, texture.w.toFloat(), texture.h.toFloat())
                         GFX.check()

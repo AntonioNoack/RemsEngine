@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
@@ -95,7 +96,7 @@ class GodRaysEffect : ToneMappedEffect() {
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ), "" +
-                    reinhardToneMapping +
+                    tonemapGLSL +
                     "void main(){\n" +
                     "   vec2 deltaUV = lightPos - uv;\n" +
                     "   vec2 texSize = vec2(textureSize(colorTex,0));\n" +
@@ -114,7 +115,7 @@ class GodRaysEffect : ToneMappedEffect() {
                     "       factor *= falloff;\n" + // todo falloff depends on position
                     "       uv2 += dir;\n" +
                     "   }\n" +
-                    "   if(applyToneMapping) color = reinhard(color);\n" +
+                    "   if(applyToneMapping) color = tonemap(color);\n" +
                     "   result = vec4(texture(colorTex, uv) + sum * intensity, 1.0);\n" +
                     "}\n"
         ).setTextureIndices("colorTex", "depthTex") as Shader

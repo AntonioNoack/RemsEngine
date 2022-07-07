@@ -15,7 +15,6 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.*
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
-import me.anno.gpu.shader.ShaderFuncLib.reinhardToneMapping
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
@@ -25,9 +24,12 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.length
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.LazyMap
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20
+import kotlin.math.max
 
 object Renderers {
 
@@ -35,8 +37,40 @@ object Renderers {
     // todo also maybe it should be customizable...
 
     // and banding prevention
-    val toneMapping =
+    val toneMappingOld =
         "vec3 toneMapping(vec3 color){ return (color)/(1.0+color) - random(gl_FragCoord.xy) * ${1f / 255f}; }\n"
+
+    var tonemapGLSL = "" +
+            "vec3 tonemap(vec3 color){\n" +
+            "   return color / (1.0 + max(max(color.r, color.g), max(color.b, 0.0))) - random(gl_FragCoord.xy) * ${1f / 255f};\n" +
+            "}\n" +
+            "vec4 tonemap(vec4 color){ return vec4(tonemap(color.rgb), color.a); }\n"
+
+    var tonemapKt = { color: Vector3f ->
+        color.div(1f + max(max(color.x, color.y), max(color.z, 0f)))
+    }
+
+    var tonemapInvKt = { color: Vector3f ->
+        color.div(1f - max(max(color.x, color.y), max(color.z, 0f)))
+    }
+
+    fun tonemapKt(color: Vector4f): Vector4f {
+        val tmp = JomlPools.vec3f.create()
+        tmp.set(color.x, color.y, color.z)
+        tonemapKt(tmp)
+        color.set(tmp.x, tmp.y, tmp.z)
+        JomlPools.vec3f.sub(1)
+        return color
+    }
+
+    fun tonemapInvKt(color: Vector4f): Vector4f {
+        val tmp = JomlPools.vec3f.create()
+        tmp.set(color.x, color.y, color.z)
+        tonemapInvKt(tmp)
+        color.set(tmp.x, tmp.y, tmp.z)
+        JomlPools.vec3f.sub(1)
+        return color
+    }
 
     val overdrawRenderer = SimpleRenderer(
         "overdraw", true, ShaderPlus.DrawMode.COLOR, ShaderStage(
@@ -162,11 +196,9 @@ object Renderers {
                     "   finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                     "   finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
                     "#endif\n" +
-                    "   if(applyToneMapping){\n" +
-                    "       finalColor = toneMapping(finalColor);\n" +
-                    "   }\n"
+                    "   if(applyToneMapping) finalColor = tonemap(finalColor); \n"
             ).apply {
-                val src = noiseFunc + toneMapping
+                val src = noiseFunc + tonemapGLSL
                 functions.add(Function(src))
             }
         }
@@ -238,9 +270,9 @@ object Renderers {
                         // shared pbr data
                         "   vec3 V = normalize(-finalPosition);\n" +
                         // light calculations
-                        "   float NdotV = dot(finalNormal,V);\n" +
+                        "   float NdotV = abs(dot(finalNormal,V));\n" +
                         // fresnel for all fresnel based effects
-                        "   float fresnel = 1.0 - abs(NdotV), fresnel3 = pow(fresnel, 3.0);\n" +
+                        "   float fresnel = 1.0 - NdotV, fresnel3 = pow(fresnel, 3.0);\n" +
                         "   if(finalClearCoat.w > 0.0){\n" +
                         // cheap clear coat effect
                         "       float clearCoatEffect = fresnel3 * finalClearCoat.w;\n" +
@@ -258,7 +290,7 @@ object Renderers {
                         "vec3 specularColor = finalColor * finalMetallic;\n" +
                         "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
                         specularBRDFv2NoDivInlined2Start +
-                        "if(NdotV > 0.001) for(int i=0;i<${previewLights.size};i++){\n" +
+                        "for(int i=0;i<${previewLights.size};i++){\n" +
                         "   vec4 data = lightData[i];\n" +
                         "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
                         "   float NdotL = dot(finalNormal, lightDirection);\n" +
@@ -274,15 +306,15 @@ object Renderers {
                         specularBRDFv2NoDivInlined2End +
                         "finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                         "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
-                        "finalColor = finalColor/(1.0+finalColor);\n" + // todo better tonemapping
+                        "finalColor = tonemap(finalColor);\n" +
                         // a preview probably doesn't need anti-banding
                         // "finalColor -= random(uv) * ${1.0 / 255.0};\n" +
                         // make the border opaque, so we can see it better -> doesn't work somehow...
                         // "finalAlpha = clamp(finalAlpha + 10.0 * fresnel3, 0.0, 1.0);\n"
                         ""
             ).apply {
-                val src = reinhardToneMapping + noiseFunc
-                functions.add(Function(src))
+                functions.add(Function(noiseFunc))
+                functions.add(Function(tonemapGLSL))
             }
         }
     }

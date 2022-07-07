@@ -1,6 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
-import me.anno.engine.ui.render.Renderers.toneMapping
+import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.deferred.DeferredLayerType
@@ -54,7 +54,7 @@ object ScreenSpaceReflections {
                     "uniform bool applyToneMapping;\n" +
 
                     noiseFunc +
-                    toneMapping +
+                    tonemapGLSL +
 
                     "void main() {\n" +
 
@@ -67,7 +67,7 @@ object ScreenSpaceReflections {
                     // "   reflectivity = 1;//uv.x > 0.5 ? 1 : 0;\n" + // for debugging
                     // skip, if not reflective
                     "   if (reflectivity <= 0.0) {\n" +
-                    "       fragColor = vec4(applyToneMapping ? toneMapping(color0) : color0, 1.0);\n" +
+                    "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     // "       fragColor = vec4(1,0,0,1);\n" +
                     "       return;\n" +
                     "   }\n" +
@@ -129,7 +129,7 @@ object ScreenSpaceReflections {
                     "   }\n" +
 
                     "   if(hit0 == 0){\n" +
-                    "       fragColor = vec4(applyToneMapping ? toneMapping(color0) : color0, 1.0);\n" +
+                    "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     // debug color
                     // "       fragColor = vec4(1,0,1,1);\n" +
                     "       return;\n" +
@@ -161,7 +161,7 @@ object ScreenSpaceReflections {
                     "   vec3 distanceDelta = bestPositionTo - positionFrom;\n" +
                     "   float distanceSq = dot(distanceDelta, distanceDelta);\n" +
                     "   if(distanceSq >= maxDistanceSq || bestUV.x < 0.0 || bestUV.x > 1.0 || bestUV.y < 0.0 || bestUV.y > 1.0){\n" +
-                    "       fragColor = vec4(applyToneMapping ? toneMapping(color0) : color0, 1.0);\n" +
+                    "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     // debug color
                     // "       fragColor = vec4(0,0,0,1);\n" +
                     "       return;\n" +
@@ -177,7 +177,7 @@ object ScreenSpaceReflections {
                     // reflected position * base color of mirror (for golden reflections)
                     "   vec3 color1 = texture(finalIlluminated, bestUV).rgb * texture(finalColor, uv).rgb;\n" +
                     "   color0 = mix(color0, color1, min(visibility * strength, 1.0));\n" +
-                    "   fragColor = vec4(applyToneMapping ? toneMapping(color0) : color0, 1.0);\n" +
+                    "   fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     // "   fragColor = vec4(0,0,visibility,1);\n" +
                     // "   fragColor = vec4(bestUV, visibility, 1);\n" +
                     "}"

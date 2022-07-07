@@ -173,6 +173,15 @@ abstract class FileExplorer(
             .filter { it != InvalidRef }
     }
 
+    // file explorer
+    // - top bar
+    //   - title
+    //   - search bar
+    // - uContent
+    //   - favourites
+    //   - content
+    //
+
     init {
 
         val esi = entrySize.toInt()

@@ -182,7 +182,7 @@ class AWTFont(val font: Font) {
             gfx.color = Color(textColor)
 
             val y = fontMetrics.ascent
-            println("generating texture for '$text', size $fontSize with ascent $ascent")
+            // println("generating texture for '$text', size $fontSize with ascent $ascent")
 
             if (lineCount == 1) {
                 drawString(gfx, text, group, y)
@@ -479,7 +479,7 @@ class AWTFont(val font: Font) {
 
             for (it in result) {
                 gfx.font = it.font
-                println("drawing string ${it.text} by layout at ${it.xPos}, ${it.yPos} + $y")
+                // println("drawing string ${it.text} by layout at ${it.xPos}, ${it.yPos} + $y")
                 drawString(gfx, it.text, null, it.xPos, it.yPos + y)
             }
 

@@ -92,7 +92,7 @@ class LightPipelineStage(
                 * vec3 specularColor = finalColor * finalMetallic;
                 * finalColor = diffuseColor * diffuseLight + specularLight; // specular already contains the color
                 * finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive; // color, happens in post-processing
-                * finalColor = finalColor/(1.0+finalColor); // tone mapping
+                * finalColor = tonemap(finalColor); // tone mapping
                 * */
                 val builder = ShaderBuilder("post")
                 builder.addVertex(
@@ -171,7 +171,7 @@ class LightPipelineStage(
                 * vec3 specularColor = finalColor * finalMetallic;
                 * finalColor = diffuseColor * diffuseLight + specularLight; // specular already contains the color
                 * finalColor = finalColor * finalOcclusion + finalEmissive; // color, happens in post-processing
-                * finalColor = finalColor/(1.0+finalColor); // tone mapping
+                * finalColor = tonemap(finalColor); // tone mapping
                 * */
                 val builder = ShaderBuilder("$type-$isInstanced")
                 builder.addVertex(
@@ -281,13 +281,12 @@ class LightPipelineStage(
                             "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS = vec3(0.0);\n" +
                             coreFragment +
                             "if(hasSpecular && NdotL > 0.0001 && NdotV > 0.0001){\n" +
-                            "    vec3 H = normalize(V + lightDirWS);\n" +
+                            "   vec3 H = normalize(V + lightDirWS);\n" +
                             specularBRDFv2NoColorStart +
                             specularBRDFv2NoColor +
-                            "    specularLight = effectiveSpecular * computeSpecularBRDF;\n" +
-                            // "    specularLight = clamp(specularLight, 0.0, 1e6);\n" +
+                            "   specularLight = effectiveSpecular * computeSpecularBRDF;\n" +
                             specularBRDFv2NoColorEnd +
-                            "} else specularLight = vec3(0.0);\n" +
+                            "}\n" +
                             // translucency; looks good and approximately correct
                             // sheen is a fresnel effect, which adds light at the edge, e.g. for clothing
                             "NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +

@@ -1,5 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
+import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.renderPurely
@@ -187,12 +188,11 @@ object Bloom {
                 Variable(GLSLType.S2D, "bloom")
             ), "" +
                     noiseFunc +
+                    tonemapGLSL +
                     "void main(){\n" +
                     "   vec4 color0 = texture(base,uv);\n" +
                     "   vec3 color = color0.rgb + strength * texture(bloom, uv).rgb;\n" +
-                    "   if(applyToneMapping){\n" +
-                    "       color = color/(1.0+color) - random(uv) * ${1.0 / 255.0};\n" +
-                    "   }\n" +
+                    "   if(applyToneMapping) color = tonemap(color) - random(uv) * ${1.0 / 255.0};\n" +
                     "   fragColor = vec4(color.rgb, 1.0);\n" +
                     "}\n"
         ).apply { setTextureIndices(listOf("base", "bloom")) }

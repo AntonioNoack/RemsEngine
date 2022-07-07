@@ -1,6 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
-import me.anno.engine.ui.render.Renderers.toneMapping
+import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL.useFrame
@@ -55,13 +55,13 @@ object FSR {
                     "uniform vec2 texelOffset;\n" +
                     "uniform bool applyToneMapping;\n" +
                     noiseFunc + // needed for tone mapping
-                    toneMapping +
+                    tonemapGLSL +
                     "void main(){\n" +
                     "   vec3 color;\n" +
                     "   float alpha = texture(source,uv).a;\n" +
                     "   vec2 coords = uv * dstWH;\n" +
                     "   FsrEasuF(color, coords, con0, con1, con2, con3);\n" +
-                    "   glFragColor = vec4(applyToneMapping ? toneMapping(color) : color, alpha > .01 ? 1.0 : 0.0);\n" +
+                    "   glFragColor = vec4(applyToneMapping ? tonemap(color) : color, alpha > .01 ? 1.0 : 0.0);\n" +
                     "}"
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such

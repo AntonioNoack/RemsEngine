@@ -20,7 +20,7 @@ object PBRLibraryGLTF {
 
     // factor extracted from the BRDF
     // also ambient must be added at the end, or we would need to divide by DxPi4 at the start
-    val specularBRDFv2NoDivInlined2End = "specularLight = specularColor * (specularLight * DxPi4 + ambientLight);\n"
+    val specularBRDFv2NoDivInlined2End = "specularLight = specularColor * (specularLight + ambientLight);\n"
 
     // (specularColor, finalRoughness, V, finalNormal, NdotL, NdotV, H)
     val specularBRDFv2NoDivInlined2 = "" +
@@ -44,7 +44,7 @@ object PBRLibraryGLTF {
             //"    float Gx = NdotL;\n" +
             // NdotL is already in the light equation, NdotV is in G
             // also we don't need two divisions, we can use one
-            "vec3 computeSpecularBRDF = (1.0 / (x * x * t.x * t.y)) * F;\n"
+            "vec3 computeSpecularBRDF = (DxPi4 / (x * x * t.x * t.y)) * F;\n"
 
     // the following functions can be used, if the color isn't yet available
     // (or you want to use one texture access less)
@@ -74,8 +74,8 @@ object PBRLibraryGLTF {
             // also we don't need two divisions, we can use one
             // to do 1. where is our bug, that we need to limit the value?
             // to do 2. why can we set the limit so high? how is it processed further?
-            "#define computeSpecularBRDF 1.0 / max(1e-6, x * x * t.x * t.y)\n"
+            "#define computeSpecularBRDF DxPi4 / (x * x * t.x * t.y)\n"
 
-    val specularBRDFv2NoColorEnd = "specularLight *= DxPi4 * finalMetallic;\n" // * specularColor, just without color
+    val specularBRDFv2NoColorEnd = "specularLight *= finalMetallic;\n" // * specularColor, just without color
 
 }

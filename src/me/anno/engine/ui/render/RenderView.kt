@@ -32,6 +32,7 @@ import me.anno.engine.ui.render.Renderers.overdrawRenderer
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
+import me.anno.engine.ui.render.Renderers.tonemapInvKt
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2
@@ -43,7 +44,6 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.deferred.DepthBasedAntiAliasing
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures.drawDepthTexture
@@ -1267,8 +1267,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     shader.m4x4("prevTransform", prevCamMatrix)
                     val c = tmp4f
                     c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
-                    // inverse reinhard tonemapping
-                    if (toneMappedColors) c.div(1f - c.x, 1f - c.y, 1f - c.z, 1f)
+                    // inverse tonemapping
+                    if (toneMappedColors) tonemapInvKt(c)
                     shader.v4f("color", c.x, c.y, c.z, 1f)
                     shaderColor(shader, "tint", -1)
                     shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
