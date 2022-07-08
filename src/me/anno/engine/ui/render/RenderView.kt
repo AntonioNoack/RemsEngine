@@ -243,10 +243,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         val world = getWorld()
         if (world is Entity) {
-            if (lastPhysics != world.physics) {
-                library.syncMaster.nextSession()
-                lastPhysics = world.physics
-            }
+            lastPhysics = world.physics
         }
 
         if (isKeyDown(GLFW.GLFW_KEY_PAUSE)) {

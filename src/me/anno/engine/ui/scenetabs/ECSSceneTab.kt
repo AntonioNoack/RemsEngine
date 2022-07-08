@@ -30,7 +30,6 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.Draggable
-import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
@@ -40,7 +39,6 @@ import org.joml.Vector3d
 // todo darken panels when in play-testing mode
 
 class ECSSceneTab(
-    val syncMaster: SyncMaster,
     val inspector: PrefabInspector,
     val file: FileReference,
     val playMode: PlayMode,
@@ -48,17 +46,16 @@ class ECSSceneTab(
 ) : TextPanel(name, DefaultConfig.style) {
 
     constructor(
-        syncMaster: SyncMaster,
         file: FileReference,
         classNameIfNull: String,
         playMode: PlayMode,
         name: String = file.nameWithoutExtension
-    ) : this(syncMaster, PrefabInspector(file, classNameIfNull), file, playMode, name)
+    ) : this(PrefabInspector(file, classNameIfNull), file, playMode, name)
 
     constructor(
-        syncMaster: SyncMaster, file: FileReference, playMode: PlayMode,
+        file: FileReference, playMode: PlayMode,
         name: String = file.nameWithoutExtension
-    ) : this(syncMaster, PrefabInspector(file), file, playMode, name)
+    ) : this(PrefabInspector(file), file, playMode, name)
 
     init {
         LOGGER.info("Created tab with ${inspector.prefab.countTotalChanges(true)}+ changes")
@@ -124,8 +121,6 @@ class ECSSceneTab(
 
         // todo when first created, center around scene, and adjust the radius
 
-        syncMaster.nextSession()
-
         if (isFirstTime) {
             val root = inspector.root
             isFirstTime = false
@@ -145,7 +140,6 @@ class ECSSceneTab(
     }
 
     fun onStop() {
-        syncMaster.nextSession()
         try {
             for (window in windowStack) {
                 window.panel.forAll {
@@ -188,7 +182,7 @@ class ECSSceneTab(
     fun play() {
         val tab = ECSSceneTabs.currentTab!!
         val playMode = if (playMode == PlayMode.EDITING) PlayMode.PLAY_TESTING else PlayMode.EDITING
-        ECSSceneTabs.open(ECSSceneTab(tab.syncMaster, tab.inspector, tab.file, playMode, findName(tab.file)))
+        ECSSceneTabs.open(ECSSceneTab(tab.inspector, tab.file, playMode, findName(tab.file)))
     }
 
     fun playFullscreen() {

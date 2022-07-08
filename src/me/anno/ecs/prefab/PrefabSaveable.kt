@@ -65,7 +65,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             if (parent != null) {
                 val pp = parent.prefabPath
                 if (pp != null) {
-                    // find which type we are
+                    // find, which type we are
                     for (childType in parent.listChildTypes()) {
                         val children = parent.getChildListByType(childType)
                         val index = children.indexOf(this)

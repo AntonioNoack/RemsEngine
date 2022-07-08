@@ -8,7 +8,7 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import org.joml.Vector3f
 
 // https://en.wikipedia.org/wiki/Wavefront_.obj_file
-class Material : Saveable() {
+class ObjMaterial : Saveable() {
     var ambientColor: Vector3f? = null // Ka
     var ambientTexture: FileReference = InvalidRef
     var diffuseColor: Vector3f? = null // Kd

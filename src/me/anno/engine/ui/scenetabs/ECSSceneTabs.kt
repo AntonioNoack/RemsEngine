@@ -14,8 +14,6 @@ import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
-import me.anno.utils.hpc.SyncMaster
-import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 
@@ -42,29 +40,23 @@ object ECSSceneTabs : ScrollPanelX(style) {
         content.spacing = 4
     }
 
-    fun open(syncMaster: SyncMaster, reference: FileReference, playMode: PlayMode): ECSSceneTab {
+    fun open(reference: FileReference, playMode: PlayMode): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == reference }
         return if (opened != null) {
             open(opened)
             opened
         } else {
-            val tab = ECSSceneTab(syncMaster, reference, playMode, findName(reference))
+            val tab = ECSSceneTab(reference, playMode, findName(reference))
             content += tab
             open(tab)
             tab
         }
     }
 
-    fun open(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String, playMode: PlayMode): ECSSceneTab {
-        val tab = add(syncMaster, file, classNameIfNull, playMode)
-        open(tab)
-        return tab
-    }
-
-    fun add(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String, playMode: PlayMode): ECSSceneTab {
+    fun add(file: FileReference, classNameIfNull: String, playMode: PlayMode): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == file }
         return if (opened == null) {
-            val tab = ECSSceneTab(syncMaster, file, classNameIfNull, playMode, findName(file))
+            val tab = ECSSceneTab(file, classNameIfNull, playMode, findName(file))
             content += tab
             tab
         } else opened
@@ -109,7 +101,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
     }
 
     fun open(file: FileReference, classNameIfNull: String = "Entity", playMode: PlayMode) {
-        open(EditorState.syncMaster, file, classNameIfNull, playMode)
+        open(file, classNameIfNull, playMode)
     }
 
     val project get() = (StudioBase.instance as? RemsEngine)?.currentProject
@@ -216,13 +208,10 @@ object ECSSceneTabs : ScrollPanelX(style) {
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        val syncMaster = rootPanel.listOfAll.firstInstanceOrNull<RenderView>()?.library?.syncMaster
-        if (syncMaster != null) {
-            try {
-                open(syncMaster, files.first(), "Entity", PlayMode.EDITING)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        try {
+            open(files.first(), "Entity", PlayMode.EDITING)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

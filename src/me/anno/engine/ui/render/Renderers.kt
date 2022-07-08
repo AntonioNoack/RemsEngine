@@ -268,15 +268,6 @@ object Renderers {
                         "   vec3 V = normalize(-finalPosition);\n" +
                         // light calculations
                         "   float NdotV = abs(dot(finalNormal,V));\n" +
-                        // fresnel for all fresnel based effects
-                        "   float fresnel = 1.0 - NdotV, fresnel3 = pow(fresnel, 3.0);\n" +
-                        "   if(finalClearCoat.w > 0.0){\n" +
-                        // cheap clear coat effect
-                        "       float clearCoatEffect = fresnel3 * finalClearCoat.w;\n" +
-                        "       finalRoughness = mix(finalRoughness, finalClearCoatRoughMetallic.x, clearCoatEffect);\n" +
-                        "       finalMetallic = mix(finalMetallic, finalClearCoatRoughMetallic.y, clearCoatEffect);\n" +
-                        "       finalColor = mix(finalColor, finalClearCoat.rgb, clearCoatEffect);\n" +
-                        "   }\n" +
                         // precalculate sheen
                         "   float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
                         "   float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +

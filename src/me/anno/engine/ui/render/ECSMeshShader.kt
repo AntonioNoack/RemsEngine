@@ -4,11 +4,8 @@ import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.*
+import me.anno.gpu.shader.builder.*
 import me.anno.gpu.shader.builder.Function
-import me.anno.gpu.shader.builder.ShaderBuilder
-import me.anno.gpu.shader.builder.ShaderStage
-import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 import kotlin.math.max
@@ -16,6 +13,10 @@ import kotlin.math.max
 open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     companion object {
+
+        // the following values could be const, but I don't want them to be,
+        // because they might change; and then they change, the compiler doesn't always update them
+
         const val getAnimMatrix =
             "" + loadMat4x3 +
                     "mat4x3 getAnimMatrix(int index, float time){\n" +
@@ -35,6 +36,87 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   return t;\n" +
                     "}\n" +
                     "mat4x3 getAnimMatrix(int boneIndex){ return getAnimMatrix(boneIndex, animIndices, animWeights); }\n"
+
+        val discardByCullingPlane = "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n"
+
+        val v0 = "vec3 V0 = normalize(-finalPosition);\n"
+        val sheenCalculation = "" +
+                // sheen calculation
+                "if(sheen > 0.0){\n" +
+                "   vec3 sheenNormal = finalNormal;\n" +
+                "   if(finalSheen * normalStrength.y > 0.0){\n" +
+                "      vec3 normalFromTex = texture(sheenNormalMap, uv).rgb * 2.0 - 1.0;\n" +
+                "           normalFromTex = tbn * normalFromTex;\n" +
+                // original or transformed "finalNormal"? mmh...
+                // transformed probably is better
+                "      sheenNormal = mix(finalNormal, normalFromTex, normalStrength.y);\n" +
+                "   }\n" +
+                // calculate sheen
+                "   float sheenFresnel = 1.0 - abs(dot(sheenNormal,V0));\n" +
+                "   finalSheen = sheen * pow(sheenFresnel, 3.0);\n" +
+                "} else finalSheen = 0.0;\n"
+
+        val clearCoatCalculation = "" +
+                "if(finalClearCoat.w > 0.0){\n" +
+                // cheap clear coat effect
+                "   float fresnel = 1.0 - abs(dot(finalNormal,V0));\n" +
+                "   float clearCoatEffect = pow(fresnel, 3.0) * finalClearCoat.w;\n" +
+                "   finalRoughness = mix(finalRoughness, finalClearCoatRoughMetallic.x, clearCoatEffect);\n" +
+                "   finalMetallic = mix(finalMetallic, finalClearCoatRoughMetallic.y, clearCoatEffect);\n" +
+                "   finalColor = mix(finalColor, finalClearCoat.rgb, clearCoatEffect);\n" +
+                "}\n"
+
+        val reflectionPlaneCalculation = "" +
+                // reflections
+                // use roughness instead?
+                // "   if(finalMetallic > 0.0) finalColor = mix(finalColor, texture(reflectionPlane,uv).rgb, finalMetallic);\n" +
+                "if(hasReflectionPlane){\n" +
+                "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1.0 - finalRoughness);\n" +
+                "   float factor = clamp((effect-.3)*1.4, 0.0, 1.0);\n" +
+                "   if(factor > 0.0){\n" +
+                "       vec3 newColor = vec3(0.0);\n" +
+                "       vec3 newEmissive = finalColor * texelFetch(reflectionPlane, ivec2(gl_FragCoord.xy), 0).rgb;\n" +
+                // also multiply for mirror color <3
+                "       finalEmissive = mix(finalEmissive, newEmissive, factor);\n" +
+                // "       finalEmissive /= (1-finalEmissive);\n" + // only required, if tone mapping is applied
+                "       finalColor = mix(finalColor, newColor, factor);\n" +
+                // "       finalRoughness = 0;\n" +
+                // "       finalMetallic = 0;\n" +
+                "   }\n" +
+                "};\n"
+
+        val normalMapCalculation = "" +
+                // bitangent: checked, correct transform
+                // can be checked with a lot of rotated objects in all orientations,
+                // and a shader with light from top/bottom
+                "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
+                "if(abs(normalStrength.x) > 0.0){\n" +
+                "   vec3 normalFromTex = texture(normalMap, uv).rgb * 2.0 - 1.0;\n" +
+                "        normalFromTex = tbn * normalFromTex;\n" +
+                // normalize?
+                "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
+                "}\n"
+
+        val baseColorCalculation = "" +
+                "vec4 color = vec4(vertexColor.rgb, 1.0) * diffuseBase * texture(diffuseMap, uv);\n" +
+                "if(color.a < ${1f / 255f}) discard;\n" +
+                "finalColor = color.rgb;\n" +
+                "finalAlpha = color.a;\n"
+
+        val normalTanBitanCalculation = "" +
+                "finalTangent   = normalize(tangent.xyz);\n" + // for debugging
+                "finalNormal    = normalize(normal);\n" +
+                "finalBitangent = normalize(cross(finalNormal, finalTangent) * tangent.w);\n"
+
+        val emissiveCalculation = "finalEmissive  = texture(emissiveMap, uv).rgb * emissiveBase;\n"
+        val occlusionCalculation = "finalOcclusion = (1.0 - texture(occlusionMap, uv).r) * occlusionStrength;\n"
+        val metallicCalculation =
+            "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv).r), 0.0, 1.0);\n"
+        val roughnessCalculation =
+            "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r), 0.0, 1.0);\n"
+        val finalMotionCalculation =
+            "finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n"
+
     }
 
     init {
@@ -327,81 +409,23 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     // just like the gltf pbr shader define all material properties
     open fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): ShaderStage {
-
         return ShaderStage(
             "material",
             createFragmentVariables(isInstanced, isAnimated, motionVectors),
-            "" +
-                    "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
-
+            discardByCullingPlane +
                     // step by step define all material properties
-                    "vec4 color = vec4(vertexColor.rgb, 1.0) * diffuseBase * texture(diffuseMap, uv);\n" +
-                    "if(color.a < ${1f / 255f}) discard;\n" +
-                    "finalColor = color.rgb;\n" +
-                    "finalAlpha = color.a;\n" +
-                    "finalTangent   = normalize(tangent.xyz);\n" + // for debugging
-                    "finalNormal    = normalize(normal);\n" +
-                    "finalBitangent = normalize(cross(finalNormal, finalTangent) * tangent.w);\n" +
-                    // bitangent: checked, correct transform
-                    // can be checked with a lot of rotated objects in all orientations,
-                    // and a shader with light from top/bottom
-                    "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
-                    "if(normalStrength.x > 0.0){\n" +
-                    "   vec3 normalFromTex = texture(normalMap, uv).rgb * 2.0 - 1.0;\n" +
-                    "        normalFromTex = tbn * normalFromTex;\n" +
-                    "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
-                    "}\n" +
-                    "finalEmissive  = texture(emissiveMap, uv).rgb * emissiveBase;\n" +
-                    "finalOcclusion = (1.0 - texture(occlusionMap, uv).r) * occlusionStrength;\n" +
-                    "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv).r), 0.0, 1.0);\n" +
-                    "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r), 0.0, 1.0);\n" +
-
-                    // reflections
-                    // use roughness instead?
-                    // "   if(finalMetallic > 0.0) finalColor = mix(finalColor, texture(reflectionPlane,uv).rgb, finalMetallic);\n" +
-                    "if(hasReflectionPlane){\n" +
-                    "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1.0 - finalRoughness);\n" +
-                    "   float factor = clamp((effect-.3)*1.4, 0.0, 1.0);\n" +
-                    "   if(factor > 0.0){\n" +
-                    "       vec3 newColor = vec3(0.0);\n" +
-                    "       vec3 newEmissive = finalColor * texelFetch(reflectionPlane, ivec2(gl_FragCoord.xy), 0).rgb;\n" +
-                    // also multiply for mirror color <3
-                    "       finalEmissive = mix(finalEmissive, newEmissive, factor);\n" +
-                    // "       finalEmissive /= (1-finalEmissive);\n" + // only required, if tone mapping is applied
-                    "       finalColor = mix(finalColor, newColor, factor);\n" +
-                    // "       finalRoughness = 0;\n" +
-                    // "       finalMetallic = 0;\n" +
-                    "   }\n" + "};\n" +
-
-                    // sheen calculation
-                    "vec3 V0 = normalize(-finalPosition);\n" +
-                    "if(sheen > 0.0){\n" +
-                    "   vec3 sheenNormal = finalNormal;\n" +
-                    "   if(finalSheen * normalStrength.y > 0.0){\n" +
-                    "      vec3 normalFromTex = texture(sheenNormalMap, uv).rgb * 2.0 - 1.0;\n" +
-                    "           normalFromTex = tbn * normalFromTex;\n" +
-                    // original or transformed "finalNormal"? mmh...
-                    // transformed probably is better
-                    "      sheenNormal = mix(finalNormal, normalFromTex, normalStrength.y);\n" +
-                    "   }\n" +
-                    // calculate sheen
-                    "   float sheenFresnel = 1.0 - abs(dot(sheenNormal,V0));\n" +
-                    "   finalSheen = sheen * pow(sheenFresnel, 3.0);\n" +
-                    "} else finalSheen = 0.0;\n" +
-
-                    "if(finalClearCoat.w > 0.0){\n" +
-                    // cheap clear coat effect
-                    "   float fresnel = 1.0 - abs(dot(finalNormal,V0));\n" +
-                    "   float clearCoatEffect = pow(fresnel, 3.0) * finalClearCoat.w;\n" +
-                    "   finalRoughness = mix(finalRoughness, finalClearCoatRoughMetallic.x, clearCoatEffect);\n" +
-                    "   finalMetallic = mix(finalMetallic, finalClearCoatRoughMetallic.y, clearCoatEffect);\n" +
-                    "   finalColor = mix(finalColor, finalClearCoat.rgb, clearCoatEffect);\n" +
-                    "}\n" +
-                    (if (motionVectors) "finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" else "") +
-                    ""
-
+                    baseColorCalculation +
+                    normalTanBitanCalculation +
+                    normalMapCalculation +
+                    emissiveCalculation +
+                    occlusionCalculation +
+                    metallicCalculation +
+                    roughnessCalculation +
+                    reflectionPlaneCalculation +
+                    v0 + sheenCalculation +
+                    clearCoatCalculation +
+                    (if (motionVectors) finalMotionCalculation else "")
         )
-
     }
 
     override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): Shader {

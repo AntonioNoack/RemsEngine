@@ -1,7 +1,6 @@
 package me.anno.ecs.prefab
 
 import me.anno.Build
-import me.anno.ecs.Entity
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
@@ -12,7 +11,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.zip.InnerPrefabFile
 import me.anno.io.zip.InnerTmpFile
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.any2
@@ -67,10 +65,12 @@ class Prefab : Saveable {
         private set
 
     fun invalidateInstance() {
-        synchronized(this) {
-            _sampleInstance?.destroy()
-            _sampleInstance = null
-        }
+        if (source !is InnerTmpFile.InnerTmpPrefabFile || sets.isNotEmpty()) {
+            synchronized(this) {
+                _sampleInstance?.destroy()
+                _sampleInstance = null
+            }
+        } else LOGGER.warn("Cannot invalidate tmp-prefab")
         // todo all child prefab instances would need to be invalidated as well
     }
 
@@ -80,8 +80,7 @@ class Prefab : Saveable {
     }
 
     fun ensureMutableLists() {
-        if (adds !is MutableList) adds = ArrayList(adds)
-        // if (sets !is MutableList) sets = ArrayList(sets)
+        if (adds !is ArrayList) adds = ArrayList(adds)
     }
 
     fun getPrefabOrSource() = prefab.nullIfUndefined() ?: source

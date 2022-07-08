@@ -142,7 +142,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     "vec3 localPos = localStart - halfBounds + dir * dist;\n" +
                     "finalPosition = localTransform * vec4(localPos, 1.0);\n" +
                     // must be used for correct mirror rendering
-                    "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
+                    discardByCullingPlane +
                     "vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
                     "gl_FragDepth = newVertex.z/newVertex.w;\n" +
                     // todo add reflections from reflection planes back in

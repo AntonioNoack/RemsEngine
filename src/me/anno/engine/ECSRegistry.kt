@@ -39,6 +39,7 @@ import me.anno.ecs.components.script.QuickScriptComponent
 import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.components.shaders.CuboidMesh
 import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.TriplanarMaterial
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TestVehicleController
 import me.anno.ecs.components.test.TypeTestComponent
@@ -175,6 +176,7 @@ object ECSRegistry {
         registerCustomClass(SplineControlPoint())
         registerCustomClass(PathProfile())
         registerCustomClass(CuboidMesh())
+        registerCustomClass(TriplanarMaterial())
 
         // animated meshes
         AnimStateNode.register()

@@ -33,7 +33,6 @@ import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.utils.WindowStack.Companion.createReloadWindow
 import me.anno.utils.OS
 import me.anno.utils.files.Files.findNextFileName
-import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
 // todo loading is slow: all tabs are loaded, even if only a single one is actually used
@@ -77,8 +76,6 @@ import org.apache.logging.log4j.LogManager
 open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     lateinit var currentProject: GameEngineProject
-
-    val syncMaster = SyncMaster()
 
     override fun loadConfig() {
         DefaultConfig.defineDefaultFileAssociations()
@@ -161,15 +158,12 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         workspace = OS.documents.getChild("RemsEngine")
         workspace.tryMkdirs()
 
-        EditorState.syncMaster = syncMaster
-
         object : WelcomeUI() {
             override fun createProjectUI() {
 
                 val windowStack = GFX.windows.first().windowStack
                 val style = style
                 val list = PanelListY(style)
-                val isGaming = false
                 val options = OptionBar(style)
                 val configTitle = Dict["Config", "ui.top.config"]
                 options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
@@ -190,7 +184,7 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
                 list.add(ECSSceneTabs)
 
-                val editUI = DefaultLayout.createDefaultMainUI(currentProject.location, syncMaster, isGaming, style)
+                val editUI = DefaultLayout.createDefaultMainUI(currentProject.location, style)
                 list.add(editUI)
 
                 list.add(ConsoleOutputPanel.createConsoleWithStats(true, style))

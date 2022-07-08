@@ -14,12 +14,10 @@ import me.anno.ui.Panel
 import me.anno.ui.custom.Type
 import me.anno.ui.custom.UITypeLibrary
 import me.anno.ui.editor.PropertyInspector
-import me.anno.utils.hpc.SyncMaster
 
 object EditorState {
 
     lateinit var projectFile: FileReference
-    lateinit var syncMaster: SyncMaster
     var isGaming = false
 
     var prefabSource: FileReference = InvalidRef
@@ -83,7 +81,7 @@ object EditorState {
         // Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },
         // Dict["Timeline", "ui.customize.timeline"] to { TimelinePanel(DefaultConfig.style) },
         // Dict["Animations", "ui.customize.graphEditor"] to { GraphEditor(DefaultConfig.style) },
-        Dict["Files", "ui.customize.fileExplorer"] to { ECSFileExplorer(projectFile, syncMaster, DefaultConfig.style) }
+        Dict["Files", "ui.customize.fileExplorer"] to { ECSFileExplorer(projectFile, DefaultConfig.style) }
     ).map { Type(it.first, it.second) }.toMutableList()
 
     val uiLibrary = UITypeLibrary(typeList)

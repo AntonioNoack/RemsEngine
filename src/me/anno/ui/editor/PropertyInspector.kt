@@ -56,6 +56,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
     override fun tickUpdate() {
         super.tickUpdate()
         val selected = getInspectables()
+
         if (selected != lastSelected) {
             lastSelected = selected
             needsUpdate = false
@@ -128,8 +129,6 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
     override val className: String = "PropertyInspector"
 
     companion object {
-
-        private val LOGGER = LogManager.getLogger(PropertyInspector::class)
 
         private fun createGroup(
             title: String, description: String, dictSubPath: String,

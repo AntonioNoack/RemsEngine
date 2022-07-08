@@ -9,14 +9,11 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.style.Style
 import me.anno.utils.OS.documents
-import me.anno.utils.hpc.SyncMaster
 
 object DefaultLayout {
 
     fun createDefaultMainUI(
         projectFile: FileReference,
-        syncMaster: SyncMaster,
-        isGaming: Boolean,
         style: Style
     ): Panel {
 
@@ -38,8 +35,8 @@ object DefaultLayout {
         customUI.add(animationWindow, 2f)
 
         val explorers = CustomList(false, style).apply { setWeight(0.3f) }
-        explorers.add(CustomContainer(ECSFileExplorer(projectFile, syncMaster, style), library, style))
-        explorers.add(CustomContainer(ECSFileExplorer(documents, syncMaster, style), library, style))
+        explorers.add(CustomContainer(ECSFileExplorer(projectFile, style), library, style))
+        explorers.add(CustomContainer(ECSFileExplorer(documents, style), library, style))
 
         customUI.add(explorers)
 

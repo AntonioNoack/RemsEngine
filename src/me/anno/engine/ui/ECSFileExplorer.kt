@@ -27,7 +27,6 @@ import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.style.Style
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
 
@@ -35,13 +34,13 @@ import org.apache.logging.log4j.LogManager
 // done create material, mesh, animation etc folder
 // done rename Scene.json to mesh file name.json
 
-class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: Style) : FileExplorer(file0, style) {
+class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0, style) {
 
     override fun onDoubleClick(file: FileReference) {
         // open the file
         val prefab = PrefabCache[file]
         if (prefab != null) {
-            ECSSceneTabs.open(syncMaster, file, PlayMode.EDITING)
+            ECSSceneTabs.open(file, PlayMode.EDITING)
         } else {
             switchTo(file)
             // msg(NameDesc("Could not open prefab!"))
