@@ -23,6 +23,7 @@ import me.anno.utils.types.Vectors.print
 import java.util.*
 
 // the BRDF model is sometimes awkward -> implementation test
+// fixed it :)
 
 private val testShader = Shader(
     "brdf-baseline", coordsList, coordsVShader, uvList,
@@ -35,17 +36,16 @@ private val testShader = Shader(
             // generate baseColor, metallic, roughness, VNL randomly
             "   vec4 data0 = texture(randomTex, uv);\n" +
             "   vec3 finalColor = vec3(1);//data0.rgb;\n" +
-            "   float NdotH = data0.r;\n" + // error does not depend on this
-            "   float NdotV = data0.g;\n" + // todo error depends on this
-            "   float NdotL = data0.b;\n" + // todo error depends on this
-            "   float HdotV = data0.a;\n" + // error does not depend on this
+            "   float NdotH = data0.r;\n" +
+            "   float NdotV = data0.g;\n" +
+            "   float NdotL = data0.b;\n" +
+            "   float HdotV = data0.a;\n" +
             "   float finalRoughness = uv.x;\n" +
-            "   float finalMetallic = uv.y;\n" + // todo error does depend on this
+            "   float finalMetallic = uv.y;\n" +
             "#define DOTS\n" +
             // calculate H and result
             "   vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);\n" +
             "   vec3 specularColor = finalColor * finalMetallic;\n" +
-            // our engine, todo which is wrong
             "   vec3 ambientLight = vec3(0.0);\n" +
             "   vec3 effectiveSpecular = vec3(1.0), effectiveDiffuse = vec3(1.0);\n" + // light strength
             specularBRDFv2NoDivInlined2Start +
@@ -71,7 +71,7 @@ private val testShader = Shader(
             // "   color = uv.x < 0.5 ? diff2 : diffuseLight;\n" + // diff is correct, so specular is wrong :)
             // "   color = abs(diff2 - diffuseLight) * 100.0;\n" +
             // "   color = abs(diff2 - diffuseLight);\n" +
-            // "   if(uv.y > 0.5) color = abs(baseline - engineColor);\n" +
+            // "  color = abs(baseline - engineColor);\n" +
             // "   color = vec3(abs(x9-x));\n" +
             // "   color = baseline;\n" +
             // "   color = vec3(finalMetallic, finalRoughness, finalColor.r);\n" +
@@ -95,7 +95,6 @@ fun main() {
     useFrame(target) {
         val shader = testShader
         shader.use()
-        println(shader.fragmentSource)
         randomTex.bind(0)
         flat01.draw(shader)
     }

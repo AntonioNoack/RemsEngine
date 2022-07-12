@@ -88,6 +88,24 @@ object Maths {
     fun pow(base: Float, power: Float) = StrictMath.pow(base.toDouble(), power.toDouble()).toFloat()
     fun log(base: Float) = StrictMath.log(base.toDouble()).toFloat()
 
+    /**
+     * calculates log2().toInt() much quicker than usual
+     * */
+    fun Float.log2i(): Int {
+        val bits = toRawBits()
+        val exponent = (bits shr 23) and 255
+        return exponent - 127
+    }
+
+    /**
+     * calculates log2().toInt() much quicker than usual
+     * */
+    fun Double.log2i(): Int {
+        val bits = toRawBits()
+        val exponent = (bits shr 52).toInt() and 2047
+        return exponent - 1023
+    }
+
     fun length(dx: Float, dy: Float) = hypot(dx, dy)
     fun length(dx: Double, dy: Double) = hypot(dx, dy)
     fun length(dx: Float, dy: Float, dz: Float) = sqrt(dx * dx + dy * dy + dz * dz)

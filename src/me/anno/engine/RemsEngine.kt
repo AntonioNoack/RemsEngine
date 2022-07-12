@@ -116,10 +116,8 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         GameEngine.scaledTime = GameEngine.scaledNanos * 1e-9
     }
 
-    override fun isSelected(obj: Any?): Boolean {
-        return EditorState.selection.contains(obj) ||
-                EditorState.fineSelection.contains(obj)
-    }
+    override fun isSelected(obj: Any?) =
+        EditorState.selection.contains(obj)
 
     override fun onGameLoop(window: WindowX, w: Int, h: Int) {
         DefaultConfig.saveMaybe("main.config")
@@ -194,6 +192,7 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
             override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {
                 currentProject = GameEngineProject.readOrCreate(folder)!!
                 currentProject.init()
+                EditorState.projectFile = currentProject.location
                 return name to folder
             }
         }.create(this)
@@ -230,23 +229,19 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         fun collectSelected(): Any {
             val selection = EditorState.selection.map { (it as? PrefabSaveable)?.prefabPath ?: it }
-            val fineSelection = EditorState.fineSelection.map { (it as? PrefabSaveable)?.prefabPath ?: it }
             val lastSelection = EditorState.lastSelection.run { (this as? PrefabSaveable)?.prefabPath ?: this }
-            return Triple(selection, fineSelection, lastSelection)
+            return Pair(selection, lastSelection)
         }
 
         fun restoreSelected(collected: Any) {
-            val (selection, fineSelection, lastSelection) = @Suppress("unchecked_cast")
-            (collected as Triple<List<Any>, List<Any>, Any?>)
+            val (selection, lastSelection) = @Suppress("unchecked_cast")
+            (collected as Pair<List<Any>, Any?>)
             // restore the current selection
             // reloaded prefab; must not be accessed before clearAll
             val prefab = EditorState.prefab
             val sample = prefab?.getSampleInstance()
             if (prefab != null && sample != null) {
                 EditorState.selection = selection
-                    .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
-                    .filterIsInstance<Inspectable>()
-                EditorState.fineSelection = fineSelection
                     .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
                     .filterIsInstance<Inspectable>()
                 EditorState.lastSelection = lastSelection.run {

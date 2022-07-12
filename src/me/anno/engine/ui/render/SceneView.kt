@@ -1,11 +1,18 @@
 package me.anno.engine.ui.render
 
+import me.anno.config.DefaultConfig
+import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.control.PlayControls
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelStack
+import me.anno.ui.custom.CustomList
+import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.style.Style
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -46,6 +53,20 @@ class SceneView(val library: EditorState, playMode: PlayMode, style: Style) : Pa
         editControls.visibility = Visibility[editing]
         playControls.visibility = Visibility[!editing]
         renderer.controlScheme = if (editing) editControls else playControls
+    }
+
+    companion object {
+        fun runEditor(scene: PrefabSaveable, init: (SceneView) -> Unit = {}): Panel {
+            EditorState.prefabSource = scene.ref
+            val sceneView = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
+            PrefabInspector.currentInspector = PrefabInspector(scene.ref)
+            val list = CustomList(false, DefaultConfig.style)
+            list.add(ECSTreeView(EditorState, DefaultConfig.style), 1f)
+            list.add(sceneView, 3f)
+            list.add(PropertyInspector({ EditorState.selection }, DefaultConfig.style), 1f)
+            init(sceneView)
+            return list
+        }
     }
 
 }

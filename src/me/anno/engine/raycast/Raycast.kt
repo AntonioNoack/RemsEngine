@@ -4,7 +4,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
@@ -16,6 +15,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Math
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.sqrt
 
 object Raycast {
@@ -219,10 +219,9 @@ object Raycast {
     }*/
 
     fun raycastTriangleMesh(
-        entity: Entity?, component: MeshComponentBase, mesh: Mesh,
-        start: Vector3d, direction: Vector3d, end: Vector3d,
-        radiusAtOrigin: Double, radiusPerUnit: Double,
-        result: RayHit,
+        entity: Entity?, mesh: Mesh, start: Vector3d,
+        direction: Vector3d, end: Vector3d, radiusAtOrigin: Double,
+        radiusPerUnit: Double, result: RayHit,
     ): Boolean {
 
         val original = result.distance
@@ -356,6 +355,41 @@ object Raycast {
 
         return result.distance < original
 
+    }
+
+    private val ex = RuntimeException()
+
+    @Suppress("unused")
+    fun raycastTriangleMesh(mesh: Mesh, start: Vector3f, dir: Vector3f, distance: Float): Boolean {
+        if (distance <= 0.0) return false
+        mesh.ensureBuffer()
+        // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
+        // test whether we intersect the aabb of this mesh
+        if (mesh.aabb.testLine(start, dir, distance)) {
+            val localHitTmp = JomlPools.vec3f.create()
+            val localNormalTmp = JomlPools.vec3f.create()
+            val a = JomlPools.vec3f.create()
+            val b = JomlPools.vec3f.create()
+            val c = JomlPools.vec3f.create()
+            try {
+                mesh.forEachTriangle(a, b, c) { ai, bi, ci ->
+                    // check collision of localStart-localEnd with triangle a,b,c
+                    val localDistance = rayTriangleIntersection(
+                        start, dir, ai, bi, ci,
+                        distance, localHitTmp, localNormalTmp
+                    )
+                    if (localDistance < distance) {
+                        throw ex
+                    }
+                }
+            } catch (e: RuntimeException) {
+                if (e !== ex) throw e
+                return true
+            } finally {
+                JomlPools.vec3f.sub(5)
+            }
+        }
+        return false
     }
 
     @JvmStatic

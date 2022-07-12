@@ -3,6 +3,7 @@ package me.anno.fonts
 import me.anno.cache.CacheData
 import me.anno.cache.instances.TextCache
 import me.anno.cache.instances.TextSizeCache
+import me.anno.config.DefaultConfig.style
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
@@ -10,8 +11,13 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.ceilDiv
+import me.anno.ui.base.text.TextPanel
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.Clock
+import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
@@ -107,8 +113,8 @@ object FontManager {
         val data = TextSizeCache.getEntry(key, 100_000, false) {
             val awtFont = getFont(it)
             val averageFontSize = getAvgFontSize(it.fontSizeIndex())
-            val wl = if(it.widthLimit < 0) GFX.maxTextureSize else min(it.widthLimit, GFX.maxTextureSize)
-            val hl = if(it.heightLimit < 0) GFX.maxTextureSize else min(it.heightLimit, GFX.maxTextureSize)
+            val wl = if (it.widthLimit < 0) GFX.maxTextureSize else min(it.widthLimit, GFX.maxTextureSize)
+            val hl = if (it.heightLimit < 0) GFX.maxTextureSize else min(it.heightLimit, GFX.maxTextureSize)
             CacheData(awtFont.calculateSize(it.text, averageFontSize, wl, hl))
         } as CacheData<*>
         return data.value as Int
@@ -228,12 +234,43 @@ object FontManager {
     }
 
     private fun getDefaultFont(name: String): Font? {
-        val key = FontKey(name, Int.MIN_VALUE, false, false)
+        val key = FontKey(name, Int.MIN_VALUE, bold = false, italic = false)
         val cached = awtFonts[key]
         if (cached != null) return cached
-        val font = Font.decode(name) ?: return null
+        val font = if ('/' in name) {
+            try {
+                loadFont(getReference(name))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return null
+            }
+        } else Font.decode(name) ?: return null
         awtFonts[key] = font
         return font
+    }
+
+    private fun loadFont(ref: FileReference): Font {
+        return ref.inputStream().use { stream ->
+            // what is type1_font?
+            val font = Font.createFont(Font.TRUETYPE_FONT, stream)
+            GraphicsEnvironment
+                .getLocalGraphicsEnvironment()
+                .registerFont(font)
+            font
+        }
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) { // small test for custom fonts; works :)
+        GFX.disableRenderDoc = true
+        testUI {
+            val panel = TextPanel("This is some sample text", style)
+            val link = downloads.getChild("fonts/kids-alphabet.zip/KidsAlphabet.ttf")
+            panel.font = panel.font
+                .withName(link.absolutePath)
+                .withSize(50f)
+            panel
+        }
     }
 
 }

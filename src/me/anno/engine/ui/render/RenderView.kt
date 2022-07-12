@@ -991,9 +991,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     }
 
-    fun resolveClick(
-        px: Float, py: Float
-    ): Pair<Entity?, Component?> {
+    fun resolveClick(px: Float, py: Float, drawDebug: Boolean = false): Pair<Entity?, Component?> {
 
         // pipeline should already be filled
         val camera = editorCamera
@@ -1012,7 +1010,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 w, h, camera, camera, 0f, idRenderer, buffer,
                 changeSize = false, toneMappedColors = false
             )
-            drawGizmos(false)
+            drawGizmos(drawGridLines = false, drawDebug)
         }
 
         for (idx in ids.indices) {
@@ -1024,7 +1022,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 w, h, camera, camera, 0f, depthRenderer, buffer,
                 changeSize = false, toneMappedColors = false
             )
-            drawGizmos(false)
+            drawGizmos(drawGridLines = false, drawDebug)
         }
 
         val clickedId = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
@@ -1332,10 +1330,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     }
 
     private fun drawSelected() {
-        if (library.fineSelection.isEmpty() && library.selection.isEmpty()) return
+        if (library.selection.isEmpty()) return
         // draw scaled, inverted object (for outline), which is selected
         OpenGL.depthMode.use(depthMode) {
-            for (selected in library.fineSelection) {
+            for (selected in library.selection) {
                 when (selected) {
                     is Entity -> drawOutline(selected, worldScale)
                     is MeshComponentBase -> {
@@ -1367,14 +1365,15 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     private fun drawGizmos(
         framebuffer: IFramebuffer,
-        drawGridLines: Boolean
+        drawGridLines: Boolean,
+        drawDebug: Boolean = true
     ) {
         useFrame(framebuffer, simpleNormalRenderer) {
-            drawGizmos(drawGridLines)
+            drawGizmos(drawGridLines, drawDebug)
         }
     }
 
-    fun drawGizmos(drawGridLines: Boolean) {
+    fun drawGizmos(drawGridLines: Boolean, drawDebug: Boolean = true) {
 
         if (playMode != PlayMode.EDITING) return
 
@@ -1456,7 +1455,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     drawGrid(radius)
                 }
 
-                DebugRendering.drawDebug(this)
+                if (drawDebug) {
+                    DebugRendering.drawDebug(this)
+                }
 
                 LineBuffer.finish(cameraMatrix)
                 PlaneShapes.finish()

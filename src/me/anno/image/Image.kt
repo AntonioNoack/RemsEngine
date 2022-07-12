@@ -200,6 +200,19 @@ abstract class Image(
 
     override fun destroy() {}
 
+    /**
+     * for debugging and easier seeing pixels
+     * */
+    fun scaleUp(sx: Int, sy: Int): Image {
+        return object : Image(width * sx, height * sy, numChannels, hasAlphaChannel) {
+            override fun getRGB(index: Int): Int {
+                val x = (index % this.width) / sx
+                val y = (index / this.width) / sy
+                return this@Image.getRGB(x, y)
+            }
+        }
+    }
+
     companion object {
 
         fun argb(a: Byte, r: Byte, g: Byte, b: Byte): Int {

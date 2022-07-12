@@ -2,6 +2,7 @@ package me.anno.ecs.components.shaders
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.shader.Shader
 import org.joml.Vector4f
@@ -30,5 +31,21 @@ class TriplanarMaterial : Material() {
         shader.v3f("cameraPosition", cameraPosition.x.toFloat(), cameraPosition.y.toFloat(), cameraPosition.z.toFloat())
         shader.v1f("worldScale", RenderState.worldScale)
     }
+
+    override fun clone(): TriplanarMaterial {
+        val clone = TriplanarMaterial()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as TriplanarMaterial
+        clone.sharpness = sharpness
+        clone.blendPreferY = blendPreferY
+        clone.primaryTiling.set(primaryTiling)
+    }
+
+    override val className = "TriplanarMaterial"
 
 }

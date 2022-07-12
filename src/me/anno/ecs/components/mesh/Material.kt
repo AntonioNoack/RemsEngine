@@ -10,6 +10,8 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.image.ImageGPUCache
@@ -28,6 +30,12 @@ open class Material : PrefabSaveable() {
 
     // todo most properties here should be defined by the shader, not this class
     // todo we then somehow must display them dynamically
+
+    @SerializedProperty
+    var linearFiltering = true
+
+    @SerializedProperty
+    var clamping = Clamping.REPEAT
 
     @Type("Map<String,TypeValue>")
     @SerializedProperty
@@ -139,13 +147,15 @@ open class Material : PrefabSaveable() {
         val white = TextureLib.whiteTexture
         val n001 = TextureLib.normalTexture
 
-        bindTexture(shader, "occlusionMap", occlusionMap, white)
-        bindTexture(shader, "metallicMap", metallicMap, white)
-        bindTexture(shader, "roughnessMap", roughnessMap, white)
-        bindTexture(shader, "emissiveMap", emissiveMap, white)
-        val sheenNormalTex = bindTexture(shader, "sheenNormalMap", sheenNormalMap, white)
-        val normalTex = bindTexture(shader, "normalMap", normalMap, n001)
-        bindTexture(shader, "diffuseMap", diffuseMap, white)
+        val f = if (linearFiltering) GPUFiltering.LINEAR else GPUFiltering.NEAREST
+        val c = clamping
+        bindTexture(shader, "occlusionMap", occlusionMap, white, f, c)
+        bindTexture(shader, "metallicMap", metallicMap, white, f, c)
+        bindTexture(shader, "roughnessMap", roughnessMap, white, f, c)
+        bindTexture(shader, "emissiveMap", emissiveMap, white, f, c)
+        val sheenNormalTex = bindTexture(shader, "sheenNormalMap", sheenNormalMap, white, f, c)
+        val normalTex = bindTexture(shader, "normalMap", normalMap, n001, f, c)
+        bindTexture(shader, "diffuseMap", diffuseMap, white, f, c)
 
         shader.v4f("diffuseBase", diffuseBase)
         shader.v2f(
@@ -204,6 +214,8 @@ open class Material : PrefabSaveable() {
         result = 31 * result + occlusionStrength.hashCode()
         result = 31 * result + occlusionMap.hashCode()
         result = 31 * result + translucency.hashCode()
+        result = 31 * result + linearFiltering.hashCode()
+        result = 31 * result + clamping.hashCode()
         return result
     }
 
@@ -230,6 +242,8 @@ open class Material : PrefabSaveable() {
         if (occlusionMap != other.occlusionMap) return false
         if (translucency != other.translucency) return false
         if (shaderOverrides != other.shaderOverrides) return false
+        if (linearFiltering != other.linearFiltering) return false
+        if (clamping != other.clamping) return false
 
         return true
     }
@@ -265,7 +279,8 @@ open class Material : PrefabSaveable() {
         clone.shader = shader
         clone.pipelineStage = pipelineStage
         clone.isDoubleSided = isDoubleSided
-        // todo other stuff, that we missed
+        clone.linearFiltering = linearFiltering
+        clone.clamping = clamping
     }
 
     override val className: String = "Material"
@@ -282,6 +297,25 @@ open class Material : PrefabSaveable() {
             return if (index >= 0) {
                 val tex = getTex(file)
                 (tex ?: default).bind(index)
+                tex
+            } else {
+                LOGGER.warn("Didn't find texture $name in ${shader.name}")
+                null
+            }
+        }
+
+        fun bindTexture(
+            shader: Shader,
+            name: String,
+            file: FileReference,
+            default: Texture2D,
+            filtering: GPUFiltering,
+            clamping: Clamping
+        ): Texture2D? {
+            val index = shader.getTextureIndex(name)
+            return if (index >= 0) {
+                val tex = getTex(file)
+                (tex ?: default).bind(index, filtering, clamping)
                 tex
             } else {
                 LOGGER.warn("Didn't find texture $name in ${shader.name}")

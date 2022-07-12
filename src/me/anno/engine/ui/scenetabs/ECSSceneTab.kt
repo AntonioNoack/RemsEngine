@@ -3,6 +3,9 @@ package me.anno.engine.ui.scenetabs
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.Animation
+import me.anno.ecs.components.anim.Skeleton
+import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
@@ -22,6 +25,7 @@ import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mixARGB
+import me.anno.mesh.assimp.AnimGameItem
 import me.anno.studio.StudioBase
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
@@ -30,10 +34,10 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.Draggable
+import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Matrix4x3d
 import org.joml.Vector3d
 
 // todo darken panels when in play-testing mode
@@ -76,8 +80,7 @@ class ECSSceneTab(
         when (root) {
             is MeshComponentBase -> {
                 root.ensureBuffer()
-                val mesh = root.getMesh() ?: return
-                resetCamera2(mesh)
+                resetCamera2(root.getMesh() ?: return)
             }
             is Mesh -> resetCamera2(root)
             is Material, is LightComponentBase -> {
@@ -89,12 +92,49 @@ class ECSSceneTab(
                 resetCamera(root.aabb, true)
             }
             is Collider -> {
-                val aabb = AABBd()
-                root.union(Matrix4x3d(), aabb, Vector3d(), false)
+                val aabb = JomlPools.aabbd.create().clear()
+                val mat = JomlPools.mat4x3d.create().identity()
+                val vec = JomlPools.vec3d.create()
+                root.union(mat, aabb, vec, false)
                 resetCamera(aabb, false)
+                JomlPools.mat4x3d.sub(1)
+                JomlPools.vec3d.sub(1)
+                JomlPools.aabbd.sub(1)
+            }
+            is Animation -> {
+                val skeleton = SkeletonCache[root.skeleton] ?: return
+                val aabb = skeletalBounds(skeleton)
+                // widen bounds by motion
+                val motionBounds = AABBf()
+                for (i in 0 until root.numFrames) {
+                    val matrices = root.getMatrices(0, AnimGameItem.tmpMatrices) ?: break
+                    for (j in skeleton.bones.indices) {
+                        val offset = matrices[j]
+                        motionBounds.union(offset.m30(), offset.m31(), offset.m32())
+                    }
+                }
+                aabb.minX += motionBounds.minX
+                aabb.minY += motionBounds.minY
+                aabb.minZ += motionBounds.minZ
+                aabb.maxX += motionBounds.maxX
+                aabb.maxY += motionBounds.maxY
+                aabb.maxZ += motionBounds.maxZ
+                resetCamera(aabb, true)
+            }
+            is Skeleton -> {
+                // find still bounds
+                resetCamera(skeletalBounds(root), true)
             }
             else -> LOGGER.warn("Please implement bounds for ${root.className}")
         }
+    }
+
+    private fun skeletalBounds(skeleton: Skeleton): AABBf {
+        val aabb = AABBf()
+        for (bone in skeleton.bones) {
+            aabb.union(bone.bindPosition)
+        }
+        return aabb
     }
 
     private fun resetCamera2(mesh: Mesh) {

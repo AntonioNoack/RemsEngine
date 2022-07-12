@@ -10,6 +10,7 @@ import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
 import me.anno.io.base.InvalidClassException
 import me.anno.io.base.InvalidFormatException
+import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
@@ -156,6 +157,8 @@ object PrefabCache : CacheSection("Prefab") {
                     val prefab = TextReader.read(file, StudioBase.workspace, false).firstOrNull()
                     if (prefab is Prefab) prefab.source = file
                     if (prefab != null) return prefab
+                } catch (e: UnknownClassException){
+                    LOGGER.warn("$e by $file", e)
                 } catch (e: InvalidFormatException) {
                     if (printJsonErrors && file.lcExtension == "json")
                         LOGGER.warn("$e by $file", e)
@@ -192,7 +195,11 @@ object PrefabCache : CacheSection("Prefab") {
         val pair = getPrefabPair(resource, depth, async) ?: return null
         return pair.instance ?: try {
             pair.prefab?.getSampleInstance(depth)
+        } catch (e: UnknownClassException){
+            e.printStackTrace()
+            null
         } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
@@ -208,8 +215,9 @@ object PrefabCache : CacheSection("Prefab") {
             resource is InnerLinkFile -> getPrefabPair(resource.link, depth, async)
             resource.exists && !resource.isDirectory -> {
                 val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
+                    LOGGER.info("loading $file")
                     val loaded = loadPrefab3(file)
-                    // LOGGER.info("loaded $file, got ${loaded?.className}")
+                    LOGGER.info("loaded $file, got ${loaded?.className}")
                     // if (loaded is Prefab) LOGGER.info(loaded)
                     if (loaded != null) {
                         FileWatch.addWatchDog(file)

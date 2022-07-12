@@ -79,7 +79,6 @@ import me.anno.io.zip.InnerPrefabFile
 import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
-import me.anno.mesh.MeshData
 import me.anno.mesh.MeshData.Companion.warnMissingMesh
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.studio.StudioBase
@@ -507,10 +506,10 @@ object Thumbs {
         waitForTextures(textures)
     }
 
-    private fun waitForTextures(data: MeshData, srcFile: FileReference) {
+    private fun waitForTextures(entity: Entity, srcFile: FileReference) {
         // wait for all textures
         val textures = HashSet<FileReference>()
-        collectTextures(data.assimpModel!!.hierarchy, textures)
+        collectTextures(entity, textures)
         textures.removeIf { it == InvalidRef }
         textures.removeIf {
             if (!it.exists) {
@@ -521,9 +520,9 @@ object Thumbs {
         waitForTextures(textures)
     }
 
-    private fun waitForMeshes(data: MeshData) {
+    private fun waitForMeshes(entity: Entity) {
         // wait for all textures
-        data.assimpModel!!.hierarchy.forAll {
+        entity.forAll {
             if (it is MeshComponentBase) {
                 // does the CPU part -> not perfect, but maybe good enough
                 it.ensureBuffer()
@@ -588,19 +587,18 @@ object Thumbs {
         entity: Entity,
         callback: (Texture2D) -> Unit
     ) {
-        val data = MeshData()
-        data.assimpModel = AnimGameItem(entity)
+        val agi = AnimGameItem(entity)
         entity.validateTransform()
         val cameraMatrix = createCameraMatrix(1f)
-        val modelMatrices = data.findModelMatrix(cameraMatrix, createModelMatrix(), centerMesh = true, normalizeScale = true)
+        val modelMatrices = agi.findModelMatrix(cameraMatrix, createModelMatrix(), centerMesh = true, normalizeScale = true)
         // todo draw gui (colliders), entity positions
         for (i in 0 until 3) { // make sure both are loaded
-            waitForMeshes(data)
-            waitForTextures(data, srcFile)
+            waitForMeshes(entity)
+            waitForTextures(entity, srcFile)
         }
         val drawSkeletons = !entity.hasComponent(MeshComponentBase::class)
         renderToBufferedImage(srcFile, InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
-            data.drawAssimp(
+            agi.drawAssimp(
                 useECSShader = true, cameraMatrix, modelMatrices, 0.0, white4, "",
                 useMaterials = true, drawSkeletons = drawSkeletons
             )

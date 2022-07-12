@@ -192,7 +192,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         val (e, c) = view.resolveClick(x, y)
         // show the entity in the property editor
         // but highlight the specific mesh
-        library.select(e ?: c?.entity ?: c, e ?: c, Input.isShiftDown)
+        library.select(c ?: e, Input.isShiftDown)
     }
 
     open fun drawGizmos() {

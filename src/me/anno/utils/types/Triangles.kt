@@ -177,7 +177,7 @@ object Triangles {
         val x1 = c.x() - a.x()
         val y1 = c.y() - a.y()
         val z1 = c.z() - a.z()
-        val rx = y0 * z1 - y1 * z0
+        val rx = y0 * z1 - z0 * y1
         val ry = z0 * x1 - x0 * z1
         val rz = x0 * y1 - y0 * x1
         return dst.set(rx, ry, rz)
@@ -217,15 +217,45 @@ object Triangles {
         return dst.set(rx, ry, rz)
     }
 
+    @Suppress("unused")
     fun linePointDistance(start: Vector3fc, dir: Vector3fc, px: Float, py: Float, pz: Float): Float {
         val tmp = JomlPools.vec3f.borrow()
         return tmp.set(start).sub(px, py, pz)
             .cross(dir).length()
     }
 
+    @Suppress("unused")
     fun linePointDistance(start: Vector3dc, dir: Vector3dc, px: Double, py: Double, pz: Double): Double {
         val tmp = JomlPools.vec3d.borrow()
         return tmp.set(start).sub(px, py, pz)
+            .cross(dir).length()
+    }
+
+    @Suppress("unused")
+    fun linePointDistance(start: Vector3fc, dir: Vector3fc, p: Vector3fc): Float {
+        val tmp = JomlPools.vec3f.borrow()
+        return tmp.set(start).sub(p)
+            .cross(dir).length()
+    }
+
+    @Suppress("unused")
+    fun linePointDistance(start: Vector3dc, dir: Vector3dc, p: Vector3dc): Double {
+        val tmp = JomlPools.vec3d.borrow()
+        return tmp.set(start).sub(p)
+            .cross(dir).length()
+    }
+
+    @Suppress("unused")
+    fun linePointDistance(start: Vector3fc, dir: Vector3fc, p: Vector3dc): Float {
+        val tmp = JomlPools.vec3f.borrow()
+        return tmp.set(start).sub(p.x().toFloat(), p.y().toFloat(), p.z().toFloat())
+            .cross(dir).length()
+    }
+
+    @Suppress("unused")
+    fun linePointDistance(start: Vector3dc, dir: Vector3dc, p: Vector3fc): Double {
+        val tmp = JomlPools.vec3d.borrow()
+        return tmp.set(start).sub(p)
             .cross(dir).length()
     }
 
@@ -286,6 +316,28 @@ object Triangles {
         val n = Vector3f(Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat())
         println((b - a).cross(c - a).dot(n))
         println(subCrossDot(a, b, c, n))
+    }
+
+    fun crossDot(
+        a: Vector3f,
+        b: Vector3f,
+        d: Vector3f,
+    ): Float {
+        val cx = a.y * b.z - a.z * b.y
+        val cy = a.z * b.x - a.x * b.z
+        val cz = a.x * b.y - a.y * b.x
+        return d.dot(cx,cy,cz)
+    }
+
+    fun crossDot(
+        ax: Float, ay: Float, az: Float,
+        bx: Float, by: Float, bz: Float,
+        dx: Float, dy: Float, dz: Float
+    ): Float {
+        val cx = ay * bz - az * by
+        val cy = az * bx - ax * bz
+        val cz = ax * by - ay * bx
+        return cx * dx + cy * dy + cz * dz
     }
 
     const val thirdD = 1.0 / 3.0

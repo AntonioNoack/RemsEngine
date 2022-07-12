@@ -577,7 +577,6 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         }
         if (results.isNotEmpty()) {
             EditorState.selection = results
-            EditorState.fineSelection = results
             EditorState.lastSelection = results.last()
             dragged = null
             requestFocus(true) // because we dropped sth here
@@ -631,7 +630,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        for (child in EditorState.fineSelection) {
+        for (child in EditorState.selection) {
             if (child is PrefabSaveable) {
                 val parent = child.parent
                 if (parent != null) {
@@ -640,8 +639,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             }
         }
         // remove it from the selection
-        EditorState.selection = EditorState.selection.filter { it !in EditorState.fineSelection }
-        EditorState.fineSelection = EditorState.fineSelection.filter { it !is PrefabSaveable || it.parent == null }
+        EditorState.selection = emptyList()
     }
 
     val blenderAddon = BlenderControlsAddon()

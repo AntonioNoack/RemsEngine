@@ -444,31 +444,50 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     /**
      * when the element is moved
-     * invalidates all children, so it's pretty expensive
      * */
     fun invalidateChildTransforms() {
         transform.invalidateForChildren()
-        val children = children
-        for (i in children.indices) {
-            val child = children[i]
-            if (!child.isPhysicsControlled && !child.transform.needsUpdate) {
-                child.transform.invalidateGlobal()
-                child.invalidateChildTransforms()
-            }
-        }
     }
 
     /**
      * validates all children, which are invalid
      * */
     fun validateTransform() {
+        when (transform.state) {
+            Transform.State.VALID -> {}
+            Transform.State.CHILDREN_NEED_UPDATE -> {
+                val children = children
+                for (i in children.indices) {
+                    val child = children[i]
+                    if (!child.isPhysicsControlled) {
+                        child.validateTransform()
+                    }
+                }
+            }
+            else -> propagateGlobalTransform()
+        }
+    }
+
+    /**
+     * validates all children, which are invalid
+     * */
+    fun propagateGlobalTransform() {
         transform.validate()
-        // transform.calculateGlobalTransform(parentEntity?.transform)
         val children = children
         for (i in children.indices) {
             val child = children[i]
-            if (!child.isPhysicsControlled && child.transform.needsUpdate) {
-                child.validateTransform()
+            if (!child.isPhysicsControlled) {
+                val childTransform = child.transform
+                when (childTransform.state) {
+                    Transform.State.VALID_GLOBAL -> {
+                        // recalculate local
+                        child.validateTransform()
+                    }
+                    else -> {
+                        childTransform.invalidateGlobal()
+                        child.propagateGlobalTransform()
+                    }
+                }
             }
         }
     }

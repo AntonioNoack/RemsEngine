@@ -2,11 +2,11 @@ package me.anno.ecs.components.anim
 
 import me.anno.Engine
 import me.anno.animation.LoopingState
-import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
+import me.anno.ecs.components.anim.Retargeting.Companion.getRetargeting
 import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.Mesh
@@ -22,7 +22,8 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.assimp.AnimGameItem
 import org.joml.Matrix4x3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL21
+import org.lwjgl.opengl.GL21C
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -87,15 +88,19 @@ open class AnimRenderer : MeshComponent() {
     // animation state for motion vectors
     @NotSerializedProperty
     var prevTime = 0L
+
     @NotSerializedProperty
     val prevWeights = Vector4f()
+
     @NotSerializedProperty
     val prevIndices = Vector4f()
 
     @NotSerializedProperty
     var lastTime = 0L
+
     @NotSerializedProperty
     val currWeights = Vector4f()
+
     @NotSerializedProperty
     val currIndices = Vector4f()
 
@@ -161,52 +166,46 @@ open class AnimRenderer : MeshComponent() {
             animTexture2.bindTrulyNearest(shader, "animTexture")
             return true
 
-        }
+        } else {
 
-        // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
-        // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
-        val animations = animations
+            // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
+            // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
+            val animations = animations
 
-        lateinit var matrices: Array<Matrix4x3f>
-        var sumWeight = 0f
-        for (index in animations.indices) {
-            val animSource = animations[index]
-            val weight = animSource.weight
-            val relativeWeight = weight / (sumWeight + weight)
-            val time = animSource.progress
-            val animation = AnimationCache[animSource.source] ?: continue
-            val retargeting = findRetargeting(this.skeleton, animation)
-            if (index == 0) {
-                matrices = animation.getMappedMatricesSafely(entity, time, tmpMapping0, skeleton, retargeting)
-            } else if (relativeWeight > 0f) {
-                val matrix = animation.getMappedMatricesSafely(entity, time, tmpMapping1, skeleton, retargeting)
-                for (j in matrices.indices) {
-                    matrices[j].lerp(matrix[j], relativeWeight)
+            lateinit var matrices: Array<Matrix4x3f>
+            var sumWeight = 0f
+            for (index in animations.indices) {
+                val animSource = animations[index]
+                val weight = animSource.weight
+                val relativeWeight = weight / (sumWeight + weight)
+                val time = animSource.progress
+                val animation = AnimationCache[animSource.source] ?: continue
+                val retargeting = findRetargeting(this.skeleton, animation)
+                if (index == 0) {
+                    matrices = animation.getMappedMatricesSafely(entity, time, tmpMapping0, skeleton, retargeting)
+                } else if (relativeWeight > 0f) {
+                    val matrix = animation.getMappedMatricesSafely(entity, time, tmpMapping1, skeleton, retargeting)
+                    for (j in matrices.indices) {
+                        matrices[j].lerp(matrix[j], relativeWeight)
+                    }
                 }
+                sumWeight += max(0f, weight)
             }
-            sumWeight += max(0f, weight)
+
+            // upload the matrices
+            upload(location, matrices)
+            return true
+
         }
-
-        // upload the matrices
-        upload(location, matrices)
-
-        return true
-
     }
 
     open fun getAnimTexture(): Texture2D? {
         val skeleton = SkeletonCache[skeleton] ?: return null
-        val animTexture = AnimationCache[skeleton]
-        return animTexture.getTexture()
+        return AnimationCache[skeleton].getTexture()
     }
 
-    fun findRetargeting(
-        dstSkeleton: FileReference,
-        animation: Animation
-    ): Retargeting? {
-        val srcSkeleton = animation.skeleton
-        return Retargeting.getRetargeting(srcSkeleton, dstSkeleton)
-    }
+    fun findRetargeting(dstSkeleton: FileReference, animation: Animation) =
+        getRetargeting(animation.skeleton, dstSkeleton)
 
     open fun getAnimState(dstWeights: Vector4f, dstIndices: Vector4f): Boolean {
 
@@ -243,7 +242,7 @@ open class AnimRenderer : MeshComponent() {
         for (index in animations.indices) {
             val animState = animations[index]
             val weight = animState.weight
-            if (weight > dstWeights[dstWeights.minComponent()]) {
+            if (abs(weight) > dstWeights[dstWeights.minComponent()]) {
                 val animation = AnimationCache[animState.source] ?: continue
                 val frameIndex = animState.progress / animation.duration * animation.numFrames
                 val retargeting = findRetargeting(this.skeleton, animation)
@@ -259,9 +258,6 @@ open class AnimRenderer : MeshComponent() {
                 }
             }
         }
-
-        // normalize weights
-        dstWeights.div(max(1e-7f, dstWeights.dot(white4)))
 
         return true
 
@@ -304,7 +300,7 @@ open class AnimRenderer : MeshComponent() {
                 AnimGameItem.get(matrix0, AnimGameItem.matrixBuffer)
             }
             AnimGameItem.matrixBuffer.position(0)
-            GL21.glUniformMatrix4x3fv(location, false, AnimGameItem.matrixBuffer)
+            GL21C.glUniformMatrix4x3fv(location, false, AnimGameItem.matrixBuffer)
         }
 
     }

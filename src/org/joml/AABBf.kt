@@ -128,7 +128,6 @@ class AABBf(
         )
     }
 
-
     fun isEmpty() = minX > maxX
 
     fun avgX() = (minX + maxX) * 0.5f
@@ -295,7 +294,7 @@ class AABBf(
     /**
      * transforms this matrix, and places the result in dst
      * */
-    fun transformSet(m: Matrix4x3f, dst: AABBf = this): AABBf {
+    fun transform(m: Matrix4x3f, dst: AABBf = this): AABBf {
         val mx = minX
         val my = minY
         val mz = minZ
@@ -423,7 +422,7 @@ class AABBf(
      * start should not be far away -> order matters!
      * can deliver a few false-positives (in favor of not delivering false-negatives)
      * */
-    fun testLine(start: Vector3f, dir: Vector3f, length: Double): Boolean {
+    fun testLine(start: Vector3f, dir: Vector3f, length: Float): Boolean {
         if (isEmpty()) return false
         // no!!!, see double version
         // bring the line towards the aabb center, so the JOML check actually works correctly for huge numbers

@@ -18,7 +18,6 @@ import me.anno.ui.editor.PropertyInspector
 object EditorState {
 
     lateinit var projectFile: FileReference
-    var isGaming = false
 
     var prefabSource: FileReference = InvalidRef
     val prefab get() = PrefabCache[prefabSource]
@@ -39,53 +38,43 @@ object EditorState {
 
     // todo we should be able to edit multiple values of the same type at the same time
     var selection: List<Inspectable> = emptyList()
-    var fineSelection: List<Inspectable> = selection
 
-    fun select(major: Inspectable?, minor: Inspectable? = major, add: Boolean = false) {
-        if (add) {
-            if (major != null) selection = added(selection, major)
-            if (minor != null) fineSelection = added(fineSelection, minor)
-            lastSelection = major ?: minor
-        } else {
-            selection = if (major == null) emptyList() else listOf(major)
-            fineSelection = if (minor == null) emptyList() else listOf(minor)
-            lastSelection = major ?: minor
-        }
-    }
-
-    private fun <V> added(list: List<V>, element: V): List<V> {
-        return if (list is MutableList) {
-            try {
-                list.add(element)
-                list
-            } catch (e: UnsupportedOperationException) {
-                list + element
-            }
-        } else {
-            list + element
-        }
-    }
-
-    fun unselect(element: Inspectable) {
-        selection = selection.filter { it != element }
-        fineSelection = fineSelection.filter { it != element }
-        if (lastSelection == element) lastSelection = null
-    }
-
-    val typeList = listOf<Pair<String, () -> Panel>>(
+    val typeList = arrayListOf(
         // todo not all stuff here makes sense
         // todo some stuff is (maybe) missing, e.g. animation panels, particle system editors, ...
-        Dict["Scene View", "ui.customize.sceneView"] to { SceneView(this, PlayMode.EDITING, DefaultConfig.style) },
-        Dict["Tree View", "ui.customize.treeView"] to { ECSTreeView(this, DefaultConfig.style) },
-        Dict["Properties", "ui.customize.inspector"] to { PropertyInspector({ selection }, DefaultConfig.style) },
+        Type(Dict["Scene View", "ui.customize.sceneView"]) { SceneView(this, PlayMode.EDITING, DefaultConfig.style) },
+        Type(Dict["Tree View", "ui.customize.treeView"]) { ECSTreeView(this, DefaultConfig.style) },
+        Type(Dict["Properties", "ui.customize.inspector"]) { PropertyInspector({ selection }, DefaultConfig.style) },
         // Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },
         // Dict["Timeline", "ui.customize.timeline"] to { TimelinePanel(DefaultConfig.style) },
         // Dict["Animations", "ui.customize.graphEditor"] to { GraphEditor(DefaultConfig.style) },
-        Dict["Files", "ui.customize.fileExplorer"] to { ECSFileExplorer(projectFile, DefaultConfig.style) }
-    ).map { Type(it.first, it.second) }.toMutableList()
+        Type(Dict["Files", "ui.customize.fileExplorer"]) { ECSFileExplorer(projectFile, DefaultConfig.style) }
+    )
 
     val uiLibrary = UITypeLibrary(typeList)
 
     var lastSelection: Inspectable? = null
+
+    fun select(major: Inspectable?, add: Boolean = false) {
+        if (add) {
+            if (major != null) selection = added(selection, major)
+            lastSelection = major
+        } else {
+            selection = if (major == null) emptyList() else listOf(major)
+            lastSelection = major
+        }
+    }
+
+    private fun <V> added(list: List<V>, element: V): List<V> {
+        return if (list is ArrayList) {
+            list.add(element)
+            list
+        } else list + element
+    }
+
+    fun unselect(element: Inspectable) {
+        selection = selection.filter { it != element }
+        if (lastSelection == element) lastSelection = null
+    }
 
 }

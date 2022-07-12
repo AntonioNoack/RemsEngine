@@ -11,14 +11,9 @@ import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.withAlpha
 import org.lwjgl.glfw.GLFW
-import kotlin.math.min
 
 open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: Int, style: Style) :
     Panel(style.getChild("checkbox")), InputPanel<Boolean> {
-
-    constructor(base: Checkbox) : this(base.isChecked, base.defaultValue, base.size, base.style) {
-        base.copy(this)
-    }
 
     companion object {
         fun getImage(checked: Boolean): Texture2D? =
@@ -70,21 +65,14 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-
-        val size = min(w, h)
-        if (size > 0) {
-            var color = if (isHovered) 0xccffffff.toInt() else -1
-            color = color.withAlpha(if (isInputAllowed) 1f else 0.5f)
-            // draw the icon on/off
-            drawTexture(
-                x + (w - size) / 2,
-                y + (h - size) / 2,
-                size, size,
-                getImage(isChecked) ?: whiteTexture,
-                color, null
-            )
-        }
-
+        val color = (if (isHovered) 0xccffffff.toInt() else -1)
+            .withAlpha(if (isInputAllowed) 1f else 0.5f)
+        val texture = getImage(isChecked) ?: whiteTexture
+        drawTexture(
+            x + (w - size) / 2,
+            y + (h - size) / 2,
+            size, size, texture, color, null
+        )
     }
 
     fun setChangeListener(listener: (Boolean) -> Unit): Checkbox {
@@ -141,7 +129,11 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     override fun acceptsChar(char: Int) = false // ^^
     override fun isKeyInput() = true
 
-    override fun clone() = Checkbox(this)
+    override fun clone(): Checkbox {
+        val clone = Checkbox(defaultValue, defaultValue, size, style)
+        copy(clone)
+        return clone
+    }
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)

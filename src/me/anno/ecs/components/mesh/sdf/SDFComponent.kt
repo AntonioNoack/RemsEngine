@@ -384,7 +384,7 @@ open class SDFComponent : ProceduralMesh() {
         }
         // make bounds reasonable, so we can actually use them in computations
         clampBounds(dst)
-        src.transformSet(transform, dst)
+        src.transform(transform, dst)
         JomlPools.mat4x3f.sub(1)
     }
 

@@ -18,6 +18,7 @@ import me.anno.parser.crossAny
 import me.anno.utils.Color.rgba
 import me.anno.utils.LOGGER
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Triangles.crossDot
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -33,6 +34,8 @@ import kotlin.math.sign
 open class StaticMeshesLoader {
 
     companion object {
+
+        // todo we need a gltf reader for the materials :annoyed:, because assimp doesn't have separate metallic and roughness values...
 
         const val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
                 aiProcess_Triangulate or // we don't want to triangulate ourselves
@@ -283,9 +286,7 @@ open class StaticMeshesLoader {
             prefab.setProperty("roughnessMap", getReference(metallicRoughness, "g.png"))
             prefab.setProperty("roughnessMinMax", Vector2f(0.1f, 1f))
             prefab.setProperty("metallicMinMax", Vector2f(0f, 1f))
-        }
-
-        if (metallicRoughness == InvalidRef) {
+        } else {
 
             // todo these settings seem wrong... what is actually metallic/roughness?
 
@@ -299,9 +300,10 @@ open class StaticMeshesLoader {
 
             // metallic
             // val metallic0 = getColor(aiMaterial, color, AI_MATKEY_COLOR_REFLECTIVE) // always null
-            val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY) // 0.0, rarely 0.5
+            val metallic = 1f-roughnessBase//getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY) // 0.0, rarely 0.5
             if (metallic != 0f) prefab.setProperty("metallicMinMax", Vector2f(0f, metallic))
             // LOGGER.info("metallic: $metallic, roughness: $roughnessBase")
+            // println("shine: $shininessExponent, metallic: $metallic")
 
         }
         // LOGGER.info("metallic: $metallic0 x $metallic")
@@ -562,17 +564,6 @@ open class StaticMeshesLoader {
             dst[j++] = sign(crossDot(nx, ny, nz, tx, ty, tz, vec.x(), vec.y(), vec.z()))
         }
         return dst
-    }
-
-    private fun crossDot(
-        ax: Float, ay: Float, az: Float,
-        bx: Float, by: Float, bz: Float,
-        dx: Float, dy: Float, dz: Float
-    ): Float {
-        val cx = ay * bz - az * by
-        val cy = az * bx - ax * bz
-        val cz = ax * by - ay * bx
-        return cx * dx + cy * dy + cz * dz
     }
 
     // custom function, because there may be NaNs

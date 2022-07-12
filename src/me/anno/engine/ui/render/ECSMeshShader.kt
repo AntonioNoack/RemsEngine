@@ -29,10 +29,15 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "mat4x3 getAnimMatrix(int boneIndex, vec4 animIndices, vec4 animWeights){\n" +
                     "   int index = boneIndex * 3;\n" + // every matrix uses 3 pixels
                     "   mat4x3 t;\n" +
-                    "   t  = getAnimMatrix(index,animIndices.x)*animWeights.x;\n" +
-                    "   if(animWeights.y > 0.0) t += getAnimMatrix(index,animIndices.y)*animWeights.y;\n" +
-                    "   if(animWeights.z > 0.0) t += getAnimMatrix(index,animIndices.z)*animWeights.z;\n" +
-                    "   if(animWeights.w > 0.0) t += getAnimMatrix(index,animIndices.w)*animWeights.w;\n" +
+                    "   t = getAnimMatrix(index,animIndices.x)*animWeights.x;\n" +
+                    "   if(animWeights.y != 0.0) t += getAnimMatrix(index,animIndices.y)*animWeights.y;\n" +
+                    "   if(animWeights.z != 0.0) t += getAnimMatrix(index,animIndices.z)*animWeights.z;\n" +
+                    "   if(animWeights.w != 0.0) t += getAnimMatrix(index,animIndices.w)*animWeights.w;\n" +
+                    // remove unitFactor * unitMatrix from t
+                    "   float unitFactor = 1.0 - (animWeights.x + animWeights.y + animWeights.z + animWeights.w);\n" +
+                    "   t[0][0] += unitFactor;\n" +
+                    "   t[1][1] += unitFactor;\n" +
+                    "   t[2][2] += unitFactor;\n" +
                     "   return t;\n" +
                     "}\n" +
                     "mat4x3 getAnimMatrix(int boneIndex){ return getAnimMatrix(boneIndex, animIndices, animWeights); }\n"

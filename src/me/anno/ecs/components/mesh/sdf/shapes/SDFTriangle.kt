@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Triangles.subCross
+import me.anno.utils.types.Triangles.crossDot
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -82,62 +82,51 @@ open class SDFTriangle : SDFShape() {
     }
 
     // dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa)
-    private fun dot2Clamp(a: Vector3f, b: Vector3f, p: Vector4f): Float {
-        val dot2ba = b.lengthSquared()
-        val bax = b.x - a.x
-        val bay = b.y - a.y
-        val baz = b.z - a.z
-        val pax = p.x - a.x
-        val pay = p.y - a.y
-        val paz = p.z - a.z
-        val clamp = clamp((bax * pax + bay * pay + baz * paz) / dot2ba)
-        val fx = bax * clamp - pax
-        val fy = bay * clamp - pay
-        val fz = baz * clamp - paz
-        return sq(fx, fy, fz)
-    }
-
-    // dot(cross(ba,nor),pa)
-    private fun subCrossDot(a: Vector3f, b: Vector3f, n: Vector3f, p: Vector4f): Float {
-        val bax = b.x - a.x
-        val bay = b.y - a.y
-        val baz = b.z - a.z
-        val pax = p.x - a.x
-        val pay = p.y - a.y
-        val paz = p.z - a.z
-        val nx = n.x
-        val ny = n.y
-        val nz = n.z
-        // 23 32 = yz zy
-        // 31 13 = zx xz
-        // 12 21 = xy yx
-        val cx = bay * nz - baz * ny
-        val cy = baz * nx - bax * nz
-        val cz = bax * ny - bay * nx
-        return pax * cx + pay * cy + paz * cz
+    private fun dot2Clamp(ba: Vector3f, pa: Vector3f): Float {
+        val clamp = clamp(ba.dot(pa) / ba.lengthSquared(), 0f, 1f)
+        val fx = ba.x * clamp - pa.x
+        val fy = ba.y * clamp - pa.y
+        val fz = ba.z * clamp - pa.z
+        return fx * fx + fy * fy + fz * fz
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        // this is kind of working, but still incorrect :/
-        // (raycast is working fine, but normal is incorrect)
-        val a = a
-        val b = b
-        val c = c
+
+        val cb = JomlPools.vec3f.create()
+        val ba = JomlPools.vec3f.create()
+        val ac = JomlPools.vec3f.create()
+
+        val pa = JomlPools.vec3f.create()
+        val pb = JomlPools.vec3f.create()
+        val pc = JomlPools.vec3f.create()
+
+        ba.set(b).sub(a)
+        cb.set(c).sub(b)
+        ac.set(a).sub(c)
+
+        pa.set(pos.x, pos.y, pos.z).sub(a)
+        pb.set(pos.x, pos.y, pos.z).sub(b)
+        pc.set(pos.x, pos.y, pos.z).sub(c)
+
         val n = JomlPools.vec3f.create()
-        subCross(a, b, c, n)
-        n.mul(-1f)
+        n.set(ba).cross(ac)
+
         val term = if (
-            sign(subCrossDot(a, b, n, pos)) +
-            sign(subCrossDot(a, b, n, pos)) +
-            sign(subCrossDot(a, b, n, pos)) < 2f
+            sign(crossDot(ba, n, pa)) +
+            sign(crossDot(cb, n, pb)) +
+            sign(crossDot(ac, n, pc)) < 2f
         ) min(
             min(
-                dot2Clamp(a, b, pos),
-                dot2Clamp(b, c, pos)
+                dot2Clamp(ba, pa),
+                dot2Clamp(cb, pb)
             ),
-            dot2Clamp(c, a, pos)
-        ) else sq(n.dot(pos.x - a.x, pos.y - a.y, pos.z - a.z)) / n.lengthSquared()
-        JomlPools.vec3f.sub(1)
+            dot2Clamp(ac, pc)
+        ) else {
+            sq(n.dot(pa)) / n.lengthSquared()
+        }
+
+        JomlPools.vec3f.sub(7)
+
         return sqrt(term) + pos.w
     }
 

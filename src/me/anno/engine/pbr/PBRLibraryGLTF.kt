@@ -6,15 +6,27 @@ import kotlin.math.PI
 // https://github.com/javagl/JglTF/blob/bb081a2e31b522bacb051d22053768d78c363814/jgltf-model/src/main/resources/pbr.frag
 object PBRLibraryGLTF {
 
+
     // todo regular plastic has specular as well... why not in this model?
+
+    // we probably have specular dots on thin lines, because we don't handle it -> fix it with some magic-maths integration
+    // (strong curvature on metal against the sun will show this problem)
+    // to do: good idea, but unfortunately in forward mode, finalNormal won't wary as much on 1px thin lines, because it may consist of many triangles -> true delta unknown to the shader
+    val angularCorrection = "" +
+            "vec3 curvature = max(abs(dFdx(finalNormal)), abs(dFdy(finalNormal)));\n" +
+            "finalRoughness = 1.0 - (1.0 - finalRoughness) * max(0.0, 1.0 - length(curvature));\n" +
+            "finalRoughness = max(finalRoughness, 0.01);\n"
+
+    val maxDivisor = 1e5 // preventing divisions by zero
 
     // we can extract common factors (which always appear, and never change for a pixel)
     // alpha, Dx, rp1, k, 1-k
     val specularBRDFv2NoDivInlined2Start = "" +
+            angularCorrection +
             "float alpha = finalRoughness * finalRoughness;\n" +
             "float Dx = alpha * alpha, DxM1 = Dx - 1.0;\n" +
             "float rp1 = finalRoughness + 1.0;\n" +
-            "float k = rp1 * rp1 * 0.125, invK = 1.0-k;\n" +
+            "float k = clamp(rp1 * rp1, 1.0, 4.0) * 0.125, invK = 1.0-k;\n" +
             "vec3 invSpecularColor = 1.0 - specularColor;\n" +
             "float DxPi4 = Dx * ${0.25 / PI};\n"
 
@@ -44,12 +56,13 @@ object PBRLibraryGLTF {
             //"    float Gx = NdotL;\n" +
             // NdotL is already in the light equation, NdotV is in G
             // also we don't need two divisions, we can use one
-            "vec3 computeSpecularBRDF = (DxPi4 / (x * x * t.x * t.y)) * F;\n"
+            "vec3 computeSpecularBRDF = (DxPi4 / min(x * x * t.x * t.y, $maxDivisor)) * F;\n"
 
     // the following functions can be used, if the color isn't yet available
     // (or you want to use one texture access less)
     // they have missing color, when H || V, so when you look perpendicular onto the surface
     val specularBRDFv2NoColorStart = "" +
+            angularCorrection +
             "float alpha = finalRoughness * finalRoughness;\n" +
             "float Dx = alpha * alpha, DxM1 = Dx - 1.0;\n" +
             "float rp1 = finalRoughness + 1.0;\n" +
@@ -74,7 +87,7 @@ object PBRLibraryGLTF {
             // also we don't need two divisions, we can use one
             // to do 1. where is our bug, that we need to limit the value?
             // to do 2. why can we set the limit so high? how is it processed further?
-            "#define computeSpecularBRDF DxPi4 / (x * x * t.x * t.y)\n"
+            "#define computeSpecularBRDF DxPi4 / min(x * x * t.x * t.y, $maxDivisor)\n"
 
     val specularBRDFv2NoColorEnd = "specularLight *= finalMetallic;\n" // * specularColor, just without color
 

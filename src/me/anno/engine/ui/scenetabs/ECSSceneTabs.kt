@@ -101,7 +101,38 @@ object ECSSceneTabs : ScrollPanelX(style) {
     }
 
     fun open(file: FileReference, classNameIfNull: String = "Entity", playMode: PlayMode) {
-        open(file, classNameIfNull, playMode)
+        for (tab in children3) {
+            if (tab.file == file && tab.playMode == playMode) {
+                focus(tab)
+                return
+            }
+        }
+        open(ECSSceneTab(file, classNameIfNull, playMode))
+    }
+
+    fun focus(tab: ECSSceneTab) {
+
+        if (currentTab == tab) return
+
+        synchronized(this) {
+            currentTab = tab
+            PrefabInspector.currentInspector = tab.inspector
+            // root = sceneTab.root
+            // val instance = prefab.getSampleInstance()
+            // EditorState.select(instance, null)
+            EditorState.select(null)
+            if (tab !in children3) content += tab
+            for (window in windowStack) {
+                window.panel.forAllPanels {
+                    if (it is RenderView) {
+                        it.playMode = tab.playMode
+                    }
+                }
+            }
+        }
+
+        (uiParent ?: this).invalidateDrawing()
+
     }
 
     val project get() = (StudioBase.instance as? RemsEngine)?.currentProject
@@ -127,26 +158,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         val prefab = tab.inspector.prefab
         updatePrefab(prefab)
 
-        if (currentTab == tab) return
-
-        synchronized(this) {
-            currentTab = tab
-            PrefabInspector.currentInspector = tab.inspector
-            // root = sceneTab.root
-            // val instance = prefab.getSampleInstance()
-            // EditorState.select(instance, null)
-            EditorState.select(null, null)
-            if (tab !in children3) content += tab
-            for (window in windowStack) {
-                window.panel.forAllPanels {
-                    if (it is RenderView) {
-                        it.playMode = tab.playMode
-                    }
-                }
-            }
-        }
-
-        (uiParent ?: this).invalidateDrawing()
+        focus(tab)
 
     }
 

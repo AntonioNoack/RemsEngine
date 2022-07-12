@@ -77,7 +77,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
                 centroid.set(localBounds.avgX(), localBounds.avgY(), localBounds.avgZ())
                 localToWorld.transformPosition(centroid)
                 val globalBounds = AABBf()
-                localBounds.transformSet(localToWorld, globalBounds)
+                localBounds.transform(localToWorld, globalBounds)
                 objects.add(TLASLeaf(centroid, localToWorld, worldToLocal, blas, globalBounds))
             }
             for (index in dr.indices) {

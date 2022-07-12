@@ -104,7 +104,6 @@ class ECSTreeView(val library: EditorState, style: Style) :
         if (parent is PrefabSaveable && child is PrefabSaveable) {
             LOGGER.info("Trying to remove element ${child.className} from ${parent.className}")
             EditorState.selection = EditorState.selection.filter { it !in child.listOfHierarchy }
-            EditorState.fineSelection = EditorState.fineSelection.filter { it !in child.listOfHierarchy }
             Hierarchy.removePathFromPrefab(parent.root.prefab!!, child)
         } else throw NotImplementedError()
     }

@@ -50,11 +50,11 @@ object Vectors {
     operator fun Vector4fc.times(s: Float) = Vector4f(x() * s, y() * s, z() * s, w() * s)
     operator fun Vector4fc.times(s: Vector4fc) = Vector4f(x() * s.x(), y() * s.y(), z() * s.z(), w() * s.w())
 
-    fun Vector4fc.mulAlpha(m: Float, dst: Vector4f = Vector4f()) = dst.set(x(), y(), z(), w() * m)
+    fun Vector4fc.mulAlpha(m: Float, dst: Vector4f = Vector4f()): Vector4fc = dst.set(x(), y(), z(), w() * m)
 
-    fun avg(a: Vector2fc, b: Vector2f) = Vector2f(a).add(b).mul(0.5f)
-    fun avg(a: Vector2dc, b: Vector2d) = Vector2d(a).add(b).mul(0.5)
-    fun avg(a: Vector3fc, b: Vector3f) = Vector3f(a).add(b).mul(0.5f)
+    fun avg(a: Vector2fc, b: Vector2f): Vector2f = Vector2f(a).add(b).mul(0.5f)
+    fun avg(a: Vector2dc, b: Vector2d): Vector2d = Vector2d(a).add(b).mul(0.5)
+    fun avg(a: Vector3fc, b: Vector3f): Vector3f = Vector3f(a).add(b).mul(0.5f)
 
     fun avg(a: Vector2fc, b: Vector2fc, c: Vector2fc) =
         Vector2f((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f)
@@ -220,7 +220,7 @@ object Vectors {
     fun Vector2fc.toVector3d() = Vector2d(this)
     fun Vector2dc.toVector3f() = Vector2f(x().toFloat(), y().toFloat())
     fun Vector3fc.toVector3d() = Vector3d(this)
-    fun Vector3dc.toVector3f(dst: Vector3f = Vector3f()) = dst.set(x().toFloat(), y().toFloat(), z().toFloat())
+    fun Vector3dc.toVector3f(dst: Vector3f = Vector3f()): Vector3f = dst.set(x().toFloat(), y().toFloat(), z().toFloat())
     fun Vector4fc.toVector3d() = Vector4d(this)
     fun Vector4dc.toVector3f() = Vector4f(x().toFloat(), y().toFloat(), z().toFloat(), w().toFloat())
 
@@ -253,7 +253,7 @@ object Vectors {
     fun Vector3fc.is111() = x() == 1f && y() == 1f && z() == 1f
     fun Vector4fc.is1111() = x() == 1f && y() == 1f && z() == 1f && w() == 1f
 
-    fun Vector3fi(x: Int, y: Int, z: Int) = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
+    fun Vector3fi(x: Int, y: Int, z: Int): Vector3f = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
 
     val Vector3f.yzx get() = Vector3f(y, z, x)
     val Vector3f.zxy get() = Vector3f(z, x, y)
@@ -318,7 +318,7 @@ object Vectors {
     }
 
     fun Vector3d.setAxis(axis: Int, value: Double): Vector3d {
-        setComponent(axis,value)
+        setComponent(axis, value)
         return this
     }
 
@@ -453,8 +453,23 @@ object Vectors {
 
     fun Vector2f.dot2(x: Float, y: Float) = this.x * x + this.y * y
 
-    fun Vector3f.fract(dst: Vector3f = this) = dst.set(Maths.fract(x), Maths.fract(y), Maths.fract(z))
-    fun Vector3d.fract(dst: Vector3d = this) = dst.set(Maths.fract(x), Maths.fract(y), Maths.fract(z))
+    fun Vector3f.fract(dst: Vector3f = this): Vector3f = dst.set(Maths.fract(x), Maths.fract(y), Maths.fract(z))
+    fun Vector3d.fract(dst: Vector3d = this): Vector3d = dst.set(Maths.fract(x), Maths.fract(y), Maths.fract(z))
 
+    // missing from Joml :/
+    fun Vector3d.rotate2(q: Quaternionf): Vector3d =
+        rotate(JomlPools.quat4d.borrow().set(q))
+
+    fun Vector3f.rotateInv(q: Quaternionf): Vector3f =
+        rotate(JomlPools.quat4f.borrow().set(q).conjugate())
+
+    fun Vector3f.rotateInv(q: Quaterniond): Vector3f =
+        rotate(JomlPools.quat4f.borrow().set(q).conjugate())
+
+    fun Vector3d.rotateInv(q: Quaternionf): Vector3d =
+        rotate(JomlPools.quat4d.borrow().set(q).conjugate())
+
+    fun Vector3d.rotateInv(q: Quaterniond): Vector3d =
+        rotate(JomlPools.quat4d.borrow().set(q).conjugate())
 
 }

@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.CachedReflections
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -239,7 +240,7 @@ interface ISaveable {
         }
 
         fun create(type: String): ISaveable {
-            return objectTypeRegistry[type]?.generate() ?: throw RuntimeException("Type $type unknown!")
+            return objectTypeRegistry[type]?.generate() ?: throw UnknownClassException(type)
         }
 
         fun getSample(type: String) = objectTypeRegistry[type]?.sampleInstance

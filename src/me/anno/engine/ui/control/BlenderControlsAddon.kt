@@ -111,7 +111,7 @@ class BlenderControlsAddon {
         return if (mode != InputMode.NONE) {
             // analyse expression
             // collect all, where the transform needs to be applied to
-            for (child in EditorState.fineSelection) {// probably needs sorting
+            for (child in EditorState.selection) {// probably needs sorting
                 when (child) {
                     is Entity -> {
                         transform(child.transform, null, x, y, false)

@@ -90,13 +90,23 @@ class Skeleton : PrefabSaveable() {
 
     companion object {
 
-        val boneMeshVertices = listOf(// a bone mesh like in Blender
-            -0.14, 0.81, -0.14, 0.14, 0.81, -0.14, 0.0, 1.0, 0.0, 0.14, 0.81, 0.14, -0.14, 0.81, 0.14,
-            0.0, 1.0, 0.0, 0.14, 0.81, -0.14, -0.14, 0.81, -0.14, 0.0, 0.0, 0.0, -0.14, 0.81, 0.14, 0.14, 0.81,
-            0.14, 0.0, 0.0, 0.0, 0.14, 0.81, 0.14, 0.14, 0.81, -0.14, 0.0, 0.0, 0.0, -0.14, 0.81, -0.14, -0.14,
-            0.81, 0.14, 0.0, 0.0, 0.0, 0.14, 0.81, -0.14, 0.14, 0.81, 0.14, 0.0, 1.0, 0.0, -0.14, 0.81, 0.14,
-            -0.14, 0.81, -0.14, 0.0, 1.0, 0.0
-        ).map { it.toFloat() }.toFloatArray()
+        private const val s = 0.14f
+        private const val t = 0.81f
+
+        /**
+         * a bone mesh like in Blender;
+         * each line represents a face
+         * */
+        val boneMeshVertices = floatArrayOf(
+            +s, t, +s, +s, t, -s, 0f, 1f, 0f,
+            +s, t, -s, -s, t, -s, 0f, 1f, 0f,
+            -s, t, +s, +s, t, +s, 0f, 1f, 0f,
+            -s, t, -s, -s, t, +s, 0f, 1f, 0f,
+            +s, t, -s, +s, t, +s, 0f, 0f, 0f,
+            +s, t, +s, -s, t, +s, 0f, 0f, 0f,
+            -s, t, +s, -s, t, -s, 0f, 0f, 0f,
+            -s, t, -s, +s, t, -s, 0f, 0f, 0f,
+        )
 
         fun generateSkeleton(
             bones: List<Bone>,
@@ -105,7 +115,6 @@ class Skeleton : PrefabSaveable() {
             boneIndices: ByteArray?
         ) {
             // todo when we have the data, use the rotation data to rotate the bone... somehow...
-            // todo sometimes the bones seem to be turned inwards... why? (ExitingCar.fbx)
             var j = 0
             var k = 0
             boneIndices?.fill(0)

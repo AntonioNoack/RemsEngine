@@ -39,7 +39,6 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     val isSelectedIndirectly
         get() = this in EditorState.selection ||
-                this in EditorState.fineSelection ||
                 entity?.anyInHierarchy { it == EditorState.lastSelection } == true
 
     // can be overridden, e.g. for materials
