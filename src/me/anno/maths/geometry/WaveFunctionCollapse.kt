@@ -1,34 +1,49 @@
 package me.anno.maths.geometry
 
+import me.anno.Engine
+import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.image.raw.IntImage
+import me.anno.maths.Maths.ceilDiv
+import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
-import me.anno.utils.Color.toHexColor
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.maps.LazyMap
 import sun.plugin.dom.exception.InvalidStateException
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * works ok; but:
+ * - only works well with manually set boundaries or lots of compatible tiles -> otherwise it will corrupt, because chosen rules still can contradict each other
+ * - is extremely slow for large amounts of tile types (I tested with 2.9k types incl. rotations)
+ *
+ * I'd assume I implement it correctly, because it works for easier tile sets...
+ * */
 class WaveFunctionCollapse {
 
     companion object {
+
         @JvmStatic
         fun main(args: Array<String>) {
             // load a set of images
             val wfc = WaveFunctionCollapse()
+            wfc.enableMinimalEntropyHeuristic = true
             var id = 0
+            // val src = downloads.getChild("2d/tilesetCircuit.png") // 14x14
+            val src = downloads.getChild("2d/caveTilesetOpenGameArt-3.png") // 16x16
             val tileW = 16
             val tileH = 16
-            val src = downloads.getChild("2d/caveTilesetOpenGameArt.png")
             val tileAtlas = ImageCPUCache.getImage(src, false)!!
             for (yi in 0 until tileAtlas.height step tileH) {
                 for (xi in 0 until tileAtlas.width step tileW) {
@@ -46,42 +61,85 @@ class WaveFunctionCollapse {
                 }
             }
             wfc.calculateEdges()
-            wfc.addTransformedTypes(allowMirrorX = true, allowMirrorY = true, 4, id)
-            wfc.defineNeighborsByImages(8)
+            wfc.addTransformedTypes(allowMirrorX = true, allowMirrorY = true, 4)
+            wfc.defineNeighborsByImages(16)
             for (idx in wfc.types.indices) {
-                println("$idx, ${wfc.types[idx]} -> ${wfc.types[idx].neighbors.joinToString()}")
+                LOGGER.debug("$idx -> ${wfc.types[idx].neighbors.joinToString()}")
             }
-            println(wfc.types.size)
-            // define neighbors manually for testing
-            // correct
-            /*val ts = 3
-            for (y in 0 until ts) {
-                for (x in 0 until ts) {
-                    val idx = x + y * ts
-                    fun i(xi: Int, yi: Int) = (((xi + ts) % ts) + ((yi + ts) % ts) * ts)
-                    wfc.types[idx].neighbors[0].add(wfc.types[i(x, y - 1)])
-                    wfc.types[idx].neighbors[1].add(wfc.types[i(x + 1, y)])
-                    wfc.types[idx].neighbors[2].add(wfc.types[i(x, y + 1)])
-                    wfc.types[idx].neighbors[3].add(wfc.types[i(x - 1, y)])
-                    println("$idx, ${wfc.types[idx]} -> ${wfc.types[idx].neighbors.joinToString()}")
-                }
-            }
-            for (i in 0 until 3) {
-                wfc.connect(i, i + 6, 0)
-                wfc.connect(i, i + 6, 2)
-                wfc.connect(i * 3, i * 3 + 2, 1)
-                wfc.connect(i * 3, i * 3 + 2, 3)
-                wfc.connect(1 + i * 3, 1 + i * 3, 1)
-                wfc.connect(1 + i * 3, 1 + i * 3, 3)
-                wfc.connect(3 + i, 3 + i, 0)
-                wfc.connect(3 + i, 3 + i, 2)
-            }*/
+            LOGGER.debug("num types: ${wfc.types.size}")
             wfc.removeInvalidCells()
             if (wfc.types.isEmpty())
                 throw InvalidStateException("Cannot connect any tiles")
-            val sizeX = 16
-            val sizeY = 16
-            val grid = wfc.collapseAll(sizeX, sizeY, Random(1234L))
+            val sizeX = 64
+            val sizeY = 64
+            val random = Random(Engine.nanoTime)
+            val grid = wfc.collapseInit(sizeX, sizeY)
+            val texToImage = LazyMap({ key: Image -> Texture2D(key, false) }, wfc.types.size)
+            var hasRemaining = true
+            testDrawing {
+                it.clear()
+                val t0 = Engine.nanoTime
+                while (hasRemaining && Engine.nanoTime - t0 < 1e9 / 60)
+                    hasRemaining = wfc.collapseStep(sizeX, sizeY, grid, random)
+                for (y in 0 until min(sizeY, ceilDiv(it.h, tileH))) {
+                    var i = y * sizeX
+                    for (x in 0 until min(sizeX, ceilDiv(it.w, tileW))) {
+                        // draw tile onto result
+                        val cell = (grid[i++].result as? ImageCellType) ?: continue
+                        val tile = cell.image
+                        drawTexture(x * tileW, y * tileH, tileW, tileH, texToImage[tile]!!, false, -1)
+                    }
+                }
+            }
+        }
+
+        fun Image.rotate(r: Int): Image {
+            val w = width
+            val h = height
+            val i = this
+            val wm1 = w - 1
+            val hm1 = h - 1
+            return when (r) {
+                1 -> object : Image(h, w, numChannels, hasAlphaChannel) {
+                    override fun getRGB(index: Int): Int {
+                        val rx = index % h
+                        val ry = index / h
+                        return i.getRGB(wm1 - ry, rx)
+                    }
+                }
+                2 -> object : Image(h, w, numChannels, hasAlphaChannel) {
+                    override fun getRGB(index: Int): Int {
+                        val rx = wm1 - index % w
+                        val ry = hm1 - index / w
+                        return i.getRGB(rx, ry)
+                    }
+                }
+                3 -> object : Image(h, w, numChannels, hasAlphaChannel) {
+                    override fun getRGB(index: Int): Int {
+                        val rx = index % h
+                        val ry = index / h
+                        return i.getRGB(ry, hm1 - rx)
+                    }
+                }
+                else -> this
+            }
+        }
+
+        fun Image.mirrorX(b: Boolean): Image {
+            if (!b) return this
+            val i = this
+            return object : Image(width, height, numChannels, hasAlphaChannel) {
+                val wm1 = width - 1
+                override fun getRGB(index: Int): Int {
+                    val x = index % width
+                    val x2 = wm1 - x
+                    return i.getRGB(index + x2 - x)
+                }
+            }
+        }
+
+        fun collapse(wfc: WaveFunctionCollapse, sizeX: Int, sizeY: Int, random: Random, tileW: Int, tileH: Int) {
+            val grid = wfc.collapseAll(sizeX, sizeY, random)
             val resultW = sizeX * tileW
             val resultH = sizeY * tileH
             val result = IntArray(resultW * resultH)
@@ -99,95 +157,46 @@ class WaveFunctionCollapse {
                     }
                 }
             }
-            val resultImage = IntImage(resultW, resultH, result, tileAtlas.hasAlphaChannel)
+            val hasAlphaChannel = wfc.types.any2 { it is ImageCellType && it.image.hasAlphaChannel }
+            val resultImage = IntImage(resultW, resultH, result, hasAlphaChannel)
             resultImage.write(desktop.getChild("WaveFunctionCollapse.png"))
         }
+
     }
 
     fun removeInvalidCells() {
         // such a cell cannot have a neighbor -> is not tileable
         // todo the only exception is that it can be placed on a wall
-        types.removeIf { t -> t.neighbors.any { n -> n.isEmpty() } }
+        types.removeIf { t -> t.neighbors.any { n -> n.isEmpty } }
     }
 
     fun connect(a: Int, b: Int, side: Int) {
         val ta = types[a]
         val tb = types[b]
-        ta.neighbors[side].add(tb)
-        tb.neighbors[(side + 2) and 3].add(ta)
+        ta.neighbors[side].set(tb.tileIndex)
+        tb.neighbors[(side + 2) and 3].set(ta.tileIndex)
     }
 
     val types = ArrayList<CellType>()
 
-    open class CellType(val id: Int) {
-        val neighbors = Array(4) { HashSet<CellType>() }
-        override fun toString() = "$id"
+    open class CellType(val tileIndex: Int) {
+        val neighbors = Array(4) { BitSet() }
+        override fun toString() = "$tileIndex"
     }
 
-    open class ImageCellType(id: Int, val image: Image) : CellType(id) {
+    open class ImageCellType(tileIndex: Int, val image: Image) : CellType(tileIndex) {
         lateinit var edges: Array<IntArray>
     }
 
     class DerivedImageCellType(
-        id: Int, val base: ImageCellType,
-        rotation: Int,
-        mirrorX: Boolean,
+        tileIndex: Int, val base: ImageCellType,
+        rotation: Int, mirrorX: Boolean,
         edges: Array<IntArray>
-    ) : ImageCellType(id, base.image.rotate(rotation).mirrorX(mirrorX)) {
-
+    ) : ImageCellType(tileIndex, base.image.rotate(rotation).mirrorX(mirrorX)) {
         init {
             this.edges = edges
         }
-
-        companion object {
-
-            fun Image.rotate(r: Int): Image {
-                val w = width
-                val h = height
-                val i = this
-                val wm1 = w - 1
-                val hm1 = h - 1
-                return when (r) {
-                    1 -> object : Image(h, w, numChannels, hasAlphaChannel) {
-                        override fun getRGB(index: Int): Int {
-                            val rx = index % h
-                            val ry = index / h
-                            return i.getRGB(wm1 - ry, rx)
-                        }
-                    }
-                    2 -> object : Image(h, w, numChannels, hasAlphaChannel) {
-                        override fun getRGB(index: Int): Int {
-                            val rx = wm1 - index % w
-                            val ry = hm1 - index / w
-                            return i.getRGB(rx, ry)
-                        }
-                    }
-                    3 -> object : Image(h, w, numChannels, hasAlphaChannel) {
-                        override fun getRGB(index: Int): Int {
-                            val rx = index % h
-                            val ry = index / h
-                            return i.getRGB(ry, hm1 - rx)
-                        }
-                    }
-                    else -> this
-                }
-            }
-
-            fun Image.mirrorX(b: Boolean): Image {
-                if (!b) return this
-                val i = this
-                return object : Image(width, height, numChannels, hasAlphaChannel) {
-                    val wm1 = width - 1
-                    override fun getRGB(index: Int): Int {
-                        val x = index % width
-                        val x2 = wm1 - x
-                        return i.getRGB(index + x2 - x)
-                    }
-                }
-            }
-        }
     }
-
 
     fun shuffle(i: Int) =
         (i and 3).shl(6) or
@@ -226,22 +235,23 @@ class WaveFunctionCollapse {
         )
     }
 
-    fun addTransformedTypes(allowMirrorX: Boolean, allowMirrorY: Boolean, allowedRotations: Int, newId: Int): Int {
-        var nextId = newId
+    fun addTransformedTypes(allowMirrorX: Boolean, allowMirrorY: Boolean, allowedRotations: Int) {
+        var nextId = types.size
         if (allowMirrorX || allowMirrorY || allowedRotations > 1) {
             val default = 1
             var allowed = default
             if (allowMirrorX && allowMirrorY && allowedRotations >= 4) {
                 allowed = 255
             } else {
-                for (i in 0 until 4) {
+                do {
+                    val lastAllowed = allowed
                     if (allowMirrorX) allowed = allowed or (allowed ushr 4) or (allowed shl 4)
                     if (allowMirrorY) allowed = allowed or shuffle(allowed)
                     if (allowedRotations >= 2) allowed = allowed or rot2(allowed) or rot2(allowed ushr 4).shl(4)
                     if (allowedRotations >= 4) allowed = allowed or rot1(allowed) or rot1(allowed ushr 4).shl(4)
-                }
+                } while (allowed != lastAllowed)
             }
-            println("$allowMirrorX,$allowMirrorY,$allowedRotations -> $allowed")
+            // LOGGER.debug("$allowMirrorX,$allowMirrorY,$allowedRotations -> $allowed")
             if (allowed != default) {
                 for (typeIndex in types.indices) {
                     val type = types[typeIndex]
@@ -283,7 +293,6 @@ class WaveFunctionCollapse {
                 }
             }
         }
-        return nextId
     }
 
     /**
@@ -307,8 +316,8 @@ class WaveFunctionCollapse {
                     for (tj in max(ti, d0) until d1) {
                         val type2 = types[tj]
                         if (type2 is ImageCellType && isCompatible(type, type2, side, colorTolerance, acceptance)) {
-                            neighbors.add(type2)
-                            type2.neighbors[(side + 2) and 3].add(type)
+                            neighbors.set(type2.tileIndex)
+                            type2.neighbors[(side + 2) and 3].set(type.tileIndex)
                         }
                     }
                 }
@@ -318,13 +327,12 @@ class WaveFunctionCollapse {
 
     class Cell(var length: Int) {
         var types: ArrayList<CellType>? = null
+        val typeNeighbors = Array(4) { BitSet(length) }
         var result: CellType? = null
     }
 
-    fun collapseInit(sizeX: Int, sizeY: Int): Array<Cell> {
-        val size = sizeX * sizeY
-        return Array(size) { Cell(types.size) }
-    }
+    fun collapseInit(sizeX: Int, sizeY: Int) =
+        Array(sizeX * sizeY) { Cell(types.size) }
 
     fun collapseAll(sizeX: Int, sizeY: Int, random: Random): Array<Cell> {
         val grid = collapseInit(sizeX, sizeY)
@@ -335,18 +343,23 @@ class WaveFunctionCollapse {
         return grid
     }
 
+    var enableMinimalEntropyHeuristic = true
+
     fun collapseStep(sizeX: Int, sizeY: Int, grid: Array<Cell>, random: Random): Boolean {
 
         // find cell with the lowest number of possibilities
         var bestIndex = -1
         var bestLength = types.size
         var numEqualCells = 0f
+        val enableMinimalEntropyHeuristic = enableMinimalEntropyHeuristic
         for (index in grid.indices) {
             val cell = grid[index]
             val cellLength = cell.length
-            if (cellLength in 2..bestLength) {
+            if (cellLength < 2) continue
+            if (enableMinimalEntropyHeuristic) {// less chance of solving, but much more random
+                if (cellLength > bestLength) continue
                 if (cellLength < bestLength) {
-                    // 100% accept this cell
+                    // 100% accept this cell + reset weight
                     bestLength = cellLength
                     numEqualCells = 1f
                     bestIndex = index
@@ -357,11 +370,17 @@ class WaveFunctionCollapse {
                         bestIndex = index
                     }
                 }
+            } else {
+                // randomly accept this cell
+                numEqualCells++
+                if (random.nextFloat() * numEqualCells < 1f) {
+                    bestIndex = index
+                }
             }
         }
 
         if (bestIndex < 0) {
-            println("no valid sample was found")
+            LOGGER.debug("no valid sample was found")
             return false
         }
 
@@ -376,20 +395,28 @@ class WaveFunctionCollapse {
 
         // collapse cell
         cell.result = (cell.types ?: types)[selectedIndex]
-        println("collapsing $x,$y by ${cell.types?.size} types to ${cell.result}")
+        LOGGER.debug("collapsing $x,$y by ${cell.types?.size} types to ${cell.result}")
         cell.types = null
         cell.length = 1
 
-        onChange(sizeX, sizeY, grid, x, y, bestIndex)
+        val invalid = BitSet(sizeX * sizeY)
+        onChange(sizeX, sizeY, x, y, bestIndex, invalid)
+        while (!invalid.isEmpty) {
+            val index2 = invalid.nextSetBit(0)
+            invalid.clear(index2)
+            val x2 = index2 % sizeX
+            val y2 = index2 / sizeX
+            calculatePossibilities(sizeX, sizeY, grid, x2, y2, index2, invalid)
+        }
 
         return true
     }
 
-    private fun onChange(sizeX: Int, sizeY: Int, grid: Array<Cell>, x: Int, y: Int, index: Int) {
-        if (x + 1 < sizeX) calculatePossibilities(sizeX, sizeY, grid, x + 1, y, index + 1)
-        if (x > 0) calculatePossibilities(sizeX, sizeY, grid, x - 1, y, index - 1)
-        if (y + 1 < sizeY) calculatePossibilities(sizeX, sizeY, grid, x, y + 1, index + sizeX)
-        if (y > 0) calculatePossibilities(sizeX, sizeY, grid, x, y - 1, index - sizeX)
+    private fun onChange(sizeX: Int, sizeY: Int, x: Int, y: Int, index: Int, invalid: BitSet) {
+        if (x + 1 < sizeX) invalid.set(index + 1)
+        if (x > 0) invalid.set(index - 1)
+        if (y + 1 < sizeY) invalid.set(index + sizeX)
+        if (y > 0) invalid.set(index - sizeX)
     }
 
     private fun isCompatible(
@@ -438,41 +465,64 @@ class WaveFunctionCollapse {
     val sideDx = intArrayOf(0, +1, 0, -1)
     val sideDy = intArrayOf(-1, 0, +1, 0)
 
-    fun calculatePossibilities(sizeX: Int, sizeY: Int, grid: Array<Cell>, x: Int, y: Int, index: Int) {
-        val cell = grid[x + y * sizeX]
-        if (cell.length < 2) return
-        val baseTypes = if (cell.types == null) ArrayList(types) else cell.types!!
-        val changed = baseTypes.retainAll { type ->
-            // check if cell type is allowed by all sides
-            (0 until 4).all { side ->
-                val dx = sideDx[side]
-                val dy = sideDy[side]
-                if (x + dx in 0 until sizeX && y + dy in 0 until sizeY) {
-                    val cell1 = grid[index + dx + dy * sizeX]
-                    val result = cell1.result
-                    val otherSide = (side + 2) and 3
-                    if (result != null) {
-                        type in result.neighbors[otherSide]
-                    } else {
-                        val types = cell1.types
-                        types == null || types.any2 { type in it.neighbors[otherSide] }
-                    }
-                } else true
+    fun isCompatible(sizeX: Int, sizeY: Int, grid: Array<Cell>, x: Int, y: Int, type: CellType, side: Int): Boolean {
+        val dx = sideDx[side]
+        val dy = sideDy[side]
+        return if (x + dx in 0 until sizeX && y + dy in 0 until sizeY) {
+            val cell1 = grid[(x + dx) + (y + dy) * sizeX]
+            val result = cell1.result
+            val otherSide = (side + 2) and 3
+            if (result != null) {
+                result.neighbors[otherSide][type.tileIndex]
+            } else {
+                val types = cell1.types
+                // types == null || types.any2 { it.neighbors[otherSide][type.id] }
+                types == null || cell1.typeNeighbors[otherSide][type.tileIndex] // .any2 { it.neighbors[otherSide][type.id] }
+            }
+        } else true
+    }
+
+    fun recalculateNeighborCache(cache: BitSet, types: List<CellType>, side: Int) {
+        cache.clear()
+        var lowestClearBit = 0
+        for (type in types) {
+            cache.or(type.neighbors[side])
+            lowestClearBit = cache.nextClearBit(lowestClearBit)
+            if (lowestClearBit >= types.size) {
+                // all options are valid -> skip the rest
+                break
             }
         }
+    }
+
+    fun calculatePossibilities(sizeX: Int, sizeY: Int, grid: Array<Cell>, x: Int, y: Int, index: Int, invalid: BitSet) {
+        val cell = grid[x + y * sizeX]
+        if (cell.length < 2) return
+        val newTypes = if (cell.types == null) ArrayList(types) else cell.types!!
+        val oldSize = newTypes.size
+        val changed = newTypes.retainAll { type ->
+            // check if cell type is allowed by all sides
+            isCompatible(sizeX, sizeY, grid, x, y, type, 0) &&
+                    isCompatible(sizeX, sizeY, grid, x, y, type, 1) &&
+                    isCompatible(sizeX, sizeY, grid, x, y, type, 2) &&
+                    isCompatible(sizeX, sizeY, grid, x, y, type, 3)
+        }
+        LOGGER.debug("[$x,$y] $oldSize -> ${cell.length}")
         if (changed || cell.types == null) {
-            if (baseTypes.size == 1) {
-                cell.result = baseTypes.first()
+            if (newTypes.size == 1) {
+                cell.result = newTypes.first()
                 cell.types = null
             } else {
-                cell.types = baseTypes
+                cell.types = newTypes
             }
-            cell.length = baseTypes.size
-            println("$x,$y -> ${cell.length}")
+            for (i in 0 until 4) {
+                recalculateNeighborCache(cell.typeNeighbors[i], newTypes, i)
+            }
+            cell.length = newTypes.size
             if (cell.length == 0) {
                 LOGGER.warn("No neighbors are possible for $x,$y")
             } else {
-                if (changed) onChange(sizeX, sizeY, grid, x, y, index)
+                if (changed) onChange(sizeX, sizeY, x, y, index, invalid)
             }
         }
     }

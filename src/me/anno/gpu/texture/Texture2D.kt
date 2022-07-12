@@ -48,6 +48,11 @@ open class Texture2D(
         filtering(GPUFiltering.NEAREST)
     }
 
+    constructor(img: Image, checkRedundancy: Boolean) : this("img", img.width, img.height, 1) {
+        create(img, true, checkRedundancy)
+        filtering(GPUFiltering.NEAREST)
+    }
+
     val samples = clamp(samples, 1, GFX.maxSamples)
 
     var internalFormat = 0
