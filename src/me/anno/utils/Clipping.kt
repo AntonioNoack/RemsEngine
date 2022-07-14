@@ -14,7 +14,7 @@ object Clipping {
         if (val0 in -1f..1f) return v0 // it's fine
         val val1p = getValue(axis1)
         val val2p = getValue(axis2)
-        // decide which one is better... is this important? idk...
+        // decide, which one is better... is this important? idk...
         if ((val0 > 1f && val1p > 1f) || (val0 < -1f && val1p < -1f)) return lerpMaybe(v0, axis2, val0, val2p, getValue)
         if ((val0 > 1f && val2p > 1f) || (val0 < -1f && val2p < -1f)) return lerpMaybe(v0, axis1, val0, val1p, getValue)
         val v1IsBetter = abs(val1p - val0) > abs(val2p - val0)

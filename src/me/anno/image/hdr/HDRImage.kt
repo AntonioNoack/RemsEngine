@@ -6,7 +6,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.clamp
 import java.io.*
 import kotlin.math.*
@@ -19,7 +18,7 @@ import kotlin.math.*
  * */
 class HDRImage : Image {
 
-    private lateinit var pixels: FloatArray
+    lateinit var pixels: FloatArray
 
     constructor(width: Int, height: Int, numChannels: Int) : super(0, 0, numChannels, numChannels > 3) {
         this.width = width
@@ -389,27 +388,5 @@ class HDRImage : Image {
 
         private const val HDR_MAGIC = "#?RADIANCE"
 
-        @Throws(IOException::class)
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // test HDR writer using the working HDR reader
-            val ref =
-                getReference("C:/XAMPP/htdocs/DigitalCampus/images/environment/kloofendal_38d_partly_cloudy_2k.hdr")
-            val correctInput = HDRImage(ref)
-            val createdStream = ByteArrayOutputStream(correctInput.width * correctInput.height * 4)
-            writeHDR(correctInput.width, correctInput.height, correctInput.pixels, createdStream)
-            val createdBytes = createdStream.toByteArray()
-            val testedInputStream = ByteArrayInputStream(createdBytes)
-            val testedInput = HDRImage(testedInputStream)
-            val correctPixels = correctInput.pixels
-            val testedPixels = testedInput.pixels
-            if (correctPixels.size != testedPixels.size) throw RuntimeException("Size doesn't match!")
-            for (i in correctPixels.indices) {
-                if (correctPixels[i] != testedPixels[i]) {
-                    throw RuntimeException("Pixels don't match! " + correctPixels[i] + " vs " + testedPixels[i] + " at index " + i)
-                }
-            }
-            println("Test passed")
-        }
     }
 }

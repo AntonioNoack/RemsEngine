@@ -158,44 +158,4 @@ object MarchingSquares {
         return polygons
     }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val w = 32
-        val h = 16
-        val t = (w * w + h * h) * 0.1f
-        // val random = Random(1234L)
-        val values = FloatArray(w * h) {
-            val xi = it % w
-            val yi = it / w
-            val x = xi - (w - 1f) / 2f
-            val y = yi - (h - 1f) / 2f
-            (x * x + y * y) * 2f - t
-            // random.nextFloat() - 0.5f
-        }
-        val polygons = march(w, h, values, 0f)
-        val scale = 8
-        val f0 = 1f / scale
-        val f1 = 3f / scale
-        val field = FloatImage(w, h, 1, values)
-        val fieldScale = 2f / (values.maxOrNull()!! - values.minOrNull()!!)
-        ImageWriter.writeImageFloat(
-            (w - 1) * scale, (h - 1) * scale,
-            "marchingSquares", 32, false
-        ) { x, y, _ ->
-            val px = x.toFloat() / scale
-            val py = y.toFloat() / scale
-            val distance = sqrt(
-                polygons.minOf { polygon ->
-                    polygon.indices.minOf {
-                        val a = polygon[it]
-                        val b = polygon[(it + 1) % polygon.size]
-                        LinearSegment.signedDistanceSq(px, py, a.x, a.y, b.x, b.y)
-                    }
-                }
-            )
-            val f = clamp(unmix(f0, f1, distance))
-            mix(1f, fieldScale * field.getValue(px, py), f)
-        }
-    }
-
 }
