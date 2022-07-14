@@ -234,7 +234,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         // .add(Math.random()*20-10,Math.random()*20-10, Math.random()*20-10)
         val hit = Raycast.raycast(
             world, cam, view.mouseDirection, 0.0, 0.0, // 1.0 / max(h, 1)
-            view.radius * 1e3, -1, -1, false, hit
+            view.radius * 1e3, -1, -1, emptySet(), false, hit
         )
         if (hit == null) {
             // draw red point in front of the camera

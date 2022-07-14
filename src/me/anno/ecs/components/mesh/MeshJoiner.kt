@@ -101,7 +101,7 @@ abstract class MeshJoiner<V>(
         val dstColors = alloc(hasColors, numPositions, mesh.color0)
         val dstIndices = alloc(true, numIndices, mesh.indices)!!
         val dstMaterialIds = alloc(!hasUniqueMaterial, numTriangles, mesh.materialIds)
-        val numBoneIndices = numTriangles * 3 * 4
+        val numBoneIndices = numPositions * 4
         val dstBoneIndices = alloc(hasBones, numBoneIndices, mesh.boneIndices)
         val dstBoneWeights = if (dstBoneIndices != null) {
             val w = alloc(true, numBoneIndices, mesh.boneWeights)!!
@@ -180,8 +180,9 @@ abstract class MeshJoiner<V>(
             }
             if (dstBoneIndices != null) {
                 val boneId = getBoneId(element)
-                for (k in srcNormals.indices) {
-                    dstBoneIndices[k * 4 + i0] = boneId
+                val j0 = i0 / 3 * 4
+                for (k in 0 until srcNormals.size / 3 * 4 step 4) {
+                    dstBoneIndices[j0 + k] = boneId
                 }
             }
             dstColors?.fill(getVertexColor(element), i0 / 3, (i0 + srcNormals.size) / 3)

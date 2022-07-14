@@ -151,15 +151,4 @@ open class QuickInputScriptComponent : QuickScriptComponent(), ControlReceiver {
         }
     }
 
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val c = QuickInputScriptComponent()
-            val e = Entity()
-            e.add(c)
-            c.keyUpScript = "print(key)"
-            c.onKeyUp(17)
-        }
-    }
-
 }

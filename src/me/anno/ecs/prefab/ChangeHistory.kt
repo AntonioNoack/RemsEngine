@@ -38,40 +38,7 @@ class ChangeHistory : StringHistory() {
     override val className: String = "ChangeHistory"
 
     companion object {
-
         private val LOGGER = LogManager.getLogger(ChangeHistory::class)
-
-        /**
-         * a test for StringHistories compression capabilities
-         * */
-        @JvmStatic
-        fun main(args: Array<String>) {
-
-            registerCustomClass(ChangeHistory())
-
-            val hist = ChangeHistory()
-            hist.put("hallo")
-            hist.put("hello")
-            hist.put("hello world")
-            hist.put("hell")
-            hist.put("hello world, you")
-            hist.put("kiss the world")
-            hist.put("this is the world")
-            hist.put("that was le world")
-
-            val str = TextWriter.toText(hist, InvalidRef)
-            LOGGER.info(str)
-
-            val hist2 = TextReader.readFirstOrNull<ChangeHistory>(str, InvalidRef)!!
-
-            val str2 = TextWriter.toText(hist2, InvalidRef)
-
-            if (str != str2) {
-                LOGGER.info(str2)
-                throw RuntimeException()
-            }
-
-        }
     }
 
 }

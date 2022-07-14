@@ -1,38 +1,11 @@
 package me.anno.ecs.components.shaders
 
-import me.anno.config.DefaultConfig.style
-import me.anno.ecs.prefab.PrefabInspector
-import me.anno.ecs.prefab.change.Path
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSMeshShader
-import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
-import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI
-import me.anno.ui.editor.PropertyInspector
-import me.anno.utils.OS.pictures
 
 object TriplanarShader : ECSMeshShader("triplanar") {
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        // test this shader, maybe with the brick texture :)
-        testUI {
-            val mat = TriplanarMaterial()
-            mat.diffuseMap = pictures.getChild("uv-checker.jpg")
-            mat.normalMap = pictures.getChild("BricksNormal.png")
-            mat.prefabPath = Path.ROOT_PATH
-            EditorState.prefabSource = mat.ref
-            PrefabInspector.currentInspector = PrefabInspector(mat.ref)
-            val list = CustomList(false, style)
-            list.add(SceneView(EditorState, PlayMode.EDITING, style), 3f)
-            list.add(PropertyInspector({ mat }, style, Unit), 1f)
-            list
-        }
-    }
 
     override fun createFragmentVariables(
         isInstanced: Boolean,

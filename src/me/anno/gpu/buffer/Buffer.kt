@@ -19,12 +19,6 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
             elementCount = value
         }
 
-    @Deprecated("Not supported on mobile platforms nor modern OpenGL")
-    fun quads(): Buffer {
-        drawMode = GL_QUADS
-        return this
-    }
-
     fun lines(): Buffer {
         drawMode = GL_LINES
         return this

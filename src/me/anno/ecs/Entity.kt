@@ -362,16 +362,19 @@ class Entity() : PrefabSaveable(), Inspectable {
 
         var hasEventReceiver = false
 
+        // manual for-loops, because the number of items can be changed by events intentionally
         val components = components
-        for (i in components.indices) {
+        var i = -1
+        while (++i < components.size){
             if (call2(components[i])) {
                 hasEventReceiver = true
             }
         }
 
         val children = children
-        for (i in children.indices) {
-            val child = children[i]
+        var j = -1
+        while (++j < children.size){
+            val child = children[j]
             if (hasEvent(child) && call(child)) {
                 hasEventReceiver = true
             }

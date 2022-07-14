@@ -5,6 +5,7 @@ import me.anno.network.*
 import me.anno.network.packets.POS0Packet
 import me.anno.network.packets.PingPacket
 import me.anno.utils.Sleep
+import java.io.DataInputStream
 import java.net.InetAddress
 import java.net.SocketTimeoutException
 import kotlin.concurrent.thread
@@ -16,10 +17,15 @@ fun main() {
     val udpProtocol = Protocol("UDP ", NetworkProtocol.UDP)
 
     // then register packets
-    tcpProtocol.register(PingPacket())
+    tcpProtocol.register(object : PingPacket() {
+        override fun onReceive(server: Server?, client: TCPClient) {
+            super.onReceive(server, client)
+            if (server == null) { // a few extra packets may be received, because Ping packets are also used as keep-alive
+                println("client ${client.name} got TCP answer")
+            }
+        }
+    })
     udpProtocol.register(PingPacket())
-    tcpProtocol.register(POS0Packet())
-    udpProtocol.register(POS0Packet())
 
     // then create server & clients
     val server = Server()
@@ -30,24 +36,24 @@ fun main() {
     fun createClient(name: String): TCPClient {
         val address = InetAddress.getByName("localhost")
         val tcpSocket = TCPClient.createSocket(address, server.tcpPort, tcpProtocol)
-        val client = TCPClient(tcpSocket, tcpProtocol, name)
-        client.startClientSideAsync()
+        val tcpClient = TCPClient(tcpSocket, tcpProtocol, name)
+        tcpClient.startClientSideAsync()
         thread(name = "$name.udp") {
             Thread.sleep(100)
             // when the connection is established
-            val client1 = UDPClient(address, server.udpPort)
-            client1.send(null, client, udpProtocol, PingPacket())
-            println("sent udp packet")
+            val udpClient = UDPClient(address, server.udpPort)
+            udpClient.send(null, tcpClient, udpProtocol, PingPacket())
             // receive the answer
             try {
-                client1.receive(null, client, PingPacket())
-                println("client got answer")
+                udpClient.receive(null, tcpClient, PingPacket())
+                println("client $name got UDP answer")
             } catch (e: SocketTimeoutException) {
-                println("client $name got no answer")
+                println("client $name got no UDP answer")
             }
-            client1.close()
+            udpClient.close()
         }
-        return client
+        tcpClient.sendTCP(PingPacket())
+        return tcpClient
     }
 
     createClient("A")

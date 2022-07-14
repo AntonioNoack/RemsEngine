@@ -14,6 +14,7 @@ import org.joml.Matrix4x3d
 
 /**
  * class for generating procedural meshes
+ * todo animated procedural meshes
  * */
 abstract class ProceduralMesh : MeshComponentBase() {
 

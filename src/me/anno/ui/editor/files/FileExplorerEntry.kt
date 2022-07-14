@@ -91,7 +91,7 @@ import kotlin.math.*
 // todo right click to get all meta information? (properties panel in windows)
 
 // done images: show extra information: width, height
-class FileExplorerEntry(
+open class FileExplorerEntry(
     private val explorer: FileExplorer?,
     val isParent: Boolean, file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
@@ -104,9 +104,7 @@ class FileExplorerEntry(
     // todo or right click menu for sorting
 
     val path = file.absolutePath
-
-    val ref0 = if (path.startsWith("tmp://")) WeakReference(file) else null
-    val ref1 get() = ref0?.get() ?: getReferenceAsync(path)
+    val ref1 get() = getReferenceAsync(path)
 
     // todo when entering a json file, and leaving it, the icon should not be a folder!
 

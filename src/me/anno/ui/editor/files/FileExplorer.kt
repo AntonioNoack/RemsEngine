@@ -2,6 +2,8 @@ package me.anno.ui.editor.files
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
+import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.Input.setClipboardContent
@@ -21,6 +23,8 @@ import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.constraints.Constraint
+import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -29,6 +33,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
 import me.anno.ui.input.TextInput
@@ -133,7 +138,13 @@ abstract class FileExplorer(
 
     init {
         fun addFavourite(folder: FileReference) {
-            favourites.add(FileExplorerEntry(this, false, folder, style))
+            favourites.add(object: FileExplorerEntry(this@FileExplorer, false, folder, style){
+                override fun calculateSize(w: Int, h: Int) {
+                    val size = 64
+                    minW = size
+                    minH = size
+                }
+            })
         }
         addFavourite(home)
         addFavourite(downloads)
@@ -217,7 +228,7 @@ abstract class FileExplorer(
             Padding(1),
             style,
             AxisAlignment.MIN
-        )
+        )// .child.setWeight(1f)
         uContent += content.setWeight(3f)
 
     }
@@ -621,10 +632,24 @@ abstract class FileExplorer(
     override val className get() = "FileExplorer"
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(FileExplorer::class)
         private val forbiddenConfig =
             DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32) { it.toChar() })
         val forbiddenCharacters = forbiddenConfig.toHashSet()
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+            GFX.disableRenderDoc()
+            testUI {
+                ECSRegistry.init()
+                object : FileExplorer(null, style) {
+                    override fun getRightClickOptions() = emptyList<FileExplorerOption>()
+                    override fun onDoubleClick(file: FileReference) {}
+                    override fun onPaste(x: Float, y: Float, data: String, type: String) {}
+                }
+            }
+        }
 
         fun invalidateFileExplorers(panel: Panel) {
             for (window in panel.windowStack) {

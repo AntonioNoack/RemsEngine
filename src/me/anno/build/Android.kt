@@ -4,7 +4,6 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
-import me.anno.utils.OS.downloads
 import me.anno.utils.OS.home
 import me.anno.utils.OS.pictures
 import me.anno.utils.process.BetterProcessBuilder
@@ -108,14 +107,10 @@ fun main() {
 
     println(aapt2Path)
 
-    // apk signer: for shipping
-
-    // avd manager: manage virtual devices
-
-    // sdk manager: package manager for sdk
-
+    // apk signer:   for shipping
+    // avd manager:  manage virtual devices
+    // sdk manager:  package manager for sdk
     // apk analyzer: insight after build process
-
     // ADB "Android Debug Bridge": installs APKs onto system
 
 }

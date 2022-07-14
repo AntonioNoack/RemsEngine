@@ -208,12 +208,6 @@ open class ScriptComponent : Component() {
             return (funcObj as? CacheData<*>)?.value as? Pair<Globals, LuaValue>
         }
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val globals = global.get()
-            LOGGER.debug(wrapIntoLimited(globals.load("while 1 > 0 do end"), globals).invoke())
-        }
-
         object ErrorFunction : ZeroArgFunction() {
             override fun call(): LuaValue {
                 throw Error("Script run out of limits.")

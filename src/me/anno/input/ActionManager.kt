@@ -129,7 +129,8 @@ object ActionManager : StringMap() {
         val mouseMoveConsumer = BiConsumer<Int, Long> { key, downTime ->
             onKeyHoldDown(window, dx, dy, key, false)
             val deltaTime = (gameTime - downTime) * 1e-9f
-            if (deltaTime >= keyDragDelay) {
+            val mouseStill = Input.mouseMovementSinceMouseDown < Input.maxClickDistance
+            if (deltaTime >= keyDragDelay && mouseStill) {
                 onKeyHoldDown(window, dx, dy, key, true)
             }
         }

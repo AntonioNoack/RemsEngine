@@ -133,20 +133,6 @@ class SDFStar : SDF2DShape() {
                 "}\n" +
                 "float sdStar(vec2 p, vec2 a){ return sdStar(p,a.x,a.y); }\n"
 
-        /** 2d sdf test */
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val size = 512
-            val star = SDFStar()
-            star.scale = size * 0.3f
-            ImageWriter.writeImageFloat(size, size, "star.png", 0, true) { x, y, _ ->
-                val p = JomlPools.vec4f.create()
-                val distance = star.computeSDF(p.set(x - size * 0.5f, y - size * 0.5f, 0f, 0f))
-                JomlPools.vec4f.sub(1)
-                fract(distance * 0.01f) * sign(distance)
-            }
-        }
-
     }
 
 }

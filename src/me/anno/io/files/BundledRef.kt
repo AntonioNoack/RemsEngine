@@ -13,9 +13,8 @@ class BundledRef(
     constructor(resName: String) : this(resName, "$prefix$resName", false)
 
     // todo for the most important directories, e.g. asset directories,
-    // todo we could add index.txt files or sth like that, where all sub-files are listed
-
-    // todo or we could identify where the zip jar is located, and traverse/index it
+    //  we could add index.txt files or sth like that, where all sub-files are listed
+    // done for desktop: or we could identify where the zip jar is located, and traverse/index it
 
     override fun getChild(name: String) = getReference(zipFileForDirectory, name)
 
@@ -65,19 +64,17 @@ class BundledRef(
         throw IllegalAccessException("Cannot write to internal files")
     }
 
-    val parent = lazy {
+    private val cachedParent by lazy {
         // check whether / is in path
         val li = resName.lastIndexOf('/')
         if (li >= 0) {
             val newName = resName.substring(0, li)
             val newPath = absolutePath.substring(0, li + prefix.length)
             BundledRef(newName, newPath, true)
-        } else jarAsZip.value
+        } else jarAsZip
     }
 
-    override fun getParent(): FileReference? {
-        return parent.value
-    }
+    override fun getParent() = cachedParent
 
     override val lastModified: Long = 0L
     override val lastAccessed: Long = 0L
@@ -90,8 +87,8 @@ class BundledRef(
 
         fun parse(str: String): FileReference {
             if (!str.startsWith(prefix, true)) throw IllegalArgumentException()
-            val zip = jarAsZip.value
-            if (zip == null) {
+            val zip = jarAsZip
+            if (zip == InvalidRef) {
                 BundledRef(str.substring(prefix.length), str, false)
             } else {
                 getReference(zip, str.substring(prefix.length))
@@ -101,17 +98,22 @@ class BundledRef(
         }
 
         const val prefix = "res://"
-        private val jarAsZip = lazy<FileReference?> {
+        private val jarAsZip by lazy {
             // find this jar file as zip
-            getReference(
-                File(
-                    Companion::class.java
-                        .protectionDomain
-                        .codeSource
-                        .location
-                        .toURI()
+            try {
+                getReference(
+                    File(
+                        Companion::class.java
+                            .protectionDomain
+                            .codeSource
+                            .location
+                            .toURI()
+                    )
                 )
-            )
+            } catch (e: NullPointerException) {
+                e.printStackTrace()
+                InvalidRef
+            }
         }
     }
 

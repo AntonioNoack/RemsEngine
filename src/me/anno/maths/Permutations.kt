@@ -1,7 +1,25 @@
 package me.anno.maths
 
+import me.anno.maths.Maths.factorial
+
 @Suppress("unused")
 object Permutations {
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val all = HashSet<List<Int>>()
+        var ctr = 0
+        val base = listOf(1, 2, 3, 4, 5)
+        generatePermutations(base) {
+            ctr++
+            println(it)
+            if (!all.add(it.toList()))
+                throw RuntimeException("Double entry $it")
+        }
+        if (ctr != base.size.factorial()) {
+            throw RuntimeException("Incorrect number of permutations")
+        }
+    }
 
     fun <T> generatePermutations(elements: List<T>, onNextPermutation: (List<T>) -> Unit) {
         generatePermutations2(elements.toMutableList(), onNextPermutation)
@@ -12,37 +30,29 @@ object Permutations {
         // Wikipedia https://en.wikipedia.org/wiki/Heap%27s_algorithm
         // c is an encoding of the stack state. c[k] encodes the for-loop counter for when generate(k+1, A) is called
 
-        val n = elements.size
-        val c = IntArray(n)
-
+        val size = elements.size
+        val stack = IntArray(size)
         onNextPermutation(elements)
 
-        fun swap(i: Int, j: Int) {
-            val t = elements[i]
-            elements[i] = elements[j]
-            elements[j] = t
-        }
-
-        // index acts similarly to the stack pointer
-        var index = 0
-        while (index < n) {
-            if (c[index] < index) {
-                if (index % 2 == 0) {// even
-                    swap(0, index)
-                } else {
-                    swap(c[index], index)
-                }
+        var stackPointer = 0
+        while (stackPointer < size) {
+            if (stack[stackPointer] < stackPointer) {
+                val i = if (stackPointer and 1 == 0) 0 else stack[stackPointer]
+                val j = stackPointer
+                val tmp = elements[i]
+                elements[i] = elements[j]
+                elements[j] = tmp
                 onNextPermutation(elements)
                 // Swap has occurred ending the for-loop.
                 // Simulate the increment of the for-loop counter
-                c[index]++
+                stack[stackPointer]++
                 // Simulate recursive call reaching the base case by bringing the pointer
                 // to the base case analog in the array
-                index = 0
+                stackPointer = 0
             } else {
                 // Calling generate(i+1, A) has ended as the for-loop terminated.
                 // Reset the state and simulate popping the stack by incrementing the pointer.
-                c[index++] = 0
+                stack[stackPointer++] = 0
             }
         }
 

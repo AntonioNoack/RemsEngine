@@ -14,7 +14,7 @@ import me.anno.io.zip.InnerFile
 import me.anno.io.zip.InnerFolder
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.io.AIFileIOImpl
-import me.anno.parser.crossAny
+import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.LOGGER
 import me.anno.utils.types.Strings.isBlank2
@@ -73,9 +73,10 @@ open class StaticMeshesLoader {
                 aiImportFileExWithProperties(file.absolutePath, flags, null, store)
             } else {
                 val fileIO = AIFileIOImpl.create(file, file.getParent()!!)
-                aiImportFileExWithProperties(file.name, flags, fileIO, store) ?:
-                aiImportFileFromMemoryWithProperties( // the first method threw "bad allocation" somehow 🤷‍♂️
-                    file.readByteBuffer(true), flags, null as ByteBuffer?, store)
+                aiImportFileExWithProperties(file.name, flags, fileIO, store)
+                    ?: aiImportFileFromMemoryWithProperties( // the first method threw "bad allocation" somehow 🤷‍♂️
+                        file.readByteBuffer(true), flags, null as ByteBuffer?, store
+                    )
             }
         } ?: throw IOException("Error loading model $file, ${aiGetErrorString()}")
     }
@@ -176,13 +177,19 @@ open class StaticMeshesLoader {
     fun loadMaterialPrefabs(
         aiScene: AIScene,
         texturesDir: FileReference,
-        loadedTextures: List<FileReference>
+        loadedTextures: List<FileReference>,
+        original: FileReference,
     ): Array<Prefab> {
         val numMaterials = aiScene.mNumMaterials()
         val aiMaterials = aiScene.mMaterials()
+        val gltfMaterials = try {
+            GLTFMaterialExtractor.extract(original)
+        } catch (e: IOException) {
+            null
+        }
         return Array(numMaterials) {
             val aiMaterial = AIMaterial.create(aiMaterials!![it])
-            processMaterialPrefab(aiScene, aiMaterial, loadedTextures, texturesDir)
+            processMaterialPrefab(aiScene, aiMaterial, loadedTextures, texturesDir, gltfMaterials)
         }
     }
 
@@ -222,7 +229,8 @@ open class StaticMeshesLoader {
         aiScene: AIScene,
         aiMaterial: AIMaterial,
         loadedTextures: List<FileReference>,
-        texturesDir: FileReference
+        texturesDir: FileReference,
+        extraDataMap: Map<String, GLTFMaterialExtractor.PBRMaterialData>?
     ): Prefab {
 
         val prefab = Prefab("Material")
@@ -231,9 +239,10 @@ open class StaticMeshesLoader {
         // val specular = getColor(aiMaterial, color, AI_MATKEY_COLOR_SPECULAR)
 
         // get the name...
-        val name = AIString.calloc()
-        aiGetMaterialString(aiMaterial, AI_MATKEY_NAME, 0, 0, name)
-        prefab.setProperty("name", name.dataString())
+        val nameStr = AIString.calloc()
+        aiGetMaterialString(aiMaterial, AI_MATKEY_NAME, 0, 0, nameStr)
+        val name = nameStr.dataString()
+        prefab.setProperty("name", name)
 
         val diffuseMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir)
         if (diffuseMap != InvalidRef) prefab.setProperty("diffuseMap", diffuseMap)
@@ -262,6 +271,7 @@ open class StaticMeshesLoader {
             // the original 1 should be 100%, so I think it's kind of appropriate
             prefab.setProperty("emissiveBase", Vector3f(emissive.x, emissive.y, emissive.z))
         }
+
         val emissiveMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE, texturesDir)
         if (emissiveMap != InvalidRef) prefab.setProperty("emissiveMap", emissiveMap)
 
@@ -269,13 +279,7 @@ open class StaticMeshesLoader {
         val normalMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS, texturesDir)
         if (normalMap != InvalidRef) prefab.setProperty("normalMap", normalMap)
 
-        @Suppress("SpellCheckingInspection")
-                /*val baseColor2 = getPath(
-                    aiScene, aiMaterial, loadedTextures,
-                    AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, texturesDir
-                )*/
-        // println("base color 2: $baseColor2")
-
+        // metallic / roughness
         val metallicRoughness = getPath(
             aiScene, aiMaterial, loadedTextures,
             AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, texturesDir
@@ -288,7 +292,8 @@ open class StaticMeshesLoader {
             prefab.setProperty("metallicMinMax", Vector2f(0f, 1f))
         } else {
 
-            // todo these settings seem wrong... what is actually metallic/roughness?
+            // assimp only supports a single roughness/metallic property :/
+            // done: read materials manually for fbx -> looking at OpenFBX, FBX only has the specular/shininess/reflective-workflow
 
             // roughness
             // AI_MATKEY_SHININESS as color, .r: 360, 500, so the exponent?
@@ -296,28 +301,18 @@ open class StaticMeshesLoader {
             // val shininessStrength = getFloat(aiMaterial, AI_MATKEY_SHININESS_STRENGTH) // always 0.0
             // LOGGER.info("roughness: $shininess x $shininessStrength")
             val roughnessBase = shininessToRoughness(shininessExponent)
-            if (roughnessBase != 1f) prefab.setProperty("roughnessMinMax", Vector2f(0f, roughnessBase))
+            prefab.setProperty("roughnessMinMax", Vector2f(0f, roughnessBase))
 
-            // metallic
-            // val metallic0 = getColor(aiMaterial, color, AI_MATKEY_COLOR_REFLECTIVE) // always null
-            val metallic = 1f-roughnessBase//getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY) // 0.0, rarely 0.5
+            val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY) // 0.0, rarely 0.5
             if (metallic != 0f) prefab.setProperty("metallicMinMax", Vector2f(0f, metallic))
-            // LOGGER.info("metallic: $metallic, roughness: $roughnessBase")
-            // println("shine: $shininessExponent, metallic: $metallic")
 
         }
-        // LOGGER.info("metallic: $metallic0 x $metallic")
 
-        /*for(i in 0 until aiMaterial.mNumProperties()){
-            val property = AIMaterialProperty.create(aiMaterial.mProperties()[i])
-            val key = property.mKey().dataString()
-            val index = property.mIndex()
-            val length = property.mDataLength()
-            val data = property.mData()
-            val semantic = property.mSemantic()
-            val type = property.mType()
-            println("$key,$index,$length,$semantic,$type")
-        }*/
+        val extraData = extraDataMap?.get(name)
+        if (extraData != null) {
+            prefab.setProperty("metallicMinMax", Vector2f(0f, extraData.metallic))
+            prefab.setProperty("roughnessMinMax", Vector2f(0f, extraData.roughness))
+        }
 
         // other stuff
         val displacementMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DISPLACEMENT, texturesDir)
@@ -328,9 +323,10 @@ open class StaticMeshesLoader {
         return prefab
     }
 
+    private val pMax = IntArray(1) { 1 }
     fun getFloat(aiMaterial: AIMaterial, key: String): Float {
         val a = FloatArray(1)
-        aiGetMaterialFloatArray(aiMaterial, key, aiTextureType_NONE, 0, a, IntArray(1) { 1 })
+        aiGetMaterialFloatArray(aiMaterial, key, aiTextureType_NONE, 0, a, pMax)
         return a[0]
     }
 

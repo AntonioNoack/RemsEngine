@@ -81,22 +81,4 @@ class SphereCollider : Collider() {
 
     override val className get() = "SphereCollider"
 
-    companion object {
-
-        /* correctness test for sphere collider ray tests */
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val s = SphereCollider()
-            val offset = 1f
-            for (x in -2f..2f step 0.1f) {
-                val distance = s.raycast(
-                    Vector3f(x, 0f, -offset), Vector3f(0f, 0f, 1f),
-                    0f, 0f, null, 10f
-                )
-                val target = if (abs(x) > 1f) Float.POSITIVE_INFINITY else offset - sqrt(1f - x * x)
-                println("$x -> $distance, error: ${if(distance == target) "ok" else (distance - target) / distance}")
-            }
-        }
-    }
-
 }

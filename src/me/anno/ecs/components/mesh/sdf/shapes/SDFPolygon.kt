@@ -81,7 +81,6 @@ class SDFPolygon : SDF2DShape() {
     override val className = "SDFPolygon"
 
     companion object {
-
         private const val sdPolygon = "" +
                 // signed distance to a n-star polygon
                 "float sdPolygon(vec2 p, float an, vec2 acs) {\n" +
@@ -97,21 +96,6 @@ class SDFPolygon : SDF2DShape() {
                 "   float an = PI/n;\n" +
                 "   return sdPolygon(p,an,vec2(cos(an),sin(an)));\n" +
                 "}\n"
-
-        /** 2d sdf test */
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val size = 512
-            val star = SDFPolygon()
-            star.scale = size * 0.3f
-            ImageWriter.writeImageFloat(size, size, "polygon.png", 0, true) { x, y, _ ->
-                val p = JomlPools.vec4f.create()
-                val distance = star.computeSDF(p.set(x - size * 0.5f, y - size * 0.5f, 0f, 0f))
-                JomlPools.vec4f.sub(1)
-                fract(distance * 0.01f) * sign(distance)
-            }
-        }
-
     }
 
 }

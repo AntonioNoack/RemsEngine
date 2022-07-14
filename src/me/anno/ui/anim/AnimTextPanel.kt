@@ -298,7 +298,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         @JvmStatic
         fun main(args: Array<String>) {
             // inspired by https://www.youtube.com/watch?v=3QXGM84ZfSw
-            GFX.disableRenderDoc = true
+            GFX.disableRenderDoc()
             testUI {
                 val list = PanelListY(style)
                 val green = 0x8fbc8f or black

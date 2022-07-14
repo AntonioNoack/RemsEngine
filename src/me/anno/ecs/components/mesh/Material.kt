@@ -1,11 +1,8 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.Engine
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ECSRegistry
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -20,7 +17,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -321,21 +317,6 @@ open class Material : PrefabSaveable() {
                 LOGGER.warn("Didn't find texture $name in ${shader.name}")
                 null
             }
-        }
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            ECSRegistry.initNoGFX()
-            val prefab = PrefabCache[OS.documents.getChild("cube bricks.glb")]!!
-            for (change in prefab.adds) {
-                LOGGER.info(change)
-            }
-            for (change in prefab.sets) {
-                LOGGER.info(change)
-            }
-            val instance = prefab.createInstance()
-            LOGGER.info(instance)
-            Engine.requestShutdown()
         }
 
     }

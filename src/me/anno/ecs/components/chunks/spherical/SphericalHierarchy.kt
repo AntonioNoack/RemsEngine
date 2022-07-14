@@ -151,28 +151,4 @@ open class SphericalHierarchy(
         }
     }
 
-    companion object {
-
-        private val LOGGER = LogManager.getLogger(SphericalHierarchy::class)
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val a = Vector3d(-1.0, -1.0, 1.0)
-            val b = Vector3d(-1.0, +1.0, 1.0)
-            val c = Vector3d(+2.0, +0.0, 1.0)
-            val tri = SphereTriangle(null, 0, a, b, c)
-            LOGGER.info(tri.baseAB.print())
-            LOGGER.info(tri.baseUp.print())
-            LOGGER.info(tri.baseAC.print())
-            LOGGER.info(tri.globalToLocal)
-            LOGGER.info(tri.localToGlobal)
-            LOGGER.info(tri.globalToLocal.transformPosition(Vector3d(0.0, 0.0, 1.1)).print()) // shall become (0,0.1,0)
-            LOGGER.info(tri.globalToLocal.transformPosition(Vector3d(0.0, 1.0, 1.1)).print()) // shall become (1,0.1,0)
-            LOGGER.info(tri.localA.print())
-            LOGGER.info(tri.localB.print())
-            LOGGER.info(tri.localC.print())
-        }
-
-    }
-
 }

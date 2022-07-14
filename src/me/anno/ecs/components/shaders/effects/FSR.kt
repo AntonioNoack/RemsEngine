@@ -192,35 +192,4 @@ object FSR {
         sharpen(sharpness, flipY)
     }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-
-        // testing to upscale and sharpen an image
-
-        HiddenOpenGLContext.createOpenGL()
-
-        val src = getReference(OS.pictures, "rem-original.jpg")
-        val texture = ImageGPUCache.getImage(src, 10000, false)!!
-
-        ShaderLib.init()
-
-        val size = 3
-
-        val ow = texture.w * size
-        val oh = texture.h * size
-
-        val upscaled = FBStack["", ow, oh, 4, false, 1, false]
-        useFrame(upscaled) { upscale(texture, 0, 0, ow, oh, true, applyToneMapping = false) }
-        FramebufferToMemory.createImage(upscaled, false, withAlpha = false)
-            .write(src.getSibling("${src.nameWithoutExtension}-${size}x.png"))
-
-        val sharpened = FBStack["", ow, oh, 4, false, 1, false]
-        useFrame(sharpened) { sharpen(upscaled.textures.first(), 1f, 0, 0, ow, oh, true) }
-
-        FramebufferToMemory.createImage(sharpened, false, withAlpha = false)
-            .write(src.getSibling("${src.nameWithoutExtension}-${size}x-s.png"))
-
-    }
-
-
 }

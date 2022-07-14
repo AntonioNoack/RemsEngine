@@ -3,6 +3,7 @@ package me.anno.engine.ui.render
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
@@ -56,7 +57,9 @@ class SceneView(val library: EditorState, playMode: PlayMode, style: Style) : Pa
     }
 
     companion object {
+        @Suppress("unused")
         fun runEditor(scene: PrefabSaveable, init: (SceneView) -> Unit = {}): Panel {
+            scene.prefabPath = Path.ROOT_PATH
             EditorState.prefabSource = scene.ref
             val sceneView = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
             PrefabInspector.currentInspector = PrefabInspector(scene.ref)

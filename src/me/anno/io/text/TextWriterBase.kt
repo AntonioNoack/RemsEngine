@@ -1360,7 +1360,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     companion object {
-        private const val hex = "0123456789abcdef"
+        const val hex = "0123456789abcdef"
     }
 
 }

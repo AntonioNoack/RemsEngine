@@ -1,15 +1,10 @@
 package me.anno.ecs.components.anim
 
 import me.anno.cache.data.ICacheData
-import me.anno.ecs.components.cache.AnimationCache
-import me.anno.ecs.components.cache.SkeletonCache
-import me.anno.engine.ECSRegistry
-import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.assimp.AnimGameItem.Companion.tmpMatrices
-import me.anno.utils.OS.desktop
-import me.anno.utils.OS.downloads
 import org.joml.Matrix4x3f
 import java.nio.FloatBuffer
 import kotlin.math.min
@@ -48,12 +43,13 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     private val animationList = ArrayList<AnimTexIndex>()
     private var nextIndex = 0
     private val textureWidth = skeleton.bones.size * 3
-    private var texture = Texture2D("anim", textureWidth, 64, 1)
+    private var internalTexture = Texture2D("anim", textureWidth, 64, 1)
 
-    fun getTexture(): Texture2D? {
-        return if (texture.isCreated) texture
-        else null
-    }
+    val texture: Texture2D?
+        get() {
+            return if (internalTexture.isCreated) internalTexture
+            else null
+        }
 
     fun addAnimation(anim: Animation, retargeting: Retargeting?): AnimTexIndex {
         return animationMap.getOrPut(anim) {
@@ -78,22 +74,30 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     private fun putNewAnim(animation: Animation, retargeting: Retargeting?): Int {
         val numFrames = animation.numFrames + 1
         ensureCapacity(nextIndex + numFrames)
-        if (texture.isCreated) {
+        if (internalTexture.isCreated) {
             // extend texture
             // 4 for sizeof(float), 4 for rgba
-            val buffer = Texture2D.bufferPool[texture.w * texture.h * 4 * 4, false, false]
+            val buffer = Texture2D.bufferPool[internalTexture.w * internalTexture.h * 4 * 4, false, false]
             val data = buffer.asFloatBuffer()
             fillData(data, animation, retargeting)
             data.position(0)
-            texture.overridePartially(buffer,0, 0, nextIndex, texture.w, numFrames, TargetType.FloatTarget4)
+            internalTexture.overridePartially(
+                buffer,
+                0,
+                0,
+                nextIndex,
+                internalTexture.w,
+                numFrames,
+                TargetType.FloatTarget4
+            )
             Texture2D.bufferPool.returnBuffer(buffer)
         } else {
             // create new texture
-            val buffer = Texture2D.bufferPool[texture.w * texture.h * 4 * 4, false, false]
+            val buffer = Texture2D.bufferPool[internalTexture.w * internalTexture.h * 4 * 4, false, false]
             val data = buffer.asFloatBuffer()
             fillData(data)
             data.position(0)
-            texture.create(TargetType.FloatTarget4, buffer)
+            internalTexture.create(TargetType.FloatTarget4, buffer)
             Texture2D.bufferPool.returnBuffer(buffer)
         }
         nextIndex += numFrames
@@ -137,18 +141,18 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     }
 
     fun ensureCapacity(size: Int) {
-        if (texture.h < size) {
-            texture.destroy()
-            texture.reset()
+        if (internalTexture.h < size) {
+            internalTexture.destroy()
+            internalTexture.reset()
         }
         // increase by larger steps
-        while (texture.h < size) {
-            texture.h *= 2
+        while (internalTexture.h < size) {
+            internalTexture.h *= 2
         }
     }
 
     override fun destroy() {
-        texture.destroy()
+        internalTexture.destroy()
     }
 
     companion object {
@@ -157,23 +161,6 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         // then we can remove the old code
         var useAnimTextures = true
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // create a test texture, so we can see whether the texture is correctly created
-            ECSRegistry.initWithGFX()
-            val source = downloads.getChild("3d/azeria/scene.gltf") // animated mesh file
-            val skeletonSource = source.getChild("Skeleton.json")
-            val animationsSources = source.getChild("animations").listChildren()!!
-            val skeleton = SkeletonCache[skeletonSource]!!
-            val animations = animationsSources.map { AnimationCache[it]!! }
-            val texture = AnimTexture(skeleton)
-            val retargeting = Retargeting()
-            for (anim in animations.sortedBy { it.name }) {
-                texture.addAnimation(anim, retargeting)
-            }
-            FramebufferToMemory.createImage(texture.texture, flipY = false, withAlpha = false)
-                .write(desktop.getChild("animTexture.png"))
-        }
     }
 
 }

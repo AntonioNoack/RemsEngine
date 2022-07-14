@@ -13,7 +13,7 @@ import kotlin.math.sqrt
 /**
  * defines a worker, that can process large tasks
  * use ProcessingGroup for special-purpose parallel processing,
- * ProcessingQueue for a asynchronous worker,
+ * ProcessingQueue for asynchronous workers,
  * HeavyProcessing for testing/debugging parallel tasks
  * */
 abstract class WorkSplitter(val numThreads: Int) {
@@ -30,6 +30,7 @@ abstract class WorkSplitter(val numThreads: Int) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(WorkSplitter::class)
+
         /** a * b / c */
         fun partition(a: Int, b: Int, c: Int): Int {
             return (a.toLong() * b.toLong() / c.toLong()).toInt()
@@ -74,52 +75,43 @@ abstract class WorkSplitter(val numThreads: Int) {
     ) {
         val count = i1 - i0
         val threadCount = Maths.clamp(count / max(1, minCountPerThread), 1, numThreads)
-        if (threadCount <= 1) {
-            // we need to wait anyways, so just use this thread
-            func.work(i0, i1)
-        } else {
-            val counter = AtomicInteger(threadCount + i0)
-            for (threadId in 1 until threadCount) {
-                // spawn #threads workers
-                plusAssign {
-                    val index = threadId + i0
-                    func.work(index, index + 1)
-                    while (true) {
-                        val nextIndex = counter.incrementAndGet()
-                        if (nextIndex >= i1) break
-                        func.work(nextIndex, nextIndex + 1)
-                    }
+        val counter = AtomicInteger(threadCount + i0)
+        for (threadId in 1 until threadCount) {
+            // spawn #threads workers
+            plusAssign {
+                val index = threadId + i0
+                func.work(index, index + 1)
+                while (true) {
+                    val nextIndex = counter.incrementAndGet()
+                    if (nextIndex >= i1) break
+                    func.work(nextIndex, nextIndex + 1)
                 }
             }
-            func.work(i0, i0 + 1)
-            while (true) {
-                val nextIndex = counter.incrementAndGet()
-                if (nextIndex >= i1) break
-                func.work(nextIndex, nextIndex + 1)
-            }
+        }
+        func.work(i0, i0 + 1)
+        while (true) {
+            val nextIndex = counter.incrementAndGet()
+            if (nextIndex >= i1) break
+            func.work(nextIndex, nextIndex + 1)
         }
     }
 
     fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, func: Task1d) {
         val count = i1 - i0
         val threadCount = Maths.clamp(count / max(1, minCountPerThread), 1, numThreads)
-        if (threadCount <= 1) {
-            func.work(i0, i1)
-        } else {
-            val counter = AtomicInteger(threadCount - 1)
-            for (threadId in 1 until threadCount) {
-                plusAssign {
-                    val startIndex = i0 + partition(threadId, count, threadCount)
-                    val endIndex = i0 + partition(threadId + 1, count, threadCount)
-                    func.work(startIndex, endIndex)
-                    counter.decrementAndGet()
-                }
+        val counter = AtomicInteger(threadCount - 1)
+        for (threadId in 1 until threadCount) {
+            plusAssign {
+                val startIndex = i0 + partition(threadId, count, threadCount)
+                val endIndex = i0 + partition(threadId + 1, count, threadCount)
+                func.work(startIndex, endIndex)
+                counter.decrementAndGet()
             }
-            // process first
-            val endIndex = i0 + partition(1, count, threadCount)
-            func.work(i0, endIndex)
-            waitUntil(true) { counter.get() <= 0 }
         }
+        // process first
+        val endIndex = i0 + partition(1, count, threadCount)
+        func.work(i0, endIndex)
+        waitUntil(true) { counter.get() <= 0 }
     }
 
     fun processBalanced(i0: Int, i1: Int, heavy: Boolean, func: Task1d) {
@@ -129,7 +121,7 @@ abstract class WorkSplitter(val numThreads: Int) {
     private fun process2d(
         x0: Int, y0: Int, x1: Int, y1: Int, tileSize: Int,
         tx0: Int, ty0: Int, tx1: Int, ty1: Int,
-        func: Task2d
+        tiledTask: Task2d
     ) {
         for (ty in ty0 until ty1) {
             val yi = y0 + ty * tileSize
@@ -137,7 +129,7 @@ abstract class WorkSplitter(val numThreads: Int) {
             for (tx in tx0 until tx1) {
                 val xi = x0 + tx * tileSize
                 val xj = Maths.min(xi + tileSize, x1)
-                func.work(xi, yi, xj, yj)
+                tiledTask.work(xi, yi, xj, yj)
             }
         }
     }
@@ -203,43 +195,38 @@ abstract class WorkSplitter(val numThreads: Int) {
     fun processBalanced2d(
         x0: Int, y0: Int, x1: Int, y1: Int, tileSize: Int,
         minTilesPerThread: Int,
-        func: Task2d
+        tiledTask: Task2d
     ) {
         val tilesX = Maths.ceilDiv(x1 - x0, tileSize)
         val tilesY = Maths.ceilDiv(y1 - y0, tileSize)
         val count = tilesX * tilesY
         val threadCount = Maths.clamp(count / max(1, minTilesPerThread), 1, numThreads)
-        if (threadCount == 1) {
-            // tiled computation
-            process2d(x0, y0, x1, y1, tileSize, 0, 0, tilesX, tilesY, func)
-        } else {
-            val (threadCountX, threadCountY) = splitWork(tilesX, tilesY, threadCount)
-            LOGGER.info("Using $threadCountX x $threadCountY threads")
-            val counter = AtomicInteger(threadCountX * threadCountY - 1)
-            for (threadId in 1 until threadCountX * threadCountY) {
-                plusAssign {
-                    try {
-                        val txc = threadId % threadCountX
-                        val tyc = threadId / threadCountX
-                        val tx0 = partition(txc + 0, tilesX, threadCountX)
-                        val tx1 = partition(txc + 1, tilesX, threadCountX)
-                        val ty0 = partition(tyc + 0, tilesY, threadCountY)
-                        val ty1 = partition(tyc + 1, tilesY, threadCountY)
-                        process2d(x0, y0, x1, y1, tileSize, tx0, ty0, tx1, ty1, func)
-                    } catch (e: Throwable) {
-                        e.printStackTrace()
-                    }
-                    counter.decrementAndGet()
+        val (threadCountX, threadCountY) = splitWork(tilesX, tilesY, threadCount)
+        LOGGER.info("Using $threadCountX x $threadCountY threads")
+        val counter = AtomicInteger(threadCountX * threadCountY - 1)
+        for (threadId in 1 until threadCountX * threadCountY) {
+            plusAssign {
+                try {
+                    val txc = threadId % threadCountX
+                    val tyc = threadId / threadCountX
+                    val tx0 = partition(txc + 0, tilesX, threadCountX)
+                    val tx1 = partition(txc + 1, tilesX, threadCountX)
+                    val ty0 = partition(tyc + 0, tilesY, threadCountY)
+                    val ty1 = partition(tyc + 1, tilesY, threadCountY)
+                    process2d(x0, y0, x1, y1, tileSize, tx0, ty0, tx1, ty1, tiledTask)
+                } catch (e: Throwable) {
+                    e.printStackTrace()
                 }
+                counter.decrementAndGet()
             }
-            // process last
-            val tx0 = partition(0, tilesX, threadCountX)
-            val tx1 = partition(1, tilesX, threadCountX)
-            val ty0 = partition(0, tilesY, threadCountY)
-            val ty1 = partition(1, tilesY, threadCountY)
-            process2d(x0, y0, x1, y1, tileSize, tx0, ty0, tx1, ty1, func)
-            waitUntil(true) { counter.get() <= 0 }
         }
+        // process last
+        val tx0 = partition(0, tilesX, threadCountX)
+        val tx1 = partition(1, tilesX, threadCountX)
+        val ty0 = partition(0, tilesY, threadCountY)
+        val ty1 = partition(1, tilesY, threadCountY)
+        process2d(x0, y0, x1, y1, tileSize, tx0, ty0, tx1, ty1, tiledTask)
+        waitUntil(true) { counter.get() <= 0 }
     }
 
 

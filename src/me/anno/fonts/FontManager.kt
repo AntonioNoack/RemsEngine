@@ -262,7 +262,7 @@ object FontManager {
 
     @JvmStatic
     fun main(args: Array<String>) { // small test for custom fonts; works :)
-        GFX.disableRenderDoc = true
+        GFX.disableRenderDoc()
         testUI {
             val panel = TextPanel("This is some sample text", style)
             val link = downloads.getChild("fonts/kids-alphabet.zip/KidsAlphabet.ttf")

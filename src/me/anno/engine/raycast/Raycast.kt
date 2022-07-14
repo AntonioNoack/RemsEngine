@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
@@ -40,6 +41,7 @@ object Raycast {
         maxDistance: Double,
         typeMask: Int,
         collisionMask: Int = -1,
+        ignored: Set<PrefabSaveable> = emptySet(),
         includeDisabled: Boolean = false,
         result: RayHit = RayHit()
     ): RayHit? {
@@ -51,7 +53,7 @@ object Raycast {
         val hit = raycast(
             entity, start, direction, end,
             radiusAtOrigin, radiusPerUnit,
-            typeMask, collisionMask,
+            typeMask, collisionMask, ignored,
             includeDisabled, result
         )
         JomlPools.vec3d.sub(1)
@@ -71,6 +73,7 @@ object Raycast {
         radiusPerUnit: Double,
         typeMask: Int,
         collisionMask: Int = -1,
+        ignored: Set<PrefabSaveable> = emptySet(),
         includeDisabled: Boolean = false,
         result: RayHit = RayHit()
     ): RayHit? {
@@ -79,7 +82,7 @@ object Raycast {
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
-            if (includeDisabled || component.isEnabled) {
+            if ((includeDisabled || component.isEnabled) && component !in ignored) {
                 if (component is CollidingComponent &&
                     component.hasRaycastType(typeMask) &&
                     component.canCollide(collisionMask)
@@ -95,12 +98,13 @@ object Raycast {
         val children = entity.children
         for (i in children.indices) {
             val child = children[i]
-            if ((includeDisabled || child.isEnabled) && child.canCollide(collisionMask)) {
+            if ((includeDisabled || child.isEnabled) && child.canCollide(collisionMask) && child !in ignored) {
                 if (child.aabb.testLine(start, direction, result.distance)) {
                     if (raycast(
                             child, start, direction, end,
                             radiusAtOrigin, radiusPerUnit,
-                            typeMask, collisionMask, includeDisabled, result
+                            typeMask, collisionMask, ignored,
+                            includeDisabled, result
                         ) != null && result.distance <= 0.0
                     ) return result
                 }

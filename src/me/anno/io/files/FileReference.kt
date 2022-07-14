@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.gpu.GFX
 import me.anno.io.unity.UnityReader
 import me.anno.io.windows.WindowsShortcut
+import me.anno.io.zip.InnerTmpFile
 import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.min
@@ -28,6 +29,7 @@ import java.io.*
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import kotlin.math.abs
 
 // todo when a file is changed, all inner files based on that need to be invalidated (editor only)
 // done when a file is changed, the meta data of it needs to be invalidated
@@ -166,15 +168,19 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
         private fun createReference(str: String): FileReference {
             // internal resource
-            if (str.startsWith(BundledRef.prefix, true)) {
+            if (str.startsWith(BundledRef.prefix, true))
                 return BundledRef.parse(str)
-            }
+
             if (str.startsWith("http://", true) ||
                 str.startsWith("https://", true)
-            ) {
-                // str may already contain parameters
-                return WebRef(str, emptyMap())
+            ) return WebRef(str, emptyMap()) // todo string may contain parameters
+
+            if (str.startsWith("tmp://")) {
+                val tmp = InnerTmpFile.find(str)
+                if (tmp == null) LOGGER.warn("$str could not be found, maybe it was created in another session, or GCed")
+                return tmp ?: InvalidRef
             }
+
             // static references
             val static = staticReferences[str]
             if (static != null) return static
@@ -533,7 +539,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return absolutePath
     }
 
-    fun toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
+    open fun toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
         return absolutePath.toLocalPath(workspace)
     }
 

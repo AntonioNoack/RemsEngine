@@ -2,6 +2,7 @@ package me.anno.utils.types
 
 import org.joml.*
 
+@Suppress("unused")
 object Quaternions {
 
     const val toDegrees = 180.0 / Math.PI
@@ -32,8 +33,8 @@ object Quaternions {
         return dst.identity().rotateYXZ(y, x, z)
     }
 
-    fun Quaterniond.mul2(q: Quaternionf) {// why ever this function is missing :annoyed:
-        mul(q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble())
+    fun Quaterniond.mul2(q: Quaternionf): Quaterniond {// why ever this function is missing :annoyed:
+        return mul(q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble())
     }
 
 }

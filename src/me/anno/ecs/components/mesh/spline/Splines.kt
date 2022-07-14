@@ -1,6 +1,5 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.image.ImageWriter
 import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
 import me.anno.utils.types.Vectors
@@ -216,14 +215,5 @@ object Splines {
             }
         }
     }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val c0 = generateCurve(0f, 1.57f, 15).map { Vector3f(it.x, 0f, it.y) }
-        val c1 = generateCurve(0f, 1.57f, 5).map { Vector3f(it.x, 0f, it.y).mul(0.5f) }
-        val surf = generateSurface(c0, c1)
-        ImageWriter.writeTriangles(512, "surface.png", (c0 + c1).map { Vector2f(it.x, it.z) }, surf)
-    }
-
 
 }

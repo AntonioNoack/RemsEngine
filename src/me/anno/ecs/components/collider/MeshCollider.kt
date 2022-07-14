@@ -362,21 +362,8 @@ open class MeshCollider() : Collider() {
     override val className get() = "MeshCollider"
 
     companion object {
-
         private val LOGGER = LogManager.getLogger(MeshCollider::class)
         val defaultShape = BoxShape(javax.vecmath.Vector3d(1.0, 1.0, 1.0))
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            ECSRegistry.initNoGFX()
-            val mesh = MeshCache[documents.getChild("redMonkey.glb")]!!
-            val collider = MeshCollider()
-            collider.mesh = mesh
-            collider.isConvex = false
-            collider.createBulletShape(Vector3d(1.0))
-            Engine.requestShutdown()
-        }
-
     }
 
 }

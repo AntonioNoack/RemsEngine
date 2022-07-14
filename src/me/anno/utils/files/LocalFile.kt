@@ -22,13 +22,11 @@ object LocalFile {
 
     fun String.toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
         val fileStr = replace('\\', '/')
+        if (fileStr.contains("://")) return fileStr
         return null ?: checkIsChild(fileStr, ConfigBasics.configFolder, "\$CONFIG\$")
         ?: checkIsChild(fileStr, ConfigBasics.cacheFolder, "\$CACHE\$")
-        ?: checkIsChild(
-            fileStr,
-            workspace,
-            "\$WORKSPACE\$"
-        ) // todo if there is a project file somewhere above this current file, use that project
+        // todo if there is a project file somewhere above this current file, use that project
+        ?: checkIsChild(fileStr, workspace, "\$WORKSPACE\$")
         ?: checkIsChild(fileStr, OS.downloads, "\$DOWNLOADS\$")
         ?: checkIsChild(fileStr, OS.documents, "\$DOCUMENTS\$")
         ?: checkIsChild(fileStr, OS.pictures, "\$PICTURES\$")
@@ -49,6 +47,8 @@ object LocalFile {
     fun String.toGlobalFile(workspace: FileReference? = StudioBase.workspace): FileReference {
 
         val fileStr = replace('\\', '/')
+        if (fileStr.contains("://"))
+            return getReference(fileStr)
 
         return null
             ?: checkIsChild2(fileStr, ConfigBasics.configFolder, "\$CONFIG\$")
@@ -61,7 +61,7 @@ object LocalFile {
             ?: checkIsChild2(fileStr, OS.music, "\$MUSIC\$")
             ?: checkIsChild2(fileStr, OS.home, "\$HOME\$")
             ?: checkIsChild2(fileStr, OS.home, "\$USER\$")
-            ?: getReference(this)
+            ?: getReference(fileStr)
 
     }
 

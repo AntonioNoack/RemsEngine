@@ -102,7 +102,11 @@ open class GFXBase {
 
     /** must be executed before OpenGL-init;
      * must be disabled for Nvidia Nsight */
-    var disableRenderDoc = false
+    private var disableRenderDoc = false
+    fun disableRenderDoc() {
+        disableRenderDoc = true
+    }
+
     fun loadRenderDoc() {
         val enabled = DefaultConfig["debug.renderdoc.enabled", isDebug]
         if (enabled && !disableRenderDoc) {

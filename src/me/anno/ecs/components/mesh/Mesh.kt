@@ -287,8 +287,11 @@ class Mesh : PrefabSaveable() {
         val boneIndices = boneIndices
         if ((boneIndices == null) != (boneWeights == null)) throw IllegalStateException("Needs both or neither bone weights and indices")
         if (boneWeights != null && boneIndices != null) {
-            if (boneWeights.size != boneIndices.size) throw IllegalStateException("Size of bone weights must match size of bone indices")
-            if (boneWeights.size * 3 != positions.size * MAX_WEIGHTS) throw IllegalStateException("Size of weights does not match positions, there must be ${MAX_WEIGHTS} weights per vertex")
+            if (boneWeights.size != boneIndices.size)
+                throw IllegalStateException("Size of bone weights must match size of bone indices, ${boneWeights.size} vs ${boneIndices.size}")
+            if (boneWeights.size * 3 != positions.size * MAX_WEIGHTS)
+                throw IllegalStateException("Size of weights does not match positions, there must be $MAX_WEIGHTS weights per vertex, " +
+                        "${boneWeights.size} * 3 vs ${positions.size} * $MAX_WEIGHTS")
         }
         val color0 = color0
         if (color0 != null && color0.size * 3 != positions.size) throw IllegalStateException("Every vertex needs an ARGB color value")

@@ -50,10 +50,8 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
     override val lastAccessed: Long = 0L
 
     fun toURL() = URL(absolutePath)
-
-    override fun toUri(): URI {
-        return URI(absolutePath)
-    }
+    override fun toLocalPath(workspace: FileReference?) = absolutePath
+    override fun toUri() = URI(absolutePath)
 
     override fun getChild(name: String): FileReference {
         val splitIndex = absolutePath.indexOf('?')
@@ -61,9 +59,8 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
         return WebRef("$basePath/$name", emptyMap())
     }
 
-    override fun inputStream(): InputStream {
-        return toURL().openStream()
-    }
+    override fun inputStream(): InputStream =
+        toURL().openStream()
 
     override fun outputStream(): OutputStream {
         // in the future, we might use the Apache HTTP API

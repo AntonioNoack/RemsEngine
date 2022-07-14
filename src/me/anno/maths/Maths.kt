@@ -443,4 +443,14 @@ object Maths {
     fun Int.hasFlag(flag: Int) = (this and flag) == flag
     fun Long.hasFlag(flag: Long) = (this and flag) == flag
 
+    fun Int.factorial(): Int {
+        if (this < 2) return 1
+        var prod = this
+        var n = this
+        while (--n > 1) {
+            prod *= n
+        }
+        return prod
+    }
+
 }

@@ -129,7 +129,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             val texFolder = root.createChild("textures", null) as InnerFolder
             loadTextures(aiScene, texFolder)
         } else emptyList()
-        val materialList = loadMaterialPrefabs(aiScene, resources, loadedTextures).toList()
+        val materialList = loadMaterialPrefabs(aiScene, resources, loadedTextures, file).toList()
         val materials = createReferences(root, "materials", materialList)
         val boneList = ArrayList<Bone>()
         val boneMap = HashMap<String, Bone>()

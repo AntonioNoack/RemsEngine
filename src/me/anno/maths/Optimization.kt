@@ -166,19 +166,25 @@ object Optimization {
 
     }
 
-    private fun himmelblau(x: Double, y: Double): Double {
-        return sq(x * x + y - 11) + sq(x + y * y - 7)
-    }
-
     @JvmStatic
     fun main(args: Array<String>) {
         // test gradient descent
         val t0 = System.nanoTime()
+        fun himmelblau(x: Double, y: Double): Double {
+            return sq(x * x + y - 11) + sq(x + y * y - 7)
+        }
+        /*
+        * solutions:
+        * f(3.0,2.0)=0.0
+        * f(-2.805118,3.131312)=0.0
+        * f(-3.779310,-3.283186)=0.0
+        * f(3.584428,-1.848126)=0.0
+        * */
         val solution = simplexAlgorithm(doubleArrayOf(0.0, 0.0), 1.0, 1e-6, 500) {
             himmelblau(it[0], it[1])
         }
         val t1 = System.nanoTime()
-        LOGGER.info(solution.joinToString())
+        LOGGER.info(solution.joinToString() + ", value: ${himmelblau(solution[0], solution[1])}")
         LOGGER.info("$ctr sub-steps used")
         LOGGER.info("${((t1 - t0) * 1e-9f)}s used")
     }

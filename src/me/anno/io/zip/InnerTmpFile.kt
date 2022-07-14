@@ -8,20 +8,36 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicInteger
 
 abstract class InnerTmpFile private constructor(
     name: String,
-    @Suppress("unused_parameter") unused: Int // just for convenience
+    val uuid: Int
 ) : InnerFile(name, name, false, InvalidRef) {
 
+    init {
+        LOGGER.debug("Registered $name")
+        synchronized(Companion) {
+            val ref = WeakReference(this)
+            while (files.size <= uuid) {
+                files.add(ref)
+            }
+            files[uuid] = ref
+        }
+    }
+
     constructor(ext: String) : this("", ext)
-    constructor(prefix: String, ext: String) : this(
-        if (prefix.isBlank2()) "tmp://${id.incrementAndGet()}.$ext"
-        else "tmp://$prefix.${id.incrementAndGet()}.$ext", 0
+    constructor(prefix: String, ext: String, uuid: Int = id.getAndIncrement()) : this(
+        if (prefix.isBlank2()) "tmp://$uuid.$ext"
+        else "tmp://$prefix.$uuid.$ext", uuid
     )
+
+    override fun toLocalPath(workspace: FileReference?) =
+        absolutePath
 
     @Suppress("unused")
     class InnerTmpByteFile(bytes: ByteArray, ext: String = "bin") : InnerTmpFile(ext) {
@@ -119,8 +135,31 @@ abstract class InnerTmpFile private constructor(
 
     }
 
-    companion object {
-        var id = AtomicInteger()
+    companion object { // only works if extension does not contain dots
+        private val LOGGER = LogManager.getLogger(InnerTmpFile::class)
+        private val files = ArrayList<WeakReference<InnerTmpFile>>()
+        private val id = AtomicInteger()
+        fun find(str: String): InnerTmpFile? {
+            // prefix.uuid.ext or prefix.ext
+            LOGGER.debug("Parsing $str")
+            val endOfExt = str.lastIndexOf('.')
+            if (endOfExt < 3) return null
+            var prevOfExt = str.lastIndexOf('.', endOfExt - 1)
+            if (prevOfExt < 0) prevOfExt = str.lastIndexOf('/', endOfExt - 2)
+            LOGGER.debug("Reading index from ${str.substring(prevOfExt + 1, endOfExt)}")
+            val uuid = str.substring(prevOfExt + 1, endOfExt).toIntOrNull() ?: return null
+            LOGGER.debug("Getting file with index $uuid")
+            val reference = files.getOrNull(uuid) ?: return null
+            val candidate = reference.get()
+            if (candidate != null) {
+                if (candidate.absolutePath == str) return candidate
+                LOGGER.warn("InnerTmpFile mismatch: searched for '$str', but found '$candidate'")
+                return null
+            } else {
+                LOGGER.warn("InnerTmpFile #$uuid was already GCed, '$str'!")
+                return null
+            }
+        }
     }
 
 }

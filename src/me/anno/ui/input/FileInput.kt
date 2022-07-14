@@ -30,7 +30,7 @@ import java.io.IOException
 
 class FileInput(
     title: String, style: Style,
-    f0: FileReference,
+    val f0: FileReference,
     var extraRightClickOptions: List<FileExplorerOption>,
     var isDirectory: Boolean = false
 ) : PanelListX(style), InputPanel<FileReference> {
@@ -111,7 +111,9 @@ class FileInput(
     private fun FileReference.toString2() = toLocalPath()
     // toString().replace('\\', '/') // / is easier to type
 
-    val file get(): FileReference = base.lastValue.toGlobalFile()
+    val file
+        get(): FileReference = if (base.lastValue == f0.absolutePath)
+            f0 else base.lastValue.toGlobalFile()
 
     override val lastValue: FileReference get() = file
 
@@ -174,7 +176,13 @@ class FileInput(
         val file = file
         Thumbs.getThumbnail(file, size, true) ?: return null
         // could be cached...
-        val entry = FileExplorerEntry(false, file, style)
+        val entry = object : FileExplorerEntry(false, file, style) {
+            override fun calculateSize(w: Int, h: Int) {
+                super.calculateSize(w, h)
+                minW = stdSize
+                minH = stdSize
+            }
+        }
         entry.showTitle = false
         // I like this better than a transparent background
         entry.backgroundRadius = stdSize / 10f

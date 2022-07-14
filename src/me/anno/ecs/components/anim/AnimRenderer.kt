@@ -157,7 +157,7 @@ open class AnimRenderer : MeshComponent() {
             }
 
             val animTexture = AnimationCache[skeleton]
-            val animTexture2 = animTexture.getTexture()
+            val animTexture2 = animTexture.texture
             if (animTexture2 == null) {
                 if (lastWarning == null) lastWarning = "AnimTexture is invalid"
                 return false
@@ -201,7 +201,7 @@ open class AnimRenderer : MeshComponent() {
 
     open fun getAnimTexture(): Texture2D? {
         val skeleton = SkeletonCache[skeleton] ?: return null
-        return AnimationCache[skeleton].getTexture()
+        return AnimationCache[skeleton].texture
     }
 
     fun findRetargeting(dstSkeleton: FileReference, animation: Animation) =
@@ -242,7 +242,7 @@ open class AnimRenderer : MeshComponent() {
         for (index in animations.indices) {
             val animState = animations[index]
             val weight = animState.weight
-            if (abs(weight) > dstWeights[dstWeights.minComponent()]) {
+            if (abs(weight) > abs(dstWeights[dstWeights.minComponent()])) {
                 val animation = AnimationCache[animState.source] ?: continue
                 val frameIndex = animState.progress / animation.duration * animation.numFrames
                 val retargeting = findRetargeting(this.skeleton, animation)

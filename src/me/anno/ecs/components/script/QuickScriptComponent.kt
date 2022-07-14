@@ -98,17 +98,4 @@ open class QuickScriptComponent : Component() {
         else func
     }
 
-    companion object {
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val c = QuickScriptComponent()
-            val e = Entity()
-            e.add(c)
-            c.createScript = "print(entity);print(17)"
-            c.onCreate()
-        }
-
-    }
-
 }
