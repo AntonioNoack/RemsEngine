@@ -116,12 +116,4 @@ object Base64 {
         return result.toString()
     }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val data = "Hello World"
-        val base64 = "SGVsbG8gV29ybGQ="
-        if (encodeBase64(data, true) != base64) throw RuntimeException()
-        if (decodeBase64(base64, true) != data) throw RuntimeException()
-    }
-
 }

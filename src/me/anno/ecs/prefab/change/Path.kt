@@ -1,16 +1,9 @@
 package me.anno.ecs.prefab.change
 
-import me.anno.ecs.prefab.Prefab
-import me.anno.engine.ECSRegistry
 import me.anno.io.Base64.encodeBase64
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.InvalidRef
-import me.anno.io.json.JsonFormatter
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
-import org.apache.logging.log4j.LogManager
 import java.text.ParseException
 import kotlin.random.Random
 
@@ -292,8 +285,6 @@ class Path(
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(Path::class)
-
         val FALSE = Throwable()
         val EXIT = Throwable()
 
@@ -306,90 +297,6 @@ class Path(
                 val value = random.nextLong() xor System.nanoTime()
                 "#" + encodeBase64(value) // shorten the string a bit
             }
-        }
-
-        @JvmStatic
-        fun main(array: Array<String>) {
-
-            val p123 = Path(arrayOf("1", "2", "3"), intArrayOf(1, 2, 3), charArrayOf('a', 'b', 'c'))
-            if (p123.size != 3) throw RuntimeException()
-
-            val p12 = p123.parent!!
-            val p1 = p12.parent!!
-            val p0 = p1.parent!!
-
-            if (p0 !== ROOT_PATH) throw RuntimeException()
-            if (p0 == p1) throw RuntimeException()
-            if (p0 == p12) throw RuntimeException()
-            if (p0 == p123) throw RuntimeException()
-            if (p1 == p12) throw RuntimeException()
-            if (p1 == p123) throw RuntimeException()
-            if (p12 == p123) throw RuntimeException()
-
-            val p12123 = join(p12, p123)
-            if (p12123.toString() != "a1,1/b2,2/a1,1/b2,2/c3,3") throw RuntimeException()
-
-            if (p0.toString() == p1.toString()) throw RuntimeException()
-            if (p0.toString() == p12.toString()) throw RuntimeException()
-            if (p0.toString() == p123.toString()) throw RuntimeException()
-            if (p1.toString() == p12.toString()) throw RuntimeException()
-            if (p1.toString() == p123.toString()) throw RuntimeException()
-            if (p12.toString() == p123.toString()) throw RuntimeException()
-
-            val groundTruth = p123.toString()
-            val copy = parse(groundTruth)
-            val copied = copy.toString()
-            val matchSerialized = groundTruth == copied
-            val matchInstance = p123 == copy
-            LOGGER.info("$matchSerialized, $matchInstance, $groundTruth vs $copied")
-            if (!matchInstance || !matchSerialized) throw RuntimeException()
-
-            val abc = Path(arrayOf("a", "b", "c"), intArrayOf(0, 1, 2), charArrayOf('x', 'x', 'x'))
-            val bcd = Path(arrayOf("b", "c", "d"), intArrayOf(1, 2, 3), charArrayOf('x', 'x', 'x'))
-
-            LOGGER.info("abc x abc, 0: '${abc.getSubPathIfMatching(abc, 0)}'")
-            LOGGER.info("abc x abc, 1: '${abc.getSubPathIfMatching(abc, 1)}'")
-            LOGGER.info("abc x bcd, 1: '${abc.getSubPathIfMatching(bcd, 1)}'")
-
-            ECSRegistry.initNoGFX()
-            LOGGER.info(p123)
-            val cloned = TextReader.read(TextWriter.toText(p123, InvalidRef), InvalidRef, false).first()
-            LOGGER.info(cloned)
-            LOGGER.info(cloned == p123)
-
-            val prefab = Prefab("Entity")
-            val sample = prefab.getSampleInstance()
-            if (sample.prefabPath != ROOT_PATH) throw RuntimeException()
-            val c1 = prefab.add(ROOT_PATH, 'e', "Entity", "C1")
-            /*val c2 = */prefab.add(c1, 'e', "Entity", "C2")
-            // val c3 = prefab.add(c2, 'e', "Entity", "C3")
-
-            val adds = prefab.adds
-
-            for (i in adds.indices) {
-                val x0 = TextWriter.toText(adds[i], InvalidRef)
-                val x1 = TextReader.read(x0, InvalidRef, false)[0] as CAdd
-                val x2 = TextWriter.toText(x1, InvalidRef)
-                if (x0 != x2) {
-                    LOGGER.info(JsonFormatter.format(x0))
-                    LOGGER.info(JsonFormatter.format(x2))
-                    throw RuntimeException()
-                }
-            }
-
-            val json = TextWriter.toText(prefab, InvalidRef)
-            val prefabClone = TextReader.read(json, InvalidRef, false)[0] as Prefab
-
-            LOGGER.info(prefab.adds)
-
-            LOGGER.info(JsonFormatter.format(json))
-
-            LOGGER.info(prefabClone.adds)
-            val json2 = TextWriter.toText(prefabClone, InvalidRef)
-            LOGGER.info(JsonFormatter.format(json2))
-            if (json != json2) throw RuntimeException()
-
-
         }
 
         fun parseInt(str: String, startIndex: Int, endIndex: Int): Int {

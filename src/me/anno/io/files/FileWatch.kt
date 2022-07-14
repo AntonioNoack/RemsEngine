@@ -2,10 +2,6 @@ package me.anno.io.files
 
 import me.anno.Build
 import me.anno.Engine
-import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.maths.Maths.max
-import me.anno.utils.OS.desktop
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.nio.file.FileSystems
@@ -123,26 +119,6 @@ object FileWatch {
                 }
             }
         }
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val tmpDir = getReference(desktop, "tmp")
-        tmpDir.mkdirs()
-        val tmpFile = getReference(tmpDir, "x.txt")
-        addWatchDog(tmpFile)
-        Thread.sleep(100)
-        tmpFile.writeText("") // must be registered
-        Thread.sleep(100)
-        tmpFile.writeText("hey") // must be registered
-        Thread.sleep(100)
-        tmpFile.writeBytes(byteArrayOf(1, 2, 3))
-        Thread.sleep(100)
-        removeWatchDog(tmpFile)
-        Thread.sleep(100)
-        tmpFile.delete() // should not be registered
-        Thread.sleep(100)
-        Engine.requestShutdown()
     }
 
 }

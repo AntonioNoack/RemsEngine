@@ -17,6 +17,7 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.LazyMap
+import org.apache.logging.log4j.LogManager
 import sun.plugin.dom.exception.InvalidStateException
 import java.util.*
 import kotlin.math.abs
@@ -33,6 +34,8 @@ import kotlin.math.min
 class WaveFunctionCollapse {
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(WaveFunctionCollapse::class)
 
         @JvmStatic
         fun main(args: Array<String>) {

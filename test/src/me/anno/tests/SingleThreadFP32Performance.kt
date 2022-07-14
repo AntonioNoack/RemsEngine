@@ -1,7 +1,6 @@
 package me.anno.tests
 
 import me.anno.maths.Maths.PIf
-import me.anno.utils.LOGGER
 
 fun main() {
 
@@ -26,6 +25,6 @@ fun main() {
     val duration = (end - start) / 1e9
     val ops = 2.0 * runs * length
     val gFlops = ops / duration / 1e9
-    LOGGER.info("dur: ${duration}s, GFlops: $gFlops")
+    println("dur: ${duration}s, GFlops: $gFlops")
 
 }

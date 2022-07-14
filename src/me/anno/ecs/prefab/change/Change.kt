@@ -53,28 +53,4 @@ abstract class Change : Saveable(), Cloneable {
         } else super.readString(name, value)
     }
 
-    companion object {
-
-        private val LOGGER = LogManager.getLogger(Change::class)
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            registerCustomClass(CAdd())
-            registerCustomClass(CSet())
-            registerCustomClass(ROOT_PATH)
-            val p0 = Path(ROOT_PATH, "k", 4, 'x')
-            val p1 = Path(p0, "l", 5, 'y')
-            val path = Path(p1, "m", 6, 'z')
-            for (sample in listOf(
-                CSet(path, "path", "z"),
-                CAdd(path, 'x', "Entity")
-            )) {
-                LOGGER.info(sample)
-                val clone = TextReader.read(TextWriter.toText(sample, InvalidRef), InvalidRef, true).first()
-                LOGGER.info(clone)
-            }
-        }
-
-    }
-
 }

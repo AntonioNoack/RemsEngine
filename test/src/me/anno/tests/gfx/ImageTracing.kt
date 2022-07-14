@@ -1,33 +1,14 @@
 package me.anno.tests.gfx
 
-import me.anno.image.ImageCPUCache.getImage
 import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.desktop
-import me.anno.utils.OS.documents
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import java.io.IOException
 import java.util.*
 
 object ImageTracing {
-
-    // test this with real letters
-    // to do set the test size for meshes to 120 instead of 20-ish
-    @Throws(IOException::class)
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val image = getImage(documents.getChild("test-text.png"), false)!!
-        val pixels = (image as IntImage).data
-        val black = -0x1000000
-        var i = 0
-        val l = pixels.size
-        while (i < l) {
-            pixels[i] = pixels[i] and black
-            i++
-        }
-        computeOutline(image.width, image.height, pixels)
-    }
 
     @Throws(IOException::class)
     fun computeOutline(w: Int, h: Int, pixels: IntArray) {

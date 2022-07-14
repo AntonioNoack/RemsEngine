@@ -3,7 +3,6 @@ package me.anno.fonts
 import me.anno.cache.CacheData
 import me.anno.cache.instances.TextCache
 import me.anno.cache.instances.TextSizeCache
-import me.anno.config.DefaultConfig.style
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
@@ -14,10 +13,7 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.ceilDiv
-import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.Clock
-import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
@@ -257,19 +253,6 @@ object FontManager {
                 .getLocalGraphicsEnvironment()
                 .registerFont(font)
             font
-        }
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) { // small test for custom fonts; works :)
-        GFX.disableRenderDoc()
-        testUI {
-            val panel = TextPanel("This is some sample text", style)
-            val link = downloads.getChild("fonts/kids-alphabet.zip/KidsAlphabet.ttf")
-            panel.font = panel.font
-                .withName(link.absolutePath)
-                .withSize(50f)
-            panel
         }
     }
 

@@ -1,6 +1,5 @@
 package me.anno.graph.knn
 
-import me.anno.utils.structures.lists.Lists.smallestKElements
 import org.apache.logging.log4j.LogManager
 
 object Heap {
@@ -135,28 +134,4 @@ object Heap {
         LOGGER.info()
     }
 
-    // Driver Code
-    @JvmStatic
-    fun main(args: Array<String>) {
-        // Binary Tree Representation
-        // of input array
-        //              1
-        //           /     \
-        //         3         5
-        //      /    \     /  \
-        //     4      6   13  10
-        //    / \    / \
-        //   9   8  15 17
-        val arr0 = intArrayOf(1, 3, 5, 4, 6, 13, 10, 9, 8, 15, 17)
-        val arr = ArrayList<Int>()
-        for (value in arr0) arr.add(value)
-        LOGGER.info(arr.smallestKElements(10, Comparator { obj: Int, integer: Int? ->
-            obj.compareTo(
-                integer!!
-            )
-        }))
-        buildMaxHeap(arr) { obj: Int, integer: Int? -> obj.compareTo(integer!!) }
-        printHeap(arr)
-        printSortedMax(arr) { obj: Int, integer: Int? -> obj.compareTo(integer!!) }
-    }
 }

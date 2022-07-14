@@ -1,6 +1,5 @@
 package me.anno.gpu.drawing
 
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer
@@ -9,7 +8,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.length
-import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 
 // inspired by https://www.shadertoy.com/view/XdVBWd "Cubic Bezier - 2D BBox " from Inigo Quilez
 object DrawCurves {
@@ -332,43 +330,6 @@ object DrawCurves {
             ay = by
         }
         return sum
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        testDrawing {
-            it.drawBackground(it.x, it.y, it.x + it.w, it.y + it.h)
-            val s = 300f
-            val dx = (it.w - s) / 2f
-            val dy = (it.h - s) / 2f
-            val bg = it.backgroundColor
-            drawCubicBezier(
-                dx, dy,
-                dx + s, dy,
-                dx, dy + s,
-                dx + s, dy + s,
-                10f,
-                -1, bg,
-                false
-            )
-            drawQuadraticBezier(
-                dx, dy,
-                dx + s, dy,
-                dx + s, dy + s,
-                5f,
-                0x777777 or black,
-                0x777777,
-                false
-            )
-            drawLine(
-                dx, dy,
-                dx + s, dy + s,
-                5f,
-                0xff0000 or black,
-                0xff0000,
-                false
-            )
-        }
     }
 
 }

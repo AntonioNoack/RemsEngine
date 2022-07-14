@@ -1,4 +1,4 @@
-package me.anno.mesh.assimp.test
+package me.anno.tests.assimp
 
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.FileReference.Companion.getReference

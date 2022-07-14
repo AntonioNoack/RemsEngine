@@ -1,6 +1,7 @@
-package me.anno.utils.hpc
+package me.anno.tests
 
 import me.anno.ecs.components.mesh.sdf.createShape
+import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager

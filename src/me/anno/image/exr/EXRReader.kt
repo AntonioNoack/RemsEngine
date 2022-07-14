@@ -3,10 +3,8 @@ package me.anno.image.exr
 import me.anno.image.Image
 import me.anno.image.raw.FloatBufferImage2
 import me.anno.io.files.FileReference
-import me.anno.utils.LOGGER
-import me.anno.utils.OS.desktop
-import me.anno.utils.OS.downloads
 import me.anno.utils.pooling.ByteBufferPool
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.PointerBuffer
 import org.lwjgl.system.MemoryUtil
@@ -19,6 +17,8 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 
 object EXRReader {
+
+    private val LOGGER = LogManager.getLogger(EXRReader::class)
 
     // info about the format:
     // https://openexr.readthedocs.io/en/latest/OpenEXRFileLayout.html
@@ -208,23 +208,6 @@ object EXRReader {
 
         return FloatBufferImage2(width, height, floats)
 
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val dst = desktop.getChild("exr")
-        dst.tryMkdirs()
-        downloads.getChild("2d/EXR samples.zip")
-            .listChildren()!!
-            .filter { it.lcExtension == "exr" }
-            .forEach {
-                try {
-                    read(it).write(dst.getChild("${it.nameWithoutExtension}.png"))
-                } catch (e: IOException) {
-                    IOException(it.absolutePath, e)
-                        .printStackTrace()
-                }
-            }
     }
 
 }

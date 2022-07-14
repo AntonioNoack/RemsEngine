@@ -12,7 +12,6 @@ import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.Shader
 import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import org.joml.*
 import kotlin.math.max

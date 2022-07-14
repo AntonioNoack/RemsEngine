@@ -89,7 +89,7 @@ import org.apache.logging.log4j.LogManager
 
 object ECSRegistry {
 
-    private var hasBeenInited = false
+    var hasBeenInited = false
     fun init() {
 
         if (hasBeenInited) return
@@ -267,23 +267,6 @@ object ECSRegistry {
     fun initNoGFX() {
         ECSShaderLib.pbrModelShader = BaseShader()
         init()
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val tx = System.nanoTime()
-        ECSShaderLib.pbrModelShader = BaseShader()
-        val t0 = System.nanoTime()
-        init()
-        val t1 = System.nanoTime()
-        hasBeenInited = false
-        init()
-        val t2 = System.nanoTime()
-        LogManager.getLogger(ECSRegistry::class).info(
-            "Used 1st ${((t1 - t0) * 1e-9).f3()} / " +
-                    "2nd ${((t2 - t1) * 1e-9).f3()} s, " +
-                    "base: ${((t0 - tx) * 1e-9).f3()}"
-        )
     }
 
 }

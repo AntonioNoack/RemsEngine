@@ -104,16 +104,6 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
 
     companion object {
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val file = getReference("http://google.com/")
-            println(file.exists)
-            println(file.lastModified)
-            println(file.length())
-            println(getHeaders(file.toUri().toURL(), 1000L, false))
-            println((file as WebRef).responseCode)
-        }
-
         val webCache = CacheSection("Web")
 
         fun getHeaders(url: URL, timeout: Long, async: Boolean): Map<String?, List<String>>? {

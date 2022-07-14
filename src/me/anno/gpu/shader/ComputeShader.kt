@@ -2,14 +2,12 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.ComputeBuffer
-import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.maths.Maths.ceilDiv
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import org.joml.Vector3i
-import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL43.*
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
@@ -86,19 +84,13 @@ class ComputeShader(
 
         private val LOGGER = LogManager.getLogger(ComputeShader::class)
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            HiddenOpenGLContext.createOpenGL()
-            LOGGER.info(stats)
-        }
-
         val stats by lazy {
             val tmp = IntArray(1)
-            GL30.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, tmp)
+            glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, tmp)
             val sx = tmp[0]
-            GL30.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, tmp)
+            glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, tmp)
             val sy = tmp[0]
-            GL30.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, tmp)
+            glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, tmp)
             val sz = tmp[0]
             glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, tmp)
             val maxUnitsPerGroup = tmp[0]

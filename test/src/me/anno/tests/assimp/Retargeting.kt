@@ -1,4 +1,4 @@
-package me.anno.mesh.assimp.test
+package me.anno.tests.assimp
 
 // todo implement and test retargeting
 //  - same skeletal bones, just a different instance

@@ -1,4 +1,4 @@
-package me.anno.mesh.assimp.test
+package me.anno.tests.assimp
 
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.utils.LOGGER

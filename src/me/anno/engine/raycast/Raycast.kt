@@ -10,11 +10,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Triangles.computeConeInterpolation
 import me.anno.utils.types.Triangles.rayTriangleIntersection
-import me.anno.utils.types.Vectors.print
 import me.anno.utils.types.Vectors.toVector3f
-import org.apache.logging.log4j.LogManager
-import org.joml.AABBd
-import org.joml.Math
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.sqrt
@@ -394,73 +390,6 @@ object Raycast {
             }
         }
         return false
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        simpleTest()
-        precisionTest()
-    }
-
-    fun simpleTest() {
-
-        val y = 1.0
-        val z = 1.0
-
-        val f = 1e-3
-
-        val start = Vector3d(-1e3, y, z)
-        val dir = Vector3d(1.0, 0.0, 0.0)
-
-        val aabb = AABBd()
-
-
-        for (i in 0 until 1000) {
-
-            val x = Math.random()
-
-            aabb.clear()
-            aabb.union(x * (1 - f), y * (1 - f), z * (1 - f))
-            aabb.union(x * (1 + f), y * (1 + f), z * (1 + f))
-
-            val result = aabb.testLine(start, dir, 2e3)
-            if (!result) throw RuntimeException("${start.print()} + t * ${dir.print()} does not intersect ${aabb.print()}")
-
-        }
-
-        LogManager.getLogger("Raycast")
-            .info("Finished simple test")
-
-    }
-
-    fun precisionTest() {
-
-        val y = 1.0
-        val z = 1.0
-
-        val f = 0.1
-
-        val start = Vector3d(-1e20, y, z)
-        val dir = Vector3d(1.0, 0.0, 0.0)
-
-        val aabb = AABBd()
-
-        for (i in 0 until 1000) {
-
-            val x = Math.random()
-
-            aabb.clear()
-            aabb.union(x * (1 - f), y * (1 - f), z * (1 - f))
-            aabb.union(x * (1 + f), y * (1 + f), z * (1 + f))
-
-            val result = aabb.testLine(start, dir, 2e20)
-            if (!result) throw RuntimeException("${start.print()} + t * ${dir.print()} does not intersect ${aabb.print()}")
-
-        }
-
-        LogManager.getLogger("Raycast")
-            .info("Finished precision test")
-
     }
 
 }

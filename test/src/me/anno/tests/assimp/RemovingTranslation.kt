@@ -1,4 +1,4 @@
-package me.anno.mesh.assimp.test
+package me.anno.tests.assimp
 
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.cache.AnimationCache

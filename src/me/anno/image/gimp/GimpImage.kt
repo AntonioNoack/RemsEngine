@@ -1,13 +1,11 @@
 package me.anno.image.gimp
 
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
 import me.anno.image.hdr.HDRImage
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readBE32
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.zip.InnerFolder
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
@@ -17,9 +15,6 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.OS.desktop
-import me.anno.utils.OS.documents
-import me.anno.utils.OS.downloads
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Buffers.skip
 import org.apache.logging.log4j.LogManager
@@ -61,22 +56,6 @@ class GimpImage {
             val height = data.readBE32()
             if (width <= 0 || height <= 0) throw IOException("Image must not be empty $width x $height")
             return Pair(width, height)
-        }
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            for (file in listOf(
-                documents.getChild("Watch Dogs 2 Background.xcf"),
-                downloads.getChild("2d/gimp-sample.xcf")
-            )) {
-                val name = file.nameWithoutExtension
-                ImageCPUCache.getImage(file, false)!!
-                    .write(getReference(desktop, "$name.png"))
-                for (it in file.listChildren()!!) {
-                    ImageCPUCache.getImage(it, false)!!
-                        .write(getReference(desktop, "$name.${it.nameWithoutExtension}.png"))
-                }
-            }
         }
 
         fun readImage(file: FileReference): GimpImage {

@@ -78,28 +78,6 @@ class TextWriter(initialCapacity: Int, workspace: FileReference) : TextWriterBas
             return writer.data
         }
 
-        /* a test, because smileys were not written correctly
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // smileys were not saved correctly, why?
-            // because the input stream reader was reading bytes, not chars
-            RemsRegistry.init()
-            val smiley = "🤔"
-            val text = Text(smiley)
-            text.text.set(smiley)
-            val asString = toText(text)
-            LOGGER.info(asString)
-            val asText = TextReader.read(asString).first() as Text
-            LOGGER.info("Decoded text: ${asText.text[0.0]}, ${asText.text[0.0].length}")
-            // this works so far...
-            val tmp = FileFileRef.createTempFile("smiley", ".tmp")
-            val ref = getReference(tmp.absolutePath)
-            ref.writeText(asString)
-            LOGGER.info(ref.readText())
-            LOGGER.info(tmp)
-            // tmp.delete()
-        }*/
-
     }
 
 

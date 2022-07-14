@@ -236,15 +236,4 @@ object Reduction {
 
     }
 
-    /**
-     * this is a test & sample on how to compute the average color of an image
-     * */
-    @JvmStatic
-    fun main(args: Array<String>) {
-        HiddenOpenGLContext.createOpenGL()
-        val fileReference = OS.pictures.getChild("4k.jpg")
-        val image = ImageGPUCache.getImage(fileReference, false)!!
-        LogManager.getLogger("Reduction").info(reduce(image, AVG).toHexColor())
-    }
-
 }
