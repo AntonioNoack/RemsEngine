@@ -89,7 +89,7 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
         private val maxCountedChar = countedCharacters.maxOrNull()!!
         private val maxCounted = countedCharacters.maxOrNull()!!.code
         private val isCounted = BooleanArray(maxCounted + 1 - minCounted)
-        fun Any.isCounted() = this is Char && this < maxCountedChar
+        fun Any.isCounted() = this is Char && this.code < maxCountedChar.code
         init {
             countedCharacters.forEach {
                 isCounted[it.code - minCounted] = true

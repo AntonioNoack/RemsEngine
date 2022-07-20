@@ -41,7 +41,7 @@ import java.util.concurrent.PriorityBlockingQueue
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-// todo which parts of the engine can be split into modules? would be good for compile times
+// todo which parts of the engine can be split into modules? would be good for compile times and for shipping small, compact apps (e.g. on the web)
 // todo generate dependency graph visualization/computation? :)
 
 /**
@@ -86,9 +86,7 @@ abstract class StudioBase(
 
     open fun save() {}
 
-    open fun supportsFileImport(): Boolean {
-        return true
-    }
+    open fun supportsFileImport() = true
 
     open fun getDefaultFileLocation(): FileReference = InvalidRef
 

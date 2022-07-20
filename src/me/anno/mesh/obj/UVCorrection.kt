@@ -108,7 +108,7 @@ object UVCorrection {
         val clock = Clock()
         for (sample in samples) {
             val ref = FileReference.getReference(OS.downloads, sample)
-            val folder = OBJReader2.readAsFolder(ref)
+            val folder = OBJReader.readAsFolder(ref)
             clock.start()
             correct(folder)
             clock.stop("calc") // the first one is always extra long

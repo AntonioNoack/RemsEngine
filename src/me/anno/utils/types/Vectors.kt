@@ -220,7 +220,9 @@ object Vectors {
     fun Vector2fc.toVector3d() = Vector2d(this)
     fun Vector2dc.toVector3f() = Vector2f(x().toFloat(), y().toFloat())
     fun Vector3fc.toVector3d() = Vector3d(this)
-    fun Vector3dc.toVector3f(dst: Vector3f = Vector3f()): Vector3f = dst.set(x().toFloat(), y().toFloat(), z().toFloat())
+    fun Vector3dc.toVector3f(dst: Vector3f = Vector3f()): Vector3f =
+        dst.set(x().toFloat(), y().toFloat(), z().toFloat())
+
     fun Vector4fc.toVector3d() = Vector4d(this)
     fun Vector4dc.toVector3f() = Vector4f(x().toFloat(), y().toFloat(), z().toFloat(), w().toFloat())
 
@@ -471,5 +473,42 @@ object Vectors {
 
     fun Vector3d.rotateInv(q: Quaterniond): Vector3d =
         rotate(JomlPools.quat4d.borrow().set(q).conjugate())
+
+    /**
+     * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
+     * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
+     * */
+    fun Vector3f.normalToQuaternion(dst: Quaternionf): Quaternionf {
+        // uses ~ 28 ns/e on R5 2600
+        val x = x
+        val y = y
+        val z = z
+        if (x * x + z * z > 0.001f) {
+            val v3 = JomlPools.vec3f
+            val v0 = v3.create()
+            val v2 = v3.create()
+            v0.set(z, 0f, -x).normalize()
+            v0.cross(this, v2)
+            val v00 = v0.x
+            val v11 = y
+            val v22 = v2.z
+            val diag = v00 + v11 + v22
+            if (diag >= 0f) {
+                dst.set(z - v2.y, v2.x - v0.z, v0.y - x, diag + 1f)
+            } else if (v00 >= v11 && v00 >= v22) {
+                dst.set(v00 - (v11 + v22) + 1f, x + v0.y, v0.z + v2.x, z - v2.y)
+            } else if (v11 > v22) {
+                dst.set(x + v0.y, v11 - (v22 + v00) + 1f, v2.y + z, v2.x - v0.z)
+            } else {
+                dst.set(v0.z + v2.x, v2.y + z, v22 - (v00 + v11) + 1f, v0.y - x)
+            }
+            v3.sub(2)
+            return dst.normalize()
+        } else if (y > 0f) { // up
+            return dst.identity()
+        } else { // down
+            return dst.set(1f, 0f, 0f, 0f)
+        }
+    }
 
 }

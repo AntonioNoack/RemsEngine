@@ -87,7 +87,7 @@ fun testImage(file: FileReference) {
         ImageIO.write(smaller, "png", it)
     }
     // also write image to the gpu, and then get it back to test the uploading
-    Thumbs.renderToBufferedImage(file, file, file.dst2(), false, Renderer.colorRenderer, true, {}, w, h) {
+    Thumbs.renderToBufferedImage(file, file, file.dst2(), false, Renderer.copyRenderer, true, {}, w, h) {
         val texture = ImageGPUCache.getImage(file, 10_000, false)!!
         drawTexture(0, 0, w, h, texture, -1, null)
     }

@@ -398,7 +398,7 @@ open class FileExplorerEntry(
         val image = img1 ?: whiteTexture
         val rot = (image as? Texture2D)?.rotation
         image.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
-        if (rot == null) {
+        if (rot == null || rot.isNull()) {
             drawTexture(x0, y0, x1, y1, image)
         } else {
             val m = Matrix4fArrayList()

@@ -8,7 +8,6 @@ import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
 import me.anno.io.zip.InnerFolder
 import me.anno.maths.Maths
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdfwriter.COSWriter
@@ -18,6 +17,7 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -102,7 +102,7 @@ object PDFCache : CacheSection("PDFCache") {
             20_000L,
             false
         ) { callback ->
-            threadWithName("PDFCache::getTexture") {
+            thread(name = "PDFCache::getTexture") {
                 val image = getImage(doc, qualityFloat, pageNumber)
                 GFX.addGPUTask("PDFCache.getTexture()", image.width, image.height) {
                     val tex = Texture2D(image, true)

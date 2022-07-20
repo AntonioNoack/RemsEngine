@@ -12,6 +12,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.pooling.ByteBufferPool
 import org.jbox2d.common.Vec3
+import org.lwjgl.system.CallbackI.V
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
@@ -176,7 +177,7 @@ object ShaderLib {
             "uniform vec4[$maxColorForceFields] forceFieldColors;\n" +
             "uniform vec4[$maxColorForceFields] forceFieldPositionsNWeights;\n" +
             "uniform vec4[$maxColorForceFields] forceFieldColorPowerSizes;\n" +
-            "vec4 getForceFieldColor(){\n" +
+            "vec4 getForceFieldColor(vec3 finalPosition){\n" +
             "   float sumWeight = 0.25;\n" +
             "   vec4 sumColor = sumWeight * forceFieldBaseColor;\n" +
             "   for(int i=0;i<forceFieldColorCount;i++){\n" +
@@ -291,8 +292,8 @@ object ShaderLib {
     //"   gl_Position.z = 2.0*log(gl_Position.w*near + 1)/log(far*near + 1) - 1;\n" +
     //"   gl_Position.z *= gl_Position.w;"
 
-    const val v3DBase = "" +
-            "uniform mat4 transform;\n"
+    // const val v3DBase = "" +
+    //        "uniform mat4 transform;\n"
 
     const val flatNormal = "" +
             "   normal = vec3(0.0, 0.0, 1.0);\n"
@@ -322,19 +323,28 @@ object ShaderLib {
         Variable(GLSLType.V3F, "normal")
     )
 
+    val f3Dl = listOf(
+        Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+        Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+        Variable(GLSLType.S2D, "tex")
+    )
+
     val f3D = "" +
-            "uniform sampler2D tex;\n" +
             getTextureLib +
             getColorForceFieldLib +
             "void main(){\n" +
             "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
-            "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+            "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
             "   finalColor = color.rgb;\n" +
             "   finalAlpha = color.a;\n" +
             "}"
 
-    val v3DMasked = v3DBase +
-            "$attribute vec2 coords;\n" +
+    val v3DlMasked = listOf(
+        Variable(GLSLType.M4x4, "transform"),
+        Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+    )
+
+    val v3DMasked = "" +
             "void main(){\n" +
             "   finalPosition = vec3(coords*2.0-1.0, 0.0);\n" +
             "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
@@ -354,10 +364,14 @@ object ShaderLib {
         "forceFieldUVCount", "forceFieldColorCount"
     )
 
-    val v3DPolygon = v3DBase +
-            "$attribute vec3 coords;\n" +
-            "$attribute vec2 attr1;\n" +
-            "uniform float inset;\n" +
+    val v3DlPolygon = listOf(
+        Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+        Variable(GLSLType.V2F, "attr1", VariableMode.ATTR),
+        Variable(GLSLType.V1F, "inset"),
+        Variable(GLSLType.M4x4, "transform")
+    )
+
+    val v3DPolygon = "" +
             "void main(){\n" +
             "   vec2 betterUV = coords.xy;\n" +
             "   betterUV *= mix(1.0, attr1.r, inset);\n" +
@@ -382,7 +396,7 @@ object ShaderLib {
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw))$swizzle;\n" +
                     "   color.rgb = colorGrading(color.rgb);\n" +
-                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                    "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
                     "   finalColor = color.rgb;\n" +
                     "   finalAlpha = color.a;\n" +
                     "}", listOf("tex")
@@ -477,7 +491,7 @@ object ShaderLib {
                 "                              mix2(color2, color3, stopValue, stops.zw);\n" +
                 // "   color.rgb = fract(vec3(stopValue));\n" +
                 "   color.rgb = colorGrading(color.rgb);\n" +
-                "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
                 "   if(isInLimits(uv.x, uvLimits.xz) && isInLimits(uv.y, uvLimits.yw)){" +
                 "       vec4 color2 = color * getTexture(tex, uv * 0.5 + 0.5);\n" +
                 "       finalColor = color2.rgb;\n" +
@@ -551,7 +565,7 @@ object ShaderLib {
         val assimpVarying = y3D + listOf(
             Variable(GLSLType.V4F, "tangent"),
             // Variable(GLSLType.V4F, "weight"),
-            Variable(GLSLType.V4F, "vertexColor")
+            Variable(GLSLType.V4F, "vertexColor"),
         )
 
         shaderAssimp = createShader(
@@ -561,6 +575,7 @@ object ShaderLib {
                 Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
+                Variable(GLSLType.V3F, "finalPosition"),
                 Variable(GLSLType.S2D, "albedoTex"),
                 Variable(GLSLType.V4F, "diffuseBase")
             ), "" +
@@ -569,7 +584,7 @@ object ShaderLib {
                     "void main(){\n" +
                     "   vec4 color = vec4(vertexColor.rgb,1) * diffuseBase * getTexture(albedoTex, uv);\n" +
                     "   color.rgb *= 0.6 + 0.4 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
-                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                    "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
                     "   finalColor = color.rgb;\n" +
                     "   finalAlpha = color.a;\n" +
                     "   finalPosition = finalPosition;\n" +
@@ -611,14 +626,19 @@ object ShaderLib {
     }
 
     val shader3D = createShader(
-        "3d", v3Dl, v3D, y3D, listOf(
-            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
-        ), f3D, listOf("tex"),
+        "3d", v3Dl, v3D, y3D, f3Dl, f3D, listOf("tex"),
         "cgSlope", "cgOffset", "cgPower", "cgSaturation",
         "normals", "uvs", "tangents", "colors", "drawMode", "tint"
     )
-    val shader3DPolygon = createShader("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"), "tiling", "forceFieldUVCount")
+
+    val shader3DPolygon =
+        createShader(
+            "3d-polygon",
+            v3DlPolygon, v3DPolygon, y3D, f3Dl, f3D,
+            listOf("tex"),
+            "tiling",
+            "forceFieldUVCount"
+        )
     val shader3DRGBA = createSwizzleShader(".rgba")
     val shader3DARGB = createSwizzleShader(".gbar")
     val shader3DBGRA = createSwizzleShader(".bgra")
@@ -646,7 +666,7 @@ object ShaderLib {
                 "       getTexture(texUV, correctedUV, correctedDUV).rg);\n" + //
                 "   vec4 color = vec4(yuv2rgb(yuv), 1.0);\n" +
                 "   color.rgb = colorGrading(color.rgb);\n" +
-                "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
                 "   finalColor = color.rgb;\n" +
                 "   finalAlpha = color.a;\n" +
                 "}", listOf("texY", "texUV")
@@ -667,11 +687,14 @@ object ShaderLib {
     )
 
     val shaderSDFText = createShader(
-        "3d-text-withOutline", v3DBase +
-                "$attribute vec3 coords;\n" +
-                "$attribute vec2 attr1;\n" +
-                "uniform vec2 offset, scale;\n" +
-                getUVForceFieldLib +
+        "3d-text-withOutline", listOf(
+            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V2F, "attr1", VariableMode.ATTR),
+            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.V2F, "offset"),
+            Variable(GLSLType.V2F, "scale"),
+        ),
+        getUVForceFieldLib +
                 "void main(){\n" +
                 "   uv = coords.xy * 0.5 + 0.5;\n" +
                 "   vec2 localPos0 = coords.xy * scale + offset;\n" +
@@ -679,18 +702,23 @@ object ShaderLib {
                 "   finalPosition = vec3($hasForceFieldUVs ? pseudoUV2*2.0-1.0 : localPos0, 0);\n" +
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 positionPostProcessing +
-                "}", y3D, "" +
+                "}", y3D, listOf(
+            Variable(GLSLType.S2D, "tex"),
+            Variable(GLSLType.V4F, "colors", maxOutlineColors),
+            Variable(GLSLType.V2F, "distSmoothness", maxOutlineColors),
+            Variable(GLSLType.V1F, "depth"),
+            Variable(GLSLType.V1I, "colorCount"),
+            Variable(GLSLType.V4F, "tint"),
+            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
+        ), "" +
                 noiseFunc +
                 getTextureLib +
                 getColorForceFieldLib +
-                "uniform sampler2D tex;\n" +
-                "uniform vec4[$maxOutlineColors] colors;\n" +
-                "uniform vec2[$maxOutlineColors] distSmoothness;\n" +
-                "uniform float depth;\n" +
-                "uniform int colorCount;\n" +
                 "void main(){\n" +
                 "   float distance = texture(tex, uv).r;\n" +
                 "   float gradient = length(vec2(dFdx(distance), dFdy(distance)));\n" +
+                "#define IS_TINTED\n" +
                 "   vec4 color = tint;\n" +
                 "   for(int i=0;i<colorCount;i++){" +
                 "       vec4 colorHere = colors[i];\n" +
@@ -704,7 +732,7 @@ object ShaderLib {
                 "   }\n" +
                 "   gl_FragDepth = gl_FragCoord.z * (1.0 + distance * depth);\n" +
                 "   if(color.a <= 0.001) discard;\n" +
-                "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
                 "   finalColor = color.rgb;\n" +
                 "   finalAlpha = 1.0;//color.a;\n" +
                 "}", listOf("tex"),
@@ -736,16 +764,18 @@ object ShaderLib {
                 getTextureLib +
                 getColorForceFieldLib +
                 "void main(){\n" +
-                "   vec4 finalColor2 = ($hasForceFieldColor) ? getForceFieldColor() : vec4(1.0);\n" +
+                "   vec4 finalColor2 = ($hasForceFieldColor) ? getForceFieldColor(finalPosition) : vec4(1.0);\n" +
                 "   finalColor = finalColor2.rgb;\n" +
                 "   finalAlpha = finalColor2.a;\n" +
                 "}", listOf(), "tiling", "forceFieldUVCount"
     )
 
     val shader3DCircle = createShader(
-        "3dCircle", v3DBase +
-                "$attribute vec2 coords;\n" + // angle, inner/outer
-                "uniform vec3 circleParams;\n" + // 1 - inner r, start, end
+        "3dCircle", listOf(
+            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),// angle, inner/outer
+            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.V3F, "circleParams"), // 1 - inner r, start, end
+        ), "" +
                 "void main(){\n" +
                 "   float angle = mix(circleParams.y, circleParams.z, coords.x);\n" +
                 "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * coords.y);\n" +
@@ -753,9 +783,9 @@ object ShaderLib {
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 flatNormal +
                 positionPostProcessing +
-                "}", y3D, getColorForceFieldLib +
+                "}", y3D, listOf(), getColorForceFieldLib +
                 "void main(){\n" +
-                "   gl_FragColor = ($hasForceFieldColor) ? getForceFieldColor() : vec4(1);\n" +
+                "   gl_FragColor = ($hasForceFieldColor) ? getForceFieldColor(finalPosition) : vec4(1);\n" +
                 "}", listOf(),
         "filtering", "textureDeltaUV", "tiling", "uvProjection", "forceFieldUVCount",
         "cgOffset", "cgSlope", "cgPower", "cgSaturation"
@@ -785,7 +815,7 @@ object ShaderLib {
                 "void main(){\n" +
                 "   vec4 color = getTexture(tex, uv);\n" +
                 "   color.rgb *= 0.5 + 0.5 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
-                "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
                 "   finalColor = color.rgb;\n" +
                 "   finalAlpha = color.a;\n" +
                 "}", listOf("tex")
@@ -814,11 +844,12 @@ object ShaderLib {
 
     val shader3DGaussianBlur =
         createShader(
-            "3d-blur", v3DMasked, y3DMasked, "" +
-                    "uniform sampler2D tex;\n" +
-                    "uniform vec2 stepSize;\n" +
-                    "uniform float steps;\n" +
-                    "uniform float threshold;\n" +
+            "3d-blur", v3DlMasked, v3DMasked, y3DMasked, listOf(
+                Variable(GLSLType.S2D, "tex"),
+                Variable(GLSLType.V2F, "stepSize"),
+                Variable(GLSLType.V1F, "steps"),
+                Variable(GLSLType.V1F, "threshold")
+            ), "" +
                     brightness +
                     "void main(){\n" +
                     "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +

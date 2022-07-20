@@ -179,155 +179,154 @@ object ColorParsing {
      * officially supported colors from the web (CSS/HTML)
      * */
     private val colorMap by lazy {
-        val map = BiMap<String, Int>(148)
-        fun put(k: String, v: Int) = map.put(k, v)
-        put("aliceblue", 0xf0f8ff)
-        put("antiquewhite", 0xfaebd7)
-        put("aqua", 0x00ffff)
-        put("aquamarine", 0x7fffd4)
-        put("azure", 0xf0ffff)
-        put("beige", 0xf5f5dc)
-        put("bisque", 0xffe4c4)
-        put("black", 0x000000)
-        put("blanchedalmond", 0xffebcd)
-        put("blue", 0x0000ff)
-        put("blueviolet", 0x8a2be2)
-        put("brown", 0xa52a2a)
-        put("burlywood", 0xdeb887)
-        put("cadetblue", 0x5f9ea0)
-        put("chartreuse", 0x7fff00)
-        put("chocolate", 0xd2691e)
-        put("coral", 0xff7f50)
-        put("cornflowerblue", 0x6495ed)
-        put("cornsilk", 0xfff8dc)
-        put("crimson", 0xdc143c)
-        put("cyan", 0x00ffff)
-        put("darkblue", 0x00008b)
-        put("darkcyan", 0x008b8b)
-        put("darkgoldenrod", 0xb8860b)
-        put("darkgray", 0xa9a9a9)
-        put("darkgreen", 0x006400)
-        put("darkgrey", 0xa9a9a9)
-        put("darkkhaki", 0xbdb76b)
-        put("darkmagenta", 0x8b008b)
-        put("darkolivegreen", 0x556b2f)
-        put("darkorange", 0xff8c00)
-        put("darkorchid", 0x9932cc)
-        put("darkred", 0x8b0000)
-        put("darksalmon", 0xe9967a)
-        put("darkseagreen", 0x8fbc8f)
-        put("darkslateblue", 0x483d8b)
-        put("darkslategray", 0x2f4f4f)
-        put("darkslategrey", 0x2f4f4f)
-        put("darkturquoise", 0x00ced1)
-        put("darkviolet", 0x9400d3)
-        put("deeppink", 0xff1493)
-        put("deepskyblue", 0x00bfff)
-        put("dimgray", 0x696969)
-        put("dimgrey", 0x696969)
-        put("dodgerblue", 0x1e90ff)
-        put("firebrick", 0xb22222)
-        put("floralwhite", 0xfffaf0)
-        put("forestgreen", 0x228b22)
-        put("fuchsia", 0xff00ff)
-        put("gainsboro", 0xdcdcdc)
-        put("ghostwhite", 0xf8f8ff)
-        put("gold", 0xffd700)
-        put("goldenrod", 0xdaa520)
-        put("gray", 0x808080)
-        put("green", 0x008000)
-        put("greenyellow", 0xadff2f)
-        put("grey", 0x808080)
-        put("honeydew", 0xf0fff0)
-        put("hotpink", 0xff69b4)
-        put("indianred", 0xcd5c5c)
-        put("indigo", 0x4b0082)
-        put("ivory", 0xfffff0)
-        put("khaki", 0xf0e68c)
-        put("lavender", 0xe6e6fa)
-        put("lavenderblush", 0xfff0f5)
-        put("lawngreen", 0x7cfc00)
-        put("lemonchiffon", 0xfffacd)
-        put("lightblue", 0xadd8e6)
-        put("lightcoral", 0xf08080)
-        put("lightcyan", 0xe0ffff)
-        put("lightgoldenrodyellow", 0xfafad2)
-        put("lightgray", 0xd3d3d3)
-        put("lightgreen", 0x90ee90)
-        put("lightgrey", 0xd3d3d3)
-        put("lightpink", 0xffb6c1)
-        put("lightsalmon", 0xffa07a)
-        put("lightseagreen", 0x20b2aa)
-        put("lightskyblue", 0x87cefa)
-        put("lightslategray", 0x778899)
-        put("lightslategrey", 0x778899)
-        put("lightsteelblue", 0xb0c4de)
-        put("lightyellow", 0xffffe0)
-        put("lime", 0x00ff00)
-        put("limegreen", 0x32cd32)
-        put("linen", 0xfaf0e6)
-        put("magenta", 0xff00ff)
-        put("maroon", 0x800000)
-        put("mediumaquamarine", 0x66cdaa)
-        put("mediumblue", 0x0000cd)
-        put("mediumorchid", 0xba55d3)
-        put("mediumpurple", 0x9370db)
-        put("mediumseagreen", 0x3cb371)
-        put("mediumslateblue", 0x7b68ee)
-        put("mediumspringgreen", 0x00fa9a)
-        put("mediumturquoise", 0x48d1cc)
-        put("mediumvioletred", 0xc71585)
-        put("midnightblue", 0x191970)
-        put("mintcream", 0xf5fffa)
-        put("mistyrose", 0xffe4e1)
-        put("moccasin", 0xffe4b5)
-        put("navajowhite", 0xffdead)
-        put("navy", 0x000080)
-        put("oldlace", 0xfdf5e6)
-        put("olive", 0x808000)
-        put("olivedrab", 0x6b8e23)
-        put("orange", 0xffa500)
-        put("orangered", 0xff4500)
-        put("orchid", 0xda70d6)
-        put("palegoldenrod", 0xeee8aa)
-        put("palegreen", 0x98fb98)
-        put("paleturquoise", 0xafeeee)
-        put("palevioletred", 0xdb7093)
-        put("papayawhip", 0xffefd5)
-        put("peachpuff", 0xffdab9)
-        put("peru", 0xcd853f)
-        put("pink", 0xffc0cb)
-        put("plum", 0xdda0dd)
-        put("powderblue", 0xb0e0e6)
-        put("purple", 0x800080)
-        put("red", 0xff0000)
-        put("rosybrown", 0xbc8f8f)
-        put("royalblue", 0x4169e1)
-        put("saddlebrown", 0x8b4513)
-        put("salmon", 0xfa8072)
-        put("sandybrown", 0xf4a460)
-        put("seagreen", 0x2e8b57)
-        put("seashell", 0xfff5ee)
-        put("sienna", 0xa0522d)
-        put("silver", 0xc0c0c0)
-        put("skyblue", 0x87ceeb)
-        put("slateblue", 0x6a5acd)
-        put("slategray", 0x708090)
-        put("slategrey", 0x708090)
-        put("snow", 0xfffafa)
-        put("springgreen", 0x00ff7f)
-        put("steelblue", 0x4682b4)
-        put("tan", 0xd2b48c)
-        put("teal", 0x008080)
-        put("thistle", 0xd8bfd8)
-        put("tomato", 0xff6347)
-        put("turquoise", 0x40e0d0)
-        put("violet", 0xee82ee)
-        put("wheat", 0xf5deb3)
-        put("white", 0xffffff)
-        put("whitesmoke", 0xf5f5f5)
-        put("yellow", 0xffff00)
-        put("yellowgreen", 0x9acd32)
+        val map = BiMap<String, Int>(256)
+        map["aliceblue"] = 0xf0f8ff
+        map["antiquewhite"] = 0xfaebd7
+        map["aqua"] = 0x00ffff
+        map["aquamarine"] = 0x7fffd4
+        map["azure"] = 0xf0ffff
+        map["beige"] = 0xf5f5dc
+        map["bisque"] = 0xffe4c4
+        map["black"] = 0x000000
+        map["blanchedalmond"] = 0xffebcd
+        map["blue"] = 0x0000ff
+        map["blueviolet"] = 0x8a2be2
+        map["brown"] = 0xa52a2a
+        map["burlywood"] = 0xdeb887
+        map["cadetblue"] = 0x5f9ea0
+        map["chartreuse"] = 0x7fff00
+        map["chocolate"] = 0xd2691e
+        map["coral"] = 0xff7f50
+        map["cornflowerblue"] = 0x6495ed
+        map["cornsilk"] = 0xfff8dc
+        map["crimson"] = 0xdc143c
+        map["cyan"] = 0x00ffff
+        map["darkblue"] = 0x00008b
+        map["darkcyan"] = 0x008b8b
+        map["darkgoldenrod"] = 0xb8860b
+        map["darkgray"] = 0xa9a9a9
+        map["darkgreen"] = 0x006400
+        map["darkgrey"] = 0xa9a9a9
+        map["darkkhaki"] = 0xbdb76b
+        map["darkmagenta"] = 0x8b008b
+        map["darkolivegreen"] = 0x556b2f
+        map["darkorange"] = 0xff8c00
+        map["darkorchid"] = 0x9932cc
+        map["darkred"] = 0x8b0000
+        map["darksalmon"] = 0xe9967a
+        map["darkseagreen"] = 0x8fbc8f
+        map["darkslateblue"] = 0x483d8b
+        map["darkslategray"] = 0x2f4f4f
+        map["darkslategrey"] = 0x2f4f4f
+        map["darkturquoise"] = 0x00ced1
+        map["darkviolet"] = 0x9400d3
+        map["deeppink"] = 0xff1493
+        map["deepskyblue"] = 0x00bfff
+        map["dimgray"] = 0x696969
+        map["dimgrey"] = 0x696969
+        map["dodgerblue"] = 0x1e90ff
+        map["firebrick"] = 0xb22222
+        map["floralwhite"] = 0xfffaf0
+        map["forestgreen"] = 0x228b22
+        map["fuchsia"] = 0xff00ff
+        map["gainsboro"] = 0xdcdcdc
+        map["ghostwhite"] = 0xf8f8ff
+        map["gold"] = 0xffd700
+        map["goldenrod"] = 0xdaa520
+        map["gray"] = 0x808080
+        map["green"] = 0x008000
+        map["greenyellow"] = 0xadff2f
+        map["grey"] = 0x808080
+        map["honeydew"] = 0xf0fff0
+        map["hotpink"] = 0xff69b4
+        map["indianred"] = 0xcd5c5c
+        map["indigo"] = 0x4b0082
+        map["ivory"] = 0xfffff0
+        map["khaki"] = 0xf0e68c
+        map["lavender"] = 0xe6e6fa
+        map["lavenderblush"] = 0xfff0f5
+        map["lawngreen"] = 0x7cfc00
+        map["lemonchiffon"] = 0xfffacd
+        map["lightblue"] = 0xadd8e6
+        map["lightcoral"] = 0xf08080
+        map["lightcyan"] = 0xe0ffff
+        map["lightgoldenrodyellow"] = 0xfafad2
+        map["lightgray"] = 0xd3d3d3
+        map["lightgreen"] = 0x90ee90
+        map["lightgrey"] = 0xd3d3d3
+        map["lightpink"] = 0xffb6c1
+        map["lightsalmon"] = 0xffa07a
+        map["lightseagreen"] = 0x20b2aa
+        map["lightskyblue"] = 0x87cefa
+        map["lightslategray"] = 0x778899
+        map["lightslategrey"] = 0x778899
+        map["lightsteelblue"] = 0xb0c4de
+        map["lightyellow"] = 0xffffe0
+        map["lime"] = 0x00ff00
+        map["limegreen"] = 0x32cd32
+        map["linen"] = 0xfaf0e6
+        map["magenta"] = 0xff00ff
+        map["maroon"] = 0x800000
+        map["mediumaquamarine"] = 0x66cdaa
+        map["mediumblue"] = 0x0000cd
+        map["mediumorchid"] = 0xba55d3
+        map["mediumpurple"] = 0x9370db
+        map["mediumseagreen"] = 0x3cb371
+        map["mediumslateblue"] = 0x7b68ee
+        map["mediumspringgreen"] = 0x00fa9a
+        map["mediumturquoise"] = 0x48d1cc
+        map["mediumvioletred"] = 0xc71585
+        map["midnightblue"] = 0x191970
+        map["mintcream"] = 0xf5fffa
+        map["mistyrose"] = 0xffe4e1
+        map["moccasin"] = 0xffe4b5
+        map["navajowhite"] = 0xffdead
+        map["navy"] = 0x000080
+        map["oldlace"] = 0xfdf5e6
+        map["olive"] = 0x808000
+        map["olivedrab"] = 0x6b8e23
+        map["orange"] = 0xffa500
+        map["orangered"] = 0xff4500
+        map["orchid"] = 0xda70d6
+        map["palegoldenrod"] = 0xeee8aa
+        map["palegreen"] = 0x98fb98
+        map["paleturquoise"] = 0xafeeee
+        map["palevioletred"] = 0xdb7093
+        map["papayawhip"] = 0xffefd5
+        map["peachpuff"] = 0xffdab9
+        map["peru"] = 0xcd853f
+        map["pink"] = 0xffc0cb
+        map["plum"] = 0xdda0dd
+        map["powderblue"] = 0xb0e0e6
+        map["purple"] = 0x800080
+        map["red"] = 0xff0000
+        map["rosybrown"] = 0xbc8f8f
+        map["royalblue"] = 0x4169e1
+        map["saddlebrown"] = 0x8b4513
+        map["salmon"] = 0xfa8072
+        map["sandybrown"] = 0xf4a460
+        map["seagreen"] = 0x2e8b57
+        map["seashell"] = 0xfff5ee
+        map["sienna"] = 0xa0522d
+        map["silver"] = 0xc0c0c0
+        map["skyblue"] = 0x87ceeb
+        map["slateblue"] = 0x6a5acd
+        map["slategray"] = 0x708090
+        map["slategrey"] = 0x708090
+        map["snow"] = 0xfffafa
+        map["springgreen"] = 0x00ff7f
+        map["steelblue"] = 0x4682b4
+        map["tan"] = 0xd2b48c
+        map["teal"] = 0x008080
+        map["thistle"] = 0xd8bfd8
+        map["tomato"] = 0xff6347
+        map["turquoise"] = 0x40e0d0
+        map["violet"] = 0xee82ee
+        map["wheat"] = 0xf5deb3
+        map["white"] = 0xffffff
+        map["whitesmoke"] = 0xf5f5f5
+        map["yellow"] = 0xffff00
+        map["yellowgreen"] = 0x9acd32
         map
     }
 

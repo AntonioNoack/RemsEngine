@@ -13,6 +13,5 @@ data class Suggestion(
         .replace("</suggestion>", "")
 
     operator fun contains(index: Int) = index in start until end
-    fun withOffset(offset: Int) = Suggestion(start + offset, end + offset, message, shortMessage, improvements)
 
 }

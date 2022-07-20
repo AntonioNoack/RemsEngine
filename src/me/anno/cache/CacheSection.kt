@@ -6,7 +6,6 @@ import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.maps.Maps
 import me.anno.utils.structures.maps.Maps.removeIf2
@@ -14,6 +13,7 @@ import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.concurrent.thread
 
 open class CacheSection(val name: String) : Comparable<CacheSection> {
 
@@ -276,7 +276,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         if (needsGenerator) {
             entry.hasGenerator = true
             if (asyncGenerator) {
-                threadWithName("$name<$key0,$key1>") {
+                thread(name = "$name<$key0,$key1>") {
                     val value = generateSafely(key0, key1, generator)
                     entry.data = value as? ICacheData
                     if (value is Exception) throw value
@@ -323,7 +323,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         if (needsGenerator) {
             entry.hasGenerator = true
             if (asyncGenerator) {
-                threadWithName("$name<$key>") {
+                thread(name = "$name<$key>") {
                     val value = generateSafely(key, generator)
                     if (value is Exception && value !is ShutdownException) throw value
                     value as? ICacheData

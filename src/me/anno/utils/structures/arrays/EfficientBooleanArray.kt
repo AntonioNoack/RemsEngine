@@ -8,6 +8,8 @@ import me.anno.io.base.BaseWriter
  * up to 8x more efficient
  * slower access
  * less thread-save
+ *
+ * todo how does it compare to BitSet?
  * */
 class EfficientBooleanArray(var size: Int) : Saveable() {
 

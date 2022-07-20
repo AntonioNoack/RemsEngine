@@ -119,8 +119,8 @@ object HSLuvColorSpace {
         return b.dot(a[aOffset], a[aOffset + 1], a[aOffset + 2])
     }
 
-    private fun dotProduct(a: FloatArray, aOffset: Int, b: Vector3f): Float {
-        return b.dot(a[aOffset], a[aOffset + 1], a[aOffset + 2])
+    private fun xyzToRGB(aOffset: Int, b: Vector3f): Float {
+        return b.dot(xyz2rgb2[aOffset], xyz2rgb2[aOffset + 1], xyz2rgb2[aOffset + 2])
     }
 
     fun fromLinear(c: Double): Double {
@@ -141,9 +141,17 @@ object HSLuvColorSpace {
 
     fun toLinear(c: Double): Double {
         return if (c > 0.04045) {
-            ((c + 0.055) / (1 + 0.055)).pow(2.4)
+            ((c + 0.055) / (1.055)).pow(2.4)
         } else {
             c / 12.92
+        }
+    }
+
+    fun toLinear(c: Float): Float {
+        return if (c > 0.04045f) {
+            ((c + 0.055f) / (1.055f)).pow(2.4f)
+        } else {
+            c / 12.92f
         }
     }
 
@@ -157,9 +165,9 @@ object HSLuvColorSpace {
 
     fun xyzToRgb(src: Vector3f, dst: Vector3f = src): Vector3f {
         return dst.set(
-            fromLinear(dotProduct(xyz2rgb2, 0, src)),
-            fromLinear(dotProduct(xyz2rgb2, 3, src)),
-            fromLinear(dotProduct(xyz2rgb2, 6, src)),
+            fromLinear(xyzToRGB(0, src)),
+            fromLinear(xyzToRGB(3, src)),
+            fromLinear(xyzToRGB(6, src)),
         )
     }
 
@@ -190,37 +198,39 @@ object HSLuvColorSpace {
 
     fun xyzToLuv(src: Vector3d, dst: Vector3d = src): Vector3d {
 
-        val x = src.x
         val y = src.y
-        val z = src.z
-
-        val varU = (4.0 * x) / (x + (15.0 * y) + (3.0 * z))
-        val varV = (9.0 * y) / (x + (15.0 * y) + (3.0 * z))
 
         val l = yToL(y)
+        if (l == 0.0) return dst.set(0.0)
 
-        if (l == 0.0) {
-            return dst.set(0.0)
-        }
+        val x = src.x
+        val z = src.z
 
-        val u = 13.0 * l * (varU - refU)
-        val v = 13.0 * l * (varV - refV)
+        val y15 = y * 15.0
+        val z3 = z * 3.0
+        val norm = 1.0 / (x + y15 + z3)
+        val varU = 4.0 * x * norm
+        val varV = 9.0 * y * norm
+
+        val l13 = l * 13
+        val u = l13 * (varU - refU)
+        val v = l13 * (varV - refV)
 
         return dst.set(l, u, v)
 
     }
 
     fun luvToXyz(src: Vector3d, dst: Vector3d = src): Vector3d {
+
         val l = src.x
+        if (l == 0.0) return dst.set(0.0)
+
         val u = src.y
         val v = src.z
 
-        if (l == 0.0) {
-            return dst.set(0.0)
-        }
-
-        val varU = u / (13.0 * l) + refU
-        val varV = v / (13.0 * l) + refV
+        val l13 = 1.0 / (l * 13)
+        val varU = u * l13 + refU
+        val varV = v * l13 + refV
 
         val y = lToY(l)
         val x = 0 - (9.0 * y * varU) / ((varU - 4.0) * varV - varU * varV)
@@ -239,17 +249,10 @@ object HSLuvColorSpace {
         var h: Double
 
         if (c < 0.00000001) {
-
             h = 0.0
-
         } else {
-
             h = StrictMath.toDegrees(atan2(v, u))
-
-            if (h < 0.0) {
-                h += 360.0
-            }
-
+            if (h < 0.0) h += 360.0
         }
 
         return dst.set(l, c, h)
@@ -276,13 +279,8 @@ object HSLuvColorSpace {
         val s = src.y
         val l = src.z
 
-        if (l > 99.9999999) {
-            return dst.set(100.0, 0.0, h)
-        }
-
-        if (l < 0.00000001) {
-            return dst.set(0.0, 0.0, h)
-        }
+        if (l > 99.9999999) return dst.set(100.0, 0.0, h)
+        if (l < 0.00000001) return dst.set(0.0, 0.0, h)
 
         val max = maxChromaForLH(l, h)
         val c = max * 0.01 * s
@@ -315,13 +313,8 @@ object HSLuvColorSpace {
         val s = src.y
         val l = src.z
 
-        if (l > 99.9999999) {
-            return dst.set(100.0, 0.0, h)
-        }
-
-        if (l < 0.00000001) {
-            return dst.set(0.0, 0.0, h)
-        }
+        if (l > 99.9999999) return dst.set(100.0, 0.0, h)
+        if (l < 0.00000001) return dst.set(0.0, 0.0, h)
 
         val max = maxSafeChromaForL(l)
         val c = max / 100 * s
@@ -334,13 +327,8 @@ object HSLuvColorSpace {
         val c = src.y
         val h = src.z
 
-        if (l > 99.9999999) {
-            return dst.set(h, 0.0, 100.0)
-        }
-
-        if (l < 0.00000001) {
-            return dst.set(h, 0.0, 0.0)
-        }
+        if (l > 99.9999999) return dst.set(h, 0.0, 100.0)
+        if (l < 0.00000001) return dst.set(h, 0.0, 0.0)
 
         val max = maxSafeChromaForL(l)
         val s = c / max * 100.0

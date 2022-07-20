@@ -17,12 +17,12 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.rgba
-import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11C.*
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
+import kotlin.concurrent.thread
 import kotlin.math.abs
 
 abstract class FrameTask(
@@ -62,7 +62,7 @@ abstract class FrameTask(
                 callback()
             } else {
                 // waiting
-                threadWithName("FrameTask::start") { start(callback) }
+                thread(name = "FrameTask::start") { start(callback) }
             }
         }
 
@@ -87,7 +87,7 @@ abstract class FrameTask(
 
         GFX.check()
 
-        threadWithName("FrameTask::writeFrame") {// offload to other thread
+        thread(name = "FrameTask::writeFrame") {// offload to other thread
             // val c1 = Clock()
             val image = BufferedImage(width, height, 1)
             val buffer2 = image.raster.dataBuffer

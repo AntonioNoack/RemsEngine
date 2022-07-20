@@ -14,13 +14,13 @@ import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
 import me.anno.utils.OS
-import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11C.*
 import java.awt.Rectangle
 import java.awt.Toolkit
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.concurrent.thread
 
 object Screenshots {
 
@@ -177,7 +177,7 @@ object Screenshots {
             GFX.check()
 
             val image = getPixels(renderer)
-            threadWithName("Save Screenshot") {
+            thread(name = "Save Screenshot") {
                 val file = folder.getChild(name)
                 image.write(file)
                 LOGGER.info(

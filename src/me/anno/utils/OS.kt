@@ -6,7 +6,11 @@ import me.anno.utils.process.BetterProcessBuilder
 import java.lang.management.ManagementFactory
 import kotlin.concurrent.thread
 
-object OS {// the os is important for some things, e.g. the allowed file names, and the home directory
+/**
+ * the os is important for some things, e.g., the allowed file names, and the home directory;
+ * this object contains information about which OS/base-engine is used, and where user-related documents are located;
+ * */
+object OS {
 
     val data = System.getProperty("os.name")
     var isWindows = data.contains("windows", true)

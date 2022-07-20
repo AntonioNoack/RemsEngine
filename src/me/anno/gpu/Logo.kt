@@ -11,7 +11,7 @@ import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.ResourceHelper
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerPrefabFile
-import me.anno.mesh.obj.OBJReader2
+import me.anno.mesh.obj.OBJReader
 import me.anno.utils.Color.toVecRGB
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11C.*
@@ -112,7 +112,7 @@ fun drawLogo(shader: Shader) {
             // you can override this file, if you want to change the logo
             // but please show Rem's Engine somewhere in there!
             val stream = ResourceHelper.loadResource("icon.obj")
-            val reader = OBJReader2(stream, InvalidRef)
+            val reader = OBJReader(stream, InvalidRef)
             val file = reader.meshesFolder
             for (child in file.listChildren()) {
 

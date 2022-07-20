@@ -158,10 +158,10 @@ object ComponentUI {
             is CharArray,
             is IntArray, is LongArray,
             is FloatArray, is DoubleArray,
-            -> value.javaClass.simpleName
+            -> value::class.simpleName ?: "anonymous"
 
-            is Inspectable -> "Inspectable"
             is PrefabSaveable -> "PrefabSaveable"
+            is Inspectable -> "Inspectable"
             is FileReference -> "FileReference"
 
             // todo edit native arrays (byte/short/int/float/...) as images
@@ -1039,6 +1039,7 @@ object ComponentUI {
                             }
                     }
                     type0.endsWith("/Code", true) -> {
+                        // todo debugging info & such
                         val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         if (!type1.equals("lua", true)) LOGGER.warn("Currently only Lua is supported")
                         return TitledListY(title, visibilityKey, style).apply {
@@ -1089,8 +1090,8 @@ object ComponentUI {
         value ?: return null
         return when (value) {
             is ISaveable -> value.className
-            is Serializable -> value.javaClass.simpleName
-            else -> value.javaClass.simpleName
+            is Serializable -> value::class.simpleName
+            else -> value::class.simpleName
         }
     }
 

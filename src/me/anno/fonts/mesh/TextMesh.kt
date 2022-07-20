@@ -7,7 +7,6 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.distance
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.OS
-import me.anno.utils.files.Files.use
 import me.anno.utils.types.Vectors.avg
 import me.anno.utils.types.Vectors.isInsideTriangle
 import me.anno.utils.types.Vectors.minus
@@ -225,7 +224,7 @@ class TextMesh(
         // "found ${outerFragments.size} outer rings"
 
         if (img != null) {
-            use(OS.desktop.getChild("text1.png").outputStream()) {
+            OS.desktop.getChild("text1.png").outputStream().use {
                 ImageIO.write(img, "png", it)
             }
         }
@@ -254,7 +253,7 @@ class TextMesh(
         if (wasChanged) {
             gfx?.apply {
                 gfx.dispose()
-                use(OS.desktop.getChild("text2.png").outputStream()) {
+                OS.desktop.getChild("text2.png").outputStream().use {
                     ImageIO.write(img, "png", it)
                 }
             }

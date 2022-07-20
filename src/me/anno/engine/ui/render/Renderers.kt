@@ -30,17 +30,15 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20
 import kotlin.math.max
+import kotlin.math.sqrt
 
 object Renderers {
 
     // todo reinhard tonemapping works often, but not always: {0,1}³ does not work, add spilling somehow
     // todo also maybe it should be customizable...
 
-    // and banding prevention
     var tonemapGLSL = "" +
-            "vec3 tonemap(vec3 color){\n" +
-            "   return color / (1.0 + max(max(color.r, color.g), max(color.b, 0.0))) - random(gl_FragCoord.xy) * ${1f / 255f};\n" +
-            "}\n" +
+            "vec3 tonemap(vec3 color){ return color / (1.0 + max(max(color.r, color.g), max(color.b, 0.0))); }\n" +
             "vec4 tonemap(vec4 color){ return vec4(tonemap(color.rgb), color.a); }\n"
 
     var tonemapKt = { color: Vector3f ->
@@ -128,7 +126,7 @@ object Renderers {
                 Variable(GLSLType.V3F, "finalNormal"),
                 Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
             ), "" +
-                    // define all light positions, radii, types, and colors
+                    // define all light positions, radii, types and colors
                     // use the lights to illuminate the model
                     // light data
                     // a try of depth dithering, which can be used for plants, but is really expensive...

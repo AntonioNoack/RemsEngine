@@ -356,6 +356,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
         }
 
+        updateWheels()
+
         for (i in deadEntities.indices) {
             remove(deadEntities[i], true)
             worldRemoveRigidbody(deadRigidBodies[i])
@@ -372,6 +374,10 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
 
         // clock.total("physics step", 0.1)
+
+    }
+
+    open fun updateWheels(){
 
     }
 

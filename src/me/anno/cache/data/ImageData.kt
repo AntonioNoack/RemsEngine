@@ -24,15 +24,11 @@ import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.utils.Nullable.tryOrException
-import me.anno.utils.Nullable.tryOrNull
 import me.anno.utils.Sleep.waitUntilDefined
-import me.anno.utils.files.Files.use
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
-import java.awt.image.BufferedImage
 import java.io.InputStream
 import java.util.*
 import javax.imageio.ImageIO
@@ -59,7 +55,8 @@ class ImageData(file: FileReference) : ICacheData {
             try {
                 val metadata = ImageMetadataReader.readMetadata(file)
                 for (dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)) {
-                    val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)?.lowercase(Locale.getDefault())
+                    val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)
+                        ?.lowercase()
                         ?: continue
                     val mirror = "mirror" in desc
                     val mirrorHorizontal = mirror && "hori" in desc
@@ -71,6 +68,7 @@ class ImageData(file: FileReference) : ICacheData {
                     }
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
             }
             return rotation
         }
@@ -148,7 +146,7 @@ class ImageData(file: FileReference) : ICacheData {
     }
 
     fun loadTGA(file: FileReference) {
-        val img = use(file.inputStream()) { stream ->
+        val img = file.inputStream().use { stream ->
             TGAImage.read(stream, false)
                 .createBufferedImage()
         }
@@ -193,9 +191,16 @@ class ImageData(file: FileReference) : ICacheData {
     private fun tryGetImage(file: FileReference, stream: InputStream): Image? {
         if (stream is ImageReadable) return stream.readImage()
         // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
-        val image = tryOrNull { ImageIO.read(stream) } ?: tryOrException { Imaging.getBufferedImage(stream) }
-        if (image is Exception) LOGGER.warn("Cannot read image from input $file: ${image.message}")
-        if (image !is BufferedImage) return null
+        val image = try {
+            ImageIO.read(stream)
+        } catch (e: Exception) {
+            null
+        } ?: try {
+            Imaging.getBufferedImage(stream)
+        } catch (e: Exception) {
+            LOGGER.warn("Cannot read image from input $file", e)
+            return null
+        }
         return BIImage(image)
     }
 

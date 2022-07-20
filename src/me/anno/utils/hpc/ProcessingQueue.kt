@@ -5,7 +5,6 @@ import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.util.*
-import java.util.concurrent.LinkedBlockingQueue
 import kotlin.concurrent.thread
 
 open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter(numThreads) {

@@ -1,6 +1,5 @@
 package me.anno.io.json
 
-import me.anno.utils.JavaUtils
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -8,7 +7,7 @@ import java.lang.reflect.Modifier
 
 object ObjectMapper {
 
-    fun writeJsonString(output: OutputStream, str: String){
+    fun writeJsonString(output: OutputStream, str: String) {
         output.write(
             str
                 .replace("\"", "\\\"")
@@ -16,54 +15,68 @@ object ObjectMapper {
         )
     }
 
-    fun OutputStream.write(c: Char){
+    fun OutputStream.write(c: Char) {
         write(c.code)
     }
 
-    fun OutputStream.write(str: String){
+    fun OutputStream.write(str: String) {
         write(str.toByteArray())
     }
 
-    fun OutputStream.writeStr(v: Any){
+    fun OutputStream.writeStr(v: Any) {
         write(v.toString().toByteArray())
     }
 
     @Throws(IOException::class)
-    fun <V> writeValue(output: OutputStream, instance: V){
+    fun <V> writeValue(output: OutputStream, instance: V) {
         // writing a json file from Java for copying
-        val clazz = JavaUtils.getClass(instance)
-        when(clazz.typeName){
-            "int[]" -> output.write((instance as? IntArray)
-                ?.joinToString(",", "[", "]") ?: "null")
-            "long[]" -> output.write((instance as? LongArray)
-                ?.joinToString(",", "[", "]") ?: "null")
-            "float[]" -> output.write((instance as? FloatArray)
-                ?.joinToString(",", "[", "]") ?: "null")
-            "double[]" -> output.write((instance as? DoubleArray)
-                ?.joinToString(",", "[", "]") ?: "null")
-            "boolean[]" -> output.write((instance as? BooleanArray)
-                ?.joinToString(",", "[", "]") ?: "null")
+        val clazz = (instance as? Any)?.javaClass ?: Any::class.java
+        when (clazz.typeName) {
+            "int[]" -> output.write(
+                (instance as? IntArray)
+                    ?.joinToString(",", "[", "]") ?: "null"
+            )
+            "long[]" -> output.write(
+                (instance as? LongArray)
+                    ?.joinToString(",", "[", "]") ?: "null"
+            )
+            "float[]" -> output.write(
+                (instance as? FloatArray)
+                    ?.joinToString(",", "[", "]") ?: "null"
+            )
+            "double[]" -> output.write(
+                (instance as? DoubleArray)
+                    ?.joinToString(",", "[", "]") ?: "null"
+            )
+            "boolean[]" -> output.write(
+                (instance as? BooleanArray)
+                    ?.joinToString(",", "[", "]") ?: "null"
+            )
             "java.lang.Integer" -> output.writeStr((instance as Int?) ?: "null")
-            "java.lang.Long" ->    output.writeStr((instance as Long?) ?: "null")
-            "java.lang.Float" ->   output.writeStr((instance as Float?) ?: "null")
-            "java.lang.Double" ->  output.writeStr((instance as Double?) ?: "null")
+            "java.lang.Long" -> output.writeStr((instance as Long?) ?: "null")
+            "java.lang.Float" -> output.writeStr((instance as Float?) ?: "null")
+            "java.lang.Double" -> output.writeStr((instance as Double?) ?: "null")
             else -> {
                 output.write('{'.code)
                 var isFirstProperty = true
                 clazz.declaredFields.forEach { field ->
-                    if(!Modifier.isStatic(field.modifiers)){
-                        if(!field.isAccessible){
+                    if (!Modifier.isStatic(field.modifiers)) {
+                        if (!field.isAccessible) {
                             try {
                                 field.isAccessible = true
-                            } catch (e: Exception){ e.printStackTrace() }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                             // field.trySetAccessible()
                         }
-                        if(!isFirstProperty){ output.write(','.code) }
+                        if (!isFirstProperty) {
+                            output.write(','.code)
+                        }
                         output.write('"')
                         writeJsonString(output, field.name)
                         output.write('"')
                         output.write(':')
-                        when(field.genericType.typeName){
+                        when (field.genericType.typeName) {
                             // native types
                             "int" -> output.writeStr(field.getInt(instance))
                             "long" -> output.writeStr(field.getLong(instance))
@@ -74,19 +87,29 @@ object ObjectMapper {
                             "java.lang.Long" -> output.writeStr((field.get(instance) as Long?) ?: "null")
                             "java.lang.Float" -> output.writeStr((field.get(instance) as Float?) ?: "null")
                             "java.lang.Double" -> output.writeStr((field.get(instance) as Double?) ?: "null")
-                            "int[]" -> output.write((field.get(instance) as? IntArray)
-                                ?.joinToString(",", "[", "]") ?: "null")
-                            "long[]" -> output.write((field.get(instance) as? LongArray)
-                                ?.joinToString(",", "[", "]") ?: "null")
-                            "float[]" -> output.write((field.get(instance) as? FloatArray)
-                                ?.joinToString(",", "[", "]") ?: "null")
-                            "double[]" -> output.write((field.get(instance) as? DoubleArray)
-                                ?.joinToString(",", "[", "]") ?: "null")
-                            "boolean[]" -> output.write((field.get(instance) as? BooleanArray)
-                                ?.joinToString(",", "[", "]") ?: "null")
+                            "int[]" -> output.write(
+                                (field.get(instance) as? IntArray)
+                                    ?.joinToString(",", "[", "]") ?: "null"
+                            )
+                            "long[]" -> output.write(
+                                (field.get(instance) as? LongArray)
+                                    ?.joinToString(",", "[", "]") ?: "null"
+                            )
+                            "float[]" -> output.write(
+                                (field.get(instance) as? FloatArray)
+                                    ?.joinToString(",", "[", "]") ?: "null"
+                            )
+                            "double[]" -> output.write(
+                                (field.get(instance) as? DoubleArray)
+                                    ?.joinToString(",", "[", "]") ?: "null"
+                            )
+                            "boolean[]" -> output.write(
+                                (field.get(instance) as? BooleanArray)
+                                    ?.joinToString(",", "[", "]") ?: "null"
+                            )
                             // other types, including lists, arrays and maps
                             else -> {
-                                when(val value = field.get(instance)){
+                                when (val value = field.get(instance)) {
                                     null -> output.write("null".toByteArray())
                                     is String -> {
                                         output.write('"')
@@ -96,10 +119,10 @@ object ObjectMapper {
                                     is Array<*> -> writeArray(output, value)
                                     is List<*> -> {
                                         output.write('[')
-                                        for(i in 0 until value.size){
-                                            if(i != 0) output.write(',')
+                                        for (i in 0 until value.size) {
+                                            if (i != 0) output.write(',')
                                             val vi = value[i]
-                                            if(vi != null) {
+                                            if (vi != null) {
                                                 writeValue(output, vi)
                                             } else output.write("null")
                                         }
@@ -108,13 +131,13 @@ object ObjectMapper {
                                     is Map<*, *> -> {
                                         output.write('{')
                                         var isFirst = true
-                                        for((key, vi) in value){
-                                            if(!isFirst) output.write(',')
+                                        for ((key, vi) in value) {
+                                            if (!isFirst) output.write(',')
                                             output.write('"')
                                             output.write(key.toString())
                                             output.write('"')
                                             output.write(':')
-                                            if(vi != null) {
+                                            if (vi != null) {
                                                 writeValue(output, vi)
                                             } else output.write("null")
                                             isFirst = false
@@ -135,11 +158,11 @@ object ObjectMapper {
         }
     }
 
-    fun writeArray(output: OutputStream, value: Array<*>){
+    fun writeArray(output: OutputStream, value: Array<*>) {
         output.write('['.code)
-        for(i in value.indices){
-            if(i != 0) output.write(',')
-            when(val vi = value[i]){
+        for (i in value.indices) {
+            if (i != 0) output.write(',')
+            when (val vi = value[i]) {
                 null -> output.write("null")
                 is Array<*> -> writeArray(output, vi)
                 else -> writeValue(output, vi)
@@ -161,15 +184,17 @@ object ObjectMapper {
     fun <V> convertValue(values: JsonNode, clazz: Class<V>): V {
         val instance = clazz.getConstructor().newInstance()
         clazz.declaredFields.forEach { field ->
-            if(!Modifier.isStatic(field.modifiers)){
-                if(!field.isAccessible){
+            if (!Modifier.isStatic(field.modifiers)) {
+                if (!field.isAccessible) {
                     try {
                         field.isAccessible = true
-                    } catch (e: Exception){ e.printStackTrace() }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                     // field.trySetAccessible()
                 }
                 val value = values.get(field.name)
-                if(value == null){
+                if (value == null) {
                     field.set(instance, null)
                 } else {
                     // ("${field.name}, ${field.genericType}, ${field.genericType.typeName}")
@@ -183,16 +208,17 @@ object ObjectMapper {
     }
 
     fun getValue(type: Type, value: JsonNode): Any {
-        return if(type.arrayDimension > 0){
+        return if (type.arrayDimension > 0) {
             value as JsonArray
-            when(type.arrayDimension){
+            when (type.arrayDimension) {
                 1 -> {
-                    when(val clazzName = type.name){
-                        "float" -> FloatArray(value.content.size){
+                    when (val clazzName = type.name) {
+                        "float" -> FloatArray(value.content.size) {
                             value.content[it].toString().toFloat()
                         }
                         else -> {
                             val clazz = getClass(clazzName)
+
                             @Suppress("unchecked_cast")
                             val array = java.lang.reflect.Array.newInstance(clazz, value.content.size) as Array<Any>
                             val childType = type.getChild()
@@ -205,6 +231,7 @@ object ObjectMapper {
                 }
                 else -> {
                     val clazz = IntArray(0).javaClass // let's hope it doesn't matter ;)
+
                     @Suppress("unchecked_cast")
                     val array = java.lang.reflect.Array.newInstance(clazz, value.content.size) as Array<Any>
                     val childType = type.getChild()
@@ -215,7 +242,7 @@ object ObjectMapper {
                 }
             }
         } else {
-            when(type.name) {
+            when (type.name) {
                 "java.lang.Integer" -> value.asInt()
                 "java.lang.Long" -> value.asLong()
                 "java.lang.Float" -> value.asFloat()
@@ -236,7 +263,7 @@ object ObjectMapper {
                     value as JsonObject
                     val val2 = HashMap<String, Any>()
                     val contentType = type.generics[1]
-                    for ((key, val3) in value.map){
+                    for ((key, val3) in value.map) {
                         val2[key] = getValue(contentType, val3.toJsonNode())
                     }
                     val2
@@ -250,38 +277,38 @@ object ObjectMapper {
         }
     }
 
-    class Type(val name: String, val arrayDimension: Int, val generics: List<Type>){
-        fun getChild() = Type(name, arrayDimension-1, generics)
+    class Type(val name: String, val arrayDimension: Int, val generics: List<Type>) {
+        fun getChild() = Type(name, arrayDimension - 1, generics)
         override fun toString() = "$name${generics.joinToString(", ", "<", ">")}^$arrayDimension"
     }
 
     fun String.betterIndexOf(key: Char): Int {
         val io = indexOf(key)
-        return if(io < 0) length
+        return if (io < 0) length
         else io
     }
 
     fun parseType(value: String, dimension: Int = 0): Type {
-        if(value.endsWith("[]")) return parseType(value.substring(0, value.length-2).trim(), dimension+1)
+        if (value.endsWith("[]")) return parseType(value.substring(0, value.length - 2).trim(), dimension + 1)
         val next = value.betterIndexOf('<')
-        if(next >= value.length) return Type(value.trim(), dimension, emptyList())
+        if (next >= value.length) return Type(value.trim(), dimension, emptyList())
         val generics = ArrayList<Type>()
-        var i0 = next+1
-        var i = next+1
+        var i0 = next + 1
+        var i = next + 1
         var depth = 1
         // a<b,c>
-        while(i < value.length && depth > 0){
-            when(value[i]){
+        while (i < value.length && depth > 0) {
+            when (value[i]) {
                 '<' -> depth++
                 ',' -> {
-                    if(depth == 1){
+                    if (depth == 1) {
                         // bottom -> add the type to the generic list
                         generics += parseType(value.substring(i0, i).trim())
-                        i0 = i+1 // one more will come at least
+                        i0 = i + 1 // one more will come at least
                     }
                 }
                 '>' -> {
-                    if(depth == 1){
+                    if (depth == 1) {
                         // bottom -> add the type to the generic list
                         generics += parseType(value.substring(i0, i))
                     }
@@ -295,7 +322,7 @@ object ObjectMapper {
 
     fun getClass(name: String): Class<*> {
         val cached = classes[name]
-        if(cached != null) return cached
+        if (cached != null) return cached
         val clazz = javaClass.classLoader.loadClass(name)
         classes[name] = clazz
         return clazz
@@ -304,7 +331,7 @@ object ObjectMapper {
     @Suppress("unused")
     fun Any?.toJsonNode(): JsonNode {
         val value = this
-        if(value is JsonNode) return value
+        if (value is JsonNode) return value
         return JsonValue(value)
     }
 

@@ -18,7 +18,6 @@ import me.anno.image.RotateJPEG
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
@@ -27,8 +26,8 @@ import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL11.GL_R // legacy, here if sb mistypes it
-import org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP // not core?
+import org.lwjgl.opengl.GL11.GL_R
+import org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP
 import org.lwjgl.opengl.GL45C.*
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
@@ -277,7 +276,7 @@ open class Texture2D(
                     }
                 }
             } else {
-                threadWithName("Create Image") {
+                thread(name = "Create Image") {
                     create(createImage(), false, checkRedundancy)
                 }
             }
@@ -1125,7 +1124,7 @@ open class Texture2D(
     }
 
     fun copyFrom(src: Texture2D) {
-        if(src.pointer <= 0 || pointer <= 0) throw IllegalArgumentException("Both textures need to be created for copyFrom()")
+        if (src.pointer <= 0 || pointer <= 0) throw IllegalArgumentException("Both textures need to be created for copyFrom()")
         check()
         invalidateBinding()
         check()

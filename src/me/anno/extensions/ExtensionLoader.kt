@@ -11,11 +11,11 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.studio.StudioBase
 import me.anno.utils.hpc.HeavyProcessing.processStage
-import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
+import kotlin.concurrent.thread
 import kotlin.reflect.KClass
 
 object ExtensionLoader {
@@ -87,7 +87,7 @@ object ExtensionLoader {
                     } else {
                         val name = it.name
                         if (!name.startsWith(".") && it.lcExtension == "jar") {
-                            threads += threadWithName("ExtensionLoader::getInfos($it)") {
+                            threads += thread(name = "ExtensionLoader::getInfos($it)") {
                                 val info = loadInfoFromZip(it)
                                 // (check if compatible???)
                                 if (info != null && checkExtensionRequirements(info)) {

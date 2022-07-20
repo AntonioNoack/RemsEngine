@@ -172,10 +172,6 @@ object Files {
         return "$v ${endings.last()}${suffix}B"
     }
 
-    fun File.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listFiles()?.filter {
-        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || includeHiddenFiles)
-    } ?: emptyList()
-
     fun FileReference.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listChildren()?.filter {
         !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || includeHiddenFiles)
     } ?: emptyList()
@@ -199,18 +195,6 @@ object Files {
             }
         }
     }
-
-    inline fun <I : Closeable, V> use(closeable: I, run: (I) -> V): V {
-        return closeable.use {
-            run(it)
-        }
-    }
-
-    fun File.zippedOutput() = outputStream().zipped()
-    fun File.zippedInput() = inputStream().zipped()
-
-    fun OutputStream.zipped() = DataOutputStream(DeflaterOutputStream(this.buffered()))
-    fun InputStream.zipped() = DataInputStream(InflaterInputStream(this.buffered()))
 
     private val LOGGER = LogManager.getLogger(Files::class)
 

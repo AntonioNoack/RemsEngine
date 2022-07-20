@@ -25,7 +25,7 @@ object BoxBlur {
         steps: Int
     ) {
         // step1
-        useFrame(target, Renderer.colorRenderer) {
+        useFrame(target, Renderer.copyRenderer) {
             GFXx3D.draw3DBoxBlur(localTransform, steps, w, h, isFirst)
         }
         target.bindTexture0(

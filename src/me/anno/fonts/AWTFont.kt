@@ -11,7 +11,6 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitForGFXThread
-import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.ExpensiveList
@@ -206,7 +205,7 @@ class AWTFont(val font: Font) {
 
     fun debug(image: BufferedImage) {
         OS.desktop.getChild("img").tryMkdirs()
-        use(OS.desktop.getChild("img/${ctr++}.png").outputStream()) {
+        OS.desktop.getChild("img/${ctr++}.png").outputStream().use {
             ImageIO.write(image, "png", it)
         }
     }

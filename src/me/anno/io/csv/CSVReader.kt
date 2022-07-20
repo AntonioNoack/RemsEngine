@@ -7,7 +7,7 @@ import me.anno.utils.types.Strings.isBlank2
 object CSVReader {
 
     // a few simple and dirty readers
-    // to do later maybe dedicated, optimized readers
+    // to do later maybe dedicated, optimized readers,
     // which can detect the separator even maybe :)
 
     fun readNumerical(

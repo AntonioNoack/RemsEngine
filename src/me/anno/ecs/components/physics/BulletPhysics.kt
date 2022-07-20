@@ -5,7 +5,6 @@ import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
 import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
-import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.CompoundShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
@@ -22,7 +21,6 @@ import cz.advel.stack.Stack
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.components.physics.events.FallenOutOfWorld
@@ -30,16 +28,15 @@ import me.anno.engine.physics.BulletDebugDraw
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderState.cameraMatrix
+import me.anno.engine.ui.render.RenderState.cameraPosition
+import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.maths.Maths
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.types.Vectors.print
+import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -80,7 +77,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     private var world: DiscreteDynamicsWorld? = null
 
     @NotSerializedProperty
-    private var raycastVehicles: HashMap<Entity, RaycastVehicle>? = null
+    var raycastVehicles: HashMap<Entity, RaycastVehicle>? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -162,6 +159,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         val wheels = vehicleComp.wheels
         for (wheel in wheels) {
             val info = wheel.createBulletInstance(entity, vehicle)
+            info.clientInfo = wheel
             wheel.bulletInstance = info
             sampleWheels.add(info)
         }
@@ -185,7 +183,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         if (rigidbody.activeByDefault) body.activationState = CollisionObject.ACTIVE_TAG
 
         world!!.addRigidBody(
-            body, // todo re-activate / correct
+            body, // todo re-activate / correct groups and masks
             // clamp(rigidbody.group, 0, 15).toShort(),
             // rigidbody.collisionMask
         )
@@ -319,13 +317,15 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     }
 
     override fun convertTransformMatrix(rigidbody: RigidBody, scale: org.joml.Vector3d, dstTransform: Matrix4x3d) {
-
         val tmpTransform = Stack.borrowTrans()
-        // set the global transform
         rigidbody.getWorldTransform(tmpTransform)
+        convertTransformMatrix(tmpTransform, scale, dstTransform)
+    }
 
-        val basis = tmpTransform.basis
-        val origin = tmpTransform.origin
+    fun convertTransformMatrix(worldTransform: Transform, scale: org.joml.Vector3d, dstTransform: Matrix4x3d) {
+
+        val basis = worldTransform.basis
+        val origin = worldTransform.origin
         // bullet/javax uses normal ij indexing, while joml uses ji indexing
         val sx = scale.x
         val sy = scale.y
@@ -338,6 +338,26 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             origin.x, origin.y, origin.z
         )
 
+    }
+
+    override fun updateWheels() {
+        super.updateWheels()
+        val scale = JomlPools.vec3d.create()
+        scale.set(1.0)
+        for ((_, v) in raycastVehicles!!) {
+            val wheelInfos = v.wheelInfo
+            for (i in wheelInfos.indices) {
+                val wheel = v.getWheelInfo(i).clientInfo as? VehicleWheel ?: continue
+                val entity = wheel.entity ?: continue
+                val dst = entity.transform
+                val dstTransform = dst.globalTransform
+                // todo use correct scale
+                val tr = wheelInfos[i].worldTransform
+                convertTransformMatrix(tr, scale, dstTransform)
+                dst.setStateAndUpdate(me.anno.ecs.Transform.State.VALID_GLOBAL)
+            }
+        }
+        JomlPools.vec3d.sub(1)
     }
 
     private fun drawDebug(view: RenderView?) {

@@ -106,9 +106,9 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
 
 }
 
-val random = "uint seed = initRand(pixelId, uint(frameIndex));\n"
+const val random = "uint seed = initRand(pixelId, uint(frameIndex));\n"
 
-val shading = "" +
+const val shading = "" +
         "   float alpha = 1.0 / float(frameIndex + 1);\n" +
         "   float distance = Infinity;\n" +
         "   vec3 pos = worldPos, dir = worldDir;\n" +

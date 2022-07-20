@@ -103,7 +103,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "}\n"
 
         val baseColorCalculation = "" +
-                "vec4 color = vec4(vertexColor.rgb, 1.0) * diffuseBase * texture(diffuseMap, uv);\n" +
+                "vec4 texDiffuseMap = texture(diffuseMap, uv);\n" +
+                "vec4 color = vec4(vertexColor.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
                 "if(color.a < ${1f / 255f}) discard;\n" +
                 "finalColor = color.rgb;\n" +
                 "finalAlpha = color.a;\n"

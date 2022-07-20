@@ -1,6 +1,5 @@
 package me.anno.utils.structures.arrays
 
-import me.anno.utils.types.Strings.joinChars
 import java.util.stream.IntStream
 import kotlin.math.max
 import kotlin.math.min
@@ -34,7 +33,7 @@ class LineSequence : IntSequence {
         val lineIndex = getLineIndexAt(index)
         val line = lines[lineIndex]
         val indexInLine = index - indexTable[lineIndex]
-        return if (indexInLine < line.size) line[indexInLine] else newLine
+        return if (indexInLine < line.size) line[indexInLine] else '\n'.code
     }
 
     val lineCount get() = lines.size
@@ -51,7 +50,7 @@ class LineSequence : IntSequence {
 
     operator fun get(lineIndex: Int, indexInLine: Int): Int {
         val line = lines[lineIndex]
-        return if (indexInLine < line.size) line[indexInLine] else newLine
+        return if (indexInLine < line.size) line[indexInLine] else '\n'.code
     }
 
     operator fun set(index: Int, newValue: Int): Int {
@@ -62,9 +61,9 @@ class LineSequence : IntSequence {
 
     operator fun set(lineIndex: Int, indexInLine: Int, newValue: Int): Int {
         val line = lines[lineIndex]
-        val oldValue = if (indexInLine < line.size) line[indexInLine] else newLine
+        val oldValue = if (indexInLine < line.size) line[indexInLine] else '\n'.code
         if (oldValue != newValue) {
-            if (oldValue == newLine || newValue == newLine) {
+            if (oldValue == '\n'.code || newValue == '\n'.code) {
                 // if old value is \n, then change stuff
                 // if new value is \n, then split line
                 remove(lineIndex, indexInLine)
@@ -119,7 +118,7 @@ class LineSequence : IntSequence {
     fun insert(lineIndex: Int, indexInLine: Int, char: Int) {
         synchronized(this) {
             val oldBuilder = lines[lineIndex]
-            if (char == newLine) {
+            if (char == '\n'.code) {
                 // split line
                 val newBuilder = ExpandingIntArray(16)
                 newBuilder.add(oldBuilder, indexInLine, oldBuilder.size)
@@ -180,7 +179,7 @@ class LineSequence : IntSequence {
                 lines.removeAt(lineIndex + 1)
                 maxLineLength = max(maxLineLength, oldBuilder.size)
                 rebuildIndexTable()
-                return newLine
+                return '\n'.code
             } else {
                 val oldValue = oldBuilder[indexInLine]
                 // just remove a Int
@@ -209,7 +208,7 @@ class LineSequence : IntSequence {
         maxLineLength = 0
         if (text != null) for (index in text.indices) {
             val char = text[index]
-            if (char == newLine) {
+            if (char == '\n'.code) {
                 // split line
                 lineIndex++
                 if (lines.size > lineIndex) {
@@ -240,27 +239,6 @@ class LineSequence : IntSequence {
 
     fun clear() {
         setText(null)
-    }
-
-    companion object {
-
-        private val newLine = '\n'.code
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val ls = LineSequence()
-            ls.setText(
-                "this is great\n" +
-                        "isn't it?"
-            )
-            println(ls)
-            ls[0, 0] = 'T'.code
-            ls[1, 0] = 'I'.code
-            ls.insert(1, "isn't it".length, '!'.code)
-            println(ls)
-            ls.remove(1, "isn't it!".length)
-            println(ls)
-        }
     }
 
 }

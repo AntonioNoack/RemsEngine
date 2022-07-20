@@ -28,7 +28,6 @@ import me.anno.ui.Window
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Strings.isArray
 import me.anno.utils.types.Strings.isName
 import me.anno.utils.types.Strings.isNumber
@@ -44,6 +43,7 @@ import java.io.File
 import java.nio.file.Files
 import javax.imageio.ImageIO
 import kotlin.collections.set
+import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -584,7 +584,7 @@ object Input {
     }
 
     fun import() {
-        threadWithName("Ctrl+I") {
+        thread(name = "Ctrl+I") {
             if (lastFile == InvalidRef) lastFile = instance!!.getDefaultFileLocation()
             FileExplorerSelectWrapper.selectFile((lastFile as? FileFileRef)?.file) { file ->
                 if (file != null) {

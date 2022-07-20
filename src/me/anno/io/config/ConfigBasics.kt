@@ -12,10 +12,6 @@ import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
-/**
- * max file size: 2GB, because of Javas internal String and array limitations
- * 2GB for a config file would be just insane
- * */
 object ConfigBasics {
 
     private val LOGGER = LogManager.getLogger(ConfigBasics::class)

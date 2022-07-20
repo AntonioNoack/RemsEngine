@@ -112,7 +112,7 @@ open class FloatInput(
                 is Double -> clamped
                 is Int -> clamped.toDouble()
                 is Long -> clamped.toDouble()
-                else -> throw RuntimeException("Unknown type $clamped for ${javaClass.simpleName}")
+                else -> throw RuntimeException("Unknown type $clamped for ${this::class.simpleName}")
             }
             setValue(asDouble, notify)
         }

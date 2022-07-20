@@ -29,6 +29,9 @@ interface Poisson<V> {
 
     fun V.absDifference(other: V, dst: V = next()): V
 
+    /**
+     * for debugging only
+     * */
     fun V.added(m: Float, n: Float, dst: V = next()): V
 
     // compute proper poisson reconstruction

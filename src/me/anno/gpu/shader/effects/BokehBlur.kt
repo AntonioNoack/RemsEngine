@@ -98,7 +98,7 @@ object BokehBlur {
         target: Framebuffer
     ) {
 
-        useFrame(w, h, true, target, Renderer.colorRenderer) {
+        useFrame(w, h, true, target, Renderer.copyRenderer) {
 
             val shader = compositionShader!!.value
             shader.use()
@@ -119,7 +119,7 @@ object BokehBlur {
     }
 
     fun drawChannel(shader: Shader, target: Framebuffer, w: Int, h: Int, channel: Vector4f) {
-        useFrame(w, h, true, target, Renderer.colorRenderer) {
+        useFrame(w, h, true, target, Renderer.copyRenderer) {
             Frame.bind()
             shader.v4f("channelSelection", channel)
             flat01.draw(shader)

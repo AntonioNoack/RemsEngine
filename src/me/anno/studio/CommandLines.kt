@@ -3,6 +3,10 @@ package me.anno.studio
 import org.apache.commons.cli.CommandLine
 import org.apache.logging.log4j.LogManager
 
+/**
+ * utility functions for command line applications based on Apache CLI;
+ * sample using it: https://github.com/AntonioNoack/RemsStudio/blob/master/src/me/anno/remsstudio/cli/RemsCLI.kt
+ * */
 @Suppress("unused")
 object CommandLines {
 

@@ -1,9 +1,10 @@
 package me.anno.gpu.deferred
 
-import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderPlus.randomFunc
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
@@ -17,14 +18,6 @@ class DeferredSettingsV2(
 ) {
 
     class Layer(val type: DeferredLayerType, val textureName: String, val layerIndex: Int, val mapping: String) {
-
-        fun appendMapping(fragment: StringBuilder) {
-            fragment.append(textureName)
-            fragment.append('.')
-            fragment.append(mapping)
-            fragment.append(type.map10)
-            fragment.append(";\n")
-        }
 
         fun appendMapping(fragment: StringBuilder, suffix: String, uv: String, imported: MutableSet<String>) {
             if (imported.add(textureName)) {
@@ -53,9 +46,12 @@ class DeferredSettingsV2(
             output.append(textureName)
             output.append('.')
             output.append(mapping)
-            output.append(" = ")
+            output.append(" = (")
             output.append(type.glslName)
             output.append(type.map01)
+            // append random rounding
+            output.append(")*(1.0+defRR*").append(textureName).append("RR.x")
+            output.append(")+defRR*").append(textureName).append("RR.y")
             output.append(";\n")
         }
 
@@ -102,8 +98,23 @@ class DeferredSettingsV2(
 
     val settingsV1 = DeferredSettingsV1(layers2, fpLights)
 
-    fun createBaseBuffer() = DeferredBuffers.getBaseBuffer(settingsV1)
-    fun createLightBuffer() = DeferredBuffers.getLightBuffer(settingsV1)
+    fun createBaseBuffer(): IFramebuffer {
+        val layers = layers2
+        val name = "DeferredBuffers-main"
+        val layers1 = Array(layers.size) { layers[it].type }
+        val depthBufferType = DepthBufferType.TEXTURE
+        return if (layers.size <= GFX.maxColorAttachments) {
+            Framebuffer(
+                name, 1, 1, 1,
+                layers1, depthBufferType
+            )
+        } else {
+            MultiFramebuffer(
+                name, 1, 1, 1,
+                layers1, depthBufferType
+            )
+        }
+    }
 
     fun createShader(
         shaderName: String,
@@ -182,10 +193,13 @@ class DeferredSettingsV2(
             output.append(") out vec4 ")
             output.append(type.name)
             output.append(";\n")
+            output.append("uniform vec2 ").append(type.name).append("RR;\n")
         }
     }
 
     fun appendLayerWriters(output: StringBuilder) {
+        output.append(randomFunc)
+        output.append("float defRR = GET_RANDOM(0.001 * gl_FragCoord)-0.5;\n")
         for (layer in layers) {
             layer.appendLayer(output)
         }

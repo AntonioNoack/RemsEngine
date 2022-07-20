@@ -35,11 +35,22 @@ object ShaderPlus {
                 randomFunc +
                 "switch(drawMode){\n" +
                 "   case ${DrawMode.COLOR_SQUARED.id}:\n" +
-                "       vec3 tmpCol = ${if (hasTint) "finalColor" else "finalColor * tint.rgb"};\n" +
+                "       vec3 tmpCol = ${if (hasTint) "finalColor" else "finalColor\n" +
+                        "#ifndef IS_TINTED\n" +
+                        " * tint.rgb\n" +
+                        "#endif\n"};\n" +
                 "       SPResult = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
                 "       break;\n" +
                 "   case ${DrawMode.COLOR.id}:\n" +
-                "       SPResult = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
+                "       SPResult = vec4(${
+                    if (hasTint) "finalColor" else "finalColor\n" +
+                            "#ifndef IS_TINTED\n" +
+                            " * tint.rgb\n" +
+                            "#endif\n"
+                }, clamp(finalAlpha\n" +
+                "#ifndef IS_TINTED\n" +
+                " * tint.a\n" +
+                "#endif\n, 0.0, 1.0));\n" +
                 "       break;\n" +
                 "   case ${DrawMode.COPY.id}:\n" +
                 "      SPResult = vec4(finalColor, finalAlpha);\n" +

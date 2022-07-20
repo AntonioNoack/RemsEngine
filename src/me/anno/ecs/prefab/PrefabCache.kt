@@ -23,7 +23,7 @@ import me.anno.io.zip.InnerPrefabFile
 import me.anno.io.zip.ZipCache
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
-import me.anno.mesh.obj.OBJReader2
+import me.anno.mesh.obj.OBJReader
 import me.anno.mesh.vox.VOXReader
 import me.anno.studio.StudioBase
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -70,7 +70,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     private fun loadObjModel(resource: FileReference): Prefab? {
         return try {
-            OBJReader2(resource).scenePrefab
+            OBJReader(resource).scenePrefab
         } catch (e: Exception) {
             e.printStackTrace()
             null

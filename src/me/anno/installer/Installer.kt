@@ -3,7 +3,6 @@ package me.anno.installer
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd
 import me.anno.video.ffmpeg.FFMPEG
@@ -14,6 +13,7 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import javax.net.ssl.SSLHandshakeException
+import kotlin.concurrent.thread
 
 object Installer {
 
@@ -48,7 +48,7 @@ object Installer {
         // change files to files.phychi.com?
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = getReference(dstFile.getParent(), dstFile.name + ".tmp")
-        threadWithName("Download $fileName") {
+        thread(name = "Download $fileName") {
             val protocol = if (withHttps) "https" else "http"
             val name = fileName.replace(" ", "%20")
             val totalURL = "${protocol}://remsstudio.phychi.com/download/${name}"

@@ -9,7 +9,7 @@ import org.joml.*
 
 class Transform() : Saveable() {
 
-    constructor(entity: Entity) : this() {
+    constructor(entity: Entity?) : this() {
         this.entity = entity
     }
 
@@ -22,7 +22,7 @@ class Transform() : Saveable() {
     }
 
     var state = State.VALID
-      private  set(value) {
+        private set(value) {
             field = value
             if (field != State.VALID) {
                 parent?.invalidateForChildren()

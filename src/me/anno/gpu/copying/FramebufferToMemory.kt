@@ -178,7 +178,7 @@ object FramebufferToMemory {
 
         readAlignment(width)
 
-        useFrame(0, 0, wi, hi, null, Renderer.colorRenderer) {
+        useFrame(0, 0, wi, hi, null, Renderer.copyRenderer) {
 
             val hm1 = height - 1
 

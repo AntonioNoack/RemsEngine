@@ -33,6 +33,8 @@ object Frame {
 
     var lastX = 0
     var lastY = 0
+    var lastX2 = 0
+    var lastY2 = 0
     var lastW = 0
     var lastH = 0
     var lastPtr = -1
@@ -125,6 +127,8 @@ object Frame {
 
             lastX = x
             lastY = y
+            lastX2 = x2
+            lastY2 = y2
             lastW = w
             lastH = h
             lastPtr = ptr

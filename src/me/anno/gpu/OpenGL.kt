@@ -15,7 +15,6 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache
-import me.anno.utils.structures.stacks.SecureBoolStack
 import me.anno.utils.structures.stacks.SecureStack
 import org.lwjgl.opengl.GL20.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45.*
@@ -109,7 +108,7 @@ object OpenGL {
         }
     }
 
-    val instanced = object : SecureBoolStack(false) {
+    val instanced = object : SecureStack<Boolean>(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             // nothing changes on the OpenGL side,
             // just the shaders need to be modified
@@ -119,7 +118,7 @@ object OpenGL {
     /**
      * a flag for shaders weather their animated version (slower) is used
      * */
-    val animated = object : SecureBoolStack(false) {
+    val animated = object : SecureStack<Boolean>(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             // nothing changes on the OpenGL side,
             // just the shaders need to be modified
@@ -138,14 +137,14 @@ object OpenGL {
         }
     }
 
-    val stencilTest = object : SecureBoolStack(false) {
+    val stencilTest = object : SecureStack<Boolean>(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             if (newValue) glEnable(GL_STENCIL_TEST)
             else glDisable(GL_STENCIL_TEST)
         }
     }
 
-    val scissorTest = object : SecureBoolStack(false) {
+    val scissorTest = object : SecureStack<Boolean>(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             if (newValue) glEnable(GL_SCISSOR_TEST)
             else glDisable(GL_SCISSOR_TEST)

@@ -93,7 +93,6 @@ import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.Warning.unused
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.strings.StringHelper.shorten
@@ -269,7 +268,7 @@ object Thumbs {
     ) {
         if (useCacheFolder) {
             dstFile.getParent()?.tryMkdirs()
-            use(dstFile.outputStream()) { ImageIO.write(dst.createBufferedImage(), destinationFormat, it) }
+            dstFile.outputStream().use { ImageIO.write(dst.createBufferedImage(), destinationFormat, it) }
         }
         upload(srcFile, dst, callback)
     }
@@ -284,7 +283,7 @@ object Thumbs {
             // don't wait to upload the image
             thread(name = "Writing ${dstFile.name} for cached thumbs") {
                 dstFile.getParent()?.tryMkdirs()
-                use(dstFile.outputStream()) { ImageIO.write(dst, destinationFormat, it) }
+                dstFile.outputStream().use { ImageIO.write(dst, destinationFormat, it) }
             }
         }
         upload(srcFile, dst, callback)

@@ -17,8 +17,8 @@ import me.anno.io.zip.InnerTarFile.Companion.readAsGZip
 import me.anno.io.zip.InnerZipFile.Companion.createZipRegistryV2
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
-import me.anno.mesh.obj.MTLReader2
-import me.anno.mesh.obj.OBJReader2
+import me.anno.mesh.obj.MTLReader
+import me.anno.mesh.obj.OBJReader
 import me.anno.mesh.vox.VOXReader
 import java.io.IOException
 
@@ -77,8 +77,8 @@ object ZipCache : CacheSection("ZipCache") {
         // to do all mesh extensions
         register(listOf("fbx", "gltf", "dae", "draco", "md2", "md5mesh"), AnimatedMeshesLoader::readAsFolder)
         register("blend", BlenderReader::readAsFolder)
-        register("obj", OBJReader2::readAsFolder)
-        register("mtl", MTLReader2::readAsFolder)
+        register("obj", OBJReader::readAsFolder)
+        register("mtl", MTLReader::readAsFolder)
         register("vox", VOXReader::readAsFolder)
         register("zip", ::createZipRegistryV2)
         // cannot be read by assimp anyway

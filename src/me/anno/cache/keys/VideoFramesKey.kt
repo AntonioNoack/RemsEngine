@@ -29,17 +29,13 @@ data class VideoFramesKey(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as VideoFramesKey
-
+        if (other !is VideoFramesKey) return false
         if (hashCode != other.hashCode) return false
         if (scale != other.scale) return false
         if (bufferIndex != other.bufferIndex) return false
         if (frameLength != other.frameLength) return false
         if (fps != other.fps) return false
         if (file != other.file) return false
-
         return true
     }
 

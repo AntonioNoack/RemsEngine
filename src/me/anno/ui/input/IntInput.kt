@@ -99,7 +99,7 @@ open class IntInput(
             is Short -> setValue(clamped.toLong(), true)
             is Int -> setValue(clamped.toLong(), true)
             is Long -> setValue(clamped, true)
-            else -> throw RuntimeException("Unknown type ${clamped::class} for ${javaClass.simpleName}")
+            else -> throw RuntimeException("Unknown type ${clamped::class} for ${this::class.simpleName}")
         }
     }
 
@@ -120,7 +120,7 @@ open class IntInput(
             is Double -> setValue(clamped.roundToLong(), notify)
             is Int -> setValue(clamped.toLong(), notify)
             is Long -> setValue(clamped, notify)
-            else -> throw RuntimeException("Unknown type $clamped for ${javaClass.simpleName}")
+            else -> throw RuntimeException("Unknown type $clamped for ${this::class.simpleName}")
         }
     }
 
@@ -137,7 +137,7 @@ open class IntInput(
             is Vector2i -> value.x.toLong()
             is Vector3i -> value.x.toLong()
             is Vector4i -> value.x.toLong()
-            else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
+            else -> throw RuntimeException("Unknown type $value for ${this::class.simpleName}")
         }
     }
 

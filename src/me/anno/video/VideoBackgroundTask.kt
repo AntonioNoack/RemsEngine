@@ -13,10 +13,10 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.video.FrameTask.Companion.missingResource
 import org.lwjgl.opengl.GL11C.*
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.concurrent.thread
 
 abstract class VideoBackgroundTask(
     val video: VideoCreator
@@ -67,7 +67,7 @@ abstract class VideoBackgroundTask(
             GFX.addGPUTask("VideoBackgroundTask", video.w, video.h, ::tryRenderingFrame)
         } else {
             // waiting for saving to ffmpeg
-            threadWithName("VBT/2") { addNextTask() }
+            thread(name = "VBT/2") { addNextTask() }
         }
 
     }
@@ -86,7 +86,7 @@ abstract class VideoBackgroundTask(
             addNextTask()
         } else {
             // waiting
-            threadWithName("VBT/1") { addNextTask() }
+            thread(name = "VBT/1") { addNextTask() }
         }
     }
 
@@ -115,7 +115,7 @@ abstract class VideoBackgroundTask(
                 }
             }
         } else {
-            useFrame(averageFrame, Renderer.colorRenderer) {
+            useFrame(averageFrame, Renderer.copyRenderer) {
 
                 Frame.bind()
                 glClearColor(0f, 0f, 0f, 0f)

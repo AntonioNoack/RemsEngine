@@ -94,15 +94,20 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     }
 
     override fun read(file: FileReference, resources: FileReference, flags: Int): AnimGameItem {
-        val asFolder = readAsFolder2(file, resources, flags)
-        val prefab = asFolder.second
+        val (folder, prefab) = readAsFolder2(file, resources, flags)
+
         val instance = prefab.createInstance() as Entity
-        val animations = asFolder.first.getChild("animations").listChildren()?.associate {
-            val text = it.readText()
-            // not sure about the workspace... probably should be the next project above file
-            val animation = TextReader.read(text, StudioBase.workspace, true).first() as Animation
-            it.nameWithoutExtension to animation
-        } ?: emptyMap()
+        val animations = folder.getChild("animations").listChildren()?.mapNotNull {
+            try {
+                val text = it.readText()
+                // not sure about the workspace... probably should be the next project above file
+                val animation = TextReader.read(text, StudioBase.workspace, true).first() as Animation
+                it.nameWithoutExtension to animation
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }?.associate { it } ?: emptyMap()
         return AnimGameItem(instance, animations)
     }
 

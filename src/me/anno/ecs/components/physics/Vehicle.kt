@@ -21,28 +21,14 @@ class Vehicle : Rigidbody() {
     @SerializedProperty
     var frictionSlip = 10.5
 
-    var engineForcePerWheel = 0.0
-
-    var steering = 0.0
-
-    var brakeForcePerWheel = 0.0
-
     @DebugProperty
     val wheelCount
         get() = wheels.size
 
     val wheels get() = entity!!.getComponentsInChildren(VehicleWheel::class)
 
-    override fun onPhysicsUpdate(): Boolean {
-        // only if enabled...
-        // only if they actually are connected to the engine/brake/steering...
-        entity!!.anyComponentInChildren(VehicleWheel::class) {
-            it.steering = steering
-            it.engineForce = engineForcePerWheel
-            it.brakeForce = brakeForcePerWheel
-            false
-        }
-        return true
+    init {
+        mass = 1.0
     }
 
     override fun clone(): Vehicle {
@@ -59,9 +45,6 @@ class Vehicle : Rigidbody() {
         clone.suspensionCompression = suspensionCompression
         clone.maxSuspensionTravelCm = maxSuspensionTravelCm
         clone.frictionSlip = frictionSlip
-        clone.steering = steering
-        clone.engineForcePerWheel = engineForcePerWheel
-        clone.brakeForcePerWheel = brakeForcePerWheel
     }
 
     override val className: String = "Vehicle"

@@ -5,6 +5,12 @@ import me.anno.gpu.GFX
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
+/**
+ * this class is about waiting for things to get done;
+ * while(!done){ sleep() } is often not enough, e.g., the user might close the program in-between,
+ * or you might wait for data from the GPU; if you are on the GFX thread, the GFX tasks still need to be run;
+ * this class handles it all properly :)
+ * */
 object Sleep {
 
     @Throws(ShutdownException::class)

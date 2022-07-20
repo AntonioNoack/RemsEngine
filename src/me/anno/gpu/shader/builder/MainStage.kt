@@ -403,7 +403,7 @@ class MainStage {
                 val layerTypes = outputs.layerTypes
                 for (type in layerTypes) {
                     // write the default values, if not already defined
-                    if (type.glslName !in defined.map { it.name }) {
+                    if (defined.none { type.glslName == it.name }) {
                         type.appendDefinition(code)
                         code.append(" = ")
                         type.appendDefaultValue(code)

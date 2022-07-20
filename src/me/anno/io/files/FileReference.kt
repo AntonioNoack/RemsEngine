@@ -16,7 +16,6 @@ import me.anno.studio.StudioBase
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
-import me.anno.utils.files.Files.use
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.strings.StringHelper.indexOf2
@@ -362,8 +361,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         .split('\n')
 
     fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit) {
-        use(outputStream()) { output ->
-            use(file.inputStream()) { input ->
+        outputStream().use { output ->
+            file.inputStream().use { input ->
                 val buffer = ByteArray(2048)
                 while (true) {
                     val numReadBytes = input.read(buffer)
@@ -376,8 +375,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     fun writeFile(file: FileReference) {
-        use(outputStream()) { output ->
-            use(file.inputStream()) { input ->
+        outputStream().use { output ->
+            file.inputStream().use { input ->
                 val buffer = ByteArray(2048)
                 while (true) {
                     val numReadBytes = input.read(buffer)

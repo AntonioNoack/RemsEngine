@@ -4,15 +4,11 @@ class FontKey(var name: String, var sizeIndex: Int, var bold: Boolean, var itali
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as FontKey
-
+        if (other !is FontKey) return false
         if (name != other.name) return false
         if (sizeIndex != other.sizeIndex) return false
         if (bold != other.bold) return false
         if (italic != other.italic) return false
-
         return true
     }
 

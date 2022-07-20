@@ -4,7 +4,7 @@ import me.anno.io.config.ConfigBasics
 
 object Uninstaller {
 
-    fun uninstall(){
+    fun uninstall() {
         ConfigBasics.cacheFolder.deleteRecursively()
     }
 

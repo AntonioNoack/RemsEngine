@@ -13,12 +13,12 @@ import me.anno.gpu.texture.Texture2D.Companion.textureBudgetUsed
 import me.anno.gpu.texture.Texture2D.Companion.writeAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
-import me.anno.utils.hpc.Threads.threadWithName
 import org.lwjgl.opengl.GL30C.*
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import kotlin.concurrent.thread
 
 open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICacheData {
 
@@ -84,7 +84,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
     fun create(createImage: () -> BufferedImage) {
         val requiredBudget = textureBudgetUsed + w * h * d
         if (requiredBudget > textureBudgetTotal) {
-            threadWithName("Create Image") { create(createImage(), false) }
+            thread(name = "Create Image") { create(createImage(), false) }
         } else {
             textureBudgetUsed = requiredBudget
             create(createImage(), true)

@@ -2,9 +2,7 @@ package me.anno.utils.structures.arrays
 
 import kotlin.math.max
 
-class ExpandingByteArray(
-    private val initCapacity: Int
-) {
+class ExpandingByteArray(private val initCapacity: Int) {
 
     var size = 0
 

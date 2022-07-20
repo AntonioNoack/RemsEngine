@@ -25,6 +25,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.pipeline.M4x3Delta.buffer16x256
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.shader.BaseShader
@@ -36,8 +37,11 @@ import me.anno.io.Saveable
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Matrices.set2
-import org.joml.*
-import org.lwjgl.opengl.GL21C.*
+import org.joml.AABBd
+import org.joml.Matrix4x3f
+import org.joml.Vector3d
+import org.joml.Vector4f
+import org.lwjgl.opengl.GL30C.*
 
 class PipelineStage(
     var name: String,
@@ -385,6 +389,7 @@ class PipelineStage(
 
                 val shader = getShader(material)
                 shader.use()
+                bindRandomness(shader)
 
                 val previousMaterialByShader = lastMaterial.put(shader, material)
                 if (previousMaterialByShader == null) {
@@ -483,6 +488,47 @@ class PipelineStage(
 
     }
 
+    private fun bindRandomness(shader: Shader) {
+        val renderer = OpenGL.currentRenderer
+        val deferred = renderer.deferredSettings
+        val target = OpenGL.currentBuffer
+        if (deferred != null && target is Framebuffer) {
+            // define all randomnesses: depends on framebuffer
+            // and needs to be set for all shaders
+            val layers = deferred.layers2
+            for (index in layers.indices) {
+                val layer = layers[index]
+                val m: Float
+                val n: Float
+                when (layer.type.internalFormat) {
+                    GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 -> {
+                        m = 0f
+                        n = 1f / ((1L shl 8) - 1f)
+                    }
+                    GL_R16, GL_RG16, GL_RGB16, GL_RGBA16 -> {
+                        m = 0f
+                        n = 1f / ((1L shl 16) - 1f)
+                    }
+                    GL_R32I, GL_RG32I, GL_RGB32I, GL_RGBA32I -> {
+                        m = 0f
+                        n = 1f / ((1L shl 32) - 1f)
+                    }
+                    GL_R16F, GL_RG16F, GL_RGB16F, GL_RGBA16F -> {
+                        m = 1f / 2048f // 11 bits of mantissa
+                        n = 0f
+                    }
+                    // m != 0, but random rounding cannot be computed with single precision
+                    // GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F
+                    else -> {
+                        m = 0f
+                        n = 0f
+                    }
+                }
+                shader.v2f(layer.nameRR, m, n)
+            }
+        }
+    }
+
     private fun drawColors(
         mesh: Mesh, material: Material, materialIndex: Int,
         pipeline: Pipeline, needsLightUpdateForEveryMesh: Boolean,
@@ -503,6 +549,7 @@ class PipelineStage(
 
             val shader = getShader(material)
             shader.use()
+            bindRandomness(shader)
 
             // update material and light properties
             val previousMaterial = lastMaterial.put(shader, material)

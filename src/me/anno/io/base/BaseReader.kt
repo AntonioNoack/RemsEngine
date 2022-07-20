@@ -15,7 +15,7 @@ abstract class BaseReader {
 
     var sourceName = ""
 
-    private val missingReferences = HashMap<Int, ArrayList<Pair<Any, String>>>()
+    private val missingReferences = HashMap<Int, ArrayList<Pair<ISaveable, String>>>()
 
     fun getByPointer(ptr: Int, warnIfMissing: Boolean): ISaveable? {
         val index = ptr - 1
@@ -51,19 +51,13 @@ abstract class BaseReader {
             val missingReferences = missingReferences[ptr]
             if (missingReferences != null) {
                 for ((obj, name) in missingReferences) {
-                    when (obj) {
-                        is ISaveable -> obj.readObject(name, value)
-                        is MissingListElement -> {
-                            obj.target[obj.targetIndex] = value
-                        }
-                        else -> throw RuntimeException("Unknown missing reference type")
-                    }
+                    obj.readObject(name, value)
                 }
             }
         } else LOGGER.warn("Got object with uuid 0: $value, it will be ignored")
     }
 
-    fun addMissingReference(owner: Any, name: String, childPtr: Int) {
+    fun addMissingReference(owner: ISaveable, name: String, childPtr: Int) {
         missingReferences
             .getOrPut(childPtr) { ArrayList() }
             .add(owner to name)

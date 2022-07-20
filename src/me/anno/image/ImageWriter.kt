@@ -17,7 +17,6 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.OS.desktop
-import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced2d
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -48,14 +47,14 @@ object ImageWriter {
 
     fun writeImage(name: String, img: BufferedImage) {
         val file = getFile(name)
-        use(file.outputStream()) {
+        file.outputStream().use {
             ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
         }
     }
 
     fun writeImage(name: String, img: Image) {
         val file = getFile(name)
-        use(file.outputStream()) {
+        file.outputStream().use {
             img.write(getFile(name))
         }
     }

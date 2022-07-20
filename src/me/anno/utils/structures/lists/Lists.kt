@@ -83,11 +83,6 @@ object Lists {
         return null
     }
 
-    fun <V> List<V>.asMutableList(): MutableList<V> {
-        return if (this is MutableList<V> && javaClass.name != "java.util.Collections\$SingletonList") this
-        else ArrayList(this)
-    }
-
     fun List<Double>.median(default: Double): Double {
         return run {
             if (isEmpty()) default
@@ -442,13 +437,5 @@ object Lists {
 
     inline fun <reified Type> Sequence<*>.firstInstanceOrNull() =
         firstOrNull { it is Type } as? Type
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val l0 = arrayListOf(arrayListOf(1, 2, 3), arrayListOf(9, 8, 7))
-        println(l0)
-        println(l0.transpose())
-        println(l0.transpose())
-    }
 
 }

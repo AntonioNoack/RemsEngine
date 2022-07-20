@@ -217,9 +217,7 @@ open class Material : PrefabSaveable() {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Material
+        if (other !is Material) return false
 
         if (pipelineStage != other.pipelineStage) return false
         if (shader != other.shader) return false

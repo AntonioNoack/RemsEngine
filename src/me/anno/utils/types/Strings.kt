@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package me.anno.utils.types
 
 import me.anno.config.DefaultConfig
@@ -19,6 +17,7 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.min
 
+@Suppress("unused")
 object Strings {
 
     fun Int.joinChars(): CharSequence {

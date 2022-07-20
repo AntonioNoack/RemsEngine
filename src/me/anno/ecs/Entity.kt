@@ -365,7 +365,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         // manual for-loops, because the number of items can be changed by events intentionally
         val components = components
         var i = -1
-        while (++i < components.size){
+        while (++i < components.size) {
             if (call2(components[i])) {
                 hasEventReceiver = true
             }
@@ -373,7 +373,7 @@ class Entity() : PrefabSaveable(), Inspectable {
 
         val children = children
         var j = -1
-        while (++j < children.size){
+        while (++j < children.size) {
             val child = children[j]
             if (hasEvent(child) && call(child)) {
                 hasEventReceiver = true
@@ -499,7 +499,11 @@ class Entity() : PrefabSaveable(), Inspectable {
         // called by physics thread
         // only called for rigidbodies
         // not called for static objects (?), since they should not move
-        for (component in components) component.onPhysicsUpdate()
+        val components = components
+        for (i in components.indices) {
+            val c = components[i]
+            if (c.isEnabled) c.onPhysicsUpdate()
+        }
     }
 
     /*

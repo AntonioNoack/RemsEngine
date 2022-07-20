@@ -14,12 +14,12 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Clock
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.GraphicsEnvironment
+import kotlin.concurrent.thread
 import kotlin.math.*
 
 object FontManager {
@@ -38,7 +38,7 @@ object FontManager {
         if (hasFonts) callback(awtFontList)
         else {
             hasFonts = true
-            threadWithName("FontManager") {
+            thread(name = "FontManager") {
                 synchronized(awtFontList) {
                     val tick = Clock()
                     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()

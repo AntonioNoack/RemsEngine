@@ -2,11 +2,11 @@ package me.anno.io
 
 import me.anno.Engine
 import me.anno.utils.Sleep.sleepShortly
-import me.anno.utils.hpc.Threads.threadWithName
 import java.io.EOFException
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.Reader
+import kotlin.concurrent.thread
 
 object Streams {
 
@@ -37,7 +37,7 @@ object Streams {
     }
 
     fun InputStream.listen(name: String, callback: (String) -> Unit) {
-        threadWithName(name) {
+        thread(name = name) {
             // some streams always return 0 for available() :(
             bufferedReader().use { reader ->
                 while (!Engine.shutdown) {
@@ -66,14 +66,14 @@ object Streams {
     fun InputStream.readBE16(): Int {
         val a = read()
         val b = read()
-        if (a < 0 || b < 0 ) throw EOFException()
+        if (a < 0 || b < 0) throw EOFException()
         return a.shl(8) + b
     }
 
     fun InputStream.readLE16(): Int {
         val a = read()
         val b = read()
-        if (a < 0 || b < 0 ) throw EOFException()
+        if (a < 0 || b < 0) throw EOFException()
         return a + b.shl(8)
     }
 

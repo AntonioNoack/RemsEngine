@@ -1,6 +1,7 @@
 package me.anno.utils.structures.heap
 
 import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import kotlin.math.max
 
 /**
@@ -82,17 +83,6 @@ class MinHeap<Value>(
         }
     }
 
-    fun print() {
-        for (i in 0 until size / 2) {
-            // Printing the parent and both children
-            LOGGER.info(
-                "Node: " + values[i] +
-                        ", left: " + values.getOrNull(leftChild(i)) +
-                        ", right: " + values.getOrNull(rightChild(i))
-            )
-        }
-    }
-
     /**
      * remove the minimum value from the heap
      * */
@@ -151,27 +141,6 @@ class MinHeap<Value>(
 
         private val LOGGER = LogManager.getLogger(MinHeap::class)
 
-        @JvmStatic
-        fun main(arg: Array<String>) {
 
-            val minHeap = MinHeap<Int>(3, Int::compareTo)
-
-            minHeap.add(5)
-            minHeap.add(3)
-            minHeap.add(17)
-            minHeap.add(10)
-            minHeap.add(84)
-            minHeap.add(19)
-            minHeap.add(6)
-            minHeap.add(22)
-            minHeap.add(9)
-
-            minHeap.print()
-
-            while (minHeap.isNotEmpty()) {
-                LOGGER.info("Extracted " + minHeap.remove())
-            }
-
-        }
     }
 }

@@ -33,7 +33,7 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
                 is Float -> shader.v1b(location, value.isFinite() && value != 0f)
                 is Double -> shader.v1b(location, value.isFinite() && value != 0.0)
                 is () -> Any? -> shader.v1b(location, value.invoke() as Boolean)
-                else -> LOGGER.warn("Unknown type for BOOL, ${value.javaClass.superclass}")
+                else -> LOGGER.warn("Unknown type for V1B, ${value::class.simpleName}")
             }
             GLSLType.V1I -> when (value) {
                 is Int -> shader.v1i(location, value)
@@ -41,7 +41,7 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
                 is Float -> shader.v1i(location, value.toInt())
                 is Double -> shader.v1i(location, value.toInt())
                 is () -> Any? -> shader.v1i(location, value.invoke() as Int)
-                else -> LOGGER.warn("Unknown type for V1I, ${value.javaClass.superclass}")
+                else -> LOGGER.warn("Unknown type for V1I, ${value::class.simpleName}")
             }
             GLSLType.V2I -> shader.v2i(location, value as Vector2ic)
             GLSLType.V3I -> shader.v3i(location, value as Vector3ic)
@@ -52,7 +52,7 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
                 is Float -> shader.v1f(location, value)
                 is Double -> shader.v1f(location, value.toFloat())
                 is () -> Any? -> shader.v1f(location, value.invoke() as Float)
-                else -> LOGGER.warn("Unknown type for V1F, ${value.javaClass.superclass}")
+                else -> LOGGER.warn("Unknown type for V1F, ${value::class.simpleName}")
             }
             GLSLType.V2F -> shader.v2f(location, value as Vector2fc)
             GLSLType.V3F -> shader.v3f(location, value as Vector3fc)
@@ -60,7 +60,7 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
                 is Quaternionfc -> shader.v4f(location, value)
                 is Vector4fc -> shader.v4f(location, value)
                 is Planef -> shader.v4f(location, value.a, value.b, value.c, value.d)
-                else -> LOGGER.warn("Unknown type for V4F, ${value.javaClass.superclass}")
+                else -> LOGGER.warn("Unknown type for V4F, ${value::class.simpleName}")
             }
             GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3fc)
             GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3fc)

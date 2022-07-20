@@ -72,7 +72,7 @@ class History<V> : Saveable {
             "values" -> {
                 this.values.clear()
                 @Suppress("unchecked_cast")
-                this.values.addAll(values as List<V>)
+                this.values.addAll(values.toList() as List<V>)
             }
             else -> super.readObjectArray(name, values)
         }

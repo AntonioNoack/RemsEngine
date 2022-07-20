@@ -8,7 +8,6 @@ import kotlin.streams.toList
 
 object StringMixer {
 
-
     fun mixLength(aLength: Int, bLength: Int, f: Double, max: Int): Int {
         return clamp(Maths.mix(aLength.toDouble(), bLength.toDouble(), f).roundToInt(), 0, max)
     }

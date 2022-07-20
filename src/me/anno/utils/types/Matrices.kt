@@ -15,8 +15,6 @@ object Matrices {
         return properties().and(Matrix4x3f.PROPERTY_IDENTITY.toInt()) != 0
     }
 
-    fun Matrix4f.clone() = Matrix4f(this)
-
     fun Matrix4f.skew(v: Vector2fc) {
         mul3x3(// works
             1f, v.y(), 0f,
