@@ -1,12 +1,14 @@
 package me.anno.utils.types
 
 import me.anno.maths.Maths
+import me.anno.maths.Maths.PIf
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Triangles.subCross
 import me.anno.utils.types.Triangles.subCrossDot
 import org.joml.*
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.roundToInt
 
 @Suppress("unused")
@@ -509,6 +511,10 @@ object Vectors {
         } else { // down
             return dst.set(1f, 0f, 0f, 0f)
         }
+    }
+
+    fun Vector2fc.cross(other: Vector2fc): Float {
+        return x() * other.y() - y() * other.x()
     }
 
 }

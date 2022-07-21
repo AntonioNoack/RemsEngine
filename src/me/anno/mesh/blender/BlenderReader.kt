@@ -568,15 +568,4 @@ object BlenderReader {
         }
     }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        // time for debugger to attach
-        // for (i in 0 until 100) Thread.sleep(100)
-        // val ref = getReference(documents, "Blender/Bedroom.blend")
-        val ref = documents.getChild("Blender/MaterialTest-2.blend")
-        @Suppress("SpellCheckingInspection")
-        // val ref = getReference("E:/Documents/Blender/Aerial Aircraft Carrier (CVNA-82)II.blend")
-        Thumbs.testGeneration(ref, this::readAsFolder)
-    }
-
 }

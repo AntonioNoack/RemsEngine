@@ -1,11 +1,9 @@
 <component name="libraryTable">
   <library name="JBullet2x64">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../jBullet2x64/out/artifacts/JBullet2x64_jar/JBullet2x64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/customized/bullet/JBullet2x64.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="file://$PROJECT_DIR$/../jBullet2x64/src" />
-    </SOURCES>
+    <SOURCES />
   </library>
 </component>

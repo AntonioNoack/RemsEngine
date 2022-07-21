@@ -666,8 +666,8 @@ object Thumbs {
         }
     }
 
-    private val matCameraMatrix = createCameraMatrix(1f)
-    private val matModelMatrix = createModelMatrix().scale(0.62f)
+    val matCameraMatrix = createCameraMatrix(1f)
+    val matModelMatrix = createModelMatrix().scale(0.62f)
 
     // todo if we have preview images, we could use them as cheaper textures
     fun generateMaterialFrame(
@@ -687,15 +687,14 @@ object Thumbs {
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
-        sphereMesh.ensureBuffer()
-        val mesh = sphereMesh.clone()
-        mesh.material = srcFile
         waitForTextures(material)
         renderToBufferedImage(
             srcFile, InvalidRef, dstFile, true, previewRenderer,
             true, callback, size, size
         ) {
             OpenGL.blendMode.use(BlendMode.DEFAULT) {
+                val mesh = sphereMesh
+                mesh.material = srcFile
                 mesh.drawAssimp(
                     matCameraMatrix,
                     matModelMatrix,
@@ -733,14 +732,13 @@ object Thumbs {
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
-        sphereMesh.ensureBuffer()
         waitForTextures(materials.mapNotNull { MaterialCache[it] })
         renderMultiWindowImage(
             srcFile, dstFile, materials.size, size, false,
             previewRenderer, callback
         ) { it, _ ->
             OpenGL.blendMode.use(BlendMode.DEFAULT) {
-                val mesh = sphereMesh.clone()
+                val mesh = sphereMesh
                 mesh.material = materials[it]
                 mesh.drawAssimp(
                     matCameraMatrix,

@@ -96,9 +96,9 @@ object Bloom {
     }
 
     private fun backwardPass(steps: Int): ITexture2D {
-        val shader = copyShader.value
+        val shader = copyShader
         shader.use()
-        shader.v1f("am1", 0f)
+        shader.v1f("alpha", 1f)
         var previous = tmpForward[steps - 1]!!
         OpenGL.blendMode.use(BlendMode.PURE_ADD) {
             for (i in steps - 2 downTo 0) {// render onto that layer

@@ -10,14 +10,12 @@ import me.anno.gpu.shader.builder.VariableMode
 
 object FlatShaders {
 
-    val copyShader = ShaderLib.createShader(
+    val copyShader = Shader(
         "copy", coordsList, coordsVShader, uvList, listOf(
             Variable(GLSLType.S2D, "tex"),
-            Variable(GLSLType.V1F, "am1"),
-        ), "" +
-                "void main(){\n" +
-                "   gl_FragColor = (1.0-am1) * texture(tex, uv);\n" +
-                "}", listOf("tex")
+            Variable(GLSLType.V1F, "alpha"),
+            Variable(GLSLType.V4F, "result", VariableMode.OUT)
+        ), "void main(){ result = alpha * texture(tex, uv); }"
     )
 
     val coordsPosSize = coordsList + listOf(

@@ -141,22 +141,24 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 
 ## Samples
 Besides my personal projects that use Rem's Engine, there is also quite a few samples within the engine source code.
+They also function as tests for me.
 
 Some tests, starting the whole engine, like a small game:
-- [GFX: MarchingCubes.kt](src/me/anno/maths/geometry/MarchingCubes.kt)
-- [Math: PathfindingAccTest.kt](src/me/anno/maths/paths/PathFindingAccTest.kt)
+- [GFX: MarchingCubes.kt](test/src/me/anno/tests/geometry/MarchingCubes.kt)
+- [Math: PathfindingAccTest.kt](test/src/me/anno/tests/geometry/PathFindingAccTest.kt)
 
 Some feature tests:
-- [Math: SDFTest.kt](src/me/anno/ecs/components/collider/SDFTest.kt)
-- [Internal: Hierarchy.kt](src/me/anno/ecs/prefab/Hierarchy.kt)
-- [GFX: MarchingSquares.kt](src/me/anno/maths/geometry/MarchingSquares.kt)
-- [GFX: Reduction.kt](src/me/anno/gpu/shader/Reduction.kt)
+- [Math: SDFTest.kt](test/src/me/anno/tests/collider/SDFColliderTest.kt)
+- [Internal: Hierarchy.kt](test/src/me/anno/tests/ecs/Hierarchy.kt)
+- [GFX: MarchingSquares.kt](test/src/me/anno/tests/geometry/MarchingSquares.kt)
+- [GFX: Reduction.kt](test/src/me/anno/tests/shader/Reduction.kt)
 - [GFX: FSR.kt](src/me/anno/ecs/components/shaders/effects/FSR.kt)
-- [Debug: JsonFormatter.kt](src/me/anno/io/json/JsonFormatter.kt)
-- [UI: DrawCurves.kt](src/me/anno/gpu/drawing/DrawCurves.kt)
-- [UI: AnimTest.kt](src/me/anno/ui/anim/AnimTest.kt)
+- [Debug: JsonFormatter.kt](test/src/me/anno/tests/JsonFormatter.kt)
+- [UI: DrawCurves.kt](test/src/me/anno/tests/shader/DrawCurves.kt)
+- [UI: AnimTest.kt](test/src/me/anno/tests/ui/AnimTest.kt)
+- [Snake Game](test/src/me/anno/tests/Snake.kt)
 
-To find more examples, search for "fun main(args: Array<String>)" in the source code.
+You can find most examples in the "tests" folder.
 
 ## Ports
 - [Android](https://github.com/AntonioNoack/RemsEngine-Android)

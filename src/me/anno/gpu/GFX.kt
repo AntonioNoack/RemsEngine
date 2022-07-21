@@ -213,18 +213,18 @@ object GFX : GFXBase() {
 
     fun copy(alpha: Float) {
         check()
-        val shader = copyShader.value
+        val shader = copyShader
         shader.use()
-        shader.v1f("am1", 1f - alpha)
+        shader.v1f("alpha", alpha)
         flat01.draw(shader)
         check()
     }
 
     fun copy() {
         check()
-        val shader = copyShader.value
+        val shader = copyShader
         shader.use()
-        shader.v1f("am1", 0f)
+        shader.v1f("alpha", 1f)
         flat01.draw(shader)
         check()
     }
@@ -243,9 +243,9 @@ object GFX : GFXBase() {
         check()
         blendMode.use(BlendMode.DST_ALPHA) {
             depthMode.use(DepthMode.ALWAYS) {
-                val shader = copyShader.value
+                val shader = copyShader
                 shader.use()
-                shader.v1f("am1", 0f)
+                shader.v1f("alpha", 1f)
                 flat01.draw(shader)
             }
         }
@@ -417,12 +417,6 @@ object GFX : GFXBase() {
 
     }
 
-    fun checkIsNotGFXThread() {
-        if (isGFXThread()) {
-            throw IllegalAccessException("Cannot call from OpenGL thread")
-        }
-    }
-
     fun isGFXThread(): Boolean {
         if (glThread == null) return false
         val currentThread = Thread.currentThread()
@@ -435,9 +429,7 @@ object GFX : GFXBase() {
             if (glThread == null) {
                 glThread = currentThread
                 currentThread.name = "OpenGL"
-            } else {
-                throw IllegalAccessException("GFX.check() called from wrong thread! Always use GFX.addGPUTask { ... }")
-            }
+            } else throw IllegalAccessException("GFX.check() called from wrong thread! Always use GFX.addGPUTask { ... }")
         }
     }
 

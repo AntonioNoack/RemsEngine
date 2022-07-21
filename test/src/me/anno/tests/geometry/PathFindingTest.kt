@@ -1,9 +1,10 @@
-package me.anno.maths.paths
+package me.anno.tests.geometry
 
 import me.anno.Engine
 import me.anno.image.raw.BIImage
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
+import me.anno.maths.paths.PathFinding
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.LOGGER
 import me.anno.utils.OS

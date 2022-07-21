@@ -213,7 +213,7 @@ class BlankFrameDetector {
             HiddenOpenGLContext.createOpenGL(meta.videoWidth, meta.videoHeight)
             ShaderLib.init()
             val fb = Framebuffer("tmp", meta.videoWidth, meta.videoHeight, 1, 1, false, DepthBufferType.NONE)
-            renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb) { callback ->
+            renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb) { _, callback ->
                 thread(name = "frame$frameIndex") {
                     val frame = getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!
                     GFX.addGPUTask("bfd", 1) {

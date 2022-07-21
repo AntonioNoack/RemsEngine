@@ -270,7 +270,7 @@ object Renderers {
                         "   float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
                         "   float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
                         // light calculation
-                        "vec3 ambientLight = vec3(0.1);\n" +
+                        "vec3 ambientLight = vec3(0.2);\n" +
                         "vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
                         "vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);\n" +
                         "vec3 specularColor = finalColor * finalMetallic;\n" +

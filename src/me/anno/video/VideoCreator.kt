@@ -152,13 +152,11 @@ open class VideoCreator(
                 }
             } catch (e: IOException) {
                 if (!wasClosed) {
-                    LOGGER.error("Closing because of ${e.message}")
-                    e.printStackTrace()
+                    LOGGER.error("Closing", e)
                     close()
                 }
             }
         }
-
     }
 
     fun writeFrame(frame: Image) {
@@ -215,19 +213,19 @@ open class VideoCreator(
             dst: FileReference,
             numUpdates: Int,
             fb: Framebuffer,
-            update: (callback: () -> Unit) -> Unit
+            update: (frameIndex: Int, callback: () -> Unit) -> Unit
         ) {
             val creator = VideoCreator(
                 w, h, fps, numUpdates + 1L, FFMPEGEncodingBalance.S1,
                 FFMPEGEncodingType.DEFAULT, defaultQuality, dst
             )
             creator.init()
-            var frameCount = 0
+            var frameIndex = 0
             fun writeFrame() {
-                creator.writeFrame(fb, frameCount.toLong()) {
-                    if (++frameCount <= numUpdates) {
-                        GFX.addGPUTask("VideoCreator",1) {
-                            update(::writeFrame)
+                creator.writeFrame(fb, frameIndex.toLong()) {
+                    if (++frameIndex <= numUpdates) {
+                        GFX.addGPUTask("VideoCreator", 1) {
+                            update(frameIndex, ::writeFrame)
                         }
                     } else {
                         creator.close()
@@ -235,7 +233,7 @@ open class VideoCreator(
                     }
                 }
             }
-            GFX.addGPUTask("VideoCreator",1) { writeFrame() }
+            GFX.addGPUTask("VideoCreator", 1) { writeFrame() }
             GFX.workGPUTasksUntilShutdown()
         }
 

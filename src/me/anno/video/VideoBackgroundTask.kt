@@ -18,9 +18,7 @@ import org.lwjgl.opengl.GL11C.*
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 
-abstract class VideoBackgroundTask(
-    val video: VideoCreator
-) {
+abstract class VideoBackgroundTask(val video: VideoCreator) {
 
     abstract fun getMotionBlurSteps(time: Double): Int
     abstract fun getShutterPercentage(time: Double): Float
@@ -144,7 +142,6 @@ abstract class VideoBackgroundTask(
                                 // write with alpha 1/motionBlurSteps
                                 GFX.copy(1f / motionBlurSteps)
                             }
-
                         }
                     }
                 }

@@ -2,15 +2,10 @@ package me.anno.io.json
 
 object JsonFormatter {
 
-    fun format(sth: Any?) = format(sth.toString())
+    private class FormatHelper(size: Int, val indentation: String) {
 
-    @Throws(IndexOutOfBoundsException::class)
-    fun format(str: String, indentation: String = "  ", lineBreakLength: Int = 10): String {
-
-        val size = str.length
-        val sizeGuess = size * 2
-        val res = StringBuilder(sizeGuess)
-        val eoo = StringBuilder(16)
+        val result = StringBuilder(size * 2)
+        val closingBracketStack = StringBuilder(16)
 
         var shouldSwitchLine = false
         var depth = 0
@@ -19,83 +14,91 @@ object JsonFormatter {
 
         fun breakLine() {
             shouldSwitchLine = false
-            res.append('\n')
+            result.append('\n')
             for (j in 0 until depth) {
-                res.append(indentation)
+                result.append(indentation)
             }
-            lineStartIndex = res.length
+            lineStartIndex = result.length
             closingBracketsInLine = 0
         }
 
-        fun handleEOO() {
-            if (eoo.isNotEmpty()) {
+        fun breakIfHadClosingBracket() {
+            if (closingBracketStack.isNotEmpty()) {
                 breakLine()
-                res.append(eoo)
-                closingBracketsInLine = eoo.length
-                eoo.clear()
+                result.append(closingBracketStack)
+                closingBracketsInLine = closingBracketStack.length
+                closingBracketStack.clear()
             }
         }
 
-        var i = 0
+        fun format(str: String, lineBreakLength: Int): String {
 
-        fun handleString(char: Char) {
-            handleEOO()
-            if (shouldSwitchLine || closingBracketsInLine > 1) breakLine()
-            else if (res.endsWith(',')) res.append(' ')
-            res.append(char)
+            var i = 0
+
+            val size = str.length
             while (i < size) {
-                when (val c2 = str[i++]) {
-                    char -> break
-                    // just skip the next '"', could throw an IndexOutOfBoundsException
-                    '\\' -> {
-                        res.append(c2)
-                        res.append(str[i++])
-                    }
-                    else -> res.append(c2)
-                }
-            }
-            res.append(char)
-        }
-
-        while (i < size) {
-            when (val char = str[i++]) {
-                '[', '{' -> {
-                    if (res.endsWith(',')) res.append(' ')
-                    res.append(char)
-                    depth++
-                    // quicker ascent than directly switching lines
-                    shouldSwitchLine = true
-                }
-                ']', '}' -> {
-                    // quicker descent
-                    if (eoo.length > 1) handleEOO()
-                    eoo.append(char)
-                    depth--
-                }
-                ' ', '\t', '\r', '\n' -> {
-                } // skip, done automatically
-                ':' -> res.append(": ")
-                '"', '\'' -> handleString(char)
-                ',' -> {
-                    handleEOO()
-                    res.append(char)
-                    if (res.length - lineStartIndex > lineBreakLength) {
+                when (val char = str[i++]) {
+                    '[', '{' -> {
+                        if (result.endsWith(',')) result.append(' ')
+                        result.append(char)
+                        depth++
+                        // quicker ascent than directly switching lines
                         shouldSwitchLine = true
                     }
-                }
-                else -> {
-                    handleEOO()
-                    if (shouldSwitchLine) breakLine()
-                    else if (res.endsWith(',')) res.append(' ')
-                    res.append(char)
+                    ']', '}' -> {
+                        // quicker descent
+                        if (closingBracketStack.length > 1) breakIfHadClosingBracket()
+                        closingBracketStack.append(char)
+                        depth--
+                    }
+                    ' ', '\t', '\r', '\n' -> {
+                    } // skip, done automatically
+                    ':' -> result.append(": ")
+                    '"', '\'' -> {
+                        // skip a string
+                        breakIfHadClosingBracket()
+                        if (shouldSwitchLine || closingBracketsInLine > 1) breakLine()
+                        else if (result.endsWith(',')) result.append(' ')
+                        result.append(char)
+                        while (i < size) {
+                            when (val c2 = str[i++]) {
+                                char -> break
+                                // just skip the next '"', could throw an IndexOutOfBoundsException
+                                '\\' -> {
+                                    result.append(c2)
+                                    result.append(str[i++])
+                                }
+                                else -> result.append(c2)
+                            }
+                        }
+                        result.append(char)
+                    }
+                    ',' -> {
+                        breakIfHadClosingBracket()
+                        result.append(char)
+                        if (result.length - lineStartIndex > lineBreakLength) {
+                            shouldSwitchLine = true
+                        }
+                    }
+                    else -> {
+                        breakIfHadClosingBracket()
+                        if (shouldSwitchLine) breakLine()
+                        else if (result.endsWith(',')) result.append(' ')
+                        result.append(char)
+                    }
                 }
             }
+
+            breakIfHadClosingBracket()
+            return result.toString()
         }
-
-        handleEOO()
-
-        return res.toString()
-
     }
+
+    @Throws(IndexOutOfBoundsException::class)
+    fun format(sth: Any?) = format(sth.toString())
+
+    @Throws(IndexOutOfBoundsException::class)
+    fun format(str: String, indentation: String = "  ", lineBreakLength: Int = 10) =
+        FormatHelper(str.length, indentation).format(str, lineBreakLength)
 
 }

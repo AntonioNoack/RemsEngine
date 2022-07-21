@@ -1,4 +1,4 @@
-package me.anno.maths.paths
+package me.anno.tests.geometry
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
@@ -12,11 +12,11 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.input.MouseButton
 import me.anno.maths.Maths.sq
+import me.anno.maths.paths.PathFindingAccelerator
+import me.anno.maths.paths.TestWorld
 import me.anno.mesh.Shapes
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.LOGGER
@@ -68,7 +68,7 @@ fun main() {
 
     fun findPoint(x: Int, z: Int): Node? {
         for (y in 0 until 256) {
-            if (world.canStand(x, y, z)) {
+            if (TestWorld.canStand(x, y, z)) {
                 return Node(x, y, z, false)
             }
         }
@@ -108,10 +108,10 @@ fun main() {
                 // could be optimized
                 for (dy in -1..1) {
                     val y = from.y + dy
-                    if (world.canStand(from.x, y, from.z + 1)) callback(Node(from.x, y, from.z + 1, false))
-                    if (world.canStand(from.x, y, from.z - 1)) callback(Node(from.x, y, from.z - 1, false))
-                    if (world.canStand(from.x + 1, y, from.z)) callback(Node(from.x + 1, y, from.z, false))
-                    if (world.canStand(from.x - 1, y, from.z)) callback(Node(from.x - 1, y, from.z, false))
+                    if (TestWorld.canStand(from.x, y, from.z + 1)) callback(Node(from.x, y, from.z + 1, false))
+                    if (TestWorld.canStand(from.x, y, from.z - 1)) callback(Node(from.x, y, from.z - 1, false))
+                    if (TestWorld.canStand(from.x + 1, y, from.z)) callback(Node(from.x + 1, y, from.z, false))
+                    if (TestWorld.canStand(from.x - 1, y, from.z)) callback(Node(from.x - 1, y, from.z, false))
                 }
             }// else throw IllegalArgumentException("Proxies neighbor or out-of-bounds requested, $from")
         }
@@ -174,9 +174,9 @@ fun main() {
 
         val mesh = if (rayTracing) {
             // slower, currently less color support, but avoids triangles ^^
-            world.createRaytracingMeshV2(x0, y0, z0, sx, sy, sz)
+            TestWorld.createRaytracingMeshV2(x0, y0, z0, sx, sy, sz)
         } else {
-            world.createTriangleMesh(x0, y0, z0, sx, sy, sz)
+            TestWorld.createTriangleMesh(x0, y0, z0, sx, sy, sz)
         }
 
         val scene = Entity()

@@ -5,22 +5,6 @@ import me.anno.maths.Maths.factorial
 @Suppress("unused")
 object Permutations {
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val all = HashSet<List<Int>>()
-        var ctr = 0
-        val base = listOf(1, 2, 3, 4, 5)
-        generatePermutations(base) {
-            ctr++
-            println(it)
-            if (!all.add(it.toList()))
-                throw RuntimeException("Double entry $it")
-        }
-        if (ctr != base.size.factorial()) {
-            throw RuntimeException("Incorrect number of permutations")
-        }
-    }
-
     fun <T> generatePermutations(elements: List<T>, onNextPermutation: (List<T>) -> Unit) {
         generatePermutations2(elements.toMutableList(), onNextPermutation)
     }
