@@ -4,9 +4,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.StaticBuffer
-import sun.nio.ch.DirectBuffer
 import java.awt.Font
-import java.nio.ByteBuffer
 import kotlin.math.min
 
 /**
@@ -74,7 +72,7 @@ class TextMeshGroup(
             val src = characters[codepoint]!!
             val fb = src.nioBuffer!!
             var k = 0
-            if(components >= 12){
+            if (components >= 12) {
                 for (i in 0 until src.vertexCount) {
                     pos[l++] = (fb.getFloat(k) + offset).toFloat() // x
                     pos[l++] = fb.getFloat(k + 4) // y
