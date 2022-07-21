@@ -1,6 +1,5 @@
 package me.anno.gpu.shader
 
-import com.sun.javafx.sg.prism.NodeEffectInput.RenderType
 import me.anno.cache.data.ICacheData
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers

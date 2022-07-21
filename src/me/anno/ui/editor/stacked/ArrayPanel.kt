@@ -7,7 +7,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -19,7 +18,6 @@ import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.style.Style
-import org.omg.CORBA.DynAnyPackage.Invalid
 import kotlin.math.max
 
 abstract class ArrayPanel<EntryType, PanelType : Panel>(

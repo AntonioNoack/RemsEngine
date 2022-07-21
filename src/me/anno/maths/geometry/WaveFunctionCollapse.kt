@@ -12,13 +12,11 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
-import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
-import sun.plugin.dom.exception.InvalidStateException
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -72,7 +70,7 @@ class WaveFunctionCollapse {
             LOGGER.debug("num types: ${wfc.types.size}")
             wfc.removeInvalidCells()
             if (wfc.types.isEmpty())
-                throw InvalidStateException("Cannot connect any tiles")
+                throw IllegalStateException("Cannot connect any tiles")
             val sizeX = 64
             val sizeY = 64
             val random = Random(Engine.nanoTime)
