@@ -71,8 +71,8 @@ open class TextButton(
             }
         }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         mouseDown = (isHovered && Input.isLeftDown) ||
                 (isInFocus && keysDown.any { it.key.isClickKey() })
         backgroundColor = if (isHovered && !mouseDown) hoveredBackground else normalBackground

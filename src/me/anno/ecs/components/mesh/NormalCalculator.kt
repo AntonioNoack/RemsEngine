@@ -40,7 +40,10 @@ object NormalCalculator {
         c.set(positions[i2], positions[i2 + 1], positions[i2 + 2])
         b.sub(a)
         c.sub(a)
-        return b.cross(c).normalize()
+        return c.cross(b).normalize()
+        // todo sometimes one is correct, and sometimes the opposite.. why?
+        // c-b: Shape.smoothCube.front
+        // b-c: Shape.tetrahedron.front
     }
 
     private fun computeNormalsIndexed(positions: FloatArray, normals: FloatArray, indices: IntArray) {
@@ -96,7 +99,7 @@ object NormalCalculator {
         val a = JomlPools.vec3f.create()
         val b = JomlPools.vec3f.create()
         val c = JomlPools.vec3f.create()
-        // just go through the vertices
+        // just go through the vertices;
         // mode to calculate smooth shading by clustering points?
         for (i in positions.indices step 9) {
             // check whether the normal update is needed
@@ -118,7 +121,7 @@ object NormalCalculator {
 
     fun checkNormals(positions: FloatArray, normals: FloatArray, indices: IntArray?) {
         // first an allocation free check
-        if (needsNormalsComputation(normals,3)) {
+        if (needsNormalsComputation(normals, 3)) {
             if (indices == null) {
                 computeNormalsNonIndexed(positions, normals)
             } else {

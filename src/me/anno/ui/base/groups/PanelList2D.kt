@@ -109,8 +109,8 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
         smoothlyScrollTo(newScrollPosition, 0.25f)
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         val window = window
         if (window != null) {
             val mx = window.mouseXi

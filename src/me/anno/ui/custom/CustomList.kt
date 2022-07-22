@@ -183,8 +183,8 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         super.onMouseMoved(x, y, rx, ry)
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         ensureScrollbars()
         for (index in scrollbars.indices) {
             val scrollbar = scrollbars[index]

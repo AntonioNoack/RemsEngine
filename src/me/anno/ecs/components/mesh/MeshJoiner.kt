@@ -5,6 +5,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.types.Arrays.resize
 import org.joml.Matrix4x3f
 import kotlin.math.abs
 import kotlin.math.min
@@ -36,26 +37,9 @@ abstract class MeshJoiner<V>(
                 abs(t.m02()) + abs(t.m12()) + abs(t.m22() - 1f) < 1e-7f
     }
 
-    private fun alloc(needed: Boolean, size: Int, old: FloatArray?): FloatArray? {
-        return if (needed) {
-            if (old != null && old.size == size) old
-            else FloatArray(size)
-        } else null
-    }
-
-    private fun alloc(needed: Boolean, size: Int, old: IntArray?): IntArray? {
-        return if (needed) {
-            if (old != null && old.size == size) old
-            else IntArray(size)
-        } else null
-    }
-
-    private fun alloc(needed: Boolean, size: Int, old: ByteArray?): ByteArray? {
-        return if (needed) {
-            if (old != null && old.size == size) old
-            else ByteArray(size)
-        } else null
-    }
+    private fun alloc(needed: Boolean, size: Int, old: FloatArray?) = if (needed) old.resize(size) else null
+    private fun alloc(needed: Boolean, size: Int, old: IntArray?) = if (needed) old.resize(size) else null
+    private fun alloc(needed: Boolean, size: Int, old: ByteArray?) = if (needed) old.resize(size) else null
 
     fun join(mesh: Mesh, elements: List<V>) {
 

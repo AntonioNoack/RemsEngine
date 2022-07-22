@@ -23,7 +23,7 @@ class JsonObject : JsonNode() {
     override fun asLong(default: Long) = default
     override fun asFloat(default: Float) = default
     override fun asDouble(default: Double) = default
-    override fun getText(key: String): String? = map[key]?.toString()
+    override fun getString(key: String): String? = map[key]?.toString()
 
     // we can skip the conversion to a JsonValue
     override fun getBool(key: String, default: Boolean) = JsonValue.asBool(map[key], default)

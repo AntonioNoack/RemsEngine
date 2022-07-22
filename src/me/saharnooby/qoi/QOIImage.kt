@@ -9,7 +9,7 @@ import java.io.InputStream
  * from https://github.com/saharNooby/qoi-java
  * converted from Java to Kotlin, and simplified a little
  *
- * todo should we convert to SRGB, if linear?
+ * should we convert to SRGB, if linear? typically yes, except for normals -> just keep it default
  * */
 class QOIImage(width: Int, height: Int, channels: Int, val linear: Boolean, data: IntArray) :
     IntImage(width, height, data, channels > 3) {

@@ -156,8 +156,8 @@ abstract class TreeView<V>(
         needsTreeUpdate = true
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         if (needsTreeUpdate) {
             updateTree()
         }

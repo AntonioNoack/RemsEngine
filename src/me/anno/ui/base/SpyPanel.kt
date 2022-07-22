@@ -10,8 +10,8 @@ import me.anno.ui.style.Style
 open class SpyPanel(style: Style, val update: () -> Unit) : Panel(style) {
     constructor(update: () -> Unit) : this(DefaultConfig.style, update)
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         update()
     }
 

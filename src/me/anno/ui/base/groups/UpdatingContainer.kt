@@ -14,7 +14,7 @@ class UpdatingContainer(updateMillis: Long, val getter: () -> Panel?, style: Sty
     val updateNanos = updateMillis * 1_000_000
     var lastUpdate = 0L
 
-    override fun tickUpdate() {
+    override fun onUpdate() {
         val time = Engine.gameTime
         if (abs(lastUpdate - time) >= updateNanos) {
             val value = getter()
@@ -26,7 +26,7 @@ class UpdatingContainer(updateMillis: Long, val getter: () -> Panel?, style: Sty
             }
             lastUpdate = time
         }
-        super.tickUpdate()
+        super.onUpdate()
     }
 
 }

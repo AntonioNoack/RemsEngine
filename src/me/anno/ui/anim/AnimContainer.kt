@@ -46,8 +46,8 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
         return clamp(if (deltaSign) x + delta else x - delta)
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         var needsUpdate = false
         val dtx = min(deltaTime * speed, 0.5f)
         val minDelta = 0.1f / max(1, max(padding.width, padding.height))

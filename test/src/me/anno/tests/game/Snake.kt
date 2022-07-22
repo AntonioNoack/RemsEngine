@@ -178,8 +178,8 @@ fun main() {
                 }
             }
 
-            override fun tickUpdate() {
-                super.tickUpdate()
+            override fun onUpdate() {
+                super.onUpdate()
                 if (Engine.gameTime - lastStep > stepDelayNanos) {
                     step()
                     invalidateDrawing()

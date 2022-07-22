@@ -122,8 +122,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         add(topLeft)
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         if (dragged != null) invalidateDrawing() // might be displayable
     }
 

@@ -12,13 +12,11 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.editor.files.Search
-import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.structures.lists.Lists.size
 import me.anno.utils.types.Strings.isBlank2
-import org.apache.logging.log4j.LogManager
 
 class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
     ScrollPanelY(Padding(3), AxisAlignment.MIN, style.getChild("propertyInspector")) {
@@ -53,8 +51,8 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
 
     override fun getLayoutState(): List<Inspectable> = getInspectables()
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         val selected = getInspectables()
 
         if (selected != lastSelected) {

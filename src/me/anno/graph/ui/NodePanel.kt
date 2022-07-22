@@ -116,8 +116,8 @@ class NodePanel(
     @NotSerializedProperty
     private var lmy = 0
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         if (canBeSeen) {
             val window = window
             if (window != null) {

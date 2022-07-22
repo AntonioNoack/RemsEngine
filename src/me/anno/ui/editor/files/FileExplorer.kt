@@ -23,8 +23,6 @@ import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.constraints.Constraint
-import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -372,8 +370,8 @@ abstract class FileExplorer(
         return loading != 0L
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         if (isValid <= 0f) {
             isValid = 5f // depending on amount of files?
             title.file = folder// ?.toString() ?: "This Computer"

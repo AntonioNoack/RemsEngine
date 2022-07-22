@@ -1,5 +1,6 @@
 package me.anno.io.json
 
+import me.anno.io.files.FileReference
 import java.io.EOFException
 import java.io.InputStream
 
@@ -11,9 +12,14 @@ class JsonReader(val data: InputStream) {
 
     constructor(data: ByteArray) : this(data.inputStream())
     constructor(data: String) : this(data.toByteArray())
+    constructor(file: FileReference) : this(file.inputStream())
 
     var index = 0
     var tmpChar = 0.toChar()
+
+    fun close() {
+        data.close()
+    }
 
     fun next(): Char {
         if (tmpChar != 0.toChar()) {

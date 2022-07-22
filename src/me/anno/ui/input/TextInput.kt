@@ -98,8 +98,8 @@ open class TextInput(
         return this
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         isSelectedListener?.invoke()
     }
 

@@ -21,8 +21,6 @@ import kotlin.math.min
 // todo compact animation if no movement takes place
 // todo allow for bone-by-bone animation with dynamic anim textures
 
-// todo first frame should be identity for default transform
-
 /**
  * a texture saving joint transforms;
  * 1) better than joints, because doesn't take up uniforms;

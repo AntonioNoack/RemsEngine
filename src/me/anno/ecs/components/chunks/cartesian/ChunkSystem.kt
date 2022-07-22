@@ -8,7 +8,7 @@ import kotlin.math.min
 
 /**
  * general chunk system,
- * LODs can be generated e.g. with OctTree
+ * LODs can be generated e.g., with OctTree
  * */
 abstract class ChunkSystem<Chunk, Element>(
     val bitsX: Int,
@@ -138,7 +138,6 @@ abstract class ChunkSystem<Chunk, Element>(
     ) {
         // iterate in chunks
         // don't generate, if not generateIfMissing
-        // todo currently this might only work for positive values, idk
         val minX = min.x shr bitsX
         val maxX = (max.x + sizeX - 1) shr bitsX
         val minY = min.y shr bitsY

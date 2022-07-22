@@ -20,7 +20,7 @@ fun main() {
     testUI {
         val srcFile = FileReference.getReference(OS.downloads, "tiger.svg")
         val panel = object : Panel(DefaultConfig.style) {
-            override fun tickUpdate() {
+            override fun onUpdate() {
                 invalidateDrawing()
             }
 

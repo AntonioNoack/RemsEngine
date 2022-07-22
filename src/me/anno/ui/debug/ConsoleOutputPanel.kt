@@ -31,12 +31,12 @@ import kotlin.math.max
  * */
 open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
-    override fun tickUpdate() {
+    override fun onUpdate() {
         val text = lastConsoleLines.peek() ?: ""
         this.text = text
         tooltip = text.ifBlank { "Double-click to open history" }
         textColor = getTextColor(text) and 0x77ffffff
-        super.tickUpdate()
+        super.onUpdate()
     }
 
     fun getTextColor(msg: String): Int {
@@ -99,8 +99,8 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             group += console
 
             val right = object : PanelListX(style) {
-                override fun tickUpdate() {
-                    super.tickUpdate()
+                override fun onUpdate() {
+                    super.onUpdate()
                     tooltip = console.text
                 }
             }

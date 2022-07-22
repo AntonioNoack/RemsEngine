@@ -220,8 +220,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         // we could optimize that: if not has updated in some time, don't redraw
         invalidateDrawing()
         updateWorldScale()

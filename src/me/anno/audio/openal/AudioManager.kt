@@ -74,7 +74,11 @@ object AudioManager {
     private var lastDeviceConfig = 0
     private val queryBuffer = intArrayOf(0)
     private fun checkIsDestroyed() {
-        // todo detect if the primary audio device was changed by the user...
+        // to do detect if the primary audio device was changed by the user?
+        // it works nice currently
+
+        // todo possibilities to select/change audio device manually
+
         val time = System.nanoTime()
         if (abs(time - lastCheckedTime) > 500 * MILLIS_TO_NANOS) {
             lastCheckedTime = time

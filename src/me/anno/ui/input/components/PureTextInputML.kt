@@ -22,7 +22,6 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
-import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
@@ -195,8 +194,8 @@ open class PureTextInputML(style: Style) :
         invalidateLayout()
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         val blinkVisible = ((Engine.gameTime / 500_000_000L) % 2L == 0L)
         val isInFocus = isAnyChildInFocus
         val oldShowBars = showBars

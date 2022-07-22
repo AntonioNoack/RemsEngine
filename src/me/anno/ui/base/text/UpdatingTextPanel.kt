@@ -11,7 +11,7 @@ class UpdatingTextPanel(updateMillis: Long, style: Style, val getValue: () -> St
     val updateNanos = updateMillis * 1_000_000
     var lastUpdate = 0L
 
-    override fun tickUpdate() {
+    override fun onUpdate() {
         val time = Engine.gameTime
         if (abs(lastUpdate - time) >= updateNanos) {
             val value = getValue()
@@ -19,7 +19,7 @@ class UpdatingTextPanel(updateMillis: Long, style: Style, val getValue: () -> St
             text = value ?: text
             lastUpdate = time
         }
-        super.tickUpdate()
+        super.onUpdate()
     }
 
 }

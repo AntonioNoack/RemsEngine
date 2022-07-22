@@ -5,7 +5,7 @@ abstract class JsonNode {
     abstract fun get(key: String): JsonNode?
 
     open fun asText() = toString()
-    open fun getText(key: String) = get(key)?.asText()
+    open fun getString(key: String) = get(key)?.asText()
 
     open fun asBool(default: Boolean = false) = asInt(if (default) 1 else 0) != 0
     open fun asInt(default: Int = 0) = JsonValue.asInt(asText(), default)

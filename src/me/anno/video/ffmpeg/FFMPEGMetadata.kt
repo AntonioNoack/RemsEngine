@@ -188,7 +188,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             videoFrameCount = video.getInt("nb_frames", 0)
             videoWidth = video.getInt("width")
             videoHeight = video.getInt("height")
-            videoFPS = video.getText("r_frame_rate")?.parseFraction() ?: 30.0
+            videoFPS = video.getString("r_frame_rate")?.parseFraction() ?: 30.0
 
             if (videoFrameCount == 0) {
                 if (videoDuration > 0.0) {

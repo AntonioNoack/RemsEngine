@@ -86,8 +86,8 @@ abstract class CalibrationPanel(
 
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         addValue(
             if (axis0 < 0) 0f else controller.getRawAxis(axis0),
             if (axis1 < 0) 0f else controller.getRawAxis(axis1),

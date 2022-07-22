@@ -49,8 +49,8 @@ open class ScrollPanelX(
 
     val hasScrollbar get() = maxScrollPositionX > 0f
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         val window = window!!
         val mx = window.mouseXi
         val my = window.mouseYi

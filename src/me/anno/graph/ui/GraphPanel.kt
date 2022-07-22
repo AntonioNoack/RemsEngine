@@ -128,8 +128,8 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         }
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         val dtx = min(Engine.deltaTime * 10f, 1f)
         if (target.distanceSquared(center) > 1e-5) {
             invalidateLayout()

@@ -2,13 +2,10 @@ package me.anno.ecs.components.chunks.spherical
 
 import me.anno.ecs.components.chunks.PlayerLocation
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.utils.types.Vectors.print
-import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
-import org.joml.Vector3f
 
 /**
- * 2D LOD system for spherical worlds, e.g. planets
+ * 2D LOD system for spherical worlds, e.g., planets
  * on SphericalTriangles, use .data to save your custom assigned data (e.g. visuals, statistics, ...)
  * */
 open class SphericalHierarchy(
@@ -17,7 +14,7 @@ open class SphericalHierarchy(
     var maxLevels: Int = 15, // 15 lods ~ max 32000² per mesh triangle
 ) {
 
-    val triangles = Array(shape.numTriangles) { SphereTriangle(it + 1) }
+    val triangles = Array(shape.numTriangles) { SphereTriangle(0, it + 1) }
 
     open var radius = radius
         set(value) {
@@ -33,7 +30,7 @@ open class SphericalHierarchy(
 
     init {
         var i = 0
-        shape.forEachTriangle { a: Vector3f, b: Vector3f, c: Vector3f ->
+        shape.forEachTriangle { a, b, c ->
             triangles[i++].set(this, a, b, c, radius)
         }
     }
@@ -56,10 +53,8 @@ open class SphericalHierarchy(
         var bestMatch: SphereTriangle = triangles[0]
         var bestDistance = Double.POSITIVE_INFINITY
         for (triangle in triangles) {
-            if (triangle.containsGlobalPoint(v)) {
-                return triangle
-            }
-            val distance = triangle.center.distanceSquared(v)
+            if (triangle.containsGlobalPoint(v)) return triangle
+            val distance = triangle.globalCenter.distanceSquared(v)
             if (distance < bestDistance) {
                 bestDistance = distance
                 bestMatch = triangle
@@ -110,7 +105,7 @@ open class SphericalHierarchy(
         unloadingDistance: Double,
     ) {
         // if children == null && close enough, generate children
-        if (triangle.children == null) {
+        if (triangle.childXX == null) {
             if (players.any {
                     val dist = triangle.distanceToGlobal(it.x, it.y, it.z)
                     dist * it.loadMultiplier < loadingDistance
@@ -124,31 +119,45 @@ open class SphericalHierarchy(
                 }) {
                 removeChildren(triangle)
             } else {
-                for (child in triangle.children ?: return) {
-                    removeDistancedTriangles(child, players, loadingDistance, unloadingDistance)
-                }
+                removeDistancedTriangles(triangle.childXX!!, players, loadingDistance, unloadingDistance)
+                removeDistancedTriangles(triangle.childAB!!, players, loadingDistance, unloadingDistance)
+                removeDistancedTriangles(triangle.childBC!!, players, loadingDistance, unloadingDistance)
+                removeDistancedTriangles(triangle.childCA!!, players, loadingDistance, unloadingDistance)
             }
         }
     }
 
     fun removeChildren(triangle: SphereTriangle) {
         onDestroyChildren(triangle)
-        triangle.children = null
+        triangle.childXX = null
+        triangle.childAB = null
+        triangle.childBC = null
+        triangle.childCA = null
     }
 
     /**
-     * iterate over all loaded triangles of all LODs, e.g. to save them
+     * iterate over all loaded triangles of all LODs, e.g., to save them
      * */
-    fun all(triangles: Array<SphereTriangle> = this.triangles): Sequence<SphereTriangle> {
-        return sequence {
-            for (triangle in triangles) {
-                yield(triangle)
-                val children = triangle.children
-                if (children != null) {
-                    yieldAll(all(children))
-                }
-            }
+    fun all() = sequence {
+        for (triangle in triangles) {
+            yieldAll(triangle.all())
         }
     }
+
+    /**
+     * iterate over all loaded triangles of all LODs, e.g., to save them
+     * */
+    fun forEach(shallCheckChildren: (SphereTriangle) -> Boolean) =
+        forEach(shallCheckChildren, maxLevels)
+
+    /**
+     * iterate over all loaded triangles of all LODs, e.g., to save them
+     * */
+    fun forEach(shallCheckChildren: (SphereTriangle) -> Boolean, maxLevels: Int) {
+        for (triangle in triangles) {
+            triangle.forEach(maxLevels, shallCheckChildren)
+        }
+    }
+
 
 }

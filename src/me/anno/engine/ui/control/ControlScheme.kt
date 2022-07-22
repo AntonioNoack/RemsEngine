@@ -142,8 +142,8 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
     val limit = 90.0 - 0.0001
     val rotationTarget = Vector3d(view.rotation)
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         if (view.rotation.distanceSquared(rotationTarget) > 1e-4) {
             view.rotation.lerp(rotationTarget, Maths.dtTo01(deltaTime * 25.0))
             view.updateEditorCameraTransform()

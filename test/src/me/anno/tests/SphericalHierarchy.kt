@@ -8,7 +8,7 @@ fun main() {
     val a = Vector3d(-1.0, -1.0, 1.0)
     val b = Vector3d(-1.0, +1.0, 1.0)
     val c = Vector3d(+2.0, +0.0, 1.0)
-    val tri = SphereTriangle(null, 0, a, b, c)
+    val tri = SphereTriangle(null, 0, 0, a, b, c)
     println(tri.baseAB.print())
     println(tri.baseUp.print())
     println(tri.baseAC.print())

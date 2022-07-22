@@ -201,7 +201,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     var blinkingIntervalNanos = 500_000_000L
 
-    override fun tickUpdate() {
+    override fun onUpdate() {
         val blinkVisible = ((Engine.gameTime - lastChangeTime) / blinkingIntervalNanos).and(1L) == 0L
         val sb = showCursor
         showCursor = isInFocus && blinkVisible

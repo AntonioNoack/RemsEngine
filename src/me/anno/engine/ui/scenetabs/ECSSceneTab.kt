@@ -241,8 +241,8 @@ class ECSSceneTab(
         windowStack.push(window)
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         backgroundColor = when {
             ECSSceneTabs.currentTab == this -> 0xff777777.toInt()
             else -> mixARGB(originalBGColor, black, 0.2f)

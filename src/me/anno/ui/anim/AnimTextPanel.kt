@@ -56,8 +56,8 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
     var disableSubpixels = true
     var periodMillis = 24L * 3600L * 1000L // 1 day
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         if (autoRedraw) invalidateDrawing()
     }
 

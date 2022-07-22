@@ -28,8 +28,8 @@ open class Button(
     @NotSerializedProperty
     private var lastTime = 0L
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         val time = Engine.gameTime
         val targetTint = when {
             Input.isLeftDown && contains(mouseDownX, mouseDownY) -> 0f

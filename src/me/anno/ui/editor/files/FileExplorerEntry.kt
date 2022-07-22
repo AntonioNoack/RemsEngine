@@ -75,7 +75,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11C.*
-import java.lang.ref.WeakReference
 import kotlin.math.*
 
 // todo when dragging files over the edge of the border, mark them as copied, or somehow make them draggable...
@@ -207,8 +206,8 @@ open class FileExplorerEntry(
     private var lastTex: Any? = null
     private var lastMeta: Any? = null
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
 
         val meta = meta
         val tex = if (canBeSeen) when (val tex = getTexKey()) {

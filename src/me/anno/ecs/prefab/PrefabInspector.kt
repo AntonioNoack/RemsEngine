@@ -208,8 +208,8 @@ class PrefabInspector(val reference: FileReference) {
 
                 var borderColor = 0
 
-                override fun tickUpdate() {
-                    super.tickUpdate()
+                override fun onUpdate() {
+                    super.onUpdate()
                     val newBorderColor = if (EditorState.editMode === instance) {
                         instance.getEditModeBorderColor()
                     } else 0

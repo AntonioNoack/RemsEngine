@@ -70,8 +70,8 @@ open class ScrollPanelY(
         clampScrollPosition()
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         val window = window!!
         val mx = window.mouseXi
         val my = window.mouseYi

@@ -195,8 +195,8 @@ object Spellchecking : CacheSection("Spellchecking") {
                                         suggestion as JsonObject
                                         val start = suggestion.getInt("start")
                                         val end = suggestion.getInt("end")
-                                        val message = suggestion.getText("message")!!
-                                        val shortMessage = suggestion.getText("shortMessage")!!
+                                        val message = suggestion.getString("message")!!
+                                        val shortMessage = suggestion.getString("shortMessage")!!
                                         val improvements = suggestion["suggestions"] as JsonArray
                                         val result = Suggestion(
                                             start, end, message, shortMessage,

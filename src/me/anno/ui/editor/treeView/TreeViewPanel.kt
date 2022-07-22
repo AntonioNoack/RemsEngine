@@ -24,12 +24,9 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.style.Style
-import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
-import me.anno.utils.Color.rgba
-import kotlin.math.roundToInt
 
 class TreeViewPanel<V>(
     val getElement: () -> V,
@@ -96,8 +93,8 @@ class TreeViewPanel<V>(
 
     val font get() = (uiSymbol ?: text).font
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         val transform = getElement()
         val dragged = dragged
         var backgroundColor = originalBGColor

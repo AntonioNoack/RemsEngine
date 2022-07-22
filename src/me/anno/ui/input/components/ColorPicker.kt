@@ -34,7 +34,7 @@ class ColorPicker(
         flipY = true
     }
 
-    override fun tickUpdate() {
+    override fun onUpdate() {
         invalidateDrawing()
     }
 

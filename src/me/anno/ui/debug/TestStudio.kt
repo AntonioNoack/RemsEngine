@@ -16,9 +16,7 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Tes
     override fun createUI() {
         val ui = PanelListY(style)
         ui.add(ConsoleOutputPanel.createConsoleWithStats(false, style))
-        for (panel in createMainPanel()) {
-            ui.add(panel)
-        }
+        ui.addAll(createMainPanel())
         ui.setWeight(1f)
         val windowStack = GFX.someWindow.windowStack
         windowStack.add(Window(ui, false, windowStack))

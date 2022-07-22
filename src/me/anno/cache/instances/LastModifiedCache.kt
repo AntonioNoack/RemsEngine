@@ -1,18 +1,23 @@
 package me.anno.cache.instances
 
-import me.anno.Engine.gameTime
+import me.anno.Engine
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.utils.structures.maps.Maps.removeIf
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.abs
 
 object LastModifiedCache {
 
-    data class Result(val file: File, val exists: Boolean, val isDirectory: Boolean, val lastModified: Long) {
+    class Result(
+        val file: File, val exists: Boolean,
+        val isDirectory: Boolean, val lastModified: Long
+    ) {
+
+        var lastChecked = 0L
 
         constructor(file: File, exists: Boolean) : this(
             file,
@@ -34,7 +39,6 @@ object LastModifiedCache {
 
     }
 
-    var lastChecked = 0L
     var values = ConcurrentHashMap<String, Result>()
 
     fun invalidate(absolutePath: String) {
@@ -54,12 +58,9 @@ object LastModifiedCache {
     }
 
     fun update() {
-        val time = gameTime
-        // todo partial reload only, like a cache section, just that the entries decay
-        // todo randomness in decay time
-        if (abs(time - lastChecked) > timeoutNanos) {
-            lastChecked = time
-            values.clear()
+        values.removeIf { (_, value) ->
+            Engine.gameTime - value.lastChecked > timeoutNanos
+            false
         }
     }
 
@@ -67,6 +68,8 @@ object LastModifiedCache {
         update()
         return values.getOrPut(absolutePath) {
             val r = Result(file)
+            // randomness for random decay: from 0.75x to 1.5x
+            r.lastChecked = Engine.gameTime + ((196 + (Math.random() * 196).toInt()) * timeoutNanos ushr 8)
             values[absolutePath.replace('/', '\\')] = r
             values[absolutePath.replace('\\', '/')] = r
             r

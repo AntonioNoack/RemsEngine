@@ -2,16 +2,17 @@ package me.anno.ecs.components.mesh.terrain
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
 
 object TerrainUtils {
 
     interface ColorMap {
-        operator fun get(it: Int): Int
+        operator fun get(index: Int): Int
     }
 
     interface HeightMap {
-        operator fun get(it: Int): Float
+        operator fun get(index: Int): Float
     }
 
     interface NormalMap {
@@ -37,11 +38,7 @@ object TerrainUtils {
 
         var k = 0
         val indexCount = (width - 1) * (height - 1) * 6
-        var indices = mesh.indices
-        if (indices?.size != indexCount) {
-            indices = IntArray(indexCount)
-            mesh.indices = indices
-        }
+        val indices = mesh.indices.resize(indexCount)
         for (y in 0 until height - 1) {
             var i00 = y * width
             for (x in 0 until width - 1) {
@@ -81,21 +78,10 @@ object TerrainUtils {
         ///////////////////////
 
         val vertexCount = width * height
-        var vertices = mesh.positions
-        var normals = mesh.normals
-        val verticesSize = vertexCount * 3
-        if (vertices == null || normals == null || vertices.size != verticesSize) {
-            vertices = FloatArray(verticesSize)
-            normals = FloatArray(verticesSize)
-            mesh.positions = vertices
-            mesh.normals = normals
-        }
-
-        var colors = mesh.color0
-        if (colors == null || colors.size != vertexCount) {
-            colors = IntArray(vertexCount)
-            mesh.color0 = colors
-        }
+        val numCoords = vertexCount * 3
+        val vertices = mesh.positions.resize(numCoords)
+        val normals = mesh.normals.resize(numCoords)
+        val colors = mesh.color0.resize(vertexCount)
 
         // center mesh
         val centerX = width * 0.5f
@@ -123,6 +109,5 @@ object TerrainUtils {
         mesh.invalidateGeometry()
 
     }
-
 
 }

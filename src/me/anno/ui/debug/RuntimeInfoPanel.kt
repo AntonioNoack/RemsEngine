@@ -2,7 +2,6 @@ package me.anno.ui.debug
 
 import me.anno.Engine.gameTime
 import me.anno.audio.AudioPools
-import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
@@ -13,7 +12,6 @@ import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.f1
-import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 
@@ -22,8 +20,8 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
     var updateInterval = 100_000_000
     var lastUpdate = 0L
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         val time = gameTime
         if (abs(time - lastUpdate) > updateInterval) {
             text = getDebugText()

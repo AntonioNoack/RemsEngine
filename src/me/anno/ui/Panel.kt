@@ -138,7 +138,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         window?.addNeedsRedraw(this)
     }
 
-    open fun tickUpdate() {
+    open fun onUpdate() {
         if (wasInFocus != isInFocus) {
             invalidateDrawing()
         }

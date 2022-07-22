@@ -33,7 +33,7 @@ object GLTFMaterialExtractor {
         for (index in materialList.indices) {
             val material = materialList[index]
             if (material is JsonObject) {
-                val name = material.getText("name") ?: continue
+                val name = material.getString("name") ?: continue
                 val pbrData = material["pbrMetallicRoughness"] as? JsonObject ?: continue
                 val metallic = pbrData.getFloat("metallicFactor", 1f)
                 val roughness = pbrData.getFloat("roughnessFactor", 1f)

@@ -48,8 +48,8 @@ class SceneView(val library: EditorState, playMode: PlayMode, style: Style) : Pa
         add(playControls)
     }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
+    override fun onUpdate() {
+        super.onUpdate()
         val editing = renderer.playMode == PlayMode.EDITING
         editControls.visibility = Visibility[editing]
         playControls.visibility = Visibility[!editing]
