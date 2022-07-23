@@ -213,15 +213,15 @@ class EnvironmentMap : LightComponentBase() {
 
         val textureTimeout = 10000L
 
-        val pipeline = Pipeline(DeferredSettingsV2(listOf(), false))
-
-        init {
+        val pipeline by lazy {
+            val pipeline = Pipeline(DeferredSettingsV2(listOf(), false))
             // we may need a second stage for transparent stuff
             pipeline.defaultStage = PipelineStage(
                 "", Sorting.NO_SORTING, 16, null, DepthMode.GREATER,
                 true, CullMode.BACK, ECSShaderLib.pbrModelShader
             )
             pipeline.stages.add(pipeline.defaultStage)
+            pipeline
         }
 
         fun rotateForCubemap(rot3: Quaterniond, side: Int) {

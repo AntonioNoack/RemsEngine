@@ -115,6 +115,8 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
             e.printStackTrace()
         } catch (e: IOException) {
             e.printStackTrace()
+        } finally {
+            close()
         }
     }
 

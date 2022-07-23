@@ -908,13 +908,13 @@ object ComponentUI {
 
             // is ISaveable -> { list all child properties }
             else -> {
-
                 when {
                     '<' in type0 -> {
                         val index0 = type0.indexOf('<')
                         val index1 = type0.lastIndexOf('>')
                         val mainType = type0.substring(0, index0).trim()
                         val generics = type0.substring(index0 + 1, index1).trim()
+                        LOGGER.debug("Generic type $type0 for $name")
                         when (mainType) {
                             "Array" -> {
                                 value as Array<*>

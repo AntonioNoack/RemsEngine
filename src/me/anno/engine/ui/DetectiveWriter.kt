@@ -64,7 +64,7 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     }
 
     override fun writeIntArray(name: String, values: IntArray, force: Boolean) {
-        dst[name] = "Array<IntArray>" to values
+        dst[name] = "IntArray" to values
     }
 
     override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) {
@@ -80,7 +80,7 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     }
 
     override fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean) {
-        dst[name] = "Array<IntArray>" to values
+        dst[name] = "Array<Array<Color4>>" to values
     }
 
     override fun writeLong(name: String, value: Long, force: Boolean) {
@@ -144,15 +144,15 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     }
 
     override fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Vector2f>" to values
     }
 
     override fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Vector3f>" to values
     }
 
     override fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Vector4f>" to values
     }
 
     override fun writeVector2d(name: String, value: Vector2dc, force: Boolean) {
@@ -168,15 +168,15 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     }
 
     override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Vector2f>>" to values
     }
 
     override fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Vector3f>>" to values
     }
 
     override fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Vector4f>>" to values
     }
 
     override fun writeVector2i(name: String, value: Vector2ic, force: Boolean) {
@@ -192,15 +192,15 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     }
 
     override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Vector2i>" to values
     }
 
     override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Vector3i>" to values
     }
 
     override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Vector4i>" to values
     }
 
     override fun writeMatrix2x2f(name: String, value: Matrix2fc, force: Boolean) {
@@ -224,43 +224,43 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     }
 
     override fun writeMatrix2x2fArray(name: String, values: Array<Matrix2fc>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Matrix2x2>" to values
     }
 
     override fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2fc>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Matrix3x2>" to values
     }
 
     override fun writeMatrix3x3fArray(name: String, values: Array<Matrix3fc>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Matrix3x3>" to values
     }
 
     override fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3fc>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Matrix4x3>" to values
     }
 
     override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4fc>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Matrix4x4>" to values
     }
 
     override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2fc>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Matrix2x2>>" to values
     }
 
     override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2fc>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Matrix3x2>>" to values
     }
 
     override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3fc>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Matrix3x3>>" to values
     }
 
     override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3fc>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Matrix4x3>>" to values
     }
 
     override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4fc>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Matrix4x4>>" to values
     }
 
     override fun writeMatrix2x2d(name: String, value: Matrix2dc, force: Boolean) {
@@ -284,43 +284,43 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     }
 
     override fun writeMatrix2x2dArray(name: String, values: Array<Matrix2dc>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Matrix2x2d>" to values
     }
 
     override fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2dc>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Matrix3x2d>" to values
     }
 
     override fun writeMatrix3x3dArray(name: String, values: Array<Matrix3dc>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Matrix3x3d>" to values
     }
 
     override fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3dc>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Matrix4x3d>" to values
     }
 
     override fun writeMatrix4x4dArray(name: String, values: Array<Matrix4dc>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Matrix4x4d>" to values
     }
 
     override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2dc>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Matrix2x2d>>" to values
     }
 
     override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2dc>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Matrix3x2d>>" to values
     }
 
     override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3dc>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Matrix3x3d>>" to values
     }
 
     override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3dc>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Matrix4x3d>>" to values
     }
 
     override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4dc>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Matrix4x4d>>" to values
     }
 
     override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {
@@ -332,19 +332,19 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     }
 
     override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Quaternion>" to values
     }
 
     override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Quaternion>>" to values
     }
 
     override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Quaterniond>" to values
     }
 
     override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) {
-        TODO("Not yet implemented")
+        dst[name] = "Array<Array<Quaterniond>>" to values
     }
 
     override fun writeAABBf(name: String, value: AABBf, force: Boolean) {

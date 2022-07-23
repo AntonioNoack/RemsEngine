@@ -102,6 +102,7 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
         // start writing queue
         thread(name = if (server == null) "[${client.name}]" else "S[${server.name}][${client.name}]") {
             client.workPacketTasks(server)
+            server?.removeClient(client)
         }
         val dis = client.dis
         var lastTime = System.nanoTime()
@@ -130,6 +131,8 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
                 }
             }
         }
+        client.close()
+        server?.removeClient(client)
     }
 
     companion object {

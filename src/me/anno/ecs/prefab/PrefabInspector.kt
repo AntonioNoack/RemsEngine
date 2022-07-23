@@ -323,8 +323,11 @@ class PrefabInspector(val reference: FileReference) {
                     panel.tooltip = property.description
                     list.add(panel)
                 } catch (e: Exception) {
-                    LOGGER.error("Error $e from ${reflections.clazz}, property $name")
-                    e.printStackTrace()
+                    RuntimeException("Error from ${reflections.clazz}, property $name", e)
+                        .printStackTrace()
+                } catch (e: ClassCastException) { // why is this not covered by the catch above?
+                    RuntimeException("Error from ${reflections.clazz}, property $name", e)
+                        .printStackTrace()
                 }
             }
         }

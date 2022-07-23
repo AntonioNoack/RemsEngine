@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.spline
 
+import me.anno.ecs.annotations.Type
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import org.joml.Vector2f
@@ -25,7 +26,10 @@ class PathProfile() : Saveable() {
     // base width
     var width = 1f
 
+    @Type("List<Vector2>")
     var positions: List<Vector2f> = emptyList()
+
+    @Type("List<Color4>")
     var colors: List<Int> = emptyList()
 
     var flatShading = true

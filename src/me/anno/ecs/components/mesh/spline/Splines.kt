@@ -1,125 +1,113 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.*
+import kotlin.math.cos
+import kotlin.math.roundToInt
+import kotlin.math.sin
 
 object Splines {
 
     /**
-     * posNormals: mixed positions and normals, pn-pn-pn-pn
-     * */
-    fun generateSplineLine(posNormals: List<Vector3d>, ptsPerRadiant: Double): List<Vector3d> {
-
-        val result = ArrayList<Vector3d>()
-
-        val p1 = Vector3d()
-        val p2 = Vector3d()
-        for (i in 2 until posNormals.size step 2) {
-
-            val p0 = posNormals[i - 2]
-            val n0 = posNormals[i - 1]
-            val p3 = posNormals[i]
-            val n3 = posNormals[i + 1]
-
-            getIntermediates(p0, n0, p3, n3, p1, p2)
-
-            // calculate using curviness, how many pts we need
-            val angle0 = angle(p0, p1, p2)
-            val angle1 = angle(p1, p2, p3)
-            val stops = Maths.max(1, ((angle0 + angle1) * ptsPerRadiant).roundToInt())
-
-            result.add(p0)
-
-            for (j in 1 until stops) {
-                val t = j.toDouble() / stops
-                result.add(interpolate(p0, p1, p2, p3, t))
-            }
-
-        }
-
-        result.add(posNormals[posNormals.size - 1])
-        return result
-
-    }
-
-    /**
-     * posNormals: mixed positions and normals, pnpn-pnpn-pnpn-pnpn <br>
+     * posNormals: mixed positions and normals, pnpn²-pnpn²-pnpn²-pnpn² <br>
      * returns list of positions
      * */
-    fun generateSplineLinePair(posNormals: Array<Vector3d>, ptsPerRadiant: Double): List<Vector3d> {
+    fun generateSplineLineQuad(posNormals: Array<Vector3d>, ptsPerRadiant: Double): List<Vector3d> {
 
         val result = ArrayList<Vector3d>()
+
+        for (i in 1 until posNormals.size step 2) {
+            val v = posNormals[i]
+            if (v.length() !in 0.99..1.01)
+                throw IllegalStateException("$i: $v")
+        }
 
         val p1a = Vector3d()
         val p2a = Vector3d()
         val p1b = Vector3d()
         val p2b = Vector3d()
-        for (i in 4 until posNormals.size step 4) {
+        val p1c = Vector3d()
+        val p2c = Vector3d()
+        val p1d = Vector3d()
+        val p2d = Vector3d()
 
-            val p0a = posNormals[i - 4]
-            val n0a = posNormals[i - 3]
+        var p0a = posNormals[0]
+        var n0a = posNormals[1]
+        var p0b = posNormals[2]
+        var n0b = posNormals[3]
+        var p0c = posNormals[4]
+        var n0c = posNormals[5]
+        var p0d = posNormals[6]
+        var n0d = posNormals[7]
+
+        for (i in 8 until posNormals.size step 8) {
+
+            result.add(Vector3d(p0a))
+            result.add(Vector3d(p0b))
+            result.add(Vector3d(p0c))
+            result.add(Vector3d(p0d))
+
             val p3a = posNormals[i]
             val n3a = posNormals[i + 1]
-            val p0b = posNormals[i - 2]
-            val n0b = posNormals[i - 1]
             val p3b = posNormals[i + 2]
             val n3b = posNormals[i + 3]
+            val p3c = posNormals[i + 4]
+            val n3c = posNormals[i + 5]
+            val p3d = posNormals[i + 6]
+            val n3d = posNormals[i + 7]
 
-            getIntermediates(p0a, n0a, p3a, n3a, p1a, p2a)
-            getIntermediates(p0b, n0b, p3b, n3b, p1b, p2b)
+            createControlPoints(p0a, n0a, p3a, n3a, p1a, p2a)
+            createControlPoints(p0b, n0b, p3b, n3b, p1b, p2b)
+            createControlPoints(p0c, n0c, p3c, n3c, p1c, p2c)
+            createControlPoints(p0d, n0d, p3d, n3d, p1d, p2d)
 
             // calculate using curviness, how many pts we need
-            val angle0 = angle(p0a, p1a, p2a) + angle(p0b, p1b, p2b)
-            val angle1 = angle(p1a, p2a, p3a) + angle(p1b, p2b, p3b)
-            val stopsF = ((angle0 + angle1) * ptsPerRadiant * 0.5)
-            val stops = if (stopsF.isFinite()) Maths.max(1, stopsF.roundToInt()) else 1
+            val angle = angle(p0a, p1a, p2a) + angle(p0b, p1b, p2b) + angle(p0c, p1c, p2c) + angle(p0d, p1d, p2d) +
+                    angle(p1a, p2a, p3a) + angle(p1b, p2b, p3b) + angle(p1c, p2c, p3c) + angle(p1d, p2d, p3d)
 
-            result.add(p0a)
-            result.add(p0b)
-
-            for (j in 1 until stops) {
-                val t = j.toDouble() / stops
-                result.add(interpolate(p0a, p1a, p2a, p3a, t))
-                result.add(interpolate(p0b, p1b, p2b, p3b, t))
+            val stopsF = (angle * ptsPerRadiant * 0.125)
+            if (stopsF.isFinite()) {
+                val stops = stopsF.roundToInt()
+                for (j in 1 until stops) {
+                    val t = j.toDouble() / stops
+                    result.add(interpolate(p0a, p1a, p2a, p3a, t))
+                    result.add(interpolate(p0b, p1b, p2b, p3b, t))
+                    result.add(interpolate(p0c, p1c, p2c, p3c, t))
+                    result.add(interpolate(p0d, p1d, p2d, p3d, t))
+                }
             }
+
+            p0a = p3a
+            n0a = n3a
+            p0b = p3b
+            n0b = n3b
+            p0c = p3c
+            n0c = n3c
+            p0d = p3d
+            n0d = n3d
+
         }
 
-        result.add(posNormals[posNormals.size - 3])
-        result.add(posNormals[posNormals.size - 1])
+        result.add(Vector3d(p0a))
+        result.add(Vector3d(p0b))
+        result.add(Vector3d(p0c))
+        result.add(Vector3d(p0d))
 
         return result
 
     }
 
     fun angle(p0: Vector3d, p1: Vector3d, p2: Vector3d): Double {
-        val ax = p1.x - p0.x
-        val ay = p1.y - p0.y
-        val az = p1.z - p0.z
-        val bx = p2.x - p1.x
-        val by = p2.y - p1.y
-        val bz = p2.z - p1.z
-        val cross = Maths.sq(
-            ay * bz - az * by,
-            az * bx + ax * bz,
-            ax * by - ay * bx
-        )
-        val al = ax * ax + ay * ay + az * az
-        val bl = bx * bx + by * by + bz * bz
-        return asin(sqrt(cross / (al * bl)))
-    }
-
-    fun interpolate(p0: Vector3d, p1: Vector3d, p2: Vector3d, t: Double, dst: Vector3d = Vector3d()): Vector3d {
-        // 1 2 1
-        val s = 1.0 - t
-        dst.set(p0).mul(s * s)
-        p1.mulAdd(2.0 * s * t, dst, dst)
-        p2.mulAdd(t * t, dst, dst)
-        return dst
+        val tmp1 = JomlPools.vec3d.create()
+        val tmp2 = JomlPools.vec3d.create()
+        tmp1.set(p1).sub(p0)
+        tmp2.set(p2).sub(p1)
+        JomlPools.vec3d.sub(2)
+        return tmp1.angle(tmp2)
     }
 
     fun interpolate(
@@ -141,14 +129,29 @@ object Splines {
         return dst
     }
 
-    fun getIntermediate(p0: Vector3d, n0: Vector3d, p1: Vector3d, n1: Vector3d, dst: Vector3d) {
-        // calculate the intermediate point(s)
-        Vectors.intersectSafely(p0, n0, p1, n1, SplineMesh.curveFactor, dst)
-    }
+    fun createControlPoints(p0: Vector3d, n0: Vector3d, p1: Vector3d, n1: Vector3d, dst0: Vector3d, dst1: Vector3d) {
 
-    fun getIntermediates(p0: Vector3d, n0: Vector3d, p1: Vector3d, n1: Vector3d, dst0: Vector3d, dst1: Vector3d) {
+        if (n0.length() !in 0.99..1.01)
+            throw IllegalStateException("$n0,$n1")
+
         // calculate the intermediate point(s)
-        Vectors.intersectSafely(p0, n0, p1, n1, SplineMesh.curveFactor, dst0, dst1)
+
+        val dx = p1.x - p0.x
+        val dy = p1.y - p0.y
+        val dz = p1.z - p0.z
+
+        val vertical = JomlPools.vec3d.create()
+            .set(dx, dy, dz)
+            .cross(n0.x + n1.x, n0.y + n1.y, n0.z + n1.z)
+            .mul(0.5) // length: distance, perpendicular to p1-p0 and n0/n1
+
+        dst0.set(n0).cross(vertical).add(p0)
+        dst1.set(vertical).cross(n1).add(p1)
+
+        JomlPools.vec3d.sub(1)
+
+        // todo this was working great, why is it no longer working?
+        // Vectors.intersectSafely(p0, n0, p1, n1, SplineMesh.curveFactor, dst0, dst1)
     }
 
     /**

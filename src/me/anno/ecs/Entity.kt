@@ -904,7 +904,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return text
     }
 
-    fun add(child: Entity) = addChild(child)
+    fun add(child: Entity) = addEntity(child)
     fun add(component: Component) = addComponent(component)
 
     fun remove(child: Entity) {

@@ -58,7 +58,7 @@ class SceneView(val library: EditorState, playMode: PlayMode, style: Style) : Pa
 
     companion object {
         @Suppress("unused")
-        fun runEditor(scene: PrefabSaveable, init: (SceneView) -> Unit = {}): Panel {
+        fun testScene(scene: PrefabSaveable, init: (SceneView) -> Unit = {}): Panel {
             scene.prefabPath = Path.ROOT_PATH
             EditorState.prefabSource = scene.ref
             val sceneView = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)

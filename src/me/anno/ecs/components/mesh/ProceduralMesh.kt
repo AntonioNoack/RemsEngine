@@ -9,8 +9,11 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.debug.TestStudio
+import me.anno.utils.types.Vectors.print
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Vector3f
 
 /**
  * class for generating procedural meshes
@@ -44,6 +47,17 @@ abstract class ProceduralMesh : MeshComponentBase() {
         // todo register for rare update? instead of onUpdate()
     }
 
+    @DebugAction
+    fun printMesh() {
+        val mesh = getMesh()
+        val pos = mesh.positions ?: return
+        LOGGER.debug("Positions: " + Array(pos.size / 3) {
+            val i = it * 3
+            Vector3f(pos[i], pos[i + 1], pos[i + 2])
+        }.joinToString { it.print() })
+        LOGGER.debug("Indices: ${mesh.indices?.joinToString()}")
+    }
+
     override fun ensureBuffer() {
         if (needsUpdate) {
             needsUpdate = false
@@ -75,6 +89,8 @@ abstract class ProceduralMesh : MeshComponentBase() {
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(ProceduralMesh::class)
 
         /**
          * creates an instance of ProceduralMesh, that uses generate() to generate its mesh;

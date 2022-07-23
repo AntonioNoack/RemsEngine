@@ -163,13 +163,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     private var entityBaseClickId = 0
 
     val pipeline = Pipeline(deferred)
-    private val stage0 = PipelineStage(
-        "default", Sorting.NO_SORTING, MAX_FORWARD_LIGHTS, null, DepthMode.GREATER, true, CullMode.BACK, pbrModelShader
-    )
-
-    init {
+    private val stage0 by lazy {
+        val stage0 = PipelineStage(
+            "default", Sorting.NO_SORTING, MAX_FORWARD_LIGHTS, null, DepthMode.GREATER, true, CullMode.BACK, pbrModelShader
+        )
         pipeline.defaultStage = stage0
         pipeline.stages.add(stage0)
+        stage0
     }
 
     override val canDrawOverBorders: Boolean = true

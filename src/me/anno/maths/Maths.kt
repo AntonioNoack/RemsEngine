@@ -299,6 +299,20 @@ object Maths {
         return value
     }
 
+    fun mix2d(v00: Float, v01: Float, v10: Float, v11: Float, fx: Float, fy: Float): Float {
+        val gx = 1f - fx
+        val v0x = gx * v00 + fx * v01
+        val v1x = gx * v10 + fx * v11
+        return (1f - fy) * v0x + fy * v1x
+    }
+
+    fun mix2d(v00: Double, v01: Double, v10: Double, v11: Double, fx: Double, fy: Double): Double {
+        val gx = 1.0 - fx
+        val v0x = gx * v00 + fx * v01
+        val v1x = gx * v10 + fx * v11
+        return (1.0 - fy) * v0x + fy * v1x
+    }
+
     fun absMax(a: Float, b: Float) = max(abs(a), abs(b))
     fun absMax(a: Float, b: Float, c: Float) = max(abs(a), abs(b), abs(c))
     fun absMax(a: Float, b: Float, c: Float, d: Float) = max(max(abs(a), abs(b)), max(abs(c), abs(d)))

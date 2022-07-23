@@ -1,8 +1,12 @@
-package me.anno.ecs.components.mesh.sdf
+package me.anno.tests
 
 import me.anno.Engine
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.sdf.SDFComponent
+import me.anno.ecs.components.mesh.sdf.SDFComposer
+import me.anno.ecs.components.mesh.sdf.SDFGroup
+import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.*
 import me.anno.ecs.components.mesh.sdf.shapes.*
 import me.anno.gpu.GFX

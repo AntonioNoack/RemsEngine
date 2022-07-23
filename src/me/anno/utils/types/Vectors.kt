@@ -408,12 +408,13 @@ object Vectors {
         factor: Double,
         dst0: Vector3d,
         dst1: Vector3d
-    ) {
-        if (!intersect(p0, n0, p1, n1, factor, dst0, dst1)) {
-            val scale = p0.distance(p1) * factor * 0.5
-            n0.mulAdd(+scale / n0.length(), p0, dst0)
-            n1.mulAdd(-scale / n1.length(), p1, dst1)
-        }
+    ): Boolean {
+        return if (!intersect(p0, n0, p1, n1, factor, dst0, dst1)) {
+            println("intersect failed")
+            dst0.set(p0).lerp(p1, factor)
+            dst1.set(p0).lerp(p1, factor)
+            false
+        } else true
     }
 
     fun intersectSafely(p0: Vector3d, n0: Vector3d, p1: Vector3d, n1: Vector3d, factor: Double, dst: Vector3d) {

@@ -1,17 +1,16 @@
 package me.anno.ecs.components.mesh.spline
 
 import me.anno.Build
-import me.anno.Engine
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
-import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.min
+import me.anno.maths.Maths.mix2d
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.toVector3f
+import me.anno.utils.types.Arrays.resize
 import org.joml.Vector2f
 import org.joml.Vector3d
-import org.joml.Vector3f
 
 /**
  * spline meshes are parts of many simulator games, e.g. street building
@@ -92,8 +91,11 @@ class SplineMesh : ProceduralMesh() {
     }
 
     override fun onUpdate(): Int {
-        super.onUpdate()
         // if a child is selected, invalidate this
+        return min(update(), super.onUpdate())
+    }
+
+    private fun update(): Int {
         if (Build.isDebug) {
             val children = entity?.children ?: return 16
             val lastSelection = EditorState.lastSelection
@@ -143,153 +145,138 @@ class SplineMesh : ProceduralMesh() {
     override fun generateMesh(mesh: Mesh) {
         val entity = entity
         if (entity == null) {
-            lastWarning = "Missing entity, $parent, ${Engine.gameTime}"
+            lastWarning = "Missing entity -> cannot detect children"
+            invalidateMesh()
             return
         }
         val points = entity.children.mapNotNull { it.getComponent(SplineControlPoint::class) }
         when (points.size) {
-            0 -> lastWarning = "SplineMesh has no points"
-            1 -> lastWarning = "SplineMesh has not enough points, only one"
-            2 -> set(generateLineMesh(points[0], points[1]))
+            0 -> {
+                lastWarning = "SplineMesh has no points"
+                invalidateMesh()
+            }
+            1 -> {
+                lastWarning = "SplineMesh has not enough points, only one"
+                invalidateMesh()
+            }
+            2 -> set(generateLineMesh(points[0], points[1], mesh))
             else -> {
                 lastWarning = null
                 if (piecewiseLinear) {
                     val list = ArrayList<SplineTmpMesh>()
                     for (i in 1 until points.size) {
-                        list.add(generateLineMesh(points[i - 1], points[i]))
+                        list.add(generateLineMesh(points[i - 1], points[i], null))
                     }
                     set(list)
-                } else {
-                    set(generateSplineMesh(points, pointsPerRadiant))
-                }
+                } else set(generateSplineMesh(points, pointsPerRadiant, mesh))
             }
         }
     }
 
-    private fun generateLineMesh(p0: SplineControlPoint, p1: SplineControlPoint): SplineTmpMesh {
-        return generateSplineMesh(listOf(p0, p1), 0.0)
+    private fun generateLineMesh(p0: SplineControlPoint, p1: SplineControlPoint, src: Mesh?): SplineTmpMesh {
+        return generateSplineMesh(listOf(p0, p1), 0.0, src)
     }
 
     private fun generateSplineMesh(
         points: List<SplineControlPoint>,
-        perRadiant: Double
+        perRadiant: Double,
+        src: Mesh?
     ): SplineTmpMesh {
 
-        val posNormals = Array(points.size * 4) { Vector3d() }
+        val tmp = Array(points.size * 8) { Vector3d() }
+        var j = 0
         for (i in points.indices) {
-            val i4 = i * 4
             val pt = points[i]
-            pt.getP0(posNormals[i4])
-            pt.getN0(posNormals[i4 + 1])
-            pt.getP1(posNormals[i4 + 2])
-            pt.getN1(posNormals[i4 + 3])
+            pt.localToParentPos(-1.0, -1.0, tmp[j++])
+            pt.localToParentDir(+1.0, -1.0, tmp[j++])
+            pt.localToParentPos(+1.0, -1.0, tmp[j++])
+            pt.localToParentDir(-1.0, -1.0, tmp[j++])
+            pt.localToParentPos(-1.0, -1.0, tmp[j++])
+            pt.localToParentDir(+1.0, +1.0, tmp[j++])
+            pt.localToParentPos(+1.0, +1.0, tmp[j++])
+            pt.localToParentDir(-1.0, -1.0, tmp[j++])
         }
+
+        val splinePoints = Splines.generateSplineLineQuad(tmp, perRadiant)
+
+        // generate the mesh
 
         val profile = profile!!
         val profileSize = profile.getSize2()
 
-        // todo also list profiles, and height
-        val splinePoints = Splines.generateSplineLinePair(posNormals, perRadiant)
-
-        // generate the mesh
-
-        var splineSize = splinePoints.size / 2
+        var splineSize = splinePoints.size / 4
         if (!isClosed) splineSize--
         val numPoints = 6 * profileSize * splineSize
-        val pos = FloatArray(3 * numPoints)
-        val nor = FloatArray(3 * numPoints)
-        val col = IntArray(numPoints)
+        val numCoords = 3 * numPoints
+        val pos = src?.positions.resize(numCoords)
+        val nor = src?.normals.resize(numCoords)
+        val col = src?.color0.resize(numPoints)
         var k = 0
         val n0 = Vector2f()
         val n1 = Vector2f()
-        val dirY0 = Vector3f()
-        val dirY1 = Vector3f()
-        for (j in 0 until profileSize) {
+        for (q in 0 until profileSize) {
+
+            val pro0 = profile.getPosition(q)
+            val pro1 = profile.getPosition(q + 1)
+
+            profile.getNormal(q, false, n0)
+            profile.getNormal(q, true, n1)
+
+            val color = profile.getColor(q)
+
+            var pos0b = splinePoints[0]
+            var pos1b = splinePoints[1]
+            var pos0t = splinePoints[2]
+            var pos1t = splinePoints[3]
+
             for (i in 0 until splineSize) {
 
-                val i2 = i * 2
-
-                val p0 = splinePoints[i2]
-                val p1 = splinePoints[i2 + 1]
-                val p2 = splinePoints[(i2 + 2) % splinePoints.size]
-                val p3 = splinePoints[(i2 + 3) % splinePoints.size]
-
-                findDirY(p0, p1, p3, dirY0)
-
-                if (!isClosed && i2 + 5 > splinePoints.size) {
-                    dirY1.set(dirY0)
-                } else {
-                    val p5 = splinePoints[(i2 + 5) % splinePoints.size]
-                    findDirY(p2, p3, p5, dirY1)
-                }
-
-                val pro0 = profile.getPosition(j)
-                val pro1 = profile.getPosition(j + 1)
-
-                profile.getNormal(j, false, n0)
-                profile.getNormal(j, true, n1)
-
-                val c = profile.getColor(j)
+                val i4 = i * 4
+                val pos2b = splinePoints[(i4 + 4) % splinePoints.size]
+                val pos3b = splinePoints[(i4 + 5) % splinePoints.size]
+                val pos2t = splinePoints[(i4 + 6) % splinePoints.size]
+                val pos3t = splinePoints[(i4 + 7) % splinePoints.size]
 
                 // 012 230
-                add(pos, nor, col, k++, p0, p1, pro0, n0, c, dirY0)
-                add(pos, nor, col, k++, p2, p3, pro1, n1, c, dirY1)
-                add(pos, nor, col, k++, p2, p3, pro0, n0, c, dirY1)
+                add(pos, nor, col, k++, pos0b, pos1b, pos0t, pos1t, pro0, n0, color)
+                add(pos, nor, col, k++, pos2b, pos3b, pos2t, pos3t, pro1, n1, color)
+                add(pos, nor, col, k++, pos2b, pos3b, pos2t, pos3t, pro0, n0, color)
 
-                add(pos, nor, col, k++, p0, p1, pro1, n1, c, dirY0)
-                add(pos, nor, col, k++, p2, p3, pro1, n1, c, dirY1)
-                add(pos, nor, col, k++, p0, p1, pro0, n0, c, dirY0)
+                add(pos, nor, col, k++, pos0b, pos1b, pos0t, pos1t, pro1, n1, color)
+                add(pos, nor, col, k++, pos2b, pos3b, pos2t, pos3t, pro1, n1, color)
+                add(pos, nor, col, k++, pos0b, pos1b, pos0t, pos1t, pro0, n0, color)
+
+                pos0b = pos2b
+                pos1b = pos3b
+                pos0t = pos2t
+                pos1t = pos3t
 
             }
         }
         return SplineTmpMesh(pos, nor, col)
     }
 
-    private fun mirrorIfClosed(index: Int, size: Int): Int {
-        return when {
-            index < size -> index
-            isClosed -> index - size
-            else -> size * 2 - index
-        }
-    }
-
-    private fun findDirY(p0: Vector3d, p1: Vector3d, p3: Vector3d, dst: Vector3f = Vector3f()) {
-        if (isStrictlyUp) {
-            dst.set(0f, 1f, 0f)
-        } else {
-            val ax = p1.x - p0.x
-            val ay = p1.y - p0.y
-            val az = p1.z - p0.z
-            val bx = p3.x - p1.x
-            val by = p3.y - p1.y
-            val bz = p3.z - p1.z
-            dst.set(// 23 31 12
-                ay * bz - az * by,
-                az * bx - ax * bz,
-                ax * by - ay * bx
-            ).normalize()
-        }
-    }
-
     private fun add(
         positions: FloatArray, normals: FloatArray, colors: IntArray,
-        k: Int, p0: Vector3d, p1: Vector3d, profile: Vector2f, n: Vector2f, c: Int,
-        dirY: Vector3f
+        k: Int, pos0b: Vector3d, pos1b: Vector3d, pos0t: Vector3d, pos1t: Vector3d,
+        profile: Vector2f, n: Vector2f, color: Int,
     ) {
         val k3 = k * 3
-        val px = profile.x.toDouble()
-        val py = profile.y
-        val dirX = JomlPools.vec3f.borrow()
-        JomlPools.vec3d.borrow()
-            .set(p1).sub(p0).normalize()
-            .toVector3f(dirX)
-        positions[k3 + 0] = (mix(p0.x, p1.x, px) + py * dirY.x).toFloat()
-        positions[k3 + 1] = (mix(p0.y, p1.y, px) + py * dirY.y).toFloat()
-        positions[k3 + 2] = (mix(p0.z, p1.z, px) + py * dirY.z).toFloat()
+        val px = (profile.x * .5f + .5f).toDouble()
+        val py = (profile.y * .5f + .5f).toDouble()
+        val dirX = JomlPools.vec3f.create()
+        val tmp = JomlPools.vec3d.borrow()
+        dirX.set(tmp.set(pos1b).add(pos1t).sub(pos0b).sub(pos0t).normalize())
+        val dirY = JomlPools.vec3f.create()
+        dirY.set(tmp.set(pos0t).add(pos1t).sub(pos0b).sub(pos1b).normalize())
+        positions[k3 + 0] = mix2d(pos0b.x, pos0t.x, pos1b.x, pos1t.x, px, py).toFloat()
+        positions[k3 + 1] = mix2d(pos0b.y, pos0t.y, pos1b.y, pos1t.y, px, py).toFloat()
+        positions[k3 + 2] = mix2d(pos0b.z, pos0t.z, pos1b.z, pos1t.z, px, py).toFloat()
         normals[k3 + 0] = n.x * dirX.x + n.y * dirY.x
         normals[k3 + 1] = n.x * dirX.y + n.y * dirY.y
         normals[k3 + 2] = n.x * dirX.z + n.y * dirY.z
-        colors[k] = c
+        colors[k] = color
+        JomlPools.vec3f.sub(2)
     }
 
     override val className: String = "SplineMesh"

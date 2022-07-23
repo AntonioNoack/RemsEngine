@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.geometry
 
 import me.anno.Engine
 import me.anno.image.ImageWriter

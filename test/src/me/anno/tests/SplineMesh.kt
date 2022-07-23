@@ -1,15 +1,13 @@
 package me.anno.tests
 
-import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.ecs.components.mesh.spline.Splines
-import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.SceneView
+import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.image.ImageWriter
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3d
@@ -21,7 +19,8 @@ fun main() {
     // interpolation with 1 point: just a line, and therefore useless
 
     // todo test mesh as well
-    TestStudio.testUI {
+    testUI {
+        ECSRegistry.init()
         val mesh = SplineMesh()
         val entity = Entity()
         entity.add(mesh)
@@ -33,14 +32,11 @@ fun main() {
             entity.add(child)
         }
         add(Vector3f())
-        add(Vector3f(1f, 0f, 0f))
-        add(Vector3f(1f, 1f, 0f))
-        add(Vector3f(3f, 0f, 0f))
-        EditorState.prefabSource = entity.ref
-        SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
-            .setWeight(1f)
+        add(Vector3f(0f, 0f, 10f))
+        add(Vector3f(0f, 5f, 10f))
+        add(Vector3f(0f, 0f, 30f))
+        testScene(entity)
     }
-
 
     val size = 512
 
@@ -57,7 +53,7 @@ fun main() {
 
     val imm0 = Vector3d()
     val imm1 = Vector3d()
-    Splines.getIntermediates(p0, n0, p1, n1, imm0, imm1)
+    Splines.createControlPoints(p0, n0, p1, n1, imm0, imm1)
 
     val points = ArrayList<Vector2f>()
 

@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.spline
 
 import me.anno.ecs.Component
+import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.Vector3d
 import kotlin.math.cos
 import kotlin.math.sin
@@ -12,62 +13,37 @@ import kotlin.math.sin
 class SplineControlPoint : Component() {
 
     // the profile to the next point
-    var profile = TestProfiles.cubeProfile
+    // var profile = TestProfiles.cubeProfile
 
-    var width = 1.0
-    var height = 1.0
+    var width = 1f
+    var height = 1f
 
-    var deltaHalfAngle = 0.0
-        set(value) {
-            if(field != value){
-                field = value
-                cos = cos(value)
-                sin = sin(value)
-            }
-        }
-
-    private var cos = 1.0
-    private var sin = 0.0
-
-    fun invalidate(){
+    fun invalidate() {
         entity?.parentEntity?.getComponent(SplineMesh::class)
             ?.invalidateMesh()
     }
 
-    fun getP0(dst: Vector3d): Vector3d {
+    fun localToParentPos(x: Double, y: Double, dst: Vector3d): Vector3d {
         val transform = transform!!.localTransform
-        val width = width
-        return transform.transformPosition(
-            dst.set(-cos * width, 0.0, -sin * width)
-        )
+        return transform.transformPosition(dst.set(x * width, y * height, 0.0))
     }
 
-    fun getN0(dst: Vector3d): Vector3d {
+    fun localToParentDir(x: Double, y: Double, dst: Vector3d): Vector3d {
         val transform = transform!!.localTransform
-        return transform.transformDirection(
-            dst.set(-sin, 0.0, cos)
-        )
+        return transform.transformDirection(dst.set(x, y, 0.0)).normalize()
     }
 
-    fun getP1(dst: Vector3d): Vector3d {
-        val transform = transform!!.localTransform
-        val width = width
-        return transform.transformPosition(
-            dst.set(+cos * width, 0.0, -sin * width)
-        )
-    }
-
-    fun getN1(dst: Vector3d): Vector3d {
-        val transform = transform!!.localTransform
-        return transform.transformDirection(
-            dst.set(+sin, 0.0, cos)
-        )
-    }
-
-    override fun clone(): Component {
+    override fun clone(): SplineControlPoint {
         val clone = SplineControlPoint()
         copy(clone)
         return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as SplineControlPoint
+        clone.width = width
+        clone.height = height
     }
 
     override val className: String = "SplineControlPoint"
