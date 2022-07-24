@@ -29,20 +29,20 @@ class SplineCrossing : ProceduralMesh() {
                 // todo this would be a spline mesh task...
             }
             else -> {
-                /*val center = Vector3d()
+                val center = Vector3d()
                 val tmp = Vector3d()
                 for (street in streets) {
-                    center.add(street.localToParentPos(tmp))
-                    center.add(street.getP1(tmp))
+                    center.add(street.getLocalPosition(tmp,-1.0))
+                    center.add(street.getLocalPosition(tmp,+1.0))
                 }
                 center.div(streets.size * 2.0)
                 // auto sort by angle?
                 if (autoSort) {
                     streets = streets.sortedBy {
-                        it.localToParentPos(tmp)
+                        it.getLocalPosition(tmp,-1.0)
                         atan2(tmp.y, tmp.x)
                     }
-                }*/
+                }
 
             }
         }

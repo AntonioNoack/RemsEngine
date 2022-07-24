@@ -18,7 +18,6 @@ fun main() {
     // test interpolation with 1 and 2 intermediate points
     // interpolation with 1 point: just a line, and therefore useless
 
-    // todo test mesh as well
     testUI {
         ECSRegistry.init()
         val mesh = SplineMesh()
@@ -53,7 +52,7 @@ fun main() {
 
     val imm0 = Vector3d()
     val imm1 = Vector3d()
-    Splines.createControlPoints(p0, n0, p1, n1, imm0, imm1)
+    Splines.getIntermediates(p0, n0, p1, n1, imm0, imm1)
 
     val points = ArrayList<Vector2f>()
 

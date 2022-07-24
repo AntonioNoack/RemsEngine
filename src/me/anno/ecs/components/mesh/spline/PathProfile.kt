@@ -1,10 +1,12 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.ecs.annotations.Type
+import me.anno.fonts.mesh.Triangulation
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.maths.Maths.clamp
+import org.apache.commons.vfs2.operations.vcs.VcsAdd
 import org.joml.Vector2f
-import kotlin.math.max
+import org.joml.Vector3f
 import kotlin.math.min
 
 /**
@@ -26,15 +28,22 @@ class PathProfile() : Saveable() {
     // base width
     var width = 1f
 
-    @Type("List<Vector2>")
     var positions: List<Vector2f> = emptyList()
-
-    @Type("List<Color4>")
     var colors: List<Int> = emptyList()
 
     var flatShading = true
 
     var isClosed = false
+
+    var validTris = false
+    var tris: List<Vector2f>? = null
+
+    fun getFacade(): List<Vector2f>? {
+        if (!validTris || tris == null) {
+            tris = Triangulation.ringToTrianglesVec2f(positions)
+        }
+        return tris
+    }
 
     fun getSize(): Int {
         return min(positions.size, colors.size)
@@ -46,18 +55,19 @@ class PathProfile() : Saveable() {
     }
 
     fun getPosition(i: Int): Vector2f {
-        return positions[i % positions.size]
+        val j = if (isClosed) (i + positions.size) % positions.size
+        else clamp(i, 0, positions.lastIndex)
+        return positions[j]
     }
 
     fun getNormal(i: Int, end: Boolean, dst: Vector2f = Vector2f()): Vector2f {
         val j = if (end && !flatShading) i + 1 else i
-        // todo if closed, wrap around
         if (flatShading) {
             val v0 = getPosition(j)
             val v1 = getPosition(j + 1)
             dst.set(v1).sub(v0)
         } else {
-            val v0 = getPosition(max(j - 1, 0))
+            val v0 = getPosition(j - 1)
             val v1 = getPosition(j + 1)
             dst.set(v1).sub(v0)
         }

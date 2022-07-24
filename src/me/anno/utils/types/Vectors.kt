@@ -1,14 +1,12 @@
 package me.anno.utils.types
 
 import me.anno.maths.Maths
-import me.anno.maths.Maths.PIf
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Triangles.subCross
 import me.anno.utils.types.Triangles.subCrossDot
 import org.joml.*
 import kotlin.math.abs
-import kotlin.math.atan2
 import kotlin.math.roundToInt
 
 @Suppress("unused")
@@ -332,21 +330,22 @@ object Vectors {
      * http://paulbourke.net/geometry/pointlineplane/calclineline.cs
      * */
     fun intersect(
-        p0: Vector3d, n0: Vector3d,
-        p1: Vector3d, n1: Vector3d,
-        factor: Double,
+        pos0: Vector3d, dir0: Vector3d,
+        pos1: Vector3d, dir1: Vector3d,
+        factor0: Double,
+        factor1: Double,
         dst0: Vector3d, dst1: Vector3d
     ): Boolean {
 
-        val p13x = p0.x - p1.x
-        val p13y = p0.y - p1.y
-        val p13z = p0.z - p1.z
+        val p13x = pos0.x - pos1.x
+        val p13y = pos0.y - pos1.y
+        val p13z = pos0.z - pos1.z
 
-        val d1321 = n0.dot(p13x, p13y, p13z)
-        val d1343 = n1.dot(p13x, p13y, p13z)
-        val d4321 = n0.dot(n1)
-        val d2121 = n0.lengthSquared()
-        val d4343 = n1.lengthSquared()
+        val d1321 = dir0.dot(p13x, p13y, p13z)
+        val d1343 = dir1.dot(p13x, p13y, p13z)
+        val d4321 = dir0.dot(dir1)
+        val d2121 = dir0.lengthSquared()
+        val d4343 = dir1.lengthSquared()
         val denominator = d2121 * d4343 - d4321 * d4321
         if (abs(denominator) < 1e-7) return false
 
@@ -354,73 +353,10 @@ object Vectors {
         val mua = numerator / denominator
         val mub = (d1343 + d4321 * mua) / d4343
 
-        n0.mulAdd(mua * factor, p0, dst0)
-        n1.mulAdd(mub * factor, p1, dst1)
+        dir0.mulAdd(mua * factor0, pos0, dst0)
+        dir1.mulAdd(mub * factor1, pos1, dst1)
         return true
 
-    }
-
-    /**
-     * approximate line intersection
-     * http://paulbourke.net/geometry/pointlineplane/calclineline.cs
-     * */
-    fun intersect(
-        p0: Vector3d, n0: Vector3d, p1: Vector3d, n1: Vector3d,
-        factor: Double, dst: Vector3d
-    ): Boolean {
-
-        val p13x = p0.x - p1.x
-        val p13y = p0.y - p1.y
-        val p13z = p0.z - p1.z
-
-        val d1321 = n0.dot(p13x, p13y, p13z)
-        val d1343 = n1.dot(p13x, p13y, p13z)
-        val d4321 = n0.dot(n1)
-        val d2121 = n0.lengthSquared()
-        val d4343 = n1.lengthSquared()
-        val denominator = d2121 * d4343 - d4321 * d4321
-        if (abs(denominator) < 1e-16) return false
-
-        val numerator = d1343 * d4321 - d1321 * d4343
-        val mua = numerator / denominator
-        val mub = (d1343 + d4321 * mua) / d4343
-
-        // n0*mua + p0
-        // n1*mub + p1
-        // avg of them
-
-        dst.set(p0).add(p1)
-
-        n0.mulAdd(mua * factor, dst, dst) // dst += n0 * mua
-        n1.mulAdd(mub * factor, dst, dst) // dst += n1 * mua
-
-        dst.mul(0.5)
-
-        return true
-
-    }
-
-    fun intersectSafely(
-        p0: Vector3d,
-        n0: Vector3d,
-        p1: Vector3d,
-        n1: Vector3d,
-        factor: Double,
-        dst0: Vector3d,
-        dst1: Vector3d
-    ): Boolean {
-        return if (!intersect(p0, n0, p1, n1, factor, dst0, dst1)) {
-            println("intersect failed")
-            dst0.set(p0).lerp(p1, factor)
-            dst1.set(p0).lerp(p1, factor)
-            false
-        } else true
-    }
-
-    fun intersectSafely(p0: Vector3d, n0: Vector3d, p1: Vector3d, n1: Vector3d, factor: Double, dst: Vector3d) {
-        if (!intersect(p0, n0, p1, n1, factor, dst)) {
-            dst.set(p0).add(p1).mul(0.5)
-        }
     }
 
     fun Vector3f.findSecondAxis(dst: Vector3f = Vector3f()): Vector3f {
