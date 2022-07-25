@@ -5,6 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.TypeValue
@@ -28,7 +29,10 @@ import org.joml.*
 
 class SkyBox : MeshComponentBase() {
 
+
     // todo sky cubemap
+    // todo make this a light, such that all things can be lighted from it
+
 
     // todo override raytracing for clicking: if ray goes far enough, let it click us
 
@@ -93,8 +97,28 @@ class SkyBox : MeshComponentBase() {
             field.set(value)
         }
 
+    @Type("Color3HDR")
     @SerializedProperty
-    var undersideFalloff = 0f
+    var nadirColor = Vector3f()
+        set(value) {
+            field.set(value)
+            nadir.set(value.x, value.y, value.z, nadirSharpness)
+        }
+
+    @Range(0.0, 1e9)
+    @SerializedProperty
+    var nadirSharpness
+        get() = nadir.w
+        set(value) {
+            nadir.w = value
+        }
+
+    @NotSerializedProperty
+    private var nadir = Vector4f(0f, 0f, 0f, 1f)
+        set(value) {
+            field.set(value)
+            nadirColor.set(value.x, value.y, value.z)
+        }
 
     @SerializedProperty
     var sunBaseDir = Vector3f(1f, 0f, 0f)
@@ -104,10 +128,9 @@ class SkyBox : MeshComponentBase() {
 
     init {
         material.shader = defaultShader
-        material.shaderOverrides["cloudTime"] = TypeValue(GLSLType.V1F) { Engine.gameTimeF }
         material.shaderOverrides["cirrus"] = TypeValue(GLSLType.V1F) { cirrus }
         material.shaderOverrides["cumulus"] = TypeValue(GLSLType.V1F) { cumulus }
-        material.shaderOverrides["undersideFalloff"] = TypeValue(GLSLType.V1F) { undersideFalloff }
+        material.shaderOverrides["nadir"] = TypeValue(GLSLType.V4F, nadir)
         material.shaderOverrides["cirrusOffset"] = TypeValue(GLSLType.V2F, cirrusOffset)
         material.shaderOverrides["cumulusOffset"] = TypeValue(GLSLType.V2F, cumulusOffset)
         material.shaderOverrides["sunDir"] = TypeValueV3(GLSLType.V3F, Vector3f()) {
@@ -149,7 +172,7 @@ class SkyBox : MeshComponentBase() {
         clone.cumulusOffset = cumulusOffset
         clone.cirrusSpeed = cirrusSpeed
         clone.cirrusOffset = cirrusOffset
-        clone.undersideFalloff = undersideFalloff
+        clone.nadir = nadir
         clone.sunSpeed.set(sunSpeed)
     }
 
@@ -234,7 +257,7 @@ class SkyBox : MeshComponentBase() {
                         Variable(GLSLType.V1F, "cumulus"), // 0.8
                         Variable(GLSLType.V2F, "cirrusOffset"), // 0.05
                         Variable(GLSLType.V2F, "cumulusOffset"), // 0.3
-                        Variable(GLSLType.V1F, "undersideFalloff"),
+                        Variable(GLSLType.V4F, "nadir"),
                     ), "" +
                             "const float Br = 0.0025;\n" +
                             "const float Bm = 0.0003;\n" +
@@ -274,14 +297,15 @@ class SkyBox : MeshComponentBase() {
                             "}\n" +
 
                             // falloff towards downwards
-                            // todo we could lerp towards a specific color
-                            "color *= clamp(1.0 + finalNormal.y * undersideFalloff, 0.0, 1.0);\n" +
+                            "if(finalNormal.y < 0.0){\n" +
+                            "   color = mix(nadir.rgb, color, exp(finalNormal.y * nadir.w));\n" +
+                            "}\n" +
 
                             "finalNormal = -finalNormal;\n" +
                             "finalColor = vec3(0.0);\n" +
                             "finalAlpha = 1.0;\n" +
                             "finalRoughness = 1.0;\n" +
-                            "finalEmissive = clamp(color, 0.0, 10.0);\n" +
+                            "finalEmissive = color;\n" +
                             "finalPosition = finalNormal * 1e20;\n"
                 )
                 stage.functions.add(Function(funcHash + funcNoise + funcFBM))
