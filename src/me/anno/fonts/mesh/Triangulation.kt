@@ -3,12 +3,12 @@ package me.anno.fonts.mesh
 import me.anno.mesh.Point
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.findSecondAxis
-import me.anno.utils.types.Vectors.minus
 import org.joml.*
 import org.the3deers.util.EarCut
 
 object Triangulation {
 
+    @Suppress("unused")
     fun ringToTriangles2f(points: FloatArray): FloatArray {
         val indices = EarCut.earcut(points, 2) ?: return FloatArray(0)
         val result = FloatArray(indices.size * 2)
@@ -43,15 +43,19 @@ object Triangulation {
     fun ringToTrianglesVec3f(points: List<Vector3fc>): List<Vector3fc> {
         if (points.size > 2) {
             val normal = JomlPools.vec3f.create().set(0f)
+            val tmp1 = JomlPools.vec3f.create()
+            val tmp2 = JomlPools.vec3f.create()
             for (i in points.indices) {
                 val a = points[i]
                 val b = points[(i + 1) % points.size]
                 val c = points[(i + 2) % points.size]
-                normal.add((a - b).cross(b - c))
+                tmp1.set(a).sub(b)
+                tmp2.set(b).sub(c)
+                normal.add(tmp1.cross(tmp2))
             }
             normal.normalize()
             if (normal.length() < 0.5f) {
-                JomlPools.vec3f.sub(1)
+                JomlPools.vec3f.sub(3)
                 return emptyList()
             }
             // find 2d coordinate system
@@ -68,7 +72,7 @@ object Triangulation {
             val triangles2d = ringToTrianglesVec2f(projected)
             val result = triangles2d.map { reverseMap[it]!! }
             JomlPools.vec2f.sub(projected.size)
-            JomlPools.vec3f.sub(2)
+            JomlPools.vec3f.sub(4)
             return result
         } else return emptyList()
     }
@@ -76,15 +80,19 @@ object Triangulation {
     fun ringToTrianglesVec3d(points: List<Vector3dc>): List<Vector3dc> {
         if (points.size > 2) {
             val normal = JomlPools.vec3d.create().set(0.0)
+            val tmp1 = JomlPools.vec3d.create()
+            val tmp2 = JomlPools.vec3d.create()
             for (i in points.indices) {
                 val a = points[i]
                 val b = points[(i + 1) % points.size]
                 val c = points[(i + 2) % points.size]
-                normal.add((a - b).cross(b - c))
+                tmp1.set(a).sub(b)
+                tmp2.set(b).sub(c)
+                normal.add(tmp1.cross(tmp2))
             }
             normal.normalize()
             if (normal.length() < 0.5) {
-                JomlPools.vec3d.sub(1)
+                JomlPools.vec3d.sub(3)
                 return emptyList()
             }
             // find 2d coordinate system
@@ -101,7 +109,7 @@ object Triangulation {
             val triangles2d = ringToTrianglesVec2d(projected)
             val result = triangles2d.map { reverseMap[it]!! }
             JomlPools.vec2d.sub(projected.size)
-            JomlPools.vec3d.sub(2)
+            JomlPools.vec3d.sub(4)
             return result
         } else return emptyList()
     }
@@ -109,15 +117,19 @@ object Triangulation {
     fun ringToTrianglesPoint(points: Array<Point>): List<Point> {
         if (points.size > 2) {
             val normal = JomlPools.vec3f.create().set(0f)
+            val tmp1 = JomlPools.vec3f.create()
+            val tmp2 = JomlPools.vec3f.create()
             for (i in points.indices) {
                 val a = points[i].position
                 val b = points[(i + 1) % points.size].position
                 val c = points[(i + 2) % points.size].position
-                normal.add((a - b).cross(b - c))
+                tmp1.set(a).sub(b)
+                tmp2.set(b).sub(c)
+                normal.add(tmp1.cross(tmp2))
             }
             normal.normalize()
             if (normal.length() < 0.5f) {
-                JomlPools.vec3f.sub(1)
+                JomlPools.vec3f.sub(3)
                 return emptyList()
             }
             // find 2d coordinate system
@@ -134,23 +146,28 @@ object Triangulation {
             val triangles2f = ringToTrianglesVec2f(projected)
             val result = triangles2f.map { reverseMap[it]!! }
             JomlPools.vec2f.sub(projected.size)
-            JomlPools.vec3f.sub(2)
+            JomlPools.vec3f.sub(4)
             return result
         } else return emptyList()
     }
 
+    @Suppress("unused")
     fun ringToTrianglesPoint(points: List<Point>): List<Point> {
         if (points.size > 2) {
             val normal = JomlPools.vec3f.create().set(0f)
+            val tmp1 = JomlPools.vec3f.create()
+            val tmp2 = JomlPools.vec3f.create()
             for (i in points.indices) {
                 val a = points[i].position
                 val b = points[(i + 1) % points.size].position
                 val c = points[(i + 2) % points.size].position
-                normal.add((a - b).cross(b - c))
+                tmp1.set(a).sub(b)
+                tmp2.set(b).sub(c)
+                normal.add(tmp1.cross(tmp2))
             }
             normal.normalize()
             if (normal.length() < 0.5f) {
-                JomlPools.vec3f.sub(1)
+                JomlPools.vec3f.sub(3)
                 return emptyList()
             }
             // find 2d coordinate system
@@ -167,7 +184,7 @@ object Triangulation {
             val triangles2f = ringToTrianglesVec2f(projected)
             val result = triangles2f.map { reverseMap[it]!! }
             JomlPools.vec2f.sub(projected.size)
-            JomlPools.vec3f.sub(2)
+            JomlPools.vec3f.sub(4)
             return result
         } else return emptyList()
     }

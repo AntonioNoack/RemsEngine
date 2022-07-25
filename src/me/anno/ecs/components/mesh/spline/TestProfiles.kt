@@ -11,7 +11,7 @@ object TestProfiles {
             Vector2f(+1f, +1f),
             Vector2f(+1f, -1f)
         ),
-        intArrayOf(-1, -1, 0, -1),
+        listOf(-1, -1, 0, -1),
         true
     )
 

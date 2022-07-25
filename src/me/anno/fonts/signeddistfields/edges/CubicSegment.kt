@@ -5,7 +5,6 @@ import me.anno.fonts.signeddistfields.Flags.MSDFGEN_CUBIC_SEARCH_STEPS
 import me.anno.fonts.signeddistfields.algorithm.EquationSolver.solveQuadratic
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
@@ -13,6 +12,7 @@ import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Vectors.cross
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector2fc
@@ -124,7 +124,7 @@ class CubicSegment(
         az.set(p3).sub(p2).sub(p2).add(p1).sub(br)
 
         direction(0f, epDir)
-        var minDistance = nonZeroSign(crossProduct(epDir, qa)) * qa.length() // distance from A
+        var minDistance = nonZeroSign(epDir.cross(qa)) * qa.length() // distance from A
 
         param.value = -qa.dot(epDir) / epDir.lengthSquared()
 
@@ -152,7 +152,7 @@ class CubicSegment(
                 setQe(qe, qa, ab, br, az, t)
                 val distance2 = qe.length()
                 if (distance2 < abs(minDistance)) {
-                    minDistance = nonZeroSign(crossProduct(direction(t, epDir), qe)) * distance2
+                    minDistance = nonZeroSign(direction(t, epDir).cross(qe)) * distance2
                     param.value = t
                 }
             }

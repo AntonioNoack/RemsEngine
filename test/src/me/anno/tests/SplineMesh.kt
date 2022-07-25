@@ -2,6 +2,7 @@ package me.anno.tests
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
+import me.anno.ecs.components.mesh.spline.SplineCrossing
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.ecs.components.mesh.spline.Splines
 import me.anno.engine.ECSRegistry
@@ -20,21 +21,38 @@ fun main() {
 
     testUI {
         ECSRegistry.init()
-        val mesh = SplineMesh()
-        val entity = Entity()
-        entity.add(mesh)
+
+        val world = Entity("World")
+        val splineEntity = Entity("Spline")
+        splineEntity.add(SplineMesh())
         fun add(p: Vector3f, r: Quaternionf = Quaternionf()) {
             val child = Entity()
             child.position = child.position.set(p)
             child.rotation = child.rotation.set(r)
             child.add(SplineControlPoint())
-            entity.add(child)
+            splineEntity.add(child)
         }
         add(Vector3f())
         add(Vector3f(0f, 0f, 10f))
         add(Vector3f(0f, 5f, 10f))
         add(Vector3f(0f, 0f, 30f))
-        testScene(entity)
+        world.add(splineEntity)
+
+        val crossingEntity = Entity("Crossing")
+        crossingEntity.position = Vector3d(0.0, 3.0, 0.0)
+        crossingEntity.add(SplineCrossing())
+        fun add2(p: Vector3f, r: Quaternionf = Quaternionf()) {
+            val child = Entity()
+            child.position = child.position.set(p)
+            child.rotation = child.rotation.set(r)
+            child.add(SplineControlPoint())
+            crossingEntity.add(child)
+        }
+        // todo add points to crossing
+        add2(Vector3f())
+        world.add(crossingEntity)
+
+        testScene(world)
     }
 
     val size = 512

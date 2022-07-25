@@ -22,6 +22,7 @@ import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.sdf.SDFRegistry
 import me.anno.ecs.components.mesh.spline.PathProfile
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
+import me.anno.ecs.components.mesh.spline.SplineCrossing
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.ecs.components.mesh.terrain.TriTerrain
 import me.anno.ecs.components.physics.BulletPhysics
@@ -103,6 +104,7 @@ object ECSRegistry {
         registerCustomClass(MeshComponent())
         registerCustomClass(LODMeshComponent())
         registerCustomClass(SplineMesh())
+        registerCustomClass(SplineCrossing())
         registerCustomClass(SplineControlPoint())
         registerCustomClass(PathProfile())
         registerCustomClass(CuboidMesh())

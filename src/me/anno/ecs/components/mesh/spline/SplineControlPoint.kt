@@ -9,8 +9,9 @@ import org.joml.Vector3d
  * */
 class SplineControlPoint : Component() {
 
-    // the profile to the next point
-    // var profile = TestProfiles.cubeProfile
+    // profile; todo to next point: connect different profiles
+    // todo also used on intersections
+    var profile: PathProfile = TestProfiles.cubeProfile
 
     var width = 1.0
     var height = 1.0
@@ -20,11 +21,14 @@ class SplineControlPoint : Component() {
             ?.invalidateMesh()
     }
 
-    fun getLocalPosition(dst: Vector3d, factor: Double): Vector3d =
-        transform!!.localTransform.transformPosition(dst.set(factor * width, 0.0, 0.0))
+    fun getLocalPosition(dst: Vector3d, fx: Double, fz: Double = 0.0): Vector3d =
+        transform!!.localTransform.transformPosition(dst.set(fx * width, 0.0, fz * width))
 
     fun getLocalForward(dst: Vector3d): Vector3d =
         transform!!.localTransform.transformDirection(dst.set(0.0, 0.0, 1.0))
+
+    fun getLocalUp(dst: Vector3d): Vector3d =
+        transform!!.localTransform.transformDirection(dst.set(0.0, 1.0, 0.0))
 
     override fun clone(): Component {
         val clone = SplineControlPoint()

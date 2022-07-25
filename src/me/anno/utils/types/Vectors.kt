@@ -52,9 +52,9 @@ object Vectors {
 
     fun Vector4fc.mulAlpha(m: Float, dst: Vector4f = Vector4f()): Vector4fc = dst.set(x(), y(), z(), w() * m)
 
-    fun avg(a: Vector2fc, b: Vector2f): Vector2f = Vector2f(a).add(b).mul(0.5f)
-    fun avg(a: Vector2dc, b: Vector2d): Vector2d = Vector2d(a).add(b).mul(0.5)
-    fun avg(a: Vector3fc, b: Vector3f): Vector3f = Vector3f(a).add(b).mul(0.5f)
+    fun avg(a: Vector2fc, b: Vector2fc): Vector2f = Vector2f(a).add(b).mul(0.5f)
+    fun avg(a: Vector2dc, b: Vector2dc): Vector2d = Vector2d(a).add(b).mul(0.5)
+    fun avg(a: Vector3fc, b: Vector3fc): Vector3f = Vector3f(a).add(b).mul(0.5f)
 
     fun avg(a: Vector2fc, b: Vector2fc, c: Vector2fc) =
         Vector2f((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f)

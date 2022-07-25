@@ -10,8 +10,6 @@ object SDFMaths {
 
     fun nonZeroSign(f: Float) = if (f >= 0) +1 else -1
 
-    fun crossProduct(a: Vector2fc, b: Vector2fc) = a.x() * b.y() - a.y() * b.x()
-
     fun crossProductXYY(x: Vector2fc, y0: Vector2fc, y1: Vector2fc) =
         x.x() * (y0.y() - y1.y()) - x.y() * (y0.x() - y1.x())
 
@@ -37,12 +35,10 @@ object SDFMaths {
         aabb.union(p1.x(), p1.y(), 0f)
     }
 
-    fun absDotNormalized(a: Vector2fc, b: Vector2fc): Float {
-        return abs(a.dot(b) / sqrt(a.lengthSquared() * b.lengthSquared()))
-    }
+    fun absDotNormalized(a: Vector2fc, b: Vector2fc) =
+        abs(a.dot(b) / sqrt(a.lengthSquared() * b.lengthSquared()))
 
-    fun absDotNormalizedXYY(a: Vector2fc, y0: Vector2fc, y1: Vector2fc): Float {
-        return abs(dotProductXXY(y0, y1, a) / sqrt(a.lengthSquared() * y0.distanceSquared(y1)))
-    }
+    fun absDotNormalizedXYY(a: Vector2fc, y0: Vector2fc, y1: Vector2fc) =
+        abs(dotProductXXY(y0, y1, a) / sqrt(a.lengthSquared() * y0.distanceSquared(y1)))
 
 }

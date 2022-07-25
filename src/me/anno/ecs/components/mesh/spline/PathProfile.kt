@@ -4,9 +4,9 @@ import me.anno.fonts.mesh.Triangulation
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.clamp
-import org.apache.commons.vfs2.operations.vcs.VcsAdd
+import me.anno.maths.Maths.mixARGB
+import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
-import org.joml.Vector3f
 import kotlin.math.min
 
 /**
@@ -14,9 +14,9 @@ import kotlin.math.min
  * */
 class PathProfile() : Saveable() {
 
-    constructor(pos: List<Vector2f>, colors: IntArray, isClosed: Boolean) : this() {
+    constructor(pos: List<Vector2f>, colors: List<Int>, isClosed: Boolean) : this() {
         positions = pos
-        this.colors = colors.toList()
+        this.colors = colors
         this.isClosed = isClosed
     }
 
@@ -37,6 +37,8 @@ class PathProfile() : Saveable() {
 
     var validTris = false
     var tris: List<Vector2f>? = null
+
+    var mixColors = false
 
     fun getFacade(): List<Vector2f>? {
         if (!validTris || tris == null) {
@@ -75,8 +77,87 @@ class PathProfile() : Saveable() {
         return dst
     }
 
-    fun getColor(i: Int): Int {
-        return colors[i % colors.size]
+    /**
+     * split profile into <0/>=0
+     * */
+    fun split(): Pair<PathProfile, PathProfile> {
+        val positions = positions
+        val colors = colors
+        val cap = positions.size
+        val left = ArrayList<Vector2f>(cap)
+        val leftColors = ArrayList<Int>(cap)
+        val right = ArrayList<Vector2f>(cap)
+        val rightColors = ArrayList<Int>(cap)
+        val isClosed = isClosed
+        val i0 = if (isClosed) cap - 1 else 0
+        var p0 = positions[i0]
+        var c0 = colors[i0]
+        // add first point
+        val sx = p0.x < 0f
+        if (sx) {
+            left.add(p0)
+            leftColors.add(c0)
+        } else {
+            right.add(p0)
+            rightColors.add(c0)
+        }
+        // add all segments to their respective side
+        for (i in (if (isClosed) 0 else 1) until cap) {
+            val p1 = positions[i]
+            val c1 = colors[i]
+            val s0 = p0.x <= 0f
+            val s1 = p1.x <= 0f
+            if (s0 == s1) {
+                // simple
+                if (s0) {
+                    left.add(p1)
+                    leftColors.add(c1)
+                } else {
+                    right.add(p1)
+                    rightColors.add(c1)
+                }
+            } else {
+                // split segment
+                val f = p0.x / (p0.x - p1.x)
+                val pf = Vector2f(p0).lerp(p1, f)
+                val cf = mixARGB(c0, c1, f)
+                if (s0) {
+                    // first left, then right
+                    left.add(pf)
+                    leftColors.add(cf)
+                    // todo add marker that it ends / start here
+                    right.add(pf)
+                    rightColors.add(cf)
+                    right.add(p1)
+                    rightColors.add(c1)
+                } else {
+                    // first right, then left
+                    right.add(pf)
+                    rightColors.add(cf)
+                    // todo add marker that it ends / starts here
+                    left.add(pf)
+                    leftColors.add(cf)
+                    left.add(p1)
+                    leftColors.add(c1)
+                }
+            }
+            p0 = p1
+            c0 = c1
+        }
+        val left1 = PathProfile(left, leftColors, false)
+        val right1 = PathProfile(right, rightColors, false)
+        left1.flatShading = flatShading
+        right1.flatShading = flatShading
+        println("split $positions/$isClosed into $left + $right")
+        return Pair(left1, right1)
+    }
+
+    fun getColor(i: Int, first: Boolean): Int {
+        return if (mixColors) {
+            colors[(i + 1 - first.toInt()) % colors.size]
+        } else {
+            colors[i % colors.size]
+        }
     }
 
     override fun save(writer: BaseWriter) {

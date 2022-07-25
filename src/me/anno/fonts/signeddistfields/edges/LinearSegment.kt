@@ -1,13 +1,13 @@
 package me.anno.fonts.signeddistfields.edges
 
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.getOrthonormal
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Vectors.cross
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector2fc
@@ -54,7 +54,7 @@ class LinearSegment(val p0: Vector2fc, val p1: Vector2fc) : EdgeSegment() {
         }
 
         dst.set(
-            nonZeroSign(crossProduct(aq, ab)) * endpointDistance,
+            nonZeroSign(aq.cross(ab)) * endpointDistance,
             absDotNormalizedXYY(ab, eqRef, origin)
         )
 

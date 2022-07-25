@@ -3,7 +3,6 @@ package me.anno.fonts.signeddistfields.edges
 import me.anno.fonts.signeddistfields.algorithm.EquationSolver.solveCubic
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProductXXY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
@@ -12,9 +11,8 @@ import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.minus
-import me.anno.utils.types.Vectors.plus
-import me.anno.utils.types.Vectors.times
+import me.anno.utils.types.Vectors.avg
+import me.anno.utils.types.Vectors.cross
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector2fc
@@ -24,7 +22,7 @@ import kotlin.math.sqrt
 
 class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : EdgeSegment() {
 
-    val p1 = if (p0 == p10 || p10 == p2) (p0 + p2) * 0.5f else p10
+    val p1 = if (p0 == p10 || p10 == p2) avg(p0, p2) else p10
 
     override fun toString() = "[$p0 $p1 $p2]"
 
@@ -62,7 +60,7 @@ class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : E
         val brbr = br.lengthSquared()
         val abLen = sqrt(abab)
         val brLen = sqrt(brbr)
-        val crs = crossProduct(ab, br)
+        val crs = ab.cross(br)
         val h = sqrt(abab + abbr + abbr + brbr)
 
         JomlPools.vec2f.sub(2)
@@ -116,7 +114,7 @@ class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : E
         val epDir = JomlPools.vec2f.create()
 
         direction(0f, epDir)
-        var minDistance = nonZeroSign(crossProduct(epDir, qa)) * qa.length() // distance from A
+        var minDistance = nonZeroSign(epDir.cross(qa)) * qa.length() // distance from A
         param.value = -qa.dot(epDir) / epDir.lengthSquared()
 
         direction(1f, epDir)
@@ -127,14 +125,23 @@ class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : E
             param.value = dotProductXXY(origin, p1, epDir) / epDir.lengthSquared()
         }
 
+        val qe = JomlPools.vec2f.create()
+        val dir = JomlPools.vec2f.create()
         for (i in 0 until solutions) {
-            if (tmp[i] > 0 && tmp[i] < 1) {
-                val qe = p0 + ab * (2 * tmp[i]) + br * (tmp[i] * tmp[i]) - origin
+            val tmpI = tmp[i]
+            if (tmpI > 0f && tmpI < 1f) {
+                val tmpI2 = tmpI * tmpI
+                // val qe = p0 + ab * (2 * tmpI) + br * (tmpI * tmpI) - origin
+                qe.set(ab).mul(2f * tmpI)
+                    .add(p0)
+                    .add(br.x * tmpI2, br.y * tmpI2)
+                    .sub(origin)
                 val distance2 = qe.length()
                 if (distance2 <= abs(minDistance)) {
-                    val cross = crossProduct(direction(tmp[i], Vector2f()), qe)
+                    direction(tmpI, dir)
+                    val cross = dir.cross(qe)
                     minDistance = if (cross >= 0f) distance2 else -distance2
-                    param.value = tmp[i]
+                    param.value = tmpI
                 }
             }
         }
@@ -142,12 +149,12 @@ class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : E
         dst.set(
             minDistance, when {
                 param.value in 0f..1f -> 0f
-                param.value < 0.5f -> absDotNormalized(direction(0f, epDir), qa)
+                param.value < 0f -> absDotNormalized(direction(0f, epDir), qa)
                 else -> absDotNormalizedXYY(direction(1f, epDir), p2, origin)
             }
         )
 
-        JomlPools.vec2f.sub(4)
+        JomlPools.vec2f.sub(6)
 
         return dst
     }

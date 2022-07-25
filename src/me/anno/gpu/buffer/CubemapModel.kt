@@ -1,15 +1,20 @@
 package me.anno.gpu.buffer
 
-import me.anno.utils.types.Vectors.plus
-import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f
-import org.joml.Vector3fc
 
 object CubemapModel {
 
     private val xAxis = Vector3f(1f, 0f, 0f)
     private val yAxis = Vector3f(0f, 1f, 0f)
     private val zAxis = Vector3f(0f, 0f, 1f)
+
+    fun StaticBuffer.put(v0: Vector3f, dx: Vector3f, dy: Vector3f, x: Float, y: Float, u: Int, v: Int) {
+        put(
+            v0.x + dx.x * x + dy.x * y,
+            v0.y + dx.y * x + dy.y * y,
+            v0.z + dx.z * x + dy.z * y, u / 4f, v / 3f
+        )
+    }
 
     val cubemapModel = StaticBuffer(
         listOf(
@@ -18,12 +23,7 @@ object CubemapModel {
         ), 6 * 6
     ).apply {
 
-        fun put(v0: Vector3fc, dx: Vector3fc, dy: Vector3fc, x: Float, y: Float, u: Int, v: Int) {
-            val pos = v0 + dx * x + dy * y
-            put(pos.x, pos.y, pos.z, u / 4f, v / 3f)
-        }
-
-        fun addFace(u0: Int, v0: Int, p: Vector3fc, dx: Vector3fc, dy: Vector3fc) {
+        fun addFace(u0: Int, v0: Int, p: Vector3f, dx: Vector3f, dy: Vector3f) {
 
             val u1 = u0 + 1
             val v1 = v0 + 1
@@ -58,12 +58,7 @@ object CubemapModel {
         ), 6 * 6 * 2
     ).apply {
 
-        fun put(v0: Vector3fc, dx: Vector3fc, dy: Vector3fc, x: Float, y: Float, u: Int, v: Int) {
-            val pos = v0 + dx * x + dy * y
-            put(pos.x, pos.y, pos.z, u / 4f, v / 3f)
-        }
-
-        fun addFace(u0: Int, v0: Int, p: Vector3fc, dx: Vector3fc, dy: Vector3fc) {
+        fun addFace(u0: Int, v0: Int, p: Vector3f, dx: Vector3f, dy: Vector3f) {
             val u1 = u0 + 1
             val v1 = v0 + 1
 

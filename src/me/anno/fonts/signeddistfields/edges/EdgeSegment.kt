@@ -1,9 +1,9 @@
 package me.anno.fonts.signeddistfields.edges
 
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Vectors.cross
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector2fc
@@ -46,7 +46,7 @@ abstract class EdgeSegment {
             val aq = v2.set(origin).sub(point(0f, v1))
             val ts = aq.dot(dir)
             if (ts < 0f) {
-                val pseudoDistance = crossProduct(aq, dir)
+                val pseudoDistance = aq.cross(dir)
                 if (abs(pseudoDistance) <= abs(distance.distance)) {
                     distance.set(pseudoDistance, 0f)
                 }
@@ -56,7 +56,7 @@ abstract class EdgeSegment {
             val bq = v2.set(origin).sub(point(1f, v1))
             val ts = bq.dot(dir)
             if (ts > 0f) {
-                val pseudoDistance = crossProduct(bq, dir)
+                val pseudoDistance = bq.cross(dir)
                 if (abs(pseudoDistance) <= abs(distance.distance)) {
                     distance.set(pseudoDistance, 0f)
                 }
