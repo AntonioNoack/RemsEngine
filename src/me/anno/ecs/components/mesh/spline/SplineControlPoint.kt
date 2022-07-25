@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.spline
 
 import me.anno.ecs.Component
+import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.Vector3d
 
 /**
@@ -10,7 +11,6 @@ import org.joml.Vector3d
 class SplineControlPoint : Component() {
 
     // profile; todo to next point: connect different profiles
-    // todo also used on intersections
     var profile: PathProfile = TestProfiles.cubeProfile
 
     var width = 1.0
@@ -30,10 +30,18 @@ class SplineControlPoint : Component() {
     fun getLocalUp(dst: Vector3d): Vector3d =
         transform!!.localTransform.transformDirection(dst.set(0.0, 1.0, 0.0))
 
-    override fun clone(): Component {
+    override fun clone(): SplineControlPoint {
         val clone = SplineControlPoint()
         copy(clone)
         return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as SplineControlPoint
+        clone.profile = profile
+        clone.width = width
+        clone.height = height
     }
 
     override val className: String = "SplineControlPoint"

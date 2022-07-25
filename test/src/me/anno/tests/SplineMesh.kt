@@ -8,11 +8,15 @@ import me.anno.ecs.components.mesh.spline.Splines
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.image.ImageWriter
+import me.anno.maths.Maths.PIf
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 fun main() {
 
@@ -38,19 +42,33 @@ fun main() {
         add(Vector3f(0f, 0f, 30f))
         world.add(splineEntity)
 
-        val crossingEntity = Entity("Crossing")
-        crossingEntity.position = Vector3d(0.0, 3.0, 0.0)
-        crossingEntity.add(SplineCrossing())
+        val endEntity = Entity("End Piece")
+        endEntity.position = Vector3d(0.0, 3.0, 0.0)
+        endEntity.add(SplineCrossing())
         fun add2(p: Vector3f, r: Quaternionf = Quaternionf()) {
             val child = Entity()
             child.position = child.position.set(p)
             child.rotation = child.rotation.set(r)
             child.add(SplineControlPoint())
-            crossingEntity.add(child)
+            endEntity.add(child)
         }
-        // todo add points to crossing
         add2(Vector3f())
-        world.add(crossingEntity)
+        world.add(endEntity)
+
+        val crossEntity = Entity("Crossing")
+        crossEntity.position = Vector3d(0.0, 6.0, 0.0)
+        crossEntity.add(SplineCrossing())
+        val l = 15
+        for (i in 0 until l) {
+            val angle = i * PI * 2.0 / l
+            val child = Entity()
+            child.position = child.position.set(cos(angle) * 20f, 0.0, sin(angle) * 20f)
+            child.rotation = child.rotation.rotateY(-angle + PI * 0.5)
+            child.add(SplineControlPoint())
+            // todo add streets as control
+            crossEntity.add(child)
+        }
+        world.add(crossEntity)
 
         testScene(world)
     }

@@ -1,19 +1,20 @@
 package me.anno.ecs.components.mesh.spline
 
+import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
-import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.dirX
+import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.createEndPiece
+import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.generateSplineMesh
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.merge
 import me.anno.fonts.mesh.Triangulation
-import me.anno.maths.Maths.PIf
 import me.anno.utils.structures.tuples.get
-import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
-import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector3fc
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.atan2
 
 class SplineCrossing : ProceduralMesh() {
 
@@ -33,7 +34,23 @@ class SplineCrossing : ProceduralMesh() {
             }
         }
 
-    var useRightForEnd = false
+    var useRight = false
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateMesh()
+            }
+        }
+
+    var coverTop = true
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateMesh()
+            }
+        }
+
+    var coverBottom = false
         set(value) {
             if (field != value) {
                 field = value
@@ -58,84 +75,8 @@ class SplineCrossing : ProceduralMesh() {
                 return
             }
             1 -> {
-
                 lastWarning = null
-
-                // generate end piece: rotational
-                val point = streets.first()
-                val profile = point.profile
-                val halfProfile = profile.split()[!useRightForEnd]
-                val numAngles = 1 + max(1, pointsPerRadiant.roundToInt())
-                val profileSize = halfProfile.positions.size
-                val numQuads = (profileSize - 1) * (numAngles - 1)
-                val numPoints = numQuads * 6
-                val pos = mesh.positions.resize(numPoints * 3)
-                val nor = mesh.normals.resize(numPoints * 3)
-                val col = mesh.color0.resize(numPoints)
-                val dirY = Vector3f().set(point.getLocalUp(Vector3d()))
-                val angleOffset = useRightForEnd.toInt() * PI
-
-                // generate all values
-                val n0 = Vector2f()
-                val n1 = Vector2f()
-
-                val p0a = Vector3d()
-                val p0b = Vector3d()
-                val p1a = Vector3d()
-                val p1b = Vector3d()
-
-                val dirX0 = Vector3f()
-                val dirX1 = Vector3f()
-
-                // calculate points p0a,p0b
-                val cos0 = cos(angleOffset)
-                point.getLocalPosition(p0a, -cos0)
-                point.getLocalPosition(p0b, +cos0)
-
-                dirX(p0a, p0b, dirX0)
-
-                var k = 0
-                for (ai in 1 until numAngles) {
-                    val angle = ai * PI / (numAngles - 1) + angleOffset
-                    val cos1 = cos(angle)
-                    val sin1 = sin(angle)
-                    var p0 = halfProfile.positions[0]
-
-                    // calculate points p1a,p1b
-                    point.getLocalPosition(p1a, -cos1, -sin1)
-                    point.getLocalPosition(p1b, +cos1, +sin1) // flip sign as well? yes, 180° rotated
-
-                    dirX(p1a, p1b, dirX1)
-
-                    for (si in 1 until profileSize) {
-
-                        val p1 = halfProfile.positions[si]
-                        val c0 = halfProfile.getColor(si - 1, true)
-                        val c1 = halfProfile.getColor(si, false)
-
-                        halfProfile.getNormal(si - 1, false, n0)
-                        halfProfile.getNormal(si - 1, true, n1)
-
-                        SplineMesh.add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirY)
-                        SplineMesh.add(pos, nor, col, k++, p1a, p1b, p1, n1, c1, dirX1, dirY)
-                        SplineMesh.add(pos, nor, col, k++, p1a, p1b, p0, n0, c0, dirX1, dirY)
-
-                        SplineMesh.add(pos, nor, col, k++, p0a, p0b, p1, n1, c1, dirX0, dirY)
-                        SplineMesh.add(pos, nor, col, k++, p1a, p1b, p1, n1, c1, dirX1, dirY)
-                        SplineMesh.add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirY)
-
-                        p0 = p1
-
-                    }
-
-                    p0a.set(p1a)
-                    p0b.set(p1b)
-                    dirX0.set(dirX1)
-
-                }
-                mesh.positions = pos
-                mesh.normals = nor
-                mesh.color0 = col
+                createEndPiece(streets.first(), useRight, pointsPerRadiant, mesh)
             }
             2 -> {
                 // just connect them normally
@@ -148,11 +89,17 @@ class SplineCrossing : ProceduralMesh() {
                 )
             }
             else -> {
+
+                // consists of the main area (middle segment), and then, given by the profile,
+                // outer paths can be implemented using half profiles
+
                 val profile = streets.first().profile
-                val (leftProfile, rightProfile) = profile.split()
+                val halfProfile = profile.split()[!useRight]
                 val center = Vector3d()
                 val up = Vector3d()
                 val tmp = Vector3d()
+                val tmp2 = Vector3d()
+                val tmp3 = Vector3f()
                 for (street in streets) {
                     center.add(street.transform!!.localPosition)
                     up.add(street.transform!!.localRotation.transform(tmp.set(0.0, 1.0, 0.0)))
@@ -164,41 +111,119 @@ class SplineCrossing : ProceduralMesh() {
                 // auto sort by angle?
                 if (autoSort) {
                     streets = streets.sortedBy {
-                        it.getLocalPosition(tmp, -1.0)
-                        atan2(tmp.z, tmp.x) // todo use local coordinates
+                        it.getLocalPosition(tmp, 0.0)
+                        atan2(tmp.z, tmp.x) // todo use local (x/z) coordinates
                     }
                 }
+
                 val meshes = ArrayList<Mesh>()
                 val centerPoints = ArrayList<Vector3f>()
+
+                fun createPoint(p: SplineControlPoint, f: Boolean): SplineControlPoint {
+                    val clone = p.clone()
+                    val cloneEntity = Entity()
+                    // rotate 180° if looking wrong direction (can be found using its spline, or atan2)
+                    // rotate 180° * f
+                    // copy transform
+                    val correct = p.getLocalPosition(tmp, 0.0).dot(p.getLocalForward(tmp2)) > 0.0
+                    val angle = (correct.toInt() + f.toInt() + useRight.toInt()) * PI
+                    val pe = p.entity!!
+                    cloneEntity.position = pe.position
+                    cloneEntity.rotation = cloneEntity.rotation
+                        .set(pe.rotation)
+                        .rotateY(angle) // correct coordinate system?
+                    cloneEntity.scale = cloneEntity.scale
+                    cloneEntity.validateTransform()
+                    cloneEntity.add(clone)
+                    return clone
+                }
+
                 for (index in streets.indices) {
                     val s0 = streets[index]
-                    // todo add end path
                     val s1 = streets[(index + 1) % streets.size]
-                    // todo connect both smoothly
-                    // todo add start path
-                }
-                val triangulation = Triangulation
-                    .ringToTrianglesVec3f(centerPoints)
-
-                // find central color
-                // interpolation won't work -> use single color
-                var centralColor = -1
-                var bestScore = Float.NEGATIVE_INFINITY
-                for (i in profile.positions.indices) {
-                    val pos = profile.getPosition(i)
-                    val score = pos.y + abs(pos.x)
-                    if (score > bestScore) {
-                        bestScore = score
-                        centralColor = profile.getColor(i, true)
+                    val points = listOf(
+                        createPoint(s1, false),
+                        createPoint(s0, true),
+                    )
+                    val splinePoints = SplineMesh.generateSplinePoints(points, pointsPerRadiant, isClosed = false)
+                    if (coverTop || coverBottom) {
+                        centerPoints.ensureCapacity(centerPoints.size + splinePoints.size / 2)
+                        for (i in splinePoints.size / 2 - 1 downTo 0) {
+                            val j = i * 2
+                            val a = splinePoints[j]
+                            val b = splinePoints[j + 1]
+                            centerPoints.add(
+                                Vector3f(
+                                    (a.x + b.x).toFloat(),
+                                    (a.y + b.y).toFloat(),
+                                    (a.z + b.z).toFloat()
+                                ).mul(0.5f)
+                            )
+                        }
                     }
+                    meshes.add(
+                        generateSplineMesh(
+                            null, halfProfile,
+                            isClosed = false, closedStart0 = false, closedEnd0 = false, isStrictlyUp = false,
+                            splinePoints
+                        )
+                    )
                 }
-                meshes.add(triToMesh(triangulation, up, centralColor))
 
-                // todo consists of the main area (middle segment), and then, given by the profile,
-                // todo outer paths from edge to edge; defined by profile
-                // todo outer paths can be implemented using half profiles
+                if (coverTop || coverBottom) {
 
-                lastWarning = "Hasn't been properly implemented yet"
+                    if (coverBottom && !coverTop) {
+                        centerPoints.reverse()
+                    }
+
+                    val triangulation = Triangulation
+                        .ringToTrianglesVec3f(centerPoints)
+
+                    // find central color
+                    // interpolation won't work -> use single color
+                    var topY = 0f
+                    var topColor = -1
+                    var topScore = Float.NEGATIVE_INFINITY
+                    var bottomY = 0f
+                    var bottomColor = -1
+                    var bottomScore = Float.NEGATIVE_INFINITY
+                    for (i in profile.positions.indices) {
+                        val pos = profile.getPosition(i)
+                        val tScore = pos.y + abs(pos.x)
+                        if (tScore > topScore) {
+                            topScore = tScore
+                            topColor = profile.getColor(i, true)
+                            topY = pos.y
+                        }
+                        val bScore = -pos.y + abs(pos.x)
+                        if (bScore > bottomScore) {
+                            bottomScore = bScore
+                            bottomColor = profile.getColor(i, true)
+                            bottomY = pos.y
+                        }
+                    }
+
+                    if (coverTop) {
+                        // raise all points up
+                        tmp3.set(up).mul(topY)
+                        for (p in centerPoints) p.add(tmp3)
+                        meshes.add(triToMesh(triangulation, up, topColor))
+                        if (coverBottom) {
+                            tmp3.set(up).mul(bottomY - topY)
+                            for (p in centerPoints) p.add(tmp3)
+                            up.mul(-1.0)
+                            meshes.add(triToMesh(triangulation.reversed(), up, bottomColor))
+                        }
+                    } else {
+                        tmp3.set(up).mul(bottomY)
+                        for (p in centerPoints) p.add(tmp3)
+                        up.mul(-1.0)
+                        meshes.add(triToMesh(triangulation, up, bottomColor))
+                    }
+
+                }
+
+                lastWarning = null
                 merge(meshes, mesh)
             }
         }
@@ -209,25 +234,25 @@ class SplineCrossing : ProceduralMesh() {
         val nx = up.x.toFloat()
         val ny = up.y.toFloat()
         val nz = up.z.toFloat()
-        val positions = FloatArray(tri.size * 3)
+        val pos = FloatArray(tri.size * 3)
         var k = 0
         for (i in tri.indices) {
             val p = tri[i]
-            positions[k++] = p.x()
-            positions[k++] = p.y()
-            positions[k++] = p.z()
+            pos[k++] = p.x()
+            pos[k++] = p.y()
+            pos[k++] = p.z()
         }
-        val normals = FloatArray(tri.size * 3)
+        val nor = FloatArray(tri.size * 3)
         k = 0
         for (i in tri.indices) {
-            normals[k++] = nx
-            normals[k++] = ny
-            normals[k++] = nz
+            nor[k++] = nx
+            nor[k++] = ny
+            nor[k++] = nz
         }
         val colors = IntArray(tri.size)
         colors.fill(color)
-        mesh.positions = positions
-        mesh.normals = normals
+        mesh.positions = pos
+        mesh.normals = nor
         mesh.color0 = colors
         return mesh
     }

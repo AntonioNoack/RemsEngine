@@ -8,11 +8,13 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.*
 
 /**
  * spline meshes are parts of many simulator games, e.g. street building
@@ -80,7 +82,15 @@ class SplineMesh : ProceduralMesh() {
         set(value) {
             if (field != value) {
                 field = value
-                if (!isClosed) invalidateMesh()
+                invalidateMesh()
+            }
+        }
+
+    var roundStart = false
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateMesh()
             }
         }
 
@@ -88,7 +98,15 @@ class SplineMesh : ProceduralMesh() {
         set(value) {
             if (field != value) {
                 field = value
-                if (!isClosed) invalidateMesh()
+                invalidateMesh()
+            }
+        }
+
+    var roundEnd = false
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateMesh()
             }
         }
 
@@ -248,6 +266,8 @@ class SplineMesh : ProceduralMesh() {
             val n1 = Vector2f()
             val dirY0 = Vector3f(0f, 1f, 0f)
             val dirY1 = Vector3f(0f, 1f, 0f)
+
+            // todo option for round start/end
 
             fun addStartQuad(p0a: Vector3d, p0b: Vector3d, nx: Float) {
                 // add profile
@@ -421,6 +441,88 @@ class SplineMesh : ProceduralMesh() {
             normals[k3 + 1] = normal.y
             normals[k3 + 2] = normal.z
             colors[k] = c
+        }
+
+        fun createEndPiece(
+            point: SplineControlPoint,
+            useRightForEnd: Boolean, pointsPerRadiant: Double,
+            mesh: Mesh,
+        ) {
+
+            // generate end piece: rotational
+            val profile = point.profile
+            val halfProfile = profile.split()[!useRightForEnd]
+            val numAngles = 1 + max(1, pointsPerRadiant.roundToInt())
+            val profileSize = halfProfile.positions.size
+            val numQuads = (profileSize - 1) * (numAngles - 1)
+            val numPoints = numQuads * 6
+            val pos = mesh.positions.resize(numPoints * 3)
+            val nor = mesh.normals.resize(numPoints * 3)
+            val col = mesh.color0.resize(numPoints)
+            val dirY = Vector3f().set(point.getLocalUp(Vector3d()))
+            val angleOffset = useRightForEnd.toInt() * PI
+
+            // generate all values
+            val n0 = Vector2f()
+            val n1 = Vector2f()
+
+            val p0a = Vector3d()
+            val p0b = Vector3d()
+            val p1a = Vector3d()
+            val p1b = Vector3d()
+
+            val dirX0 = Vector3f()
+            val dirX1 = Vector3f()
+
+            // calculate points p0a,p0b
+            val cos0 = cos(angleOffset)
+            point.getLocalPosition(p0a, -cos0)
+            point.getLocalPosition(p0b, +cos0)
+
+            dirX(p0a, p0b, dirX0)
+
+            var k = 0
+            for (ai in 1 until numAngles) {
+                val angle = ai * PI / (numAngles - 1) + angleOffset
+                val cos1 = cos(angle)
+                val sin1 = sin(angle)
+                var p0 = halfProfile.positions[0]
+
+                // calculate points p1a,p1b
+                point.getLocalPosition(p1a, -cos1, -sin1)
+                point.getLocalPosition(p1b, +cos1, +sin1) // flip sign as well? yes, 180° rotated
+
+                dirX(p1a, p1b, dirX1)
+
+                for (si in 1 until profileSize) {
+
+                    val p1 = halfProfile.positions[si]
+                    val c0 = halfProfile.getColor(si - 1, true)
+                    val c1 = halfProfile.getColor(si, false)
+
+                    halfProfile.getNormal(si - 1, false, n0)
+                    halfProfile.getNormal(si - 1, true, n1)
+
+                    add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirY)
+                    add(pos, nor, col, k++, p1a, p1b, p1, n1, c1, dirX1, dirY)
+                    add(pos, nor, col, k++, p1a, p1b, p0, n0, c0, dirX1, dirY)
+
+                    add(pos, nor, col, k++, p0a, p0b, p1, n1, c1, dirX0, dirY)
+                    add(pos, nor, col, k++, p1a, p1b, p1, n1, c1, dirX1, dirY)
+                    add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirY)
+
+                    p0 = p1
+
+                }
+
+                p0a.set(p1a)
+                p0b.set(p1b)
+                dirX0.set(dirX1)
+
+            }
+            mesh.positions = pos
+            mesh.normals = nor
+            mesh.color0 = col
         }
 
         fun merge(ts: List<Mesh>, dst: Mesh) {
