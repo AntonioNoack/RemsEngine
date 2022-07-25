@@ -6,6 +6,7 @@ import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.SQRT3
+import me.anno.maths.Maths.hasFlag
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Triangles.computeConeInterpolation
@@ -17,11 +18,11 @@ import kotlin.math.sqrt
 
 object Raycast {
 
-    // todo flag for mesh-backsides: ignore or respect
-
-    val TRIANGLES = 1
-    val COLLIDERS = 2
-    val SDFS = 4
+    val TRIANGLE_FRONT = 1
+    val TRIANGLE_BACK = 2
+    val TRIANGLES = TRIANGLE_FRONT or TRIANGLE_BACK // 3
+    val COLLIDERS = 4
+    val SDFS = 8
 
     /**
      * returns whether something was hit,
@@ -169,63 +170,18 @@ object Raycast {
 
     }
 
-    /*fun raycastTriangleMeshGlobal(
-        entity: Entity, mesh: Mesh,
-        start: Vector3d, direction: Vector3d, end: Vector3d,
-        inverse: Matrix4x3d, result: RayHit,
-    ): Boolean {
-
-        var hasHitTriangle = false
-
-        // todo it would be great if we would/could project the start+end onto the global aabb,
-        // todo if they lay outside, so more often we can use the faster method more often
-
-        // transform the ray into local mesh coordinates
-        val globalTransform = entity.transform.globalTransform // local -> global
-        inverse.set(globalTransform).invert()
-
-        // todo if it is animated, we should ignore the aabb, and must apply the appropriate bone transforms
-        // mesh is scaled to zero on some axis, need to work in global coordinates
-        // this is quite a bit more expensive, because we need to transform each mesh point into global coordinates
-
-        // first test whether the aabbs really overlap
-        val globalAABB = result.tmpAABBd.set(mesh.aabb)
-        transformAABB(globalAABB, globalTransform)
-
-        if (testLineAABB(globalAABB, start, end)) {
-
-            val tmp = result.tmpVector3ds
-            val tmpNormal = tmp[0]
-            val tmpPosition = tmp[1]
-            mesh.forEachTriangle(tmp[2], tmp[3], tmp[4]) { a, b, c ->
-                globalTransform.transformPosition(a)
-                globalTransform.transformPosition(b)
-                globalTransform.transformPosition(c)
-                val distance = rayTriangleIntersection(
-                    start, direction, a, b, c, result.distance, tmpPosition, tmpNormal
-                )
-                if (distance < result.distance) {
-                    result.distance = distance
-                    hasHitTriangle = true
-                    result.positionWS.set(tmpPosition)
-                    result.normalWS.set(tmpNormal)
-                }
-            }
-
-        }
-
-        return hasHitTriangle
-
-    }*/
-
     fun raycastTriangleMesh(
         entity: Entity?, mesh: Mesh, start: Vector3d,
         direction: Vector3d, end: Vector3d, radiusAtOrigin: Double,
-        radiusPerUnit: Double, result: RayHit,
+        radiusPerUnit: Double, result: RayHit, typeMask: Int
     ): Boolean {
 
         val original = result.distance
         if (original <= 0.0) return false
+
+        val acceptFront = typeMask.hasFlag(TRIANGLE_FRONT)
+        val acceptBack = typeMask.hasFlag(TRIANGLE_BACK)
+        if (!acceptFront && !acceptBack) return false
 
         // calculate bounds
         mesh.ensureBuffer()
@@ -276,14 +232,7 @@ object Raycast {
             val localMaxDistance = localSrt.distance(localEnd)
 
             // test whether we intersect the aabb of this mesh
-            if (mesh.aabb.testLine(
-                    localSrt,
-                    localDir,
-                    localRadiusAtOrigin,
-                    localRadiusPerUnit,
-                    localMaxDistance
-                )
-            ) {
+            if (mesh.aabb.testLine(localSrt, localDir, localRadiusAtOrigin, localRadiusPerUnit, localMaxDistance)) {
 
                 // test whether we intersect any triangle of this mesh
                 val localMaxDistance2 = localMaxDistance + extraDistance
@@ -301,9 +250,11 @@ object Raycast {
                         bestLocalDistance, localHitTmp, localNormalTmp
                     )
                     if (localDistance < bestLocalDistance) {
-                        bestLocalDistance = localDistance
-                        localHit.set(localHitTmp)
-                        localNormal.set(localNormalTmp)
+                        if (if (localNormalTmp.dot(localDir) < 0f) acceptFront else acceptBack) {
+                            bestLocalDistance = localDistance
+                            localHit.set(localHitTmp)
+                            localNormal.set(localNormalTmp)
+                        }
                     }
                 }
 
@@ -338,9 +289,11 @@ object Raycast {
                         maxDistance, tmpPos, tmpNor
                     )
                     if (distance < result.distance) {
-                        result.distance = distance
-                        result.positionWS.set(tmpPos)
-                        result.normalWS.set(tmpNor)
+                        if (if (tmpNor.dot(direction) < 0f) acceptFront else acceptBack) {
+                            result.distance = distance
+                            result.positionWS.set(tmpPos)
+                            result.normalWS.set(tmpNor)
+                        }
                     }
                 }
             }
@@ -360,9 +313,18 @@ object Raycast {
     private val ex = RuntimeException()
 
     @Suppress("unused")
-    fun raycastTriangleMesh(mesh: Mesh, start: Vector3f, dir: Vector3f, distance: Float): Boolean {
+    fun raycastTriangleMesh(
+        mesh: Mesh, start: Vector3f, dir: Vector3f, distance: Float,
+        typeMask: Int
+    ): Boolean {
+
         if (distance <= 0.0) return false
+        val acceptFront = typeMask.hasFlag(TRIANGLE_FRONT)
+        val acceptBack = typeMask.hasFlag(TRIANGLE_BACK)
+        if (!acceptFront && !acceptBack) return false
+
         mesh.ensureBuffer()
+
         // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
         // test whether we intersect the aabb of this mesh
         if (mesh.aabb.testLine(start, dir, distance)) {
@@ -373,13 +335,14 @@ object Raycast {
             val c = JomlPools.vec3f.create()
             try {
                 mesh.forEachTriangle(a, b, c) { ai, bi, ci ->
-                    // check collision of localStart-localEnd with triangle a,b,c
+                    // check collision of localStart-localEnd with triangle ABC
                     val localDistance = rayTriangleIntersection(
                         start, dir, ai, bi, ci,
                         distance, localHitTmp, localNormalTmp
                     )
                     if (localDistance < distance) {
-                        throw ex
+                        if (if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack)
+                            throw ex
                     }
                 }
             } catch (e: RuntimeException) {

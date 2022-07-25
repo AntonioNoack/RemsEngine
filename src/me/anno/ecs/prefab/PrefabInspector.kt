@@ -303,7 +303,6 @@ class PrefabInspector(val reference: FileReference) {
                 if (group != lastGroup) {
                     lastGroup = group
                     // add title for group
-                    // todo add children to lists instead of this
                     list.add(applyGroupStyle(TextPanel(group.camelCaseToTitle(), style)))
                 }
 
@@ -313,9 +312,8 @@ class PrefabInspector(val reference: FileReference) {
                     list.add(applyGroupStyle(TextPanel(className ?: "Anonymous", style)))
                 }
 
-                // todo mesh input, skeleton selection, animation selection, ...
-
-                // todo more indentation?
+                // todo mesh selection, skeleton selection, animation selection, ...
+                // to do more indentation?
 
                 try {
                     val property2 = PIProperty(this, instance, name, property)

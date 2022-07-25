@@ -644,8 +644,6 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     private fun onAddComponent(component: Component) {
-        // if component is Collider or Rigidbody, update the physics
-        // todo isEnabled for Colliders and Rigidbody needs to have listeners as well [is this already done maybe? mmh]
         onChangeComponent(component)
         component.entity = this
     }

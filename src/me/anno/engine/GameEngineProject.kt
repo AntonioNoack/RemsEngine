@@ -17,8 +17,6 @@ import org.apache.logging.log4j.LogManager
 
 class GameEngineProject() : NamedSaveable() {
 
-    // todo save the config, if something changes
-
     companion object {
         private val LOGGER = LogManager.getLogger(GameEngineProject::class)
         fun readOrCreate(location: FileReference?): GameEngineProject? {

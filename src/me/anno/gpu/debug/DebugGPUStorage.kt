@@ -148,8 +148,8 @@ object DebugGPUStorage {
 
     class TexturePanel3DC(name: String, val tex: CubemapTexture) : TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
 
-        override fun getTexW(): Int = tex.w
-        override fun getTexH(): Int = tex.h
+        override fun getTexW(): Int = tex.w * 2 // 360°
+        override fun getTexH(): Int = tex.w // 180°
         override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
         val isDepth get() = isDepthFormat(tex.internalFormat)
 
@@ -178,7 +178,6 @@ object DebugGPUStorage {
                 }
             },
             MenuOption(NameDesc("CubemapTextures (${tex3dCs.size})")) {
-                // todo test this, e.g. with point light shadows
                 create2DListOfPanels("CubemapTextures") { list ->
                     for (tex in tex3dCs.sortedBy { it.w }) {
                         list.add(TexturePanel3DC("", tex))

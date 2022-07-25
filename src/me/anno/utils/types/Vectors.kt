@@ -295,7 +295,7 @@ object Vectors {
     fun Vector3d.floorToInt() =
         Vector3i(kotlin.math.floor(x).toInt(), kotlin.math.floor(y).toInt(), kotlin.math.floor(z).toInt())
 
-    fun Vector3f.safeNormalize(length: Float): Vector3f {
+    fun Vector3f.safeNormalize(length: Float = 1f): Vector3f {
         val f = length / length()
         if (!f.isFinite() || f == 0f) {
             set(0.0)
@@ -452,6 +452,10 @@ object Vectors {
 
     fun Vector2fc.cross(other: Vector2fc): Float {
         return x() * other.y() - y() * other.x()
+    }
+
+    fun Vector2fc.mulAdd(f: Float, b: Vector2fc, dst: Vector2f): Vector2f {
+        return dst.set(x() * f + b.x(), y() * f + b.y())
     }
 
 }

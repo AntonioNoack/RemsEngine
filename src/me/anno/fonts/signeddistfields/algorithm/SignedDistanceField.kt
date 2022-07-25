@@ -49,7 +49,8 @@ object SignedDistanceField {
     fun createTexture(font: me.anno.ui.base.Font, text: CharSequence, round: Boolean) =
         createTexture(getFont(font), text, round)
 
-    fun createTexture(font: AWTFont, text: CharSequence, round: Boolean) = createTexture(font.font, text, round)
+    fun createTexture(font: AWTFont, text: CharSequence, round: Boolean) =
+        createTexture(font.font, text, round)
 
     fun calculateDistances(
         w: Int, h: Int,

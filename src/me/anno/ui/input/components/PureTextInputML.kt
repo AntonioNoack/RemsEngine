@@ -29,6 +29,7 @@ import me.anno.utils.types.Strings.joinChars
 import kotlin.math.abs
 import kotlin.streams.toList
 
+// todo hovering over spell correction can reset the cursor (WTF), fix that
 open class PureTextInputML(style: Style) :
     ScrollPanelXY(Padding(0), style),
     InputPanel<String>,

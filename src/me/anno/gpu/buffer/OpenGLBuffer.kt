@@ -243,7 +243,7 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
         // because VAOs need default values (probably)
 
         // todo change back to use it constantly, or to be configurable
-        var useVAOs
+        var useVAOs // works on most meshes, but not all :/
             get() = Input.isShiftDown
             set(_) {}
 

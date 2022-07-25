@@ -22,7 +22,7 @@ class SIProperty<V>(
         get() = reflections.allProperties[name]?.annotations ?: emptyList()
 
     override fun set(panel: Panel?, value: Any?) {
-        // todo depending on the type, call a different "setter"
+        // depending on the type, call a different "setter"
         // better depending on actual type first...
         // (except idk whether that works completely reliably in JavaScript
         // todo all types, and crash previously, if a type is not supported, so we have a fallback...
