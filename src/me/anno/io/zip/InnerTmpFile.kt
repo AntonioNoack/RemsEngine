@@ -20,7 +20,7 @@ abstract class InnerTmpFile private constructor(
 ) : InnerFile(name, name, false, InvalidRef) {
 
     init {
-        LOGGER.debug("Registered $name")
+        if (printTmpFiles) LOGGER.debug("Registered $name")
         synchronized(Companion) {
             val ref = WeakReference(this)
             while (files.size <= uuid) {
@@ -136,6 +136,7 @@ abstract class InnerTmpFile private constructor(
     }
 
     companion object { // only works if extension does not contain dots
+        var printTmpFiles = false
         private val LOGGER = LogManager.getLogger(InnerTmpFile::class)
         private val files = ArrayList<WeakReference<InnerTmpFile>>()
         private val id = AtomicInteger()

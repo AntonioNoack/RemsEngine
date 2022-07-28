@@ -8,7 +8,7 @@ import me.anno.utils.OS
 import org.joml.Vector3d
 
 fun main() {
-    ECSRegistry.initNoGFX()
+    ECSRegistry.init()
     val mesh = MeshCache[OS.documents.getChild("redMonkey.glb")]!!
     val collider = MeshCollider()
     collider.mesh = mesh

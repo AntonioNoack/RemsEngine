@@ -428,7 +428,7 @@ fun main() {
     if (gpuBVH) {
         ECSRegistry.initWithGFX(w, h)
     } else {
-        ECSRegistry.initNoGFX()
+        ECSRegistry.init()
     }
 
     val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(maxNodeSize)

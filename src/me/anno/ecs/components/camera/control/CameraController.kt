@@ -90,11 +90,15 @@ abstract class CameraController : Component(), ControlReceiver {
 
     }
 
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String): Boolean {
+        return super.onGotAction(x, y, dx, dy, action)
+    }
+
     /**
      * define the acceleration in [-1 .. +1] range. Larger values will be clamped.
      * */
     open fun collectInputs(acceleration: Vector3f) {
-        // todo support as much as possible, best with some kind of keymapping...
+        // todo replace this with actions, so it can be configured easily
         val s = movementSpeed
         if (isKeyDown('w') || isKeyDown(GLFW.GLFW_KEY_UP)) acceleration.z -= s
         if (isKeyDown('s') || isKeyDown(GLFW.GLFW_KEY_DOWN)) acceleration.z += s

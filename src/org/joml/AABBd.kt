@@ -355,4 +355,56 @@ class AABBd(
         return min(min(dx / dir.x, dy / dir.y), dz / dir.z)
     }
 
+    fun isRayIntersecting(
+        rayOrigin: Vector3d,
+        invRayDirection: Vector3d,
+        maxDistance: Double = Double.POSITIVE_INFINITY
+    ): Boolean {
+        val rx = rayOrigin.x
+        val ry = rayOrigin.y
+        val rz = rayOrigin.z
+        val rdx = invRayDirection.x
+        val rdy = invRayDirection.y
+        val rdz = invRayDirection.z
+        val sx0 = (minX - rx) * rdx
+        val sy0 = (minY - ry) * rdy
+        val sz0 = (minZ - rz) * rdz
+        val sx1 = (maxX - rx) * rdx
+        val sy1 = (maxY - ry) * rdy
+        val sz1 = (maxZ - rz) * rdz
+        val nearX = min(sx0, sx1)
+        val farX = max(sx0, sx1)
+        val nearY = min(sy0, sy1)
+        val farY = max(sy0, sy1)
+        val nearZ = min(sz0, sz1)
+        val farZ = max(sz0, sz1)
+        val far = min(farX, min(farY, farZ))
+        val near = max(max(nearX, max(nearY, nearZ)), 0.0)
+        return far >= near && near < maxDistance
+    }
+
+    fun whereIsRayIntersecting(rayOrigin: Vector3d, invRayDirection: Vector3d): Double {
+        val rx = rayOrigin.x
+        val ry = rayOrigin.y
+        val rz = rayOrigin.z
+        val rdx = invRayDirection.x
+        val rdy = invRayDirection.y
+        val rdz = invRayDirection.z
+        val sx0 = (minX - rx) * rdx
+        val sy0 = (minY - ry) * rdy
+        val sz0 = (minZ - rz) * rdz
+        val sx1 = (maxX - rx) * rdx
+        val sy1 = (maxY - ry) * rdy
+        val sz1 = (maxZ - rz) * rdz
+        val nearX = min(sx0, sx1)
+        val farX = max(sx0, sx1)
+        val nearY = min(sy0, sy1)
+        val farY = max(sy0, sy1)
+        val nearZ = min(sz0, sz1)
+        val farZ = max(sz0, sz1)
+        val far = min(farX, min(farY, farZ))
+        val near = max(max(nearX, max(nearY, nearZ)), 0.0)
+        return if (far >= near) near else Double.POSITIVE_INFINITY
+    }
+
 }

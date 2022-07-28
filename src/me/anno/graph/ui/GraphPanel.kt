@@ -578,7 +578,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            ECSRegistry.initNoGFX()
+            ECSRegistry.init()
             TestStudio.testUI {
                 val g = FlowGraph.testLocalVariables()
                 calculateNodePositions(g.nodes)

@@ -206,9 +206,4 @@ object ECSRegistry {
         init()
     }
 
-    fun initNoGFX() {
-        ECSShaderLib.pbrModelShader = BaseShader()
-        init()
-    }
-
 }

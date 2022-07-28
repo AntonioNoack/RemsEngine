@@ -7,7 +7,7 @@ import me.anno.utils.OS.desktop
 
 fun main() {
 
-    ECSRegistry.initNoGFX()
+    ECSRegistry.init()
     loadScenePrefab(getReference(desktop, "Scene.json")).getSampleInstance()
 
 }

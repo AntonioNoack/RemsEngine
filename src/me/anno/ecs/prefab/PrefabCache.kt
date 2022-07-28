@@ -30,9 +30,6 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 object PrefabCache : CacheSection("Prefab") {
@@ -157,7 +154,7 @@ object PrefabCache : CacheSection("Prefab") {
                     val prefab = TextReader.read(file, StudioBase.workspace, false).firstOrNull()
                     if (prefab is Prefab) prefab.source = file
                     if (prefab != null) return prefab
-                } catch (e: UnknownClassException){
+                } catch (e: UnknownClassException) {
                     LOGGER.warn("$e by $file", e)
                 } catch (e: InvalidFormatException) {
                     if (printJsonErrors && file.lcExtension == "json")
@@ -195,7 +192,7 @@ object PrefabCache : CacheSection("Prefab") {
         val pair = getPrefabPair(resource, depth, async) ?: return null
         return pair.instance ?: try {
             pair.prefab?.getSampleInstance(depth)
-        } catch (e: UnknownClassException){
+        } catch (e: UnknownClassException) {
             e.printStackTrace()
             null
         } catch (e: Exception) {
@@ -204,6 +201,7 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
+    var debugLoading = false
     private fun getPrefabPair(
         resource: FileReference?,
         depth: Int = maxPrefabDepth,
@@ -215,9 +213,9 @@ object PrefabCache : CacheSection("Prefab") {
             resource is InnerLinkFile -> getPrefabPair(resource.link, depth, async)
             resource.exists && !resource.isDirectory -> {
                 val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
-                    LOGGER.info("loading $file")
+                    if (debugLoading) LOGGER.info("loading $file")
                     val loaded = loadPrefab3(file)
-                    LOGGER.info("loaded $file, got ${loaded?.className}")
+                    if (debugLoading) LOGGER.info("loaded $file, got ${loaded?.className}")
                     // if (loaded is Prefab) LOGGER.info(loaded)
                     if (loaded != null) {
                         FileWatch.addWatchDog(file)

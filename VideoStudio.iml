@@ -41,5 +41,6 @@
     <orderEntry type="library" name="JBox2d" level="project" />
     <orderEntry type="library" name="Coroutines" level="project" />
     <orderEntry type="library" name="LWJGL-TinyEXR" level="project" />
+    <orderEntry type="library" name="Recast" level="project" />
   </component>
 </module>

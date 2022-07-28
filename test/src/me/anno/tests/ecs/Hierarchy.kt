@@ -177,7 +177,7 @@ fun testAddSimpleChild() {
 }
 
 fun main() {
-    ECSRegistry.initNoGFX()
+    ECSRegistry.init()
     println("----------------------")
     testMultiAdd()
     println("----------------------")

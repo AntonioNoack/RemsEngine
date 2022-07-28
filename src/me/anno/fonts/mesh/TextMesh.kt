@@ -7,8 +7,8 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.distance
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.OS
+import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Vectors.avg
-import me.anno.utils.types.Vectors.isInsideTriangle
 import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f

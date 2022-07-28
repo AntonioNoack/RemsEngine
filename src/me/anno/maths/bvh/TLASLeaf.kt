@@ -28,7 +28,7 @@ class TLASLeaf(
     override fun countTLASLeaves() = 1
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit) {
-        if (RayTracing.isRayIntersectingAABB(pos, invDir, bounds, hit.distance.toFloat())) {
+        if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
 
             // for testing only
             if (dir.x < dir.y) {

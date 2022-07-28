@@ -13,7 +13,7 @@ import org.joml.Vector3d
 
 fun main() {
 
-    ECSRegistry.initNoGFX()
+    ECSRegistry.init()
 
     test2()
 

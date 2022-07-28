@@ -6,8 +6,6 @@ import me.anno.maths.paths.PathFinding.emptyResult
 import me.anno.maths.paths.PathFinding.genericSearch
 import me.anno.utils.structures.lists.Lists.any2
 
-// todo nav mesh generation for arbitrary geometries
-
 /**
  * accelerates many requests on large graphs by grouping them into proxies;
  * quality will be lower than without this accelerator;

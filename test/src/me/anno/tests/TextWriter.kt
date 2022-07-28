@@ -15,7 +15,7 @@ import me.anno.io.text.TextWriter
 fun main() {
     // smileys were not saved correctly, why?
     // because the input stream reader was reading bytes, not chars
-    ECSRegistry.initNoGFX()
+    ECSRegistry.init()
     val smiley = "🤔"
     val text = CSet(Path.ROOT_PATH, smiley, 0)
     text.name = smiley

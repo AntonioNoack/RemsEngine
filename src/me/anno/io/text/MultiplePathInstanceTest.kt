@@ -56,7 +56,7 @@ fun main() {
         ]
     """.trimIndent()
 
-    ECSRegistry.initNoGFX()
+    ECSRegistry.init()
 
     val asObject = TextReader.read(raw, InvalidRef, false).first()
     val asString = TextWriter.toText(asObject, InvalidRef)

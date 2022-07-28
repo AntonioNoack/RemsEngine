@@ -96,6 +96,9 @@ object Matrices {
         return getScale(JomlPools.vec3d.borrow()).length()
     }
 
+    /**
+     * replace missing setter/constructor
+     * */
     fun Matrix4x3f.set2(src: Matrix4x3d): Matrix4x3f {
         set(
             src.m00().toFloat(), src.m01().toFloat(), src.m02().toFloat(),

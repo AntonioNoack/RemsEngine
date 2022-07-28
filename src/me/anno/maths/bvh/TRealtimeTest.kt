@@ -51,7 +51,7 @@ object TRealtimeTest {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        ECSRegistry.initNoGFX()
+        ECSRegistry.init()
         val clock = Clock()
         val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(16)
         clock.stop("Loading & Generating TLAS", 0.0)

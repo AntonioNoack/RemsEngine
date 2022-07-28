@@ -2,7 +2,7 @@ package me.anno.ecs.components.chunks.spherical
 
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.makePerpendicular
-import me.anno.utils.types.Vectors.rayTriangleIntersect
+import me.anno.utils.types.Triangles.rayTriangleIntersect
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f

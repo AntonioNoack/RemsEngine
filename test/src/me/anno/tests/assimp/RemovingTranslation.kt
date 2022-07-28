@@ -17,7 +17,7 @@ import kotlin.math.sqrt
 @Suppress("SpellCheckingInspection")
 fun main() {
 
-    ECSRegistry.initNoGFX()
+    ECSRegistry.init()
 
     // fox skeleton
     val file = getReference(downloads, "3d/azeria/scene.gltf")

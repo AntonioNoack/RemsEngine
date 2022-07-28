@@ -15,5 +15,6 @@
     <orderEntry type="library" name="LWJGL" level="project" />
     <orderEntry type="library" name="JBox2d" level="project" />
     <orderEntry type="library" name="JBullet2x64" level="project" />
+    <orderEntry type="library" name="Recast" level="project" />
   </component>
 </module>

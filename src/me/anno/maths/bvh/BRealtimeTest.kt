@@ -35,7 +35,7 @@ import org.joml.Vector3f
 import kotlin.math.pow
 
 fun main() {
-    ECSRegistry.initNoGFX()
+    ECSRegistry.init()
     val meshSource = documents.getChild("monkey.obj")
     val mesh = MeshCache[meshSource]!!
     val blas = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN, 8)!!

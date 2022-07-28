@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
@@ -12,9 +13,12 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.types.Vectors.print
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 abstract class MeshComponentBase : CollidingComponent() {
 
@@ -122,6 +126,21 @@ abstract class MeshComponentBase : CollidingComponent() {
         getMesh()?.draw(shader, materialIndex)
     }
 
+    @DebugAction
+    fun printMesh() {
+        val mesh = getMesh()
+        if (mesh != null) {
+            val pos = mesh.positions ?: return
+            LOGGER.debug("Positions: " + Array(pos.size / 3) {
+                val i = it * 3
+                Vector3f(pos[i], pos[i + 1], pos[i + 2])
+            }.joinToString { it.print() })
+            LOGGER.debug("Indices: ${mesh.indices?.joinToString()}")
+        } else {
+            LOGGER.warn("Mesh is null")
+        }
+    }
+
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as MeshComponentBase
@@ -129,6 +148,10 @@ abstract class MeshComponentBase : CollidingComponent() {
         clone.castShadows = castShadows
         clone.receiveShadows = receiveShadows
         clone.isInstanced = isInstanced
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(MeshComponentBase::class)
     }
 
 }

@@ -11,7 +11,7 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
     val mask = 1 shl axis
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit) {
-        if (RayTracing.isRayIntersectingAABB(pos, invDir, bounds, hit.distance.toFloat())) {
+        if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
             // put far bvh node on the stack, advance to near
             if (dirIsNeg.and(mask) != 0) {
                 n1.intersect(pos, dir, invDir, dirIsNeg, hit)

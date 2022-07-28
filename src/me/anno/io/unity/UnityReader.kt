@@ -1203,7 +1203,7 @@ Transform:
         // val sampleMaterial = getReference(downloads, "up/mat/PolygonScifi_03_A.mat")
         // LOGGER.info(readAsAsset(sampleMaterial).readText())
 
-        // ECSRegistry.initNoGFX()
+        // ECSRegistry.init()
 
         val testScene = getReference(main, "Scenes/Demo_TriplanarDirt.unity")
         for (fileName in listOf("2130288114", "668974552")) {

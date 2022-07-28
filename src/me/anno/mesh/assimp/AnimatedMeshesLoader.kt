@@ -44,7 +44,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        ECSRegistry.initNoGFX()
+        ECSRegistry.init()
         // should return about 5m
         val ref = FileReference.getReference(
             "E:/Assets/Polygon_Street_Racer_Unity_Package_2018_4_Update_01.unitypackage/Assets/" + "PolygonStreetRacer/Models/SM_Prop_LogPile_Large_02.fbx"

@@ -120,6 +120,12 @@ class FloatArrayList(capacity: Int) : ICacheData {
         }
     }
 
+    fun add(l: FloatArray, srcStartIndex: Int, srcLength: Int) {
+        for (i in srcStartIndex until srcStartIndex + srcLength) {
+            plusAssign(l[i])
+        }
+    }
+
     fun ensureExtra(size: Int) {}
     fun addUnsafe(x: Float) {
         plusAssign(x)

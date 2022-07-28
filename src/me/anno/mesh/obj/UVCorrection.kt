@@ -94,7 +94,7 @@ object UVCorrection {
      * */
     @JvmStatic
     fun main(args: Array<String>) {
-        ECSRegistry.initNoGFX()
+        ECSRegistry.init()
         @Suppress("SpellCheckingInspection")
         val samples = listOf(
             // path and ideal detection

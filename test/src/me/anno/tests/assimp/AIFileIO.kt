@@ -10,7 +10,7 @@ fun main() {
 
     // now all works :)
 
-    ECSRegistry.initNoGFX()
+    ECSRegistry.init()
 
     for (file in listOf(
         "3d/bunny.obj",

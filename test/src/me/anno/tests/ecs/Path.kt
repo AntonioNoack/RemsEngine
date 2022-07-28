@@ -51,7 +51,7 @@ fun main() {
     println("abc x abc, 1: '${abc.getSubPathIfMatching(abc, 1)}'")
     println("abc x bcd, 1: '${abc.getSubPathIfMatching(bcd, 1)}'")
 
-    ECSRegistry.initNoGFX()
+    ECSRegistry.init()
     println(p123)
     val cloned = TextReader.read(TextWriter.toText(p123, InvalidRef), InvalidRef, false).first()
     println(cloned)

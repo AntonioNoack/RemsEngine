@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.merge
 import me.anno.fonts.mesh.Triangulation
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Vectors.findSystem
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector3fc
@@ -96,23 +97,26 @@ class SplineCrossing : ProceduralMesh() {
                 val profile = streets.first().profile
                 val halfProfile = profile.split()[!useRight]
                 val center = Vector3d()
-                val up = Vector3d()
+                val yAxis = Vector3d()
                 val tmp = Vector3d()
                 val tmp2 = Vector3d()
                 val tmp3 = Vector3f()
                 for (street in streets) {
                     center.add(street.transform!!.localPosition)
-                    up.add(street.transform!!.localRotation.transform(tmp.set(0.0, 1.0, 0.0)))
+                    yAxis.add(street.transform!!.localRotation.transform(tmp.set(0.0, 1.0, 0.0)))
                 }
                 center.div(streets.size.toDouble())
-                up.normalize()
-                // todo find x and z axis
+                yAxis.normalize()
+
+                val xAxis = Vector3d()
+                val zAxis = Vector3d()
+                yAxis.findSystem(xAxis, zAxis)
 
                 // auto sort by angle?
                 if (autoSort) {
                     streets = streets.sortedBy {
                         it.getLocalPosition(tmp, 0.0)
-                        atan2(tmp.z, tmp.x) // todo use local (x/z) coordinates
+                        atan2(zAxis.dot(tmp), xAxis.dot(tmp))
                     }
                 }
 
@@ -205,20 +209,20 @@ class SplineCrossing : ProceduralMesh() {
 
                     if (coverTop) {
                         // raise all points up
-                        tmp3.set(up).mul(topY)
+                        tmp3.set(yAxis).mul(topY)
                         for (p in centerPoints) p.add(tmp3)
-                        meshes.add(triToMesh(triangulation, up, topColor))
+                        meshes.add(triToMesh(triangulation, yAxis, topColor))
                         if (coverBottom) {
-                            tmp3.set(up).mul(bottomY - topY)
+                            tmp3.set(yAxis).mul(bottomY - topY)
                             for (p in centerPoints) p.add(tmp3)
-                            up.mul(-1.0)
-                            meshes.add(triToMesh(triangulation.reversed(), up, bottomColor))
+                            yAxis.mul(-1.0)
+                            meshes.add(triToMesh(triangulation.reversed(), yAxis, bottomColor))
                         }
                     } else {
-                        tmp3.set(up).mul(bottomY)
+                        tmp3.set(yAxis).mul(bottomY)
                         for (p in centerPoints) p.add(tmp3)
-                        up.mul(-1.0)
-                        meshes.add(triToMesh(triangulation, up, bottomColor))
+                        yAxis.mul(-1.0)
+                        meshes.add(triToMesh(triangulation, yAxis, bottomColor))
                     }
 
                 }

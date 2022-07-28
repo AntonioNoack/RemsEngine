@@ -40,10 +40,10 @@ object NormalCalculator {
         c.set(positions[i2], positions[i2 + 1], positions[i2 + 2])
         b.sub(a)
         c.sub(a)
-        return c.cross(b).normalize()
+        return b.cross(c).normalize()
         // todo sometimes one is correct, and sometimes the opposite.. why?
         // c-b: Shape.smoothCube.front
-        // b-c: Shape.tetrahedron.front
+        // b-c: Shape.tetrahedron.front, mesh from nav mesh
     }
 
     private fun computeNormalsIndexed(positions: FloatArray, normals: FloatArray, indices: IntArray) {

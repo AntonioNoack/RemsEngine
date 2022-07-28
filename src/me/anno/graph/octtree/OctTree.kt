@@ -1,7 +1,7 @@
 package me.anno.graph.octtree
 
 /**
- * a generic node for quad trees and oct trees, or more/less dimensions
+ * a generic node for quad trees and oct trees, or more/less dimensions;
  * just specify a different type of point
  *
  * the Any can be a single element (not splittable/joinable),
@@ -24,7 +24,7 @@ abstract class OctTree<Point>(
     var hasValue: Boolean = false
     var children: Array<OctTree<Point>?>? = null
 
-    fun iterate(callback: (Any) -> Boolean): Boolean {
+    fun iterate(callback: (node: OctTree<Point>) -> Boolean): Boolean {
         val children = children
         return if (children != null) {
             for (child in children) {
@@ -34,12 +34,12 @@ abstract class OctTree<Point>(
             false
         } else {
             if (hasValue) {
-                callback(this as Any)
+                callback(this)
             } else false
         }
     }
 
-    fun iterate(min: Point, max: Point, callback: (Any) -> Boolean): Boolean {
+    fun iterate(min: Point, max: Point, isValidSample: (node: OctTree<Point>) -> Boolean): Boolean {
         val children = children
         return if (children != null) {
             val minIndex = getIndex(min)
@@ -50,15 +50,13 @@ abstract class OctTree<Point>(
                 if (bitsAreInBetween(or, and, index)) {
                     val child = children[index]
                     child ?: continue
-                    if (child.iterate(callback)) return true
+                    if (child.iterate(isValidSample)) return true
                 }
             }
             false
-        } else {
-            if (hasValue) {
-                callback(this as Any)
-            } else false
-        }
+        } else if (hasValue) {
+            isValidSample(this)
+        } else false
     }
 
     abstract fun setContent(newContent: Any)

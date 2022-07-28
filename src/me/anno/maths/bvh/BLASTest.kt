@@ -164,7 +164,7 @@ fun main() {
     if (gpuRaw || gpuBVH) {
         ECSRegistry.initWithGFX(w, h)
     } else {
-        ECSRegistry.initNoGFX()
+        ECSRegistry.init()
     }
 
     val source = downloads.getChild("3d/bunny.obj")
