@@ -26,7 +26,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
             aabb.all()
         } else {
             val mesh = getLightPrimitive()
-            mesh.ensureBuffer()
+            mesh.ensureBounds()
             mesh.aabb.transformUnion(globalTransform, aabb)
         }
         return true

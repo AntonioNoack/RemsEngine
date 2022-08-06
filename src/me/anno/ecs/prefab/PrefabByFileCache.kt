@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.cache.LRUCache
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
 import me.anno.io.ISaveable
@@ -17,14 +18,29 @@ open class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
     operator fun get(ref: FileReference?) = get(ref, false)
     operator fun get(ref: FileReference?, default: V) = get(ref, false) ?: default
 
+    val lru = LRUCache<FileReference, V>(4)
+
+    fun update() {
+        lru.clear()
+    }
+
     open operator fun get(ref: FileReference?, async: Boolean): V? {
         if (ref == null || ref == InvalidRef) return null
-        val instance = getPrefabInstance(ref, maxPrefabDepth, async) ?: return null
+        val i0 = lru[ref]
         @Suppress("unchecked_cast")
-        return if (clazz.isInstance(instance)) instance as V else {
-            LOGGER.warn("Requested $ref as $clazz, but only found ${instance.className}")
-            null
-        }
+        if (i0 !== Unit) return i0 as? V
+        val instance = getPrefabInstance(ref, maxPrefabDepth, async)
+        val value = if (instance != null) {
+            @Suppress("unchecked_cast")
+            if (clazz.isInstance(instance)) {
+                instance as V
+            } else {
+                LOGGER.warn("Requested $ref as $clazz, but only found ${instance.className}")
+                null
+            }
+        } else null
+        lru[ref] = value
+        return value
     }
 
 }

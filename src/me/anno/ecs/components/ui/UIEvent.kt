@@ -20,13 +20,25 @@ class UIEvent(
 ) : Event() {
 
     override fun toString(): String {
-        // todo depending on type
-        return "$x $y += $dx $dy, $key, ($byMouse, $button, $isLong), $type, $action"
+        return when (type) {
+            UIEventType.MOUSE_WHEEL -> "mouse wheel $x $y += $dx $dy ($byMouse)"
+            UIEventType.MOUSE_MOVE -> "mouse move $x $y += $dx $dy"
+            UIEventType.MOUSE_DOWN -> "mouse down $button"
+            UIEventType.MOUSE_UP -> "mouse up $button"
+            UIEventType.MOUSE_CLICK ->"mouse click $button, $isLong"
+            UIEventType.KEY_DOWN -> "key down $key"
+            UIEventType.KEY_UP ->  "key up $key"
+            UIEventType.KEY_TYPED ->"key typed $key"
+            UIEventType.CHAR_TYPED -> "char typed $key"
+            UIEventType.ACTION -> "action \"$action\", $x $y += $dx $dy"
+        }
     }
 
     constructor(window: Window?, x: Float, y: Float, key: Int, type: UIEventType) :
             this(window, x, y, 0f, 0f, key, false, MouseButton.UNKNOWN, false, type)
 
+    // empty constructor for serialisation
+    @Suppress("unused")
     constructor() : this(
         null,
         0f, 0f, 0f, 0f, 0, false,

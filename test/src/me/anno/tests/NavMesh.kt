@@ -8,21 +8,21 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
-import me.anno.maths.Maths.hasFlag
-import me.anno.mesh.Shapes.smoothCube
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.types.Matrices.set2
-import me.anno.utils.types.Triangles.rayTriangleIntersection
+import me.anno.utils.types.Vectors.print
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.recast4j.LongArrayList
 import org.recast4j.detour.*
 import org.recast4j.recast.*
 import org.recast4j.recast.RecastConstants.PartitionType
 import org.recast4j.recast.geom.InputGeomProvider
 import org.recast4j.recast.geom.TriMesh
+import java.util.*
 
 val sampleFile = documents.getChild("NavMeshTest.obj")
 
@@ -37,7 +37,7 @@ fun main() {
 
     testUI {
 
-        // todo spawn active agent, and make it path-find
+        // todo spawn active agent, and make it path-find to mouse position / click
 
         ECSRegistry.init()
         val base = PrefabCache[sampleFile]!!.createInstance()
@@ -57,25 +57,70 @@ fun main() {
         navMeshEntity.position = Vector3d(0.0, agentHeight * 0.3, 0.0) // offset for better visibility
         entity.add(navMeshEntity)
 
+        // todo spawn agent somewhere...
+        // todo click to set target point
+
+        val navMesh = NavMesh(data, maxVerticesPerPoly, 0)
+        val tileRef = navMesh.getTileRefAt(data.header.x, data.header.y, data.header.layer)
+
+        val query = NavMeshQuery(navMesh)
+        val filter = DefaultQueryFilter()
+        val random = Random()
+        val p0 = Vector3f()
+        val p1 = Vector3f()
+
+        val ref0 = query.findRandomPointWithinCircle(tileRef, p0, 200f, filter, random)
+        val ref1 = query.findRandomPointWithinCircle(tileRef, p1, 200f, filter, random)
+
+        println("refs: $ref0, $ref1")
+
+        val path = query.findPath(ref0.result!!.randomRef, ref1.result!!.randomRef, p0, p1, filter)
+        println("path: ${path.status}, ${path.message}, ${path.result}")
+        for (v in path.result) {
+            // convert ref to position
+            val r = navMesh.getTileAndPolyByRef(v).result
+            val tile = r.first
+            val poly = r.second
+            val pos = Vector3f()
+            val vs = tile.data.vertices
+            for (idx in poly.vertices) {
+                val i3 = idx * 3
+                pos.add(vs[i3], vs[i3 + 1], vs[i3 + 2])
+            }
+            pos.div(poly.vertices.size.toFloat())
+            println(pos.print())
+        }
+
         testScene(entity)
+
     }
 
 }
 
+private operator fun LongArrayList.iterator(): Iterator<Long> {
+    return object : Iterator<Long> {
+        var index = 0
+        override fun hasNext() = index < size
+        override fun next() = get(index++)
+    }
+}
+
+fun Vector3f.f() = floatArrayOf(x, y, z)
+
 fun dataToMesh(data: MeshData): FloatArray {
     val fal = FloatArrayList(256)
-    val dv = data.verts
-    val ddv = data.detailVerts
+    val dv = data.vertices
+    val ddv = data.detailVertices
     for (i in 0 until data.header.polyCount) {
-        val p = data.polys[i]
+        val p = data.polygons[i]
         if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
-        val pv = p.verts
+        val pv = p.vertices
         val detailMesh = data.detailMeshes[i]
         if (detailMesh != null) {
             for (j in 0 until detailMesh.triCount) {
                 val t = (detailMesh.triBase + j) * 4
                 for (k in 0 until 3) {
-                    val v = data.detailTris[t + k]
+                    val v = data.detailTriangles[t + k]
                     if (v < p.vertCount) {
                         fal.add(dv, pv[v] * 3, 3)
                     } else {
@@ -145,14 +190,11 @@ class GeoProvider(world: Entity) : InputGeomProvider {
     }
 
     val meshes = ArrayList<TriMesh>()
-    val convexHulls = ArrayList<ConvexVolume>()
 
     init {
         for (it in world.getComponentsInChildren(MeshComponentBase::class)) {
             val mesh = it.getMesh()
-            println("processing $it, mesh: $mesh")
             if (mesh != null) {
-
                 val vertices = mesh.positions!!
                 val faces = mesh.indices ?: IntArray(vertices.size / 3) { it }
                 val vs = FloatArray(vertices.size)
@@ -164,44 +206,22 @@ class GeoProvider(world: Entity) : InputGeomProvider {
                     transform(tr, tmp, vertices, i, vs, i)
                 }
                 meshes.add(TriMesh(vertices, faces))
-
-                // generate convex hull
-                val bounds = mesh.aabb
-                // easiest convex hull: aabb
-                val volume = ConvexVolume()
-                val hull = FloatArray(8 * 3)
-                for (i in 0 until 8) {
-                    val j = i * 3
-                    hull[j] = (if (i.hasFlag(1)) bounds.maxX else bounds.minX).toFloat()
-                    hull[j + 1] = (if (i.hasFlag(2)) bounds.maxY else bounds.minY).toFloat()
-                    hull[j + 2] = (if (i.hasFlag(4)) bounds.maxZ else bounds.minZ).toFloat()
-                }
-                volume.hmin = hull[1]
-                volume.hmax = hull[2 * 3 + 1]
-                val hullIndices = smoothCube.indices!!
-                val hull2 = FloatArray(hullIndices.size * 3)
-                for (i in hullIndices.indices) {
-                    transform(tr, tmp, hull, hullIndices[i] * 3, hull2, 3 * i)
-                }
-                volume.verts = hull2
-                // todo based on collider navmesh settings
-                volume.areaMod = SampleAreaModifications.SAMPLE_GROUND
-                convexHulls.add(volume)
-
             }
         }
     }
 
     override fun meshes() = meshes
-    override fun convexVolumes() = convexHulls
 
-    val boundsMin: FloatArray
-    val boundsMax: FloatArray
+    // those are extra
+    override fun convexVolumes() = emptyList<ConvexVolume>()
+
+    val boundsMin: Vector3f
+    val boundsMax: Vector3f
 
     init {
         val aabb = world.aabb
-        boundsMin = floatArrayOf(aabb.minX.toFloat(), aabb.minY.toFloat(), aabb.minZ.toFloat())
-        boundsMax = floatArrayOf(aabb.maxX.toFloat(), aabb.maxY.toFloat(), aabb.maxZ.toFloat())
+        boundsMin = Vector3f(aabb.minX.toFloat(), aabb.minY.toFloat(), aabb.minZ.toFloat())
+        boundsMax = Vector3f(aabb.maxX.toFloat(), aabb.maxY.toFloat(), aabb.maxZ.toFloat())
     }
 
     override fun getMeshBoundsMin() = boundsMin
@@ -256,37 +276,36 @@ fun build(
 
     val builderConfig = RecastBuilderConfig(config, geometry.meshBoundsMin, geometry.meshBoundsMax)
 
-    val built = RecastBuilder { a, b -> println("building progress: $a/$b") }
-        .build(geometry, builderConfig)
+    val built = RecastBuilder().build(geometry, builderConfig)
     val mesh = built.mesh
-    for (i in 0 until mesh.npolys) {
+    for (i in 0 until mesh.numPolygons) {
         mesh.flags[i] = 1
     }
     val p = NavMeshDataCreateParams()
-    p.verts = mesh.verts
-    p.vertCount = mesh.nverts
-    p.polys = mesh.polys
-    p.polyAreas = mesh.areas
+    p.vertices = mesh.vertices
+    p.vertCount = mesh.numVertices
+    p.polys = mesh.polygons
+    p.polyAreas = mesh.areaIds
     p.polyFlags = mesh.flags
-    p.polyCount = mesh.npolys
-    p.nvp = mesh.nvp
+    p.polyCount = mesh.numPolygons
+    p.maxVerticesPerPolygon = mesh.maxVerticesPerPolygon
     val meshDetail = built.meshDetail
     if (meshDetail != null) {// can happen, if there is no valid surface
         p.detailMeshes = meshDetail.meshes
-        p.detailVerts = meshDetail.verts
-        p.detailVertsCount = meshDetail.nverts
-        p.detailTris = meshDetail.tris
-        p.detailTriCount = meshDetail.ntris
+        p.detailVertices = meshDetail.vertices
+        p.detailVerticesCount = meshDetail.numVertices
+        p.detailTris = meshDetail.triangles
+        p.detailTriCount = meshDetail.numTriangles
     } else println("warn: mesh detail is null")
     p.walkableHeight = agentHeight
     p.walkableRadius = agentRadius
     p.walkableClimb = agentMaxClimb
     p.bmin = mesh.bmin
     p.bmax = mesh.bmax
-    p.cs = cellSize
-    p.ch = cellHeight
+    p.cellSize = cellSize
+    p.cellHeight = cellHeight
     p.buildBvTree = true
-    p.offMeshConVerts = floatArrayOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f)
+    p.offMeshConVertices = floatArrayOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f)
     p.offMeshConRad = floatArrayOf(0.1f)
     p.offMeshConDir = intArrayOf(1)
     p.offMeshConAreas = intArrayOf(2)
@@ -294,49 +313,4 @@ fun build(
     p.offMeshConUserID = intArrayOf(0x4567)
     p.offMeshConCount = 1
     return NavMeshBuilder.createNavMeshData(p)
-}
-
-fun raycast(mesh: NavMesh, start: Vector3f, dir: Vector3f, dist: Float): Float {
-    for (t in 0 until mesh.maxTiles) {
-        val tile = mesh.getTile(t)
-        if (tile?.data != null) {
-            val intersection = raycast(tile.data, start, dir, dist)
-            if (intersection < dist) return intersection
-        }
-    }
-    return Float.POSITIVE_INFINITY
-}
-
-private fun raycast(data: MeshData, start: Vector3f, dir: Vector3f, dist: Float): Float {
-    val dv = data.detailVerts
-    val dt = data.detailTris
-    val vs2 = data.verts
-    val vs = Array(3) { Vector3f() }
-    for (i in 0 until data.header.polyCount) {
-        val p = data.polys[i]
-        if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
-        val pv = p.verts
-        val detailMesh = data.detailMeshes[i]
-        if (detailMesh != null) {
-            for (j in 0 until detailMesh.triCount) {
-                val t = (detailMesh.triBase + j) * 4
-                for (k in 0 until 3) {
-                    val v = dt[t + k]
-                    val vk = vs[k]
-                    if (v < p.vertCount) {
-                        val bi = pv[v] * 3
-                        vk.set(vs2[bi], vs2[bi + 1], vs2[bi + 2])
-                    } else {
-                        val bi = (detailMesh.vertBase + v - p.vertCount) * 3
-                        vk.set(dv[bi], dv[bi + 1], dv[bi + 2])
-                    }
-                }
-                val intersection = rayTriangleIntersection(start, dir, vs[0], vs[1], vs[2], dist, true)
-                if (intersection != null && intersection.second < dist) return intersection.second
-            }
-        } else {
-            // FIXME: Use Poly if PolyDetail is unavailable
-        }
-    }
-    return Float.POSITIVE_INFINITY
 }

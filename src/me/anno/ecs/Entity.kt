@@ -91,7 +91,7 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     @DebugProperty
     @NotSerializedProperty
-    var hasControlReceiver = false
+    var hasControlReceiver = true
 
     @DebugProperty
     @NotSerializedProperty
@@ -435,12 +435,15 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     fun onUIEvent(event: UIEvent): Boolean {
-        val hasUpdate = executeOptimizedEvent({ it.hasControlReceiver }, { it.updateVisible() }, {
-            if (it is ControlReceiver) {
-                event.call(it)
-                true
-            } else false
-        })
+        val hasUpdate = executeOptimizedEvent(
+            { it.hasControlReceiver },
+            { it.onUIEvent(event) },
+            {
+                if (it is ControlReceiver) {
+                    event.call(it)
+                    true
+                } else false
+            })
         this.hasControlReceiver = hasUpdate
         return hasControlReceiver
     }
@@ -659,6 +662,7 @@ class Entity() : PrefabSaveable(), Inspectable {
                     it !is MeshComponentBase && it !is LightComponentBase &&
                             it.fillSpace(transform.globalTransform, tmpAABB)
                 }
+        hasControlReceiver = hasComponent(ControlReceiver::class)
         for (idx in components.indices) {
             components[idx].onChangeStructure(this)
         }
@@ -682,7 +686,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         onChangeComponent(component)
     }
 
-    fun <V : Component> hasComponent(clazz: KClass<V>, includingDisabled: Boolean = false): Boolean {
+    fun <V : Any> hasComponent(clazz: KClass<V>, includingDisabled: Boolean = false): Boolean {
         return getComponent(clazz, includingDisabled) != null
     }
 
@@ -700,7 +704,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return false
     }
 
-    fun <V : Component> getComponent(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
+    fun <V : Any> getComponent(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
         // elegant:
         // return components.firstOrNull { clazz.isInstance(it) && (includingDisabled || it.isEnabled) } as V?
         // without damn iterator:
@@ -715,7 +719,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return null
     }
 
-    fun <V : Component> getComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
+    fun <V : Any> getComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
         var comp = getComponent(clazz, includingDisabled)
         if (comp != null) return comp
         val children = children
@@ -729,16 +733,16 @@ class Entity() : PrefabSaveable(), Inspectable {
         return null
     }
 
-    fun <V : Component> getComponentInHierarchy(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
+    fun <V : Any> getComponentInHierarchy(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
         return getComponent(clazz, includingDisabled) ?: parentEntity?.getComponentInHierarchy(clazz, includingDisabled)
     }
 
-    fun <V : Component> getComponents(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
+    fun <V : Any> getComponents(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
         @Suppress("unchecked_cast")
         return components.filter { (includingDisabled || it.isEnabled) && clazz.isInstance(it) } as List<V>
     }
 
-    fun <V : Component> allComponents(
+    fun <V : Any> allComponents(
         clazz: KClass<V>,
         includingDisabled: Boolean = false,
         lambda: (V) -> Boolean
@@ -766,7 +770,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return false
     }
 
-    fun <V : Component> anyComponent(
+    fun <V : Any> anyComponent(
         clazz: KClass<V>,
         includingDisabled: Boolean = false,
         test: (V) -> Boolean
@@ -781,7 +785,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return false
     }
 
-    fun <V : Component> anyComponentInChildren(
+    fun <V : Any> anyComponentInChildren(
         clazz: KClass<V>,
         includingDisabled: Boolean = false,
         test: (V) -> Boolean
@@ -803,7 +807,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return false
     }
 
-    fun <V : Component> sumComponents(
+    fun <V : Any> sumComponents(
         clazz: KClass<V>,
         includingDisabled: Boolean = false,
         test: (V) -> Int
@@ -819,11 +823,11 @@ class Entity() : PrefabSaveable(), Inspectable {
         return counter
     }
 
-    fun <V : Component> getComponentsInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
+    fun <V : Any> getComponentsInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
         return getComponentsInChildren(clazz, includingDisabled, ArrayList())
     }
 
-    fun <V : Component> getComponentsInChildren(
+    fun <V : Any> getComponentsInChildren(
         clazz: KClass<V>,
         includingDisabled: Boolean,
         dst: MutableList<V>
@@ -844,7 +848,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return dst
     }
 
-    fun <V : Component> getComponentsInChildren(
+    fun <V : Any> getComponentsInChildren(
         clazz: KClass<V>,
         includingDisabled: Boolean = false,
         action: (V) -> Boolean

@@ -190,7 +190,7 @@ class AABBd(
         return transform(transform, dst)
     }
 
-    fun transform(trans: Matrix4x3d, dst: AABBd): AABBd {
+    fun transform(trans: Matrix4x3d, dst: AABBd = this): AABBd {
         val dx: Double = this.maxX - this.minX
         val dy: Double = this.maxY - this.minY
         val dz: Double = this.maxZ - this.minZ

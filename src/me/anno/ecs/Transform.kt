@@ -175,7 +175,7 @@ class Transform() : Saveable() {
         get() = rot
         set(value) {
             rot.set(value)
-            localTransform.translation(pos).rotate(value).scale(sca)
+            localTransform.translationRotateScale(pos, value, sca)
             invalidateGlobal()
         }
 
@@ -188,7 +188,7 @@ class Transform() : Saveable() {
         get() = sca
         set(value) {
             sca.set(value)
-            localTransform.translation(pos).rotate(rot).scale(value)
+            localTransform.translationRotateScale(pos, rot, value)
             invalidateGlobal()
         }
 

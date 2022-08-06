@@ -9,7 +9,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 
-object MeshCache : CacheSection("Meshes") {
+object OldMeshCache : CacheSection("Meshes") {
 
     fun getMesh(
         file: FileReference,
@@ -20,7 +20,7 @@ object MeshCache : CacheSection("Meshes") {
     ) = getEntry(file, key, timeout, asyncGenerator, generator)
 
     fun getSVG(file: FileReference, timeout: Long, asyncGenerator: Boolean): StaticBuffer? {
-        return MeshCache.getEntry(file to "svg", timeout, asyncGenerator) {
+        return OldMeshCache.getEntry(file to "svg", timeout, asyncGenerator) {
             val svg = SVGMesh()
             svg.parse(XMLReader.parse(file.inputStream()) as XMLElement)
             val buffer = svg.buffer // may be null if the parsing failed / the svg is blank

@@ -63,7 +63,7 @@ class AnimGameItem(
             entity.anyComponent(MeshComponentBase::class, false) { comp ->
                 val mesh = comp.getMesh()
                 if (mesh != null) {
-                    mesh.ensureBuffer()
+                    mesh.ensureBounds()
 
                     // join the matrices for 2x better performance than without
                     jointMatrix.set(transform).mul2(global)

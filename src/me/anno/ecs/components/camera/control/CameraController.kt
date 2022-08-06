@@ -15,6 +15,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Vectors.addSmoothly
@@ -33,7 +34,7 @@ abstract class CameraController : Component(), ControlReceiver {
     val position = Vector3f()
 
     /**
-     * euler yxz rotation where x=x,y=y,z=z
+     * euler yxz rotation in radians, where x=x,y=y,z=z
      * */
     var rotation = Vector3f()
 
@@ -81,13 +82,15 @@ abstract class CameraController : Component(), ControlReceiver {
         }
     }
 
-    open fun clampRotation() {}
-
     /**
-     * can prevent velocities from being applied, e.g. when running against a wall (like in Digital Campus)
+     * can prevent velocities from being applied, e.g., when running against a wall (like in Digital Campus)
      * */
     open fun clampVelocity() {
 
+    }
+
+    open fun clampRotation() {
+        rotation.x = clamp(rotation.x, -PIf * 0.5f, PIf * 0.5f)
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String): Boolean {

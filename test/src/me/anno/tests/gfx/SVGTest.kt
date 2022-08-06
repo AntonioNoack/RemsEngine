@@ -1,7 +1,7 @@
 package me.anno.tests.gfx
 
 import me.anno.cache.data.ImageData.Companion.imageTimeout
-import me.anno.cache.instances.MeshCache
+import me.anno.cache.instances.OldMeshCache
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
 import me.anno.gpu.SVGxGFX
@@ -25,7 +25,7 @@ fun main() {
             }
 
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                val buffer = MeshCache.getSVG(srcFile, imageTimeout, false)!!
+                val buffer = OldMeshCache.getSVG(srcFile, imageTimeout, false)!!
                 val transform = Matrix4fArrayList()
                 transform.scale((buffer.maxY / buffer.maxX).toFloat(), 1f, 1f)
                 val white = TextureLib.whiteTexture

@@ -6,6 +6,7 @@ import me.anno.utils.types.Floats.f2s
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 @Suppress("unused")
 object Vectors {
@@ -318,6 +319,30 @@ object Vectors {
 
     fun Vector2fc.mulAdd(f: Float, b: Vector2fc, dst: Vector2f): Vector2f {
         return dst.set(x() * f + b.x(), y() * f + b.y())
+    }
+
+    fun crossLength(pos: FloatArray, ai: Int, bi: Int, ci: Int): Float {
+        val ax = pos[ai]
+        val ay = pos[ai + 1]
+        val az = pos[ai + 2]
+        return crossLength(
+            pos[bi] - ax, pos[bi + 1] - ay, pos[bi + 2] - az,
+            pos[ci] - ax, pos[ci + 1] - ay, pos[ci + 2] - az
+        )
+    }
+
+    fun crossLength(a: Vector3f, b: Vector3f, c: Vector3f): Float {
+        return crossLength(
+            b.x - a.x, b.y - a.y, b.z - a.z,
+            c.x - a.x, c.y - a.y, c.z - a.z
+        )
+    }
+
+    fun crossLength(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Float {
+        val cx = ay * bz - az * by
+        val cy = az * bx - ax * bz
+        val cz = ax * by - ay * bx
+        return sqrt(cx * cx + cy * cy + cz * cz)
     }
 
 }

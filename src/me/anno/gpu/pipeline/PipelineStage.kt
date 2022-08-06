@@ -36,6 +36,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.io.Saveable
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.types.Matrices.set2
 import org.joml.AABBd
 import org.joml.Matrix4x3f
@@ -123,7 +124,7 @@ class PipelineStage(
 
     val size get() = nextInsertIndex + instancedSize
 
-    val instancedMeshes1 = KeyPairMap<Mesh, Pair<Material, Int>, InstancedStack>()
+    val instancedMeshes1 = KeyTripleMap<Mesh, Material, Int, InstancedStack>()
     val instancedMeshes2 = KeyPairMap<Mesh, Material, InstancedStack>()
 
     fun bindDraw(pipeline: Pipeline) {
@@ -455,8 +456,7 @@ class PipelineStage(
         OpenGL.instanced.use(true) {
             // with material indices
             for ((mesh, list) in instancedMeshes1.values) {
-                for ((mi, values) in list) {
-                    val (material, materialIndex) = mi
+                for ((material, materialIndex, values) in list) {
                     if (values.isNotEmpty()) {
                         drawColors(
                             mesh, material, materialIndex,
@@ -588,7 +588,8 @@ class PipelineStage(
             val worldScale = RenderState.worldScale
             for (baseIndex in 0 until instanceCount step batchSize) {
                 buffer.clear()
-                for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
+                val endIndex = min(instanceCount, baseIndex + batchSize)
+                for (index in baseIndex until endIndex) {
                     m4x3delta(
                         trs[index]!!.getDrawMatrix(time),
                         cameraPosition,
@@ -606,7 +607,7 @@ class PipelineStage(
                     // calculate the lights for each group
                     // todo cluster them cheaply?
                     aabb.clear()
-                    for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
+                    for (index in baseIndex until endIndex) {
                         localAABB.transformUnion(trs[index]!!.getDrawMatrix(), aabb)
                     }
                     setupLights(pipeline, shader, aabb, receiveShadows)
@@ -678,7 +679,7 @@ class PipelineStage(
             shader2.use()
             initShader(shader2, pipeline)
             for ((mesh, list) in instancedMeshes1.values) {
-                for ((_, values) in list) {
+                for ((_, _, values) in list) {
                     if (values.isNotEmpty()) {
                         drawDepthsInstanced(shader2, mesh, values, time)
                         drawnTriangles += mesh.numTriangles * values.size
@@ -744,7 +745,7 @@ class PipelineStage(
         instancedSize = 0
 
         for ((_, values) in instancedMeshes1.values) {
-            for ((_, value) in values) {
+            for ((_, _, value) in values) {
                 value.clear()
             }
         }
@@ -779,9 +780,7 @@ class PipelineStage(
         material: Material,
         materialIndex: Int,
         clickId: Int
-    ) {
-        addInstanced(mesh, component, entity.transform, material, materialIndex, clickId)
-    }
+    ) = addInstanced(mesh, component, entity.transform, material, materialIndex, clickId)
 
     val tmpWeights = Vector4f()
     val tmpIndices = Vector4f()
@@ -794,20 +793,7 @@ class PipelineStage(
         materialIndex: Int,
         clickId: Int
     ) {
-        val stack = instancedMeshes1.getOrPut(mesh, Pair(material, materialIndex)) { mesh1, _ ->
-            if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
-        }
-        addToStack(stack, component, transform, clickId)
-    }
-
-    fun addInstanced(
-        mesh: Mesh,
-        component: MeshComponentBase?,
-        transform: Transform,
-        material: Material,
-        clickId: Int
-    ) {
-        val stack = instancedMeshes2.getOrPut(mesh, material) { mesh1, _ ->
+        val stack = instancedMeshes1.getOrPut(mesh, material, materialIndex) { mesh1, _, _ ->
             if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
         }
         addToStack(stack, component, transform, clickId)

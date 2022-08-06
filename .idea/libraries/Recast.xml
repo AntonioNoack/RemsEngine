@@ -1,14 +1,11 @@
 <component name="libraryTable">
   <library name="Recast">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/recast4j/detour-1.5.4.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/recast4j/detour-crowd-1.5.4.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/recast4j/detour-dynamic-1.5.4.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/recast4j/detour-extras-1.5.4.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/recast4j/detour-tile-cache-1.5.4.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/recast4j/recast-1.5.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../Recast4j/out/artifacts/Recast4j/Recast4j.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../Recast4j/src" />
+    </SOURCES>
   </library>
 </component>

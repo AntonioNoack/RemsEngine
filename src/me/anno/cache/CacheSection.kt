@@ -1,7 +1,13 @@
 package me.anno.cache
 
+import me.anno.Build
 import me.anno.Engine.gameTime
 import me.anno.cache.data.ICacheData
+import me.anno.cache.instances.LastModifiedCache
+import me.anno.ecs.components.cache.AnimationCache
+import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
@@ -194,8 +200,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     private fun checkKey(key: Any) {
-        if (key != key) throw IllegalStateException("${key::class.qualifiedName}.equals() is incorrect!")
-        if (key.hashCode() != key.hashCode()) throw IllegalStateException("${key::class.qualifiedName}.hashCode() is inconsistent!")
+        if (Build.isDebug) {
+            if (key != key) throw IllegalStateException("${key::class.qualifiedName}.equals() is incorrect!")
+            if (key.hashCode() != key.hashCode()) throw IllegalStateException("${key::class.qualifiedName}.hashCode() is inconsistent!")
+        }// else we assume that it's fine
     }
 
     private val limiter = AtomicInteger()
@@ -457,10 +465,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         fun updateAll() {
             for (cache in caches) cache.update()
+            LastModifiedCache.update()
+            MeshCache.update()
+            AnimationCache.update()
+            MaterialCache.update()
+            SkeletonCache.update()
         }
 
         fun clearAll() {
             for (cache in caches) cache.clear()
+            LastModifiedCache.clear()
         }
 
         private val LOGGER = LogManager.getLogger(CacheSection::class)

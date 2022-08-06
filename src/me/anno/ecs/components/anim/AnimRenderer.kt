@@ -167,36 +167,42 @@ open class AnimRenderer : MeshComponent() {
             return true
 
         } else {
-
             // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
             // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
-            val animations = animations
-
-            lateinit var matrices: Array<Matrix4x3f>
-            var sumWeight = 0f
-            for (index in animations.indices) {
-                val animSource = animations[index]
-                val weight = animSource.weight
-                val relativeWeight = weight / (sumWeight + weight)
-                val time = animSource.progress
-                val animation = AnimationCache[animSource.source] ?: continue
-                val retargeting = findRetargeting(this.skeleton, animation)
-                if (index == 0) {
-                    matrices = animation.getMappedMatricesSafely(entity, time, tmpMapping0, skeleton, retargeting)
-                } else if (relativeWeight > 0f) {
-                    val matrix = animation.getMappedMatricesSafely(entity, time, tmpMapping1, skeleton, retargeting)
-                    for (j in matrices.indices) {
-                        matrices[j].lerp(matrix[j], relativeWeight)
-                    }
-                }
-                sumWeight += max(0f, weight)
-            }
-
+            val matrices = getMatrices() ?: return false
             // upload the matrices
             upload(location, matrices)
             return true
-
         }
+    }
+
+    /**
+     * gets the animation matrices; thread-unsafe, can only be executed on gfx thread
+     * */
+    fun getMatrices(): Array<Matrix4x3f>? {
+        val skeleton = SkeletonCache[skeleton] ?: return null
+        var matrices: Array<Matrix4x3f>? = null
+        var sumWeight = 0f
+        val animations = animations
+        for (index in animations.indices) {
+            val animSource = animations[index]
+            val weight = animSource.weight
+            val relativeWeight = weight / (sumWeight + weight)
+            val time = animSource.progress
+            val animation = AnimationCache[animSource.source] ?: continue
+            val retargeting = findRetargeting(this.skeleton, animation)
+            if (index == 0) {
+                matrices = animation.getMappedMatricesSafely(entity, time, tmpMapping0, skeleton, retargeting)
+            } else if (relativeWeight > 0f) {
+                matrices!!
+                val matrix = animation.getMappedMatricesSafely(entity, time, tmpMapping1, skeleton, retargeting)
+                for (j in matrices.indices) {
+                    matrices[j].lerp(matrix[j], relativeWeight)
+                }
+            }
+            sumWeight += max(0f, weight)
+        }
+        return matrices
     }
 
     open fun getAnimTexture(): Texture2D? {

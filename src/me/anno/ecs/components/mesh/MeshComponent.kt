@@ -42,6 +42,7 @@ open class MeshComponent() : MeshComponentBase() {
     override fun getMesh(): Mesh? = MeshCache[mesh]
 
     override fun onVisibleUpdate(): Boolean {
+        // keep the mesh loaded
         mesh = getReference(mesh)
         return true
     }

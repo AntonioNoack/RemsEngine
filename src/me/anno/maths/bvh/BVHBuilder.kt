@@ -93,8 +93,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
                 add(mesh, blas, transform)
             }
             // add all instanced objects
-            scene.instancedMeshes1.forEach { mesh, matWithId, stack ->
-                unused(matWithId)
+            scene.instancedMeshes1.forEach { mesh, _, _, stack ->
                 val blas = blasCache.getOrPut(mesh) {
                     buildBLAS(mesh, splitMethod, maxNodeSize)
                 }
@@ -105,8 +104,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
                     }
                 }
             }
-            scene.instancedMeshes2.forEach { mesh, material, stack ->
-                unused(material)
+            scene.instancedMeshes2.forEach { mesh, _, stack ->
                 val blas = blasCache.getOrPut(mesh) {
                     buildBLAS(mesh, splitMethod, maxNodeSize)
                 }

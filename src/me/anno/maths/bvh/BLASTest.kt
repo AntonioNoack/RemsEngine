@@ -176,7 +176,7 @@ fun main() {
     meshComponent.mesh = source
     val entity = Entity()
 
-    mesh.ensureBuffer()
+    mesh.ensureBounds()
 
     val fovZ = -w * 5.0
     val start = Vector3d(

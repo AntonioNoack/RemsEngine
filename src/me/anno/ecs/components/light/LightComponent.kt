@@ -71,7 +71,7 @@ abstract class LightComponent(
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         val mesh = getLightPrimitive()
-        mesh.ensureBuffer()
+        mesh.ensureBounds()
         mesh.aabb.transformUnion(globalTransform, aabb)
         return true
     }

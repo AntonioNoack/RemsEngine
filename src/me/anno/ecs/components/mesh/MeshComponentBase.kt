@@ -101,7 +101,7 @@ abstract class MeshComponentBase : CollidingComponent() {
         ensureBuffer()
         val mesh = getMesh()
         if (mesh != null) {
-            mesh.ensureBuffer()
+            mesh.ensureBounds()
             localAABB.set(mesh.aabb)
             globalAABB.clear()
             mesh.aabb.transformUnion(globalTransform, globalAABB)
@@ -112,7 +112,7 @@ abstract class MeshComponentBase : CollidingComponent() {
 
     fun fillSpace(mesh: Mesh, globalTransform: Matrix4x3d, aabb: AABBd) {
         // add aabb of that mesh with the transform
-        mesh.ensureBuffer()
+        mesh.ensureBounds()
         mesh.aabb.transformUnion(globalTransform, aabb)
     }
 

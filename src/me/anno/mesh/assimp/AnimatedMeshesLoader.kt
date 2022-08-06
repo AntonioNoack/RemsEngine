@@ -50,7 +50,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             "E:/Assets/Polygon_Street_Racer_Unity_Package_2018_4_Update_01.unitypackage/Assets/" + "PolygonStreetRacer/Models/SM_Prop_LogPile_Large_02.fbx"
         )
         val mesh = MeshCache[ref]!!
-        mesh.ensureBuffer()
+        mesh.ensureBounds()
         println(mesh.aabb)
     }
 

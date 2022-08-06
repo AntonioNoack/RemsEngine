@@ -165,9 +165,8 @@ class Frustum {
         }
 
         for (i in 0 until 6) {
-            val position = positions[i]
             val normal = normals[i]
-            val distance = position.dot(normal)
+            val distance = positions[i].dot(normal)
             planes[i].set(normal, -distance)
         }
 
@@ -324,12 +323,9 @@ class Frustum {
             return relativeSizeGuess > sizeThreshold
 
         } else {
-
             val guessedSize = calculateArea(cameraRotation, aabb.deltaX(), aabb.deltaY(), aabb.deltaZ()) // area
             return guessedSize > sizeThreshold
-
         }
-
     }
 
     fun union(aabb: AABBd) {
@@ -364,10 +360,10 @@ class Frustum {
 
     private fun calculateArea(mat: Matrix3d, x: Double, y: Double, z: Double): Double {
         if (x.isInfinite() || y.isInfinite() || z.isInfinite()) return Double.POSITIVE_INFINITY
-        val rx = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, mat.m20() * z))
-        val ry = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, mat.m21() * z))
-        val rz = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, mat.m22() * z))
-        return sq(rx, ry, rz) //abs(rx * ry)
+        val rx = mat.m00() * x + mat.m10() * y + mat.m20() * z
+        val ry = mat.m01() * x + mat.m11() * y + mat.m21() * z
+        val rz = mat.m02() * x + mat.m12() * y + mat.m22() * z
+        return rx * rx + ry * ry + rz * rz
     }
 
     operator fun contains(aabb: AABBd): Boolean {
@@ -375,18 +371,16 @@ class Frustum {
         // https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
         for (i in 0 until 6) {
             val plane = planes[i]
-            val minX = if (plane.x > 0.0) aabb.minX else aabb.maxX
-            val minY = if (plane.y > 0.0) aabb.minY else aabb.maxY
-            val minZ = if (plane.z > 0.0) aabb.minZ else aabb.maxZ
+            val x = if (plane.x > 0.0) aabb.minX else aabb.maxX
+            val y = if (plane.y > 0.0) aabb.minY else aabb.maxY
+            val z = if (plane.z > 0.0) aabb.minZ else aabb.maxZ
             // outside
-            val dot0 = plane.dot(minX, minY, minZ, 1.0)
-            if (dot0 >= 0.0) return false
+            if (plane.w + plane.x * x + plane.y * y + plane.z * z >= 0.0) return false
         }
         return true
     }
 
-    fun isVisible(aabb: AABBd): Boolean {
-        return contains(aabb) && hasEffectiveSize(aabb)
-    }
+    fun isVisible(aabb: AABBd) =
+        contains(aabb) && hasEffectiveSize(aabb)
 
 }

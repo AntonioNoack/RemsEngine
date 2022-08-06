@@ -3,6 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
@@ -35,7 +36,10 @@ import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.SmallestKList
 import me.anno.utils.types.Matrices.distanceSquared
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.AABBd
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4d
 import kotlin.math.min
 
 /**
@@ -377,32 +381,14 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                     }
                     is MeshSpawner -> {
                         component.clickId = clickId
-                        component.forEachMesh { mesh, material, transform ->
-                            mesh.ensureBuffer()
-                            if (mesh.proceduralLength <= 0) {
-                                val material2 = material ?: defaultMaterial
-                                val stage = material2.pipelineStage ?: defaultStage
-                                stage.addInstanced(mesh, null, transform, material2, clickId)
-                            } else {
-                                if (mesh.numMaterials > 1) {
-                                    LOGGER.warn("Procedural meshes in MeshSpawner cannot support multiple materials")
-                                }
-                                val material2 = material ?: defaultMaterial
-                                val stage = material2.pipelineStage ?: defaultStage
-                                stage.add(component, mesh, entity, 0, clickId)
-                            }
-                        }
+                        lastClickId0 = clickId
+                        tmpComponent = component
+                        component.forEachMesh(::subFill1)
                         clickId++
                     }
-                    is LightComponent -> {
-                        addLight(component, entity, cameraPosition, worldScale)
-                    }
-                    is AmbientLight -> {
-                        ambient.add(component.color)
-                    }
-                    is PlanarReflection -> {
-                        planarReflections.add(component)
-                    }
+                    is LightComponent -> addLight(component, entity, cameraPosition, worldScale)
+                    is AmbientLight -> ambient.add(component.color)
+                    is PlanarReflection -> planarReflections.add(component)
                 }
             }
         }
@@ -414,6 +400,61 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             }
         }
         return clickId
+    }
+
+    private var tmpComponent: MeshSpawner? = null
+    private var lastMesh: Mesh? = null
+    private var lastMat: Material? = null
+    private var lastStage: PipelineStage? = null
+    private var lastStack: InstancedStack? = null
+    private var lastClickId0 = 0
+
+
+    private val tmpAABB = AABBd()
+    fun subFill1(mesh: Mesh, material: Material?, transform: Transform) {
+
+        mesh.ensureBuffer()
+
+        // check visibility
+        val bounds = tmpAABB
+        bounds.set(mesh.aabb)
+        bounds.transform(transform.globalTransform)
+        if (!frustum.contains(bounds)) return
+
+        // quick path for lots of repeating meshes
+        if (mesh === lastMesh && material === lastMat) {
+            lastStack!!.add(transform, lastClickId0)
+            lastStage!!.instancedSize++
+            return
+        }
+
+        if (mesh.proceduralLength <= 0) {
+
+            val material2 = material ?: defaultMaterial
+            val stage = material2.pipelineStage ?: defaultStage
+            val stack = stage.instancedMeshes2.getOrPut(mesh, material2) { mesh1, _ ->
+                if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
+            }
+
+            val clickId = lastClickId0
+            stage.addToStack(stack, null, transform, clickId)
+
+            // cache
+            lastMesh = mesh
+            lastMat = material
+            lastStage = stage
+            lastStack = stack
+
+        } else {
+            if (mesh.numMaterials > 1) {
+                LOGGER.warn("Procedural meshes in MeshSpawner cannot support multiple materials")
+            }
+            val material2 = material ?: defaultMaterial
+            val stage = material2.pipelineStage ?: defaultStage
+            val component = tmpComponent!!
+            val clickId = lastClickId0
+            stage.add(component, mesh, component.entity!!, 0, clickId)
+        }
     }
 
     fun traverse(world: PrefabSaveable, run: (Entity) -> Unit) {

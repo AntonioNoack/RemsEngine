@@ -4,7 +4,7 @@ import me.anno.Build
 import me.anno.Engine
 import me.anno.cache.data.ImageData
 import me.anno.cache.data.ImageData.Companion.imageTimeout
-import me.anno.cache.instances.MeshCache
+import me.anno.cache.instances.OldMeshCache
 import me.anno.cache.instances.PDFCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
@@ -453,7 +453,7 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
 
-        val buffer = MeshCache.getSVG(srcFile, imageTimeout, false)!!
+        val buffer = OldMeshCache.getSVG(srcFile, imageTimeout, false)!!
 
         val maxSize = max(buffer.maxX, buffer.maxY)
         val w = (size * buffer.maxX / maxSize).roundToInt()

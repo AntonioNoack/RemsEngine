@@ -334,7 +334,6 @@ abstract class StudioBase(
 
     open fun clearAll() {
         CacheSection.clearAll()
-        LastModifiedCache.clear()
     }
 
     open fun isSelected(obj: Any?) = false

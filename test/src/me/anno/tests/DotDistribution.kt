@@ -1,10 +1,10 @@
 package me.anno.tests
 
 import me.anno.image.raw.FloatImage
-import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.desktop
 import java.util.*
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -12,8 +12,8 @@ fun calcRelativeDensity(rand: Float, rayX: Float): Float {
     // intersect sphere at (0,0) from (-1,0) to (rayX-1,rayY)
     // adjusted from https://mathworld.wolfram.com/Circle-LineIntersection.html
     // and simplified a lot
-    val rayYSq = min(rayX * rayX - 1f, 0f)
-    return max(0f, rand * rand + rayYSq)
+    val r2 = rand * rand
+    return max(0f, 1f + (abs(rayX) * rayX - 1f) / r2)
 }
 
 fun main() {
@@ -40,8 +40,8 @@ fun main() {
         val random = Random()
 
         // val minValue = cos(asin(randomness))
-        val minValue = 0f // sqrt(max(0f, 1f - r * r))
-        val maxValue = 1f
+        val minValue = -1f // sqrt(max(0f, 1f - r * r))
+        val maxValue = +1f
         val invDeltaValue = numBuckets * 0.9999f / max(1e-7f, maxValue - minValue)
 
         for (i in 0 until numTries) {
@@ -64,7 +64,7 @@ fun main() {
         // normalize line and write it
         val maxFillHeight = buckets.maxOrNull()!!
         val invFillHeight = 1f / maxFillHeight
-        val analyticNorm = 1f / calcRelativeDensity(r, 1f)
+        val analyticNorm = 1f
         for (x in 0 until numBuckets) {
             val simulatedV = buckets[x] * invFillHeight
             image.setValue(x, y, 0, simulatedV)

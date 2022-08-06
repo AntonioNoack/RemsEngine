@@ -5,8 +5,10 @@ import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.OpenGLShader.Companion.attribute
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.ResourceHelper
 import me.anno.io.files.InvalidRef
@@ -27,12 +29,11 @@ var logoIconColor = 0x212256
 val shader by lazy {
 
     val shader = Shader(
-        "logo", "" +
-                "$attribute vec3 coords;\n" +
-                "uniform vec3 size;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4(coords * size, 1.0);\n" +
-                "}", emptyList(), "" +
+        "logo", listOf(
+            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "size")
+        ), "void main(){ gl_Position = vec4(coords * size, 1.0); }",
+        emptyList(), emptyList(), "" +
                 "void main(){\n" + // color uniform didn't want to work :/, why?
                 "   gl_FragColor = vec4(${logoIconColor.toVecRGB().run { "$x, $y, $z" }}, 1.0);\n" +
                 "}"

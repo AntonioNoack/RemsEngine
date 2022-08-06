@@ -905,12 +905,15 @@ object ShaderLib {
     )
 
     val subpixelCorrectTextShader = createShader(
-        "subpixelCorrectTextShader", listOf(),
+        "subpixelCorrectTextShader", listOf(
+            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V2F, "pos"),
+            Variable(GLSLType.V2F, "size"),
+            // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
+            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.V2F, "windowSize"),
+        ),
         "" +
-                "$attribute vec2 coords;\n" +
-                "uniform vec2 pos, size;\n" +
-                "uniform mat4 transform;\n" + // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
-                "uniform vec2 windowSize;\n" +
                 "void main(){\n" +
                 "   vec2 localPos = pos + coords * size;\n" +
                 "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
@@ -918,11 +921,12 @@ object ShaderLib {
                 "   uv = coords;\n" +
                 "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V2F, "position")), listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
+            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+            Variable(GLSLType.V4F, "textColor"),
+            Variable(GLSLType.V4F, "backgroundColor"),
+            Variable(GLSLType.V2F, "windowSize"),
+            Variable(GLSLType.S2D, "tex"),
         ), "" +
-                "uniform vec4 textColor, backgroundColor;\n" +
-                "uniform vec2 windowSize;\n" +
-                "uniform sampler2D tex;\n" +
                 brightness +
                 "void main(){\n" +
                 "   vec3 textMask = texture(tex, uv).rgb;\n" +

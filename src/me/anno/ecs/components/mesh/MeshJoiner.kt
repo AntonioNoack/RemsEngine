@@ -41,13 +41,13 @@ abstract class MeshJoiner<V>(
     private fun alloc(needed: Boolean, size: Int, old: IntArray?) = if (needed) old.resize(size) else null
     private fun alloc(needed: Boolean, size: Int, old: ByteArray?) = if (needed) old.resize(size) else null
 
-    fun join(mesh: Mesh, elements: List<V>) {
+    fun join(mesh: Mesh, elements: List<V>): Mesh {
 
         if (elements.isEmpty()) {
             mesh.positions = FloatArray(0)
             mesh.indices = null
             mesh.materialIds = null
-            return
+            return mesh
         }
 
         var numPositions = 0
@@ -200,6 +200,8 @@ abstract class MeshJoiner<V>(
         mesh.boneWeights = dstBoneWeights
         mesh.boneIndices = dstBoneIndices
         mesh.materialIds = dstMaterialIds
+
+        return mesh
 
     }
 

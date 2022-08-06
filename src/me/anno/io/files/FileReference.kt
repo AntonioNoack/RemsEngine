@@ -28,7 +28,6 @@ import java.io.*
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
-import kotlin.math.abs
 
 // todo when a file is changed, all inner files based on that need to be invalidated (editor only)
 // done when a file is changed, the meta data of it needs to be invalidated
@@ -124,8 +123,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             LOGGER.info("Removed $removed instances from prefab cache")
         }
 
-        fun getReference(ref: FileReference): FileReference {
-            return getReference(ref.absolutePath)
+        /** keep the value loaded and check if it has changed maybe (internal files, like zip files) */
+        fun getReference(ref: FileReference, timeoutMillis: Long = fileTimeout): FileReference {
+            fileCache.getEntryWithoutGenerator(ref.absolutePath, timeoutMillis)
+            return ref.validate()
         }
 
         fun getReference(str: String?): FileReference {
@@ -133,7 +134,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             if (str == null || str.isBlank2()) return InvalidRef
             // root
             if (str == "root") return FileRootRef
-            val str2 = str.replace('\\', '/')
+            val str2 = if ('\\' in str) str.replace('\\', '/') else str
             // the cache can be a large issue -> avoid if possible
             if (LastModifiedCache.exists(str2)) return createReference(str2)
             val data = fileCache.getEntry(str2, fileTimeout, false) {

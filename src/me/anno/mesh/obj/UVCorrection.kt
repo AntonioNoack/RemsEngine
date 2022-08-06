@@ -14,9 +14,9 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
 import me.anno.utils.types.Floats.f3
+import me.anno.utils.types.Vectors.crossLength
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
-import kotlin.math.sqrt
 
 object UVCorrection {
 
@@ -43,14 +43,7 @@ object UVCorrection {
                     val a3 = a * 3
                     val b3 = b * 3
                     val c3 = c * 3
-                    val area = crossLength(
-                        pos[b3] - pos[a3],
-                        pos[b3 + 1] - pos[a3 + 1],
-                        pos[b3 + 2] - pos[a3 + 2],
-                        pos[c3] - pos[a3],
-                        pos[c3 + 1] - pos[a3 + 1],
-                        pos[c3 + 2] - pos[a3 + 2]
-                    )
+                    val area = crossLength(pos, a3, b3, c3)
                     if (area > 0f) {
                         val a2 = a * 2
                         val b2 = b * 2
@@ -70,7 +63,7 @@ object UVCorrection {
             }
         }
         // if inverted is better, then inverse all vs
-        if(normalContrast > 0.0){
+        if (normalContrast > 0.0) {
             if (normalContrast > 1.1 * invertedContrast) {
                 LOGGER.info("Checked UVs of $folder: ${(normalContrast / invertedContrast).f3()} -> inverted Vs")
                 for (meshFile in meshes ?: emptyList()) {
@@ -125,13 +118,6 @@ object UVCorrection {
 
     private fun delta(c0: Int, c1: Int): Int {
         return abs(c1.r() - c0.r()) + abs(c1.g() - c0.g()) + abs(c1.b() - c0.b())
-    }
-
-    private fun crossLength(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Float {
-        val cx = ay * bz - az * by
-        val cy = az * bx - ax * bz
-        val cz = ax * by - ay * bx
-        return sqrt(cx * cx + cy * cy + cz * cz)
     }
 
 

@@ -1,19 +1,20 @@
 package me.anno.gpu.buffer
 
-import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.buffer.Buffer.Companion.bindAttribute
+import me.anno.gpu.buffer.Buffer.Companion.unbindAttribute
+import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
+import me.anno.utils.structures.lists.Lists.none2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL31C.*
 import org.lwjgl.system.MemoryUtil
 
-// todo probably should be an OpenGLBuffer
 class IndexBuffer(
     val base: Buffer,
     indices: IntArray,
-    val usage: Int = GL_STATIC_DRAW
-) : ICacheData, Drawable {
+    usage: Int = GL_STATIC_DRAW
+) : OpenGLBuffer(GL_ELEMENT_ARRAY_BUFFER, int32Attrs, usage), Drawable {
 
     var indices: IntArray = indices
         set(value) {
@@ -23,30 +24,24 @@ class IndexBuffer(
             }
         }
 
-    var pointer = -1
     var elementsType = GL_UNSIGNED_INT
-    var isUpToDate = false
-    var session = 0
-    var locallyAllocated = 0L
-
     var drawMode = -1
 
     private var hasWarned = false
 
     private var vao = -1
 
-    fun checkSession() {
-        if (session != OpenGL.session) {
-            session = OpenGL.session
-            pointer = -1
-            isUpToDate = false
-            locallyAllocated = OpenGLBuffer.allocate(locallyAllocated, 0L)
-            vao = -1
-        }
+    override fun createNioBuffer() {
+        throw NotImplementedError("You are using this class wrong")
+    }
+
+    override fun onSessionChange() {
+        super.onSessionChange()
+        vao = -1
     }
 
     private fun ensureVAO() {
-        if (OpenGLBuffer.useVAOs) {
+        if (useVAOs) {
             if (vao <= 0) vao = glGenVertexArrays()
             if (vao <= 0) throw OutOfMemoryError("Could not allocate vertex array")
         }
@@ -58,16 +53,25 @@ class IndexBuffer(
 
         ensureVAO()
 
-        OpenGLBuffer.bindVAO(vao)
-        OpenGLBuffer.bindBuffer(GL_ARRAY_BUFFER, base.pointer)
+        bindVAO(vao)
+        bindBuffer(GL_ARRAY_BUFFER, base.pointer)
         var hasAttr = false
         val attributes = base.attributes
         for (index in attributes.indices) {
-            hasAttr = Buffer.bindAttribute(shader, attributes[index], false) || hasAttr
+            hasAttr = bindAttribute(shader, attributes[index], false) || hasAttr
         }
         if (!hasAttr && !hasWarned) {
             hasWarned = true
             LOGGER.warn("VAO does not have attribute!, ${base.attributes}, ${shader.vertexSource}")
+        }
+
+        for (attr in shader.attributes) {
+            // check if name is bound in attributes
+            val attrName = attr.name
+            if (attributes.none2 { it.name == attrName }) {
+                // disable attribute
+                unbindAttribute(shader, attrName)
+            }
         }
 
         // disable all attributes, which were not bound
@@ -81,17 +85,28 @@ class IndexBuffer(
         ensureVAO()
         base.ensureBuffer()
 
-        OpenGLBuffer.bindVAO(vao)
-        OpenGLBuffer.bindBuffer(GL_ARRAY_BUFFER, base.pointer)
+        bindVAO(vao)
+        bindBuffer(GL_ARRAY_BUFFER, base.pointer)
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
-        for (attr in base.attributes) {
-            Buffer.bindAttribute(shader, attr, false)
+        val attr1 = base.attributes
+        for (attr in attr1) {
+            bindAttribute(shader, attr, false)
         }
 
         instanceData.ensureBuffer()
-        OpenGLBuffer.bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
-        for (attr in instanceData.attributes) {
-            Buffer.bindAttribute(shader, attr, true)
+        bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
+        val attr2 = instanceData.attributes
+        for (attr in attr2) {
+            bindAttribute(shader, attr, true)
+        }
+
+        for (attr in shader.attributes) {
+            // check if name is bound in attr1/attr2
+            val attrName = attr.name
+            if (attr1.none2 { it.name == attrName } && attr2.none2 { it.name == attrName }) {
+                // disable attribute
+                unbindAttribute(shader, attrName)
+            }
         }
 
         updateElementBuffer()
@@ -109,7 +124,7 @@ class IndexBuffer(
 
         if (pointer <= 0) pointer = glGenBuffers()
         if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL buffer")
-        OpenGLBuffer.bindBuffer(target, pointer)
+        bindBuffer(target, pointer)
 
         if (isUpToDate) return
         isUpToDate = true
@@ -130,6 +145,7 @@ class IndexBuffer(
             }*/
             maxIndex < 65536 -> {
                 elementsType = GL_UNSIGNED_SHORT
+                attributes = int16Attrs
                 val buffer = MemoryUtil.memAllocShort(indices.size)
                 for (i in indices) buffer.put(i.toShort())
                 buffer.flip()
@@ -138,19 +154,22 @@ class IndexBuffer(
                 } else {
                     glBufferData(target, buffer, usage)
                 }
-                locallyAllocated = OpenGLBuffer.allocate(locallyAllocated, indices.size * 2L)
+                locallyAllocated = allocate(locallyAllocated, indices.size * 2L)
                 MemoryUtil.memFree(buffer)
             }
             else -> {
                 elementsType = GL_UNSIGNED_INT
+                attributes = int32Attrs
                 if (indices.size * 4L == locallyAllocated) {
                     glBufferSubData(target, 0, indices)
                 } else {
                     glBufferData(target, indices, usage)
                 }
-                locallyAllocated = OpenGLBuffer.allocate(locallyAllocated, indices.size * 4L)
+                locallyAllocated = allocate(locallyAllocated, indices.size * 4L)
             }
         }
+        elementCount = indices.size
+        DebugGPUStorage.buffers.add(this)
         // GFX.check()
     }
 
@@ -175,9 +194,9 @@ class IndexBuffer(
         checkSession()
         // todo cache vao by shader? typically, we only need 4 shaders for a single mesh
         // todo alternatively, we could specify the location in the shader
-        if (vao <= 0 || shader !== lastShader || !OpenGLBuffer.useVAOs) {
+        if (vao <= 0 || shader !== lastShader || !useVAOs) {
             createVAO(shader)
-        } else OpenGLBuffer.bindVAO(vao)
+        } else bindVAO(vao)
         lastShader = shader
         GFX.check()
     }
@@ -194,14 +213,14 @@ class IndexBuffer(
             shader !== lastShader ||
             base.attributes != baseAttributes ||
             instanceAttributes != instanceData.attributes ||
-            !OpenGLBuffer.useVAOs || OpenGLBuffer.renewVAOs
+            !useVAOs || renewVAOs
         ) {
             lastShader = shader
             baseAttributes = base.attributes
             instanceAttributes = instanceData.attributes
             lastInstanceBuffer = instanceData
             createVAOInstanced(shader, instanceData)
-        } else OpenGLBuffer.bindVAO(vao)
+        } else bindVAO(vao)
         GFX.check()
     }
 
@@ -241,25 +260,29 @@ class IndexBuffer(
         }
     }
 
-    fun unbind() {
-        // bindBuffer(GL_ARRAY_BUFFER, 0)
+    /*override fun unbind() {
+        super.unbind()
         // bindVAO(0)
-    }
+    }*/
 
     override fun destroy() {
+        DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
         if (buffer >= 0) {
             GFX.addGPUTask("IndexBuffer.destroy()", 1) {
-                OpenGLBuffer.onDestroyBuffer(buffer)
+                elementCount = 0
+                onDestroyBuffer(buffer)
                 glDeleteBuffers(buffer)
             }
             pointer = -1
-            locallyAllocated = OpenGLBuffer.allocate(locallyAllocated, 0)
+            locallyAllocated = allocate(locallyAllocated, 0)
         }
     }
 
     companion object {
         private val LOGGER = LogManager.getLogger(IndexBuffer::class)
+        private val int32Attrs = listOf(Attribute("index", AttributeType.UINT32, 1))
+        private val int16Attrs = listOf(Attribute("index", AttributeType.UINT16, 1))
     }
 
 }

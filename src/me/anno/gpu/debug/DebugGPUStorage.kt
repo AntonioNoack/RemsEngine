@@ -205,9 +205,11 @@ object DebugGPUStorage {
                         list.add(TextPanel(
                             "${GFX.getName(buff.type)}, " +
                                     "${buff.elementCount} x ${buff.attributes}, " +
-                                    "total: ${(buff.nioBuffer?.capacity() ?: 0).toLong().formatFileSize()}", style
-                        )
-                            .apply { breaksIntoMultiline = true })
+                                    "total: ${
+                                        (buff.nioBuffer?.capacity()?.toLong() ?: buff.locallyAllocated)
+                                            .formatFileSize()
+                                    }", style
+                        ).apply { breaksIntoMultiline = true })
                     }
                 }
             }

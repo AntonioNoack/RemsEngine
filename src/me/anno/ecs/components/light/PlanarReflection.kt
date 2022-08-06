@@ -78,7 +78,7 @@ class PlanarReflection : LightComponentBase() {
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         // todo if not both-sided, use half-cubes
         val mesh = Shapes.cube11Smooth
-        mesh.ensureBuffer()
+        mesh.ensureBounds()
         mesh.aabb.transformUnion(globalTransform, aabb)
         return true
     }

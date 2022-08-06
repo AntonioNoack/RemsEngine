@@ -65,7 +65,8 @@ class ShaderBuilder(val name: String) {
 
         // LOGGER.info("Vertex-Defined: $vertexDefined, Vertex-Uniforms: $vertexUniforms")
 
-        val bridgeVariables = HashMap<Variable, Variable>() // variables, that fragment imports & exports & vertex exports
+        val bridgeVariables =
+            HashMap<Variable, Variable>() // variables, that fragment imports & exports & vertex exports
         for (variable in vertexDefined) {
             val name = variable.name
             if (vertex.stages.any { it.variables.any { v -> v.name == name && v.isOutput } }) {
@@ -89,10 +90,14 @@ class ShaderBuilder(val name: String) {
 
         // create the code
         val vertCode = vertex.createCode(false, outputs, bridgeVariables)
+        val attributes = vertex.attributes
         val fragCode = fragment.createCode(true, outputs, bridgeVariables)
         val varying = (vertex.imported + vertex.exported).toList()
             .filter { it !in bridgeVariables } + bridgeVariables.values
-        val shader = Shader(name, vertCode, varying, fragCode)
+        val shader = Shader(
+            name, attributes + vertex.uniforms, vertCode,
+            varying, fragment.uniforms.toList(), fragCode
+        )
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))
         val textureIndices = ArrayList<String>()
         collectTextureIndices(textureIndices, vertex.uniforms)

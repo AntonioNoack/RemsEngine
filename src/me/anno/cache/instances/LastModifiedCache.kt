@@ -65,7 +65,6 @@ object LastModifiedCache {
     }
 
     operator fun get(file: File, absolutePath: String): Result {
-        update()
         return values.getOrPut(absolutePath) {
             val r = Result(file)
             // randomness for random decay: from 0.75x to 1.5x
@@ -77,7 +76,6 @@ object LastModifiedCache {
     }
 
     operator fun get(absolutePath: String): Result {
-        update()
         return values.getOrPut(absolutePath) {
             val r = Result(File(absolutePath))
             values[absolutePath.replace('/', '\\')] = r

@@ -236,14 +236,6 @@ class MainStage {
             }
         }
 
-        // attributes
-        if (!isFragmentStage) {
-            for (variable in attributes.sortedBy { it.size }) {
-                variable.declare(code, OpenGLShader.attribute)
-            }
-            if (attributes.isNotEmpty()) code.append('\n')
-        }
-
         if (isFragmentStage) {
             // fragment shader
             if (outputs == null) {
@@ -254,14 +246,6 @@ class MainStage {
             }
             code.append('\n')
         }
-
-        // define the missing variables
-        // sorted by size, so small uniforms get a small location,
-        // which in return allows them to be cached
-        for (variable in uniforms.sortedBy { it.size }) {
-            variable.declare(code, "uniform")
-        }
-        if (uniforms.isNotEmpty()) code.append('\n')
 
         // find Uniform -> Stage -> finalXXX bridges
         val bridgeVariables2 = HashSet<Variable>()

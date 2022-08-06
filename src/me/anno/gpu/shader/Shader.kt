@@ -5,8 +5,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.builder.Varying
 import me.anno.utils.structures.lists.Lists.any2
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL20.*
-import kotlin.math.max
 
 // todo locations for the varyings: for debugging with RenderDoc
 
@@ -21,12 +21,24 @@ open class Shader(
     private val fragmentShader: String
 ) : OpenGLShader(shaderName) {
 
+    companion object {
+        private val LOGGER = LogManager.getLogger(Shader::class)
+    }
+
     constructor(
         shaderName: String,
         vertex: String,
         varying: List<Variable>,
         fragment: String
     ) : this(shaderName, emptyList(), vertex, varying, emptyList(), fragment)
+
+    val attributes = vertexVariables.filter { it.isAttribute }
+
+    init {
+        if (attributes.isEmpty() && ("in " in vertexShader || "attribute " in vertexShader)) {
+            LOGGER.warn("Shader '$shaderName' should use Variables")
+        }
+    }
 
     var vertexSource = ""
     var fragmentSource = ""
@@ -47,7 +59,6 @@ open class Shader(
         GFX.check()
         updateSession()
         GFX.check()
-
 
         if (glslVersion < 330 && fragmentVariables.any2 { it.isOutput })
             glslVersion = 330 // needed for layout(location=x) qualifier

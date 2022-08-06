@@ -184,7 +184,7 @@ object Raycast {
         if (!acceptFront && !acceptBack) return false
 
         // calculate bounds
-        mesh.ensureBuffer()
+        mesh.ensureBounds()
 
         // todo it would be great if we would/could project the start+end onto the global aabb,
         // todo if they lay outside, so more often we can use the faster method more often

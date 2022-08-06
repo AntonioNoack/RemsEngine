@@ -8,6 +8,7 @@ import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.utils.OS
+import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2fc
@@ -18,7 +19,7 @@ import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val usage: Int) :
+abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val usage: Int) :
     ICacheData {
 
     constructor(type: Int, attributes: List<Attribute>) : this(type, attributes, GL_STATIC_DRAW)
@@ -32,10 +33,11 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
 
     var isUpToDate = false
 
+    var locallyAllocated = 0L
+    var elementCount = 0
+
     fun getName() = getName(0)
     fun getName(index: Int) = attributes[index].name
-
-    var locallyAllocated = 0L
 
     fun checkSession() {
         if (session != OpenGL.session) {
@@ -49,8 +51,6 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
         isUpToDate = false
         locallyAllocated = allocate(locallyAllocated, 0L)
     }
-
-    var elementCount = 0
 
     open fun upload(allowResize: Boolean = true) {
 
@@ -83,7 +83,11 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
         GFX.check()
         isUpToDate = true
 
-        DebugGPUStorage.buffers.add(this)
+        if (DebugGPUStorage.buffers.add(this)) {
+            /*val title = "Created buffer of size ${locallyAllocated.formatFileSize()}"
+            if (locallyAllocated > 1e6) RuntimeException(title).printStackTrace()
+            else LOGGER.debug(title)*/
+        }
 
     }
 
@@ -106,7 +110,7 @@ abstract class OpenGLBuffer(val type: Int, val attributes: List<Attribute>, val 
         bindBuffer(type, pointer)
     }
 
-    fun unbind() {
+    open fun unbind() {
         bindBuffer(type, 0)
     }
 

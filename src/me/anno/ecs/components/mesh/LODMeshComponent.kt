@@ -15,7 +15,11 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import kotlin.math.log2
 
-class LODMeshComponent : MeshComponentBase() {
+class LODMeshComponent() : MeshComponentBase() {
+
+    constructor(meshes: List<FileReference>) : this() {
+        this.meshes = meshes
+    }
 
     @Docs("Distance for LOD index 1")
     @Range(1e-150, 1e150)
@@ -31,7 +35,7 @@ class LODMeshComponent : MeshComponentBase() {
 
     @Docs("Sources for LOD meshes; if resource cannot be found, no mesh will be rendered for its range")
     @Type("List<Mesh/Reference>")
-    var meshes = ArrayList<FileReference>()
+    var meshes: List<FileReference> = emptyList()
 
     @Docs("Which LOD should be used for the bounds; -1 = use all LODs")
     @Range(-1.0, 2e9)
@@ -84,8 +88,7 @@ class LODMeshComponent : MeshComponentBase() {
         super.copy(clone)
         clone as LODMeshComponent
         clone.lod1Dist = lod1Dist
-        clone.meshes.clear()
-        clone.meshes.addAll(meshes)
+        clone.meshes = meshes // clone the list?
     }
 
     override val className = "LODMeshComponent"

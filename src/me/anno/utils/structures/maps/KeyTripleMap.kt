@@ -50,6 +50,14 @@ class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 16) :
         return value
     }
 
+    inline fun forEach(run: (k1: KManifold, k2: KFewOnly, k3: KFewOnly2, v: Value) -> Unit) {
+        for ((k1, k2s) in values) {
+            for ((k2, k3, v) in k2s) {
+                run(k1, k2, k3, v)
+            }
+        }
+    }
+
     override fun iterator(): Iterator<List<MutableTriple<KFewOnly, KFewOnly2, Value>>> {
         return values.values.iterator()
     }

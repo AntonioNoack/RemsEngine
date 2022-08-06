@@ -147,7 +147,6 @@ object AudioManager {
         alcMakeContextCurrent(context)
         AL.createCapabilities(deviceCaps)
         ALBase.check()
-
         if (hasWarned) {
             LOGGER.info("Succeeded creating audio context")
         }
@@ -156,9 +155,10 @@ object AudioManager {
 
     fun destroy() {
         ALBase.check()
-        alcDestroyContext(context)
         alcCloseDevice(device)
+        alcDestroyContext(context)
         device = 0L
+        context = 0L
     }
 
     private val LOGGER = LogManager.getLogger(AudioManager::class)

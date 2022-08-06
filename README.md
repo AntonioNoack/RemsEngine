@@ -185,7 +185,7 @@ You can find most examples in the "tests" folder.
 * [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
 * [LuaJ](https://github.com/luaj/luaj) (Lua scripting)
 * [QOI-Java](https://github.com/saharNooby/qoi-java) (QOI image format)
-* [Recast4j](https://github.com/ppiastucki/recast4j) (NavMesh generation; not yet integrated)
+* [Recast4j](https://github.com/AntonioNoack/recast4j/) (NavMesh generation; adjusted for JOML; not yet integrated)
 
 ## Build It
 

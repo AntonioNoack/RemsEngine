@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.cache.data.ICacheData
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
@@ -32,6 +33,49 @@ import kotlin.math.roundToInt
 
 class Mesh : PrefabSaveable() {
 
+    // a single helper mesh could be used to represent the default indices...
+    class HelperMesh(
+        val indices: IntArray,
+        mesh: Mesh
+    ) : ICacheData {
+
+        var triBuffer: IndexBuffer? = null
+        var lineBuffer: IndexBuffer? = null
+        var debugLineBuffer: IndexBuffer? = null
+        var debugLineIndices: IntArray? = null
+        var invalidDebugLines = true
+        var lineIndices: IntArray? = null
+
+        init {
+
+            val buffer = mesh.buffer!!
+            triBuffer = IndexBuffer(buffer, indices)
+            triBuffer?.drawMode = mesh.drawMode
+
+            lineIndices = lineIndices ?: FindLines.findLines(indices, mesh.positions)
+            lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
+            lineBuffer?.drawMode = GL_LINES
+
+        }
+
+        fun ensureDebugLines(mesh: Mesh) {
+            val buffer = mesh.buffer
+            if (invalidDebugLines && buffer != null) {
+                invalidDebugLines = false
+                debugLineIndices = FindLines.getAllLines(indices, mesh.positions, debugLineIndices)
+                debugLineBuffer = replaceBuffer(buffer, debugLineIndices, debugLineBuffer)
+                debugLineBuffer?.drawMode = GL_LINES
+            }
+        }
+
+        override fun destroy() {
+            triBuffer?.destroy()
+            lineBuffer?.destroy()
+            debugLineBuffer?.destroy()
+        }
+
+    }
+
     // use buffers instead, so they can be uploaded directly? no, I like the strided thing...
     // but it may be more flexible... still in Java, FloatArrays are more comfortable
     // -> just use multiple setters for convenience
@@ -39,12 +83,16 @@ class Mesh : PrefabSaveable() {
     @NotSerializedProperty
     private var needsMeshUpdate = true
 
+    @NotSerializedProperty
+    private var needsBoundsUpdate = true
+
     /**
      * call this function, when you have changed the geometry;
      * on the next frame, the new mesh data will be uploaded to the GPU
      * */
     fun invalidateGeometry() {
         needsMeshUpdate = true
+        needsBoundsUpdate = true
     }
 
     // todo also we need a renderer, which can handle morphing
@@ -52,7 +100,7 @@ class Mesh : PrefabSaveable() {
 
     /**
      * when this property is > 0, then all vertex data will be ignored;
-     * please set positions to a float array (e.g. empty) anyways
+     * please set positions to a float array (e.g., empty) anyways
      * */
     var proceduralLength = 0
 
@@ -161,7 +209,7 @@ class Mesh : PrefabSaveable() {
     var numMaterials = 1
 
     @NotSerializedProperty
-    var helperMeshes: Array<Mesh?>? = null
+    var helperMeshes: Array<HelperMesh?>? = null
 
     // to allow for quads, and strips and such
     var drawMode = GL_TRIANGLES
@@ -197,6 +245,7 @@ class Mesh : PrefabSaveable() {
         clone.color7 = color7
         clone.tangents = tangents
         clone.indices = indices
+        clone.lineIndices = lineIndices
         clone.boneWeights = boneWeights
         clone.boneIndices = boneIndices
         clone.materialIds = materialIds
@@ -208,6 +257,8 @@ class Mesh : PrefabSaveable() {
         clone.needsMeshUpdate = needsMeshUpdate
         clone.buffer = buffer
         clone.triBuffer = triBuffer
+        clone.lineBuffer = lineBuffer
+        clone.debugLineBuffer = debugLineBuffer
         clone.hasUVs = hasUVs
         clone.hasVertexColors = hasVertexColors
         clone.hasBonesInBuffer = hasBonesInBuffer
@@ -290,8 +341,10 @@ class Mesh : PrefabSaveable() {
             if (boneWeights.size != boneIndices.size)
                 throw IllegalStateException("Size of bone weights must match size of bone indices, ${boneWeights.size} vs ${boneIndices.size}")
             if (boneWeights.size * 3 != positions.size * MAX_WEIGHTS)
-                throw IllegalStateException("Size of weights does not match positions, there must be $MAX_WEIGHTS weights per vertex, " +
-                        "${boneWeights.size} * 3 vs ${positions.size} * $MAX_WEIGHTS")
+                throw IllegalStateException(
+                    "Size of weights does not match positions, there must be $MAX_WEIGHTS weights per vertex, " +
+                            "${boneWeights.size} * 3 vs ${positions.size} * $MAX_WEIGHTS"
+                )
         }
         val color0 = color0
         if (color0 != null && color0.size * 3 != positions.size) throw IllegalStateException("Every vertex needs an ARGB color value")
@@ -451,46 +504,37 @@ class Mesh : PrefabSaveable() {
 
     var hasHighPrecisionNormals = false
 
-    private fun replaceBuffer(attributes: List<Attribute>, vertexCount: Int, oldValue: StaticBuffer?): StaticBuffer {
-        if (oldValue != null) {
-            // offsets are compared, so they need to be consistent
-            computeOffsets(attributes)
-            computeOffsets(oldValue.attributes)
-            if (oldValue.attributes == attributes && oldValue.vertexCount == vertexCount) {
-                oldValue.clear()
-                return oldValue
-            } else {
-                oldValue.destroy()
-            }
-        }
-        return StaticBuffer(attributes, vertexCount)
-    }
-
-    private fun replaceBuffer(base: Buffer, indices: IntArray?, oldValue: IndexBuffer?): IndexBuffer? {
-        return if (indices != null) {
-            if (oldValue != null) {
-                if (base === oldValue.base) {
-                    oldValue.indices = indices
-                    return oldValue
-                } else oldValue.destroy()
-            }
-            IndexBuffer(base, indices)
-        } else {
-            oldValue?.destroy()
-            null
-        }
-    }
-
     /** can be set to false to use tangents as an additional data channel; notice the RGB[-1,1] limit though */
     var checkTangents = true
+
+    fun ensureBounds() {
+        synchronized(this) {
+            if (proceduralLength <= 0 && needsBoundsUpdate) {
+                needsBoundsUpdate = false
+                calculateAABB()
+            }
+        }
+    }
+
+    /**
+     * upload the data to the gpu, if it has changed
+     * */
+    fun ensureBuffer() {
+        synchronized(this) {
+            if (needsMeshUpdate) updateMesh()
+            if (GFX.isGFXThread()) buffer?.ensureBuffer()
+        }
+    }
+
+    fun hasBuffer() = !needsMeshUpdate
 
     private fun updateMesh() {
 
         if (proceduralLength > 0) return
 
-        needsMeshUpdate = false
+        ensureBounds()
 
-        calculateAABB()
+        needsMeshUpdate = false
 
         // not the safest, but well...
         val positions = positions ?: return // throw RuntimeException("mesh has no positions")
@@ -695,16 +739,13 @@ class Mesh : PrefabSaveable() {
         if (length == 1) return
         if (drawMode != GL_TRIANGLES) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
         if (length > 1000) throw IllegalStateException("Material Id must be less than 1000!")
-        val helperMeshes = arrayOfNulls<Mesh>(length)
+        val helperMeshes = arrayOfNulls<HelperMesh>(length)
         val indices = indices
         val materials = materials
         for (materialId in 0 until length) {
             val numTriangles = materialIds.count { it == materialId }
             if (numTriangles > 0) {
-                val mesh = Mesh()
-                copy(mesh)
-                mesh.material = materials.getOrNull(materialId)
-                mesh.materialIds = null
+                val material = materials.getOrNull(materialId)
                 val helperIndices = IntArray(numTriangles * 3)
                 var j = 0
                 var i3 = 0
@@ -730,15 +771,7 @@ class Mesh : PrefabSaveable() {
                     }
                 }
                 if (j != helperIndices.size) throw IllegalStateException("Ids must have changed while processing")
-                mesh.indices = helperIndices
-                // todo tri buffer could be shared
-                mesh.lineBuffer = null
-                mesh.triBuffer = null
-                mesh.buffer = null
-                mesh.debugLineBuffer = null
-                mesh.checkCompleteness()
-                mesh.invalidateGeometry()
-                helperMeshes[materialId] = mesh
+                helperMeshes[materialId] = HelperMesh(helperIndices, this)
             }// else mesh not required
         }
         this.helperMeshes = helperMeshes
@@ -764,18 +797,6 @@ class Mesh : PrefabSaveable() {
         debugLineBuffer = null
     }
 
-    /**
-     * upload the data to the gpu, if it has changed
-     * */
-    fun ensureBuffer() {
-        synchronized(this) {
-            if (needsMeshUpdate) updateMesh()
-            if (GFX.isGFXThread()) buffer?.ensureBuffer()
-        }
-    }
-
-    fun hasBuffer() = !needsMeshUpdate
-
     fun draw(shader: Shader, materialIndex: Int) {
         val proceduralLength = proceduralLength
         if (proceduralLength <= 0) {
@@ -785,7 +806,13 @@ class Mesh : PrefabSaveable() {
             when {
                 helperMeshes != null && materialIndex in helperMeshes.indices -> {
                     val helperMesh = helperMeshes[materialIndex] ?: return
-                    helperMesh.draw(shader, 0)
+                    if (drawDebugLines) {
+                        helperMesh.ensureDebugLines(this)
+                        helperMesh.debugLineBuffer?.draw(shader)
+                    } else {
+                        helperMesh.triBuffer?.draw(shader)
+                        helperMesh.lineBuffer?.draw(shader)
+                    }
                 }
                 materialIndex == 0 -> {
                     if (drawDebugLines) {
@@ -827,9 +854,16 @@ class Mesh : PrefabSaveable() {
             // respect the material index: only draw what belongs to the material
             val helperMeshes = helperMeshes
             if (helperMeshes != null) {
-                helperMeshes
-                    .getOrNull(materialIndex)
-                    ?.drawInstanced(shader, 0, instanceData)
+                val helperMesh = helperMeshes.getOrNull(materialIndex)
+                if (helperMesh != null) {
+                    if (drawDebugLines) {
+                        helperMesh.ensureDebugLines(this)
+                        helperMesh.debugLineBuffer?.drawInstanced(shader, instanceData)
+                    } else {
+                        helperMesh.triBuffer?.drawInstanced(shader, instanceData)
+                        helperMesh.lineBuffer?.drawInstanced(shader, instanceData)
+                    }
+                }
             } else if (materialIndex == 0) {
                 if (drawDebugLines) {
                     ensureDebugLines()
@@ -866,7 +900,7 @@ class Mesh : PrefabSaveable() {
     fun getBounds(transform: Matrix4f, onlyFaces: Boolean): AABBf {
         val vf = Vector3f()
         val aabb = AABBf()
-        ensureBuffer()
+        ensureBounds()
         forEachPoint(onlyFaces) { x, y, z ->
             aabb.union(transform.transformProject(vf.set(x, y, z)))
         }
@@ -884,6 +918,41 @@ class Mesh : PrefabSaveable() {
         // custom attributes for shaders? idk...
         // will always be 4, so bone indices can be aligned
         const val MAX_WEIGHTS = 4
+
+        private fun replaceBuffer(
+            attributes: List<Attribute>,
+            vertexCount: Int,
+            oldValue: StaticBuffer?
+        ): StaticBuffer {
+            if (oldValue != null) {
+                // offsets are compared, so they need to be consistent
+                computeOffsets(attributes)
+                computeOffsets(oldValue.attributes)
+                if (oldValue.attributes == attributes && oldValue.vertexCount == vertexCount) {
+                    oldValue.clear()
+                    return oldValue
+                } else {
+                    oldValue.destroy()
+                }
+            }
+            return StaticBuffer(attributes, vertexCount)
+        }
+
+        private fun replaceBuffer(base: Buffer, indices: IntArray?, oldValue: IndexBuffer?): IndexBuffer? {
+            return if (indices != null) {
+                if (oldValue != null) {
+                    if (base === oldValue.base) {
+                        oldValue.indices = indices
+                        return oldValue
+                    } else oldValue.destroy()
+                }
+                IndexBuffer(base, indices)
+            } else {
+                oldValue?.destroy()
+                null
+            }
+        }
+
 
     }
 

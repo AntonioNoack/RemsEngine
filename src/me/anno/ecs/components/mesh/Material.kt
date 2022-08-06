@@ -194,8 +194,6 @@ open class Material : PrefabSaveable() {
 
     override fun hashCode(): Int {
         var result = shaderOverrides.hashCode()
-        result = 31 * result + (pipelineStage?.hashCode() ?: 0)
-        result = 31 * result + (shader?.hashCode() ?: 0)
         result = 31 * result + diffuseBase.hashCode()
         result = 31 * result + diffuseMap.hashCode()
         result = 31 * result + normalStrength.hashCode()
@@ -219,8 +217,8 @@ open class Material : PrefabSaveable() {
         if (this === other) return true
         if (other !is Material) return false
 
-        if (pipelineStage != other.pipelineStage) return false
-        if (shader != other.shader) return false
+        if (pipelineStage !== other.pipelineStage) return false
+        if (shader !== other.shader) return false
         if (diffuseBase != other.diffuseBase) return false
         if (diffuseMap != other.diffuseMap) return false
         if (normalStrength != other.normalStrength) return false

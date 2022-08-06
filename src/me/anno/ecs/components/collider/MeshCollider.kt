@@ -1,7 +1,6 @@
 package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.*
-import me.anno.Engine
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
@@ -10,7 +9,6 @@ import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -20,7 +18,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
-import me.anno.utils.OS.documents
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.thirdF
@@ -52,7 +49,7 @@ open class MeshCollider() : Collider() {
     @DebugProperty
     val meshAABB get(): AABBf? {
         val mesh = mesh
-        mesh?.ensureBuffer()
+        mesh?.ensureBounds()
         return mesh?.aabb
     }
 
