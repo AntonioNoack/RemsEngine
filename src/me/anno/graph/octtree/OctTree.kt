@@ -1,115 +1,22 @@
 package me.anno.graph.octtree
 
-/**
- * a generic node for quad trees and oct trees, or more/less dimensions;
- * just specify a different type of point
- *
- * the Any can be a single element (not splittable/joinable),
- * or a list, which is split at a certain size
- *
- * it also could be a dual list, e.g. list of positions, and triangle indices
- * */
-abstract class OctTree<Point>(
-    val parent: OctTree<Point>? = null,
-    val min: Point,
-    val max: Point
-) {
+import org.joml.Vector3d
 
-    abstract fun getIndex(point: Point): Int
-    abstract fun trySplit(): SplitResult<Point>?
-    abstract fun tryJoin(node: Any): Boolean
-    abstract fun split(other: Any): SplitResult<Point>
+abstract class OctTree<Data>(maxNumChildren: Int) :
+    KdTree<Vector3d, Data>(maxNumChildren, Vector3d(Double.NEGATIVE_INFINITY), Vector3d(Double.POSITIVE_INFINITY)) {
 
-    var splitPoint: Point? = null
-    var hasValue: Boolean = false
-    var children: Array<OctTree<Point>?>? = null
+    override fun get(p: Vector3d, axis: Int) = p.get(axis)
+    override fun min(a: Vector3d, b: Vector3d): Vector3d = Vector3d(a).min(b)
+    override fun max(a: Vector3d, b: Vector3d): Vector3d = Vector3d(a).max(b)
+    override fun contains(min: Vector3d, max: Vector3d, x: Vector3d) =
+        x.x in min.x..max.x && x.y in min.y..max.y && x.z in min.z..max.z
 
-    fun iterate(callback: (node: OctTree<Point>) -> Boolean): Boolean {
-        val children = children
-        return if (children != null) {
-            for (child in children) {
-                child ?: continue
-                if (child.iterate(callback)) return true
-            }
-            false
-        } else {
-            if (hasValue) {
-                callback(this)
-            } else false
-        }
-    }
-
-    fun iterate(min: Point, max: Point, isValidSample: (node: OctTree<Point>) -> Boolean): Boolean {
-        val children = children
-        return if (children != null) {
-            val minIndex = getIndex(min)
-            val maxIndex = getIndex(max)
-            val or = minIndex or maxIndex
-            val and = minIndex and maxIndex
-            for (index in children.indices) {
-                if (bitsAreInBetween(or, and, index)) {
-                    val child = children[index]
-                    child ?: continue
-                    if (child.iterate(isValidSample)) return true
-                }
-            }
-            false
-        } else if (hasValue) {
-            isValidSample(this)
-        } else false
-    }
-
-    abstract fun setContent(newContent: Any)
-
-    fun add(newAny: Any) {
-        val children = children
-        if (children == null) {
-            if (!hasValue) {
-                // this is the first Any
-                setContent(newAny)
-                hasValue = true
-            } else {
-                if (!tryJoin(newAny)) {
-                    // we cannot join them -> we need to split them
-                    val result = split(newAny)
-                    hasValue = false
-                    this.splitPoint = result.splitPoint
-                    this.children = result.children
-                }
-            }
-        } else {
-            @Suppress("unchecked_cast")
-            newAny as OctTree<Point>
-            val index = newAny.getIndex(splitPoint!!)
-            val oldNode = children[index]
-            if (oldNode == null) {
-                // easy: just write it here
-                children[index] = newAny
-            } else {
-                // merge it with the existing node
-                oldNode.add(newAny)
-            }
-        }
-    }
-
-    private fun bitsAreInBetween(or: Int, and: Int, bits: Int): Boolean {
-
-        // this does a test, whether bits.and(idx) is in and.and(idx) .. or.and(idx)
-        // it does this test for every power of two
-
-        val isBetween = or and and.inv() // from 0 to 1
-        val isZero = or.inv() and bits.inv()
-        val isOne = and and bits
-
-        val answer = isBetween or isZero or isOne
-        return answer == -1
-    }
-
-    fun remove(v: Any) {
-        // todo find its coordinates somehow...
-        // todo find where it is included
-        // todo then remove it
-        TODO()
+    override fun chooseSplitDimension(min: Vector3d, max: Vector3d): Int {
+        val dx = max.x - min.x
+        val dy = max.y - min.y
+        val dz = max.z - min.z
+        return if (dx >= dy && dx >= dz) 0 else
+            if (dy >= dx && dy >= dz) 1 else 2
     }
 
 }

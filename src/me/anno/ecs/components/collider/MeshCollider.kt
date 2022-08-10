@@ -46,12 +46,14 @@ open class MeshCollider() : Collider() {
 
     @DebugProperty
     val meshTriangles get() = mesh?.numTriangles
+
     @DebugProperty
-    val meshAABB get(): AABBf? {
-        val mesh = mesh
-        mesh?.ensureBounds()
-        return mesh?.aabb
-    }
+    val meshAABB
+        get(): AABBf? {
+            val mesh = mesh
+            mesh?.ensureBounds()
+            return mesh?.aabb
+        }
 
     @Type("MeshComponent/Reference")
     var meshFile: FileReference = InvalidRef
@@ -226,20 +228,19 @@ open class MeshCollider() : Collider() {
 
             // calculate convex hull
             // simplify it maybe
-
-            val points = ArrayList<javax.vecmath.Vector3d>(positions.size / 3)
-            for (i in positions.indices step 3) {
-                points.add(
-                    javax.vecmath.Vector3d(
-                        positions[i + 0] * scale.x,
-                        positions[i + 1] * scale.y,
-                        positions[i + 2] * scale.z
-                    )
-                )
+            val convex = if (scale.x in 0.99..1.01 && scale.y in 0.99..1.01 && scale.z in 0.99..1.01) {
+                ConvexHullShape3(positions)
+            } else {
+                val points = ArrayList<javax.vecmath.Vector3d>(positions.size / 3)
+                for (i in positions.indices step 3) {
+                    val x = positions[i + 0] * scale.x
+                    val y = positions[i + 1] * scale.y
+                    val z = positions[i + 2] * scale.z
+                    points.add(javax.vecmath.Vector3d(x, y, z))
+                }
+                ConvexHullShape(points)
             }
-
-            val convex = ConvexHullShape(points)
-            if (points.size < 10) return convex
+            if (positions.size < 30) return convex
 
             val hull = ShapeHull(convex)
             hull.buildHull(convex.margin)

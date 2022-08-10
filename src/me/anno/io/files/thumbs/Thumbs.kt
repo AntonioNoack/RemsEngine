@@ -39,24 +39,20 @@ import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.SVGxGFX
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.copying.FramebufferToMemory.createBufferedImage
+import me.anno.gpu.copying.FramebufferToMemory.createImage
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.image.Image
-import me.anno.image.ImageCPUCache
-import me.anno.image.ImageGPUCache
-import me.anno.image.ImageReadable
+import me.anno.image.*
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.hdr.HDRImage
 import me.anno.image.jpg.JPGReader
@@ -99,6 +95,7 @@ import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
 import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
@@ -121,8 +118,6 @@ import kotlin.math.roundToInt
  * creates and caches small versions of image and video resources
  * */
 object Thumbs {
-
-    // todo some qoi images, scaled, have incorrect colors...
 
     // todo right click option in file explorer to invalidate a thumbs image
     // todo right click option for images: open large image viewer panel
@@ -172,6 +167,7 @@ object Thumbs {
 
     fun getThumbnail(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
 
+        if (file == InvalidRef) return null
         if (file is ImageReadable) {
             return ImageGPUCache.getImage(file, timeout, async)
         }
@@ -184,6 +180,8 @@ object Thumbs {
 
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, file.lastModified, file.isDirectory, size)
+
+        if (size == 1) LOGGER.warn("Requested size 1")
 
         val texture = ImageGPUCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
             if (async) {
@@ -199,8 +197,11 @@ object Thumbs {
                 }
             } else generate(file, size, callback)
         }?.texture
-        return if (texture != null && (texture as? Texture2D)?.isCreated != false) texture
-        else null
+        return when (texture) {
+            is GPUFrame -> if (texture.isCreated) texture else null
+            is Texture2D -> if (texture.isCreated && !texture.isDestroyed) texture else null
+            else -> texture
+        }
     }
 
     private fun FileReference.getCacheFile(size: Int): FileReference {
@@ -236,32 +237,41 @@ object Thumbs {
         } else sizes.last()
     }
 
-    private fun upload(srcFile: FileReference, dst: Image, callback: (Texture2D) -> Unit) {
-        val rotation = ImageData.getRotation(srcFile)
+    private fun upload(
+        srcFile: FileReference,
+        checkRotation: Boolean,
+        dst: Image,
+        callback: (Texture2D) -> Unit
+    ) {
+        val rotation = if (checkRotation) ImageData.getRotation(srcFile) else null
         val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
         dst.createTexture(texture, sync = false, checkRedundancy = true)
         texture.rotation = rotation
-        waitUntil(true) { texture.isCreated || texture.isDestroyed }
         callback(texture)
     }
 
-    private fun upload(srcFile: FileReference, dst: BufferedImage, callback: (Texture2D) -> Unit) {
-        val rotation = ImageData.getRotation(srcFile)
+    private fun upload(
+        srcFile: FileReference,
+        checkRotation: Boolean,
+        dst: BufferedImage,
+        callback: (Texture2D) -> Unit
+    ) {
+        val rotation = if (checkRotation) ImageData.getRotation(srcFile) else null
         if (isGFXThread()) {
-            val texture = Texture2D(dst, true)
+            val texture = Texture2D(srcFile.name, dst, true)
             texture.rotation = rotation
             callback(texture)
         } else {
             val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
             texture.create(dst, sync = false, checkRedundancy = false)
             texture.rotation = rotation
-            waitUntil(true) { texture.isCreated || texture.isDestroyed }
             callback(texture)
         }
     }
 
     private fun saveNUpload(
         srcFile: FileReference,
+        checkRotation: Boolean,
         dstFile: FileReference,
         dst: Image,
         callback: (Texture2D) -> Unit
@@ -270,11 +280,12 @@ object Thumbs {
             dstFile.getParent()?.tryMkdirs()
             dstFile.outputStream().use { ImageIO.write(dst.createBufferedImage(), destinationFormat, it) }
         }
-        upload(srcFile, dst, callback)
+        upload(srcFile, checkRotation, dst, callback)
     }
 
     private fun saveNUpload(
         srcFile: FileReference,
+        checkRotation: Boolean,
         dstFile: FileReference,
         dst: BufferedImage,
         callback: (Texture2D) -> Unit
@@ -286,11 +297,12 @@ object Thumbs {
                 dstFile.outputStream().use { ImageIO.write(dst, destinationFormat, it) }
             }
         }
-        upload(srcFile, dst, callback)
+        upload(srcFile, checkRotation, dst, callback)
     }
 
     private fun transformNSaveNUpload(
         srcFile: FileReference,
+        checkRotation: Boolean,
         src: BufferedImage,
         dstFile: FileReference,
         size: Int,
@@ -301,9 +313,9 @@ object Thumbs {
         if (min(sw, sh) < 1) return
 
         // if it matches the size, just upload it
-        // we have loaded it anyways already
+        // we have loaded it anyway already
         if (max(sw, sh) < size) {
-            saveNUpload(srcFile, dstFile, src, callback)
+            saveNUpload(srcFile, checkRotation, dstFile, src, callback)
             return
             // return generate(srcFile, size / 2, callback)
         }
@@ -311,18 +323,19 @@ object Thumbs {
         val (w, h) = scaleMax(sw, sh, size)
         if (min(w, h) < 1) return
         if (w == sw && h == sh) {
-            saveNUpload(srcFile, dstFile, src, callback)
+            saveNUpload(srcFile, checkRotation, dstFile, src, callback)
         } else {
             val dst = BufferedImage(w, h, src.type)
             val gfx = dst.createGraphics()
             gfx.drawImage(src, 0, 0, w, h, null)
             gfx.dispose()
-            saveNUpload(srcFile, dstFile, dst, callback)
+            saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
         }
     }
 
     private fun transformNSaveNUpload(
         srcFile: FileReference,
+        checkRotation: Boolean,
         src: Image,
         dstFile: FileReference,
         size: Int,
@@ -335,23 +348,23 @@ object Thumbs {
         // if it matches the size, just upload it
         // we have loaded it anyway already
         if (max(sw, sh) < size) {
-            saveNUpload(srcFile, dstFile, src, callback)
+            saveNUpload(srcFile, checkRotation, dstFile, src, callback)
             return
         }
 
         val (w, h) = scaleMax(sw, sh, size)
         if (min(w, h) < 1) return
         if (w == sw && h == sh) {
-            saveNUpload(srcFile, dstFile, src, callback)
+            saveNUpload(srcFile, checkRotation, dstFile, src, callback)
         } else {
             val dst = src.createBufferedImage(w, h)
-            saveNUpload(srcFile, dstFile, dst, callback)
+            saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
         }
     }
 
-    fun renderToBufferedImage(
+    fun renderToImage(
         src: FileReference,
-        srcForRotation: FileReference,
+        checkRotation: Boolean,
         dstFile: FileReference,
         withDepth: Boolean,
         renderer: Renderer = colorRenderer,
@@ -360,22 +373,23 @@ object Thumbs {
         w: Int, h: Int, render: () -> Unit
     ) {
         if (isGFXThread()) {
-            renderToBufferedImage2(
-                srcForRotation, dstFile, withDepth, renderer,
+            renderToImagePart2(
+                src, checkRotation, dstFile, withDepth, renderer,
                 flipY, callback, w, h, render
             )
         } else {
             GFX.addGPUTask("Thumbs.render($src)", w, h) {
-                renderToBufferedImage2(
-                    srcForRotation, dstFile, withDepth, renderer,
+                renderToImagePart2(
+                    src, checkRotation, dstFile, withDepth, renderer,
                     flipY, callback, w, h, render
                 )
             }
         }
     }
 
-    private fun renderToBufferedImage2(
+    private fun renderToImagePart2(
         srcFile: FileReference,
+        checkRotation: Boolean,
         dstFile: FileReference,
         withDepth: Boolean,
         renderer: Renderer,
@@ -386,15 +400,22 @@ object Thumbs {
     ) {
         GFX.check()
 
-        val fb2 = FBStack[srcFile.name, w, h, 4, false, 4, withDepth]
+        val renderTarget = if (GFX.maxSamples > 1 || useCacheFolder) {
+            FBStack[srcFile.name, w, h, 4, false, 4, withDepth]
+        } else {
+            Framebuffer(
+                srcFile.name, w, h, 1, 1, false,
+                if (withDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
+            )
+        }
 
         renderPurely {
             if (!withDepth) {
-                useFrame(w, h, false, fb2, colorRenderer) {
+                useFrame(w, h, false, renderTarget, colorRenderer) {
                     drawTransparentBackground(0, 0, w, h)
                 }
             }
-            useFrame(w, h, false, fb2, renderer) {
+            useFrame(w, h, false, renderTarget, renderer) {
                 if (withDepth) {
                     depthMode.use(DepthMode.GREATER) {
                         Frame.bind()
@@ -406,10 +427,29 @@ object Thumbs {
             }
         }
 
-        val dst = createBufferedImage(w, h, fb2, flipY, true)
-        saveNUpload(srcFile, dstFile, dst, callback)
-
+        if (useCacheFolder) {
+            val dst = createImage(w, h, renderTarget, flipY, true)
+            saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
+        } else {// more efficient path, without useless GPU->CPU->GPU data transfer
+            if (GFX.maxSamples > 1) {
+                val newBuffer =
+                    Framebuffer(srcFile.name, w, h, 1, arrayOf(TargetType.UByteTarget4), DepthBufferType.NONE)
+                renderTarget.needsBlit = true
+                renderTarget.blitTo(newBuffer)
+                val texture = newBuffer.textures[0]
+                newBuffer.destroyExceptTextures(false)
+                texture.rotation = if (flipY) flipYRot else null
+                callback(texture)
+            } else {
+                // todo check if this is working (Android or disable MSAA), should be, it's really simple
+                val texture = renderTarget.textures[0]
+                renderTarget.destroyExceptTextures(false)
+                callback(texture)
+            }
+        }
     }
+
+    val flipYRot = RotateJPEG(mirrorHorizontal = false, mirrorVertical = true, 0)
 
     fun generateVideoFrame(
         srcFile: FileReference,
@@ -440,7 +480,7 @@ object Thumbs {
 
         waitForGFXThread(true) { src.isCreated }
 
-        renderToBufferedImage(srcFile, srcFile, dstFile, false, colorRenderer, false, callback, w, h) {
+        renderToImage(srcFile, false, dstFile, false, colorRenderer, false, callback, w, h) {
             drawTexture(src)
         }
 
@@ -463,7 +503,7 @@ object Thumbs {
 
         val transform = Matrix4fArrayList()
         transform.scale((buffer.maxY / buffer.maxX).toFloat(), 1f, 1f)
-        renderToBufferedImage(srcFile, InvalidRef, dstFile, false, colorRenderer, true, callback, w, h) {
+        renderToImage(srcFile, false, dstFile, false, colorRenderer, true, callback, w, h) {
             SVGxGFX.draw3DSVG(
                 transform, buffer, whiteTexture,
                 white4, Filtering.NEAREST,
@@ -589,14 +629,15 @@ object Thumbs {
         val agi = AnimGameItem(entity)
         entity.validateTransform()
         val cameraMatrix = createCameraMatrix(1f)
-        val modelMatrices = agi.findModelMatrix(cameraMatrix, createModelMatrix(), centerMesh = true, normalizeScale = true)
+        val modelMatrices =
+            agi.findModelMatrix(cameraMatrix, createModelMatrix(), centerMesh = true, normalizeScale = true)
         // todo draw gui (colliders), entity positions
         for (i in 0 until 3) { // make sure both are loaded
             waitForMeshes(entity)
             waitForTextures(entity, srcFile)
         }
         val drawSkeletons = !entity.hasComponent(MeshComponentBase::class)
-        renderToBufferedImage(srcFile, InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
+        renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
             agi.drawAssimp(
                 useECSShader = true, cameraMatrix, modelMatrices, 0.0, white4, "",
                 useMaterials = true, drawSkeletons = drawSkeletons
@@ -615,7 +656,7 @@ object Thumbs {
         val cameraMatrix = createCameraMatrix(1f)
         val modelMatrix = createModelMatrix()
         collider.findModelMatrix(cameraMatrix, modelMatrix, centerMesh = true, normalizeScale = true)
-        renderToBufferedImage(srcFile, InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
+        renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
             collider.drawAssimp(cameraMatrix, modelMatrix)
         }
     }
@@ -632,7 +673,7 @@ object Thumbs {
         waitForTextures(mesh, srcFile)
         // sometimes black: because of vertex colors, which are black
         // render everything without color
-        renderToBufferedImage(srcFile, InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
+        renderToImage(srcFile, false, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
                 1f, null,
                 useMaterials = true,
@@ -656,7 +697,7 @@ object Thumbs {
         waitForTextures(comp, mesh, srcFile)
         // sometimes black: because of vertex colors, which are black
         // render everything without color
-        renderToBufferedImage(srcFile, InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
+        renderToImage(srcFile, false, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
                 1f, comp,
                 useMaterials = true,
@@ -688,8 +729,8 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         waitForTextures(material)
-        renderToBufferedImage(
-            srcFile, InvalidRef, dstFile, true, previewRenderer,
+        renderToImage(
+            srcFile, false, dstFile, true, previewRenderer,
             true, callback, size, size
         ) {
             OpenGL.blendMode.use(BlendMode.DEFAULT) {
@@ -770,8 +811,8 @@ object Thumbs {
         val w = sizePerElement * sx
         val h = if (changeSubFrameAspectRatio) w else sizePerElement * sy
         val aspect = if (changeSubFrameAspectRatio) (w * sy).toFloat() / (h * sx) else 1f
-        renderToBufferedImage(
-            srcFile, InvalidRef, dstFile, true,
+        renderToImage(
+            srcFile, false, dstFile, true,
             renderer0, true, callback, w, h
         ) {
             val frame = OpenGL.currentBuffer!!
@@ -996,7 +1037,7 @@ object Thumbs {
             else {
                 val rotation = ImageData.getRotation(srcFile)
                 GFX.addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
-                    val texture = Texture2D(image, true)
+                    val texture = Texture2D(srcFile.name, image, true)
                     texture.rotation = rotation
                     callback(texture)
                 }
@@ -1031,8 +1072,11 @@ object Thumbs {
 
         if (size < 3) return
 
-        val dstFile = srcFile.getCacheFile(size)
-        if (returnIfExists(srcFile, dstFile, callback)) return
+        val dstFile = if (useCacheFolder) {
+            val dstFile = srcFile.getCacheFile(size)
+            if (returnIfExists(srcFile, dstFile, callback)) return
+            dstFile
+        } else InvalidRef
 
         // for some stuff, the icons are really nice
         // for others, we need our previews
@@ -1046,6 +1090,8 @@ object Thumbs {
             return
         }
 
+        println("generating thumb for $srcFile")
+
         // generate the image,
         // upload the result to the gpu
         // save the file
@@ -1053,7 +1099,7 @@ object Thumbs {
         when (srcFile) {
             is ImageReadable -> {
                 val image = srcFile.readImage()
-                transformNSaveNUpload(srcFile, image, dstFile, size, callback)
+                transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
                 return
             }
             is PrefabReadable -> {
@@ -1076,14 +1122,14 @@ object Thumbs {
             "hdr" -> {
                 val src = HDRImage(srcFile)
                 val dst = findScale(src, srcFile, size, callback) ?: return
-                saveNUpload(srcFile, dstFile, dst, callback)
+                saveNUpload(srcFile, false, dstFile, dst, callback)
             }
             "pdf" -> {
                 try {
                     val ref = PDFCache.getDocumentRef(srcFile, borrow = true, async = false) ?: return
                     val image = PDFCache.getImageCachedBySize(ref.doc, size, 0)
                     ref.returnInstance()
-                    saveNUpload(srcFile, dstFile, image, callback)
+                    saveNUpload(srcFile, false, dstFile, image, callback)
                 } catch (_: NullPointerException) {
                     // can happen ^^
                 } catch (e: Exception) {
@@ -1095,7 +1141,7 @@ object Thumbs {
                 if (data2 != null) {
                     try {
                         val image = ImageIO.read(data2.inputStream())
-                        transformNSaveNUpload(srcFile, image, dstFile, size, callback)
+                        transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
                     } catch (e: Exception) {
                         generateImage(srcFile, dstFile, size, callback)
                     }
@@ -1104,7 +1150,7 @@ object Thumbs {
             // for ico we could find the best image from looking at the headers
             "ico" -> {
                 val image = ICOReader.read(srcFile.inputStream(), size)
-                transformNSaveNUpload(srcFile, image, dstFile, size, callback)
+                transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
             }
             "png", "bmp", "psd", "qoi" ->
                 generateImage(srcFile, dstFile, size, callback)
@@ -1137,7 +1183,7 @@ object Thumbs {
                     // done thumbnails and import for .vox files (MagicaVoxel voxel meshes)
 
                     // done thumbnails for meshes, and components
-                    // todo thumbnails for scripts?
+                    // todo thumbnails for visual scripts, when they exist?
                     // todo thumbnails for Rem's Studio transforms
                     "obj", "fbx", "gltf", "glb", "dae", "md2", "md5mesh" -> {
                         // todo list all mesh extensions, which are supported by assimp
@@ -1182,7 +1228,7 @@ object Thumbs {
                     "tga" -> {
                         val src = srcFile.inputStream().use { TGAImage.read(it, false) }
                         val dst = findScale(src, srcFile, size, callback) ?: return
-                        saveNUpload(srcFile, dstFile, dst, callback)
+                        saveNUpload(srcFile, false, dstFile, dst, callback)
                     }
                     "svg" -> generateSVGFrame(srcFile, dstFile, size, callback)
                     "mtl" -> {
@@ -1222,7 +1268,7 @@ object Thumbs {
                     }
                     "ico" -> {
                         val image = ICOReader.read(srcFile.inputStream(), size)
-                        transformNSaveNUpload(srcFile, image, dstFile, size, callback)
+                        transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
                     }
                     "txt", "html", "md" -> generateTextImage(srcFile, size, callback)
                     // png, jpg, jpeg, ico, webp, mp4, ...
@@ -1319,7 +1365,7 @@ object Thumbs {
                     generateTextImage(srcFile, size, callback)
                 }
             }
-        } else transformNSaveNUpload(srcFile, image!!, dstFile, size, callback)
+        } else transformNSaveNUpload(srcFile, true, image!!, dstFile, size, callback)
     }
 
     private fun generateSystemIcon(
@@ -1347,7 +1393,7 @@ object Thumbs {
         icon.paintIcon(null, gfx, 1, 1)
         gfx.dispose()
         // respect the size
-        transformNSaveNUpload(srcFile, image, dstFile, size, callback)
+        transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
     }
 
     fun testGeneration(

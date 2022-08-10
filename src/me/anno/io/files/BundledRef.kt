@@ -25,7 +25,7 @@ class BundledRef(
         return stream.useBuffered()
     }
 
-    override fun outputStream(): OutputStream {
+    override fun outputStream(append: Boolean): OutputStream {
         throw IllegalAccessException("Cannot write to internal files")
     }
 

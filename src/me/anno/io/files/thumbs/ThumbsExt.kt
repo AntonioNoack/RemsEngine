@@ -1,17 +1,26 @@
 package me.anno.io.files.thumbs
 
+import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.gpu.GFX.shaderColor
+import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.Shader
+import me.anno.io.files.InvalidRef
 import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
+import me.anno.ui.Panel
+import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.utils.OS.documents
 import me.anno.utils.pooling.JomlPools
 import org.joml.*
 import kotlin.math.max
@@ -145,6 +154,42 @@ object ThumbsExt {
             }
             true
         } else false
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        // todo this works, so why is it not working in the engine anymore?
+        ECSRegistry.init()
+        val file = documents.getChild("monkey.obj")
+        // working
+        /*val thumb = Thumbs.getThumbnail(file, 512, false)!!
+        FramebufferToMemory.createImage(thumb,false,true)
+            .write(desktop.getChild("monkey.png"))*/
+        // not working
+        /*testUI {
+            ECSRegistry.init()
+            ECSFileExplorer(null, style)
+        }*/
+        val file2 = Material().ref
+        testUI {
+            object : Panel(style) {
+                override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                    super.onDraw(x0, y0, x1, y1)
+                    OpenGL.useFrame(previewRenderer) {
+                        val mesh = Thumbs.sphereMesh
+                        mesh.material = file
+                        mesh.drawAssimp(
+                            Thumbs.matCameraMatrix,
+                            Thumbs.matModelMatrix,
+                            null,
+                            useMaterials = true,
+                            centerMesh = false,
+                            normalizeScale = false
+                        )
+                    }
+                }
+            }.setWeight(1f)
+        }
     }
 
 }

@@ -42,7 +42,17 @@ open class Texture2D(
     samples: Int
 ) : ICacheData, ITexture2D {
 
+    constructor(name: String, img: BufferedImage, checkRedundancy: Boolean) : this(name, img.width, img.height, 1) {
+        create(img, true, checkRedundancy)
+        filtering(GPUFiltering.NEAREST)
+    }
+
     constructor(img: BufferedImage, checkRedundancy: Boolean) : this("img", img.width, img.height, 1) {
+        create(img, true, checkRedundancy)
+        filtering(GPUFiltering.NEAREST)
+    }
+
+    constructor(name: String, img: Image, checkRedundancy: Boolean) : this(name, img.width, img.height, 1) {
         create(img, true, checkRedundancy)
         filtering(GPUFiltering.NEAREST)
     }
@@ -300,6 +310,8 @@ open class Texture2D(
     }
 
     fun setSize1x1() {
+        // a warning, because you might not expect your image to be empty, and wonder why its size is 1x1
+        LOGGER.warn("Reduced \"$name\" from $w x $h to 1x1, because it was mono-colored")
         w = 1
         h = 1
     }

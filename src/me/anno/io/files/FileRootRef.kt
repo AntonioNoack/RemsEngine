@@ -8,7 +8,7 @@ object FileRootRef : FileReference("root") {
 
     override fun inputStream() = throw IOException()
 
-    override fun outputStream() = throw IOException()
+    override fun outputStream(append: Boolean) = throw IOException()
 
     override fun length() = 0L
 

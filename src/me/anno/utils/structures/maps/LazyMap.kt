@@ -6,7 +6,7 @@ package me.anno.utils.structures.maps
  * if you know that you need all values from the start, use a HashMap instead!;
  * not thread-safe
  * */
-class LazyMap<K, V>(
+open class LazyMap<K, V>(
     val generator: (K) -> V?,
     val nullsAreValid: Boolean = false,
     initialCapacity: Int = 16

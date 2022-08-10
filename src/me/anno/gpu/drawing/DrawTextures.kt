@@ -138,9 +138,7 @@ object DrawTextures {
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int, texture: ITexture2D,
         color: Int, tiling: Vector4fc?, applyToneMapping: Boolean = false
-    ) {
-        drawTexture(x, y, w, h, texture, false, color, tiling, applyToneMapping)
-    }
+    ) = drawTexture(x, y, w, h, texture, false, color, tiling, applyToneMapping)
 
     private val tiling = Vector4f()
     fun drawTransparentBackground(x: Int, y: Int, w: Int, h: Int, numVerticalStripes: Float = 5f) {

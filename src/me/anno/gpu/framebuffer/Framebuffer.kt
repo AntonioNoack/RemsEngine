@@ -8,12 +8,10 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
-import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL13C.GL_MULTISAMPLE
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL32C.GL_TEXTURE_2D_MULTISAMPLE
 import org.lwjgl.opengl.GL45C.glCheckNamedFramebufferStatus
-import kotlin.system.exitProcess
 
 class Framebuffer(
     override var name: String,
@@ -33,10 +31,22 @@ class Framebuffer(
             Array(targetCount) { TargetType.UByteTarget4 }, depthBufferType
     )
 
-    constructor(name: String, w: Int, h: Int, targets: Array<TargetType>, depthBufferType: DepthBufferType = DepthBufferType.NONE) :
+    constructor(
+        name: String,
+        w: Int,
+        h: Int,
+        targets: Array<TargetType>,
+        depthBufferType: DepthBufferType = DepthBufferType.NONE
+    ) :
             this(name, w, h, 1, targets, depthBufferType)
 
-    constructor(name: String, w: Int, h: Int, target: TargetType, depthBufferType: DepthBufferType = DepthBufferType.NONE) :
+    constructor(
+        name: String,
+        w: Int,
+        h: Int,
+        target: TargetType,
+        depthBufferType: DepthBufferType = DepthBufferType.NONE
+    ) :
             this(name, w, h, 1, arrayOf(target), depthBufferType)
 
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
@@ -93,7 +103,7 @@ class Framebuffer(
     var needsBlit = true
 
     val withMultisampling get() = samples > 1
-    var msBuffer = if (withMultisampling)
+    var ssBuffer = if (withMultisampling)
         Framebuffer("$name.ms", w, h, 1, targets, depthBufferType) else null
 
     override var pointer = -1
@@ -110,7 +120,7 @@ class Framebuffer(
             session = OpenGL.session
             pointer = -1
             needsBlit = true
-            msBuffer?.checkSession()
+            ssBuffer?.checkSession()
             depthTexture?.checkSession()
             for (texture in textures) {
                 texture.checkSession()
@@ -242,57 +252,51 @@ class Framebuffer(
         depthAllocated = Texture2D.allocate(depthAllocated, w * h * bytesPerPixel.toLong())
     }
 
-    private fun resolveTo(target: Framebuffer) {
+    fun blitTo(target: Framebuffer) {
         if (!needsBlit) return
         needsBlit = false
-        try {
 
-            val w = w
-            val h = h
+        val w = w
+        val h = h
 
-            GFX.check()
+        GFX.check()
 
-            // ensure that we exist
-            ensure()
+        // ensure that we exist
+        ensure()
 
-            // ensure that it exists
-            // + bind it, it seems important
-            target.ensureSize(w, h)
-            target.ensure()
+        // ensure that it exists
+        // + bind it, it seems important
+        target.ensureSize(w, h)
+        target.ensure()
 
-            GFX.check()
+        GFX.check()
 
-            if (pointer <= 0 || target.pointer <= 0) throw RuntimeException("Something went wrong $this -> $target")
-            // LOGGER.info("Blit: $pointer -> ${target.pointer}")
-            bindFramebuffer(GL_DRAW_FRAMEBUFFER, target.pointer)
-            bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
-            // if(target == null) glDrawBuffer(GL_BACK)?
+        if (pointer <= 0 || target.pointer <= 0) throw RuntimeException("Something went wrong $this -> $target")
+        // LOGGER.info("Blit: $pointer -> ${target.pointer}")
+        bindFramebuffer(GL_DRAW_FRAMEBUFFER, target.pointer)
+        bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
+        // if(target == null) glDrawBuffer(GL_BACK)?
 
-            GFX.check()
+        GFX.check()
 
-            // LOGGER.info("Blit $w $h into target $target")
-            var bits = 0
-            if (targets.isNotEmpty()) bits = bits or GL_COLOR_BUFFER_BIT
-            if (depthBufferType != DepthBufferType.NONE) bits = bits or GL_DEPTH_BUFFER_BIT
-            glBlitFramebuffer(
-                0, 0, w, h,
-                0, 0, w, h,
-                // we may want to GL_STENCIL_BUFFER_BIT, if present
-                bits,
-                GL_NEAREST
-            )
+        // LOGGER.info("Blit $w $h into target $target")
+        var bits = 0
+        if (targets.isNotEmpty()) bits = bits or GL_COLOR_BUFFER_BIT
+        if (depthBufferType != DepthBufferType.NONE) bits = bits or GL_DEPTH_BUFFER_BIT
+        glBlitFramebuffer(
+            0, 0, w, h,
+            0, 0, w, h,
+            // we may want to GL_STENCIL_BUFFER_BIT, if present
+            bits,
+            GL_NEAREST
+        )
 
-            GFX.check()
+        GFX.check()
 
-            // restore the old binding
-            Frame.invalidate()
-            Frame.bind()
+        // restore the old binding
+        Frame.invalidate()
+        Frame.bind()
 
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-            exitProcess(1)
-        }
     }
 
     fun check(pointer: Int) {
@@ -305,8 +309,8 @@ class Framebuffer(
     override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
         checkSession()
         if (withMultisampling) {
-            val msBuffer = msBuffer!!
-            resolveTo(msBuffer)
+            val msBuffer = ssBuffer!!
+            blitTo(msBuffer)
             msBuffer.bindTextureI(index, offset, nearest, clamping)
         } else {
             textures[index].bind(offset, nearest, clamping)
@@ -316,8 +320,8 @@ class Framebuffer(
     override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
         GFX.check()
         if (withMultisampling) {
-            val msBuffer = msBuffer!!
-            resolveTo(msBuffer)
+            val msBuffer = ssBuffer!!
+            blitTo(msBuffer)
             GFX.check()
             msBuffer.bindTextures(offset, nearest, clamping)
         } else {
@@ -330,20 +334,20 @@ class Framebuffer(
 
     fun resolve() {
         if (withMultisampling) {
-            resolveTo(msBuffer!!)
+            blitTo(ssBuffer!!)
             GFX.check()
         }
     }
 
     fun destroyExceptTextures(deleteDepth: Boolean) {
-        if (msBuffer != null) {
-            msBuffer?.destroyExceptTextures(deleteDepth)
-            msBuffer = null
+        if (ssBuffer != null) {
+            ssBuffer?.destroyExceptTextures(deleteDepth)
+            ssBuffer = null
             destroy()
         } else {
-            msBuffer?.destroy()
             destroyFramebuffer()
             destroyInternalDepth()
+            if (deleteDepth) destroyDepthTexture()
         }
     }
 
@@ -353,10 +357,6 @@ class Framebuffer(
             Frame.invalidate()
             DebugGPUStorage.fbs.remove(this)
             pointer = -1
-            for (it in textures) {
-                it.destroy()
-            }
-            depthTexture?.destroy()
         }
     }
 
@@ -370,11 +370,21 @@ class Framebuffer(
 
     var depthAllocated = 0L
 
+    fun destroyTextures(deleteDepth: Boolean) {
+        for (tex in textures) tex.destroy()
+        if (deleteDepth) destroyDepthTexture()
+    }
+
+    fun destroyDepthTexture() {
+        depthTexture?.destroy()
+    }
+
     override fun destroy() {
         if (pointer > 0) {
-            msBuffer?.destroy()
+            ssBuffer?.destroy()
             destroyFramebuffer()
             destroyInternalDepth()
+            destroyTextures(true)
         }
     }
 
@@ -382,13 +392,13 @@ class Framebuffer(
         checkSession()
         return if (samples > 1) {
             bindTextureI(index, 0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            msBuffer!!.getTextureI(index)
+            ssBuffer!!.getTextureI(index)
         } else textures[index]
     }
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(Framebuffer::class)
+        // private val LOGGER = LogManager.getLogger(Framebuffer::class)
 
         fun bindNullDirectly() = bindNull()
 

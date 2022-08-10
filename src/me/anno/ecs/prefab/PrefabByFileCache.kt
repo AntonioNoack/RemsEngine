@@ -3,6 +3,7 @@ package me.anno.ecs.prefab
 import me.anno.cache.LRUCache
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
+import me.anno.engine.ECSRegistry
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -13,6 +14,12 @@ open class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(PrefabByFileCache::class)
+        fun ensureClasses() {
+            if ("Entity" !in ISaveable.objectTypeRegistry) {
+                LOGGER.warn("Please call ECSRegistry.init() yourself!")
+                ECSRegistry.init()
+            }
+        }
     }
 
     operator fun get(ref: FileReference?) = get(ref, false)
@@ -26,6 +33,7 @@ open class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
 
     open operator fun get(ref: FileReference?, async: Boolean): V? {
         if (ref == null || ref == InvalidRef) return null
+        ensureClasses()
         val i0 = lru[ref]
         @Suppress("unchecked_cast")
         if (i0 !== Unit) return i0 as? V
@@ -42,5 +50,4 @@ open class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
         lru[ref] = value
         return value
     }
-
 }

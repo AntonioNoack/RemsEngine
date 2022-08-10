@@ -3,6 +3,7 @@ package me.anno.ecs.prefab
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
+import me.anno.ecs.prefab.PrefabByFileCache.Companion.ensureClasses
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
@@ -214,6 +215,7 @@ object PrefabCache : CacheSection("Prefab") {
             resource.exists && !resource.isDirectory -> {
                 val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
                     if (debugLoading) LOGGER.info("loading $file")
+                    ensureClasses()
                     val loaded = loadPrefab3(file)
                     if (debugLoading) LOGGER.info("loaded $file, got ${loaded?.className}")
                     // if (loaded is Prefab) LOGGER.info(loaded)

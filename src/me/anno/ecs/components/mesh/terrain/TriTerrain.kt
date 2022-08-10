@@ -224,7 +224,7 @@ class TriTerrain : Component(), CustomEditMode {
         aabb.setMax(max)
         var foundPoint = -1
         data.iterate(min, max) { partialData ->
-            partialData as TriangleOctTree
+            /*partialData as TriangleOctTree
             partialData.forEachEdgeIndexed { ta, tb, tc, tabIsEdge, tbcIsEdge, tcaIsEdge, index ->
                 when {
                     (ta == a || ta == b) && (tabIsEdge || tcaIsEdge) -> {// ta is of interest
@@ -242,7 +242,7 @@ class TriTerrain : Component(), CustomEditMode {
 
                     false
                 } else false
-            }
+            }*/
             // todo check whether there is a point of interest
             // todo if found, exit early
             false

@@ -26,10 +26,8 @@ class CPUFrameReader(
                 "RGB" -> RGBFrame
                 "BGR" -> BGRFrame
                 // bw
-                "Y4" -> Y4Frame
-                "Y800" -> Y4Frame // seems correct, awkward, that it has the same name
-                // todo PAL: todo find video with PAL output
-                else -> throw RuntimeException("Unsupported Codec $codec for $file")
+                "Y4", "Y800" -> Y4Frame // seems correct, awkward, that it has the same name
+                else -> I420Frame // throw RuntimeException("Unsupported Codec $codec for $file")
             }
             return frame.load(w, h, input)
         } catch (_: LastFrame) {

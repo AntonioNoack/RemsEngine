@@ -62,10 +62,11 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
     override fun inputStream(): InputStream =
         toURL().openStream()
 
-    override fun outputStream(): OutputStream {
+    override fun outputStream(append: Boolean): OutputStream {
+        if(append) throw IOException("Appending isn't supported (yet?)")
         // in the future, we might use the Apache HTTP API
         // a simple helper function,
-        // may be incomplete for your purposes, e.g.
+        // may be incomplete for your purposes, e.g.,
         // it doesn't set the content type, or other parameters
         // better tutorial:
         // https://stackoverflow.com/a/35013372/4979303

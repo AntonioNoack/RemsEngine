@@ -132,9 +132,7 @@ class AnimGameItem(
         RenderView.currentInstance = null
 
         val animation = animations[animationName]
-        val hasAnimation = animation != null
-
-        OpenGL.animated.use(hasAnimation) {
+        OpenGL.animated.use(animation != null) {
 
             val baseShader = if (useECSShader) ECSShaderLib.pbrModelShader else ShaderLib.shaderAssimp
             val shader = baseShader.value
@@ -142,8 +140,8 @@ class AnimGameItem(
             GFXx3D.shader3DUniforms(shader, cameraMatrix, color)
             GFXx3D.uploadAttractors0(shader)
 
-            val skinningMatrices = if (hasAnimation) {
-                uploadJointMatrices(shader, animation!!, time)
+            val skinningMatrices = if (animation != null) {
+                uploadJointMatrices(shader, animation, time)
             } else null
             shader.v1b("hasAnimation", skinningMatrices != null)
 
@@ -266,6 +264,7 @@ class AnimGameItem(
                         if (mesh.positions != null) {
                             mesh.checkCompleteness()
                             mesh.ensureBuffer()
+                            transform.validate()
                             localTransform
                                 .set(localTransform0)
                                 .mul2(transform.getDrawMatrix())
@@ -289,6 +288,7 @@ class AnimGameItem(
                         if (mesh.positions != null) {
                             mesh.checkCompleteness()
                             mesh.ensureBuffer()
+                            transform.validate()
                             localTransform
                                 .set(localTransform0)
                                 .mul2(transform.getDrawMatrix())

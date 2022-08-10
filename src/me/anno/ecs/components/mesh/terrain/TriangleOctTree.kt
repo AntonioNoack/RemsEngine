@@ -3,9 +3,6 @@ package me.anno.ecs.components.mesh.terrain
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.graph.octtree.OctTree
-import me.anno.graph.octtree.SplitResult
-import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3d
 import org.joml.Vector3f
 
@@ -17,7 +14,7 @@ class TriangleOctTree(
     parent: TriangleOctTree?,
     min: Vector3f, max: Vector3f,
     val maxTriangles: Int
-) : OctTree<Vector3f>(parent, min, max) {
+) {
 
     constructor(terrain: TriTerrain, min: Vector3f, max: Vector3f, maxTriangles: Int) :
             this(terrain, null, min, max, maxTriangles)
@@ -27,6 +24,14 @@ class TriangleOctTree(
 
     var indices = IntArray(maxTriangles * 3)
     var isOnEdge = BooleanArray(maxTriangles * 3) // A,B,C
+
+    fun add(v: TriangleOctTree) {
+        TODO()
+    }
+
+    fun iterate(a: Any, b: Any, c: (TriangleOctTree) -> Unit) {
+        TODO()
+    }
 
     var numTriangles = 0
 
@@ -65,19 +70,6 @@ class TriangleOctTree(
         }
     }
 
-    override fun getIndex(point: Vector3f): Int {
-        val split = splitPoint!!
-        val dx = point.x >= split.x
-        val dy = point.y >= split.y
-        val dz = point.z >= split.z
-        return dx.toInt(4) + dy.toInt(2) + dz.toInt(1)
-    }
-
-    override fun trySplit(): SplitResult<Vector3f>? {
-        // we have enough space -> it's fine :)
-        return null
-    }
-
     fun calculateAverage(dst: Vector3f = Vector3f()): Vector3f {
         val avg = dst.set(0f)
         val srcPos = terrain.positions
@@ -88,106 +80,6 @@ class TriangleOctTree(
         }
         avg.mul(1f / (numTriangles * 3))
         return avg
-    }
-
-    override fun split(other: Any): SplitResult<Vector3f> {
-        // find the ideal split point: in theory the median, but we will just choose the average as an approximation
-        // todo if min/max is infinity, define it
-        val avg = calculateAverage()
-        TODO("Not yet implemented")
-    }
-
-    override fun tryJoin(node: Any): Boolean {
-        node as TriangleOctTree
-        if (numTriangles + node.numTriangles <= maxTriangles) {
-
-            val tri = indices
-            val ioe = isOnEdge
-
-            val tri2 = node.indices
-            val ieo2 = node.isOnEdge
-
-            val baseIndex = numTriangles * 3
-            for (i in 0 until node.numTriangles * 3) {
-                val j = baseIndex + i
-                tri[j] = tri2[i]
-                ioe[j] = ieo2[i]
-            }
-
-            numTriangles += node.numTriangles
-
-            return true
-        }
-        return false
-    }
-
-    fun forEachEdgeIndexed(
-        callback: (a: Int, b: Int, c: Int, abIsEdge: Boolean, bcIsEdge: Boolean, caIsEdge: Boolean, index: Int) -> Boolean
-    ): Boolean {
-        if (hasValue) {
-            val srcIdx = indices
-            val srcIOE = isOnEdge
-            for (i in 0 until numTriangles) {
-                val i3 = i * 3
-                val ab = srcIOE[i3]
-                val bc = srcIOE[i3 + 1]
-                val ca = srcIOE[i3 + 2]
-                if (ab || bc || ca) {
-                    val a = srcIdx[i3]
-                    val b = srcIdx[i3 + 1]
-                    val c = srcIdx[i3 + 2]
-                    if (callback(a, b, c, ab, bc, ca, i)) return true
-                }
-            }
-        }
-        return false
-    }
-
-    fun forEachTriangleIndexed(
-        callback: (a: Int, b: Int, c: Int, abIsEdge: Boolean, bcIsEdge: Boolean, caIsEdge: Boolean, index: Int) -> Boolean
-    ): Boolean {
-        if (hasValue) {
-            val srcIdx = indices
-            val srcIOE = isOnEdge
-            for (i in 0 until numTriangles) {
-                val i3 = i * 3
-                val a = srcIdx[i3]
-                val b = srcIdx[i3 + 1]
-                val c = srcIdx[i3 + 2]
-                val ab = srcIOE[i3]
-                val bc = srcIOE[i3 + 1]
-                val ca = srcIOE[i3 + 2]
-                if (callback(a, b, c, ab, bc, ca, i)) return true
-            }
-        }
-        return false
-    }
-
-    fun forEachTriangle(
-        callback: (a: Int, b: Int, c: Int, abIsEdge: Boolean, bcIsEdge: Boolean, caIsEdge: Boolean) -> Boolean
-    ): Boolean {
-        if (hasValue) {
-            val srcIdx = indices
-            val srcIOE = isOnEdge
-            for (i in 0 until numTriangles) {
-                val i3 = i * 3
-                val a = srcIdx[i3]
-                val b = srcIdx[i3 + 1]
-                val c = srcIdx[i3 + 2]
-                val ab = srcIOE[i3]
-                val bc = srcIOE[i3 + 1]
-                val ca = srcIOE[i3 + 2]
-                if (callback(a, b, c, ab, bc, ca)) return true
-            }
-        }
-        return false
-    }
-
-    override fun setContent(newContent: Any) {
-        newContent as TriangleOctTree
-        indices = newContent.indices
-        isOnEdge = newContent.isOnEdge
-        numTriangles = newContent.numTriangles
     }
 
 }

@@ -63,7 +63,7 @@ abstract class InnerFile(
         return this.data ?: inputStream().readBytes()
     }
 
-    override fun outputStream(): OutputStream {
+    override fun outputStream(append: Boolean): OutputStream {
         throw IOException("Writing into zip files is not yet supported, '$absolutePath'")
     }
 

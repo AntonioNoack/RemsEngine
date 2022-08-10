@@ -339,7 +339,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
      * give access to an output stream;
      * should be buffered for better performance
      * */
-    abstract fun outputStream(): OutputStream
+    abstract fun outputStream(append: Boolean = false): OutputStream
 
     open fun readText() = String(readBytes())
     open fun readText(charset: Charset) = String(readBytes(), charset)

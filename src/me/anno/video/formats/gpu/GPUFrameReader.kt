@@ -28,9 +28,8 @@ class GPUFrameReader(
                 "RGB" -> RGBFrame(w, h)
                 "BGR" -> BGRFrame(w, h)
                 // bw
-                "Y4" -> Y4Frame(w, h)
-                "Y800" -> Y4Frame(w, h) // seems correct, awkward, that it has the same name
-                // todo PAL
+                "Y4", "Y800" -> Y4Frame(w, h) // seems correct, awkward, that it has the same name
+                // todo PAL: todo decode somehow (if still needed; ico is no longer being loaded with ffmpeg); sample: pictures/fav128.ico
                 else -> throw RuntimeException("Unsupported Codec $codec for $file")
             }
             frame.load(input)

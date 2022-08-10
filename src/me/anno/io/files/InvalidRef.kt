@@ -14,7 +14,7 @@ object InvalidRef : FileReference("") {
         throw FileNotFoundException("InvalidRef is no valid source")
     }
 
-    override fun outputStream(): OutputStream {
+    override fun outputStream(append: Boolean): OutputStream {
         throw FileNotFoundException("InvalidRef is no valid source")
     }
 

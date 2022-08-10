@@ -29,8 +29,8 @@ import me.anno.utils.types.Strings.getImportType
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 import java.io.InputStream
-import java.util.*
 import javax.imageio.ImageIO
 
 class ImageData(file: FileReference) : ICacheData {
@@ -47,12 +47,13 @@ class ImageData(file: FileReference) : ICacheData {
 
         fun getRotation(file: FileReference): RotateJPEG? {
             if (file == InvalidRef || file.isDirectory) return null
-            return getRotation(file.inputStream())
+            return getRotation(file, file.inputStream())
         }
 
-        fun getRotation(file: InputStream): RotateJPEG? {
+        fun getRotation(src: FileReference, file: InputStream): RotateJPEG? {
             var rotation: RotateJPEG? = null
             try {
+                // todo which files can contain exif metadata? filter for them
                 val metadata = ImageMetadataReader.readMetadata(file)
                 for (dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)) {
                     val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)
@@ -68,7 +69,8 @@ class ImageData(file: FileReference) : ICacheData {
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                if (src.lcExtension != "xcf") IOException(src.absolutePath, e)
+                    .printStackTrace()
             }
             return rotation
         }

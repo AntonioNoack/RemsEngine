@@ -187,7 +187,7 @@ object Lists {
          return false
      }*/
 
-    fun <V>  ArrayList<V>.partition1(
+    fun <V> ArrayList<V>.partition1(
         start: Int, end: Int, condition: (V) -> Boolean
     ): Int {
 
@@ -299,6 +299,36 @@ object Lists {
             this.smallestKElements(k, comp2)
         }
     }
+
+    fun <X, Y : Comparable<Y>> Iterator<X>.smallestKElementsBy(k: Int, getValue: (X) -> Y): List<X> {
+        val comp2 = { a: X, b: X -> getValue(a).compareTo(getValue(b)) }
+        return this.smallestKElements(k, comp2)
+    }
+
+    fun <X> Iterator<X>.smallestKElements(k: Int, comparator: Comparator<X>): List<X> {
+        val topK = ArrayList<X>(k)
+        for (j in 0 until k) {
+            if (hasNext()) {
+                topK.add(next())
+            } else return topK
+        }
+        topK.sortWith(comparator)
+        var lastBest = topK.last()
+        while (hasNext()) {
+            val element = next()
+            if (comparator.compare(element, lastBest) < 0) {
+                var index = topK.binarySearch(element, comparator)
+                if (index < 0) index = -1 - index // insert index
+                for (l in k - 1 downTo index + 1) {
+                    topK[l] = topK[l - 1]
+                }
+                topK[index] = element
+                lastBest = topK.last()
+            }
+        }
+        return topK
+    }
+
 
     fun <X> List<X>.smallestKElements(k: Int, comparator: Comparator<X>): List<X> {
         return if (size <= k) {

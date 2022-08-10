@@ -17,6 +17,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
 
     override operator fun get(ref: FileReference?, async: Boolean): Mesh? {
         if (ref == null || ref == InvalidRef) return null
+        ensureClasses()
         val value0 = lru[ref]
         if (value0 !== Unit) return value0 as? Mesh
         val value = when (val instance = PrefabCache.getPrefabInstance(ref, maxPrefabDepth, async)) {

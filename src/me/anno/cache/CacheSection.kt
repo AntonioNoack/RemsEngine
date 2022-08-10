@@ -177,6 +177,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         var data: ICacheData? = null
         try {
             data = generator(key)
+        } catch (_: ShutdownException) { // shutting down anyway
         } catch (e: FileNotFoundException) {
             LOGGER.warn("FileNotFoundException: ${e.message}")
         } catch (e: Exception) {
@@ -189,6 +190,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         var data: ICacheData? = null
         try {
             data = generator(key0, key1)
+        } catch (_: ShutdownException) { // shutting down anyway
         } catch (e: FileNotFoundException) {
             LOGGER.warn("FileNotFoundException: ${e.message}")
         } catch (e: ShutdownException) {

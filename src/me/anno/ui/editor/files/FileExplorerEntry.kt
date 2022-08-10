@@ -21,11 +21,10 @@ import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.drawing.GFXx3D.draw3D
+import me.anno.gpu.drawing.UVProjection
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageGPUCache.getInternalTexture
@@ -65,6 +64,7 @@ import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.strings.StringHelper.setNumber
 import me.anno.utils.types.Floats.f1
+import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
@@ -299,7 +299,9 @@ open class FileExplorerEntry(
         val w = x1 - x0
         val h = y1 - y0
         // if aspect ratio is extreme, use a different scale
-        val (iw, ih) = scaleMaxPreview(image.w, image.h, w, h, 5)
+        var (iw, ih) = scaleMaxPreview(image.w, image.h, abs(w), abs(h), 5)
+        iw *= w.sign
+        ih *= h.sign
         val isHDR = image.isHDR
         // we can use FSR to upsample the images xD
         val x = x0 + (w - iw) / 2
@@ -399,10 +401,30 @@ open class FileExplorerEntry(
         image.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         if (rot == null || rot.isNull()) {
             drawTexture(x0, y0, x1, y1, image)
+        } else if (rot.angleCW == 0 && rot.mirrorVertical && !rot.mirrorHorizontal) {
+            drawTexture(x0, y1, x1, y0, image)
         } else {
-            val m = Matrix4fArrayList()
-            rot.apply(m)
-            drawTexture(m, w, h, image, -1, null)
+            // todo draw image without overflowing into other things
+            // todo maybe use transform for that :)
+            val transform = GFXx2D.transform
+            transform.pushMatrix()
+
+            rot.apply(transform)
+
+            // transform.rotateY(45f.toRadians())
+
+            drawTexture(x0, y0, x1, y1, image)
+
+            transform.popMatrix()
+            /* GFX.clip2(x0, y0, x1, y1) {
+                 val stack = Matrix4fArrayList()
+                 rot.apply(stack)
+                 stack.scale(1f, -1f, 0f)
+                 draw3D(
+                     stack, image, (y1 - y0) * image.w, (x1 - x0) * image.h, -1,
+                     Filtering.LINEAR, Clamping.CLAMP, null, UVProjection.Planar
+                 )
+             }*/
         }
     }
 

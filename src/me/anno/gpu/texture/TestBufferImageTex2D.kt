@@ -6,7 +6,6 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.ShaderLib
-import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.OS.desktop
 import org.lwjgl.opengl.GL11C.*
@@ -31,8 +30,8 @@ fun main() {
 
     val magnification = 1
 
-    Thumbs.renderToBufferedImage(
-        srcFile, InvalidRef, desktop.getChild("result.png"), false,
+    Thumbs.renderToImage(
+        srcFile, false, desktop.getChild("result.png"), false,
         Renderer.colorRenderer, true, { },
         formats.size * testImage.width * magnification, testImage.height * magnification
     ) {

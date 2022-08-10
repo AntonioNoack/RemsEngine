@@ -115,7 +115,6 @@ open class GFXBase {
     }
 
     fun forceLoadRenderDoc(renderDocPath: String?) {
-        LOGGER.info("Loading RenderDoc")
         val path = renderDocPath ?: DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
         try {
             // if renderdoc is installed on linux, or given in the path, we could use it as well with loadLibrary()

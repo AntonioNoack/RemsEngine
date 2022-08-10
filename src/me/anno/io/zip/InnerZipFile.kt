@@ -38,7 +38,7 @@ class InnerZipFile(
         return waitUntilDefined(true) { bytes }.inputStream()
     }
 
-    override fun outputStream(): OutputStream {
+    override fun outputStream(append: Boolean): OutputStream {
         throw RuntimeException("Writing into zip files is not yet supported")
     }
 

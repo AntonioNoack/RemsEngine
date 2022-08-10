@@ -138,11 +138,8 @@ object FramebufferToMemory {
         val dataBuffer = IntArray(width * height)
         val image = IntImage(width, height, dataBuffer, withAlpha)
         cloneFromFramebuffer(
-            width,
-            height,
-            clearColor,
-            flipY,
-            renderSection
+            width, height,
+            clearColor, flipY, renderSection
         ) { length, sourceIndex, buffer, bufferIndex ->
             for (x in 0 until length) {
                 val si = (x + sourceIndex) * 4
@@ -151,6 +148,8 @@ object FramebufferToMemory {
                 dataBuffer[di] = argb
             }
         }
+        // todo remove this, it is just for testing
+        dataBuffer[0] = -1
         return image
     }
 

@@ -3,6 +3,7 @@ package me.anno.io.files
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.gimp.GimpImage
 import me.anno.io.zip.SignatureFile
+import me.anno.utils.Color.hex8
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -27,7 +28,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
     constructor(name: String, offset: Int, vararg bytes: Int) : this(
         name, offset,
-        ByteArray(bytes.size) { it.toByte() }
+        ByteArray(bytes.size) { bytes[it].toByte() }
     )
 
     fun matches(bytes: ByteBuffer): Boolean {
@@ -74,7 +75,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         }
     }
 
-    override fun toString(): String = name
+    override fun toString() = "\"$name\" by [${signature.joinToString { hex8(it.toInt()) }}] + $offset"
 
     companion object {
 
@@ -84,19 +85,19 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
         fun findName(bytes: ByteBuffer) = find(bytes)?.name
         fun find(bytes: ByteBuffer): Signature? {
-            for (signature in signatures) {
-                if (signature.matches(bytes)) {
-                    return signature
-                }
+            for (i in signatures.indices) {
+                val s = signatures[i]
+                if (s.matches(bytes)) return s
             }
             return null
         }
 
         fun findName(bytes: ByteArray) = find(bytes)?.name
         fun find(bytes: ByteArray): Signature? {
-            for (signature in signatures) {
-                if (signature.matches(bytes)) {
-                    return signature
+            for (i in signatures.indices) {
+                val s = signatures[i]
+                if (s.matches(bytes)) {
+                    return s
                 }
             }
             return null
@@ -179,8 +180,8 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             bmp,
             Signature("psd", 0, "8BPS"), // photoshop image format
             Signature("hdr", 0, "#?RADIANCE"), // high dynamic range
-            Signature("ico", 0, 0x00, 0x00, 0x01, 0x00, 0x01),// ico with 1 "image"
-            Signature("ico", 0, 0x00, 0x00, 0x02, 0x00, 0x01),// cursor with 1 "image"
+            Signature("ico", 0, 0, 0, 1, 0, 1),// ico with 1 "image"
+            Signature("ico", 0, 0, 0, 2, 0, 1),// cursor with 1 "image"
             Signature("dds", 0, "DDS "), // direct x image file format
             Signature("gif", 0, "GIF8"), // graphics interchange format, often animated
             Signature("gimp", 0, GimpImage.MAGIC), // gimp file

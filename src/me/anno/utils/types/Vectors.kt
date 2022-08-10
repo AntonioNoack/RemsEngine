@@ -123,13 +123,33 @@ object Vectors {
     val Vector3f.yzx get() = Vector3f(y, z, x)
     val Vector3f.zxy get() = Vector3f(z, x, y)
 
+    fun Vector3f.get2(dst: FloatArray, i: Int) {
+        dst[i] = x
+        dst[i + 1] = y
+        dst[i + 2] = z
+    }
+
+    fun Vector3d.get2(dst: DoubleArray, i: Int) {
+        dst[i] = x
+        dst[i + 1] = y
+        dst[i + 2] = z
+    }
+
+    fun Vector3f.set2(src: FloatArray, ai: Int) {
+        set(src[ai], src[ai + 1], src[ai + 2])
+    }
+
+    fun Vector3d.set2(src: DoubleArray, ai: Int) {
+        set(src[ai], src[ai + 1], src[ai + 2])
+    }
+
     fun DoubleArray.toVec3f(offset: Int = 0) =
         Vector3f(this[offset].toFloat(), this[offset + 1].toFloat(), this[offset + 2].toFloat())
 
     fun Vector3i.cross(v: Vector3ic): Vector3i {
-        val rx = (this.y * v.z() - this.z * v.y())
-        val ry = (this.z * v.x() - this.x * v.z())
-        val rz = (this.x * v.y() - this.y * v.x())
+        val rx = y * v.z() - z * v.y()
+        val ry = z * v.x() - x * v.z()
+        val rz = x * v.y() - y * v.x()
         this.x = rx
         this.y = ry
         this.z = rz

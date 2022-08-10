@@ -33,6 +33,9 @@ abstract class MeshSpawner : Component() {
         return true
     }
 
+    /**
+     * iterates over each mesh, which is actively visible; caller shall call transform.validate() if he needs the transform
+     * */
     abstract fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit)
 
 }

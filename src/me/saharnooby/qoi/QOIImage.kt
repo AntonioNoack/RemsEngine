@@ -14,6 +14,8 @@ import java.io.InputStream
 class QOIImage(width: Int, height: Int, channels: Int, val linear: Boolean, data: IntArray) :
     IntImage(width, height, data, channels > 3) {
 
+    // todo some qoi images, scaled, have incorrect colors...
+
     companion object {
 
         private const val MAGIC = ('q'.code shl 24) or ('o'.code shl 16) or ('i'.code shl 8) or 'f'.code

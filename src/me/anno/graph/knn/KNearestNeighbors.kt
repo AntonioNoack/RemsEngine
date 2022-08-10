@@ -1,49 +1,60 @@
 package me.anno.graph.knn
 
+import me.anno.graph.octtree.KdTree
+import me.anno.graph.octtree.HexDecTree
 import me.anno.utils.structures.lists.Lists.smallestKElementsBy
 import org.joml.Vector3d
+import org.joml.Vector4d
 
-// todo generally: oct trees for fast finding of things
+class KNearestNeighbors<V> : HexDecTree<KNearestNeighbors.Element<V>>(16) {
 
-// todo find the k nearest neighbors
+    data class Element<V>(val posSize: Vector4d, val element: V)
 
-// todo also respect the size: sometimes we look for huge things, sometimes for very small stuff
+    override fun getPoint(data: Element<V>) = data.posSize
 
-class KNearestNeighbors<V> {
-
-    // stupid, simple implementation:
-    class Element<V>(val position: Vector3d, val size: Double, val element: V)
-
-    val elements = ArrayList<Element<V>>()
-
-    fun clear() {
-        elements.clear()
+    override fun createChild(
+        children: ArrayList<Element<V>>,
+        min: Vector4d,
+        max: Vector4d
+    ): KdTree<Vector4d, Element<V>> {
+        val node = KNearestNeighbors<V>()
+        node.min.set(min)
+        node.max.set(max)
+        node.children = children
+        return node
     }
 
-    fun remove(element: V) {
-        elements.removeIf { it.element == element }
+    fun find1(position: Vector3d, minSize: Double, maxSize: Double, maxDistance: Double): Element<V>? {
+        val min = Vector4d(position, minSize).sub(maxDistance, maxDistance, maxDistance, 0.0)
+        val max = Vector4d(position, maxSize).add(maxDistance, maxDistance, maxDistance, 0.0)
+        var bestScore = maxDistance * maxDistance
+        var bestV: Element<V>? = null
+        query(min, max) {
+            val score = it.posSize.distanceSquared(position.x, position.y, position.z, it.posSize.w)
+            if (score <= bestScore) {
+                bestScore = score
+                bestV = it
+            }
+            false
+        }
+        return bestV
     }
 
-    fun addOrUpdate(position: Vector3d, size: Double, element: V) {
-        remove(element)
-        elements.add(Element(position, size, element))
-    }
-
-    fun find1(position: Vector3d, minSize: Double, maxSize: Double, maxDistance: Double): V? {
-        val maxDSq = maxDistance * maxDistance
-        return elements
-            .filter { it.position.distanceSquared(position) < maxDSq && it.size in minSize..maxSize }
-            .minByOrNull { it.position.distanceSquared(position) }?.element
-    }
-
-    fun findK(position: Vector3d, minSize: Double, maxSize: Double, maxDistance: Double, k: Int): List<V> {
-        val maxDSq = maxDistance * maxDistance
-        return elements
-            .filter { it.position.distanceSquared(position) < maxDSq && it.size in minSize..maxSize }
-            // mmh, it would be nice to have a better function
-            // todo generic function to find the k smallest/largest values
-            .smallestKElementsBy(k) { it.position.distanceSquared(position) }
-            .map { it.element }
+    fun findK(position: Vector3d, minSize: Double, maxSize: Double, maxDistance: Double, k: Int): List<Element<V>> {
+        val min = Vector4d(position, minSize).sub(maxDistance, maxDistance, maxDistance, 0.0)
+        val max = Vector4d(position, maxSize).add(maxDistance, maxDistance, maxDistance, 0.0)
+        val bestScore = maxDistance * maxDistance
+        val candidates = ArrayList<Element<V>>()
+        query(min, max) {
+            val score = it.posSize.distanceSquared(position.x, position.y, position.z, it.posSize.w)
+            if (score <= bestScore) {
+                candidates.add(it)
+            }
+            false
+        }
+        return candidates.smallestKElementsBy(k) {
+            it.posSize.distanceSquared(position.x, position.y, position.z, it.posSize.w)
+        }
     }
 
 

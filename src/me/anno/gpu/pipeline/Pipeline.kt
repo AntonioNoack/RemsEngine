@@ -414,6 +414,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     fun subFill1(mesh: Mesh, material: Material?, transform: Transform) {
 
         mesh.ensureBuffer()
+        transform.validate()
 
         // check visibility
         val bounds = tmpAABB

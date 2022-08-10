@@ -3,6 +3,7 @@ package me.anno.io.files
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.Streams.copy
 import java.io.File
+import java.io.FileOutputStream
 import java.io.OutputStream
 import java.net.URI
 import java.nio.charset.Charset
@@ -38,8 +39,8 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun inputStream() = file.inputStream().buffered()
 
-    override fun outputStream(): OutputStream {
-        val ret = file.outputStream().buffered()
+    override fun outputStream(append: Boolean): OutputStream {
+        val ret = FileOutputStream(file, append).buffered()
         // when writing is finished, this should be called again
         LastModifiedCache.invalidate(file)
         return ret

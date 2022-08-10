@@ -69,16 +69,20 @@ object ColorParsing {
      * */
     fun parseHex(name: String): Int {
         return when (name.length) {
-            3 -> (hex[name[0].code] * 0x110000 + hex[name[1].code] * 0x1100 + hex[name[2].code] * 0x11) or black
-            4 -> (hex[name[0].code] * 0x11000000 + hex[name[1].code] * 0x110000 + hex[name[2].code] * 0x1100 + hex[name[3].code] * 0x11)
+            3 -> (parseHex(name[0]) * 0x110000 + parseHex(name[1]) * 0x1100 + parseHex(name[2]) * 0x11) or black
+            4 -> (parseHex(name[0]) * 0x11000000 + parseHex(name[1]) * 0x110000 + parseHex(name[2]) * 0x1100 + parseHex(name[3]) * 0x11)
             6 -> name.toInt(16) or black
             8 -> name.toLong(16).toInt()
             else -> throw InvalidFormatException("Unknown color $name")
         }
     }
 
+    fun parseHex(c0: Char): Int {
+        return hex[c0.code - 48].toInt()
+    }
+
     fun parseHex(c0: Char, c1: Char): Int {
-        return hex[c0.code].shl(4) or hex[c1.code]
+        return hex[c0.code - 48].toInt().shl(4) or hex[c1.code - 48].toInt()
     }
 
     fun String.is255Int() = toIntOrNull() != null && toInt() in 0..255
@@ -147,13 +151,13 @@ object ColorParsing {
     }
 
     private val hex by lazy {
-        val array = IntArray('f'.code + 1)
+        val array = ByteArray('f'.code + 1 - '0'.code)
         for (i in 0 until 10) {
-            array[i + '0'.code] = i
+            array[i] = i.toByte()
         }
-        for ((index, it) in "abcdef".withIndex()) {
-            array[it.code] = index + 10
-            array[it.uppercaseChar().code] = index + 10
+        for (i in 0 until 6) {
+            array["abcdef"[i].code - 48] = (i + 10).toByte()
+            array["ABCDEF"[i].code - 48] = (i + 10).toByte()
         }
         array
     }

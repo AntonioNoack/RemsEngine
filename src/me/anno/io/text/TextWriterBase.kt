@@ -6,6 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.absMax
 import me.anno.maths.Maths.min
+import me.anno.utils.Color.base36
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
@@ -221,7 +222,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         val c5 = color.shr(20).and(0xf)
         val c6 = color.shr(24).and(0xf)
         val c7 = color.shr(28).and(0xf)
-        val hex = hex
+        val hex = base36
         when {
             c0 == c1 && c2 == c3 && c4 == c5 && c6 == c7 -> {
                 when {
@@ -1357,10 +1358,6 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeAllInList() {
         findReferences()
         super.writeAllInList()
-    }
-
-    companion object {
-        const val hex = "0123456789abcdef"
     }
 
 }
