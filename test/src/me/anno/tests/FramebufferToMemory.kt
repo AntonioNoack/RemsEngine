@@ -2,7 +2,6 @@ package me.anno.tests
 
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.OpenGL
-import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.drawing.DrawGradients
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.io.files.FileReference
@@ -22,6 +21,6 @@ fun main() {
             0, 0, s, s, color or black, black
         )
     }
-    val image = FramebufferToMemory.createImage(fb, false, withAlpha = false)
+    val image = fb.createImage(false, withAlpha = false)
     image.write(FileReference.getReference(OS.desktop, "odd.png"))
 }

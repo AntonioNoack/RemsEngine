@@ -2,10 +2,9 @@ package me.anno.studio
 
 import me.anno.Build
 import me.anno.Engine
-import me.anno.Logging
+import me.anno.utils.Logging
 import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
-import me.anno.cache.instances.LastModifiedCache
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.extensions.ExtensionLoader

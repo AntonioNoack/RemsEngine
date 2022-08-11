@@ -290,7 +290,7 @@ open class AnimRenderer : MeshComponent() {
         }
     }
 
-    override val className: String = "AnimRenderer"
+    override val className = "AnimRenderer"
 
     companion object {
 

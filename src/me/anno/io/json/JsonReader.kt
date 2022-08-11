@@ -158,7 +158,7 @@ class JsonReader(val data: InputStream) {
         }
     }
 
-    fun readObject(readOpeningBracket: Boolean = true, skip: ((String) -> Boolean)? = null): JsonObject {
+    fun readObject(readOpeningBracket: Boolean = true, filter: ((String) -> Boolean)? = null): JsonObject {
         if (readOpeningBracket) assert(skipSpace(), '{')
         var next = skipSpace()
         val obj = JsonObject()
@@ -168,11 +168,9 @@ class JsonReader(val data: InputStream) {
                 '"' -> {
                     val name = readString()
                     assert(skipSpace(), ':')
-                    if (skip != null && skip(name)) {
-                        skipSomething(skipSpace())
-                    } else {
-                        obj[name] = readSomething(skipSpace(), skip)
-                    }
+                    if (filter == null || filter(name)) {
+                        obj[name] = readSomething(skipSpace(), filter)
+                    } else skipSomething(skipSpace())
                     next = skipSpace()
                 }
                 ',' -> {
@@ -201,7 +199,7 @@ class JsonReader(val data: InputStream) {
         }
     }
 
-    fun readSomething(next: Char, skip: ((String) -> Boolean)? = null): Any? {
+    fun readSomething(next: Char, filter: ((String) -> Boolean)? = null): Any? {
         return when (next) {
             in '0'..'9', '.', '+', '-' -> {
                 putBack(next)
@@ -209,7 +207,7 @@ class JsonReader(val data: InputStream) {
             }
             '"' -> readString()
             '[' -> readArray(false)
-            '{' -> readObject(false, skip)
+            '{' -> readObject(false, filter)
             't', 'T' -> {
                 assert(next(), 'r', 'R')
                 assert(next(), 'u', 'U')

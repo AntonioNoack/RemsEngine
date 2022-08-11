@@ -1,8 +1,5 @@
 package me.anno.fonts.signeddistfields.edges
 
-import me.anno.fonts.signeddistfields.Flags.MSDFGEN_CUBIC_SEARCH_STARTS
-import me.anno.fonts.signeddistfields.Flags.MSDFGEN_CUBIC_SEARCH_STEPS
-import me.anno.fonts.signeddistfields.algorithm.EquationSolver.solveQuadratic
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
@@ -10,6 +7,7 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
+import me.anno.maths.EquationSolver.solveQuadratic
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.cross
@@ -27,6 +25,11 @@ class CubicSegment(
     p20: Vector2fc,
     val p3: Vector2fc
 ) : EdgeSegment() {
+
+    companion object {
+        var CUBIC_SEARCH_STARTS = 4
+        var CUBIC_SEARCH_STEPS = 4
+    }
 
     val p1 = if ((p10 == p0 || p10 == p3) && (p20 == p0 || p20 == p3)) mix(p0, p3, 1f / 3f) else p10
     val p2 = if ((p10 == p0 || p10 == p3) && (p20 == p0 || p20 == p3)) mix(p0, p3, 2f / 3f) else p20
@@ -137,10 +140,10 @@ class CubicSegment(
         }
 
         // Iterative minimum distance search
-        for (i in 0..MSDFGEN_CUBIC_SEARCH_STARTS) {
-            var t = i.toFloat() / MSDFGEN_CUBIC_SEARCH_STARTS
+        for (i in 0..CUBIC_SEARCH_STARTS) {
+            var t = i.toFloat() / CUBIC_SEARCH_STARTS
             setQe(qe, qa, ab, br, az, t)
-            for (step in 0 until MSDFGEN_CUBIC_SEARCH_STEPS) {
+            for (step in 0 until CUBIC_SEARCH_STEPS) {
                 // Improve t
                 d1.set(az).mul(t * t)
                     .add(br.x * 2f * t, br.y * 2f * t)

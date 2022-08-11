@@ -16,24 +16,31 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
     val isWritingKey = !isControl && !isAlt && !(key == GLFW_KEY_SPACE && isShift)
 
     enum class Type(val hash: Int) {
-        DOWN(0), // once when down
-        PRESS(1), // while pressing, but only after a delay of 0.5s
-        PRESS_UNSAFE(2), // while pressing
-        UP(3), // once when up
-        TYPED(4), // once when down, then repeatedly after a delay
-        DOUBLE(5) // double click required
+        /** once when down; "down", "d" */
+        DOWN(0),
+
+        /** while pressing, but only after a delay of 0.5s; "press" */
+        PRESS(1),
+
+        /** while pressing; "press-unsafe", "p" */
+        PRESS_UNSAFE(2),
+
+        /** once when up; "up", "u" */
+        UP(3),
+
+        /** once when down, then repeatedly after a delay; "typed", "t" */
+        TYPED(4),
+
+        /** double click required, "double", "double-click", "2" */
+        DOUBLE(5)
     }
 
     override fun hashCode() = hash
-    override fun equals(other: Any?): Boolean {
-        return other is KeyCombination &&
-                other.hash == hash &&
-                other.key == key &&
-                other.modifiers == modifiers &&
-                other.type == type
-    }
+    override fun equals(other: Any?) =
+        other is KeyCombination && other.key == key && other.modifiers == modifiers && other.type == type
 
-    override fun toString() = "${get(key) ?: key}:${if (isControl) "c" else ""}${if (isShift) "s" else ""}${if (isAlt) "a" else ""}:$type"
+    override fun toString() =
+        "${get(key) ?: key}:${if (isControl) "c" else ""}${if (isShift) "s" else ""}${if (isAlt) "a" else ""}:$type"
 
     companion object {
 

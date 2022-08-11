@@ -27,7 +27,7 @@ class CapsuleCollider : Collider() {
     var radius = 1.0
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
-        // union the two rings and the top and bottom peak
+        // union the two rings, and the top and bottom peak
         val r = radius
         val h = halfHeight
         unionRing(globalTransform, aabb, tmp, axis, r, +h, preferExact)

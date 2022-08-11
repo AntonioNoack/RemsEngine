@@ -5,7 +5,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.RemsEngine
-import me.anno.engine.scene.ScenePrefab
+import me.anno.engine.ScenePrefab
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
@@ -74,7 +74,6 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
 
         // if current folder is inside project, then import all these assets
 
-
         // when dragging over a current folder, do that operation on that folder
         val entry = content.children.firstOrNull { it.contains(x, y) } as? FileExplorerEntry
         val current = if (entry == null) folder else getReference(entry.path)
@@ -85,6 +84,10 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
             openMenu(windowStack, listOf(
                 MenuOption(NameDesc("Import")) {
                     import(current, files)
+                },
+                MenuOption(NameDesc("Copy-Import")) {
+                   // todo implement this: all resources must be copied, no trace shall remain
+                    // import(current, files)
                 },
                 MenuOption(NameDesc(if (files.size > 1) "Raw-Copy" else "Other")) {
                     super.onPasteFiles(x, y, files)
@@ -106,9 +109,9 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
                 // easier
 
                 // first create the file mapping, then replace all references
-                val result = HashMap<FileReference, Prefab>()
-                copyAssets(innerFolder, current, true, result)
-                replaceReferences(result)
+                val mapping = HashMap<FileReference, Prefab>()
+                copyAssets(innerFolder, current, true, mapping)
+                replaceReferences(mapping)
 
             } else LOGGER.warn("Could not load $src as prefab")
         }
@@ -119,22 +122,41 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         Thumbs.invalidate(current.getParent())
     }
 
-    private fun replaceReferences(prefabs: HashMap<FileReference, Prefab>) {
+    // todo no option is showing up to delete stuff, when multiple files are selected
+
+    /**
+     * creates a prefab, with customizable values, still based on the original
+     * */
+    private fun replaceReferences(mapping: HashMap<FileReference, Prefab>) {
         // replace all local references, so we can change the properties of everything:
-        for ((_, prefab) in prefabs) {
-            val original = PrefabCache[prefab.prefab]!!
+        for ((_, prefab) in mapping) {
+            val original: Prefab = PrefabCache[prefab.prefab]!!
+            // not strictly required
+            val replacement0 = mapping[original.prefab]
+            if (replacement0 != null) {
+                original.prefab = replacement0.source
+            }
+            // not strictly required
+            for (add in original.adds) {
+                val replacement = mapping[add.prefab]
+                if (replacement != null) {
+                    add.prefab = replacement.source
+                }
+            }
             original.sets.forEach { k1, k2, v ->
                 when {
+                    // todo maps, pairs, triples and ISaveables need to be investigated as well
                     v is FileReference && v != InvalidRef -> {
-                        val replacement = prefabs[v]
+                        val replacement = mapping[v]
                         if (replacement != null) {
                             prefab[k1, k2] = replacement.source
                         }
                     }
                     v is List<*> && v.any { it is FileReference && it != InvalidRef } -> {
-                        // e.g. materials
-                        val replacement = v.map { prefabs[it]?.source ?: it }
-                        prefab[k1, k2] = replacement
+                        prefab[k1, k2] = v.map { mapping[it]?.source ?: it }
+                    }
+                    v is Array<*> && v.any { it is FileReference && it != InvalidRef } -> {
+                        prefab[k1, k2] = v.map { mapping[it]?.source ?: it }.toTypedArray()
                     }
                 }
             }
@@ -185,7 +207,6 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
                     }
                     val newPrefab = Prefab(prefab.clazzName, srcFile)
                     var dstFile = getReference(dstFolder, "$name.json")
-
                     if (dstFile.exists && prefab.clazzName == "Mesh") {
                         // todo compare the contents
                         dstFile = findNextFile(dstFolder, name, "json", 3, '-', 1)

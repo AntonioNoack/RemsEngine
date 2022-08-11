@@ -188,13 +188,17 @@ object EngineActions {
 
         // press instead of down for the delay
         register["FileInput.left.press", "DragStart"]
+        register["FileEntry.left.press", "DragStart"]
+        register["FileExplorerEntry.left.press", "DragStart"]
         register["ColorPaletteEntry.left.press", "DragStart"]
         register["SceneTab.left.press", "DragStart"]
         register["FileEntry.left.press", "DragStart"]
         register["FileEntry.left.double", "Enter|Open"]
         register["FileEntry.f2.down", "Rename"]
-        // todo only when clicked...
         register["FileEntry.right.down", "OpenOptions"]
+        register["FileExplorerEntry.left.double", "Enter|Open"]
+        register["FileExplorerEntry.f2.down", "Rename"]
+        register["FileExplorerEntry.right.down", "OpenOptions"]
         register["FileExplorer.right.down", "OpenOptions"]
         register["FileExplorer.mouseBackward.down", "Back"]
         register["FileExplorer.mouseForward.down", "Forward"]

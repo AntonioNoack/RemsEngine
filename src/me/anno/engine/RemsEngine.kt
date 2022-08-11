@@ -9,7 +9,6 @@ import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.scene.ScenePrefab
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib

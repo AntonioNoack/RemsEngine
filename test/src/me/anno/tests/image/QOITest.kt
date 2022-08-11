@@ -1,6 +1,5 @@
 package me.anno.tests.image
 
-import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.OS.desktop
@@ -12,8 +11,7 @@ fun main() {
     val dst = desktop
     var size = 64
     while (size <= 256) {
-        FramebufferToMemory
-            .createImage(Thumbs.getThumbnail(src, size, false)!!, true, true)
+        Thumbs.getThumbnail(src, size, false)!!.createImage(true, true)
             .write(dst.getChild("$size.png"))
         size *= 2
     }

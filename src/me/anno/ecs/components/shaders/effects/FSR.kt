@@ -3,11 +3,7 @@ package me.anno.ecs.components.shaders.effects
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.drawing.GFXx2D.posSize
-import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib
@@ -15,10 +11,7 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.image.ImageGPUCache
 import me.anno.io.ResourceHelper
-import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.utils.OS
 
 object FSR {
 

@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.PrefabByFileCache.Companion.ensureClasses
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.scene.ScenePrefab
+import me.anno.engine.ScenePrefab
 import me.anno.io.ISaveable
 import me.anno.io.base.InvalidClassException
 import me.anno.io.base.InvalidFormatException

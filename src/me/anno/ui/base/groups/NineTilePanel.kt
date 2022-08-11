@@ -2,6 +2,7 @@ package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import kotlin.math.max
 
@@ -27,6 +28,14 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
         panel.parent = this
     }
 
+    fun add(index: Int, panel: Panel) {
+        children.add(index, panel)
+        panel.uiParent?.remove(panel)
+        panel.parent = this
+    }
+
+    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = true
+
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
@@ -35,11 +44,15 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
 
         // todo calculate how much space is available for the children
         for (child in children) {
-            child.calculateSize(w / 3, h / 3)
-            child.w = child.minW
-            child.h = child.minH
-            minW = max(minW, child.w)
-            minH = max(minH, child.h)
+            var aw = w / 3
+            var ah = h / 3
+            if (child.alignmentX == AxisAlignment.FILL) aw = w
+            if (child.alignmentY == AxisAlignment.FILL) ah = h
+            child.calculateSize(aw, ah)
+            if (child.alignmentX != AxisAlignment.FILL) child.w = child.minW
+            if (child.alignmentY != AxisAlignment.FILL) child.h = child.minH
+            minW = max(minW, if (child.alignmentX == AxisAlignment.FILL) w else child.w)
+            minH = max(minH, if (child.alignmentY == AxisAlignment.FILL) h else child.h)
         }
 
         this.minW = minW

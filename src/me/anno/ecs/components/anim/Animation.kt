@@ -36,7 +36,7 @@ abstract class Animation : PrefabSaveable {
         val index0 = timeF.toInt() % frameCount
         val index1 = (index0 + 1) % frameCount
 
-        val fraction = fract(timeF).toFloat()
+        val fraction = fract(timeF)
 
         return Triple(fraction, index0, index1)
     }

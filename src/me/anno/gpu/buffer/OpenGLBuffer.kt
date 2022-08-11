@@ -247,8 +247,9 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         // because VAOs need default values (probably)
 
         // todo change back to use it constantly, or to be configurable
+        // todo this currently crashes the engine, why ever...
         var useVAOs // works on most meshes, but not all :/
-            get() = Input.isShiftDown
+            get() = false // Input.isShiftDown
             set(_) {}
 
         var renewVAOs = true

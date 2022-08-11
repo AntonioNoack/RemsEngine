@@ -1,4 +1,4 @@
-package me.anno
+package me.anno.utils
 
 import java.io.OutputStream
 import java.io.PrintStream
@@ -14,8 +14,9 @@ object Logging {
     var lastConsoleLineCount = 500
     var maxConsoleLineLength = 500
 
-    class OutputPipe(val output: OutputStream, val processMessage: (String) -> String) : OutputStream() {
+    open class OutputPipe(val output: OutputStream) : OutputStream() {
         var line = ""
+        open fun processMessage(str: String) = str
         override fun write(b: Int) {
             when {
                 b == '\n'.code -> {
@@ -42,7 +43,9 @@ object Logging {
     }
 
     fun setup() {
-        System.setOut(PrintStream(OutputPipe(originalOut) { it }))
-        System.setErr(PrintStream(OutputPipe(originalErr) { "[ERR] $it" }))
+        System.setOut(PrintStream(OutputPipe(originalOut)))
+        System.setErr(PrintStream(object : OutputPipe(originalErr) {
+            override fun processMessage(str: String) = "[ERR] $str"
+        }))
     }
 }

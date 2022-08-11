@@ -1,11 +1,10 @@
-package me.anno.engine.pbr
+package me.anno.tests
 
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.hidden.HiddenOpenGLContext
@@ -98,7 +97,7 @@ fun main() {
         randomTex.bind(0)
         flat01.draw(shader)
     }
-    FramebufferToMemory.createImage(target, flipY = false, withAlpha = true)
+    target.createImage(flipY = false, withAlpha = true)
         .write(desktop.getChild("brdf.png"))
     println(Reduction.reduce(target.getTexture0(), Reduction.AVG).print())
 }

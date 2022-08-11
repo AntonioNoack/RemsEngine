@@ -1,6 +1,6 @@
 package me.anno.fonts.signeddistfields.edges
 
-import me.anno.fonts.signeddistfields.algorithm.EquationSolver.solveCubic
+import me.anno.maths.EquationSolver.solveCubic
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY

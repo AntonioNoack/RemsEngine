@@ -1,8 +1,7 @@
-package me.anno.tests
+package me.anno.tests.shader
 
 import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.gpu.OpenGL
-import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
@@ -28,13 +27,13 @@ fun main() {
 
     val upscaled = FBStack["", ow, oh, 4, false, 1, false]
     OpenGL.useFrame(upscaled) { FSR.upscale(texture, 0, 0, ow, oh, true, applyToneMapping = false) }
-    FramebufferToMemory.createImage(upscaled, false, withAlpha = false)
+    upscaled.createImage(false, withAlpha = false)
         .write(src.getSibling("${src.nameWithoutExtension}-${size}x.png"))
 
     val sharpened = FBStack["", ow, oh, 4, false, 1, false]
     OpenGL.useFrame(sharpened) { FSR.sharpen(upscaled.textures.first(), 1f, 0, 0, ow, oh, true) }
 
-    FramebufferToMemory.createImage(sharpened, false, withAlpha = false)
+    sharpened.createImage(false, withAlpha = false)
         .write(src.getSibling("${src.nameWithoutExtension}-${size}x-s.png"))
 
 }

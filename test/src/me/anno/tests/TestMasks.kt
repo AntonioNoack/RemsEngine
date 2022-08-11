@@ -1,4 +1,4 @@
-package me.anno.graph.octtree
+package me.anno.tests
 
 import org.apache.logging.log4j.LogManager
 

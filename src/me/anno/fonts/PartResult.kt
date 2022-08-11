@@ -8,10 +8,11 @@ class PartResult(
     val width: Float,
     val height: Float,
     val lineCount: Int,
-    val exampleLayout: TextLayout){
+    val exampleLayout: TextLayout
+) {
 
-    operator fun plus(s: PartResult) = PartResult(parts + s.parts.map {
-        stringPart -> StringPart(stringPart.xPos + width, stringPart.yPos, stringPart.text, stringPart.font, stringPart.lineWidth)
+    operator fun plus(s: PartResult) = PartResult(parts + s.parts.map { stringPart ->
+        StringPart(stringPart.xPos + width, stringPart.yPos, stringPart.text, stringPart.font, stringPart.lineWidth)
     }, width + s.width, max(height, s.height), lineCount, exampleLayout)
 
 }

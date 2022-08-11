@@ -530,10 +530,7 @@ class AWTFont(val font: Font) {
         private val fallbackFontList = DefaultConfig[
                 "ui.font.fallbacks",
                 "Segoe UI Emoji,Segoe UI Symbol,DejaVu Sans,FreeMono,Unifont,Symbola"
-        ]
-            .split(',')
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
+        ].split(',').mapNotNull { if(it.isBlank2()) null else it.trim() }
 
         // val fallbacks = FontManager.getFont("", size, 0f, 0f)
         // var fallbackFont0 = Font("Segoe UI Emoji", Font.PLAIN, 25)

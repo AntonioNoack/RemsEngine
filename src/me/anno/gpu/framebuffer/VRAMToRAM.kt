@@ -1,12 +1,8 @@
-package me.anno.gpu.copying
+package me.anno.gpu.framebuffer
 
-import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.drawing.DrawGradients
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
@@ -15,9 +11,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.image.raw.IntImage
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color
-import me.anno.utils.OS
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11C.*
@@ -26,18 +20,19 @@ import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import kotlin.math.min
 
-object FramebufferToMemory {
+object VRAMToRAM {
 
     /**
      * this is a function, which works in screen space rather than UI space!!
      * */
-    private fun drawTexturePure(
+    fun drawTexturePure(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean,
         applyToneMapping: Boolean = false
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
+        // we could use an easier shader here
         val shader = FlatShaders.flatShaderTexture.value
         shader.use()
         GFXx2D.posSize(shader, x, GFX.viewportHeight - y, w, -h)
@@ -56,43 +51,7 @@ object FramebufferToMemory {
         GFX.check()
     }
 
-    fun createBufferedImage(framebuffer: Framebuffer, flipY: Boolean, withAlpha: Boolean): BufferedImage {
-        return createBufferedImage(framebuffer.w, framebuffer.h, framebuffer, flipY, withAlpha)
-    }
-
-    fun createImage(framebuffer: Framebuffer, flipY: Boolean, withAlpha: Boolean): IntImage {
-        return createImage(framebuffer.w, framebuffer.h, framebuffer, flipY, withAlpha)
-    }
-
-    fun createBufferedImage(texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): BufferedImage {
-        return createBufferedImage(texture.w, texture.h, texture, flipY, withAlpha)
-    }
-
-    fun createImage(texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): IntImage {
-        return createImage(texture.w, texture.h, texture, flipY, withAlpha)
-    }
-
-    fun createBufferedImage(w: Int, h: Int, fb: Framebuffer, flipY: Boolean, withAlpha: Boolean): BufferedImage {
-        return createBufferedImage(w, h, fb.getTexture0(), flipY, withAlpha)
-    }
-
-    fun createImage(w: Int, h: Int, framebuffer: Framebuffer, flipY: Boolean, withAlpha: Boolean): IntImage {
-        return createImage(w, h, framebuffer.getTexture0(), flipY, withAlpha)
-    }
-
-    fun createBufferedImage(w: Int, h: Int, texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): BufferedImage {
-        return createBufferedImage(w, h, zero, flipY, withAlpha) { x2, y2, _, _ ->
-            drawTexturePure(-x2, -y2, w, h, texture, !withAlpha)
-        }
-    }
-
-    fun createImage(w: Int, h: Int, texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): IntImage {
-        return createImage(w, h, zero, flipY, withAlpha) { x2, y2, _, _ ->
-            drawTexturePure(-x2, -y2, w, h, texture, !withAlpha)
-        }
-    }
-
-    private val zero = Vector4f(0f)
+    val zero = Vector4f(0f)
 
     /**
      * copies a framebuffer into a buffered image;
@@ -104,12 +63,22 @@ object FramebufferToMemory {
         flipY: Boolean,
         withAlpha: Boolean,
         renderSection: (x: Int, y: Int, w: Int, h: Int) -> Unit
+    ) = createBufferedImage(BufferedImage(width, height, if (withAlpha) 2 else 1), clearColor, flipY, renderSection)
+
+    /**
+     * copies a framebuffer into a buffered image;
+     * no matter the size of the framebuffer (which is otherwise limited)
+     * */
+    fun createBufferedImage(
+        image: BufferedImage,
+        clearColor: Vector4f?,
+        flipY: Boolean,
+        renderSection: (x: Int, y: Int, w: Int, h: Int) -> Unit
     ): BufferedImage {
-        val image = BufferedImage(width, height, if (withAlpha) 2 else 1)
         val dataBuffer = image.raster.dataBuffer
         cloneFromFramebuffer(
-            width,
-            height,
+            image.width,
+            image.height,
             clearColor,
             flipY,
             renderSection
@@ -134,11 +103,21 @@ object FramebufferToMemory {
         flipY: Boolean,
         withAlpha: Boolean,
         renderSection: (x: Int, y: Int, w: Int, h: Int) -> Unit
+    ) = createImage(IntImage(width, height, withAlpha), clearColor, flipY, renderSection)
+
+    /**
+     * copies a framebuffer into an int image;
+     * no matter the size of the framebuffer (which is otherwise limited)
+     * */
+    fun createImage(
+        image: IntImage,
+        clearColor: Vector4f?,
+        flipY: Boolean,
+        renderSection: (x: Int, y: Int, w: Int, h: Int) -> Unit
     ): IntImage {
-        val dataBuffer = IntArray(width * height)
-        val image = IntImage(width, height, dataBuffer, withAlpha)
+        val dataBuffer = image.data
         cloneFromFramebuffer(
-            width, height,
+            image.width, image.height,
             clearColor, flipY, renderSection
         ) { length, sourceIndex, buffer, bufferIndex ->
             for (x in 0 until length) {
@@ -148,8 +127,6 @@ object FramebufferToMemory {
                 dataBuffer[di] = argb
             }
         }
-        // todo remove this, it is just for testing
-        dataBuffer[0] = -1
         return image
     }
 

@@ -1,6 +1,6 @@
 package me.anno.ui.debug
 
-import me.anno.Logging.lastConsoleLines
+import me.anno.utils.Logging.lastConsoleLines
 import me.anno.config.DefaultStyle
 import me.anno.engine.RemsEngine
 import me.anno.gpu.texture.Texture2D

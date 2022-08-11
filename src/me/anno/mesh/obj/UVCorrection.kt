@@ -2,22 +2,22 @@ package me.anno.mesh.obj
 
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.engine.ECSRegistry
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
-import me.anno.io.files.FileReference
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerPrefabFile
-import me.anno.utils.Clock
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
-import me.anno.utils.OS
 import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Vectors.crossLength
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 
+/**
+ * checks, and corrects y-flipped UVs;
+ * could probably be removed from the engine
+ * */
 object UVCorrection {
 
     private val LOGGER = LogManager.getLogger(UVCorrection::class)
@@ -79,32 +79,6 @@ object UVCorrection {
             } else {
                 LOGGER.info("Checked UVs of $folder: ${(normalContrast / invertedContrast).f3()} -> ok")
             }
-        }
-    }
-
-    /**
-     * uv-sign detection implementation test
-     * */
-    @JvmStatic
-    fun main(args: Array<String>) {
-        ECSRegistry.init()
-        @Suppress("SpellCheckingInspection")
-        val samples = listOf(
-            // path and ideal detection
-            "ogldev-source/Content/jeep.obj", // y
-            "ogldev-source/Content/hheli.obj", // y
-            "ogldev-source/Content/spider.obj", // n
-            "ogldev-source/Content/dragon.obj", // doesn't matter
-            "ogldev-source/Content/buddha.obj", // doesn't matter
-            "ogldev-source/Content/dabrovic-sponza/sponza.obj"
-        )
-        val clock = Clock()
-        for (sample in samples) {
-            val ref = FileReference.getReference(OS.downloads, sample)
-            val folder = OBJReader.readAsFolder(ref)
-            clock.start()
-            correct(folder)
-            clock.stop("calc") // the first one is always extra long
         }
     }
 

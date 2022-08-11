@@ -68,6 +68,8 @@ class BlendMode(
 
     companion object {
 
+        val blendModes = HashMap<String, BlendMode>()
+
         var lastFunc: BlendFunc? = null
         var lastFuncAlpha: BlendFunc? = null
         var lastMode: BlendMode? = null

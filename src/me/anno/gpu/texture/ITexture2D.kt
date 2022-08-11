@@ -1,11 +1,11 @@
 package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
-import me.anno.gpu.copying.FramebufferToMemory
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
-import me.anno.utils.OS
 
 interface ITexture2D : ICacheData {
 
@@ -41,10 +41,20 @@ interface ITexture2D : ICacheData {
     }
 
     fun write(dst: FileReference, flipY: Boolean, withAlpha: Boolean) {
-        FramebufferToMemory.createImage(this, flipY, withAlpha)
+        createImage(flipY, withAlpha)
             .write(dst)
     }
 
     fun wrapAsFramebuffer(): IFramebuffer
+
+    fun createBufferedImage(flipY: Boolean, withAlpha: Boolean) =
+        VRAMToRAM.createBufferedImage(w, h, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, _, _ ->
+            VRAMToRAM.drawTexturePure(-x2, -y2, w, h, this, !withAlpha)
+        }
+
+    fun createImage(flipY: Boolean, withAlpha: Boolean) =
+        VRAMToRAM.createImage(w, h, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, _, _ ->
+            VRAMToRAM.drawTexturePure(-x2, -y2, w, h, this, !withAlpha)
+        }
 
 }

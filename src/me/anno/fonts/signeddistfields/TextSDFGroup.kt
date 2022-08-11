@@ -13,12 +13,9 @@ import java.awt.Font
 /**
  * custom character-character alignment maps by font for faster calculation
  * */
-class TextSDFGroup(
-    font: Font, text: CharSequence,
-    charSpacing: Float
-) : TextGroup(
-    font, text, charSpacing.toDouble()
-) {
+@Suppress("unused") // used in Rem's Studio, and still useful
+class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Float) :
+    TextGroup(font, text, charSpacing.toDouble()) {
 
     // are draw-calls always expensive??
     // or buffer creation?

@@ -5,7 +5,6 @@ import me.anno.ecs.components.anim.Retargeting
 import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.engine.ECSRegistry
-import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.utils.OS
 
 fun main() {
@@ -21,6 +20,6 @@ fun main() {
     for (anim in animations.sortedBy { it.name }) {
         texture.addAnimation(anim, retargeting)
     }
-    FramebufferToMemory.createImage(texture.texture!!, flipY = false, withAlpha = false)
+    texture.texture!!.createImage(flipY = false, withAlpha = false)
         .write(OS.desktop.getChild("animTexture.png"))
 }

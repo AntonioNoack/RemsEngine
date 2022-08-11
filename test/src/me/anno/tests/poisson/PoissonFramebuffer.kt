@@ -3,7 +3,6 @@ package me.anno.tests.poisson
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
@@ -246,8 +245,7 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
     }
 
     override fun Framebuffer.writeInto(dst: FileReference) {
-        FramebufferToMemory
-            .createImage(this, flipY = false, withAlpha = false)
+        createImage(flipY = false, withAlpha = false)
             .write(dst)
     }
 

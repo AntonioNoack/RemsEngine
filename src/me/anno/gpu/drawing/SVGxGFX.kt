@@ -1,6 +1,7 @@
-package me.anno.gpu
+package me.anno.gpu.drawing
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms

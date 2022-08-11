@@ -23,8 +23,8 @@ object GLTFMaterialExtractor {
                 when (name) {
                     "materials", "name", "pbrMetallicRoughness",
                     "baseColorTexture", "index", "metallicFactor",
-                    "roughnessFactor" -> false
-                    else -> true
+                    "roughnessFactor" -> true
+                    else -> false
                 }
             }
         }["materials"] as? JsonArray ?: return null
@@ -41,12 +41,6 @@ object GLTFMaterialExtractor {
             }
         }
         return result
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        println(extract(downloads.getChild("3d/azeria/Scene.gltf")))
-        println(extract(downloads.getChild("3d/azeria/binary/azeria.glb")))
     }
 
 }

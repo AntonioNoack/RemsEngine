@@ -1,4 +1,4 @@
-package me.anno.mesh.unreal
+package me.anno.tests.mesh.unreal
 
 object Flags {
 

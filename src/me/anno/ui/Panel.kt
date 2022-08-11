@@ -599,9 +599,15 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun getPrintSuffix(): String = "${style.prefix}"
 
+    /**
+     * if this returns true, the parent must be drawn for the child to look correct
+     * */
     open fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) =
         capturesChildEvents(lx0, ly0, lx1, ly1) // the default behaviour
 
+    /**
+     * if this returns true, the parent must be drawn for the child to look correct
+     * */
     fun drawsOverlayOverChildren(x: Int, y: Int) =
         drawsOverlayOverChildren(x, y, x + 1, y + 1)
 

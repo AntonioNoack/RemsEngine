@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast.raycastTriangleMesh
-import me.anno.gpu.copying.FramebufferToMemory
+import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
@@ -254,7 +254,7 @@ fun main() {
             glFinish()
             clock.stop(name, w * h)
             // save result to disk
-            FramebufferToMemory.createImage(result, flipY = true, withAlpha = false)
+            result.createImage(flipY = true, withAlpha = false)
                 .write(desktop.getChild("bvh/$name.png"))
         }
         if (gpuRaw) render(false, "gpu-raw")

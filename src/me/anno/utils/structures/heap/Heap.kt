@@ -1,4 +1,4 @@
-package me.anno.graph.knn
+package me.anno.utils.structures.heap
 
 import org.apache.logging.log4j.LogManager
 

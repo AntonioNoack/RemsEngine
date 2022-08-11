@@ -151,36 +151,42 @@ object ActionManager : StringMap() {
         val y = window.mouseY
         val la = localActions
         val universally = la["*", combination]
+        val print = lastComb != combination
+        if (print) LOGGER.info("-- processing $universally, $combination")
+        lastComb = combination
         targetSearch@ while (panel != null) {
-            if (processActions(panel, x, y, dx, dy, isContinuous, la[panel.className, combination])) return
+            if (processActions(panel, x, y, dx, dy, isContinuous, la[panel.className, combination], print)) return
             // also check parent classes
             var clazz: KClass<*> = panel::class
             while (true) {
                 val entry = ISaveable.getByClass(clazz)
                 if (entry != null) {
                     val cnI = entry.sampleInstance.className
-                    if (processActions(panel, x, y, dx, dy, isContinuous, la[cnI, combination])) return
+                    if (processActions(panel, x, y, dx, dy, isContinuous, la[cnI, combination], print)) return
                 }
                 clazz = clazz.superclasses.getOrNull(0) ?: break
             }
             // and if nothing is found at all, check the universal list
-            if (processActions(panel, x, y, dx, dy, isContinuous, universally)) return
+            if (processActions(panel, x, y, dx, dy, isContinuous, universally, print)) return
             panel = panel.uiParent
         }
     }
+
+    var lastComb: KeyCombination? = null
 
     fun processActions(
         panel: Panel,
         x: Float, y: Float, dx: Float, dy: Float,
         isContinuous: Boolean,
-        actions: List<String>?
+        actions: List<String>?,
+        print: Boolean,
     ): Boolean {
-        // LOGGER.info("pa ${panel::class.simpleName}/${panel.className}, ${actions?.size}")
+        if (print) LOGGER.info("pa ${panel::class.simpleName}/${panel.className}, ${actions?.size}")
         if (actions == null) return false
         for (actionIndex in actions.indices) {
             val action = actions[actionIndex]
             if (panel.onGotAction(x, y, dx, dy, action, isContinuous)) {
-                // LOGGER.info("pa consumed action $action by ${panel::class}")
+                if (print) LOGGER.info("pa consumed action $action by ${panel::class}")
                 return true
             }
         }

@@ -1,6 +1,6 @@
 package me.anno.utils.structures.lists
 
-import me.anno.graph.knn.Heap
+import me.anno.utils.structures.heap.Heap
 import kotlin.math.max
 
 object Lists {

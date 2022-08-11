@@ -10,7 +10,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
-import me.anno.engine.scene.ScenePrefab
+import me.anno.engine.ScenePrefab
 import me.anno.io.files.FileReference
 import me.anno.io.json.JsonFormatter
 import me.anno.io.zip.InnerTmpFile

@@ -6,6 +6,7 @@ import me.anno.utils.structures.lists.Lists.smallestKElementsBy
 import org.joml.Vector3d
 import org.joml.Vector4d
 
+@Suppress("unused") // probably is useful in games
 class KNearestNeighbors<V> : HexDecTree<KNearestNeighbors.Element<V>>(16) {
 
     data class Element<V>(val posSize: Vector4d, val element: V)

@@ -18,13 +18,15 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.nio.ByteBuffer
 
-// extract the relevant information from a blender file:
-// done meshes
-// todo skeletons
-// todo animations
-// done materials
-// todo scene hierarchy
-//     create a test scene with different layouts, and check that everything is in the right place
+/**
+ * extract the relevant information from a blender file:
+ *  - done meshes
+ *  - todo skeletons
+ *  - todo animations
+ *  - done materials
+ *  - todo scene hierarchy
+ * create a test scene with different layouts, and check that everything is in the right place
+ * */
 object BlenderReader {
 
     private val LOGGER = LogManager.getLogger(BlenderReader::class)

@@ -28,6 +28,7 @@ import me.anno.ui.Window
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
+import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Strings.isArray
 import me.anno.utils.types.Strings.isName
 import me.anno.utils.types.Strings.isNumber
@@ -733,19 +734,22 @@ object Input {
             val data2 = data?.filterIsInstance<File>()
             if (data2 != null && data2.isNotEmpty()) {
                 // LOGGER.info(data2)
-                panel.onPasteFiles(window.mouseX, window.mouseY, data2.map { getReference(it) })
+                panel.onPasteFiles(
+                    window.mouseX,
+                    window.mouseY,
+                    data2.map { copiedInternalFiles[it] ?: getReference(it) })
                 return
                 // return
             }
         } catch (_: UnsupportedFlavorException) {
         }
         try {
-            val data = clipboard.getData(imageFlavor) as RenderedImage
+            val image = clipboard.getData(imageFlavor) as RenderedImage
             val folder = instance!!.getPersistentStorage()
             val file0 = folder.getChild("PastedImage.png")
             val file1 = findNextFile(file0, 3, '-', 1)
-            file1.outputStream().use { ImageIO.write(data, "png", it) }
-            LOGGER.info("Pasted image of size ${data.width} x ${data.height}, placed into $file1")
+            file1.outputStream().use { ImageIO.write(image, "png", it) }
+            LOGGER.info("Pasted image of size ${image.width} x ${image.height}, placed into $file1")
             panel.onPasteFiles(window.mouseX, window.mouseY, listOf(file1))
             return
         } catch (_: UnsupportedFlavorException) {
@@ -761,22 +765,35 @@ object Input {
         LOGGER.warn("Unsupported Data Flavor")
     }
 
+    /**
+     * is like calling "control-c" on those files
+     * */
     fun copyFiles(files: List<FileReference>) {
         // we need this folder, when we have temporary copies,
         // because just FileFileRef.createTempFile() changes the name,
         // and we need the original file name
-        val tmpFolder = lazy { Files.createTempDirectory("tmp").toFile() }
+        val tmpFolder = lazy {
+            val file = Files.createTempDirectory("tmp").toFile()
+            file.deleteOnExit()
+            file
+        }
         val tmpFiles = files.map {
             if (it is FileFileRef) it.file
             else {
                 // create a temporary copy, that the OS understands
-                val tmp = File(tmpFolder.value, it.name)
-                copyHierarchy(it, tmp)
-                tmp
+                val tmp0 = copiedInternalFiles.reverse[it]
+                if (tmp0 != null) tmp0 else {
+                    val tmp = File(tmpFolder.value, it.name)
+                    copyHierarchy(it, tmp)
+                    copiedInternalFiles[tmp] = it
+                    tmp
+                }
             }
         }
         copyFiles2(tmpFiles)
     }
+
+    private val copiedInternalFiles = BiMap<File, FileReference>()
 
     fun copyFiles2(files: List<File>) {
         Toolkit

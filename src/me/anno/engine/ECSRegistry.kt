@@ -48,10 +48,8 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.scene.ScenePrefab
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.graph.types.NodeLibrary
 import me.anno.io.ISaveable.Companion.registerCustomClass

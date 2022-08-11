@@ -4,7 +4,7 @@ import me.anno.cache.data.ImageData.Companion.imageTimeout
 import me.anno.cache.instances.OldMeshCache
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
-import me.anno.gpu.SVGxGFX
+import me.anno.gpu.drawing.SVGxGFX
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.FileReference

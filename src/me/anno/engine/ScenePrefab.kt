@@ -1,12 +1,19 @@
-package me.anno.engine.scene
+package me.anno.engine
 
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
-import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.io.files.FileRootRef
 import me.anno.io.zip.InnerPrefabFile
 import org.apache.logging.log4j.LogManager
+
+/*
+* todo for the shipped game, pack all scene files into a new zip file,
+* todo and preload all (?) values, so we get faster access times
+* todo for installing, it may be wise to split large textures/videos/audios and the rest:
+* todo these large files would be unzipped into a folder, and the rest can be loaded at start, and just be kept in memory
+* we could even convert video formats, so we only need support for a single format :3
+*/
 
 object ScenePrefab : InnerPrefabFile(
     "Scene.prefab",
@@ -20,9 +27,9 @@ object ScenePrefab : InnerPrefabFile(
 
         ensureMutableLists()
 
-        set(ROOT_PATH, "name", "Root")
-        set(ROOT_PATH, "description", "Contains the major components")
-        set(ROOT_PATH, "isCollapsed", false)
+        set("name", "Root")
+        set("description", "Contains the major components")
+        set("isCollapsed", false)
 
         val coreComponents = listOf(
             "Globally Shared" to "The world, which is shared",
@@ -33,9 +40,9 @@ object ScenePrefab : InnerPrefabFile(
         )
 
         for ((name, description) in coreComponents) {
-            val path = addE(this, ROOT_PATH, name)
-            setProperty(path, "description", description)
-            setProperty(path, "isCollapsed", false)
+            val path = add(ROOT_PATH, 'e', "Entity", name)
+            set(path, "description", description)
+            set(path, "isCollapsed", false)
         }
 
         sealFromModifications()

@@ -1,6 +1,6 @@
 package me.anno.tests.structures
 
-import me.anno.graph.knn.Heap
+import me.anno.utils.structures.heap.Heap
 import me.anno.utils.structures.lists.Lists.smallestKElements
 
 fun main() {

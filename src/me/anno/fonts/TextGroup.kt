@@ -53,7 +53,6 @@ open class TextGroup(
         alignment.getOffset(ctx, previous, current)
 
     override fun destroy() {
-
     }
 
     override fun draw(startIndex: Int, endIndex: Int, drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {

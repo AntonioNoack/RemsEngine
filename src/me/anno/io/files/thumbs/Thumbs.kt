@@ -37,9 +37,8 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.depthMode
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.SVGxGFX
+import me.anno.gpu.drawing.SVGxGFX
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.copying.FramebufferToMemory.createImage
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.drawing.GFXx2D
@@ -428,12 +427,14 @@ object Thumbs {
         }
 
         if (useCacheFolder) {
-            val dst = createImage(w, h, renderTarget, flipY, true)
+            val dst = renderTarget.createImage(flipY, true)
             saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
         } else {// more efficient path, without useless GPU->CPU->GPU data transfer
             if (GFX.maxSamples > 1) {
-                val newBuffer =
-                    Framebuffer(srcFile.name, w, h, 1, arrayOf(TargetType.UByteTarget4), DepthBufferType.NONE)
+                val newBuffer = Framebuffer(
+                    srcFile.name, w, h, 1,
+                    arrayOf(TargetType.UByteTarget4), DepthBufferType.NONE
+                )
                 renderTarget.needsBlit = true
                 renderTarget.blitTo(newBuffer)
                 val texture = newBuffer.textures[0]
@@ -1089,8 +1090,6 @@ object Thumbs {
             // generateSystemIcon(srcFile, dstFile, size, callback)
             return
         }
-
-        println("generating thumb for $srcFile")
 
         // generate the image,
         // upload the result to the gpu

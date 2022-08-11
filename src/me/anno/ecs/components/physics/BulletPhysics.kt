@@ -24,7 +24,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.components.physics.events.FallenOutOfWorld
-import me.anno.engine.physics.BulletDebugDraw
+import me.anno.engine.BulletDebugDraw
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState

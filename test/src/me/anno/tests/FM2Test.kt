@@ -1,4 +1,4 @@
-package me.anno.fonts.mesh
+package me.anno.tests
 
 import me.anno.fonts.FontManager
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics

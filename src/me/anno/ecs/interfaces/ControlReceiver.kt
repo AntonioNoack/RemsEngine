@@ -3,7 +3,7 @@ package me.anno.ecs.interfaces
 import me.anno.input.MouseButton
 
 /**
- * the class that you can use to control your components by mouse/keyboard
+ * the class, that you can use to control your components by mouse/keyboard
  * if you want control in edit mode, use @CustomEditMode
  * */
 interface ControlReceiver {

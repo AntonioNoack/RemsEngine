@@ -1,6 +1,5 @@
 package me.anno.ecs.components.light
 
-import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
@@ -8,16 +7,13 @@ import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawCone
 import me.anno.gpu.drawing.Perspective.setPerspective2
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.mesh.Shapes.cube11Smooth
 import me.anno.mesh.vox.meshing.BlockBuffer
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import org.joml.*
 import kotlin.math.atan
-import kotlin.math.tan
 
 // a cone light
 class SpotLight() : LightComponent(LightType.SPOT) {
@@ -29,16 +25,6 @@ class SpotLight() : LightComponent(LightType.SPOT) {
     // for a large angle, it just becomes a point light
     @Range(0.0, 100.0)
     var coneAngle = 1.0
-
-    @HideInInspector
-    @NotSerializedProperty
-    val fovRadians
-        get() = 2.0 * atan(coneAngle)
-
-    @HideInInspector
-    @NotSerializedProperty
-    val halfFovRadians
-        get() = tan(coneAngle)
 
     @SerializedProperty
     @Range(1e-6, 1.0)

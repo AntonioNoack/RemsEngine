@@ -1,4 +1,4 @@
-package me.anno.engine.physics
+package me.anno.engine
 
 import com.bulletphysics.linearmath.IDebugDraw
 import me.anno.engine.ui.LineShapes
@@ -12,12 +12,7 @@ import javax.vecmath.Vector3d
 class BulletDebugDraw : IDebugDraw() {
 
     companion object {
-
         private val LOGGER = LogManager.getLogger(BulletDebugDraw::class)
-
-        fun org.joml.Vector3d.set2(v: Vector3d): org.joml.Vector3d {
-            return this.set(v.x, v.y, v.z)
-        }
     }
 
     var stack = Matrix4f()
@@ -40,11 +35,11 @@ class BulletDebugDraw : IDebugDraw() {
     public static final int MAX_DEBUG_DRAW_MODE   = 1025;
      * */
 
-    var mode = 1 or 2 or 4 or 8 or 64 or 128 or 256 or 1024 or 1025
+    var mode = 2047 // all flags
 
     // private val textInstance = Text()
 
-    override fun getDebugMode(): Int = mode
+    override fun getDebugMode() = mode
 
     override fun setDebugMode(debugMode: Int) {
         mode = debugMode
@@ -87,8 +82,8 @@ class BulletDebugDraw : IDebugDraw() {
         color: Vector3d
     ) {
         // instead of a line, draw a shape with arrow
-        val p0 = JomlPools.vec3d.create().set2(position)
-        val p1 = JomlPools.vec3d.create().set2(normal).add(p0)
+        val p0 = JomlPools.vec3d.create().set(position.x, position.y, position.z)
+        val p1 = JomlPools.vec3d.create().set(normal.x, normal.y, normal.z).add(p0)
         LineShapes.drawArrowZ(p0, p1)
         // drawLine(position, Vector3d(position).apply { add(normal) }, color)
     }

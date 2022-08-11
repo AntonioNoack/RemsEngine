@@ -2,7 +2,6 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
-import me.anno.gpu.copying.FramebufferToMemory.createImage
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -171,7 +170,7 @@ object Screenshots {
                     // Scene.draw(camera, RemsStudio.root, 0, 0, w, h, RemsStudio.editorTime, true, renderer, this)
                     fb.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 }
-                return createImage(fb, false, false)
+                return fb.createImage(flipY = false, withAlpha = false)
             }
 
             GFX.check()

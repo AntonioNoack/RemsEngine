@@ -14,14 +14,10 @@ abstract class CollidingComponent : Component() {
     @DebugTitle("What objects it should collide with, bit mask")
     var collisionMask: Int = 1
 
-    fun canCollide(collisionMask: Int): Boolean {
-        return this.collisionMask.and(collisionMask) != 0
-    }
+    fun canCollide(collisionMask: Int) = this.collisionMask.and(collisionMask) != 0
 
     /** whether the typeMask includes this type, see Raycast.kt */
-    open fun hasRaycastType(typeMask: Int): Boolean {
-        return true
-    }
+    open fun hasRaycastType(typeMask: Int) = true
 
     open fun raycast(
         entity: Entity,

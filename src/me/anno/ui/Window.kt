@@ -64,7 +64,7 @@ open class Window(
         return this
     }
 
-    // todo optimized way to request redraw-updates: e.g. for blinking cursors only a very small section actually changes
+    // todo optimized way to request redraw-updates: e.g., for blinking cursors only a very small section actually changes
     val needsRedraw = LimitedList<Panel>(16)
     val needsLayout = LimitedList<Panel>(16)
 

@@ -62,4 +62,10 @@ interface IFramebuffer {
 
     val depthTexture: ITexture2D?
 
+    fun createBufferedImage(flipY: Boolean, withAlpha: Boolean) =
+        getTexture0().createBufferedImage(flipY, withAlpha)
+
+    fun createImage(flipY: Boolean, withAlpha: Boolean) =
+        getTexture0().createImage(flipY, withAlpha)
+
 }

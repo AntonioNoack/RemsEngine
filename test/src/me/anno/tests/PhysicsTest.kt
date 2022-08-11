@@ -1,4 +1,4 @@
-package me.anno.engine.physics
+package me.anno.tests
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.SphereCollider
