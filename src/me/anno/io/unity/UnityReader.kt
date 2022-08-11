@@ -694,11 +694,12 @@ object UnityReader {
         forAllUnityObjects(root) { fileId, node ->
             val file = folder.get(fileId) as InnerPrefabFile
             when (node.key) {
-                "MeshRenderer" -> {
+                // todo skinned mesh renderer doesn't seem to work yet
+                "MeshRenderer", "SkinnedMeshRenderer" -> {
                     file.hide()
                     val gameObjectKey = decodePath(guid, node["GameObject"], project)
-                    // val castShadows = node.getBool("CastShadows") ?: true
-                    // val receiveShadows = node.getBool("ReceiveShadows") ?: true
+                    val castShadows = node.getBool("CastShadows") ?: true
+                    val receiveShadows = node.getBool("ReceiveShadows") ?: true
                     val isEnabled = node.getBool("Enabled") ?: true
                     val materials = node["Materials"]
                     val meshes = meshesByGameObject[gameObjectKey]
@@ -706,8 +707,10 @@ object UnityReader {
                         val materialList = materials?.packListEntries()?.children
                             ?.map { decodePath(guid, it, project) }
                         for (mesh in meshes) {
-                            if (!isEnabled) mesh.setProperty("isEnabled", false)
-                            if (materials != null) mesh.setProperty("materials", materialList)
+                            if (!isEnabled) mesh["isEnabled"] = false
+                            if (materials != null) mesh["materials"] = materialList
+                            if (!castShadows) mesh["castShadows"] = false
+                            if (!receiveShadows) mesh["receiveShadows"] = false
                         }
                     }
                 }

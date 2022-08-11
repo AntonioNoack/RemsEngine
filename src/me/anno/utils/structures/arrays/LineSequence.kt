@@ -121,7 +121,7 @@ class LineSequence : IntSequence {
             if (char == '\n'.code) {
                 // split line
                 val newBuilder = ExpandingIntArray(16)
-                newBuilder.add(oldBuilder, indexInLine, oldBuilder.size)
+                newBuilder.add(oldBuilder, indexInLine)
                 oldBuilder.removeBetween(indexInLine, oldBuilder.size)
                 lines.add(lineIndex + 1, newBuilder)
                 maxLineLength = lines.maxOf { it.size }

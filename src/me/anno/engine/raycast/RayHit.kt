@@ -22,6 +22,7 @@ class RayHit {
     val tmpVector3ds = Array(10) { Vector3d() }
     val tmpVector4fs = Array(3) { Vector4f() }
     val tmpMat4x3d = Matrix4x3d()
+    val tmpMat4x3d2 = Matrix4x3d()
     val tmpAABBd = AABBd()
 
     // mesh data, that we could calculate
@@ -62,15 +63,15 @@ class RayHit {
     }
 
     fun setFromLocal(
-        globalTransform: Matrix4x3d, localHit: Vector3f, localNormal: Vector3f,
+        globalTransform: Matrix4x3d?, localHit: Vector3f, localNormal: Vector3f,
         start: Vector3d, direction: Vector3d, end: Vector3d
     ) {
         // transform the local position back
         val hitPosition = positionWS.set(localHit)
         // LOGGER.info("hit position $hitPosition from local hit $localHit")
-        globalTransform.transformPosition(hitPosition)
+        globalTransform?.transformPosition(hitPosition)
         val hitNormal = normalWS.set(localNormal)
-        globalTransform.transformDirection(hitNormal)
+        globalTransform?.transformDirection(hitNormal)
         // calculate the world space distance
         val distance = hitPosition.distance(start)
         this.distance = distance

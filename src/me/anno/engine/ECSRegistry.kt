@@ -25,6 +25,7 @@ import me.anno.ecs.components.mesh.spline.SplineControlPoint
 import me.anno.ecs.components.mesh.spline.SplineCrossing
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.ecs.components.mesh.terrain.TriTerrain
+import me.anno.ecs.components.navigation.NavMesh
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
@@ -185,6 +186,7 @@ object ECSRegistry {
         // currently a small thing, hopefully will become important and huge <3
         registerCustomClass(TriTerrain())
         registerCustomClass(ManualProceduralMesh())
+        registerCustomClass(NavMesh())
 
         SDFRegistry.init()
         NodeLibrary.init()

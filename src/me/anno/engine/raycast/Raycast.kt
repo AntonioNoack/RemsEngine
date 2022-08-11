@@ -1,6 +1,7 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.Mesh
@@ -12,6 +13,7 @@ import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Triangles.computeConeInterpolation
 import me.anno.utils.types.Triangles.rayTriangleIntersection
 import me.anno.utils.types.Vectors.toVector3f
+import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.sqrt
@@ -171,7 +173,7 @@ object Raycast {
     }
 
     fun raycastTriangleMesh(
-        entity: Entity?, mesh: Mesh, start: Vector3d,
+        transform: Transform?, mesh: Mesh, start: Vector3d,
         direction: Vector3d, end: Vector3d, radiusAtOrigin: Double,
         radiusPerUnit: Double, result: RayHit, typeMask: Int
     ): Boolean {
@@ -183,123 +185,107 @@ object Raycast {
         val acceptBack = typeMask.hasFlag(TRIANGLE_BACK)
         if (!acceptFront && !acceptBack) return false
 
-        // calculate bounds
-        mesh.ensureBounds()
-
-        // todo it would be great if we would/could project the start+end onto the global aabb,
-        // todo if they lay outside, so more often we can use the faster method more often
-
-        // transform the ray into local mesh coordinates
-        val inverse = JomlPools.mat4x3d.create()
-        val globalTransform = JomlPools.mat4x3d.create()
-        if (entity != null) {
-            globalTransform.set(entity.transform.globalTransform) // local -> global
-            inverse.set(globalTransform).invert()
-        } else inverse.identity()
-
-        val tmp0 = result.tmpVector3fs
-        val tmp1 = result.tmpVector3ds
-
-        val localSrt0 = inverse.transformPosition(tmp1[0].set(start))
-        val localEnd0 = inverse.transformPosition(tmp1[1].set(end))
-        val localDir0 = tmp1[2].set(tmp1[1]).sub(tmp1[0]).normalize()
-
-        // todo reprojection doesn't work yet correctly (test: monkey ears)
-        // project points onto front/back of box
-        val extraDistance = 0.0 // projectRayToAABBFront(localSrt0, localDir0, mesh.aabb, dst = localSrt0)
-        // projectRayToAABBBack(localEnd0, localDir0, mesh.aabb, dst = localEnd0)
-
-        val localSrt = tmp0[0].set(localSrt0)
-        val localEnd = tmp0[1].set(localEnd0)
-        val localDir = tmp0[2].set(localDir0)
-
-        // if any coordinates of start or end are invalid, work in global coordinates
-        val hasValidCoordinates = localSrt.isFinite && localDir.isFinite
-
-        // the fast method only works, if the numbers have roughly the same order of magnitude
-        val relativePositionsSquared = localSrt.lengthSquared() / localEnd.lengthSquared()
-        val orderOfMagnitudeIsFine = relativePositionsSquared in 1e-6f..1e6f
-
-        // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
-        if (hasValidCoordinates && orderOfMagnitudeIsFine) {
-
-            // LOGGER.info(Vector3f(localEnd).sub(localStart).normalize().dot(localDir))
-            // for that test, extend the radius at the start & end or sth like that
-            // calculate local radius & radius extend
-            val radiusScale = inverse.getScaleLength() / SQRT3 // a guess
-            val localRadiusAtOrigin = (radiusAtOrigin * radiusScale).toFloat()
-            val localRadiusPerUnit = radiusPerUnit.toFloat()
-            val localMaxDistance = localSrt.distance(localEnd)
-
-            // test whether we intersect the aabb of this mesh
-            if (mesh.aabb.testLine(localSrt, localDir, localRadiusAtOrigin, localRadiusPerUnit, localMaxDistance)) {
-
-                // test whether we intersect any triangle of this mesh
-                val localMaxDistance2 = localMaxDistance + extraDistance
-                var bestLocalDistance = localMaxDistance
-                val localHitTmp = tmp0[3]
-                val localNormalTmp = tmp0[4]
-                val localHit = tmp0[5]
-                val localNormal = tmp0[6]
-
-                mesh.forEachTriangle(tmp0[7], tmp0[8], tmp0[9]) { a, b, c ->
-                    // check collision of localStart-localEnd with triangle a,b,c
-                    val localDistance = rayTriangleIntersection(
-                        localSrt, localDir, a, b, c,
-                        localRadiusAtOrigin, localRadiusPerUnit,
-                        bestLocalDistance, localHitTmp, localNormalTmp
-                    )
-                    if (localDistance < bestLocalDistance) {
-                        if (if (localNormalTmp.dot(localDir) < 0f) acceptFront else acceptBack) {
-                            bestLocalDistance = localDistance
-                            localHit.set(localHitTmp)
-                            localNormal.set(localNormalTmp)
-                        }
-                    }
-                }
-
-                if (bestLocalDistance < localMaxDistance2) {
-                    result.setFromLocal(globalTransform, localHit, localNormal, start, direction, end)
-                }
-
-            }
-
+        val globalTransform = transform?.globalTransform
+        // quick-path for easy meshes: no extra checks worth it
+        if (mesh.numTriangles <= 16) {
+            globalRaycast2(
+                result, globalTransform, mesh,
+                start, direction,
+                radiusAtOrigin, radiusPerUnit,
+                typeMask
+            )
         } else {
 
-            // mesh is scaled to zero on some axis, need to work in global coordinates
-            // this is quite a bit more expensive, because we need to transform each mesh point into global coordinates
+            mesh.ensureBounds()
 
-            // first test whether the aabbs really overlap
-            val globalAABB = result.tmpAABBd.set(mesh.aabb)
-            globalAABB.transformAABB(globalTransform)
+            // todo it would be great if we would/could project the start+end onto the global aabb,
+            // todo if they lay outside, so more often we can use the faster method more often
 
-            if (globalAABB.testLine(start, direction, result.distance)) {
+            // transform the ray into local mesh coordinates
+            val inverse = result.tmpMat4x3d
+            if (transform != null) {
+                // local -> global
+                inverse.set(globalTransform).invert()
+            } else inverse.identity()
 
-                val tmp = result.tmpVector3ds
-                mesh.forEachTriangle(tmp[2], tmp[3], tmp[4]) { a, b, c ->
-                    val tmpPos = tmp[0]
-                    val tmpNor = tmp[1]
-                    globalTransform.transformPosition(a)
-                    globalTransform.transformPosition(b)
-                    globalTransform.transformPosition(c)
-                    val maxDistance = result.distance
-                    val distance = rayTriangleIntersection(
-                        start, direction, a, b, c,
-                        radiusAtOrigin, radiusPerUnit,
-                        maxDistance, tmpPos, tmpNor
-                    )
-                    if (distance < result.distance) {
-                        if (if (tmpNor.dot(direction) < 0f) acceptFront else acceptBack) {
-                            result.distance = distance
-                            result.positionWS.set(tmpPos)
-                            result.normalWS.set(tmpNor)
+            val tmp0 = result.tmpVector3fs
+            val tmp1 = result.tmpVector3ds
+
+            val localSrt0 = inverse.transformPosition(tmp1[0].set(start))
+            val localEnd0 = inverse.transformPosition(tmp1[1].set(end))
+            val localDir0 = tmp1[2].set(tmp1[1]).sub(tmp1[0]).normalize()
+
+            // todo reprojection doesn't work yet correctly (test: monkey ears)
+            // project points onto front/back of box
+            val extraDistance = 0.0 // projectRayToAABBFront(localSrt0, localDir0, mesh.aabb, dst = localSrt0)
+            // projectRayToAABBBack(localEnd0, localDir0, mesh.aabb, dst = localEnd0)
+
+            val localSrt = tmp0[0].set(localSrt0)
+            val localEnd = tmp0[1].set(localEnd0)
+            val localDir = tmp0[2].set(localDir0)
+
+            // if any coordinates of start or end are invalid, work in global coordinates
+            val hasValidCoordinates = localSrt.isFinite && localDir.isFinite
+
+            // the fast method only works, if the numbers have roughly the same order of magnitude
+            val relativePositionsSquared = localSrt.lengthSquared() / localEnd.lengthSquared()
+            val orderOfMagnitudeIsFine = relativePositionsSquared in 1e-6f..1e6f
+
+            // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
+            if (hasValidCoordinates && orderOfMagnitudeIsFine) {
+
+                // LOGGER.info(Vector3f(localEnd).sub(localStart).normalize().dot(localDir))
+                // for that test, extend the radius at the start & end or sth like that
+                // calculate local radius & radius extend
+                val radiusScale = inverse.getScaleLength() / SQRT3 // a guess
+                val localRadiusAtOrigin = (radiusAtOrigin * radiusScale).toFloat()
+                val localRadiusPerUnit = radiusPerUnit.toFloat()
+                val localMaxDistance = localSrt.distance(localEnd)
+
+                // test whether we intersect the aabb of this mesh
+                if (mesh.aabb.testLine(localSrt, localDir, localRadiusAtOrigin, localRadiusPerUnit, localMaxDistance)) {
+
+                    // test whether we intersect any triangle of this mesh
+                    val localMaxDistance2 = localMaxDistance + extraDistance
+                    var bestLocalDistance = localMaxDistance
+                    val localHitTmp = tmp0[3]
+                    val localNormalTmp = tmp0[4]
+                    val localHit = tmp0[5]
+                    val localNormal = tmp0[6]
+
+                    mesh.forEachTriangle(tmp0[7], tmp0[8], tmp0[9]) { a, b, c ->
+                        // check collision of localStart-localEnd with triangle a,b,c
+                        val localDistance = rayTriangleIntersection(
+                            localSrt, localDir, a, b, c,
+                            localRadiusAtOrigin, localRadiusPerUnit,
+                            bestLocalDistance, localHitTmp, localNormalTmp
+                        )
+                        if (localDistance < bestLocalDistance) {
+                            if (if (localNormalTmp.dot(localDir) < 0f) acceptFront else acceptBack) {
+                                bestLocalDistance = localDistance
+                                localHit.set(localHitTmp)
+                                localNormal.set(localNormalTmp)
+                            }
                         }
                     }
+
+                    if (bestLocalDistance < localMaxDistance2) {
+                        result.setFromLocal(globalTransform, localHit, localNormal, start, direction, end)
+                    }
+
                 }
+
+            } else {
+                // mesh is scaled to zero on some axis, need to work in global coordinates
+                // this is quite a bit more expensive, because we need to transform each mesh point into global coordinates
+                globalRaycast(
+                    result, globalTransform, mesh,
+                    start, direction,
+                    radiusAtOrigin, radiusPerUnit,
+                    typeMask
+                )
             }
         }
-
-        JomlPools.mat4x3d.sub(2)
 
         if (result.distance < original) {
             direction.mulAdd(result.distance, start, end) // end = start + distance * dir, needed for colliders
@@ -310,7 +296,57 @@ object Raycast {
 
     }
 
-    private val ex = RuntimeException()
+    fun globalRaycast(
+        result: RayHit, globalTransform: Matrix4x3d?, mesh: Mesh, start: Vector3d, direction: Vector3d,
+        radiusAtOrigin: Double, radiusPerUnit: Double, typeMask: Int
+    ) {
+        if ((typeMask and TRIANGLES) == 0) return
+        // first test whether the aabbs really overlap
+        val globalAABB = result.tmpAABBd.set(mesh.aabb)
+        if (globalTransform != null) globalAABB.transformAABB(globalTransform)
+        if (globalAABB.testLine(start, direction, result.distance)) {
+            globalRaycast2(
+                result, globalTransform, mesh,
+                start, direction,
+                radiusAtOrigin, radiusPerUnit,
+                typeMask
+            )
+        }
+    }
+
+    fun globalRaycast2(
+        result: RayHit, globalTransform: Matrix4x3d?, mesh: Mesh, start: Vector3d, direction: Vector3d,
+        radiusAtOrigin: Double, radiusPerUnit: Double, typeMask: Int
+    ) {
+        val acceptFront = typeMask.hasFlag(TRIANGLE_FRONT)
+        val acceptBack = typeMask.hasFlag(TRIANGLE_BACK)
+        if (!acceptFront && !acceptBack) return
+        val tmp = result.tmpVector3ds
+        mesh.forEachTriangle(tmp[2], tmp[3], tmp[4]) { a, b, c ->
+            val tmpPos = tmp[0]
+            val tmpNor = tmp[1]
+            if (globalTransform != null) {
+                globalTransform.transformPosition(a)
+                globalTransform.transformPosition(b)
+                globalTransform.transformPosition(c)
+            }
+            val maxDistance = result.distance
+            val distance = rayTriangleIntersection(
+                start, direction, a, b, c,
+                radiusAtOrigin, radiusPerUnit,
+                maxDistance, tmpPos, tmpNor
+            )
+            if (distance < result.distance) {
+                if (if (tmpNor.dot(direction) < 0f) acceptFront else acceptBack) {
+                    result.distance = distance
+                    result.positionWS.set(tmpPos)
+                    result.normalWS.set(tmpNor)
+                }
+            }
+        }
+    }
+
+    private val StopIteration = Throwable()
 
     @Suppress("unused")
     fun raycastTriangleMesh(
@@ -342,11 +378,11 @@ object Raycast {
                     )
                     if (localDistance < distance) {
                         if (if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack)
-                            throw ex
+                            throw StopIteration
                     }
                 }
-            } catch (e: RuntimeException) {
-                if (e !== ex) throw e
+            } catch (e: Throwable) {
+                if (e !== StopIteration) throw e
                 return true
             } finally {
                 JomlPools.vec3f.sub(5)

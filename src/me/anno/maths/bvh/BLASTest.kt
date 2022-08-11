@@ -203,7 +203,7 @@ fun main() {
             end.set(dir).mul(maxDistance).add(start)
             val result = localResult.get()
             result.distance = maxDistance
-            val hit = raycastTriangleMesh(entity, mesh, start, dir, end, 0.0, 0.0, result, -1)
+            val hit = raycastTriangleMesh(entity.transform, mesh, start, dir, end, 0.0, 0.0, result, -1)
             val color = if (hit) {
                 val normal = result.normalWS
                 normal.normalize()

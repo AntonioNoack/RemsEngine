@@ -201,9 +201,9 @@ class AABBd(
         var maxy = Double.NEGATIVE_INFINITY
         var maxz = Double.NEGATIVE_INFINITY
         for (i in 0..7) {
-            val x: Double = this.minX + (i and 1).toDouble() * dx
-            val y: Double = this.minY + ((i shr 1) and 1).toDouble() * dy
-            val z: Double = this.minZ + ((i shr 2) and 1).toDouble() * dz
+            val x = this.minX + (i and 1).toDouble() * dx
+            val y = this.minY + ((i shr 1) and 1).toDouble() * dy
+            val z = this.minZ + ((i shr 2) and 1).toDouble() * dz
             val tx = trans.m00() * x + trans.m10() * y + trans.m20() * z + trans.m30()
             val ty = trans.m01() * x + trans.m11() * y + trans.m21() * z + trans.m31()
             val tz = trans.m02() * x + trans.m12() * y + trans.m22() * z + trans.m32()
@@ -227,9 +227,9 @@ class AABBd(
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
     fun transformUnion(m: Matrix4x3d, base: AABBd, dst: AABBd): AABBd {
-        val dx: Double = this.maxX - this.minX
-        val dy: Double = this.maxY - this.minY
-        val dz: Double = this.maxZ - this.minZ
+        val dx = this.maxX - this.minX
+        val dy = this.maxY - this.minY
+        val dz = this.maxZ - this.minZ
         var minx = base.minX
         var miny = base.minY
         var minz = base.minZ
@@ -237,9 +237,9 @@ class AABBd(
         var maxy = base.maxY
         var maxz = base.maxZ
         for (i in 0..7) {
-            val x: Double = this.minX + (i and 1).toDouble() * dx
-            val y: Double = this.minY + (i shr 1 and 1).toDouble() * dy
-            val z: Double = this.minZ + (i shr 2 and 1).toDouble() * dz
+            val x = this.minX + (i and 1).toDouble() * dx
+            val y = this.minY + (i shr 1 and 1).toDouble() * dy
+            val z = this.minZ + (i shr 2 and 1).toDouble() * dz
             val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
             val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
             val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()

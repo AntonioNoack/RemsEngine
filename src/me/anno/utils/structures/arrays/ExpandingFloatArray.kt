@@ -2,9 +2,11 @@ package me.anno.utils.structures.arrays
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.LOGGER
 import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.math.max
+import kotlin.math.min
 
 class ExpandingFloatArray(
     private var initCapacity: Int
@@ -55,13 +57,22 @@ class ExpandingFloatArray(
         }
     }
 
-    fun ensureExtra(extra: Int) {
+    fun ensureExtra(delta: Int) {
+        ensureCapacity(size + delta)
+    }
+
+    fun ensureCapacity(requestedSize: Int) {
         val array = array
-        if (array == null || size + extra > array.size) {
-            val newSize = if (array == null) max(initCapacity, extra)
-            else max(max(array.size * 2, 16), size + extra)
-            val newArray = FloatArray(newSize)
-            if (array != null) System.arraycopy(array, 0, newArray, 0, size)
+        if (array == null || requestedSize >= array.size) {
+            val suggestedSize = if (array == null) initCapacity else max(array.size * 2, 16)
+            val newSize = max(suggestedSize, requestedSize)
+            val newArray = try {
+                FloatArray(newSize)
+            } catch (e: OutOfMemoryError) {
+                LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingIntArray")
+                throw e
+            }
+            if (array != null) System.arraycopy(array, 0, newArray, 0, this.size)
             this.array = newArray
         }
     }
@@ -69,6 +80,11 @@ class ExpandingFloatArray(
     fun add(value: Float) {
         ensureExtra(1)
         array!![size++] = value
+    }
+
+    fun skip(delta: Int) {
+        ensureExtra(delta)
+        size += delta
     }
 
     fun addUnsafe(x: Float) {
@@ -129,7 +145,7 @@ class ExpandingFloatArray(
         addUnsafe(z)
     }
 
-    fun add(v: FloatArray, srcStartIndex: Int, length: Int) {
+    fun add(v: FloatArray, srcStartIndex: Int = 0, length: Int = v.size - srcStartIndex) {
         ensureExtra(length)
         addUnsafe(v, srcStartIndex, length)
     }
@@ -139,25 +155,28 @@ class ExpandingFloatArray(
         addUnsafe(v, startIndex, length)
     }
 
-    fun addUnsafe(v: FloatArray, startIndex: Int, length: Int) {
-        val array = array!!
-        val size = size
-        for (i in 0 until length) {
-            array[size + i] = v[startIndex + i]
-        }
-        this.size = size + length
+    fun addUnsafe(src: FloatArray, startIndex: Int = 0, length: Int = src.size - startIndex) {
+        System.arraycopy(src, startIndex, array!!, size, length)
+        size += length
     }
 
-    fun addUnsafe(v: ExpandingFloatArray, startIndex: Int, length: Int) {
-        val dst = array!!
-        val src = v.array!!
-        System.arraycopy(src, startIndex, dst, size, length)
-        this.size += length
+    fun addUnsafe(src: ExpandingFloatArray, startIndex: Int, length: Int) {
+        System.arraycopy(src.array!!, startIndex, array!!, size, length)
+        size += length
     }
 
     operator fun get(index: Int) = array!![index]
     operator fun plusAssign(value: Float) {
         add(value)
+    }
+
+    fun toFloatArray(size1: Int): FloatArray {
+        val array = array
+        val size = size
+        if (array != null && size == array.size) return array
+        val tmp = FloatArray(size1)
+        if (size > 0) System.arraycopy(array!!, 0, tmp, 0, min(size, size1))
+        return tmp
     }
 
     fun toFloatArray(): FloatArray {

@@ -21,6 +21,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Vectors.set2
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4f
@@ -330,7 +331,8 @@ class Mesh : PrefabSaveable() {
         val uvs = uvs
         if (positions == null) throw IllegalStateException("Missing positions, normals? ${normals?.size}, uvs? ${uvs?.size}")
         if (positions.size % 3 != 0) throw IllegalStateException("Positions must be a vector of vec3, but ${positions.size} % 3 != 0, it's ${positions.size % 3}")
-        if (normals != null && normals.size != positions.size) throw IllegalStateException("Size of normals doesn't match size of positions")
+        // while incorrect, the following should not cause an exception
+        /*if (normals != null && normals.size != positions.size) throw IllegalStateException("Size of normals doesn't match size of positions")
         if (uvs != null) {
             if (uvs.size * 3 != positions.size * 2) throw IllegalStateException("Size of UVs does not match size of positions: ${positions.size}*2 vs ${uvs.size}*3")
         }
@@ -347,7 +349,7 @@ class Mesh : PrefabSaveable() {
                 )
         }
         val color0 = color0
-        if (color0 != null && color0.size * 3 != positions.size) throw IllegalStateException("Every vertex needs an ARGB color value")
+        if (color0 != null && color0.size * 3 != positions.size) throw IllegalStateException("Every vertex needs an ARGB color value")*/
         val indices = indices
         if (indices != null) {
             // check all indices for correctness
@@ -422,13 +424,13 @@ class Mesh : PrefabSaveable() {
         if (indices == null) {
             for (i in 0 until positions!!.size / 3) {
                 val i3 = i * 3
-                callback(i3 + 0, i3 + 1)
+                callback(i3, i3 + 1)
                 callback(i3 + 1, i3 + 2)
-                callback(i3 + 2, i3 + 0)
+                callback(i3 + 2, i3)
             }
         } else {
-            for (i in indices.indices step 3) {
-                val a = indices[i + 0]
+            for (i in 0 until indices.size - 2 step 3) {
+                val a = indices[i]
                 val b = indices[i + 1]
                 val c = indices[i + 2]
                 callback(a, b)
@@ -447,22 +449,21 @@ class Mesh : PrefabSaveable() {
         val positions = positions ?: return
         val indices = indices
         if (indices != null) {
-            for (i in indices.indices step 3) {
-                val ai = indices[i] * 3
-                val bi = indices[i + 1] * 3
-                val ci = indices[i + 2] * 3
-                a.set(positions[ai], positions[ai + 1], positions[ai + 2])
-                b.set(positions[bi], positions[bi + 1], positions[bi + 2])
-                c.set(positions[ci], positions[ci + 1], positions[ci + 2])
+            for (i in 0 until indices.size - 2 step 3) {
+                a.set2(positions, indices[i] * 3)
+                b.set2(positions, indices[i + 1] * 3)
+                c.set2(positions, indices[i + 2] * 3)
                 callback(a, b, c)
             }
         } else {
             var i = 0
-            while (i + 8 < positions.size) {
-                a.set(positions[i++], positions[i++], positions[i++])
-                b.set(positions[i++], positions[i++], positions[i++])
-                c.set(positions[i++], positions[i++], positions[i++])
+            val s = positions.size - 8
+            while (i < s) {
+                a.set2(positions, i)
+                b.set2(positions, i + 3)
+                c.set2(positions, i + 6)
                 callback(a, b, c)
+                i += 9
             }
         }
     }
@@ -476,22 +477,21 @@ class Mesh : PrefabSaveable() {
         val positions = positions ?: return
         val indices = indices
         if (indices != null) {
-            for (i in indices.indices step 3) {
-                val ai = indices[i] * 3
-                val bi = indices[i + 1] * 3
-                val ci = indices[i + 2] * 3
-                a.set(positions[ai].toDouble(), positions[ai + 1].toDouble(), positions[ai + 2].toDouble())
-                b.set(positions[bi].toDouble(), positions[bi + 1].toDouble(), positions[bi + 2].toDouble())
-                c.set(positions[ci].toDouble(), positions[ci + 1].toDouble(), positions[ci + 2].toDouble())
+            for (i in 0 until indices.size - 2 step 3) {
+                a.set2(positions, indices[i] * 3)
+                b.set2(positions, indices[i + 1] * 3)
+                c.set2(positions, indices[i + 2] * 3)
                 callback(a, b, c)
             }
         } else {
             var i = 0
-            while (i + 8 < positions.size) {
-                a.set(positions[i++].toDouble(), positions[i++].toDouble(), positions[i++].toDouble())
-                b.set(positions[i++].toDouble(), positions[i++].toDouble(), positions[i++].toDouble())
-                c.set(positions[i++].toDouble(), positions[i++].toDouble(), positions[i++].toDouble())
+            val s = positions.size - 8
+            while (i < s) {
+                a.set2(positions, i)
+                b.set2(positions, i + 3)
+                c.set2(positions, i + 6)
                 callback(a, b, c)
+                i += 9
             }
         }
     }
@@ -528,13 +528,7 @@ class Mesh : PrefabSaveable() {
 
     fun hasBuffer() = !needsMeshUpdate
 
-    private fun updateMesh() {
-
-        if (proceduralLength > 0) return
-
-        ensureBounds()
-
-        needsMeshUpdate = false
+    fun ensureNorTanUVs() {
 
         // not the safest, but well...
         val positions = positions ?: return // throw RuntimeException("mesh has no positions")
@@ -555,6 +549,27 @@ class Mesh : PrefabSaveable() {
 
         NormalCalculator.checkNormals(positions, normals, indices)
         if (hasUVs && checkTangents) TangentCalculator.checkTangents(positions, normals, tangents, uvs, indices)
+
+    }
+
+    private fun updateMesh() {
+
+        if (proceduralLength > 0) return
+
+        ensureBounds()
+
+        needsMeshUpdate = false
+
+        // not the safest, but well...
+        val positions = positions ?: return // throw RuntimeException("mesh has no positions")
+
+        ensureNorTanUVs()
+
+        val normals = normals!!
+        val tangents = tangents
+
+        val uvs = uvs
+        val hasUVs = hasUVs
 
         val colors = color0
         val boneWeights = boneWeights
@@ -632,12 +647,12 @@ class Mesh : PrefabSaveable() {
 
             if (hasUVs) {
 
-                if (uvs != null && uvs.size > i2 + 1) {
+                if (uvs != null && i2 + 1 < uvs.size) {
                     buffer.put(uvs[i2])
                     buffer.put(1f - uvs[i2 + 1]) // todo in the future flip the textures instead
                 } else buffer.put(0f, 0f)
 
-                if (tangents != null) {
+                if (tangents != null && i4 + 3 < tangents.size) {
                     buffer.putByte(tangents[i4])
                     buffer.putByte(tangents[i4 + 1])
                     buffer.putByte(tangents[i4 + 2])
@@ -652,7 +667,7 @@ class Mesh : PrefabSaveable() {
             }
 
             if (hasColors) {
-                if (colors != null && colors.size > i) {
+                if (colors != null && i < colors.size) {
                     val color = colors[i]
                     buffer.putByte(color.r().toByte())
                     buffer.putByte(color.g().toByte())
@@ -664,7 +679,7 @@ class Mesh : PrefabSaveable() {
             // only works if MAX_WEIGHTS is four
             if (hasBones) {
 
-                if (boneWeights != null && boneWeights.isNotEmpty()) {
+                if (boneWeights != null && i4 + 3 < boneWeights.size) {
                     val w0 = max(boneWeights[i4], 1e-5f)
                     val w1 = boneWeights[i4 + 1]
                     val w2 = boneWeights[i4 + 2]
@@ -674,7 +689,7 @@ class Mesh : PrefabSaveable() {
                     val w1b = (w1 * normalisation).roundToInt()
                     val w2b = (w2 * normalisation).roundToInt()
                     val w3b = (w3 * normalisation).roundToInt()
-                    val w0b = 255 - (w1b + w2b + w3b) // should be positive
+                    val w0b = max(255 - (w1b + w2b + w3b), 0)
                     buffer.putByte(w0b.toByte())
                     buffer.putByte(w1b.toByte())
                     buffer.putByte(w2b.toByte())
@@ -686,7 +701,7 @@ class Mesh : PrefabSaveable() {
                     buffer.putByte(0)
                 }
 
-                if (boneIndices != null && boneIndices.isNotEmpty()) {
+                if (boneIndices != null && i4 + 3 < boneIndices.size) {
                     buffer.putByte(boneIndices[i4])
                     buffer.putByte(boneIndices[i4 + 1])
                     buffer.putByte(boneIndices[i4 + 2])

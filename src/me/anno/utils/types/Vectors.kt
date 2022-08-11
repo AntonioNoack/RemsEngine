@@ -143,6 +143,10 @@ object Vectors {
         set(src[ai], src[ai + 1], src[ai + 2])
     }
 
+    fun Vector3d.set2(src: FloatArray, ai: Int) {
+        set(src[ai].toDouble(), src[ai + 1].toDouble(), src[ai + 2].toDouble())
+    }
+
     fun DoubleArray.toVec3f(offset: Int = 0) =
         Vector3f(this[offset].toFloat(), this[offset + 1].toFloat(), this[offset + 2].toFloat())
 

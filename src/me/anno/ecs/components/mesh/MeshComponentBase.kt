@@ -81,7 +81,7 @@ abstract class MeshComponentBase : CollidingComponent() {
     ): Boolean {
         val mesh = getMesh()
         return if (mesh != null && Raycast.raycastTriangleMesh(
-                entity, mesh, start, direction, end, radiusAtOrigin,
+                entity.transform, mesh, start, direction, end, radiusAtOrigin,
                 radiusPerUnit, result, typeMask
             )
         ) {

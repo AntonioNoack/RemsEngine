@@ -4,6 +4,7 @@ import me.anno.utils.LOGGER
 import me.anno.utils.search.BinarySearch
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
+import kotlin.math.min
 
 class ExpandingIntArray(
     private val initCapacity: Int
@@ -19,6 +20,10 @@ class ExpandingIntArray(
 
     fun add(value: Int) = plusAssign(value)
 
+    fun ensureExtra(delta: Int) {
+        ensureCapacity(size + delta)
+    }
+
     fun ensureCapacity(requestedSize: Int) {
         val array = array
         if (array == null || requestedSize >= array.size) {
@@ -33,6 +38,11 @@ class ExpandingIntArray(
             if (array != null) System.arraycopy(array, 0, newArray, 0, this.size)
             this.array = newArray
         }
+    }
+
+    fun skip(delta: Int) {
+        ensureExtra(delta)
+        size += delta
     }
 
     fun inc(position: Int) {
@@ -64,9 +74,22 @@ class ExpandingIntArray(
         this.size = size
     }
 
-    fun add(values: ExpandingIntArray, srcStartIndex: Int = 0, srcEndIndex: Int = values.size) {
-        val length = srcEndIndex - srcStartIndex
-        if (length <= 0) return
+    fun addUnsafe(src: IntArray, startIndex: Int = 0, length: Int = src.size - startIndex) {
+        System.arraycopy(src, startIndex, array!!, size, length)
+        size += length
+    }
+
+    fun addUnsafe(src: ExpandingIntArray, startIndex: Int, length: Int) {
+        System.arraycopy(src.array!!, startIndex, array!!, size, length)
+        size += length
+    }
+
+    fun add(v: IntArray, srcStartIndex: Int = 0, length: Int = v.size - srcStartIndex) {
+        ensureExtra(length)
+        addUnsafe(v, srcStartIndex, length)
+    }
+
+    fun add(values: ExpandingIntArray, srcStartIndex: Int = 0, length: Int = values.size - srcStartIndex) {
         ensureCapacity(size + length)
         val dst = array!!
         val src = values.array!!
@@ -195,16 +218,22 @@ class ExpandingIntArray(
         return true
     }
 
+    fun toIntArray(size1: Int): IntArray {
+        val tmp = IntArray(size1)
+        if (isNotEmpty()) System.arraycopy(array!!, 0, tmp, 0, min(size, size1))
+        return tmp
+    }
+
     fun toIntArray(): IntArray {
         val tmp = IntArray(size)
-        if (size > 0) System.arraycopy(array!!, 0, tmp, 0, size)
+        if (isNotEmpty()) System.arraycopy(array!!, 0, tmp, 0, size)
         return tmp
     }
 
     override fun toString(): String {
         val builder = StringBuilder(size * 4)
         builder.append('[')
-        if (size > 0) builder.append(this[0])
+        if (isNotEmpty()) builder.append(this[0])
         for (i in 1 until size) {
             builder.append(',')
             builder.append(this[i])
