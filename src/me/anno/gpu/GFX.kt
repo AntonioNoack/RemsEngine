@@ -5,10 +5,10 @@ import me.anno.Engine
 import me.anno.audio.streams.AudioStream
 import me.anno.config.DefaultConfig
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.OpenGL.blendMode
-import me.anno.gpu.OpenGL.currentRenderer
-import me.anno.gpu.OpenGL.depthMode
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.blendMode
+import me.anno.gpu.GFXState.currentRenderer
+import me.anno.gpu.GFXState.depthMode
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.buffer.SimpleBuffer
@@ -32,6 +32,7 @@ import me.anno.ui.Window
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.Task
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3fc
 import org.joml.Vector4fc
@@ -352,7 +353,7 @@ object GFX : GFXBase() {
     }
 
     fun setFrameNullSize(window: WindowX) {
-        OpenGL.apply {
+        GFXState.apply {
             // this should be the state for the default framebuffer
             xs[0] = 0
             ys[0] = 0

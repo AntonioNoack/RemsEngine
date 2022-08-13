@@ -12,7 +12,7 @@ import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
@@ -132,7 +132,7 @@ class AnimGameItem(
         RenderView.currentInstance = null
 
         val animation = animations[animationName]
-        OpenGL.animated.use(animation != null) {
+        GFXState.animated.use(animation != null) {
 
             val baseShader = if (useECSShader) ECSShaderLib.pbrModelShader else ShaderLib.shaderAssimp
             val shader = baseShader.value

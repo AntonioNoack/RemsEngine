@@ -1,7 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.ecs.components.camera.effects.ColorMapEffect
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer

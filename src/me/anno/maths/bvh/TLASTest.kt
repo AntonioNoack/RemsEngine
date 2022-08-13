@@ -12,7 +12,7 @@ import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pipeline.CullMode
+import me.anno.gpu.CullMode
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting

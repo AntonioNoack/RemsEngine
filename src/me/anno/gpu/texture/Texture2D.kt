@@ -7,7 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.check
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
@@ -77,8 +77,8 @@ open class Texture2D(
     var session = 0
 
     fun checkSession() {
-        if (session != OpenGL.session) {
-            session = OpenGL.session
+        if (session != GFXState.session) {
+            session = GFXState.session
             pointer = -1
             isCreated = false
             isDestroyed = false
@@ -1272,9 +1272,9 @@ open class Texture2D(
 
         fun createTexture(): Int {
             GFX.checkIsGFXThread()
-            if (creationSession != OpenGL.session || creationIndex == creationIndices.size) {
+            if (creationSession != GFXState.session || creationIndex == creationIndices.size) {
                 creationIndex = 0
-                creationSession = OpenGL.session
+                creationSession = GFXState.session
                 glGenTextures(creationIndices)
                 check()
             }

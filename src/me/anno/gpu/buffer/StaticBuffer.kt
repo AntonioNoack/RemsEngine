@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.image.svg.SVGMesh
 import me.anno.utils.pooling.ByteBufferPool
-import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL31C.*
 
 open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
     Buffer(attributes, usage) {

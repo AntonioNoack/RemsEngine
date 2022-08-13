@@ -181,12 +181,12 @@ object ActionManager : StringMap() {
         actions: List<String>?,
         print: Boolean,
     ): Boolean {
-        if (print) LOGGER.info("pa ${panel::class.simpleName}/${panel.className}, ${actions?.size}")
+        // if (print) LOGGER.info("${panel::class.simpleName}/${panel.className}, ${actions?.size}")
         if (actions == null) return false
         for (actionIndex in actions.indices) {
             val action = actions[actionIndex]
             if (panel.onGotAction(x, y, dx, dy, action, isContinuous)) {
-                if (print) LOGGER.info("pa consumed action $action by ${panel::class}")
+                // if (print) LOGGER.info("consumed action $action by ${panel::class}")
                 return true
             }
         }

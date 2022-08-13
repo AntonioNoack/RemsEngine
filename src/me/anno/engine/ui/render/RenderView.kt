@@ -33,30 +33,34 @@ import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.engine.ui.render.Renderers.tonemapInvKt
+import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.shaderColor
-import me.anno.gpu.OpenGL
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DepthBasedAntiAliasing
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures.drawDepthTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.DrawTextures.drawTextureAlpha
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.*
-import me.anno.gpu.pipeline.*
-import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
+import me.anno.gpu.pipeline.LightPipelineStage
+import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
+import me.anno.gpu.shader.effects.DepthBasedAntiAliasing
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -81,7 +85,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.joml.Math.toRadians
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL45.*
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.tan
@@ -165,7 +168,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     val pipeline = Pipeline(deferred)
     private val stage0 by lazy {
         val stage0 = PipelineStage(
-            "default", Sorting.NO_SORTING, MAX_FORWARD_LIGHTS, null, DepthMode.GREATER, true, CullMode.BACK, pbrModelShader
+            "default",
+            Sorting.NO_SORTING,
+            MAX_FORWARD_LIGHTS,
+            null,
+            DepthMode.CLOSER,
+            true,
+            CullMode.BACK,
+            pbrModelShader
         )
         pipeline.defaultStage = stage0
         pipeline.stages.add(stage0)
@@ -532,7 +542,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         val dstBuffer0 = baseSameDepth
                         useFrame(w, h, true, dstBuffer0) {
                             // don't write depth
-                            OpenGL.depthMask.use(false) {
+                            GFXState.depthMask.use(false) {
                                 val shader = LightPipelineStage.getPostShader(deferred)
                                 shader.use()
                                 shader.v1b("applyToneMapping", true)
@@ -558,7 +568,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                         // todo which depth buffer is this using?
                         // we would need the upscaled depth buffer here, ideally
-                        /*glClear(GL_DEPTH_BUFFER_BIT)
+                        /*clearDepth()
                         val tmp = JomlPools.mat4f.create()
                         tmp.set(cameraMatrix)
                         fsr22.unjitter(cameraMatrix, camRotation, pw, ph)
@@ -657,7 +667,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         val illuminated = FBStack["ill", w, h, 4, true, 1, false]
                         useFrame(illuminated, copyRenderer) {
                             // apply lighting; don't write depth
-                            OpenGL.depthMask.use(false) {
+                            GFXState.depthMask.use(false) {
                                 val shader = LightPipelineStage.getPostShader(deferred)
                                 shader.use()
                                 shader.v1b("applyToneMapping", !useBloom)
@@ -859,7 +869,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             useFrame(w, h, true, dstBuffer0) {
 
                                 // don't write depth
-                                OpenGL.depthMask.use(false) {
+                                GFXState.depthMask.use(false) {
                                     Bloom.bloom(ssReflections, bloomOffset, bloomStrength, true)
                                 }
 
@@ -875,7 +885,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             useFrame(w, h, true, dstBuffer0) {
 
                                 // don't write depth
-                                OpenGL.depthMask.use(false) {
+                                GFXState.depthMask.use(false) {
 
                                     val shader = LightPipelineStage.getPostShader(deferred)
                                     shader.use()
@@ -1139,7 +1149,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 f = scaledNear.toFloat()
             }
             val sceneScaleZ = 1f / (f - n)
-            val reverseDepth = OpenGL.depthMode.currentValue.reversedDepth
+            val reverseDepth = GFXState.depthMode.currentValue.reversedDepth
             var m22 = if (reverseDepth) +sceneScaleZ else -sceneScaleZ
             var z0 = 1f - n * sceneScaleZ
             if (!range01) {
@@ -1239,8 +1249,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         pipeline.lightPseudoStage.depthMode = invDepthMode
     }
 
-    private val depthMode get() = if (reverseDepth) DepthMode.GREATER else DepthMode.FORWARD_LESS
-    private val invDepthMode get() = if (reverseDepth) DepthMode.LESS else DepthMode.FORWARD_GREATER
+    private val depthMode get() = if (reverseDepth) DepthMode.CLOSER else DepthMode.FORWARD_CLOSER
+    private val invDepthMode get() = if (reverseDepth) DepthMode.FARTHER else DepthMode.FORWARD_FARTHER
 
     var skipClear = false
 
@@ -1251,11 +1261,11 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         // this can be skipped, if we have a sky
         if (skipClear) return
         Frame.bind()
-        OpenGL.blendMode.use(null) {
-            OpenGL.depthMode.use(DepthMode.ALWAYS) {
+        GFXState.blendMode.use(null) {
+            GFXState.depthMode.use(DepthMode.ALWAYS) {
                 // don't write depth, only all buffers
                 // todo this buffer is very small in orthographic case, because the camera matrix contains scale, which it shouldn't
-                OpenGL.depthMask.use(false) {
+                GFXState.depthMask.use(false) {
                     // draw a huge cube with default values for all buffers
                     val shader = clearPbrModelShader.value
                     shader.use()
@@ -1267,7 +1277,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     if (toneMappedColors) tonemapInvKt(c)
                     shader.v4f("color", c.x, c.y, c.z, 1f)
                     shaderColor(shader, "tint", -1)
-                    shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
+                    shader.v1i("drawMode", GFXState.currentRenderer.drawMode.id)
                     Shapes.smoothCube.back.drawMeshPurely(shader)
                 }
             }
@@ -1293,14 +1303,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                 Frame.bind()
 
-                OpenGL.depthMode.use(depthMode) {
+                GFXState.depthMode.use(depthMode) {
                     setClearDepth()
-                    glClear(GL_DEPTH_BUFFER_BIT)
+                    dst.clearDepth()
                 }
 
-                OpenGL.depthMode.use(depthMode) {
-                    OpenGL.cullMode.use(CullMode.BACK) {
-                        OpenGL.blendMode.use(null) {
+                GFXState.depthMode.use(depthMode) {
+                    GFXState.cullMode.use(CullMode.BACK) {
+                        GFXState.blendMode.use(null) {
                             stage0.draw(pipeline)
                         }
                     }
@@ -1314,9 +1324,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
             if (!preDrawDepth) {
                 Frame.bind()
-                OpenGL.depthMode.use(depthMode) {
+                GFXState.depthMode.use(depthMode) {
                     setClearDepth()
-                    glClear(GL_DEPTH_BUFFER_BIT)
+                    dst.clearDepth()
                 }
             }
 
@@ -1332,7 +1342,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     private fun drawSelected() {
         if (library.selection.isEmpty()) return
         // draw scaled, inverted object (for outline), which is selected
-        OpenGL.depthMode.use(depthMode) {
+        GFXState.depthMode.use(depthMode) {
             for (selected in library.selection) {
                 when (selected) {
                     is Entity -> drawOutline(selected, worldScale)
@@ -1357,8 +1367,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         useFrame(w, h, true, dst, renderer) {
             Frame.bind()
             tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
-            glClearColor(0f, 0f, 0f, 0f)
-            glClear(GL_COLOR_BUFFER_BIT)
+            dst.clearColor(0)
             pipeline.lightPseudoStage.bindDraw(deferred, cameraMatrix, cameraPosition, worldScale)
         }
     }
@@ -1384,8 +1393,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         // maybe it just doesn't work with the physics debugging together
         val drawAABBs = renderMode == RenderMode.SHOW_AABB
 
-        OpenGL.blendMode.use(BlendMode.DEFAULT) {
-            OpenGL.depthMode.use(depthMode) {
+        GFXState.blendMode.use(BlendMode.DEFAULT) {
+            GFXState.depthMode.use(depthMode) {
 
                 stack.set(cameraMatrix)
 

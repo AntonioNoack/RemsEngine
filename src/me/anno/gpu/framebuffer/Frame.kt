@@ -3,7 +3,7 @@ package me.anno.gpu.framebuffer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.offsetX
 import me.anno.gpu.GFX.offsetY
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import org.lwjgl.opengl.GL11C
 import kotlin.math.abs
 import kotlin.math.max
@@ -12,14 +12,14 @@ import kotlin.math.min
 object Frame {
 
     fun bind() {
-        val index = OpenGL.framebuffer.size - 1
+        val index = GFXState.framebuffer.size - 1
         bind(
-            OpenGL.currentBuffer,
-            OpenGL.changeSizes[index],
-            OpenGL.xs[index],
-            OpenGL.ys[index],
-            OpenGL.ws[index],
-            OpenGL.hs[index]
+            GFXState.currentBuffer,
+            GFXState.changeSizes[index],
+            GFXState.xs[index],
+            GFXState.ys[index],
+            GFXState.ws[index],
+            GFXState.hs[index]
         )
     }
 
@@ -39,61 +39,45 @@ object Frame {
     var lastH = 0
     var lastPtr = -1
 
-    fun bind(buffer: IFramebuffer?, changeSize: Boolean, x: Int, y: Int, w0: Int, h0: Int) {
+    fun bind(framebuffer: IFramebuffer, changeSize: Boolean, x: Int, y: Int, w0: Int, h0: Int) {
 
         GFX.check()
 
-        if (buffer != null && buffer.pointer <= 0 && (!changeSize || w0 < 0 || h0 < 0)) {
-            buffer.ensure()
+        if (framebuffer != NullFramebuffer && framebuffer.pointer <= 0 && (!changeSize || w0 < 0 || h0 < 0)) {
+            framebuffer.ensure()
         }
 
         // made more ugly, but trying to avoid allocations as much as possible :)
         var w = w0
         var h = h0
-        val window = GFX.activeWindow!!
         if (w0 < 0 || h0 < 0) {// auto
-            if (buffer != null) {
-                w = buffer.w
-                h = buffer.h
-            } else {
-                w = window.width
-                h = window.height
-            }
+            w = framebuffer.w
+            h = framebuffer.h
         }
 
-        var ptr = 0
-        if (buffer != null) ptr = buffer.pointer
-
+        val ptr = framebuffer.pointer
         if (ptr != lastPtr || lastX != x || lastY != y || lastW != w || lastH != h ||
-            (changeSize && buffer != null && (buffer.w != w || buffer.h != h))
+            (changeSize && framebuffer != NullFramebuffer && (framebuffer.w != w || framebuffer.h != h))
         ) {
 
-            if (buffer != null) {
-                if (changeSize) {
-                    buffer.bindDirectly(w, h)
-                } else {
-                    buffer.bindDirectly()
-                }
+            if (changeSize) {
+                framebuffer.bindDirectly(w, h)
             } else {
-                Framebuffer.bindNullDirectly()
+                framebuffer.bindDirectly()
             }
 
             var offsetX = offsetX
             var offsetY = offsetY
-            if (buffer is Framebuffer) {
-                offsetX = buffer.offsetX
-                offsetY = buffer.offsetY
+            if (framebuffer is Framebuffer) {
+                offsetX = framebuffer.offsetX
+                offsetY = framebuffer.offsetY
             }
 
             val localX = x - offsetX
             val localY = y - offsetY
 
-            var availableWidth = window.width
-            var availableHeight = window.height
-            if (buffer != null) {
-                availableWidth = buffer.w
-                availableHeight = buffer.h
-            }
+            val availableWidth = framebuffer.w
+            val availableHeight = framebuffer.h
 
             GFX.viewportX = x
             GFX.viewportY = y
@@ -108,8 +92,8 @@ object Frame {
                             buffer.toString()
                 )*/
                 //if (buffer == null) {
-               // GFX.viewportX -= min(x2, 0)
-               // GFX.viewportY += min(y2, 0)
+                // GFX.viewportX -= min(x2, 0)
+                // GFX.viewportY += min(y2, 0)
                 x2 = max(x2, 0)
                 y2 = max(y2, 0)
                 w = min(w, availableWidth - x2)

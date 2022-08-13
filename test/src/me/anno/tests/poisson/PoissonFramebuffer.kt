@@ -1,7 +1,7 @@
 package me.anno.tests.poisson
 
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer

@@ -9,10 +9,9 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
-import me.anno.gpu.OpenGL
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.serialization.NotSerializedProperty
@@ -21,7 +20,7 @@ import me.anno.utils.types.Matrices.mirror
 import me.anno.utils.types.Matrices.mul2
 import me.anno.utils.types.Vectors.toVector3f
 import org.joml.*
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL11C.glScissor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -151,12 +150,10 @@ class PlanarReflection : LightComponentBase() {
         // todo is perspective then depends on camera
 
         val buffer = FBStack["mirror", w, h, 4, usesFP, samples, true]
-        OpenGL.depthMode.use(DepthMode.GREATER) {
+        GFXState.depthMode.use(DepthMode.CLOSER) {
             useFrame(w, h, true, buffer, pbrRenderer) {
-                Frame.bind()
-                glClearStencil(0)
-                glClearColor(clearColor.x, clearColor.y, clearColor.y, 1f)
-                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                // clear stencil?
+                buffer.clearColor(clearColor, 1f, true)
                 // or GL_STENCIL_BUFFER_BIT
                 // find the correct sub-frame of work: maybe we don't need to draw everything
                 val aabb = findRegion(tmpAABB, cameraMatrix, transform, cameraPosition)
@@ -171,10 +168,9 @@ class PlanarReflection : LightComponentBase() {
                     val x1 = min(((aabb.maxX * .5f + .5f) * w).toInt(), w)
                     val y1 = min(((aabb.maxY * .5f + .5f) * h).toInt(), h)
                     if (x1 > x0 && y1 > y0) {
-                        OpenGL.scissorTest.use(true) {
+                        GFXState.scissorTest.use(true) {
                             glScissor(x0, y0, x1 - x0, y1 - y0)
-                            // glClearColor(1f, 0f, 0f, 1f)
-                            // glClear(GL_COLOR_BUFFER_BIT)
+                            // buffer.clearColor(1f,0f,0f,1f)
                             pipeline.draw()
                         }
                     }

@@ -12,7 +12,7 @@ import org.lwjgl.glfw.GLFWKeyCallback
 import kotlin.math.abs
 
 /**
- * OS level window
+ * OS level window; on some platforms like Android, there only will be a single one
  * */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class WindowX(var title: String) {

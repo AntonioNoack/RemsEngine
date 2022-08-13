@@ -8,8 +8,8 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawTexts
@@ -398,7 +398,7 @@ object TRealtimeTest {
                         // render gpu side
                         prepareShader(shader, it)
                         useFrame(avgBuffer) {
-                            OpenGL.blendMode.use(BlendMode.DEFAULT) {
+                            GFXState.blendMode.use(BlendMode.DEFAULT) {
                                 triangles.bindTrulyNearest(0)
                                 blasNodes.bindTrulyNearest(1)
                                 tlasNodes.bindTrulyNearest(2)

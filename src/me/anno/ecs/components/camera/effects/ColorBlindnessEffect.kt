@@ -1,7 +1,7 @@
 package me.anno.ecs.components.camera.effects
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -45,7 +45,7 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
 
         fun render(input: ITexture2D, strength: Float, mode: Mode): IFramebuffer {
             val buffer = FBStack["colorblind", input.w, input.h, 4, false, 1, false]
-            OpenGL.useFrame(buffer) {
+            GFXState.useFrame(buffer) {
                 val shader = shader
                 shader.use()
                 shader.v1i("mode", mode.id)

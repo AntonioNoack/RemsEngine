@@ -1,12 +1,14 @@
-package me.anno.tests
+package me.anno.tests.ui
 
-import me.anno.maths.Maths.PIf
+import me.anno.Build
+import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
+import me.anno.gpu.WindowX
 import org.joml.Vector4f
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.system.MemoryUtil
 import kotlin.math.abs
 import kotlin.math.sin
@@ -20,6 +22,11 @@ fun main() {
 
     var run = false
     val titles = arrayOf("Red", "Green", "Blue")
+
+    // to prevent errors from the engine, which is currently using single-threaded OpenGL
+    Build.isDebug = false
+    GFX.activeWindow = WindowX("")
+
     class GLFWThread(val window: Long, val index: Int) : Thread() {
         override fun run() {
             GLFW.glfwMakeContextCurrent(window)
@@ -28,10 +35,9 @@ fun main() {
             var ctr = 0
             val color = Vector4f()
             while (run) {
-                val v = abs(sin(ctr++ * PIf / 100f))
+                val v = abs(sin(ctr++ / 30f))
                 color.setComponent(index, v)
-                GL11C.glClearColor(color.x, color.y, color.z, color.w)
-                GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT)
+                GFXState.currentBuffer.clearColor(color)
                 GLFW.glfwSwapBuffers(window)
             }
         }
@@ -66,8 +72,8 @@ fun main() {
         }
     }
 
-    for (glfwThread in threads) {
-        glfwThread.join()
+    for (thread in threads) {
+        thread.join()
     }
 
     for (thread in threads) {

@@ -1,8 +1,8 @@
 package me.anno.gpu
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.gpu.OpenGL.renderPurely
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.renderPurely
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
@@ -14,6 +14,9 @@ import me.anno.io.ResourceHelper
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.mesh.obj.OBJReader
+import me.anno.utils.Color.b01
+import me.anno.utils.Color.g01
+import me.anno.utils.Color.r01
 import me.anno.utils.Color.toVecRGB
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11C.*
@@ -103,8 +106,7 @@ fun drawLogo(shader: Shader) {
 
     // load icon.obj as file, and draw it
     val c = logoBackgroundColor
-    glClearColor((c shr 16 and 255) / 255f, (c shr 8 and 255) / 255f, (c and 255) / 255f, 1f)
-    glClear(GL_COLOR_BUFFER_BIT)
+    GFXState.currentBuffer.clearColor(c.r01(), c.g01(), c.b01(), 1f)
 
     renderPurely {
         try {

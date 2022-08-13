@@ -3,7 +3,7 @@ package me.anno.engine
 import me.anno.Build
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.input.ActionManager
 import me.anno.input.Input
@@ -126,7 +126,7 @@ object EngineActions {
                 true
             },
             "ResetOpenGLSession" to {
-                StudioBase.addEvent { OpenGL.newSession() }
+                StudioBase.addEvent { GFXState.newSession() }
                 true
             }
         )
@@ -163,6 +163,7 @@ object EngineActions {
         if (Build.isDebug) {
             register["global.m.t.c", "DebugGPUStorage"]
             register["global.l.t.c", "ResetOpenGLSession"]
+            register["global.f5.down.c", "ClearCache"]
         }
 
         register["global.space.down.${Modifiers[false, false]}", "Play|Pause"]
@@ -172,18 +173,17 @@ object EngineActions {
         register["global.f11.down", "ToggleFullscreen"]
         register["global.print.down", "PrintLayout"]
         register["global.left.up", "DragEnd"]
-        register["global.f5.down.${Modifiers.control}", "ClearCache"]
         register["global.arrowLeft.t", "PreviousStep"]
         register["global.arrowRight.t", "NextStep"]
         register["global.arrowLeft.down.c", "Jump2Start"]
         register["global.arrowRight.down.c", "Jump2End"]
         register["global.comma.t", "PreviousFrame"]
         register["global.dot.t", "NextFrame"]
-        register["global.z.t.${Modifiers.control}", "Undo"]
-        register["global.z.t.${Modifiers[true, true]}", "Redo"]
-        register["global.y.t.${Modifiers.control}", "Undo"]
-        register["global.y.t.${Modifiers[true, true]}", "Redo"]
-        register["global.h.t.${Modifiers.alt}", "ShowAllObjects"]
+        register["global.z.t.c", "Undo"]
+        register["global.z.t.cs", "Redo"]
+        register["global.y.t.c", "Undo"]
+        register["global.y.t.cs", "Redo"]
+        register["global.h.t.a", "ShowAllObjects"]
         register["global.h.t", "ToggleHideObject"]
 
         // press instead of down for the delay

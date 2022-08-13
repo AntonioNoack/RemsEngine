@@ -14,15 +14,14 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.pipeline.CullMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
@@ -38,7 +37,6 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4d
-import org.lwjgl.opengl.GL11C.*
 
 // done make ui elements Entities?
 // done make them something special?
@@ -208,18 +206,16 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
             internalMesh.material = materialPath
         }
         useFrame(width, height, true, fb) {
-            Frame.bind()
-            glClearColor(0f, 0f, 0f, 0f)
-            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            fb.clearColor(0, true)
             render(width, height)
         }
         GFX.check()
     }
 
     fun render(width: Int, height: Int) {
-        OpenGL.depthMode.use(DepthMode.ALWAYS) {
-            OpenGL.blendMode.use(BlendMode.DEFAULT) {
-                OpenGL.cullMode.use(CullMode.BOTH) {
+        GFXState.depthMode.use(DepthMode.ALWAYS) {
+            GFXState.blendMode.use(BlendMode.DEFAULT) {
+                GFXState.cullMode.use(CullMode.BOTH) {
                     val rv = RenderView.currentInstance!!
                     val transform = JomlPools.mat4f.create()
                     if (space == Space.WORLD_SPACE) {

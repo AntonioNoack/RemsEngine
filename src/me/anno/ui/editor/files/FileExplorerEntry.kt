@@ -16,13 +16,11 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
-import me.anno.gpu.drawing.GFXx3D.draw3D
-import me.anno.gpu.drawing.UVProjection
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -37,7 +35,7 @@ import me.anno.io.files.FileReference.Companion.getReferenceAsync
 import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.io.trash.TrashManager.moveToTrash
+import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.zip.InnerLinkFile
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.mixARGB
@@ -55,16 +53,11 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
-import me.anno.utils.Color.a01
-import me.anno.utils.Color.b01
-import me.anno.utils.Color.g01
-import me.anno.utils.Color.r01
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.strings.StringHelper.setNumber
 import me.anno.utils.types.Floats.f1
-import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
@@ -74,7 +67,6 @@ import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11C.*
 import kotlin.math.*
 
 // todo when dragging files over the edge of the border, mark them as copied, or somehow make them draggable...
@@ -97,6 +89,9 @@ open class FileExplorerEntry(
 
     constructor(isParent: Boolean, file: FileReference, style: Style) :
             this(null, isParent, file, style)
+
+    constructor(file: FileReference, style: Style) :
+            this(null, false, file, style)
 
     // todo small file type (signature) icons
     // todo use search bar for sort parameters :)
@@ -367,25 +362,23 @@ open class FileExplorerEntry(
                 )
                 if (samples > 1) {
                     val tmp = FBStack["tmp", w, h, 4, false, 8, true] // msaa; probably should depend on gfx settings
-                    OpenGL.useFrame(0, 0, w, h, tmp, Renderers.simpleNormalRenderer) {
-                        OpenGL.depthMode.use(DepthMode.GREATER) {
-                            val bg = backgroundColor
-                            glClearColor(bg.r01(), bg.g01(), bg.b01(), bg.a01())
-                            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                    GFXState.useFrame(0, 0, w, h, tmp, Renderers.simpleNormalRenderer) {
+                        GFXState.depthMode.use(DepthMode.CLOSER) {
+                            tmp.clearColor(backgroundColor, true)
                             Thumbs.drawAnimatedSkeleton(animSample, time.toFloat(), w.toFloat() / h)
                         }
                     }
                     GFX.copy(tmp)
                 } else {
                     // use current buffer directly
-                    OpenGL.useFrame(
+                    GFXState.useFrame(
                         x0, y0, w, h,
-                        OpenGL.currentBuffer,
+                        GFXState.currentBuffer,
                         Renderers.simpleNormalRenderer
                     ) {
                         // todo clip to correct area
-                        OpenGL.depthMode.use(DepthMode.GREATER) {
-                            glClear(GL_DEPTH_BUFFER_BIT)
+                        GFXState.depthMode.use(DepthMode.CLOSER) {
+                            GFXState.currentBuffer.clearDepth()
                             Thumbs.drawAnimatedSkeleton(animSample, time.toFloat(), w.toFloat() / h)
                         }
                     }

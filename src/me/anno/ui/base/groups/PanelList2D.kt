@@ -14,7 +14,6 @@ import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
-import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
 import kotlin.math.min
 
@@ -85,9 +84,11 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
         }
 
         val w2 = min(w, childWidth * children.size)
-        val h2 = min(h, childHeight * children.size)
+
         updateSize(w2)
-        for (i in children.indices) {
+
+        // only execute for visible children
+        for (i in visibleIndex0 until visibleIndex1) {
             val child = children[i]
             if (child.visibility != Visibility.GONE) {
                 child.calculateSize(calcChildWidth, calcChildHeight)
@@ -95,6 +96,40 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
         }
 
     }
+
+    override fun drawChildren(x0: Int, y0: Int, x1: Int, y1: Int) {
+        // todo optimize this for PanelListX and PanelListY
+        val children = children
+        for (index in visibleIndex0 until visibleIndex1) {
+            val child = children[index]
+            if (child.visibility == Visibility.VISIBLE) {
+                drawChild(child, x0, y0, x1, y1)
+            }
+        }
+    }
+
+    val visibleIndex0
+        get() = max((ly0 - (y + spacing - scrollPositionY.toInt())) / childHeight, 0) * columns
+    val visibleIndex1
+        get() = min(
+            (ly1 - (y + spacing - scrollPositionY.toInt()) + childHeight - 1) / childHeight * columns,
+            children.size
+        )
+
+    override fun forAllVisiblePanels(callback: (Panel) -> Unit) {
+        if (canBeSeen) {
+            callback(this)
+            val children = children
+            // only execute for visible children
+            // todo optimize this for PanelListX and PanelListY
+            for (i in visibleIndex0 until visibleIndex1) {
+                val child = children[i]
+                child.parent = this
+                child.forAllVisiblePanels(callback)
+            }
+        }
+    }
+
 
     var autoScrollTargetPosition = 0.0
     var autoScrollEndTime = 0L
@@ -152,10 +187,10 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
     }
 
     fun getItemIndexAt(x: Float, y: Float): Int {
-        val lx = x - this.x
-        val ly = y - this.y + scrollPositionY - spacing
-        val itemX = (lx * columns / w).toInt()
-        val itemY = (ly * rows / h).toInt()
+        val localX = x - this.x
+        val localY = y - this.y + scrollPositionY - spacing
+        val itemX = (localX * columns / w).toInt()
+        val itemY = (localY * rows / h).toInt()
         return clamp(itemX + itemY * columns, 0, children.lastIndex)
     }
 
@@ -166,9 +201,8 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
     }
 
     private fun updateCount() {
-        val childCount = children.count2 { it.visibility == Visibility.VISIBLE }
         columns = max(1, (w + spacing) / (childWidth + spacing))
-        rows = max(1, (childCount + columns - 1) / columns)
+        rows = max(1, (children.size + columns - 1) / columns)
     }
 
     private fun updateScale() {
@@ -197,9 +231,17 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
         val contentW = columns * childWidth
 
         val scroll = scrollPositionY.toInt()
-        var i = 0
-        for (j in children.indices) {
-            val child = children[j]
+
+        // only place visible children + all that were previously visible
+        val vi0 = visibleIndex0
+        val vi1 = visibleIndex1
+        val idx0 = max(min(vi0, lpi0), 0)
+        val idx1 = min(max(vi1, lpi1), children.size)
+        lpi0 = vi0
+        lpi1 = vi1
+
+        for (i in idx0 until idx1) {
+            val child = children[i]
             if (child.visibility != Visibility.GONE) {
                 val ix = i % columns
                 val iy = i / columns
@@ -211,11 +253,13 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
                 val cy = y + iy * (calcChildHeight + spacing) + spacing - scroll
                 // child.placeInParent(cx, cy)
                 child.setPosSize(cx, cy, calcChildWidth, calcChildHeight)
-                i++
             }
         }
 
     }
+
+    private var lpi0 = 0
+    private var lpi1 = Int.MAX_VALUE
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
@@ -245,6 +289,24 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
             }
         }
     }
+
+    override fun updateChildrenVisibility(mx: Int, my: Int) {
+
+        val vi0 = visibleIndex0
+        val vi1 = visibleIndex1
+        val idx0 = max(min(vi0, lpi2), 0)
+        val idx1 = min(max(vi1, lpi3), children.size)
+        lpi2 = vi0
+        lpi3 = vi1
+
+        val children = children
+        for (i in idx0 until idx1) {
+            children[i].updateVisibility(mx, my)
+        }
+    }
+
+    private var lpi2 = 0
+    private var lpi3 = Int.MAX_VALUE
 
     private fun clampScrollPosition() {
         scrollPositionY = clamp(scrollPositionY, 0.0, maxScrollPositionY.toDouble())

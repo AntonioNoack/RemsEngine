@@ -7,6 +7,9 @@ import me.anno.utils.Color.hasAlpha
 import kotlin.math.abs
 import kotlin.math.max
 
+/**
+ * simple color map
+ * */
 @Suppress("MemberVisibilityCanBePrivate")
 class LinearColorMap(
     min: Float,

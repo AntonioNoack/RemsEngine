@@ -21,7 +21,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.DepthMode
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
@@ -186,8 +186,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     override fun drawGizmos() {
-        OpenGL.depthMode.use(DepthMode.ALWAYS) {
-            OpenGL.depthMask.use(view.renderMode == RenderMode.DEPTH) {
+        GFXState.depthMode.use(DepthMode.ALWAYS) {
+            GFXState.depthMask.use(view.renderMode == RenderMode.DEPTH) {
                 drawGizmos2()
             }
         }

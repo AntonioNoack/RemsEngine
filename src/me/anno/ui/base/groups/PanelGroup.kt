@@ -29,9 +29,9 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         drawChildren(x0, y0, x1, y1)
     }
 
-    fun drawChildren(x0: Int, y0: Int, x1: Int, y1: Int) {
+    open fun drawChildren(x0: Int, y0: Int, x1: Int, y1: Int) {
         val children = children
-        children@ for (index in children.indices) {
+        for (index in children.indices) {
             val child = children[index]
             if (child.visibility == Visibility.VISIBLE) {
                 drawChild(child, x0, y0, x1, y1)
@@ -61,6 +61,18 @@ abstract class PanelGroup(style: Style) : Panel(style) {
             false
         }
 
+    }
+
+    override fun updateVisibility(mx: Int, my: Int) {
+        super.updateVisibility(mx, my)
+        updateChildrenVisibility(mx, my)
+    }
+
+    open fun updateChildrenVisibility(mx: Int, my: Int) {
+        val children = children
+        for (i in children.indices) {
+            children[i].updateVisibility(mx, my)
+        }
     }
 
     override fun printLayout(tabDepth: Int) {
@@ -120,6 +132,18 @@ abstract class PanelGroup(style: Style) : Panel(style) {
                 }
             }
             else -> super.readObjectArray(name, values)
+        }
+    }
+
+    override fun forAllVisiblePanels(callback: (Panel) -> Unit) {
+        if (canBeSeen) {
+            callback(this)
+            val children = children
+            for (i in children.indices) {
+                val child = children[i]
+                child.parent = this
+                child.forAllVisiblePanels(callback)
+            }
         }
     }
 

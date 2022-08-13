@@ -12,9 +12,10 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.WindowX
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.input.ActionManager
 import me.anno.input.Input
@@ -209,7 +210,7 @@ abstract class StudioBase(
 
             if (isFirstFrame) tick("Window drawing")
 
-            useFrame(0, 0, w, h, null, Renderer.colorRenderer) {
+            useFrame(0, 0, w, h, NullFramebuffer, Renderer.colorRenderer) {
                 if (drawUIOverlay(window, w, h)) didSomething = true
             }
 

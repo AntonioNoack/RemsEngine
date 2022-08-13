@@ -2,7 +2,7 @@ package me.anno.input
 
 import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.OpenGL.renderDefault
+import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.getTextSize

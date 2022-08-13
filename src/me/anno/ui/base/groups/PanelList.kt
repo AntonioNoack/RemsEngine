@@ -19,6 +19,7 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     val padding = Padding(0)
     var lastPosTime = 0L
+    var allChildrenHaveSameSize = false
 
     fun needsPosUpdate(x: Int, y: Int): Boolean {
         return this.x != x || this.y != y || lastPosTime != Engine.gameTime

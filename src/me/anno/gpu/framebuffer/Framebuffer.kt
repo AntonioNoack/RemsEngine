@@ -1,7 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -115,9 +115,9 @@ class Framebuffer(
     lateinit var textures: Array<Texture2D>
 
     override fun checkSession() {
-        if (pointer > 0 && session != OpenGL.session) {
+        if (pointer > 0 && session != GFXState.session) {
             GFX.check()
-            session = OpenGL.session
+            session = GFXState.session
             pointer = -1
             needsBlit = true
             ssBuffer?.checkSession()
@@ -170,7 +170,7 @@ class Framebuffer(
         GFX.check()
         val pointer = glGenFramebuffers()
         if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
-        session = OpenGL.session
+        session = GFXState.session
         DebugGPUStorage.fbs.add(this)
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
@@ -397,21 +397,11 @@ class Framebuffer(
     }
 
     companion object {
-
         // private val LOGGER = LogManager.getLogger(Framebuffer::class)
-
-        fun bindNullDirectly() = bindNull()
-
-        private fun bindNull() {
-            bindFramebuffer(GL_FRAMEBUFFER, 0)
-            Frame.lastPtr = 0
-        }
-
         fun bindFramebuffer(target: Int, pointer: Int) {
             glBindFramebuffer(target, pointer)
             Frame.lastPtr = pointer
         }
-
     }
 
     override fun toString(): String =

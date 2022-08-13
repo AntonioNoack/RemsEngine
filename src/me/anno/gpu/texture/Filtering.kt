@@ -2,6 +2,9 @@ package me.anno.gpu.texture
 
 import me.anno.language.translation.NameDesc
 
+/**
+ * high-level texture filtering used in Rem's Studio
+ * */
 enum class Filtering(val baseIsNearest: Boolean, val id: Int, val naming: NameDesc){
     NEAREST(true, 0, NameDesc("Nearest")),
     LINEAR(false, 1, NameDesc("Linear")),

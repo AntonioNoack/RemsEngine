@@ -2,19 +2,17 @@ package me.anno.video
 
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL.blendMode
-import me.anno.gpu.OpenGL.depthMode
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.blendMode
+import me.anno.gpu.GFXState.depthMode
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.video.FrameTask.Companion.missingResource
-import org.lwjgl.opengl.GL11C.*
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 
@@ -115,9 +113,7 @@ abstract class VideoBackgroundTask(val video: VideoCreator) {
         } else {
             useFrame(averageFrame, Renderer.copyRenderer) {
 
-                Frame.bind()
-                glClearColor(0f, 0f, 0f, 0f)
-                glClear(GL_COLOR_BUFFER_BIT)
+                averageFrame.clearColor(0)
 
                 var i = 0
                 while (i++ < motionBlurSteps && !needsMoreSources) {

@@ -10,6 +10,12 @@ import org.lwjgl.opengl.NVMeshShader.*
 
 fun main() {
 
+    // todo optional vulkan backend for us to support hardware RayTracing
+    //  ways:
+    //  - https://gitlab.freedesktop.org/kusma/mesa/tree/zink, has task to support everything in OpenGL :3
+    //  - learn vulkan ourselves, and implement it ourselves
+    // https://github.com/kbiElude/VKGL -> last update 2019, it says it's unusable :/ ; only supports OpenGL 3.2 Core, so glVertexAttribDivisor is missing
+
     // trying to understand Mesh shaders and Task shaders...
     // they came with RTX GPUs, but unfortunately are not raytracing related
     // they are used for culling with mesh-lets

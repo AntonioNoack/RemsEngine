@@ -105,12 +105,15 @@ class AWTFont(val font: Font) {
         val lineCount = lines.size
         val spaceBetweenLines = spaceBetweenLines(fontSize)
         val fontHeight = fontMetrics.height
-        val height = min(fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines, GFX.maxTextureSize)
+        val height = calcTextHeight(fontHeight, lineCount, spaceBetweenLines)
 
         val width = min(max(0, lines.maxOf { getStringWidth(getGroup(it)) }.roundToInt() + 1), GFX.maxTextureSize)
         return GFXx2D.getSize(width, height)
 
     }
+
+    fun calcTextHeight(fontHeight: Int, lineCount: Int, spaceBetweenLines: Int) =
+        min(fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines, GFX.maxTextureSize)
 
     fun generateTexture(
         text: CharSequence,

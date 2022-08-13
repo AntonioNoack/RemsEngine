@@ -2,7 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.shader.builder.Varying
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.sq
@@ -50,8 +50,8 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         private var shaderCacheSession = -1
 
         fun compile(shaderName: String, program: Int, type: Int, source: String): Int {
-            if (shaderCacheSession != OpenGL.session) {
-                shaderCacheSession = OpenGL.session
+            if (shaderCacheSession != GFXState.session) {
+                shaderCacheSession = GFXState.session
                 shaderCache.clear()
             }
             val shader = shaderCache.getOrPut(type to source) {
@@ -125,7 +125,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         GFX.check()
         // Frame.bindMaybe()
         GFX.check()
-        if (program <= 0 || session != OpenGL.session) {
+        if (program <= 0 || session != GFXState.session) {
             compile()
         }
         if (program <= 0) throw IllegalStateException()
@@ -162,7 +162,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     private val ignoredNames = HashSet<String>()
 
     fun updateSession() {
-        session = OpenGL.session
+        session = GFXState.session
         attributeLocations.clear()
         uniformLocations.clear()
         uniformCache.fill(Float.NaN)

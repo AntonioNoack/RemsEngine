@@ -54,7 +54,7 @@ open class ByteImage(
                 val a = data[i + 3]
                 argb(a, r, g, b)
             }
-            else -> throw RuntimeException("Only 1..4 channels are supported")
+            else -> throw NotImplementedError()
         }
     }
 

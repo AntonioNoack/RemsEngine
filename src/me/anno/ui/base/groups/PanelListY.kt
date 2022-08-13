@@ -31,6 +31,8 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         val availableW = w - padding.width
         var availableH = h - padding.height
 
+        // todo if all children have same size, speed this up
+
         val children = children
         for (i in children.indices) {
             val child = children[i]
@@ -52,6 +54,33 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         minW = (maxX - x) + padding.width
         minH = constantSum + padding.height
 
+    }
+
+    override fun drawChildren(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val children = children
+        var i0 = children.binarySearch { it.y.compareTo(y0) }
+        var i1 = children.binarySearch { it.y.compareTo(y1) }
+        if (i0 < 0) i0 = -1 - i0
+        if (i1 < 0) i1 = -1 - i1
+        for (i in i0 until min(i1 + 1, children.size)) {
+            children[i].draw(x0, y0, x1, y1)
+        }
+    }
+
+    override fun forAllVisiblePanels(callback: (Panel) -> Unit) {
+        if (canBeSeen) {
+            callback(this)
+            val children = children
+            var i0 = children.binarySearch { it.y.compareTo(ly0) }
+            var i1 = children.binarySearch { it.y.compareTo(ly1) }
+            if (i0 < 0) i0 = -1 - i0
+            if (i1 < 0) i1 = -1 - i1
+            for (i in i0 until min(i1 + 1, children.size)) {
+                val child = children[i]
+                child.parent = this
+                child.forAllVisiblePanels(callback)
+            }
+        }
     }
 
     override fun setPosition(x: Int, y: Int) {

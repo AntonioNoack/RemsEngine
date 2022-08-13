@@ -2,8 +2,8 @@ package me.anno.tests.bench
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.OpenGL
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -17,7 +17,6 @@ import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.f2
 import org.lwjgl.opengl.GL11C.*
-import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
 fun main() {
@@ -45,7 +44,7 @@ fun main() {
 
     useFrame(buffer, Renderer.copyRenderer) {
 
-        OpenGL.blendMode.use(me.anno.gpu.blending.BlendMode.ADD) {
+        GFXState.blendMode.use(me.anno.gpu.blending.BlendMode.ADD) {
 
             for (power in 2 until 100) {
 
@@ -102,10 +101,7 @@ fun main() {
 
                 val pixels = ByteBufferPool.allocateDirect(4)
 
-                Frame.bind()
-
-                glClearColor(0f, 0f, 0f, 1f)
-                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                buffer.clearColor(0f, 0f, 0f, 1f, depth = true)
 
                 for (i in 0 until warmup) {
                     for (shader in shaders) {

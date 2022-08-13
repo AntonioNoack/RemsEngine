@@ -2,7 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -64,8 +64,8 @@ class CubemapTexture(
     }
 
     fun checkSession() {
-        if (session != OpenGL.session) {
-            session = OpenGL.session
+        if (session != GFXState.session) {
+            session = GFXState.session
             pointer = -1
             isCreated = false
             isDestroyed = false

@@ -10,7 +10,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.builder.Function
@@ -147,7 +147,7 @@ object SDFComposer {
         }
         uniforms["perspectiveCamera"] = TypeValue(GLSLType.V1B) { RenderState.isPerspective }
         uniforms["debugMode"] = TypeValue(GLSLType.V1I) { tree.debugMode.id }
-        uniforms["renderIds"] = TypeValue(GLSLType.V1B) { OpenGL.currentRenderer == Renderer.idRenderer }
+        uniforms["renderIds"] = TypeValue(GLSLType.V1B) { GFXState.currentRenderer == Renderer.idRenderer }
 
         val materials = tree.sdfMaterials.map { MaterialCache[it] }
         val builder = StringBuilder(max(1, materials.size) * 128)

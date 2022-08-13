@@ -1,5 +1,8 @@
 package me.anno.image.colormap
 
+/**
+ * color maps can be used to visualize grayscale images better
+ * */
 interface ColorMap {
 
     val min: Float

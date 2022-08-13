@@ -2,7 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
@@ -39,8 +39,8 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
     var internalFormat = 0
 
     fun checkSession() {
-        if (session != OpenGL.session) {
-            session = OpenGL.session
+        if (session != GFXState.session) {
+            session = GFXState.session
             pointer = -1
             isCreated = false
             isDestroyed = false

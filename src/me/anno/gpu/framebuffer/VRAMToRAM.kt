@@ -1,7 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.shader.Renderer
@@ -146,15 +146,11 @@ object VRAMToRAM {
 
         val buffer = Texture2D.bufferPool[wi * hi * 4, false, false]
 
-        if (clearColor != null) {
-            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w)
-        }
-
         GFX.check()
 
-        readAlignment(width)
+        useFrame(0, 0, wi, hi, NullFramebuffer, Renderer.copyRenderer) {
 
-        useFrame(0, 0, wi, hi, null, Renderer.copyRenderer) {
+            readAlignment(width)
 
             val hm1 = height - 1
 
@@ -164,7 +160,7 @@ object VRAMToRAM {
                     val partW = min(wi, width - x0)
                     val partH = min(hi, height - y0)
 
-                    if (clearColor != null) glClear(GL_COLOR_BUFFER_BIT)
+                    if (clearColor != null) NullFramebuffer.clearColor(clearColor)
                     renderSection(x0, y0, wi, hi)
 
                     // wait for everything to be drawn

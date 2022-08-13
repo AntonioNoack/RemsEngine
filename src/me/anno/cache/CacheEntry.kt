@@ -13,7 +13,7 @@ class CacheEntry private constructor(
 
     constructor(timeoutMillis: Long) : this(gameTime + timeoutMillis * MILLIS_TO_NANOS, Thread.currentThread())
 
-    val needsGenerator get() = generatorThread == Thread.currentThread() && (!hasGenerator || hasBeenDestroyed)
+    val needsGenerator get() = (!hasGenerator || hasBeenDestroyed) && (generatorThread == Thread.currentThread())
 
     fun reset(timeoutMillis: Long) {
         this.timeoutNanoTime = gameTime + timeoutMillis * MILLIS_TO_NANOS

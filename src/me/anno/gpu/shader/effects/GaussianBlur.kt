@@ -1,8 +1,8 @@
 package me.anno.gpu.shader.effects
 
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL.renderPurely
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.renderPurely
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
@@ -12,9 +12,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
-import org.lwjgl.opengl.GL11C.glClear
 import kotlin.math.max
 
 object GaussianBlur {
@@ -29,7 +26,7 @@ object GaussianBlur {
     ) {
         // step1
         useFrame(w, h, true, target, Renderer.copyRenderer) {
-            glClear(GL_DEPTH_BUFFER_BIT)
+            target.clearDepth()
             GFXx3D.draw3DGaussianBlur(localTransform, size, w, h, threshold, isFirst, isFullscreen)
         }
         target.bindTexture0(
@@ -72,8 +69,7 @@ object GaussianBlur {
                 // draw image on smaller thing...
                 val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 4, true, 1, false]// temp[2]
                 useFrame(smallerW, smallerH, false, temp2, Renderer.copyRenderer) {
-                    // glClearColor(0f, 0f, 0f, 0f)
-                    // glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                    // temp2.clearColor(0, true)
                     // draw texture 0 (masked) onto temp2
                     // todo sample multiple times...
                     GFX.copy()

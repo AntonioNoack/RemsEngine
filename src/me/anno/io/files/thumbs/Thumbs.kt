@@ -33,10 +33,10 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isGFXThread
-import me.anno.gpu.OpenGL
-import me.anno.gpu.OpenGL.depthMode
-import me.anno.gpu.OpenGL.renderPurely
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.depthMode
+import me.anno.gpu.GFXState.renderPurely
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.SVGxGFX
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -416,10 +416,8 @@ object Thumbs {
             }
             useFrame(w, h, false, renderTarget, renderer) {
                 if (withDepth) {
-                    depthMode.use(DepthMode.GREATER) {
-                        Frame.bind()
-                        glClearColor(0f, 0f, 0f, 0f)
-                        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                    depthMode.use(DepthMode.CLOSER) {
+                        renderTarget.clearColor(0, true)
                         render()
                     }
                 } else render()
@@ -734,7 +732,7 @@ object Thumbs {
             srcFile, false, dstFile, true, previewRenderer,
             true, callback, size, size
         ) {
-            OpenGL.blendMode.use(BlendMode.DEFAULT) {
+            GFXState.blendMode.use(BlendMode.DEFAULT) {
                 val mesh = sphereMesh
                 mesh.material = srcFile
                 mesh.drawAssimp(
@@ -779,7 +777,7 @@ object Thumbs {
             srcFile, dstFile, materials.size, size, false,
             previewRenderer, callback
         ) { it, _ ->
-            OpenGL.blendMode.use(BlendMode.DEFAULT) {
+            GFXState.blendMode.use(BlendMode.DEFAULT) {
                 val mesh = sphereMesh
                 mesh.material = materials[it]
                 mesh.drawAssimp(
@@ -816,8 +814,8 @@ object Thumbs {
             srcFile, false, dstFile, true,
             renderer0, true, callback, w, h
         ) {
-            val frame = OpenGL.currentBuffer!!
-            val renderer = OpenGL.currentRenderer
+            val frame = GFXState.currentBuffer!!
+            val renderer = GFXState.currentRenderer
             for (i in 0 until count) {
                 val ix = i % sx
                 val iy = i / sx

@@ -2,9 +2,9 @@ package me.anno.tests.shader
 
 import me.anno.Engine
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
-import me.anno.gpu.buffer.CubemapModel
-import me.anno.gpu.deferred.DepthBasedAntiAliasing
+import me.anno.gpu.GFXState
+import me.anno.ecs.components.mesh.shapes.CubemapModel
+import me.anno.gpu.shader.effects.DepthBasedAntiAliasing
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
@@ -42,16 +42,15 @@ private fun testShader() {
         val depth = FBStack["depth", w, h, 4, false, 1, false]
         val mesh = CubemapModel.cubemapModel
         mesh.ensureBuffer()
-        OpenGL.useFrame(depth) {
-            GL11C.glClearColor(1f, 0.7f, 0f, 1f)
-            GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT)
+        GFXState.useFrame(depth) {
+            depth.clearColor(1f, 0.7f, 0f, 1f)
             val shader = ShaderLib.shader3D.value
             shader.use()
             shader.m4x4("transform", transform)
             mesh.draw(shader)
         }
         val result = FBStack["result", w, h, 4, false, 1, false]
-        OpenGL.useFrame(result) {
+        GFXState.useFrame(result) {
             val shader = DepthBasedAntiAliasing.shader.value
             shader.use()
             shader.v1b("showEdges", Input.isShiftDown)

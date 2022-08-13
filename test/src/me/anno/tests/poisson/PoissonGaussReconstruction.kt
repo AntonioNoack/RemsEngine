@@ -2,7 +2,7 @@ package me.anno.tests.poisson
 
 import me.anno.Engine
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib

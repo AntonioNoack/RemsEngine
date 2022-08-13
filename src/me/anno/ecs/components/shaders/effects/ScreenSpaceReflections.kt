@@ -2,7 +2,7 @@ package me.anno.ecs.components.shaders.effects
 
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector

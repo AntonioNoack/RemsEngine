@@ -7,12 +7,12 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.previewRenderer
+import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.pipeline.CullMode
 import me.anno.gpu.shader.Renderer
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
@@ -21,12 +21,10 @@ import me.anno.maths.Maths.PIf
 import me.anno.utils.OS.desktop
 import me.anno.video.VideoBackgroundTask
 import me.anno.video.VideoCreator
-import me.anno.video.VideoCreator.Companion.renderVideo
 import me.anno.video.ffmpeg.FFMPEGEncodingBalance
 import me.anno.video.ffmpeg.FFMPEGEncodingType
 import org.joml.Math
 import org.joml.Matrix4x3f
-import org.lwjgl.opengl.GL11C.*
 
 fun main() {
 
@@ -62,9 +60,8 @@ fun main() {
         override fun getShutterPercentage(time: Double): Float = 1f
         override fun renderScene(time: Double, flipY: Boolean, renderer: Renderer) {
             useFrame(previewRenderer) {
-                glClearColor(0f, 0f, 0f, 1f)
-                glClear(GL_COLOR_BUFFER_BIT)
-                OpenGL.cullMode.use(CullMode.BACK) {
+                GFXState.currentBuffer.clearColor(0f, 0f, 0f, 1f, false)
+                GFXState.cullMode.use(CullMode.BACK) {
                     Thumbs.sphereMesh.drawAssimp(
                         cameraMatrix,
                         createModelMatrix((time / fps).toFloat()), null,

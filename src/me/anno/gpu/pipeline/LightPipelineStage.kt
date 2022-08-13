@@ -8,15 +8,16 @@ import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.engine.ui.render.Renderers
+import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
-import me.anno.gpu.pipeline.M4x3Delta.m4x3x
+import me.anno.gpu.M4x3Delta.m4x3delta
+import me.anno.gpu.M4x3Delta.m4x3x
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
 import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.shader.GLSLType
@@ -163,7 +164,7 @@ class LightPipelineStage(
 
         private val shaderCache = HashMap<Pair<DeferredSettingsV2, Int>, Shader>()
         fun getShader(settingsV2: DeferredSettingsV2, type: LightType): Shader {
-            val isInstanced = OpenGL.instanced.currentValue
+            val isInstanced = GFXState.instanced.currentValue
             val key = type.ordinal * 2 + isInstanced.toInt()
             return shaderCache.getOrPut(settingsV2 to key) {
                 /*
@@ -462,10 +463,10 @@ class LightPipelineStage(
 
     fun bindDraw(source: IFramebuffer, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
         if (instanced.isNotEmpty() || nonInstanced.isNotEmpty()) {
-            OpenGL.blendMode.use(blendMode) {
-                OpenGL.depthMode.use(depthMode) {
-                    OpenGL.depthMask.use(writeDepth) {
-                        OpenGL.cullMode.use(cullMode) {
+            GFXState.blendMode.use(blendMode) {
+                GFXState.depthMode.use(depthMode) {
+                    GFXState.depthMask.use(writeDepth) {
+                        GFXState.cullMode.use(cullMode) {
                             draw(source, cameraMatrix, cameraPosition, worldScale)
                         }
                     }
@@ -591,7 +592,7 @@ class LightPipelineStage(
             this.cameraMatrix = cameraMatrix
             this.cameraPosition = cameraPosition
             this.worldScale = worldScale
-            OpenGL.instanced.use(true) {
+            GFXState.instanced.use(true) {
                 instanced.forEachType(::drawBatches)
             }
         }
@@ -604,7 +605,7 @@ class LightPipelineStage(
 
     fun drawBatches(lights: List<LightRequest<*>>, type: LightType, size: Int) {
         if (type == LightType.DIRECTIONAL) {
-            OpenGL.depthMode.use(DepthMode.ALWAYS) {
+            GFXState.depthMode.use(DepthMode.ALWAYS) {
                 drawBatches2(lights, type, size)
             }
         } else drawBatches2(lights, type, size)

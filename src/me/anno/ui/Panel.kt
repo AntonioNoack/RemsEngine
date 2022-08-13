@@ -304,19 +304,13 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
     }
 
-    fun updateVisibility(mx: Int, my: Int) {
+    open fun updateVisibility(mx: Int, my: Int) {
         isInFocus = false
         isAnyChildInFocus = false
         canBeSeen = (uiParent?.canBeSeen != false) &&
                 visibility == Visibility.VISIBLE &&
                 lx1 > lx0 && ly1 > ly0
         isHovered = mx in lx0 until lx1 && my in ly0 until ly1
-        if (this is PanelGroup) {
-            val children = children
-            for (i in children.indices) {
-                children[i].updateVisibility(mx, my)
-            }
-        }
     }
 
     fun findMissingParents(parent: PanelGroup? = null) {
@@ -726,18 +720,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
     }
 
-    fun forAllVisiblePanels(callback: (Panel) -> Unit) {
-        if (canBeSeen) {
-            callback(this)
-            if (this is PanelGroup) {
-                val children = children
-                for (i in children.indices) {
-                    val child = children[i]
-                    child.parent = this
-                    child.forAllVisiblePanels(callback)
-                }
-            }
-        }
+    open fun forAllVisiblePanels(callback: (Panel) -> Unit) {
+        if (canBeSeen) callback(this)
     }
 
     fun forAllPanels(array: ExpandingGenericArray<Panel>) {

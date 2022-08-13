@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.SDFTransform
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.OpenGL.currentRenderer
+import me.anno.gpu.GFXState.currentRenderer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 

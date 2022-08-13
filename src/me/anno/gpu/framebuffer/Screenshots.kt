@@ -1,7 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -40,7 +40,7 @@ object Screenshots {
         drawScene: () -> Unit
     ): Any {
         val localYOpenGL = fb.h - ly
-        OpenGL.useFrame(fb.w, fb.h, true, fb, renderer) {
+        GFXState.useFrame(fb.w, fb.h, true, fb, renderer) {
             val radius = diameter shr 1
             val x0 = clamp(lx - radius, 0, fb.w)
             val y0 = clamp(localYOpenGL - radius, 0, fb.h)
@@ -49,7 +49,7 @@ object Screenshots {
             if (x1 > x0 && y1 > y0) {
                 Frame.bind()
                 // draw only the clicked area
-                OpenGL.scissorTest.use(true) {
+                GFXState.scissorTest.use(true) {
                     glScissor(x0, y0, x1 - x0, y1 - y0)
                     drawScene()
                     glFlush(); glFinish() // wait for everything to be drawn
@@ -105,7 +105,7 @@ object Screenshots {
         diameter: Int,
         idBuffer: IntArray,
         depthBuffer: FloatArray,
-        depthImportance: Int = if (OpenGL.depthMode.currentValue.reversedDepth) -10 else +10
+        depthImportance: Int = if (GFXState.depthMode.currentValue.reversedDepth) -10 else +10
     ): Int {
 
         var bestDistance = Int.MAX_VALUE.toFloat()
@@ -164,7 +164,7 @@ object Screenshots {
 
             fun getPixels(renderer: Renderer): IntImage {
                 // draw only the clicked area?
-                OpenGL.useFrame(fb, renderer) {
+                GFXState.useFrame(fb, renderer) {
                     GFX.check()
                     drawScene()
                     // Scene.draw(camera, RemsStudio.root, 0, 0, w, h, RemsStudio.editorTime, true, renderer, this)

@@ -1,8 +1,8 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.*
@@ -48,9 +48,9 @@ class CubemapFramebuffer(
     }
 
     override fun checkSession() {
-        if (pointer > 0 && session != OpenGL.session) {
+        if (pointer > 0 && session != GFXState.session) {
             GFX.check()
-            session = OpenGL.session
+            session = GFXState.session
             pointer = -1
             // needsBlit = true
             // msBuffer?.checkSession()

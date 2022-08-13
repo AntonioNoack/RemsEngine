@@ -8,12 +8,10 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.Perspective.setPerspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Renderer
 import me.anno.io.serialization.SerializedProperty
@@ -23,8 +21,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Matrices.rotate2
 import org.joml.*
-import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
-import org.lwjgl.opengl.GL11C.glClear
 
 // todo size of point light: probably either distance or direction needs to be adjusted
 // todo - in proximity, the appearance must not stay as a point, but rather be a sphere
@@ -99,10 +95,9 @@ class PointLight : LightComponent(LightType.POINT) {
 
         val cameraMatrix = RenderState.cameraMatrix
         val root = entity.getRoot(Entity::class)
-        OpenGL.depthMode.use(DepthMode.GREATER) {
+        GFXState.depthMode.use(DepthMode.CLOSER) {
             texture.draw(resolution, Renderer.nothingRenderer) { side ->
-                Frame.bind()
-                glClear(GL_DEPTH_BUFFER_BIT)
+                texture.clearDepth()
                 setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
                 EnvironmentMap.rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rotInvert)

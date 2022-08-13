@@ -7,7 +7,7 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.gpu.GFX
 import me.anno.io.unity.UnityReader
-import me.anno.io.windows.WindowsShortcut
+import me.anno.io.utils.WindowsShortcut
 import me.anno.io.zip.InnerTmpFile
 import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.MILLIS_TO_NANOS

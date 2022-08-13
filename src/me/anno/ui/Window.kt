@@ -2,9 +2,9 @@ package me.anno.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL.renderDefault
-import me.anno.gpu.OpenGL.renderPurely
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.renderDefault
+import me.anno.gpu.GFXState.renderPurely
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -17,7 +17,6 @@ import me.anno.ui.utils.WindowStack
 import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C
 import kotlin.math.max
 import kotlin.math.min
 
@@ -37,6 +36,8 @@ open class Window(
 
     constructor(panel: Panel, isTransparent: Boolean, windowStack: WindowStack, x: Int, y: Int) :
             this(panel, isTransparent, false, windowStack, x, y)
+
+    var backgroundColor = 0
 
     val mouseX get() = windowStack.mouseX
     val mouseY get() = windowStack.mouseY
@@ -145,7 +146,7 @@ open class Window(
 
         // resolve missing parents...
         // which still happens...
-        panel.findMissingParents()
+        // panel.findMissingParents()
 
         panel.forAllVisiblePanels { p -> p.onUpdate() }
         panel.forAllVisiblePanels { p -> p.tick() }
@@ -283,9 +284,7 @@ open class Window(
                     x0, y0, x1 - x0, y1 - y0,
                     buffer, Renderer.colorRenderer
                 ) {
-                    Frame.bind()
-                    GL11C.glClearColor(0f, 0f, 0f, 0f)
-                    GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT)
+                    buffer.clearColor(backgroundColor)
                     panel0.canBeSeen = true
                     panel0.draw(x0, y0, x1, y1)
                 }

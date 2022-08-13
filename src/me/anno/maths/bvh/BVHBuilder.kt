@@ -3,7 +3,7 @@ package me.anno.maths.bvh
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.raycast.RayHit
-import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
+import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths

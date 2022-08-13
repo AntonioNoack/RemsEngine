@@ -1,5 +1,6 @@
 package me.anno.tests
 
+import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.Frame
@@ -36,9 +37,7 @@ fun main() {
         Renderer.colorRenderer, true, { },
         formats.size * testImage.width * magnification, testImage.height * magnification
     ) {
-        Frame.bind()
-        glClearColor(0f, 0f, 0f, 0f)
-        glClear(GL_COLOR_BUFFER_BIT)
+        GFXState.currentBuffer.clearColor(0, false)
         for ((index, format) in formats.withIndex()) {
             // create image
             val img = BufferedImage(testImage.width, testImage.height, format)

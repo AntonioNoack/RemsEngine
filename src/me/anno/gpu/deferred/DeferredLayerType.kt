@@ -35,36 +35,28 @@ open class DeferredLayerType(
 
     fun appendDefaultValue(fragment: StringBuilder) {
         when (dimensions) {
-            1 -> {
-                fragment.append(defaultValueARGB.x())
-            }
-            2 -> {
-                fragment.append("vec2(")
-                fragment.append(defaultValueARGB.x())
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.y())
-                fragment.append(')')
-            }
-            3 -> {
-                fragment.append("vec3(")
-                fragment.append(defaultValueARGB.x())
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.y())
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.z())
-                fragment.append(')')
-            }
-            4 -> {
-                fragment.append("vec4(")
-                fragment.append(defaultValueARGB.x())
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.y())
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.z())
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.w())
-                fragment.append(')')
-            }
+            1 -> fragment.append(defaultValueARGB.x())
+            2 -> fragment.append("vec2(")
+                .append(defaultValueARGB.x())
+                .append(", ")
+                .append(defaultValueARGB.y())
+                .append(')')
+            3 -> fragment.append("vec3(")
+                .append(defaultValueARGB.x())
+                .append(", ")
+                .append(defaultValueARGB.y())
+                .append(", ")
+                .append(defaultValueARGB.z())
+                .append(')')
+            4 -> fragment.append("vec4(")
+                .append(defaultValueARGB.x())
+                .append(", ")
+                .append(defaultValueARGB.y())
+                .append(", ")
+                .append(defaultValueARGB.z())
+                .append(", ")
+                .append(defaultValueARGB.w())
+                .append(')')
         }
     }
 

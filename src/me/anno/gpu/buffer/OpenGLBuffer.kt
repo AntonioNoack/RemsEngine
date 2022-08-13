@@ -2,13 +2,11 @@ package me.anno.gpu.buffer
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.debug.DebugGPUStorage
-import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.utils.OS
-import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2fc
@@ -40,8 +38,8 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
     fun getName(index: Int) = attributes[index].name
 
     fun checkSession() {
-        if (session != OpenGL.session) {
-            session = OpenGL.session
+        if (session != GFXState.session) {
+            session = GFXState.session
             onSessionChange()
         }
     }

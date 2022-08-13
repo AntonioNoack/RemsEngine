@@ -1,6 +1,6 @@
 package me.anno.gpu.drawing
 
-import me.anno.gpu.buffer.CubemapModel.cubemapModel
+import me.anno.ecs.components.mesh.shapes.CubemapModel.cubemapModel
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.language.translation.NameDesc

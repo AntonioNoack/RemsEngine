@@ -7,13 +7,13 @@ import me.anno.engine.ui.LineShapes.drawCross
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.pipeline.CullMode
+import me.anno.gpu.CullMode
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
@@ -142,11 +142,9 @@ class EnvironmentMap : LightComponentBase() {
 
         val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
-        OpenGL.depthMode.use(DepthMode.GREATER) {
+        GFXState.depthMode.use(DepthMode.CLOSER) {
             texture.draw(resolution, pbrRenderer) { side ->
-                Frame.bind()
-                glClearColor(.7f, .9f, 1f, 1f)
-                glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT)
+                texture.clearColor(.7f, .9f, 1f, 1f, true)
                 Perspective.setPerspective(
                     cameraMatrix, deg90.toFloat(), 1f,
                     near.toFloat(), far.toFloat(), 0f, 0f
@@ -217,7 +215,7 @@ class EnvironmentMap : LightComponentBase() {
             val pipeline = Pipeline(DeferredSettingsV2(listOf(), false))
             // we may need a second stage for transparent stuff
             pipeline.defaultStage = PipelineStage(
-                "", Sorting.NO_SORTING, 16, null, DepthMode.GREATER,
+                "", Sorting.NO_SORTING, 16, null, DepthMode.CLOSER,
                 true, CullMode.BACK, ECSShaderLib.pbrModelShader
             )
             pipeline.stages.add(pipeline.defaultStage)

@@ -83,8 +83,7 @@ class DeferredSettingsV2(
         layers2 = ArrayList(usedTextures0)
         for (i in 0 until usedTextures0) {
             val layer2 = DeferredLayer(
-                "vec4", "defLayer$i",
-                when (needsHighPrecision[i]) {
+                "defLayer$i", when (needsHighPrecision[i]) {
                     BufferQuality.LOW_8 -> TargetType.UByteTarget4
                     BufferQuality.MEDIUM_12 -> TargetType.Normal12Target4
                     BufferQuality.HIGH_16 -> TargetType.FP16Target4

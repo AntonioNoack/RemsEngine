@@ -3,11 +3,11 @@ package me.anno.gpu.buffer
 import me.anno.maths.Maths.pow
 import org.joml.Vector2f
 
-class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
-    listOf(
-        Attribute(name, 2)
-    ), vertices.size
-) {
+class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
+    StaticBuffer(listOf(Attribute(name, 2)), vertices.size) {
+
+    constructor(vertices: Array<Vector2f>, indices: IntArray, name: String) :
+            this(createArray(vertices, indices), name)
 
     init {
         vertices.forEach {
@@ -15,13 +15,6 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             put(it.y)
         }
     }
-
-    constructor(vertices: Array<Vector2f>, indices: IntArray, name: String) : this(
-        createArray(
-            vertices,
-            indices
-        ), name
-    )
 
     companion object {
 

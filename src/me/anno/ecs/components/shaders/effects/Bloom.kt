@@ -2,9 +2,9 @@ package me.anno.ecs.components.shaders.effects
 
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.OpenGL
-import me.anno.gpu.OpenGL.renderPurely
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.renderPurely
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.framebuffer.FBStack
@@ -100,7 +100,7 @@ object Bloom {
         shader.use()
         shader.v1f("alpha", 1f)
         var previous = tmpForward[steps - 1]!!
-        OpenGL.blendMode.use(BlendMode.PURE_ADD) {
+        GFXState.blendMode.use(BlendMode.PURE_ADD) {
             for (i in steps - 2 downTo 0) {// render onto that layer
                 val nextSrc = tmpForward[i]!! // large
                 useFrame(nextSrc, copyRenderer) {

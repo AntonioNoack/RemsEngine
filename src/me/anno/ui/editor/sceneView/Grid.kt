@@ -5,7 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.OpenGL.depthMode
+import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx3D.uploadAttractors0

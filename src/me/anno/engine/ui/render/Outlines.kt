@@ -4,10 +4,10 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.gpu.GFX.shaderColor
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.gpu.pipeline.CullMode
-import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
+import me.anno.gpu.CullMode
+import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.utils.pooling.JomlPools
@@ -93,10 +93,10 @@ object Outlines {
 
         if (scale < 1e10f) {
             val cullMode = if (mesh.inverseOutline) CullMode.BACK else CullMode.FRONT
-            OpenGL.cullMode.use(cullMode) {
+            GFXState.cullMode.use(cullMode) {
                 val baseShader = ShaderLib.monochromeModelShader
                 val animated = meshComponent.hasAnimation
-                OpenGL.animated.use(animated) {
+                GFXState.animated.use(animated) {
 
                     val shader = baseShader.value
                     shader.use()

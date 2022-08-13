@@ -10,13 +10,15 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
-import me.anno.gpu.OpenGL
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.framebuffer.*
-import me.anno.gpu.pipeline.CullMode
+import me.anno.gpu.framebuffer.CubemapFramebuffer
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
@@ -27,8 +29,6 @@ import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
-import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
-import org.lwjgl.opengl.GL11C.glClear
 import kotlin.math.pow
 
 abstract class LightComponent(
@@ -188,7 +188,7 @@ abstract class LightComponent(
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
         val renderer = Renderer.nothingRenderer
-        val depthMode = DepthMode.GREATER
+        val depthMode = DepthMode.CLOSER
         for (i in 0 until shadowMapCascades) {
             val cascadeScale = shadowMapPower.pow(-i.toDouble())
             val texture = shadowTextures!![i]
@@ -200,10 +200,9 @@ abstract class LightComponent(
             )
             val root = entity.getRoot(Entity::class)
             pipeline.fillDepth(root, position, worldScale)
-            OpenGL.depthMode.use(depthMode) {
+            GFXState.depthMode.use(depthMode) {
                 useFrame(resolution, resolution, true, texture, renderer) {
-                    Frame.bind()
-                    glClear(GL_DEPTH_BUFFER_BIT)
+                    texture.clearDepth()
                     pipeline.drawDepth()
                 }
             }
@@ -235,7 +234,7 @@ abstract class LightComponent(
         val pipeline by lazy {
             val pl = Pipeline(DeferredSettingsV2(listOf(), false))
             pl.defaultStage = PipelineStage(
-                "", Sorting.NO_SORTING, 0, null, DepthMode.GREATER,
+                "", Sorting.NO_SORTING, 0, null, DepthMode.CLOSER,
                 true, CullMode.BOTH, pbrModelShader
             )
             pl

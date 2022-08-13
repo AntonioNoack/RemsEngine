@@ -1,8 +1,8 @@
 package me.anno.gpu.shader.effects
 
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.OpenGL.renderPurely
-import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.GFXState.renderPurely
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -104,8 +104,7 @@ object BokehBlur {
             shader.use()
             uniforms(shader, w, h, normRadius)
 
-            glClearColor(0f, 0f, 0f, 0f)
-            glClear(GL_COLOR_BUFFER_BIT)
+            target.clearColor(0)
 
             // filter texture is bound correctly
             r.bindTexture0(1, GPUFiltering.LINEAR, Clamping.CLAMP)

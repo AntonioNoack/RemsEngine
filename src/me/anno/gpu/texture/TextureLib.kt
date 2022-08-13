@@ -2,6 +2,9 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 
+/**
+ * library of standard textures like white, black, transparent, striped
+ * */
 object TextureLib {
 
     class IndestructibleTexture2D(

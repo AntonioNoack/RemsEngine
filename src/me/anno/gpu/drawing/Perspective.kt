@@ -1,6 +1,6 @@
 package me.anno.gpu.drawing
 
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import org.joml.Math
 import org.joml.Matrix4f
 import kotlin.math.atan
@@ -13,7 +13,7 @@ object Perspective {
         near: Float,
         far: Float, // only respected if !reverseDepth, because typically there is no real use for it...
         cx: Float, cy: Float,
-        reverseDepth: Boolean = OpenGL.depthMode.currentValue.reversedDepth
+        reverseDepth: Boolean = GFXState.depthMode.currentValue.reversedDepth
     ): Matrix4f {
         setPerspective(this, fovYRadians, aspectRatio, near, far, cx, cy, reverseDepth)
         return this
@@ -26,7 +26,7 @@ object Perspective {
         near: Float,
         far: Float, // only respected if !reverseDepth, because typically there is no real use for it...
         cx: Float, cy: Float,
-        reverseDepth: Boolean = OpenGL.depthMode.currentValue.reversedDepth
+        reverseDepth: Boolean = GFXState.depthMode.currentValue.reversedDepth
     ) {
         viewTransform.identity()
         if (reverseDepth) {
@@ -64,7 +64,7 @@ object Perspective {
         near: Float,
         far: Float, // only respected if !reverseDepth, because typically there is no real use for it...
         cx: Float, cy: Float,
-        reverseDepth: Boolean = OpenGL.depthMode.currentValue.reversedDepth
+        reverseDepth: Boolean = GFXState.depthMode.currentValue.reversedDepth
     ) {
         viewTransform.identity()
         if (reverseDepth) {

@@ -9,11 +9,11 @@ import me.anno.engine.ui.render.GridColors.colorZ
 import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
+import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths
@@ -25,10 +25,10 @@ object MovingGrid {
 
     fun drawGrid(radius: Double) {
         LineBuffer.finish(RenderState.cameraMatrix)
-        OpenGL.blendMode.use(BlendMode.ADD) {
+        GFXState.blendMode.use(BlendMode.ADD) {
             if (RenderView.currentInstance?.renderMode != RenderMode.DEPTH) {
                 // don't write depth, we want to stack it
-                OpenGL.depthMask.use(false) {
+                GFXState.depthMask.use(false) {
                     drawGrid3(radius)
                 }
             } else {

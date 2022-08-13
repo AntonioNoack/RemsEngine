@@ -4,7 +4,7 @@ import me.anno.cache.data.ICacheData
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -103,7 +103,7 @@ open class BaseShader(
         shader1.setTextureIndices(textures)
         shader1.ignoreNameWarnings(ignoredNameWarnings)
         shader1.use()
-        shader1.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
+        shader1.v1i("drawMode", GFXState.currentRenderer.drawMode.id)
         shader1.v4f("tint", 1f)
         return shader1
 
@@ -112,9 +112,9 @@ open class BaseShader(
     val value: Shader
         get() {
             GFX.check()
-            val renderer = OpenGL.currentRenderer
-            val instanced = OpenGL.instanced.currentValue
-            val animated = OpenGL.animated.currentValue
+            val renderer = GFXState.currentRenderer
+            val instanced = GFXState.instanced.currentValue
+            val animated = GFXState.animated.currentValue
             val motionVectors = (renderer == Renderer.motionVectorRenderer ||
                     renderer == attributeRenderers[DeferredLayerType.MOTION] ||
                     renderer == rawAttributeRenderers[DeferredLayerType.MOTION])
@@ -193,7 +193,7 @@ open class BaseShader(
         shader.use()
         shader.setTextureIndices(textures)
         shader.ignoreNameWarnings(ignoredNameWarnings)
-        shader.v1i("drawMode", OpenGL.currentRenderer.drawMode.id)
+        shader.v1i("drawMode", GFXState.currentRenderer.drawMode.id)
         shader.v4f("tint", 1f, 1f, 1f, 1f)
         GFX.check()
     }

@@ -10,12 +10,11 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.gpu.GFX.shaderColor
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.Shader
-import me.anno.io.files.InvalidRef
 import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
 import me.anno.ui.Panel
@@ -175,7 +174,7 @@ object ThumbsExt {
             object : Panel(style) {
                 override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                     super.onDraw(x0, y0, x1, y1)
-                    OpenGL.useFrame(previewRenderer) {
+                    GFXState.useFrame(previewRenderer) {
                         val mesh = Thumbs.sphereMesh
                         mesh.material = file
                         mesh.drawAssimp(

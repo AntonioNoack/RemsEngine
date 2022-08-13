@@ -17,17 +17,18 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
+import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
-import me.anno.gpu.OpenGL
+import me.anno.gpu.GFXState
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.pipeline.M4x3Delta.buffer16x256
-import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
+import me.anno.gpu.M4x3Delta.buffer16x256
+import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
@@ -128,10 +129,10 @@ class PipelineStage(
     val instancedMeshes2 = KeyPairMap<Mesh, Material, InstancedStack>()
 
     fun bindDraw(pipeline: Pipeline) {
-        OpenGL.blendMode.use(blendMode) {
-            OpenGL.depthMode.use(depthMode) {
-                OpenGL.depthMask.use(writeDepth) {
-                    OpenGL.cullMode.use(cullMode) {
+        GFXState.blendMode.use(blendMode) {
+            GFXState.depthMode.use(depthMode) {
+                GFXState.depthMask.use(writeDepth) {
+                    GFXState.cullMode.use(cullMode) {
                         GFX.check()
                         draw(pipeline)
                         GFX.check()
@@ -378,7 +379,7 @@ class PipelineStage(
             GFX.drawnId = request.clickId
 
             val hasAnimation = (request.component as? MeshComponentBase)?.hasAnimation ?: false
-            OpenGL.animated.use(hasAnimation) {
+            GFXState.animated.use(hasAnimation) {
 
                 val mesh = request.mesh
                 val entity = request.entity
@@ -453,7 +454,7 @@ class PipelineStage(
         lastMaterial.clear()
 
         // draw instanced meshes
-        OpenGL.instanced.use(true) {
+        GFXState.instanced.use(true) {
             // with material indices
             for ((mesh, list) in instancedMeshes1.values) {
                 for ((material, materialIndex, values) in list) {
@@ -489,9 +490,9 @@ class PipelineStage(
     }
 
     private fun bindRandomness(shader: Shader) {
-        val renderer = OpenGL.currentRenderer
+        val renderer = GFXState.currentRenderer
         val deferred = renderer.deferredSettings
-        val target = OpenGL.currentBuffer
+        val target = GFXState.currentBuffer
         if (deferred != null && target is Framebuffer) {
             // define all randomnesses: depends on framebuffer
             // and needs to be set for all shaders
@@ -545,7 +546,7 @@ class PipelineStage(
         val localAABB = mesh.aabb
 
         val useAnimations = instances is InstancedAnimStack && instances.texture != null
-        OpenGL.animated.use(true) {
+        GFXState.animated.use(true) {
 
             val shader = getShader(material)
             shader.use()
@@ -674,7 +675,7 @@ class PipelineStage(
 
         // draw instanced meshes
         // todo support animations
-        OpenGL.instanced.use(true) {
+        GFXState.instanced.use(true) {
             val shader2 = defaultShader.value
             shader2.use()
             initShader(shader2, pipeline)

@@ -8,6 +8,7 @@ import me.anno.Build.isDebug
 import me.anno.Engine
 import me.anno.Engine.shutdown
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.getErrorTypeName
@@ -39,7 +40,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL11C.glEnable
 import org.lwjgl.opengl.GL43C.glDebugMessageCallback
 import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.opengl.GLUtil
@@ -367,7 +368,7 @@ open class GFXBase {
     }
 
     open fun renderStep(window: WindowX) {
-        glClear(GL_COLOR_BUFFER_BIT)
+        GFXState.currentBuffer.clearColor(black)
         val width = window.width
         val height = window.height
         GFX.setFrameNullSize(window)

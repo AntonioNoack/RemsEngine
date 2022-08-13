@@ -4,8 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.framebuffer.VRAMToRAM
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.Screenshots
