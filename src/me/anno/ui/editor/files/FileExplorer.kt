@@ -136,7 +136,7 @@ abstract class FileExplorer(
 
     init {
         fun addFavourite(folder: FileReference) {
-            favourites.add(object: FileExplorerEntry(this@FileExplorer, false, folder, style){
+            favourites.add(object : FileExplorerEntry(this@FileExplorer, false, folder, style) {
                 override fun calculateSize(w: Int, h: Int) {
                     val size = 64
                     minW = size
@@ -329,7 +329,7 @@ abstract class FileExplorer(
                                     }
                                 }
                                 // force layout update
-                                Input.invalidateLayout()
+                                GFX.windows.forEach { it.framesSinceLastInteraction = 0 }
                             }
                         }
                     }

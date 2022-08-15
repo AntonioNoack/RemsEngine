@@ -22,7 +22,6 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.input.Input
-import me.anno.input.Input.invalidateLayout
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
@@ -248,7 +247,6 @@ open class GFXBase {
         return instance
     }
 
-
     private fun makeCurrent(window: WindowX): Boolean {
         activeWindow = window
         if (window.pointer != lastCurrent && window.pointer != 0L) {
@@ -306,10 +304,12 @@ open class GFXBase {
                     // this is hopefully ok (calling it async to other glfw stuff)
                     if (makeCurrent(window)) {
                         synchronized(openglLock) {
+                            activeWindow = window
                             renderStep(window)
                         }
                         synchronized(glfwLock) {
                             if (!destroyed) {
+                                GLFW.glfwWaitEventsTimeout(0.0)
                                 GLFW.glfwSwapBuffers(window.pointer)
                                 window.updateVsync()
                             }
@@ -419,7 +419,8 @@ open class GFXBase {
                 if (!window.shouldClose) {
                     if (GLFW.glfwWindowShouldClose(window.pointer)) {
                         val ws = window.windowStack
-                        if (DefaultConfig["window.close.directly", false] ||
+                        if (ws.isEmpty() ||
+                            DefaultConfig["window.close.directly", false] ||
                             ws.peek().isClosingQuestion
                         ) {
                             window.shouldClose = true
@@ -434,7 +435,7 @@ open class GFXBase {
                                     window.shouldClose = true
                                     GLFW.glfwSetWindowShouldClose(window.pointer, true)
                                 }?.isClosingQuestion = true
-                                invalidateLayout()
+                                window.framesSinceLastInteraction = 0
                                 ws.peek().setAcceptsClickAway(false)
                             }
                         }
@@ -472,7 +473,7 @@ open class GFXBase {
             }
 
             // glfwWaitEventsTimeout() without args only terminates, if keyboard or mouse state is changed
-            GLFW.glfwWaitEventsTimeout(0.001)
+            GLFW.glfwWaitEventsTimeout(0.0)
 
         }
 

@@ -100,14 +100,8 @@ object Input {
     val isAltDown get() = (keyModState and GLFW.GLFW_MOD_ALT) != 0
     val isSuperDown get() = (keyModState and GLFW.GLFW_MOD_SUPER) != 0
 
-    var framesSinceLastInteraction = 0
     val layoutFrameCount = 10
-
-    fun needsLayoutUpdate() = framesSinceLastInteraction < layoutFrameCount
-
-    fun invalidateLayout() {
-        framesSinceLastInteraction = 0
-    }
+    fun needsLayoutUpdate(window: WindowX) = window.framesSinceLastInteraction < layoutFrameCount
 
     fun initForGLFW(window: WindowX) {
 
@@ -122,7 +116,7 @@ object Input {
                     }
                 }
                 addEvent {
-                    framesSinceLastInteraction = 0
+                    window.framesSinceLastInteraction = 0
                     val dws = window.windowStack
                     val mouseX = window.mouseX
                     val mouseY = window.mouseY
@@ -151,7 +145,7 @@ object Input {
 
         GLFW.glfwSetMouseButtonCallback(window.pointer) { _, button, action, mods ->
             addEvent {
-                framesSinceLastInteraction = 0
+                window.framesSinceLastInteraction = 0
                 when (action) {
                     GLFW.GLFW_PRESS -> onMousePress(window, button)
                     GLFW.GLFW_RELEASE -> onMouseRelease(window, button)
@@ -167,7 +161,7 @@ object Input {
         GLFW.glfwSetKeyCallback(window.pointer) { window1, key, scancode, action, mods ->
             if (window1 != window.pointer) {
                 // touch events are hacked into GLFW for Windows 7+
-                framesSinceLastInteraction = 0
+                window.framesSinceLastInteraction = 0
                 // val pressure = max(1, mods)
                 val x = scancode * 0.01f
                 val y = action * 0.01f
@@ -199,7 +193,7 @@ object Input {
     // val inFocus0 get() = defaultWindowStack?.inFocus0
 
     fun onCharTyped(window: WindowX, codepoint: Int, mods: Int) {
-        framesSinceLastInteraction = 0
+        window.framesSinceLastInteraction = 0
         KeyMap.onCharTyped(codepoint)
         if (!UIEvent(
                 window.currentWindow,
@@ -212,7 +206,7 @@ object Input {
     }
 
     fun onKeyPressed(window: WindowX, key: Int) {
-        framesSinceLastInteraction = 0
+        window.framesSinceLastInteraction = 0
         keysDown[key] = gameTime
         keysWentDown += key
         if (!UIEvent(
@@ -229,7 +223,7 @@ object Input {
     }
 
     fun onKeyReleased(window: WindowX, key: Int) {
-        framesSinceLastInteraction = 0
+        window.framesSinceLastInteraction = 0
         keyUpCtr++
         keysWentUp += key
         if (!UIEvent(
@@ -247,7 +241,7 @@ object Input {
 
     fun onKeyTyped(window: WindowX, key: Int) {
 
-        framesSinceLastInteraction = 0
+        window.framesSinceLastInteraction = 0
 
         if (UIEvent(
                 window.currentWindow,
@@ -330,7 +324,7 @@ object Input {
 
     fun onMouseMove(window: WindowX, newX: Float, newY: Float) {
 
-        if (keysDown.isNotEmpty()) framesSinceLastInteraction = 0
+        if (keysDown.isNotEmpty()) window.framesSinceLastInteraction = 0
 
         val dx = newX - window.mouseX
         val dy = newY - window.mouseY
@@ -359,7 +353,7 @@ object Input {
     fun onMouseWheel(window: WindowX, dx: Float, dy: Float, byMouse: Boolean) {
         mouseWheelSumX += dx
         mouseWheelSumY += dy
-        if (length(dx, dy) > 0f) framesSinceLastInteraction = 0
+        if (length(dx, dy) > 0f) window.framesSinceLastInteraction = 0
         addEvent {
             val mouseX = window.mouseX
             val mouseY = window.mouseY

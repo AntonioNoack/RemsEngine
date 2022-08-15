@@ -11,8 +11,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.pooling.ByteBufferPool
-import org.jbox2d.common.Vec3
-import org.lwjgl.system.CallbackI.V
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI

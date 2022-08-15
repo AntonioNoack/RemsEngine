@@ -52,6 +52,9 @@ open class WindowX(var title: String) {
 
     var shouldClose = false
 
+    var framesSinceLastInteraction = 0
+    var didNothingCounter = 0
+
     /**
      * set these to finite values, and the mouse should move there
      * do NOT set this target on multiple windows
@@ -68,10 +71,11 @@ open class WindowX(var title: String) {
     var enableVsync = true
     private var lastVsyncInterval = -1
 
-    val currentWindow: Window? get() {
-        // todo find window at coordinates
-        return windowStack.lastOrNull()
-    }
+    val currentWindow: Window?
+        get() {
+            // todo find window at coordinates
+            return windowStack.lastOrNull()
+        }
 
     fun hasActiveMouseTargets(): Boolean {
         return abs(lastMouseTargetNanos - Engine.nanoTime) < 1e9
@@ -196,14 +200,13 @@ open class WindowX(var title: String) {
             }
         })
         fsCallback = GLFW.glfwSetFramebufferSizeCallback(window, object : GLFWFramebufferSizeCallback() {
-            override fun invoke(window: Long, w: Int, h: Int) {
+            override fun invoke(window1: Long, w: Int, h: Int) {
                 if (w > 0 && h > 0) {
                     StudioBase.addEvent {
                         if (w != width || h != height) {
                             width = w
                             height = h
-                            Input.invalidateLayout()
-                            Input.framesSinceLastInteraction = 0
+                            framesSinceLastInteraction = 0
                         }
                         Unit
                     }

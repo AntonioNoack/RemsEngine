@@ -140,7 +140,7 @@ object ActionManager : StringMap() {
     fun onEvent(window: WindowX, dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
         val stack = window.windowStack
         var panel = stack.inFocus0
-        if (stack.peek() != panel?.window) panel = null
+        if (stack.isEmpty() || stack.peek() != panel?.window) panel = null
         // filter action keys, if they are typing keys, and a typing field is in focus
         val isWriting = combination.isWritingKey && (panel?.isKeyInput() == true)
         // LOGGER.debug("is writing: $isWriting, combination: $combination, has value? ${combination in globalKeyCombinations}")

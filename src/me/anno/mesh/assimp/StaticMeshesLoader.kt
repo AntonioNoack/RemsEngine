@@ -374,12 +374,16 @@ open class StaticMeshesLoader {
         val isCompressed = height == 0
 
         val size = if (isCompressed) width else width * height * 4
-        val data = /*if (isCompressed) {
-        // new assimp version, that is broken
+
+        // lwjgl 3.3.1
+        val data = if(isCompressed){
             bufferToBytes(texture.pcDataCompressed(), size)
-        } else {*/
-            bufferToBytes(texture.pcData(size / 4), size)
-        //}
+        } else {
+            bufferToBytes(texture.pcData(), size)
+        }
+
+        // lwjgl 3.2.3
+        // val data = bufferToBytes(texture.pcData(size / 4), size)
 
         val fileName = texture.mFilename().dataString().ifEmpty {
             if (isCompressed) {

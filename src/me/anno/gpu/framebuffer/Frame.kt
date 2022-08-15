@@ -24,19 +24,17 @@ object Frame {
     }
 
     fun reset() {
-        lastPtr = -2 - abs(lastPtr)
+        lastPtr = -1
     }
 
     fun invalidate() {
         reset()
     }
 
-    var lastX = 0
-    var lastY = 0
-    var lastX2 = 0
-    var lastY2 = 0
-    var lastW = 0
-    var lastH = 0
+    private var lastX = 0
+    private var lastY = 0
+    private var lastW = 0
+    private var lastH = 0
     var lastPtr = -1
 
     fun bind(framebuffer: IFramebuffer, changeSize: Boolean, x: Int, y: Int, w0: Int, h0: Int) {
@@ -111,8 +109,6 @@ object Frame {
 
             lastX = x
             lastY = y
-            lastX2 = x2
-            lastY2 = y2
             lastW = w
             lastH = h
             lastPtr = ptr

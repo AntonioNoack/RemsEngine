@@ -360,6 +360,11 @@ object GFX : GFXBase() {
             ws[0] = window.width
             hs[0] = window.height
             changeSizes[0] = false
+            Frame.invalidate()
+            viewportX = 0
+            viewportY = 0
+            viewportWidth = window.width
+            viewportHeight = window.height
         }
     }
 

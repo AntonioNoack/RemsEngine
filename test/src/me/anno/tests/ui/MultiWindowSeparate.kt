@@ -32,10 +32,10 @@ fun main() {
             GLFW.glfwMakeContextCurrent(window)
             GL.createCapabilities()
             GLFW.glfwSwapInterval(1)
-            var ctr = 0
+            var frameIndex = 0
             val color = Vector4f()
             while (run) {
-                val v = abs(sin(ctr++ / 30f))
+                val v = abs(sin(frameIndex++ / 30f))
                 color.setComponent(index, v)
                 GFXState.currentBuffer.clearColor(color)
                 GLFW.glfwSwapBuffers(window)

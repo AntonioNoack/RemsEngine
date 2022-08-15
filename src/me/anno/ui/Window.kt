@@ -201,7 +201,7 @@ open class Window(
         GFX.loadTexturesSync.clear()
         GFX.loadTexturesSync.push(false)
 
-        if (Input.needsLayoutUpdate()) {
+        if (Input.needsLayoutUpdate(GFX.activeWindow!!)) {
             calculateFullLayout(w, h)
         }
 

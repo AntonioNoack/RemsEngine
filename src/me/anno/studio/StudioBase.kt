@@ -2,7 +2,6 @@ package me.anno.studio
 
 import me.anno.Build
 import me.anno.Engine
-import me.anno.utils.Logging
 import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
@@ -32,6 +31,7 @@ import me.anno.ui.base.progress.ProgressBar
 import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
 import me.anno.utils.Clock
+import me.anno.utils.Logging
 import me.anno.utils.OS
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
@@ -136,8 +136,6 @@ abstract class StudioBase(
 
     }
 
-    var didNothingCounter = 0
-
     open fun setupNames() {
         GFX.windows.firstOrNull()?.title = title
         GFXBase.projectName = configName
@@ -167,8 +165,6 @@ abstract class StudioBase(
 
     }
 
-    fun shallDraw(didSomething: Boolean) = didSomething || didNothingCounter < 3
-
     private var lastMouseX = 0f
     private var lastMouseY = 0f
 
@@ -197,16 +193,19 @@ abstract class StudioBase(
         if (isFirstFrame) tick("Before window drawing")
 
         // be sure always something is drawn
-        var didSomething = window.needsRefresh || Input.needsLayoutUpdate()
+        var didSomething = window.needsRefresh || Input.needsLayoutUpdate(window)
         window.needsRefresh = false
 
         // when the frame is minimized, nothing needs to be drawn
         if (!window.isMinimized) {
 
             window.windowStack.updateTransform(window, w, h)
-            didSomething = window.windowStack.draw(w, h, didSomething, shallDraw(didSomething))
+            didSomething = window.windowStack.draw(
+                w, h, didSomething,
+                didSomething || window.didNothingCounter < 3
+            )
 
-            Input.framesSinceLastInteraction++
+            window.framesSinceLastInteraction++
 
             if (isFirstFrame) tick("Window drawing")
 
@@ -216,8 +215,8 @@ abstract class StudioBase(
 
         }
 
-        if (didSomething) didNothingCounter = 0
-        else didNothingCounter++
+        if (didSomething) window.didNothingCounter = 0
+        else window.didNothingCounter++
 
         FBStack.reset()
 

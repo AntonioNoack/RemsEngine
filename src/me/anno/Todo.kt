@@ -1,6 +1,7 @@
 package me.anno
 
 // hot topics:
+// todo find difference in assimp between LWJGL 3.2.2 and 3.3.1
 
 // todo Retargeting
 // todo Anim-Model blending (top/bottom) around rest-pose by plane or spherical distance

@@ -8,48 +8,7 @@
       <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-test.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk7.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk8.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-windows.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-natives-windows.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-openal-natives-windows.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-openal.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-opengl-natives-windows.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-opengl.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-stb-natives-windows.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-stb.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-imaging-1.0-alpha1.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-natives-linux-arm32.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-natives-linux-arm64.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-natives-linux.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-natives-macos.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-natives-windows-x86.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-linux-arm32.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-linux-arm64.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-linux.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-windows-x86.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw-natives-linux-arm32.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw-natives-linux-arm64.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw-natives-linux.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw-natives-macos.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows-x86.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-openal-natives-linux-arm32.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-openal-natives-linux-arm64.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-openal-natives-linux.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-openal-natives-macos.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-openal-natives-windows-x86.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-opengl-natives-linux-arm32.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-opengl-natives-linux-arm64.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-opengl-natives-linux.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-opengl-natives-macos.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-opengl-natives-windows-x86.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-stb-natives-linux-arm32.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-stb-natives-linux-arm64.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-stb-natives-linux.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-stb-natives-macos.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-stb-natives-windows-x86.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/MetadataExtractor.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/JTransforms-3.1.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/FABRIK-IK.jar" path-in-jar="/" />
@@ -65,10 +24,83 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/compress/commons-compress-1.20.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/compress/xz-1.9.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/javaFx/OpenWithExplorer.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lua/luaj-jse-3.0.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/luaj-jse-3.0.2.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/box2d/JBox2d.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/joml-1.10.4.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/recast4j/Recast4j.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-opengl-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-glfw-natives-macos-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-jemalloc-natives-linux-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-opengl-natives-windows-x86.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-glfw-natives-linux-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-stb-natives-macos-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-openal-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-stb-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-glfw-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-openal-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-natives-windows-x86.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-tinyexr-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-glfw.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-stb-natives-linux-arm32.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-stb-natives-windows-x86.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-tinyexr-natives-macos-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-natives-linux-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-stb.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-stb-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-openal-natives-linux-arm32.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-assimp-natives-windows-x86.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-natives-macos-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-stb-natives-linux-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-jemalloc-natives-windows-x86.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-jemalloc-natives-linux-arm32.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-opengl-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-assimp-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-glfw-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-opengl-natives-linux-arm32.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-natives-linux-arm32.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-opengl-natives-linux-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-openal-natives-windows-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-tinyexr-natives-windows-x86.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-stb-natives-windows-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-tinyexr-natives-windows-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-stb-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-jemalloc-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-jemalloc.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-assimp-natives-windows-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-glfw-natives-linux-arm32.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-jemalloc-natives-macos-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-jemalloc-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-openal-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-opengl.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-assimp-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-openal-natives-macos-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-natives-windows-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-glfw-natives-windows-x86.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-tinyexr-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-jemalloc-javadoc.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-assimp-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-tinyexr-natives-linux-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-assimp-natives-linux-arm32.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-opengl-natives-windows-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-assimp.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-tinyexr.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-tinyexr-natives-linux-arm32.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-glfw-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-jemalloc-natives-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-opengl-natives-macos-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-jemalloc-natives-windows-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-assimp-natives-linux-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-openal-natives-windows-x86.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-assimp-natives-macos-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-glfw-natives-windows-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-openal.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-opengl-natives-macos.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-openal-natives-linux-arm64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-tinyexr-natives-windows.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

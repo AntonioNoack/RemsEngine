@@ -12,11 +12,10 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="Other" level="project" />
     <orderEntry type="library" name="luaj-jse-3.0.2" level="project" />
-    <orderEntry type="library" name="LWJGL" level="project" />
     <orderEntry type="library" name="JBox2d" level="project" />
     <orderEntry type="library" name="JBullet2x64" level="project" />
     <orderEntry type="library" name="Recast" level="project" />
     <orderEntry type="library" name="Apache Compress 4 Zips" level="project" />
-    <orderEntry type="library" name="LWJGL-Assimp" level="project" />
+    <orderEntry type="library" name="LWJGL-331" level="project" />
   </component>
 </module>
