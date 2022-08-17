@@ -12,7 +12,6 @@ import org.lwjgl.system.MemoryStack
 import org.newdawn.slick.openal.WaveData
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
-import java.util.*
 
 class SoundBuffer() : ICacheData {
 
@@ -59,15 +58,15 @@ class SoundBuffer() : ICacheData {
 
     fun loadWAV(waveData: WaveData) {
         ensurePointer()
-        data = waveData.data.asShortBuffer()
-        alBufferData(pointer, waveData.format, waveData.data, waveData.sampleRate)
-        waveData.dispose() // probably not required...
+        data = waveData.data!!.asShortBuffer()
+        alBufferData(pointer, waveData.format, waveData.data!!, waveData.sampleRate)
+        waveData.destroy()
         ALBase.check()
     }
 
     fun loadWAV0(waveData: WaveData) {
-        data = waveData.data.asShortBuffer()
-        waveData.dispose() // probably not required...
+        data = waveData.data!!.asShortBuffer()
+        waveData.destroy()
     }
 
     fun loadOGG(file: FileReference) {
