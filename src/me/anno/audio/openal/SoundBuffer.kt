@@ -65,6 +65,11 @@ class SoundBuffer() : ICacheData {
         ALBase.check()
     }
 
+    fun loadWAV0(waveData: WaveData) {
+        data = waveData.data.asShortBuffer()
+        waveData.dispose() // probably not required...
+    }
+
     fun loadOGG(file: FileReference) {
         STBVorbisInfo.malloc().use { info ->
             val pcm = readVorbis(file, info)
@@ -75,21 +80,39 @@ class SoundBuffer() : ICacheData {
         }
     }
 
+    fun loadOGG0(file: FileReference) {
+        STBVorbisInfo.malloc().use { info ->
+            data = readVorbis(file, info)
+        }
+    }
+
     fun load(file: FileReference) {
-        val name = file.name
-        when (val ending = name.split('.').last().lowercase(Locale.getDefault())) {
+        when (val ending = file.lcExtension) {
             "ogg" -> loadOGG(file)
             "wav" -> loadWAV(WaveData.create(file.inputStream())!!)
             else -> throw RuntimeException("Unknown audio format $ending!")
         }
     }
 
+    fun load0(file: FileReference) {
+        when (val ending = file.lcExtension) {
+            "ogg" -> loadOGG0(file)
+            "wav" -> loadWAV0(WaveData.create(file.inputStream())!!)
+            else -> throw RuntimeException("Unknown audio format $ending!")
+        }
+    }
+
     private fun readVorbis(file: FileReference, info: STBVorbisInfo): ShortBuffer {
         MemoryStack.stackPush().use { stack ->
+            // needed functions:
+            // stb_vorbis_open_memory
+            // stb_vorbis_get_info
+            // stb_vorbis_stream_length_in_samples
+            // stb_vorbis_get_samples_short_interleaved
+            // stb_vorbis_close
             val rawBytes = ioResourceToByteBuffer(file)
             val error = stack.mallocInt(1)
             val decoder = stb_vorbis_open_memory(rawBytes, error, null)
-            ALBase.check()
             if (decoder == 0L) {
                 bufferPool.returnBuffer(rawBytes)
                 throw RuntimeException("Failed to open Ogg Vorbis file. Error: " + error[0])
