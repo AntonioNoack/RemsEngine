@@ -33,7 +33,8 @@ object ECSShaderLib {
                 isInstanced: Boolean,
                 isAnimated: Boolean,
                 colors: Boolean,
-                motionVectors: Boolean
+                motionVectors: Boolean,
+                limitedTransform: Boolean
             ): ShaderStage {
                 return ShaderStage(
                     "vertex", listOf(

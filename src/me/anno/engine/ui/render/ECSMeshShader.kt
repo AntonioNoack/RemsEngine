@@ -1,6 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.*
@@ -146,17 +147,25 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     }
 
     open fun createBase(
-        isInstanced: Boolean, isAnimated: Boolean, colors: Boolean, motionVectors: Boolean
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        colors: Boolean,
+        motionVectors: Boolean,
+        limitedTransform: Boolean,
     ): ShaderBuilder {
         val builder = createBuilder()
-        builder.addVertex(createVertexStage(isInstanced, isAnimated, colors, motionVectors))
+        builder.addVertex(createVertexStage(isInstanced, isAnimated, colors, motionVectors, limitedTransform))
         builder.addVertex(createRandomIdStage())
         builder.addFragment(createFragmentStage(isInstanced, isAnimated, motionVectors))
         return builder
     }
 
     open fun createVertexVariables(
-        isInstanced: Boolean, isAnimated: Boolean, colors: Boolean, motionVectors: Boolean
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        colors: Boolean,
+        motionVectors: Boolean,
+        limitedTransform: Boolean,
     ): ArrayList<Variable> {
 
         val variables = ArrayList<Variable>(32)
@@ -187,7 +196,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             variables += Variable(GLSLType.V4F, "vertexColor", false)
         }
 
-        if (isInstanced) {
+        if (limitedTransform) {
+            variables += Variable(GLSLType.V4F, "instancePosSize", VariableMode.ATTR)
+            variables += Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR)
+        } else if (isInstanced) {
             variables += Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR)
             variables += Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR)
             variables += Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR)
@@ -255,7 +267,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     }
 
     open fun createVertexStage(
-        isInstanced: Boolean, isAnimated: Boolean, colors: Boolean, motionVectors: Boolean
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        colors: Boolean,
+        motionVectors: Boolean,
+        limitedTransform: Boolean
     ): ShaderStage {
 
         val defines =
@@ -263,7 +279,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     (if (isInstanced) "#define INSTANCED\n" else "") +
                     (if (isAnimated) "#define ANIMATED\n" else "") +
                     (if (colors) "#define COLORS\n" else "") +
-                    (if (motionVectors) "#define MOTION_VECTORS\n" else "")
+                    (if (motionVectors) "#define MOTION_VECTORS\n" else "") +
+                    (if (limitedTransform) "#define LIMITED_TRANSFORM\n" else "")
 
         val animationCode = if (useAnimTextures) {
             "" +
@@ -291,7 +308,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             "prevLocalPosition = localPosition;\n"
         }
 
-        val variables = createVertexVariables(isInstanced, isAnimated, colors, motionVectors)
+        val variables = createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
         val stage = ShaderStage(
             "vertex",
             variables,
@@ -302,6 +319,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "#endif\n" +
                     "#ifdef INSTANCED\n" +
                     "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
+                    "   #ifdef MOTION_VECTORS\n" +
+                    "       mat4x3 prevLocalTransform = mat4x3(prevInstanceTrans0,prevInstanceTrans1,prevInstanceTrans2,prevInstanceTrans3);\n" +
+                    "   #endif\n" +
                     "   #ifdef COLORS\n" +
                     "       tint = instanceTint;\n" +
                     "   #endif\n" + // colors
@@ -327,26 +347,46 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   #ifdef ANIMATED\n" +
                     "   }\n" +
                     "   #endif\n" + // animated
+
+                    "#ifdef LIMITED_TRANSFORM\n" +
+                    "   finalPosition = quatRot(localPosition + instancePosSize.xyz, instanceRot) * instancePosSize.w;\n" +
+                    "   #ifdef COLORS\n" +
+                    // scale not needed, because scale is scalar in this case
+                    "       normal = quatRot(normal, instanceRot);\n" +
+                    "       tangent.xyz = quatRot(tangent.xyz, instanceRot);\n" +
+                    "   #endif\n" + // colors
+                    "#else\n" +
                     "   finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
                     "   #ifdef COLORS\n" +
-                    "       normal = localTransform * vec4(normal, 0.0);\n" +
-                    "       tangent.xyz = localTransform * vec4(tangent.xyz, 0.0);\n" +
+                    "       normal = normalize(localTransform * vec4(normal, 0.0));\n" +
+                    "       tangent.xyz = normalize(localTransform * vec4(tangent.xyz, 0.0));\n" +
                     "   #endif\n" + // colors
+                    "#endif\n" +
+
                     "#ifdef COLORS\n" +
-                    "   normal = normalize(normal);\n" + // here? nah ^^
                     "   vertexColor = hasVertexColors ? colors : vec4(1.0);\n" +
                     "   uv = uvs;\n" +
                     "#endif\n" +
+
                     "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+
                     "#ifdef MOTION_VECTORS\n" +
                     "   currPosition = gl_Position;\n" +
-                    "   prevPosition = prevTransform * vec4(prevLocalTransform * vec4(prevLocalPosition, 1.0), 1.0);\n" +
+                    "   #ifdef LIMITED_TRANSFORM\n" +
+                    "       prevPosition = prevTransform * vec4(finalPosition, 1.0);\n" +
+                    "   #else\n" +
+                    "       prevPosition = prevTransform * vec4(prevLocalTransform * vec4(prevLocalPosition, 1.0), 1.0);\n" +
+                    "   #endif\n" +
                     "#endif\n" +
+
                     ShaderLib.positionPostProcessing
         )
 
         if (isAnimated && useAnimTextures) {
             stage.functions.add(Function(getAnimMatrix))
+        }
+        if (limitedTransform) {
+            stage.functions.add(Function(quatRot))
         }
 
         return stage
@@ -434,10 +474,18 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
     }
 
-    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): Shader {
+    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, limitedTransform: Boolean): Shader {
 
         val builder = createBuilder()
-        builder.addVertex(createVertexStage(isInstanced, isAnimated, false, motionVectors))
+        builder.addVertex(
+            createVertexStage(
+                isInstanced,
+                isAnimated,
+                colors = false,
+                motionVectors = false,
+                limitedTransform
+            )
+        )
         // no random id required
 
         // for the future, we could respect transparency from textures :)
@@ -455,10 +503,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         postProcessing: ShaderStage?,
         isInstanced: Boolean,
         isAnimated: Boolean,
-        motionVectors: Boolean
+        motionVectors: Boolean,
+        limitedTransform: Boolean
     ): Shader {
 
-        val base = createBase(isInstanced, isAnimated, true, motionVectors)
+        val base = createBase(isInstanced, isAnimated, !motionVectors, motionVectors, limitedTransform)
 
         // <3, this is crazily easy
         base.addFragment(postProcessing)
@@ -474,10 +523,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         deferred: DeferredSettingsV2,
         isInstanced: Boolean,
         isAnimated: Boolean,
-        motionVectors: Boolean
+        motionVectors: Boolean,
+        limitedTransform: Boolean
     ): Shader {
 
-        val base = createBase(isInstanced, isAnimated, colors = true, motionVectors)
+        val base = createBase(isInstanced, isAnimated, !motionVectors, motionVectors, limitedTransform)
         base.outputs = deferred
 
         // build & finish

@@ -320,10 +320,13 @@ class PrefabInspector(val reference: FileReference) {
                     val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: continue
                     panel.tooltip = property.description
                     list.add(panel)
-                } catch (e: Exception) {
+                } catch (e: Error) {
                     RuntimeException("Error from ${reflections.clazz}, property $name", e)
                         .printStackTrace()
                 } catch (e: ClassCastException) { // why is this not covered by the catch above?
+                    RuntimeException("Error from ${reflections.clazz}, property $name", e)
+                        .printStackTrace()
+                } catch (e: Exception) {
                     RuntimeException("Error from ${reflections.clazz}, property $name", e)
                         .printStackTrace()
                 }

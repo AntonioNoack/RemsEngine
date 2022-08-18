@@ -22,13 +22,13 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.GFXState
+import me.anno.gpu.M4x3Delta.buffer16x256
+import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.M4x3Delta.buffer16x256
-import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
@@ -36,6 +36,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Saveable
 import me.anno.maths.Maths.min
+import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.types.Matrices.set2
@@ -58,7 +59,7 @@ class PipelineStage(
 
     companion object {
 
-        var drawnTriangles = 0
+        var drawnTriangles = 0L
 
         val lastMaterial = HashMap<Shader, Material>(64)
         private val tmp4x3 = Matrix4x3f()
@@ -75,6 +76,7 @@ class PipelineStage(
                 Attribute("instanceTint", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
+
         val instancedBufferA = StaticBuffer(
             listOf(
                 Attribute("instanceTrans0", 3),
@@ -85,6 +87,44 @@ class PipelineStage(
                 Attribute("animIndices", 4),
                 Attribute("instanceTint", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
+        )
+
+        val instancedBufferM = StaticBuffer(
+            listOf(
+                Attribute("instanceTrans0", 3),
+                Attribute("instanceTrans1", 3),
+                Attribute("instanceTrans2", 3),
+                Attribute("instanceTrans3", 3),
+                Attribute("prevInstanceTrans0", 3),
+                Attribute("prevInstanceTrans1", 3),
+                Attribute("prevInstanceTrans2", 3),
+                Attribute("prevInstanceTrans3", 3),
+            ), instancedBatchSize, GL_DYNAMIC_DRAW
+        )
+
+        val instancedBufferMA = StaticBuffer(
+            listOf(
+                Attribute("instanceTrans0", 3),
+                Attribute("instanceTrans1", 3),
+                Attribute("instanceTrans2", 3),
+                Attribute("instanceTrans3", 3),
+                Attribute("prevInstanceTrans0", 3),
+                Attribute("prevInstanceTrans1", 3),
+                Attribute("prevInstanceTrans2", 3),
+                Attribute("prevInstanceTrans3", 3),
+                Attribute("animWeights", 4),
+                Attribute("animIndices", 4),
+                Attribute("prevAnimWeights", 4),
+                Attribute("prevAnimIndices", 4),
+            ), instancedBatchSize, GL_DYNAMIC_DRAW
+        )
+
+        val instancedBufferSlim = StaticBuffer(
+            listOf(
+                Attribute("instancePosSize", 4),
+                Attribute("instanceRot", 4),
+            ),
+            instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
         val tmpAABBd = AABBd()
@@ -127,6 +167,7 @@ class PipelineStage(
 
     val instancedMeshes1 = KeyTripleMap<Mesh, Material, Int, InstancedStack>()
     val instancedMeshes2 = KeyPairMap<Mesh, Material, InstancedStack>()
+    val instancedMeshes3 = KeyPairMap<Mesh, Material, InstancedStackV2>()
 
     fun bindDraw(pipeline: Pipeline) {
         GFXState.blendMode.use(blendMode) {
@@ -357,7 +398,7 @@ class PipelineStage(
         var lastEntity: Entity? = null
         var lastMesh: Mesh? = null
         var lastShader: Shader? = null
-        var drawnTriangles = 0
+        var drawnTriangles = 0L
 
         val time = Engine.gameTime
 
@@ -464,7 +505,7 @@ class PipelineStage(
                             pipeline, needsLightUpdateForEveryMesh,
                             time, values
                         )
-                        drawnTriangles += mesh.numTriangles * values.size
+                        drawnTriangles += mesh.numTriangles * values.size.toLong()
                     }
                 }
             }
@@ -477,7 +518,19 @@ class PipelineStage(
                             pipeline, needsLightUpdateForEveryMesh,
                             time, values
                         )
-                        drawnTriangles += mesh.numTriangles * values.size
+                        drawnTriangles += mesh.numTriangles * values.size.toLong()
+                    }
+                }
+            }
+        }
+
+        // quick path for instances with the same orientation (repeated static meshes, e.g. blocks)
+        GFXState.limitedTransform.use(true) {
+            for ((mesh, list) in instancedMeshes3.values) {
+                for ((material, values) in list) {
+                    if (values.size > 0) {
+                        drawColors(mesh, material, pipeline, values)
+                        drawnTriangles += mesh.numTriangles * values.size.toLong()
                     }
                 }
             }
@@ -533,8 +586,7 @@ class PipelineStage(
     private fun drawColors(
         mesh: Mesh, material: Material, materialIndex: Int,
         pipeline: Pipeline, needsLightUpdateForEveryMesh: Boolean,
-        time: Long,
-        instances: InstancedStack
+        time: Long, instances: InstancedStack
     ) {
 
         val receiveShadows = true
@@ -544,9 +596,12 @@ class PipelineStage(
         mesh.ensureBuffer()
 
         val localAABB = mesh.aabb
+        val useAnimations = instances is InstancedAnimStack && instances.animTexture != null
 
-        val useAnimations = instances is InstancedAnimStack && instances.texture != null
-        GFXState.animated.use(true) {
+        val motionVectors = BaseShader.motionVectors
+        GFXState.animated.use(useAnimations) {
+
+            val t0 = System.nanoTime()
 
             val shader = getShader(material)
             shader.use()
@@ -571,14 +626,23 @@ class PipelineStage(
             shader.v1b("hasVertexColors", mesh.hasVertexColors)
             shader.v2i("randomIdData", mesh.numTriangles, 0)
             if (useAnimations) {
-                (instances as InstancedAnimStack).texture!!
+                (instances as InstancedAnimStack).animTexture!!
                     .bind(shader, "animTexture", GPUFiltering.LINEAR, Clamping.CLAMP)
             }
             GFX.check()
+
             // draw them in batches of size <= batchSize
             val instanceCount = instances.size
+            // to enable this mode, your vertex shader needs to be adjusted; motion vectors will only work with static meshes properly
+            val highPerformanceMode = shader.getAttributeLocation("instancePosSize") >= 0
             // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580
-            val buffer = if (useAnimations) instancedBufferA else instancedBuffer
+            val buffer = if (highPerformanceMode) instancedBufferSlim else {
+                if (motionVectors) {
+                    if (useAnimations) instancedBufferMA else instancedBufferM
+                } else {
+                    if (useAnimations) instancedBufferA else instancedBuffer
+                }
+            }
             // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
             val nioBuffer = buffer.nioBuffer!!
             // fill the data
@@ -587,23 +651,91 @@ class PipelineStage(
             val anim = (instances as? InstancedAnimStack)?.animData
             val cameraPosition = RenderState.cameraPosition
             val worldScale = RenderState.worldScale
+
+            val t1 = System.nanoTime()
+            var st23 = 0L
+            var st34 = 0L
+            var st45 = 0L
+            var st56 = 0L
+            // var st78 = 0L
+            // var st89 = 0L
+
+            val prevWorldScale = RenderState.prevWorldScale
+            // worth ~15%; to use it, ensure that RenderView.worldScale is 1.0
+            val noWorldScale = worldScale == 1.0 && (prevWorldScale == 1.0 || !motionVectors)
+
             for (baseIndex in 0 until instanceCount step batchSize) {
+
+                val t2 = System.nanoTime()
+
                 buffer.clear()
+
+                val t3 = System.nanoTime()
+                st23 += t3 - t2
+
                 val endIndex = min(instanceCount, baseIndex + batchSize)
-                for (index in baseIndex until endIndex) {
-                    m4x3delta(
-                        trs[index]!!.getDrawMatrix(time),
-                        cameraPosition,
-                        worldScale,
-                        nioBuffer,
-                        false
-                    )
-                    if (useAnimations) {
-                        // put animation data
-                        buffer.put(anim!!, index * 8, 8)
+                if (highPerformanceMode) {
+                    val cx = cameraPosition.x
+                    val cy = cameraPosition.y
+                    val cz = cameraPosition.z
+                    if (noWorldScale) {
+                        for (index in baseIndex until endIndex) {
+                            val tr = trs[index]!!
+                            val tri = tr.localPosition
+                            nioBuffer.putFloat((tri.x - cx).toFloat())
+                            nioBuffer.putFloat((tri.y - cy).toFloat())
+                            nioBuffer.putFloat((tri.z - cz).toFloat())
+                            val sc = tr.localScale
+                            nioBuffer.putFloat(sc.x.toFloat() * 0.33333334f)
+                            val rt = tr.localRotation
+                            nioBuffer.putFloat(rt.x.toFloat())
+                            nioBuffer.putFloat(rt.y.toFloat())
+                            nioBuffer.putFloat(rt.z.toFloat())
+                            nioBuffer.putFloat(rt.w.toFloat())
+                        }
+                    } else {
+                        for (index in baseIndex until endIndex) {
+                            val tr = trs[index]!!
+                            val tri = tr.localPosition
+                            nioBuffer.putFloat(((tri.x - cx) * worldScale).toFloat())
+                            nioBuffer.putFloat(((tri.y - cy) * worldScale).toFloat())
+                            nioBuffer.putFloat(((tri.z - cz) * worldScale).toFloat())
+                            val sc = tr.localScale
+                            nioBuffer.putFloat((sc.x * worldScale).toFloat() * 0.33333334f)
+                            val rt = tr.localRotation
+                            nioBuffer.putFloat(rt.x.toFloat())
+                            nioBuffer.putFloat(rt.y.toFloat())
+                            nioBuffer.putFloat(rt.z.toFloat())
+                            nioBuffer.putFloat(rt.w.toFloat())
+                        }
                     }
-                    buffer.putInt(ids[index])
+                } else {
+                    for (index in baseIndex until endIndex) {
+                        val tri = trs[index]!!.getDrawMatrix(time)
+                        if (noWorldScale) m4x3delta(tri, cameraPosition, nioBuffer)
+                        else m4x3delta(tri, cameraPosition, worldScale, nioBuffer)
+                        if (motionVectors) {
+                            // put previous matrix
+                            val tri2 = trs[index]!!.getDrawnMatrix(time)
+                            if (noWorldScale) m4x3delta(tri2, cameraPosition, nioBuffer)
+                            else m4x3delta(tri2, cameraPosition, prevWorldScale, nioBuffer)
+                            // put animation data
+                            if (useAnimations) {
+                                buffer.put(anim!!, index * 8, 8)
+                                // todo put prev anim data
+                                buffer.put(anim, index * 8, 8)
+                            }
+                        } else {
+                            // put animation data
+                            if (useAnimations) buffer.put(anim!!, index * 8, 8)
+                            nioBuffer.putInt(ids[index])
+                        }
+                    }
                 }
+
+                val t4 = System.nanoTime()
+                st34 += t4 - t3
+
                 if (needsLightUpdateForEveryMesh) {
                     // calculate the lights for each group
                     // todo cluster them cheaply?
@@ -614,10 +746,159 @@ class PipelineStage(
                     setupLights(pipeline, shader, aabb, receiveShadows)
                 }
                 GFX.check()
+
+                val t5 = System.nanoTime()
+                st45 += t5 - t4
+
                 mesh.drawInstanced(shader, materialIndex, buffer)
+
+                val t6 = System.nanoTime()
+                st56 += t6 - t5
+
+                // if (buffer !== meshInstanceBuffer) addGPUTask("PipelineStage.drawColor", 1) { buffer.destroy() }
+            }
+
+            // has been optimized from ~150ns/e to ~64ns/e on 1M bricks test, with worldScale=1.0 (or ~75 with worldScale != 1.0)
+            // mainly optimizing transforms to stop updating with lerp(), when they were no longer being changed
+            /*val t6 = System.nanoTime()
+            val dt = t6 - t1
+            println(
+                "base: ${(t1 - t0)} + $instanceCount meshes with [$st23, $st34, $st45, $st56] -> " +
+                        "[${st23 * 100 / dt}, ${st34 * 100 / dt}, " +
+                        "${st45 * 100 / dt}, ${st56 * 100 / dt}]"
+            )*/
+
+        }
+    }
+
+    private fun drawColors(mesh: Mesh, material: Material, pipeline: Pipeline, instances: InstancedStackV2) {
+
+        val batchSize = instancedBatchSize
+        val aabb = tmpAABBd
+
+        mesh.ensureBuffer()
+
+        val t0 = System.nanoTime()
+
+        val shader = getShader(material)
+        shader.use()
+        bindRandomness(shader)
+
+        // update material and light properties
+        val previousMaterial = lastMaterial.put(shader, material)
+        if (previousMaterial == null) {
+            initShader(shader, pipeline)
+        }
+
+        if (previousMaterial == null) {
+            aabb.clear()
+            pipeline.frustum.union(aabb)
+            setupLights(pipeline, shader, aabb, true)
+        }
+
+        material.bind(shader)
+        shaderColor(shader, "tint", -1)
+        shader.v1i("drawMode", GFX.drawMode.id)
+        shader.v1b("hasAnimation", false)
+        shader.v1b("hasVertexColors", mesh.hasVertexColors)
+        shader.v2i("randomIdData", mesh.numTriangles, 0)
+        GFX.check()
+
+        // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580
+        val buffer = instancedBufferSlim
+        // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
+        val nioBuffer = buffer.nioBuffer!!
+        // fill the data
+        val cameraPosition = RenderState.cameraPosition
+        val worldScale = RenderState.worldScale
+
+        val t1 = System.nanoTime()
+        var st23 = 0L
+        var st34 = 0L
+        var st45 = 0L
+        var st56 = 0L
+        // var st78 = 0L
+        // var st89 = 0L
+
+        var baseIndex = 0
+        for (i in 0 until instances.clickIds.size / 2) {
+
+            val totalEndIndex = if (i * 2 + 2 < instances.clickIds.size)
+                instances.clickIds[i * 2 + 2] else instances.size
+
+            val clickId = instances.clickIds[i * 2 + 1]
+            shader.v4f("clickId", clickId)
+
+            // draw them in batches of size <= batchSize
+            while (baseIndex < totalEndIndex) {
+
+                val t2 = System.nanoTime()
+
+                buffer.clear()
+
+                val t3 = System.nanoTime()
+                st23 += t3 - t2
+
+                val endIndex = min(totalEndIndex, baseIndex + batchSize)
+                val data = instances.posSizeRot
+                if (worldScale == 1.0) {
+                    // todo measure how much this brings
+                    // todo test how much it would bring is to only use a position, and maybe y rotation (because that's most common)
+                    val cx = cameraPosition.x.toFloat()
+                    val cy = cameraPosition.y.toFloat()
+                    val cz = cameraPosition.z.toFloat()
+                    for (index in baseIndex until endIndex) {
+                        val i8 = index * 8
+                        nioBuffer.putFloat(data[i8] - cx)
+                        nioBuffer.putFloat(data[i8 + 1] - cy)
+                        nioBuffer.putFloat(data[i8 + 2] - cz)
+                        nioBuffer.putFloat(data[i8 + 3])
+                        nioBuffer.putFloat(data[i8 + 4])
+                        nioBuffer.putFloat(data[i8 + 5])
+                        nioBuffer.putFloat(data[i8 + 6])
+                        nioBuffer.putFloat(data[i8 + 7])
+                    }
+                } else {
+                    val cx = cameraPosition.x
+                    val cy = cameraPosition.y
+                    val cz = cameraPosition.z
+                    for (index in baseIndex until endIndex) {
+                        val i8 = index * 8
+                        nioBuffer.putFloat(((data[i8] - cx) * worldScale).toFloat())
+                        nioBuffer.putFloat(((data[i8 + 1] - cy) * worldScale).toFloat())
+                        nioBuffer.putFloat(((data[i8 + 2] - cz) * worldScale).toFloat())
+                        nioBuffer.putFloat((data[i8 + 3] * worldScale).toFloat())
+                        nioBuffer.putFloat(data[i8 + 4])
+                        nioBuffer.putFloat(data[i8 + 5])
+                        nioBuffer.putFloat(data[i8 + 6])
+                        nioBuffer.putFloat(data[i8 + 7])
+                    }
+                }
+
+                val t4 = System.nanoTime()
+                st34 += t4 - t3
+
+                mesh.drawInstanced(shader, 0, buffer)
+
+                val t5 = System.nanoTime()
+                st45 += t5 - t4
+
+                baseIndex = endIndex
+
                 // if (buffer !== meshInstanceBuffer) addGPUTask("PipelineStage.drawColor", 1) { buffer.destroy() }
             }
         }
+
+        // has been optimized from ~150ns/e to ~64ns/e on 1M bricks test, with worldScale=1.0 (or ~75 with worldScale != 1.0)
+        // mainly optimizing transforms to stop updating with lerp(), when they were no longer being changed
+        /*val t6 = System.nanoTime()
+        val dt = t6 - t1
+        println(
+            "base: ${(t1 - t0)} + $instanceCount meshes with [$st23, $st34, $st45, $st56] -> " +
+                    "[${st23 * 100 / dt}, ${st34 * 100 / dt}, " +
+                    "${st45 * 100 / dt}, ${st56 * 100 / dt}]"
+        )*/
+
     }
 
     /**
@@ -629,7 +910,7 @@ class PipelineStage(
         var lastEntity: Entity? = null
         var lastMesh: Mesh? = null
 
-        var drawnTriangles = 0
+        var drawnTriangles = 0L
         val time = Engine.gameTime
 
         val shader = defaultShader.value
@@ -683,7 +964,7 @@ class PipelineStage(
                 for ((_, _, values) in list) {
                     if (values.isNotEmpty()) {
                         drawDepthsInstanced(shader2, mesh, values, time)
-                        drawnTriangles += mesh.numTriangles * values.size
+                        drawnTriangles += mesh.numTriangles * values.size.toLong()
                     }
                 }
             }
@@ -691,7 +972,15 @@ class PipelineStage(
                 for ((_, values) in list) {
                     if (values.isNotEmpty()) {
                         drawDepthsInstanced(shader2, mesh, values, time)
-                        drawnTriangles += mesh.numTriangles * values.size
+                        drawnTriangles += mesh.numTriangles * values.size.toLong()
+                    }
+                }
+            }
+            for ((mesh, list) in instancedMeshes3.values) {
+                for ((_, values) in list) {
+                    if (values.size > 0) {
+                        drawDepthsInstanced(shader2, mesh, values.posSizeRot)
+                        drawnTriangles += mesh.numTriangles * values.size.toLong()
                     }
                 }
             }
@@ -722,10 +1011,58 @@ class PipelineStage(
                     trs[index]!!.getDrawMatrix(time),
                     cameraPosition,
                     worldScale,
-                    nioBuffer,
-                    false
+                    nioBuffer
                 )
                 buffer.putInt(0) // clickId
+            }
+            buffer.ensureBufferWithoutResize()
+            mesh.drawInstancedDepth(shader, buffer)
+        }
+    }
+
+    private fun drawDepthsInstanced(shader: Shader, mesh: Mesh, instances: ExpandingFloatArray) {
+        mesh.ensureBuffer()
+        shader.v1b("hasAnimation", false)
+        shader.v1b("hasVertexColors", mesh.hasVertexColors)
+        val batchSize = instancedBatchSize
+        val buffer = instancedBufferSlim
+        val instanceCount = instances.size / 8
+        val cameraPosition = RenderState.cameraPosition
+        val worldScale = RenderState.worldScale
+        for (baseIndex in 0 until instanceCount step batchSize) {
+            buffer.clear()
+            val nioBuffer = buffer.nioBuffer!!
+            // fill the data
+            if (worldScale == 1.0) {
+                val cx = cameraPosition.x.toFloat()
+                val cy = cameraPosition.y.toFloat()
+                val cz = cameraPosition.z.toFloat()
+                for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
+                    val i8 = index * 8
+                    nioBuffer.putFloat(instances[i8] - cx)
+                    nioBuffer.putFloat(instances[i8 + 1] - cy)
+                    nioBuffer.putFloat(instances[i8 + 2] - cz)
+                    nioBuffer.putFloat(instances[i8 + 3])
+                    nioBuffer.putFloat(instances[i8 + 4])
+                    nioBuffer.putFloat(instances[i8 + 5])
+                    nioBuffer.putFloat(instances[i8 + 6])
+                    nioBuffer.putFloat(instances[i8 + 7])
+                }
+            } else {
+                val cx = cameraPosition.x
+                val cy = cameraPosition.y
+                val cz = cameraPosition.z
+                for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
+                    val i8 = index * 8
+                    nioBuffer.putFloat(((instances[i8] - cx) * worldScale).toFloat())
+                    nioBuffer.putFloat(((instances[i8 + 1] - cy) * worldScale).toFloat())
+                    nioBuffer.putFloat(((instances[i8 + 2] - cz) * worldScale).toFloat())
+                    nioBuffer.putFloat((instances[i8 + 3] * worldScale).toFloat())
+                    nioBuffer.putFloat(instances[i8 + 4])
+                    nioBuffer.putFloat(instances[i8 + 5])
+                    nioBuffer.putFloat(instances[i8 + 6])
+                    nioBuffer.putFloat(instances[i8 + 7])
+                }
             }
             buffer.ensureBufferWithoutResize()
             mesh.drawInstancedDepth(shader, buffer)
@@ -752,6 +1089,12 @@ class PipelineStage(
         }
 
         for ((_, values) in instancedMeshes2.values) {
+            for ((_, value) in values) {
+                value.clear()
+            }
+        }
+
+        for ((_, values) in instancedMeshes3.values) {
             for ((_, value) in values) {
                 value.clear()
             }

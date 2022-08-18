@@ -189,12 +189,13 @@ class SkyBox : MeshComponentBase() {
                 isInstanced: Boolean,
                 isAnimated: Boolean,
                 colors: Boolean,
-                motionVectors: Boolean
+                motionVectors: Boolean,
+                limitedTransform: Boolean
             ): ShaderStage {
                 val defines = if (colors) "#define COLORS\n" else ""
                 return ShaderStage(
                     "vertex",
-                    createVertexVariables(isInstanced, isAnimated, colors, motionVectors),
+                    createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform),
                     "" +
                             defines +
                             "localPosition = 1e15 * sign(coords);\n" +

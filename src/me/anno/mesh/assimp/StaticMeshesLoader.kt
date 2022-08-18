@@ -67,8 +67,7 @@ open class StaticMeshesLoader {
             // but we'd need to keep track of the scale factor;
             // it only is allowed to be set, if the file is a fbx file
             val store = aiCreatePropertyStore()!!
-            val isFBXFile = Signature.findName(file) == "fbx"
-            aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, if (isFBXFile) 0.01f else 1f)
+            aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1f)
             if (file is FileFileRef /*&&/|| file.absolutePath.count { it == '.' } <= 1*/) {
                 aiImportFileExWithProperties(file.absolutePath, flags, null, store)
             } else {

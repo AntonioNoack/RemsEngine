@@ -3,18 +3,18 @@ package me.anno.utils.structures.arrays
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.LOGGER
+import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.max
 import kotlin.math.min
 
-class ExpandingFloatArray(
-    private var initCapacity: Int
-) : Saveable() {
+class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
 
     var size = 0
 
-    private var array: FloatArray? = null
+    var array: FloatArray? = null
 
     val capacity get() = array?.size ?: 0
 
@@ -129,6 +129,28 @@ class ExpandingFloatArray(
         array[size++] = v.x
         array[size++] = v.y
         array[size++] = v.z
+        this.size = size
+    }
+
+    fun add(v: Vector4f) {
+        ensureExtra(4)
+        val array = array!!
+        var size = size
+        array[size++] = v.x
+        array[size++] = v.y
+        array[size++] = v.z
+        array[size++] = v.w
+        this.size = size
+    }
+
+    fun add(v: Quaternionf) {
+        ensureExtra(4)
+        val array = array!!
+        var size = size
+        array[size++] = v.x
+        array[size++] = v.y
+        array[size++] = v.z
+        array[size++] = v.w
         this.size = size
     }
 

@@ -2,9 +2,7 @@ package me.anno.utils.structures.arrays
 
 import kotlin.math.max
 
-class ExpandingLongArray(
-    private val initCapacity: Int
-) {
+class ExpandingLongArray(private val initCapacity: Int) {
 
     var size = 0
 
@@ -12,7 +10,7 @@ class ExpandingLongArray(
         size = 0
     }
 
-    private var array: LongArray? = null
+    var array: LongArray? = null
 
     fun add(value: Long) = plusAssign(value)
     operator fun set(index: Int, value: Long) {

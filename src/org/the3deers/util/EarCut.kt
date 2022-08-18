@@ -92,7 +92,9 @@ object EarCut {
         return triangles
     }
 
-    // create a circular doubly linked list from polygon points in the specified winding order
+    /**
+     * create a circular doubly linked list from polygon points in the specified winding order
+     * */
     private fun linkedList(data: FloatArray, start: Int, end: Int, dim: Int, clockwise: Boolean): Node? {
         var i: Int
         var last: Node? = null
@@ -141,7 +143,7 @@ object EarCut {
     }
 
     /**
-     * main ear slicing loop which triangulates a polygon (given as a list)
+     * main ear slicing loop, which triangulates a polygon (given as a list)
      * */
     private fun earcutLinked(
         ear0: Node?,
@@ -182,18 +184,14 @@ object EarCut {
             if (ear === stop) {
                 // try filtering points and slicing again
                 when (pass) {
-                    0 -> {
-                        earcutLinked(filterPoints(ear, null), triangles, dim, minX, minY, invSize, 1)
-                        // if this didn't work, try curing all small self-intersections locally
-                    }
+                    0 -> earcutLinked(filterPoints(ear, null), triangles, dim, minX, minY, invSize, 1)
+                    // if this didn't work, try curing all small self-intersections locally
                     1 -> {
                         ear = cureLocalIntersections(filterPoints(ear, null), triangles, dim)
                         earcutLinked(ear, triangles, dim, minX, minY, invSize, 2)
                         // as a last resort, try splitting the remaining polygon into two
                     }
-                    2 -> {
-                        splitEarcut(ear, triangles, dim, minX, minY, invSize)
-                    }
+                    2 -> splitEarcut(ear!!, triangles, dim, minX, minY, invSize)
                 }
                 break
             }
@@ -203,11 +201,10 @@ object EarCut {
     /**
      * check whether a polygon node forms a valid ear with adjacent nodes
      * */
-    private fun isEar(ear: Node?): Boolean {
-        val a = ear!!.prev!!
+    private fun isEar(ear: Node): Boolean {
+        val a = ear.prev!!
         val c = ear.next!!
         if (signedTriangleArea(a, ear, c) >= 0) return false // reflex, can't be an ear
-
         // now make sure we don't have other points inside the potential ear
         var p = ear.next!!.next
         while (p !== ear.prev) {
@@ -219,9 +216,9 @@ object EarCut {
         return true
     }
 
-    private fun isEarHashed(ear: Node?, minX: Float, minY: Float, invSize: Float): Boolean {
+    private fun isEarHashed(ear: Node, minX: Float, minY: Float, invSize: Float): Boolean {
 
-        val a = ear!!.prev!!
+        val a = ear.prev!!
         val c = ear.next!!
         if (signedTriangleArea(a, ear, c) >= 0) return false // reflex, can't be an ear
 
@@ -287,7 +284,7 @@ object EarCut {
 
                 // remove two nodes involved
                 removeNode(p)
-                removeNode(p.next)
+                removeNode(p.next!!)
                 start = b
                 p = start
             }
@@ -300,35 +297,36 @@ object EarCut {
      * try splitting polygon into two and triangulate them independently
      * */
     private fun splitEarcut(
-        start: Node?,
+        start: Node,
         triangles: IntArrayList,
         dim: Int,
         minX: Float,
         minY: Float,
         invSize: Float
     ) {
-        // look for a valid diagonal that divides the polygon into two
-        var a = start
+        // look for a valid diagonal, that divides the polygon into two
+        var an: Node? = start
         do {
-            var b = a!!.next!!.next
-            while (b !== a!!.prev) {
-                if (a!!.i != b!!.i && isValidDiagonal(a, b)) {
+            val a = an!!
+            var b = a.next!!.next
+            while (b !== a.prev) {
+                if (a.i != b!!.i && isValidDiagonal(a, b)) {
                     // split the polygon in two by the diagonal
-                    var c: Node? = splitPolygon(a, b)
+                    val c = splitPolygon(a, b)
 
                     // filter collinear points around the cuts
-                    a = filterPoints(a, a.next)
-                    c = filterPoints(c, c!!.next)
+                    val a2 = filterPoints(a, a.next)
+                    val c2 = filterPoints(c, c.next)
 
                     // run earcut on each half
-                    earcutLinked(a, triangles, dim, minX, minY, invSize, 0)
-                    earcutLinked(c, triangles, dim, minX, minY, invSize, 0)
+                    earcutLinked(a2, triangles, dim, minX, minY, invSize, 0)
+                    earcutLinked(c2, triangles, dim, minX, minY, invSize, 0)
                     return
                 }
                 b = b.next
             }
-            a = a!!.next
-        } while (a !== start)
+            an = a.next
+        } while (an !== start)
     }
 
     /**
@@ -345,8 +343,8 @@ object EarCut {
         while (i < len) {
             start = holeIndices[i] * dim
             end = if (i < len - 1) holeIndices[i + 1] * dim else data.size
-            list = linkedList(data, start, end, dim, false)
-            if (list === list!!.next) list!!.steiner = true
+            list = linkedList(data, start, end, dim, false)!!
+            if (list === list.next) list.steiner = true
             queue.add(getLeftmost(list))
             i++
         }
@@ -527,14 +525,14 @@ object EarCut {
     /**
      * find the leftmost node of a polygon ring
      * */
-    private fun getLeftmost(start: Node?): Node {
+    private fun getLeftmost(start: Node): Node {
         var p = start
         var leftmost = start
         do {
-            if (p!!.x < leftmost!!.x || p.x == leftmost.x && p.y < leftmost.y) leftmost = p
-            p = p.next
+            if (p.x < leftmost.x || p.x == leftmost.x && p.y < leftmost.y) leftmost = p
+            p = p.next!!
         } while (p !== start)
-        return leftmost!!
+        return leftmost
     }
 
     /**
@@ -554,8 +552,8 @@ object EarCut {
     /**
      * check if a diagonal between two polygon nodes is valid (lies in polygon interior)
      * */
-    private fun isValidDiagonal(a: Node?, b: Node?): Boolean {
-        return a!!.next!!.i != b!!.i && a.prev!!.i != b.i &&
+    private fun isValidDiagonal(a: Node, b: Node): Boolean {
+        return a.next!!.i != b.i && a.prev!!.i != b.i &&
                 !intersectsPolygon(a, b) && // doesn't intersect other edges
                 (locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b) && // locally visible
                         // does not create opposite-facing sectors
@@ -600,13 +598,13 @@ object EarCut {
     /**
      * check if a polygon diagonal intersects any polygon segments
      * */
-    private fun intersectsPolygon(a: Node?, b: Node?): Boolean {
+    private fun intersectsPolygon(a: Node, b: Node): Boolean {
         var p = a
         do {
-            if (p!!.i != a!!.i && p.next!!.i != a.i && p.i != b!!.i && p.next!!.i != b.i &&
+            if (p.i != a.i && p.next!!.i != a.i && p.i != b.i && p.next!!.i != b.i &&
                 intersects(p, p.next!!, a, b)
             ) return true
-            p = p.next
+            p = p.next!!
         } while (p !== a)
         return false
     }
@@ -643,15 +641,15 @@ object EarCut {
     private fun splitPolygon(a: Node, b: Node): Node {
         val a2 = Node(a.i, a.x, a.y)
         val b2 = Node(b.i, b.x, b.y)
-        val an = a.next
-        val bp = b.prev
+        val an = a.next!!
+        val bp = b.prev!!
         a.next = b
         b.prev = a
         a2.next = an
-        an!!.prev = a2
+        an.prev = a2
         b2.next = a2
         a2.prev = b2
-        bp!!.next = b2
+        bp.next = b2
         b2.prev = bp
         return b2
     }
@@ -673,8 +671,8 @@ object EarCut {
         return p
     }
 
-    private fun removeNode(p: Node?) {
-        p!!.next!!.prev = p.prev
+    private fun removeNode(p: Node) {
+        p.next!!.prev = p.prev
         p.prev!!.next = p.next
         if (p.prevZ != null) p.prevZ!!.nextZ = p.nextZ
         if (p.nextZ != null) p.nextZ!!.prevZ = p.prevZ
@@ -700,7 +698,7 @@ object EarCut {
     ) {
 
         // z-order curve value
-        var z: Float = -1f
+        var z = -1f
 
         // indicates whether this is a steiner point
         var steiner: Boolean = false

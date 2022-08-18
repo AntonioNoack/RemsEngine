@@ -2,9 +2,9 @@ package org.joml
 
 import me.anno.maths.Maths
 import me.anno.utils.types.Floats.f3
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 @Suppress("unused")
 class AABBd(
@@ -324,21 +324,15 @@ class AABBd(
                 distanceSquared(start) <= dir.lengthSquared() * length * length
     }
 
-    // pseudo-distance from aabb to v
+    fun distance(v: Vector3d): Double {
+        return sqrt(distanceSquared(v))
+    }
+
     fun distanceSquared(v: Vector3d): Double {
-        if (testPoint(v)) return 0.0
-        val cx = (minX + maxX) * 0.5
-        val cy = (minY + maxY) * 0.5
-        val cz = (minZ + maxZ) * 0.5
-        val ex = (maxX - minX) * 0.5
-        val ey = (maxY - minY) * 0.5
-        val ez = (maxZ - minZ) * 0.5
-        return if (ex.isFinite() && ey.isFinite() && ez.isFinite()) {
-            val dx = max(abs(cx - v.x) - ex, 0.0)
-            val dy = max(abs(cy - v.y) - ey, 0.0)
-            val dz = max(abs(cz - v.z) - ez, 0.0)
-            Maths.sq(dx, dy, dz)
-        } else 0.0
+        val dx = max(max(minX - v.x, v.x - maxX), 0.0)
+        val dy = max(max(minY - v.y, v.y - maxY), 0.0)
+        val dz = max(max(minZ - v.z, v.z - maxZ), 0.0)
+        return dx * dx + dy * dy + dz * dz
     }
 
     fun collideFront(pos: Vector3d, dir: Vector3d): Double {

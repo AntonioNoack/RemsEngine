@@ -654,10 +654,10 @@ class LightPipelineStage(
                 val lightI = lights[index]
                 val light = lightI.light
                 val m = lightI.transform.getDrawMatrix(time)
-                m4x3delta(m, cameraPosition, worldScale, nioBuffer, false)
+                m4x3delta(m, cameraPosition, worldScale, nioBuffer)
                 if (!visualizeLightCount) {
                     val mInv = light.invWorldMatrix
-                    m4x3x(mInv, nioBuffer, false)
+                    m4x3x(mInv, nioBuffer)
                     // put all light data: lightData0, lightData1
                     // put data0:
                     val color = light.color

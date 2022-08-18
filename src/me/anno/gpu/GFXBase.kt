@@ -353,7 +353,7 @@ open class GFXBase {
                 LOGGER.warn(
                     message2 +
                             ", source: " + getDebugSourceName(source) +
-                            ", type: " + getDebugTypeName(type) +  // mmh, not correct, at least for my simple sample I got a non-mapped code
+                            ", type: " + getDebugTypeName(type) + // mmh, not correct, at least for my simple sample I got a non-mapped code
                             ", id: " + getErrorTypeName(id) +
                             ", severity: " + getDebugSeverityName(severity)
                 )
@@ -483,7 +483,7 @@ open class GFXBase {
 
     companion object {
 
-        private val LOGGER: Logger = getLogger(GFXBase::class.java)
+        private val LOGGER: Logger = getLogger(GFXBase::class)
         var projectName = "RemsEngine"
 
         fun setIcon(window: Long) {

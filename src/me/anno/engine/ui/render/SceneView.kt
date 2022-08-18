@@ -17,12 +17,10 @@ import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.style.Style
 
 @Suppress("MemberVisibilityCanBePrivate")
-class SceneView(val library: EditorState, playMode: PlayMode, style: Style) : PanelStack(style) {
-
-    // todo how do we define the camera? RenderView
-    // todo function to switch it :)
-
-    val renderer = RenderView(library, playMode, style)
+class SceneView(
+    val library: EditorState, playMode: PlayMode, style: Style,
+    val renderer: RenderView = RenderView(library, playMode, style)
+) : PanelStack(style) {
 
     var editControls: ControlScheme = DraggingControls(renderer)
         set(value) {

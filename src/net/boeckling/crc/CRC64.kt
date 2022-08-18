@@ -20,7 +20,7 @@ object CRC64 {
 
     private const val POLY = -0x3693a86a2878f0beL // ECMA-182
 
-    /* CRC64 calculation table. */
+    /** CRC64 calculation table. */
     private val table = Array(8) { LongArray(256) }
 
     /**
@@ -64,14 +64,14 @@ object CRC64 {
     }
 
     /*
-     * Return the CRC-64 of two sequential blocks, where summ1 is the CRC-64 of
-     * the first block, summ2 is the CRC-64 of the second block, and len2 is the
+     * Return the CRC-64 of two sequential blocks, where sum1 is the CRC-64 of
+     * the first block, sum2 is the CRC-64 of the second block, and len2 is the
      * length of the second block.
      */
-    fun combine(summ1: Long, summ2: Long, len2x: Long): Long {
+    fun combine(sum1: Long, sum2: Long, len2x: Long): Long {
         // degenerate case.
         var len2 = len2x
-        if (len2 == 0L) return summ1
+        if (len2 == 0L) return sum1
 
         var row: Long
         val even = LongArray(GF2_DIM) // even-power-of-two zeros operator
@@ -95,7 +95,7 @@ object CRC64 {
 
         // apply len2 zeros to crc1 (first square will put the operator for one
         // zero byte, eight zero bits, in even)
-        var crc1 = summ1
+        var crc1 = sum1
         do {
             // apply zeros operator for this bit of len2
             gf2MatrixSquare(even, odd)
@@ -114,7 +114,7 @@ object CRC64 {
         } while (len2 != 0L)
 
         // return combined crc.
-        crc1 = crc1 xor summ2
+        crc1 = crc1 xor sum2
         return crc1
     }
 
@@ -175,7 +175,8 @@ object CRC64 {
             len -= 8
         }
 
-        /* process remaining bytes (can't be larger than 8) */while (len > 0) {
+        // process remaining bytes (can't be larger than 8)
+        while (len > 0) {
             value = table[0][(value xor b[idx].toLong() and 0xff).toInt()] xor (value ushr 8)
             idx++
             len--
@@ -184,11 +185,9 @@ object CRC64 {
         return value
     }
 
-    fun update(b: Int, value0: Long): Long {
-        return update(byteArrayOf(b.toByte()), 0, 1, value0)
-    }
+    fun update(b: Int, value0: Long) =
+        update(byteArrayOf(b.toByte()), 0, 1, value0)
 
-    fun toString(value: Long): String {
-        return "CRC64{value=" + value.toULong().toString(16) + '}'
-    }
+    fun toString(value: Long) = "CRC64{value=" + value.toULong().toString(16) + '}'
+
 }

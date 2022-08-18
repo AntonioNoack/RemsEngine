@@ -1,4 +1,4 @@
-package net.sf.image4j
+package me.anno.tests.image
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS.desktop

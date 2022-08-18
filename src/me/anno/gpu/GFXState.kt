@@ -110,9 +110,19 @@ object GFXState {
     }
 
     /**
-     * a flag for shaders weather their animated version (slower) is used
+     * a flag for shaders whether their animated version (slower) is used
      * */
     val animated = object : SecureStack<Boolean>(false) {
+        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
+            // nothing changes on the OpenGL side,
+            // just the shaders need to be modified
+        }
+    }
+
+    /**
+     * a flag for shaders whether their limited-transform version (faster for 10k+ instances) is used
+     * */
+    val limitedTransform = object : SecureStack<Boolean>(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             // nothing changes on the OpenGL side,
             // just the shaders need to be modified

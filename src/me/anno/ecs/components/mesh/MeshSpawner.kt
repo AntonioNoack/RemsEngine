@@ -7,7 +7,9 @@ import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.Raycast.TRIANGLES
+import me.anno.gpu.pipeline.InstancedStack
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.utils.structures.arrays.ExpandingFloatArray
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -20,7 +22,7 @@ abstract class MeshSpawner : CollidingComponent() {
 
     fun getTransform(i: Int): Transform {
         val entity = entity
-        if (i >= transforms.size) {
+        for (j in transforms.size..i) {
             transforms.add(Transform(entity))
         }
         return transforms[i]
@@ -64,5 +66,27 @@ abstract class MeshSpawner : CollidingComponent() {
      * iterates over each mesh, which is actively visible; caller shall call transform.validate() if he needs the transform
      * */
     abstract fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit)
+
+    /**
+     * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
+     * if this is implemented, return true; and forEachMesh just will be a fallback
+     * */
+    open fun forEachMeshGroup(run: (Mesh, Material?) -> InstancedStack) = false
+
+    /**
+     * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
+     * if this is implemented, return true; and forEachMeshGroup just will be a fallback;
+     *
+     * each element must be added as position (x,y,z), scale (1d), rotation (x,y,z,w)
+     * */
+    open fun forEachMeshGroupPSR(run: (Mesh, Material?) -> ExpandingFloatArray) = false
+
+    /**
+     * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
+     * if this is implemented, return true; and forEachMeshGroup just will be a fallback;
+     *
+     * each element must be added as position (x,y,z)
+     * */
+    open fun forEachMeshGroupP(run: (Mesh, Material?) -> ExpandingFloatArray) = false
 
 }

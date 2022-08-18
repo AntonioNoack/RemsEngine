@@ -10,7 +10,6 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
-import me.anno.utils.types.Matrices.distanceSquared
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import kotlin.math.log2
@@ -39,7 +38,7 @@ class LODMeshComponent() : MeshComponentBase() {
 
     @Docs("Which LOD should be used for the bounds; -1 = use all LODs")
     @Range(-1.0, 2e9)
-    var aabbIndex = -1
+    var aabbIndex = 0
         set(value) {
             if (field != value) {
                 field = value
@@ -58,8 +57,8 @@ class LODMeshComponent() : MeshComponentBase() {
                 fillSpace(mesh, globalTransform, aabb)
             }
         } else {
-            val index = aabbIndex
-            val mesh = MeshCache[meshes.getOrNull(clamp(index, 0, meshes.lastIndex))]
+            val index = clamp(aabbIndex, 0, meshes.lastIndex)
+            val mesh = MeshCache[meshes[index]]
             if (mesh != null) fillSpace(mesh, globalTransform, aabb)
         }
         return true
@@ -69,8 +68,7 @@ class LODMeshComponent() : MeshComponentBase() {
         val pos = RenderState.cameraPosition
         val transform = transform
         val index = if (transform != null) {
-            val lod1Dist = lod1Dist
-            val relDistSq = transform.globalTransform.distanceSquared(pos) / (lod1Dist * lod1Dist)
+            val relDistSq = globalAABB.distanceSquared(pos) / (lod1Dist * lod1Dist)
             val index = (lodBias + lodScale * log2(relDistSq.toFloat())).toInt()
             clamp(index, 0, meshes.lastIndex)
         } else 0

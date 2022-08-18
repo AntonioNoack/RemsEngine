@@ -15,7 +15,7 @@ class InstancedAnimStack : InstancedStack() {
     }
 
     var animData = FloatArray(8 * 16)
-    var texture: Texture2D? = null
+    var animTexture: Texture2D? = null
 
     override fun add(transform: Transform, clickId: Int) {
         add(transform, clickId, null, defaultWeights, defaultIndices)
@@ -34,7 +34,7 @@ class InstancedAnimStack : InstancedStack() {
             transforms = newTransforms
             clickIds = newClickIds
         }
-        if (texture != null) this.texture = texture
+        if (texture != null) this.animTexture = texture
         val index = size++
         transforms[index] = transform
         clickIds[index] = clickId

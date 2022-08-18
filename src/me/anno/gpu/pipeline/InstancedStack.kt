@@ -7,8 +7,8 @@ import me.anno.ecs.Transform
  * */
 open class InstancedStack {
 
-    var transforms = arrayOfNulls<Transform>(16)
-    var clickIds = IntArray(16)
+    var transforms = arrayOfNulls<Transform>(64)
+    var clickIds = IntArray(64)
     var size = 0
 
     fun clear() {
@@ -18,7 +18,9 @@ open class InstancedStack {
     fun isNotEmpty() = size > 0
     fun isEmpty() = size == 0
 
-    open fun add(transform: Transform, clickId: Int) {
+    var autoClickId = 0
+
+    open fun add(transform: Transform, clickId: Int = this.autoClickId) {
         if (size >= transforms.size) {
             // resize
             val newSize = transforms.size * 2

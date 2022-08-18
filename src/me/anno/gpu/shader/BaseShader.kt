@@ -13,6 +13,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Booleans.toInt
@@ -44,14 +45,15 @@ open class BaseShader(
 
     private val flatShader = KeyPairMap<Renderer, Int, Shader>()
     private val deferredShaders = KeyPairMap<DeferredSettingsV2, Int, Shader>()
-    private val depthShader = Array(8) { lazy { createDepthShader(it.hasFlag(1), it.hasFlag(2), it.hasFlag(4)) } }
+    private val depthShader = Array(5) { lazy { createDepthShader(it.hasFlag(1), it.hasFlag(2), it.hasFlag(4)) } }
 
     /** shader for rendering the depth, e.g., for pre-depth */
-    open fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): Shader {
+    open fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, limitedTransform: Boolean): Shader {
         if (vertexShader.isBlank2()) throw RuntimeException()
         var vertexShader = vertexShader
         if (isInstanced) vertexShader = "#define INSTANCED\n$vertexShader"
         if (isAnimated) vertexShader = "#define ANIMATED\n$vertexShader"
+        if (limitedTransform) vertexShader = "#define LIMITED_TRANSFORM\n$vertexShader"
         return Shader(name, vertexVariables, vertexShader, varyings, fragmentVariables, "void main(){}")
     }
 
@@ -60,7 +62,8 @@ open class BaseShader(
         postProcessing: ShaderStage?,
         isInstanced: Boolean,
         isAnimated: Boolean,
-        motionVectors: Boolean
+        motionVectors: Boolean,
+        limitedTransform: Boolean,
     ): Shader {
 
         var extraStage: ShaderStage? = null
@@ -115,21 +118,19 @@ open class BaseShader(
             val renderer = GFXState.currentRenderer
             val instanced = GFXState.instanced.currentValue
             val animated = GFXState.animated.currentValue
-            val motionVectors = (renderer == Renderer.motionVectorRenderer ||
-                    renderer == attributeRenderers[DeferredLayerType.MOTION] ||
-                    renderer == rawAttributeRenderers[DeferredLayerType.MOTION])
-            val stateId = instanced.toInt() + animated.toInt(2) + motionVectors.toInt(4)
+            val limited = GFXState.limitedTransform.currentValue
+            val stateId = min(instanced.toInt() + animated.toInt(2) + motionVectors.toInt(4) + limited.toInt(8), 8)
             val shader = if (renderer == Renderer.nothingRenderer) {
-                depthShader[stateId].value
+                depthShader[if (limited) 4 else stateId and 3].value
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
                     flatShader.getOrPut(renderer, stateId) { r, stateId2 ->
-                        val isInstanced = stateId2.hasFlag(1)
-                        val isAnimated = stateId2.hasFlag(2)
-                        val isMotionVectors = stateId2.hasFlag(4)
                         val shader = createForwardShader(
-                            r.getPostProcessing(), isInstanced,
-                            isAnimated, isMotionVectors
+                            r.getPostProcessing(),
+                            stateId2.hasFlag(1),
+                            stateId2.hasFlag(2),
+                            stateId2.hasFlag(4),
+                            stateId2.hasFlag(8)
                         )
                         r.uploadDefaultUniforms(shader)
                         // LOGGER.info(shader.fragmentSource)
@@ -172,7 +173,8 @@ open class BaseShader(
         deferred: DeferredSettingsV2,
         isInstanced: Boolean,
         isAnimated: Boolean,
-        motionVectors: Boolean
+        motionVectors: Boolean,
+        limitedTransform: Boolean,
     ): Shader {
         val shader = deferred.createShader(
             name,
@@ -200,7 +202,13 @@ open class BaseShader(
 
     operator fun get(settings: DeferredSettingsV2, stateId: Int): Shader {
         return deferredShaders.getOrPut(settings, stateId) { settings2, stateId2 ->
-            createDeferredShader(settings2, stateId2.hasFlag(1), stateId2.hasFlag(2), stateId2.hasFlag(4))
+            createDeferredShader(
+                settings2,
+                stateId2.hasFlag(1),
+                stateId2.hasFlag(2),
+                stateId2.hasFlag(4),
+                stateId2.hasFlag(8)
+            )
         }
     }
 
@@ -215,6 +223,16 @@ open class BaseShader(
                 shader.destroy()
             }
         }
+    }
+
+    companion object {
+        val motionVectors
+            get(): Boolean {
+                val renderer = GFXState.currentRenderer
+                return (renderer == Renderer.motionVectorRenderer ||
+                        renderer == attributeRenderers[DeferredLayerType.MOTION] ||
+                        renderer == rawAttributeRenderers[DeferredLayerType.MOTION])
+            }
     }
 
 }

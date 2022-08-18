@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.Build
 import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -22,8 +23,8 @@ import me.anno.engine.ui.render.Frustum
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
-import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.M4x3Delta.set4x3delta
+import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
@@ -383,7 +384,35 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                         component.clickId = clickId
                         lastClickId0 = clickId
                         tmpComponent = component
-                        component.forEachMesh(::subFill1)
+                        lastStack = null
+                        lastMesh = null
+                        var done = component.forEachMeshGroupPSR { mesh, material ->
+                            val material2 = material ?: defaultMaterial
+                            val stage = material2.pipelineStage ?: defaultStage
+                            val stack = stage.instancedMeshes3.getOrPut(mesh, material2) { _, _ -> InstancedStackV2() }
+                            lastStack2 = stack
+                            if (stack.clickIds.isEmpty() || stack.clickIds.last() != lastClickId0) {
+                                stack.clickIds.add(stack.size)
+                                stack.clickIds.add(lastClickId0)
+                            }
+                            stack.posSizeRot
+                        }
+                        if (!done) {
+                            done = component.forEachMeshGroup { mesh, material ->
+                                val material2 = material ?: defaultMaterial
+                                val stage = material2.pipelineStage ?: defaultStage
+                                val stack = stage.instancedMeshes2.getOrPut(mesh, material2) { mesh1, _ ->
+                                    if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
+                                }
+                                stack.autoClickId = lastClickId0
+                                validateLastStack()
+                                lastStack = stack
+                                lastStackIndex = stack.size
+                                stack
+                            }
+                            validateLastStack()
+                            if (!done) component.forEachMesh(::subFill1)
+                        }
                         clickId++
                     }
                     is LightComponent -> addLight(component, entity, cameraPosition, worldScale)
@@ -407,8 +436,19 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     private var lastMat: Material? = null
     private var lastStage: PipelineStage? = null
     private var lastStack: InstancedStack? = null
+    private var lastStack2: InstancedStackV2? = null
     private var lastClickId0 = 0
+    private var lastStackIndex = 0
 
+    private fun validateLastStack() {
+        val ls = lastStack
+        if (ls != null) {
+            for (j in lastStackIndex until ls.size) {
+                ls.transforms[j]!!.validate()
+            }
+        }
+        lastStack = null
+    }
 
     private val tmpAABB = AABBd()
     fun subFill1(mesh: Mesh, material: Material?, transform: Transform) {
@@ -447,7 +487,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             lastStack = stack
 
         } else {
-            if (mesh.numMaterials > 1) {
+            if (Build.isDebug && mesh.numMaterials > 1) {
                 LOGGER.warn("Procedural meshes in MeshSpawner cannot support multiple materials")
             }
             val material2 = material ?: defaultMaterial

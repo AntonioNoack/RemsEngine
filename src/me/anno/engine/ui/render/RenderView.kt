@@ -203,13 +203,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val cameraNode = editorCameraNode
         val tmpQ = JomlPools.quat4d.borrow()
         cameraNode.transform.localRotation = rotation.toQuaternionDegrees(tmpQ)
-        camera.far = 5000.0
-        camera.near = if (renderMode == RenderMode.DEPTH) {
+        camera.far = far
+        camera.near = near
+        /*if (renderMode == RenderMode.DEPTH) {
             0.2
         } else {
             if (reverseDepth) radius * 1e-10
             else radius * 1e-2
-        }
+        }*/
 
         val rotation = cameraNode.transform.localRotation
 
@@ -429,7 +430,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             DrawTexts.drawSimpleTextCharByChar(
                 x, y + h - 2 - DrawTexts.monospaceFont.sizeInt,
                 2,
-                "$deltaCount",
+                deltaCount.toString(), // todo dots to make long numbers readable
                 FrameTimes.textColor,
                 FrameTimes.backgroundColor
             )
@@ -1119,8 +1120,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         // this needs to be separate from the stack
         // (for normal calculations and such)
-        this.near = near
-        this.far = far
         val scaledNear = (near * worldScale)
         val scaledFar = (far * worldScale)
         this.scaledNear = scaledNear

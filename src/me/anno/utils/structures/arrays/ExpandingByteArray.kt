@@ -12,7 +12,7 @@ class ExpandingByteArray(private val initCapacity: Int) {
         size = 0
     }
 
-    private var array: ByteArray? = null
+    var array: ByteArray? = null
 
     fun add(value: Byte) = plusAssign(value)
 

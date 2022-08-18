@@ -27,9 +27,12 @@ class BMPDecoder(input: InputStream) {
 
     companion object {
 
-        const val BI_RGB = 0 // no compression
-        const val BI_RLE8 = 1 // 8bit RLE compression
-        const val BI_RLE4 = 2 // 4bit RLE compression
+        /**
+         * no compression
+         * */
+        const val BI_RGB = 0
+        const val BI_RLE8 = 1
+        const val BI_RLE4 = 2
 
         /**
          * Retrieves a bit from the lowest order byte of the given integer.

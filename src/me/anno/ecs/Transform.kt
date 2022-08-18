@@ -3,7 +3,6 @@ package me.anno.ecs
 import me.anno.Engine
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.joml.*
 
@@ -64,7 +63,6 @@ class Transform() : Saveable() {
         lastUpdateDt = 0L
         drawTransform.set(globalTransform)
         drawnTransform.set(globalTransform)
-        checkDrawTransform()
     }
 
     @Suppress("unused")
@@ -74,33 +72,38 @@ class Transform() : Saveable() {
     }
 
     fun getDrawMatrix(time: Long = Engine.gameTime): Matrix4x3d {
-        val drawTransform = drawTransform
         val factor = updateDrawingLerpFactor(time)
-        if (factor > 0.0) {
-            val extrapolatedTime = (Engine.gameTime - lastUpdateTime).toDouble() / lastUpdateDt
-            // needs to be changed, if the extrapolated time changes -> it changes if the physics engine is behind
-            // its target -> in the physics engine, we send the game time instead of the physics time,
-            // and this way, it's relatively guaranteed to be roughly within [0,1]
-            val fac2 = factor / (Maths.clamp(1.0 - extrapolatedTime, 0.001, 1.0))
-            if (fac2 < 1.0) {
+        if (factor > 0f) {
+            val udt = Engine.gameTime - lastUpdateTime
+            if (udt < lastUpdateDt) {
+                val extrapolatedTime = 1f - udt.toFloat() / lastUpdateDt
+                // needs to be changed, if the extrapolated time changes -> it changes if the physics engine is behind
+                // its target -> in the physics engine, we send the game time instead of the physics time,
+                // and this way, it's relatively guaranteed to be roughly within [0,1]
                 drawnTransform.set(drawTransform)
-                drawTransform.lerp(globalTransform, fac2)
-                checkDrawTransform()
-            } else {
+                if (factor * extrapolatedTime < 1f) {
+                    drawTransform.lerp(globalTransform, (factor / extrapolatedTime).toDouble())
+                    // checkDrawTransform()
+                } else {
+                    drawTransform.set(globalTransform)
+                    // checkDrawTransform()
+                }
+            } else if (udt < 3 * lastUpdateDt) {
+                // transform is coming to rest:
+                // 3x longer than usual, we got no update
                 drawnTransform.set(drawTransform)
                 drawTransform.set(globalTransform)
-                checkDrawTransform()
+            } else {
+                // transform is stationary
+                lastUpdateDt = 0L
+                drawnTransform.set(drawTransform)
+                drawTransform.set(globalTransform)
             }
-        } else {
-            drawTransform.set(globalTransform)
-            checkDrawTransform()
         }
         return drawTransform
     }
 
-    private fun checkDrawTransform() {
-        checkTransform(drawTransform)
-    }
+    private var needsStaticUpdate = true
 
     fun checkTransform(drawTransform: Matrix4x3d) {
         if (!drawTransform.isFinite) {
@@ -111,6 +114,7 @@ class Transform() : Saveable() {
     }
 
     fun smoothUpdate(time: Long = Engine.gameTime) {
+        needsStaticUpdate = true
         val dt = time - lastUpdateTime
         if (dt > 0) {
             lastUpdateTime = time
@@ -123,31 +127,35 @@ class Transform() : Saveable() {
         smoothUpdate(time)
     }
 
-    private fun updateDrawingLerpFactor(time: Long = Engine.gameTime): Double {
+    private fun updateDrawingLerpFactor(time: Long = Engine.gameTime): Float {
         val v = calculateDrawingLerpFactor(time)
         lastDrawTime = time
         return v
     }
 
-    private fun calculateDrawingLerpFactor(time: Long = Engine.gameTime): Double {
+    private fun calculateDrawingLerpFactor(time: Long = Engine.gameTime): Float {
         return if (lastUpdateDt <= 0) {
-            // hasn't happened -> no interpolation
-            drawTransform.set(globalTransform)
-            drawnTransform.set(globalTransform)
-            checkDrawTransform()
-            0.0
+            if (needsStaticUpdate) {
+                // hasn't happened -> no interpolation
+                drawTransform.set(globalTransform)
+                drawnTransform.set(globalTransform)
+                needsStaticUpdate = false
+            }
+            0f
         } else {
             val drawingDt = (time - lastDrawTime)
-            drawingDt.toDouble() / lastUpdateDt
+            drawingDt.toFloat() / lastUpdateDt
         }
     }
 
     fun invalidateLocal() {
         state = State.VALID_GLOBAL
+        needsStaticUpdate = true
     }
 
     fun invalidateGlobal() {
         state = State.VALID_LOCAL
+        needsStaticUpdate = true
     }
 
     fun set(src: Transform) {
@@ -256,22 +264,23 @@ class Transform() : Saveable() {
     }
 
     fun validate() {
-        val parent = entity?.parentEntity?.transform
         when (state) {
             // really update by time? idk... this is not the time when it was changed...
             // it kind of is, when we call updateTransform() every frame
             State.VALID_LOCAL -> {
                 calculateGlobalTransform(parent)
                 smoothUpdate()
+                state = State.VALID
             }
             State.VALID_GLOBAL -> {
                 calculateLocalTransform(parent)
                 smoothUpdate()
+                state = State.VALID
             }
             else -> {
+                state = State.VALID
             }
         }
-        state = State.VALID
     }
 
     fun setLocal(values: Matrix4x3d) {

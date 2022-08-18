@@ -1,10 +1,9 @@
 package org.joml
 
-import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 class AABBf(
     var minX: Float, var minY: Float, var minZ: Float,
@@ -440,21 +439,15 @@ class AABBf(
                 distanceSquared(start) <= dir.lengthSquared() * length * length
     }
 
-    // pseudo-distance from aabb to v
+    fun distance(v: Vector3f): Float {
+        return sqrt(distanceSquared(v))
+    }
+
     fun distanceSquared(v: Vector3f): Float {
-        if (testPoint(v)) return 0f
-        val cx = (minX + maxX) * 0.5f
-        val cy = (minY + maxY) * 0.5f
-        val cz = (minZ + maxZ) * 0.5f
-        val ex = (maxX - minX) * 0.5f
-        val ey = (maxY - minY) * 0.5f
-        val ez = (maxZ - minZ) * 0.5f
-        return if (ex.isFinite() && ey.isFinite() && ez.isFinite()) {
-            val dx = max(abs(cx - v.x) - ex, 0f)
-            val dy = max(abs(cy - v.y) - ey, 0f)
-            val dz = max(abs(cz - v.z) - ez, 0f)
-            Maths.sq(dx, dy, dz)
-        } else 0f
+        val dx = max(max(minX - v.x, v.x - maxX), 0f)
+        val dy = max(max(minY - v.y, v.y - maxY), 0f)
+        val dz = max(max(minZ - v.z, v.z - maxZ), 0f)
+        return dx * dx + dy * dy + dz * dz
     }
 
     fun testLine(start: Vector3f, end: Vector3f): Boolean {

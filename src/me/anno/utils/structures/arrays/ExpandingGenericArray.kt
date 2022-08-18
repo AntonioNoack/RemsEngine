@@ -8,7 +8,7 @@ class ExpandingGenericArray<V>(
 
     var size = 0
 
-    private var array: Array<Any?>? = null
+    var array: Array<Any?>? = null
 
     fun clear(){
         size = 0

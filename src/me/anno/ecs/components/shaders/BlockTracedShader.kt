@@ -28,10 +28,18 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
 
     // needs to be adjusted as well for accurate shadows
     // I hope this gets optimized well, because no material data is actually required...
-    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): Shader {
+    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, limitedTransform: Boolean): Shader {
         val builder = createBuilder()
-        builder.addVertex(createVertexStage(isInstanced, isAnimated, false, motionVectors))
-        builder.addFragment(createFragmentStage(isInstanced, isAnimated, motionVectors))
+        builder.addVertex(
+            createVertexStage(
+                isInstanced,
+                isAnimated,
+                colors = false,
+                motionVectors = false,
+                limitedTransform
+            )
+        )
+        builder.addFragment(createFragmentStage(isInstanced, isAnimated, motionVectors = false))
         GFX.check()
         val shader = builder.create()
         shader.glslVersion = glslVersion
@@ -53,7 +61,11 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                 "finalRoughness = 0.5;\n"
     }
 
-    override fun createFragmentVariables(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): ArrayList<Variable> {
+    override fun createFragmentVariables(
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        motionVectors: Boolean
+    ): ArrayList<Variable> {
         return arrayListOf(
             // input varyings
             Variable(GLSLType.V3F, "localPosition"),

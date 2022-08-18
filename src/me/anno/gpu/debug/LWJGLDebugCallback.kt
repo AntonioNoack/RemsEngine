@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.io.OutputStream
 import java.io.PrintStream
-import java.util.*
 
 object LWJGLDebugCallback : PrintStream(object : OutputStream() {
     // parse the message instead
@@ -36,14 +35,17 @@ object LWJGLDebugCallback : PrintStream(object : OutputStream() {
                             "type" -> type = value
                             "severity" -> severity = value
                             "message" -> {
-                                var printedMessage = "$value ID: $id Source: $source"
-                                if ("NOTIFICATION" != severity) printedMessage += " Severity: $severity"
-                                when (if (type == null) "" else type!!.lowercase()) {
-                                    "error" -> LOGGER.error(printedMessage)
-                                    "other" -> LOGGER.info(printedMessage)
-                                    else -> {
-                                        printedMessage += " Type: $type"
-                                        LOGGER.info(printedMessage)
+                                // ignored message, because it spams my logs
+                                if ("will use VIDEO memory as the source for buffer object operations" !in value) {
+                                    var printedMessage = "$value ID: $id Source: $source"
+                                    if ("NOTIFICATION" != severity) printedMessage += " Severity: $severity"
+                                    when (if (type == null) "" else type!!.lowercase()) {
+                                        "error" -> LOGGER.error(printedMessage)
+                                        "other" -> LOGGER.info(printedMessage)
+                                        else -> {
+                                            printedMessage += " Type: $type"
+                                            LOGGER.info(printedMessage)
+                                        }
                                     }
                                 }
                                 id = null

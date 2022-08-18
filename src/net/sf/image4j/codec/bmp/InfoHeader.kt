@@ -16,19 +16,8 @@ import net.sf.image4j.io.CountingInputStream
  */
 class InfoHeader {
 
-    /**
-     * The size of this InfoHeader structure in bytes.
-     */
     var size = 0
-
-    /**
-     * The width in pixels of the bitmap represented by this InfoHeader.
-     */
     var width = 0
-
-    /**
-     * The height in pixels of the bitmap represented by this InfoHeader.
-     */
     var height = 0
 
     /**

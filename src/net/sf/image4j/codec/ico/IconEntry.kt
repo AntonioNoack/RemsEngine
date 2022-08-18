@@ -33,9 +33,8 @@ class IconEntry(input: CountingInputStream) {
      */
     var colorCount = input.read()
 
-    // Unused. Should always be 0.
-    // var bReserved: Byte = input.readByte()
     init {
+        // Unused. Should always be 0.
         input.read()
     }
 
@@ -67,14 +66,5 @@ class IconEntry(input: CountingInputStream) {
     override fun toString(): String {
         return "width=$width,height=$height,bitCount=$bitCount,colorCount=$colorCount"
     }
-
-    // Width 	    1 byte 	Cursor Width (16, 32, 64, 0 = 256)
-    // Height 	    1 byte 	Cursor Height (16, 32, 64, 0 = 256 , most commonly = Width)
-    // ColorCount 	1 byte 	Number of Colors (2,16, 0=256)
-    // Reserved 	1 byte 	=0
-    // Planes 	    2 byte 	=1
-    // BitCount 	2 byte 	bits per pixel (1, 4, 8)
-    // SizeInBytes 	4 byte 	Size of (InfoHeader + AND-bitmap + XOR-bitmap)
-    // FileOffset 	4 byte 	FilePos, where InfoHeader starts
 
 }

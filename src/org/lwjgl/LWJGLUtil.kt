@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger
 @Suppress("unused")
 object LWJGLUtil {
 
-    private val LOGGER: Logger = getLogger(LWJGLUtil::class.java)
+    private val LOGGER: Logger = getLogger(LWJGLUtil::class)
 
     @JvmStatic
     fun log(msg: CharSequence) {
