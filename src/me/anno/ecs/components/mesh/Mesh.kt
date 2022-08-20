@@ -1,15 +1,18 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.cache.data.ICacheData
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.*
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -32,7 +35,7 @@ import org.lwjgl.opengl.GL11C.GL_TRIANGLES
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class Mesh : PrefabSaveable() {
+class Mesh : PrefabSaveable(), Renderable {
 
     // a single helper mesh could be used to represent the default indices...
     class HelperMesh(
@@ -281,7 +284,7 @@ class Mesh : PrefabSaveable() {
         }
     }
 
-    override val className: String = "Mesh"
+    override val className = "Mesh"
     override val approxSize: Int = 1
 
     fun calculateAABB() {
@@ -920,6 +923,17 @@ class Mesh : PrefabSaveable() {
             aabb.union(transform.transformProject(vf.set(x, y, z)))
         }
         return aabb
+    }
+
+    override fun fill(
+        pipeline: Pipeline,
+        entity: Entity,
+        clickId: Int,
+        cameraPosition: Vector3d,
+        worldScale: Double
+    ): Int {
+        pipeline.addMesh(this, Pipeline.sampleMeshComponent, entity, clickId)
+        return clickId
     }
 
     companion object {

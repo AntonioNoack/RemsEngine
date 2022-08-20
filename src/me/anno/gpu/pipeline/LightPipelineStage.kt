@@ -720,7 +720,7 @@ class LightPipelineStage(
         return dst.size
     }
 
-    override val className: String = "LightPipelineStage"
+    override val className = "LightPipelineStage"
     override val approxSize: Int = 5
 
 }

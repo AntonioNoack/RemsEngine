@@ -69,6 +69,6 @@ class TestVehicleController : Component(), ControlReceiver {
         clone.smoothing = smoothing
     }
 
-    override val className: String = "TestVehicleController"
+    override val className = "TestVehicleController"
 
 }

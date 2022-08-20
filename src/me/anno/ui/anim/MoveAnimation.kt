@@ -46,6 +46,6 @@ class MoveAnimation(
         writer.writeFloat("dstY", dstY)
     }
 
-    override val className: String = "UIMoveAnimation"
+    override val className = "UIMoveAnimation"
 
 }

@@ -117,6 +117,6 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
         clone.relaxation = relaxation
     }
 
-    override val className: String = "HingeConstraint"
+    override val className = "HingeConstraint"
 
 }

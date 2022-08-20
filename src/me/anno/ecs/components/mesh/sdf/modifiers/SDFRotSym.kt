@@ -132,7 +132,7 @@ class SDFRotSym : PositionMapper() {
         clone.slices = slices
     }
 
-    override val className: String = "SDFRotSym"
+    override val className = "SDFRotSym"
 
     companion object {
 

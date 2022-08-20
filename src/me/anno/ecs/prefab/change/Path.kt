@@ -279,7 +279,7 @@ class Path(
         }
     }
 
-    override val className: String = "Path"
+    override val className = "Path"
     override val approxSize: Int = 1
     override fun isDefaultValue(): Boolean = this === ROOT_PATH
 

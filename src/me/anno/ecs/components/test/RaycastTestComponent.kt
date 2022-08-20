@@ -61,6 +61,6 @@ class RaycastTestComponent : Component() {
         clone.maxDistance = maxDistance
     }
 
-    override val className: String = "RaycastTest"
+    override val className = "RaycastTest"
 
 }

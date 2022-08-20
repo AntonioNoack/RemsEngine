@@ -41,6 +41,6 @@ class SizeLimitingContainer(child: Panel, var sizeX: Int, var sizeY: Int, style:
         }
     }
 
-    override val className: String = "SizeLimitingContainer"
+    override val className = "SizeLimitingContainer"
 
 }

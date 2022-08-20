@@ -6,9 +6,11 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.CollidingComponent
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
@@ -20,7 +22,7 @@ import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
 
-abstract class MeshComponentBase : CollidingComponent() {
+abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
     /**
      * whether a object will receive shadows from shadow-mapped lights;
@@ -95,6 +97,25 @@ abstract class MeshComponentBase : CollidingComponent() {
         super.onChangeStructure(entity)
         entity.invalidateCollisionMask()
         ensureBuffer()
+    }
+
+    override fun fill(
+        pipeline: Pipeline,
+        entity: Entity,
+        clickId: Int,
+        cameraPosition: Vector3d,
+        worldScale: Double
+    ): Int {
+        val mesh = getMesh()
+        return if (mesh != null) {
+            if (isInstanced && mesh.proceduralLength <= 0) {
+                pipeline.addMeshInstanced(mesh, this, entity, clickId)
+            } else {
+                pipeline.addMesh(mesh, this, entity, gfxId)
+            }
+            this.clickId = clickId
+            clickId + 1
+        } else clickId
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

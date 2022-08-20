@@ -25,6 +25,8 @@ open class StringMap(
     val sortKeysWhenSaving: Boolean = true
 ) : ConfigEntry(), MutableMap<String, Any?> {
 
+    constructor(): this(16)
+
     constructor(data: Map<String, Any?>) : this(data.size + 16) {
         map.putAll(data)
     }

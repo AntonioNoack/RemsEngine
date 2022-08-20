@@ -1,11 +1,16 @@
 package me.anno.ecs.components.anim
 
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState.worldScale
+import me.anno.gpu.GFX
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -13,12 +18,9 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.mesh.assimp.Bone
 import me.anno.utils.types.Vectors
-import org.joml.AABBf
-import org.joml.Matrix3f
-import org.joml.Matrix4x3f
-import org.joml.Vector3f
+import org.joml.*
 
-class Skeleton : PrefabSaveable() {
+class Skeleton : PrefabSaveable(), Renderable {
 
     @SerializedProperty
     var bones: List<Bone> = emptyList()
@@ -73,6 +75,32 @@ class Skeleton : PrefabSaveable() {
         mesh.draw(shader, 0)
     }
 
+    override fun fill(
+        pipeline: Pipeline,
+        entity: Entity,
+        clickId: Int,
+        cameraPosition: Vector3d,
+        worldScale: Double
+    ): Int {
+        // todo optimize this (avoid allocations)
+        val bones = bones
+        if (bones.isEmpty()) return clickId
+        val mesh = Mesh()
+        // in a tree with N nodes, there is N-1 lines
+        val size = (bones.size - 1) * boneMeshVertices.size
+        mesh.positions = Texture2D.floatArrayPool[size, false, true]
+        mesh.normals = Texture2D.floatArrayPool[size, true, true]
+        val bonePositions = Array(bones.size) { bones[it].bindPosition }
+        generateSkeleton(bones, bonePositions, mesh.positions!!, null)
+        pipeline.fill(mesh, cameraPosition, worldScale)
+        GFX.addGPUTask("free", 1) {
+            Texture2D.floatArrayPool.returnBuffer(mesh.positions)
+            Texture2D.floatArrayPool.returnBuffer(mesh.normals)
+            mesh.destroy()
+        }
+        return clickId
+    }
+
     override fun clone(): PrefabSaveable {
         val clone = Skeleton()
         copy(clone)
@@ -86,7 +114,7 @@ class Skeleton : PrefabSaveable() {
         clone.bones = ArrayList(bones)
     }
 
-    override val className: String = "Skeleton"
+    override val className = "Skeleton"
 
     companion object {
 

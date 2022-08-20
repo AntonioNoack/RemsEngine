@@ -75,7 +75,7 @@ class SpotLight() : LightComponent(LightType.SPOT) {
         clone.near = near
     }
 
-    override val className: String = "SpotLight"
+    override val className = "SpotLight"
 
     companion object {
 

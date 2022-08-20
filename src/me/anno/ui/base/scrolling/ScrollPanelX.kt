@@ -9,6 +9,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.minWeight
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.style.Style
@@ -20,7 +21,10 @@ open class ScrollPanelX(
     alignY: AxisAlignment
 ) : PanelContainer(child, padding, style), ScrollableX {
 
-    constructor(style: Style) : this(PanelListX(style), Padding(), style, AxisAlignment.MIN)
+    constructor(style: Style) : this(PanelListX(style), style)
+    constructor(child: Panel, style: Style) : this(child, Padding(), style, AxisAlignment.MIN)
+    constructor(child: Panel, padding: Padding, style: Style) : this(child, padding, style, AxisAlignment.MIN)
+    constructor(padding: Padding, align: AxisAlignment, style: Style) : this(PanelListX(style), padding, style, align)
 
     init {
         child += WrapAlign(AxisAlignment.MIN, alignY)
@@ -164,6 +168,6 @@ open class ScrollPanelX(
         return clone
     }
 
-    override val className: String = "ScrollPanelX"
+    override val className = "ScrollPanelX"
 
 }

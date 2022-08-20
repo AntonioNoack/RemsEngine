@@ -43,6 +43,6 @@ class ScaleAnimation(
         writer.writeFloat("centerY", centerY)
     }
 
-    override val className: String = "UIScaleAnimation"
+    override val className = "UIScaleAnimation"
 
 }

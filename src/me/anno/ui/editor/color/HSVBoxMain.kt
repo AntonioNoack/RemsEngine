@@ -170,7 +170,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3fc, du: Vector3fc, dv: Vector
         this += AspectRatioConstraint { chooser.visualisation.ratio }
     }
 
-    override val className: String = "HSVBoxMain"
+    override val className = "HSVBoxMain"
 
     companion object {
         fun drawColoredAlpha(

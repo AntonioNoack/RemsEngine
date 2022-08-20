@@ -77,6 +77,6 @@ class GenericConstraint() : Constraint<Generic6DofConstraint>() {
         clone.upperAngleLimit.set(upperAngleLimit)
     }
 
-    override val className: String = "GenericConstraint"
+    override val className = "GenericConstraint"
 
 }

@@ -76,7 +76,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         clone.cutoff = cutoff
     }
 
-    override val className: String = "DirectionalLight"
+    override val className = "DirectionalLight"
 
     companion object {
 

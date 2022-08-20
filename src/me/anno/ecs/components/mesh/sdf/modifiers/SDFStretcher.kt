@@ -154,6 +154,6 @@ class SDFStretcher() : PositionMapper() {
         clone.accurateInsides = accurateInsides
     }
 
-    override val className: String = "SDFStretcher"
+    override val className = "SDFStretcher"
 
 }

@@ -65,7 +65,7 @@ class CompareNode : ValueNode("Compare", inputs, outputs) {
             }
     }
 
-    override val className: String = "CompareNode"
+    override val className = "CompareNode"
 
     companion object {
         val values2 = Mode.values()

@@ -192,6 +192,6 @@ open class FloatInput(
         clone.tooltip = tooltip
     }
 
-    override val className: String = "FloatInput"
+    override val className = "FloatInput"
 
 }

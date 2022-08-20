@@ -105,16 +105,22 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     override fun getPanelAt(x: Int, y: Int): Panel? {
         return if (canBeSeen && contains(x, y)) {
             if (!capturesChildEvents(x, y)) {
-                val children = children
-                for (i in children.size - 1 downTo 0) {
-                    val panelAt = children[i].getPanelAt(x, y)
-                    if (panelAt != null && panelAt.isOpaqueAt(x, y)) {
-                        return panelAt
-                    }
-                }
+                val child = getChildPanelAt(x, y)
+                if (child != null) return child
             }
             this
         } else null
+    }
+
+    open fun getChildPanelAt(x: Int, y: Int): Panel? {
+        val children = children
+        for (i in children.size - 1 downTo 0) {
+            val panelAt = children[i].getPanelAt(x, y)
+            if (panelAt != null && panelAt.isOpaqueAt(x, y)) {
+                return panelAt
+            }
+        }
+        return null
     }
 
     override fun save(writer: BaseWriter) {

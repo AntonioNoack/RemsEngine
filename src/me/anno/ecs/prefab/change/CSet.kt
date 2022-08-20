@@ -53,7 +53,7 @@ class CSet() : Change() {
     override val approxSize: Int = 10
     override fun isDefaultValue(): Boolean = false
 
-    override val className: String = "CSet"
+    override val className = "CSet"
 
     override fun toString(): String {
         val str = value.toString().shorten2Way(100)

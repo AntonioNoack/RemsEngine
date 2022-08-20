@@ -176,6 +176,6 @@ open class ScrollPanelY(
         return clone
     }
 
-    override val className: String = "ScrollPanelY"
+    override val className = "ScrollPanelY"
 
 }

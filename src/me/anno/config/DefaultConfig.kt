@@ -33,8 +33,10 @@ object DefaultConfig : StringMap() {
         val tick = Clock()
 
         // in case it wasn't registered yet
-        registerCustomClass(StringMap())
-        registerCustomClass(SaveableArray())
+        registerCustomClass(StringMap::class)
+        registerCustomClass(SaveableArray::class)
+
+        tick.stop("registering classes for config")
 
         var newConfig: StringMap = this
         try {
@@ -44,11 +46,13 @@ object DefaultConfig : StringMap() {
             e.printStackTrace()
         }
 
+        tick.stop("reading base config")
+
         val stylePath = newConfig["style"]?.toString() ?: "dark"
         style = baseTheme.getStyle(stylePath)
 
         // not completely true; is loading some classes, too
-        tick.stop("reading the config")
+        tick.stop("reading base style")
 
     }
 

@@ -35,7 +35,7 @@ class ChangeHistory : StringHistory() {
         PropertyInspector.invalidateUI(true)
     }
 
-    override val className: String = "ChangeHistory"
+    override val className = "ChangeHistory"
 
     companion object {
         private val LOGGER = LogManager.getLogger(ChangeHistory::class)

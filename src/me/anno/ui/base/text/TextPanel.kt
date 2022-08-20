@@ -131,12 +131,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     // can be disabled for parents to copy ALL lines, e.g., for a bug report :)
     var disableCopy = false
 
-    @NotSerializedProperty
-    protected var minW2 = 0
-
-    @NotSerializedProperty
-    protected var minH2 = 0
-
     open var enableHoverColor = false
 
     override var textSize: Float
@@ -243,8 +237,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val size = getTextSize(textCacheKey)
         minW = max(1, getSizeX(size) + padding.width)
         minH = max(1, getSizeY(size) + padding.height)
-        minW2 = minW
-        minH2 = minH
         // todo remove this, when it is no longer needed
         this.w = minW
         this.h = minH
@@ -372,7 +364,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         }
     }
 
-    override val className: String = "TextPanel"
+    override val className = "TextPanel"
 
     companion object {
         val i0 = IntArray(0)

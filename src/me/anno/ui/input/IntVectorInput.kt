@@ -301,6 +301,6 @@ open class IntVectorInput(
         clone.setValue(vx, vy, vz, vw, false)
     }
 
-    override val className: String = "IntVectorInput"
+    override val className = "IntVectorInput"
 
 }

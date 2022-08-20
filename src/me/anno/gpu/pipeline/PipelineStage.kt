@@ -1168,7 +1168,7 @@ class PipelineStage(
         return (material.shader ?: defaultShader).value
     }
 
-    override val className: String = "PipelineStage"
+    override val className = "PipelineStage"
     override val approxSize: Int = 5
     override fun isDefaultValue(): Boolean = false
 

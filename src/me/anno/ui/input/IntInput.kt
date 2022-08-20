@@ -202,6 +202,6 @@ open class IntInput(
         clone.savedDelta = savedDelta // ^^
     }
 
-    override val className: String = "IntInput"
+    override val className = "IntInput"
 
 }

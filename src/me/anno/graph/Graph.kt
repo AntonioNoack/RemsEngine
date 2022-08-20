@@ -34,7 +34,7 @@ open class Graph : PrefabSaveable() {
         this.nodes.addAll(nodes)
     }
 
-    override val className: String = "Graph"
+    override val className = "Graph"
     override val approxSize: Int = 1000
     override fun isDefaultValue(): Boolean = false
 

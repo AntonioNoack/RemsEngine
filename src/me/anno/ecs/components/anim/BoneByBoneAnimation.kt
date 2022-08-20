@@ -197,6 +197,6 @@ class BoneByBoneAnimation : Animation() {
         clone.globalInvTransform.set(globalInvTransform)
     }
 
-    override val className: String = "BoneByBoneAnimation"
+    override val className = "BoneByBoneAnimation"
 
 }

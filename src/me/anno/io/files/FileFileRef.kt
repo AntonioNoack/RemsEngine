@@ -39,6 +39,10 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun inputStream() = file.inputStream().buffered()
 
+    override fun readBytes() = file.readBytes()
+    override fun readText() = file.readText()
+    override fun readText(charset: Charset) = file.readText(charset)
+
     override fun outputStream(append: Boolean): OutputStream {
         val ret = FileOutputStream(file, append).buffered()
         // when writing is finished, this should be called again

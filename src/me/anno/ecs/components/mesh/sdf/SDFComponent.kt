@@ -8,11 +8,13 @@ import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.components.script.QuickScriptComponent
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.Projection.projectRayToAABBBack
 import me.anno.engine.raycast.Projection.projectRayToAABBFront
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
@@ -42,7 +44,7 @@ import kotlin.math.floor
 // we then could directly link an online library for fast development
 // ... or generate them synthetically ...
 
-open class SDFComponent : ProceduralMesh() {
+open class SDFComponent : ProceduralMesh(), Renderable {
 
     override var isEnabled: Boolean
         get() = super.isEnabled
@@ -212,6 +214,19 @@ open class SDFComponent : ProceduralMesh() {
 
     val positionMappers = ArrayList<PositionMapper>()
     val distanceMappers = ArrayList<DistanceMapper>()
+
+    override fun fill(
+        pipeline: Pipeline,
+        entity: Entity,
+        clickId: Int,
+        cameraPosition: Vector3d,
+        worldScale: Double
+    ): Int {
+        val mesh = getMesh()
+        this.clickId = clickId
+        pipeline.addMesh(mesh, this, entity, gfxId)
+        return clickId + 1
+    }
 
     @DebugAction
     fun invalidateBounds() {
@@ -417,9 +432,7 @@ open class SDFComponent : ProceduralMesh() {
         calculateBounds(aabb)
         // for testing only
         Shapes.createCube(
-            mesh,
-            aabb.deltaX(), aabb.deltaY(), aabb.deltaZ(),
-            aabb.avgX(), aabb.avgY(), aabb.avgZ(),
+            mesh, aabb.deltaX(), aabb.deltaY(), aabb.deltaZ(), aabb.avgX(), aabb.avgY(), aabb.avgZ(),
             withNormals = false, front = false, back = true,
         )
         mesh.aabb.set(aabb)
@@ -765,7 +778,7 @@ open class SDFComponent : ProceduralMesh() {
         clone.relativeMeshMargin = relativeMeshMargin
     }
 
-    override val className: String = "SDFComponent"
+    override val className = "SDFComponent"
 
     companion object {
 

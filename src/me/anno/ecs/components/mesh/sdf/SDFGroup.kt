@@ -1,8 +1,10 @@
 package me.anno.ecs.components.mesh.sdf
 
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.SQRT1_2f
 import me.anno.maths.Maths.clamp
@@ -13,6 +15,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import org.joml.AABBf
 import org.joml.Vector2f
+import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -86,6 +89,33 @@ class SDFGroup : SDFComponent() {
         invalidateShader()
         super.removeChild(child)
     }
+
+    override fun fill(
+        pipeline: Pipeline,
+        entity: Entity,
+        clickId: Int,
+        cameraPosition: Vector3d,
+        worldScale: Double
+    ): Int {
+        val clickId1 = super.fill(pipeline, entity, clickId, cameraPosition, worldScale)
+        return assignClickIds(this, clickId1)
+    }
+
+    private fun assignClickIds(sdf: SDFGroup, clickId0: Int): Int {
+        var clickId = clickId0
+        val children = sdf.children
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.isEnabled) {
+                child.clickId = clickId++
+                if (child is SDFGroup) {
+                    clickId = assignClickIds(child, clickId)
+                }
+            }
+        }
+        return clickId
+    }
+
 
     var dynamicSmoothness = false
         set(value) {
@@ -410,7 +440,7 @@ class SDFGroup : SDFComponent() {
                             CombinationMode.INTERSECTION -> sMaxCubic(d0, d1, k)
                             CombinationMode.DIFFERENCE1 -> sMaxCubic(+d0, -d1, k)
                             CombinationMode.DIFFERENCE2 -> sMaxCubic(-d0, +d1, k)
-                            CombinationMode.DIFFERENCE_SYM -> sMaxCubic(sMinCubic(d0,d1,k), sMaxCubic(d0,d1,k), k)
+                            CombinationMode.DIFFERENCE_SYM -> sMaxCubic(sMinCubic(d0, d1, k), sMaxCubic(d0, d1, k), k)
                             CombinationMode.INTERPOLATION -> {
                                 if (activeIndex == 1) d0 *= max(1f - abs(progress), 0f)
                                 d0 + d1 * max(1f - abs(progress - activeIndex), 0f)

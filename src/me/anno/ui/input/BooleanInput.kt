@@ -133,6 +133,6 @@ class BooleanInput(
         clone.isChecked = isChecked
     }
 
-    override val className: String = "BooleanInput"
+    override val className = "BooleanInput"
 
 }

@@ -12,6 +12,6 @@ class ManualProceduralMesh : ProceduralMesh() {
         return clone
     }
 
-    override val className: String = "ManualProceduralMesh"
+    override val className = "ManualProceduralMesh"
 
 }

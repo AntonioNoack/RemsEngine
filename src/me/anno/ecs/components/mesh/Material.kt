@@ -1,8 +1,11 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -19,10 +22,11 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
+import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-open class Material : PrefabSaveable() {
+open class Material : PrefabSaveable(), Renderable {
 
     // todo most properties here should be defined by the shader, not this class
     // todo we then somehow must display them dynamically
@@ -181,6 +185,21 @@ open class Material : PrefabSaveable() {
         }
     }
 
+    override fun fill(
+        pipeline: Pipeline,
+        entity: Entity,
+        clickId: Int,
+        cameraPosition: Vector3d,
+        worldScale: Double
+    ): Int {
+        val mesh = Pipeline.sampleMesh
+        val stage = pipelineStage ?: pipeline.getDefaultStage(mesh, this)
+        val materialSource = root.ref
+        mesh.material = materialSource
+        stage.add(Pipeline.sampleMeshComponent, mesh, entity, 0, clickId)
+        return clickId
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         saveSerializableProperties(writer)
@@ -275,7 +294,7 @@ open class Material : PrefabSaveable() {
         clone.clamping = clamping
     }
 
-    override val className: String = "Material"
+    override val className = "Material"
 
     companion object {
 

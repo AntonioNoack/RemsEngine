@@ -44,6 +44,6 @@ class SplineControlPoint : Component() {
         clone.height = height
     }
 
-    override val className: String = "SplineControlPoint"
+    override val className = "SplineControlPoint"
 
 }

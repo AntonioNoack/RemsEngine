@@ -63,6 +63,6 @@ class TypeTestComponent : Component() {
         return TypeTestComponent()
     }
 
-    override val className: String = "TypeTestComponent"
+    override val className = "TypeTestComponent"
 
 }

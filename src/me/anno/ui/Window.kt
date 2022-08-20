@@ -187,7 +187,10 @@ open class Window(
                 // recalculate layout
                 p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)
                 p.setPosSize(p.lx0, p.ly0, p.lx1 - p.lx0, p.ly1 - p.ly0)
-                needsLayout.removeAll(p.listOfAll.toSet())
+                needsLayout.removeIf { entry ->
+                    entry.anyInHierarchy { it == p }
+                }
+                // needsLayout.removeAll(p.listOfAll.toSet())
                 addNeedsRedraw(p)
             }
         }
@@ -271,7 +274,7 @@ open class Window(
                 wasRedrawn += panel0
 
                 GFX.loadTexturesSync.clear()
-                GFX.loadTexturesSync.push(true)
+                GFX.loadTexturesSync.push(false)
 
                 if (buffer.w != x1 - x0 || buffer.h != y1 - y0) {
                     buffer.w = x1 - x0

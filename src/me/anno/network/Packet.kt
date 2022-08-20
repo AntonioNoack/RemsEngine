@@ -108,7 +108,7 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
         else super.readInt(name, value)
     }
 
-    override val className: String = "Packet"
+    override val className = "Packet"
 
     companion object {
         private val LOGGER = LogManager.getLogger(Packet::class)

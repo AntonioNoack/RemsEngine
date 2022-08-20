@@ -1,23 +1,19 @@
 package me.anno.gpu.pipeline
 
-import me.anno.Build
-import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.anim.Animation
-import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.cache.MaterialCache
-import me.anno.ecs.components.cache.SkeletonCache
-import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.sdf.SDFComponent
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.components.mesh.shapes.Icosahedron
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.Frustum
 import me.anno.engine.ui.render.RenderState
@@ -25,11 +21,9 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.texture.Texture2D
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.thumbs.Thumbs.threadLocalBoneMatrices
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.sorting.MergeSort.mergeSort
@@ -41,7 +35,6 @@ import org.joml.AABBd
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4d
-import kotlin.math.min
 
 /**
  * collects meshes for sorting (transparency, overdraw), and for instanced rendering
@@ -89,13 +82,13 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         return lightPseudoStage.size > RenderView.MAX_FORWARD_LIGHTS
     }
 
-    private fun getDefaultStage(mesh: Mesh, material: Material?): PipelineStage {
+    fun getDefaultStage(mesh: Mesh, material: Material?): PipelineStage {
         // todo analyse, whether the material has transparency, and if so,
         // todo add it to the transparent pass
         return defaultStage
     }
 
-    private fun addMesh(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, clickId: Int) {
+    fun addMesh(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, clickId: Int) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         val materialOverrides = renderer.materials
@@ -112,7 +105,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         defaultStage.add(renderer, mesh, entity, 0, 0)
     }
 
-    private fun addMeshInstanced(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, clickId: Int) {
+    fun addMeshInstanced(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, clickId: Int) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         val materialOverrides = renderer.materials
@@ -135,7 +128,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         defaultStage.addInstanced(mesh, component, entity, material, materialIndex, 0)
     }
 
-    private fun addLight(light: LightComponent, entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
+    fun addLight(light: LightComponent, entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
         // for debugging of the light shapes
         // addMesh(light.getLightPrimitive(), MeshRenderer(), entity, 0)
         val stage = lightPseudoStage
@@ -181,7 +174,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         lastClickId = 1
     }
 
-    fun fill(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double) {
+    fun fill(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double): Int {
         // todo more complex traversal:
         // done exclude static entities by their AABB
         // done exclude entities, if they contain no meshes
@@ -190,80 +183,21 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         //  - add a margin, so entities at the screen border can stay visible
         //  - partially populate the pipeline?
         rootElement.validateAABBs()
-        lastClickId = subFill(rootElement, lastClickId, cameraPosition, worldScale)
+        val lastClickId = subFill(rootElement, lastClickId, cameraPosition, worldScale)
+        this.lastClickId = lastClickId
         // LOGGER.debug("$contained/$nonContained")
+        return lastClickId
     }
 
     fun fill(root: PrefabSaveable, cameraPosition: Vector3d, worldScale: Double) {
         val clickId = lastClickId
-        when (root) {
-            is Entity -> fill(root, cameraPosition, worldScale)
-            is MeshComponentBase -> {
-                root.clickId = clickId
-                val mesh = root.getMesh()
-                if (mesh != null) addMesh(mesh, root, sampleEntity, root.gfxId)
-            }
-            is Mesh -> addMesh(root, sampleMeshComponent, sampleEntity, clickId)
-            is Material -> {
-                val mesh = sampleMesh
-                val stage = root.pipelineStage ?: getDefaultStage(mesh, root)
-                val materialSource = root.prefab!!.source // should be defined
-                if (!materialSource.exists) throw IllegalArgumentException("Material must have source")
-                mesh.material = materialSource
-                stage.add(sampleMeshComponent, mesh, sampleEntity, 0, clickId)
-            }
-            is LightComponent -> {
-                // todo add floor, so we can see the light?
-                addLight(root, root.entity ?: sampleEntity, cameraPosition, worldScale)
-            }
-            is Animation -> {
-                // todo optimize this (avoid allocations)
-                // todo use AnimRenderer for motion vectors
-                val skeleton = SkeletonCache[root.skeleton] ?: return
-                val bones = skeleton.bones
-                val mesh = Mesh()
-                val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
-                val size = (bones.size - 1) * Skeleton.boneMeshVertices.size
-                mesh.positions = Texture2D.floatArrayPool[size, false, true]
-                mesh.normals = Texture2D.floatArrayPool[size, true, true]
-                val time = Engine.gameTimeF % root.duration
-                // generate the matrices
-                root.getMatrices(null, time, skinningMatrices)
-                // apply the matrices to the bone positions
-                for (i in 0 until min(animPositions.size, bones.size)) {
-                    val position = animPositions[i].set(bones[i].bindPosition)
-                    skinningMatrices[i].transformPosition(position)
-                }
-                Skeleton.generateSkeleton(bones, animPositions, mesh.positions!!, null)
-                mesh.invalidateGeometry()
-                fill(mesh, cameraPosition, worldScale)
-                GFX.addGPUTask("free", 1) {
-                    Texture2D.floatArrayPool.returnBuffer(mesh.positions)
-                    Texture2D.floatArrayPool.returnBuffer(mesh.normals)
-                    mesh.destroy()
-                }
-            }
-            is Skeleton -> {
-                // todo optimize this (avoid allocations)
-                val bones = root.bones
-                if (bones.isEmpty()) return
-                val mesh = Mesh()
-                // in a tree with N nodes, there is N-1 lines
-                val size = (bones.size - 1) * Skeleton.boneMeshVertices.size
-                mesh.positions = Texture2D.floatArrayPool[size, false, true]
-                mesh.normals = Texture2D.floatArrayPool[size, true, true]
-                val bonePositions = Array(bones.size) { bones[it].bindPosition }
-                Skeleton.generateSkeleton(bones, bonePositions, mesh.positions!!, null)
-                fill(mesh, cameraPosition, worldScale)
-                GFX.addGPUTask("free", 1) {
-                    Texture2D.floatArrayPool.returnBuffer(mesh.positions)
-                    Texture2D.floatArrayPool.returnBuffer(mesh.normals)
-                    mesh.destroy()
-                }
-            }
-            else -> {
-                LOGGER.warn("Don't know how to draw ${root.className}")
-            }
+        if (root is Renderable) {
+            root.fill(this, sampleEntity, clickId, cameraPosition, worldScale)
+        } else {
+            LOGGER.warn(
+                "Don't know how to render ${root.className}, " +
+                        "please implement me.anno.ecs.interfaces.Renderable, if it is supposed to be renderable"
+            )
         }
     }
 
@@ -332,93 +266,14 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         }
     }
 
-    private fun assignClickIds(sdf: SDFGroup, clickId0: Int): Int {
-        var clickId = clickId0
-        val children = sdf.children
-        for (i in children.indices) {
-            val child = children[i]
-            if (child.isEnabled) {
-                child.clickId = clickId++
-                if (child is SDFGroup) {
-                    clickId = assignClickIds(child, clickId)
-                }
-            }
-        }
-        return clickId
-    }
-
     private fun subFill(entity: Entity, clickId0: Int, cameraPosition: Vector3d, worldScale: Double): Int {
         entity.hasBeenVisible = true
         var clickId = clickId0
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
-            if (component.isEnabled && component !== ignoredComponent) {
-                when (component) {
-                    is SDFComponent -> {
-                        val mesh = component.getMesh()
-                        component.clickId = clickId
-                        if (component.isInstanced && mesh.proceduralLength <= 0) {
-                            addMeshInstanced(mesh, component, entity, clickId)
-                        } else {
-                            addMesh(mesh, component, entity, component.gfxId)
-                        }
-                        clickId++
-                        if (component is SDFGroup) {
-                            clickId = assignClickIds(component, clickId)
-                        }
-                    }
-                    is MeshComponentBase -> {
-                        val mesh = component.getMesh()
-                        if (mesh != null) {
-                            component.clickId = clickId
-                            if (component.isInstanced && mesh.proceduralLength <= 0) {
-                                addMeshInstanced(mesh, component, entity, clickId)
-                            } else {
-                                addMesh(mesh, component, entity, component.gfxId)
-                            }
-                            clickId++
-                        }
-                    }
-                    is MeshSpawner -> {
-                        component.clickId = clickId
-                        lastClickId0 = clickId
-                        tmpComponent = component
-                        lastStack = null
-                        lastMesh = null
-                        var done = component.forEachMeshGroupPSR { mesh, material ->
-                            val material2 = material ?: defaultMaterial
-                            val stage = material2.pipelineStage ?: defaultStage
-                            val stack = stage.instancedMeshes3.getOrPut(mesh, material2) { _, _ -> InstancedStackV2() }
-                            lastStack2 = stack
-                            if (stack.clickIds.isEmpty() || stack.clickIds.last() != lastClickId0) {
-                                stack.clickIds.add(stack.size)
-                                stack.clickIds.add(lastClickId0)
-                            }
-                            stack.posSizeRot
-                        }
-                        if (!done) {
-                            done = component.forEachMeshGroup { mesh, material ->
-                                val material2 = material ?: defaultMaterial
-                                val stage = material2.pipelineStage ?: defaultStage
-                                val stack = stage.instancedMeshes2.getOrPut(mesh, material2) { mesh1, _ ->
-                                    if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
-                                }
-                                stack.autoClickId = lastClickId0
-                                validateLastStack()
-                                lastStack = stack
-                                lastStackIndex = stack.size
-                                stack
-                            }
-                            validateLastStack()
-                            if (!done) component.forEachMesh(::subFill1)
-                        }
-                        clickId++
-                    }
-                    is LightComponent -> addLight(component, entity, cameraPosition, worldScale)
-                    is AmbientLight -> ambient.add(component.color)
-                    is PlanarReflection -> planarReflections.add(component)
-                }
+            if (component.isEnabled && component !== ignoredComponent && component is Renderable) {
+                clickId = component.fill(this, entity, clickId, cameraPosition, worldScale)
             }
         }
         val children = entity.children
@@ -429,73 +284,6 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             }
         }
         return clickId
-    }
-
-    private var tmpComponent: MeshSpawner? = null
-    private var lastMesh: Mesh? = null
-    private var lastMat: Material? = null
-    private var lastStage: PipelineStage? = null
-    private var lastStack: InstancedStack? = null
-    private var lastStack2: InstancedStackV2? = null
-    private var lastClickId0 = 0
-    private var lastStackIndex = 0
-
-    private fun validateLastStack() {
-        val ls = lastStack
-        if (ls != null) {
-            for (j in lastStackIndex until ls.size) {
-                ls.transforms[j]!!.validate()
-            }
-        }
-        lastStack = null
-    }
-
-    private val tmpAABB = AABBd()
-    fun subFill1(mesh: Mesh, material: Material?, transform: Transform) {
-
-        mesh.ensureBuffer()
-        transform.validate()
-
-        // check visibility
-        val bounds = tmpAABB
-        bounds.set(mesh.aabb)
-        bounds.transform(transform.globalTransform)
-        if (!frustum.contains(bounds)) return
-
-        // quick path for lots of repeating meshes
-        if (mesh === lastMesh && material === lastMat) {
-            lastStack!!.add(transform, lastClickId0)
-            lastStage!!.instancedSize++
-            return
-        }
-
-        if (mesh.proceduralLength <= 0) {
-
-            val material2 = material ?: defaultMaterial
-            val stage = material2.pipelineStage ?: defaultStage
-            val stack = stage.instancedMeshes2.getOrPut(mesh, material2) { mesh1, _ ->
-                if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
-            }
-
-            val clickId = lastClickId0
-            stage.addToStack(stack, null, transform, clickId)
-
-            // cache
-            lastMesh = mesh
-            lastMat = material
-            lastStage = stage
-            lastStack = stack
-
-        } else {
-            if (Build.isDebug && mesh.numMaterials > 1) {
-                LOGGER.warn("Procedural meshes in MeshSpawner cannot support multiple materials")
-            }
-            val material2 = material ?: defaultMaterial
-            val stage = material2.pipelineStage ?: defaultStage
-            val component = tmpComponent!!
-            val clickId = lastClickId0
-            stage.add(component, mesh, component.entity!!, 0, clickId)
-        }
     }
 
     fun traverse(world: PrefabSaveable, run: (Entity) -> Unit) {
@@ -637,15 +425,15 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         }
     }
 
-    override val className: String = "Pipeline"
-    override val approxSize: Int = 10
-    override fun isDefaultValue(): Boolean = false
+    override val className = "Pipeline"
+    override val approxSize = 10
+    override fun isDefaultValue() = false
 
     companion object {
         private val LOGGER = LogManager.getLogger(Pipeline::class)
         private val sampleEntity = Entity()
-        private val sampleMeshComponent = MeshComponent()
-        private val sampleMesh = Icosahedron.createMesh(60, 60)
+        val sampleMeshComponent = MeshComponent()
+        val sampleMesh = Icosahedron.createMesh(60, 60)
     }
 
 }

@@ -31,9 +31,7 @@ import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
 import kotlin.math.pow
 
-abstract class LightComponent(
-    val lightType: LightType
-) : LightComponentBase() {
+abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     // todo AES lights, and their textures?
 
@@ -69,6 +67,18 @@ abstract class LightComponent(
     var needsUpdate = true
     var autoUpdate = true
 
+    override fun fill(
+        pipeline: Pipeline,
+        entity: Entity,
+        clickId: Int,
+        cameraPosition: Vector3d,
+        worldScale: Double
+    ): Int {
+        // todo if(entity == pipeline.sampleEntity) add floor/setup, so we can see the light
+        pipeline.addLight(this, entity, cameraPosition, worldScale)
+        return clickId // not itself clickable
+    }
+
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         val mesh = getLightPrimitive()
         mesh.ensureBounds()
@@ -78,17 +88,6 @@ abstract class LightComponent(
 
     open fun invalidateShadows() {
         needsUpdate = true
-    }
-
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as LightComponent
-        clone.shadowMapCascades = shadowMapCascades
-        clone.shadowMapPower = shadowMapPower
-        clone.shadowMapResolution = shadowMapResolution
-        clone.color = color
-        clone.needsUpdate = true
-        clone.autoUpdate = autoUpdate
     }
 
     override fun onDrawGUI(all: Boolean) {
@@ -222,6 +221,17 @@ abstract class LightComponent(
     open fun getShaderV0(drawTransform: Matrix4x3d, worldScale: Double): Float = 0f
     open fun getShaderV1(): Float = 0f
     open fun getShaderV2(): Float = 0f
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as LightComponent
+        clone.shadowMapCascades = shadowMapCascades
+        clone.shadowMapPower = shadowMapPower
+        clone.shadowMapResolution = shadowMapResolution
+        clone.color = color
+        clone.needsUpdate = true
+        clone.autoUpdate = autoUpdate
+    }
 
     override fun destroy() {
         super.destroy()

@@ -4,11 +4,12 @@ import me.anno.Engine
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
+import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
+open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter, style) {
     constructor(style: Style) : this(null, style)
 
     private var sumConst = 0
@@ -31,18 +32,35 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         val availableW = w - padding.width
         var availableH = h - padding.height
 
-        // todo if all children have same size, speed this up
-
         val children = children
-        for (i in children.indices) {
-            val child = children[i]
-            if (child.visibility != Visibility.GONE) {
-                child.calculateSize(availableW, availableH)
-                // apply constraints?
-                constantSum += child.minH
-                maxX = max(maxX, child.x + child.minW)
-                weightSum += max(0f, child.weight)
-                availableH = max(0, availableH - child.minH)
+        if (allChildrenHaveSameSize && children.isNotEmpty()) {
+            // optimize for case that all children have same size
+            val child = children[min(visibleIndex0, children.lastIndex)]
+            val count = children.count2 { it.visibility != Visibility.GONE }
+            child.calculateSize(availableW, availableH)
+            // apply constraints?
+            constantSum += count * child.minH
+            maxX = max(maxX, child.x + child.minW)
+            weightSum += count * max(0f, child.weight)
+            // assign child measurements to all visible children
+            for (i in visibleIndex0 until visibleIndex1) {
+                val child2 = children[i]
+                child2.w = child.w
+                child2.h = child.h
+                child2.minW = child.minW
+                child2.minH = child.minH
+            }
+        } else {
+            for (i in children.indices) {
+                val child = children[i]
+                if (child.visibility != Visibility.GONE) {
+                    child.calculateSize(availableW, availableH)
+                    // apply constraints?
+                    constantSum += child.minH
+                    maxX = max(maxX, child.x + child.minW)
+                    weightSum += max(0f, child.weight)
+                    availableH = max(0, availableH - child.minH)
+                }
             }
         }
 
@@ -56,30 +74,38 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     }
 
+    override val visibleIndex0
+        get(): Int {
+            val idx = children.binarySearch { it.y.compareTo(ly0) }
+            return max(0, (if (idx < 0) -1 - idx else idx) - 1)
+        }
+    override val visibleIndex1
+        get(): Int {
+            val idx = children.binarySearch { it.y.compareTo(ly1) }
+            return min(children.size, if (idx < 0) -1 - idx else idx)
+        }
+
+    override fun getChildPanelAt(x: Int, y: Int): Panel? {
+        val children = children
+        var idx = children.binarySearch { it.y.compareTo(y) }
+        if (idx < 0) idx = -1 - idx
+        for (i in min(children.size - 1, idx) downTo max(0, idx - 1)) {
+            val panelAt = children[i].getPanelAt(x, y)
+            if (panelAt != null && panelAt.isOpaqueAt(x, y)) {
+                return panelAt
+            }
+        }
+        return null
+    }
+
     override fun drawChildren(x0: Int, y0: Int, x1: Int, y1: Int) {
         val children = children
         var i0 = children.binarySearch { it.y.compareTo(y0) }
         var i1 = children.binarySearch { it.y.compareTo(y1) }
         if (i0 < 0) i0 = -1 - i0
         if (i1 < 0) i1 = -1 - i1
-        for (i in i0 until min(i1 + 1, children.size)) {
+        for (i in max(0, i0 - 1) until min(i1, children.size)) {
             children[i].draw(x0, y0, x1, y1)
-        }
-    }
-
-    override fun forAllVisiblePanels(callback: (Panel) -> Unit) {
-        if (canBeSeen) {
-            callback(this)
-            val children = children
-            var i0 = children.binarySearch { it.y.compareTo(ly0) }
-            var i1 = children.binarySearch { it.y.compareTo(ly1) }
-            if (i0 < 0) i0 = -1 - i0
-            if (i1 < 0) i1 = -1 - i1
-            for (i in i0 until min(i1 + 1, children.size)) {
-                val child = children[i]
-                child.parent = this
-                child.forAllVisiblePanels(callback)
-            }
         }
     }
 
@@ -134,6 +160,6 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         }
     }
 
-    override val className: String = "PanelListY"
+    override val className = "PanelListY"
 
 }

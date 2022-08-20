@@ -74,7 +74,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
         }
     }
 
-    override val className: String = "ConsoleOutputPanel"
+    override val className = "ConsoleOutputPanel"
 
     companion object {
 

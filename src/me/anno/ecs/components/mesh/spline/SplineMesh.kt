@@ -189,7 +189,7 @@ class SplineMesh : ProceduralMesh() {
         }
     }
 
-    override val className: String = "SplineMesh"
+    override val className = "SplineMesh"
 
     companion object {
 

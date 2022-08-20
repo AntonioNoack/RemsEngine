@@ -212,6 +212,17 @@ class PlanarReflection : LightComponentBase() {
         }
     }
 
+    override fun fill(
+        pipeline: Pipeline,
+        entity: Entity,
+        clickId: Int,
+        cameraPosition: Vector3d,
+        worldScale: Double
+    ): Int {
+        pipeline.planarReflections.add(this)
+        return clickId // not itself clickable
+    }
+
     override fun clone(): PlanarReflection {
         val clone = PlanarReflection()
         copy(clone)
@@ -225,7 +236,7 @@ class PlanarReflection : LightComponentBase() {
         clone.usesFP = usesFP
     }
 
-    override val className: String = "PlanarReflection"
+    override val className = "PlanarReflection"
 
     companion object {
 

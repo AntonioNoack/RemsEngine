@@ -48,7 +48,7 @@ fun main() {
 
             override fun isDefaultValue(): Boolean = false
             override val approxSize: Int = 0
-            override val className: String = ""
+            override val className = ""
         })
 
         clock.stop("toIntArray", length)

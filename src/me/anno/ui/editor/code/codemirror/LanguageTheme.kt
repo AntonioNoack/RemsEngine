@@ -98,6 +98,6 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
         } else super.readObjectArray(name, values)
     }
 
-    override val className: String = "LanguageTheme"
+    override val className = "LanguageTheme"
 
 }

@@ -46,19 +46,19 @@ class ECSSceneTab(
     val inspector: PrefabInspector,
     val file: FileReference,
     val playMode: PlayMode,
-    name: String = file.nameWithoutExtension
+    name: String = findName(file)
 ) : TextPanel(name, DefaultConfig.style) {
 
     constructor(
         file: FileReference,
         classNameIfNull: String,
         playMode: PlayMode,
-        name: String = file.nameWithoutExtension
+        name: String = findName(file)
     ) : this(PrefabInspector(file, classNameIfNull), file, playMode, name)
 
     constructor(
         file: FileReference, playMode: PlayMode,
-        name: String = file.nameWithoutExtension
+        name: String = findName(file)
     ) : this(PrefabInspector(file), file, playMode, name)
 
     init {

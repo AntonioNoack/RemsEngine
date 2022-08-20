@@ -598,8 +598,8 @@ abstract class FileExplorer(
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if (!Input.isControlDown) {
-            // find which item is being hovered
-            hoveredItemIndex = content.getItemIndexAt(x, y)
+            // find, which item is being hovered
+            hoveredItemIndex = content.getItemIndexAt(x.toInt(), y.toInt())
             hoverFractionY = clamp(content.getItemFractionY(y).toFloat(), 0.25f, 0.75f)
         }
     }

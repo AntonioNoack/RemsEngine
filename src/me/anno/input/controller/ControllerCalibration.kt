@@ -63,7 +63,7 @@ class ControllerCalibration() : Saveable() {
         }
     }
 
-    override val className: String = "ControllerCalibration"
+    override val className = "ControllerCalibration"
 
     companion object {
         init {

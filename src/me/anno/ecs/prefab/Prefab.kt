@@ -369,7 +369,7 @@ class Prefab : Saveable {
         return clone
     }
 
-    override val className: String = "Prefab"
+    override val className = "Prefab"
     override val approxSize: Int = 1_000_000_000
 
     override fun isDefaultValue(): Boolean =

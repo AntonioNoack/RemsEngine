@@ -221,14 +221,17 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             else "$parent/$name"
         }
 
-        fun appendPath(fileI: File, i: Int, parts: List<String>): FileReference {
-            var ref: FileReference = FileFileRef(fileI)
+        fun appendPath(ref0: FileReference, i: Int, parts: List<String>): FileReference {
+            var ref = ref0
             for (j in i until parts.size) {
                 ref = ref.getChild(parts[j])
                 if (ref == InvalidRef) return ref
             }
             return ref
         }
+
+        fun appendPath(fileI: File, i: Int, parts: List<String>)=
+            appendPath(FileFileRef(fileI), i, parts)
 
         fun getReference(file: File?): FileReference {
             return getReference(file?.absolutePath?.replace('\\', '/'))

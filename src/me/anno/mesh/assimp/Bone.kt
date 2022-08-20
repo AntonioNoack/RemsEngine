@@ -62,7 +62,7 @@ class Bone(var id: Int, var parentId: Int, name: String) : NamedSaveable() {
         bindPosition.set(bindPose.m30(), bindPose.m31(), bindPose.m32())
     }
 
-    override val className: String = "Bone"
+    override val className = "Bone"
     override val approxSize: Int = 1
 
     override fun readInt(name: String, value: Int) {

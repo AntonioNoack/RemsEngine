@@ -116,7 +116,7 @@ abstract class StackPanel(
     abstract fun onRemoveComponent(component: Inspectable)
     abstract fun getOptionFromInspectable(inspectable: Inspectable): Option?
 
-    override val className: String = "StackPanel"
+    override val className = "StackPanel"
 
 
 }

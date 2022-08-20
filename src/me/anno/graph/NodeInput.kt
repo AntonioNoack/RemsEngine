@@ -65,6 +65,6 @@ class NodeInput : NodeConnector {
         return value
     }
 
-    override val className: String = "NodeInput"
+    override val className = "NodeInput"
 
 }

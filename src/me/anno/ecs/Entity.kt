@@ -15,8 +15,10 @@ import me.anno.ecs.components.physics.twod.Box2dPhysics
 import me.anno.ecs.components.physics.twod.Rigidbody2d
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
@@ -46,7 +48,7 @@ import kotlin.reflect.KClass
 // done delta settings & control: only saves as values, what was changed from the prefab
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-class Entity() : PrefabSaveable(), Inspectable {
+class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     constructor(parent: Entity?) : this() {
         parent?.add(this)
@@ -954,6 +956,11 @@ class Entity() : PrefabSaveable(), Inspectable {
         // converts the point from our local coordinates of the local coordinates of the other one
         return Matrix4x3d(other.transform.globalTransform).invert().mul(transform.globalTransform)
     }
+
+    override fun fill(
+        pipeline: Pipeline, entity: Entity,
+        clickId: Int, cameraPosition: Vector3d, worldScale: Double
+    ) = pipeline.fill(this, cameraPosition, worldScale)
 
     override fun clone(): Entity {
         val clone = Entity()

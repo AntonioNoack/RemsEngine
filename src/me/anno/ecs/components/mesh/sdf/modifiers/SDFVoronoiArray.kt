@@ -358,7 +358,7 @@ class SDFVoronoiArray : PositionMapper() {
         clone.max = max
     }
 
-    override val className: String = "SDFVoronoiArray"
+    override val className = "SDFVoronoiArray"
 
     companion object {
 
