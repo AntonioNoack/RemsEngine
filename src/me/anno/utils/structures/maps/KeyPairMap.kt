@@ -2,13 +2,13 @@ package me.anno.utils.structures.maps
 
 import me.anno.utils.structures.lists.PairArrayList
 
-class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
+open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     Iterable<PairArrayList<KFewOnly, Value>> {
 
     val values = HashMap<KManifold, PairArrayList<KFewOnly, Value>>(capacity)
     var size = 0
 
-    fun clear() {
+    open fun clear() {
         values.clear()
         size = 0
     }

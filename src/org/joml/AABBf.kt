@@ -87,39 +87,6 @@ class AABBf(
                 minZ <= other.maxZ
     }
 
-    fun transform(m: Matrix4fc, dest: AABBf = this): AABBf {
-        val dx = maxX - minX
-        val dy = maxY - minY
-        val dz = maxZ - minZ
-        var minx = Float.POSITIVE_INFINITY
-        var miny = Float.POSITIVE_INFINITY
-        var minz = Float.POSITIVE_INFINITY
-        var maxx = Float.NEGATIVE_INFINITY
-        var maxy = Float.NEGATIVE_INFINITY
-        var maxz = Float.NEGATIVE_INFINITY
-        for (i in 0..7) {
-            val x = minX + (i and 1).toFloat() * dx
-            val y = minY + (i shr 1 and 1).toFloat() * dy
-            val z = minZ + (i shr 2 and 1).toFloat() * dz
-            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
-            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
-            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
-            minx = min(tx, minx)
-            miny = min(ty, miny)
-            minz = min(tz, minz)
-            maxx = max(tx, maxx)
-            maxy = max(ty, maxy)
-            maxz = max(tz, maxz)
-        }
-        dest.minX = minx
-        dest.minY = miny
-        dest.minZ = minz
-        dest.maxX = maxx
-        dest.maxY = maxy
-        dest.maxZ = maxz
-        return dest
-    }
-
     fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float): Boolean {
         return Intersectionf.testRayAab(
             px, py, pz, dx, dy, dz,
@@ -209,6 +176,78 @@ class AABBf(
         dst.maxX = min(maxX, other.maxX)
         dst.maxY = min(maxY, other.maxY)
         dst.maxZ = min(maxZ, other.maxZ)
+        return dst
+    }
+
+    fun transform(m: Matrix4fc, dest: AABBf = this): AABBf {
+        val dx = maxX - minX
+        val dy = maxY - minY
+        val dz = maxZ - minZ
+        var minx = Float.POSITIVE_INFINITY
+        var miny = Float.POSITIVE_INFINITY
+        var minz = Float.POSITIVE_INFINITY
+        var maxx = Float.NEGATIVE_INFINITY
+        var maxy = Float.NEGATIVE_INFINITY
+        var maxz = Float.NEGATIVE_INFINITY
+        for (i in 0..7) {
+            val x = minX + (i and 1).toFloat() * dx
+            val y = minY + (i shr 1 and 1).toFloat() * dy
+            val z = minZ + (i shr 2 and 1).toFloat() * dz
+            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
+            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
+            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
+        }
+        dest.minX = minx
+        dest.minY = miny
+        dest.minZ = minz
+        dest.maxX = maxx
+        dest.maxY = maxy
+        dest.maxZ = maxz
+        return dest
+    }
+
+    /**
+     * transforms this matrix, then unions it with base, and places the result in dst
+     * */
+    fun transform(m: Matrix4x3d, dst: AABBd): AABBd {
+        val mx = minX.toDouble()
+        val my = minY.toDouble()
+        val mz = minZ.toDouble()
+        val dx = this.maxX - mx
+        val dy = this.maxY - my
+        val dz = this.maxZ - mz
+        var minx = Double.POSITIVE_INFINITY
+        var miny = Double.POSITIVE_INFINITY
+        var minz = Double.POSITIVE_INFINITY
+        var maxx = Double.NEGATIVE_INFINITY
+        var maxy = Double.NEGATIVE_INFINITY
+        var maxz = Double.NEGATIVE_INFINITY
+        for (i in 0..7) {
+            val x = mx + (i and 1).toDouble() * dx
+            val y = my + ((i shr 1) and 1).toDouble() * dy
+            val z = mz + ((i shr 2) and 1).toDouble() * dz
+            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
+            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
+            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            minx = Math.min(tx, minx)
+            miny = Math.min(ty, miny)
+            minz = Math.min(tz, minz)
+            maxx = Math.max(tx, maxx)
+            maxy = Math.max(ty, maxy)
+            maxz = Math.max(tz, maxz)
+        }
+        dst.minX = minx
+        dst.minY = miny
+        dst.minZ = minz
+        dst.maxX = maxx
+        dst.maxY = maxy
+        dst.maxZ = maxz
         return dst
     }
 

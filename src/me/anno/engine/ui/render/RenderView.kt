@@ -1310,7 +1310,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 GFXState.depthMode.use(depthMode) {
                     GFXState.cullMode.use(CullMode.BACK) {
                         GFXState.blendMode.use(null) {
-                            stage0.draw(pipeline)
+                            stage0.drawColors(pipeline)
                         }
                     }
                 }

@@ -895,20 +895,6 @@ class Mesh : PrefabSaveable(), Renderable {
         } else LOGGER.warn("Instanced rendering of procedural meshes is not supported!")
     }
 
-    fun drawInstancedDepth(shader: Shader, instanceData: Buffer) {
-        if (proceduralLength > 0) {
-            // draw all materials
-            GFX.check()
-            ensureBuffer()
-            if (drawDebugLines) {
-                debugLineBuffer?.drawInstanced(shader, instanceData)
-            } else {
-                (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
-            }
-            GFX.check()
-        } else LOGGER.warn("Instanced rendering of procedural meshes is not supported!")
-    }
-
     /**
      * calculates the bounds of the mesh
      * not fast, but the gpu will take just as long -> doesn't matter

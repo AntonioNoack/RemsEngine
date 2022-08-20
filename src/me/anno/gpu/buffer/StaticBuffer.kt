@@ -38,6 +38,7 @@ open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage
         createNioBuffer()
     }
 
+    // data for svgs, might be removed in the future
     var minX = 0.0
     var maxX = 0.0
     var minY = 0.0

@@ -613,7 +613,6 @@ class LightPipelineStage(
 
     fun drawBatches2(lights: List<LightRequest<*>>, type: LightType, size: Int) {
 
-        val batchSize = instancedBatchSize
         val visualizeLightCount = visualizeLightCount
 
         val sample = lights[0].light
@@ -649,6 +648,7 @@ class LightPipelineStage(
             buffer.clear()
             nioBuffer.limit(nioBuffer.capacity())
             // fill the data
+            val batchSize = buffer.vertexCount
             for (index in baseIndex until min(size, baseIndex + batchSize)) {
                 nioBuffer.position((index - baseIndex) * stride)
                 val lightI = lights[index]

@@ -2,7 +2,7 @@ package me.anno.utils.structures.maps
 
 import me.anno.utils.structures.tuples.MutableTriple
 
-class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 16) :
+open class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 16) :
     Iterable<List<MutableTriple<KFewOnly, KFewOnly2, Value>>> {
 
     val values = HashMap<KManifold, MutableList<MutableTriple<KFewOnly, KFewOnly2, Value>>>(capacity)
