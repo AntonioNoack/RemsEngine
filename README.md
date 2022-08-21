@@ -109,7 +109,7 @@ graph TB
 - shader graphs
 - transparent meshes
 - export to Windows/Linux
-- usable Gizmos 🙈
+- usable Gizmos 😅
 - fully supported Lua scripting
 - surfel based global illumination
 

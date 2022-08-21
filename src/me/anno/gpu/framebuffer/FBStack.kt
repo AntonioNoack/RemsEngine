@@ -9,8 +9,6 @@ import org.apache.logging.log4j.LogManager
 
 object FBStack : CacheSection("FBStack") {
 
-    // todo offer 16 bit and 32 bit floats
-
     private val LOGGER = LogManager.getLogger(FBStack::class)
     private const val timeout = 2100L
 

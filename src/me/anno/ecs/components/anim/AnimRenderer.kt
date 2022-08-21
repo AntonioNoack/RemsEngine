@@ -96,9 +96,6 @@ open class AnimRenderer : MeshComponent() {
     val prevIndices = Vector4f()
 
     @NotSerializedProperty
-    var lastTime = 0L
-
-    @NotSerializedProperty
     val currWeights = Vector4f()
 
     @NotSerializedProperty
@@ -137,24 +134,13 @@ open class AnimRenderer : MeshComponent() {
 
         if (useAnimTextures) {
 
-            val time = Engine.gameTime
-
-            if (time > lastTime) {
-                lastTime = time
-                getAnimState(currWeights, currIndices)
-            }
+            updateAnimState()
 
             shader.v4f("prevAnimWeights", prevWeights)
             shader.v4f("prevAnimIndices", prevIndices)
 
             shader.v4f("animWeights", currWeights)
             shader.v4f("animIndices", currIndices)
-
-            if (time > prevTime) {
-                prevTime = time
-                prevWeights.set(currWeights)
-                prevIndices.set(currIndices)
-            }
 
             val animTexture = AnimationCache[skeleton]
             val animTexture2 = animTexture.texture
@@ -174,6 +160,16 @@ open class AnimRenderer : MeshComponent() {
             upload(location, matrices)
             return true
         }
+    }
+
+    fun updateAnimState(): Boolean {
+        val time = Engine.gameTime
+        return if (time > prevTime) {
+            prevTime = time
+            prevWeights.set(currWeights)
+            prevIndices.set(currIndices)
+            getAnimState(currWeights, currIndices)
+        } else true // mmh...
     }
 
     /**
@@ -213,7 +209,10 @@ open class AnimRenderer : MeshComponent() {
     fun findRetargeting(dstSkeleton: FileReference, animation: Animation) =
         getRetargeting(animation.skeleton, dstSkeleton)
 
-    open fun getAnimState(dstWeights: Vector4f, dstIndices: Vector4f): Boolean {
+    open fun getAnimState(
+        dstWeights: Vector4f,
+        dstIndices: Vector4f
+    ): Boolean {
 
         val skeleton = SkeletonCache[skeleton]
         if (skeleton == null) {

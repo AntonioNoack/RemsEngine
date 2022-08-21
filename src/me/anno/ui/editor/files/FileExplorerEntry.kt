@@ -69,16 +69,6 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import kotlin.math.*
 
-// todo when dragging files over the edge of the border, mark them as copied, or somehow make them draggable...
-
-// todo right click, "Switch To", add option "Switch To Folder" for files, which are no folders
-
-// todo when the aspect ratio is extreme (e.g. > 50), stretch the image artificially to maybe 10 aspect ratio
-
-// done cannot enter mtl file
-
-// todo when is audio, and hovered, we need to draw the loading animation continuously as well
-
 // todo right click to get all meta information? (properties panel in windows)
 
 // done images: show extra information: width, height
@@ -158,7 +148,7 @@ open class FileExplorerEntry(
         }
     }
 
-    private val titlePanel = TextPanel(
+    val titlePanel = TextPanel(
         when {
             isParent -> ".."
             file.nameWithoutExtension.isBlank2() && file.name.isBlank2() -> file.toString()

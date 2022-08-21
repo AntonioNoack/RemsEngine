@@ -37,14 +37,17 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.drawing.SVGxGFX
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.gpu.framebuffer.*
+import me.anno.gpu.drawing.SVGxGFX
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Filtering
@@ -102,7 +105,6 @@ import org.joml.Math.sqrt
 import org.joml.Matrix4fArrayList
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C.*
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
@@ -177,6 +179,7 @@ object Thumbs {
         // was deleted
         if (!file.exists) return null
 
+        if (neededSize < 1) return null
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, file.lastModified, file.isDirectory, size)
 
@@ -231,6 +234,7 @@ object Thumbs {
     }
 
     private fun getSize(neededSize: Int): Int {
+        if (neededSize < 1) return 0
         return if (neededSize < neededSizes.size) {
             neededSizes[neededSize]
         } else sizes.last()

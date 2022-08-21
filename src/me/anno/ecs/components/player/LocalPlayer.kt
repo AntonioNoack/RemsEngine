@@ -20,7 +20,7 @@ open class LocalPlayer : Player() {
         var currentLocalPlayer: LocalPlayer? = null
         val localPlayers = ArrayList<LocalPlayer>()
 
-        // todo a game instance would then set localPlayer, and localPlayers
+        // to do a game instance would then set localPlayer, and localPlayers
         // RenderView would combine all local players, or a single one, depending on setup...
         // probably we should implement a multi-renderView, which does that :)
 

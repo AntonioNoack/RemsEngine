@@ -6,7 +6,6 @@ import kotlin.math.PI
 // https://github.com/javagl/JglTF/blob/bb081a2e31b522bacb051d22053768d78c363814/jgltf-model/src/main/resources/pbr.frag
 object PBRLibraryGLTF {
 
-
     // todo regular plastic has specular as well... why not in this model?
 
     // we probably have specular dots on thin lines, because we don't handle it -> fix it with some magic-maths integration

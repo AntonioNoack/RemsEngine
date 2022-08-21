@@ -157,9 +157,11 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     discardByCullingPlane +
                     "vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
                     "gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                    // todo add reflections from reflection planes back in
-                    // todo add other stuff back in maybe, like clear coat & stuff
-                    computeMaterialProperties(isInstanced)
+                    computeMaterialProperties(isInstanced) +
+                    reflectionPlaneCalculation +
+                    v0 + sheenCalculation +
+                    clearCoatCalculation +
+                    ""
         )
     }
 

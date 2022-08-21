@@ -70,7 +70,7 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         elementCount = max(elementCount, newLimit / stride)
         nio.position(0)
         nio.limit(elementCount * stride)
-        if (allowResize && locallyAllocated > 0 && newLimit in locallyAllocated / 2..locallyAllocated) {
+        if (allowResize && locallyAllocated > 0 && newLimit in (locallyAllocated / 2 - 65536)..locallyAllocated) {
             // just keep the buffer
             glBufferSubData(type, 0, nio)
         } else {

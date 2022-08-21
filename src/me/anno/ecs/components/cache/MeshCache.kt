@@ -141,13 +141,14 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
             val tan = mesh.tangents
             if (tan != null) {
                 // pad existing
-                tangents.skip(prevNumVertices * 3 - tangents.size)
-                tangents.ensureExtra(min(tan.size, numVertices * 3))
-                for (i in 0 until min(tan.size / 3, numVertices)) {
-                    val i3 = i * 3
-                    tmp.set2(tan, i3)
+                tangents.skip(prevNumVertices * 4 - tangents.size)
+                tangents.ensureExtra(min(tan.size, numVertices * 4))
+                for (i in 0 until min(tan.size / 4, numVertices)) {
+                    val i4 = i * 4
+                    tmp.set2(tan, i4)
                     trans.transformDirection(tmp).safeNormalize()
                     tangents.add(tmp)
+                    tangents.add(tan[i4 + 3])
                 }
             }
 

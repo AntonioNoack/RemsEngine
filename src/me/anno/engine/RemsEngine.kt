@@ -29,6 +29,7 @@ import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.config.ConfigPanel
+import me.anno.ui.style.Style
 import me.anno.ui.utils.WindowStack.Companion.createReloadWindow
 import me.anno.utils.OS
 import me.anno.utils.files.Files.findNextFileName
@@ -156,6 +157,12 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         workspace.tryMkdirs()
 
         object : WelcomeUI() {
+
+            override fun createBackground(style: Style): Panel {
+                // todo create sky for background :)
+                return super.createBackground(style)
+            }
+
             override fun createProjectUI() {
 
                 val windowStack = GFX.windows.first().windowStack

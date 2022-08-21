@@ -95,12 +95,12 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
     }
 
     override val visibleIndex0
-        get() = max((ly0 - (y + spacing - scrollPositionY.toInt())) / childHeight, 0) * columns
+        get() = 0 // max((ly0 - (y + spacing - scrollPositionY.toInt())) / childHeight, 0) * columns
     override val visibleIndex1
-        get() = min(
+        get() = children.size /*min(
             (ly1 - (y + spacing - scrollPositionY.toInt()) + childHeight - 1) / childHeight * columns,
             children.size
-        )
+        )*/
 
     var autoScrollTargetPosition = 0.0
     var autoScrollEndTime = 0L
@@ -169,8 +169,11 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
         val scroll = scrollPositionY.toInt()
         // cx-x- spacing       = ix * (calcChildWidth + spacing)
         // cy-y-spacing+scroll = iy * (calcChildHeight + spacing)
-        val itemX = (cx - x - spacing) / (calcChildWidth + spacing)
-        val itemY = (cy - y - spacing + scroll) / (calcChildHeight + spacing)
+        val lw = (calcChildWidth + spacing)
+        val lh = (calcChildHeight + spacing)
+        if (lw < 1 || lh < 1) return 0
+        val itemX = (cx - x - spacing) / lw
+        val itemY = (cy - y - spacing + scroll) / lh
         return clamp(itemX + itemY * columns, 0, children.lastIndex)
     }
 
@@ -231,7 +234,6 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
                     AxisAlignment.MAX -> w - (columns - ix) * (calcChildWidth + spacing)
                 }
                 val cy = y + iy * (calcChildHeight + spacing) + spacing - scroll
-                // child.placeInParent(cx, cy)
                 child.setPosSize(cx, cy, calcChildWidth, calcChildHeight)
             }
         }

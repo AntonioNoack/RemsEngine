@@ -399,6 +399,9 @@ abstract class FileExplorer(
                 MenuOption(NameDesc("Switch To")) {
                     switchTo(files.first())
                 },
+                MenuOption(NameDesc("Switch To Folder")) {
+                    switchTo(files.first())
+                }.setEnabled(!files.first().isDirectory),
                 MenuOption(NameDesc("Copy")) {
                     thread(name = "copying files") {
                         copyIntoCurrent(files)

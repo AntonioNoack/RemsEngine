@@ -118,9 +118,10 @@ class InstancedStackI32(capacity: Int = 512) :
 
                 val endIndex = Maths.min(totalEndIndex, baseIndex + batchSize)
                 val data = instances.data
-                for (index in baseIndex until endIndex) { // slightly optimized over PSR ^^, ~ 8-fold throughput
+                for (index in baseIndex until endIndex) {
                     nioBuffer.putInt(data[index])
                 }
+                // slightly optimized over PSR ^^, ~ 8-fold throughput
                 mesh.drawInstanced(shader, 0, buffer)
                 baseIndex = endIndex
 

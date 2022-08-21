@@ -73,15 +73,18 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
 
     }
 
+    // todo these, and in PanelListY, make things unstable when scrolling
     override val visibleIndex0
         get(): Int {
-            val idx = children.binarySearch { it.x.compareTo(lx0) }
-            return max(0, (if (idx < 0) -1 - idx else idx) - 1)
+            return 0
+            // val idx = children.binarySearch { it.x.compareTo(lx0) }
+            // return max(0, (if (idx < 0) -1 - idx else idx) - 1)
         }
     override val visibleIndex1
         get(): Int {
-            val idx = children.binarySearch { it.x.compareTo(lx1) }
-            return min(children.size, if (idx < 0) -1 - idx else idx)
+            /* val idx = children.binarySearch { it.x.compareTo(lx1) }
+             return min(children.size, if (idx < 0) -1 - idx else idx)*/
+            return children.size
         }
 
     override fun getChildPanelAt(x: Int, y: Int): Panel? {
@@ -95,17 +98,6 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
             }
         }
         return null
-    }
-
-    override fun drawChildren(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val children = children
-        var i0 = children.binarySearch { it.x.compareTo(x0) }
-        var i1 = children.binarySearch { it.x.compareTo(x1) }
-        if (i0 < 0) i0 = -1 - i0
-        if (i1 < 0) i1 = -1 - i1
-        for (i in max(0, i0 - 1) until min(i1, children.size)) {
-            children[i].draw(x0, y0, x1, y1)
-        }
     }
 
     override fun setPosition(x: Int, y: Int) {

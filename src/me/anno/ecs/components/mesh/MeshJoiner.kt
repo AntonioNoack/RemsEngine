@@ -150,8 +150,8 @@ abstract class MeshJoiner<V>(
                         tmp.set(srcTangents[j4++], srcTangents[j4++], srcTangents[j4++])
                         localToGlobal.transformDirection(tmp)
                         dstTangents[i4++] = tmp.x
-                        dstTangents[i4++] = tmp.x
-                        dstTangents[i4++] = tmp.x
+                        dstTangents[i4++] = tmp.y
+                        dstTangents[i4++] = tmp.z
                         dstTangents[i4++] = srcTangents[j4++]
                     }
                 }

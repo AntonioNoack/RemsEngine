@@ -23,7 +23,7 @@ class TypeTestComponent : Component() {
 
     var someLong = 5613213L
 
-    // todo annotation for text types: names, email, password,
+    // to do annotation for text types: names, email, password,
     var someString = ""
 
     var someVec2 = Vector2f()

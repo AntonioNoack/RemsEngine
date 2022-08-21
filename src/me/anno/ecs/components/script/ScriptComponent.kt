@@ -231,22 +231,18 @@ open class ScriptComponent : Component() {
         ) : LibFunction() {
             lateinit var thread: LuaThread
             override fun invoke(varargs: Varargs?): Varargs {
-                var run = 0L
                 while (true) {
-                    // reset limit
-                    // todo this will crash after 2B instructions...
-                    // todo reset debug counter
-                    val limit = instructionLimit * run++
-                    if (limit < Int.MAX_VALUE - 65000) {
-                        setHook.invoke(
-                            varargs(
-                                thread,
-                                ErrorFunction,
-                                LuaValue.EMPTYSTRING,
-                                LuaValue.valueOf(limit.toInt())
-                            )
+                    val limit = instructionLimit
+                    // reset instruction limit
+                    thread.state.bytecodes = 0
+                    setHook.invoke(
+                        varargs(
+                            thread,
+                            ErrorFunction,
+                            LuaValue.EMPTYSTRING,
+                            LuaValue.valueOf(limit)
                         )
-                    }// else will crash...
+                    )
                     val ret = func.call()
                     globals.yield(ret)
                 }

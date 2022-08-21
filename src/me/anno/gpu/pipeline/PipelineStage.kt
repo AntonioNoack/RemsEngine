@@ -385,8 +385,8 @@ class PipelineStage(
         // it changes when the cameraDirection is changing. This ofc is not ok, since it would resort the entire list,
         // and that's expensive
 
-        // todo sorting function, that also uses the materials, so we need to switch seldom?
-        // todo and light groups, so we don't need to update lights that often
+        // to do sorting function, that also uses the materials, so we need to switch seldom?
+        // to do and light groups, so we don't need to update lights that often
 
         // val viewDir = pipeline.frustum.cameraRotation.transform(Vector3d(0.0, 0.0, 1.0))
         val cameraPosition = RenderState.cameraPosition
@@ -667,9 +667,6 @@ class PipelineStage(
         clickId: Int
     ) = addInstanced(mesh, component, entity.transform, material, materialIndex, clickId)
 
-    val tmpWeights = Vector4f()
-    val tmpIndices = Vector4f()
-
     fun addInstanced(
         mesh: Mesh,
         component: MeshComponentBase?,
@@ -686,9 +683,13 @@ class PipelineStage(
 
     fun addToStack(stack: InstancedStack, component: MeshComponentBase?, transform: Transform, clickId: Int) {
         if (stack is InstancedAnimStack && component is AnimRenderer) {
-            if (component.getAnimState(tmpWeights, tmpIndices)) {
+            if (component.updateAnimState()) {
                 val texture = component.getAnimTexture()
-                stack.add(transform, clickId, texture, tmpWeights, tmpIndices)
+                stack.add(
+                    transform, clickId, texture,
+                    component.prevWeights, component.prevIndices,
+                    component.currWeights, component.currIndices
+                )
             } else stack.add(transform, clickId)
         } else stack.add(transform, clickId)
         instancedSize++

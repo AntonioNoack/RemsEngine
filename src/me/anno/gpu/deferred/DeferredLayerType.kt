@@ -189,10 +189,10 @@ open class DeferredLayerType(
             DEPTH
         )
 
-        val byName = LazyMap({ name: String ->
+        val byName = LazyMap { name: String ->
             // O(n), but should be called only for new types (which are rare)
             values.firstOrNull { it.glslName == name }
-        }).putAll(values.associateBy { it.glslName }) // avoid O(n²)
+        }.putAll(values.associateBy { it.glslName }) // avoid O(n²)
 
     }
 

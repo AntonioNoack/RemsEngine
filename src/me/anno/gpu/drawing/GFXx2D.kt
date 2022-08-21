@@ -16,7 +16,7 @@ object GFXx2D {
 
     val transform = Matrix4fArrayList()
 
-    // todo implement transformed UI rendering:
+    // done implement transformed UI rendering:
     // subpixel errors -> non subpixel font textures, maybe sdf,
     // clipping no longer works
     // done implement a global matrix here, which can be used to draw GUI element inside the world

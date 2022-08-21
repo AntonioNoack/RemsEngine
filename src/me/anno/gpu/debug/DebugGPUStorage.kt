@@ -197,7 +197,7 @@ object DebugGPUStorage {
             },
             MenuOption(NameDesc("Buffers (${buffers.size})")) {
                 // how can we display them?
-                // todo maybe like in RenderDoc, or as plain list with attributes, vertex count and such
+                // to do maybe like in RenderDoc, or as plain list with attributes, vertex count and such
                 // we have name data, so we could show colors, uvs, coordinates and such :)
                 // first, easy way:
                 createListOfPanels("Buffers") { list ->

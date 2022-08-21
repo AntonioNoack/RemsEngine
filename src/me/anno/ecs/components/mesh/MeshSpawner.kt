@@ -26,6 +26,11 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     @NotSerializedProperty
     val transforms = ArrayList<Transform>(32)
 
+    /**
+     * calls forEachInstanceGroup, forEachMeshGroupI32, forEachMeshGroupTRS, forEachMeshGroup, forEachMesh,
+     * until the first one of them returns true;
+     * if you need different behaviour, just override this method :)
+     * */
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
@@ -111,6 +116,9 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     private var lastStack: InstancedStack? = null
     private var lastStackIndex = 0
 
+    /**
+     * helper function for forEachMeshGroup
+     * */
     private fun validateLastStack() {
         val ls = lastStack
         if (ls != null) {
@@ -182,7 +190,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * iterates over each mesh group, which is actively visible;
      * if this is implemented, return true; and forEachMeshGroup just will be a fallback;
      *
-     * each element must be added as position (x,y,z), scale (1d), rotation (x,y,z,w)
+     * each element must be added as position (translation; x,y,z), scale (1d), rotation (quaternion; x,y,z,w)
      *
      * useful, if there are thousands of pre-grouped meshes with the same material; and just P+R+S, no shearing, only uniform scaling; reduced overhead
      * */

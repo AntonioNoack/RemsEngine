@@ -12,6 +12,9 @@ open class LazyMap<K, V>(
     initialCapacity: Int = 16
 ) : Map<K, V> {
 
+    constructor(generator: (K) -> V?) :
+            this(generator, false)
+
     constructor(generator: (K) -> V?, initialCapacity: Int) :
             this(generator, false, initialCapacity)
 

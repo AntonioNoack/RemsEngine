@@ -6,14 +6,13 @@ import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.ui.LineShapes.drawCross
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.render.Renderers.pbrRenderer
+import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.CullMode
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
@@ -29,7 +28,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.rotate2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import org.lwjgl.opengl.GL11C.*
 import kotlin.math.PI
 
 // todo these could be used as
@@ -84,6 +82,18 @@ class EnvironmentMap : LightComponentBase() {
         mesh.ensureBounds()
         mesh.aabb.transformUnion(globalTransform, aabb)
         return true
+    }
+
+    override fun fill(
+        pipeline: Pipeline,
+        entity: Entity,
+        clickId: Int,
+        cameraPosition: Vector3d,
+        worldScale: Double
+    ): Int {
+        // todo needs be added to specific array in pipeline, I think :)
+        this.clickId = clickId
+        return clickId + 1
     }
 
     override fun onVisibleUpdate(): Boolean {

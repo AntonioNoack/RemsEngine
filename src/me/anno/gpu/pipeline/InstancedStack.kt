@@ -188,13 +188,12 @@ open class InstancedStack {
                                 else M4x3Delta.m4x3delta(tri2, cameraPosition, prevWorldScale, nioBuffer)
                                 // put animation data
                                 if (useAnimations) {
-                                    buffer.put(anim!!, index * 8, 8)
-                                    // todo put prev anim data
-                                    buffer.put(anim, index * 8, 8)
+                                    // anim and previous anim data
+                                    buffer.put(anim!!, index * 16, 16)
                                 }
                             } else {
-                                // put animation data
-                                if (useAnimations) buffer.put(anim!!, index * 8, 8)
+                                // put current animation data
+                                if (useAnimations) buffer.put(anim!!, index * 16, 8)
                                 nioBuffer.putInt(ids[index])
                             }
                         }

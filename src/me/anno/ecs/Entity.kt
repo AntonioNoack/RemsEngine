@@ -554,7 +554,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         child.destroy()
     }
 
-    // todo don't directly update, rather invalidate this, because there may be more to come
     fun setParent(parent: Entity, index: Int, keepWorldTransform: Boolean) {
 
         if (this === parent) {
