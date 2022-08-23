@@ -94,10 +94,8 @@ object JsonFormatter {
         }
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun format(sth: Any?) = format(sth.toString())
 
-    @Throws(IndexOutOfBoundsException::class)
     fun format(str: String, indentation: String = "  ", lineBreakLength: Int = 10) =
         FormatHelper(str.length, indentation).format(str, lineBreakLength)
 

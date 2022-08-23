@@ -641,6 +641,13 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    fun m4x3Array(loc: Int, values: FloatBuffer) {
+        if (loc > -1) {
+            potentiallyUse()
+            glUniformMatrix4x3fv(loc, false, values)
+        }
+    }
+
     fun m4x4(name: String, value: Matrix4fc? = identity4) = m4x4(getUniformLocation(name), value)
     fun m4x4(loc: Int, value: Matrix4fc? = identity4) {
         if (loc > -1) {

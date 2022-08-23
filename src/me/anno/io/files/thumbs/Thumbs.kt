@@ -57,7 +57,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.*
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.hdr.HDRImage
-import me.anno.image.jpg.JPGReader
+import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.tar.TGAImage
 import me.anno.io.ISaveable
 import me.anno.io.base.InvalidClassException
@@ -1138,7 +1138,7 @@ object Thumbs {
                 }
             }
             "jpg" -> {
-                val data2 = JPGReader.extractThumbnail(srcFile)
+                val data2 = JPGThumbnails.extractThumbnail(srcFile)
                 if (data2 != null) {
                     try {
                         val image = ImageIO.read(data2.inputStream())

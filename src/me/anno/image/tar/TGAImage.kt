@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2009-2021 jMonkeyEngine
  * blablabla,
  *
@@ -194,7 +194,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
         private const val TRUE_COLOR_RLE = 10
         private const val GRAYSCALE_RLE = 11
 
-        @Throws(IOException::class)
         fun findSize(input: InputStream): Pair<Int, Int> {
             input.skipN(12)
             val width = input.readLE16()
@@ -212,7 +211,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
          * image, either as a R8, a RGB888 or RGBA8888
          * @throws IOException if an I/O error occurs
          */
-        @Throws(IOException::class)
         fun read(input: InputStream, flip: Boolean): TGAImage {
 
             var flipY = flip
@@ -331,7 +329,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             return image
         }
 
-        @Throws(IOException::class)
         private fun readColorMapped(
             pixelDepth: Int,
             width: Int,
@@ -391,7 +388,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             return if (dl == 4) 4 else 3
         }
 
-        @Throws(IOException::class)
         private fun readTrueColor(
             pixelDepth: Int,
             width: Int,
@@ -437,7 +433,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             }
         }
 
-        @Throws(IOException::class)
         private fun readGrayscale(
             pixelDepth: Int,
             width: Int,
@@ -460,7 +455,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             return pixelDepth / 8
         }
 
-        @Throws(IOException::class)
         private fun readTrueColorRLE(
             pixelDepth: Int,
             width: Int,

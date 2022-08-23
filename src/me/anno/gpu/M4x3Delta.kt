@@ -7,7 +7,6 @@ import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
-import org.lwjgl.opengl.GL21
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
@@ -54,7 +53,7 @@ object M4x3Delta {
 
             buffer16.position(0)
 
-            GL21.glUniformMatrix4x3fv(uniformIndex, false, buffer16)
+            m4x3Array(uniformIndex, buffer16)
 
         }
     }
@@ -72,7 +71,7 @@ object M4x3Delta {
         if (uniformIndex >= 0) m4x3delta(uniformIndex, m, pos, worldScale)
     }
 
-    fun m4x3delta(
+    fun Shader.m4x3delta(
         uniformIndex: Int, m: Matrix4x3d?,
         pos: Vector3d = RenderState.cameraPosition,
         worldScale: Double = RenderState.worldScale
@@ -125,7 +124,7 @@ object M4x3Delta {
 
         buffer16.position(0)
 
-        GL21.glUniformMatrix4x3fv(uniformIndex, false, buffer16)
+        m4x3Array(uniformIndex, buffer16)
 
     }
 
@@ -232,7 +231,7 @@ object M4x3Delta {
 
             buffer16.position(0)
 
-            GL21.glUniformMatrix4x3fv(uniformIndex, false, buffer16)
+            m4x3Array(uniformIndex, buffer16)
 
         }
 

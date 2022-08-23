@@ -10,6 +10,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.image.Image
 import me.anno.io.files.FileReference
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.Codecs.videoCodecByExtension
 import me.anno.video.ffmpeg.FFMPEG
@@ -18,7 +19,6 @@ import me.anno.video.ffmpeg.FFMPEGEncodingType
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.logOutput
 import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11C.*
 import java.io.IOException
 import java.io.OutputStream
@@ -124,8 +124,8 @@ open class VideoCreator(
 
     private val pixelByteCount = w * h * 3
 
-    private val buffer1 = BufferUtils.createByteBuffer(pixelByteCount)
-    private val buffer2 = BufferUtils.createByteBuffer(pixelByteCount)
+    private val buffer1 = ByteBufferPool.allocateDirect(pixelByteCount)
+    private val buffer2 = ByteBufferPool.allocateDirect(pixelByteCount)
 
     fun writeFrame(frame: Framebuffer, frameIndex: Long, callback: () -> Unit) {
 

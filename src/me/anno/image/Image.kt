@@ -186,13 +186,11 @@ abstract class Image(
         return img
     }
 
-    @Throws(IOException::class)
     open fun write(dst: FileReference) {
         val format = dst.lcExtension
         dst.outputStream().use { out -> write(out, format) }
     }
 
-    @Throws(IOException::class)
     fun write(dst: OutputStream, format: String) {
         val image = createBufferedImage()
         ImageIO.write(image, format, dst)

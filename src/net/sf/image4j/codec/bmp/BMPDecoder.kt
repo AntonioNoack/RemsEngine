@@ -1,6 +1,5 @@
 /*
  * Decodes a BMP image from an <tt>InputStream</tt> to a <tt>BufferedImage</tt>
- *
  * @author Ian McDonagh
  */
 package net.sf.image4j.codec.bmp
@@ -203,7 +202,6 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source input
          * @throws IOException if an error occurs
          */
-        @Throws(IOException::class)
         fun read8(infoHeader: InfoHeader, lis: CountingInputStream, colors: IntArray): IntImage {
 
             // 1 byte per pixel
@@ -239,7 +237,6 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source input
          * @throws IOException if an error occurs
          */
-        @Throws(IOException::class)
         fun read24(infoHeader: InfoHeader, lis: CountingInputStream): IntImage {
 
             // 3 bytes per pixel
@@ -280,7 +277,6 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source input
          * @throws IOException if an error occurs
          */
-        @Throws(IOException::class)
         fun read32(infoHeader: InfoHeader, lis: CountingInputStream): IntImage {
             // 4 bytes per pixel
             // blue 1
@@ -305,7 +301,6 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source file
          * @throws IOException if an error occurs
          */
-        @Throws(IOException::class)
         fun read(input: InputStream) = BMPDecoder(input).image
     }
 

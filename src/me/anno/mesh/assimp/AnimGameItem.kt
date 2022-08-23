@@ -24,7 +24,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.mul2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import org.lwjgl.opengl.GL21
 import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 import kotlin.math.max
@@ -101,7 +100,7 @@ class AnimGameItem(
             get(matrices[index], matrixBuffer)
         }
         matrixBuffer.position(0)
-        GL21.glUniformMatrix4x3fv(location, false, matrixBuffer)
+        shader.m4x3Array(location, matrixBuffer)
         return matrices
     }
 
@@ -272,7 +271,8 @@ class AnimGameItem(
                             shader.v1b("hasVertexColors", mesh.hasVertexColors)
                             val materials = mesh.materials
                             for (index in 0 until mesh.numMaterials) {
-                                val material1 = material ?: MaterialCache[materials.getOrNull(index), Mesh.defaultMaterial]
+                                val material1 =
+                                    material ?: MaterialCache[materials.getOrNull(index), Mesh.defaultMaterial]
                                 material1.bind(shader)
                                 mesh.draw(shader, index)
                             }

@@ -10,7 +10,6 @@ import java.util.*
 
 object ImageTracing {
 
-    @Throws(IOException::class)
     fun computeOutline(w: Int, h: Int, pixels: IntArray) {
         var i2 = 0
         val l = pixels.size

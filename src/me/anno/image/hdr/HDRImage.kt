@@ -161,7 +161,6 @@ class HDRImage : Image {
 
     // Construction method if the input is a InputStream.
     // Parse the HDR file by its format. HDR format encode can be seen in Radiance HDR(.pic,.hdr) file format
-    @Throws(IOException::class)
     private fun read(input: InputStream) {
         // Parse HDR file's header line
         // readLine(InputStream in) method will be introduced later.
@@ -261,7 +260,6 @@ class HDRImage : Image {
         }
     }
 
-    @Throws(IOException::class)
     private fun readLine(input: InputStream): String {
         val bout = ByteArrayOutputStream(256)
         var i = 0
@@ -277,7 +275,6 @@ class HDRImage : Image {
         return bout.toString()
     }
 
-    @Throws(IOException::class)
     override fun write(dst: FileReference) {
         if ("hdr" == dst.lcExtension) {
             throw RuntimeException("Exporting HDR as HDR isn't yet implemented")
@@ -294,7 +291,6 @@ class HDRImage : Image {
         // more than just 1, and more like 5
         var typicalBrightness = 5f
 
-        @Throws(IOException::class)
         fun writeHDR(w: Int, h: Int, pixels: FloatArray, out0: OutputStream?) {
             val out = DataOutputStream(out0)
             out.writeBytes(HDR_MAGIC)

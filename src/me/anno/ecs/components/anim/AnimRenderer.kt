@@ -22,7 +22,6 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.assimp.AnimGameItem
 import org.joml.Matrix4x3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL21C
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -157,7 +156,7 @@ open class AnimRenderer : MeshComponent() {
             // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
             val matrices = getMatrices() ?: return false
             // upload the matrices
-            upload(location, matrices)
+            upload(shader, location, matrices)
             return true
         }
     }
@@ -296,16 +295,17 @@ open class AnimRenderer : MeshComponent() {
         private val tmpMapping0 = Array(256) { Matrix4x3f() }
         private val tmpMapping1 = Array(256) { Matrix4x3f() }
 
-        fun upload(location: Int, matrices: Array<Matrix4x3f>) {
+        fun upload(shader: Shader, location: Int, matrices: Array<Matrix4x3f>) {
             val boneCount = min(matrices.size, AnimGameItem.maxBones)
-            AnimGameItem.matrixBuffer.limit(AnimGameItem.matrixSize * boneCount)
+            val buffer = AnimGameItem.matrixBuffer
+            buffer.limit(AnimGameItem.matrixSize * boneCount)
             for (index in 0 until boneCount) {
                 val matrix0 = matrices[index]
-                AnimGameItem.matrixBuffer.position(index * AnimGameItem.matrixSize)
-                AnimGameItem.get(matrix0, AnimGameItem.matrixBuffer)
+                buffer.position(index * AnimGameItem.matrixSize)
+                AnimGameItem.get(matrix0, buffer)
             }
-            AnimGameItem.matrixBuffer.position(0)
-            GL21C.glUniformMatrix4x3fv(location, false, AnimGameItem.matrixBuffer)
+            buffer.position(0)
+            shader.m4x3Array(location, buffer)
         }
 
     }

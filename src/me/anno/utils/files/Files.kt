@@ -6,10 +6,8 @@ import me.anno.io.files.InvalidRef
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
-import java.io.*
+import java.io.File
 import java.util.*
-import java.util.zip.DeflaterOutputStream
-import java.util.zip.InflaterInputStream
 
 object Files {
 
@@ -142,7 +140,7 @@ object Files {
             nameEndIndex = splitIndex
             newNumber = name.substring(splitIndex, name.length).toLong() + 1
         }
-        if (nameEndIndex > 0 && name[nameEndIndex-1] == separator) nameEndIndex--
+        if (nameEndIndex > 0 && name[nameEndIndex - 1] == separator) nameEndIndex--
         val partString = name.substring(0, nameEndIndex)
         return if (separator.code == 0) "$partString$newNumber"
         else "$partString$separator$newNumber"

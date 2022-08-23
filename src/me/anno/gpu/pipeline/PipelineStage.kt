@@ -39,7 +39,6 @@ import me.anno.utils.types.Matrices.set2
 import org.joml.AABBd
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
-import org.joml.Vector4f
 import org.lwjgl.opengl.GL30C.*
 
 class PipelineStage(
@@ -144,7 +143,7 @@ class PipelineStage(
             val oldTransform = shader["prevLocalTransform"]
             if (oldTransform >= 0) {
                 val prevWorldScale = RenderState.prevWorldScale
-                m4x3delta(
+                shader.m4x3delta(
                     oldTransform, transform.getDrawnMatrix(time),
                     RenderState.prevCameraPosition, prevWorldScale
                 )
@@ -253,7 +252,7 @@ class PipelineStage(
                         light.invWorldMatrix.get(buffer)
                     }
                     buffer.position(0)
-                    glUniformMatrix4x3fv(invLightMatrices, false, buffer)
+                    shader.m4x3Array(invLightMatrices, buffer)
                 }
                 // and sharpness; implementation depending on type
                 val lightIntensities = shader["lightData0"]
@@ -275,7 +274,7 @@ class PipelineStage(
                         buffer.put(type + 0.25f)
                     }
                     buffer.position(0)
-                    glUniform4fv(lightIntensities, buffer)
+                    shader.v4Array(lightIntensities, buffer)
                 }
                 // type, and cone angle (or other data, if required)
                 // additional, whether we have a texture, and maybe other data
@@ -298,7 +297,7 @@ class PipelineStage(
 
                     }
                     buffer.flip()
-                    glUniform4fv(lightTypes, buffer)
+                    shader.v4Array(lightTypes, buffer)
                 }
                 val shadowData = shader["shadowData"]
                 if (shadowData >= 0) {
@@ -356,7 +355,7 @@ class PipelineStage(
                         }
                     }
                     buffer.position(0)
-                    glUniform4fv(shadowData, buffer)
+                    shader.v4Array(shadowData, buffer)
                 }
             }
         }

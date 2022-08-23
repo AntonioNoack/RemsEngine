@@ -13,8 +13,7 @@ class FileTransferable(val files: List<File>) : Transferable {
     override fun getTransferDataFlavors() = tdf
     override fun isDataFlavorSupported(flavor: DataFlavor?) = tdf.any { it == flavor }
 
-    @Throws(UnsupportedFlavorException::class, IOException::class)
-    override fun getTransferData(flavor: DataFlavor?): Any? {
+    override fun getTransferData(flavor: DataFlavor?): Any {
         if (isDataFlavorSupported(flavor)) return files
         throw UnsupportedFlavorException(flavor)
     }

@@ -38,18 +38,16 @@ import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
-import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL11C.glEnable
 import org.lwjgl.opengl.GL43C.glDebugMessageCallback
-import org.lwjgl.opengl.GLCapabilities
-import org.lwjgl.opengl.GLUtil
-import org.lwjgl.opengl.KHRDebug
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import java.awt.AWTException
 import java.awt.Robot
 import kotlin.math.abs
+import kotlin.math.max
 
 /**
  * Showcases how you can use multithreading in a GLFW application
@@ -273,6 +271,7 @@ open class GFXBase {
         // the engine will still be loading,
         // so it has to be a still image
         // alternatively we could play a small animation
+        GFX.maxSamples = max(1, GL30C.glGetInteger(GL30C.GL_MAX_SAMPLES))
         val zeroFrames = 2
         for (i in 0 until zeroFrames) {
             renderFrame0(window0, i, zeroFrames)

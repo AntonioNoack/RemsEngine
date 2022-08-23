@@ -5,7 +5,6 @@ import me.anno.gpu.GFX.offsetX
 import me.anno.gpu.GFX.offsetY
 import me.anno.gpu.GFXState
 import org.lwjgl.opengl.GL11C
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 

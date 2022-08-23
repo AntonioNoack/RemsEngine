@@ -68,7 +68,6 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         return obj
     }
 
-    @Throws(EOFException::class, InvalidFormatException::class)
     override fun readAllInList() {
         assert(skipSpace(), '[')
         while (true) {

@@ -20,7 +20,7 @@ import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector4f
 import org.joml.Vector4fc
-import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL11C.*
 import kotlin.math.abs
 
 object Reduction {
@@ -128,17 +128,17 @@ object Reduction {
         GFX.check()
 
         // read pixel
-        GL11C.glFlush(); GL11C.glFinish() // wait for everything to be drawn
+        glFlush(); glFinish() // wait for everything to be drawn
         readAlignment(4)
         srcTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
         val target = when (srcTexture) {
             is Texture2D -> srcTexture.target
-            else -> GL11C.GL_TEXTURE_2D
+            else -> GL_TEXTURE_2D
         }
 
         buffer.position(0)
-        GL11C.glGetTexImage(target, 0, GL11C.GL_RGBA, GL11C.GL_FLOAT, buffer)
+        glGetTexImage(target, 0, GL_RGBA, GL_FLOAT, buffer)
         GFX.check()
 
         val impl = op.kotlinImpl

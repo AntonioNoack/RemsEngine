@@ -1,5 +1,6 @@
-package me.anno.image.svg
+package me.anno.tests.image
 
+import me.anno.image.svg.SVGMesh
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.utils.OS
@@ -26,7 +27,7 @@ fun main() {
 }
 
 fun testSVG(text: String) {
-    me.anno.image.svg.SVGMesh().parse(XMLReader.parse(ByteArrayInputStream(text.toByteArray())) as XMLElement)
+    SVGMesh().parse(XMLReader.parse(ByteArrayInputStream(text.toByteArray())) as XMLElement)
 }
 
 fun testXML(text: String) {

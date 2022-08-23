@@ -28,9 +28,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL20
 import kotlin.math.max
-import kotlin.math.sqrt
 
 object Renderers {
 
@@ -240,7 +238,7 @@ object Renderers {
                     tmpDefaultUniforms.put(data.w)
                 }
                 tmpDefaultUniforms.flip()
-                GL20.glUniform4fv(uniform, tmpDefaultUniforms)
+                shader.v4Array(uniform, tmpDefaultUniforms)
                 GFX.check()
             }
         }

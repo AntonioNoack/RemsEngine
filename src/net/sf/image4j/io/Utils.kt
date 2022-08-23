@@ -11,7 +11,6 @@ import java.io.InputStream
  */
 object Utils {
 
-    @Throws(IOException::class)
     fun skip(input: InputStream, count: Int, strict: Boolean): Int {
         var skipped = 0
         while (skipped < count) {

@@ -1,6 +1,6 @@
-package me.anno.image.jpg
+package me.anno.tests.image.jpg
 
-import me.anno.image.jpg.JPGReader.Companion.u
+import me.anno.image.jpg.JPGThumbnails.Companion.u
 
 fun interface ResampleFunc {
     fun run(

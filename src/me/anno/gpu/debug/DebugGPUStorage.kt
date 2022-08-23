@@ -25,10 +25,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
-import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
-import org.lwjgl.opengl.GL14C.*
-import org.lwjgl.opengl.GL30C.GL_DEPTH24_STENCIL8
-import org.lwjgl.opengl.GL30C.GL_DEPTH32F_STENCIL8
+import org.lwjgl.opengl.GL30C.*
 import kotlin.math.min
 
 /**

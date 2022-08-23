@@ -23,7 +23,6 @@ object ConfigBasics {
         return getReference(configFolder, localFileName)
     }
 
-    @Throws(IOException::class)
     fun save(file: FileReference, data: String): String {
         val parentFile = file.getParent() ?: return data
         if (!parentFile.exists) parentFile.tryMkdirs()
@@ -31,10 +30,8 @@ object ConfigBasics {
         return data
     }
 
-    @Throws(IOException::class)
     fun save(localFileName: String, data: String) = save(getConfigFile(localFileName), data)
 
-    @Throws(IOException::class)
     inline fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
         val value = if (file.exists) {
             try {

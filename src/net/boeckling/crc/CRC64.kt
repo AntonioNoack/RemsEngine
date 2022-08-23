@@ -31,7 +31,6 @@ object CRC64 {
      * @return new [CRC64] instance initialized to the [InputStream]'s CRC value
      * @throws IOException in case the [InputStream.read] method fails
      */
-    @Throws(IOException::class)
     fun fromInputStream(input: InputStream): Long {
         return input.use {
             var crc = 0L

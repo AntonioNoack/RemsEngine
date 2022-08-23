@@ -1,4 +1,4 @@
-package me.anno.image.jpg
+package me.anno.tests.image.jpg
 
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop

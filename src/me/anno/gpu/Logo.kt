@@ -19,10 +19,7 @@ import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
 import me.anno.utils.Color.toVecRGB
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C.*
-import org.lwjgl.opengl.GL30C
 import java.io.IOException
-import kotlin.math.max
 import kotlin.math.min
 
 // can be set by the application
@@ -82,7 +79,6 @@ fun drawLogo(window: WindowX, destroy: Boolean) {
 
     GFX.check()
 
-    GFX.maxSamples = max(1, glGetInteger(GL30C.GL_MAX_SAMPLES))
     val frame = if (GFX.maxSamples > 1) frame else null
 
     if (frame != null) {

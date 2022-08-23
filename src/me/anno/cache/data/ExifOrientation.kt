@@ -25,8 +25,6 @@ fun findRotation(src: FileReference): RotateJPEG? {
 }
 
 val orientations = arrayOf(
-    null,
-    null,
     RotateJPEG(mirrorHorizontal = true, mirrorVertical = false, 0),
     RotateJPEG(mirrorHorizontal = false, mirrorVertical = false, 180),
     RotateJPEG(mirrorHorizontal = false, mirrorVertical = true, 0),
@@ -80,7 +78,7 @@ fun getExifOrientation(reader: ImageReader, imageIndex: Int): RotateJPEG? {
                         if (tag == 0x0112) {
                             buffer.skip(6)
                             val code = buffer.short.toInt()
-                            return orientations.getOrNull(code)
+                            return orientations.getOrNull(code - 2)
                         }
                     }
                 }

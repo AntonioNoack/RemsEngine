@@ -1,4 +1,4 @@
-package me.anno.image.jpg
+package me.anno.tests.image.jpg
 
 class ImgComp {
     var id = 0

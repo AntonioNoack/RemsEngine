@@ -1,10 +1,11 @@
-package me.anno.image.jpg
+package me.anno.tests.image.jpg
 
-import me.anno.image.jpg.JPGReader.Companion.FAST_BITS
-import me.anno.image.jpg.JPGReader.Companion.FAST_MASK
-import me.anno.image.jpg.JPGReader.Companion.FAST_SIZE
-import me.anno.image.jpg.JPGReader.Companion.bMask
-import me.anno.image.jpg.JPGReader.Companion.u
+import me.anno.image.jpg.JPGThumbnails
+import me.anno.image.jpg.JPGThumbnails.Companion.FAST_BITS
+import me.anno.image.jpg.JPGThumbnails.Companion.FAST_MASK
+import me.anno.image.jpg.JPGThumbnails.Companion.FAST_SIZE
+import me.anno.image.jpg.JPGThumbnails.Companion.bMask
+import me.anno.image.jpg.JPGThumbnails.Companion.u
 import java.io.IOException
 import java.io.InputStream
 
@@ -57,7 +58,7 @@ class Huffman {
         println("deltas:                   ${delta.joinToString()}, ")
     }
 
-    fun decode(img: JPGReader, input: InputStream): Int {
+    fun decode(img: JPGThumbnails, input: InputStream): Int {
         if (img.codeBits < 16) img.growBufferUnsafe(input)
         var c = (img.codeBuffer shr (32 - FAST_BITS)) and FAST_MASK
         var k = fast[c].u()

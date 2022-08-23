@@ -44,7 +44,8 @@ class ImageData(file: FileReference) : ICacheData {
 
         fun getRotation(src: FileReference): RotateJPEG? {
             if (src == InvalidRef || src.isDirectory) return null
-            // which files can contain exif metadata? filter for them
+            // which files can contain exif metadata?
+            // according to https://exiftool.org/TagNames/EXIF.html,
             // JPG, TIFF, PNG, JP2, PGF, MIFF, HDP, PSP and XC, AVI and MOV
             return findRotation(src)
         }

@@ -11,7 +11,6 @@ object YAMLReader {
     const val listKey = ""
 
     @Suppress("unused")
-    @Throws(IOException::class)
     fun parseYAML(file: FileReference, beautify: Boolean = true): YAMLNode {
         return parseYAML(file.readText(), beautify)
     }
@@ -20,7 +19,6 @@ object YAMLReader {
      * reads the yaml file
      * @param beautify removed m_ at the start of keys, and makes them all PascalCase for consistency
      * */
-    @Throws(IOException::class)
     fun parseYAML(text: String, beautify: Boolean = true): YAMLNode {
 
         val root = YAMLNode("root", -1)

@@ -46,7 +46,7 @@ class JPGReader {
                 } else if (Signature.findName(file) == "jpg") {
                     try {
                         val input = file.inputStream()
-                        JPGReader().read(input)
+                        JPGThumbnails().read(input)
                             .write(desktop.getChild("jpg/${file.nameWithoutExtension}.png"))
                         input.close()
                         // throw IOException("done :)")

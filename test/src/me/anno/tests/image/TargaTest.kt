@@ -1,5 +1,6 @@
-package me.anno.image.tar
+package me.anno.tests.image
 
+import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS

@@ -15,7 +15,6 @@ object InputStreams {
     fun InputStream.readNBytes2(n: Int, throwEOF: Boolean) =
         readNBytes2(n, ByteArray(n), throwEOF)
 
-    @Throws(EOFException::class)
     fun InputStream.readNBytes2(n: Int, bytes: ByteArray, throwEOF: Boolean): ByteArray {
         var i = 0
         while (i < n) {
@@ -36,7 +35,6 @@ object InputStreams {
         return bytes
     }
 
-    @Throws(EOFException::class)
     fun InputStream.readNBytes2(bytes: ByteArray, startIndex: Int, length: Int): ByteArray {
         var i = 0
         while (i < length) {
@@ -47,7 +45,6 @@ object InputStreams {
         return bytes
     }
 
-    @Throws(EOFException::class)
     fun InputStream.readNBytes2(n: Int, bytes: ByteBuffer, throwEOF: Boolean): ByteBuffer {
         bytes.position(0)
         bytes.limit(n)
@@ -67,7 +64,6 @@ object InputStreams {
         return bytes
     }
 
-    @Throws(EOFException::class)
     fun InputStream.readNBytes2(n: Int, pool: ByteBufferPool): ByteBuffer {
 
         val tmp = tmpBuffer.get()

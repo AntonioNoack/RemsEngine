@@ -6,7 +6,6 @@
       <root url="jar://$PROJECT_DIR$/lib/FABRIK-IK.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/JTransforms-3.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/customized/javaFx/OpenWithExplorer.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/MetadataExtractor.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/joml-1.10.4.jar!/" />
     </CLASSES>
     <JAVADOC />

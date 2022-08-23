@@ -27,7 +27,6 @@ object ObjectMapper {
         write(v.toString().toByteArray())
     }
 
-    @Throws(IOException::class)
     fun <V> writeValue(output: OutputStream, instance: V) {
         // writing a json file from Java for copying
         val clazz = (instance as? Any)?.javaClass ?: Any::class.java

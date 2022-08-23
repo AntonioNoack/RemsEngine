@@ -104,7 +104,6 @@ class Matrix4dArrayList : Matrix4d() {
         return true
     }
 
-    @Throws(IOException::class)
     override fun writeExternal(out: ObjectOutput) {
         super.writeExternal(out)
         out.writeInt(currentIndex)
@@ -113,7 +112,6 @@ class Matrix4dArrayList : Matrix4d() {
         }
     }
 
-    @Throws(IOException::class)
     override fun readExternal(`in`: ObjectInput) {
         super.readExternal(`in`)
         currentIndex = `in`.readInt()

@@ -92,10 +92,9 @@ class WindowsShortcut {
      *
      * @param link all the bytes from the .lnk file
      */
-    @Throws(ParseException::class)
     private fun parseLink(link: ByteArray) {
         try {
-            if (!isMagicPresent(link)) throw ParseException("Invalid shortcut; magic is missing", 0)
+            if (!isMagicPresent(link)) throw IOException("Invalid shortcut; magic is missing")
 
             // get the flags byte
             val flags = link[0x14].toInt()
@@ -189,7 +188,6 @@ class WindowsShortcut {
          * @return true if it may be a link, false otherwise
          * @throws IOException if an IOException is thrown while reading from the file
          */
-        @Throws(IOException::class)
         fun isPotentialValidLink(file: FileReference): Boolean {
             val minimumLength = 0x64
             if (file.lcExtension != "lnk" || file.isDirectory || file.length() < minimumLength) return false

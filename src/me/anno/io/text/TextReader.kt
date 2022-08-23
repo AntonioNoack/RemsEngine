@@ -66,7 +66,6 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
          * parses a Json* formatted string
          * @param safely return current results on failure, else throws Exception
          * */
-        @Throws(EOFException::class)
         fun read(data: CharSequence, workspace: FileReference, safely: Boolean): List<ISaveable> {
             return read(data, workspace, "", safely)
         }
@@ -75,7 +74,6 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
          * parses a Json* formatted string
          * @param safely return current results on failure, else throws Exception
          * */
-        @Throws(EOFException::class)
         fun read(data: CharSequence, workspace: FileReference, sourceName: String, safely: Boolean): List<ISaveable> {
             val reader = TextReader(data, workspace)
             reader.sourceName = sourceName
@@ -92,18 +90,15 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
             return reader.sortedContent
         }
 
-        @Throws(EOFException::class)
         fun read(file: FileReference, workspace: FileReference, safely: Boolean): List<ISaveable> {
             // buffered is very important and delivers an improvement of 5x
             return file.inputStream().useBuffered().use { read(it, workspace, file.absolutePath, safely) }
         }
 
-        @Throws(EOFException::class)
         fun read(data: InputStream, workspace: FileReference, safely: Boolean): List<ISaveable> {
             return read(data, workspace, "", safely)
         }
 
-        @Throws(EOFException::class, InvalidFormatException::class)
         fun read(data: InputStream, workspace: FileReference, sourceName: String, safely: Boolean): List<ISaveable> {
             val reader = TextStreamReader(data, workspace)
             reader.sourceName = sourceName

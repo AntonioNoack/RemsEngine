@@ -7,14 +7,12 @@ import java.io.InputStream
 
 object ResourceHelper {
 
-    @Throws(IOException::class)
     fun loadResource(name: String): InputStream {
         // needs to be the same jar
         return ResourceHelper.javaClass.classLoader.getResourceAsStream(name)
             ?: throw FileNotFoundException("res://$name")
     }
 
-    @Throws(IOException::class)
     fun loadText(name: String) = loadResource(name).readText()
 
 }
