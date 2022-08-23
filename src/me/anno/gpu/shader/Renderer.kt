@@ -11,8 +11,8 @@ import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
-import org.joml.Vector3fc
-import org.joml.Vector4fc
+import org.joml.Vector3f
+import org.joml.Vector4f
 
 open class Renderer(
     val name: String,
@@ -33,14 +33,14 @@ open class Renderer(
         shaderColor(shader, name, color.r01(), color.g01(), color.b01(), color.a01())
     }
 
-    fun shaderColor(shader: Shader, name: String, value: Vector4fc?) {
+    fun shaderColor(shader: Shader, name: String, value: Vector4f?) {
         if (value == null) shaderColor(shader, name, 1f, 1f, 1f, 1f)
-        else shaderColor(shader, name, value.x(), value.y(), value.z(), value.w())
+        else shaderColor(shader, name, value.x, value.y, value.z, value.w)
     }
 
-    fun shaderColor(shader: Shader, name: String, value: Vector3fc?) {
+    fun shaderColor(shader: Shader, name: String, value: Vector3f?) {
         if (value == null) shaderColor(shader, name, 1f, 1f, 1f, 1f)
-        else shaderColor(shader, name, value.x(), value.y(), value.z(), 1f)
+        else shaderColor(shader, name, value.x, value.y, value.z, 1f)
     }
 
     fun split(index: Int, spliceSize: Int): Renderer {

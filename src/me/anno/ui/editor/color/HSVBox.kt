@@ -3,13 +3,13 @@ package me.anno.ui.editor.color
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.Panel
 import me.anno.ui.style.Style
-import org.joml.Vector3fc
+import org.joml.Vector3f
 
 open class HSVBox(
     val chooser: ColorChooser,
-    val v0: Vector3fc,
-    val du: Vector3fc,
-    val dv: Vector3fc,
+    val v0: Vector3f,
+    val du: Vector3f,
+    val dv: Vector3f,
     val dh: Float,
     style: Style,
     size: Float,

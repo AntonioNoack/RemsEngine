@@ -7,9 +7,7 @@ import me.anno.maths.Maths.mixARGB
 import me.anno.ui.style.Style
 import me.anno.utils.OS
 import org.joml.Vector3f
-import org.joml.Vector3fc
 import org.joml.Vector4f
-import org.joml.Vector4fc
 
 object DefaultStyle {
 
@@ -26,10 +24,10 @@ object DefaultStyle {
     const val fontGray = black or 0xbbbbbb
     const val white = -1
 
-    val black4: Vector4fc = Vector4f(0f)
-    val black3: Vector3fc = Vector3f(0f)
-    val white4: Vector4fc = Vector4f(1f)
-    val white3: Vector3fc = Vector3f(1f)
+    val black4 = Vector4f(0f)
+    val black3 = Vector3f(0f)
+    val white4 = Vector4f(1f)
+    val white3 = Vector3f(1f)
 
     const val shinyBlue = black or 0x4986f5
     const val brightYellow = black or 0xffba50

@@ -3,11 +3,11 @@ package me.anno.gpu.drawing
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.FlatShaders.flatShaderStriped
 import me.anno.gpu.shader.Shader
-import org.joml.Vector4fc
+import org.joml.Vector4f
 
 object DrawStriped {
 
-    fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4fc) {
+    fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4f) {
         if (w == 0 || h == 0) return
         val shader = flatShaderStriped.value
         shader.use()

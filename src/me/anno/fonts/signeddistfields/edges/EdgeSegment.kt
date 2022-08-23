@@ -6,7 +6,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.cross
 import org.joml.AABBf
 import org.joml.Vector2f
-import org.joml.Vector2fc
 import kotlin.math.abs
 
 abstract class EdgeSegment {
@@ -20,7 +19,7 @@ abstract class EdgeSegment {
     abstract fun union(bounds: AABBf, tmp: FloatArray)
 
     abstract fun signedDistance(
-        origin: Vector2fc,
+        origin: Vector2f,
         param: FloatPtr,
         tmp: FloatArray,
         dst: SignedDistance
@@ -37,7 +36,7 @@ abstract class EdgeSegment {
         return distance.distance
     }
 
-    private fun distanceToPseudoDistance(distance: SignedDistance, origin: Vector2fc, param: Float) {
+    private fun distanceToPseudoDistance(distance: SignedDistance, origin: Vector2f, param: Float) {
         val v0 = JomlPools.vec2f.create()
         val v1 = JomlPools.vec2f.create()
         val v2 = JomlPools.vec2f.create()

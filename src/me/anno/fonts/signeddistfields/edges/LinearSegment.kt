@@ -10,10 +10,9 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.cross
 import org.joml.AABBf
 import org.joml.Vector2f
-import org.joml.Vector2fc
 import kotlin.math.abs
 
-class LinearSegment(val p0: Vector2fc, val p1: Vector2fc) : EdgeSegment() {
+class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
 
     override fun point(param: Float, dst: Vector2f): Vector2f = dst.set(p0).lerp(p1, param)
 
@@ -24,12 +23,12 @@ class LinearSegment(val p0: Vector2fc, val p1: Vector2fc) : EdgeSegment() {
     override fun toString() = "[$p0 $p1]"
 
     override fun union(bounds: AABBf, tmp: FloatArray) {
-        bounds.union(p0.x(), p0.y(), 0f)
-        bounds.union(p1.x(), p1.y(), 0f)
+        bounds.union(p0.x, p0.y, 0f)
+        bounds.union(p1.x, p1.y, 0f)
     }
 
     override fun signedDistance(
-        origin: Vector2fc,
+        origin: Vector2f,
         param: FloatPtr,
         tmp: FloatArray,
         dst: SignedDistance

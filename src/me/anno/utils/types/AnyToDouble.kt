@@ -30,68 +30,68 @@ object AnyToDouble {
                 0 -> this
                 else -> defaultValue
             }
-            is Vector2fc -> when (index) {
+            is Vector2f -> when (index) {
                 0 -> x().toDouble()
                 1 -> y().toDouble()
                 else -> defaultValue
             }
-            is Vector3fc -> when (index) {
-                0 -> x().toDouble()
-                1 -> y().toDouble()
-                2 -> z().toDouble()
-                else -> defaultValue
-            }
-            is Vector4fc -> when (index) {
+            is Vector3f -> when (index) {
                 0 -> x().toDouble()
                 1 -> y().toDouble()
                 2 -> z().toDouble()
-                3 -> w().toDouble()
                 else -> defaultValue
             }
-            is Quaternionfc -> when (index) {
+            is Vector4f -> when (index) {
                 0 -> x().toDouble()
                 1 -> y().toDouble()
                 2 -> z().toDouble()
                 3 -> w().toDouble()
                 else -> defaultValue
             }
-            is Vector2dc -> when (index) {
+            is Quaternionf -> when (index) {
+                0 -> x().toDouble()
+                1 -> y().toDouble()
+                2 -> z().toDouble()
+                3 -> w().toDouble()
+                else -> defaultValue
+            }
+            is Vector2d -> when (index) {
                 0 -> x()
                 1 -> y()
                 else -> defaultValue
             }
-            is Vector3dc -> when (index) {
+            is Vector3d -> when (index) {
                 0 -> x()
                 1 -> y()
                 2 -> z()
                 else -> defaultValue
             }
-            is Vector4dc -> when (index) {
+            is Vector4d -> when (index) {
                 0 -> x()
                 1 -> y()
                 2 -> z()
                 3 -> w()
                 else -> defaultValue
             }
-            is Quaterniondc -> when (index) {
+            is Quaterniond -> when (index) {
                 0 -> x()
                 1 -> y()
                 2 -> z()
                 3 -> w()
                 else -> defaultValue
             }
-            is Vector2ic -> when (index) {
+            is Vector2i -> when (index) {
                 0 -> x().toDouble()
                 1 -> y().toDouble()
                 else -> defaultValue
             }
-            is Vector3ic -> when (index) {
+            is Vector3i -> when (index) {
                 0 -> x().toDouble()
                 1 -> y().toDouble()
                 2 -> z().toDouble()
                 else -> defaultValue
             }
-            is Vector4ic -> when (index) {
+            is Vector4i -> when (index) {
                 0 -> x().toDouble()
                 1 -> y().toDouble()
                 2 -> z().toDouble()

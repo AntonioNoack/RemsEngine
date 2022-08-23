@@ -28,9 +28,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         var attribute = "in"
 
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
-        private val identity3: Matrix3fc = Matrix3f()
-        private val identity4: Matrix4fc = Matrix4f()
-        private val identity4x3: Matrix4x3fc = Matrix4x3f()
+        private val identity3: Matrix3f = Matrix3f()
+        private val identity4: Matrix4f = Matrix4f()
+        private val identity4x3: Matrix4x3f = Matrix4x3f()
         const val DefaultGLSLVersion = 150
         const val UniformCacheSize = 256
         const val UniformCacheSizeX4 = UniformCacheSize * 4
@@ -429,9 +429,6 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun v3X(loc: Int, v: Vector4f) = v3f(loc, v.x / v.w, v.y / v.w, v.z / v.w)
     fun v3X(name: String, v: Vector4f) = v3f(name, v.x / v.w, v.y / v.w, v.z / v.w)
 
-    fun v3X(loc: Int, v: Vector4fc) = v3X(loc, v.x(), v.y(), v.z(), v.w())
-    fun v3X(name: String, v: Vector4fc) = v3X(name, v.x(), v.y(), v.z(), v.w())
-
     fun v3f(name: String, color: Int) = v3f(getUniformLocation(name), color)
     fun v3f(loc: Int, color: Int) {
         v3f(
@@ -536,9 +533,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         )
     }
 
-    fun v4f(name: String, color: Vector3fc, alpha: Float) = v4f(getUniformLocation(name), color, alpha)
-    fun v4f(loc: Int, color: Vector3fc, alpha: Float) =
-        v4f(loc, color.x(), color.y(), color.z(), alpha)
+    fun v4f(name: String, color: Vector3f, alpha: Float) = v4f(getUniformLocation(name), color, alpha)
+    fun v4f(loc: Int, color: Vector3f, alpha: Float) =
+        v4f(loc, color.x, color.y, color.z, alpha)
 
     fun v4f(name: String, color: Int, alpha: Float) = v4f(getUniformLocation(name), color, alpha)
     fun v4f(loc: Int, color: Int, alpha: Float) {
@@ -595,18 +592,18 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun v3i(loc: Int, all: Int) = v3i(loc, all, all, all)
     fun v4i(loc: Int, all: Int) = v4i(loc, all, all, all, all)
 
-    fun v2f(loc: Int, v: Vector2fc) = v2f(loc, v.x(), v.y())
-    fun v3f(loc: Int, v: Vector3fc) = v3f(loc, v.x(), v.y(), v.z())
-    fun v4f(loc: Int, v: Vector4fc) = v4f(loc, v.x(), v.y(), v.z(), v.w())
-    fun v4f(loc: Int, v: Quaternionfc) = v4f(loc, v.x(), v.y(), v.z(), v.w())
+    fun v2f(loc: Int, v: Vector2f) = v2f(loc, v.x, v.y)
+    fun v3f(loc: Int, v: Vector3f) = v3f(loc, v.x, v.y, v.z)
+    fun v4f(loc: Int, v: Vector4f) = v4f(loc, v.x, v.y, v.z, v.w)
+    fun v4f(loc: Int, v: Quaternionf) = v4f(loc, v.x, v.y, v.z, v.w)
 
-    fun v2i(loc: Int, v: Vector2ic) = v2i(loc, v.x(), v.y())
-    fun v3i(loc: Int, v: Vector3ic) = v3i(loc, v.x(), v.y(), v.z())
-    fun v4i(loc: Int, v: Vector4ic) = v4i(loc, v.x(), v.y(), v.z(), v.w())
+    fun v2i(loc: Int, v: Vector2i) = v2i(loc, v.x, v.y)
+    fun v3i(loc: Int, v: Vector3i) = v3i(loc, v.x, v.y, v.z)
+    fun v4i(loc: Int, v: Vector4i) = v4i(loc, v.x, v.y, v.z, v.w)
 
-    fun v2i(loc: String, v: Vector2ic) = v2i(loc, v.x(), v.y())
-    fun v3i(loc: String, v: Vector3ic) = v3i(loc, v.x(), v.y(), v.z())
-    fun v4i(loc: String, v: Vector4ic) = v4i(loc, v.x(), v.y(), v.z(), v.w())
+    fun v2i(loc: String, v: Vector2i) = v2i(loc, v.x, v.y)
+    fun v3i(loc: String, v: Vector3i) = v3i(loc, v.x, v.y, v.z)
+    fun v4i(loc: String, v: Vector4i) = v4i(loc, v.x, v.y, v.z, v.w)
 
     fun v2f(name: String, all: Float) = v2f(name, all, all)
     fun v3f(name: String, all: Float) = v3f(name, all, all, all)
@@ -616,15 +613,15 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun v3i(name: String, all: Int) = v3i(name, all, all, all)
     fun v4i(name: String, all: Int) = v4i(name, all, all, all, all)
 
-    fun v2f(name: String, v: Vector2fc) = v2f(name, v.x(), v.y())
-    fun v3f(name: String, v: Vector3fc) = v3f(name, v.x(), v.y(), v.z())
-    fun v4f(name: String, v: Vector4fc) = v4f(name, v.x(), v.y(), v.z(), v.w())
-    fun v4f(name: String, v: Quaternionfc) = v4f(name, v.x(), v.y(), v.z(), v.w())
-    fun v4f(name: String, v: Vector4dc) =
-        v4f(name, v.x().toFloat(), v.y().toFloat(), v.z().toFloat(), v.w().toFloat())
+    fun v2f(name: String, v: Vector2f) = v2f(name, v.x, v.y)
+    fun v3f(name: String, v: Vector3f) = v3f(name, v.x, v.y, v.z)
+    fun v4f(name: String, v: Vector4f) = v4f(name, v.x, v.y, v.z, v.w)
+    fun v4f(name: String, v: Quaternionf) = v4f(name, v.x, v.y, v.z, v.w)
+    fun v4f(name: String, v: Vector4d) =
+        v4f(name, v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
 
-    fun m3x3(name: String, value: Matrix3fc?) = m3x3(getUniformLocation(name), value)
-    fun m3x3(loc: Int, value: Matrix3fc? = identity3) {
+    fun m3x3(name: String, value: Matrix3f?) = m3x3(getUniformLocation(name), value)
+    fun m3x3(loc: Int, value: Matrix3f? = identity3) {
         if (loc > -1) {
             potentiallyUse()
             (value ?: identity3).get(matrixBuffer)
@@ -632,8 +629,8 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
-    fun m4x3(name: String, value: Matrix4x3fc?) = m4x3(getUniformLocation(name), value)
-    fun m4x3(loc: Int, value: Matrix4x3fc? = identity4x3) {
+    fun m4x3(name: String, value: Matrix4x3f?) = m4x3(getUniformLocation(name), value)
+    fun m4x3(loc: Int, value: Matrix4x3f? = identity4x3) {
         if (loc > -1) {
             potentiallyUse()
             (value ?: identity4x3).get(matrixBuffer)
@@ -648,8 +645,8 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
-    fun m4x4(name: String, value: Matrix4fc? = identity4) = m4x4(getUniformLocation(name), value)
-    fun m4x4(loc: Int, value: Matrix4fc? = identity4) {
+    fun m4x4(name: String, value: Matrix4f? = identity4) = m4x4(getUniformLocation(name), value)
+    fun m4x4(loc: Int, value: Matrix4f? = identity4) {
         if (loc > -1) {
             potentiallyUse()
             (value ?: identity4).get(matrixBuffer)

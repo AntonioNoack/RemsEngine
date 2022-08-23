@@ -179,7 +179,7 @@ class AABBf(
         return dst
     }
 
-    fun transform(m: Matrix4fc, dest: AABBf = this): AABBf {
+    fun transform(m: Matrix4f, dest: AABBf = this): AABBf {
         val dx = maxX - minX
         val dy = maxY - minY
         val dz = maxZ - minZ
@@ -235,12 +235,12 @@ class AABBf(
             val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
             val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
             val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
-            minx = Math.min(tx, minx)
-            miny = Math.min(ty, miny)
-            minz = Math.min(tz, minz)
-            maxx = Math.max(tx, maxx)
-            maxy = Math.max(ty, maxy)
-            maxz = Math.max(tz, maxz)
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
         }
         dst.minX = minx
         dst.minY = miny
@@ -274,12 +274,12 @@ class AABBf(
             val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
             val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
             val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
-            minx = Math.min(tx, minx)
-            miny = Math.min(ty, miny)
-            minz = Math.min(tz, minz)
-            maxx = Math.max(tx, maxx)
-            maxy = Math.max(ty, maxy)
-            maxz = Math.max(tz, maxz)
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
         }
         dst.minX = minx
         dst.minY = miny
@@ -313,12 +313,12 @@ class AABBf(
             val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
             val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
             val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
-            minx = Math.min(tx, minx)
-            miny = Math.min(ty, miny)
-            minz = Math.min(tz, minz)
-            maxx = Math.max(tx, maxx)
-            maxy = Math.max(ty, maxy)
-            maxz = Math.max(tz, maxz)
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
         }
         dst.minX = minx
         dst.minY = miny
@@ -352,12 +352,12 @@ class AABBf(
             val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
             val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
             val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
-            minx = Math.min(tx, minx)
-            miny = Math.min(ty, miny)
-            minz = Math.min(tz, minz)
-            maxx = Math.max(tx, maxx)
-            maxy = Math.max(ty, maxy)
-            maxz = Math.max(tz, maxz)
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
         }
         dst.minX = minx
         dst.minY = miny
@@ -398,12 +398,12 @@ class AABBf(
             val tx = (m.m00() * x + m.m10() * y + m.m20() * z + m.m30()) / tw
             val ty = (m.m01() * x + m.m11() * y + m.m21() * z + m.m31()) / tw
             val tz = (m.m02() * x + m.m12() * y + m.m22() * z + m.m32()) / tw
-            minx = Math.min(tx, minx)
-            miny = Math.min(ty, miny)
-            minz = Math.min(tz, minz)
-            maxx = Math.max(tx, maxx)
-            maxy = Math.max(ty, maxy)
-            maxz = Math.max(tz, maxz)
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
         }
         dst.minX = minx
         dst.minY = miny
@@ -438,12 +438,12 @@ class AABBf(
             val tx = transform.m00() * x + transform.m10() * y + transform.m20() * z + transform.m30()
             val ty = transform.m01() * x + transform.m11() * y + transform.m21() * z + transform.m31()
             val tz = transform.m02() * x + transform.m12() * y + transform.m22() * z + transform.m32()
-            minx = Math.min(tx, minx)
-            miny = Math.min(ty, miny)
-            minz = Math.min(tz, minz)
-            maxx = Math.max(tx, maxx)
-            maxy = Math.max(ty, maxy)
-            maxz = Math.max(tz, maxz)
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
         }
         dst.minX = minx
         dst.minY = miny

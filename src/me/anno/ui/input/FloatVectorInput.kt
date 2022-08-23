@@ -10,6 +10,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.StudioBase.Companion.warn
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
@@ -50,21 +51,21 @@ open class FloatVectorInput(
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector2fc,
+        title: String, visibilityKey: String, value: Vector2f,
         type: Type = Type.VEC2, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector3fc,
+        title: String, visibilityKey: String, value: Vector3f,
         type: Type = Type.VEC3, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector4fc,
+        title: String, visibilityKey: String, value: Vector4f,
         type: Type = Type.VEC4, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
@@ -85,21 +86,21 @@ open class FloatVectorInput(
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector2dc,
+        title: String, visibilityKey: String, value: Vector2d,
         type: Type = Type.VEC2D, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector3dc,
+        title: String, visibilityKey: String, value: Vector3d,
         type: Type = Type.VEC3D, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector4dc,
+        title: String, visibilityKey: String, value: Vector4d,
         type: Type = Type.VEC4D, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
@@ -177,11 +178,6 @@ open class FloatVectorInput(
         set(value) {
             titleView?.isItalic = value
         }
-
-    override fun setValue(value: Vector4d, notify: Boolean): FloatVectorInput {
-        setValue(value as Vector4dc, notify)
-        return this
-    }
 
     private fun addComponent(title: String): FloatInput {
         val component = createComponent()
@@ -272,22 +268,22 @@ open class FloatVectorInput(
     val vzd get() = compZ?.lastValue ?: 0.0
     val vwd get() = compW?.lastValue ?: 0.0
 
-    fun setValue(v: Vector2fc, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
+    fun setValue(v: Vector2f, notify: Boolean) {
+        compX.setValue(v.x, notify)
+        compY?.setValue(v.y, notify)
     }
 
-    fun setValue(v: Vector3fc, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
-        compZ?.setValue(v.z(), notify)
+    fun setValue(v: Vector3f, notify: Boolean) {
+        compX.setValue(v.x, notify)
+        compY?.setValue(v.y, notify)
+        compZ?.setValue(v.z, notify)
     }
 
-    fun setValue(v: Vector4fc, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
-        compZ?.setValue(v.z(), notify)
-        compW?.setValue(v.w(), notify)
+    fun setValue(v: Vector4f, notify: Boolean) {
+        compX.setValue(v.x, notify)
+        compY?.setValue(v.y, notify)
+        compZ?.setValue(v.z, notify)
+        compW?.setValue(v.w, notify)
     }
 
     fun setValue(v: Planef, notify: Boolean) {
@@ -297,29 +293,30 @@ open class FloatVectorInput(
         compW?.setValue(v.d, notify)
     }
 
-    fun setValue(v: Quaternionfc, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
-        compZ?.setValue(v.z(), notify)
-        compW?.setValue(v.w(), notify)
+    fun setValue(v: Quaternionf, notify: Boolean) {
+        compX.setValue(v.x, notify)
+        compY?.setValue(v.y, notify)
+        compZ?.setValue(v.z, notify)
+        compW?.setValue(v.w, notify)
     }
 
-    fun setValue(v: Vector2dc, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
+    fun setValue(v: Vector2d, notify: Boolean) {
+        compX.setValue(v.x, notify)
+        compY?.setValue(v.y, notify)
     }
 
-    fun setValue(v: Vector3dc, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
-        compZ?.setValue(v.z(), notify)
+    fun setValue(v: Vector3d, notify: Boolean) {
+        compX.setValue(v.x, notify)
+        compY?.setValue(v.y, notify)
+        compZ?.setValue(v.z, notify)
     }
 
-    fun setValue(v: Vector4dc, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
-        compZ?.setValue(v.z(), notify)
-        compW?.setValue(v.w(), notify)
+    override fun setValue(value: Vector4d, notify: Boolean): FloatVectorInput {
+        compX.setValue(value.x, notify)
+        compY?.setValue(value.y, notify)
+        compZ?.setValue(value.z, notify)
+        compW?.setValue(value.w, notify)
+        return this
     }
 
     fun setValue(v: Planed, notify: Boolean) {
@@ -329,11 +326,11 @@ open class FloatVectorInput(
         compW?.setValue(v.d, notify)
     }
 
-    fun setValue(v: Quaterniondc, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
-        compZ?.setValue(v.z(), notify)
-        compW?.setValue(v.w(), notify)
+    fun setValue(v: Quaterniond, notify: Boolean) {
+        compX.setValue(v.x, notify)
+        compY?.setValue(v.y, notify)
+        compZ?.setValue(v.z, notify)
+        compW?.setValue(v.w, notify)
     }
 
     fun setValue(vi: FloatVectorInput, notify: Boolean) {
@@ -461,30 +458,30 @@ open class FloatVectorInput(
             // onChange is not required, and wrong, because we set a listener, so we need to handle this ourselves
             // also we decided the value ourselves, so we know the value
             when (val value = resetListener()) {
-                is Quaternionfc -> {
+                is Quaternionf -> {
                     if (type.components == 3) {
                         val comp = value.toEulerAnglesDegrees()
                         valueFields[0].setValue(comp.x, false)
                         valueFields[1].setValue(comp.y, false)
                         valueFields[2].setValue(comp.z, false)
                     } else {
-                        valueFields[0].setValue(value.x(), false)
-                        valueFields[1].setValue(value.y(), false)
-                        valueFields[2].setValue(value.z(), false)
-                        valueFields[3].setValue(value.w(), false)
+                        valueFields[0].setValue(value.x, false)
+                        valueFields[1].setValue(value.y, false)
+                        valueFields[2].setValue(value.z, false)
+                        valueFields[3].setValue(value.w, false)
                     }
                 }
-                is Quaterniondc -> {
+                is Quaterniond -> {
                     if (type.components == 3) {
                         val comp = value.toEulerAnglesDegrees()
                         valueFields[0].setValue(comp.x, false)
                         valueFields[1].setValue(comp.y, false)
                         valueFields[2].setValue(comp.z, false)
                     } else {
-                        valueFields[0].setValue(value.x(), false)
-                        valueFields[1].setValue(value.y(), false)
-                        valueFields[2].setValue(value.z(), false)
-                        valueFields[3].setValue(value.w(), false)
+                        valueFields[0].setValue(value.x, false)
+                        valueFields[1].setValue(value.y, false)
+                        valueFields[2].setValue(value.z, false)
+                        valueFields[3].setValue(value.w, false)
                     }
                 }
                 else -> onEmpty2(value ?: type.defaultValue)

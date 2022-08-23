@@ -15,12 +15,11 @@ import me.anno.utils.types.Vectors.avg
 import me.anno.utils.types.Vectors.cross
 import org.joml.AABBf
 import org.joml.Vector2f
-import org.joml.Vector2fc
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.sqrt
 
-class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : EdgeSegment() {
+class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : EdgeSegment() {
 
     val p1 = if (p0 == p10 || p10 == p2) avg(p0, p2) else p10
 
@@ -31,8 +30,8 @@ class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : E
         val f1 = 2f * (1f - param) * param
         val f2 = param * param
         return dst.set(p0).mul(f0)
-            .add(p1.x() * f1, p1.y() * f1)
-            .add(p2.x() * f2, p2.y() * f2)
+            .add(p1.x * f1, p1.y * f1)
+            .add(p2.x * f2, p2.y * f2)
     }
 
     override fun direction(param: Float, dst: Vector2f): Vector2f {
@@ -41,8 +40,8 @@ class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : E
         val a2 = param * param
         val ba = b - param
         dst.set(p0).mul(-b2)
-            .add(p1.x() * ba, p1.y() * ba)
-            .add(p2.x() * a2, p2.y() * a2)
+            .add(p1.x * ba, p1.y * ba)
+            .add(p2.x * a2, p2.y * a2)
         if (dst.length() == 0f) return dst.set(p2).sub(p0)
         return dst
     }
@@ -79,10 +78,10 @@ class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : E
             .sub(p0).sub(p2)
 
         if (bot.x != 0f) {
-            val param = (p1.x() - p0.x()) / bot.x
+            val param = (p1.x - p0.x) / bot.x
             if (param > 0f && param < 1f) union(bounds, point(param, bot))
         } else {
-            val param = (p1.y() - p0.y()) / bot.y
+            val param = (p1.y - p0.y) / bot.y
             if (param > 0f && param < 1f) union(bounds, point(param, bot))
         }
 
@@ -91,7 +90,7 @@ class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : E
     }
 
     override fun signedDistance(
-        origin: Vector2fc,
+        origin: Vector2f,
         param: FloatPtr,
         tmp: FloatArray,
         dst: SignedDistance

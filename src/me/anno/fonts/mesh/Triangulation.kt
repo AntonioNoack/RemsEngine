@@ -30,17 +30,17 @@ object Triangulation {
         return indices.map { index -> points[index] }
     }
 
-    fun ringToTrianglesVec2d(points: List<Vector2dc>): List<Vector2dc> {
+    fun ringToTrianglesVec2d(points: List<Vector2d>): List<Vector2d> {
         val joint = FloatArray(points.size * 2)
         points.forEachIndexed { index, vector2d ->
-            joint[index * 2] = vector2d.x().toFloat()
-            joint[index * 2 + 1] = vector2d.y().toFloat()
+            joint[index * 2] = vector2d.x.toFloat()
+            joint[index * 2 + 1] = vector2d.y.toFloat()
         }
         val indices = EarCut.earcut(joint, 2) ?: return emptyList()
         return indices.map { index -> points[index] }
     }
 
-    fun ringToTrianglesVec3f(points: List<Vector3fc>): List<Vector3fc> {
+    fun ringToTrianglesVec3f(points: List<Vector3f>): List<Vector3f> {
         if (points.size > 2) {
             val normal = JomlPools.vec3f.create().set(0f)
             val tmp1 = JomlPools.vec3f.create()
@@ -65,7 +65,7 @@ object Triangulation {
                 JomlPools.vec2f.create()
                     .set(it.dot(xAxis), it.dot(yAxis))
             }
-            val reverseMap = HashMap<Vector2fc, Vector3fc>()
+            val reverseMap = HashMap<Vector2f, Vector3f>()
             points.forEachIndexed { index, vector3f ->
                 reverseMap[projected[index]] = vector3f
             }
@@ -77,7 +77,7 @@ object Triangulation {
         } else return emptyList()
     }
 
-    fun ringToTrianglesVec3d(points: List<Vector3dc>): List<Vector3dc> {
+    fun ringToTrianglesVec3d(points: List<Vector3d>): List<Vector3d> {
         if (points.size > 2) {
             val normal = JomlPools.vec3d.create().set(0.0)
             val tmp1 = JomlPools.vec3d.create()
@@ -102,7 +102,7 @@ object Triangulation {
                 JomlPools.vec2d.create()
                     .set(it.dot(xAxis), it.dot(yAxis))
             }
-            val reverseMap = HashMap<Vector2dc, Vector3dc>()
+            val reverseMap = HashMap<Vector2d, Vector3d>()
             points.forEachIndexed { index, vector3d ->
                 reverseMap[projected[index]] = vector3d
             }
@@ -139,7 +139,7 @@ object Triangulation {
                 JomlPools.vec2f.create()
                     .set(it.position.dot(xAxis), it.position.dot(yAxis))
             }
-            val reverseMap = HashMap<Vector2fc, Point>()
+            val reverseMap = HashMap<Vector2f, Point>()
             points.forEachIndexed { index, vector3d ->
                 reverseMap[projected[index]] = vector3d
             }
@@ -177,7 +177,7 @@ object Triangulation {
                 JomlPools.vec2f.create()
                     .set(it.position.dot(xAxis), it.position.dot(yAxis))
             }
-            val reverseMap = HashMap<Vector2fc, Point>()
+            val reverseMap = HashMap<Vector2f, Point>()
             points.forEachIndexed { index, vector3d ->
                 reverseMap[projected[index]] = vector3d
             }

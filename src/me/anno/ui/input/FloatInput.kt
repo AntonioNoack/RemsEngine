@@ -102,8 +102,8 @@ open class FloatInput(
                 is Double -> value
                 is Int -> value.roundToInt()
                 is Long -> value.roundToLong()
-                is Vector2fc, is Vector3fc,
-                is Vector4fc, is Quaternionf -> value.toFloat()
+                is Vector2f, is Vector3f,
+                is Vector4f, is Quaternionf -> value.toFloat()
                 else -> throw RuntimeException("Unknown type ${type.defaultValue}")
             }
             val asDouble = when (val clamped = clampFunc(input)) {
@@ -125,15 +125,15 @@ open class FloatInput(
             is Double -> value
             is Int -> value.toDouble()
             is Long -> value.toDouble()
-            is Vector2ic -> value.x().toDouble()
-            is Vector3ic -> value.x().toDouble()
-            is Vector4ic -> value.x().toDouble()
-            is Vector2fc -> value.x().toDouble()
-            is Vector3fc -> value.x().toDouble()
-            is Vector4fc -> value.x().toDouble()
-            is Vector2dc -> value.x()
-            is Vector3dc -> value.x()
-            is Vector4dc -> value.x()
+            is Vector2i -> value.x.toDouble()
+            is Vector3i -> value.x.toDouble()
+            is Vector4i -> value.x.toDouble()
+            is Vector2f -> value.x.toDouble()
+            is Vector3f -> value.x.toDouble()
+            is Vector4f -> value.x.toDouble()
+            is Vector2d -> value.x
+            is Vector3d -> value.x
+            is Vector4d -> value.x
             else -> throw RuntimeException("Unknown type $value for ${value.javaClass.simpleName}")
         }
     }

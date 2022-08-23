@@ -19,7 +19,6 @@ import me.anno.maths.Maths.min
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector4f
-import org.joml.Vector4fc
 import org.lwjgl.opengl.GL11C.*
 import kotlin.math.abs
 
@@ -27,7 +26,7 @@ object Reduction {
 
     data class Operation(
         val name: String,
-        val startValue: Vector4fc,
+        val startValue: Vector4f,
         val function: String,
         val normalize: Boolean,
         val kotlinImpl: (sum: Vector4f, addend: Vector4f) -> Unit,
@@ -163,7 +162,7 @@ object Reduction {
 
     fun getShader(op: Operation): Shader {
         return shaderByType.getOrPut(op) {
-            val v0 = "vec4(${op.startValue.x()}, ${op.startValue.y()}, ${op.startValue.z()}, ${op.startValue.w()})"
+            val v0 = "vec4(${op.startValue.x}, ${op.startValue.y}, ${op.startValue.z}, ${op.startValue.w})"
             Shader(
                 "reduce-${op.name}", simplestVertexShader2, emptyList(), "" +
                         "uniform sampler2D src;\n" +

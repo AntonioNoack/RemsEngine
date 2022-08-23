@@ -663,7 +663,7 @@ object ComponentUI {
                 return FloatVectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
-                    askForReset(property) { setValue((it as Quaterniondc).toEulerAnglesDegrees(), false) }
+                    askForReset(property) { setValue((it as Quaterniond).toEulerAnglesDegrees(), false) }
                     setChangeListener { x, y, z, _ ->
                         property.set(this, Vector3d(x, y, z).toQuaternionDegrees())
                     }

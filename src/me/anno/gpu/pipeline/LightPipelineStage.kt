@@ -33,7 +33,7 @@ import me.anno.io.Saveable
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.SmallestKList
 import me.anno.utils.types.Booleans.toInt
-import org.joml.Matrix4fc
+import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW
 
@@ -461,7 +461,7 @@ class LightPipelineStage(
     private val instanced = Group()
     private val nonInstanced = Group()
 
-    fun bindDraw(source: IFramebuffer, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
+    fun bindDraw(source: IFramebuffer, cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
         if (instanced.isNotEmpty() || nonInstanced.isNotEmpty()) {
             GFXState.blendMode.use(blendMode) {
                 GFXState.depthMode.use(depthMode) {
@@ -475,7 +475,7 @@ class LightPipelineStage(
         }
     }
 
-    private fun initShader(shader: Shader, cameraMatrix: Matrix4fc) {
+    private fun initShader(shader: Shader, cameraMatrix: Matrix4f) {
         // information for the shader, which is material agnostic
         // add all things, the shader needs to know, e.g., light direction, strength, ...
         // (for the cheap shaders, which are not deferred)
@@ -491,7 +491,7 @@ class LightPipelineStage(
         }
     }
 
-    fun draw(source: IFramebuffer, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
+    fun draw(source: IFramebuffer, cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
 
         val time = Engine.gameTime
 
@@ -599,7 +599,7 @@ class LightPipelineStage(
 
     }
 
-    private var cameraMatrix: Matrix4fc? = null
+    private var cameraMatrix: Matrix4f? = null
     private var cameraPosition: Vector3d? = null
     private var worldScale: Double = 1.0
 

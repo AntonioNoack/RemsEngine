@@ -34,8 +34,8 @@ import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Task
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector3fc
-import org.joml.Vector4fc
+import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL30C.*
@@ -188,13 +188,13 @@ object GFX : GFXBase() {
     fun shaderColor(shader: Shader, name: String, color: Int) =
         currentRenderer.shaderColor(shader, name, color)
 
-    fun shaderColor(shader: Shader, name: String, color: Vector4fc?) =
+    fun shaderColor(shader: Shader, name: String, color: Vector4f?) =
         currentRenderer.shaderColor(shader, name, color)
 
     fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) =
         currentRenderer.shaderColor(shader, name, r, g, b, a)
 
-    fun shaderColor(shader: Shader, name: String, color: Vector3fc?) =
+    fun shaderColor(shader: Shader, name: String, color: Vector3f?) =
         currentRenderer.shaderColor(shader, name, color)
 
     fun toRadians(f: Float) = Math.toRadians(f.toDouble()).toFloat()

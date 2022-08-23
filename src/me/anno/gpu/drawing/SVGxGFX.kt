@@ -12,23 +12,23 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.fract
 import org.joml.Matrix4fArrayList
-import org.joml.Vector4fc
+import org.joml.Vector4f
 import kotlin.math.floor
 import kotlin.math.round
 
 object SVGxGFX {
 
     fun draw3DSVG(
-        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4fc,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?
+        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
         val shader = init(stack, texture, color, filtering, clamping, tiling)
         draw(stack, buffer, clamping, tiling, shader)
     }
 
     fun init(
-        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4fc, filtering: Filtering, clamping: Clamping,
-        tiling: Vector4fc?
+        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f, filtering: Filtering, clamping: Clamping,
+        tiling: Vector4f?
     ): Shader {
         val shader = ShaderLib.shader3DSVG.value
         shader.use()
@@ -44,7 +44,7 @@ object SVGxGFX {
 
     fun draw(
         stack: Matrix4fArrayList, buffer: StaticBuffer,
-        clamping: Clamping, tiling: Vector4fc?,
+        clamping: Clamping, tiling: Vector4f?,
         shader: Shader
     ) {
 
@@ -63,10 +63,10 @@ object SVGxGFX {
         } else {
 
             // uv[1] = (uv[0]-0.5) * tiling.xy + 0.5 + tiling.zw
-            val tx = tiling.x()
-            val ty = tiling.y()
-            val tz = tiling.z()
-            val tw = tiling.w()
+            val tx = tiling.x
+            val ty = tiling.y
+            val tz = tiling.z
+            val tw = tiling.w
 
             val rx = floor(tz).toInt()
             val ry = floor(tw).toInt()

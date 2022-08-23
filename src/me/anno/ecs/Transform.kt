@@ -372,8 +372,8 @@ class Transform() : Saveable() {
     }
 
     @Suppress("unused")
-    fun setLocalPosition(v: Vector3dc): Transform {
-        return setLocalPosition(v.x(), v.y(), v.z())
+    fun setLocalPosition(v: Vector3d): Transform {
+        return setLocalPosition(v.x, v.y, v.z)
     }
 
     @Suppress("unused")
@@ -384,8 +384,8 @@ class Transform() : Saveable() {
     }
 
     @Suppress("unused")
-    fun setGlobalPosition(v: Vector3dc): Transform {
-        return setGlobalPosition(v.x(), v.y(), v.z())
+    fun setGlobalPosition(v: Vector3d): Transform {
+        return setGlobalPosition(v.x, v.y, v.z)
     }
 
     @Suppress("unused")

@@ -897,12 +897,12 @@ open class SDFComponent : ProceduralMesh(), Renderable {
 
         fun defineUniform(uniforms: HashMap<String, TypeValue>, value: Any): String {
             val type = when (value) {
-                is Vector2fc -> GLSLType.V2F
-                is Vector2ic -> GLSLType.V2I
-                is Vector3fc -> GLSLType.V3F
-                is Vector3ic -> GLSLType.V3I
-                is Vector4fc, is Quaternionfc, is Planef -> GLSLType.V4F
-                is Vector4ic -> GLSLType.V4I
+                is Vector2f -> GLSLType.V2F
+                is Vector2i -> GLSLType.V2I
+                is Vector3f -> GLSLType.V3F
+                is Vector3i -> GLSLType.V3I
+                is Vector4f, is Quaternionf, is Planef -> GLSLType.V4F
+                is Vector4i -> GLSLType.V4I
                 else -> throw IllegalArgumentException("Unknown type, use defineUniforms(uniforms, type, value) instead!")
             }
             return defineUniform(uniforms, type, value)

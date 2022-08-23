@@ -13,17 +13,16 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.cross
 import org.joml.AABBf
 import org.joml.Vector2f
-import org.joml.Vector2fc
 import kotlin.math.abs
 
 /**
  * adapted from Multi Channel Signed Distance fields
  * */
 class CubicSegment(
-    val p0: Vector2fc,
-    p10: Vector2fc,
-    p20: Vector2fc,
-    val p3: Vector2fc
+    val p0: Vector2f,
+    p10: Vector2f,
+    p20: Vector2f,
+    val p3: Vector2f
 ) : EdgeSegment() {
 
     companion object {
@@ -45,9 +44,9 @@ class CubicSegment(
         val abb = 3f * param * b2
         val bbb = b * b2
         return dst.set(p0).mul(bbb)
-            .add(p1.x() * abb, p1.y() * abb)
-            .add(p2.x() * aab, p2.y() * aab)
-            .add(p3.x() * aaa, p3.y() * aaa)
+            .add(p1.x * abb, p1.y * abb)
+            .add(p2.x * aab, p2.y * aab)
+            .add(p3.x * aaa, p3.y * aaa)
     }
 
     override fun direction(param: Float, dst: Vector2f): Vector2f {
@@ -58,9 +57,9 @@ class CubicSegment(
         val f1 = b2 - ab2
         val f2 = ab2 - a2
         dst.set(p0).mul(-b2)
-            .add(p1.x() * f1, p1.y() * f1)
-            .add(p2.x() * f2, p2.y() * f2)
-            .add(p3.x() * a2, p3.y() * a2)
+            .add(p1.x * f1, p1.y * f1)
+            .add(p2.x * f2, p2.y * f2)
+            .add(p3.x * a2, p3.y * a2)
         if (dst.lengthSquared() == 0f) {
             if (param == 0f) return dst.set(p2).sub(p0)
             if (param == 1f) return dst.set(p3).sub(p1)
@@ -74,8 +73,8 @@ class CubicSegment(
 
     override fun union(bounds: AABBf, tmp: FloatArray) {
 
-        bounds.union(p0.x(), p0.y(), 0f)
-        bounds.union(p3.x(), p3.y(), 0f)
+        bounds.union(p0.x, p0.y, 0f)
+        bounds.union(p3.x, p3.y, 0f)
 
         val a0 = JomlPools.vec2f.create()
         val a1 = JomlPools.vec2f.create()
@@ -106,7 +105,7 @@ class CubicSegment(
     }
 
     override fun signedDistance(
-        origin: Vector2fc,
+        origin: Vector2f,
         param: FloatPtr,
         tmp: FloatArray,
         dst: SignedDistance

@@ -122,7 +122,7 @@ class AnimGameItem(
         cameraMatrix: Matrix4f,
         localTransform: Matrix4x3fArrayList,
         time: Double,
-        color: Vector4fc,
+        color: Vector4f,
         animationName: String,
         useMaterials: Boolean,
         drawSkeletons: Boolean
@@ -183,7 +183,7 @@ class AnimGameItem(
         localTransform: Matrix4x3fArrayList,
         localTransform0: Matrix4x3f,
         skinningMatrices: Array<Matrix4x3f>?,
-        color: Vector4fc,
+        color: Vector4f,
         entity: Entity,
         useMaterials: Boolean,
         drawSkeletons: Boolean

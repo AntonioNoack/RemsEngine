@@ -3,7 +3,7 @@ package me.anno.gpu.deferred
 import me.anno.gpu.deferred.DeferredSettingsV2.Companion.glslTypes
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.structures.maps.LazyMap
-import org.joml.Vector4fc
+import org.joml.Vector4f
 
 open class DeferredLayerType(
     val name: String,
@@ -11,7 +11,7 @@ open class DeferredLayerType(
     val dimensions: Int,
     val minimumQuality: BufferQuality, // todo this depends on the platform; todo or we could use a mapping between attributes :)
     val highDynamicRange: Boolean,
-    val defaultValueARGB: Vector4fc,
+    val defaultValueARGB: Vector4f,
     val map01: String,
     val map10: String
 ) {
@@ -35,27 +35,27 @@ open class DeferredLayerType(
 
     fun appendDefaultValue(fragment: StringBuilder) {
         when (dimensions) {
-            1 -> fragment.append(defaultValueARGB.x())
+            1 -> fragment.append(defaultValueARGB.x)
             2 -> fragment.append("vec2(")
-                .append(defaultValueARGB.x())
+                .append(defaultValueARGB.x)
                 .append(", ")
-                .append(defaultValueARGB.y())
+                .append(defaultValueARGB.y)
                 .append(')')
             3 -> fragment.append("vec3(")
-                .append(defaultValueARGB.x())
+                .append(defaultValueARGB.x)
                 .append(", ")
-                .append(defaultValueARGB.y())
+                .append(defaultValueARGB.y)
                 .append(", ")
-                .append(defaultValueARGB.z())
+                .append(defaultValueARGB.z)
                 .append(')')
             4 -> fragment.append("vec4(")
-                .append(defaultValueARGB.x())
+                .append(defaultValueARGB.x)
                 .append(", ")
-                .append(defaultValueARGB.y())
+                .append(defaultValueARGB.y)
                 .append(", ")
-                .append(defaultValueARGB.z())
+                .append(defaultValueARGB.z)
                 .append(", ")
-                .append(defaultValueARGB.w())
+                .append(defaultValueARGB.w)
                 .append(')')
         }
     }

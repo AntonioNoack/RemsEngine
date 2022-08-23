@@ -127,7 +127,7 @@ object Grid {
         w: Int, h: Int, color: Int, alpha: Float
     ) = drawLine11((x0 + x1) / w - 1f, 1f - (y0 + y1) / h, x1 * 2f / w - 1f, 1f - 2f * y1 / h, color, alpha)
 
-    private fun defaultUniforms(shader: Shader, color: Vector4fc) {
+    private fun defaultUniforms(shader: Shader, color: Vector4f) {
         GFX.shaderColor(shader, "tint", color)
     }
 
@@ -155,7 +155,7 @@ object Grid {
         lineBuffer.draw(shader)
     }
 
-    fun drawLine(stack: Matrix4fArrayList, color: Vector4fc, p0: Vector3fc, p1: Vector3f) {
+    fun drawLine(stack: Matrix4fArrayList, color: Vector4f, p0: Vector3f, p1: Vector3f) {
 
         // rotate, scale, and move correctly
         // (-1,0,0) / (+1,0,0) shall become p0 / p1
@@ -240,9 +240,9 @@ object Grid {
     }
 
     @Suppress("unused")
-    fun drawBuffer(stack: Matrix4fArrayList, color: Vector4fc, buffer: StaticBuffer) {
+    fun drawBuffer(stack: Matrix4fArrayList, color: Vector4f, buffer: StaticBuffer) {
 
-        if (color.w() <= 0f) return
+        if (color.w <= 0f) return
 
         val shader = shader3D.value
         shader.use()

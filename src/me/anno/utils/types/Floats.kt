@@ -1,9 +1,9 @@
 package me.anno.utils.types
 
 import me.anno.maths.Maths
-import org.joml.Vector2fc
-import org.joml.Vector3fc
-import org.joml.Vector4fc
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import java.nio.FloatBuffer
 import java.util.*
 import kotlin.math.PI
@@ -30,22 +30,22 @@ object Floats {
         }
     }
 
-    fun FloatBuffer.put3(v: Vector2fc) {
-        put(v.x())
-        put(v.y())
+    fun FloatBuffer.put3(v: Vector2f) {
+        put(v.x)
+        put(v.y)
     }
 
-    fun FloatBuffer.put3(v: Vector3fc) {
-        put(v.x())
-        put(v.y())
-        put(v.z())
+    fun FloatBuffer.put3(v: Vector3f) {
+        put(v.x)
+        put(v.y)
+        put(v.z)
     }
 
-    fun FloatBuffer.put3(v: Vector4fc) {
-        put(v.x())
-        put(v.y())
-        put(v.z())
-        put(v.w())
+    fun FloatBuffer.put3(v: Vector4f) {
+        put(v.x)
+        put(v.y)
+        put(v.z)
+        put(v.w)
     }
 
     private const val piF180 = (PI / 180).toFloat()

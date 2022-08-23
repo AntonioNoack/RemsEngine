@@ -18,7 +18,6 @@ import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
-import org.joml.Vector4fc
 
 class ColorField(
     private val palette: ColorPalette,
@@ -79,7 +78,7 @@ class ColorField(
         if (notify) changeListener(this, color)
     }
 
-    fun setRGBA(color: Vector4fc, notify: Boolean) {
+    fun setRGBA(color: Vector4f, notify: Boolean) {
         setARGB(color.toARGB(), notify)
     }
 

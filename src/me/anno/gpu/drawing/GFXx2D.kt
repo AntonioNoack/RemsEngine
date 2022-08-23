@@ -10,7 +10,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.joml.Vector4fc
 
 object GFXx2D {
 
@@ -21,7 +20,7 @@ object GFXx2D {
     // clipping no longer works
     // done implement a global matrix here, which can be used to draw GUI element inside the world
 
-    fun tiling(shader: Shader, tiling: Vector4fc?) {
+    fun tiling(shader: Shader, tiling: Vector4f?) {
         if (tiling != null) shader.v4f("tiling", tiling)
         else noTiling(shader)
     }

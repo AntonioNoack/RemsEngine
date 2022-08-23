@@ -3,11 +3,11 @@ package me.anno.gpu.drawing
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.FlatShaders.flatShader
 import me.anno.utils.Color.a
-import org.joml.Vector4fc
+import org.joml.Vector4f
 
 object DrawRectangles {
 
-    fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Vector4fc) {
+    fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Vector4f) {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = flatShader.value
@@ -37,7 +37,7 @@ object DrawRectangles {
         GFX.flat01.draw(shader)
     }
 
-    fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Vector4fc) {
+    fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Vector4f) {
         GFX.check()
         val shader = flatShader.value
         shader.use()

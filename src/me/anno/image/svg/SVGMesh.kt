@@ -186,8 +186,8 @@ class SVGMesh {
         val scale = debugImageSize / h
         val img = BufferedImage(debugImageSize, debugImageSize, 1)
         val gfx = img.graphics as Graphics2D
-        fun ix(v: Vector2dc) = debugImageSize / 2 + ((v.x() - x0) * scale).roundToInt()
-        fun iy(v: Vector2dc) = debugImageSize / 2 + ((v.y() - y0) * scale).roundToInt()
+        fun ix(v: Vector2d) = debugImageSize / 2 + ((v.x - x0) * scale).roundToInt()
+        fun iy(v: Vector2d) = debugImageSize / 2 + ((v.y - y0) * scale).roundToInt()
         curves.forEach {
             val color = it.gradient.averageColor or 0x333333
             val triangles = it.triangles
@@ -221,10 +221,10 @@ class SVGMesh {
             val stops = Vector4f()
             this.buffer = buffer
             curves.forEach { curve ->
-                val minX = curve.triangles.minOf { it.x() }
-                val maxX = curve.triangles.maxOf { it.x() }
-                val minY = curve.triangles.minOf { it.y() }
-                val maxY = curve.triangles.maxOf { it.y() }
+                val minX = curve.triangles.minOf { it.x }
+                val maxX = curve.triangles.maxOf { it.x }
+                val minY = curve.triangles.minOf { it.y }
+                val maxY = curve.triangles.maxOf { it.y }
                 val scaleX = 1.0 / max(1e-9, maxX - minX)
                 val scaleY = 1.0 / max(1e-9, maxY - minY)
                 // upload all shapes
@@ -234,8 +234,8 @@ class SVGMesh {
                 val padding = gradient.spreadMethod.id.toFloat()
                 val depth = curve.depth.toFloat()
                 for (v in curve.triangles) {
-                    val vx = v.x()
-                    val vy = v.y()
+                    val vx = v.x
+                    val vy = v.y
                     // position, v3
                     buffer.put(((vx - cx) * scale).toFloat(), ((vy - cy) * scale).toFloat(), depth)
                     // local pos 2

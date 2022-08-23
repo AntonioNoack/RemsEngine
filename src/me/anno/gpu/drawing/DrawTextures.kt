@@ -12,7 +12,6 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.joml.Vector4fc
 
 object DrawTextures {
 
@@ -39,7 +38,7 @@ object DrawTextures {
 
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
-        texture: ITexture2D, ignoreAlpha: Boolean, color: Int = -1, tiling: Vector4fc? = null,
+        texture: ITexture2D, ignoreAlpha: Boolean, color: Int = -1, tiling: Vector4f? = null,
         applyToneMapping: Boolean = false
     ) {
         if (w == 0 || h == 0) return
@@ -65,7 +64,7 @@ object DrawTextures {
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean,
-        color: Vector4fc, tiling: Vector4fc? = null,
+        color: Vector4f, tiling: Vector4f? = null,
         applyToneMapping: Boolean = false
     ) {
         if (w == 0 || h == 0) return
@@ -112,7 +111,7 @@ object DrawTextures {
     fun drawTextureAlpha(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D,
-        color: Int = -1, tiling: Vector4fc? = null,
+        color: Int = -1, tiling: Vector4f? = null,
         applyToneMapping: Boolean = false
     ) {
         if (w == 0 || h == 0) return
@@ -137,7 +136,7 @@ object DrawTextures {
 
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int, texture: ITexture2D,
-        color: Int, tiling: Vector4fc?, applyToneMapping: Boolean = false
+        color: Int, tiling: Vector4f?, applyToneMapping: Boolean = false
     ) = drawTexture(x, y, w, h, texture, false, color, tiling, applyToneMapping)
 
     private val tiling = Vector4f()
@@ -146,7 +145,7 @@ object DrawTextures {
         drawTexture(x, y, w, h, TextureLib.colorShowTexture, -1, tiling, false)
     }
 
-    fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4fc?) {
+    fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?) {
         matrix.scale(w.toFloat() / GFX.viewportWidth, h.toFloat() / GFX.viewportHeight, 1f)
         GFXx3D.draw3D(
             matrix, texture, color,
@@ -154,7 +153,7 @@ object DrawTextures {
         )
     }
 
-    fun drawTexture(w: Int, h: Int, texture: GPUFrame, color: Int, tiling: Vector4fc?) {
+    fun drawTexture(w: Int, h: Int, texture: GPUFrame, color: Int, tiling: Vector4f?) {
         val matrix = Matrix4fArrayList()
         matrix.scale(w.toFloat() / GFX.viewportWidth, h.toFloat() / GFX.viewportHeight, 1f)
         GFXx3D.draw3D(

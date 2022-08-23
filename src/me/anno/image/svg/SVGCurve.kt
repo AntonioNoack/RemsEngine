@@ -5,7 +5,6 @@ import me.anno.image.svg.gradient.Gradient1D
 import me.anno.utils.OS
 import me.anno.utils.types.Vectors.plus
 import org.joml.Vector2d
-import org.joml.Vector2dc
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -16,21 +15,21 @@ import kotlin.math.roundToInt
 
 class SVGCurve(Vector2ds: List<Vector2d>, closed: Boolean, val depth: Double, val gradient: Gradient1D, width: Double) {
 
-    val triangles: List<Vector2dc>
+    val triangles: List<Vector2d>
 
     fun createRing(Vector2ds: List<Vector2d>, offset: Double, closed: Boolean): MutableList<Vector2d> {
         return if (closed) createRing(Vector2ds, offset, Vector2ds.last(), Vector2ds.first())
         else createRing(Vector2ds, offset, Vector2ds.first(), Vector2ds.last())
     }
 
-    fun createRing(Vector2ds: List<Vector2d>, offset: Double, start: Vector2dc, end: Vector2dc): MutableList<Vector2d> {
+    fun createRing(Vector2ds: List<Vector2d>, offset: Double, start: Vector2d, end: Vector2d): MutableList<Vector2d> {
         val result = ArrayList<Vector2d>(Vector2ds.size)
         val size = Vector2ds.size
         for (i in 0 until size) {
             val a = if (i == 0) start else Vector2ds[i - 1]
             val b = Vector2ds[i]
             val c = if (i == size - 1) end else Vector2ds[i + 1]
-            val dir = Vector2d(a.y() - c.y(), c.x() - a.x())
+            val dir = Vector2d(a.y - c.y, c.x - a.x)
             dir.normalize(offset)
             result.add(a + dir)
             result.add(b + dir)
@@ -172,8 +171,8 @@ class SVGCurve(Vector2ds: List<Vector2d>, closed: Boolean, val depth: Double, va
         val avgY = (maxY + minY) / 2
         var scale = 1f / (max(maxX - minX, maxY - minY))
 
-        fun ix(v: Vector2dc) = debugImageSize / 2 + (debugImageSize * 0.8f * (v.x() - avgX) * scale).roundToInt()
-        fun iy(v: Vector2dc) = debugImageSize / 2 + (debugImageSize * 0.8f * (v.y() - avgY) * scale).roundToInt()
+        fun ix(v: Vector2d) = debugImageSize / 2 + (debugImageSize * 0.8f * (v.x - avgX) * scale).roundToInt()
+        fun iy(v: Vector2d) = debugImageSize / 2 + (debugImageSize * 0.8f * (v.y - avgY) * scale).roundToInt()
 
         val first = Vector2ds.first()
         var last = first

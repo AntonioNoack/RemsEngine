@@ -12,7 +12,6 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Vectors.findSystem
 import org.joml.Vector3d
 import org.joml.Vector3f
-import org.joml.Vector3fc
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -233,7 +232,7 @@ class SplineCrossing : ProceduralMesh() {
         }
     }
 
-    private fun triToMesh(tri: List<Vector3fc>, up: Vector3d, color: Int): Mesh {
+    private fun triToMesh(tri: List<Vector3f>, up: Vector3d, color: Int): Mesh {
         val mesh = Mesh()
         val nx = up.x.toFloat()
         val ny = up.y.toFloat()
@@ -242,9 +241,9 @@ class SplineCrossing : ProceduralMesh() {
         var k = 0
         for (i in tri.indices) {
             val p = tri[i]
-            pos[k++] = p.x()
-            pos[k++] = p.y()
-            pos[k++] = p.z()
+            pos[k++] = p.x
+            pos[k++] = p.y
+            pos[k++] = p.z
         }
         val nor = FloatArray(tri.size * 3)
         k = 0

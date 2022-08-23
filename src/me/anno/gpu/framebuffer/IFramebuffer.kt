@@ -10,8 +10,8 @@ import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
 import me.anno.utils.types.Booleans.toInt
-import org.joml.Vector3fc
-import org.joml.Vector4fc
+import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL11C.*
 import org.lwjgl.opengl.GL45
 
@@ -81,11 +81,11 @@ interface IFramebuffer {
     fun clearColor(color: Int, depth: Boolean = false) =
         clearColor(color.r01(), color.g01(), color.b01(), color.a01(), depth)
 
-    fun clearColor(color: Vector3fc, alpha: Float, depth: Boolean = false) =
-        clearColor(color.x(), color.y(), color.z(), alpha, depth)
+    fun clearColor(color: Vector3f, alpha: Float, depth: Boolean = false) =
+        clearColor(color.x, color.y, color.z, alpha, depth)
 
-    fun clearColor(color: Vector4fc, depth: Boolean = false) =
-        clearColor(color.x(), color.y(), color.z(), color.w(), depth)
+    fun clearColor(color: Vector4f, depth: Boolean = false) =
+        clearColor(color.x, color.y, color.z, color.w, depth)
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float, depth: Boolean = false) {
         Frame.bind()
@@ -97,12 +97,12 @@ interface IFramebuffer {
     fun clearColor(color: Int, stencil: Int, depth: Boolean) =
         clearColor(color.r01(), color.g01(), color.b01(), color.a01(), stencil, depth)
 
-    fun clearColor(color: Vector3fc, alpha: Float, stencil: Int, depth: Boolean = false) =
-        clearColor(color.x(), color.y(), color.z(), alpha, stencil, depth)
+    fun clearColor(color: Vector3f, alpha: Float, stencil: Int, depth: Boolean = false) =
+        clearColor(color.x, color.y, color.z, alpha, stencil, depth)
 
 
-    fun clearColor(color: Vector4fc, stencil: Int, depth: Boolean = false) =
-        clearColor(color.x(), color.y(), color.z(), color.w(), stencil, depth)
+    fun clearColor(color: Vector4f, stencil: Int, depth: Boolean = false) =
+        clearColor(color.x, color.y, color.z, color.w, stencil, depth)
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float, stencil: Int, depth: Boolean = false) {
         Frame.bind()

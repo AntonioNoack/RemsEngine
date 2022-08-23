@@ -90,9 +90,9 @@ class Type(
         val ROT_XZ = Type(Vector3f(), 2, 90f, true, true, null, ::castToVector2f)
         val SKEW_2D = Type(Vector2f(), 2, 1f, true, true, null, ::castToVector2f)
         val QUATERNION =
-            Type(Quaternionf(), 4, 1f, true, true, null) { if (it is Quaternionfc || it is Quaterniondc) it else null }
+            Type(Quaternionf(), 4, 1f, true, true, null) { if (it is Quaternionf || it is Quaterniond) it else null }
         val QUATERNIOND =
-            Type(Quaterniond(), 4, 1f, true, true, null) { if (it is Quaternionfc || it is Quaterniondc) it else null }
+            Type(Quaterniond(), 4, 1f, true, true, null) { if (it is Quaternionf || it is Quaterniond) it else null }
         val COLOR = Type(Vector4f(1f, 1f, 1f, 1f), 4, 1f, true, true, {
             when (it) {
                 is Vector4f -> {

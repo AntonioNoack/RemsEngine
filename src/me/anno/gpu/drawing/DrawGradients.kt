@@ -6,13 +6,13 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib.bindWhite
 import me.anno.video.formats.gpu.GPUFrame
-import org.joml.Vector4fc
+import org.joml.Vector4f
 
 object DrawGradients {
 
     fun drawRectGradient(
         x: Int, y: Int, w: Int, h: Int,
-        leftColor: Vector4fc, rightColor: Vector4fc,
+        leftColor: Vector4f, rightColor: Vector4f,
         inXDirection: Boolean = true
     ) {
         if (w == 0 || h == 0) return
@@ -50,8 +50,8 @@ object DrawGradients {
 
     fun drawRectGradient(
         x: Int, y: Int, w: Int, h: Int,
-        leftColor: Vector4fc, rightColor: Vector4fc,
-        frame: GPUFrame, uvs: Vector4fc,
+        leftColor: Vector4f, rightColor: Vector4f,
+        frame: GPUFrame, uvs: Vector4f,
         inXDirection: Boolean = true
     ) {
         if (w == 0 || h == 0) return
@@ -71,7 +71,7 @@ object DrawGradients {
 
     fun drawRectGradient(
         x: Int, y: Int, w: Int, h: Int, leftColor: Int, rightColor: Int,
-        frame: GPUFrame, uvs: Vector4fc,
+        frame: GPUFrame, uvs: Vector4f,
         inXDirection: Boolean = true
     ) {
         if (w == 0 || h == 0) return

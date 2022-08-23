@@ -16,10 +16,10 @@ object Matrices {
         return properties().and(Matrix4x3f.PROPERTY_IDENTITY.toInt()) != 0
     }
 
-    fun Matrix4f.skew(v: Vector2fc) {
+    fun Matrix4f.skew(v: Vector2f) {
         mul3x3(// works
-            1f, v.y(), 0f,
-            v.x(), 1f, 0f,
+            1f, v.y, 0f,
+            v.x, 1f, 0f,
             0f, 0f, 1f
         )
     }
@@ -229,28 +229,28 @@ object Matrices {
         )
     }
 
-    fun Matrix4x3dc.f3() = "${m00().f3s()} ${m10().f3s()} ${m20().f3s()} ${m30().f3s()}\n" +
+    fun Matrix4x3d.f3() = "${m00().f3s()} ${m10().f3s()} ${m20().f3s()} ${m30().f3s()}\n" +
             "${m01().f3s()} ${m11().f3s()} ${m21().f3s()} ${m31().f3s()}\n" +
             "${m02().f3s()} ${m12().f3s()} ${m22().f3s()} ${m32().f3s()}\n"
 
-    fun Vector2f.makePerpendicular(other: Vector2fc): Vector2f {
+    fun Vector2f.makePerpendicular(other: Vector2f): Vector2f {
         val f = dot(other)
-        x -= other.x() * f
-        y -= other.y() * f
+        x -= other.x * f
+        y -= other.y * f
         return this
     }
 
-    fun Vector2d.makePerpendicular(other: Vector2dc): Vector2d {
+    fun Vector2d.makePerpendicular(other: Vector2d): Vector2d {
         val f = dot(other)
-        x -= other.x() * f
-        y -= other.y() * f
+        x -= other.x * f
+        y -= other.y * f
         return this
     }
 
-    fun Vector3f.makePerpendicular(other: Vector3fc): Vector3f =
+    fun Vector3f.makePerpendicular(other: Vector3f): Vector3f =
         other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other
 
-    fun Vector3d.makePerpendicular(other: Vector3dc): Vector3d =
+    fun Vector3d.makePerpendicular(other: Vector3d): Vector3d =
         other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other
 
 }

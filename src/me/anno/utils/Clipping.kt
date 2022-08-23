@@ -2,14 +2,13 @@ package me.anno.utils
 
 import org.joml.Matrix4f
 import org.joml.Vector4f
-import org.joml.Vector4fc
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
 object Clipping {
 
-    fun check(v0: Vector4fc, axis1: Vector4fc, axis2: Vector4fc, getValue: (Vector4fc) -> Float): Vector4fc? {
+    fun check(v0: Vector4f, axis1: Vector4f, axis2: Vector4f, getValue: (Vector4f) -> Float): Vector4f? {
         val val0 = getValue(v0)
         if (val0 in -1f..1f) return v0 // it's fine
         val val1p = getValue(axis1)
@@ -26,7 +25,7 @@ object Clipping {
     }
 
     inline fun lerpMaybe(
-        v0: Vector4fc, v1: Vector4fc, val0: Float, val1: Float,
+        v0: Vector4f, v1: Vector4f, val0: Float, val1: Float,
         @Suppress("UNUSED_PARAMETER") getValue: (Vector4f) -> Float
     ): Vector4f? {
         if ((val0 > 1f && val1 > 1f) || (val0 < -1f && val1 < -1f)) return null // impossible
@@ -85,14 +84,14 @@ object Clipping {
 
     }
 
-    fun getZ(p00: Vector4fc, p01: Vector4fc, p10: Vector4fc, p11: Vector4fc): Pair<Float, Float>? {
+    fun getZ(p00: Vector4f, p01: Vector4f, p10: Vector4f, p11: Vector4f): Pair<Float, Float>? {
 
         var v00 = p00
         var v01 = p01
         var v10 = p10
         var v11 = p11
 
-        fun checkAll(getValue: (Vector4fc) -> Float): Boolean {
+        fun checkAll(getValue: (Vector4f) -> Float): Boolean {
 
             // sort by resolvability ->
             // there must be at least one intersection with zero, or
@@ -125,12 +124,12 @@ object Clipping {
 
         }
 
-        if (!checkAll { it.x() } || !checkAll { it.y() } || !checkAll { it.z() }) return null
+        if (!checkAll { it.x } || !checkAll { it.y } || !checkAll { it.z }) return null
 
         // ("${v00.print()} ${v01.print()} ${v10.print()} ${v11.print()}")
 
-        val minZ = min(min(v00.z(), v01.z()), min(v10.z(), v11.z()))
-        val maxZ = max(min(v00.z(), v01.z()), min(v10.z(), v11.z()))
+        val minZ = min(min(v00.z, v01.z), min(v10.z, v11.z))
+        val maxZ = max(min(v00.z, v01.z), min(v10.z, v11.z))
 
         return minZ to maxZ
 

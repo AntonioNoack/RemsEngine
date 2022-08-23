@@ -32,7 +32,6 @@ import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
 import org.joml.Vector4f
-import org.joml.Vector4fc
 import kotlin.math.max
 
 open class ColorInput(
@@ -40,7 +39,7 @@ open class ColorInput(
     val title: String,
     @Suppress("unused_parameter")
     visibilityKey: String,
-    oldValue: Vector4fc,
+    oldValue: Vector4f,
     withAlpha: Boolean,
     val contentView: ColorChooser = ColorChooser(style, withAlpha, ColorPalette(8, 4, style))
 ) : PanelListX(style), InputPanel<Vector4f>, TextStyleable {

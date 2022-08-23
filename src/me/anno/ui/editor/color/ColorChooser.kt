@@ -24,9 +24,7 @@ import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
-import org.joml.Vector3fc
 import org.joml.Vector4f
-import org.joml.Vector4fc
 import kotlin.math.min
 
 open class ColorChooser(
@@ -140,7 +138,7 @@ open class ColorChooser(
         )
     }
 
-    fun setRGBA(v: Vector4fc, notify: Boolean) = setRGBA(v.x(), v.y(), v.z(), v.w(), notify)
+    fun setRGBA(v: Vector4f, notify: Boolean) = setRGBA(v.x, v.y, v.z, v.w, notify)
     fun setRGBA(r: Float, g: Float, b: Float, a: Float, notify: Boolean) {
         val hsl = colorSpace.fromRGB(Vector3f(r, g, b))
         setHSL(hsl.x, hsl.y, hsl.z, clamp(a, 0f, 1f), colorSpace, notify)
@@ -160,7 +158,7 @@ open class ColorChooser(
 
     fun getColor() = Vector4f(rgb, opacity)
 
-    fun drawColorBox(element: Panel, d0: Vector3fc, du: Vector3fc, dv: Vector3fc, dh: Float, mainBox: Boolean) {
+    fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean) {
         drawColorBox(
             element.x, element.y, element.w, element.h,
             d0, du, dv, dh,
@@ -170,7 +168,7 @@ open class ColorChooser(
 
     fun drawColorBox(
         x: Int, y: Int, w: Int, h: Int,
-        d0: Vector3fc, du: Vector3fc, dv: Vector3fc, dh: Float,
+        d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float,
         spaceStyle: ColorVisualisation
     ) {
         val shader = colorSpace.getShader(spaceStyle)
@@ -179,11 +177,11 @@ open class ColorChooser(
         val sharpness = min(w, h) * 0.25f + 1f
         when (spaceStyle) {
             ColorVisualisation.WHEEL -> {
-                shader.v3f("v0", d0.x() + hue * dh, d0.y(), d0.z())
+                shader.v3f("v0", d0.x + hue * dh, d0.y, d0.z)
                 shader.v3f("du", du)
                 shader.v3f("dv", dv)
                 val hue0 = colorSpace.hue0
-                shader.v2f("ringSL", hue0.y(), hue0.z())
+                shader.v2f("ringSL", hue0.y, hue0.z)
                 shader.v1f("sharpness", sharpness)
                 GFX.flat01.draw(shader)
             }
@@ -193,7 +191,7 @@ open class ColorChooser(
                 GFX.flat01.draw(shader)
             }
             ColorVisualisation.BOX -> {
-                shader.v3f("v0", d0.x() + hue * dh, d0.y(), d0.z())
+                shader.v3f("v0", d0.x + hue * dh, d0.y, d0.z)
                 shader.v3f("du", du)
                 shader.v3f("dv", dv)
                 // shader.v1("sharpness", sharpness)

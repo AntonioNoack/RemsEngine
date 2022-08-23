@@ -43,9 +43,9 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
                 is () -> Any? -> shader.v1i(location, value.invoke() as Int)
                 else -> LOGGER.warn("Unknown type for V1I, ${value::class.simpleName}")
             }
-            GLSLType.V2I -> shader.v2i(location, value as Vector2ic)
-            GLSLType.V3I -> shader.v3i(location, value as Vector3ic)
-            GLSLType.V4I -> shader.v4i(location, value as Vector4ic)
+            GLSLType.V2I -> shader.v2i(location, value as Vector2i)
+            GLSLType.V3I -> shader.v3i(location, value as Vector3i)
+            GLSLType.V4I -> shader.v4i(location, value as Vector4i)
             GLSLType.V1F -> when (value) {
                 is Int -> shader.v1f(location, value.toFloat())
                 is Long -> shader.v1f(location, value.toFloat())
@@ -54,17 +54,17 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
                 is () -> Any? -> shader.v1f(location, value.invoke() as Float)
                 else -> LOGGER.warn("Unknown type for V1F, ${value::class.simpleName}")
             }
-            GLSLType.V2F -> shader.v2f(location, value as Vector2fc)
-            GLSLType.V3F -> shader.v3f(location, value as Vector3fc)
+            GLSLType.V2F -> shader.v2f(location, value as Vector2f)
+            GLSLType.V3F -> shader.v3f(location, value as Vector3f)
             GLSLType.V4F -> when (value) {
-                is Quaternionfc -> shader.v4f(location, value)
-                is Vector4fc -> shader.v4f(location, value)
+                is Quaternionf -> shader.v4f(location, value)
+                is Vector4f -> shader.v4f(location, value)
                 is Planef -> shader.v4f(location, value.a, value.b, value.c, value.d)
                 else -> LOGGER.warn("Unknown type for V4F, ${value::class.simpleName}")
             }
-            GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3fc)
-            GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3fc)
-            GLSLType.M4x4 -> shader.m4x4(location, value as Matrix4fc)
+            GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3f)
+            GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3f)
+            GLSLType.M4x4 -> shader.m4x4(location, value as Matrix4f)
             GLSLType.S2D -> {
                 value as Texture2D
                 if (value.isCreated) {

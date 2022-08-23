@@ -1,6 +1,5 @@
 package org.joml
 
-import me.anno.maths.Maths
 import me.anno.utils.types.Floats.f3
 import kotlin.math.max
 import kotlin.math.min
@@ -90,7 +89,7 @@ class AABBd(
     }
 
 
-    fun transform(m: Matrix4dc, dest: AABBd = this): AABBd {
+    fun transform(m: Matrix4d, dest: AABBd = this): AABBd {
         val dx = maxX - minX
         val dy = maxY - minY
         val dz = maxZ - minZ
@@ -207,12 +206,12 @@ class AABBd(
             val tx = trans.m00() * x + trans.m10() * y + trans.m20() * z + trans.m30()
             val ty = trans.m01() * x + trans.m11() * y + trans.m21() * z + trans.m31()
             val tz = trans.m02() * x + trans.m12() * y + trans.m22() * z + trans.m32()
-            minx = Math.min(tx, minx)
-            miny = Math.min(ty, miny)
-            minz = Math.min(tz, minz)
-            maxx = Math.max(tx, maxx)
-            maxy = Math.max(ty, maxy)
-            maxz = Math.max(tz, maxz)
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
         }
         dst.minX = minx
         dst.minY = miny
@@ -243,12 +242,12 @@ class AABBd(
             val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
             val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
             val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
-            minx = Math.min(tx, minx)
-            miny = Math.min(ty, miny)
-            minz = Math.min(tz, minz)
-            maxx = Math.max(tx, maxx)
-            maxy = Math.max(ty, maxy)
-            maxz = Math.max(tz, maxz)
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
         }
         dst.minX = minx
         dst.minY = miny
@@ -282,12 +281,12 @@ class AABBd(
             val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
             val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
             val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
-            minx = Math.min(tx, minx)
-            miny = Math.min(ty, miny)
-            minz = Math.min(tz, minz)
-            maxx = Math.max(tx, maxx)
-            maxy = Math.max(ty, maxy)
-            maxz = Math.max(tz, maxz)
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
         }
         dst.minX = minx
         dst.minY = miny

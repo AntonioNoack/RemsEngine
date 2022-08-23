@@ -4,7 +4,6 @@ import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.studio.StudioBase.Companion.warn
-import me.anno.ui.Panel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.TitledListY
@@ -15,7 +14,10 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToInt.getInt
-import org.joml.*
+import org.joml.Vector2i
+import org.joml.Vector3i
+import org.joml.Vector4f
+import org.joml.Vector4i
 import kotlin.math.roundToInt
 
 open class IntVectorInput(
@@ -31,19 +33,19 @@ open class IntVectorInput(
     constructor(style: Style) : this(style, "", "", Type.INT)
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector2ic, type: Type
+        style: Style, title: String, visibilityKey: String, value: Vector2i, type: Type
     ) : this(style, title, visibilityKey, type) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector3ic, type: Type
+        style: Style, title: String, visibilityKey: String, value: Vector3i, type: Type
     ) : this(style, title, visibilityKey, type) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector4ic, type: Type
+        style: Style, title: String, visibilityKey: String, value: Vector4i, type: Type
     ) : this(style, title, visibilityKey, type) {
         setValue(value, false)
     }
@@ -70,8 +72,8 @@ open class IntVectorInput(
     override var isInputAllowed: Boolean
         get() = valueFields.first().isInputAllowed
         set(value) {
-            titleView?.setTextAlpha(if(value) 1f else 0.5f)
-            for(child in valueFields){
+            titleView?.setTextAlpha(if (value) 1f else 0.5f)
+            for (child in valueFields) {
                 child.isInputAllowed = value
             }
         }
@@ -83,11 +85,6 @@ open class IntVectorInput(
             compZ?.lastValue?.toInt() ?: 0,
             compW?.lastValue?.toInt() ?: 0
         )
-
-    override fun setValue(value: Vector4i, notify: Boolean): Panel {
-        setValue(value as Vector4ic, notify)
-        return this
-    }
 
     fun setResetListener(listener: (() -> Any?)?) {
         resetListener = listener
@@ -129,11 +126,11 @@ open class IntVectorInput(
     fun pasteColor(data: String): Unit? {
         return when (val color = ColorParsing.parseColorComplex(data)) {
             is Int -> setValue(color.r(), color.g(), color.b(), color.a(), true)
-            is Vector4fc -> setValue(
-                (255 * color.x()).roundToInt(),
-                (255 * color.y()).roundToInt(),
-                (255 * color.z()).roundToInt(),
-                (255 * color.w()).roundToInt(), true
+            is Vector4f -> setValue(
+                (255 * color.x).roundToInt(),
+                (255 * color.y).roundToInt(),
+                (255 * color.z).roundToInt(),
+                (255 * color.w).roundToInt(), true
             )
             else -> null
         }
@@ -179,22 +176,23 @@ open class IntVectorInput(
     val vz get() = compZ?.lastValue ?: 0L
     val vw get() = compW?.lastValue ?: 0L
 
-    fun setValue(v: Vector2ic, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
+    fun setValue(v: Vector2i, notify: Boolean) {
+        compX.setValue(v.x, notify)
+        compY?.setValue(v.y, notify)
     }
 
-    fun setValue(v: Vector3ic, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
-        compZ?.setValue(v.z(), notify)
+    fun setValue(v: Vector3i, notify: Boolean) {
+        compX.setValue(v.x, notify)
+        compY?.setValue(v.y, notify)
+        compZ?.setValue(v.z, notify)
     }
 
-    fun setValue(v: Vector4ic, notify: Boolean) {
-        compX.setValue(v.x(), notify)
-        compY?.setValue(v.y(), notify)
-        compZ?.setValue(v.z(), notify)
-        compW?.setValue(v.w(), notify)
+    override fun setValue(value: Vector4i, notify: Boolean): IntVectorInput {
+        compX.setValue(value.x, notify)
+        compY?.setValue(value.y, notify)
+        compZ?.setValue(value.z, notify)
+        compW?.setValue(value.w, notify)
+        return this
     }
 
     fun setValue(vi: IntVectorInput, notify: Boolean) {

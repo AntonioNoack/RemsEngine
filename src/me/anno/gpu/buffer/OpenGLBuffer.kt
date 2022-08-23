@@ -9,9 +9,9 @@ import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2fc
-import org.joml.Vector3fc
-import org.joml.Vector4fc
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL30.*
 import java.nio.ByteBuffer
 import kotlin.math.max
@@ -124,8 +124,8 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         if (!isUpToDate) upload(false)
     }
 
-    fun put(v: Vector2fc) {
-        put(v.x(), v.y())
+    fun put(v: Vector2f) {
+        put(v.x, v.y)
     }
 
     fun put(v: FloatArray) {
@@ -140,12 +140,12 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         }
     }
 
-    fun put(v: Vector3fc) {
-        put(v.x(), v.y(), v.z())
+    fun put(v: Vector3f) {
+        put(v.x, v.y, v.z)
     }
 
-    fun put(v: Vector4fc) {
-        put(v.x(), v.y(), v.z(), v.w())
+    fun put(v: Vector4f) {
+        put(v.x, v.y, v.z, v.w)
     }
 
     fun put(x: Float, y: Float, z: Float, w: Float, a: Float) {

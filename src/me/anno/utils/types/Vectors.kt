@@ -16,82 +16,82 @@ object Vectors {
      * they shouldn't be used in production to keep allocations at a minimum
      * */
 
-    operator fun Vector2fc.plus(s: Vector2fc) = Vector2f(x() + s.x(), y() + s.y())
-    operator fun Vector2fc.minus(s: Vector2fc) = Vector2f(x() - s.x(), y() - s.y())
-    operator fun Vector2fc.times(f: Float) = Vector2f(x() * f, y() * f)
-    operator fun Vector2fc.times(s: Vector2fc) = Vector2f(x() * s.x(), y() * s.y())
+    operator fun Vector2f.plus(s: Vector2f) = Vector2f(x() + s.x, y() + s.y)
+    operator fun Vector2f.minus(s: Vector2f) = Vector2f(x() - s.x, y() - s.y)
+    operator fun Vector2f.times(f: Float) = Vector2f(x() * f, y() * f)
+    operator fun Vector2f.times(s: Vector2f) = Vector2f(x() * s.x, y() * s.y)
 
-    operator fun Vector2dc.plus(s: Vector2dc) = Vector2d(x() + s.x(), y() + s.y())
-    operator fun Vector2dc.minus(s: Vector2dc) = Vector2d(x() - s.x(), y() - s.y())
-    operator fun Vector2dc.times(f: Double) = Vector2d(x() * f, y() * f)
+    operator fun Vector2d.plus(s: Vector2d) = Vector2d(x() + s.x, y() + s.y)
+    operator fun Vector2d.minus(s: Vector2d) = Vector2d(x() - s.x, y() - s.y)
+    operator fun Vector2d.times(f: Double) = Vector2d(x() * f, y() * f)
 
-    operator fun Vector3fc.plus(s: Vector3fc) = Vector3f(x() + s.x(), y() + s.y(), z() + s.z())
-    operator fun Vector3fc.minus(s: Vector3fc) = Vector3f(x() - s.x(), y() - s.y(), z() - s.z())
-    operator fun Vector3fc.times(s: Float) = Vector3f(x() * s, y() * s, z() * s)
-    operator fun Vector3fc.times(s: Vector3fc) = Vector3f(x() * s.x(), y() * s.y(), z() * s.z())
+    operator fun Vector3f.plus(s: Vector3f) = Vector3f(x() + s.x, y() + s.y, z() + s.z)
+    operator fun Vector3f.minus(s: Vector3f) = Vector3f(x() - s.x, y() - s.y, z() - s.z)
+    operator fun Vector3f.times(s: Float) = Vector3f(x() * s, y() * s, z() * s)
+    operator fun Vector3f.times(s: Vector3f) = Vector3f(x() * s.x, y() * s.y, z() * s.z)
 
-    operator fun Vector3ic.plus(s: Vector3ic) = Vector3i(x() + s.x(), y() + s.y(), z() + s.z())
-    operator fun Vector3ic.minus(s: Vector3ic) = Vector3i(x() - s.x(), y() - s.y(), z() - s.z())
-    operator fun Vector3ic.times(s: Float) = Vector3f(x() * s, y() * s, z() * s)
+    operator fun Vector3i.plus(s: Vector3i) = Vector3i(x() + s.x, y() + s.y, z() + s.z)
+    operator fun Vector3i.minus(s: Vector3i) = Vector3i(x() - s.x, y() - s.y, z() - s.z)
+    operator fun Vector3i.times(s: Float) = Vector3f(x() * s, y() * s, z() * s)
 
-    operator fun Vector3dc.plus(s: Vector3dc) = Vector3d(x() + s.x(), y() + s.y(), z() + s.z())
-    operator fun Vector3dc.minus(s: Vector3dc) = Vector3d(x() - s.x(), y() - s.y(), z() - s.z())
-    operator fun Vector3dc.times(s: Double) = Vector3d(x() * s, y() * s, z() * s)
+    operator fun Vector3d.plus(s: Vector3d) = Vector3d(x() + s.x, y() + s.y, z() + s.z)
+    operator fun Vector3d.minus(s: Vector3d) = Vector3d(x() - s.x, y() - s.y, z() - s.z)
+    operator fun Vector3d.times(s: Double) = Vector3d(x() * s, y() * s, z() * s)
 
-    operator fun Vector3fc.plus(s: Vector3ic) = Vector3f(x() + s.x(), y() + s.y(), z() + s.z())
-    operator fun Vector3ic.plus(s: Vector3fc) = Vector3f(x() + s.x(), y() + s.y(), z() + s.z())
-    operator fun Vector3fc.minus(s: Vector3ic) = Vector3f(x() - s.x(), y() - s.y(), z() - s.z())
-    operator fun Vector3ic.minus(s: Vector3fc) = Vector3f(x() - s.x(), y() - s.y(), z() - s.z())
+    operator fun Vector3f.plus(s: Vector3i) = Vector3f(x() + s.x, y() + s.y, z() + s.z)
+    operator fun Vector3i.plus(s: Vector3f) = Vector3f(x() + s.x, y() + s.y, z() + s.z)
+    operator fun Vector3f.minus(s: Vector3i) = Vector3f(x() - s.x, y() - s.y, z() - s.z)
+    operator fun Vector3i.minus(s: Vector3f) = Vector3f(x() - s.x, y() - s.y, z() - s.z)
 
-    operator fun Vector4fc.minus(s: Vector4fc) = Vector4f(x() - s.x(), y() - s.y(), z() - s.z(), w() - s.w())
-    operator fun Vector4fc.plus(s: Vector4fc) = Vector4f(x() + s.x(), y() + s.y(), z() + s.z(), w() + s.w())
-    operator fun Vector4fc.plus(s: Float) = if (s == 0f) this else Vector4f(x() + s, y() + s, z() + s, w() + s)
-    operator fun Vector4fc.times(s: Float) = Vector4f(x() * s, y() * s, z() * s, w() * s)
-    operator fun Vector4fc.times(s: Vector4fc) = Vector4f(x() * s.x(), y() * s.y(), z() * s.z(), w() * s.w())
+    operator fun Vector4f.minus(s: Vector4f) = Vector4f(x() - s.x, y() - s.y, z() - s.z, w() - s.w)
+    operator fun Vector4f.plus(s: Vector4f) = Vector4f(x() + s.x, y() + s.y, z() + s.z, w() + s.w)
+    operator fun Vector4f.plus(s: Float) = if (s == 0f) this else Vector4f(x() + s, y() + s, z() + s, w() + s)
+    operator fun Vector4f.times(s: Float) = Vector4f(x() * s, y() * s, z() * s, w() * s)
+    operator fun Vector4f.times(s: Vector4f) = Vector4f(x() * s.x, y() * s.y, z() * s.z, w() * s.w)
 
-    fun Vector4fc.mulAlpha(m: Float, dst: Vector4f = Vector4f()): Vector4fc = dst.set(x(), y(), z(), w() * m)
+    fun Vector4f.mulAlpha(m: Float, dst: Vector4f = Vector4f()): Vector4f = dst.set(x(), y(), z(), w() * m)
 
-    fun avg(a: Vector2fc, b: Vector2fc): Vector2f = Vector2f(a).add(b).mul(0.5f)
-    fun avg(a: Vector2dc, b: Vector2dc): Vector2d = Vector2d(a).add(b).mul(0.5)
-    fun avg(a: Vector3fc, b: Vector3fc): Vector3f = Vector3f(a).add(b).mul(0.5f)
+    fun avg(a: Vector2f, b: Vector2f): Vector2f = Vector2f(a).add(b).mul(0.5f)
+    fun avg(a: Vector2d, b: Vector2d): Vector2d = Vector2d(a).add(b).mul(0.5)
+    fun avg(a: Vector3f, b: Vector3f): Vector3f = Vector3f(a).add(b).mul(0.5f)
 
-    fun avg(a: Vector2fc, b: Vector2fc, c: Vector2fc) =
-        Vector2f((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f)
+    fun avg(a: Vector2f, b: Vector2f, c: Vector2f) =
+        Vector2f((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f)
 
-    fun avg(a: Vector2dc, b: Vector2dc, c: Vector2dc) =
-        Vector2d((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f)
+    fun avg(a: Vector2d, b: Vector2d, c: Vector2d) =
+        Vector2d((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f)
 
-    fun avg(a: Vector3fc, b: Vector3fc, c: Vector3fc) =
-        Vector3f((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f, (a.z() + b.z() + c.z()) / 3f)
+    fun avg(a: Vector3f, b: Vector3f, c: Vector3f) =
+        Vector3f((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f, (a.z + b.z + c.z) / 3f)
 
-    fun avg(a: Vector3dc, b: Vector3dc, c: Vector3dc) =
-        Vector3d((a.x() + b.x() + c.x()) / 3.0, (a.y() + b.y() + c.y()) / 3.0, (a.z() + b.z() + c.z()) / 3.0)
+    fun avg(a: Vector3d, b: Vector3d, c: Vector3d) =
+        Vector3d((a.x + b.x + c.x) / 3.0, (a.y + b.y + c.y) / 3.0, (a.z + b.z + c.z) / 3.0)
 
-    fun Vector2fc.print(pts: List<Vector2fc>) = "${pts.indexOf(this)}"
-    fun Vector2dc.print(pts: List<Vector2dc>) = "${pts.indexOf(this)}"
+    fun Vector2f.print(pts: List<Vector2f>) = "${pts.indexOf(this)}"
+    fun Vector2d.print(pts: List<Vector2d>) = "${pts.indexOf(this)}"
 
-    fun Vector2fc.print() = "(${x()} ${y()})"
-    fun Vector2dc.print() = "(${x()} ${y()})"
-    fun Vector2ic.print() = "(${x()} ${y()})"
-    fun Vector3fc.print() = "(${x()} ${y()} ${z()})"
-    fun Vector3dc.print() = "(${x()} ${y()} ${z()})"
-    fun Vector3ic.print() = "(${x()} ${y()} ${z()})"
-    fun Vector4fc.print() = "(${x()} ${y()} ${z()} ${w()})"
-    fun Vector4dc.print() = "(${x()} ${y()} ${z()} ${w()})"
-    fun Vector4ic.print() = "(${x()} ${y()} ${z()} ${w()})"
+    fun Vector2f.print() = "(${x()} ${y()})"
+    fun Vector2d.print() = "(${x()} ${y()})"
+    fun Vector2i.print() = "(${x()} ${y()})"
+    fun Vector3f.print() = "(${x()} ${y()} ${z()})"
+    fun Vector3d.print() = "(${x()} ${y()} ${z()})"
+    fun Vector3i.print() = "(${x()} ${y()} ${z()})"
+    fun Vector4f.print() = "(${x()} ${y()} ${z()} ${w()})"
+    fun Vector4d.print() = "(${x()} ${y()} ${z()} ${w()})"
+    fun Vector4i.print() = "(${x()} ${y()} ${z()} ${w()})"
     fun Quaternionf.print() = "(${x()} ${y()} ${z()} ${w()})"
     fun Quaterniond.print() = "(${x()} ${y()} ${z()} ${w()})"
 
-    fun Vector2fc.toVector3d() = Vector2d(this)
-    fun Vector2dc.toVector3f() = Vector2f(x().toFloat(), y().toFloat())
-    fun Vector3fc.toVector3d() = Vector3d(this)
-    fun Vector3dc.toVector3f(dst: Vector3f = Vector3f()): Vector3f =
+    fun Vector2f.toVector3d() = Vector2d(this)
+    fun Vector2d.toVector3f() = Vector2f(x().toFloat(), y().toFloat())
+    fun Vector3f.toVector3d() = Vector3d(this)
+    fun Vector3d.toVector3f(dst: Vector3f = Vector3f()): Vector3f =
         dst.set(x().toFloat(), y().toFloat(), z().toFloat())
 
-    fun Vector4fc.toVector3d() = Vector4d(this)
-    fun Vector4dc.toVector3f() = Vector4f(x().toFloat(), y().toFloat(), z().toFloat(), w().toFloat())
+    fun Vector4f.toVector3d() = Vector4d(this)
+    fun Vector4d.toVector3f() = Vector4f(x().toFloat(), y().toFloat(), z().toFloat(), w().toFloat())
 
-    fun Matrix4fc.print() = "" +
+    fun Matrix4f.print() = "" +
             "[(${get(0, 0)} ${get(1, 0)} ${get(2, 0)} ${get(3, 0)})\n" +
             " (${get(0, 1)} ${get(1, 1)} ${get(2, 1)} ${get(3, 1)})\n" +
             " (${get(0, 2)} ${get(1, 2)} ${get(2, 2)} ${get(3, 2)})\n" +
@@ -107,7 +107,7 @@ object Vectors {
             " (${m01().f2s()} ${m11().f2s()} ${m21().f2s()} ${m31().f2s()})\n" +
             " (${m02().f2s()} ${m12().f2s()} ${m22().f2s()} ${m32().f2s()})]"
 
-    fun Vector4fc.toVec3f(): Vector3f {
+    fun Vector4f.toVec3f(): Vector3f {
         val w = w()
         return Vector3f(x() / w, y() / w, z() / w)
     }
@@ -115,10 +115,6 @@ object Vectors {
     fun Vector3f.is000() = x == 0f && y == 0f && z == 0f
     fun Vector3f.is111() = x == 1f && y == 1f && z == 1f
     fun Vector4f.is1111() = x == 1f && y == 1f && z == 1f && w == 1f
-
-    fun Vector3fc.is000() = x() == 0f && y() == 0f && z() == 0f
-    fun Vector3fc.is111() = x() == 1f && y() == 1f && z() == 1f
-    fun Vector4fc.is1111() = x() == 1f && y() == 1f && z() == 1f && w() == 1f
 
     val Vector3f.yzx get() = Vector3f(y, z, x)
     val Vector3f.zxy get() = Vector3f(z, x, y)
@@ -150,10 +146,10 @@ object Vectors {
     fun DoubleArray.toVec3f(offset: Int = 0) =
         Vector3f(this[offset].toFloat(), this[offset + 1].toFloat(), this[offset + 2].toFloat())
 
-    fun Vector3i.cross(v: Vector3ic): Vector3i {
-        val rx = y * v.z() - z * v.y()
-        val ry = z * v.x() - x * v.z()
-        val rz = x * v.y() - y * v.x()
+    fun Vector3i.cross(v: Vector3i): Vector3i {
+        val rx = y * v.z - z * v.y
+        val ry = z * v.x - x * v.z
+        val rz = x * v.y - y * v.x
         this.x = rx
         this.y = ry
         this.z = rz
@@ -163,10 +159,6 @@ object Vectors {
     fun Vector3i.normalize(): Vector3i {
         val length = length()
         return Vector3i((x / length).roundToInt(), (y / length).roundToInt(), (z / length).roundToInt())
-    }
-
-    operator fun Vector3i.plus(second: Vector3f): Vector3f {
-        return Vector3f(this).add(second)
     }
 
     fun findTangent(normal: Vector3f, dst: Vector3f = Vector3f()): Vector3f {
@@ -337,12 +329,12 @@ object Vectors {
         }
     }
 
-    fun Vector2fc.cross(other: Vector2fc): Float {
-        return x() * other.y() - y() * other.x()
+    fun Vector2f.cross(other: Vector2f): Float {
+        return x() * other.y - y() * other.x
     }
 
-    fun Vector2fc.mulAdd(f: Float, b: Vector2fc, dst: Vector2f): Vector2f {
-        return dst.set(x() * f + b.x(), y() * f + b.y())
+    fun Vector2f.mulAdd(f: Float, b: Vector2f, dst: Vector2f): Vector2f {
+        return dst.set(x() * f + b.x, y() * f + b.y)
     }
 
     fun crossLength(pos: FloatArray, ai: Int, bi: Int, ci: Int): Float {

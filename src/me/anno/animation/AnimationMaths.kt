@@ -19,34 +19,34 @@ object AnimationMaths {
         return when (first) {
             is Float -> first + (second as Float) * f.toFloat()
             is Double -> first + (second as Double) * f
-            is Vector2fc -> {
-                second as Vector2fc
+            is Vector2f -> {
+                second as Vector2f
                 val g = f.toFloat()
                 val result = v2(dst)
                 result.set(
-                    first.x() + second.x() * g,
-                    first.y() + second.y() * g
+                    first.x + second.x * g,
+                    first.y + second.y * g
                 )
             }
-            is Vector3fc -> {
-                second as Vector3fc
+            is Vector3f -> {
+                second as Vector3f
                 val g = f.toFloat()
                 val result = v3(dst)
                 result.set(
-                    first.x() + second.x() * g,
-                    first.y() + second.y() * g,
-                    first.z() + second.z() * g
+                    first.x + second.x * g,
+                    first.y + second.y * g,
+                    first.z + second.z * g
                 )
             }
-            is Vector4fc -> {
-                second as Vector4fc
+            is Vector4f -> {
+                second as Vector4f
                 val g = f.toFloat()
                 val result = v4(dst)
                 result.set(
-                    first.x() + second.x() * g,
-                    first.y() + second.y() * g,
-                    first.z() + second.z() * g,
-                    first.w() + second.w() * g
+                    first.x + second.x * g,
+                    first.y + second.y * g,
+                    first.z + second.z * g,
+                    first.w + second.w * g
                 )
             }
             is String -> StringMixer.mix(first.toString(), second.toString(), f)
@@ -85,11 +85,11 @@ object AnimationMaths {
             Type.FLOAT_01, Type.FLOAT_01_EXP,
             Type.FLOAT_PLUS -> ((a as Float) * g + f * (b as Float)).toFloat()
             Type.DOUBLE -> (a as Double) * g + f * (b as Double)
-            Type.SKEW_2D -> (a as Vector2f).lerp(b as Vector2fc, f.toFloat(), Vector2f())
+            Type.SKEW_2D -> (a as Vector2f).lerp(b as Vector2f, f.toFloat(), Vector2f())
             Type.POSITION,
             Type.ROT_YXZ,
-            Type.SCALE -> (a as Vector3f).lerp(b as Vector3fc, f.toFloat(), Vector3f())
-            Type.COLOR, Type.TILING -> (a as Vector4f).lerp(b as Vector4fc, f.toFloat(), Vector4f())
+            Type.SCALE -> (a as Vector3f).lerp(b as Vector3f, f.toFloat(), Vector3f())
+            Type.COLOR, Type.TILING -> (a as Vector4f).lerp(b as Vector4f, f.toFloat(), Vector4f())
             Type.QUATERNION -> (a as Quaternionf).slerp(b as Quaternionf, f.toFloat())
             Type.STRING -> StringMixer.mix(a.toString(), b.toString(), f)
             else -> throw RuntimeException("don't know how to linearly interpolate $a and $b")

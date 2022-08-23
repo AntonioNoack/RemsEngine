@@ -13,7 +13,7 @@ fun main(){
             Vector4f(10f, 0f, 0f, 0f),
             Vector4f(-1f, 0f, 0f, 0f),
             Vector4f(5f, 0f, 0f, 0f)
-        ){ it.x() }.toString()
+        ){ it.x }.toString()
     )
 
     val v00 = Vector4f(+1f, +1f, 1f, 1f)

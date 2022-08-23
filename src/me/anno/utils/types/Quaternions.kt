@@ -11,11 +11,11 @@ object Quaternions {
     const val fromDegrees = Math.PI / 180.0
     const val fromDegreesFloat = fromDegrees.toFloat()
 
-    fun Quaterniondc.toEulerAnglesDegrees(dst: Vector3d = Vector3d()): Vector3d {
+    fun Quaterniond.toEulerAnglesDegrees(dst: Vector3d = Vector3d()): Vector3d {
         return getEulerAnglesXYZ(dst).mul(toDegrees)
     }
 
-    fun Quaternionfc.toEulerAnglesDegrees(dst: Vector3f = Vector3f()): Vector3f {
+    fun Quaternionf.toEulerAnglesDegrees(dst: Vector3f = Vector3f()): Vector3f {
         return getEulerAnglesXYZ(dst).mul(toDegreesFloat)
     }
 
