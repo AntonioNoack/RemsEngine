@@ -19,6 +19,7 @@ import me.anno.video.ffmpeg.FFMPEGMetadata
 import java.util.concurrent.Semaphore
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.max
 import kotlin.math.roundToLong
 
 object AudioFXCache : CacheSection("AudioFX0") {
@@ -192,7 +193,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
     ): ShortArray? {
         val index0 = (t0 * playbackSampleRate).roundToLong()// and (bufferSize-1).inv().toLong()
         var index1 = (t1 * playbackSampleRate).roundToLong()
-        index1 = StrictMath.max(index1, index0 + SPLITS)
+        index1 = max(index1, index0 + SPLITS)
         // what if dt is too large, because we are viewing it from a distance -> approximate
         return getRange(file, bufferSize, index0, index1, repeat, identifier, async)
     }
@@ -250,7 +251,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
 
                     val deltaIndex = index1 - index0
                     val index0i = index0 + deltaIndex * split / splits
-                    val index1i = StrictMath.min(index0i + 256, index0 + deltaIndex * (split + 1) / splits)
+                    val index1i = kotlin.math.min(index0i + 256, index0 + deltaIndex * (split + 1) / splits)
                     for (i in index0i until index1i) {
 
                         val bufferIndex = Math.floorDiv(i, bufferSize.toLong())
@@ -265,10 +266,10 @@ object AudioFXCache : CacheSection("AudioFX0") {
                         val v0 = buffer.first[localIndex]
                         val v1 = buffer.second[localIndex]
 
-                        min = StrictMath.min(min, v0)
-                        min = StrictMath.min(min, v1)
-                        max = StrictMath.max(max, v0)
-                        max = StrictMath.max(max, v1)
+                        min = kotlin.math.min(min, v0)
+                        min = kotlin.math.min(min, v1)
+                        max = max(max, v0)
+                        max = max(max, v1)
 
                     }
 

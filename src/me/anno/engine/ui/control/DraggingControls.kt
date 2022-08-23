@@ -52,6 +52,7 @@ import org.joml.Planed
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.round
+import kotlin.math.tan
 
 // done controls
 // done show the scene
@@ -286,7 +287,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             isSelected && Input.isMiddleDown -> {
                 // move camera
                 val fovYRadians = view.editorCamera.fovY
-                val speed = Math.tan(fovYRadians * 0.5) * view.radius / h
+                val speed = tan(fovYRadians * 0.5) * view.radius / h
                 val camTransform = camera.transform!!
                 val globalCamTransform = camTransform.globalTransform
                 val offset = globalCamTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
@@ -308,7 +309,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 // for that transform dx,dy into global space,
                 // and then update the local space
                 val fovYRadians = view.editorCamera.fovY
-                val speed = Math.tan(fovYRadians * 0.5) / h
+                val speed = tan(fovYRadians * 0.5) / h
                 val camTransform = camera.transform!!.globalTransform
                 val offset = JomlPools.vec3d.create()
                 offset.set(dx * speed, -dy * speed, 0.0)

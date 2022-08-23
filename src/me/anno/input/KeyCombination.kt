@@ -44,7 +44,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(KeyCombination::class.java)
+        private val LOGGER = LogManager.getLogger(KeyCombination::class)
 
         operator fun get(name: String) = keyMapping[name]
         operator fun get(key: Int) = keyMapping.reverse[key]

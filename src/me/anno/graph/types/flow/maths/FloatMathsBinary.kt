@@ -1,6 +1,7 @@
 package me.anno.graph.types.flow.maths
 
 import me.anno.maths.Maths
+import kotlin.math.pow
 
 enum class FloatMathsBinary(
     val id: Int,
@@ -14,8 +15,8 @@ enum class FloatMathsBinary(
     MUL(2, "a*b", { a, b -> a * b }, { a, b -> a * b }),
     DIV(3, "a/b", { a, b -> a / b }, { a, b -> a / b }),
     MOD(4, "a%b", { a, b -> a % b }, { a, b -> a % b }),
-    POW(5, "pow(a,b)", { a, b -> Maths.pow(a, b) }, { a, b -> StrictMath.pow(a, b) }),
-    ROOT(6, "pow(a,1.0/b)", { a, b -> Maths.pow(a, 1 / b) }, { a, b -> StrictMath.pow(a, 1 / b) }),
+    POW(5, "pow(a,b)", { a, b -> Maths.pow(a, b) }, { a, b -> a.pow(b) }),
+    ROOT(6, "pow(a,1.0/b)", { a, b -> Maths.pow(a, 1 / b) }, { a, b -> a.pow(1f / b) }),
 
     LENGTH(10, "length(vec2(a,b))",
         { a, b -> kotlin.math.hypot(a, b) }, { a, b -> kotlin.math.hypot(a, b) }),

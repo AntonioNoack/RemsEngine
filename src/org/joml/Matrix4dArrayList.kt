@@ -1,6 +1,5 @@
 package org.joml
 
-import java.io.IOException
 import java.io.ObjectInput
 import java.io.ObjectOutput
 

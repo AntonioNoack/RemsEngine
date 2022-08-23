@@ -29,9 +29,9 @@ enum class IntMathType(
     XNOR(34, { a, b -> (a xor b).inv() }, { a, b -> (a xor b).inv() }),
     NAND(35, { a, b -> (a and b).inv() }, { a, b -> (a and b).inv() }),
 
-    // POW({ a, b -> me.anno.maths.Maths.pow(a, b) }, { a, b -> StrictMath.pow(a, b) }),
-    // ROOT({ a, b -> me.anno.maths.Maths.pow(a, 1 / b) }, { a, b -> StrictMath.pow(a, 1 / b) }),
-    // LENGTH({ a, b -> kotlin.math.sqrt(a * a + b * b) }, { a, b -> kotlin.math.sqrt(a * a + b * b) }),
+    // POW({ a, b -> me.anno.maths.Maths.pow(a, b) }, { a, b -> pow(a, b) }),
+    // ROOT({ a, b -> me.anno.maths.Maths.pow(a, 1 / b) }, { a, b -> pow(a, 1 / b) }),
+    // LENGTH({ a, b -> kotlin.math.sqrt(a * a + b * b) }, { a, b -> sqrt(a * a + b * b) }),
     LENGTH_SQUARED(40, { a, b -> a * a + b * b }, { a, b -> a * a + b * b }),
     ABS_DELTA(41, { a, b -> kotlin.math.abs(a - b) }, { a, b -> kotlin.math.abs(a - b) }),
     NORM1(42, { a, b -> kotlin.math.abs(a) + kotlin.math.abs(b) }, { a, b -> kotlin.math.abs(a) + kotlin.math.abs(b) }),

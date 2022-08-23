@@ -199,7 +199,7 @@ class WindowStack : Stack<Window>() {
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(WindowStack::class.java)
+        private val LOGGER = LogManager.getLogger(WindowStack::class)
 
         /**
          * prints the layout for UI debugging

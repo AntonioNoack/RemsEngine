@@ -83,10 +83,10 @@ object Maths {
 
     fun clamp01(x: Float) = clamp(x, 0f, 1f)
 
-    fun pow(base: Double, power: Double) = StrictMath.pow(base, power)
-    fun log(base: Double) = StrictMath.log(base)
-    fun pow(base: Float, power: Float) = StrictMath.pow(base.toDouble(), power.toDouble()).toFloat()
-    fun log(base: Float) = StrictMath.log(base.toDouble()).toFloat()
+    fun pow(base: Double, power: Double) = base.pow(power)
+    fun log(base: Double) = ln(base)
+    fun pow(base: Float, power: Float) = base.pow(power)
+    fun log(base: Float) = ln(base)
 
     /**
      * calculates log2().toInt() much quicker than usual

@@ -9,7 +9,6 @@ import me.anno.utils.hpc.HeavyProcessing.numThreads
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Floats.f3
-import me.anno.video.VideoProxyCreator
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrameReader
@@ -18,6 +17,7 @@ import java.io.InputStream
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -73,7 +73,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 "-ss", "$startTime", // must be placed here!!!
                 "-i", input.absolutePath
             )
-            if (StrictMath.abs(fps - (meta?.videoFPS ?: 0.0001)) > 0.01) {
+            if (abs(fps - (meta?.videoFPS ?: 0.0001)) > 0.01) {
                 // 2x slower
                 args += listOf("-r", "$fps")
             }

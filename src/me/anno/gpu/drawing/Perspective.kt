@@ -4,6 +4,7 @@ import me.anno.gpu.GFXState
 import org.joml.Math
 import org.joml.Matrix4f
 import kotlin.math.atan
+import kotlin.math.tan
 
 object Perspective {
 
@@ -30,7 +31,7 @@ object Perspective {
     ) {
         viewTransform.identity()
         if (reverseDepth) {
-            val y = 1f / Math.tan(fovYRadians * 0.5f)
+            val y = 1f / tan(fovYRadians * 0.5f)
             val x = y / aspectRatio
             //  x  0  0  0
             //  0  y  0  0
@@ -81,7 +82,7 @@ object Perspective {
                 cx, cy, near, 0f
             )
         } else {
-            // fy = Math.tan(fovYRadians * 0.5f)
+            // fy = tan(fovYRadians * 0.5f)
             val fov = atan(fy) * 2f
             setPerspective(viewTransform, fov, 1f, near, far, cx, cy, false)
         }

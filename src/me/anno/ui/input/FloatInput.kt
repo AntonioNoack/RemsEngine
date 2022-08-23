@@ -10,6 +10,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
 import kotlin.math.max
+import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
@@ -84,10 +85,7 @@ open class FloatInput(
         // chose between exponential and linear curve, depending on the use-case
         var value = lastValue
         if (type.hasLinear || value == 0.0) value += delta * 0.1 * type.unitScale
-        if (type.hasExponential) value *= StrictMath.pow(
-            if (lastValue < 0) 1.0 / 1.03 else 1.03,
-            delta * if (type.hasLinear) 1.0 else 3.0
-        )
+        if (type.hasExponential) value *= (if (lastValue < 0) 1.0 / 1.03 else 1.03).pow(delta * if (type.hasLinear) 1.0 else 3.0)
         setValueClamped(value, true)
     }
 

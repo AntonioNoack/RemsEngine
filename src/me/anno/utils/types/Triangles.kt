@@ -7,7 +7,6 @@ import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import org.joml.*
-import java.lang.Math
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

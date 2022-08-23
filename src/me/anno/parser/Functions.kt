@@ -2,7 +2,6 @@ package me.anno.parser
 
 import me.anno.maths.Maths.clamp
 import me.anno.maths.noise.FullNoise
-import java.lang.StrictMath.cbrt
 import java.util.*
 import kotlin.math.*
 
@@ -35,7 +34,10 @@ object Functions {
             if (this[i - 0] != ')') continue
             val name = this[i - 2] as? String ?: continue
             val function =
-                functions0[name] ?: functions0[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(name, "x")
+                functions0[name] ?: functions0[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
+                    name,
+                    "x"
+                )
             for (j in 0 until 2) removeAt(i - j)
             this[i - 2] = function()
             applyFunc0()
@@ -51,7 +53,10 @@ object Functions {
             val name = this[i - 3] as? String ?: continue
             val x = this[i - 1] as? Double ?: continue
             val function =
-                functions1[name] ?: functions1[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(name, "x")
+                functions1[name] ?: functions1[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
+                    name,
+                    "x"
+                )
             for (j in 0 until 3) removeAt(i - j)
             this[i - 3] = function(x)
             applyFunc1()
@@ -207,10 +212,10 @@ object Functions {
         functions4["square"] = functions4["sq"]!!
 
         functions1["sqrt"] = { sqrt(it) }
-        functions1["cbrt"] = { cbrt(it) }
+        functions1["cbrt"] = { it.pow(1.0 / 3.0) }
         functions1["root"] = functions1["sqrt"]!!
 
-        functions2["root"] = { n, number -> StrictMath.pow(number, 1.0 / n) }
+        functions2["root"] = { n, number -> number.pow(1.0 / n) }
 
         functions2["hypot"] = { a, b -> hypot(a, b) }
 
@@ -255,7 +260,7 @@ object Functions {
         functions1["atanh"] = { atanh(it) }
 
         functions1["exp"] = { exp(it) }
-        functions2["pow"] = { base, exponent -> StrictMath.pow(base, exponent) }
+        functions2["pow"] = { base, exponent -> base.pow(exponent) }
         functions2["power"] = functions2["pow"]!!
 
         functions1["floor"] = { floor(it) }

@@ -3,6 +3,7 @@ package me.anno.maths
 import me.anno.utils.LOGGER
 import me.anno.utils.types.Floats.f5s
 import kotlin.math.abs
+import kotlin.math.ln
 import kotlin.math.sqrt
 
 /**
@@ -183,7 +184,7 @@ object LinearAlgebra {
 
         // solve the matrix
         fun score(f: Double): Double {
-            return -abs(Maths.log(abs(f)))
+            return -abs(ln(abs(f)))
         }
         for (m in 0 until size) {
 

@@ -215,7 +215,7 @@ class RayAabIntersection2 {
 
     companion object {
         private fun sign(f: Double): Int {
-            return if (f != 0.0 && !java.lang.Double.isNaN(f)) (1 - java.lang.Double.doubleToLongBits(f) ushr 63 shl 1).toInt() - 1 else 0
+            return if (f != 0.0 && !f.isNaN()) (1 - f.toBits() ushr 63 shl 1).toInt() - 1 else 0
         }
     }
 }

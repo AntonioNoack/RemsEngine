@@ -1,6 +1,8 @@
 package org.hsluv
 
 import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.types.Floats.toDegrees
+import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector2d
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -251,7 +253,7 @@ object HSLuvColorSpace {
         if (c < 0.00000001) {
             h = 0.0
         } else {
-            h = StrictMath.toDegrees(atan2(v, u))
+            h = atan2(v, u).toDegrees()
             if (h < 0.0) h += 360.0
         }
 
@@ -265,7 +267,7 @@ object HSLuvColorSpace {
         val c = src.y
         val h = src.z
 
-        val hRadians = StrictMath.toRadians(h)
+        val hRadians = h.toRadians()
         val u = cos(hRadians) * c
         val v = sin(hRadians) * c
 

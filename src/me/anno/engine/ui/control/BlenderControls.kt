@@ -13,6 +13,7 @@ import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import kotlin.math.atan2
 import kotlin.math.ln
+import kotlin.math.pow
 
 /**
  * blender like controls
@@ -97,9 +98,9 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
                         // scale uniformly
                         axis.set(v)
                     } else {
-                        axis.x = StrictMath.pow(v, axis.x)
-                        axis.y = StrictMath.pow(v, axis.y)
-                        axis.z = StrictMath.pow(v, axis.z)
+                        axis.x = v.pow(axis.x)
+                        axis.y = v.pow(axis.y)
+                        axis.z = v.pow(axis.z)
                     }
                 }
                 else -> {
@@ -180,9 +181,9 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             Mode.SCALING -> {
                 applyTransform { selfGlobal, _ ->
                     selfGlobal.scale(
-                        StrictMath.pow(2.0, direction.x),
-                        StrictMath.pow(2.0, direction.y),
-                        StrictMath.pow(2.0, direction.z),
+                        2.0.pow(direction.x),
+                        2.0.pow(direction.y),
+                        2.0.pow(direction.z),
                     )
                 }
             }

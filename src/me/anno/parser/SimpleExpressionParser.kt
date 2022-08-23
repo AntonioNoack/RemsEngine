@@ -16,10 +16,10 @@ import me.anno.parser.Functions.functions5
 import me.anno.utils.structures.lists.CountingList
 import me.anno.utils.structures.lists.CountingList.Companion.isCounted
 import org.apache.logging.log4j.LogManager
-import java.lang.StrictMath.pow
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.pow
 
 /**
  * intended for SMALL calculations
@@ -181,7 +181,7 @@ object SimpleExpressionParser {
             val b = this[i] as? Double ?: continue
             removeAt(i)
             removeAt(i - 1)
-            this[i - 2] = pow(a, b)
+            this[i - 2] = a.pow(b)
             return true
         }
         return false

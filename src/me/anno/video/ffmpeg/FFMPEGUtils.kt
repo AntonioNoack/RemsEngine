@@ -7,6 +7,7 @@ import me.anno.utils.types.Strings.withLength
 import org.apache.logging.log4j.Logger
 import java.io.InputStream
 import java.util.*
+import kotlin.math.max
 import kotlin.math.round
 
 object FFMPEGUtils {
@@ -107,8 +108,7 @@ object FFMPEGUtils {
                 // round the value to not confuse artists (and to "give" 0.5s "extra" ;))
                 val remainingTime =
                     if (frameIndex == 0L) "Unknown"
-                    else StrictMath
-                        .max(0.0, round(elapsedTime / relativeProgress * (1.0 - relativeProgress)))
+                    else max(0.0, round(elapsedTime / relativeProgress * (1.0 - relativeProgress)))
                         .formatTime2(0)
                 val progress =
                     if (frameIndex == totalFrameCount) " Done"
