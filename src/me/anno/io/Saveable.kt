@@ -6,6 +6,7 @@ import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase
 import org.apache.logging.log4j.LogManager
 import org.joml.*
+import kotlin.reflect.jvm.jvmName
 
 open class Saveable : ISaveable {
 
@@ -151,7 +152,7 @@ open class Saveable : ISaveable {
 
     override fun isDefaultValue(): Boolean = false
     override val approxSize: Int = 100
-    override val className: String = javaClass.simpleName
+    override val className: String = this::class.run { simpleName ?: jvmName }
 
     override fun toString(): String = TextWriter.toText(this, StudioBase.workspace)// + "@${super.toString()}"
 

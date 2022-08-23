@@ -39,7 +39,7 @@ class Type(
     val defaultValue = acceptOrNull(clamp(defaultValue))
         ?: throw IllegalArgumentException("Incompatible default value $defaultValue")
 
-    override fun toString() = "Type[${defaultValue.javaClass.simpleName} x $components]"
+    override fun toString() = "Type[${defaultValue::class.simpleName} x $components]"
 
     fun withDefaultValue(defaultValue: Any) = Type(
         defaultValue, components, unitScale, hasLinear, hasExponential,

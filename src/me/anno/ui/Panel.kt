@@ -395,7 +395,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
             val c = constraints[i]
             c.apply(this)
             if (this.w > w || this.h > h)
-                throw RuntimeException("Constraint ${c.javaClass} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
+                throw RuntimeException("Constraint ${c::class} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
         }
     }
 
@@ -526,7 +526,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     open fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        uiParent?.onPasteFiles(x, y, files) ?: LOGGER.warn("Paste Ignored! $files, ${javaClass.simpleName}")
+        uiParent?.onPasteFiles(x, y, files) ?: LOGGER.warn("Paste Ignored! $files, ${this::class.simpleName}")
     }
 
     open fun onCopyRequested(x: Float, y: Float): Any? = uiParent?.onCopyRequested(x, y)
@@ -583,7 +583,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun printLayout(tabDepth: Int) {
         val tooltip = tooltip
         println(
-            "${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}(${(weight * 10).roundToInt()}, " +
+            "${Tabs.spaces(tabDepth * 2)}${this::class.simpleName}(${(weight * 10).roundToInt()}, " +
                     "${if (visibility == Visibility.VISIBLE) "v" else "_"})) " +
                     "$x-${x + w}, $y-${y + h} ($minW $minH) ${
                         if (tooltip == null) "" else "'${tooltip.shorten(20)}' "

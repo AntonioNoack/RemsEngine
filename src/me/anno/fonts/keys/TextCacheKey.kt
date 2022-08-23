@@ -21,7 +21,7 @@ class TextCacheKey(
     constructor(text: String, font: Font, widthLimit: Int, heightLimit: Int) :
             this(text, font.name, getProperties(font.sizeIndex, font), widthLimit, heightLimit)
 
-    constructor(text: String, font: Font): this(text, font, -1, -1)
+    constructor(text: String, font: Font) : this(text, font, -1, -1)
 
     fun fontSizeIndex() = properties.shr(3)
     fun isItalic() = properties.and(4) != 0
@@ -48,7 +48,8 @@ class TextCacheKey(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other == null) return false
+        if (this::class != other::class) return false
 
         other as TextCacheKey
 

@@ -6,6 +6,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.*
 import me.anno.ecs.components.anim.graph.AnimController
 import me.anno.ecs.components.anim.graph.AnimStateNode
+import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.FirstPersonController
 import me.anno.ecs.components.camera.control.OrbitControls
@@ -124,6 +125,9 @@ object ECSRegistry {
         registerCustomClass(PlanarReflection())
 
         registerCustomClass(SkyBox())
+
+        // audio, currently not well tested
+        registerCustomClass(AudioComponent())
 
         // 3d colliders
         registerCustomClass(BoxCollider())

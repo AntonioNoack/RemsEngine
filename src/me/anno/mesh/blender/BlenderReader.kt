@@ -559,7 +559,7 @@ object BlenderReader {
                         prefab.setUnsafe(c, "shadowMapCascades", light.cascadeCount)
                         prefab.setUnsafe(c, "shadowMapPower", light.cascadeExponent)
                     }
-                } else LOGGER.warn("obj.data of a lamp was not a lamp: ${obj.data?.javaClass}")
+                } else LOGGER.warn("obj.data of a lamp was not a lamp: ${obj.data?.run { this::class.simpleName }}")
             }
             // todo armatures...
             // todo volumes?

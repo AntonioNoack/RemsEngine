@@ -18,4 +18,5 @@ class RotateJPEG(val mirrorHorizontal: Boolean, val mirrorVertical: Boolean, val
     }
 
     fun isNull() = !mirrorHorizontal && !mirrorVertical && angleCW == 0
+    override fun toString() = "${if (mirrorHorizontal) "x" else ""}${if (mirrorVertical) "y" else ""}$angleCW"
 }

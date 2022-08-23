@@ -6,7 +6,7 @@ import org.apache.commons.logging.Log
 import java.util.*
 import java.util.logging.Level
 
-class LoggerImpl(val prefix: String?) : Logger, Log {
+open class LoggerImpl(val prefix: String?) : Logger, Log {
 
     private val lastWarned = HashMap<String, Long>()
     private val warningTimeoutNanos = 10e9.toLong()

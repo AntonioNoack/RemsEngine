@@ -174,7 +174,7 @@ You can find most examples in the "tests" folder.
 * [JTransforms](https://sites.google.com/site/piotrwendykier/software/jtransforms) (Fast Fourier Transform)
 * [Apache Imaging](https://commons.apache.org/proper/commons-imaging/) (More supported image formats, like .ico)
 * [Apache CLI](https://commons.apache.org/proper/commons-cli/) (Basics of Command Line Interface)
-* [Metadata Extractor](https://github.com/drewnoakes/metadata-extractor) (Detecting rotated JPEG files)
+* [Thumbnailator](https://github.com/coobird/thumbnailator/) (Only EXIF related code, detecting rotated JPEG files)
 * [JNA Platform](https://github.com/java-native-access/jna) (Moving files to trash)
 * [Apache PDFBox](https://pdfbox.apache.org/) (Rendering PDFs)
 * [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDFs)

@@ -1,7 +1,5 @@
 package me.anno.parser
 
-import java.lang.RuntimeException
-
 class Vector {
 
     val data = ArrayList<Any>()

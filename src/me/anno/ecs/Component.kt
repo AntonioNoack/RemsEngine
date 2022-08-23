@@ -145,7 +145,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
         return "$className('$name')"
     }
 
-    override val className: String = javaClass.name
+    override val className = this::class.simpleName ?: "?"
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

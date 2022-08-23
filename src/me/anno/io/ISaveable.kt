@@ -265,8 +265,8 @@ interface ISaveable {
         fun checkInstance(instance0: ISaveable) {
             if (Build.isDebug && instance0 is PrefabSaveable) {
                 val clone = instance0.clone()
-                if (clone.javaClass != instance0.javaClass) {
-                    throw RuntimeException("${instance0.javaClass}.clone() is incorrect, returns ${clone.javaClass} instead")
+                if (clone::class != instance0::class) {
+                    throw RuntimeException("${instance0::class}.clone() is incorrect, returns ${clone::class} instead")
                 }
             }
         }

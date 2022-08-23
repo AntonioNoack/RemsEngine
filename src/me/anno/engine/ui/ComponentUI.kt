@@ -221,7 +221,7 @@ object ComponentUI {
                 if (value is ISaveable) {
                     return createISaveableInput(title, value, style, property)
                 }
-                return TextPanel("?? $title, ${value?.javaClass}", style)
+                return TextPanel("?? $title, ${if (value != null) value::class else null}", style)
             }
         }
 
@@ -1063,7 +1063,7 @@ object ComponentUI {
 
                 LOGGER.warn("Missing knowledge to edit $type0, '$title'")
 
-                return TextPanel("?? $title : ${value?.javaClass?.simpleName}, type $type0", style)
+                return TextPanel("?? $title : ${if(value != null) value::class.simpleName else null}, type $type0", style)
             }
         }
 

@@ -193,7 +193,7 @@ open class Texture2D(
                 is FloatBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
                 is DoubleBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
                 is IntArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
-                else -> throw IllegalArgumentException("${data.javaClass.name} is not supported")
+                else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
             }
         } else {
             if (withMultisampling) {
@@ -211,7 +211,7 @@ open class Texture2D(
                     is IntArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is FloatArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     null -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, null as ByteBuffer?)
-                    else -> throw IllegalArgumentException("${data.javaClass.name} is not supported")
+                    else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
                 }
                 check()
             }
@@ -242,7 +242,7 @@ open class Texture2D(
             is FloatBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
             is DoubleBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
             is IntArray -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
-            else -> throw RuntimeException("${data.javaClass}")
+            else -> throw RuntimeException(data::class.simpleName)
         }
     }
 

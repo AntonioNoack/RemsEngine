@@ -94,7 +94,7 @@ object FFMPEGUtils {
                             "fps" -> fps = value.toFloat()
                         }
                     } catch (e: Exception) {
-                        logger.warn("${e.javaClass}: ${e.message}")
+                        logger.warn("${e::class}: ${e.message}")
                     }
                     // LOGGER.info("$key: $value")
                     if (secondIndex == remaining.length) break

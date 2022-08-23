@@ -99,7 +99,7 @@ object AnyToDouble {
                 else -> defaultValue
             }
             else -> {
-                LOGGER.info("Unknown ${javaClass.simpleName}[$index] to Double")
+                LOGGER.info("Unknown ${this::class.simpleName}[$index] to Double")
                 defaultValue
             }
         }

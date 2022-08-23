@@ -14,6 +14,8 @@ import kotlin.math.ceil
 
 class AudioComponent : AudioComponentBase() {
 
+    // todo autostart option
+
     var source: FileReference = InvalidRef
 
     // most tracks are short, so keep them in memory by default

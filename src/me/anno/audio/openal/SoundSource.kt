@@ -11,8 +11,8 @@ class SoundSource(val loop: Boolean, val relative: Boolean) {
     var hasBeenStarted = false
 
     init {
-        if (loop) alSourcei(sourcePtr, AL_LOOPING, AL_TRUE)
-        if (relative) alSourcei(sourcePtr, AL_SOURCE_RELATIVE, AL_TRUE)
+        alSourcei(sourcePtr, AL_LOOPING, if (loop) AL_TRUE else AL_FALSE)
+        alSourcei(sourcePtr, AL_SOURCE_RELATIVE, if (relative) AL_TRUE else AL_FALSE)
         ALBase.check()
     }
 
@@ -20,20 +20,20 @@ class SoundSource(val loop: Boolean, val relative: Boolean) {
         return if (session != openALSession) {
             session = openALSession
             sourcePtr = alGenSources()
-            if (loop) alSourcei(sourcePtr, AL_LOOPING, AL_TRUE)
-            if (relative) alSourcei(sourcePtr, AL_SOURCE_RELATIVE, AL_TRUE)
+            alSourcei(sourcePtr, AL_LOOPING, if (loop) AL_TRUE else AL_FALSE)
+            alSourcei(sourcePtr, AL_SOURCE_RELATIVE, if (relative) AL_TRUE else AL_FALSE)
             ALBase.check()
             hasBeenStarted = false
             true
         } else false
     }
 
-    fun setDistanceModel() {
+    fun setDistanceModel(rolloffFactor: Float = 1f, referenceDistance: Float = 1f, maxDistance: Float = 1e3f) {
         if (sourcePtr < 0) return
         // max distance = stopped attenuation???
-        alSourcef(sourcePtr, AL_ROLLOFF_FACTOR, 1f)
-        alSourcef(sourcePtr, AL_REFERENCE_DISTANCE, 1f)
-        alSourcef(sourcePtr, AL_MAX_DISTANCE, 1e3f)
+        alSourcef(sourcePtr, AL_ROLLOFF_FACTOR, rolloffFactor)
+        alSourcef(sourcePtr, AL_REFERENCE_DISTANCE, referenceDistance)
+        alSourcef(sourcePtr, AL_MAX_DISTANCE, maxDistance)
     }
 
     fun setBuffer(buffer: Int) {
@@ -50,6 +50,16 @@ class SoundSource(val loop: Boolean, val relative: Boolean) {
     fun setVelocity(speed: Vector3f) {
         if (sourcePtr < 0) return
         alSource3f(sourcePtr, AL_VELOCITY, speed.x, speed.y, speed.z)
+    }
+
+    fun setPosition(px: Float, py: Float, pz: Float) {
+        if (sourcePtr < 0) return
+        alSource3f(sourcePtr, AL_POSITION, px, py, pz)
+    }
+
+    fun setVelocity(sx: Float, sy: Float, sz: Float) {
+        if (sourcePtr < 0) return
+        alSource3f(sourcePtr, AL_VELOCITY, sx, sy, sz)
     }
 
     fun setGain(gain: Float) {

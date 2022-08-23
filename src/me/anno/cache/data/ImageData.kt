@@ -1,7 +1,5 @@
 package me.anno.cache.data
 
-import com.drew.imaging.ImageMetadataReader
-import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
@@ -29,7 +27,6 @@ import me.anno.utils.types.Strings.getImportType
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
-import java.io.IOException
 import java.io.InputStream
 import javax.imageio.ImageIO
 
@@ -45,34 +42,11 @@ class ImageData(file: FileReference) : ICacheData {
 
         private val LOGGER = LogManager.getLogger(ImageData::class)
 
-        fun getRotation(file: FileReference): RotateJPEG? {
-            if (file == InvalidRef || file.isDirectory) return null
-            return getRotation(file, file.inputStream())
-        }
-
-        fun getRotation(src: FileReference, file: InputStream): RotateJPEG? {
-            var rotation: RotateJPEG? = null
-            try {
-                // todo which files can contain exif metadata? filter for them
-                val metadata = ImageMetadataReader.readMetadata(file)
-                for (dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)) {
-                    val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)
-                        ?.lowercase()
-                        ?: continue
-                    val mirror = "mirror" in desc
-                    val mirrorHorizontal = mirror && "hori" in desc
-                    val mirrorVertical = mirror && !mirrorHorizontal
-                    val rotationDegrees =
-                        if ("9" in desc) 90 else if ("18" in desc) 180 else if ("27" in desc) 270 else 0
-                    if (mirrorHorizontal || mirrorVertical || rotationDegrees != 0) {
-                        rotation = RotateJPEG(mirrorHorizontal, mirrorVertical, rotationDegrees)
-                    }
-                }
-            } catch (e: Exception) {
-                if (src.lcExtension != "xcf") IOException(src.absolutePath, e)
-                    .printStackTrace()
-            }
-            return rotation
+        fun getRotation(src: FileReference): RotateJPEG? {
+            if (src == InvalidRef || src.isDirectory) return null
+            // which files can contain exif metadata? filter for them
+            // JPG, TIFF, PNG, JP2, PGF, MIFF, HDP, PSP and XC, AVI and MOV
+            return findRotation(src)
         }
 
         fun frameToFramebuffer(frame: GPUFrame, w: Int, h: Int, result: ImageData?): Framebuffer {

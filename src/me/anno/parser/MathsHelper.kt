@@ -1,7 +1,5 @@
 package me.anno.parser
 
-import java.lang.RuntimeException
-
 fun lerpAny(a: Any, b: Any, f: Double): Any {
     return addAny(
         mulAny(1.0-f, a),

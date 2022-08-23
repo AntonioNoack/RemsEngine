@@ -181,7 +181,7 @@ open class EnumInput(
 
         fun createInput(title: String, value: Enum<*>, style: Style): EnumInput {
             val values = getEnumConstants(value.javaClass)
-            val ttt = value.javaClass.simpleName.camelCaseToTitle()
+            val ttt = value::class.simpleName?.camelCaseToTitle() ?: "?"
             val valueName = enumToNameDesc(value).name
             return EnumInput(title, ttt, valueName, values.map { enumToNameDesc(it) }, style)
         }
