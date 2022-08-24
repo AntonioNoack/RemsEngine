@@ -41,30 +41,6 @@ public class Matrix3x2d {
         this.m21 = m21;
     }
 
-    public double m00() {
-        return this.m00;
-    }
-
-    public double m01() {
-        return this.m01;
-    }
-
-    public double m10() {
-        return this.m10;
-    }
-
-    public double m11() {
-        return this.m11;
-    }
-
-    public double m20() {
-        return this.m20;
-    }
-
-    public double m21() {
-        return this.m21;
-    }
-
     Matrix3x2d _m00(double m00) {
         this.m00 = m00;
         return this;
@@ -866,7 +842,4 @@ public class Matrix3x2d {
         return Math.isFinite(this.m00) && Math.isFinite(this.m01) && Math.isFinite(this.m10) && Math.isFinite(this.m11) && Math.isFinite(this.m20) && Math.isFinite(this.m21);
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
 }

@@ -99,71 +99,6 @@ public class Matrix4d {
     public int properties() {
         return this.properties;
     }
-
-    public double m00() {
-        return this.m00;
-    }
-
-    public double m01() {
-        return this.m01;
-    }
-
-    public double m02() {
-        return this.m02;
-    }
-
-    public double m03() {
-        return this.m03;
-    }
-
-    public double m10() {
-        return this.m10;
-    }
-
-    public double m11() {
-        return this.m11;
-    }
-
-    public double m12() {
-        return this.m12;
-    }
-
-    public double m13() {
-        return this.m13;
-    }
-
-    public double m20() {
-        return this.m20;
-    }
-
-    public double m21() {
-        return this.m21;
-    }
-
-    public double m22() {
-        return this.m22;
-    }
-
-    public double m23() {
-        return this.m23;
-    }
-
-    public double m30() {
-        return this.m30;
-    }
-
-    public double m31() {
-        return this.m31;
-    }
-
-    public double m32() {
-        return this.m32;
-    }
-
-    public double m33() {
-        return this.m33;
-    }
-
     public Matrix4d m00(double m00) {
         this.m00 = m00;
         this.properties &= -17;
@@ -6960,7 +6895,4 @@ public class Matrix4d {
         return Math.isFinite(this.m00) && Math.isFinite(this.m01) && Math.isFinite(this.m02) && Math.isFinite(this.m03) && Math.isFinite(this.m10) && Math.isFinite(this.m11) && Math.isFinite(this.m12) && Math.isFinite(this.m13) && Math.isFinite(this.m20) && Math.isFinite(this.m21) && Math.isFinite(this.m22) && Math.isFinite(this.m23) && Math.isFinite(this.m30) && Math.isFinite(this.m31) && Math.isFinite(this.m32) && Math.isFinite(this.m33);
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
 }

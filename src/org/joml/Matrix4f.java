@@ -88,70 +88,6 @@ public class Matrix4f {
         return this.properties;
     }
 
-    public float m00() {
-        return this.m00;
-    }
-
-    public float m01() {
-        return this.m01;
-    }
-
-    public float m02() {
-        return this.m02;
-    }
-
-    public float m03() {
-        return this.m03;
-    }
-
-    public float m10() {
-        return this.m10;
-    }
-
-    public float m11() {
-        return this.m11;
-    }
-
-    public float m12() {
-        return this.m12;
-    }
-
-    public float m13() {
-        return this.m13;
-    }
-
-    public float m20() {
-        return this.m20;
-    }
-
-    public float m21() {
-        return this.m21;
-    }
-
-    public float m22() {
-        return this.m22;
-    }
-
-    public float m23() {
-        return this.m23;
-    }
-
-    public float m30() {
-        return this.m30;
-    }
-
-    public float m31() {
-        return this.m31;
-    }
-
-    public float m32() {
-        return this.m32;
-    }
-
-    public float m33() {
-        return this.m33;
-    }
-
     public Matrix4f m00(float m00) {
         this.m00 = m00;
         this.properties &= -17;
@@ -438,7 +374,7 @@ public class Matrix4f {
         float y = axisAngle.y;
         float z = axisAngle.z;
         float angle = axisAngle.angle;
-        double n = (double)Math.sqrt(x * x + y * y + z * z);
+        double n = Math.sqrt(x * x + y * y + z * z);
         n = 1.0 / n;
         x = (float)((double)x * n);
         y = (float)((double)y * n);
@@ -523,7 +459,7 @@ public class Matrix4f {
         if ((this.properties & 4) != 0) {
             return dest.set(right);
         } else if ((right.properties() & 4) != 0) {
-            return dest.set((Matrix4f)this);
+            return dest.set(this);
         } else if ((this.properties & 8) != 0 && (right.properties() & 2) != 0) {
             return this.mulTranslationAffine(right, dest);
         } else if ((this.properties & 2) != 0 && (right.properties() & 2) != 0) {
@@ -639,7 +575,7 @@ public class Matrix4f {
         if ((this.properties & 4) != 0) {
             return dest.set(left);
         } else if ((left.properties() & 4) != 0) {
-            return dest.set((Matrix4f)this);
+            return dest.set(this);
         } else {
             return (this.properties & 2) != 0 && (left.properties() & 2) != 0 ? this.mulLocalAffine(left, dest) : this.mulLocalGeneric(left, dest);
         }
@@ -697,7 +633,7 @@ public class Matrix4f {
         if ((this.properties & 4) != 0) {
             return dest.set(right);
         } else if ((right.properties() & 4) != 0) {
-            return dest.set((Matrix4f)this);
+            return dest.set(this);
         } else if ((this.properties & 8) != 0) {
             return this.mulTranslation(right, dest);
         } else if ((this.properties & 2) != 0) {
@@ -1006,7 +942,7 @@ public class Matrix4f {
 
     private Matrix4f invertTranslation(Matrix4f dest) {
         if (dest != this) {
-            dest.set((Matrix4f)this);
+            dest.set(this);
         }
 
         return dest._m30(-this.m30)._m31(-this.m31)._m32(-this.m32)._properties(26);
@@ -1254,7 +1190,7 @@ public class Matrix4f {
 
     public String toString() {
         String str = this.toString(Options.NUMBER_FORMAT);
-        StringBuffer res = new StringBuffer();
+        StringBuilder res = new StringBuilder();
         int eIndex = Integer.MIN_VALUE;
 
         for(int i = 0; i < str.length(); ++i) {
@@ -1279,7 +1215,7 @@ public class Matrix4f {
     }
 
     public String toString(NumberFormat formatter) {
-        return Runtime.format((double)this.m00, formatter) + " " + Runtime.format((double)this.m10, formatter) + " " + Runtime.format((double)this.m20, formatter) + " " + Runtime.format((double)this.m30, formatter) + "\n" + Runtime.format((double)this.m01, formatter) + " " + Runtime.format((double)this.m11, formatter) + " " + Runtime.format((double)this.m21, formatter) + " " + Runtime.format((double)this.m31, formatter) + "\n" + Runtime.format((double)this.m02, formatter) + " " + Runtime.format((double)this.m12, formatter) + " " + Runtime.format((double)this.m22, formatter) + " " + Runtime.format((double)this.m32, formatter) + "\n" + Runtime.format((double)this.m03, formatter) + " " + Runtime.format((double)this.m13, formatter) + " " + Runtime.format((double)this.m23, formatter) + " " + Runtime.format((double)this.m33, formatter) + "\n";
+        return Runtime.format(this.m00, formatter) + " " + Runtime.format(this.m10, formatter) + " " + Runtime.format(this.m20, formatter) + " " + Runtime.format(this.m30, formatter) + "\n" + Runtime.format(this.m01, formatter) + " " + Runtime.format(this.m11, formatter) + " " + Runtime.format(this.m21, formatter) + " " + Runtime.format(this.m31, formatter) + "\n" + Runtime.format(this.m02, formatter) + " " + Runtime.format(this.m12, formatter) + " " + Runtime.format(this.m22, formatter) + " " + Runtime.format(this.m32, formatter) + "\n" + Runtime.format(this.m03, formatter) + " " + Runtime.format(this.m13, formatter) + " " + Runtime.format(this.m23, formatter) + " " + Runtime.format(this.m33, formatter) + "\n";
     }
 
     public Matrix4f get(Matrix4f dest) {
@@ -4135,9 +4071,9 @@ public class Matrix4f {
     }
 
     public Matrix4f reflect(Quaternionf orientation, Vector3f point, Matrix4f dest) {
-        double num1 = (double)(orientation.x + orientation.x);
-        double num2 = (double)(orientation.y + orientation.y);
-        double num3 = (double)(orientation.z + orientation.z);
+        double num1 = orientation.x + orientation.x;
+        double num2 = orientation.y + orientation.y;
+        double num3 = orientation.z + orientation.z;
         float normalX = (float)((double)orientation.x * num3 + (double)orientation.w * num2);
         float normalY = (float)((double)orientation.y * num3 - (double)orientation.w * num1);
         float normalZ = (float)(1.0 - ((double)orientation.x * num1 + (double)orientation.y * num2));
@@ -4170,9 +4106,9 @@ public class Matrix4f {
     }
 
     public Matrix4f reflection(Quaternionf orientation, Vector3f point) {
-        double num1 = (double)(orientation.x + orientation.x);
-        double num2 = (double)(orientation.y + orientation.y);
-        double num3 = (double)(orientation.z + orientation.z);
+        double num1 = orientation.x + orientation.x;
+        double num2 = orientation.y + orientation.y;
+        double num3 = orientation.z + orientation.z;
         float normalX = (float)((double)orientation.x * num3 + (double)orientation.w * num2);
         float normalY = (float)((double)orientation.y * num3 - (double)orientation.w * num1);
         float normalZ = (float)(1.0 - ((double)orientation.x * num1 + (double)orientation.y * num2));
@@ -4244,7 +4180,7 @@ public class Matrix4f {
     }
 
     public Matrix4f setColumn(int column, Vector4f src) throws IndexOutOfBoundsException {
-        return src instanceof Vector4f ? MemUtil.INSTANCE.setColumn((Vector4f)src, column, this)._properties(0) : MemUtil.INSTANCE.setColumn(src, column, this)._properties(0);
+        return MemUtil.INSTANCE.setColumn(src, column, this)._properties(0);
     }
 
     public float get(int column, int row) {
@@ -4277,7 +4213,7 @@ public class Matrix4f {
 
     private Matrix4f normalOrthonormal(Matrix4f dest) {
         if (dest != this) {
-            dest.set((Matrix4f)this);
+            dest.set(this);
         }
 
         return dest._properties(18);
@@ -4897,8 +4833,6 @@ public class Matrix4f {
             return true;
         } else if (m == null) {
             return false;
-        } else if (!(m instanceof Matrix4f)) {
-            return false;
         } else if (!Runtime.equals(this.m00, m.m00, delta)) {
             return false;
         } else if (!Runtime.equals(this.m01, m.m01, delta)) {
@@ -5016,12 +4950,12 @@ public class Matrix4f {
             float nx = (this.m00 * x + this.m10 * y + this.m20 * z + this.m30) * invW;
             float ny = (this.m01 * x + this.m11 * y + this.m21 * z + this.m31) * invW;
             float nz = (this.m02 * x + this.m12 * y + this.m22 * z + this.m32) * invW;
-            minX = minX < nx ? minX : nx;
-            minY = minY < ny ? minY : ny;
-            minZ = minZ < nz ? minZ : nz;
-            maxX = maxX > nx ? maxX : nx;
-            maxY = maxY > ny ? maxY : ny;
-            maxZ = maxZ > nz ? maxZ : nz;
+            minX = java.lang.Math.min(minX, nx);
+            minY = java.lang.Math.min(minY, ny);
+            minZ = java.lang.Math.min(minZ, nz);
+            maxX = java.lang.Math.max(maxX, nx);
+            maxY = java.lang.Math.max(maxY, ny);
+            maxZ = java.lang.Math.max(maxZ, nz);
         }
 
         min.x = minX;
@@ -5086,10 +5020,10 @@ public class Matrix4f {
                     invW = 1f / (projector.m03 * ix + projector.m23 * iz + projector.m33);
                     float px = (projector.m00 * ix + projector.m20 * iz + projector.m30) * invW;
                     float py = (projector.m01 * ix + projector.m21 * iz + projector.m31) * invW;
-                    minX = minX < px ? minX : px;
-                    minY = minY < py ? minY : py;
-                    maxX = maxX > px ? maxX : px;
-                    maxY = maxY > py ? maxY : py;
+                    minX = java.lang.Math.min(minX, px);
+                    minY = java.lang.Math.min(minY, py);
+                    maxX = java.lang.Math.max(maxX, px);
+                    maxY = java.lang.Math.max(maxY, py);
                 }
             }
         }
@@ -5130,12 +5064,12 @@ public class Matrix4f {
             float vx = view.m00 * wx + view.m10 * wy + view.m20 * wz + view.m30;
             float vy = view.m01 * wx + view.m11 * wy + view.m21 * wz + view.m31;
             float vz = (view.m02 * wx + view.m12 * wy + view.m22 * wz + view.m32) * invW;
-            minX = minX < vx ? minX : vx;
-            maxX = maxX > vx ? maxX : vx;
-            minY = minY < vy ? minY : vy;
-            maxY = maxY > vy ? maxY : vy;
-            minZ = minZ < vz ? minZ : vz;
-            maxZ = maxZ > vz ? maxZ : vz;
+            minX = java.lang.Math.min(minX, vx);
+            maxX = java.lang.Math.max(maxX, vx);
+            minY = java.lang.Math.min(minY, vy);
+            maxY = java.lang.Math.max(maxY, vy);
+            minZ = java.lang.Math.min(minZ, vz);
+            maxZ = java.lang.Math.max(maxZ, vz);
         }
 
         return dest.setOrtho(minX, maxX, minY, maxY, -maxZ, -minZ);
@@ -6172,7 +6106,4 @@ public class Matrix4f {
         return Math.isFinite(this.m00) && Math.isFinite(this.m01) && Math.isFinite(this.m02) && Math.isFinite(this.m03) && Math.isFinite(this.m10) && Math.isFinite(this.m11) && Math.isFinite(this.m12) && Math.isFinite(this.m13) && Math.isFinite(this.m20) && Math.isFinite(this.m21) && Math.isFinite(this.m22) && Math.isFinite(this.m23) && Math.isFinite(this.m30) && Math.isFinite(this.m31) && Math.isFinite(this.m32) && Math.isFinite(this.m33);
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
 }

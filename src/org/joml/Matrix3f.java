@@ -50,42 +50,6 @@ public class Matrix3f {
         this.set(col0, col1, col2);
     }
 
-    public float m00() {
-        return this.m00;
-    }
-
-    public float m01() {
-        return this.m01;
-    }
-
-    public float m02() {
-        return this.m02;
-    }
-
-    public float m10() {
-        return this.m10;
-    }
-
-    public float m11() {
-        return this.m11;
-    }
-
-    public float m12() {
-        return this.m12;
-    }
-
-    public float m20() {
-        return this.m20;
-    }
-
-    public float m21() {
-        return this.m21;
-    }
-
-    public float m22() {
-        return this.m22;
-    }
-
     public Matrix3f m00(float m00) {
         this.m00 = m00;
         return this;
@@ -2419,7 +2383,4 @@ public class Matrix3f {
         return dest._m00(this.m00)._m01(this.m01)._m02(this.m02)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22);
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
 }

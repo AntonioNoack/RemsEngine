@@ -45,22 +45,6 @@ public class Matrix2f {
         this.m11 = col1.y;
     }
 
-    public float m00() {
-        return this.m00;
-    }
-
-    public float m01() {
-        return this.m01;
-    }
-
-    public float m10() {
-        return this.m10;
-    }
-
-    public float m11() {
-        return this.m11;
-    }
-
     public Matrix2f m00(float m00) {
         this.m00 = m00;
         return this;
@@ -711,10 +695,10 @@ public class Matrix2f {
     }
 
     public Matrix2f lerp(Matrix2f other, float t, Matrix2f dest) {
-        dest.m00 = Math.fma(other.m00 - this.m00, t, this.m00);
-        dest.m01 = Math.fma(other.m01 - this.m01, t, this.m01);
-        dest.m10 = Math.fma(other.m10 - this.m10, t, this.m10);
-        dest.m11 = Math.fma(other.m11 - this.m11, t, this.m11);
+        dest.m00 = (other.m00 - this.m00) * t + this.m00;
+        dest.m01 = (other.m01 - this.m01) * t + this.m01;
+        dest.m10 = (other.m10 - this.m10) * t + this.m10;
+        dest.m11 = (other.m11 - this.m11) * t + this.m11;
         return dest;
     }
 
@@ -722,7 +706,4 @@ public class Matrix2f {
         return Math.isFinite(this.m00) && Math.isFinite(this.m01) && Math.isFinite(this.m10) && Math.isFinite(this.m11);
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
 }

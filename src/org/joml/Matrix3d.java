@@ -61,42 +61,6 @@ public class Matrix3d {
         this.set(col0, col1, col2);
     }
 
-    public double m00() {
-        return this.m00;
-    }
-
-    public double m01() {
-        return this.m01;
-    }
-
-    public double m02() {
-        return this.m02;
-    }
-
-    public double m10() {
-        return this.m10;
-    }
-
-    public double m11() {
-        return this.m11;
-    }
-
-    public double m12() {
-        return this.m12;
-    }
-
-    public double m20() {
-        return this.m20;
-    }
-
-    public double m21() {
-        return this.m21;
-    }
-
-    public double m22() {
-        return this.m22;
-    }
-
     public Matrix3d m00(double m00) {
         this.m00 = m00;
         return this;
@@ -2759,7 +2723,4 @@ public class Matrix3d {
         return dest._m00(this.m00)._m01(this.m01)._m02(this.m02)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22);
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
 }

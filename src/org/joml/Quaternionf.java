@@ -52,22 +52,6 @@ public class Quaternionf {
         this.w = (float) cos;
     }
 
-    public float x() {
-        return this.x;
-    }
-
-    public float y() {
-        return this.y;
-    }
-
-    public float z() {
-        return this.z;
-    }
-
-    public float w() {
-        return this.w;
-    }
-
     public Quaternionf normalize() {
         return this.normalize(this);
     }
@@ -101,7 +85,7 @@ public class Quaternionf {
         dest.x = this.x + q2.x;
         dest.y = this.y + q2.y;
         dest.z = this.z + q2.z;
-        dest.w = this.w + q2.w();
+        dest.w = this.w + q2.w;
         return dest;
     }
 
@@ -217,7 +201,7 @@ public class Quaternionf {
         this.x = q.x;
         this.y = q.y;
         this.z = q.z;
-        this.w = q.w();
+        this.w = q.w;
         return this;
     }
 
@@ -478,7 +462,7 @@ public class Quaternionf {
     }
 
     public Quaternionf mul(Quaternionf q, Quaternionf dest) {
-        return dest.set(Math.fma(this.w, q.x, Math.fma(this.x, q.w(), Math.fma(this.y, q.z, -this.z * q.y))), Math.fma(this.w, q.y, Math.fma(-this.x, q.z, Math.fma(this.y, q.w(), this.z * q.x))), Math.fma(this.w, q.z, Math.fma(this.x, q.y, Math.fma(-this.y, q.x, this.z * q.w()))), Math.fma(this.w, q.w(), Math.fma(-this.x, q.x, Math.fma(-this.y, q.y, -this.z * q.z))));
+        return dest.set(Math.fma(this.w, q.x, Math.fma(this.x, q.w, Math.fma(this.y, q.z, -this.z * q.y))), Math.fma(this.w, q.y, Math.fma(-this.x, q.z, Math.fma(this.y, q.w, this.z * q.x))), Math.fma(this.w, q.z, Math.fma(this.x, q.y, Math.fma(-this.y, q.x, this.z * q.w))), Math.fma(this.w, q.w, Math.fma(-this.x, q.x, Math.fma(-this.y, q.y, -this.z * q.z))));
     }
 
     public Quaternionf mul(float qx, float qy, float qz, float qw) {
@@ -494,7 +478,7 @@ public class Quaternionf {
     }
 
     public Quaternionf premul(Quaternionf q, Quaternionf dest) {
-        return dest.set(Math.fma(q.w(), this.x, Math.fma(q.x, this.w, Math.fma(q.y, this.z, -q.z * this.y))), Math.fma(q.w(), this.y, Math.fma(-q.x, this.z, Math.fma(q.y, this.w, q.z * this.x))), Math.fma(q.w(), this.z, Math.fma(q.x, this.y, Math.fma(-q.y, this.x, q.z * this.w))), Math.fma(q.w(), this.w, Math.fma(-q.x, this.x, Math.fma(-q.y, this.y, -q.z * this.z))));
+        return dest.set(Math.fma(q.w, this.x, Math.fma(q.x, this.w, Math.fma(q.y, this.z, -q.z * this.y))), Math.fma(q.w, this.y, Math.fma(-q.x, this.z, Math.fma(q.y, this.w, q.z * this.x))), Math.fma(q.w, this.z, Math.fma(q.x, this.y, Math.fma(-q.y, this.x, q.z * this.w))), Math.fma(q.w, this.w, Math.fma(-q.x, this.x, Math.fma(-q.y, this.y, -q.z * this.z))));
     }
 
     public Quaternionf premul(float qx, float qy, float qz, float qw) {
@@ -1235,11 +1219,11 @@ public class Quaternionf {
     }
 
     public Quaternionf div(Quaternionf b, Quaternionf dest) {
-        float invNorm = 1f / Math.fma(b.x, b.x, Math.fma(b.y, b.y, Math.fma(b.z, b.z, b.w() * b.w())));
+        float invNorm = 1f / Math.fma(b.x, b.x, Math.fma(b.y, b.y, Math.fma(b.z, b.z, b.w * b.w)));
         float x = -b.x * invNorm;
         float y = -b.y * invNorm;
         float z = -b.z * invNorm;
-        float w = b.w() * invNorm;
+        float w = b.w * invNorm;
         return dest.set(Math.fma(this.w, x, Math.fma(this.x, w, Math.fma(this.y, z, -this.z * y))), Math.fma(this.w, y, Math.fma(-this.x, z, Math.fma(this.y, w, this.z * x))), Math.fma(this.w, z, Math.fma(this.x, y, Math.fma(-this.y, x, this.z * w))), Math.fma(this.w, w, Math.fma(-this.x, x, Math.fma(-this.y, y, -this.z * z))));
     }
 
@@ -1424,7 +1408,7 @@ public class Quaternionf {
     }
 
     public Quaternionf slerp(Quaternionf target, float alpha, Quaternionf dest) {
-        float cosom = Math.fma(this.x, target.x, Math.fma(this.y, target.y, Math.fma(this.z, target.z, this.w * target.w())));
+        float cosom = Math.fma(this.x, target.x, Math.fma(this.y, target.y, Math.fma(this.z, target.z, this.w * target.w)));
         float absCosom = Math.abs(cosom);
         float scale0;
         float scale1;
@@ -1443,7 +1427,7 @@ public class Quaternionf {
         dest.x = Math.fma(scale0, this.x, scale1 * target.x);
         dest.y = Math.fma(scale0, this.y, scale1 * target.y);
         dest.z = Math.fma(scale0, this.z, scale1 * target.z);
-        dest.w = Math.fma(scale0, this.w, scale1 * target.w());
+        dest.w = Math.fma(scale0, this.w, scale1 * target.w);
         return dest;
     }
 
@@ -1515,13 +1499,13 @@ public class Quaternionf {
     }
 
     public Quaternionf nlerp(Quaternionf q, float factor, Quaternionf dest) {
-        float cosom = Math.fma(this.x, q.x, Math.fma(this.y, q.y, Math.fma(this.z, q.z, this.w * q.w())));
+        float cosom = Math.fma(this.x, q.x, Math.fma(this.y, q.y, Math.fma(this.z, q.z, this.w * q.w)));
         float scale0 = 1f - factor;
         float scale1 = cosom >= 0f ? factor : -factor;
         dest.x = Math.fma(scale0, this.x, scale1 * q.x);
         dest.y = Math.fma(scale0, this.y, scale1 * q.y);
         dest.z = Math.fma(scale0, this.z, scale1 * q.z);
-        dest.w = Math.fma(scale0, this.w, scale1 * q.w());
+        dest.w = Math.fma(scale0, this.w, scale1 * q.w);
         float s = Math.invsqrt(Math.fma(dest.x, dest.x, Math.fma(dest.y, dest.y, Math.fma(dest.z, dest.z, dest.w * dest.w))));
         dest.x *= s;
         dest.y *= s;
@@ -1552,7 +1536,7 @@ public class Quaternionf {
         float q2x = q.x;
         float q2y = q.y;
         float q2z = q.z;
-        float q2w = q.w();
+        float q2w = q.w;
         float dot = Math.fma(q1x, q2x, Math.fma(q1y, q2y, Math.fma(q1z, q2z, q1w * q2w)));
         float absDot = Math.abs(dot);
         if (0.999999F < absDot) {
@@ -1932,7 +1916,7 @@ public class Quaternionf {
         float y = -this.y * invNorm;
         float z = -this.z * invNorm;
         float w = this.w * invNorm;
-        dest.set(Math.fma(w, other.x, Math.fma(x, other.w(), Math.fma(y, other.z, -z * other.y))), Math.fma(w, other.y, Math.fma(-x, other.z, Math.fma(y, other.w(), z * other.x))), Math.fma(w, other.z, Math.fma(x, other.y, Math.fma(-y, other.x, z * other.w()))), Math.fma(w, other.w(), Math.fma(-x, other.x, Math.fma(-y, other.y, -z * other.z))));
+        dest.set(Math.fma(w, other.x, Math.fma(x, other.w, Math.fma(y, other.z, -z * other.y))), Math.fma(w, other.y, Math.fma(-x, other.z, Math.fma(y, other.w, z * other.x))), Math.fma(w, other.z, Math.fma(x, other.y, Math.fma(-y, other.x, z * other.w))), Math.fma(w, other.w, Math.fma(-x, other.x, Math.fma(-y, other.y, -z * other.z))));
         return dest;
     }
 
@@ -2018,11 +2002,11 @@ public class Quaternionf {
         float qix = -q.x * invNorm;
         float qiy = -q.y * invNorm;
         float qiz = -q.z * invNorm;
-        float qiw = q.w() * invNorm;
-        float qpx = Math.fma(q.w(), this.x, Math.fma(q.x, this.w, Math.fma(q.y, this.z, -q.z * this.y)));
-        float qpy = Math.fma(q.w(), this.y, Math.fma(-q.x, this.z, Math.fma(q.y, this.w, q.z * this.x)));
-        float qpz = Math.fma(q.w(), this.z, Math.fma(q.x, this.y, Math.fma(-q.y, this.x, q.z * this.w)));
-        float qpw = Math.fma(q.w(), this.w, Math.fma(-q.x, this.x, Math.fma(-q.y, this.y, -q.z * this.z)));
+        float qiw = q.w * invNorm;
+        float qpx = Math.fma(q.w, this.x, Math.fma(q.x, this.w, Math.fma(q.y, this.z, -q.z * this.y)));
+        float qpy = Math.fma(q.w, this.y, Math.fma(-q.x, this.z, Math.fma(q.y, this.w, q.z * this.x)));
+        float qpz = Math.fma(q.w, this.z, Math.fma(q.x, this.y, Math.fma(-q.y, this.x, q.z * this.w)));
+        float qpw = Math.fma(q.w, this.w, Math.fma(-q.x, this.x, Math.fma(-q.y, this.y, -q.z * this.z)));
         return dest.set(Math.fma(qpw, qix, Math.fma(qpx, qiw, Math.fma(qpy, qiz, -qpz * qiy))), Math.fma(qpw, qiy, Math.fma(-qpx, qiz, Math.fma(qpy, qiw, qpz * qix))), Math.fma(qpw, qiz, Math.fma(qpx, qiy, Math.fma(-qpy, qix, qpz * qiw))), Math.fma(qpw, qiw, Math.fma(-qpx, qix, Math.fma(-qpy, qiy, -qpz * qiz))));
     }
 
@@ -2042,7 +2026,7 @@ public class Quaternionf {
         } else if (!Runtime.equals(this.z, q.z, delta)) {
             return false;
         } else {
-            return Runtime.equals(this.w, q.w(), delta);
+            return Runtime.equals(this.w, q.w, delta);
         }
     }
 

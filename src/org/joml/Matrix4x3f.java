@@ -79,54 +79,6 @@ public class Matrix4x3f {
         return this.properties;
     }
 
-    public float m00() {
-        return this.m00;
-    }
-
-    public float m01() {
-        return this.m01;
-    }
-
-    public float m02() {
-        return this.m02;
-    }
-
-    public float m10() {
-        return this.m10;
-    }
-
-    public float m11() {
-        return this.m11;
-    }
-
-    public float m12() {
-        return this.m12;
-    }
-
-    public float m20() {
-        return this.m20;
-    }
-
-    public float m21() {
-        return this.m21;
-    }
-
-    public float m22() {
-        return this.m22;
-    }
-
-    public float m30() {
-        return this.m30;
-    }
-
-    public float m31() {
-        return this.m31;
-    }
-
-    public float m32() {
-        return this.m32;
-    }
-
     public Matrix4x3f m00(float m00) {
         this.m00 = m00;
         this.properties &= -17;

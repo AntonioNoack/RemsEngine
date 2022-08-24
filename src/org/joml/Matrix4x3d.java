@@ -79,54 +79,6 @@ public class Matrix4x3d {
         return this.properties;
     }
 
-    public double m00() {
-        return this.m00;
-    }
-
-    public double m01() {
-        return this.m01;
-    }
-
-    public double m02() {
-        return this.m02;
-    }
-
-    public double m10() {
-        return this.m10;
-    }
-
-    public double m11() {
-        return this.m11;
-    }
-
-    public double m12() {
-        return this.m12;
-    }
-
-    public double m20() {
-        return this.m20;
-    }
-
-    public double m21() {
-        return this.m21;
-    }
-
-    public double m22() {
-        return this.m22;
-    }
-
-    public double m30() {
-        return this.m30;
-    }
-
-    public double m31() {
-        return this.m31;
-    }
-
-    public double m32() {
-        return this.m32;
-    }
-
     Matrix4x3d _properties(int properties) {
         this.properties = properties;
         return this;
