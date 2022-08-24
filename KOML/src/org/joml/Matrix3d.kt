@@ -1,11 +1,15 @@
 package org.joml
 
+import org.joml.JomlMath.addSigns
+import org.joml.Runtime.f
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class Matrix3d {
+@Suppress("unused")
+open class Matrix3d {
+
     var m00 = 0.0
     var m01 = 0.0
     var m02 = 0.0
@@ -516,38 +520,10 @@ class Matrix3d {
         return dest
     }
 
-    override fun toString(): String {
-        val str = this.toString(Options.NUMBER_FORMAT)
-        val res = StringBuilder()
-        var eIndex = Int.MIN_VALUE
-        for (i in 0 until str.length) {
-            val c = str[i]
-            if (c == 'E') {
-                eIndex = i
-            } else {
-                if (c == ' ' && eIndex == i - 1) {
-                    res.append('+')
-                    continue
-                }
-                if (Character.isDigit(c) && eIndex == i - 1) {
-                    res.append('+')
-                }
-            }
-            res.append(c)
-        }
-        return res.toString()
-    }
-
-    fun toString(formatter: Int): String {
-        return """${Runtime.format(m00, formatter)} ${Runtime.format(m10, formatter)} ${
-            Runtime.format(
-                m20, formatter
-            )
-        }
-${Runtime.format(m01, formatter)} ${Runtime.format(m11, formatter)} ${Runtime.format(m21, formatter)}
-${Runtime.format(m02, formatter)} ${Runtime.format(m12, formatter)} ${Runtime.format(m22, formatter)}
-"""
-    }
+    override fun toString() =
+        ("[[${f(m00)} ${f(m10)} ${f(m20)}] " +
+                "[${f(m01)} ${f(m11)} ${f(m21)}] " +
+                "[${f(m02)} ${f(m12)} ${f(m22)}]]").addSigns()
 
     operator fun get(dest: Matrix3d): Matrix3d {
         return dest.set(this)

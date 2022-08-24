@@ -6,7 +6,7 @@ import kotlin.math.max
 import kotlin.math.sqrt
 
 @Suppress("unused")
-class Vector4i(var x: Int, var y: Int, var z: Int, var w: Int) {
+open class Vector4i(var x: Int, var y: Int, var z: Int, var w: Int) {
 
     constructor() : this(0, 0, 0, 1)
     constructor(v: Vector4i) : this(v.x, v.y, v.z, v.w)

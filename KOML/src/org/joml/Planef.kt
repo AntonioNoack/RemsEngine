@@ -1,6 +1,6 @@
 package org.joml
 
-class Planef(var a: Float, var b: Float, var c: Float, var d: Float) {
+open class Planef(var a: Float, var b: Float, var c: Float, var d: Float) {
 
     constructor() : this(0f, 0f, 0f, 0f)
 

@@ -1,9 +1,12 @@
 package org.joml
 
+import org.joml.JomlMath.addSigns
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Matrix3x2d {
+@Suppress("unused")
+open class Matrix3x2d {
+
     var m00 = 0.0
     var m01 = 0.0
     var m10 = 0.0
@@ -138,7 +141,7 @@ class Matrix3x2d {
         return dest
     }
 
-    operator fun set(m00: Double, m01: Double, m10: Double, m11: Double, m20: Double, m21: Double): Matrix3x2d {
+    fun set(m00: Double, m01: Double, m10: Double, m11: Double, m20: Double, m21: Double): Matrix3x2d {
         this.m00 = m00
         this.m01 = m01
         this.m10 = m10
@@ -147,11 +150,6 @@ class Matrix3x2d {
         this.m21 = m21
         return this
     }
-
-    /*fun set(m: DoubleArray): Matrix3x2d {
-        MemUtil.INSTANCE.copy(m, 0, this)
-        return this
-    }*/
 
     fun determinant(): Double {
         return m00 * m11 - m01 * m10
@@ -237,37 +235,9 @@ class Matrix3x2d {
         return dest
     }
 
-    override fun toString(): String {
-        val str = this.toString(Options.NUMBER_FORMAT)
-        val res = StringBuilder()
-        var eIndex = Int.MIN_VALUE
-        for (i in str.indices) {
-            val c = str[i]
-            if (c == 'E') {
-                eIndex = i
-            } else {
-                if (c == ' ' && eIndex == i - 1) {
-                    res.append('+')
-                    continue
-                }
-                if (Character.isDigit(c) && eIndex == i - 1) {
-                    res.append('+')
-                }
-            }
-            res.append(c)
-        }
-        return res.toString()
-    }
-
-    fun toString(formatter: Int): String {
-        return """${Runtime.format(m00, formatter)} ${Runtime.format(m10, formatter)} ${
-            Runtime.format(
-                m20, formatter
-            )
-        }
-${Runtime.format(m01, formatter)} ${Runtime.format(m11, formatter)} ${Runtime.format(m21, formatter)}
-"""
-    }
+    override fun toString() =
+        ("[[${Runtime.f(m00)} ${Runtime.f(m10)} ${Runtime.f(m20)}] " +
+                "[${Runtime.f(m01)} ${Runtime.f(m11)} ${Runtime.f(m21)}]]").addSigns()
 
     fun get(dest: Matrix3x2d): Matrix3x2d {
         return dest.set(this)

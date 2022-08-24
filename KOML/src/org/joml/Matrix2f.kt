@@ -1,11 +1,15 @@
 package org.joml
 
+import org.joml.JomlMath.addSigns
+import org.joml.Runtime.f
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class Matrix2f {
+@Suppress("unused")
+open class Matrix2f {
+
     var m00 = 0f
     var m01 = 0f
     var m10 = 0f
@@ -109,13 +113,6 @@ class Matrix2f {
         return this
     }
 
-    private fun setMatrix3f(mat: Matrix3f) {
-        m00 = mat.m00
-        m01 = mat.m01
-        m10 = mat.m10
-        m11 = mat.m11
-    }
-
     @JvmOverloads
     fun mul(right: Matrix2f, dst: Matrix2f = this): Matrix2f {
         val nm00 = m00 * right.m00 + m10 * right.m01
@@ -142,7 +139,7 @@ class Matrix2f {
         return dst
     }
 
-    operator fun set(m00: Float, m01: Float, m10: Float, m11: Float): Matrix2f {
+    fun set(m00: Float, m01: Float, m10: Float, m11: Float): Matrix2f {
         this.m00 = m00
         this.m01 = m01
         this.m10 = m10
@@ -179,38 +176,10 @@ class Matrix2f {
     }
 
     @JvmOverloads
-    fun transpose(dst: Matrix2f = this): Matrix2f {
-        dst[m00, m10, m01] = m11
-        return dst
-    }
+    fun transpose(dst: Matrix2f = this) = dst.set(m00, m10, m01, m11)
 
-    override fun toString(): String {
-        val str = this.toString(Options.NUMBER_FORMAT)
-        val res = StringBuilder()
-        var eIndex = Int.MIN_VALUE
-        for (i in 0 until str.length) {
-            val c = str[i]
-            if (c == 'E') {
-                eIndex = i
-            } else {
-                if (c == ' ' && eIndex == i - 1) {
-                    res.append('+')
-                    continue
-                }
-                if (Character.isDigit(c) && eIndex == i - 1) {
-                    res.append('+')
-                }
-            }
-            res.append(c)
-        }
-        return res.toString()
-    }
-
-    fun toString(formatter: Int): String {
-        return """${Runtime.format(m00.toDouble(), formatter)} ${Runtime.format(m10.toDouble(), formatter)}
-${Runtime.format(m01.toDouble(), formatter)} ${Runtime.format(m11.toDouble(), formatter)}
-"""
-    }
+    override fun toString() =
+        "[[${f(m00.toDouble())} ${f(m10.toDouble())}] [${f(m01.toDouble())} ${f(m11.toDouble())}]]".addSigns()
 
     fun get(dst: Matrix2f): Matrix2f {
         return dst.set(this)
@@ -553,25 +522,10 @@ ${Runtime.format(m01.toDouble(), formatter)} ${Runtime.format(m11.toDouble(), fo
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
-            true
-        } else if (obj == null) {
-            false
-        } else if (this.javaClass != obj.javaClass) {
-            false
-        } else {
-            val other = obj as Matrix2f
-            if (java.lang.Float.floatToIntBits(m00) != java.lang.Float.floatToIntBits(other.m00)) {
-                false
-            } else if (java.lang.Float.floatToIntBits(m01) != java.lang.Float.floatToIntBits(other.m01)) {
-                false
-            } else if (java.lang.Float.floatToIntBits(m10) != java.lang.Float.floatToIntBits(other.m10)) {
-                false
-            } else {
-                java.lang.Float.floatToIntBits(m11) == java.lang.Float.floatToIntBits(other.m11)
-            }
-        }
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) true
+        else if (other !is Matrix2f) false
+        else m00 == other.m00 && m01 == other.m01 && m10 == other.m10 && m11 == other.m11
     }
 
     fun equals(m: Matrix2f?, delta: Float): Boolean {

@@ -3,7 +3,7 @@ package org.joml
 import kotlin.math.*
 
 @Suppress("unused")
-class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
+open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
 
     constructor() : this(0f, 0f, 0f, 1f)
     constructor(v: Vector4f) : this(v.x, v.y, v.z, v.w)

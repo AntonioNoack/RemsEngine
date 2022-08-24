@@ -1,9 +1,13 @@
 package org.joml
 
+import org.joml.JomlMath.addSigns
+import org.joml.Runtime.f
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Matrix3x2f {
+@Suppress("unused")
+open class Matrix3x2f {
+
     var m00 = 0f
     var m01 = 0f
     var m10 = 0f
@@ -123,7 +127,7 @@ class Matrix3x2f {
         return dest
     }
 
-    operator fun set(m00: Float, m01: Float, m10: Float, m11: Float, m20: Float, m21: Float): Matrix3x2f {
+    fun set(m00: Float, m01: Float, m10: Float, m11: Float, m20: Float, m21: Float): Matrix3x2f {
         this.m00 = m00
         this.m01 = m01
         this.m10 = m10
@@ -227,41 +231,9 @@ class Matrix3x2f {
         return dest
     }
 
-    override fun toString(): String {
-        val str = this.toString(Options.NUMBER_FORMAT)
-        val res = StringBuilder()
-        var eIndex = Int.MIN_VALUE
-        for (i in str.indices) {
-            val c = str[i]
-            if (c == 'E') {
-                eIndex = i
-            } else {
-                if (c == ' ' && eIndex == i - 1) {
-                    res.append('+')
-                    continue
-                }
-                if (Character.isDigit(c) && eIndex == i - 1) {
-                    res.append('+')
-                }
-            }
-            res.append(c)
-        }
-        return res.toString()
-    }
-
-    fun toString(formatter: Int): String {
-        return """${Runtime.format(m00.toDouble(), formatter)} ${Runtime.format(m10.toDouble(), formatter)} ${
-            Runtime.format(
-                m20.toDouble(), formatter
-            )
-        }
-${Runtime.format(m01.toDouble(), formatter)} ${Runtime.format(m11.toDouble(), formatter)} ${
-            Runtime.format(
-                m21.toDouble(), formatter
-            )
-        }
-"""
-    }
+    override fun toString() =
+        ("[[${f(m00)} ${f(m10)} ${f(m20)}] " +
+                "[${f(m01)} ${f(m11)} ${f(m21)}]]").addSigns()
 
     operator fun get(dest: Matrix3x2f): Matrix3x2f {
         return dest.set(this)
@@ -581,18 +553,18 @@ ${Runtime.format(m01.toDouble(), formatter)} ${Runtime.format(m11.toDouble(), fo
         val nxpyY = -rm01 + rm11
         val pxpyX = rm00 + rm10
         val pxpyY = rm01 + rm11
-        var minX = java.lang.Math.min(nxnyX, nxpyX)
-        minX = java.lang.Math.min(minX, pxnyX)
-        minX = java.lang.Math.min(minX, pxpyX)
-        var minY = java.lang.Math.min(nxnyY, nxpyY)
-        minY = java.lang.Math.min(minY, pxnyY)
-        minY = java.lang.Math.min(minY, pxpyY)
-        var maxX = java.lang.Math.max(nxnyX, nxpyX)
-        maxX = java.lang.Math.max(maxX, pxnyX)
-        maxX = java.lang.Math.max(maxX, pxpyX)
-        var maxY = java.lang.Math.max(nxnyY, nxpyY)
-        maxY = java.lang.Math.max(maxY, pxnyY)
-        maxY = java.lang.Math.max(maxY, pxpyY)
+        var minX = Math.min(nxnyX, nxpyX)
+        minX = Math.min(minX, pxnyX)
+        minX = Math.min(minX, pxpyX)
+        var minY = Math.min(nxnyY, nxpyY)
+        minY = Math.min(minY, pxnyY)
+        minY = Math.min(minY, pxpyY)
+        var maxX = Math.max(nxnyX, nxpyX)
+        maxX = Math.max(maxX, pxnyX)
+        maxX = Math.max(maxX, pxpyX)
+        var maxY = Math.max(nxnyY, nxpyY)
+        maxY = Math.max(maxY, pxnyY)
+        maxY = Math.max(maxY, pxpyY)
         area[0] = minX + rm20
         area[1] = minY + rm21
         area[2] = maxX + rm20

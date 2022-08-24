@@ -2,7 +2,8 @@ package org.joml
 
 import kotlin.math.*
 
-class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) {
+@Suppress("unused")
+open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) {
 
     constructor() : this(0.0, 0.0, 0.0, 1.0)
     constructor(v: Vector4d) : this(v.x, v.y, v.z, v.w)
@@ -919,53 +920,21 @@ class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) {
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
-            true
-        } else if (obj == null) {
-            false
-        } else if (this.javaClass != obj.javaClass) {
-            false
-        } else {
-            val other = obj as Vector4d
-            if (java.lang.Double.doubleToLongBits(w) != java.lang.Double.doubleToLongBits(other.w)) {
-                false
-            } else if (java.lang.Double.doubleToLongBits(x) != java.lang.Double.doubleToLongBits(other.x)) {
-                false
-            } else if (java.lang.Double.doubleToLongBits(y) != java.lang.Double.doubleToLongBits(other.y)) {
-                false
-            } else {
-                java.lang.Double.doubleToLongBits(z) == java.lang.Double.doubleToLongBits(other.z)
-            }
-        }
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) true
+        else if (other !is Vector4d) false
+        else x == other.x && y == other.y && z == other.z && w == other.w
     }
 
     fun equals(v: Vector4d?, delta: Double): Boolean {
-        return if (this === v) {
-            true
-        } else if (v == null) {
-            false
-        } else if (!Runtime.equals(x, v.x, delta)) {
-            false
-        } else if (!Runtime.equals(y, v.y, delta)) {
-            false
-        } else if (!Runtime.equals(z, v.z, delta)) {
-            false
-        } else {
-            Runtime.equals(w, v.w, delta)
-        }
+        return if (this === v) true
+        else if (v == null) false
+        else Runtime.equals(x, v.x, delta) && Runtime.equals(y, v.y, delta) &&
+                Runtime.equals(z, v.z, delta) && Runtime.equals(w, v.w, delta)
     }
 
     fun equals(x: Double, y: Double, z: Double, w: Double): Boolean {
-        return if (java.lang.Double.doubleToLongBits(this.x) != java.lang.Double.doubleToLongBits(x)) {
-            false
-        } else if (java.lang.Double.doubleToLongBits(this.y) != java.lang.Double.doubleToLongBits(y)) {
-            false
-        } else if (java.lang.Double.doubleToLongBits(this.z) != java.lang.Double.doubleToLongBits(z)) {
-            false
-        } else {
-            java.lang.Double.doubleToLongBits(this.w) == java.lang.Double.doubleToLongBits(w)
-        }
+        return x == this.x && y == this.y && z == this.z && w == this.w
     }
 
     fun smoothStep(v: Vector4d, t: Double, dest: Vector4d): Vector4d {

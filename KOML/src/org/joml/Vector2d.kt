@@ -5,7 +5,7 @@ import kotlin.math.atan2
 import kotlin.math.hypot
 
 @Suppress("unused")
-class Vector2d : Cloneable {
+open class Vector2d : Cloneable {
     var x = 0.0
     var y = 0.0
 

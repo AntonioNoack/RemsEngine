@@ -3,7 +3,7 @@ package org.joml
 import kotlin.math.*
 
 @Suppress("unused")
-class Quaterniond : Cloneable {
+open class Quaterniond : Cloneable {
     var x = 0.0
     var y = 0.0
     var z = 0.0

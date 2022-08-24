@@ -1,6 +1,6 @@
 package org.joml
 
-class Planed(var a: Double, var b: Double, var c: Double, var d: Double) {
+open class Planed(var a: Double, var b: Double, var c: Double, var d: Double) {
 
     constructor() : this(0.0, 0.0, 0.0, 0.0)
 

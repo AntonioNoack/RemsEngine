@@ -3,7 +3,7 @@ package org.joml
 import kotlin.math.hypot
 
 @Suppress("unused")
-class Vector2f : Cloneable {
+open class Vector2f : Cloneable {
 
     @JvmField
     var x = 0f

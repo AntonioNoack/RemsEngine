@@ -4,7 +4,7 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 @Suppress("unused")
-class Vector3i(var x: Int, var y: Int, var z: Int) {
+open class Vector3i(var x: Int, var y: Int, var z: Int) {
 
     constructor() : this(0, 0, 0)
     constructor(d: Int) : this(d, d, d)
@@ -26,7 +26,7 @@ class Vector3i(var x: Int, var y: Int, var z: Int) {
         return this
     }
 
-    operator fun set(v: Vector2i, z: Int): Vector3i {
+    fun set(v: Vector2i, z: Int): Vector3i {
         x = v.x
         y = v.y
         this.z = z
@@ -40,7 +40,7 @@ class Vector3i(var x: Int, var y: Int, var z: Int) {
         return this
     }
 
-    operator fun set(x: Int, y: Int, z: Int): Vector3i {
+    fun set(x: Int, y: Int, z: Int): Vector3i {
         this.x = x
         this.y = y
         this.z = z
@@ -75,132 +75,68 @@ class Vector3i(var x: Int, var y: Int, var z: Int) {
         return this
     }
 
-    fun sub(v: Vector3i): Vector3i {
-        x -= v.x
-        y -= v.y
-        z -= v.z
-        return this
+    fun sub(v: Vector3i, dst: Vector3i = this): Vector3i {
+        dst.x = x - v.x
+        dst.y = y - v.y
+        dst.z = z - v.z
+        return dst
     }
 
-    fun sub(v: Vector3i, dest: Vector3i): Vector3i {
-        dest.x = x - v.x
-        dest.y = y - v.y
-        dest.z = z - v.z
-        return dest
+    fun sub(x: Int, y: Int, z: Int, dst: Vector3i = this): Vector3i {
+        dst.x = this.x - x
+        dst.y = this.y - y
+        dst.z = this.z - z
+        return dst
     }
 
-    fun sub(x: Int, y: Int, z: Int): Vector3i {
-        this.x -= x
-        this.y -= y
-        this.z -= z
-        return this
+    fun add(v: Vector3i, dst: Vector3i = this): Vector3i {
+        dst.x = x + v.x
+        dst.y = y + v.y
+        dst.z = z + v.z
+        return dst
     }
 
-    fun sub(x: Int, y: Int, z: Int, dest: Vector3i): Vector3i {
-        dest.x = this.x - x
-        dest.y = this.y - y
-        dest.z = this.z - z
-        return dest
+    fun add(x: Int, y: Int, z: Int, dst: Vector3i = this): Vector3i {
+        dst.x = this.x + x
+        dst.y = this.y + y
+        dst.z = this.z + z
+        return dst
     }
 
-    fun add(v: Vector3i): Vector3i {
-        x += v.x
-        y += v.y
-        z += v.z
-        return this
+    fun mul(scalar: Int, dst: Vector3i = this): Vector3i {
+        dst.x = x * scalar
+        dst.y = y * scalar
+        dst.z = z * scalar
+        return dst
     }
 
-    fun add(v: Vector3i, dest: Vector3i): Vector3i {
-        dest.x = x + v.x
-        dest.y = y + v.y
-        dest.z = z + v.z
-        return dest
+    fun mul(v: Vector3i, dst: Vector3i = this): Vector3i {
+        dst.x = x * v.x
+        dst.y = y * v.y
+        dst.z = z * v.z
+        return dst
     }
 
-    fun add(x: Int, y: Int, z: Int): Vector3i {
-        this.x += x
-        this.y += y
-        this.z += z
-        return this
+    fun mul(x: Int, y: Int, z: Int, dst: Vector3i = this): Vector3i {
+        dst.x = this.x * x
+        dst.y = this.y * y
+        dst.z = this.z * z
+        return dst
     }
 
-    fun add(x: Int, y: Int, z: Int, dest: Vector3i): Vector3i {
-        dest.x = this.x + x
-        dest.y = this.y + y
-        dest.z = this.z + z
-        return dest
-    }
-
-    fun mul(scalar: Int): Vector3i {
-        x *= scalar
-        y *= scalar
-        z *= scalar
-        return this
-    }
-
-    fun mul(scalar: Int, dest: Vector3i): Vector3i {
-        dest.x = x * scalar
-        dest.y = y * scalar
-        dest.z = z * scalar
-        return dest
-    }
-
-    fun mul(v: Vector3i): Vector3i {
-        x *= v.x
-        y *= v.y
-        z *= v.z
-        return this
-    }
-
-    fun mul(v: Vector3i, dest: Vector3i): Vector3i {
-        dest.x = x * v.x
-        dest.y = y * v.y
-        dest.z = z * v.z
-        return dest
-    }
-
-    fun mul(x: Int, y: Int, z: Int): Vector3i {
-        this.x *= x
-        this.y *= y
-        this.z *= z
-        return this
-    }
-
-    fun mul(x: Int, y: Int, z: Int, dest: Vector3i): Vector3i {
-        dest.x = this.x * x
-        dest.y = this.y * y
-        dest.z = this.z * z
-        return dest
-    }
-
-    operator fun div(scalar: Float): Vector3i {
+    fun div(scalar: Float, dst: Vector3i = this): Vector3i {
         val inv = 1f / scalar
-        x = (x.toFloat() * inv).toInt()
-        y = (y.toFloat() * inv).toInt()
-        z = (z.toFloat() * inv).toInt()
-        return this
+        dst.x = (x.toFloat() * inv).toInt()
+        dst.y = (y.toFloat() * inv).toInt()
+        dst.z = (z.toFloat() * inv).toInt()
+        return dst
     }
 
-    fun div(scalar: Float, dest: Vector3i): Vector3i {
-        val inv = 1f / scalar
-        dest.x = (x.toFloat() * inv).toInt()
-        dest.y = (y.toFloat() * inv).toInt()
-        dest.z = (z.toFloat() * inv).toInt()
-        return dest
-    }
-
-    operator fun div(scalar: Int): Vector3i {
-        x /= scalar
-        y /= scalar
-        z /= scalar
-        return this
-    }
-
-    fun div(scalar: Int, dest: Vector3i): Vector3i {
-        dest.x = x / scalar
-        dest.y = y / scalar
-        dest.z = z / scalar
-        return dest
+    fun div(scalar: Int, dst: Vector3i = this): Vector3i {
+        dst.x = x / scalar
+        dst.y = y / scalar
+        dst.z = z / scalar
+        return dst
     }
 
     fun lengthSquared(): Long {
@@ -258,82 +194,60 @@ class Vector3i(var x: Int, var y: Int, var z: Int) {
         return "($x,$y,$z)"
     }
 
-    fun negate(): Vector3i {
-        x = -x
-        y = -y
-        z = -z
-        return this
-    }
-
-    fun negate(dest: Vector3i): Vector3i {
-        dest.x = -x
-        dest.y = -y
-        dest.z = -z
-        return dest
+    fun negate(dst: Vector3i = this): Vector3i {
+        dst.x = -x
+        dst.y = -y
+        dst.z = -z
+        return dst
     }
 
     fun min(v: Vector3i): Vector3i {
-        x = java.lang.Math.min(x, v.x)
-        y = java.lang.Math.min(y, v.y)
-        z = java.lang.Math.min(z, v.z)
+        x = kotlin.math.min(x, v.x)
+        y = kotlin.math.min(y, v.y)
+        z = kotlin.math.min(z, v.z)
         return this
     }
 
-    fun min(v: Vector3i, dest: Vector3i): Vector3i {
-        dest.x = java.lang.Math.min(x, v.x)
-        dest.y = java.lang.Math.min(y, v.y)
-        dest.z = java.lang.Math.min(z, v.z)
-        return dest
+    fun min(v: Vector3i, dst: Vector3i = this): Vector3i {
+        dst.x = kotlin.math.min(x, v.x)
+        dst.y = kotlin.math.min(y, v.y)
+        dst.z = kotlin.math.min(z, v.z)
+        return dst
     }
 
     fun max(v: Vector3i): Vector3i {
-        x = java.lang.Math.max(x, v.x)
-        y = java.lang.Math.max(y, v.y)
-        z = java.lang.Math.max(z, v.z)
+        x = kotlin.math.max(x, v.x)
+        y = kotlin.math.max(y, v.y)
+        z = kotlin.math.max(z, v.z)
         return this
     }
 
-    fun max(v: Vector3i, dest: Vector3i): Vector3i {
-        dest.x = java.lang.Math.max(x, v.x)
-        dest.y = java.lang.Math.max(y, v.y)
-        dest.z = java.lang.Math.max(z, v.z)
-        return dest
+    fun max(v: Vector3i, dst: Vector3i = this): Vector3i {
+        dst.x = kotlin.math.max(x, v.x)
+        dst.y = kotlin.math.max(y, v.y)
+        dst.z = kotlin.math.max(z, v.z)
+        return dst
     }
 
     fun maxComponent(): Int {
         val absX = abs(x).toFloat()
         val absY = abs(y).toFloat()
         val absZ = abs(z).toFloat()
-        return if (absX >= absY && absX >= absZ) {
-            0
-        } else {
-            if (absY >= absZ) 1 else 2
-        }
+        return if (absX >= absY && absX >= absZ) 0 else if (absY >= absZ) 1 else 2
     }
 
     fun minComponent(): Int {
         val absX = abs(x).toFloat()
         val absY = abs(y).toFloat()
         val absZ = abs(z).toFloat()
-        return if (absX < absY && absX < absZ) {
-            0
-        } else {
-            if (absY < absZ) 1 else 2
-        }
+        return if (absX < absY && absX < absZ) 0 else if (absY < absZ) 1 else 2
     }
 
-    fun absolute(): Vector3i {
-        x = abs(x)
-        y = abs(y)
-        z = abs(z)
-        return this
-    }
-
-    fun absolute(dest: Vector3i): Vector3i {
-        dest.x = abs(x)
-        dest.y = abs(y)
-        dest.z = abs(z)
-        return dest
+    fun absolute(dst: Vector3i = this): Vector3i {
+        dst.x = abs(x)
+        dst.y = abs(y)
+        dst.z = abs(z)
+        return dst
     }
 
     override fun hashCode(): Int {

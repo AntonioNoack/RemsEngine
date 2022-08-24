@@ -1,5 +1,5 @@
 package org.joml
 
 object Options {
-    val  NUMBER_FORMAT=0
+    val NUMBER_FORMAT = 0
 }

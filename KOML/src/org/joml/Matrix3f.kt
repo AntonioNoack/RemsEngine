@@ -1,5 +1,6 @@
 package org.joml
 
+import org.joml.JomlMath.addSigns
 import java.nio.FloatBuffer
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -7,7 +8,8 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("unused")
-class Matrix3f {
+open class Matrix3f {
+
     var m00 = 0f
     var m01 = 0f
     var m02 = 0f
@@ -422,46 +424,10 @@ class Matrix3f {
         return dst.set(m00, m10, m20, m01, m11, m21, m02, m12, m22)
     }
 
-    override fun toString(): String {
-        val str = this.toString(Options.NUMBER_FORMAT)
-        val res = StringBuilder()
-        var eIndex = Int.MIN_VALUE
-        for (i in str.indices) {
-            val c = str[i]
-            if (c == 'E') {
-                eIndex = i
-            } else {
-                if (c == ' ' && eIndex == i - 1) {
-                    res.append('+')
-                    continue
-                }
-                if (Character.isDigit(c) && eIndex == i - 1) {
-                    res.append('+')
-                }
-            }
-            res.append(c)
-        }
-        return res.toString()
-    }
-
-    fun toString(formatter: Int): String {
-        return """${Runtime.format(m00.toDouble(), formatter)} ${Runtime.format(m10.toDouble(), formatter)} ${
-            Runtime.format(
-                m20.toDouble(), formatter
-            )
-        }
-${Runtime.format(m01.toDouble(), formatter)} ${Runtime.format(m11.toDouble(), formatter)} ${
-            Runtime.format(
-                m21.toDouble(), formatter
-            )
-        }
-${Runtime.format(m02.toDouble(), formatter)} ${Runtime.format(m12.toDouble(), formatter)} ${
-            Runtime.format(
-                m22.toDouble(), formatter
-            )
-        }
-"""
-    }
+    override fun toString() =
+        ("[[${Runtime.f(m00)} ${Runtime.f(m10)} ${Runtime.f(m20)}] " +
+                "[${Runtime.f(m01)} ${Runtime.f(m11)} ${Runtime.f(m21)}] " +
+                "[${Runtime.f(m02)} ${Runtime.f(m12)} ${Runtime.f(m22)}]]").addSigns()
 
     operator fun get(dst: Matrix3f): Matrix3f {
         return dst.set(this)

@@ -1,12 +1,15 @@
 package org.joml
 
-import java.text.NumberFormat
+import org.joml.JomlMath.addSigns
+import org.joml.Runtime.f
 import kotlin.math.sin
 import kotlin.math.cos
 import kotlin.math.sqrt
 import kotlin.math.atan2
 
-class Matrix4x3d {
+@Suppress("unused")
+open class Matrix4x3d {
+
     var m00 = 0.0
     var m01 = 0.0
     var m02 = 0.0
@@ -19,6 +22,7 @@ class Matrix4x3d {
     var m30 = 0.0
     var m31 = 0.0
     var m32 = 0.0
+
     var properties = 0
 
     constructor() {
@@ -1012,46 +1016,10 @@ class Matrix4x3d {
         return dst
     }
 
-    override fun toString(): String {
-        val str = this.toString(Options.NUMBER_FORMAT)
-        val res = StringBuilder()
-        var eIndex = Int.MIN_VALUE
-        for (i in str.indices) {
-            val c = str[i]
-            if (c == 'E') {
-                eIndex = i
-            } else {
-                if (c == ' ' && eIndex == i - 1) {
-                    res.append('+')
-                    continue
-                }
-                if (Character.isDigit(c) && eIndex == i - 1) {
-                    res.append('+')
-                }
-            }
-            res.append(c)
-        }
-        return res.toString()
-    }
-
-    fun toString(formatter: Int): String {
-        return """${Runtime.format(m00, formatter)} ${Runtime.format(m10, formatter)} ${
-            Runtime.format(
-                m20, formatter
-            )
-        } ${Runtime.format(m30, formatter)}
-${Runtime.format(m01, formatter)} ${Runtime.format(m11, formatter)} ${Runtime.format(m21, formatter)} ${
-            Runtime.format(
-                m31, formatter
-            )
-        }
-${Runtime.format(m02, formatter)} ${Runtime.format(m12, formatter)} ${Runtime.format(m22, formatter)} ${
-            Runtime.format(
-                m32, formatter
-            )
-        }
-"""
-    }
+    override fun toString() =
+        ("[[${f(m00)} ${f(m10)} ${f(m20)} ${f(m30)}] " +
+                "[${f(m01)} ${f(m11)} ${f(m21)} ${f(m31)}] " +
+                "[${f(m02)} ${f(m12)} ${f(m22)} ${f(m32)}]]").addSigns()
 
     operator fun get(dst: Matrix4x3d): Matrix4x3d {
         return dst.set(this)

@@ -4,7 +4,7 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 @Suppress("unused")
-class Vector2i(var x: Int, var y: Int) {
+open class Vector2i(var x: Int, var y: Int) {
 
     constructor() : this(0, 0)
     constructor(d: Int) : this(d, d)

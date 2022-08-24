@@ -3,7 +3,7 @@ package org.joml
 import kotlin.math.*
 
 @Suppress("unused")
-class Vector3f(var x: Float, var y: Float, var z: Float) {
+open class Vector3f(var x: Float, var y: Float, var z: Float) {
 
     constructor() : this(0f, 0f, 0f)
     constructor(d: Float) : this(d, d, d)
@@ -34,21 +34,21 @@ class Vector3f(var x: Float, var y: Float, var z: Float) {
         return this
     }
 
-    operator fun set(v: Vector2f, z: Float): Vector3f {
+    fun set(v: Vector2f, z: Float): Vector3f {
         x = v.x
         y = v.y
         this.z = z
         return this
     }
 
-    operator fun set(v: Vector2d, z: Float): Vector3f {
+    fun set(v: Vector2d, z: Float): Vector3f {
         x = v.x.toFloat()
         y = v.y.toFloat()
         this.z = z
         return this
     }
 
-    operator fun set(v: Vector2i, z: Float): Vector3f {
+    fun set(v: Vector2i, z: Float): Vector3f {
         x = v.x.toFloat()
         y = v.y.toFloat()
         this.z = z
@@ -62,7 +62,7 @@ class Vector3f(var x: Float, var y: Float, var z: Float) {
         return this
     }
 
-    operator fun set(x: Float, y: Float, z: Float): Vector3f {
+    fun set(x: Float, y: Float, z: Float): Vector3f {
         this.x = x
         this.y = y
         this.z = z
@@ -76,7 +76,7 @@ class Vector3f(var x: Float, var y: Float, var z: Float) {
         return this
     }
 
-    operator fun set(x: Double, y: Double, z: Double): Vector3f {
+    fun set(x: Double, y: Double, z: Double): Vector3f {
         this.x = x.toFloat()
         this.y = y.toFloat()
         this.z = z.toFloat()
@@ -721,14 +721,14 @@ class Vector3f(var x: Float, var y: Float, var z: Float) {
         }
     }
 
-    operator fun get(dst: Vector3f = this): Vector3f {
+    fun get(dst: Vector3f = this): Vector3f {
         dst.x = x
         dst.y = y
         dst.z = z
         return dst
     }
 
-    operator fun get(dst: Vector3d): Vector3d {
+    fun get(dst: Vector3d): Vector3d {
         dst.x = x.toDouble()
         dst.y = y.toDouble()
         dst.z = z.toDouble()

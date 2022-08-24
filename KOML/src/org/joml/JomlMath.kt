@@ -7,6 +7,27 @@ import kotlin.math.sqrt
 
 object JomlMath {
 
+    fun String.addSigns(): String {
+        val res = StringBuilder()
+        var eIndex = Int.MIN_VALUE
+        for (i in indices) {
+            val c = this[i]
+            if (c == 'E') {
+                eIndex = i
+            } else {
+                if (c == ' ' && eIndex == i - 1) {
+                    res.append('+')
+                    continue
+                }
+                if (Character.isDigit(c) && eIndex == i - 1) {
+                    res.append('+')
+                }
+            }
+            res.append(c)
+        }
+        return res.toString()
+    }
+
     fun clamp(x: Float, min: Float, max: Float) = if (x < min) min else if (x < max) x else max
     fun clamp(x: Double, min: Double, max: Double) = if (x < min) min else if (x < max) x else max
 
