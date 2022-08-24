@@ -239,9 +239,9 @@ class AABBd(
             val x = this.minX + (i and 1).toDouble() * dx
             val y = this.minY + (i shr 1 and 1).toDouble() * dy
             val z = this.minZ + (i shr 2 and 1).toDouble() * dz
-            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
-            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
-            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
+            val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
+            val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
             minx = min(tx, minx)
             miny = min(ty, miny)
             minz = min(tz, minz)

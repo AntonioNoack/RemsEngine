@@ -276,6 +276,7 @@
       <w>powderblue</w>
       <w>pred</w>
       <w>premade</w>
+      <w>premul</w>
       <w>premultiplied</w>
       <w>prog</w>
       <w>protanopia</w>
@@ -371,6 +372,7 @@
       <w>unjitter</w>
       <w>unjittered</w>
       <w>unmix</w>
+      <w>unnormalized</w>
       <w>unprocessable</w>
       <w>unproject</w>
       <w>upsample</w>

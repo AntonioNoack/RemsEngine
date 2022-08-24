@@ -9,11 +9,11 @@ import kotlin.math.sqrt
 object Matrices {
 
     fun Matrix4f.isIdentity(): Boolean {
-        return properties().and(Matrix4f.PROPERTY_IDENTITY.toInt()) != 0
+        return properties().and(Matrix4f.PROPERTY_IDENTITY) != 0
     }
 
     fun Matrix4x3f.isIdentity(): Boolean {
-        return properties().and(Matrix4x3f.PROPERTY_IDENTITY.toInt()) != 0
+        return properties().and(Matrix4x3f.PROPERTY_IDENTITY) != 0
     }
 
     fun Matrix4f.skew(v: Vector2f) {
@@ -188,11 +188,11 @@ object Matrices {
     }
 
     fun Matrix4x3d.distanceSquared(other: Matrix4x3d): Double {
-        return sq(m30() - other.m30(), m31() - other.m31(), m32() - other.m32())
+        return sq(m30 - other.m30, m31 - other.m31, m32 - other.m32)
     }
 
     fun Matrix4x3d.distanceSquared(other: Matrix4x3f): Double {
-        return sq(m30() - other.m30(), m31() - other.m31(), m32() - other.m32())
+        return sq(m30 - other.m30, m31 - other.m31, m32 - other.m32)
     }
 
     fun Matrix4x3d.distance(other: Matrix4x3d): Double {
@@ -223,15 +223,15 @@ object Matrices {
 
     fun Matrix4x3d.transformPosition2(v: Vector3f, dst: Vector3f = v): Vector3f {
         return dst.set(
-            m00() * v.x + m10() * v.y + m20() * v.z + m30(),
-            m01() * v.x + m11() * v.y + m21() * v.z + m31(),
-            m02() * v.x + m12() * v.y + m22() * v.z + m32()
+            m00 * v.x + m10 * v.y + m20 * v.z + m30,
+            m01 * v.x + m11 * v.y + m21 * v.z + m31,
+            m02 * v.x + m12 * v.y + m22 * v.z + m32
         )
     }
 
-    fun Matrix4x3d.f3() = "${m00().f3s()} ${m10().f3s()} ${m20().f3s()} ${m30().f3s()}\n" +
-            "${m01().f3s()} ${m11().f3s()} ${m21().f3s()} ${m31().f3s()}\n" +
-            "${m02().f3s()} ${m12().f3s()} ${m22().f3s()} ${m32().f3s()}\n"
+    fun Matrix4x3d.f3() = "${m00.f3s()} ${m10.f3s()} ${m20.f3s()} ${m30.f3s()}\n" +
+            "${m01.f3s()} ${m11.f3s()} ${m21.f3s()} ${m31.f3s()}\n" +
+            "${m02.f3s()} ${m12.f3s()} ${m22.f3s()} ${m32.f3s()}\n"
 
     fun Vector2f.makePerpendicular(other: Vector2f): Vector2f {
         val f = dot(other)

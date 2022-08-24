@@ -302,10 +302,10 @@ class Transform() : Saveable() {
     @Suppress("unused")
     fun setLocal(values: Matrix4f) {
         localTransform.set(
-            values.m00().toDouble(), values.m01().toDouble(), values.m02().toDouble(),
-            values.m10().toDouble(), values.m11().toDouble(), values.m12().toDouble(),
-            values.m20().toDouble(), values.m21().toDouble(), values.m22().toDouble(),
-            values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble(),
+            values.m00.toDouble(), values.m01.toDouble(), values.m02.toDouble(),
+            values.m10.toDouble(), values.m11.toDouble(), values.m12.toDouble(),
+            values.m20.toDouble(), values.m21.toDouble(), values.m22.toDouble(),
+            values.m30.toDouble(), values.m31.toDouble(), values.m32.toDouble(),
         )
         checkTransform(localTransform)
         setCachedPosRotSca()
@@ -314,18 +314,18 @@ class Transform() : Saveable() {
 
     fun distanceSquaredGlobally(v: Vector3d): Double {
         val w = globalTransform
-        val x = w.m30() - v.x
-        val y = w.m31() - v.y
-        val z = w.m32() - v.z
+        val x = w.m30 - v.x
+        val y = w.m31 - v.y
+        val z = w.m32 - v.z
         return x * x + y * y + z * z
     }
 
     @Suppress("unused")
     fun dotViewDir(pos2: Vector3d, dir: Vector3d): Double {
         val w = globalTransform
-        val x = w.m30() - pos2.x
-        val y = w.m31() - pos2.y
-        val z = w.m32() - pos2.z
+        val x = w.m30 - pos2.x
+        val y = w.m31 - pos2.y
+        val z = w.m32 - pos2.z
         return dir.dot(x, y, z)
     }
 

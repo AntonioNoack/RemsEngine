@@ -25,8 +25,8 @@ object SDFMaths {
                     else -> -1f
                 }
             )
-            polarity -> dst.set(-y() / length, x() / length)
-            else -> dst.set(y() / length, -x() / length)
+            polarity -> dst.set(-y / length, x / length)
+            else -> dst.set(y / length, -x / length)
         }
     }
 

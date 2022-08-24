@@ -58,7 +58,7 @@ object Color {
 
     fun Vector3f.hasAlpha() = false
 
-    fun Vector4f.hasAlpha() = w() < 1f
+    fun Vector4f.hasAlpha() = w < 1f
 
     fun normARGB(v: Vector3f): Int {
         val r = v.x
@@ -104,43 +104,43 @@ object Color {
     }
 
     fun Vector3f.toHexColor(): String {
-        return "#${hex8(x())}${hex8(y())}${hex8(z())}"
+        return "#${hex8(x)}${hex8(y)}${hex8(z)}"
     }
 
     fun Vector4f.toHexColor(): String {
-        return "#${if (w() == 1f) "" else hex8(w())}${hex8(x())}${hex8(y())}${hex8(z())}"
+        return "#${if (w == 1f) "" else hex8(w)}${hex8(x)}${hex8(y)}${hex8(z)}"
     }
 
     fun Vector3f.toRGB() = toRGB(255)
     fun Vector3f.toRGB(scale: Int): Int {
-        return clamp((x() * scale).toInt(), 0, 255).shl(16) or
-                clamp((y() * scale).toInt(), 0, 255).shl(8) or
-                clamp((z() * scale).toInt(), 0, 255) or
+        return clamp((x * scale).toInt(), 0, 255).shl(16) or
+                clamp((y * scale).toInt(), 0, 255).shl(8) or
+                clamp((z * scale).toInt(), 0, 255) or
                 (255 shl 24)
     }
 
     fun Vector4f.toARGB() = toARGB(255)
     fun Vector4f.toARGB(scale: Int): Int {
-        return clamp((x() * scale).toInt(), 0, 255).shl(16) or
-                clamp((y() * scale).toInt(), 0, 255).shl(8) or
-                clamp((z() * scale).toInt(), 0, 255) or
-                clamp((w() * 255).toInt(), 0, 255).shl(24)
+        return clamp((x * scale).toInt(), 0, 255).shl(16) or
+                clamp((y * scale).toInt(), 0, 255).shl(8) or
+                clamp((z * scale).toInt(), 0, 255) or
+                clamp((w * 255).toInt(), 0, 255).shl(24)
     }
 
     fun Vector3d.toRGB() = toRGB(255)
     fun Vector3d.toRGB(scale: Int): Int {
-        return clamp((x() * scale).toInt(), 0, 255).shl(16) or
-                clamp((y() * scale).toInt(), 0, 255).shl(8) or
-                clamp((z() * scale).toInt(), 0, 255) or
+        return clamp((x * scale).toInt(), 0, 255).shl(16) or
+                clamp((y * scale).toInt(), 0, 255).shl(8) or
+                clamp((z * scale).toInt(), 0, 255) or
                 (255 shl 24)
     }
 
     fun Vector4d.toARGB() = toARGB(255)
     fun Vector4d.toARGB(scale: Int): Int {
-        return clamp((x() * scale).toInt(), 0, 255).shl(16) or
-                clamp((y() * scale).toInt(), 0, 255).shl(8) or
-                clamp((z() * scale).toInt(), 0, 255) or
-                clamp((w() * 255).toInt(), 0, 255).shl(24)
+        return clamp((x * scale).toInt(), 0, 255).shl(16) or
+                clamp((y * scale).toInt(), 0, 255).shl(8) or
+                clamp((z * scale).toInt(), 0, 255) or
+                clamp((w * 255).toInt(), 0, 255).shl(24)
     }
 
 }

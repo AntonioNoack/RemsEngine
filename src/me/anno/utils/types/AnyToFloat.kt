@@ -28,71 +28,71 @@ object AnyToFloat {
                 else -> defaultValue
             }
             is Vector2f -> when (index) {
-                0 -> x()
-                1 -> y()
+                0 -> x
+                1 -> y
                 else -> defaultValue
             }
             is Vector3f -> when (index) {
-                0 -> x()
-                1 -> y()
-                2 -> z()
+                0 -> x
+                1 -> y
+                2 -> z
                 else -> defaultValue
             }
             is Vector4f -> when (index) {
-                0 -> x()
-                1 -> y()
-                2 -> z()
-                3 -> w()
+                0 -> x
+                1 -> y
+                2 -> z
+                3 -> w
                 else -> defaultValue
             }
             is Quaternionf -> when (index) {
-                0 -> x()
-                1 -> y()
-                2 -> z()
-                3 -> w()
+                0 -> x
+                1 -> y
+                2 -> z
+                3 -> w
                 else -> defaultValue
             }
             is Vector2d -> when (index) {
-                0 -> x().toFloat()
-                1 -> y().toFloat()
+                0 -> x.toFloat()
+                1 -> y.toFloat()
                 else -> defaultValue
             }
             is Vector3d -> when (index) {
-                0 -> x().toFloat()
-                1 -> y().toFloat()
-                2 -> z().toFloat()
+                0 -> x.toFloat()
+                1 -> y.toFloat()
+                2 -> z.toFloat()
                 else -> defaultValue
             }
             is Vector4d -> when (index) {
-                0 -> x().toFloat()
-                1 -> y().toFloat()
-                2 -> z().toFloat()
-                3 -> w().toFloat()
+                0 -> x.toFloat()
+                1 -> y.toFloat()
+                2 -> z.toFloat()
+                3 -> w.toFloat()
                 else -> defaultValue
             }
             is Quaterniond -> when (index) {
-                0 -> x().toFloat()
-                1 -> y().toFloat()
-                2 -> z().toFloat()
-                3 -> w().toFloat()
+                0 -> x.toFloat()
+                1 -> y.toFloat()
+                2 -> z.toFloat()
+                3 -> w.toFloat()
                 else -> defaultValue
             }
             is Vector2i -> when (index) {
-                0 -> x().toFloat()
-                1 -> y().toFloat()
+                0 -> x.toFloat()
+                1 -> y.toFloat()
                 else -> defaultValue
             }
             is Vector3i -> when (index) {
-                0 -> x().toFloat()
-                1 -> y().toFloat()
-                2 -> z().toFloat()
+                0 -> x.toFloat()
+                1 -> y.toFloat()
+                2 -> z.toFloat()
                 else -> defaultValue
             }
             is Vector4i -> when (index) {
-                0 -> x().toFloat()
-                1 -> y().toFloat()
-                2 -> z().toFloat()
-                3 -> w().toFloat()
+                0 -> x.toFloat()
+                1 -> y.toFloat()
+                2 -> z.toFloat()
+                3 -> w.toFloat()
                 else -> defaultValue
             }
             else -> defaultValue

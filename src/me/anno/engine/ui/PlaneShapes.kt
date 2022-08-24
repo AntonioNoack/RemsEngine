@@ -71,7 +71,7 @@ object PlaneShapes {
     }
 
     fun drawCircle(m: Matrix4x3d, color: Int) {
-        drawCircle(m.m30(), m.m31(), m.m32(), color)
+        drawCircle(m.m30, m.m31, m.m32, color)
     }
 
     @Suppress("UNUSED_PARAMETER")

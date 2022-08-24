@@ -1,8 +1,5 @@
 package org.joml
 
-import java.io.ObjectInput
-import java.io.ObjectOutput
-
 /**
  * A stack of many [Matrix4x3f] instances. This resembles the matrix stack known from legacy OpenGL.
  *
@@ -89,11 +86,10 @@ class Matrix4x3fArrayList : Matrix4x3f() {
      * (non-Javadoc)
      * @see org.joml.Matrix4f#equals(java.lang.Object)
      */
-    override fun equals(obj: Any?): Boolean {
-        if (this === obj) return true
-        if (!super.equals(obj)) return false
-        if (obj is Matrix4x3fArrayList) {
-            val other = obj
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (!super.equals(other)) return false
+        if (other is Matrix4x3fArrayList) {
             if (currentIndex != other.currentIndex) return false
             for (i in 0 until currentIndex) {
                 if (matrices[i] != other.matrices[i]) return false
@@ -102,26 +98,4 @@ class Matrix4x3fArrayList : Matrix4x3f() {
         return true
     }
 
-    override fun writeExternal(out: ObjectOutput) {
-        super.writeExternal(out)
-        out.writeInt(currentIndex)
-        for (i in 0 until currentIndex) {
-            out.writeObject(matrices[i])
-        }
-    }
-
-    override fun readExternal(`in`: ObjectInput) {
-        super.readExternal(`in`)
-        currentIndex = `in`.readInt()
-        matrices = ArrayList(currentIndex)
-        for (i in 0 until currentIndex) {
-            val m = Matrix4x3f()
-            m.readExternal(`in`)
-            matrices[i] = m
-        }
-    }
-
-    companion object {
-        private const val serialVersionUID = 1L
-    }
 }

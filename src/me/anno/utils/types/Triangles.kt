@@ -357,27 +357,27 @@ object Triangles {
     }
 
     fun Vector2f.getSideSign(b: Vector2f, c: Vector2f): Float {
-        val bx = b.x - x()
-        val by = b.y - y()
-        val cx = c.x - x()
-        val cy = c.y - y()
+        val bx = b.x - x
+        val by = b.y - y
+        val cx = c.x - x
+        val cy = c.y - y
         return cx * by - cy * bx
     }
 
     fun Vector2d.getSideSign(b: Vector2d, c: Vector2d): Double {
-        val bx = b.x - x()
-        val by = b.y - y()
-        val cx = c.x - x()
-        val cy = c.y - y()
+        val bx = b.x - x
+        val by = b.y - y
+        val cx = c.x - x
+        val cy = c.y - y
         return cx * by - cy * bx
     }
 
     fun Vector2f.isInsideTriangle(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
-        val asX = x() - a.x
-        val asY = y() - a.y
+        val asX = x - a.x
+        val asY = y - a.y
         val sAb = (b.x - a.x) * asY - (b.y - a.y) * asX > 0
         if ((c.x - a.x) * asY - (c.y - a.y) * asX > 0 == sAb) return false
-        return (c.x - b.x) * (y() - b.y) - (c.y - b.y) * (x() - b.x) > 0 == sAb
+        return (c.x - b.x) * (y - b.y) - (c.y - b.y) * (x - b.x) > 0 == sAb
     }
 
     fun Vector2f.isInsideTriangle2(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
@@ -395,11 +395,11 @@ object Triangles {
 
 
     fun Vector2d.isInsideTriangle(a: Vector2d, b: Vector2d, c: Vector2d): Boolean {
-        val asX = x() - a.x
-        val asY = y() - a.y
+        val asX = x - a.x
+        val asY = y - a.y
         val sAb = (b.x - a.x) * asY - (b.y - a.y) * asX > 0
         if ((c.x - a.x) * asY - (c.y - a.y) * asX > 0 == sAb) return false
-        return (c.x - b.x) * (y() - b.y) - (c.y - b.y) * (x() - b.x) > 0 == sAb
+        return (c.x - b.x) * (y - b.y) - (c.y - b.y) * (x - b.x) > 0 == sAb
     }
 
     fun Vector2d.isInsideTriangle2(a: Vector2d, b: Vector2d, c: Vector2d): Boolean {

@@ -353,7 +353,7 @@ class AnimGameItem(
         }
 
         fun get(src: Matrix4x3f, dst: FloatBuffer) {
-            src.get(dst)
+            src.putInto(dst)
         }
 
         fun get(src: Matrix4f, dst: FloatBuffer) {

@@ -249,7 +249,7 @@ class PipelineStage(
                     for (i in 0 until numberOfLights) {
                         buffer.position(12 * i)
                         val light = lights[i]!!.light
-                        light.invWorldMatrix.get(buffer)
+                        light.invWorldMatrix.putInto(buffer)
                     }
                     buffer.position(0)
                     shader.m4x3Array(invLightMatrices, buffer)

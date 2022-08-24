@@ -124,9 +124,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         // put into texture
         val startPosition = data.position()
         for (i in 0 until boneCount) {
-            val pos = data.position()
-            tmp1[i].get(data)
-            data.position(pos + 12)
+            tmp1[i].putInto(data)
         }
         data.position(startPosition + 4 * textureWidth)// 4x for rgba
     }

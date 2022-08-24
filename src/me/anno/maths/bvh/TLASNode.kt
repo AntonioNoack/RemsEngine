@@ -64,9 +64,7 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             fun writeMatrix(m: Matrix4x3f) {
                 // send data column major
                 // as that's the way for the constructor it seems
-                val pos = data.position()
-                m.get(data)
-                data.position(pos + 12)
+                m.putInto(data)
             }
 
             if (it is TLASLeaf) {

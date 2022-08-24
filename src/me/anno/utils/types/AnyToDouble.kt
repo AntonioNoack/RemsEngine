@@ -31,71 +31,71 @@ object AnyToDouble {
                 else -> defaultValue
             }
             is Vector2f -> when (index) {
-                0 -> x().toDouble()
-                1 -> y().toDouble()
+                0 -> x.toDouble()
+                1 -> y.toDouble()
                 else -> defaultValue
             }
             is Vector3f -> when (index) {
-                0 -> x().toDouble()
-                1 -> y().toDouble()
-                2 -> z().toDouble()
+                0 -> x.toDouble()
+                1 -> y.toDouble()
+                2 -> z.toDouble()
                 else -> defaultValue
             }
             is Vector4f -> when (index) {
-                0 -> x().toDouble()
-                1 -> y().toDouble()
-                2 -> z().toDouble()
-                3 -> w().toDouble()
+                0 -> x.toDouble()
+                1 -> y.toDouble()
+                2 -> z.toDouble()
+                3 -> w.toDouble()
                 else -> defaultValue
             }
             is Quaternionf -> when (index) {
-                0 -> x().toDouble()
-                1 -> y().toDouble()
-                2 -> z().toDouble()
-                3 -> w().toDouble()
+                0 -> x.toDouble()
+                1 -> y.toDouble()
+                2 -> z.toDouble()
+                3 -> w.toDouble()
                 else -> defaultValue
             }
             is Vector2d -> when (index) {
-                0 -> x()
-                1 -> y()
+                0 -> x
+                1 -> y
                 else -> defaultValue
             }
             is Vector3d -> when (index) {
-                0 -> x()
-                1 -> y()
-                2 -> z()
+                0 -> x
+                1 -> y
+                2 -> z
                 else -> defaultValue
             }
             is Vector4d -> when (index) {
-                0 -> x()
-                1 -> y()
-                2 -> z()
-                3 -> w()
+                0 -> x
+                1 -> y
+                2 -> z
+                3 -> w
                 else -> defaultValue
             }
             is Quaterniond -> when (index) {
-                0 -> x()
-                1 -> y()
-                2 -> z()
-                3 -> w()
+                0 -> x
+                1 -> y
+                2 -> z
+                3 -> w
                 else -> defaultValue
             }
             is Vector2i -> when (index) {
-                0 -> x().toDouble()
-                1 -> y().toDouble()
+                0 -> x.toDouble()
+                1 -> y.toDouble()
                 else -> defaultValue
             }
             is Vector3i -> when (index) {
-                0 -> x().toDouble()
-                1 -> y().toDouble()
-                2 -> z().toDouble()
+                0 -> x.toDouble()
+                1 -> y.toDouble()
+                2 -> z.toDouble()
                 else -> defaultValue
             }
             is Vector4i -> when (index) {
-                0 -> x().toDouble()
-                1 -> y().toDouble()
-                2 -> z().toDouble()
-                3 -> w().toDouble()
+                0 -> x.toDouble()
+                1 -> y.toDouble()
+                2 -> z.toDouble()
+                3 -> w.toDouble()
                 else -> defaultValue
             }
             else -> {

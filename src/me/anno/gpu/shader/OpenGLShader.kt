@@ -624,7 +624,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun m3x3(loc: Int, value: Matrix3f? = identity3) {
         if (loc > -1) {
             potentiallyUse()
-            (value ?: identity3).get(matrixBuffer)
+            matrixBuffer.position(0).limit(9)
+            (value ?: identity3).putInto(matrixBuffer)
+            matrixBuffer.flip()
             glUniformMatrix3fv(loc, false, matrixBuffer)
         }
     }
@@ -633,7 +635,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun m4x3(loc: Int, value: Matrix4x3f? = identity4x3) {
         if (loc > -1) {
             potentiallyUse()
-            (value ?: identity4x3).get(matrixBuffer)
+            matrixBuffer.position(0).limit(12)
+            (value ?: identity4x3).putInto(matrixBuffer)
+            matrixBuffer.flip()
             glUniformMatrix4x3fv(loc, false, matrixBuffer)
         }
     }
@@ -649,7 +653,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun m4x4(loc: Int, value: Matrix4f? = identity4) {
         if (loc > -1) {
             potentiallyUse()
-            (value ?: identity4).get(matrixBuffer)
+            matrixBuffer.position(0).limit(16)
+            (value ?: identity4).putInto(matrixBuffer)
+            matrixBuffer.flip()
             glUniformMatrix4fv(loc, false, matrixBuffer)
         }
     }

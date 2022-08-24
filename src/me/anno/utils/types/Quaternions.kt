@@ -20,16 +20,16 @@ object Quaternions {
     }
 
     fun Vector3f.toQuaternionDegrees(dst: Quaternionf = Quaternionf()): Quaternionf {
-        val x = x() * fromDegreesFloat
-        val y = y() * fromDegreesFloat
-        val z = z() * fromDegreesFloat
+        val x = x * fromDegreesFloat
+        val y = y * fromDegreesFloat
+        val z = z * fromDegreesFloat
         return dst.identity().rotateYXZ(y, x, z)
     }
 
     fun Vector3d.toQuaternionDegrees(dst: Quaterniond = Quaterniond()): Quaterniond {
-        val x = x() * fromDegrees
-        val y = y() * fromDegrees
-        val z = z() * fromDegrees
+        val x = x * fromDegrees
+        val y = y * fromDegrees
+        val z = z * fromDegrees
         return dst.identity().rotateYXZ(y, x, z)
     }
 

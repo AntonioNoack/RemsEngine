@@ -1,8 +1,5 @@
 package org.joml
 
-import java.io.ObjectInput
-import java.io.ObjectOutput
-
 /**
  * A stack of many [Matrix4d] instances. This resembles the matrix stack known from legacy OpenGL.
  *
@@ -90,11 +87,10 @@ class Matrix4dArrayList : Matrix4d() {
      * (non-Javadoc)
      * @see org.joml.Matrix4f#equals(java.lang.Object)
      */
-    override fun equals(obj: Any?): Boolean {
-        if (this === obj) return true
-        if (!super.equals(obj)) return false
-        if (obj is Matrix4dArrayList) {
-            val other = obj
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (!super.equals(other)) return false
+        if (other is Matrix4dArrayList) {
             if (currentIndex != other.currentIndex) return false
             for (i in 0 until currentIndex) {
                 if (matrices[i] != other.matrices[i]) return false
@@ -103,26 +99,4 @@ class Matrix4dArrayList : Matrix4d() {
         return true
     }
 
-    override fun writeExternal(out: ObjectOutput) {
-        super.writeExternal(out)
-        out.writeInt(currentIndex)
-        for (i in 0 until currentIndex) {
-            out.writeObject(matrices[i])
-        }
-    }
-
-    override fun readExternal(`in`: ObjectInput) {
-        super.readExternal(`in`)
-        currentIndex = `in`.readInt()
-        matrices = ArrayList(currentIndex)
-        for (i in 0 until currentIndex) {
-            val m = Matrix4d()
-            m.readExternal(`in`)
-            matrices[i] = m
-        }
-    }
-
-    companion object {
-        private const val serialVersionUID = 1L
-    }
 }
