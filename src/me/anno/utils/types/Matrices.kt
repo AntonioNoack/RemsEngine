@@ -74,9 +74,9 @@ object Matrices {
     }
 
     fun Matrix4x3d.distanceSquared(center: Vector3d): Double {
-        val dx = center.x - m30()
-        val dy = center.y - m31()
-        val dz = center.z - m32()
+        val dx = center.x - m30
+        val dy = center.y - m31
+        val dz = center.z - m32
         return dx * dx + dy * dy + dz * dz
     }
 
@@ -125,7 +125,7 @@ object Matrices {
     }
 
     fun Matrix4f.getTranslation2(dst: Vector3d = Vector3d()): Vector3d {
-        return dst.set(m30().toDouble(), m31().toDouble(), m32().toDouble())
+        return dst.set(m30.toDouble(), m31.toDouble(), m32.toDouble())
     }
 
     fun Matrix4f.set2(other: Matrix4x3d): Matrix4f {

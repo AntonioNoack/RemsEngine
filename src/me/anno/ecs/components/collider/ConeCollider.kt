@@ -13,10 +13,9 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.utils.types.Vectors.setAxis
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import org.joml.Vector2f.lengthSquared
+import org.joml.Vector2f.Companion.lengthSquared
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.sign

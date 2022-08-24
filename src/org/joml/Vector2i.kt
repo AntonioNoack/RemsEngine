@@ -1,392 +1,214 @@
-package org.joml;
+package org.joml
 
-@SuppressWarnings("unused")
-public class Vector2i {
+import kotlin.math.abs
+import kotlin.math.sqrt
 
-    public int x;
-    public int y;
+@Suppress("unused")
+class Vector2i {
 
-    public Vector2i() {
+    var x = 0
+    var y = 0
+
+    constructor()
+
+    @JvmOverloads
+    constructor(x: Int, y: Int = x) {
+        this.x = x
+        this.y = y
     }
 
-    public Vector2i(int s) {
-        this.x = s;
-        this.y = s;
+    constructor(v: Vector2i) : this(v.x, v.y)
+    constructor(xy: IntArray) : this(xy[0], xy[1])
+
+    @JvmOverloads
+    fun set(x: Int, y: Int = x): Vector2i {
+        this.x = x
+        this.y = y
+        return this
     }
 
-    public Vector2i(int x, int y) {
-        this.x = x;
-        this.y = y;
+    fun set(v: Vector2i) = set(v.x, v.y)
+
+    fun set(v: Vector2d) = set(v.x.toInt(), v.y.toInt())
+
+    operator fun set(v: Vector2d, mode: Int): Vector2i {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        return this
     }
 
-    public Vector2i(float x, float y, int mode) {
-        this.x = Math.roundUsing(x, mode);
-        this.y = Math.roundUsing(y, mode);
+    operator fun set(v: Vector2f, mode: Int): Vector2i {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        return this
     }
 
-    public Vector2i(double x, double y, int mode) {
-        this.x = Math.roundUsing(x, mode);
-        this.y = Math.roundUsing(y, mode);
-    }
+    fun set(xy: IntArray) = set(xy[0], xy[1])
 
-    public Vector2i(Vector2i v) {
-        this.x = v.x;
-        this.y = v.y;
-    }
-
-    public Vector2i(Vector2f v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-    }
-
-    public Vector2i(Vector2d v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-    }
-
-    public Vector2i(int[] xy) {
-        this.x = xy[0];
-        this.y = xy[1];
-    }
-
-    public Vector2i set(int s) {
-        this.x = s;
-        this.y = s;
-        return this;
-    }
-
-    public Vector2i set(int x, int y) {
-        this.x = x;
-        this.y = y;
-        return this;
-    }
-
-    public Vector2i set(Vector2i v) {
-        this.x = v.x;
-        this.y = v.y;
-        return this;
-    }
-
-    public Vector2i set(Vector2d v) {
-        this.x = (int) v.x;
-        this.y = (int) v.y;
-        return this;
-    }
-
-    public Vector2i set(Vector2d v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        return this;
-    }
-
-    public Vector2i set(Vector2f v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        return this;
-    }
-
-    public Vector2i set(int[] xy) {
-        this.x = xy[0];
-        this.y = xy[1];
-        return this;
-    }
-
-    public int get(int component) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                return this.x;
-            case 1:
-                return this.y;
-            default:
-                throw new IllegalArgumentException();
+    @Throws(IllegalArgumentException::class)
+    operator fun get(component: Int): Int {
+        return when (component) {
+            0 -> x
+            1 -> y
+            else -> throw IllegalArgumentException()
         }
     }
 
-    public Vector2i setComponent(int component, int value) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                this.x = value;
-                break;
-            case 1:
-                this.y = value;
-                break;
-            default:
-                throw new IllegalArgumentException();
+    @Throws(IllegalArgumentException::class)
+    fun setComponent(component: Int, value: Int): Vector2i {
+        when (component) {
+            0 -> x = value
+            1 -> y = value
+            else -> throw IllegalArgumentException()
         }
-
-        return this;
+        return this
     }
 
-    public Vector2i sub(Vector2i v) {
-        this.x -= v.x;
-        this.y -= v.y;
-        return this;
+    @JvmOverloads
+    fun sub(v: Vector2i, dst: Vector2i = this): Vector2i {
+        dst.x = x - v.x
+        dst.y = y - v.y
+        return dst
     }
 
-    public Vector2i sub(Vector2i v, Vector2i dest) {
-        dest.x = this.x - v.x;
-        dest.y = this.y - v.y;
-        return dest;
+    @JvmOverloads
+    fun sub(x: Int, y: Int, dst: Vector2i = this): Vector2i {
+        dst.x = this.x - x
+        dst.y = this.y - y
+        return dst
     }
 
-    public Vector2i sub(int x, int y) {
-        this.x -= x;
-        this.y -= y;
-        return this;
+    fun lengthSquared(): Long {
+        return x.toLong() * x + y.toLong() * y
     }
 
-    public Vector2i sub(int x, int y, Vector2i dest) {
-        dest.x = this.x - x;
-        dest.y = this.y - y;
-        return dest;
+    fun length(): Double {
+        return sqrt(lengthSquared().toDouble())
     }
 
-    public long lengthSquared() {
-        return (long) this.x * this.x + (long) this.y * this.y;
+    fun distance(v: Vector2i) = distance(v.x, v.y)
+
+    fun distance(x: Int, y: Int): Double {
+        val dx = this.x - x
+        val dy = this.y - y
+        return Math.sqrt((dx.toLong() * dx + dy.toLong() * dy).toFloat()).toDouble()
     }
 
-    public static long lengthSquared(int x, int y) {
-        return (long) x * x + (long) y * y;
+    fun distanceSquared(v: Vector2i) = distanceSquared(v.x, v.y)
+
+    fun distanceSquared(x: Int, y: Int): Long {
+        val dx = this.x - x
+        val dy = this.y - y
+        return dx.toLong() * dx + dy.toLong() * dy
     }
 
-    public double length() {
-        return Math.sqrt(lengthSquared());
+    fun gridDistance(v: Vector2i) = gridDistance(v.x, v.y)
+
+    fun gridDistance(x: Int, y: Int): Long {
+        return (Math.abs(x - this.x) + Math.abs(y - this.y)).toLong()
     }
 
-    public static double length(int x, int y) {
-        return Math.sqrt(((long) x * x + (long) y * y));
+    @JvmOverloads
+    fun add(v: Vector2i, dst: Vector2i = this) = dst.set(x + v.x, y + v.y)
+
+    @JvmOverloads
+    fun add(x: Int, y: Int, dst: Vector2i = this) = dst.set(this.x + x, this.y + y)
+
+    @JvmOverloads
+    fun mul(scalar: Int, dst: Vector2i = this): Vector2i {
+        dst.x = x * scalar
+        dst.y = y * scalar
+        return dst
     }
 
-    public double distance(Vector2i v) {
-        int dx = this.x - v.x;
-        int dy = this.y - v.y;
-        return Math.sqrt(((long) dx * dx + (long) dy * dy));
+    @JvmOverloads
+    fun mul(v: Vector2i, dst: Vector2i = this): Vector2i {
+        dst.x = x * v.x
+        dst.y = y * v.y
+        return dst
     }
 
-    public double distance(int x, int y) {
-        int dx = this.x - x;
-        int dy = this.y - y;
-        return Math.sqrt(((long) dx * dx + (long) dy * dy));
+    @JvmOverloads
+    fun mul(x: Int, y: Int, dst: Vector2i = this): Vector2i {
+        dst.x = this.x * x
+        dst.y = this.y * y
+        return dst
     }
 
-    public long distanceSquared(Vector2i v) {
-        int dx = this.x - v.x;
-        int dy = this.y - v.y;
-        return (long) dx * dx + (long) dy * dy;
+    @JvmOverloads
+    fun div(scalar: Float, dst: Vector2i = this): Vector2i {
+        val inv = 1f / scalar
+        dst.x = (x.toFloat() * inv).toInt()
+        dst.y = (y.toFloat() * inv).toInt()
+        return dst
     }
 
-    public long distanceSquared(int x, int y) {
-        int dx = this.x - x;
-        int dy = this.y - y;
-        return (long) dx * dx + (long) dy * dy;
+    @JvmOverloads
+    fun div(scalar: Int, dst: Vector2i = this): Vector2i {
+        dst.x = x / scalar
+        dst.y = y / scalar
+        return dst
     }
 
-    public long gridDistance(Vector2i v) {
-        return Math.abs(v.x - this.x) + Math.abs(v.y - this.y);
+    fun zero() = set(0, 0)
+
+    @JvmOverloads
+    fun negate(dst: Vector2i = this): Vector2i {
+        dst.x = -x
+        dst.y = -y
+        return dst
     }
 
-    public long gridDistance(int x, int y) {
-        return Math.abs(x - this.x) + Math.abs(y - this.y);
+    @JvmOverloads
+    fun min(v: Vector2i, dst: Vector2i = this): Vector2i {
+        dst.x = kotlin.math.min(x, v.x)
+        dst.y = kotlin.math.min(y, v.y)
+        return dst
     }
 
-    public static double distance(int x1, int y1, int x2, int y2) {
-        int dx = x1 - x2;
-        int dy = y1 - y2;
-        return Math.sqrt((long) dx * dx + (long) dy * dy);
+    @JvmOverloads
+    fun max(v: Vector2i, dst: Vector2i = this): Vector2i {
+        dst.x = kotlin.math.max(x, v.x)
+        dst.y = kotlin.math.max(y, v.y)
+        return dst
     }
 
-    public static long distanceSquared(int x1, int y1, int x2, int y2) {
-        int dx = x1 - x2;
-        int dy = y1 - y2;
-        return (long) dx * dx + (long) dy * dy;
+    fun maxComponent(): Int {
+        val absX = Math.abs(x)
+        val absY = Math.abs(y)
+        return if (absX >= absY) 0 else 1
     }
 
-    public Vector2i add(Vector2i v) {
-        this.x += v.x;
-        this.y += v.y;
-        return this;
+    fun minComponent(): Int {
+        val absX = Math.abs(x)
+        val absY = Math.abs(y)
+        return if (absX < absY) 0 else 1
     }
 
-    public Vector2i add(Vector2i v, Vector2i dest) {
-        dest.x = this.x + v.x;
-        dest.y = this.y + v.y;
-        return dest;
-    }
+    @JvmOverloads
+    fun absolute(dst: Vector2i = this) = dst.set(abs(x), abs(y))
 
-    public Vector2i add(int x, int y) {
-        this.x += x;
-        this.y += y;
-        return this;
-    }
+    override fun hashCode() = x * 31 + y
 
-    public Vector2i add(int x, int y, Vector2i dest) {
-        dest.x = this.x + x;
-        dest.y = this.y + y;
-        return dest;
-    }
-
-    public Vector2i mul(int scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-        return this;
-    }
-
-    public Vector2i mul(int scalar, Vector2i dest) {
-        dest.x = this.x * scalar;
-        dest.y = this.y * scalar;
-        return dest;
-    }
-
-    public Vector2i mul(Vector2i v) {
-        this.x *= v.x;
-        this.y *= v.y;
-        return this;
-    }
-
-    public Vector2i mul(Vector2i v, Vector2i dest) {
-        dest.x = this.x * v.x;
-        dest.y = this.y * v.y;
-        return dest;
-    }
-
-    public Vector2i mul(int x, int y) {
-        this.x *= x;
-        this.y *= y;
-        return this;
-    }
-
-    public Vector2i mul(int x, int y, Vector2i dest) {
-        dest.x = this.x * x;
-        dest.y = this.y * y;
-        return dest;
-    }
-
-    public Vector2i div(float scalar) {
-        float inv = 1f / scalar;
-        this.x = (int) ((float) this.x * inv);
-        this.y = (int) ((float) this.y * inv);
-        return this;
-    }
-
-    public Vector2i div(float scalar, Vector2i dest) {
-        float inv = 1f / scalar;
-        dest.x = (int) ((float) this.x * inv);
-        dest.y = (int) ((float) this.y * inv);
-        return dest;
-    }
-
-    public Vector2i div(int scalar) {
-        this.x /= scalar;
-        this.y /= scalar;
-        return this;
-    }
-
-    public Vector2i div(int scalar, Vector2i dest) {
-        dest.x = this.x / scalar;
-        dest.y = this.y / scalar;
-        return dest;
-    }
-
-    public Vector2i zero() {
-        this.x = 0;
-        this.y = 0;
-        return this;
-    }
-
-    public Vector2i negate() {
-        this.x = -this.x;
-        this.y = -this.y;
-        return this;
-    }
-
-    public Vector2i negate(Vector2i dest) {
-        dest.x = -this.x;
-        dest.y = -this.y;
-        return dest;
-    }
-
-    public Vector2i min(Vector2i v) {
-        this.x = java.lang.Math.min(this.x, v.x);
-        this.y = java.lang.Math.min(this.y, v.y);
-        return this;
-    }
-
-    public Vector2i min(Vector2i v, Vector2i dest) {
-        dest.x = java.lang.Math.min(this.x, v.x);
-        dest.y = java.lang.Math.min(this.y, v.y);
-        return dest;
-    }
-
-    public Vector2i max(Vector2i v) {
-        this.x = java.lang.Math.max(this.x, v.x);
-        this.y = java.lang.Math.max(this.y, v.y);
-        return this;
-    }
-
-    public Vector2i max(Vector2i v, Vector2i dest) {
-        dest.x = java.lang.Math.max(this.x, v.x);
-        dest.y = java.lang.Math.max(this.y, v.y);
-        return dest;
-    }
-
-    public int maxComponent() {
-        int absX = Math.abs(this.x);
-        int absY = Math.abs(this.y);
-        return absX >= absY ? 0 : 1;
-    }
-
-    public int minComponent() {
-        int absX = Math.abs(this.x);
-        int absY = Math.abs(this.y);
-        return absX < absY ? 0 : 1;
-    }
-
-    public Vector2i absolute() {
-        this.x = Math.abs(this.x);
-        this.y = Math.abs(this.y);
-        return this;
-    }
-
-    public Vector2i absolute(Vector2i dest) {
-        dest.x = Math.abs(this.x);
-        dest.y = Math.abs(this.y);
-        return dest;
-    }
-
-    public int hashCode() {
-        int result = 1;
-        result = 31 * result + this.x;
-        result = 31 * result + this.y;
-        return result;
-    }
-
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (this.getClass() != obj.getClass()) {
-            return false;
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
+            true
+        } else if (other == null || this.javaClass != other.javaClass) {
+            false
         } else {
-            Vector2i other = (Vector2i) obj;
-            if (this.x != other.x) {
-                return false;
-            } else {
-                return this.y == other.y;
-            }
+            other as Vector2i
+            x == other.x && y == other.y
         }
     }
 
-    public boolean equals(int x, int y) {
-        if (this.x != x) {
-            return false;
-        } else {
-            return this.y == y;
-        }
-    }
+    fun equals(x: Int, y: Int) = this.x == x && this.y == y
 
-    @Override
-    public String toString() {
-        return "(" + x + "," + y + ")";
+    override fun toString() = "($x,$y)"
+
+    companion object {
+        fun lengthSquared(x: Int, y: Int) = x.toLong() * x + y.toLong() * y
+        fun length(x: Int, y: Int) = Math.sqrt(lengthSquared(x, y).toDouble())
+        fun distance(x1: Int, y1: Int, x2: Int, y2: Int) = length(x1 - x2, y1 - y2)
+        fun distanceSquared(x1: Int, y1: Int, x2: Int, y2: Int) = lengthSquared(x1 - x2, y1 - y2)
     }
 }

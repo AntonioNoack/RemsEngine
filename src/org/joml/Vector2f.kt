@@ -1,610 +1,292 @@
-package org.joml;
+package org.joml
 
-@SuppressWarnings("unused")
-public class Vector2f {
+import kotlin.math.hypot
 
-    public float x;
-    public float y;
+@Suppress("unused")
+class Vector2f : Cloneable {
 
-    public Vector2f() {
+    @JvmField
+    var x = 0f
+
+    @JvmField
+    var y = 0f
+
+    constructor()
+
+    @JvmOverloads
+    constructor(x: Float, y: Float = x) {
+        this.x = x
+        this.y = y
     }
 
-    public Vector2f(float d) {
-        this.x = d;
-        this.y = d;
+    constructor(v: Vector2f) : this(v.x, v.y)
+    constructor(v: Vector2i) : this(v.x.toFloat(), v.y.toFloat())
+    constructor(xy: FloatArray) : this(xy[0], xy[1])
+
+    @JvmOverloads
+    fun set(x: Float, y: Float = x): Vector2f {
+        this.x = x
+        this.y = y
+        return this
     }
 
-    public Vector2f(float x, float y) {
-        this.x = x;
-        this.y = y;
-    }
+    @JvmOverloads
+    fun set(x: Double, y: Double = x) = set(x.toFloat(), y.toFloat())
 
-    public Vector2f(Vector2f v) {
-        this.x = v.x;
-        this.y = v.y;
-    }
+    fun set(v: Vector2f) = set(v.x, v.y)
+    fun set(v: Vector2i) = set(v.x.toFloat(), v.y.toFloat())
+    fun set(v: Vector2d) = set(v.x.toFloat(), v.y.toFloat())
+    fun set(xy: FloatArray) = set(xy[0], xy[1])
 
-    public Vector2f(Vector2i v) {
-        this.x = (float) v.x;
-        this.y = (float) v.y;
-    }
-
-    public Vector2f(float[] xy) {
-        this.x = xy[0];
-        this.y = xy[1];
-    }
-
-    public Vector2f set(float d) {
-        this.x = d;
-        this.y = d;
-        return this;
-    }
-
-    public Vector2f set(float x, float y) {
-        this.x = x;
-        this.y = y;
-        return this;
-    }
-
-    public Vector2f set(double d) {
-        this.x = (float) d;
-        this.y = (float) d;
-        return this;
-    }
-
-    public Vector2f set(double x, double y) {
-        this.x = (float) x;
-        this.y = (float) y;
-        return this;
-    }
-
-    public Vector2f set(Vector2f v) {
-        this.x = v.x;
-        this.y = v.y;
-        return this;
-    }
-
-    public Vector2f set(Vector2i v) {
-        this.x = (float) v.x;
-        this.y = (float) v.y;
-        return this;
-    }
-
-    public Vector2f set(Vector2d v) {
-        this.x = (float) v.x;
-        this.y = (float) v.y;
-        return this;
-    }
-
-    public Vector2f set(float[] xy) {
-        this.x = xy[0];
-        this.y = xy[1];
-        return this;
-    }
-
-    public float get(int component) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                return this.x;
-            case 1:
-                return this.y;
-            default:
-                throw new IllegalArgumentException();
+    @Throws(IllegalArgumentException::class)
+    operator fun get(component: Int): Float {
+        return when (component) {
+            0 -> x
+            1 -> y
+            else -> throw IllegalArgumentException()
         }
     }
 
-    public Vector2i get(int mode, Vector2i dest) {
-        dest.x = Math.roundUsing(this.x, mode);
-        dest.y = Math.roundUsing(this.y, mode);
-        return dest;
+    operator fun get(mode: Int, dst: Vector2i): Vector2i {
+        dst.x = Math.roundUsing(x, mode)
+        dst.y = Math.roundUsing(y, mode)
+        return dst
     }
 
-    public Vector2f get(Vector2f dest) {
-        dest.x = this.x;
-        dest.y = this.y;
-        return dest;
-    }
+    operator fun get(dst: Vector2f) = dst.set(x, y)
+    operator fun get(dst: Vector2d): Vector2d = dst.set(x.toDouble(), y.toDouble())
 
-    public Vector2d get(Vector2d dest) {
-        dest.x = this.x;
-        dest.y = this.y;
-        return dest;
-    }
-
-    public Vector2f setComponent(int component, float value) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                this.x = value;
-                break;
-            case 1:
-                this.y = value;
-                break;
-            default:
-                throw new IllegalArgumentException();
+    @Throws(IllegalArgumentException::class)
+    fun setComponent(component: Int, value: Float): Vector2f {
+        when (component) {
+            0 -> x = value
+            1 -> y = value
+            else -> throw IllegalArgumentException()
         }
-
-        return this;
+        return this
     }
 
-    public Vector2f perpendicular() {
-        float tmp = this.y;
-        this.y = -this.x;
-        this.x = tmp;
-        return this;
+    fun perpendicular(): Vector2f {
+        val tmp = y
+        y = -x
+        x = tmp
+        return this
     }
 
-    public Vector2f sub(Vector2f v) {
-        this.x -= v.x;
-        this.y -= v.y;
-        return this;
+    @JvmOverloads
+    fun sub(v: Vector2f, dst: Vector2f = this) = sub(v.x, v.y, dst)
+
+    @JvmOverloads
+    fun sub(x: Float, y: Float, dst: Vector2f = this): Vector2f {
+        dst.x = this.x - x
+        dst.y = this.y - y
+        return dst
     }
 
-    public Vector2f sub(Vector2f v, Vector2f dest) {
-        dest.x = this.x - v.x;
-        dest.y = this.y - v.y;
-        return dest;
+    fun dot(v: Vector2f) = x * v.x + y * v.y
+    fun angle(v: Vector2f): Float {
+        val dot = x * v.x + y * v.y
+        val det = x * v.y - y * v.x
+        return kotlin.math.atan2(det, dot)
     }
 
-    public Vector2f sub(float x, float y) {
-        this.x -= x;
-        this.y -= y;
-        return this;
+    fun lengthSquared() = x * x + y * y
+    fun length() = hypot(x, y)
+    fun distance(v: Vector2f) = hypot(x - v.x, y - v.y)
+    fun distanceSquared(v: Vector2f) = distanceSquared(v.x, v.y)
+    fun distance(x: Float, y: Float) = hypot(this.x - x, this.y - y)
+    fun distanceSquared(x: Float, y: Float) = lengthSquared(this.x - x, this.y - y)
+
+    @JvmOverloads
+    fun normalize(dst: Vector2f = this) = mul(1f / length(), dst)
+
+    @JvmOverloads
+    fun normalize(length: Float, dst: Vector2f = this) = mul(length / length(), dst)
+
+    @JvmOverloads
+    fun add(v: Vector2f, dst: Vector2f = this) = add(v.x, v.y, dst)
+
+    @JvmOverloads
+    fun add(x: Float, y: Float, dst: Vector2f = this) = dst.set(this.x + x, this.y + y)
+
+    fun zero() = set(0f, 0f)
+
+    @JvmOverloads
+    fun negate(dst: Vector2f = this) = dst.set(-x, -y)
+
+    @JvmOverloads
+    fun mul(scalar: Float, dst: Vector2f = this) = dst.set(x * scalar, y * scalar)
+
+    @JvmOverloads
+    fun mul(x: Float, y: Float, dst: Vector2f = this) = dst.set(this.x * x, this.y * y)
+
+    @JvmOverloads
+    fun mul(v: Vector2f, dst: Vector2f = this) =
+        dst.set(x * v.x, y * v.y)
+
+    @JvmOverloads
+    fun div(v: Vector2f, dst: Vector2f = this) =
+        dst.set(x / v.x, y / v.y)
+
+    @JvmOverloads
+    fun div(scalar: Float, dst: Vector2f = this) = dst.mul(1f / scalar)
+
+    @JvmOverloads
+    fun div(x: Float, y: Float, dst: Vector2f = this) =
+        dst.set(this.x / x, this.y / y)
+
+    @JvmOverloads
+    fun mul(mat: Matrix2f, dst: Vector2f = this) =
+        dst.set(mat.m00 * x + mat.m10 * y, mat.m01 * x + mat.m11 * y)
+
+    @JvmOverloads
+    fun mul(mat: Matrix2d, dst: Vector2f = this) =
+        dst.set((mat.m00 * x + mat.m10 * y).toFloat(), (mat.m01 * x + mat.m11 * y).toFloat())
+
+    @JvmOverloads
+    fun mulTranspose(mat: Matrix2f, dst: Vector2f = this) =
+        dst.set(mat.m00 * x + mat.m01 * y, mat.m10 * x + mat.m11 * y)
+
+    @JvmOverloads
+    fun mulPosition(mat: Matrix3x2f, dst: Vector2f = this) =
+        dst.set(mat.m00 * x + mat.m10 * y + mat.m20, mat.m01 * x + mat.m11 * y + mat.m21)
+
+    @JvmOverloads
+    fun mulDirection(mat: Matrix3x2f, dst: Vector2f = this) =
+        dst.set(mat.m00 * x + mat.m10 * y, mat.m01 * x + mat.m11 * y)
+
+    @JvmOverloads
+    fun lerp(other: Vector2f, t: Float, dst: Vector2f = this): Vector2f {
+        dst.x = x + (other.x - x) * t
+        dst.y = y + (other.y - y) * t
+        return dst
     }
 
-    public Vector2f sub(float x, float y, Vector2f dest) {
-        dest.x = this.x - x;
-        dest.y = this.y - y;
-        return dest;
+    override fun hashCode(): Int {
+        var result = java.lang.Float.floatToIntBits(x)
+        result = 31 * result + java.lang.Float.floatToIntBits(y)
+        return result
     }
 
-    public float dot(Vector2f v) {
-        return this.x * v.x + this.y * v.y;
-    }
-
-    public float angle(Vector2f v) {
-        float dot = this.x * v.x + this.y * v.y;
-        float det = this.x * v.y - this.y * v.x;
-        return Math.atan2(det, dot);
-    }
-
-    public float lengthSquared() {
-        return this.x * this.x + this.y * this.y;
-    }
-
-    public static float lengthSquared(float x, float y) {
-        return x * x + y * y;
-    }
-
-    public float length() {
-        return Math.sqrt(this.x * this.x + this.y * this.y);
-    }
-
-    public static float length(float x, float y) {
-        return Math.sqrt(x * x + y * y);
-    }
-
-    public float distance(Vector2f v) {
-        float dx = this.x - v.x;
-        float dy = this.y - v.y;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    public float distanceSquared(Vector2f v) {
-        float dx = this.x - v.x;
-        float dy = this.y - v.y;
-        return dx * dx + dy * dy;
-    }
-
-    public float distance(float x, float y) {
-        float dx = this.x - x;
-        float dy = this.y - y;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    public float distanceSquared(float x, float y) {
-        float dx = this.x - x;
-        float dy = this.y - y;
-        return dx * dx + dy * dy;
-    }
-
-    public static float distance(float x1, float y1, float x2, float y2) {
-        float dx = x1 - x2;
-        float dy = y1 - y2;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    public static float distanceSquared(float x1, float y1, float x2, float y2) {
-        float dx = x1 - x2;
-        float dy = y1 - y2;
-        return dx * dx + dy * dy;
-    }
-
-    public Vector2f normalize() {
-        float invLength = Math.invsqrt(this.x * this.x + this.y * this.y);
-        this.x *= invLength;
-        this.y *= invLength;
-        return this;
-    }
-
-    public Vector2f normalize(Vector2f dest) {
-        float invLength = Math.invsqrt(this.x * this.x + this.y * this.y);
-        dest.x = this.x * invLength;
-        dest.y = this.y * invLength;
-        return dest;
-    }
-
-    public Vector2f normalize(float length) {
-        float invLength = Math.invsqrt(this.x * this.x + this.y * this.y) * length;
-        this.x *= invLength;
-        this.y *= invLength;
-        return this;
-    }
-
-    public Vector2f normalize(float length, Vector2f dest) {
-        float invLength = Math.invsqrt(this.x * this.x + this.y * this.y) * length;
-        dest.x = this.x * invLength;
-        dest.y = this.y * invLength;
-        return dest;
-    }
-
-    public Vector2f add(Vector2f v) {
-        this.x += v.x;
-        this.y += v.y;
-        return this;
-    }
-
-    public Vector2f add(Vector2f v, Vector2f dest) {
-        dest.x = this.x + v.x;
-        dest.y = this.y + v.y;
-        return dest;
-    }
-
-    public Vector2f add(float x, float y) {
-        return this.add(x, y, this);
-    }
-
-    public Vector2f add(float x, float y, Vector2f dest) {
-        dest.x = this.x + x;
-        dest.y = this.y + y;
-        return dest;
-    }
-
-    public Vector2f zero() {
-        this.x = 0f;
-        this.y = 0f;
-        return this;
-    }
-
-    public Vector2f negate() {
-        this.x = -this.x;
-        this.y = -this.y;
-        return this;
-    }
-
-    public Vector2f negate(Vector2f dest) {
-        dest.x = -this.x;
-        dest.y = -this.y;
-        return dest;
-    }
-
-    public Vector2f mul(float scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-        return this;
-    }
-
-    public Vector2f mul(float scalar, Vector2f dest) {
-        dest.x = this.x * scalar;
-        dest.y = this.y * scalar;
-        return dest;
-    }
-
-    public Vector2f mul(float x, float y) {
-        this.x *= x;
-        this.y *= y;
-        return this;
-    }
-
-    public Vector2f mul(float x, float y, Vector2f dest) {
-        dest.x = this.x * x;
-        dest.y = this.y * y;
-        return dest;
-    }
-
-    public Vector2f mul(Vector2f v) {
-        this.x *= v.x;
-        this.y *= v.y;
-        return this;
-    }
-
-    public Vector2f mul(Vector2f v, Vector2f dest) {
-        dest.x = this.x * v.x;
-        dest.y = this.y * v.y;
-        return dest;
-    }
-
-    public Vector2f div(Vector2f v) {
-        this.x /= v.x;
-        this.y /= v.y;
-        return this;
-    }
-
-    public Vector2f div(Vector2f v, Vector2f dest) {
-        dest.x = this.x / v.x;
-        dest.y = this.y / v.y;
-        return dest;
-    }
-
-    public Vector2f div(float scalar) {
-        float inv = 1f / scalar;
-        this.x *= inv;
-        this.y *= inv;
-        return this;
-    }
-
-    public Vector2f div(float scalar, Vector2f dest) {
-        float inv = 1f / scalar;
-        dest.x = this.x * inv;
-        dest.y = this.y * inv;
-        return dest;
-    }
-
-    public Vector2f div(float x, float y) {
-        this.x /= x;
-        this.y /= y;
-        return this;
-    }
-
-    public Vector2f div(float x, float y, Vector2f dest) {
-        dest.x = this.x / x;
-        dest.y = this.y / y;
-        return dest;
-    }
-
-    public Vector2f mul(Matrix2f mat) {
-        float rx = mat.m00 * this.x + mat.m10 * this.y;
-        float ry = mat.m01 * this.x + mat.m11 * this.y;
-        this.x = rx;
-        this.y = ry;
-        return this;
-    }
-
-    public Vector2f mul(Matrix2f mat, Vector2f dest) {
-        float rx = mat.m00 * this.x + mat.m10 * this.y;
-        float ry = mat.m01 * this.x + mat.m11 * this.y;
-        dest.x = rx;
-        dest.y = ry;
-        return dest;
-    }
-
-    public Vector2f mul(Matrix2d mat) {
-        double rx = mat.m00 * (double) this.x + mat.m10 * (double) this.y;
-        double ry = mat.m01 * (double) this.x + mat.m11 * (double) this.y;
-        this.x = (float) rx;
-        this.y = (float) ry;
-        return this;
-    }
-
-    public Vector2f mul(Matrix2d mat, Vector2f dest) {
-        double rx = mat.m00 * (double) this.x + mat.m10 * (double) this.y;
-        double ry = mat.m01 * (double) this.x + mat.m11 * (double) this.y;
-        dest.x = (float) rx;
-        dest.y = (float) ry;
-        return dest;
-    }
-
-    public Vector2f mulTranspose(Matrix2f mat) {
-        float rx = mat.m00 * this.x + mat.m01 * this.y;
-        float ry = mat.m10 * this.x + mat.m11 * this.y;
-        this.x = rx;
-        this.y = ry;
-        return this;
-    }
-
-    public Vector2f mulTranspose(Matrix2f mat, Vector2f dest) {
-        float rx = mat.m00 * this.x + mat.m01 * this.y;
-        float ry = mat.m10 * this.x + mat.m11 * this.y;
-        dest.x = rx;
-        dest.y = ry;
-        return dest;
-    }
-
-    public Vector2f mulPosition(Matrix3x2f mat) {
-        this.x = mat.m00 * this.x + mat.m10 * this.y + mat.m20;
-        this.y = mat.m01 * this.x + mat.m11 * this.y + mat.m21;
-        return this;
-    }
-
-    public Vector2f mulPosition(Matrix3x2f mat, Vector2f dest) {
-        dest.x = mat.m00 * this.x + mat.m10 * this.y + mat.m20;
-        dest.y = mat.m01 * this.x + mat.m11 * this.y + mat.m21;
-        return dest;
-    }
-
-    public Vector2f mulDirection(Matrix3x2f mat) {
-        this.x = mat.m00 * this.x + mat.m10 * this.y;
-        this.y = mat.m01 * this.x + mat.m11 * this.y;
-        return this;
-    }
-
-    public Vector2f mulDirection(Matrix3x2f mat, Vector2f dest) {
-        dest.x = mat.m00 * this.x + mat.m10 * this.y;
-        dest.y = mat.m01 * this.x + mat.m11 * this.y;
-        return dest;
-    }
-
-    public Vector2f lerp(Vector2f other, float t) {
-        this.x += (other.x - this.x) * t;
-        this.y += (other.y - this.y) * t;
-        return this;
-    }
-
-    public Vector2f lerp(Vector2f other, float t, Vector2f dest) {
-        dest.x = this.x + (other.x - this.x) * t;
-        dest.y = this.y + (other.y - this.y) * t;
-        return dest;
-    }
-
-    public int hashCode() {
-        int result = Float.floatToIntBits(this.x);
-        result = 31 * result + Float.floatToIntBits(this.y);
-        return result;
-    }
-
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (this.getClass() != obj.getClass()) {
-            return false;
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
+            true
+        } else if (other == null) {
+            false
+        } else if (this.javaClass != other.javaClass) {
+            false
         } else {
-            Vector2f other = (Vector2f) obj;
-            if (Float.floatToIntBits(this.x) != Float.floatToIntBits(other.x)) {
-                return false;
+            other as Vector2f
+            if (java.lang.Float.floatToIntBits(x) != java.lang.Float.floatToIntBits(other.x)) {
+                false
             } else {
-                return Float.floatToIntBits(this.y) == Float.floatToIntBits(other.y);
+                java.lang.Float.floatToIntBits(y) == java.lang.Float.floatToIntBits(other.y)
             }
         }
     }
 
-    public boolean equals(Vector2f v, float delta) {
-        if (this == v) {
-            return true;
-        } else if (v == null) {
-            return false;
-        } else if (!Runtime.equals(this.x, v.x, delta)) {
-            return false;
+    fun equals(v: Vector2f, delta: Float): Boolean {
+        return if (this === v) {
+            true
+        } else if (!Runtime.equals(x, v.x, delta)) {
+            false
         } else {
-            return Runtime.equals(this.y, v.y, delta);
+            Runtime.equals(y, v.y, delta)
         }
     }
 
-    public boolean equals(float x, float y) {
-        if (Float.floatToIntBits(this.x) != Float.floatToIntBits(x)) {
-            return false;
-        } else {
-            return Float.floatToIntBits(this.y) == Float.floatToIntBits(y);
+    fun equals(x: Float, y: Float): Boolean {
+        return this.x == x && this.y == y
+    }
+
+    override fun toString() = "($x,$y)"
+
+    @JvmOverloads
+    fun fma(a: Vector2f, b: Vector2f, dst: Vector2f = this): Vector2f {
+        dst.x = x + a.x * b.x
+        dst.y = y + a.y * b.y
+        return dst
+    }
+
+    @JvmOverloads
+    fun fma(a: Float, b: Vector2f, dst: Vector2f = this): Vector2f {
+        dst.x = x + a * b.x
+        dst.y = y + a * b.y
+        return dst
+    }
+
+    @JvmOverloads
+    fun min(v: Vector2f, dst: Vector2f = this): Vector2f {
+        dst.x = kotlin.math.min(x, v.x)
+        dst.y = kotlin.math.min(y, v.y)
+        return dst
+    }
+
+    @JvmOverloads
+    fun max(v: Vector2f, dst: Vector2f = this): Vector2f {
+        dst.x = kotlin.math.max(x, v.x)
+        dst.y = kotlin.math.max(y, v.y)
+        return dst
+    }
+
+    fun maxComponent(): Int {
+        val absX = kotlin.math.abs(x)
+        val absY = kotlin.math.abs(y)
+        return if (absX >= absY) 0 else 1
+    }
+
+    fun minComponent(): Int {
+        val absX = kotlin.math.abs(x)
+        val absY = kotlin.math.abs(y)
+        return if (absX < absY) 0 else 1
+    }
+
+    @JvmOverloads
+    fun floor(dst: Vector2f = this): Vector2f {
+        dst.x = kotlin.math.floor(x)
+        dst.y = kotlin.math.floor(y)
+        return dst
+    }
+
+    @JvmOverloads
+    fun ceil(dst: Vector2f = this): Vector2f {
+        dst.x = kotlin.math.ceil(x)
+        dst.y = kotlin.math.ceil(y)
+        return dst
+    }
+
+    @JvmOverloads
+    fun round(dst: Vector2f = this): Vector2f {
+        dst.x = kotlin.math.round(x)
+        dst.y = kotlin.math.round(y)
+        return dst
+    }
+
+    val isFinite: Boolean
+        get() = x.isFinite() && y.isFinite()
+
+    @JvmOverloads
+    fun absolute(dst: Vector2f = this): Vector2f {
+        dst.x = kotlin.math.abs(x)
+        dst.y = kotlin.math.abs(y)
+        return dst
+    }
+
+    companion object {
+
+        fun lengthSquared(x: Float, y: Float) = x * x + y * y
+        fun length(x: Float, y: Float) = hypot(x, y)
+
+        fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
+            val dx = x1 - x2
+            val dy = y1 - y2
+            return hypot(dx, dy)
         }
-    }
 
-    public String toString() {
-        return "(" + x + "," + y + ")";
-    }
-
-    public Vector2f fma(Vector2f a, Vector2f b) {
-        this.x += a.x * b.x;
-        this.y += a.y * b.y;
-        return this;
-    }
-
-    public Vector2f fma(float a, Vector2f b) {
-        this.x += a * b.x;
-        this.y += a * b.y;
-        return this;
-    }
-
-    public Vector2f fma(Vector2f a, Vector2f b, Vector2f dest) {
-        dest.x = this.x + a.x * b.x;
-        dest.y = this.y + a.y * b.y;
-        return dest;
-    }
-
-    public Vector2f fma(float a, Vector2f b, Vector2f dest) {
-        dest.x = this.x + a * b.x;
-        dest.y = this.y + a * b.y;
-        return dest;
-    }
-
-    public Vector2f min(Vector2f v) {
-        this.x = java.lang.Math.min(this.x, v.x);
-        this.y = java.lang.Math.min(this.y, v.y);
-        return this;
-    }
-
-    public Vector2f min(Vector2f v, Vector2f dest) {
-        dest.x = java.lang.Math.min(this.x, v.x);
-        dest.y = java.lang.Math.min(this.y, v.y);
-        return dest;
-    }
-
-    public Vector2f max(Vector2f v) {
-        this.x = java.lang.Math.max(this.x, v.x);
-        this.y = java.lang.Math.max(this.y, v.y);
-        return this;
-    }
-
-    public Vector2f max(Vector2f v, Vector2f dest) {
-        dest.x = java.lang.Math.max(this.x, v.x);
-        dest.y = java.lang.Math.max(this.y, v.y);
-        return dest;
-    }
-
-    public int maxComponent() {
-        float absX = Math.abs(this.x);
-        float absY = Math.abs(this.y);
-        return absX >= absY ? 0 : 1;
-    }
-
-    public int minComponent() {
-        float absX = Math.abs(this.x);
-        float absY = Math.abs(this.y);
-        return absX < absY ? 0 : 1;
-    }
-
-    public Vector2f floor() {
-        this.x = Math.floor(this.x);
-        this.y = Math.floor(this.y);
-        return this;
-    }
-
-    public Vector2f floor(Vector2f dest) {
-        dest.x = Math.floor(this.x);
-        dest.y = Math.floor(this.y);
-        return dest;
-    }
-
-    public Vector2f ceil() {
-        this.x = Math.ceil(this.x);
-        this.y = Math.ceil(this.y);
-        return this;
-    }
-
-    public Vector2f ceil(Vector2f dest) {
-        dest.x = Math.ceil(this.x);
-        dest.y = Math.ceil(this.y);
-        return dest;
-    }
-
-    public Vector2f round() {
-        this.x = Math.ceil(this.x);
-        this.y = Math.ceil(this.y);
-        return this;
-    }
-
-    public Vector2f round(Vector2f dest) {
-        dest.x = (float) Math.round(this.x);
-        dest.y = (float) Math.round(this.y);
-        return dest;
-    }
-
-    public boolean isFinite() {
-        return Math.isFinite(this.x) && Math.isFinite(this.y);
-    }
-
-    public Vector2f absolute() {
-        this.x = Math.abs(this.x);
-        this.y = Math.abs(this.y);
-        return this;
-    }
-
-    public Vector2f absolute(Vector2f dest) {
-        dest.x = Math.abs(this.x);
-        dest.y = Math.abs(this.y);
-        return dest;
-    }
-
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+        fun distanceSquared(x1: Float, y1: Float, x2: Float, y2: Float): Float {
+            val dx = x1 - x2
+            val dy = y1 - y2
+            return dx * dx + dy * dy
+        }
     }
 }
