@@ -1,5 +1,7 @@
 package org.joml
 
+import kotlin.math.*
+
 @Suppress("unused")
 class Quaternionf : Cloneable {
     var x = 0f
@@ -34,8 +36,8 @@ class Quaternionf : Cloneable {
     }
 
     constructor(axisAngle: AxisAngle4f) {
-        val sin = Math.sin(axisAngle.angle * 0.5f)
-        val cos = Math.cosFromSin(sin, axisAngle.angle * 0.5f)
+        val sin = sin(axisAngle.angle * 0.5f)
+        val cos = cos(axisAngle.angle * 0.5f)
         x = axisAngle.x * sin
         y = axisAngle.y * sin
         z = axisAngle.z * sin
@@ -43,8 +45,8 @@ class Quaternionf : Cloneable {
     }
 
     constructor(axisAngle: AxisAngle4d) {
-        val sin = Math.sin(axisAngle.angle * 0.5)
-        val cos = Math.cosFromSin(sin, axisAngle.angle * 0.5)
+        val sin = sin(axisAngle.angle * 0.5)
+        val cos = cos(axisAngle.angle * 0.5)
         x = (axisAngle.x * sin).toFloat()
         y = (axisAngle.y * sin).toFloat()
         z = (axisAngle.z * sin).toFloat()
@@ -53,7 +55,7 @@ class Quaternionf : Cloneable {
 
     @JvmOverloads
     fun normalize(dest: Quaternionf = this): Quaternionf {
-        val invNorm = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w))))
+        val invNorm = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
         dest.x = x * invNorm
         dest.y = y * invNorm
         dest.z = z * invNorm
@@ -84,7 +86,7 @@ class Quaternionf : Cloneable {
     }
 
     fun angle(): Float {
-        return (2.0 * Math.safeAcos(w).toDouble()).toFloat()
+        return (2.0 * JomlMath.safeAcos(w).toDouble()).toFloat()
     }
 
     operator fun get(dest: Matrix3f): Matrix3f {
@@ -118,14 +120,14 @@ class Quaternionf : Cloneable {
         var w = w
         var s: Float
         if (w > 1f) {
-            s = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w))))
+            s = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
             x *= s
             y *= s
             z *= s
             w *= s
         }
-        dest.angle = 2f * Math.acos(w)
-        s = Math.sqrt(1f - w * w)
+        dest.angle = 2f * acos(w)
+        s = sqrt(1f - w * w)
         if (s < 0.001f) {
             dest.x = x
             dest.y = y
@@ -146,14 +148,14 @@ class Quaternionf : Cloneable {
         var w = w
         var s: Float
         if (w > 1f) {
-            s = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w))))
+            s = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
             x *= s
             y *= s
             z *= s
             w *= s
         }
-        dest.angle = (2f * Math.acos(w)).toDouble()
-        s = Math.sqrt(1f - w * w)
+        dest.angle = (2f * acos(w)).toDouble()
+        s = sqrt(1f - w * w)
         if (s < 0.001f) {
             dest.x = x.toDouble()
             dest.y = y.toDouble()
@@ -208,20 +210,20 @@ class Quaternionf : Cloneable {
     }
 
     fun setAngleAxis(angle: Float, x: Float, y: Float, z: Float): Quaternionf {
-        val s = Math.sin(angle * 0.5f)
+        val s = sin(angle * 0.5f)
         this.x = x * s
         this.y = y * s
         this.z = z * s
-        w = Math.cosFromSin(s, angle * 0.5f)
+        w = cos(angle * 0.5f)
         return this
     }
 
     fun setAngleAxis(angle: Double, x: Double, y: Double, z: Double): Quaternionf {
-        val s = Math.sin(angle * 0.5)
+        val s = sin(angle * 0.5)
         this.x = (x * s).toFloat()
         this.y = (y * s).toFloat()
         this.z = (z * s).toFloat()
-        w = Math.cosFromSin(s, angle * 0.5).toFloat()
+        w = cos(angle * 0.5).toFloat()
         return this
     }
 
@@ -231,13 +233,13 @@ class Quaternionf : Cloneable {
 
     fun rotationAxis(angle: Float, axisX: Float, axisY: Float, axisZ: Float): Quaternionf {
         val halfAngle = angle / 2f
-        val sinAngle = Math.sin(halfAngle)
-        val invVLength = Math.invsqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
+        val sinAngle = sin(halfAngle)
+        val invVLength = JomlMath.invsqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
         return this.set(
             axisX * invVLength * sinAngle,
             axisY * invVLength * sinAngle,
             axisZ * invVLength * sinAngle,
-            Math.cosFromSin(sinAngle, halfAngle)
+            cos(halfAngle)
         )
     }
 
@@ -246,20 +248,20 @@ class Quaternionf : Cloneable {
     }
 
     fun rotationX(angle: Float): Quaternionf {
-        val sin = Math.sin(angle * 0.5f)
-        val cos = Math.cosFromSin(sin, angle * 0.5f)
+        val sin = sin(angle * 0.5f)
+        val cos = cos(angle * 0.5f)
         return this.set(sin, 0f, 0f, cos)
     }
 
     fun rotationY(angle: Float): Quaternionf {
-        val sin = Math.sin(angle * 0.5f)
-        val cos = Math.cosFromSin(sin, angle * 0.5f)
+        val sin = sin(angle * 0.5f)
+        val cos = cos(angle * 0.5f)
         return this.set(0f, sin, 0f, cos)
     }
 
     fun rotationZ(angle: Float): Quaternionf {
-        val sin = Math.sin(angle * 0.5f)
-        val cos = Math.cosFromSin(sin, angle * 0.5f)
+        val sin = sin(angle * 0.5f)
+        val cos = cos(angle * 0.5f)
         return this.set(0f, 0f, sin, cos)
     }
 
@@ -274,9 +276,9 @@ class Quaternionf : Cloneable {
         m21: Float,
         m22: Float
     ) {
-        val lenX = Math.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
-        val lenY = Math.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
-        val lenZ = Math.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
+        val lenX = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
+        val lenY = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
+        val lenZ = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
         val nm00 = m00 * lenX
         val nm01 = m01 * lenX
         val nm02 = m02 * lenX
@@ -303,28 +305,28 @@ class Quaternionf : Cloneable {
         val tr = m00 + m11 + m22
         var t: Float
         if (tr >= 0f) {
-            t = Math.sqrt(tr + 1f)
+            t = sqrt(tr + 1f)
             w = t * 0.5f
             t = 0.5f / t
             x = (m12 - m21) * t
             y = (m20 - m02) * t
             z = (m01 - m10) * t
         } else if (m00 >= m11 && m00 >= m22) {
-            t = Math.sqrt(m00 - (m11 + m22) + 1f)
+            t = sqrt(m00 - (m11 + m22) + 1f)
             x = t * 0.5f
             t = 0.5f / t
             y = (m10 + m01) * t
             z = (m02 + m20) * t
             w = (m12 - m21) * t
         } else if (m11 > m22) {
-            t = Math.sqrt(m11 - (m22 + m00) + 1f)
+            t = sqrt(m11 - (m22 + m00) + 1f)
             y = t * 0.5f
             t = 0.5f / t
             z = (m21 + m12) * t
             x = (m10 + m01) * t
             w = (m20 - m02) * t
         } else {
-            t = Math.sqrt(m22 - (m00 + m11) + 1f)
+            t = sqrt(m22 - (m00 + m11) + 1f)
             z = t * 0.5f
             t = 0.5f / t
             x = (m02 + m20) * t
@@ -344,9 +346,9 @@ class Quaternionf : Cloneable {
         m21: Double,
         m22: Double
     ) {
-        val lenX = Math.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
-        val lenY = Math.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
-        val lenZ = Math.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
+        val lenX = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
+        val lenY = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
+        val lenZ = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
         val nm00 = m00 * lenX
         val nm01 = m01 * lenX
         val nm02 = m02 * lenX
@@ -373,28 +375,28 @@ class Quaternionf : Cloneable {
         val tr = m00 + m11 + m22
         var t: Double
         if (tr >= 0.0) {
-            t = Math.sqrt(tr + 1.0)
+            t = sqrt(tr + 1.0)
             w = (t * 0.5).toFloat()
             t = 0.5 / t
             x = ((m12 - m21) * t).toFloat()
             y = ((m20 - m02) * t).toFloat()
             z = ((m01 - m10) * t).toFloat()
         } else if (m00 >= m11 && m00 >= m22) {
-            t = Math.sqrt(m00 - (m11 + m22) + 1.0)
+            t = sqrt(m00 - (m11 + m22) + 1.0)
             x = (t * 0.5).toFloat()
             t = 0.5 / t
             y = ((m10 + m01) * t).toFloat()
             z = ((m02 + m20) * t).toFloat()
             w = ((m12 - m21) * t).toFloat()
         } else if (m11 > m22) {
-            t = Math.sqrt(m11 - (m22 + m00) + 1.0)
+            t = sqrt(m11 - (m22 + m00) + 1.0)
             y = (t * 0.5).toFloat()
             t = 0.5 / t
             z = ((m21 + m12) * t).toFloat()
             x = ((m10 + m01) * t).toFloat()
             w = ((m20 - m02) * t).toFloat()
         } else {
-            t = Math.sqrt(m22 - (m00 + m11) + 1.0)
+            t = sqrt(m22 - (m00 + m11) + 1.0)
             z = (t * 0.5).toFloat()
             t = 0.5 / t
             x = ((m02 + m20) * t).toFloat()
@@ -469,66 +471,58 @@ class Quaternionf : Cloneable {
 
     fun fromAxisAngleRad(axisX: Float, axisY: Float, axisZ: Float, angle: Float): Quaternionf {
         val halfAngle = angle / 2f
-        val sinAngle = Math.sin(halfAngle)
-        val vLength = Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
+        val sinAngle = sin(halfAngle)
+        val vLength = sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
         x = axisX / vLength * sinAngle
         y = axisY / vLength * sinAngle
         z = axisZ / vLength * sinAngle
-        w = Math.cosFromSin(sinAngle, halfAngle)
+        w = cos(halfAngle)
         return this
-    }
-
-    fun fromAxisAngleDeg(axis: Vector3f, angle: Float): Quaternionf {
-        return this.fromAxisAngleRad(axis.x, axis.y, axis.z, Math.toRadians(angle))
-    }
-
-    fun fromAxisAngleDeg(axisX: Float, axisY: Float, axisZ: Float, angle: Float): Quaternionf {
-        return this.fromAxisAngleRad(axisX, axisY, axisZ, Math.toRadians(angle))
     }
 
     @JvmOverloads
     fun mul(q: Quaternionf, dest: Quaternionf = this): Quaternionf {
         return dest.set(
-            Math.fma(w, q.x, Math.fma(x, q.w, Math.fma(y, q.z, -z * q.y))), Math.fma(
-                w, q.y, Math.fma(-x, q.z, Math.fma(y, q.w, z * q.x))
-            ), Math.fma(
-                w, q.z, Math.fma(
-                    x, q.y, Math.fma(-y, q.x, z * q.w)
+            JomlMath.fma(w, q.x, JomlMath.fma(x, q.w, JomlMath.fma(y, q.z, -z * q.y))), JomlMath.fma(
+                w, q.y, JomlMath.fma(-x, q.z, JomlMath.fma(y, q.w, z * q.x))
+            ), JomlMath.fma(
+                w, q.z, JomlMath.fma(
+                    x, q.y, JomlMath.fma(-y, q.x, z * q.w)
                 )
-            ), Math.fma(w, q.w, Math.fma(-x, q.x, Math.fma(-y, q.y, -z * q.z)))
+            ), JomlMath.fma(w, q.w, JomlMath.fma(-x, q.x, JomlMath.fma(-y, q.y, -z * q.z)))
         )
     }
 
     @JvmOverloads
     fun mul(qx: Float, qy: Float, qz: Float, qw: Float, dest: Quaternionf = this): Quaternionf {
         return dest.set(
-            Math.fma(w, qx, Math.fma(x, qw, Math.fma(y, qz, -z * qy))), Math.fma(
-                w, qy, Math.fma(-x, qz, Math.fma(y, qw, z * qx))
-            ), Math.fma(
-                w, qz, Math.fma(
-                    x, qy, Math.fma(-y, qx, z * qw)
+            JomlMath.fma(w, qx, JomlMath.fma(x, qw, JomlMath.fma(y, qz, -z * qy))), JomlMath.fma(
+                w, qy, JomlMath.fma(-x, qz, JomlMath.fma(y, qw, z * qx))
+            ), JomlMath.fma(
+                w, qz, JomlMath.fma(
+                    x, qy, JomlMath.fma(-y, qx, z * qw)
                 )
-            ), Math.fma(w, qw, Math.fma(-x, qx, Math.fma(-y, qy, -z * qz)))
+            ), JomlMath.fma(w, qw, JomlMath.fma(-x, qx, JomlMath.fma(-y, qy, -z * qz)))
         )
     }
 
     @JvmOverloads
     fun premul(q: Quaternionf, dest: Quaternionf = this): Quaternionf {
         return dest.set(
-            Math.fma(q.w, x, Math.fma(q.x, w, Math.fma(q.y, z, -q.z * y))),
-            Math.fma(q.w, y, Math.fma(-q.x, z, Math.fma(q.y, w, q.z * x))),
-            Math.fma(q.w, z, Math.fma(q.x, y, Math.fma(-q.y, x, q.z * w))),
-            Math.fma(q.w, w, Math.fma(-q.x, x, Math.fma(-q.y, y, -q.z * z)))
+            JomlMath.fma(q.w, x, JomlMath.fma(q.x, w, JomlMath.fma(q.y, z, -q.z * y))),
+            JomlMath.fma(q.w, y, JomlMath.fma(-q.x, z, JomlMath.fma(q.y, w, q.z * x))),
+            JomlMath.fma(q.w, z, JomlMath.fma(q.x, y, JomlMath.fma(-q.y, x, q.z * w))),
+            JomlMath.fma(q.w, w, JomlMath.fma(-q.x, x, JomlMath.fma(-q.y, y, -q.z * z)))
         )
     }
 
     @JvmOverloads
     fun premul(qx: Float, qy: Float, qz: Float, qw: Float, dest: Quaternionf = this): Quaternionf {
         return dest.set(
-            Math.fma(qw, x, Math.fma(qx, w, Math.fma(qy, z, -qz * y))),
-            Math.fma(qw, y, Math.fma(-qx, z, Math.fma(qy, w, qz * x))),
-            Math.fma(qw, z, Math.fma(qx, y, Math.fma(-qy, x, qz * w))),
-            Math.fma(qw, w, Math.fma(-qx, x, Math.fma(-qy, y, -qz * z)))
+            JomlMath.fma(qw, x, JomlMath.fma(qx, w, JomlMath.fma(qy, z, -qz * y))),
+            JomlMath.fma(qw, y, JomlMath.fma(-qx, z, JomlMath.fma(qy, w, qz * x))),
+            JomlMath.fma(qw, z, JomlMath.fma(qx, y, JomlMath.fma(-qy, x, qz * w))),
+            JomlMath.fma(qw, w, JomlMath.fma(-qx, x, JomlMath.fma(-qy, y, -qz * z)))
         )
     }
 
@@ -729,14 +723,14 @@ class Quaternionf : Cloneable {
         val yw = this.y * w
         val k = 1f / (xx + yy + zz + ww)
         return dest.set(
-            Math.fma((xx - yy - zz + ww) * k, x, Math.fma(2f * (xy - zw) * k, y, 2f * (xz + yw) * k * z)),
-            Math.fma(2f * (xy + zw) * k, x, Math.fma((yy - xx - zz + ww) * k, y, 2f * (yz - xw) * k * z)),
-            Math.fma(2f * (xz - yw) * k, x, Math.fma(2f * (yz + xw) * k, y, (zz - xx - yy + ww) * k * z))
+            JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2f * (xy - zw) * k, y, 2f * (xz + yw) * k * z)),
+            JomlMath.fma(2f * (xy + zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2f * (yz - xw) * k * z)),
+            JomlMath.fma(2f * (xz - yw) * k, x, JomlMath.fma(2f * (yz + xw) * k, y, (zz - xx - yy + ww) * k * z))
         )
     }
 
     fun transformInverse(x: Float, y: Float, z: Float, dest: Vector3f): Vector3f {
-        val n = 1f / Math.fma(this.x, this.x, Math.fma(this.y, this.y, Math.fma(this.z, this.z, w * w)))
+        val n = 1f / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
         val qx = this.x * n
         val qy = this.y * n
         val qz = this.z * n
@@ -753,9 +747,9 @@ class Quaternionf : Cloneable {
         val yw = qy * qw
         val k = 1f / (xx + yy + zz + ww)
         return dest.set(
-            Math.fma((xx - yy - zz + ww) * k, x, Math.fma(2f * (xy + zw) * k, y, 2f * (xz - yw) * k * z)),
-            Math.fma(2f * (xy - zw) * k, x, Math.fma((yy - xx - zz + ww) * k, y, 2f * (yz + xw) * k * z)),
-            Math.fma(2f * (xz + yw) * k, x, Math.fma(2f * (yz - xw) * k, y, (zz - xx - yy + ww) * k * z))
+            JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2f * (xy + zw) * k, y, 2f * (xz - yw) * k * z)),
+            JomlMath.fma(2f * (xy - zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2f * (yz + xw) * k * z)),
+            JomlMath.fma(2f * (xz + yw) * k, x, JomlMath.fma(2f * (yz - xw) * k, y, (zz - xx - yy + ww) * k * z))
         )
     }
 
@@ -786,11 +780,11 @@ class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            Math.fma(Math.fma(-2f, yy + zz, 1f), x, Math.fma(2f * (xy - zw), y, 2f * (xz + yw) * z)), Math.fma(
-                2f * (xy + zw), x, Math.fma(
-                    Math.fma(-2f, xx + zz, 1f), y, 2f * (yz - xw) * z
+            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy - zw), y, 2f * (xz + yw) * z)), JomlMath.fma(
+                2f * (xy + zw), x, JomlMath.fma(
+                    JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz - xw) * z
                 )
-            ), Math.fma(2f * (xz - yw), x, Math.fma(2f * (yz + xw), y, Math.fma(-2f, xx + yy, 1f) * z))
+            ), JomlMath.fma(2f * (xz - yw), x, JomlMath.fma(2f * (yz + xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
         )
     }
 
@@ -805,11 +799,11 @@ class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            Math.fma(Math.fma(-2f, yy + zz, 1f), x, Math.fma(2f * (xy + zw), y, 2f * (xz - yw) * z)), Math.fma(
-                2f * (xy - zw), x, Math.fma(
-                    Math.fma(-2f, xx + zz, 1f), y, 2f * (yz + xw) * z
+            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy + zw), y, 2f * (xz - yw) * z)), JomlMath.fma(
+                2f * (xy - zw), x, JomlMath.fma(
+                    JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz + xw) * z
                 )
-            ), Math.fma(2f * (xz + yw), x, Math.fma(2f * (yz - xw), y, Math.fma(-2f, xx + yy, 1f) * z))
+            ), JomlMath.fma(2f * (xz + yw), x, JomlMath.fma(2f * (yz - xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
         )
     }
 
@@ -836,14 +830,14 @@ class Quaternionf : Cloneable {
         val yw = this.y * w
         val k = 1f / (xx + yy + zz + ww)
         return dest.set(
-            Math.fma((xx - yy - zz + ww) * k, x, Math.fma(2f * (xy - zw) * k, y, 2f * (xz + yw) * k * z)),
-            Math.fma(2f * (xy + zw) * k, x, Math.fma((yy - xx - zz + ww) * k, y, 2f * (yz - xw) * k * z)),
-            Math.fma(2f * (xz - yw) * k, x, Math.fma(2f * (yz + xw) * k, y, (zz - xx - yy + ww) * k * z))
+            JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2f * (xy - zw) * k, y, 2f * (xz + yw) * k * z)),
+            JomlMath.fma(2f * (xy + zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2f * (yz - xw) * k * z)),
+            JomlMath.fma(2f * (xz - yw) * k, x, JomlMath.fma(2f * (yz + xw) * k, y, (zz - xx - yy + ww) * k * z))
         )
     }
 
     fun transformInverse(x: Float, y: Float, z: Float, dest: Vector4f): Vector4f {
-        val n = 1f / Math.fma(this.x, this.x, Math.fma(this.y, this.y, Math.fma(this.z, this.z, w * w)))
+        val n = 1f / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
         val qx = this.x * n
         val qy = this.y * n
         val qz = this.z * n
@@ -860,9 +854,9 @@ class Quaternionf : Cloneable {
         val yw = qy * qw
         val k = 1f / (xx + yy + zz + ww)
         return dest.set(
-            Math.fma((xx - yy - zz + ww) * k, x, Math.fma(2f * (xy + zw) * k, y, 2f * (xz - yw) * k * z)),
-            Math.fma(2f * (xy - zw) * k, x, Math.fma((yy - xx - zz + ww) * k, y, 2f * (yz + xw) * k * z)),
-            Math.fma(2f * (xz + yw) * k, x, Math.fma(2f * (yz - xw) * k, y, (zz - xx - yy + ww) * k * z))
+            JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2f * (xy + zw) * k, y, 2f * (xz - yw) * k * z)),
+            JomlMath.fma(2f * (xy - zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2f * (yz + xw) * k * z)),
+            JomlMath.fma(2f * (xz + yw) * k, x, JomlMath.fma(2f * (yz - xw) * k, y, (zz - xx - yy + ww) * k * z))
         )
     }
 
@@ -901,11 +895,11 @@ class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            Math.fma(Math.fma(-2f, yy + zz, 1f), x, Math.fma(2f * (xy - zw), y, 2f * (xz + yw) * z)), Math.fma(
-                2f * (xy + zw), x, Math.fma(
-                    Math.fma(-2f, xx + zz, 1f), y, 2f * (yz - xw) * z
+            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy - zw), y, 2f * (xz + yw) * z)), JomlMath.fma(
+                2f * (xy + zw), x, JomlMath.fma(
+                    JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz - xw) * z
                 )
-            ), Math.fma(2f * (xz - yw), x, Math.fma(2f * (yz + xw), y, Math.fma(-2f, xx + yy, 1f) * z))
+            ), JomlMath.fma(2f * (xz - yw), x, JomlMath.fma(2f * (yz + xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
         )
     }
 
@@ -920,11 +914,11 @@ class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            Math.fma(Math.fma(-2f, yy + zz, 1f), x, Math.fma(2f * (xy + zw), y, 2f * (xz - yw) * z)), Math.fma(
-                2f * (xy - zw), x, Math.fma(
-                    Math.fma(-2f, xx + zz, 1f), y, 2f * (yz + xw) * z
+            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy + zw), y, 2f * (xz - yw) * z)), JomlMath.fma(
+                2f * (xy - zw), x, JomlMath.fma(
+                    JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz + xw) * z
                 )
-            ), Math.fma(2f * (xz + yw), x, Math.fma(2f * (yz - xw), y, Math.fma(-2f, xx + yy, 1f) * z))
+            ), JomlMath.fma(2f * (xz + yw), x, JomlMath.fma(2f * (yz - xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
         )
     }
 
@@ -1125,26 +1119,26 @@ class Quaternionf : Cloneable {
         val yw = this.y * w
         val k = 1f / (xx + yy + zz + ww)
         return dest.set(
-            Math.fma(
+            JomlMath.fma(
                 ((xx - yy - zz + ww) * k).toDouble(),
                 x,
-                Math.fma((2f * (xy - zw) * k).toDouble(), y, (2f * (xz + yw) * k).toDouble() * z)
+                JomlMath.fma((2f * (xy - zw) * k).toDouble(), y, (2f * (xz + yw) * k).toDouble() * z)
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xy + zw) * k).toDouble(),
                 x,
-                Math.fma(((yy - xx - zz + ww) * k).toDouble(), y, (2f * (yz - xw) * k).toDouble() * z)
+                JomlMath.fma(((yy - xx - zz + ww) * k).toDouble(), y, (2f * (yz - xw) * k).toDouble() * z)
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xz - yw) * k).toDouble(),
                 x,
-                Math.fma((2f * (yz + xw) * k).toDouble(), y, ((zz - xx - yy + ww) * k).toDouble() * z)
+                JomlMath.fma((2f * (yz + xw) * k).toDouble(), y, ((zz - xx - yy + ww) * k).toDouble() * z)
             )
         )
     }
 
     fun transformInverse(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
-        val n = 1f / Math.fma(this.x, this.x, Math.fma(this.y, this.y, Math.fma(this.z, this.z, w * w)))
+        val n = 1f / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
         val qx = this.x * n
         val qy = this.y * n
         val qz = this.z * n
@@ -1161,20 +1155,20 @@ class Quaternionf : Cloneable {
         val yw = qy * qw
         val k = 1f / (xx + yy + zz + ww)
         return dest.set(
-            Math.fma(
+            JomlMath.fma(
                 ((xx - yy - zz + ww) * k).toDouble(),
                 x,
-                Math.fma((2f * (xy + zw) * k).toDouble(), y, (2f * (xz - yw) * k).toDouble() * z)
+                JomlMath.fma((2f * (xy + zw) * k).toDouble(), y, (2f * (xz - yw) * k).toDouble() * z)
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xy - zw) * k).toDouble(),
                 x,
-                Math.fma(((yy - xx - zz + ww) * k).toDouble(), y, (2f * (yz + xw) * k).toDouble() * z)
+                JomlMath.fma(((yy - xx - zz + ww) * k).toDouble(), y, (2f * (yz + xw) * k).toDouble() * z)
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xz + yw) * k).toDouble(),
                 x,
-                Math.fma((2f * (yz - xw) * k).toDouble(), y, ((zz - xx - yy + ww) * k).toDouble() * z)
+                JomlMath.fma((2f * (yz - xw) * k).toDouble(), y, ((zz - xx - yy + ww) * k).toDouble() * z)
             )
         )
     }
@@ -1202,26 +1196,26 @@ class Quaternionf : Cloneable {
         val yw = this.y * w
         val k = 1f / (xx + yy + zz + ww)
         return dest.set(
-            Math.fma(
+            JomlMath.fma(
                 ((xx - yy - zz + ww) * k).toDouble(),
                 x,
-                Math.fma((2f * (xy - zw) * k).toDouble(), y, (2f * (xz + yw) * k).toDouble() * z)
+                JomlMath.fma((2f * (xy - zw) * k).toDouble(), y, (2f * (xz + yw) * k).toDouble() * z)
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xy + zw) * k).toDouble(),
                 x,
-                Math.fma(((yy - xx - zz + ww) * k).toDouble(), y, (2f * (yz - xw) * k).toDouble() * z)
+                JomlMath.fma(((yy - xx - zz + ww) * k).toDouble(), y, (2f * (yz - xw) * k).toDouble() * z)
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xz - yw) * k).toDouble(),
                 x,
-                Math.fma((2f * (yz + xw) * k).toDouble(), y, ((zz - xx - yy + ww) * k).toDouble() * z)
+                JomlMath.fma((2f * (yz + xw) * k).toDouble(), y, ((zz - xx - yy + ww) * k).toDouble() * z)
             )
         )
     }
 
     fun transformInverse(x: Double, y: Double, z: Double, dest: Vector4d): Vector4d {
-        val n = 1f / Math.fma(this.x, this.x, Math.fma(this.y, this.y, Math.fma(this.z, this.z, w * w)))
+        val n = 1f / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
         val qx = this.x * n
         val qy = this.y * n
         val qz = this.z * n
@@ -1238,20 +1232,20 @@ class Quaternionf : Cloneable {
         val yw = qy * qw
         val k = 1f / (xx + yy + zz + ww)
         return dest.set(
-            Math.fma(
+            JomlMath.fma(
                 ((xx - yy - zz + ww) * k).toDouble(),
                 x,
-                Math.fma((2f * (xy + zw) * k).toDouble(), y, (2f * (xz - yw) * k).toDouble() * z)
+                JomlMath.fma((2f * (xy + zw) * k).toDouble(), y, (2f * (xz - yw) * k).toDouble() * z)
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xy - zw) * k).toDouble(),
                 x,
-                Math.fma(((yy - xx - zz + ww) * k).toDouble(), y, (2f * (yz + xw) * k).toDouble() * z)
+                JomlMath.fma(((yy - xx - zz + ww) * k).toDouble(), y, (2f * (yz + xw) * k).toDouble() * z)
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xz + yw) * k).toDouble(),
                 x,
-                Math.fma((2f * (yz - xw) * k).toDouble(), y, ((zz - xx - yy + ww) * k).toDouble() * z)
+                JomlMath.fma((2f * (yz - xw) * k).toDouble(), y, ((zz - xx - yy + ww) * k).toDouble() * z)
             )
         )
     }
@@ -1283,20 +1277,20 @@ class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            Math.fma(
-                Math.fma(-2f, yy + zz, 1f).toDouble(),
+            JomlMath.fma(
+                JomlMath.fma(-2f, yy + zz, 1f).toDouble(),
                 x,
-                Math.fma((2f * (xy - zw)).toDouble(), y, (2f * (xz + yw)).toDouble() * z)
+                JomlMath.fma((2f * (xy - zw)).toDouble(), y, (2f * (xz + yw)).toDouble() * z)
             ),
-            Math.fma(
-                (2f * (xy + zw)).toDouble(), x, Math.fma(
-                    Math.fma(-2f, xx + zz, 1f).toDouble(), y, (2f * (yz - xw)).toDouble() * z
+            JomlMath.fma(
+                (2f * (xy + zw)).toDouble(), x, JomlMath.fma(
+                    JomlMath.fma(-2f, xx + zz, 1f).toDouble(), y, (2f * (yz - xw)).toDouble() * z
                 )
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xz - yw)).toDouble(),
                 x,
-                Math.fma((2f * (yz + xw)).toDouble(), y, Math.fma(-2f, xx + yy, 1f).toDouble() * z)
+                JomlMath.fma((2f * (yz + xw)).toDouble(), y, JomlMath.fma(-2f, xx + yy, 1f).toDouble() * z)
             )
         )
     }
@@ -1312,20 +1306,20 @@ class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            Math.fma(
-                Math.fma(-2f, yy + zz, 1f).toDouble(),
+            JomlMath.fma(
+                JomlMath.fma(-2f, yy + zz, 1f).toDouble(),
                 x,
-                Math.fma((2f * (xy + zw)).toDouble(), y, (2f * (xz - yw)).toDouble() * z)
+                JomlMath.fma((2f * (xy + zw)).toDouble(), y, (2f * (xz - yw)).toDouble() * z)
             ),
-            Math.fma(
-                (2f * (xy - zw)).toDouble(), x, Math.fma(
-                    Math.fma(-2f, xx + zz, 1f).toDouble(), y, (2f * (yz + xw)).toDouble() * z
+            JomlMath.fma(
+                (2f * (xy - zw)).toDouble(), x, JomlMath.fma(
+                    JomlMath.fma(-2f, xx + zz, 1f).toDouble(), y, (2f * (yz + xw)).toDouble() * z
                 )
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xz + yw)).toDouble(),
                 x,
-                Math.fma((2f * (yz - xw)).toDouble(), y, Math.fma(-2f, xx + yy, 1f).toDouble() * z)
+                JomlMath.fma((2f * (yz - xw)).toDouble(), y, JomlMath.fma(-2f, xx + yy, 1f).toDouble() * z)
             )
         )
     }
@@ -1351,20 +1345,20 @@ class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            Math.fma(
-                Math.fma(-2f, yy + zz, 1f).toDouble(),
+            JomlMath.fma(
+                JomlMath.fma(-2f, yy + zz, 1f).toDouble(),
                 x,
-                Math.fma((2f * (xy - zw)).toDouble(), y, (2f * (xz + yw)).toDouble() * z)
+                JomlMath.fma((2f * (xy - zw)).toDouble(), y, (2f * (xz + yw)).toDouble() * z)
             ),
-            Math.fma(
-                (2f * (xy + zw)).toDouble(), x, Math.fma(
-                    Math.fma(-2f, xx + zz, 1f).toDouble(), y, (2f * (yz - xw)).toDouble() * z
+            JomlMath.fma(
+                (2f * (xy + zw)).toDouble(), x, JomlMath.fma(
+                    JomlMath.fma(-2f, xx + zz, 1f).toDouble(), y, (2f * (yz - xw)).toDouble() * z
                 )
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xz - yw)).toDouble(),
                 x,
-                Math.fma((2f * (yz + xw)).toDouble(), y, Math.fma(-2f, xx + yy, 1f).toDouble() * z)
+                JomlMath.fma((2f * (yz + xw)).toDouble(), y, JomlMath.fma(-2f, xx + yy, 1f).toDouble() * z)
             )
         )
     }
@@ -1380,27 +1374,27 @@ class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            Math.fma(
-                Math.fma(-2f, yy + zz, 1f).toDouble(),
+            JomlMath.fma(
+                JomlMath.fma(-2f, yy + zz, 1f).toDouble(),
                 x,
-                Math.fma((2f * (xy + zw)).toDouble(), y, (2f * (xz - yw)).toDouble() * z)
+                JomlMath.fma((2f * (xy + zw)).toDouble(), y, (2f * (xz - yw)).toDouble() * z)
             ),
-            Math.fma(
-                (2f * (xy - zw)).toDouble(), x, Math.fma(
-                    Math.fma(-2f, xx + zz, 1f).toDouble(), y, (2f * (yz + xw)).toDouble() * z
+            JomlMath.fma(
+                (2f * (xy - zw)).toDouble(), x, JomlMath.fma(
+                    JomlMath.fma(-2f, xx + zz, 1f).toDouble(), y, (2f * (yz + xw)).toDouble() * z
                 )
             ),
-            Math.fma(
+            JomlMath.fma(
                 (2f * (xz + yw)).toDouble(),
                 x,
-                Math.fma((2f * (yz - xw)).toDouble(), y, Math.fma(-2f, xx + yy, 1f).toDouble() * z)
+                JomlMath.fma((2f * (yz - xw)).toDouble(), y, JomlMath.fma(-2f, xx + yy, 1f).toDouble() * z)
             )
         )
     }
 
     @JvmOverloads
     fun invert(dest: Quaternionf = this): Quaternionf {
-        val invNorm = 1f / Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w)))
+        val invNorm = 1f / JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w)))
         dest.x = -x * invNorm
         dest.y = -y * invNorm
         dest.z = -z * invNorm
@@ -1410,16 +1404,16 @@ class Quaternionf : Cloneable {
 
     @JvmOverloads
     fun div(b: Quaternionf, dest: Quaternionf = this): Quaternionf {
-        val invNorm = 1f / Math.fma(b.x, b.x, Math.fma(b.y, b.y, Math.fma(b.z, b.z, b.w * b.w)))
+        val invNorm = 1f / JomlMath.fma(b.x, b.x, JomlMath.fma(b.y, b.y, JomlMath.fma(b.z, b.z, b.w * b.w)))
         val x = -b.x * invNorm
         val y = -b.y * invNorm
         val z = -b.z * invNorm
         val w = b.w * invNorm
         return dest.set(
-            Math.fma(this.w, x, Math.fma(this.x, w, Math.fma(this.y, z, -this.z * y))),
-            Math.fma(this.w, y, Math.fma(-this.x, z, Math.fma(this.y, w, this.z * x))),
-            Math.fma(this.w, z, Math.fma(this.x, y, Math.fma(-this.y, x, this.z * w))),
-            Math.fma(this.w, w, Math.fma(-this.x, x, Math.fma(-this.y, y, -this.z * z)))
+            JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
+            JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
+            JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
+            JomlMath.fma(this.w, w, JomlMath.fma(-this.x, x, JomlMath.fma(-this.y, y, -this.z * z)))
         )
     }
 
@@ -1442,12 +1436,12 @@ class Quaternionf : Cloneable {
 
     @JvmOverloads
     fun rotateXYZ(angleX: Float, angleY: Float, angleZ: Float, dest: Quaternionf = this): Quaternionf {
-        val sx = Math.sin(angleX * 0.5f)
-        val cx = Math.cosFromSin(sx, angleX * 0.5f)
-        val sy = Math.sin(angleY * 0.5f)
-        val cy = Math.cosFromSin(sy, angleY * 0.5f)
-        val sz = Math.sin(angleZ * 0.5f)
-        val cz = Math.cosFromSin(sz, angleZ * 0.5f)
+        val sx = sin(angleX * 0.5f)
+        val cx = cos(angleX * 0.5f)
+        val sy = sin(angleY * 0.5f)
+        val cy = cos(angleY * 0.5f)
+        val sz = sin(angleZ * 0.5f)
+        val cz = cos(angleZ * 0.5f)
         val cycz = cy * cz
         val sysz = sy * sz
         val sycz = sy * cz
@@ -1457,21 +1451,21 @@ class Quaternionf : Cloneable {
         val y = cx * sycz - sx * cysz
         val z = cx * cysz + sx * sycz
         return dest.set(
-            Math.fma(this.w, x, Math.fma(this.x, w, Math.fma(this.y, z, -this.z * y))),
-            Math.fma(this.w, y, Math.fma(-this.x, z, Math.fma(this.y, w, this.z * x))),
-            Math.fma(this.w, z, Math.fma(this.x, y, Math.fma(-this.y, x, this.z * w))),
-            Math.fma(this.w, w, Math.fma(-this.x, x, Math.fma(-this.y, y, -this.z * z)))
+            JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
+            JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
+            JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
+            JomlMath.fma(this.w, w, JomlMath.fma(-this.x, x, JomlMath.fma(-this.y, y, -this.z * z)))
         )
     }
 
     @JvmOverloads
     fun rotateZYX(angleZ: Float, angleY: Float, angleX: Float, dest: Quaternionf = this): Quaternionf {
-        val sx = Math.sin(angleX * 0.5f)
-        val cx = Math.cosFromSin(sx, angleX * 0.5f)
-        val sy = Math.sin(angleY * 0.5f)
-        val cy = Math.cosFromSin(sy, angleY * 0.5f)
-        val sz = Math.sin(angleZ * 0.5f)
-        val cz = Math.cosFromSin(sz, angleZ * 0.5f)
+        val sx = sin(angleX * 0.5f)
+        val cx = cos(angleX * 0.5f)
+        val sy = sin(angleY * 0.5f)
+        val cy = cos(angleY * 0.5f)
+        val sz = sin(angleZ * 0.5f)
+        val cz = cos(angleZ * 0.5f)
         val cycz = cy * cz
         val sysz = sy * sz
         val sycz = sy * cz
@@ -1481,21 +1475,21 @@ class Quaternionf : Cloneable {
         val y = cx * sycz + sx * cysz
         val z = cx * cysz - sx * sycz
         return dest.set(
-            Math.fma(this.w, x, Math.fma(this.x, w, Math.fma(this.y, z, -this.z * y))),
-            Math.fma(this.w, y, Math.fma(-this.x, z, Math.fma(this.y, w, this.z * x))),
-            Math.fma(this.w, z, Math.fma(this.x, y, Math.fma(-this.y, x, this.z * w))),
-            Math.fma(this.w, w, Math.fma(-this.x, x, Math.fma(-this.y, y, -this.z * z)))
+            JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
+            JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
+            JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
+            JomlMath.fma(this.w, w, JomlMath.fma(-this.x, x, JomlMath.fma(-this.y, y, -this.z * z)))
         )
     }
 
     @JvmOverloads
     fun rotateYXZ(angleY: Float, angleX: Float, angleZ: Float, dest: Quaternionf = this): Quaternionf {
-        val sx = Math.sin(angleX * 0.5f)
-        val cx = Math.cosFromSin(sx, angleX * 0.5f)
-        val sy = Math.sin(angleY * 0.5f)
-        val cy = Math.cosFromSin(sy, angleY * 0.5f)
-        val sz = Math.sin(angleZ * 0.5f)
-        val cz = Math.cosFromSin(sz, angleZ * 0.5f)
+        val sx = sin(angleX * 0.5f)
+        val cx = cos(angleX * 0.5f)
+        val sy = sin(angleY * 0.5f)
+        val cy = cos(angleY * 0.5f)
+        val sz = sin(angleZ * 0.5f)
+        val cz = cos(angleZ * 0.5f)
         val yx = cy * sx
         val yy = sy * cx
         val yz = sy * sx
@@ -1505,52 +1499,52 @@ class Quaternionf : Cloneable {
         val z = yw * sz - yz * cz
         val w = yw * cz + yz * sz
         return dest.set(
-            Math.fma(this.w, x, Math.fma(this.x, w, Math.fma(this.y, z, -this.z * y))),
-            Math.fma(this.w, y, Math.fma(-this.x, z, Math.fma(this.y, w, this.z * x))),
-            Math.fma(this.w, z, Math.fma(this.x, y, Math.fma(-this.y, x, this.z * w))),
-            Math.fma(this.w, w, Math.fma(-this.x, x, Math.fma(-this.y, y, -this.z * z)))
+            JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
+            JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
+            JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
+            JomlMath.fma(this.w, w, JomlMath.fma(-this.x, x, JomlMath.fma(-this.y, y, -this.z * z)))
         )
     }
 
     fun getEulerAnglesXYZ(eulerAngles: Vector3f): Vector3f {
-        eulerAngles.x = Math.atan2(x * w - y * z, 0.5f - x * x - y * y)
-        eulerAngles.y = Math.safeAsin(2f * (x * z + y * w))
-        eulerAngles.z = Math.atan2(z * w - x * y, 0.5f - y * y - z * z)
+        eulerAngles.x = atan2(x * w - y * z, 0.5f - x * x - y * y)
+        eulerAngles.y = JomlMath.safeAsin(2f * (x * z + y * w))
+        eulerAngles.z = atan2(z * w - x * y, 0.5f - y * y - z * z)
         return eulerAngles
     }
 
     fun getEulerAnglesZYX(eulerAngles: Vector3f): Vector3f {
-        eulerAngles.x = Math.atan2(y * z + w * x, 0.5f - x * x + y * y)
-        eulerAngles.y = Math.safeAsin(-2f * (x * z - w * y))
-        eulerAngles.z = Math.atan2(x * y + w * z, 0.5f - y * y - z * z)
+        eulerAngles.x = atan2(y * z + w * x, 0.5f - x * x + y * y)
+        eulerAngles.y = JomlMath.safeAsin(-2f * (x * z - w * y))
+        eulerAngles.z = atan2(x * y + w * z, 0.5f - y * y - z * z)
         return eulerAngles
     }
 
     fun getEulerAnglesZXY(eulerAngles: Vector3f): Vector3f {
-        eulerAngles.x = Math.safeAsin(2f * (w * x + y * z))
-        eulerAngles.y = Math.atan2(w * y - x * z, 0.5f - y * y - x * x)
-        eulerAngles.z = Math.atan2(w * z - x * y, 0.5f - z * z - x * x)
+        eulerAngles.x = JomlMath.safeAsin(2f * (w * x + y * z))
+        eulerAngles.y = atan2(w * y - x * z, 0.5f - y * y - x * x)
+        eulerAngles.z = atan2(w * z - x * y, 0.5f - z * z - x * x)
         return eulerAngles
     }
 
     fun getEulerAnglesYXZ(eulerAngles: Vector3f): Vector3f {
-        eulerAngles.x = Math.safeAsin(-2f * (y * z - w * x))
-        eulerAngles.y = Math.atan2(x * z + y * w, 0.5f - y * y - x * x)
-        eulerAngles.z = Math.atan2(y * x + w * z, 0.5f - x * x - z * z)
+        eulerAngles.x = JomlMath.safeAsin(-2f * (y * z - w * x))
+        eulerAngles.y = atan2(x * z + y * w, 0.5f - y * y - x * x)
+        eulerAngles.z = atan2(y * x + w * z, 0.5f - x * x - z * z)
         return eulerAngles
     }
 
     fun lengthSquared(): Float {
-        return Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w)))
+        return JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w)))
     }
 
     fun rotationXYZ(angleX: Float, angleY: Float, angleZ: Float): Quaternionf {
-        val sx = Math.sin(angleX * 0.5f)
-        val cx = Math.cosFromSin(sx, angleX * 0.5f)
-        val sy = Math.sin(angleY * 0.5f)
-        val cy = Math.cosFromSin(sy, angleY * 0.5f)
-        val sz = Math.sin(angleZ * 0.5f)
-        val cz = Math.cosFromSin(sz, angleZ * 0.5f)
+        val sx = sin(angleX * 0.5f)
+        val cx = cos(angleX * 0.5f)
+        val sy = sin(angleY * 0.5f)
+        val cy = cos(angleY * 0.5f)
+        val sz = sin(angleZ * 0.5f)
+        val cz = cos(angleZ * 0.5f)
         val cycz = cy * cz
         val sysz = sy * sz
         val sycz = sy * cz
@@ -1563,12 +1557,12 @@ class Quaternionf : Cloneable {
     }
 
     fun rotationZYX(angleZ: Float, angleY: Float, angleX: Float): Quaternionf {
-        val sx = Math.sin(angleX * 0.5f)
-        val cx = Math.cosFromSin(sx, angleX * 0.5f)
-        val sy = Math.sin(angleY * 0.5f)
-        val cy = Math.cosFromSin(sy, angleY * 0.5f)
-        val sz = Math.sin(angleZ * 0.5f)
-        val cz = Math.cosFromSin(sz, angleZ * 0.5f)
+        val sx = sin(angleX * 0.5f)
+        val cx = cos(angleX * 0.5f)
+        val sy = sin(angleY * 0.5f)
+        val cy = cos(angleY * 0.5f)
+        val sz = sin(angleZ * 0.5f)
+        val cz = cos(angleZ * 0.5f)
         val cycz = cy * cz
         val sysz = sy * sz
         val sycz = sy * cz
@@ -1581,12 +1575,12 @@ class Quaternionf : Cloneable {
     }
 
     fun rotationYXZ(angleY: Float, angleX: Float, angleZ: Float): Quaternionf {
-        val sx = Math.sin(angleX * 0.5f)
-        val cx = Math.cosFromSin(sx, angleX * 0.5f)
-        val sy = Math.sin(angleY * 0.5f)
-        val cy = Math.cosFromSin(sy, angleY * 0.5f)
-        val sz = Math.sin(angleZ * 0.5f)
-        val cz = Math.cosFromSin(sz, angleZ * 0.5f)
+        val sx = sin(angleX * 0.5f)
+        val cx = cos(angleX * 0.5f)
+        val sy = sin(angleY * 0.5f)
+        val cy = cos(angleY * 0.5f)
+        val sz = sin(angleZ * 0.5f)
+        val cz = cos(angleZ * 0.5f)
         val x = cy * sx
         val y = sy * cx
         val z = sy * sx
@@ -1600,31 +1594,31 @@ class Quaternionf : Cloneable {
 
     @JvmOverloads
     fun slerp(target: Quaternionf, alpha: Float, dest: Quaternionf = this): Quaternionf {
-        val cosom = Math.fma(x, target.x, Math.fma(y, target.y, Math.fma(z, target.z, w * target.w)))
-        val absCosom = Math.abs(cosom)
+        val cosom = JomlMath.fma(x, target.x, JomlMath.fma(y, target.y, JomlMath.fma(z, target.z, w * target.w)))
+        val absCosom = abs(cosom)
         val scale0: Float
         var scale1: Float
         if (1f - absCosom > 1.0E-6f) {
             val sinSqr = 1f - absCosom * absCosom
-            val sinom = Math.invsqrt(sinSqr)
-            val omega = Math.atan2(sinSqr * sinom, absCosom)
-            scale0 = (Math.sin((1.0 - alpha.toDouble()) * omega.toDouble()) * sinom.toDouble()).toFloat()
-            scale1 = Math.sin(alpha * omega) * sinom
+            val sinom = JomlMath.invsqrt(sinSqr)
+            val omega = atan2(sinSqr * sinom, absCosom)
+            scale0 = (sin((1.0 - alpha.toDouble()) * omega.toDouble()) * sinom.toDouble()).toFloat()
+            scale1 = sin(alpha * omega) * sinom
         } else {
             scale0 = 1f - alpha
             scale1 = alpha
         }
         scale1 = if (cosom >= 0f) scale1 else -scale1
-        dest.x = Math.fma(scale0, x, scale1 * target.x)
-        dest.y = Math.fma(scale0, y, scale1 * target.y)
-        dest.z = Math.fma(scale0, z, scale1 * target.z)
-        dest.w = Math.fma(scale0, w, scale1 * target.w)
+        dest.x = JomlMath.fma(scale0, x, scale1 * target.x)
+        dest.y = JomlMath.fma(scale0, y, scale1 * target.y)
+        dest.z = JomlMath.fma(scale0, z, scale1 * target.z)
+        dest.w = JomlMath.fma(scale0, w, scale1 * target.w)
         return dest
     }
 
     @JvmOverloads
     fun scale(factor: Float, dest: Quaternionf = this): Quaternionf {
-        val sqrt = Math.sqrt(factor)
+        val sqrt = sqrt(factor)
         dest.x = sqrt * x
         dest.y = sqrt * y
         dest.z = sqrt * z
@@ -1633,7 +1627,7 @@ class Quaternionf : Cloneable {
     }
 
     fun scaling(factor: Float): Quaternionf {
-        val sqrt = Math.sqrt(factor)
+        val sqrt = sqrt(factor)
         x = 0f
         y = 0f
         z = 0f
@@ -1653,33 +1647,32 @@ class Quaternionf : Cloneable {
             dqW = 1f - thetaMagSq * 0.5f
             s = 1f - thetaMagSq / 6f
         } else {
-            val thetaMag = Math.sqrt(thetaMagSq)
-            val sin = Math.sin(thetaMag)
-            s = sin / thetaMag
-            dqW = Math.cosFromSin(sin, thetaMag)
+            val thetaMag = sqrt(thetaMagSq)
+            s = sin(thetaMag) / thetaMag
+            dqW = cos(thetaMag)
         }
         val dqX = thetaX * s
         val dqY = thetaY * s
         val dqZ = thetaZ * s
         return dest.set(
-            Math.fma(dqW, x, Math.fma(dqX, w, Math.fma(dqY, z, -dqZ * y))),
-            Math.fma(dqW, y, Math.fma(-dqX, z, Math.fma(dqY, w, dqZ * x))),
-            Math.fma(dqW, z, Math.fma(dqX, y, Math.fma(-dqY, x, dqZ * w))),
-            Math.fma(dqW, w, Math.fma(-dqX, x, Math.fma(-dqY, y, -dqZ * z)))
+            JomlMath.fma(dqW, x, JomlMath.fma(dqX, w, JomlMath.fma(dqY, z, -dqZ * y))),
+            JomlMath.fma(dqW, y, JomlMath.fma(-dqX, z, JomlMath.fma(dqY, w, dqZ * x))),
+            JomlMath.fma(dqW, z, JomlMath.fma(dqX, y, JomlMath.fma(-dqY, x, dqZ * w))),
+            JomlMath.fma(dqW, w, JomlMath.fma(-dqX, x, JomlMath.fma(-dqY, y, -dqZ * z)))
         )
     }
 
     @JvmOverloads
     fun nlerp(q: Quaternionf, factor: Float, dest: Quaternionf = this): Quaternionf {
-        val cosom = Math.fma(x, q.x, Math.fma(y, q.y, Math.fma(z, q.z, w * q.w)))
+        val cosom = JomlMath.fma(x, q.x, JomlMath.fma(y, q.y, JomlMath.fma(z, q.z, w * q.w)))
         val scale0 = 1f - factor
         val scale1 = if (cosom >= 0f) factor else -factor
-        dest.x = Math.fma(scale0, x, scale1 * q.x)
-        dest.y = Math.fma(scale0, y, scale1 * q.y)
-        dest.z = Math.fma(scale0, z, scale1 * q.z)
-        dest.w = Math.fma(scale0, w, scale1 * q.w)
+        dest.x = JomlMath.fma(scale0, x, scale1 * q.x)
+        dest.y = JomlMath.fma(scale0, y, scale1 * q.y)
+        dest.z = JomlMath.fma(scale0, z, scale1 * q.z)
+        dest.w = JomlMath.fma(scale0, w, scale1 * q.w)
         val s =
-            Math.invsqrt(Math.fma(dest.x, dest.x, Math.fma(dest.y, dest.y, Math.fma(dest.z, dest.z, dest.w * dest.w))))
+            JomlMath.invsqrt(JomlMath.fma(dest.x, dest.x, JomlMath.fma(dest.y, dest.y, JomlMath.fma(dest.z, dest.z, dest.w * dest.w))))
         dest.x *= s
         dest.y *= s
         dest.z *= s
@@ -1697,8 +1690,8 @@ class Quaternionf : Cloneable {
         var q2y = q.y
         var q2z = q.z
         var q2w = q.w
-        var dot = Math.fma(q1x, q2x, Math.fma(q1y, q2y, Math.fma(q1z, q2z, q1w * q2w)))
-        var absDot = Math.abs(dot)
+        var dot = JomlMath.fma(q1x, q2x, JomlMath.fma(q1y, q2y, JomlMath.fma(q1z, q2z, q1w * q2w)))
+        var absDot = abs(dot)
         return if (0.999999f < absDot) {
             dest.set(this)
         } else {
@@ -1711,15 +1704,15 @@ class Quaternionf : Cloneable {
                 scale0 = 0.5f
                 scale1 = if (dot >= 0f) 0.5f else -0.5f
                 if (alphaN < 0.5f) {
-                    q2x = Math.fma(scale0, q2x, scale1 * q1x)
-                    q2y = Math.fma(scale0, q2y, scale1 * q1y)
-                    q2z = Math.fma(scale0, q2z, scale1 * q1z)
-                    q2w = Math.fma(scale0, q2w, scale1 * q1w)
-                    s = Math.invsqrt(
-                        Math.fma(
+                    q2x = JomlMath.fma(scale0, q2x, scale1 * q1x)
+                    q2y = JomlMath.fma(scale0, q2y, scale1 * q1y)
+                    q2z = JomlMath.fma(scale0, q2z, scale1 * q1z)
+                    q2w = JomlMath.fma(scale0, q2w, scale1 * q1w)
+                    s = JomlMath.invsqrt(
+                        JomlMath.fma(
                             q2x,
                             q2x,
-                            Math.fma(q2y, q2y, Math.fma(q2z, q2z, q2w * q2w))
+                            JomlMath.fma(q2y, q2y, JomlMath.fma(q2z, q2z, q2w * q2w))
                         )
                     )
                     q2x *= s
@@ -1728,15 +1721,15 @@ class Quaternionf : Cloneable {
                     q2w *= s
                     alphaN += alphaN
                 } else {
-                    q1x = Math.fma(scale0, q1x, scale1 * q2x)
-                    q1y = Math.fma(scale0, q1y, scale1 * q2y)
-                    q1z = Math.fma(scale0, q1z, scale1 * q2z)
-                    q1w = Math.fma(scale0, q1w, scale1 * q2w)
-                    s = Math.invsqrt(
-                        Math.fma(
+                    q1x = JomlMath.fma(scale0, q1x, scale1 * q2x)
+                    q1y = JomlMath.fma(scale0, q1y, scale1 * q2y)
+                    q1z = JomlMath.fma(scale0, q1z, scale1 * q2z)
+                    q1w = JomlMath.fma(scale0, q1w, scale1 * q2w)
+                    s = JomlMath.invsqrt(
+                        JomlMath.fma(
                             q1x,
                             q1x,
-                            Math.fma(q1y, q1y, Math.fma(q1z, q1z, q1w * q1w))
+                            JomlMath.fma(q1y, q1y, JomlMath.fma(q1z, q1z, q1w * q1w))
                         )
                     )
                     q1x *= s
@@ -1745,20 +1738,20 @@ class Quaternionf : Cloneable {
                     q1w *= s
                     alphaN = alphaN + alphaN - 1f
                 }
-                dot = Math.fma(q1x, q2x, Math.fma(q1y, q2y, Math.fma(q1z, q2z, q1w * q2w)))
-                absDot = Math.abs(dot)
+                dot = JomlMath.fma(q1x, q2x, JomlMath.fma(q1y, q2y, JomlMath.fma(q1z, q2z, q1w * q2w)))
+                absDot = abs(dot)
             }
             scale0 = 1f - alphaN
             scale1 = if (dot >= 0f) alphaN else -alphaN
-            s = Math.fma(scale0, q1x, scale1 * q2x)
-            val resY = Math.fma(scale0, q1y, scale1 * q2y)
-            val resZ = Math.fma(scale0, q1z, scale1 * q2z)
-            val resW = Math.fma(scale0, q1w, scale1 * q2w)
-            s = Math.invsqrt(
-                Math.fma(
+            s = JomlMath.fma(scale0, q1x, scale1 * q2x)
+            val resY = JomlMath.fma(scale0, q1y, scale1 * q2y)
+            val resZ = JomlMath.fma(scale0, q1z, scale1 * q2z)
+            val resW = JomlMath.fma(scale0, q1w, scale1 * q2w)
+            s = JomlMath.invsqrt(
+                JomlMath.fma(
                     s,
                     s,
-                    Math.fma(resY, resY, Math.fma(resZ, resZ, resW * resW))
+                    JomlMath.fma(resY, resY, JomlMath.fma(resZ, resZ, resW * resW))
                 )
             )
             dest.x = s * s
@@ -1787,14 +1780,14 @@ class Quaternionf : Cloneable {
         upZ: Float,
         dest: Quaternionf = this
     ): Quaternionf {
-        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
         val dirnX = -dirX * invDirLength
         val dirnY = -dirY * invDirLength
         val dirnZ = -dirZ * invDirLength
         var leftX = upY * dirnZ - upZ * dirnY
         var leftY = upZ * dirnX - upX * dirnZ
         var leftZ = upX * dirnY - upY * dirnX
-        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        val invLeftLength = JomlMath.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
         leftX *= invLeftLength
         leftY *= invLeftLength
         leftZ *= invLeftLength
@@ -1808,28 +1801,28 @@ class Quaternionf : Cloneable {
         val w: Float
         var t: Double
         if (tr >= 0.0) {
-            t = Math.sqrt(tr + 1.0)
+            t = sqrt(tr + 1.0)
             w = (t * 0.5).toFloat()
             t = 0.5 / t
             x = ((dirnY - upnZ).toDouble() * t).toFloat()
             y = ((leftZ - dirnX).toDouble() * t).toFloat()
             z = ((upnX - leftY).toDouble() * t).toFloat()
         } else if (leftX > upnY && leftX > dirnZ) {
-            t = Math.sqrt(1.0 + leftX.toDouble() - upnY.toDouble() - dirnZ.toDouble())
+            t = sqrt(1.0 + leftX.toDouble() - upnY.toDouble() - dirnZ.toDouble())
             x = (t * 0.5).toFloat()
             t = 0.5 / t
             y = ((leftY + upnX).toDouble() * t).toFloat()
             z = ((dirnX + leftZ).toDouble() * t).toFloat()
             w = ((dirnY - upnZ).toDouble() * t).toFloat()
         } else if (upnY > dirnZ) {
-            t = Math.sqrt(1.0 + upnY.toDouble() - leftX.toDouble() - dirnZ.toDouble())
+            t = sqrt(1.0 + upnY.toDouble() - leftX.toDouble() - dirnZ.toDouble())
             y = (t * 0.5).toFloat()
             t = 0.5 / t
             x = ((leftY + upnX).toDouble() * t).toFloat()
             z = ((upnZ + dirnY).toDouble() * t).toFloat()
             w = ((leftZ - dirnX).toDouble() * t).toFloat()
         } else {
-            t = Math.sqrt(1.0 + dirnZ.toDouble() - leftX.toDouble() - upnY.toDouble())
+            t = sqrt(1.0 + dirnZ.toDouble() - leftX.toDouble() - upnY.toDouble())
             z = (t * 0.5).toFloat()
             t = 0.5 / t
             x = ((dirnX + leftZ).toDouble() * t).toFloat()
@@ -1837,10 +1830,10 @@ class Quaternionf : Cloneable {
             w = ((upnX - leftY).toDouble() * t).toFloat()
         }
         return dest.set(
-            Math.fma(this.w, x, Math.fma(this.x, w, Math.fma(this.y, z, -this.z * y))),
-            Math.fma(this.w, y, Math.fma(-this.x, z, Math.fma(this.y, w, this.z * x))),
-            Math.fma(this.w, z, Math.fma(this.x, y, Math.fma(-this.y, x, this.z * w))),
-            Math.fma(this.w, w, Math.fma(-this.x, x, Math.fma(-this.y, y, -this.z * z)))
+            JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
+            JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
+            JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
+            JomlMath.fma(this.w, w, JomlMath.fma(-this.x, x, JomlMath.fma(-this.y, y, -this.z * z)))
         )
     }
 
@@ -1852,8 +1845,8 @@ class Quaternionf : Cloneable {
         toDirY: Float,
         toDirZ: Float
     ): Quaternionf {
-        val fn = Math.invsqrt(Math.fma(fromDirX, fromDirX, Math.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
-        val tn = Math.invsqrt(Math.fma(toDirX, toDirX, Math.fma(toDirY, toDirY, toDirZ * toDirZ)))
+        val fn = JomlMath.invsqrt(JomlMath.fma(fromDirX, fromDirX, JomlMath.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
+        val tn = JomlMath.invsqrt(JomlMath.fma(toDirX, toDirX, JomlMath.fma(toDirY, toDirY, toDirZ * toDirZ)))
         val fx = fromDirX * fn
         val fy = fromDirY * fn
         val fz = fromDirZ * fn
@@ -1879,7 +1872,7 @@ class Quaternionf : Cloneable {
             this.z = z
             this.w = 0f
         } else {
-            val sd2 = Math.sqrt((1f + dot) * 2f)
+            val sd2 = sqrt((1f + dot) * 2f)
             val isd2 = 1f / sd2
             val cx = fy * tz - fz * ty
             val cy = fz * tx - fx * tz
@@ -1888,7 +1881,7 @@ class Quaternionf : Cloneable {
             y = cy * isd2
             z = cz * isd2
             w = sd2 * 0.5f
-            val n2 = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w))))
+            val n2 = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
             this.x = x * n2
             this.y = y * n2
             this.z = z * n2
@@ -1911,8 +1904,8 @@ class Quaternionf : Cloneable {
         toDirZ: Float,
         dest: Quaternionf = this
     ): Quaternionf {
-        val fn = Math.invsqrt(Math.fma(fromDirX, fromDirX, Math.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
-        val tn = Math.invsqrt(Math.fma(toDirX, toDirX, Math.fma(toDirY, toDirY, toDirZ * toDirZ)))
+        val fn = JomlMath.invsqrt(JomlMath.fma(fromDirX, fromDirX, JomlMath.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
+        val tn = JomlMath.invsqrt(JomlMath.fma(toDirX, toDirX, JomlMath.fma(toDirY, toDirY, toDirZ * toDirZ)))
         val fx = fromDirX * fn
         val fy = fromDirY * fn
         val fz = fromDirZ * fn
@@ -1936,7 +1929,7 @@ class Quaternionf : Cloneable {
                 w = 0f
             }
         } else {
-            val sd2 = Math.sqrt((1f + dot) * 2f)
+            val sd2 = sqrt((1f + dot) * 2f)
             val isd2 = 1f / sd2
             val cx = fy * tz - fz * ty
             val cy = fz * tx - fx * tz
@@ -1945,17 +1938,17 @@ class Quaternionf : Cloneable {
             y = cy * isd2
             z = cz * isd2
             w = sd2 * 0.5f
-            val n2 = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w))))
+            val n2 = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
             x *= n2
             y *= n2
             z *= n2
             w *= n2
         }
         return dest.set(
-            Math.fma(this.w, x, Math.fma(this.x, w, Math.fma(this.y, z, -this.z * y))),
-            Math.fma(this.w, y, Math.fma(-this.x, z, Math.fma(this.y, w, this.z * x))),
-            Math.fma(this.w, z, Math.fma(this.x, y, Math.fma(-this.y, x, this.z * w))),
-            Math.fma(this.w, w, Math.fma(-this.x, x, Math.fma(-this.y, y, -this.z * z)))
+            JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
+            JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
+            JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
+            JomlMath.fma(this.w, w, JomlMath.fma(-this.x, x, JomlMath.fma(-this.y, y, -this.z * z)))
         )
     }
 
@@ -1969,30 +1962,30 @@ class Quaternionf : Cloneable {
 
     @JvmOverloads
     fun rotateX(angle: Float, dest: Quaternionf = this): Quaternionf {
-        val sin = Math.sin(angle * 0.5f)
-        val cos = Math.cosFromSin(sin, angle * 0.5f)
+        val sin = sin(angle * 0.5f)
+        val cos = cos(angle * 0.5f)
         return dest.set(w * sin + x * cos, y * cos + z * sin, z * cos - y * sin, w * cos - x * sin)
     }
 
     @JvmOverloads
     fun rotateY(angle: Float, dest: Quaternionf = this): Quaternionf {
-        val sin = Math.sin(angle * 0.5f)
-        val cos = Math.cosFromSin(sin, angle * 0.5f)
+        val sin = sin(angle * 0.5f)
+        val cos = cos(angle * 0.5f)
         return dest.set(x * cos - z * sin, w * sin + y * cos, x * sin + z * cos, w * cos - y * sin)
     }
 
     @JvmOverloads
     fun rotateZ(angle: Float, dest: Quaternionf = this): Quaternionf {
-        val sin = Math.sin(angle * 0.5f)
-        val cos = Math.cosFromSin(sin, angle * 0.5f)
+        val sin = sin(angle * 0.5f)
+        val cos = cos(angle * 0.5f)
         return dest.set(x * cos + y * sin, y * cos - x * sin, w * sin + z * cos, w * cos - z * sin)
     }
 
     @JvmOverloads
     fun rotateLocalX(angle: Float, dest: Quaternionf = this): Quaternionf {
         val halfAngle = angle * 0.5f
-        val s = Math.sin(halfAngle)
-        val c = Math.cosFromSin(s, halfAngle)
+        val s = sin(halfAngle)
+        val c = cos(halfAngle)
         dest[c * x + s * w, c * y - s * z, c * z + s * y] = c * w - s * x
         return dest
     }
@@ -2000,8 +1993,8 @@ class Quaternionf : Cloneable {
     @JvmOverloads
     fun rotateLocalY(angle: Float, dest: Quaternionf = this): Quaternionf {
         val halfAngle = angle * 0.5f
-        val s = Math.sin(halfAngle)
-        val c = Math.cosFromSin(s, halfAngle)
+        val s = sin(halfAngle)
+        val c = cos(halfAngle)
         dest[c * x + s * z, c * y + s * w, c * z - s * x] = c * w - s * y
         return dest
     }
@@ -2009,8 +2002,8 @@ class Quaternionf : Cloneable {
     @JvmOverloads
     fun rotateLocalZ(angle: Float, dest: Quaternionf = this): Quaternionf {
         val halfAngle = angle * 0.5f
-        val s = Math.sin(halfAngle)
-        val c = Math.cosFromSin(s, halfAngle)
+        val s = sin(halfAngle)
+        val c = cos(halfAngle)
         dest[c * x - s * y, c * y + s * x, c * z + s * w] = c * w - s * z
         return dest
     }
@@ -2018,20 +2011,20 @@ class Quaternionf : Cloneable {
     @JvmOverloads
     fun rotateAxis(angle: Float, axisX: Float, axisY: Float, axisZ: Float, dest: Quaternionf = this): Quaternionf {
         val halfAngle = angle / 2f
-        val sinAngle = Math.sin(halfAngle)
-        val invVLength = Math.invsqrt(Math.fma(axisX, axisX, Math.fma(axisY, axisY, axisZ * axisZ)))
+        val sinAngle = sin(halfAngle)
+        val invVLength = JomlMath.invsqrt(JomlMath.fma(axisX, axisX, JomlMath.fma(axisY, axisY, axisZ * axisZ)))
         val rx = axisX * invVLength * sinAngle
         val ry = axisY * invVLength * sinAngle
         val rz = axisZ * invVLength * sinAngle
-        val rw = Math.cosFromSin(sinAngle, halfAngle)
+        val rw = cos(halfAngle)
         return dest.set(
-            Math.fma(w, rx, Math.fma(x, rw, Math.fma(y, rz, -z * ry))), Math.fma(
-                w, ry, Math.fma(-x, rz, Math.fma(y, rw, z * rx))
-            ), Math.fma(
-                w, rz, Math.fma(
-                    x, ry, Math.fma(-y, rx, z * rw)
+            JomlMath.fma(w, rx, JomlMath.fma(x, rw, JomlMath.fma(y, rz, -z * ry))), JomlMath.fma(
+                w, ry, JomlMath.fma(-x, rz, JomlMath.fma(y, rw, z * rx))
+            ), JomlMath.fma(
+                w, rz, JomlMath.fma(
+                    x, ry, JomlMath.fma(-y, rx, z * rw)
                 )
-            ), Math.fma(w, rw, Math.fma(-x, rx, Math.fma(-y, ry, -z * rz)))
+            ), JomlMath.fma(w, rw, JomlMath.fma(-x, rx, JomlMath.fma(-y, ry, -z * rz)))
         )
     }
 
@@ -2056,15 +2049,15 @@ class Quaternionf : Cloneable {
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
             true
-        } else if (obj == null) {
+        } else if (other == null) {
             false
-        } else if (this.javaClass != obj.javaClass) {
+        } else if (this.javaClass != other.javaClass) {
             false
         } else {
-            val other = obj as Quaternionf
+            other as Quaternionf
             if (java.lang.Float.floatToIntBits(w) != java.lang.Float.floatToIntBits(other.w)) {
                 false
             } else if (java.lang.Float.floatToIntBits(x) != java.lang.Float.floatToIntBits(other.x)) {
@@ -2084,12 +2077,12 @@ class Quaternionf : Cloneable {
         val y = -y * invNorm
         val z = -z * invNorm
         val w = w * invNorm
-        dest[Math.fma(w, other.x, Math.fma(x, other.w, Math.fma(y, other.z, -z * other.y))), Math.fma(
+        dest[JomlMath.fma(w, other.x, JomlMath.fma(x, other.w, JomlMath.fma(y, other.z, -z * other.y))), JomlMath.fma(
             w,
             other.y,
-            Math.fma(-x, other.z, Math.fma(y, other.w, z * other.x))
-        ), Math.fma(w, other.z, Math.fma(x, other.y, Math.fma(-y, other.x, z * other.w)))] =
-            Math.fma(w, other.w, Math.fma(-x, other.x, Math.fma(-y, other.y, -z * other.z)))
+            JomlMath.fma(-x, other.z, JomlMath.fma(y, other.w, z * other.x))
+        ), JomlMath.fma(w, other.z, JomlMath.fma(x, other.y, JomlMath.fma(-y, other.x, z * other.w)))] =
+            JomlMath.fma(w, other.w, JomlMath.fma(-x, other.x, JomlMath.fma(-y, other.y, -z * other.z)))
         return dest
     }
 
@@ -2173,20 +2166,20 @@ class Quaternionf : Cloneable {
         val qiy = -q.y * invNorm
         val qiz = -q.z * invNorm
         val qiw = q.w * invNorm
-        val qpx = Math.fma(q.w, x, Math.fma(q.x, w, Math.fma(q.y, z, -q.z * y)))
-        val qpy = Math.fma(q.w, y, Math.fma(-q.x, z, Math.fma(q.y, w, q.z * x)))
-        val qpz = Math.fma(q.w, z, Math.fma(q.x, y, Math.fma(-q.y, x, q.z * w)))
-        val qpw = Math.fma(q.w, w, Math.fma(-q.x, x, Math.fma(-q.y, y, -q.z * z)))
+        val qpx = JomlMath.fma(q.w, x, JomlMath.fma(q.x, w, JomlMath.fma(q.y, z, -q.z * y)))
+        val qpy = JomlMath.fma(q.w, y, JomlMath.fma(-q.x, z, JomlMath.fma(q.y, w, q.z * x)))
+        val qpz = JomlMath.fma(q.w, z, JomlMath.fma(q.x, y, JomlMath.fma(-q.y, x, q.z * w)))
+        val qpw = JomlMath.fma(q.w, w, JomlMath.fma(-q.x, x, JomlMath.fma(-q.y, y, -q.z * z)))
         return dest.set(
-            Math.fma(qpw, qix, Math.fma(qpx, qiw, Math.fma(qpy, qiz, -qpz * qiy))),
-            Math.fma(qpw, qiy, Math.fma(-qpx, qiz, Math.fma(qpy, qiw, qpz * qix))),
-            Math.fma(qpw, qiz, Math.fma(qpx, qiy, Math.fma(-qpy, qix, qpz * qiw))),
-            Math.fma(qpw, qiw, Math.fma(-qpx, qix, Math.fma(-qpy, qiy, -qpz * qiz)))
+            JomlMath.fma(qpw, qix, JomlMath.fma(qpx, qiw, JomlMath.fma(qpy, qiz, -qpz * qiy))),
+            JomlMath.fma(qpw, qiy, JomlMath.fma(-qpx, qiz, JomlMath.fma(qpy, qiw, qpz * qix))),
+            JomlMath.fma(qpw, qiz, JomlMath.fma(qpx, qiy, JomlMath.fma(-qpy, qix, qpz * qiw))),
+            JomlMath.fma(qpw, qiw, JomlMath.fma(-qpx, qix, JomlMath.fma(-qpy, qiy, -qpz * qiz)))
         )
     }
 
     val isFinite: Boolean
-        get() = Math.isFinite(x) && Math.isFinite(y) && Math.isFinite(z) && Math.isFinite(w)
+        get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z) && JomlMath.isFinite(w)
 
     fun equals(q: Quaternionf?, delta: Float): Boolean {
         return if (this === q) {

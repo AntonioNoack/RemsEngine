@@ -75,7 +75,7 @@ class NavMesh : Component() {
 
     fun build2() {
         data = data ?: build() ?: return
-        mesh = mesh ?: org.recast4j.detour.NavMesh(data, maxVerticesPerPoly, 0)
+        mesh = mesh ?: org.recast4j.detour.NavMesh(data!!, maxVerticesPerPoly, 0)
     }
 
     fun build(): MeshData? {
@@ -142,11 +142,12 @@ class NavMesh : Component() {
         val fal = FloatArrayList(256)
         val dv = data.vertices
         val ddv = data.detailVertices
-        for (i in 0 until data.header.polyCount) {
+        val header = data.header!!
+        for (i in 0 until header.polyCount) {
             val p = data.polygons[i]
             if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
             val pv = p.vertices
-            val detailMesh = data.detailMeshes[i]
+            val detailMesh = data.detailMeshes?.get(i)
             if (detailMesh != null) {
                 for (j in 0 until detailMesh.triCount) {
                     val t = (detailMesh.triBase + j) * 4
@@ -176,11 +177,12 @@ class NavMesh : Component() {
             val a = Vector3f()
             val b = Vector3f()
             val c = Vector3f()
-            for (i in 0 until data.header.polyCount) {
+            val header = data.header!!
+            for (i in 0 until header.polyCount) {
                 val p = data.polygons[i]
                 if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
                 val pv = p.vertices
-                val detailMesh = data.detailMeshes[i]
+                val detailMesh = data.detailMeshes?.get(i)
                 if (detailMesh != null) {
                     for (j in 0 until detailMesh.triCount) {
                         val t = (detailMesh.triBase + j) * 4

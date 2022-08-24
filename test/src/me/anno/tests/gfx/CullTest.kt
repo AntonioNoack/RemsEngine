@@ -2,9 +2,9 @@ package me.anno.tests.gfx
 
 import me.anno.engine.ui.render.Frustum
 import me.anno.image.ImageWriter.writeImageInt
+import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
-import org.joml.Math.toRadians
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
@@ -20,7 +20,7 @@ fun imageTest(frustum: Frustum) {
     val h = 256
 
     frustum.definePerspective(
-        0.001, 100.0, toRadians(20.0), w, h, 1.0,
+        0.001, 100.0, (20.0).toRadians(), w, h, 1.0,
         Vector3d(0.0, 0.0, 0.0),
         Quaterniond().rotateX(0.3)
     )
@@ -46,7 +46,7 @@ fun simpleTest(frustum: Frustum) {
 
     val res = 100
 
-    frustum.definePerspective(0.001, 100.0, toRadians(90.0), res, res, 1.0, Vector3d(0.0, 0.0, -1.0), Quaterniond())
+    frustum.definePerspective(0.001, 100.0, (90.0).toRadians(), res, res, 1.0, Vector3d(0.0, 0.0, -1.0), Quaterniond())
 
     val aabb1 = AABBd()
     aabb1.union(0.0, 0.0, 0.0)
@@ -58,7 +58,7 @@ fun simpleTest(frustum: Frustum) {
 
     logger.info("shall be false: ${aabb2 in frustum}")
 
-    frustum.definePerspective(0.001, 100.0, toRadians(90.0), res, res, 1.0, Vector3d(0.0, 0.0, 1.0), Quaterniond())
+    frustum.definePerspective(0.001, 100.0, (90.0).toRadians(), res, res, 1.0, Vector3d(0.0, 0.0, 1.0), Quaterniond())
 
     logger.info("shall be true: ${aabb1 in frustum}")
 

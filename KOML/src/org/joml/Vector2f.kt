@@ -47,12 +47,6 @@ class Vector2f : Cloneable {
         }
     }
 
-    operator fun get(mode: Int, dst: Vector2i): Vector2i {
-        dst.x = Math.roundUsing(x, mode)
-        dst.y = Math.roundUsing(y, mode)
-        return dst
-    }
-
     operator fun get(dst: Vector2f) = dst.set(x, y)
     operator fun get(dst: Vector2d): Vector2d = dst.set(x.toDouble(), y.toDouble())
 

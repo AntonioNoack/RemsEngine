@@ -4,19 +4,10 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 @Suppress("unused")
-class Vector2i {
+class Vector2i(var x: Int, var y: Int) {
 
-    var x = 0
-    var y = 0
-
-    constructor()
-
-    @JvmOverloads
-    constructor(x: Int, y: Int = x) {
-        this.x = x
-        this.y = y
-    }
-
+    constructor() : this(0, 0)
+    constructor(d: Int) : this(d, d)
     constructor(v: Vector2i) : this(v.x, v.y)
     constructor(xy: IntArray) : this(xy[0], xy[1])
 
@@ -28,21 +19,7 @@ class Vector2i {
     }
 
     fun set(v: Vector2i) = set(v.x, v.y)
-
     fun set(v: Vector2d) = set(v.x.toInt(), v.y.toInt())
-
-    operator fun set(v: Vector2d, mode: Int): Vector2i {
-        x = Math.roundUsing(v.x, mode)
-        y = Math.roundUsing(v.y, mode)
-        return this
-    }
-
-    operator fun set(v: Vector2f, mode: Int): Vector2i {
-        x = Math.roundUsing(v.x, mode)
-        y = Math.roundUsing(v.y, mode)
-        return this
-    }
-
     fun set(xy: IntArray) = set(xy[0], xy[1])
 
     @Throws(IllegalArgumentException::class)
@@ -91,7 +68,7 @@ class Vector2i {
     fun distance(x: Int, y: Int): Double {
         val dx = this.x - x
         val dy = this.y - y
-        return Math.sqrt((dx.toLong() * dx + dy.toLong() * dy).toFloat()).toDouble()
+        return sqrt((dx.toLong() * dx + dy.toLong() * dy).toFloat()).toDouble()
     }
 
     fun distanceSquared(v: Vector2i) = distanceSquared(v.x, v.y)
@@ -105,7 +82,7 @@ class Vector2i {
     fun gridDistance(v: Vector2i) = gridDistance(v.x, v.y)
 
     fun gridDistance(x: Int, y: Int): Long {
-        return (Math.abs(x - this.x) + Math.abs(y - this.y)).toLong()
+        return (abs(x - this.x) + abs(y - this.y)).toLong()
     }
 
     @JvmOverloads
@@ -174,14 +151,14 @@ class Vector2i {
     }
 
     fun maxComponent(): Int {
-        val absX = Math.abs(x)
-        val absY = Math.abs(y)
+        val absX = abs(x)
+        val absY = abs(y)
         return if (absX >= absY) 0 else 1
     }
 
     fun minComponent(): Int {
-        val absX = Math.abs(x)
-        val absY = Math.abs(y)
+        val absX = abs(x)
+        val absY = abs(y)
         return if (absX < absY) 0 else 1
     }
 
@@ -207,7 +184,7 @@ class Vector2i {
 
     companion object {
         fun lengthSquared(x: Int, y: Int) = x.toLong() * x + y.toLong() * y
-        fun length(x: Int, y: Int) = Math.sqrt(lengthSquared(x, y).toDouble())
+        fun length(x: Int, y: Int) = sqrt(lengthSquared(x, y).toDouble())
         fun distance(x1: Int, y1: Int, x2: Int, y2: Int) = length(x1 - x2, y1 - y2)
         fun distanceSquared(x1: Int, y1: Int, x2: Int, y2: Int) = lengthSquared(x1 - x2, y1 - y2)
     }

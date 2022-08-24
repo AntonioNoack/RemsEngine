@@ -1,105 +1,22 @@
 package org.joml
 
-class Vector4d : Cloneable {
-    var x = 0.0
-    var y = 0.0
-    var z = 0.0
-    var w: Double
+import kotlin.math.*
 
-    constructor() {
-        w = 1.0
-    }
+class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) {
 
-    constructor(v: Vector4d) {
-        x = v.x
-        y = v.y
-        z = v.z
-        w = v.w
-    }
-
-    constructor(v: Vector4i) {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
-        w = v.w.toDouble()
-    }
-
-    constructor(v: Vector3d, w: Double) {
-        x = v.x
-        y = v.y
-        z = v.z
-        this.w = w
-    }
-
-    constructor(v: Vector3i, w: Double) {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
-        this.w = w
-    }
-
-    constructor(v: Vector2d, z: Double, w: Double) {
-        x = v.x
-        y = v.y
-        this.z = z
-        this.w = w
-    }
-
-    constructor(v: Vector2i, z: Double, w: Double) {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        this.z = z
-        this.w = w
-    }
-
-    constructor(d: Double) {
-        x = d
-        y = d
-        z = d
-        w = d
-    }
-
-    constructor(v: Vector4f) {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
-        w = v.w.toDouble()
-    }
-
-    constructor(v: Vector3f, w: Double) {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
-        this.w = w
-    }
-
-    constructor(v: Vector2f, z: Double, w: Double) {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        this.z = z
-        this.w = w
-    }
-
-    constructor(x: Double, y: Double, z: Double, w: Double) {
-        this.x = x
-        this.y = y
-        this.z = z
-        this.w = w
-    }
-
-    constructor(xyzw: FloatArray) {
-        x = xyzw[0].toDouble()
-        y = xyzw[1].toDouble()
-        z = xyzw[2].toDouble()
-        w = xyzw[3].toDouble()
-    }
-
-    constructor(xyzw: DoubleArray) {
-        x = xyzw[0]
-        y = xyzw[1]
-        z = xyzw[2]
-        w = xyzw[3]
-    }
+    constructor() : this(0.0, 0.0, 0.0, 1.0)
+    constructor(v: Vector4d) : this(v.x, v.y, v.z, v.w)
+    constructor(v: Vector4i) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble())
+    constructor(v: Vector3d, w: Double) : this(v.x, v.y, v.z, w)
+    constructor(v: Vector3i, w: Double) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), w)
+    constructor(v: Vector2d, z: Double, w: Double) : this(v.x, v.y, z, w)
+    constructor(v: Vector2i, z: Double, w: Double) : this(v.x.toDouble(), v.y.toDouble(), z, w)
+    constructor(d: Double) : this(d, d, d, d)
+    constructor(v: Vector4f) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble())
+    constructor(v: Vector3f, w: Double) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), w)
+    constructor(v: Vector2f, z: Double, w: Double) : this(v.x.toDouble(), v.y.toDouble(), z, w)
+    constructor(xyzw: FloatArray) : this(xyzw[0].toDouble(), xyzw[1].toDouble(), xyzw[2].toDouble(), xyzw[3].toDouble())
+    constructor(xyzw: DoubleArray) : this(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
 
     fun set(v: Vector4d): Vector4d {
         x = v.x
@@ -321,62 +238,62 @@ class Vector4d : Cloneable {
     }
 
     fun fma(a: Vector4d, b: Vector4d): Vector4d {
-        x = Math.fma(a.x, b.x, x)
-        y = Math.fma(a.y, b.y, y)
-        z = Math.fma(a.z, b.z, z)
-        w = Math.fma(a.w, b.w, w)
+        x = JomlMath.fma(a.x, b.x, x)
+        y = JomlMath.fma(a.y, b.y, y)
+        z = JomlMath.fma(a.z, b.z, z)
+        w = JomlMath.fma(a.w, b.w, w)
         return this
     }
 
     fun fma(a: Double, b: Vector4d): Vector4d {
-        x = Math.fma(a, b.x, x)
-        y = Math.fma(a, b.y, y)
-        z = Math.fma(a, b.z, z)
-        w = Math.fma(a, b.w, w)
+        x = JomlMath.fma(a, b.x, x)
+        y = JomlMath.fma(a, b.y, y)
+        z = JomlMath.fma(a, b.z, z)
+        w = JomlMath.fma(a, b.w, w)
         return this
     }
 
     fun fma(a: Vector4d, b: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = Math.fma(a.x, b.x, x)
-        dest.y = Math.fma(a.y, b.y, y)
-        dest.z = Math.fma(a.z, b.z, z)
-        dest.w = Math.fma(a.w, b.w, w)
+        dest.x = JomlMath.fma(a.x, b.x, x)
+        dest.y = JomlMath.fma(a.y, b.y, y)
+        dest.z = JomlMath.fma(a.z, b.z, z)
+        dest.w = JomlMath.fma(a.w, b.w, w)
         return dest
     }
 
     fun fma(a: Double, b: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = Math.fma(a, b.x, x)
-        dest.y = Math.fma(a, b.y, y)
-        dest.z = Math.fma(a, b.z, z)
-        dest.w = Math.fma(a, b.w, w)
+        dest.x = JomlMath.fma(a, b.x, x)
+        dest.y = JomlMath.fma(a, b.y, y)
+        dest.z = JomlMath.fma(a, b.z, z)
+        dest.w = JomlMath.fma(a, b.w, w)
         return dest
     }
 
     fun mulAdd(a: Vector4d, b: Vector4d): Vector4d {
-        x = Math.fma(x, a.x, b.x)
-        y = Math.fma(y, a.y, b.y)
-        z = Math.fma(z, a.z, b.z)
+        x = JomlMath.fma(x, a.x, b.x)
+        y = JomlMath.fma(y, a.y, b.y)
+        z = JomlMath.fma(z, a.z, b.z)
         return this
     }
 
     fun mulAdd(a: Double, b: Vector4d): Vector4d {
-        x = Math.fma(x, a, b.x)
-        y = Math.fma(y, a, b.y)
-        z = Math.fma(z, a, b.z)
+        x = JomlMath.fma(x, a, b.x)
+        y = JomlMath.fma(y, a, b.y)
+        z = JomlMath.fma(z, a, b.z)
         return this
     }
 
     fun mulAdd(a: Vector4d, b: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = Math.fma(x, a.x, b.x)
-        dest.y = Math.fma(y, a.y, b.y)
-        dest.z = Math.fma(z, a.z, b.z)
+        dest.x = JomlMath.fma(x, a.x, b.x)
+        dest.y = JomlMath.fma(y, a.y, b.y)
+        dest.z = JomlMath.fma(z, a.z, b.z)
         return dest
     }
 
     fun mulAdd(a: Double, b: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = Math.fma(x, a, b.x)
-        dest.y = Math.fma(y, a, b.y)
-        dest.z = Math.fma(z, a, b.z)
+        dest.x = JomlMath.fma(x, a, b.x)
+        dest.y = JomlMath.fma(y, a, b.y)
+        dest.z = JomlMath.fma(z, a, b.z)
         return dest
     }
 
@@ -445,9 +362,9 @@ class Vector4d : Cloneable {
     }
 
     fun mulAffine(mat: Matrix4d, dest: Vector4d): Vector4d {
-        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30 * w)))
-        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31 * w)))
-        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32 * w)))
+        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w)))
+        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w)))
+        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w)))
         dest.x = rx
         dest.y = ry
         dest.z = rz
@@ -456,10 +373,10 @@ class Vector4d : Cloneable {
     }
 
     private fun mulGeneric(mat: Matrix4d, dest: Vector4d): Vector4d {
-        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30 * w)))
-        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31 * w)))
-        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32 * w)))
-        val rw = Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33 * w)))
+        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w)))
+        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w)))
+        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w)))
+        val rw = JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33 * w)))
         dest.x = rx
         dest.y = ry
         dest.z = rz
@@ -472,10 +389,10 @@ class Vector4d : Cloneable {
         val y = y
         val z = z
         val w = w
-        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m01, y, mat.m02 * z))
-        dest.y = Math.fma(mat.m10, x, Math.fma(mat.m11, y, mat.m12 * z))
-        dest.z = Math.fma(mat.m20, x, Math.fma(mat.m21, y, mat.m22 * z))
-        dest.w = Math.fma(mat.m30, x, Math.fma(mat.m31, y, mat.m32 * z + w))
+        dest.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m01, y, mat.m02 * z))
+        dest.y = JomlMath.fma(mat.m10, x, JomlMath.fma(mat.m11, y, mat.m12 * z))
+        dest.z = JomlMath.fma(mat.m20, x, JomlMath.fma(mat.m21, y, mat.m22 * z))
+        dest.w = JomlMath.fma(mat.m30, x, JomlMath.fma(mat.m31, y, mat.m32 * z + w))
         return dest
     }
 
@@ -484,17 +401,17 @@ class Vector4d : Cloneable {
         val y = y
         val z = z
         val w = w
-        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m01, y, Math.fma(mat.m02, z, mat.m03 * w)))
-        dest.y = Math.fma(mat.m10, x, Math.fma(mat.m11, y, Math.fma(mat.m12, z, mat.m13 * w)))
-        dest.z = Math.fma(mat.m20, x, Math.fma(mat.m21, y, Math.fma(mat.m22, z, mat.m23 * w)))
-        dest.w = Math.fma(mat.m30, x, Math.fma(mat.m31, y, Math.fma(mat.m32, z, mat.m33 * w)))
+        dest.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m01, y, JomlMath.fma(mat.m02, z, mat.m03 * w)))
+        dest.y = JomlMath.fma(mat.m10, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m12, z, mat.m13 * w)))
+        dest.z = JomlMath.fma(mat.m20, x, JomlMath.fma(mat.m21, y, JomlMath.fma(mat.m22, z, mat.m23 * w)))
+        dest.w = JomlMath.fma(mat.m30, x, JomlMath.fma(mat.m31, y, JomlMath.fma(mat.m32, z, mat.m33 * w)))
         return dest
     }
 
     fun mul(mat: Matrix4x3d): Vector4d {
-        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30 * w)))
-        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31 * w)))
-        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32 * w)))
+        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w)))
+        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w)))
+        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w)))
         x = rx
         y = ry
         z = rz
@@ -502,9 +419,9 @@ class Vector4d : Cloneable {
     }
 
     fun mul(mat: Matrix4x3d, dest: Vector4d): Vector4d {
-        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30 * w)))
-        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31 * w)))
-        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32 * w)))
+        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w)))
+        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w)))
+        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w)))
         dest.x = rx
         dest.y = ry
         dest.z = rz
@@ -513,20 +430,20 @@ class Vector4d : Cloneable {
     }
 
     fun mul(mat: Matrix4x3f): Vector4d {
-        val rx = Math.fma(
+        val rx = JomlMath.fma(
             mat.m00.toDouble(),
             x,
-            Math.fma(mat.m10.toDouble(), y, Math.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
+            JomlMath.fma(mat.m10.toDouble(), y, JomlMath.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
         )
-        val ry = Math.fma(
+        val ry = JomlMath.fma(
             mat.m01.toDouble(),
             x,
-            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
+            JomlMath.fma(mat.m11.toDouble(), y, JomlMath.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
         )
-        val rz = Math.fma(
+        val rz = JomlMath.fma(
             mat.m02.toDouble(),
             x,
-            Math.fma(mat.m12.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
+            JomlMath.fma(mat.m12.toDouble(), y, JomlMath.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
         )
         x = rx
         y = ry
@@ -535,20 +452,20 @@ class Vector4d : Cloneable {
     }
 
     fun mul(mat: Matrix4x3f, dest: Vector4d): Vector4d {
-        val rx = Math.fma(
+        val rx = JomlMath.fma(
             mat.m00.toDouble(),
             x,
-            Math.fma(mat.m10.toDouble(), y, Math.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
+            JomlMath.fma(mat.m10.toDouble(), y, JomlMath.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
         )
-        val ry = Math.fma(
+        val ry = JomlMath.fma(
             mat.m01.toDouble(),
             x,
-            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
+            JomlMath.fma(mat.m11.toDouble(), y, JomlMath.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
         )
-        val rz = Math.fma(
+        val rz = JomlMath.fma(
             mat.m02.toDouble(),
             x,
-            Math.fma(mat.m12.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
+            JomlMath.fma(mat.m12.toDouble(), y, JomlMath.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
         )
         dest.x = rx
         dest.y = ry
@@ -566,20 +483,20 @@ class Vector4d : Cloneable {
     }
 
     private fun mulAffine(mat: Matrix4f, dest: Vector4d): Vector4d {
-        val rx = Math.fma(
+        val rx = JomlMath.fma(
             mat.m00.toDouble(),
             x,
-            Math.fma(mat.m10.toDouble(), y, Math.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
+            JomlMath.fma(mat.m10.toDouble(), y, JomlMath.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
         )
-        val ry = Math.fma(
+        val ry = JomlMath.fma(
             mat.m01.toDouble(),
             x,
-            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
+            JomlMath.fma(mat.m11.toDouble(), y, JomlMath.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
         )
-        val rz = Math.fma(
+        val rz = JomlMath.fma(
             mat.m02.toDouble(),
             x,
-            Math.fma(mat.m12.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
+            JomlMath.fma(mat.m12.toDouble(), y, JomlMath.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
         )
         dest.x = rx
         dest.y = ry
@@ -589,25 +506,25 @@ class Vector4d : Cloneable {
     }
 
     private fun mulGeneric(mat: Matrix4f, dest: Vector4d): Vector4d {
-        val rx = Math.fma(
+        val rx = JomlMath.fma(
             mat.m00.toDouble(),
             x,
-            Math.fma(mat.m10.toDouble(), y, Math.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
+            JomlMath.fma(mat.m10.toDouble(), y, JomlMath.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
         )
-        val ry = Math.fma(
+        val ry = JomlMath.fma(
             mat.m01.toDouble(),
             x,
-            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
+            JomlMath.fma(mat.m11.toDouble(), y, JomlMath.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
         )
-        val rz = Math.fma(
+        val rz = JomlMath.fma(
             mat.m02.toDouble(),
             x,
-            Math.fma(mat.m12.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
+            JomlMath.fma(mat.m12.toDouble(), y, JomlMath.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
         )
-        val rw = Math.fma(
+        val rw = JomlMath.fma(
             mat.m03.toDouble(),
             x,
-            Math.fma(mat.m13.toDouble(), y, Math.fma(mat.m23.toDouble(), z, mat.m33.toDouble() * w))
+            JomlMath.fma(mat.m13.toDouble(), y, JomlMath.fma(mat.m23.toDouble(), z, mat.m33.toDouble() * w))
         )
         dest.x = rx
         dest.y = ry
@@ -617,10 +534,10 @@ class Vector4d : Cloneable {
     }
 
     fun mulProject(mat: Matrix4d, dest: Vector4d): Vector4d {
-        val invW = 1.0 / Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33 * w)))
-        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30 * w))) * invW
-        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31 * w))) * invW
-        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32 * w))) * invW
+        val invW = 1.0 / JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33 * w)))
+        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w))) * invW
+        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w))) * invW
+        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w))) * invW
         dest.x = rx
         dest.y = ry
         dest.z = rz
@@ -629,10 +546,10 @@ class Vector4d : Cloneable {
     }
 
     fun mulProject(mat: Matrix4d): Vector4d {
-        val invW = 1.0 / Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33 * w)))
-        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30 * w))) * invW
-        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31 * w))) * invW
-        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32 * w))) * invW
+        val invW = 1.0 / JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33 * w)))
+        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w))) * invW
+        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w))) * invW
+        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w))) * invW
         x = rx
         y = ry
         z = rz
@@ -641,10 +558,10 @@ class Vector4d : Cloneable {
     }
 
     fun mulProject(mat: Matrix4d, dest: Vector3d): Vector3d {
-        val invW = 1.0 / Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33 * w)))
-        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30 * w))) * invW
-        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31 * w))) * invW
-        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32 * w))) * invW
+        val invW = 1.0 / JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33 * w)))
+        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w))) * invW
+        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w))) * invW
+        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w))) * invW
         dest.x = rx
         dest.y = ry
         dest.z = rz
@@ -696,12 +613,12 @@ class Vector4d : Cloneable {
     }
 
     fun rotateAxis(angle: Double, x: Double, y: Double, z: Double): Vector4d {
-        return if (y == 0.0 && z == 0.0 && Math.absEqualsOne(x)) {
+        return if (y == 0.0 && z == 0.0 && JomlMath.absEqualsOne(x)) {
             this.rotateX(x * angle, this)
-        } else if (x == 0.0 && z == 0.0 && Math.absEqualsOne(y)) {
+        } else if (x == 0.0 && z == 0.0 && JomlMath.absEqualsOne(y)) {
             this.rotateY(y * angle, this)
         } else {
-            if (x == 0.0 && y == 0.0 && Math.absEqualsOne(z)) this.rotateZ(
+            if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) this.rotateZ(
                 z * angle,
                 this
             ) else rotateAxisInternal(angle, x, y, z, this)
@@ -709,12 +626,12 @@ class Vector4d : Cloneable {
     }
 
     fun rotateAxis(angle: Double, aX: Double, aY: Double, aZ: Double, dest: Vector4d): Vector4d {
-        return if (aY == 0.0 && aZ == 0.0 && Math.absEqualsOne(aX)) {
+        return if (aY == 0.0 && aZ == 0.0 && JomlMath.absEqualsOne(aX)) {
             this.rotateX(aX * angle, dest)
-        } else if (aX == 0.0 && aZ == 0.0 && Math.absEqualsOne(aY)) {
+        } else if (aX == 0.0 && aZ == 0.0 && JomlMath.absEqualsOne(aY)) {
             this.rotateY(aY * angle, dest)
         } else {
-            if (aX == 0.0 && aY == 0.0 && Math.absEqualsOne(aZ)) this.rotateZ(
+            if (aX == 0.0 && aY == 0.0 && JomlMath.absEqualsOne(aZ)) this.rotateZ(
                 aZ * angle,
                 dest
             ) else rotateAxisInternal(angle, aX, aY, aZ, dest)
@@ -723,11 +640,11 @@ class Vector4d : Cloneable {
 
     private fun rotateAxisInternal(angle: Double, aX: Double, aY: Double, aZ: Double, dest: Vector4d): Vector4d {
         val halfAngle = angle * 0.5
-        val sinAngle = Math.sin(halfAngle)
+        val sinAngle = sin(halfAngle)
         val qx = aX * sinAngle
         val qy = aY * sinAngle
         val qz = aZ * sinAngle
-        val qw = Math.cosFromSin(sinAngle, halfAngle)
+        val qw = cos(halfAngle)
         val w2 = qw * qw
         val x2 = qx * qx
         val y2 = qy * qy
@@ -748,8 +665,8 @@ class Vector4d : Cloneable {
     }
 
     fun rotateX(angle: Double): Vector4d {
-        val sin = Math.sin(angle)
-        val cos = Math.cosFromSin(sin, angle)
+        val sin = sin(angle)
+        val cos = cos(angle)
         val y = y * cos - z * sin
         val z = this.y * sin + z * cos
         this.y = y
@@ -758,8 +675,8 @@ class Vector4d : Cloneable {
     }
 
     fun rotateX(angle: Double, dest: Vector4d): Vector4d {
-        val sin = Math.sin(angle)
-        val cos = Math.cosFromSin(sin, angle)
+        val sin = sin(angle)
+        val cos = cos(angle)
         val y = y * cos - z * sin
         val z = this.y * sin + z * cos
         dest.x = x
@@ -770,8 +687,8 @@ class Vector4d : Cloneable {
     }
 
     fun rotateY(angle: Double): Vector4d {
-        val sin = Math.sin(angle)
-        val cos = Math.cosFromSin(sin, angle)
+        val sin = sin(angle)
+        val cos = cos(angle)
         val x = x * cos + z * sin
         val z = -this.x * sin + z * cos
         this.x = x
@@ -780,8 +697,8 @@ class Vector4d : Cloneable {
     }
 
     fun rotateY(angle: Double, dest: Vector4d): Vector4d {
-        val sin = Math.sin(angle)
-        val cos = Math.cosFromSin(sin, angle)
+        val sin = sin(angle)
+        val cos = cos(angle)
         val x = x * cos + z * sin
         val z = -this.x * sin + z * cos
         dest.x = x
@@ -792,8 +709,8 @@ class Vector4d : Cloneable {
     }
 
     fun rotateZ(angle: Double): Vector4d {
-        val sin = Math.sin(angle)
-        val cos = Math.cosFromSin(sin, angle)
+        val sin = sin(angle)
+        val cos = cos(angle)
         val x = x * cos - y * sin
         val y = this.x * sin + y * cos
         this.x = x
@@ -802,8 +719,8 @@ class Vector4d : Cloneable {
     }
 
     fun rotateZ(angle: Double, dest: Vector4d): Vector4d {
-        val sin = Math.sin(angle)
-        val cos = Math.cosFromSin(sin, angle)
+        val sin = sin(angle)
+        val cos = cos(angle)
         val x = x * cos - y * sin
         val y = this.x * sin + y * cos
         dest.x = x
@@ -814,11 +731,11 @@ class Vector4d : Cloneable {
     }
 
     fun lengthSquared(): Double {
-        return Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w)))
+        return JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w)))
     }
 
     fun length(): Double {
-        return Math.sqrt(Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w))))
+        return sqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
     }
 
     fun normalize(): Vector4d {
@@ -858,7 +775,7 @@ class Vector4d : Cloneable {
     }
 
     fun normalize3(): Vector4d {
-        val invLength = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, z * z)))
+        val invLength = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, z * z)))
         x *= invLength
         y *= invLength
         z *= invLength
@@ -867,7 +784,7 @@ class Vector4d : Cloneable {
     }
 
     fun normalize3(dest: Vector4d): Vector4d {
-        val invLength = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, z * z)))
+        val invLength = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, z * z)))
         dest.x = x * invLength
         dest.y = y * invLength
         dest.z = z * invLength
@@ -880,7 +797,7 @@ class Vector4d : Cloneable {
         val dy = y - v.y
         val dz = z - v.z
         val dw = w - v.w
-        return Math.sqrt(Math.fma(dx, dx, Math.fma(dy, dy, Math.fma(dz, dz, dw * dw))))
+        return sqrt(JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, JomlMath.fma(dz, dz, dw * dw))))
     }
 
     fun distance(x: Double, y: Double, z: Double, w: Double): Double {
@@ -888,7 +805,7 @@ class Vector4d : Cloneable {
         val dy = this.y - y
         val dz = this.z - z
         val dw = this.w - w
-        return Math.sqrt(Math.fma(dx, dx, Math.fma(dy, dy, Math.fma(dz, dz, dw * dw))))
+        return sqrt(JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, JomlMath.fma(dz, dz, dw * dw))))
     }
 
     fun distanceSquared(v: Vector4d): Double {
@@ -896,7 +813,7 @@ class Vector4d : Cloneable {
         val dy = y - v.y
         val dz = z - v.z
         val dw = w - v.w
-        return Math.fma(dx, dx, Math.fma(dy, dy, Math.fma(dz, dz, dw * dw)))
+        return JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, JomlMath.fma(dz, dz, dw * dw)))
     }
 
     fun distanceSquared(x: Double, y: Double, z: Double, w: Double): Double {
@@ -904,29 +821,29 @@ class Vector4d : Cloneable {
         val dy = this.y - y
         val dz = this.z - z
         val dw = this.w - w
-        return Math.fma(dx, dx, Math.fma(dy, dy, Math.fma(dz, dz, dw * dw)))
+        return JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, JomlMath.fma(dz, dz, dw * dw)))
     }
 
     fun dot(v: Vector4d): Double {
-        return Math.fma(x, v.x, Math.fma(y, v.y, Math.fma(z, v.z, w * v.w)))
+        return JomlMath.fma(x, v.x, JomlMath.fma(y, v.y, JomlMath.fma(z, v.z, w * v.w)))
     }
 
     fun dot(x: Double, y: Double, z: Double, w: Double): Double {
-        return Math.fma(this.x, x, Math.fma(this.y, y, Math.fma(this.z, z, this.w * w)))
+        return JomlMath.fma(this.x, x, JomlMath.fma(this.y, y, JomlMath.fma(this.z, z, this.w * w)))
     }
 
     fun angleCos(v: Vector4d): Double {
-        val length1Squared = Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w)))
-        val length2Squared = Math.fma(v.x, v.x, Math.fma(v.y, v.y, Math.fma(v.z, v.z, v.w * v.w)))
-        val dot = Math.fma(x, v.x, Math.fma(y, v.y, Math.fma(z, v.z, w * v.w)))
-        return dot / Math.sqrt(length1Squared * length2Squared)
+        val length1Squared = JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w)))
+        val length2Squared = JomlMath.fma(v.x, v.x, JomlMath.fma(v.y, v.y, JomlMath.fma(v.z, v.z, v.w * v.w)))
+        val dot = JomlMath.fma(x, v.x, JomlMath.fma(y, v.y, JomlMath.fma(z, v.z, w * v.w)))
+        return dot / sqrt(length1Squared * length2Squared)
     }
 
     fun angle(v: Vector4d): Double {
         var cos = angleCos(v)
-        cos = java.lang.Math.min(cos, 1.0)
-        cos = java.lang.Math.max(cos, -1.0)
-        return Math.acos(cos)
+        cos = min(cos, 1.0)
+        cos = max(cos, -1.0)
+        return acos(cos)
     }
 
     fun zero(): Vector4d {
@@ -954,34 +871,34 @@ class Vector4d : Cloneable {
     }
 
     fun min(v: Vector4d): Vector4d {
-        x = java.lang.Math.min(x, v.x)
-        y = java.lang.Math.min(y, v.y)
-        z = java.lang.Math.min(z, v.z)
-        w = java.lang.Math.min(w, v.w)
+        x = min(x, v.x)
+        y = min(y, v.y)
+        z = min(z, v.z)
+        w = min(w, v.w)
         return this
     }
 
     fun min(v: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = java.lang.Math.min(x, v.x)
-        dest.y = java.lang.Math.min(y, v.y)
-        dest.z = java.lang.Math.min(z, v.z)
-        dest.w = java.lang.Math.min(w, v.w)
+        dest.x = min(x, v.x)
+        dest.y = min(y, v.y)
+        dest.z = min(z, v.z)
+        dest.w = min(w, v.w)
         return dest
     }
 
     fun max(v: Vector4d): Vector4d {
-        x = java.lang.Math.max(x, v.x)
-        y = java.lang.Math.max(y, v.y)
-        z = java.lang.Math.max(z, v.z)
-        w = java.lang.Math.max(w, v.w)
+        x = max(x, v.x)
+        y = max(y, v.y)
+        z = max(z, v.z)
+        w = max(w, v.w)
         return this
     }
 
     fun max(v: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = java.lang.Math.max(x, v.x)
-        dest.y = java.lang.Math.max(y, v.y)
-        dest.z = java.lang.Math.max(z, v.z)
-        dest.w = java.lang.Math.max(w, v.w)
+        dest.x = max(x, v.x)
+        dest.y = max(y, v.y)
+        dest.z = max(z, v.z)
+        dest.w = max(w, v.w)
         return dest
     }
 
@@ -1072,18 +989,18 @@ class Vector4d : Cloneable {
     }
 
     fun lerp(other: Vector4d, t: Double): Vector4d {
-        x = Math.fma(other.x - x, t, x)
-        y = Math.fma(other.y - y, t, y)
-        z = Math.fma(other.z - z, t, z)
-        w = Math.fma(other.w - w, t, w)
+        x = JomlMath.fma(other.x - x, t, x)
+        y = JomlMath.fma(other.y - y, t, y)
+        z = JomlMath.fma(other.z - z, t, z)
+        w = JomlMath.fma(other.w - w, t, w)
         return this
     }
 
     fun lerp(other: Vector4d, t: Double, dest: Vector4d): Vector4d {
-        dest.x = Math.fma(other.x - x, t, x)
-        dest.y = Math.fma(other.y - y, t, y)
-        dest.z = Math.fma(other.z - z, t, z)
-        dest.w = Math.fma(other.w - w, t, w)
+        dest.x = JomlMath.fma(other.x - x, t, x)
+        dest.y = JomlMath.fma(other.y - y, t, y)
+        dest.z = JomlMath.fma(other.z - z, t, z)
+        dest.w = JomlMath.fma(other.w - w, t, w)
         return dest
     }
 
@@ -1096,14 +1013,6 @@ class Vector4d : Cloneable {
             3 -> w
             else -> throw IllegalArgumentException()
         }
-    }
-
-    operator fun get(mode: Int, dest: Vector4i): Vector4i {
-        dest.x = Math.roundUsing(x, mode)
-        dest.y = Math.roundUsing(y, mode)
-        dest.z = Math.roundUsing(z, mode)
-        dest.w = Math.roundUsing(w, mode)
-        return dest
     }
 
     operator fun get(dest: Vector4f): Vector4f {
@@ -1123,10 +1032,10 @@ class Vector4d : Cloneable {
     }
 
     fun maxComponent(): Int {
-        val absX = Math.abs(x)
-        val absY = Math.abs(y)
-        val absZ = Math.abs(z)
-        val absW = Math.abs(w)
+        val absX = abs(x)
+        val absY = abs(y)
+        val absZ = abs(z)
+        val absW = abs(w)
         return if (absX >= absY && absX >= absZ && absX >= absW) {
             0
         } else if (absY >= absZ && absY >= absW) {
@@ -1137,10 +1046,10 @@ class Vector4d : Cloneable {
     }
 
     fun minComponent(): Int {
-        val absX = Math.abs(x)
-        val absY = Math.abs(y)
-        val absZ = Math.abs(z)
-        val absW = Math.abs(w)
+        val absX = abs(x)
+        val absY = abs(y)
+        val absZ = abs(z)
+        val absW = abs(w)
         return if (absX < absY && absX < absZ && absX < absW) {
             0
         } else if (absY < absZ && absY < absW) {
@@ -1151,118 +1060,102 @@ class Vector4d : Cloneable {
     }
 
     fun floor(): Vector4d {
-        x = Math.floor(x)
-        y = Math.floor(y)
-        z = Math.floor(z)
-        w = Math.floor(w)
+        x = floor(x)
+        y = floor(y)
+        z = floor(z)
+        w = floor(w)
         return this
     }
 
     fun floor(dest: Vector4d): Vector4d {
-        dest.x = Math.floor(x)
-        dest.y = Math.floor(y)
-        dest.z = Math.floor(z)
-        dest.w = Math.floor(w)
+        dest.x = floor(x)
+        dest.y = floor(y)
+        dest.z = floor(z)
+        dest.w = floor(w)
         return dest
     }
 
     fun ceil(): Vector4d {
-        x = Math.ceil(x)
-        y = Math.ceil(y)
-        z = Math.ceil(z)
-        w = Math.ceil(w)
+        x = ceil(x)
+        y = ceil(y)
+        z = ceil(z)
+        w = ceil(w)
         return this
     }
 
     fun ceil(dest: Vector4d): Vector4d {
-        dest.x = Math.ceil(x)
-        dest.y = Math.ceil(y)
-        dest.z = Math.ceil(z)
-        dest.w = Math.ceil(w)
+        dest.x = ceil(x)
+        dest.y = ceil(y)
+        dest.z = ceil(z)
+        dest.w = ceil(w)
         return dest
     }
 
     fun round(): Vector4d {
-        x = Math.round(x).toDouble()
-        y = Math.round(y).toDouble()
-        z = Math.round(z).toDouble()
-        w = Math.round(w).toDouble()
+        x = round(x)
+        y = round(y)
+        z = round(z)
+        w = round(w)
         return this
     }
 
     fun round(dest: Vector4d): Vector4d {
-        dest.x = Math.round(x).toDouble()
-        dest.y = Math.round(y).toDouble()
-        dest.z = Math.round(z).toDouble()
-        dest.w = Math.round(w).toDouble()
+        dest.x = round(x)
+        dest.y = round(y)
+        dest.z = round(z)
+        dest.w = round(w)
         return dest
     }
 
     val isFinite: Boolean
-        get() = Math.isFinite(x) && Math.isFinite(y) && Math.isFinite(z) && Math.isFinite(w)
+        get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z) && JomlMath.isFinite(w)
 
     fun absolute(): Vector4d {
-        x = Math.abs(x)
-        y = Math.abs(y)
-        z = Math.abs(z)
-        w = Math.abs(w)
+        x = abs(x)
+        y = abs(y)
+        z = abs(z)
+        w = abs(w)
         return this
     }
 
     fun absolute(dest: Vector4d): Vector4d {
-        dest.x = Math.abs(x)
-        dest.y = Math.abs(y)
-        dest.z = Math.abs(z)
-        dest.w = Math.abs(w)
+        dest.x = abs(x)
+        dest.y = abs(y)
+        dest.z = abs(z)
+        dest.w = abs(w)
         return dest
     }
 
-    @Throws(CloneNotSupportedException::class)
-    public override fun clone(): Any {
-        return super.clone()
-    }
-
     companion object {
+
         fun lengthSquared(x: Double, y: Double, z: Double, w: Double): Double {
-            return Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w)))
+            return x * x + y * y + z * z + w * w
         }
 
         fun length(x: Double, y: Double, z: Double, w: Double): Double {
-            return Math.sqrt(Math.fma(x, x, Math.fma(y, y, Math.fma(z, z, w * w))))
+            return sqrt(x * x + y * y + z * z + w * w)
         }
 
         fun distance(
-            x1: Double,
-            y1: Double,
-            z1: Double,
-            w1: Double,
-            x2: Double,
-            y2: Double,
-            z2: Double,
-            w2: Double
+            x1: Double, y1: Double, z1: Double, w1: Double,
+            x2: Double, y2: Double, z2: Double, w2: Double
         ): Double {
             val dx = x1 - x2
             val dy = y1 - y2
             val dz = z1 - z2
             val dw = w1 - w2
-            return Math.sqrt(Math.fma(dx, dx, Math.fma(dy, dy, Math.fma(dz, dz, dw * dw))))
+            return length(dx, dy, dz, dw)
         }
 
         fun distanceSquared(
-            x1: Double,
-            y1: Double,
-            z1: Double,
-            w1: Double,
-            x2: Double,
-            y2: Double,
-            z2: Double,
-            w2: Double
+            x1: Double, y1: Double, z1: Double, w1: Double,
+            x2: Double, y2: Double, z2: Double, w2: Double
         ): Double {
             val dx = x1 - x2
             val dy = y1 - y2
             val dz = z1 - z2
             val dw = w1 - w2
-            return Math.fma(dx, dx, Math.fma(dy, dy, Math.fma(dz, dz, dw * dw)))
+            return lengthSquared(dx, dy, dz, dw)
         }
     }
 }

@@ -18,6 +18,7 @@ import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import org.joml.*
+import kotlin.math.PI
 
 object Gizmos {
 
@@ -55,8 +56,8 @@ object Gizmos {
 
     val rotations = arrayOf(
         Quaterniond(),
-        Quaterniond().rotateZ(+Math.PI * 0.5),
-        Quaterniond().rotateY(-Math.PI * 0.5)
+        Quaterniond().rotateZ(+PI * 0.5),
+        Quaterniond().rotateY(-PI * 0.5)
     )
 
     fun drawMesh(

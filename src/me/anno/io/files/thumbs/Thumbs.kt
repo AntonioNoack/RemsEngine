@@ -101,7 +101,6 @@ import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
 import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
-import org.joml.Math.sqrt
 import org.joml.Matrix4fArrayList
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
@@ -110,10 +109,7 @@ import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.thread
-import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 /**
  * creates and caches small versions of image and video resources

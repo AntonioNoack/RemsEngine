@@ -58,7 +58,7 @@ class GeoProvider(world: Entity) : InputGeomProvider {
         boundsMax = Vector3f(aabb.maxX.toFloat(), aabb.maxY.toFloat(), aabb.maxZ.toFloat())
     }
 
-    override fun getMeshBoundsMin() = boundsMin
-    override fun getMeshBoundsMax() = boundsMax
+    override val meshBoundsMin = boundsMin
+    override val meshBoundsMax = boundsMax
 
 }

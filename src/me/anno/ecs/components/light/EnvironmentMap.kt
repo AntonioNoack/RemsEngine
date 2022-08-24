@@ -146,7 +146,7 @@ class EnvironmentMap : LightComponentBase() {
 
         val far = 1.0
 
-        val deg90 = Math.PI * 0.5
+        val deg90 = PI * 0.5
         val rot2 = tmpQ1.set(rotation).invert()
         val rot3 = tmpQ2
 

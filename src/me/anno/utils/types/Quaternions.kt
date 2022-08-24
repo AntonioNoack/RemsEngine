@@ -1,14 +1,18 @@
 package me.anno.utils.types
 
-import org.joml.*
+import org.joml.Quaterniond
+import org.joml.Quaternionf
+import org.joml.Vector3d
+import org.joml.Vector3f
+import kotlin.math.PI
 
 @Suppress("unused")
 object Quaternions {
 
-    const val toDegrees = 180.0 / Math.PI
+    const val toDegrees = 180.0 / PI
     const val toDegreesFloat = toDegrees.toFloat()
 
-    const val fromDegrees = Math.PI / 180.0
+    const val fromDegrees = PI / 180.0
     const val fromDegreesFloat = fromDegrees.toFloat()
 
     fun Quaterniond.toEulerAnglesDegrees(dst: Vector3d = Vector3d()): Vector3d {

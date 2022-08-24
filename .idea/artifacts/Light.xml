@@ -3,7 +3,6 @@
     <output-path>$PROJECT_DIR$/out/artifacts/Light</output-path>
     <root id="archive" name="VideoStudio.jar">
       <element id="module-output" name="VideoStudio" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/joml-1.10.4.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

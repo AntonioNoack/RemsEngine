@@ -92,10 +92,10 @@ object Vectors {
     fun Vector4d.toVector3f() = Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
 
     fun Matrix4f.print() = "" +
-            "[(${get(0, 0)} ${get(1, 0)} ${get(2, 0)} ${get(3, 0)})\n" +
-            " (${get(0, 1)} ${get(1, 1)} ${get(2, 1)} ${get(3, 1)})\n" +
-            " (${get(0, 2)} ${get(1, 2)} ${get(2, 2)} ${get(3, 2)})\n" +
-            " (${get(0, 3)} ${get(1, 3)} ${get(2, 3)} ${get(3, 3)})]"
+            "[($m00 $m10 $m20 $m30)\n" +
+            " ($m01 $m11 $m21 $m31)\n" +
+            " ($m02 $m12 $m22 $m32)\n" +
+            " ($m03 $m13 $m23 $m33)]"
 
     fun Matrix4x3f.print() = "" +
             "[($m00 $m10 $m20 $m30)\n" +

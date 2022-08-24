@@ -21,6 +21,7 @@ import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Floats.toRadians
 import org.joml.*
 import kotlin.math.max
 
@@ -35,8 +36,8 @@ object ThumbsExt {
     fun createModelMatrix(): Matrix4x3f {
         val stack = Matrix4x3f()
         stack.translate(0f, 0f, -1f)// move the camera back a bit
-        stack.rotateX(Math.toRadians(15f))// rotate it into a nice viewing angle
-        stack.rotateY(Math.toRadians(-25f))
+        stack.rotateX((15f).toRadians())// rotate it into a nice viewing angle
+        stack.rotateY((-25f).toRadians())
         // calculate the scale, such that everything can be visible
         // half, because it's half the size, 1.05f for a small border
         stack.scale(1.05f * 0.5f)

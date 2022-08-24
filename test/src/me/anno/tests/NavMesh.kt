@@ -64,7 +64,8 @@ fun main() {
         // todo click to set target point
 
         val navMesh = NavMesh(data, nmm.maxVerticesPerPoly, 0)
-        val tileRef = navMesh.getTileRefAt(data.header.x, data.header.y, data.header.layer)
+        val header = data.header!!
+        val tileRef = navMesh.getTileRefAt(header.x, header.y, header.layer)
 
         val query = NavMeshQuery(navMesh)
         val filter = DefaultQueryFilter()
@@ -79,13 +80,13 @@ fun main() {
 
         val path = query.findPath(ref0.result!!.randomRef, ref1.result!!.randomRef, p0, p1, filter)
         println("path: ${path.status}, ${path.message}, ${path.result}")
-        for (v in path.result) {
+        for (v in path.result ?: LongArrayList.empty) {
             // convert ref to position
-            val r = navMesh.getTileAndPolyByRef(v).result
-            val tile = r.first
+            val r = navMesh.getTileAndPolyByRef(v).result ?: continue
+            val tile = r.first!!
             val poly = r.second
             val pos = Vector3f()
-            val vs = tile.data.vertices
+            val vs = tile.data!!.vertices
             for (idx in poly.vertices) {
                 val i3 = idx * 3
                 pos.add(vs[i3], vs[i3 + 1], vs[i3 + 2])
@@ -114,11 +115,11 @@ fun dataToMesh(data: MeshData): FloatArray {
     val fal = FloatArrayList(256)
     val dv = data.vertices
     val ddv = data.detailVertices
-    for (i in 0 until data.header.polyCount) {
+    for (i in 0 until data.header!!.polyCount) {
         val p = data.polygons[i]
         if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
         val pv = p.vertices
-        val detailMesh = data.detailMeshes[i]
+        val detailMesh = data.detailMeshes?.getOrNull(i)
         if (detailMesh != null) {
             for (j in 0 until detailMesh.triCount) {
                 val t = (detailMesh.triBase + j) * 4

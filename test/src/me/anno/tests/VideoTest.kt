@@ -19,11 +19,11 @@ import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.maths.Maths.PIf
 import me.anno.utils.OS.desktop
+import me.anno.utils.types.Floats.toRadians
 import me.anno.video.VideoBackgroundTask
 import me.anno.video.VideoCreator
 import me.anno.video.ffmpeg.FFMPEGEncodingBalance
 import me.anno.video.ffmpeg.FFMPEGEncodingType
-import org.joml.Math
 import org.joml.Matrix4x3f
 
 fun main() {
@@ -45,8 +45,8 @@ fun main() {
         val stack = Matrix4x3f()
         stack.translate(0f, 0f, -1f)// move the camera back a bit
         stack.rotateY(frameIndex * 5f - 2f)
-        stack.rotateX(Math.toRadians(15f))// rotate it into a nice viewing angle
-        stack.rotateY(Math.toRadians(-25f))
+        stack.rotateX((15f).toRadians())// rotate it into a nice viewing angle
+        stack.rotateY((-25f).toRadians())
         // calculate the scale, such that everything can be visible
         // half, because it's half the size, 1.05f for a small border
         stack.scale(1.05f * 0.5f * 0.62f)

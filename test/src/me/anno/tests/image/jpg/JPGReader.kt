@@ -1,4 +1,4 @@
-package me.anno.image.jpg
+package me.anno.tests.image.jpg
 
 import me.anno.image.raw.ByteImage
 import me.anno.io.Streams.readBE16
@@ -46,7 +46,7 @@ class JPGReader {
                 } else if (Signature.findName(file) == "jpg") {
                     try {
                         val input = file.inputStream()
-                        JPGThumbnails().read(input)
+                        JPGReader().read(input)
                             .write(desktop.getChild("jpg/${file.nameWithoutExtension}.png"))
                         input.close()
                         // throw IOException("done :)")

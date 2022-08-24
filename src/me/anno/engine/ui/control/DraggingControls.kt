@@ -47,7 +47,6 @@ import me.anno.utils.types.Matrices.distance
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Matrices.set2
 import org.apache.logging.log4j.LogManager
-import org.joml.Math
 import org.joml.Planed
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -349,7 +348,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                                     }
                                     Mode.ROTATING -> {
                                         val tmpQ = JomlPools.quat4d.borrow()
-                                        tmpQ.identity().fromAxisAngleDeg(dir.x, dir.y, dir.z, rotationAngle)
+                                        tmpQ.identity().fromAxisAngleRad(dir.x, dir.y, dir.z, rotationAngle)
                                         global.rotate(tmpQ)// correct
 
                                     }
@@ -378,7 +377,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                                     }
                                     Mode.ROTATING -> {
                                         val tmpQ = JomlPools.quat4f.borrow()
-                                        tmpQ.identity().fromAxisAngleDeg(
+                                        tmpQ.identity().fromAxisAngleRad(
                                             dir.x.toFloat(), dir.y.toFloat(), dir.z.toFloat(), rotationAngle.toFloat()
                                         )
                                         global.rotate(tmpQ)// correct

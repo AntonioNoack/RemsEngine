@@ -80,10 +80,10 @@ import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import org.joml.Math.toRadians
 import org.lwjgl.glfw.GLFW
 import kotlin.math.max
 import kotlin.math.min
@@ -1126,7 +1126,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         this.scaledFar = scaledFar
         this.isPerspective = isPerspective
         if (isPerspective) {
-            val fovYRadians = toRadians(fov)
+            val fovYRadians = fov.toRadians()
             this.fovYRadians = fovYRadians
             Perspective.setPerspective(
                 cameraMatrix, fovYRadians, aspectRatio, scaledNear.toFloat(), scaledFar.toFloat(), centerX, centerY

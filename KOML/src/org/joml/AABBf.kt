@@ -1,6 +1,5 @@
 package org.joml
 
-import me.anno.utils.pooling.JomlPools
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -87,12 +86,8 @@ class AABBf(
                 minZ <= other.maxZ
     }
 
-    fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float): Boolean {
-        return Intersectionf.testRayAab(
-            px, py, pz, dx, dy, dz,
-            minX, minY, minZ, maxX, maxY, maxZ
-        )
-    }
+    fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float) =
+        isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz)
 
     fun isEmpty() = minX > maxX
 
@@ -369,9 +364,40 @@ class AABBf(
     }
 
     fun transformProject(m: Matrix4f, dst: AABBf = this): AABBf {
-        val tmp = JomlPools.aabbf.borrow()
-        tmp.clear()
-        return transformProjectUnion(m, tmp, dst)
+        val mx = minX
+        val my = minY
+        val mz = minZ
+        val xx = maxX
+        val xy = maxY
+        val xz = maxZ
+        var minx = Float.POSITIVE_INFINITY
+        var miny = Float.POSITIVE_INFINITY
+        var minz = Float.POSITIVE_INFINITY
+        var maxx = Float.NEGATIVE_INFINITY
+        var maxy = Float.NEGATIVE_INFINITY
+        var maxz = Float.NEGATIVE_INFINITY
+        for (i in 0..7) {
+            val x = if ((i.and(1) != 0)) xx else mx
+            val y = if ((i.and(2) != 0)) xy else my
+            val z = if ((i.and(4) != 0)) xz else mz
+            val tw = m.m03 * x + m.m13 * y + m.m23 * z + m.m33
+            val tx = (m.m00 * x + m.m10 * y + m.m20 * z + m.m30) / tw
+            val ty = (m.m01 * x + m.m11 * y + m.m21 * z + m.m31) / tw
+            val tz = (m.m02 * x + m.m12 * y + m.m22 * z + m.m32) / tw
+            minx = min(tx, minx)
+            miny = min(ty, miny)
+            minz = min(tz, minz)
+            maxx = max(tx, maxx)
+            maxy = max(ty, maxy)
+            maxz = max(tz, maxz)
+        }
+        dst.minX = minx
+        dst.minY = miny
+        dst.minZ = minz
+        dst.maxX = maxx
+        dst.maxY = maxy
+        dst.maxZ = maxz
+        return dst
     }
 
     /**
@@ -584,13 +610,17 @@ class AABBf(
         rayOrigin: Vector3f,
         invRayDirection: Vector3f,
         maxDistance: Float = Float.POSITIVE_INFINITY
+    ) = isRayIntersecting(
+        rayOrigin.x, rayOrigin.y, rayOrigin.z,
+        invRayDirection.x, invRayDirection.y, invRayDirection.z,
+        maxDistance
+    )
+
+    fun isRayIntersecting(
+        rx: Float, ry: Float, rz: Float,
+        rdx: Float, rdy: Float, rdz: Float,
+        maxDistance: Float = Float.POSITIVE_INFINITY
     ): Boolean {
-        val rx = rayOrigin.x
-        val ry = rayOrigin.y
-        val rz = rayOrigin.z
-        val rdx = invRayDirection.x
-        val rdy = invRayDirection.y
-        val rdz = invRayDirection.z
         val sx0 = (minX - rx) * rdx
         val sy0 = (minY - ry) * rdy
         val sz0 = (minZ - rz) * rdz

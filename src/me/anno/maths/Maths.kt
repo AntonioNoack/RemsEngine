@@ -6,10 +6,10 @@ import kotlin.math.*
 @Suppress("unused")
 object Maths {
 
-    const val TAU = Math.PI * 2.0
+    const val TAU = PI * 2.0
 
-    const val PIf = Math.PI.toFloat()
-    const val TAUf = (Math.PI * 2.0).toFloat()
+    const val PIf = PI.toFloat()
+    const val TAUf = (PI * 2.0).toFloat()
 
     const val MILLIS_TO_NANOS = 1_000_000L
     const val SECONDS_TO_NANOS = 1_000_000_000L
@@ -164,7 +164,7 @@ object Maths {
     fun mix(a: Vector4f, b: Vector4f, f: Double, dst: Vector4f): Vector4f = a.lerp(b, f.toFloat(), dst)
 
     fun mixRandomly(a: Int, b: Int, f: Float): Int {
-        return (a * (1f - f) + b * f + Math.random()).toInt()
+        return (a * (1f - f) + b * f + java.lang.Math.random()).toInt()
     }
 
     fun mapClamped(input: Float, inputMin: Float, inputMax: Float, outputMin: Float, outputMax: Float): Float {

@@ -1,76 +1,16 @@
 package org.joml
 
-class Vector3i : Cloneable {
-    var x = 0
-    var y = 0
-    var z = 0
+import kotlin.math.abs
+import kotlin.math.sqrt
 
-    constructor() {}
-    constructor(d: Int) {
-        x = d
-        y = d
-        z = d
-    }
+@Suppress("unused")
+class Vector3i(var x: Int, var y: Int, var z: Int) {
 
-    constructor(x: Int, y: Int, z: Int) {
-        this.x = x
-        this.y = y
-        this.z = z
-    }
-
-    constructor(v: Vector3i) {
-        x = v.x
-        y = v.y
-        z = v.z
-    }
-
-    constructor(v: Vector2i, z: Int) {
-        x = v.x
-        y = v.y
-        this.z = z
-    }
-
-    constructor(x: Float, y: Float, z: Float, mode: Int) {
-        this.x = Math.roundUsing(x, mode)
-        this.y = Math.roundUsing(y, mode)
-        this.z = Math.roundUsing(z, mode)
-    }
-
-    constructor(x: Double, y: Double, z: Double, mode: Int) {
-        this.x = Math.roundUsing(x, mode)
-        this.y = Math.roundUsing(y, mode)
-        this.z = Math.roundUsing(z, mode)
-    }
-
-    constructor(v: Vector2f, z: Float, mode: Int) {
-        x = Math.roundUsing(v.x, mode)
-        y = Math.roundUsing(v.y, mode)
-        this.z = Math.roundUsing(z, mode)
-    }
-
-    constructor(v: Vector3f, mode: Int) {
-        x = Math.roundUsing(v.x, mode)
-        y = Math.roundUsing(v.y, mode)
-        z = Math.roundUsing(v.z, mode)
-    }
-
-    constructor(v: Vector2d, z: Float, mode: Int) {
-        x = Math.roundUsing(v.x, mode)
-        y = Math.roundUsing(v.y, mode)
-        this.z = Math.roundUsing(z, mode)
-    }
-
-    constructor(v: Vector3d, mode: Int) {
-        x = Math.roundUsing(v.x, mode)
-        y = Math.roundUsing(v.y, mode)
-        z = Math.roundUsing(v.z, mode)
-    }
-
-    constructor(xyz: IntArray) {
-        x = xyz[0]
-        y = xyz[1]
-        z = xyz[2]
-    }
+    constructor() : this(0, 0, 0)
+    constructor(d: Int) : this(d, d, d)
+    constructor(v: Vector3i) : this(v.x, v.y, v.z)
+    constructor(v: Vector2i, z: Int) : this(v.x, v.y, z)
+    constructor(xyz: IntArray) : this(xyz[0], xyz[1], xyz[2])
 
     fun set(v: Vector3i): Vector3i {
         x = v.x
@@ -83,20 +23,6 @@ class Vector3i : Cloneable {
         x = v.x.toInt()
         y = v.y.toInt()
         z = v.z.toInt()
-        return this
-    }
-
-    operator fun set(v: Vector3d, mode: Int): Vector3i {
-        x = Math.roundUsing(v.x, mode)
-        y = Math.roundUsing(v.y, mode)
-        z = Math.roundUsing(v.z, mode)
-        return this
-    }
-
-    operator fun set(v: Vector3f, mode: Int): Vector3i {
-        x = Math.roundUsing(v.x, mode)
-        y = Math.roundUsing(v.y, mode)
-        z = Math.roundUsing(v.z, mode)
         return this
     }
 
@@ -282,7 +208,7 @@ class Vector3i : Cloneable {
     }
 
     fun length(): Double {
-        return Math.sqrt(lengthSquared().toFloat()).toDouble()
+        return sqrt(lengthSquared().toFloat()).toDouble()
     }
 
     fun distance(v: Vector3i): Double {
@@ -300,11 +226,11 @@ class Vector3i : Cloneable {
     }
 
     fun gridDistance(v: Vector3i): Long {
-        return (Math.abs(v.x - x) + Math.abs(v.y - y) + Math.abs(v.z - z)).toLong()
+        return (abs(v.x - x) + abs(v.y - y) + abs(v.z - z)).toLong()
     }
 
     fun gridDistance(x: Int, y: Int, z: Int): Long {
-        return (Math.abs(x - this.x) + Math.abs(y - this.y) + Math.abs(z - this.z)).toLong()
+        return (abs(x - this.x) + abs(y - this.y) + abs(z - this.z)).toLong()
     }
 
     fun distanceSquared(v: Vector3i): Long {
@@ -375,9 +301,9 @@ class Vector3i : Cloneable {
     }
 
     fun maxComponent(): Int {
-        val absX = Math.abs(x).toFloat()
-        val absY = Math.abs(y).toFloat()
-        val absZ = Math.abs(z).toFloat()
+        val absX = abs(x).toFloat()
+        val absY = abs(y).toFloat()
+        val absZ = abs(z).toFloat()
         return if (absX >= absY && absX >= absZ) {
             0
         } else {
@@ -386,9 +312,9 @@ class Vector3i : Cloneable {
     }
 
     fun minComponent(): Int {
-        val absX = Math.abs(x).toFloat()
-        val absY = Math.abs(y).toFloat()
-        val absZ = Math.abs(z).toFloat()
+        val absX = abs(x).toFloat()
+        val absY = abs(y).toFloat()
+        val absZ = abs(z).toFloat()
         return if (absX < absY && absX < absZ) {
             0
         } else {
@@ -397,16 +323,16 @@ class Vector3i : Cloneable {
     }
 
     fun absolute(): Vector3i {
-        x = Math.abs(x)
-        y = Math.abs(y)
-        z = Math.abs(z)
+        x = abs(x)
+        y = abs(y)
+        z = abs(z)
         return this
     }
 
     fun absolute(dest: Vector3i): Vector3i {
-        dest.x = Math.abs(x)
-        dest.y = Math.abs(y)
-        dest.z = Math.abs(z)
+        dest.x = abs(x)
+        dest.y = abs(y)
+        dest.z = abs(z)
         return dest
     }
 
@@ -418,22 +344,16 @@ class Vector3i : Cloneable {
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
             true
-        } else if (obj == null) {
+        } else if (other == null) {
             false
-        } else if (this.javaClass != obj.javaClass) {
+        } else if (this.javaClass != other.javaClass) {
             false
         } else {
-            val other = obj as Vector3i
-            if (x != other.x) {
-                false
-            } else if (y != other.y) {
-                false
-            } else {
-                z == other.z
-            }
+            other as Vector3i
+            return x == other.x && y == other.y && z == other.z
         }
     }
 
@@ -442,16 +362,17 @@ class Vector3i : Cloneable {
     }
 
     companion object {
+
         fun lengthSquared(x: Int, y: Int, z: Int): Long {
             return x.toLong() * x + y.toLong() * y + z.toLong() * z
         }
 
         fun length(x: Int, y: Int, z: Int): Double {
-            return Math.sqrt(lengthSquared(x, y, z).toFloat()).toDouble()
+            return sqrt(lengthSquared(x, y, z).toFloat()).toDouble()
         }
 
         fun distance(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int): Double {
-            return Math.sqrt(lengthSquared(x1 - x2, y1 - y2, z1 - z2).toFloat()).toDouble()
+            return sqrt(lengthSquared(x1 - x2, y1 - y2, z1 - z2).toFloat()).toDouble()
         }
 
         fun distanceSquared(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int): Long {

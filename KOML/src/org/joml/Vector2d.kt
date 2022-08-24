@@ -1,5 +1,7 @@
 package org.joml
 
+import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.hypot
 
 @Suppress("unused")
@@ -41,12 +43,6 @@ class Vector2d : Cloneable {
             1 -> y
             else -> throw IllegalArgumentException()
         }
-    }
-
-    operator fun get(mode: Int, dst: Vector2i): Vector2i {
-        dst.x = Math.roundUsing(x, mode)
-        dst.y = Math.roundUsing(y, mode)
-        return dst
     }
 
     operator fun get(dst: Vector2f): Vector2f {
@@ -137,7 +133,7 @@ class Vector2d : Cloneable {
 
     fun angle(v: Vector2d): Double {
         val det = x * v.y - y * v.x
-        return Math.atan2(det, dot(v))
+        return atan2(det, dot(v))
     }
 
     fun lengthSquared() = x * x + y * y
@@ -268,35 +264,35 @@ class Vector2d : Cloneable {
     }
 
     fun maxComponent(): Int {
-        val absX = Math.abs(x)
-        val absY = Math.abs(y)
+        val absX = abs(x)
+        val absY = abs(y)
         return if (absX >= absY) 0 else 1
     }
 
     fun minComponent(): Int {
-        val absX = Math.abs(x)
-        val absY = Math.abs(y)
+        val absX = abs(x)
+        val absY = abs(y)
         return if (absX < absY) 0 else 1
     }
 
     @JvmOverloads
     fun floor(dst: Vector2d = this): Vector2d {
-        dst.x = Math.floor(x)
-        dst.y = Math.floor(y)
+        dst.x = kotlin.math.floor(x)
+        dst.y = kotlin.math.floor(y)
         return dst
     }
 
     @JvmOverloads
     fun ceil(dst: Vector2d = this): Vector2d {
-        dst.x = Math.ceil(x)
-        dst.y = Math.ceil(y)
+        dst.x = kotlin.math.ceil(x)
+        dst.y = kotlin.math.ceil(y)
         return dst
     }
 
     @JvmOverloads
     fun round(dst: Vector2d = this): Vector2d {
-        dst.x = Math.round(x).toDouble()
-        dst.y = Math.round(y).toDouble()
+        dst.x = kotlin.math.round(x)
+        dst.y = kotlin.math.round(y)
         return dst
     }
 
@@ -305,8 +301,8 @@ class Vector2d : Cloneable {
 
     @JvmOverloads
     fun absolute(dst: Vector2d = this): Vector2d {
-        dst.x = Math.abs(x)
-        dst.y = Math.abs(y)
+        dst.x = abs(x)
+        dst.y = abs(y)
         return dst
     }
 

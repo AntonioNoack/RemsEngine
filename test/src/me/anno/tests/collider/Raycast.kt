@@ -2,7 +2,6 @@ package me.anno.tests.collider
 
 import me.anno.utils.types.Vectors.print
 import org.joml.AABBd
-import org.joml.Math
 import org.joml.Vector3d
 
 fun main() {

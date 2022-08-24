@@ -21,6 +21,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Matrices.rotate2
 import org.joml.*
+import kotlin.math.PI
 
 // todo size of point light: probably either distance or direction needs to be adjusted
 // todo - in proximity, the appearance must not stay as a point, but rather be a sphere
@@ -89,7 +90,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
         val far = 1.0
 
-        val deg90 = Math.PI * 0.5
+        val deg90 = PI * 0.5
         val rotInvert = rotation.invert(JomlPools.quat4d.create())
         val rot3 = JomlPools.quat4d.create()
 

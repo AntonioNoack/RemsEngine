@@ -1,5 +1,10 @@
 package org.joml
 
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
+
 class AxisAngle4d : Cloneable {
     var angle = 0.0
     var x = 0.0
@@ -26,8 +31,8 @@ class AxisAngle4d : Cloneable {
     }
 
     constructor(q: Quaternionf) {
-        val acos = Math.safeAcos(q.w)
-        val invSqrt = Math.invsqrt(1f - q.w * q.w)
+        val acos = JomlMath.safeAcos(q.w)
+        val invSqrt = JomlMath.invsqrt(1f - q.w * q.w)
         if (java.lang.Float.isInfinite(invSqrt)) {
             x = 0.0
             y = 0.0
@@ -41,8 +46,8 @@ class AxisAngle4d : Cloneable {
     }
 
     constructor(q: Quaterniond) {
-        val acos = Math.safeAcos(q.w)
-        val invSqrt = Math.invsqrt(1.0 - q.w * q.w)
+        val acos = JomlMath.safeAcos(q.w)
+        val invSqrt = JomlMath.invsqrt(1.0 - q.w * q.w)
         if (java.lang.Double.isInfinite(invSqrt)) {
             x = 0.0
             y = 0.0
@@ -99,8 +104,8 @@ class AxisAngle4d : Cloneable {
     }
 
     fun set(q: Quaternionf): AxisAngle4d {
-        val acos = Math.safeAcos(q.w)
-        val invSqrt = Math.invsqrt(1f - q.w * q.w)
+        val acos = JomlMath.safeAcos(q.w)
+        val invSqrt = JomlMath.invsqrt(1f - q.w * q.w)
         if (java.lang.Float.isInfinite(invSqrt)) {
             x = 0.0
             y = 0.0
@@ -115,8 +120,8 @@ class AxisAngle4d : Cloneable {
     }
 
     fun set(q: Quaterniond): AxisAngle4d {
-        val acos = Math.safeAcos(q.w)
-        val invSqrt = Math.invsqrt(1.0 - q.w * q.w)
+        val acos = JomlMath.safeAcos(q.w)
+        val invSqrt = JomlMath.invsqrt(1.0 - q.w * q.w)
         if (java.lang.Double.isInfinite(invSqrt)) {
             x = 0.0
             y = 0.0
@@ -140,9 +145,9 @@ class AxisAngle4d : Cloneable {
         var nm20 = m.m20.toDouble()
         var nm21 = m.m21.toDouble()
         var nm22 = m.m22.toDouble()
-        val lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02).toDouble()
-        val lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12).toDouble()
-        val lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22).toDouble()
+        val lenX = JomlMath.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02).toDouble()
+        val lenY = JomlMath.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12).toDouble()
+        val lenZ = JomlMath.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22).toDouble()
         nm00 *= lenX
         nm01 *= lenX
         nm02 *= lenX
@@ -155,8 +160,8 @@ class AxisAngle4d : Cloneable {
         val epsilon = 1.0E-4
         val epsilon2 = 0.001
         val xx: Double
-        if (Math.abs(nm10 - nm01) < epsilon && Math.abs(nm20 - nm02) < epsilon && Math.abs(nm21 - nm12) < epsilon) {
-            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(
+        if (abs(nm10 - nm01) < epsilon && abs(nm20 - nm02) < epsilon && abs(nm21 - nm12) < epsilon) {
+            if (abs(nm10 + nm01) < epsilon2 && abs(nm20 + nm02) < epsilon2 && abs(nm21 + nm12) < epsilon2 && abs(
                     nm00 + nm11 + nm22 - 3.0
                 ) < epsilon2
             ) {
@@ -173,23 +178,23 @@ class AxisAngle4d : Cloneable {
                 val xz = (nm20 + nm02) / 4.0
                 val yz = (nm21 + nm12) / 4.0
                 if (xx > yy && xx > zz) {
-                    x = Math.sqrt(xx)
+                    x = sqrt(xx)
                     y = xy / x
                     z = xz / x
                 } else if (yy > zz) {
-                    y = Math.sqrt(yy)
+                    y = sqrt(yy)
                     x = xy / y
                     z = yz / y
                 } else {
-                    z = Math.sqrt(zz)
+                    z = sqrt(zz)
                     x = xz / z
                     y = yz / z
                 }
             }
         } else {
             xx =
-                Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
-            angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
+                sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
+            angle = JomlMath.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
             x = (nm12 - nm21) / xx
             y = (nm20 - nm02) / xx
             z = (nm01 - nm10) / xx
@@ -207,9 +212,9 @@ class AxisAngle4d : Cloneable {
         var nm20 = m.m20
         var nm21 = m.m21
         var nm22 = m.m22
-        val lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
-        val lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
-        val lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
+        val lenX = JomlMath.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
+        val lenY = JomlMath.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
+        val lenZ = JomlMath.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
         nm00 *= lenX
         nm01 *= lenX
         nm02 *= lenX
@@ -222,8 +227,8 @@ class AxisAngle4d : Cloneable {
         val epsilon = 1.0E-4
         val epsilon2 = 0.001
         val xx: Double
-        if (Math.abs(nm10 - nm01) < epsilon && Math.abs(nm20 - nm02) < epsilon && Math.abs(nm21 - nm12) < epsilon) {
-            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(
+        if (abs(nm10 - nm01) < epsilon && abs(nm20 - nm02) < epsilon && abs(nm21 - nm12) < epsilon) {
+            if (abs(nm10 + nm01) < epsilon2 && abs(nm20 + nm02) < epsilon2 && abs(nm21 + nm12) < epsilon2 && abs(
                     nm00 + nm11 + nm22 - 3.0
                 ) < epsilon2
             ) {
@@ -240,23 +245,23 @@ class AxisAngle4d : Cloneable {
                 val xz = (nm20 + nm02) / 4.0
                 val yz = (nm21 + nm12) / 4.0
                 if (xx > yy && xx > zz) {
-                    x = Math.sqrt(xx)
+                    x = sqrt(xx)
                     y = xy / x
                     z = xz / x
                 } else if (yy > zz) {
-                    y = Math.sqrt(yy)
+                    y = sqrt(yy)
                     x = xy / y
                     z = yz / y
                 } else {
-                    z = Math.sqrt(zz)
+                    z = sqrt(zz)
                     x = xz / z
                     y = yz / z
                 }
             }
         } else {
             xx =
-                Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
-            angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
+                sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
+            angle = JomlMath.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
             x = (nm12 - nm21) / xx
             y = (nm20 - nm02) / xx
             z = (nm01 - nm10) / xx
@@ -274,9 +279,9 @@ class AxisAngle4d : Cloneable {
         var nm20 = m.m20.toDouble()
         var nm21 = m.m21.toDouble()
         var nm22 = m.m22.toDouble()
-        val lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02).toDouble()
-        val lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12).toDouble()
-        val lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22).toDouble()
+        val lenX = JomlMath.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02).toDouble()
+        val lenY = JomlMath.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12).toDouble()
+        val lenZ = JomlMath.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22).toDouble()
         nm00 *= lenX
         nm01 *= lenX
         nm02 *= lenX
@@ -289,10 +294,10 @@ class AxisAngle4d : Cloneable {
         val epsilon = 1.0E-4
         val epsilon2 = 0.001
         val xx: Double
-        if (Math.abs(nm10 - nm01) < epsilon && Math.abs(nm20 - nm02) < epsilon && Math.abs(nm21 - nm12) < epsilon) {
-            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(
+        if (abs(nm10 - nm01) < epsilon && abs(nm20 - nm02) < epsilon && abs(nm21 - nm12) < epsilon) {
+            if (abs(nm10 + nm01) < epsilon2 && abs(nm20 + nm02) < epsilon2 && abs(
                     nm21 + nm12
-                ) < epsilon2 && Math.abs(nm00 + nm11 + nm22 - 3.0) < epsilon2
+                ) < epsilon2 && abs(nm00 + nm11 + nm22 - 3.0) < epsilon2
             ) {
                 x = 0.0
                 y = 0.0
@@ -307,23 +312,23 @@ class AxisAngle4d : Cloneable {
                 val xz = (nm20 + nm02) / 4.0
                 val yz = (nm21 + nm12) / 4.0
                 if (xx > yy && xx > zz) {
-                    x = Math.sqrt(xx)
+                    x = sqrt(xx)
                     y = xy / x
                     z = xz / x
                 } else if (yy > zz) {
-                    y = Math.sqrt(yy)
+                    y = sqrt(yy)
                     x = xy / y
                     z = yz / y
                 } else {
-                    z = Math.sqrt(zz)
+                    z = sqrt(zz)
                     x = xz / z
                     y = yz / z
                 }
             }
         } else {
             xx =
-                Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
-            angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
+                sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
+            angle = JomlMath.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
             x = (nm12 - nm21) / xx
             y = (nm20 - nm02) / xx
             z = (nm01 - nm10) / xx
@@ -341,9 +346,9 @@ class AxisAngle4d : Cloneable {
         var nm20 = m.m20.toDouble()
         var nm21 = m.m21.toDouble()
         var nm22 = m.m22.toDouble()
-        val lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02).toDouble()
-        val lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12).toDouble()
-        val lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22).toDouble()
+        val lenX = JomlMath.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02).toDouble()
+        val lenY = JomlMath.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12).toDouble()
+        val lenZ = JomlMath.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22).toDouble()
         nm00 *= lenX
         nm01 *= lenX
         nm02 *= lenX
@@ -356,8 +361,8 @@ class AxisAngle4d : Cloneable {
         val epsilon = 1.0E-4
         val epsilon2 = 0.001
         val xx: Double
-        if (Math.abs(nm10 - nm01) < epsilon && Math.abs(nm20 - nm02) < epsilon && Math.abs(nm21 - nm12) < epsilon) {
-            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(
+        if (abs(nm10 - nm01) < epsilon && abs(nm20 - nm02) < epsilon && abs(nm21 - nm12) < epsilon) {
+            if (abs(nm10 + nm01) < epsilon2 && abs(nm20 + nm02) < epsilon2 && abs(nm21 + nm12) < epsilon2 && abs(
                     nm00 + nm11 + nm22 - 3.0
                 ) < epsilon2
             ) {
@@ -374,23 +379,23 @@ class AxisAngle4d : Cloneable {
                 val xz = (nm20 + nm02) / 4.0
                 val yz = (nm21 + nm12) / 4.0
                 if (xx > yy && xx > zz) {
-                    x = Math.sqrt(xx)
+                    x = sqrt(xx)
                     y = xy / x
                     z = xz / x
                 } else if (yy > zz) {
-                    y = Math.sqrt(yy)
+                    y = sqrt(yy)
                     x = xy / y
                     z = yz / y
                 } else {
-                    z = Math.sqrt(zz)
+                    z = sqrt(zz)
                     x = xz / z
                     y = yz / z
                 }
             }
         } else {
             xx =
-                Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
-            angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
+                sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
+            angle = JomlMath.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
             x = (nm12 - nm21) / xx
             y = (nm20 - nm02) / xx
             z = (nm01 - nm10) / xx
@@ -408,9 +413,9 @@ class AxisAngle4d : Cloneable {
         var nm20 = m.m20
         var nm21 = m.m21
         var nm22 = m.m22
-        val lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
-        val lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
-        val lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
+        val lenX = JomlMath.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
+        val lenY = JomlMath.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
+        val lenZ = JomlMath.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
         nm00 *= lenX
         nm01 *= lenX
         nm02 *= lenX
@@ -423,8 +428,8 @@ class AxisAngle4d : Cloneable {
         val epsilon = 1.0E-4
         val epsilon2 = 0.001
         val xx: Double
-        if (Math.abs(nm10 - nm01) < epsilon && Math.abs(nm20 - nm02) < epsilon && Math.abs(nm21 - nm12) < epsilon) {
-            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(
+        if (abs(nm10 - nm01) < epsilon && abs(nm20 - nm02) < epsilon && abs(nm21 - nm12) < epsilon) {
+            if (abs(nm10 + nm01) < epsilon2 && abs(nm20 + nm02) < epsilon2 && abs(nm21 + nm12) < epsilon2 && abs(
                     nm00 + nm11 + nm22 - 3.0
                 ) < epsilon2
             ) {
@@ -441,23 +446,23 @@ class AxisAngle4d : Cloneable {
                 val xz = (nm20 + nm02) / 4.0
                 val yz = (nm21 + nm12) / 4.0
                 if (xx > yy && xx > zz) {
-                    x = Math.sqrt(xx)
+                    x = sqrt(xx)
                     y = xy / x
                     z = xz / x
                 } else if (yy > zz) {
-                    y = Math.sqrt(yy)
+                    y = sqrt(yy)
                     x = xy / y
                     z = yz / y
                 } else {
-                    z = Math.sqrt(zz)
+                    z = sqrt(zz)
                     x = xz / z
                     y = yz / z
                 }
             }
         } else {
             xx =
-                Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
-            angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
+                sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
+            angle = JomlMath.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
             x = (nm12 - nm21) / xx
             y = (nm20 - nm02) / xx
             z = (nm01 - nm10) / xx
@@ -498,7 +503,7 @@ class AxisAngle4d : Cloneable {
     }
 
     fun normalize(): AxisAngle4d {
-        val invLength = Math.invsqrt(x * x + y * y + z * z)
+        val invLength = JomlMath.invsqrt(x * x + y * y + z * z)
         x *= invLength
         y *= invLength
         z *= invLength
@@ -513,18 +518,21 @@ class AxisAngle4d : Cloneable {
 
     @JvmOverloads
     fun transform(v: Vector3d, dest: Vector3d = v): Vector3d {
-        val sin = Math.sin(angle)
-        val cos = Math.cosFromSin(sin, angle)
+        val sin = sin(angle)
+        val cos = cos(angle)
         val dot = x * v.x + y * v.y + z * v.z
-        dest[v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x, v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y] =
+        dest.set(
+            v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x,
+            v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y,
             v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z
+        )
         return dest
     }
 
     @JvmOverloads
     fun transform(v: Vector3f, dest: Vector3f = v): Vector3f {
-        val sin = Math.sin(angle)
-        val cos = Math.cosFromSin(sin, angle)
+        val sin = sin(angle)
+        val cos = cos(angle)
         val dot = x * v.x.toDouble() + y * v.y.toDouble() + z * v.z.toDouble()
         dest[(v.x.toDouble() * cos + sin * (y * v.z.toDouble() - z * v.y.toDouble()) + (1.0 - cos) * dot * x).toFloat(), (v.y.toDouble() * cos + sin * (z * v.x.toDouble() - x * v.z.toDouble()) + (1.0 - cos) * dot * y).toFloat()] =
             (v.z.toDouble() * cos + sin * (x * v.y.toDouble() - y * v.x.toDouble()) + (1.0 - cos) * dot * z).toFloat()
@@ -533,8 +541,8 @@ class AxisAngle4d : Cloneable {
 
     @JvmOverloads
     fun transform(v: Vector4d, dest: Vector4d = v): Vector4d {
-        val sin = Math.sin(angle)
-        val cos = Math.cosFromSin(sin, angle)
+        val sin = sin(angle)
+        val cos = cos(angle)
         val dot = x * v.x + y * v.y + z * v.z
         dest[v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x, v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y, v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z] =
             dest.w

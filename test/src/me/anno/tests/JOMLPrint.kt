@@ -2,7 +2,7 @@ package me.anno.tests
 
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import org.joml.Random
+import java.util.*
 
 fun main() {
     val logger = LogManager.getLogger("JOMLPrint")
@@ -14,7 +14,12 @@ fun main() {
     val m = Matrix4f()
     val random = Random(1234)
     for (i in 0 until 16) {
-        m.set(i / 4, i and 3, random.nextFloat())
+        m.set(
+            random.nextFloat(), random.nextFloat(), random.nextFloat(), random.nextFloat(),
+            random.nextFloat(), random.nextFloat(), random.nextFloat(), random.nextFloat(),
+            random.nextFloat(), random.nextFloat(), random.nextFloat(), random.nextFloat(),
+            random.nextFloat(), random.nextFloat(), random.nextFloat(), random.nextFloat()
+        )
     }
     val t0 = System.nanoTime()
     for (i in 0 until 1024 * 1024 * 100) {

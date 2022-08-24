@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="KOML">
+    <output-path>$PROJECT_DIR$/out/artifacts/KOML</output-path>
+    <root id="archive" name="KOML.jar">
+      <element id="module-output" name="KOML" />
+    </root>
+  </artifact>
+</component>

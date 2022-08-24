@@ -1,6 +1,5 @@
 package org.joml
 
-import me.anno.utils.types.Floats.f3
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -15,9 +14,7 @@ class AABBd(
     constructor(min: Double, max: Double) : this(min, min, min, max, max, max)
     constructor() : this(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY)
 
-    override fun toString() = "" +
-            "(${minX.f3()},${minY.f3()},${minZ.f3()})-" +
-            "(${maxX.f3()},${maxY.f3()},${maxZ.f3()})"
+    override fun toString() = "($minX,$minY,$minZ)-($maxX,$maxY,$maxZ)"
 
     fun setMin(v: Vector3d) =
         setMin(v.x, v.y, v.z)
@@ -122,12 +119,8 @@ class AABBd(
         return dest
     }
 
-    fun testRay(px: Double, py: Double, pz: Double, dx: Double, dy: Double, dz: Double): Boolean {
-        return Intersectiond.testRayAab(
-            px, py, pz, dx, dy, dz,
-            minX, minY, minZ, maxX, maxY, maxZ
-        )
-    }
+    fun testRay(px: Double, py: Double, pz: Double, dx: Double, dy: Double, dz: Double) =
+        isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz)
 
     fun isEmpty() = minX > maxX
 
@@ -352,13 +345,17 @@ class AABBd(
         rayOrigin: Vector3d,
         invRayDirection: Vector3d,
         maxDistance: Double = Double.POSITIVE_INFINITY
+    ) = isRayIntersecting(
+        rayOrigin.x, rayOrigin.y, rayOrigin.z,
+        invRayDirection.x, invRayDirection.y, invRayDirection.z,
+        maxDistance
+    )
+
+    fun isRayIntersecting(
+        rx: Double, ry: Double, rz: Double,
+        rdx: Double, rdy: Double, rdz: Double,
+        maxDistance: Double = Double.POSITIVE_INFINITY
     ): Boolean {
-        val rx = rayOrigin.x
-        val ry = rayOrigin.y
-        val rz = rayOrigin.z
-        val rdx = invRayDirection.x
-        val rdy = invRayDirection.y
-        val rdz = invRayDirection.z
         val sx0 = (minX - rx) * rdx
         val sy0 = (minY - ry) * rdy
         val sz0 = (minZ - rz) * rdz
