@@ -172,7 +172,7 @@ object AnimationLoader {
             } else {
                 // the same, just converting the vertices temporarily into local global space and then back
                 skinningMatrix
-                    .set(globalInverseTransform)
+                    .set(globalInverseTransform!!)
                     .mul(localTransform)
                     .mul(boneOffsetMatrix)
                     .mul(globalTransform)

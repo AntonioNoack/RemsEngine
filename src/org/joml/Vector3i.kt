@@ -1,486 +1,464 @@
-package org.joml;
+package org.joml
 
-@SuppressWarnings("unused")
-public class Vector3i {
+class Vector3i : Cloneable {
+    var x = 0
+    var y = 0
+    var z = 0
 
-    public int x;
-    public int y;
-    public int z;
-
-    public Vector3i() {
+    constructor() {}
+    constructor(d: Int) {
+        x = d
+        y = d
+        z = d
     }
 
-    public Vector3i(int d) {
-        this.x = d;
-        this.y = d;
-        this.z = d;
+    constructor(x: Int, y: Int, z: Int) {
+        this.x = x
+        this.y = y
+        this.z = z
     }
 
-    public Vector3i(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    constructor(v: Vector3i) {
+        x = v.x
+        y = v.y
+        z = v.z
     }
 
-    public Vector3i(Vector3i v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
+    constructor(v: Vector2i, z: Int) {
+        x = v.x
+        y = v.y
+        this.z = z
     }
 
-    public Vector3i(Vector2i v, int z) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = z;
+    constructor(x: Float, y: Float, z: Float, mode: Int) {
+        this.x = Math.roundUsing(x, mode)
+        this.y = Math.roundUsing(y, mode)
+        this.z = Math.roundUsing(z, mode)
     }
 
-    public Vector3i(float x, float y, float z, int mode) {
-        this.x = Math.roundUsing(x, mode);
-        this.y = Math.roundUsing(y, mode);
-        this.z = Math.roundUsing(z, mode);
+    constructor(x: Double, y: Double, z: Double, mode: Int) {
+        this.x = Math.roundUsing(x, mode)
+        this.y = Math.roundUsing(y, mode)
+        this.z = Math.roundUsing(z, mode)
     }
 
-    public Vector3i(double x, double y, double z, int mode) {
-        this.x = Math.roundUsing(x, mode);
-        this.y = Math.roundUsing(y, mode);
-        this.z = Math.roundUsing(z, mode);
+    constructor(v: Vector2f, z: Float, mode: Int) {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        this.z = Math.roundUsing(z, mode)
     }
 
-    public Vector3i(Vector2f v, float z, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(z, mode);
+    constructor(v: Vector3f, mode: Int) {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        z = Math.roundUsing(v.z, mode)
     }
 
-    public Vector3i(Vector3f v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(v.z, mode);
+    constructor(v: Vector2d, z: Float, mode: Int) {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        this.z = Math.roundUsing(z, mode)
     }
 
-    public Vector3i(Vector2d v, float z, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(z, mode);
+    constructor(v: Vector3d, mode: Int) {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        z = Math.roundUsing(v.z, mode)
     }
 
-    public Vector3i(Vector3d v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(v.z, mode);
+    constructor(xyz: IntArray) {
+        x = xyz[0]
+        y = xyz[1]
+        z = xyz[2]
     }
 
-    public Vector3i(int[] xyz) {
-        this.x = xyz[0];
-        this.y = xyz[1];
-        this.z = xyz[2];
+    fun set(v: Vector3i): Vector3i {
+        x = v.x
+        y = v.y
+        z = v.z
+        return this
     }
 
-    public Vector3i set(Vector3i v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        return this;
+    fun set(v: Vector3d): Vector3i {
+        x = v.x.toInt()
+        y = v.y.toInt()
+        z = v.z.toInt()
+        return this
     }
 
-    public Vector3i set(Vector3d v) {
-        this.x = (int) v.x;
-        this.y = (int) v.y;
-        this.z = (int) v.z;
-        return this;
+    operator fun set(v: Vector3d, mode: Int): Vector3i {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        z = Math.roundUsing(v.z, mode)
+        return this
     }
 
-    public Vector3i set(Vector3d v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(v.z, mode);
-        return this;
+    operator fun set(v: Vector3f, mode: Int): Vector3i {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        z = Math.roundUsing(v.z, mode)
+        return this
     }
 
-    public Vector3i set(Vector3f v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(v.z, mode);
-        return this;
+    operator fun set(v: Vector2i, z: Int): Vector3i {
+        x = v.x
+        y = v.y
+        this.z = z
+        return this
     }
 
-    public Vector3i set(Vector2i v, int z) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = z;
-        return this;
+    fun set(d: Int): Vector3i {
+        x = d
+        y = d
+        z = d
+        return this
     }
 
-    public Vector3i set(int d) {
-        this.x = d;
-        this.y = d;
-        this.z = d;
-        return this;
+    operator fun set(x: Int, y: Int, z: Int): Vector3i {
+        this.x = x
+        this.y = y
+        this.z = z
+        return this
     }
 
-    public Vector3i set(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        return this;
+    fun set(xyz: IntArray): Vector3i {
+        x = xyz[0]
+        y = xyz[1]
+        z = xyz[2]
+        return this
     }
 
-    public Vector3i set(int[] xyz) {
-        this.x = xyz[0];
-        this.y = xyz[1];
-        this.z = xyz[2];
-        return this;
-    }
-
-    public int get(int component) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                return this.x;
-            case 1:
-                return this.y;
-            case 2:
-                return this.z;
-            default:
-                throw new IllegalArgumentException();
+    @Throws(IllegalArgumentException::class)
+    operator fun get(component: Int): Int {
+        return when (component) {
+            0 -> x
+            1 -> y
+            2 -> z
+            else -> throw IllegalArgumentException()
         }
     }
 
-    public Vector3i setComponent(int component, int value) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                this.x = value;
-                break;
-            case 1:
-                this.y = value;
-                break;
-            case 2:
-                this.z = value;
-                break;
-            default:
-                throw new IllegalArgumentException();
+    @Throws(IllegalArgumentException::class)
+    fun setComponent(component: Int, value: Int): Vector3i {
+        when (component) {
+            0 -> x = value
+            1 -> y = value
+            2 -> z = value
+            else -> throw IllegalArgumentException()
         }
-
-        return this;
+        return this
     }
 
-    public Vector3i sub(Vector3i v) {
-        this.x -= v.x;
-        this.y -= v.y;
-        this.z -= v.z;
-        return this;
+    fun sub(v: Vector3i): Vector3i {
+        x -= v.x
+        y -= v.y
+        z -= v.z
+        return this
     }
 
-    public Vector3i sub(Vector3i v, Vector3i dest) {
-        dest.x = this.x - v.x;
-        dest.y = this.y - v.y;
-        dest.z = this.z - v.z;
-        return dest;
+    fun sub(v: Vector3i, dest: Vector3i): Vector3i {
+        dest.x = x - v.x
+        dest.y = y - v.y
+        dest.z = z - v.z
+        return dest
     }
 
-    public Vector3i sub(int x, int y, int z) {
-        this.x -= x;
-        this.y -= y;
-        this.z -= z;
-        return this;
+    fun sub(x: Int, y: Int, z: Int): Vector3i {
+        this.x -= x
+        this.y -= y
+        this.z -= z
+        return this
     }
 
-    public Vector3i sub(int x, int y, int z, Vector3i dest) {
-        dest.x = this.x - x;
-        dest.y = this.y - y;
-        dest.z = this.z - z;
-        return dest;
+    fun sub(x: Int, y: Int, z: Int, dest: Vector3i): Vector3i {
+        dest.x = this.x - x
+        dest.y = this.y - y
+        dest.z = this.z - z
+        return dest
     }
 
-    public Vector3i add(Vector3i v) {
-        this.x += v.x;
-        this.y += v.y;
-        this.z += v.z;
-        return this;
+    fun add(v: Vector3i): Vector3i {
+        x += v.x
+        y += v.y
+        z += v.z
+        return this
     }
 
-    public Vector3i add(Vector3i v, Vector3i dest) {
-        dest.x = this.x + v.x;
-        dest.y = this.y + v.y;
-        dest.z = this.z + v.z;
-        return dest;
+    fun add(v: Vector3i, dest: Vector3i): Vector3i {
+        dest.x = x + v.x
+        dest.y = y + v.y
+        dest.z = z + v.z
+        return dest
     }
 
-    public Vector3i add(int x, int y, int z) {
-        this.x += x;
-        this.y += y;
-        this.z += z;
-        return this;
+    fun add(x: Int, y: Int, z: Int): Vector3i {
+        this.x += x
+        this.y += y
+        this.z += z
+        return this
     }
 
-    public Vector3i add(int x, int y, int z, Vector3i dest) {
-        dest.x = this.x + x;
-        dest.y = this.y + y;
-        dest.z = this.z + z;
-        return dest;
+    fun add(x: Int, y: Int, z: Int, dest: Vector3i): Vector3i {
+        dest.x = this.x + x
+        dest.y = this.y + y
+        dest.z = this.z + z
+        return dest
     }
 
-    public Vector3i mul(int scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-        this.z *= scalar;
-        return this;
+    fun mul(scalar: Int): Vector3i {
+        x *= scalar
+        y *= scalar
+        z *= scalar
+        return this
     }
 
-    public Vector3i mul(int scalar, Vector3i dest) {
-        dest.x = this.x * scalar;
-        dest.y = this.y * scalar;
-        dest.z = this.z * scalar;
-        return dest;
+    fun mul(scalar: Int, dest: Vector3i): Vector3i {
+        dest.x = x * scalar
+        dest.y = y * scalar
+        dest.z = z * scalar
+        return dest
     }
 
-    public Vector3i mul(Vector3i v) {
-        this.x *= v.x;
-        this.y *= v.y;
-        this.z *= v.z;
-        return this;
+    fun mul(v: Vector3i): Vector3i {
+        x *= v.x
+        y *= v.y
+        z *= v.z
+        return this
     }
 
-    public Vector3i mul(Vector3i v, Vector3i dest) {
-        dest.x = this.x * v.x;
-        dest.y = this.y * v.y;
-        dest.z = this.z * v.z;
-        return dest;
+    fun mul(v: Vector3i, dest: Vector3i): Vector3i {
+        dest.x = x * v.x
+        dest.y = y * v.y
+        dest.z = z * v.z
+        return dest
     }
 
-    public Vector3i mul(int x, int y, int z) {
-        this.x *= x;
-        this.y *= y;
-        this.z *= z;
-        return this;
+    fun mul(x: Int, y: Int, z: Int): Vector3i {
+        this.x *= x
+        this.y *= y
+        this.z *= z
+        return this
     }
 
-    public Vector3i mul(int x, int y, int z, Vector3i dest) {
-        dest.x = this.x * x;
-        dest.y = this.y * y;
-        dest.z = this.z * z;
-        return dest;
+    fun mul(x: Int, y: Int, z: Int, dest: Vector3i): Vector3i {
+        dest.x = this.x * x
+        dest.y = this.y * y
+        dest.z = this.z * z
+        return dest
     }
 
-    public Vector3i div(float scalar) {
-        float inv = 1f / scalar;
-        this.x = (int) ((float) this.x * inv);
-        this.y = (int) ((float) this.y * inv);
-        this.z = (int) ((float) this.z * inv);
-        return this;
+    operator fun div(scalar: Float): Vector3i {
+        val inv = 1f / scalar
+        x = (x.toFloat() * inv).toInt()
+        y = (y.toFloat() * inv).toInt()
+        z = (z.toFloat() * inv).toInt()
+        return this
     }
 
-    public Vector3i div(float scalar, Vector3i dest) {
-        float inv = 1f / scalar;
-        dest.x = (int) ((float) this.x * inv);
-        dest.y = (int) ((float) this.y * inv);
-        dest.z = (int) ((float) this.z * inv);
-        return dest;
+    fun div(scalar: Float, dest: Vector3i): Vector3i {
+        val inv = 1f / scalar
+        dest.x = (x.toFloat() * inv).toInt()
+        dest.y = (y.toFloat() * inv).toInt()
+        dest.z = (z.toFloat() * inv).toInt()
+        return dest
     }
 
-    public Vector3i div(int scalar) {
-        this.x /= scalar;
-        this.y /= scalar;
-        this.z /= scalar;
-        return this;
+    operator fun div(scalar: Int): Vector3i {
+        x /= scalar
+        y /= scalar
+        z /= scalar
+        return this
     }
 
-    public Vector3i div(int scalar, Vector3i dest) {
-        dest.x = this.x / scalar;
-        dest.y = this.y / scalar;
-        dest.z = this.z / scalar;
-        return dest;
+    fun div(scalar: Int, dest: Vector3i): Vector3i {
+        dest.x = x / scalar
+        dest.y = y / scalar
+        dest.z = z / scalar
+        return dest
     }
 
-    public long lengthSquared() {
-        return (long) this.x * this.x + (long) this.y * this.y + (long) this.z * this.z;
+    fun lengthSquared(): Long {
+        return x.toLong() * x + y.toLong() * y + z.toLong() * z
     }
 
-    public static long lengthSquared(int x, int y, int z) {
-        return (long) x * x + (long) y * y + (long) z * z;
+    fun length(): Double {
+        return Math.sqrt(lengthSquared().toFloat()).toDouble()
     }
 
-    public double length() {
-        return Math.sqrt(lengthSquared());
+    fun distance(v: Vector3i): Double {
+        val dx = x - v.x
+        val dy = y - v.y
+        val dz = z - v.z
+        return length(dx, dy, dz)
     }
 
-    public static double length(int x, int y, int z) {
-        return Math.sqrt(lengthSquared(x, y, z));
+    fun distance(x: Int, y: Int, z: Int): Double {
+        val dx = this.x - x
+        val dy = this.y - y
+        val dz = this.z - z
+        return lengthSquared(dx, dy, dz).toDouble()
     }
 
-    public double distance(Vector3i v) {
-        int dx = this.x - v.x;
-        int dy = this.y - v.y;
-        int dz = this.z - v.z;
-        return length(dx, dy, dz);
+    fun gridDistance(v: Vector3i): Long {
+        return (Math.abs(v.x - x) + Math.abs(v.y - y) + Math.abs(v.z - z)).toLong()
     }
 
-    public double distance(int x, int y, int z) {
-        int dx = this.x - x;
-        int dy = this.y - y;
-        int dz = this.z - z;
-        return lengthSquared(dx, dy, dz);
+    fun gridDistance(x: Int, y: Int, z: Int): Long {
+        return (Math.abs(x - this.x) + Math.abs(y - this.y) + Math.abs(z - this.z)).toLong()
     }
 
-    public long gridDistance(Vector3i v) {
-        return Math.abs(v.x - this.x) + Math.abs(v.y - this.y) + Math.abs(v.z - this.z);
+    fun distanceSquared(v: Vector3i): Long {
+        val dx = x - v.x
+        val dy = y - v.y
+        val dz = z - v.z
+        return lengthSquared(dx, dy, dz)
     }
 
-    public long gridDistance(int x, int y, int z) {
-        return Math.abs(x - this.x) + Math.abs(y - this.y) + Math.abs(z - this.z);
+    fun distanceSquared(x: Int, y: Int, z: Int): Long {
+        val dx = this.x - x
+        val dy = this.y - y
+        val dz = this.z - z
+        return lengthSquared(dx, dy, dz)
     }
 
-    public long distanceSquared(Vector3i v) {
-        int dx = this.x - v.x;
-        int dy = this.y - v.y;
-        int dz = this.z - v.z;
-        return lengthSquared(dx, dy, dz);
+    fun zero(): Vector3i {
+        x = 0
+        y = 0
+        z = 0
+        return this
     }
 
-    public long distanceSquared(int x, int y, int z) {
-        int dx = this.x - x;
-        int dy = this.y - y;
-        int dz = this.z - z;
-        return lengthSquared(dx, dy, dz);
+    override fun toString(): String {
+        return "($x,$y,$z)"
     }
 
-    public static double distance(int x1, int y1, int z1, int x2, int y2, int z2) {
-        return Math.sqrt(lengthSquared(x1 - x2, y1 - y2, z1 - z2));
+    fun negate(): Vector3i {
+        x = -x
+        y = -y
+        z = -z
+        return this
     }
 
-    public static long distanceSquared(int x1, int y1, int z1, int x2, int y2, int z2) {
-        int dx = x1 - x2;
-        int dy = y1 - y2;
-        int dz = z1 - z2;
-        return lengthSquared(dx, dy, dz);
+    fun negate(dest: Vector3i): Vector3i {
+        dest.x = -x
+        dest.y = -y
+        dest.z = -z
+        return dest
     }
 
-    public Vector3i zero() {
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
-        return this;
+    fun min(v: Vector3i): Vector3i {
+        x = java.lang.Math.min(x, v.x)
+        y = java.lang.Math.min(y, v.y)
+        z = java.lang.Math.min(z, v.z)
+        return this
     }
 
-    public String toString() {
-        return "(" + x + "," + y + "," + z + ")";
+    fun min(v: Vector3i, dest: Vector3i): Vector3i {
+        dest.x = java.lang.Math.min(x, v.x)
+        dest.y = java.lang.Math.min(y, v.y)
+        dest.z = java.lang.Math.min(z, v.z)
+        return dest
     }
 
-    public Vector3i negate() {
-        this.x = -this.x;
-        this.y = -this.y;
-        this.z = -this.z;
-        return this;
+    fun max(v: Vector3i): Vector3i {
+        x = java.lang.Math.max(x, v.x)
+        y = java.lang.Math.max(y, v.y)
+        z = java.lang.Math.max(z, v.z)
+        return this
     }
 
-    public Vector3i negate(Vector3i dest) {
-        dest.x = -this.x;
-        dest.y = -this.y;
-        dest.z = -this.z;
-        return dest;
+    fun max(v: Vector3i, dest: Vector3i): Vector3i {
+        dest.x = java.lang.Math.max(x, v.x)
+        dest.y = java.lang.Math.max(y, v.y)
+        dest.z = java.lang.Math.max(z, v.z)
+        return dest
     }
 
-    public Vector3i min(Vector3i v) {
-        this.x = java.lang.Math.min(this.x, v.x);
-        this.y = java.lang.Math.min(this.y, v.y);
-        this.z = java.lang.Math.min(this.z, v.z);
-        return this;
-    }
-
-    public Vector3i min(Vector3i v, Vector3i dest) {
-        dest.x = java.lang.Math.min(this.x, v.x);
-        dest.y = java.lang.Math.min(this.y, v.y);
-        dest.z = java.lang.Math.min(this.z, v.z);
-        return dest;
-    }
-
-    public Vector3i max(Vector3i v) {
-        this.x = java.lang.Math.max(this.x, v.x);
-        this.y = java.lang.Math.max(this.y, v.y);
-        this.z = java.lang.Math.max(this.z, v.z);
-        return this;
-    }
-
-    public Vector3i max(Vector3i v, Vector3i dest) {
-        dest.x = java.lang.Math.max(this.x, v.x);
-        dest.y = java.lang.Math.max(this.y, v.y);
-        dest.z = java.lang.Math.max(this.z, v.z);
-        return dest;
-    }
-
-    public int maxComponent() {
-        float absX = (float) Math.abs(this.x);
-        float absY = (float) Math.abs(this.y);
-        float absZ = (float) Math.abs(this.z);
-        if (absX >= absY && absX >= absZ) {
-            return 0;
+    fun maxComponent(): Int {
+        val absX = Math.abs(x).toFloat()
+        val absY = Math.abs(y).toFloat()
+        val absZ = Math.abs(z).toFloat()
+        return if (absX >= absY && absX >= absZ) {
+            0
         } else {
-            return absY >= absZ ? 1 : 2;
+            if (absY >= absZ) 1 else 2
         }
     }
 
-    public int minComponent() {
-        float absX = (float) Math.abs(this.x);
-        float absY = (float) Math.abs(this.y);
-        float absZ = (float) Math.abs(this.z);
-        if (absX < absY && absX < absZ) {
-            return 0;
+    fun minComponent(): Int {
+        val absX = Math.abs(x).toFloat()
+        val absY = Math.abs(y).toFloat()
+        val absZ = Math.abs(z).toFloat()
+        return if (absX < absY && absX < absZ) {
+            0
         } else {
-            return absY < absZ ? 1 : 2;
+            if (absY < absZ) 1 else 2
         }
     }
 
-    public Vector3i absolute() {
-        this.x = Math.abs(this.x);
-        this.y = Math.abs(this.y);
-        this.z = Math.abs(this.z);
-        return this;
+    fun absolute(): Vector3i {
+        x = Math.abs(x)
+        y = Math.abs(y)
+        z = Math.abs(z)
+        return this
     }
 
-    public Vector3i absolute(Vector3i dest) {
-        dest.x = Math.abs(this.x);
-        dest.y = Math.abs(this.y);
-        dest.z = Math.abs(this.z);
-        return dest;
+    fun absolute(dest: Vector3i): Vector3i {
+        dest.x = Math.abs(x)
+        dest.y = Math.abs(y)
+        dest.z = Math.abs(z)
+        return dest
     }
 
-    public int hashCode() {
-        int result = 1;
-        result = 31 * result + this.x;
-        result = 31 * result + this.y;
-        result = 31 * result + this.z;
-        return result;
+    override fun hashCode(): Int {
+        var result = 1
+        result = 31 * result + x
+        result = 31 * result + y
+        result = 31 * result + z
+        return result
     }
 
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
+    override fun equals(obj: Any?): Boolean {
+        return if (this === obj) {
+            true
         } else if (obj == null) {
-            return false;
-        } else if (this.getClass() != obj.getClass()) {
-            return false;
+            false
+        } else if (this.javaClass != obj.javaClass) {
+            false
         } else {
-            Vector3i other = (Vector3i) obj;
-            if (this.x != other.x) {
-                return false;
-            } else if (this.y != other.y) {
-                return false;
+            val other = obj as Vector3i
+            if (x != other.x) {
+                false
+            } else if (y != other.y) {
+                false
             } else {
-                return this.z == other.z;
+                z == other.z
             }
         }
     }
 
-    public boolean equals(int x, int y, int z) {
-        if (this.x != x) {
-            return false;
-        } else if (this.y != y) {
-            return false;
-        } else {
-            return this.z == z;
-        }
+    fun equals(x: Int, y: Int, z: Int): Boolean {
+        return x == this.x && y == this.y && z == this.z
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    companion object {
+        fun lengthSquared(x: Int, y: Int, z: Int): Long {
+            return x.toLong() * x + y.toLong() * y + z.toLong() * z
+        }
+
+        fun length(x: Int, y: Int, z: Int): Double {
+            return Math.sqrt(lengthSquared(x, y, z).toFloat()).toDouble()
+        }
+
+        fun distance(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int): Double {
+            return Math.sqrt(lengthSquared(x1 - x2, y1 - y2, z1 - z2).toFloat()).toDouble()
+        }
+
+        fun distanceSquared(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int): Long {
+            val dx = x1 - x2
+            val dy = y1 - y2
+            val dz = z1 - z2
+            return lengthSquared(dx, dy, dz)
+        }
     }
 }

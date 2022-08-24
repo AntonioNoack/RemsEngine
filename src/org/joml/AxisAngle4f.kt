@@ -1,539 +1,552 @@
-package org.joml;
+package org.joml
 
-public class AxisAngle4f {
+class AxisAngle4f {
+    var angle = 0f
+    var x = 0f
+    var y = 0f
+    var z = 0f
 
-    public float angle;
-    public float x;
-    public float y;
-    public float z;
-
-    public AxisAngle4f() {
-        this.z = 1.0F;
+    constructor() {
+        z = 1.0f
     }
 
-    public AxisAngle4f(AxisAngle4f a) {
-        this.x = a.x;
-        this.y = a.y;
-        this.z = a.z;
-        this.angle = (float) (((double) a.angle < 0.0 ? 6.283185307179586 + (double) a.angle % 6.283185307179586 : (double) a.angle) % 6.283185307179586);
+    constructor(a: AxisAngle4f) {
+        x = a.x
+        y = a.y
+        z = a.z
+        angle =
+            ((if (a.angle.toDouble() < 0.0) 6.283185307179586 + a.angle.toDouble() % 6.283185307179586 else a.angle.toDouble()) % 6.283185307179586).toFloat()
     }
 
-    public AxisAngle4f(Quaternionf q) {
-        float acos = Math.safeAcos(q.w);
-        float invSqrt = Math.invsqrt(1.0F - q.w * q.w);
-        if (Float.isInfinite(invSqrt)) {
-            this.x = 0.0F;
-            this.y = 0.0F;
-            this.z = 1.0F;
+    constructor(q: Quaternionf) {
+        val acos = Math.safeAcos(q.w)
+        val invSqrt = Math.invsqrt(1.0f - q.w * q.w)
+        if (java.lang.Float.isInfinite(invSqrt)) {
+            x = 0.0f
+            y = 0.0f
+            z = 1.0f
         } else {
-            this.x = q.x * invSqrt;
-            this.y = q.y * invSqrt;
-            this.z = q.z * invSqrt;
+            x = q.x * invSqrt
+            y = q.y * invSqrt
+            z = q.z * invSqrt
         }
-
-        this.angle = acos + acos;
+        angle = acos + acos
     }
 
-    public AxisAngle4f(float angle, float x, float y, float z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.angle = (float) (((double) angle < 0.0 ? 6.283185307179586 + (double) angle % 6.283185307179586 : (double) angle) % 6.283185307179586);
+    constructor(angle: Float, x: Float, y: Float, z: Float) {
+        this.x = x
+        this.y = y
+        this.z = z
+        this.angle =
+            ((if (angle.toDouble() < 0.0) 6.283185307179586 + angle.toDouble() % 6.283185307179586 else angle.toDouble()) % 6.283185307179586).toFloat()
     }
 
-    public AxisAngle4f(float angle, Vector3f v) {
-        this(angle, v.x, v.y, v.z);
+    constructor(angle: Float, v: Vector3f) : this(angle, v.x, v.y, v.z) {}
+
+    fun set(a: AxisAngle4f): AxisAngle4f {
+        x = a.x
+        y = a.y
+        z = a.z
+        angle = a.angle
+        angle =
+            ((if (angle.toDouble() < 0.0) 6.283185307179586 + angle.toDouble() % 6.283185307179586 else angle.toDouble()) % 6.283185307179586).toFloat()
+        return this
     }
 
-    public AxisAngle4f set(AxisAngle4f a) {
-        this.x = a.x;
-        this.y = a.y;
-        this.z = a.z;
-        this.angle = a.angle;
-        this.angle = (float) (((double) this.angle < 0.0 ? 6.283185307179586 + (double) this.angle % 6.283185307179586 : (double) this.angle) % 6.283185307179586);
-        return this;
+    fun set(a: AxisAngle4d): AxisAngle4f {
+        x = a.x.toFloat()
+        y = a.y.toFloat()
+        z = a.z.toFloat()
+        angle = a.angle.toFloat()
+        angle =
+            ((if (angle.toDouble() < 0.0) 6.283185307179586 + angle.toDouble() % 6.283185307179586 else angle.toDouble()) % 6.283185307179586).toFloat()
+        return this
     }
 
-    public AxisAngle4f set(AxisAngle4d a) {
-        this.x = (float) a.x;
-        this.y = (float) a.y;
-        this.z = (float) a.z;
-        this.angle = (float) a.angle;
-        this.angle = (float) (((double) this.angle < 0.0 ? 6.283185307179586 + (double) this.angle % 6.283185307179586 : (double) this.angle) % 6.283185307179586);
-        return this;
+    operator fun set(angle: Float, x: Float, y: Float, z: Float): AxisAngle4f {
+        this.x = x
+        this.y = y
+        this.z = z
+        this.angle =
+            ((if (angle.toDouble() < 0.0) 6.283185307179586 + angle.toDouble() % 6.283185307179586 else angle.toDouble()) % 6.283185307179586).toFloat()
+        return this
     }
 
-    public AxisAngle4f set(float angle, float x, float y, float z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.angle = (float) (((double) angle < 0.0 ? 6.283185307179586 + (double) angle % 6.283185307179586 : (double) angle) % 6.283185307179586);
-        return this;
+    operator fun set(angle: Float, v: Vector3f): AxisAngle4f {
+        return this.set(angle, v.x, v.y, v.z)
     }
 
-    public AxisAngle4f set(float angle, Vector3f v) {
-        return this.set(angle, v.x, v.y, v.z);
-    }
-
-    public AxisAngle4f set(Quaternionf q) {
-        float acos = Math.safeAcos(q.w);
-        float invSqrt = Math.invsqrt(1.0F - q.w * q.w);
-        if (Float.isInfinite(invSqrt)) {
-            this.x = 0.0F;
-            this.y = 0.0F;
-            this.z = 1.0F;
+    fun set(q: Quaternionf): AxisAngle4f {
+        val acos = Math.safeAcos(q.w)
+        val invSqrt = Math.invsqrt(1.0f - q.w * q.w)
+        if (java.lang.Float.isInfinite(invSqrt)) {
+            x = 0.0f
+            y = 0.0f
+            z = 1.0f
         } else {
-            this.x = q.x * invSqrt;
-            this.y = q.y * invSqrt;
-            this.z = q.z * invSqrt;
+            x = q.x * invSqrt
+            y = q.y * invSqrt
+            z = q.z * invSqrt
         }
-
-        this.angle = acos + acos;
-        return this;
+        angle = acos + acos
+        return this
     }
 
-    public AxisAngle4f set(Quaterniond q) {
-        double acos = Math.safeAcos(q.w);
-        double invSqrt = Math.invsqrt(1.0 - q.w * q.w);
-        if (Double.isInfinite(invSqrt)) {
-            this.x = 0.0F;
-            this.y = 0.0F;
-            this.z = 1.0F;
+    fun set(q: Quaterniond): AxisAngle4f {
+        val acos = Math.safeAcos(q.w)
+        val invSqrt = Math.invsqrt(1.0 - q.w * q.w)
+        if (java.lang.Double.isInfinite(invSqrt)) {
+            x = 0.0f
+            y = 0.0f
+            z = 1.0f
         } else {
-            this.x = (float) (q.x * invSqrt);
-            this.y = (float) (q.y * invSqrt);
-            this.z = (float) (q.z * invSqrt);
+            x = (q.x * invSqrt).toFloat()
+            y = (q.y * invSqrt).toFloat()
+            z = (q.z * invSqrt).toFloat()
         }
-
-        this.angle = (float) (acos + acos);
-        return this;
+        angle = (acos + acos).toFloat()
+        return this
     }
 
-    public AxisAngle4f set(Matrix3f m) {
-        float nm00 = m.m00;
-        float nm01 = m.m01;
-        float nm02 = m.m02;
-        float nm10 = m.m10;
-        float nm11 = m.m11;
-        float nm12 = m.m12;
-        float nm20 = m.m20;
-        float nm21 = m.m21;
-        float nm22 = m.m22;
-        float lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02);
-        float lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12);
-        float lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22);
-        nm00 *= lenX;
-        nm01 *= lenX;
-        nm02 *= lenX;
-        nm10 *= lenY;
-        nm11 *= lenY;
-        nm12 *= lenY;
-        nm20 *= lenZ;
-        nm21 *= lenZ;
-        nm22 *= lenZ;
-        float epsilon = 1.0E-4F;
-        float epsilon2 = 0.001F;
-        float xx;
+    fun set(m: Matrix3f): AxisAngle4f {
+        var nm00 = m.m00
+        var nm01 = m.m01
+        var nm02 = m.m02
+        var nm10 = m.m10
+        var nm11 = m.m11
+        var nm12 = m.m12
+        var nm20 = m.m20
+        var nm21 = m.m21
+        var nm22 = m.m22
+        val lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
+        val lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
+        val lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
+        nm00 *= lenX
+        nm01 *= lenX
+        nm02 *= lenX
+        nm10 *= lenY
+        nm11 *= lenY
+        nm12 *= lenY
+        nm20 *= lenZ
+        nm21 *= lenZ
+        nm22 *= lenZ
+        val epsilon = 1.0E-4f
+        val epsilon2 = 0.001f
+        val xx: Float
         if (Math.abs(nm10 - nm01) < epsilon && Math.abs(nm20 - nm02) < epsilon && Math.abs(nm21 - nm12) < epsilon) {
-            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(nm00 + nm11 + nm22 - 3.0F) < epsilon2) {
-                this.x = 0.0F;
-                this.y = 0.0F;
-                this.z = 1.0F;
-                this.angle = 0.0F;
+            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(
+                    nm00 + nm11 + nm22 - 3.0f
+                ) < epsilon2
+            ) {
+                x = 0.0f
+                y = 0.0f
+                z = 1.0f
+                angle = 0.0f
             } else {
-                this.angle = 3.1415927F;
-                xx = (nm00 + 1.0F) / 2.0F;
-                float yy = (nm11 + 1.0F) / 2.0F;
-                float zz = (nm22 + 1.0F) / 2.0F;
-                float xy = (nm10 + nm01) / 4.0F;
-                float xz = (nm20 + nm02) / 4.0F;
-                float yz = (nm21 + nm12) / 4.0F;
+                angle = 3.1415927f
+                xx = (nm00 + 1.0f) / 2.0f
+                val yy = (nm11 + 1.0f) / 2.0f
+                val zz = (nm22 + 1.0f) / 2.0f
+                val xy = (nm10 + nm01) / 4.0f
+                val xz = (nm20 + nm02) / 4.0f
+                val yz = (nm21 + nm12) / 4.0f
                 if (xx > yy && xx > zz) {
-                    this.x = Math.sqrt(xx);
-                    this.y = xy / this.x;
-                    this.z = xz / this.x;
+                    x = Math.sqrt(xx)
+                    y = xy / x
+                    z = xz / x
                 } else if (yy > zz) {
-                    this.y = Math.sqrt(yy);
-                    this.x = xy / this.y;
-                    this.z = yz / this.y;
+                    y = Math.sqrt(yy)
+                    x = xy / y
+                    z = yz / y
                 } else {
-                    this.z = Math.sqrt(zz);
-                    this.x = xz / this.z;
-                    this.y = yz / this.z;
+                    z = Math.sqrt(zz)
+                    x = xz / z
+                    y = yz / z
                 }
-
             }
         } else {
-            xx = Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10));
-            this.angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0F) / 2.0F);
-            this.x = (nm12 - nm21) / xx;
-            this.y = (nm20 - nm02) / xx;
-            this.z = (nm01 - nm10) / xx;
+            xx =
+                Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
+            angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0f) / 2.0f)
+            x = (nm12 - nm21) / xx
+            y = (nm20 - nm02) / xx
+            z = (nm01 - nm10) / xx
         }
-        return this;
+        return this
     }
 
-    public AxisAngle4f set(Matrix3d m) {
-        double nm00 = m.m00;
-        double nm01 = m.m01;
-        double nm02 = m.m02;
-        double nm10 = m.m10;
-        double nm11 = m.m11;
-        double nm12 = m.m12;
-        double nm20 = m.m20;
-        double nm21 = m.m21;
-        double nm22 = m.m22;
-        double lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02);
-        double lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12);
-        double lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22);
-        nm00 *= lenX;
-        nm01 *= lenX;
-        nm02 *= lenX;
-        nm10 *= lenY;
-        nm11 *= lenY;
-        nm12 *= lenY;
-        nm20 *= lenZ;
-        nm21 *= lenZ;
-        nm22 *= lenZ;
-        double epsilon = 1.0E-4;
-        double epsilon2 = 0.001;
-        double xx;
+    fun set(m: Matrix3d): AxisAngle4f {
+        var nm00 = m.m00
+        var nm01 = m.m01
+        var nm02 = m.m02
+        var nm10 = m.m10
+        var nm11 = m.m11
+        var nm12 = m.m12
+        var nm20 = m.m20
+        var nm21 = m.m21
+        var nm22 = m.m22
+        val lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
+        val lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
+        val lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
+        nm00 *= lenX
+        nm01 *= lenX
+        nm02 *= lenX
+        nm10 *= lenY
+        nm11 *= lenY
+        nm12 *= lenY
+        nm20 *= lenZ
+        nm21 *= lenZ
+        nm22 *= lenZ
+        val epsilon = 1.0E-4
+        val epsilon2 = 0.001
+        val xx: Double
         if (Math.abs(nm10 - nm01) < epsilon && Math.abs(nm20 - nm02) < epsilon && Math.abs(nm21 - nm12) < epsilon) {
-            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(nm00 + nm11 + nm22 - 3.0) < epsilon2) {
-                this.x = 0.0F;
-                this.y = 0.0F;
-                this.z = 1.0F;
-                this.angle = 0.0F;
+            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(
+                    nm00 + nm11 + nm22 - 3.0
+                ) < epsilon2
+            ) {
+                x = 0.0f
+                y = 0.0f
+                z = 1.0f
+                angle = 0.0f
             } else {
-                this.angle = 3.1415927F;
-                xx = (nm00 + 1.0) / 2.0;
-                double yy = (nm11 + 1.0) / 2.0;
-                double zz = (nm22 + 1.0) / 2.0;
-                double xy = (nm10 + nm01) / 4.0;
-                double xz = (nm20 + nm02) / 4.0;
-                double yz = (nm21 + nm12) / 4.0;
+                angle = 3.1415927f
+                xx = (nm00 + 1.0) / 2.0
+                val yy = (nm11 + 1.0) / 2.0
+                val zz = (nm22 + 1.0) / 2.0
+                val xy = (nm10 + nm01) / 4.0
+                val xz = (nm20 + nm02) / 4.0
+                val yz = (nm21 + nm12) / 4.0
                 if (xx > yy && xx > zz) {
-                    this.x = (float) Math.sqrt(xx);
-                    this.y = (float) (xy / (double) this.x);
-                    this.z = (float) (xz / (double) this.x);
+                    x = Math.sqrt(xx).toFloat()
+                    y = (xy / x.toDouble()).toFloat()
+                    z = (xz / x.toDouble()).toFloat()
                 } else if (yy > zz) {
-                    this.y = (float) Math.sqrt(yy);
-                    this.x = (float) (xy / (double) this.y);
-                    this.z = (float) (yz / (double) this.y);
+                    y = Math.sqrt(yy).toFloat()
+                    x = (xy / y.toDouble()).toFloat()
+                    z = (yz / y.toDouble()).toFloat()
                 } else {
-                    this.z = (float) Math.sqrt(zz);
-                    this.x = (float) (xz / (double) this.z);
-                    this.y = (float) (yz / (double) this.z);
+                    z = Math.sqrt(zz).toFloat()
+                    x = (xz / z.toDouble()).toFloat()
+                    y = (yz / z.toDouble()).toFloat()
                 }
-
             }
         } else {
-            xx = Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10));
-            this.angle = (float) Math.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0);
-            this.x = (float) ((nm12 - nm21) / xx);
-            this.y = (float) ((nm20 - nm02) / xx);
-            this.z = (float) ((nm01 - nm10) / xx);
+            xx =
+                Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
+            angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0).toFloat()
+            x = ((nm12 - nm21) / xx).toFloat()
+            y = ((nm20 - nm02) / xx).toFloat()
+            z = ((nm01 - nm10) / xx).toFloat()
         }
-        return this;
+        return this
     }
 
-    public AxisAngle4f set(Matrix4f m) {
-        float nm00 = m.m00;
-        float nm01 = m.m01;
-        float nm02 = m.m02;
-        float nm10 = m.m10;
-        float nm11 = m.m11;
-        float nm12 = m.m12;
-        float nm20 = m.m20;
-        float nm21 = m.m21;
-        float nm22 = m.m22;
-        float lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02);
-        float lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12);
-        float lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22);
-        nm00 *= lenX;
-        nm01 *= lenX;
-        nm02 *= lenX;
-        nm10 *= lenY;
-        nm11 *= lenY;
-        nm12 *= lenY;
-        nm20 *= lenZ;
-        nm21 *= lenZ;
-        nm22 *= lenZ;
-        float epsilon = 1.0E-4F;
-        float epsilon2 = 0.001F;
-        float xx;
+    fun set(m: Matrix4f): AxisAngle4f {
+        var nm00 = m.m00
+        var nm01 = m.m01
+        var nm02 = m.m02
+        var nm10 = m.m10
+        var nm11 = m.m11
+        var nm12 = m.m12
+        var nm20 = m.m20
+        var nm21 = m.m21
+        var nm22 = m.m22
+        val lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
+        val lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
+        val lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
+        nm00 *= lenX
+        nm01 *= lenX
+        nm02 *= lenX
+        nm10 *= lenY
+        nm11 *= lenY
+        nm12 *= lenY
+        nm20 *= lenZ
+        nm21 *= lenZ
+        nm22 *= lenZ
+        val epsilon = 1.0E-4f
+        val epsilon2 = 0.001f
+        val xx: Float
         if (Math.abs(nm10 - nm01) < epsilon && Math.abs(nm20 - nm02) < epsilon && Math.abs(nm21 - nm12) < epsilon) {
-            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(nm00 + nm11 + nm22 - 3.0F) < epsilon2) {
-                this.x = 0.0F;
-                this.y = 0.0F;
-                this.z = 1.0F;
-                this.angle = 0.0F;
+            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(
+                    nm00 + nm11 + nm22 - 3.0f
+                ) < epsilon2
+            ) {
+                x = 0.0f
+                y = 0.0f
+                z = 1.0f
+                angle = 0.0f
             } else {
-                this.angle = 3.1415927F;
-                xx = (nm00 + 1.0F) / 2.0F;
-                float yy = (nm11 + 1.0F) / 2.0F;
-                float zz = (nm22 + 1.0F) / 2.0F;
-                float xy = (nm10 + nm01) / 4.0F;
-                float xz = (nm20 + nm02) / 4.0F;
-                float yz = (nm21 + nm12) / 4.0F;
+                angle = 3.1415927f
+                xx = (nm00 + 1.0f) / 2.0f
+                val yy = (nm11 + 1.0f) / 2.0f
+                val zz = (nm22 + 1.0f) / 2.0f
+                val xy = (nm10 + nm01) / 4.0f
+                val xz = (nm20 + nm02) / 4.0f
+                val yz = (nm21 + nm12) / 4.0f
                 if (xx > yy && xx > zz) {
-                    this.x = Math.sqrt(xx);
-                    this.y = xy / this.x;
-                    this.z = xz / this.x;
+                    x = Math.sqrt(xx)
+                    y = xy / x
+                    z = xz / x
                 } else if (yy > zz) {
-                    this.y = Math.sqrt(yy);
-                    this.x = xy / this.y;
-                    this.z = yz / this.y;
+                    y = Math.sqrt(yy)
+                    x = xy / y
+                    z = yz / y
                 } else {
-                    this.z = Math.sqrt(zz);
-                    this.x = xz / this.z;
-                    this.y = yz / this.z;
+                    z = Math.sqrt(zz)
+                    x = xz / z
+                    y = yz / z
                 }
-
             }
         } else {
-            xx = Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10));
-            this.angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0F) / 2.0F);
-            this.x = (nm12 - nm21) / xx;
-            this.y = (nm20 - nm02) / xx;
-            this.z = (nm01 - nm10) / xx;
+            xx =
+                Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
+            angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0f) / 2.0f)
+            x = (nm12 - nm21) / xx
+            y = (nm20 - nm02) / xx
+            z = (nm01 - nm10) / xx
         }
-        return this;
+        return this
     }
 
-    public AxisAngle4f set(Matrix4x3f m) {
-        float nm00 = m.m00;
-        float nm01 = m.m01;
-        float nm02 = m.m02;
-        float nm10 = m.m10;
-        float nm11 = m.m11;
-        float nm12 = m.m12;
-        float nm20 = m.m20;
-        float nm21 = m.m21;
-        float nm22 = m.m22;
-        float lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02);
-        float lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12);
-        float lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22);
-        nm00 *= lenX;
-        nm01 *= lenX;
-        nm02 *= lenX;
-        nm10 *= lenY;
-        nm11 *= lenY;
-        nm12 *= lenY;
-        nm20 *= lenZ;
-        nm21 *= lenZ;
-        nm22 *= lenZ;
-        float epsilon = 1.0E-4F;
-        float epsilon2 = 0.001F;
-        float xx;
+    fun set(m: Matrix4x3f): AxisAngle4f {
+        var nm00 = m.m00
+        var nm01 = m.m01
+        var nm02 = m.m02
+        var nm10 = m.m10
+        var nm11 = m.m11
+        var nm12 = m.m12
+        var nm20 = m.m20
+        var nm21 = m.m21
+        var nm22 = m.m22
+        val lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
+        val lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
+        val lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
+        nm00 *= lenX
+        nm01 *= lenX
+        nm02 *= lenX
+        nm10 *= lenY
+        nm11 *= lenY
+        nm12 *= lenY
+        nm20 *= lenZ
+        nm21 *= lenZ
+        nm22 *= lenZ
+        val epsilon = 1.0E-4f
+        val epsilon2 = 0.001f
+        val xx: Float
         if (Math.abs(nm10 - nm01) < epsilon && Math.abs(nm20 - nm02) < epsilon && Math.abs(nm21 - nm12) < epsilon) {
-            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(nm00 + nm11 + nm22 - 3.0F) < epsilon2) {
-                this.x = 0.0F;
-                this.y = 0.0F;
-                this.z = 1.0F;
-                this.angle = 0.0F;
+            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(
+                    nm00 + nm11 + nm22 - 3.0f
+                ) < epsilon2
+            ) {
+                x = 0.0f
+                y = 0.0f
+                z = 1.0f
+                angle = 0.0f
             } else {
-                this.angle = 3.1415927F;
-                xx = (nm00 + 1.0F) / 2.0F;
-                float yy = (nm11 + 1.0F) / 2.0F;
-                float zz = (nm22 + 1.0F) / 2.0F;
-                float xy = (nm10 + nm01) / 4.0F;
-                float xz = (nm20 + nm02) / 4.0F;
-                float yz = (nm21 + nm12) / 4.0F;
+                angle = 3.1415927f
+                xx = (nm00 + 1.0f) / 2.0f
+                val yy = (nm11 + 1.0f) / 2.0f
+                val zz = (nm22 + 1.0f) / 2.0f
+                val xy = (nm10 + nm01) / 4.0f
+                val xz = (nm20 + nm02) / 4.0f
+                val yz = (nm21 + nm12) / 4.0f
                 if (xx > yy && xx > zz) {
-                    this.x = Math.sqrt(xx);
-                    this.y = xy / this.x;
-                    this.z = xz / this.x;
+                    x = Math.sqrt(xx)
+                    y = xy / x
+                    z = xz / x
                 } else if (yy > zz) {
-                    this.y = Math.sqrt(yy);
-                    this.x = xy / this.y;
-                    this.z = yz / this.y;
+                    y = Math.sqrt(yy)
+                    x = xy / y
+                    z = yz / y
                 } else {
-                    this.z = Math.sqrt(zz);
-                    this.x = xz / this.z;
-                    this.y = yz / this.z;
+                    z = Math.sqrt(zz)
+                    x = xz / z
+                    y = yz / z
                 }
-
             }
         } else {
-            xx = Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10));
-            this.angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0F) / 2.0F);
-            this.x = (nm12 - nm21) / xx;
-            this.y = (nm20 - nm02) / xx;
-            this.z = (nm01 - nm10) / xx;
+            xx =
+                Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
+            angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0f) / 2.0f)
+            x = (nm12 - nm21) / xx
+            y = (nm20 - nm02) / xx
+            z = (nm01 - nm10) / xx
         }
-        return this;
+        return this
     }
 
-    public AxisAngle4f set(Matrix4d m) {
-        double nm00 = m.m00;
-        double nm01 = m.m01;
-        double nm02 = m.m02;
-        double nm10 = m.m10;
-        double nm11 = m.m11;
-        double nm12 = m.m12;
-        double nm20 = m.m20;
-        double nm21 = m.m21;
-        double nm22 = m.m22;
-        double lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02);
-        double lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12);
-        double lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22);
-        nm00 *= lenX;
-        nm01 *= lenX;
-        nm02 *= lenX;
-        nm10 *= lenY;
-        nm11 *= lenY;
-        nm12 *= lenY;
-        nm20 *= lenZ;
-        nm21 *= lenZ;
-        nm22 *= lenZ;
-        double epsilon = 1.0E-4;
-        double epsilon2 = 0.001;
-        double xx;
+    fun set(m: Matrix4d): AxisAngle4f {
+        var nm00 = m.m00
+        var nm01 = m.m01
+        var nm02 = m.m02
+        var nm10 = m.m10
+        var nm11 = m.m11
+        var nm12 = m.m12
+        var nm20 = m.m20
+        var nm21 = m.m21
+        var nm22 = m.m22
+        val lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
+        val lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
+        val lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
+        nm00 *= lenX
+        nm01 *= lenX
+        nm02 *= lenX
+        nm10 *= lenY
+        nm11 *= lenY
+        nm12 *= lenY
+        nm20 *= lenZ
+        nm21 *= lenZ
+        nm22 *= lenZ
+        val epsilon = 1.0E-4
+        val epsilon2 = 0.001
+        val xx: Double
         if (Math.abs(nm10 - nm01) < epsilon && Math.abs(nm20 - nm02) < epsilon && Math.abs(nm21 - nm12) < epsilon) {
-            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(nm00 + nm11 + nm22 - 3.0) < epsilon2) {
-                this.x = 0.0F;
-                this.y = 0.0F;
-                this.z = 1.0F;
-                this.angle = 0.0F;
+            if (Math.abs(nm10 + nm01) < epsilon2 && Math.abs(nm20 + nm02) < epsilon2 && Math.abs(nm21 + nm12) < epsilon2 && Math.abs(
+                    nm00 + nm11 + nm22 - 3.0
+                ) < epsilon2
+            ) {
+                x = 0.0f
+                y = 0.0f
+                z = 1.0f
+                angle = 0.0f
             } else {
-                this.angle = 3.1415927F;
-                xx = (nm00 + 1.0) / 2.0;
-                double yy = (nm11 + 1.0) / 2.0;
-                double zz = (nm22 + 1.0) / 2.0;
-                double xy = (nm10 + nm01) / 4.0;
-                double xz = (nm20 + nm02) / 4.0;
-                double yz = (nm21 + nm12) / 4.0;
+                angle = 3.1415927f
+                xx = (nm00 + 1.0) / 2.0
+                val yy = (nm11 + 1.0) / 2.0
+                val zz = (nm22 + 1.0) / 2.0
+                val xy = (nm10 + nm01) / 4.0
+                val xz = (nm20 + nm02) / 4.0
+                val yz = (nm21 + nm12) / 4.0
                 if (xx > yy && xx > zz) {
-                    this.x = (float) Math.sqrt(xx);
-                    this.y = (float) (xy / (double) this.x);
-                    this.z = (float) (xz / (double) this.x);
+                    x = Math.sqrt(xx).toFloat()
+                    y = (xy / x.toDouble()).toFloat()
+                    z = (xz / x.toDouble()).toFloat()
                 } else if (yy > zz) {
-                    this.y = (float) Math.sqrt(yy);
-                    this.x = (float) (xy / (double) this.y);
-                    this.z = (float) (yz / (double) this.y);
+                    y = Math.sqrt(yy).toFloat()
+                    x = (xy / y.toDouble()).toFloat()
+                    z = (yz / y.toDouble()).toFloat()
                 } else {
-                    this.z = (float) Math.sqrt(zz);
-                    this.x = (float) (xz / (double) this.z);
-                    this.y = (float) (yz / (double) this.z);
+                    z = Math.sqrt(zz).toFloat()
+                    x = (xz / z.toDouble()).toFloat()
+                    y = (yz / z.toDouble()).toFloat()
                 }
-
             }
         } else {
-            xx = Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10));
-            this.angle = (float) Math.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0);
-            this.x = (float) ((nm12 - nm21) / xx);
-            this.y = (float) ((nm20 - nm02) / xx);
-            this.z = (float) ((nm01 - nm10) / xx);
+            xx =
+                Math.sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
+            angle = Math.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0).toFloat()
+            x = ((nm12 - nm21) / xx).toFloat()
+            y = ((nm20 - nm02) / xx).toFloat()
+            z = ((nm01 - nm10) / xx).toFloat()
         }
-        return this;
+        return this
     }
 
-    public Quaternionf get(Quaternionf q) {
-        return q.set(this);
+    operator fun get(q: Quaternionf): Quaternionf {
+        return q.set(this)
     }
 
-    public Quaterniond get(Quaterniond q) {
-        return q.set(this);
+    operator fun get(q: Quaterniond): Quaterniond {
+        return q.set(this)
     }
 
-    public Matrix4f get(Matrix4f m) {
-        return m.set(this);
+    operator fun get(m: Matrix4f): Matrix4f {
+        return m.set(this)
     }
 
-    public Matrix3f get(Matrix3f m) {
-        return m.set(this);
+    operator fun get(m: Matrix3f): Matrix3f {
+        return m.set(this)
     }
 
-    public Matrix4d get(Matrix4d m) {
-        return m.set(this);
+    operator fun get(m: Matrix4d): Matrix4d {
+        return m.set(this)
     }
 
-    public Matrix3d get(Matrix3d m) {
-        return m.set(this);
+    operator fun get(m: Matrix3d): Matrix3d {
+        return m.set(this)
     }
 
-    public AxisAngle4d get(AxisAngle4d dest) {
-        return dest.set(this);
+    operator fun get(dest: AxisAngle4d): AxisAngle4d {
+        return dest.set(this)
     }
 
-    public AxisAngle4f get(AxisAngle4f dest) {
-        return dest.set(this);
+    operator fun get(dest: AxisAngle4f): AxisAngle4f {
+        return dest.set(this)
     }
 
-    public AxisAngle4f normalize() {
-        float invLength = Math.invsqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-        this.x *= invLength;
-        this.y *= invLength;
-        this.z *= invLength;
-        return this;
+    fun normalize(): AxisAngle4f {
+        val invLength = Math.invsqrt(x * x + y * y + z * z)
+        x *= invLength
+        y *= invLength
+        z *= invLength
+        return this
     }
 
-    public AxisAngle4f rotate(float ang) {
-        this.angle += ang;
-        this.angle = (float) (((double) this.angle < 0.0 ? 6.283185307179586 + (double) this.angle % 6.283185307179586 : (double) this.angle) % 6.283185307179586);
-        return this;
+    fun rotate(ang: Float): AxisAngle4f {
+        angle += ang
+        angle =
+            ((if (angle.toDouble() < 0.0) 6.283185307179586 + angle.toDouble() % 6.283185307179586 else angle.toDouble()) % 6.283185307179586).toFloat()
+        return this
     }
 
-    public Vector3f transform(Vector3f v) {
-        return this.transform(v, v);
+    @JvmOverloads
+    fun transform(v: Vector3f, dest: Vector3f = v): Vector3f {
+        val sin = Math.sin(angle).toDouble()
+        val cos = Math.cosFromSin(sin, angle.toDouble())
+        val dot = x * v.x + y * v.y + z * v.z
+        dest[(v.x.toDouble() * cos + sin * (y * v.z - z * v.y).toDouble() + (1.0 - cos) * dot.toDouble() * x.toDouble()).toFloat(), (v.y.toDouble() * cos + sin * (z * v.x - x * v.z).toDouble() + (1.0 - cos) * dot.toDouble() * y.toDouble()).toFloat()] =
+            (v.z.toDouble() * cos + sin * (x * v.y - y * v.x).toDouble() + (1.0 - cos) * dot.toDouble() * z.toDouble()).toFloat()
+        return dest
     }
 
-    public Vector3f transform(Vector3f v, Vector3f dest) {
-        double sin = Math.sin(this.angle);
-        double cos = Math.cosFromSin(sin, this.angle);
-        float dot = this.x * v.x + this.y * v.y + this.z * v.z;
-        dest.set((float) ((double) v.x * cos + sin * (double) (this.y * v.z - this.z * v.y) + (1.0 - cos) * (double) dot * (double) this.x), (float) ((double) v.y * cos + sin * (double) (this.z * v.x - this.x * v.z) + (1.0 - cos) * (double) dot * (double) this.y), (float) ((double) v.z * cos + sin * (double) (this.x * v.y - this.y * v.x) + (1.0 - cos) * (double) dot * (double) this.z));
-        return dest;
+    @JvmOverloads
+    fun transform(v: Vector4f, dest: Vector4f = v): Vector4f {
+        val sin = Math.sin(angle).toDouble()
+        val cos = Math.cosFromSin(sin, angle.toDouble())
+        val dot = x * v.x + y * v.y + z * v.z
+        dest[(v.x.toDouble() * cos + sin * (y * v.z - z * v.y).toDouble() + (1.0 - cos) * dot.toDouble() * x.toDouble()).toFloat(), (v.y.toDouble() * cos + sin * (z * v.x - x * v.z).toDouble() + (1.0 - cos) * dot.toDouble() * y.toDouble()).toFloat(), (v.z.toDouble() * cos + sin * (x * v.y - y * v.x).toDouble() + (1.0 - cos) * dot.toDouble() * z.toDouble()).toFloat()] =
+            dest.w
+        return dest
     }
 
-    public Vector4f transform(Vector4f v) {
-        return this.transform(v, v);
+    override fun toString(): String {
+        return "($x,$y,$z <| $angle)"
     }
 
-    public Vector4f transform(Vector4f v, Vector4f dest) {
-        double sin = Math.sin(this.angle);
-        double cos = Math.cosFromSin(sin, this.angle);
-        float dot = this.x * v.x + this.y * v.y + this.z * v.z;
-        dest.set((float) ((double) v.x * cos + sin * (double) (this.y * v.z - this.z * v.y) + (1.0 - cos) * (double) dot * (double) this.x), (float) ((double) v.y * cos + sin * (double) (this.z * v.x - this.x * v.z) + (1.0 - cos) * (double) dot * (double) this.y), (float) ((double) v.z * cos + sin * (double) (this.x * v.y - this.y * v.x) + (1.0 - cos) * (double) dot * (double) this.z), dest.w);
-        return dest;
+    override fun hashCode(): Int {
+        var result = 1
+        val nangle =
+            ((if (angle.toDouble() < 0.0) 6.283185307179586 + angle.toDouble() % 6.283185307179586 else angle.toDouble()) % 6.283185307179586).toFloat()
+        result = 31 * result + java.lang.Float.floatToIntBits(nangle)
+        result = 31 * result + java.lang.Float.floatToIntBits(x)
+        result = 31 * result + java.lang.Float.floatToIntBits(y)
+        result = 31 * result + java.lang.Float.floatToIntBits(z)
+        return result
     }
 
-    public String toString() {
-        return "(" + x + "," + y + "," + z + " <| " + angle + ")";
-    }
-
-    public int hashCode() {
-        int result = 1;
-        float nangle = (float) (((double) this.angle < 0.0 ? 6.283185307179586 + (double) this.angle % 6.283185307179586 : (double) this.angle) % 6.283185307179586);
-        result = 31 * result + Float.floatToIntBits(nangle);
-        result = 31 * result + Float.floatToIntBits(this.x);
-        result = 31 * result + Float.floatToIntBits(this.y);
-        result = 31 * result + Float.floatToIntBits(this.z);
-        return result;
-    }
-
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
+    override fun equals(obj: Any?): Boolean {
+        return if (this === obj) {
+            true
         } else if (obj == null) {
-            return false;
-        } else if (this.getClass() != obj.getClass()) {
-            return false;
+            false
+        } else if (this.javaClass != obj.javaClass) {
+            false
         } else {
-            AxisAngle4f other = (AxisAngle4f) obj;
-            float nangle = (float) (((double) this.angle < 0.0 ? 6.283185307179586 + (double) this.angle % 6.283185307179586 : (double) this.angle) % 6.283185307179586);
-            float nangleOther = (float) (((double) other.angle < 0.0 ? 6.283185307179586 + (double) other.angle % 6.283185307179586 : (double) other.angle) % 6.283185307179586);
-            if (Float.floatToIntBits(nangle) != Float.floatToIntBits(nangleOther)) {
-                return false;
-            } else if (Float.floatToIntBits(this.x) != Float.floatToIntBits(other.x)) {
-                return false;
-            } else if (Float.floatToIntBits(this.y) != Float.floatToIntBits(other.y)) {
-                return false;
+            val other = obj as AxisAngle4f
+            val nangle =
+                ((if (angle.toDouble() < 0.0) 6.283185307179586 + angle.toDouble() % 6.283185307179586 else angle.toDouble()) % 6.283185307179586).toFloat()
+            val nangleOther =
+                ((if (other.angle.toDouble() < 0.0) 6.283185307179586 + other.angle.toDouble() % 6.283185307179586 else other.angle.toDouble()) % 6.283185307179586).toFloat()
+            if (java.lang.Float.floatToIntBits(nangle) != java.lang.Float.floatToIntBits(nangleOther)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(x) != java.lang.Float.floatToIntBits(other.x)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(y) != java.lang.Float.floatToIntBits(other.y)) {
+                false
             } else {
-                return Float.floatToIntBits(this.z) == Float.floatToIntBits(other.z);
+                java.lang.Float.floatToIntBits(z) == java.lang.Float.floatToIntBits(other.z)
             }
         }
     }
-
 }

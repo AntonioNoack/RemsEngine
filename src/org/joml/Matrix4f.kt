@@ -1,6109 +1,7448 @@
-package org.joml;
+package org.joml
 
-import java.nio.FloatBuffer;
-import java.text.NumberFormat;
+import java.nio.FloatBuffer
+import java.text.NumberFormat
 
-@SuppressWarnings("unused")
-public class Matrix4f {
+open class Matrix4f {
+    var m00 = 0f
+    var m01 = 0f
+    var m02 = 0f
+    var m03 = 0f
+    var m10 = 0f
+    var m11 = 0f
+    var m12 = 0f
+    var m13 = 0f
+    var m20 = 0f
+    var m21 = 0f
+    var m22 = 0f
+    var m23 = 0f
+    var m30 = 0f
+    var m31 = 0f
+    var m32 = 0f
+    var m33 = 0f
+    var properties = 0
 
-    public static final int PROPERTY_IDENTITY = 4;
-
-    public float m00;
-    public float m01;
-    public float m02;
-    public float m03;
-    public float m10;
-    public float m11;
-    public float m12;
-    public float m13;
-    public float m20;
-    public float m21;
-    public float m22;
-    public float m23;
-    public float m30;
-    public float m31;
-    public float m32;
-    public float m33;
-    int properties;
-
-    public Matrix4f() {
-        this._m00(1f)._m11(1f)._m22(1f)._m33(1f)._properties(30);
+    constructor() {
+        _m00(1f)._m11(1f)._m22(1f)._m33(1f)._properties(30)
     }
 
-    public Matrix4f(Matrix3f mat) {
-        this.set(mat);
+    constructor(mat: Matrix3f) {
+        this.set(mat)
     }
 
-    public Matrix4f(Matrix4f mat) {
-        this.set(mat);
+    constructor(mat: Matrix4f) {
+        this.set(mat)
     }
 
-    public Matrix4f(Matrix4x3f mat) {
-        this.set(mat);
+    constructor(mat: Matrix4x3f) {
+        this.set(mat)
     }
 
-    public Matrix4f(Matrix4d mat) {
-        this.set(mat);
+    constructor(mat: Matrix4d) {
+        this.set(mat)
     }
 
-    public Matrix4f(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20, float m21, float m22, float m23, float m30, float m31, float m32, float m33) {
-        this._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m20)._m21(m21)._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33).determineProperties();
+    constructor(
+        m00: Float,
+        m01: Float,
+        m02: Float,
+        m03: Float,
+        m10: Float,
+        m11: Float,
+        m12: Float,
+        m13: Float,
+        m20: Float,
+        m21: Float,
+        m22: Float,
+        m23: Float,
+        m30: Float,
+        m31: Float,
+        m32: Float,
+        m33: Float
+    ) {
+        _m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m20)._m21(m21)._m22(m22)
+            ._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33).determineProperties()
     }
 
-    public Matrix4f(Vector4f col0, Vector4f col1, Vector4f col2, Vector4f col3) {
-        this.set(col0, col1, col2, col3);
+    constructor(col0: Vector4f, col1: Vector4f, col2: Vector4f, col3: Vector4f) {
+        this[col0, col1, col2] = col3
     }
 
-    Matrix4f _properties(int properties) {
-        this.properties = properties;
-        return this;
+    fun _properties(properties: Int): Matrix4f {
+        this.properties = properties
+        return this
     }
 
-    public Matrix4f assume(int properties) {
-        this._properties(properties);
-        return this;
+    fun assume(properties: Int): Matrix4f {
+        _properties(properties)
+        return this
     }
 
-    public Matrix4f determineProperties() {
-        int properties = 0;
-        if (this.m03 == 0f && this.m13 == 0f) {
-            if (this.m23 == 0f && this.m33 == 1f) {
-                properties |= 2;
-                if (this.m00 == 1f && this.m01 == 0f && this.m02 == 0f && this.m10 == 0f && this.m11 == 1f && this.m12 == 0f && this.m20 == 0f && this.m21 == 0f && this.m22 == 1f) {
-                    properties |= 24;
-                    if (this.m30 == 0f && this.m31 == 0f && this.m32 == 0f) {
-                        properties |= 4;
+    fun determineProperties(): Matrix4f {
+        var properties = 0
+        if (m03 == 0f && m13 == 0f) {
+            if (m23 == 0f && m33 == 1f) {
+                properties = properties or 2
+                if (m00 == 1f && m01 == 0f && m02 == 0f && m10 == 0f && m11 == 1f && m12 == 0f && m20 == 0f && m21 == 0f && m22 == 1f) {
+                    properties = properties or 24
+                    if (m30 == 0f && m31 == 0f && m32 == 0f) {
+                        properties = properties or 4
                     }
                 }
-            } else if (this.m01 == 0f && this.m02 == 0f && this.m10 == 0f && this.m12 == 0f && this.m20 == 0f && this.m21 == 0f && this.m30 == 0f && this.m31 == 0f && this.m33 == 0f) {
-                properties |= 1;
+            } else if (m01 == 0f && m02 == 0f && m10 == 0f && m12 == 0f && m20 == 0f && m21 == 0f && m30 == 0f && m31 == 0f && m33 == 0f) {
+                properties = properties or 1
             }
         }
-
-        this.properties = properties;
-        return this;
+        this.properties = properties
+        return this
     }
 
-    public int properties() {
-        return this.properties;
+    fun properties(): Int {
+        return properties
     }
 
-    public Matrix4f m00(float m00) {
-        this.m00 = m00;
-        this.properties &= -17;
+    fun m00(m00: Float): Matrix4f {
+        this.m00 = m00
+        properties = properties and -17
         if (m00 != 1f) {
-            this.properties &= -13;
+            properties = properties and -13
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m01(float m01) {
-        this.m01 = m01;
-        this.properties &= -17;
+    fun m01(m01: Float): Matrix4f {
+        this.m01 = m01
+        properties = properties and -17
         if (m01 != 0f) {
-            this.properties &= -14;
+            properties = properties and -14
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m02(float m02) {
-        this.m02 = m02;
-        this.properties &= -17;
+    fun m02(m02: Float): Matrix4f {
+        this.m02 = m02
+        properties = properties and -17
         if (m02 != 0f) {
-            this.properties &= -14;
+            properties = properties and -14
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m03(float m03) {
-        this.m03 = m03;
+    fun m03(m03: Float): Matrix4f {
+        this.m03 = m03
         if (m03 != 0f) {
-            this.properties = 0;
+            properties = 0
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m10(float m10) {
-        this.m10 = m10;
-        this.properties &= -17;
+    fun m10(m10: Float): Matrix4f {
+        this.m10 = m10
+        properties = properties and -17
         if (m10 != 0f) {
-            this.properties &= -14;
+            properties = properties and -14
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m11(float m11) {
-        this.m11 = m11;
-        this.properties &= -17;
+    fun m11(m11: Float): Matrix4f {
+        this.m11 = m11
+        properties = properties and -17
         if (m11 != 1f) {
-            this.properties &= -13;
+            properties = properties and -13
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m12(float m12) {
-        this.m12 = m12;
-        this.properties &= -17;
+    fun m12(m12: Float): Matrix4f {
+        this.m12 = m12
+        properties = properties and -17
         if (m12 != 0f) {
-            this.properties &= -14;
+            properties = properties and -14
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m13(float m13) {
-        this.m13 = m13;
+    fun m13(m13: Float): Matrix4f {
+        this.m13 = m13
         if (m13 != 0f) {
-            this.properties = 0;
+            properties = 0
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m20(float m20) {
-        this.m20 = m20;
-        this.properties &= -17;
+    fun m20(m20: Float): Matrix4f {
+        this.m20 = m20
+        properties = properties and -17
         if (m20 != 0f) {
-            this.properties &= -14;
+            properties = properties and -14
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m21(float m21) {
-        this.m21 = m21;
-        this.properties &= -17;
+    fun m21(m21: Float): Matrix4f {
+        this.m21 = m21
+        properties = properties and -17
         if (m21 != 0f) {
-            this.properties &= -14;
+            properties = properties and -14
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m22(float m22) {
-        this.m22 = m22;
-        this.properties &= -17;
+    fun m22(m22: Float): Matrix4f {
+        this.m22 = m22
+        properties = properties and -17
         if (m22 != 1f) {
-            this.properties &= -13;
+            properties = properties and -13
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m23(float m23) {
-        this.m23 = m23;
+    fun m23(m23: Float): Matrix4f {
+        this.m23 = m23
         if (m23 != 0f) {
-            this.properties &= -31;
+            properties = properties and -31
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m30(float m30) {
-        this.m30 = m30;
+    fun m30(m30: Float): Matrix4f {
+        this.m30 = m30
         if (m30 != 0f) {
-            this.properties &= -6;
+            properties = properties and -6
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m31(float m31) {
-        this.m31 = m31;
+    fun m31(m31: Float): Matrix4f {
+        this.m31 = m31
         if (m31 != 0f) {
-            this.properties &= -6;
+            properties = properties and -6
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m32(float m32) {
-        this.m32 = m32;
+    fun m32(m32: Float): Matrix4f {
+        this.m32 = m32
         if (m32 != 0f) {
-            this.properties &= -6;
+            properties = properties and -6
         }
-
-        return this;
+        return this
     }
 
-    public Matrix4f m33(float m33) {
-        this.m33 = m33;
+    fun m33(m33: Float): Matrix4f {
+        this.m33 = m33
         if (m33 != 0f) {
-            this.properties &= -2;
+            properties = properties and -2
         }
-
         if (m33 != 1f) {
-            this.properties &= -31;
+            properties = properties and -31
         }
-
-        return this;
+        return this
     }
 
-    Matrix4f _m00(float m00) {
-        this.m00 = m00;
-        return this;
+    fun _m00(m00: Float): Matrix4f {
+        this.m00 = m00
+        return this
     }
 
-    Matrix4f _m01(float m01) {
-        this.m01 = m01;
-        return this;
+    fun _m01(m01: Float): Matrix4f {
+        this.m01 = m01
+        return this
     }
 
-    Matrix4f _m02(float m02) {
-        this.m02 = m02;
-        return this;
+    fun _m02(m02: Float): Matrix4f {
+        this.m02 = m02
+        return this
     }
 
-    Matrix4f _m03(float m03) {
-        this.m03 = m03;
-        return this;
+    fun _m03(m03: Float): Matrix4f {
+        this.m03 = m03
+        return this
     }
 
-    Matrix4f _m10(float m10) {
-        this.m10 = m10;
-        return this;
+    fun _m10(m10: Float): Matrix4f {
+        this.m10 = m10
+        return this
     }
 
-    Matrix4f _m11(float m11) {
-        this.m11 = m11;
-        return this;
+    fun _m11(m11: Float): Matrix4f {
+        this.m11 = m11
+        return this
     }
 
-    Matrix4f _m12(float m12) {
-        this.m12 = m12;
-        return this;
+    fun _m12(m12: Float): Matrix4f {
+        this.m12 = m12
+        return this
     }
 
-    Matrix4f _m13(float m13) {
-        this.m13 = m13;
-        return this;
+    fun _m13(m13: Float): Matrix4f {
+        this.m13 = m13
+        return this
     }
 
-    Matrix4f _m20(float m20) {
-        this.m20 = m20;
-        return this;
+    fun _m20(m20: Float): Matrix4f {
+        this.m20 = m20
+        return this
     }
 
-    Matrix4f _m21(float m21) {
-        this.m21 = m21;
-        return this;
+    fun _m21(m21: Float): Matrix4f {
+        this.m21 = m21
+        return this
     }
 
-    Matrix4f _m22(float m22) {
-        this.m22 = m22;
-        return this;
+    fun _m22(m22: Float): Matrix4f {
+        this.m22 = m22
+        return this
     }
 
-    Matrix4f _m23(float m23) {
-        this.m23 = m23;
-        return this;
+    fun _m23(m23: Float): Matrix4f {
+        this.m23 = m23
+        return this
     }
 
-    Matrix4f _m30(float m30) {
-        this.m30 = m30;
-        return this;
+    fun _m30(m30: Float): Matrix4f {
+        this.m30 = m30
+        return this
     }
 
-    Matrix4f _m31(float m31) {
-        this.m31 = m31;
-        return this;
+    fun _m31(m31: Float): Matrix4f {
+        this.m31 = m31
+        return this
     }
 
-    Matrix4f _m32(float m32) {
-        this.m32 = m32;
-        return this;
+    fun _m32(m32: Float): Matrix4f {
+        this.m32 = m32
+        return this
     }
 
-    Matrix4f _m33(float m33) {
-        this.m33 = m33;
-        return this;
+    fun _m33(m33: Float): Matrix4f {
+        this.m33 = m33
+        return this
     }
 
-    public Matrix4f identity() {
-        return (this.properties & 4) != 0 ? this : this._m00(1f)._m01(0f)._m02(0f)._m03(0f)._m10(0f)._m11(1f)._m12(0f)._m13(0f)._m20(0f)._m21(0f)._m22(1f)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(30);
+    fun identity(): Matrix4f {
+        return if (properties and 4 != 0) this else _m00(1f)._m01(0f)._m02(0f)._m03(0f)._m10(0f)._m11(1f)._m12(0f)
+            ._m13(0f)._m20(0f)._m21(0f)._m22(1f)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(30)
     }
 
-    public FloatBuffer putInto(FloatBuffer arr) {
-        arr.put(m00).put(m01).put(m02).put(m03);
-        arr.put(m10).put(m11).put(m12).put(m13);
-        arr.put(m20).put(m21).put(m22).put(m23);
-        arr.put(m30).put(m31).put(m32).put(m33);
-        return arr;
+    fun putInto(arr: FloatBuffer): FloatBuffer {
+        arr.put(m00).put(m01).put(m02).put(m03)
+        arr.put(m10).put(m11).put(m12).put(m13)
+        arr.put(m20).put(m21).put(m22).put(m23)
+        arr.put(m30).put(m31).put(m32).put(m33)
+        return arr
     }
 
-    public Matrix4f set(Matrix4f m) {
-        return this._m00(m.m00)._m01(m.m01)._m02(m.m02)._m03(m.m03)._m10(m.m10)._m11(m.m11)._m12(m.m12)._m13(m.m13)._m20(m.m20)._m21(m.m21)._m22(m.m22)._m23(m.m23)._m30(m.m30)._m31(m.m31)._m32(m.m32)._m33(m.m33)._properties(m.properties());
+    fun set(m: Matrix4f): Matrix4f {
+        return _m00(m.m00)._m01(m.m01)._m02(m.m02)._m03(m.m03)._m10(m.m10)._m11(m.m11)._m12(m.m12)._m13(m.m13)
+            ._m20(m.m20)._m21(m.m21)._m22(m.m22)._m23(m.m23)._m30(m.m30)._m31(m.m31)._m32(m.m32)._m33(m.m33)
+            ._properties(m.properties())
     }
 
-    public Matrix4f setTransposed(Matrix4f m) {
-        return (m.properties() & 4) != 0 ? this.identity() : this.setTransposedInternal(m);
+    fun setTransposed(m: Matrix4f): Matrix4f {
+        return if (m.properties() and 4 != 0) identity() else setTransposedInternal(m)
     }
 
-    private Matrix4f setTransposedInternal(Matrix4f m) {
-        float nm10 = m.m01;
-        float nm12 = m.m21;
-        float nm13 = m.m31;
-        float nm20 = m.m02;
-        float nm21 = m.m12;
-        float nm30 = m.m03;
-        float nm31 = m.m13;
-        float nm32 = m.m23;
-        return this._m00(m.m00)._m01(m.m10)._m02(m.m20)._m03(m.m30)._m10(nm10)._m11(m.m11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(m.m22)._m23(m.m32)._m30(nm30)._m31(nm31)._m32(nm32)._m33(m.m33)._properties(m.properties() & 4);
+    private fun setTransposedInternal(m: Matrix4f): Matrix4f {
+        val nm10 = m.m01
+        val nm12 = m.m21
+        val nm13 = m.m31
+        val nm20 = m.m02
+        val nm21 = m.m12
+        val nm30 = m.m03
+        val nm31 = m.m13
+        val nm32 = m.m23
+        return _m00(m.m00)._m01(m.m10)._m02(m.m20)._m03(m.m30)._m10(nm10)._m11(m.m11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(m.m22)._m23(m.m32)._m30(nm30)._m31(nm31)._m32(nm32)._m33(m.m33)
+            ._properties(m.properties() and 4)
     }
 
-    public Matrix4f set(Matrix4x3f m) {
-        return this._m00(m.m00)._m01(m.m01)._m02(m.m02)._m03(0f)._m10(m.m10)._m11(m.m11)._m12(m.m12)._m13(0f)._m20(m.m20)._m21(m.m21)._m22(m.m22)._m23(0f)._m30(m.m30)._m31(m.m31)._m32(m.m32)._m33(1f)._properties(m.properties() | 2);
+    fun set(m: Matrix4x3f): Matrix4f {
+        return _m00(m.m00)._m01(m.m01)._m02(m.m02)._m03(0f)._m10(m.m10)._m11(m.m11)._m12(m.m12)._m13(0f)._m20(m.m20)
+            ._m21(m.m21)._m22(m.m22)._m23(0f)._m30(m.m30)._m31(m.m31)._m32(m.m32)._m33(1f)
+            ._properties(m.properties() or 2)
     }
 
-    public Matrix4f set(Matrix4d m) {
-        return this._m00((float)m.m00)._m01((float)m.m01)._m02((float)m.m02)._m03((float)m.m03)._m10((float)m.m10)._m11((float)m.m11)._m12((float)m.m12)._m13((float)m.m13)._m20((float)m.m20)._m21((float)m.m21)._m22((float)m.m22)._m23((float)m.m23)._m30((float)m.m30)._m31((float)m.m31)._m32((float)m.m32)._m33((float)m.m33)._properties(m.properties());
+    fun set(m: Matrix4d): Matrix4f {
+        return _m00(m.m00.toFloat())._m01(m.m01.toFloat())._m02(m.m02.toFloat())._m03(m.m03.toFloat())
+            ._m10(m.m10.toFloat())._m11(m.m11.toFloat())._m12(m.m12.toFloat())._m13(m.m13.toFloat())
+            ._m20(m.m20.toFloat())._m21(m.m21.toFloat())._m22(m.m22.toFloat())._m23(m.m23.toFloat())
+            ._m30(m.m30.toFloat())._m31(m.m31.toFloat())._m32(m.m32.toFloat())._m33(m.m33.toFloat())
+            ._properties(m.properties())
     }
 
-    public Matrix4f set(Matrix3f mat) {
-        return this._m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m03(0f)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m13(0f)._m20(mat.m20)._m21(mat.m21)._m22(mat.m22)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(2);
+    fun set(mat: Matrix3f): Matrix4f {
+        return _m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m03(0f)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m13(0f)
+            ._m20(mat.m20)._m21(mat.m21)._m22(mat.m22)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(2)
     }
 
-    public Matrix4f set(AxisAngle4f axisAngle) {
-        float x = axisAngle.x;
-        float y = axisAngle.y;
-        float z = axisAngle.z;
-        float angle = axisAngle.angle;
-        double n = Math.sqrt(x * x + y * y + z * z);
-        n = 1.0 / n;
-        x = (float)((double)x * n);
-        y = (float)((double)y * n);
-        z = (float)((double)z * n);
-        float s = Math.sin(angle);
-        float c = Math.cosFromSin(s, angle);
-        float omc = 1f - c;
-        this._m00(c + x * x * omc)._m11(c + y * y * omc)._m22(c + z * z * omc);
-        float tmp1 = x * y * omc;
-        float tmp2 = z * s;
-        this._m10(tmp1 - tmp2)._m01(tmp1 + tmp2);
-        tmp1 = x * z * omc;
-        tmp2 = y * s;
-        this._m20(tmp1 + tmp2)._m02(tmp1 - tmp2);
-        tmp1 = y * z * omc;
-        tmp2 = x * s;
-        return this._m21(tmp1 - tmp2)._m12(tmp1 + tmp2)._m03(0f)._m13(0f)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(18);
+    fun set(axisAngle: AxisAngle4f): Matrix4f {
+        var x = axisAngle.x
+        var y = axisAngle.y
+        var z = axisAngle.z
+        val angle = axisAngle.angle
+        var n = Math.sqrt(x * x + y * y + z * z).toDouble()
+        n = 1.0 / n
+        x = (x.toDouble() * n).toFloat()
+        y = (y.toDouble() * n).toFloat()
+        z = (z.toDouble() * n).toFloat()
+        val s = Math.sin(angle)
+        val c = Math.cosFromSin(s, angle)
+        val omc = 1f - c
+        _m00(c + x * x * omc)._m11(c + y * y * omc)._m22(c + z * z * omc)
+        var tmp1 = x * y * omc
+        var tmp2 = z * s
+        _m10(tmp1 - tmp2)._m01(tmp1 + tmp2)
+        tmp1 = x * z * omc
+        tmp2 = y * s
+        _m20(tmp1 + tmp2)._m02(tmp1 - tmp2)
+        tmp1 = y * z * omc
+        tmp2 = x * s
+        return _m21(tmp1 - tmp2)._m12(tmp1 + tmp2)._m03(0f)._m13(0f)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)
+            ._properties(18)
     }
 
-    public Matrix4f set(AxisAngle4d axisAngle) {
-        double x = axisAngle.x;
-        double y = axisAngle.y;
-        double z = axisAngle.z;
-        double angle = axisAngle.angle;
-        double n = Math.sqrt(x * x + y * y + z * z);
-        n = 1.0 / n;
-        x *= n;
-        y *= n;
-        z *= n;
-        double s = Math.sin(angle);
-        double c = Math.cosFromSin(s, angle);
-        double omc = 1.0 - c;
-        this._m00((float)(c + x * x * omc))._m11((float)(c + y * y * omc))._m22((float)(c + z * z * omc));
-        double tmp1 = x * y * omc;
-        double tmp2 = z * s;
-        this._m10((float)(tmp1 - tmp2))._m01((float)(tmp1 + tmp2));
-        tmp1 = x * z * omc;
-        tmp2 = y * s;
-        this._m20((float)(tmp1 + tmp2))._m02((float)(tmp1 - tmp2));
-        tmp1 = y * z * omc;
-        tmp2 = x * s;
-        return this._m21((float)(tmp1 - tmp2))._m12((float)(tmp1 + tmp2))._m03(0f)._m13(0f)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(18);
+    fun set(axisAngle: AxisAngle4d): Matrix4f {
+        var x = axisAngle.x
+        var y = axisAngle.y
+        var z = axisAngle.z
+        val angle = axisAngle.angle
+        var n = Math.sqrt(x * x + y * y + z * z)
+        n = 1.0 / n
+        x *= n
+        y *= n
+        z *= n
+        val s = Math.sin(angle)
+        val c = Math.cosFromSin(s, angle)
+        val omc = 1.0 - c
+        _m00((c + x * x * omc).toFloat())._m11((c + y * y * omc).toFloat())._m22((c + z * z * omc).toFloat())
+        var tmp1 = x * y * omc
+        var tmp2 = z * s
+        _m10((tmp1 - tmp2).toFloat())._m01((tmp1 + tmp2).toFloat())
+        tmp1 = x * z * omc
+        tmp2 = y * s
+        _m20((tmp1 + tmp2).toFloat())._m02((tmp1 - tmp2).toFloat())
+        tmp1 = y * z * omc
+        tmp2 = x * s
+        return _m21((tmp1 - tmp2).toFloat())._m12((tmp1 + tmp2).toFloat())._m03(0f)._m13(0f)._m23(0f)._m30(0f)._m31(0f)
+            ._m32(0f)._m33(1f)._properties(18)
     }
 
-    public Matrix4f set(Quaternionf q) {
-        return this.rotation(q);
+    fun set(q: Quaternionf): Matrix4f {
+        return this.rotation(q)
     }
 
-    public Matrix4f set(Quaterniond q) {
-        double w2 = q.w * q.w;
-        double x2 = q.x * q.x;
-        double y2 = q.y * q.y;
-        double z2 = q.z * q.z;
-        double zw = q.z * q.w;
-        double xy = q.x * q.y;
-        double xz = q.x * q.z;
-        double yw = q.y * q.w;
-        double yz = q.y * q.z;
-        double xw = q.x * q.w;
-        return this._m00((float)(w2 + x2 - z2 - y2))._m01((float)(xy + zw + zw + xy))._m02((float)(xz - yw + xz - yw))._m03(0f)._m10((float)(-zw + xy - zw + xy))._m11((float)(y2 - z2 + w2 - x2))._m12((float)(yz + yz + xw + xw))._m13(0f)._m20((float)(yw + xz + xz + yw))._m21((float)(yz + yz - xw - xw))._m22((float)(z2 - y2 - x2 + w2))._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(18);
+    fun set(q: Quaterniond): Matrix4f {
+        val w2 = q.w * q.w
+        val x2 = q.x * q.x
+        val y2 = q.y * q.y
+        val z2 = q.z * q.z
+        val zw = q.z * q.w
+        val xy = q.x * q.y
+        val xz = q.x * q.z
+        val yw = q.y * q.w
+        val yz = q.y * q.z
+        val xw = q.x * q.w
+        return _m00((w2 + x2 - z2 - y2).toFloat())._m01((xy + zw + zw + xy).toFloat())
+            ._m02((xz - yw + xz - yw).toFloat())._m03(0f)._m10((-zw + xy - zw + xy).toFloat())
+            ._m11((y2 - z2 + w2 - x2).toFloat())._m12((yz + yz + xw + xw).toFloat())._m13(0f)
+            ._m20((yw + xz + xz + yw).toFloat())._m21((yz + yz - xw - xw).toFloat())._m22((z2 - y2 - x2 + w2).toFloat())
+            ._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(18)
     }
 
-    public Matrix4f set3x3(Matrix4f mat) {
-        MemUtil.INSTANCE.copy3x3(mat, this);
-        return this._properties(this.properties & mat.properties & -2);
+    fun set3x3(mat: Matrix4f): Matrix4f {
+        MemUtil.INSTANCE.copy3x3(mat, this)
+        return _properties(properties and mat.properties and -2)
     }
 
-    public Matrix4f set4x3(Matrix4x3f mat) {
-        return this._m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)._m21(mat.m21)._m22(mat.m22)._m30(mat.m30)._m31(mat.m31)._m32(mat.m32)._properties(this.properties & mat.properties() & -2);
+    fun set4x3(mat: Matrix4x3f): Matrix4f {
+        return _m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)
+            ._m21(mat.m21)._m22(mat.m22)._m30(mat.m30)._m31(mat.m31)._m32(mat.m32)._properties(
+            properties and mat.properties() and -2
+        )
     }
 
-    public Matrix4f set4x3(Matrix4f mat) {
-        MemUtil.INSTANCE.copy4x3(mat, this);
-        return this._properties(this.properties & mat.properties & -2);
+    fun set4x3(mat: Matrix4f): Matrix4f {
+        MemUtil.INSTANCE.copy4x3(mat, this)
+        return _properties(properties and mat.properties and -2)
     }
 
-    public Matrix4f mul(Matrix4f right) {
-        return this.mul(right, this);
-    }
-
-    public Matrix4f mul(Matrix4f right, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.set(right);
-        } else if ((right.properties() & 4) != 0) {
-            return dest.set(this);
-        } else if ((this.properties & 8) != 0 && (right.properties() & 2) != 0) {
-            return this.mulTranslationAffine(right, dest);
-        } else if ((this.properties & 2) != 0 && (right.properties() & 2) != 0) {
-            return this.mulAffine(right, dest);
-        } else if ((this.properties & 1) != 0 && (right.properties() & 2) != 0) {
-            return this.mulPerspectiveAffine(right, dest);
+    @JvmOverloads
+    fun mul(right: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.set(right)
+        } else if (right.properties() and 4 != 0) {
+            dest.set(this)
+        } else if (properties and 8 != 0 && right.properties() and 2 != 0) {
+            mulTranslationAffine(right, dest)
+        } else if (properties and 2 != 0 && right.properties() and 2 != 0) {
+            this.mulAffine(right, dest)
+        } else if (properties and 1 != 0 && right.properties() and 2 != 0) {
+            this.mulPerspectiveAffine(right, dest)
         } else {
-            return (right.properties() & 2) != 0 ? this.mulAffineR(right, dest) : this.mul0(right, dest);
+            if (right.properties() and 2 != 0) mulAffineR(right, dest) else mul0(right, dest)
         }
     }
 
-    public Matrix4f mul0(Matrix4f right) {
-        return this.mul0(right, this);
+    @JvmOverloads
+    fun mul0(right: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        val nm00 = Math.fma(m00, right.m00, Math.fma(m10, right.m01, Math.fma(m20, right.m02, m30 * right.m03)))
+        val nm01 = Math.fma(m01, right.m00, Math.fma(m11, right.m01, Math.fma(m21, right.m02, m31 * right.m03)))
+        val nm02 = Math.fma(m02, right.m00, Math.fma(m12, right.m01, Math.fma(m22, right.m02, m32 * right.m03)))
+        val nm03 = Math.fma(m03, right.m00, Math.fma(m13, right.m01, Math.fma(m23, right.m02, m33 * right.m03)))
+        val nm10 = Math.fma(m00, right.m10, Math.fma(m10, right.m11, Math.fma(m20, right.m12, m30 * right.m13)))
+        val nm11 = Math.fma(m01, right.m10, Math.fma(m11, right.m11, Math.fma(m21, right.m12, m31 * right.m13)))
+        val nm12 = Math.fma(m02, right.m10, Math.fma(m12, right.m11, Math.fma(m22, right.m12, m32 * right.m13)))
+        val nm13 = Math.fma(m03, right.m10, Math.fma(m13, right.m11, Math.fma(m23, right.m12, m33 * right.m13)))
+        val nm20 = Math.fma(m00, right.m20, Math.fma(m10, right.m21, Math.fma(m20, right.m22, m30 * right.m23)))
+        val nm21 = Math.fma(m01, right.m20, Math.fma(m11, right.m21, Math.fma(m21, right.m22, m31 * right.m23)))
+        val nm22 = Math.fma(m02, right.m20, Math.fma(m12, right.m21, Math.fma(m22, right.m22, m32 * right.m23)))
+        val nm23 = Math.fma(m03, right.m20, Math.fma(m13, right.m21, Math.fma(m23, right.m22, m33 * right.m23)))
+        val nm30 = Math.fma(m00, right.m30, Math.fma(m10, right.m31, Math.fma(m20, right.m32, m30 * right.m33)))
+        val nm31 = Math.fma(m01, right.m30, Math.fma(m11, right.m31, Math.fma(m21, right.m32, m31 * right.m33)))
+        val nm32 = Math.fma(m02, right.m30, Math.fma(m12, right.m31, Math.fma(m22, right.m32, m32 * right.m33)))
+        val nm33 = Math.fma(m03, right.m30, Math.fma(m13, right.m31, Math.fma(m23, right.m32, m33 * right.m33)))
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
 
-    public Matrix4f mul0(Matrix4f right, Matrix4f dest) {
-        float nm00 = Math.fma(this.m00, right.m00, Math.fma(this.m10, right.m01, Math.fma(this.m20, right.m02, this.m30 * right.m03)));
-        float nm01 = Math.fma(this.m01, right.m00, Math.fma(this.m11, right.m01, Math.fma(this.m21, right.m02, this.m31 * right.m03)));
-        float nm02 = Math.fma(this.m02, right.m00, Math.fma(this.m12, right.m01, Math.fma(this.m22, right.m02, this.m32 * right.m03)));
-        float nm03 = Math.fma(this.m03, right.m00, Math.fma(this.m13, right.m01, Math.fma(this.m23, right.m02, this.m33 * right.m03)));
-        float nm10 = Math.fma(this.m00, right.m10, Math.fma(this.m10, right.m11, Math.fma(this.m20, right.m12, this.m30 * right.m13)));
-        float nm11 = Math.fma(this.m01, right.m10, Math.fma(this.m11, right.m11, Math.fma(this.m21, right.m12, this.m31 * right.m13)));
-        float nm12 = Math.fma(this.m02, right.m10, Math.fma(this.m12, right.m11, Math.fma(this.m22, right.m12, this.m32 * right.m13)));
-        float nm13 = Math.fma(this.m03, right.m10, Math.fma(this.m13, right.m11, Math.fma(this.m23, right.m12, this.m33 * right.m13)));
-        float nm20 = Math.fma(this.m00, right.m20, Math.fma(this.m10, right.m21, Math.fma(this.m20, right.m22, this.m30 * right.m23)));
-        float nm21 = Math.fma(this.m01, right.m20, Math.fma(this.m11, right.m21, Math.fma(this.m21, right.m22, this.m31 * right.m23)));
-        float nm22 = Math.fma(this.m02, right.m20, Math.fma(this.m12, right.m21, Math.fma(this.m22, right.m22, this.m32 * right.m23)));
-        float nm23 = Math.fma(this.m03, right.m20, Math.fma(this.m13, right.m21, Math.fma(this.m23, right.m22, this.m33 * right.m23)));
-        float nm30 = Math.fma(this.m00, right.m30, Math.fma(this.m10, right.m31, Math.fma(this.m20, right.m32, this.m30 * right.m33)));
-        float nm31 = Math.fma(this.m01, right.m30, Math.fma(this.m11, right.m31, Math.fma(this.m21, right.m32, this.m31 * right.m33)));
-        float nm32 = Math.fma(this.m02, right.m30, Math.fma(this.m12, right.m31, Math.fma(this.m22, right.m32, this.m32 * right.m33)));
-        float nm33 = Math.fma(this.m03, right.m30, Math.fma(this.m13, right.m31, Math.fma(this.m23, right.m32, this.m33 * right.m33)));
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
-    }
-
-    public Matrix4f mul(float r00, float r01, float r02, float r03, float r10, float r11, float r12, float r13, float r20, float r21, float r22, float r23, float r30, float r31, float r32, float r33) {
-        return this.mul(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33, this);
-    }
-
-    public Matrix4f mul(float r00, float r01, float r02, float r03, float r10, float r11, float r12, float r13, float r20, float r21, float r22, float r23, float r30, float r31, float r32, float r33, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.set(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33);
+    @JvmOverloads
+    fun mul(
+        r00: Float,
+        r01: Float,
+        r02: Float,
+        r03: Float,
+        r10: Float,
+        r11: Float,
+        r12: Float,
+        r13: Float,
+        r20: Float,
+        r21: Float,
+        r22: Float,
+        r23: Float,
+        r30: Float,
+        r31: Float,
+        r32: Float,
+        r33: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.set(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33)
         } else {
-            return (this.properties & 2) != 0 ? this.mulAffineL(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33, dest) : this.mulGeneric(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33, dest);
+            if (properties and 2 != 0) mulAffineL(
+                r00,
+                r01,
+                r02,
+                r03,
+                r10,
+                r11,
+                r12,
+                r13,
+                r20,
+                r21,
+                r22,
+                r23,
+                r30,
+                r31,
+                r32,
+                r33,
+                dest
+            ) else this.mulGeneric(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33, dest)
         }
     }
 
-    private Matrix4f mulAffineL(float r00, float r01, float r02, float r03, float r10, float r11, float r12, float r13, float r20, float r21, float r22, float r23, float r30, float r31, float r32, float r33, Matrix4f dest) {
-        float nm00 = Math.fma(this.m00, r00, Math.fma(this.m10, r01, Math.fma(this.m20, r02, this.m30 * r03)));
-        float nm01 = Math.fma(this.m01, r00, Math.fma(this.m11, r01, Math.fma(this.m21, r02, this.m31 * r03)));
-        float nm02 = Math.fma(this.m02, r00, Math.fma(this.m12, r01, Math.fma(this.m22, r02, this.m32 * r03)));
-        float nm10 = Math.fma(this.m00, r10, Math.fma(this.m10, r11, Math.fma(this.m20, r12, this.m30 * r13)));
-        float nm11 = Math.fma(this.m01, r10, Math.fma(this.m11, r11, Math.fma(this.m21, r12, this.m31 * r13)));
-        float nm12 = Math.fma(this.m02, r10, Math.fma(this.m12, r11, Math.fma(this.m22, r12, this.m32 * r13)));
-        float nm20 = Math.fma(this.m00, r20, Math.fma(this.m10, r21, Math.fma(this.m20, r22, this.m30 * r23)));
-        float nm21 = Math.fma(this.m01, r20, Math.fma(this.m11, r21, Math.fma(this.m21, r22, this.m31 * r23)));
-        float nm22 = Math.fma(this.m02, r20, Math.fma(this.m12, r21, Math.fma(this.m22, r22, this.m32 * r23)));
-        float nm30 = Math.fma(this.m00, r30, Math.fma(this.m10, r31, Math.fma(this.m20, r32, this.m30 * r33)));
-        float nm31 = Math.fma(this.m01, r30, Math.fma(this.m11, r31, Math.fma(this.m21, r32, this.m31 * r33)));
-        float nm32 = Math.fma(this.m02, r30, Math.fma(this.m12, r31, Math.fma(this.m22, r32, this.m32 * r33)));
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(r03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(r13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(r23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(r33)._properties(2);
+    private fun mulAffineL(
+        r00: Float,
+        r01: Float,
+        r02: Float,
+        r03: Float,
+        r10: Float,
+        r11: Float,
+        r12: Float,
+        r13: Float,
+        r20: Float,
+        r21: Float,
+        r22: Float,
+        r23: Float,
+        r30: Float,
+        r31: Float,
+        r32: Float,
+        r33: Float,
+        dest: Matrix4f
+    ): Matrix4f {
+        val nm00 = Math.fma(m00, r00, Math.fma(m10, r01, Math.fma(m20, r02, m30 * r03)))
+        val nm01 = Math.fma(m01, r00, Math.fma(m11, r01, Math.fma(m21, r02, m31 * r03)))
+        val nm02 = Math.fma(m02, r00, Math.fma(m12, r01, Math.fma(m22, r02, m32 * r03)))
+        val nm10 = Math.fma(m00, r10, Math.fma(m10, r11, Math.fma(m20, r12, m30 * r13)))
+        val nm11 = Math.fma(m01, r10, Math.fma(m11, r11, Math.fma(m21, r12, m31 * r13)))
+        val nm12 = Math.fma(m02, r10, Math.fma(m12, r11, Math.fma(m22, r12, m32 * r13)))
+        val nm20 = Math.fma(m00, r20, Math.fma(m10, r21, Math.fma(m20, r22, m30 * r23)))
+        val nm21 = Math.fma(m01, r20, Math.fma(m11, r21, Math.fma(m21, r22, m31 * r23)))
+        val nm22 = Math.fma(m02, r20, Math.fma(m12, r21, Math.fma(m22, r22, m32 * r23)))
+        val nm30 = Math.fma(m00, r30, Math.fma(m10, r31, Math.fma(m20, r32, m30 * r33)))
+        val nm31 = Math.fma(m01, r30, Math.fma(m11, r31, Math.fma(m21, r32, m31 * r33)))
+        val nm32 = Math.fma(m02, r30, Math.fma(m12, r31, Math.fma(m22, r32, m32 * r33)))
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(r03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(r13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(r23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(r33)._properties(2)
     }
 
-    private Matrix4f mulGeneric(float r00, float r01, float r02, float r03, float r10, float r11, float r12, float r13, float r20, float r21, float r22, float r23, float r30, float r31, float r32, float r33, Matrix4f dest) {
-        float nm00 = Math.fma(this.m00, r00, Math.fma(this.m10, r01, Math.fma(this.m20, r02, this.m30 * r03)));
-        float nm01 = Math.fma(this.m01, r00, Math.fma(this.m11, r01, Math.fma(this.m21, r02, this.m31 * r03)));
-        float nm02 = Math.fma(this.m02, r00, Math.fma(this.m12, r01, Math.fma(this.m22, r02, this.m32 * r03)));
-        float nm03 = Math.fma(this.m03, r00, Math.fma(this.m13, r01, Math.fma(this.m23, r02, this.m33 * r03)));
-        float nm10 = Math.fma(this.m00, r10, Math.fma(this.m10, r11, Math.fma(this.m20, r12, this.m30 * r13)));
-        float nm11 = Math.fma(this.m01, r10, Math.fma(this.m11, r11, Math.fma(this.m21, r12, this.m31 * r13)));
-        float nm12 = Math.fma(this.m02, r10, Math.fma(this.m12, r11, Math.fma(this.m22, r12, this.m32 * r13)));
-        float nm13 = Math.fma(this.m03, r10, Math.fma(this.m13, r11, Math.fma(this.m23, r12, this.m33 * r13)));
-        float nm20 = Math.fma(this.m00, r20, Math.fma(this.m10, r21, Math.fma(this.m20, r22, this.m30 * r23)));
-        float nm21 = Math.fma(this.m01, r20, Math.fma(this.m11, r21, Math.fma(this.m21, r22, this.m31 * r23)));
-        float nm22 = Math.fma(this.m02, r20, Math.fma(this.m12, r21, Math.fma(this.m22, r22, this.m32 * r23)));
-        float nm23 = Math.fma(this.m03, r20, Math.fma(this.m13, r21, Math.fma(this.m23, r22, this.m33 * r23)));
-        float nm30 = Math.fma(this.m00, r30, Math.fma(this.m10, r31, Math.fma(this.m20, r32, this.m30 * r33)));
-        float nm31 = Math.fma(this.m01, r30, Math.fma(this.m11, r31, Math.fma(this.m21, r32, this.m31 * r33)));
-        float nm32 = Math.fma(this.m02, r30, Math.fma(this.m12, r31, Math.fma(this.m22, r32, this.m32 * r33)));
-        float nm33 = Math.fma(this.m03, r30, Math.fma(this.m13, r31, Math.fma(this.m23, r32, this.m33 * r33)));
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
+    private fun mulGeneric(
+        r00: Float,
+        r01: Float,
+        r02: Float,
+        r03: Float,
+        r10: Float,
+        r11: Float,
+        r12: Float,
+        r13: Float,
+        r20: Float,
+        r21: Float,
+        r22: Float,
+        r23: Float,
+        r30: Float,
+        r31: Float,
+        r32: Float,
+        r33: Float,
+        dest: Matrix4f
+    ): Matrix4f {
+        val nm00 = Math.fma(m00, r00, Math.fma(m10, r01, Math.fma(m20, r02, m30 * r03)))
+        val nm01 = Math.fma(m01, r00, Math.fma(m11, r01, Math.fma(m21, r02, m31 * r03)))
+        val nm02 = Math.fma(m02, r00, Math.fma(m12, r01, Math.fma(m22, r02, m32 * r03)))
+        val nm03 = Math.fma(m03, r00, Math.fma(m13, r01, Math.fma(m23, r02, m33 * r03)))
+        val nm10 = Math.fma(m00, r10, Math.fma(m10, r11, Math.fma(m20, r12, m30 * r13)))
+        val nm11 = Math.fma(m01, r10, Math.fma(m11, r11, Math.fma(m21, r12, m31 * r13)))
+        val nm12 = Math.fma(m02, r10, Math.fma(m12, r11, Math.fma(m22, r12, m32 * r13)))
+        val nm13 = Math.fma(m03, r10, Math.fma(m13, r11, Math.fma(m23, r12, m33 * r13)))
+        val nm20 = Math.fma(m00, r20, Math.fma(m10, r21, Math.fma(m20, r22, m30 * r23)))
+        val nm21 = Math.fma(m01, r20, Math.fma(m11, r21, Math.fma(m21, r22, m31 * r23)))
+        val nm22 = Math.fma(m02, r20, Math.fma(m12, r21, Math.fma(m22, r22, m32 * r23)))
+        val nm23 = Math.fma(m03, r20, Math.fma(m13, r21, Math.fma(m23, r22, m33 * r23)))
+        val nm30 = Math.fma(m00, r30, Math.fma(m10, r31, Math.fma(m20, r32, m30 * r33)))
+        val nm31 = Math.fma(m01, r30, Math.fma(m11, r31, Math.fma(m21, r32, m31 * r33)))
+        val nm32 = Math.fma(m02, r30, Math.fma(m12, r31, Math.fma(m22, r32, m32 * r33)))
+        val nm33 = Math.fma(m03, r30, Math.fma(m13, r31, Math.fma(m23, r32, m33 * r33)))
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
 
-    public Matrix4f mul3x3(float r00, float r01, float r02, float r10, float r11, float r12, float r20, float r21, float r22) {
-        return this.mul3x3(r00, r01, r02, r10, r11, r12, r20, r21, r22, this);
+    @JvmOverloads
+    fun mul3x3(
+        r00: Float,
+        r01: Float,
+        r02: Float,
+        r10: Float,
+        r11: Float,
+        r12: Float,
+        r20: Float,
+        r21: Float,
+        r22: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.set(
+            r00,
+            r01,
+            r02,
+            0f,
+            r10,
+            r11,
+            r12,
+            0f,
+            r20,
+            r21,
+            r22,
+            0f,
+            0f,
+            0f,
+            0f,
+            1f
+        ) else mulGeneric3x3(r00, r01, r02, r10, r11, r12, r20, r21, r22, dest)
     }
 
-    public Matrix4f mul3x3(float r00, float r01, float r02, float r10, float r11, float r12, float r20, float r21, float r22, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.set(r00, r01, r02, 0f, r10, r11, r12, 0f, r20, r21, r22, 0f, 0f, 0f, 0f, 1f) : this.mulGeneric3x3(r00, r01, r02, r10, r11, r12, r20, r21, r22, dest);
+    private fun mulGeneric3x3(
+        r00: Float,
+        r01: Float,
+        r02: Float,
+        r10: Float,
+        r11: Float,
+        r12: Float,
+        r20: Float,
+        r21: Float,
+        r22: Float,
+        dest: Matrix4f
+    ): Matrix4f {
+        val nm00 = Math.fma(m00, r00, Math.fma(m10, r01, m20 * r02))
+        val nm01 = Math.fma(m01, r00, Math.fma(m11, r01, m21 * r02))
+        val nm02 = Math.fma(m02, r00, Math.fma(m12, r01, m22 * r02))
+        val nm03 = Math.fma(m03, r00, Math.fma(m13, r01, m23 * r02))
+        val nm10 = Math.fma(m00, r10, Math.fma(m10, r11, m20 * r12))
+        val nm11 = Math.fma(m01, r10, Math.fma(m11, r11, m21 * r12))
+        val nm12 = Math.fma(m02, r10, Math.fma(m12, r11, m22 * r12))
+        val nm13 = Math.fma(m03, r10, Math.fma(m13, r11, m23 * r12))
+        val nm20 = Math.fma(m00, r20, Math.fma(m10, r21, m20 * r22))
+        val nm21 = Math.fma(m01, r20, Math.fma(m11, r21, m21 * r22))
+        val nm22 = Math.fma(m02, r20, Math.fma(m12, r21, m22 * r22))
+        val nm23 = Math.fma(m03, r20, Math.fma(m13, r21, m23 * r22))
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and 2)
     }
 
-    private Matrix4f mulGeneric3x3(float r00, float r01, float r02, float r10, float r11, float r12, float r20, float r21, float r22, Matrix4f dest) {
-        float nm00 = Math.fma(this.m00, r00, Math.fma(this.m10, r01, this.m20 * r02));
-        float nm01 = Math.fma(this.m01, r00, Math.fma(this.m11, r01, this.m21 * r02));
-        float nm02 = Math.fma(this.m02, r00, Math.fma(this.m12, r01, this.m22 * r02));
-        float nm03 = Math.fma(this.m03, r00, Math.fma(this.m13, r01, this.m23 * r02));
-        float nm10 = Math.fma(this.m00, r10, Math.fma(this.m10, r11, this.m20 * r12));
-        float nm11 = Math.fma(this.m01, r10, Math.fma(this.m11, r11, this.m21 * r12));
-        float nm12 = Math.fma(this.m02, r10, Math.fma(this.m12, r11, this.m22 * r12));
-        float nm13 = Math.fma(this.m03, r10, Math.fma(this.m13, r11, this.m23 * r12));
-        float nm20 = Math.fma(this.m00, r20, Math.fma(this.m10, r21, this.m20 * r22));
-        float nm21 = Math.fma(this.m01, r20, Math.fma(this.m11, r21, this.m21 * r22));
-        float nm22 = Math.fma(this.m02, r20, Math.fma(this.m12, r21, this.m22 * r22));
-        float nm23 = Math.fma(this.m03, r20, Math.fma(this.m13, r21, this.m23 * r22));
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 2);
-    }
-
-    public Matrix4f mulLocal(Matrix4f left) {
-        return this.mulLocal(left, this);
-    }
-
-    public Matrix4f mulLocal(Matrix4f left, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.set(left);
-        } else if ((left.properties() & 4) != 0) {
-            return dest.set(this);
+    @JvmOverloads
+    fun mulLocal(left: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.set(left)
+        } else if (left.properties() and 4 != 0) {
+            dest.set(this)
         } else {
-            return (this.properties & 2) != 0 && (left.properties() & 2) != 0 ? this.mulLocalAffine(left, dest) : this.mulLocalGeneric(left, dest);
+            if (properties and 2 != 0 && left.properties() and 2 != 0) mulLocalAffine(
+                left,
+                dest
+            ) else mulLocalGeneric(left, dest)
         }
     }
 
-    private Matrix4f mulLocalGeneric(Matrix4f left, Matrix4f dest) {
-        float nm00 = Math.fma(left.m00, this.m00, Math.fma(left.m10, this.m01, Math.fma(left.m20, this.m02, left.m30 * this.m03)));
-        float nm01 = Math.fma(left.m01, this.m00, Math.fma(left.m11, this.m01, Math.fma(left.m21, this.m02, left.m31 * this.m03)));
-        float nm02 = Math.fma(left.m02, this.m00, Math.fma(left.m12, this.m01, Math.fma(left.m22, this.m02, left.m32 * this.m03)));
-        float nm03 = Math.fma(left.m03, this.m00, Math.fma(left.m13, this.m01, Math.fma(left.m23, this.m02, left.m33 * this.m03)));
-        float nm10 = Math.fma(left.m00, this.m10, Math.fma(left.m10, this.m11, Math.fma(left.m20, this.m12, left.m30 * this.m13)));
-        float nm11 = Math.fma(left.m01, this.m10, Math.fma(left.m11, this.m11, Math.fma(left.m21, this.m12, left.m31 * this.m13)));
-        float nm12 = Math.fma(left.m02, this.m10, Math.fma(left.m12, this.m11, Math.fma(left.m22, this.m12, left.m32 * this.m13)));
-        float nm13 = Math.fma(left.m03, this.m10, Math.fma(left.m13, this.m11, Math.fma(left.m23, this.m12, left.m33 * this.m13)));
-        float nm20 = Math.fma(left.m00, this.m20, Math.fma(left.m10, this.m21, Math.fma(left.m20, this.m22, left.m30 * this.m23)));
-        float nm21 = Math.fma(left.m01, this.m20, Math.fma(left.m11, this.m21, Math.fma(left.m21, this.m22, left.m31 * this.m23)));
-        float nm22 = Math.fma(left.m02, this.m20, Math.fma(left.m12, this.m21, Math.fma(left.m22, this.m22, left.m32 * this.m23)));
-        float nm23 = Math.fma(left.m03, this.m20, Math.fma(left.m13, this.m21, Math.fma(left.m23, this.m22, left.m33 * this.m23)));
-        float nm30 = Math.fma(left.m00, this.m30, Math.fma(left.m10, this.m31, Math.fma(left.m20, this.m32, left.m30 * this.m33)));
-        float nm31 = Math.fma(left.m01, this.m30, Math.fma(left.m11, this.m31, Math.fma(left.m21, this.m32, left.m31 * this.m33)));
-        float nm32 = Math.fma(left.m02, this.m30, Math.fma(left.m12, this.m31, Math.fma(left.m22, this.m32, left.m32 * this.m33)));
-        float nm33 = Math.fma(left.m03, this.m30, Math.fma(left.m13, this.m31, Math.fma(left.m23, this.m32, left.m33 * this.m33)));
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
+    private fun mulLocalGeneric(left: Matrix4f, dest: Matrix4f): Matrix4f {
+        val nm00 = Math.fma(left.m00, m00, Math.fma(left.m10, m01, Math.fma(left.m20, m02, left.m30 * m03)))
+        val nm01 = Math.fma(left.m01, m00, Math.fma(left.m11, m01, Math.fma(left.m21, m02, left.m31 * m03)))
+        val nm02 = Math.fma(left.m02, m00, Math.fma(left.m12, m01, Math.fma(left.m22, m02, left.m32 * m03)))
+        val nm03 = Math.fma(left.m03, m00, Math.fma(left.m13, m01, Math.fma(left.m23, m02, left.m33 * m03)))
+        val nm10 = Math.fma(left.m00, m10, Math.fma(left.m10, m11, Math.fma(left.m20, m12, left.m30 * m13)))
+        val nm11 = Math.fma(left.m01, m10, Math.fma(left.m11, m11, Math.fma(left.m21, m12, left.m31 * m13)))
+        val nm12 = Math.fma(left.m02, m10, Math.fma(left.m12, m11, Math.fma(left.m22, m12, left.m32 * m13)))
+        val nm13 = Math.fma(left.m03, m10, Math.fma(left.m13, m11, Math.fma(left.m23, m12, left.m33 * m13)))
+        val nm20 = Math.fma(left.m00, m20, Math.fma(left.m10, m21, Math.fma(left.m20, m22, left.m30 * m23)))
+        val nm21 = Math.fma(left.m01, m20, Math.fma(left.m11, m21, Math.fma(left.m21, m22, left.m31 * m23)))
+        val nm22 = Math.fma(left.m02, m20, Math.fma(left.m12, m21, Math.fma(left.m22, m22, left.m32 * m23)))
+        val nm23 = Math.fma(left.m03, m20, Math.fma(left.m13, m21, Math.fma(left.m23, m22, left.m33 * m23)))
+        val nm30 = Math.fma(left.m00, m30, Math.fma(left.m10, m31, Math.fma(left.m20, m32, left.m30 * m33)))
+        val nm31 = Math.fma(left.m01, m30, Math.fma(left.m11, m31, Math.fma(left.m21, m32, left.m31 * m33)))
+        val nm32 = Math.fma(left.m02, m30, Math.fma(left.m12, m31, Math.fma(left.m22, m32, left.m32 * m33)))
+        val nm33 = Math.fma(left.m03, m30, Math.fma(left.m13, m31, Math.fma(left.m23, m32, left.m33 * m33)))
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
 
-    public Matrix4f mulLocalAffine(Matrix4f left) {
-        return this.mulLocalAffine(left, this);
+    @JvmOverloads
+    fun mulLocalAffine(left: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        val nm00 = left.m00 * m00 + left.m10 * m01 + left.m20 * m02
+        val nm01 = left.m01 * m00 + left.m11 * m01 + left.m21 * m02
+        val nm02 = left.m02 * m00 + left.m12 * m01 + left.m22 * m02
+        val nm03 = left.m03
+        val nm10 = left.m00 * m10 + left.m10 * m11 + left.m20 * m12
+        val nm11 = left.m01 * m10 + left.m11 * m11 + left.m21 * m12
+        val nm12 = left.m02 * m10 + left.m12 * m11 + left.m22 * m12
+        val nm13 = left.m13
+        val nm20 = left.m00 * m20 + left.m10 * m21 + left.m20 * m22
+        val nm21 = left.m01 * m20 + left.m11 * m21 + left.m21 * m22
+        val nm22 = left.m02 * m20 + left.m12 * m21 + left.m22 * m22
+        val nm23 = left.m23
+        val nm30 = left.m00 * m30 + left.m10 * m31 + left.m20 * m32 + left.m30
+        val nm31 = left.m01 * m30 + left.m11 * m31 + left.m21 * m32 + left.m31
+        val nm32 = left.m02 * m30 + left.m12 * m31 + left.m22 * m32 + left.m32
+        val nm33 = left.m33
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)
+            ._properties(2 or (properties() and left.properties() and 16))
     }
 
-    public Matrix4f mulLocalAffine(Matrix4f left, Matrix4f dest) {
-        float nm00 = left.m00 * this.m00 + left.m10 * this.m01 + left.m20 * this.m02;
-        float nm01 = left.m01 * this.m00 + left.m11 * this.m01 + left.m21 * this.m02;
-        float nm02 = left.m02 * this.m00 + left.m12 * this.m01 + left.m22 * this.m02;
-        float nm03 = left.m03;
-        float nm10 = left.m00 * this.m10 + left.m10 * this.m11 + left.m20 * this.m12;
-        float nm11 = left.m01 * this.m10 + left.m11 * this.m11 + left.m21 * this.m12;
-        float nm12 = left.m02 * this.m10 + left.m12 * this.m11 + left.m22 * this.m12;
-        float nm13 = left.m13;
-        float nm20 = left.m00 * this.m20 + left.m10 * this.m21 + left.m20 * this.m22;
-        float nm21 = left.m01 * this.m20 + left.m11 * this.m21 + left.m21 * this.m22;
-        float nm22 = left.m02 * this.m20 + left.m12 * this.m21 + left.m22 * this.m22;
-        float nm23 = left.m23;
-        float nm30 = left.m00 * this.m30 + left.m10 * this.m31 + left.m20 * this.m32 + left.m30;
-        float nm31 = left.m01 * this.m30 + left.m11 * this.m31 + left.m21 * this.m32 + left.m31;
-        float nm32 = left.m02 * this.m30 + left.m12 * this.m31 + left.m22 * this.m32 + left.m32;
-        float nm33 = left.m33;
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(2 | this.properties() & left.properties() & 16);
-    }
-
-    public Matrix4f mul(Matrix4x3f right) {
-        return this.mul(right, this);
-    }
-
-    public Matrix4f mul(Matrix4x3f right, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.set(right);
-        } else if ((right.properties() & 4) != 0) {
-            return dest.set(this);
-        } else if ((this.properties & 8) != 0) {
-            return this.mulTranslation(right, dest);
-        } else if ((this.properties & 2) != 0) {
-            return this.mulAffine(right, dest);
+    @JvmOverloads
+    fun mul(right: Matrix4x3f, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.set(right)
+        } else if (right.properties() and 4 != 0) {
+            dest.set(this)
+        } else if (properties and 8 != 0) {
+            mulTranslation(right, dest)
+        } else if (properties and 2 != 0) {
+            this.mulAffine(right, dest)
         } else {
-            return (this.properties & 1) != 0 ? this.mulPerspectiveAffine(right, dest) : this.mulGeneric(right, dest);
+            if (properties and 1 != 0) this.mulPerspectiveAffine(right, dest) else this.mulGeneric(right, dest)
         }
     }
 
-    private Matrix4f mulTranslation(Matrix4x3f right, Matrix4f dest) {
-        return dest._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(this.m03)._m10(right.m10)._m11(right.m11)._m12(right.m12)._m13(this.m13)._m20(right.m20)._m21(right.m21)._m22(right.m22)._m23(this.m23)._m30(right.m30 + this.m30)._m31(right.m31 + this.m31)._m32(right.m32 + this.m32)._m33(this.m33)._properties(2 | right.properties() & 16);
+    private fun mulTranslation(right: Matrix4x3f, dest: Matrix4f): Matrix4f {
+        return dest._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(m03)._m10(right.m10)._m11(right.m11)
+            ._m12(right.m12)._m13(
+            m13
+        )._m20(right.m20)._m21(right.m21)._m22(right.m22)._m23(m23)._m30(right.m30 + m30)._m31(right.m31 + m31)
+            ._m32(right.m32 + m32)._m33(
+            m33
+        )._properties(2 or (right.properties() and 16))
     }
 
-    private Matrix4f mulAffine(Matrix4x3f right, Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        float m20 = this.m20;
-        float m21 = this.m21;
-        float m22 = this.m22;
-        float rm00 = right.m00;
-        float rm01 = right.m01;
-        float rm02 = right.m02;
-        float rm10 = right.m10;
-        float rm11 = right.m11;
-        float rm12 = right.m12;
-        float rm20 = right.m20;
-        float rm21 = right.m21;
-        float rm22 = right.m22;
-        float rm30 = right.m30;
-        float rm31 = right.m31;
-        float rm32 = right.m32;
-        return dest._m00(Math.fma(m00, rm00, Math.fma(m10, rm01, m20 * rm02)))._m01(Math.fma(m01, rm00, Math.fma(m11, rm01, m21 * rm02)))._m02(Math.fma(m02, rm00, Math.fma(m12, rm01, m22 * rm02)))._m03(this.m03)._m10(Math.fma(m00, rm10, Math.fma(m10, rm11, m20 * rm12)))._m11(Math.fma(m01, rm10, Math.fma(m11, rm11, m21 * rm12)))._m12(Math.fma(m02, rm10, Math.fma(m12, rm11, m22 * rm12)))._m13(this.m13)._m20(Math.fma(m00, rm20, Math.fma(m10, rm21, m20 * rm22)))._m21(Math.fma(m01, rm20, Math.fma(m11, rm21, m21 * rm22)))._m22(Math.fma(m02, rm20, Math.fma(m12, rm21, m22 * rm22)))._m23(this.m23)._m30(Math.fma(m00, rm30, Math.fma(m10, rm31, Math.fma(m20, rm32, this.m30))))._m31(Math.fma(m01, rm30, Math.fma(m11, rm31, Math.fma(m21, rm32, this.m31))))._m32(Math.fma(m02, rm30, Math.fma(m12, rm31, Math.fma(m22, rm32, this.m32))))._m33(this.m33)._properties(2 | this.properties & right.properties() & 16);
+    private fun mulAffine(right: Matrix4x3f, dest: Matrix4f): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        val m20 = m20
+        val m21 = m21
+        val m22 = m22
+        val rm00 = right.m00
+        val rm01 = right.m01
+        val rm02 = right.m02
+        val rm10 = right.m10
+        val rm11 = right.m11
+        val rm12 = right.m12
+        val rm20 = right.m20
+        val rm21 = right.m21
+        val rm22 = right.m22
+        val rm30 = right.m30
+        val rm31 = right.m31
+        val rm32 = right.m32
+        return dest._m00(Math.fma(m00, rm00, Math.fma(m10, rm01, m20 * rm02)))
+            ._m01(Math.fma(m01, rm00, Math.fma(m11, rm01, m21 * rm02)))._m02(
+            Math.fma(m02, rm00, Math.fma(m12, rm01, m22 * rm02))
+        )._m03(
+            m03
+        )._m10(Math.fma(m00, rm10, Math.fma(m10, rm11, m20 * rm12)))
+            ._m11(Math.fma(m01, rm10, Math.fma(m11, rm11, m21 * rm12)))._m12(
+            Math.fma(m02, rm10, Math.fma(m12, rm11, m22 * rm12))
+        )._m13(
+            m13
+        )._m20(Math.fma(m00, rm20, Math.fma(m10, rm21, m20 * rm22)))
+            ._m21(Math.fma(m01, rm20, Math.fma(m11, rm21, m21 * rm22)))._m22(
+            Math.fma(m02, rm20, Math.fma(m12, rm21, m22 * rm22))
+        )._m23(
+            m23
+        )._m30(Math.fma(m00, rm30, Math.fma(m10, rm31, Math.fma(m20, rm32, m30))))
+            ._m31(Math.fma(m01, rm30, Math.fma(m11, rm31, Math.fma(m21, rm32, m31))))._m32(
+            Math.fma(m02, rm30, Math.fma(m12, rm31, Math.fma(m22, rm32, m32)))
+        )._m33(
+            m33
+        )._properties(2 or (properties and right.properties() and 16))
     }
 
-    private Matrix4f mulGeneric(Matrix4x3f right, Matrix4f dest) {
-        float nm00 = Math.fma(this.m00, right.m00, Math.fma(this.m10, right.m01, this.m20 * right.m02));
-        float nm01 = Math.fma(this.m01, right.m00, Math.fma(this.m11, right.m01, this.m21 * right.m02));
-        float nm02 = Math.fma(this.m02, right.m00, Math.fma(this.m12, right.m01, this.m22 * right.m02));
-        float nm03 = Math.fma(this.m03, right.m00, Math.fma(this.m13, right.m01, this.m23 * right.m02));
-        float nm10 = Math.fma(this.m00, right.m10, Math.fma(this.m10, right.m11, this.m20 * right.m12));
-        float nm11 = Math.fma(this.m01, right.m10, Math.fma(this.m11, right.m11, this.m21 * right.m12));
-        float nm12 = Math.fma(this.m02, right.m10, Math.fma(this.m12, right.m11, this.m22 * right.m12));
-        float nm13 = Math.fma(this.m03, right.m10, Math.fma(this.m13, right.m11, this.m23 * right.m12));
-        float nm20 = Math.fma(this.m00, right.m20, Math.fma(this.m10, right.m21, this.m20 * right.m22));
-        float nm21 = Math.fma(this.m01, right.m20, Math.fma(this.m11, right.m21, this.m21 * right.m22));
-        float nm22 = Math.fma(this.m02, right.m20, Math.fma(this.m12, right.m21, this.m22 * right.m22));
-        float nm23 = Math.fma(this.m03, right.m20, Math.fma(this.m13, right.m21, this.m23 * right.m22));
-        float nm30 = Math.fma(this.m00, right.m30, Math.fma(this.m10, right.m31, Math.fma(this.m20, right.m32, this.m30)));
-        float nm31 = Math.fma(this.m01, right.m30, Math.fma(this.m11, right.m31, Math.fma(this.m21, right.m32, this.m31)));
-        float nm32 = Math.fma(this.m02, right.m30, Math.fma(this.m12, right.m31, Math.fma(this.m22, right.m32, this.m32)));
-        float nm33 = Math.fma(this.m03, right.m30, Math.fma(this.m13, right.m31, Math.fma(this.m23, right.m32, this.m33)));
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(this.properties & -30);
+    private fun mulGeneric(right: Matrix4x3f, dest: Matrix4f): Matrix4f {
+        val nm00 = Math.fma(m00, right.m00, Math.fma(m10, right.m01, m20 * right.m02))
+        val nm01 = Math.fma(m01, right.m00, Math.fma(m11, right.m01, m21 * right.m02))
+        val nm02 = Math.fma(m02, right.m00, Math.fma(m12, right.m01, m22 * right.m02))
+        val nm03 = Math.fma(m03, right.m00, Math.fma(m13, right.m01, m23 * right.m02))
+        val nm10 = Math.fma(m00, right.m10, Math.fma(m10, right.m11, m20 * right.m12))
+        val nm11 = Math.fma(m01, right.m10, Math.fma(m11, right.m11, m21 * right.m12))
+        val nm12 = Math.fma(m02, right.m10, Math.fma(m12, right.m11, m22 * right.m12))
+        val nm13 = Math.fma(m03, right.m10, Math.fma(m13, right.m11, m23 * right.m12))
+        val nm20 = Math.fma(m00, right.m20, Math.fma(m10, right.m21, m20 * right.m22))
+        val nm21 = Math.fma(m01, right.m20, Math.fma(m11, right.m21, m21 * right.m22))
+        val nm22 = Math.fma(m02, right.m20, Math.fma(m12, right.m21, m22 * right.m22))
+        val nm23 = Math.fma(m03, right.m20, Math.fma(m13, right.m21, m23 * right.m22))
+        val nm30 = Math.fma(m00, right.m30, Math.fma(m10, right.m31, Math.fma(m20, right.m32, m30)))
+        val nm31 = Math.fma(m01, right.m30, Math.fma(m11, right.m31, Math.fma(m21, right.m32, m31)))
+        val nm32 = Math.fma(m02, right.m30, Math.fma(m12, right.m31, Math.fma(m22, right.m32, m32)))
+        val nm33 = Math.fma(m03, right.m30, Math.fma(m13, right.m31, Math.fma(m23, right.m32, m33)))
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(
+            properties and -30
+        )
     }
 
-    public Matrix4f mul(Matrix3x2f right) {
-        return this.mul(right, this);
+    @JvmOverloads
+    fun mul(right: Matrix3x2f, dest: Matrix4f = this): Matrix4f {
+        val nm00 = m00 * right.m00 + m10 * right.m01
+        val nm01 = m01 * right.m00 + m11 * right.m01
+        val nm02 = m02 * right.m00 + m12 * right.m01
+        val nm03 = m03 * right.m00 + m13 * right.m01
+        val nm10 = m00 * right.m10 + m10 * right.m11
+        val nm11 = m01 * right.m10 + m11 * right.m11
+        val nm12 = m02 * right.m10 + m12 * right.m11
+        val nm13 = m03 * right.m10 + m13 * right.m11
+        val nm30 = m00 * right.m20 + m10 * right.m21 + m30
+        val nm31 = m01 * right.m20 + m11 * right.m21 + m31
+        val nm32 = m02 * right.m20 + m12 * right.m21 + m32
+        val nm33 = m03 * right.m20 + m13 * right.m21 + m33
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(m20)
+            ._m21(
+                m21
+            )._m22(m22)._m23(m23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(properties and -30)
     }
 
-    public Matrix4f mul(Matrix3x2f right, Matrix4f dest) {
-        float nm00 = this.m00 * right.m00 + this.m10 * right.m01;
-        float nm01 = this.m01 * right.m00 + this.m11 * right.m01;
-        float nm02 = this.m02 * right.m00 + this.m12 * right.m01;
-        float nm03 = this.m03 * right.m00 + this.m13 * right.m01;
-        float nm10 = this.m00 * right.m10 + this.m10 * right.m11;
-        float nm11 = this.m01 * right.m10 + this.m11 * right.m11;
-        float nm12 = this.m02 * right.m10 + this.m12 * right.m11;
-        float nm13 = this.m03 * right.m10 + this.m13 * right.m11;
-        float nm30 = this.m00 * right.m20 + this.m10 * right.m21 + this.m30;
-        float nm31 = this.m01 * right.m20 + this.m11 * right.m21 + this.m31;
-        float nm32 = this.m02 * right.m20 + this.m12 * right.m21 + this.m32;
-        float nm33 = this.m03 * right.m20 + this.m13 * right.m21 + this.m33;
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(this.properties & -30);
+    @JvmOverloads
+    fun mulPerspectiveAffine(view: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        val nm00 = m00 * view.m00
+        val nm01 = m11 * view.m01
+        val nm02 = m22 * view.m02
+        val nm03 = m23 * view.m02
+        val nm10 = m00 * view.m10
+        val nm11 = m11 * view.m11
+        val nm12 = m22 * view.m12
+        val nm13 = m23 * view.m12
+        val nm20 = m00 * view.m20
+        val nm21 = m11 * view.m21
+        val nm22 = m22 * view.m22
+        val nm23 = m23 * view.m22
+        val nm30 = m00 * view.m30
+        val nm31 = m11 * view.m31
+        val nm32 = m22 * view.m32 + m32
+        val nm33 = m23 * view.m32
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
 
-    public Matrix4f mulPerspectiveAffine(Matrix4f view) {
-        return this.mulPerspectiveAffine(view, this);
+    @JvmOverloads
+    fun mulPerspectiveAffine(view: Matrix4x3f, dest: Matrix4f = this): Matrix4f {
+        val lm00 = m00
+        val lm11 = m11
+        val lm22 = m22
+        val lm23 = m23
+        return dest._m00(lm00 * view.m00)._m01(lm11 * view.m01)._m02(lm22 * view.m02)._m03(lm23 * view.m02)
+            ._m10(lm00 * view.m10)._m11(lm11 * view.m11)._m12(lm22 * view.m12)._m13(lm23 * view.m12)
+            ._m20(lm00 * view.m20)._m21(lm11 * view.m21)._m22(lm22 * view.m22)._m23(lm23 * view.m22)
+            ._m30(lm00 * view.m30)._m31(lm11 * view.m31)._m32(lm22 * view.m32 + m32)._m33(lm23 * view.m32)
+            ._properties(0)
     }
 
-    public Matrix4f mulPerspectiveAffine(Matrix4f view, Matrix4f dest) {
-        float nm00 = this.m00 * view.m00;
-        float nm01 = this.m11 * view.m01;
-        float nm02 = this.m22 * view.m02;
-        float nm03 = this.m23 * view.m02;
-        float nm10 = this.m00 * view.m10;
-        float nm11 = this.m11 * view.m11;
-        float nm12 = this.m22 * view.m12;
-        float nm13 = this.m23 * view.m12;
-        float nm20 = this.m00 * view.m20;
-        float nm21 = this.m11 * view.m21;
-        float nm22 = this.m22 * view.m22;
-        float nm23 = this.m23 * view.m22;
-        float nm30 = this.m00 * view.m30;
-        float nm31 = this.m11 * view.m31;
-        float nm32 = this.m22 * view.m32 + this.m32;
-        float nm33 = this.m23 * view.m32;
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
+    @JvmOverloads
+    fun mulAffineR(right: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        val nm00 = Math.fma(m00, right.m00, Math.fma(m10, right.m01, m20 * right.m02))
+        val nm01 = Math.fma(m01, right.m00, Math.fma(m11, right.m01, m21 * right.m02))
+        val nm02 = Math.fma(m02, right.m00, Math.fma(m12, right.m01, m22 * right.m02))
+        val nm03 = Math.fma(m03, right.m00, Math.fma(m13, right.m01, m23 * right.m02))
+        val nm10 = Math.fma(m00, right.m10, Math.fma(m10, right.m11, m20 * right.m12))
+        val nm11 = Math.fma(m01, right.m10, Math.fma(m11, right.m11, m21 * right.m12))
+        val nm12 = Math.fma(m02, right.m10, Math.fma(m12, right.m11, m22 * right.m12))
+        val nm13 = Math.fma(m03, right.m10, Math.fma(m13, right.m11, m23 * right.m12))
+        val nm20 = Math.fma(m00, right.m20, Math.fma(m10, right.m21, m20 * right.m22))
+        val nm21 = Math.fma(m01, right.m20, Math.fma(m11, right.m21, m21 * right.m22))
+        val nm22 = Math.fma(m02, right.m20, Math.fma(m12, right.m21, m22 * right.m22))
+        val nm23 = Math.fma(m03, right.m20, Math.fma(m13, right.m21, m23 * right.m22))
+        val nm30 = Math.fma(m00, right.m30, Math.fma(m10, right.m31, Math.fma(m20, right.m32, m30)))
+        val nm31 = Math.fma(m01, right.m30, Math.fma(m11, right.m31, Math.fma(m21, right.m32, m31)))
+        val nm32 = Math.fma(m02, right.m30, Math.fma(m12, right.m31, Math.fma(m22, right.m32, m32)))
+        val nm33 = Math.fma(m03, right.m30, Math.fma(m13, right.m31, Math.fma(m23, right.m32, m33)))
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(
+            properties and -30
+        )
     }
 
-    public Matrix4f mulPerspectiveAffine(Matrix4x3f view) {
-        return this.mulPerspectiveAffine(view, this);
+    @JvmOverloads
+    fun mulAffine(right: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        val m20 = m20
+        val m21 = m21
+        val m22 = m22
+        val rm00 = right.m00
+        val rm01 = right.m01
+        val rm02 = right.m02
+        val rm10 = right.m10
+        val rm11 = right.m11
+        val rm12 = right.m12
+        val rm20 = right.m20
+        val rm21 = right.m21
+        val rm22 = right.m22
+        val rm30 = right.m30
+        val rm31 = right.m31
+        val rm32 = right.m32
+        return dest._m00(Math.fma(m00, rm00, Math.fma(m10, rm01, m20 * rm02)))
+            ._m01(Math.fma(m01, rm00, Math.fma(m11, rm01, m21 * rm02)))._m02(
+            Math.fma(m02, rm00, Math.fma(m12, rm01, m22 * rm02))
+        )._m03(
+            m03
+        )._m10(Math.fma(m00, rm10, Math.fma(m10, rm11, m20 * rm12)))
+            ._m11(Math.fma(m01, rm10, Math.fma(m11, rm11, m21 * rm12)))._m12(
+            Math.fma(m02, rm10, Math.fma(m12, rm11, m22 * rm12))
+        )._m13(
+            m13
+        )._m20(Math.fma(m00, rm20, Math.fma(m10, rm21, m20 * rm22)))
+            ._m21(Math.fma(m01, rm20, Math.fma(m11, rm21, m21 * rm22)))._m22(
+            Math.fma(m02, rm20, Math.fma(m12, rm21, m22 * rm22))
+        )._m23(
+            m23
+        )._m30(Math.fma(m00, rm30, Math.fma(m10, rm31, Math.fma(m20, rm32, m30))))
+            ._m31(Math.fma(m01, rm30, Math.fma(m11, rm31, Math.fma(m21, rm32, m31))))._m32(
+            Math.fma(m02, rm30, Math.fma(m12, rm31, Math.fma(m22, rm32, m32)))
+        )._m33(
+            m33
+        )._properties(2 or (properties and right.properties() and 16))
     }
 
-    public Matrix4f mulPerspectiveAffine(Matrix4x3f view, Matrix4f dest) {
-        float lm00 = this.m00;
-        float lm11 = this.m11;
-        float lm22 = this.m22;
-        float lm23 = this.m23;
-        return dest._m00(lm00 * view.m00)._m01(lm11 * view.m01)._m02(lm22 * view.m02)._m03(lm23 * view.m02)._m10(lm00 * view.m10)._m11(lm11 * view.m11)._m12(lm22 * view.m12)._m13(lm23 * view.m12)._m20(lm00 * view.m20)._m21(lm11 * view.m21)._m22(lm22 * view.m22)._m23(lm23 * view.m22)._m30(lm00 * view.m30)._m31(lm11 * view.m31)._m32(lm22 * view.m32 + this.m32)._m33(lm23 * view.m32)._properties(0);
+    fun mulTranslationAffine(right: Matrix4f, dest: Matrix4f): Matrix4f {
+        return dest._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(m03)._m10(right.m10)._m11(right.m11)
+            ._m12(right.m12)._m13(
+            m13
+        )._m20(right.m20)._m21(right.m21)._m22(right.m22)._m23(m23)._m30(right.m30 + m30)._m31(right.m31 + m31)
+            ._m32(right.m32 + m32)._m33(
+            m33
+        )._properties(2 or (right.properties() and 16))
     }
 
-    public Matrix4f mulAffineR(Matrix4f right) {
-        return this.mulAffineR(right, this);
+    @JvmOverloads
+    fun mulOrthoAffine(view: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        val nm00 = m00 * view.m00
+        val nm01 = m11 * view.m01
+        val nm02 = m22 * view.m02
+        val nm10 = m00 * view.m10
+        val nm11 = m11 * view.m11
+        val nm12 = m22 * view.m12
+        val nm20 = m00 * view.m20
+        val nm21 = m11 * view.m21
+        val nm22 = m22 * view.m22
+        val nm30 = m00 * view.m30 + m30
+        val nm31 = m11 * view.m31 + m31
+        val nm32 = m22 * view.m32 + m32
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(0f)._m30(nm30)._m31(nm31)._m32(nm32)._m33(1f)._properties(2)
     }
 
-    public Matrix4f mulAffineR(Matrix4f right, Matrix4f dest) {
-        float nm00 = Math.fma(this.m00, right.m00, Math.fma(this.m10, right.m01, this.m20 * right.m02));
-        float nm01 = Math.fma(this.m01, right.m00, Math.fma(this.m11, right.m01, this.m21 * right.m02));
-        float nm02 = Math.fma(this.m02, right.m00, Math.fma(this.m12, right.m01, this.m22 * right.m02));
-        float nm03 = Math.fma(this.m03, right.m00, Math.fma(this.m13, right.m01, this.m23 * right.m02));
-        float nm10 = Math.fma(this.m00, right.m10, Math.fma(this.m10, right.m11, this.m20 * right.m12));
-        float nm11 = Math.fma(this.m01, right.m10, Math.fma(this.m11, right.m11, this.m21 * right.m12));
-        float nm12 = Math.fma(this.m02, right.m10, Math.fma(this.m12, right.m11, this.m22 * right.m12));
-        float nm13 = Math.fma(this.m03, right.m10, Math.fma(this.m13, right.m11, this.m23 * right.m12));
-        float nm20 = Math.fma(this.m00, right.m20, Math.fma(this.m10, right.m21, this.m20 * right.m22));
-        float nm21 = Math.fma(this.m01, right.m20, Math.fma(this.m11, right.m21, this.m21 * right.m22));
-        float nm22 = Math.fma(this.m02, right.m20, Math.fma(this.m12, right.m21, this.m22 * right.m22));
-        float nm23 = Math.fma(this.m03, right.m20, Math.fma(this.m13, right.m21, this.m23 * right.m22));
-        float nm30 = Math.fma(this.m00, right.m30, Math.fma(this.m10, right.m31, Math.fma(this.m20, right.m32, this.m30)));
-        float nm31 = Math.fma(this.m01, right.m30, Math.fma(this.m11, right.m31, Math.fma(this.m21, right.m32, this.m31)));
-        float nm32 = Math.fma(this.m02, right.m30, Math.fma(this.m12, right.m31, Math.fma(this.m22, right.m32, this.m32)));
-        float nm33 = Math.fma(this.m03, right.m30, Math.fma(this.m13, right.m31, Math.fma(this.m23, right.m32, this.m33)));
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(this.properties & -30);
+    @JvmOverloads
+    fun fma4x3(other: Matrix4f, otherFactor: Float, dest: Matrix4f = this): Matrix4f {
+        dest._m00(Math.fma(other.m00, otherFactor, m00))._m01(Math.fma(other.m01, otherFactor, m01))
+            ._m02(Math.fma(other.m02, otherFactor, m02))._m03(
+            m03
+        )._m10(Math.fma(other.m10, otherFactor, m10))._m11(Math.fma(other.m11, otherFactor, m11))
+            ._m12(Math.fma(other.m12, otherFactor, m12))._m13(
+            m13
+        )._m20(Math.fma(other.m20, otherFactor, m20))._m21(Math.fma(other.m21, otherFactor, m21))
+            ._m22(Math.fma(other.m22, otherFactor, m22))._m23(
+            m23
+        )._m30(Math.fma(other.m30, otherFactor, m30))._m31(Math.fma(other.m31, otherFactor, m31))
+            ._m32(Math.fma(other.m32, otherFactor, m32))._m33(
+            m33
+        )._properties(0)
+        return dest
     }
 
-    public Matrix4f mulAffine(Matrix4f right) {
-        return this.mulAffine(right, this);
+    @JvmOverloads
+    fun add(other: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        dest._m00(m00 + other.m00)._m01(m01 + other.m01)._m02(m02 + other.m02)._m03(m03 + other.m03)
+            ._m10(m10 + other.m10)._m11(
+            m11 + other.m11
+        )._m12(m12 + other.m12)._m13(m13 + other.m13)._m20(m20 + other.m20)._m21(m21 + other.m21)._m22(
+            m22 + other.m22
+        )._m23(m23 + other.m23)._m30(m30 + other.m30)._m31(m31 + other.m31)._m32(m32 + other.m32)._m33(
+            m33 + other.m33
+        )._properties(0)
+        return dest
     }
 
-    public Matrix4f mulAffine(Matrix4f right, Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        float m20 = this.m20;
-        float m21 = this.m21;
-        float m22 = this.m22;
-        float rm00 = right.m00;
-        float rm01 = right.m01;
-        float rm02 = right.m02;
-        float rm10 = right.m10;
-        float rm11 = right.m11;
-        float rm12 = right.m12;
-        float rm20 = right.m20;
-        float rm21 = right.m21;
-        float rm22 = right.m22;
-        float rm30 = right.m30;
-        float rm31 = right.m31;
-        float rm32 = right.m32;
-        return dest._m00(Math.fma(m00, rm00, Math.fma(m10, rm01, m20 * rm02)))._m01(Math.fma(m01, rm00, Math.fma(m11, rm01, m21 * rm02)))._m02(Math.fma(m02, rm00, Math.fma(m12, rm01, m22 * rm02)))._m03(this.m03)._m10(Math.fma(m00, rm10, Math.fma(m10, rm11, m20 * rm12)))._m11(Math.fma(m01, rm10, Math.fma(m11, rm11, m21 * rm12)))._m12(Math.fma(m02, rm10, Math.fma(m12, rm11, m22 * rm12)))._m13(this.m13)._m20(Math.fma(m00, rm20, Math.fma(m10, rm21, m20 * rm22)))._m21(Math.fma(m01, rm20, Math.fma(m11, rm21, m21 * rm22)))._m22(Math.fma(m02, rm20, Math.fma(m12, rm21, m22 * rm22)))._m23(this.m23)._m30(Math.fma(m00, rm30, Math.fma(m10, rm31, Math.fma(m20, rm32, this.m30))))._m31(Math.fma(m01, rm30, Math.fma(m11, rm31, Math.fma(m21, rm32, this.m31))))._m32(Math.fma(m02, rm30, Math.fma(m12, rm31, Math.fma(m22, rm32, this.m32))))._m33(this.m33)._properties(2 | this.properties & right.properties() & 16);
+    @JvmOverloads
+    fun sub(subtrahend: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        dest._m00(m00 - subtrahend.m00)._m01(m01 - subtrahend.m01)._m02(m02 - subtrahend.m02)._m03(m03 - subtrahend.m03)
+            ._m10(
+                m10 - subtrahend.m10
+            )._m11(m11 - subtrahend.m11)._m12(m12 - subtrahend.m12)._m13(m13 - subtrahend.m13)._m20(
+            m20 - subtrahend.m20
+        )._m21(m21 - subtrahend.m21)._m22(m22 - subtrahend.m22)._m23(m23 - subtrahend.m23)._m30(
+            m30 - subtrahend.m30
+        )._m31(m31 - subtrahend.m31)._m32(m32 - subtrahend.m32)._m33(m33 - subtrahend.m33)._properties(0)
+        return dest
     }
 
-    public Matrix4f mulTranslationAffine(Matrix4f right, Matrix4f dest) {
-        return dest._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(this.m03)._m10(right.m10)._m11(right.m11)._m12(right.m12)._m13(this.m13)._m20(right.m20)._m21(right.m21)._m22(right.m22)._m23(this.m23)._m30(right.m30 + this.m30)._m31(right.m31 + this.m31)._m32(right.m32 + this.m32)._m33(this.m33)._properties(2 | right.properties() & 16);
+    @JvmOverloads
+    fun mulComponentWise(other: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        dest._m00(m00 * other.m00)._m01(m01 * other.m01)._m02(m02 * other.m02)._m03(m03 * other.m03)
+            ._m10(m10 * other.m10)._m11(
+            m11 * other.m11
+        )._m12(m12 * other.m12)._m13(m13 * other.m13)._m20(m20 * other.m20)._m21(m21 * other.m21)._m22(
+            m22 * other.m22
+        )._m23(m23 * other.m23)._m30(m30 * other.m30)._m31(m31 * other.m31)._m32(m32 * other.m32)._m33(
+            m33 * other.m33
+        )._properties(0)
+        return dest
     }
 
-    public Matrix4f mulOrthoAffine(Matrix4f view) {
-        return this.mulOrthoAffine(view, this);
+    @JvmOverloads
+    fun add4x3(other: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        dest._m00(m00 + other.m00)._m01(m01 + other.m01)._m02(m02 + other.m02)._m03(m03)._m10(m10 + other.m10)
+            ._m11(m11 + other.m11)._m12(
+            m12 + other.m12
+        )._m13(m13)._m20(m20 + other.m20)._m21(m21 + other.m21)._m22(m22 + other.m22)._m23(m23)._m30(
+            m30 + other.m30
+        )._m31(m31 + other.m31)._m32(m32 + other.m32)._m33(m33)._properties(0)
+        return dest
     }
 
-    public Matrix4f mulOrthoAffine(Matrix4f view, Matrix4f dest) {
-        float nm00 = this.m00 * view.m00;
-        float nm01 = this.m11 * view.m01;
-        float nm02 = this.m22 * view.m02;
-        float nm10 = this.m00 * view.m10;
-        float nm11 = this.m11 * view.m11;
-        float nm12 = this.m22 * view.m12;
-        float nm20 = this.m00 * view.m20;
-        float nm21 = this.m11 * view.m21;
-        float nm22 = this.m22 * view.m22;
-        float nm30 = this.m00 * view.m30 + this.m30;
-        float nm31 = this.m11 * view.m31 + this.m31;
-        float nm32 = this.m22 * view.m32 + this.m32;
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m20(nm20)._m21(nm21)._m22(nm22)._m23(0f)._m30(nm30)._m31(nm31)._m32(nm32)._m33(1f)._properties(2);
+    @JvmOverloads
+    fun sub4x3(subtrahend: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        dest._m00(m00 - subtrahend.m00)._m01(m01 - subtrahend.m01)._m02(m02 - subtrahend.m02)._m03(m03)
+            ._m10(m10 - subtrahend.m10)._m11(
+            m11 - subtrahend.m11
+        )._m12(m12 - subtrahend.m12)._m13(m13)._m20(m20 - subtrahend.m20)._m21(m21 - subtrahend.m21)._m22(
+            m22 - subtrahend.m22
+        )._m23(m23)._m30(m30 - subtrahend.m30)._m31(m31 - subtrahend.m31)._m32(m32 - subtrahend.m32)._m33(
+            m33
+        )._properties(0)
+        return dest
     }
 
-    public Matrix4f fma4x3(Matrix4f other, float otherFactor) {
-        return this.fma4x3(other, otherFactor, this);
+    @JvmOverloads
+    fun mul4x3ComponentWise(other: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        dest._m00(m00 * other.m00)._m01(m01 * other.m01)._m02(m02 * other.m02)._m03(m03)._m10(m10 * other.m10)
+            ._m11(m11 * other.m11)._m12(
+            m12 * other.m12
+        )._m13(m13)._m20(m20 * other.m20)._m21(m21 * other.m21)._m22(m22 * other.m22)._m23(m23)._m30(
+            m30 * other.m30
+        )._m31(m31 * other.m31)._m32(m32 * other.m32)._m33(m33)._properties(0)
+        return dest
     }
 
-    public Matrix4f fma4x3(Matrix4f other, float otherFactor, Matrix4f dest) {
-        dest._m00(Math.fma(other.m00, otherFactor, this.m00))._m01(Math.fma(other.m01, otherFactor, this.m01))._m02(Math.fma(other.m02, otherFactor, this.m02))._m03(this.m03)._m10(Math.fma(other.m10, otherFactor, this.m10))._m11(Math.fma(other.m11, otherFactor, this.m11))._m12(Math.fma(other.m12, otherFactor, this.m12))._m13(this.m13)._m20(Math.fma(other.m20, otherFactor, this.m20))._m21(Math.fma(other.m21, otherFactor, this.m21))._m22(Math.fma(other.m22, otherFactor, this.m22))._m23(this.m23)._m30(Math.fma(other.m30, otherFactor, this.m30))._m31(Math.fma(other.m31, otherFactor, this.m31))._m32(Math.fma(other.m32, otherFactor, this.m32))._m33(this.m33)._properties(0);
-        return dest;
+    operator fun set(
+        m00: Float,
+        m01: Float,
+        m02: Float,
+        m03: Float,
+        m10: Float,
+        m11: Float,
+        m12: Float,
+        m13: Float,
+        m20: Float,
+        m21: Float,
+        m22: Float,
+        m23: Float,
+        m30: Float,
+        m31: Float,
+        m32: Float,
+        m33: Float
+    ): Matrix4f {
+        return _m00(m00)._m10(m10)._m20(m20)._m30(m30)._m01(m01)._m11(m11)._m21(m21)._m31(m31)._m02(m02)._m12(m12)
+            ._m22(m22)._m32(m32)._m03(m03)._m13(m13)._m23(m23)._m33(m33).determineProperties()
     }
 
-    public Matrix4f add(Matrix4f other) {
-        return this.add(other, this);
+    @JvmOverloads
+    fun set(m: FloatArray?, off: Int = 0): Matrix4f {
+        MemUtil.INSTANCE.copy(m, off, this)
+        return determineProperties()
     }
 
-    public Matrix4f add(Matrix4f other, Matrix4f dest) {
-        dest._m00(this.m00 + other.m00)._m01(this.m01 + other.m01)._m02(this.m02 + other.m02)._m03(this.m03 + other.m03)._m10(this.m10 + other.m10)._m11(this.m11 + other.m11)._m12(this.m12 + other.m12)._m13(this.m13 + other.m13)._m20(this.m20 + other.m20)._m21(this.m21 + other.m21)._m22(this.m22 + other.m22)._m23(this.m23 + other.m23)._m30(this.m30 + other.m30)._m31(this.m31 + other.m31)._m32(this.m32 + other.m32)._m33(this.m33 + other.m33)._properties(0);
-        return dest;
+    fun setTransposed(m: FloatArray?, off: Int): Matrix4f {
+        MemUtil.INSTANCE.copyTransposed(m, off, this)
+        return determineProperties()
     }
 
-    public Matrix4f sub(Matrix4f subtrahend) {
-        return this.sub(subtrahend, this);
+    fun setTransposed(m: FloatArray?): Matrix4f {
+        return this.setTransposed(m, 0)
     }
 
-    public Matrix4f sub(Matrix4f subtrahend, Matrix4f dest) {
-        dest._m00(this.m00 - subtrahend.m00)._m01(this.m01 - subtrahend.m01)._m02(this.m02 - subtrahend.m02)._m03(this.m03 - subtrahend.m03)._m10(this.m10 - subtrahend.m10)._m11(this.m11 - subtrahend.m11)._m12(this.m12 - subtrahend.m12)._m13(this.m13 - subtrahend.m13)._m20(this.m20 - subtrahend.m20)._m21(this.m21 - subtrahend.m21)._m22(this.m22 - subtrahend.m22)._m23(this.m23 - subtrahend.m23)._m30(this.m30 - subtrahend.m30)._m31(this.m31 - subtrahend.m31)._m32(this.m32 - subtrahend.m32)._m33(this.m33 - subtrahend.m33)._properties(0);
-        return dest;
+    operator fun set(col0: Vector4f, col1: Vector4f, col2: Vector4f, col3: Vector4f): Matrix4f {
+        return _m00(col0.x)._m01(col0.y)._m02(col0.z)._m03(col0.w)._m10(col1.x)._m11(col1.y)._m12(col1.z)._m13(col1.w)
+            ._m20(col2.x)._m21(col2.y)._m22(col2.z)._m23(col2.w)._m30(col3.x)._m31(col3.y)._m32(col3.z)._m33(col3.w)
+            .determineProperties()
     }
 
-    public Matrix4f mulComponentWise(Matrix4f other) {
-        return this.mulComponentWise(other, this);
+    fun determinant(): Float {
+        return if (properties and 2 != 0) determinantAffine() else (m00 * m11 - m01 * m10) * (m22 * m33 - m23 * m32) + (m02 * m10 - m00 * m12) * (m21 * m33 - m23 * m31) + (m00 * m13 - m03 * m10) * (m21 * m32 - m22 * m31) + (m01 * m12 - m02 * m11) * (m20 * m33 - m23 * m30) + (m03 * m11 - m01 * m13) * (m20 * m32 - m22 * m30) + (m02 * m13 - m03 * m12) * (m20 * m31 - m21 * m30)
     }
 
-    public Matrix4f mulComponentWise(Matrix4f other, Matrix4f dest) {
-        dest._m00(this.m00 * other.m00)._m01(this.m01 * other.m01)._m02(this.m02 * other.m02)._m03(this.m03 * other.m03)._m10(this.m10 * other.m10)._m11(this.m11 * other.m11)._m12(this.m12 * other.m12)._m13(this.m13 * other.m13)._m20(this.m20 * other.m20)._m21(this.m21 * other.m21)._m22(this.m22 * other.m22)._m23(this.m23 * other.m23)._m30(this.m30 * other.m30)._m31(this.m31 * other.m31)._m32(this.m32 * other.m32)._m33(this.m33 * other.m33)._properties(0);
-        return dest;
+    fun determinant3x3(): Float {
+        return (m00 * m11 - m01 * m10) * m22 + (m02 * m10 - m00 * m12) * m21 + (m01 * m12 - m02 * m11) * m20
     }
 
-    public Matrix4f add4x3(Matrix4f other) {
-        return this.add4x3(other, this);
+    fun determinantAffine(): Float {
+        return (m00 * m11 - m01 * m10) * m22 + (m02 * m10 - m00 * m12) * m21 + (m01 * m12 - m02 * m11) * m20
     }
 
-    public Matrix4f add4x3(Matrix4f other, Matrix4f dest) {
-        dest._m00(this.m00 + other.m00)._m01(this.m01 + other.m01)._m02(this.m02 + other.m02)._m03(this.m03)._m10(this.m10 + other.m10)._m11(this.m11 + other.m11)._m12(this.m12 + other.m12)._m13(this.m13)._m20(this.m20 + other.m20)._m21(this.m21 + other.m21)._m22(this.m22 + other.m22)._m23(this.m23)._m30(this.m30 + other.m30)._m31(this.m31 + other.m31)._m32(this.m32 + other.m32)._m33(this.m33)._properties(0);
-        return dest;
-    }
-
-    public Matrix4f sub4x3(Matrix4f subtrahend) {
-        return this.sub4x3(subtrahend, this);
-    }
-
-    public Matrix4f sub4x3(Matrix4f subtrahend, Matrix4f dest) {
-        dest._m00(this.m00 - subtrahend.m00)._m01(this.m01 - subtrahend.m01)._m02(this.m02 - subtrahend.m02)._m03(this.m03)._m10(this.m10 - subtrahend.m10)._m11(this.m11 - subtrahend.m11)._m12(this.m12 - subtrahend.m12)._m13(this.m13)._m20(this.m20 - subtrahend.m20)._m21(this.m21 - subtrahend.m21)._m22(this.m22 - subtrahend.m22)._m23(this.m23)._m30(this.m30 - subtrahend.m30)._m31(this.m31 - subtrahend.m31)._m32(this.m32 - subtrahend.m32)._m33(this.m33)._properties(0);
-        return dest;
-    }
-
-    public Matrix4f mul4x3ComponentWise(Matrix4f other) {
-        return this.mul4x3ComponentWise(other, this);
-    }
-
-    public Matrix4f mul4x3ComponentWise(Matrix4f other, Matrix4f dest) {
-        dest._m00(this.m00 * other.m00)._m01(this.m01 * other.m01)._m02(this.m02 * other.m02)._m03(this.m03)._m10(this.m10 * other.m10)._m11(this.m11 * other.m11)._m12(this.m12 * other.m12)._m13(this.m13)._m20(this.m20 * other.m20)._m21(this.m21 * other.m21)._m22(this.m22 * other.m22)._m23(this.m23)._m30(this.m30 * other.m30)._m31(this.m31 * other.m31)._m32(this.m32 * other.m32)._m33(this.m33)._properties(0);
-        return dest;
-    }
-
-    public Matrix4f set(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20, float m21, float m22, float m23, float m30, float m31, float m32, float m33) {
-        return this._m00(m00)._m10(m10)._m20(m20)._m30(m30)._m01(m01)._m11(m11)._m21(m21)._m31(m31)._m02(m02)._m12(m12)._m22(m22)._m32(m32)._m03(m03)._m13(m13)._m23(m23)._m33(m33).determineProperties();
-    }
-
-    public Matrix4f set(float[] m, int off) {
-        MemUtil.INSTANCE.copy(m, off, this);
-        return this.determineProperties();
-    }
-
-    public Matrix4f set(float[] m) {
-        return this.set(m, 0);
-    }
-
-    public Matrix4f setTransposed(float[] m, int off) {
-        MemUtil.INSTANCE.copyTransposed(m, off, this);
-        return this.determineProperties();
-    }
-
-    public Matrix4f setTransposed(float[] m) {
-        return this.setTransposed(m, 0);
-    }
-
-    public Matrix4f set(Vector4f col0, Vector4f col1, Vector4f col2, Vector4f col3) {
-        return this._m00(col0.x)._m01(col0.y)._m02(col0.z)._m03(col0.w)._m10(col1.x)._m11(col1.y)._m12(col1.z)._m13(col1.w)._m20(col2.x)._m21(col2.y)._m22(col2.z)._m23(col2.w)._m30(col3.x)._m31(col3.y)._m32(col3.z)._m33(col3.w).determineProperties();
-    }
-
-    public float determinant() {
-        return (this.properties & 2) != 0 ? this.determinantAffine() : (this.m00 * this.m11 - this.m01 * this.m10) * (this.m22 * this.m33 - this.m23 * this.m32) + (this.m02 * this.m10 - this.m00 * this.m12) * (this.m21 * this.m33 - this.m23 * this.m31) + (this.m00 * this.m13 - this.m03 * this.m10) * (this.m21 * this.m32 - this.m22 * this.m31) + (this.m01 * this.m12 - this.m02 * this.m11) * (this.m20 * this.m33 - this.m23 * this.m30) + (this.m03 * this.m11 - this.m01 * this.m13) * (this.m20 * this.m32 - this.m22 * this.m30) + (this.m02 * this.m13 - this.m03 * this.m12) * (this.m20 * this.m31 - this.m21 * this.m30);
-    }
-
-    public float determinant3x3() {
-        return (this.m00 * this.m11 - this.m01 * this.m10) * this.m22 + (this.m02 * this.m10 - this.m00 * this.m12) * this.m21 + (this.m01 * this.m12 - this.m02 * this.m11) * this.m20;
-    }
-
-    public float determinantAffine() {
-        return (this.m00 * this.m11 - this.m01 * this.m10) * this.m22 + (this.m02 * this.m10 - this.m00 * this.m12) * this.m21 + (this.m01 * this.m12 - this.m02 * this.m11) * this.m20;
-    }
-
-    public Matrix4f invert(Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.identity();
-        } else if ((this.properties & 8) != 0) {
-            return this.invertTranslation(dest);
-        } else if ((this.properties & 16) != 0) {
-            return this.invertOrthonormal(dest);
-        } else if ((this.properties & 2) != 0) {
-            return this.invertAffine(dest);
+    @JvmOverloads
+    fun invert(dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.identity()
+        } else if (properties and 8 != 0) {
+            invertTranslation(dest)
+        } else if (properties and 16 != 0) {
+            invertOrthonormal(dest)
+        } else if (properties and 2 != 0) {
+            invertAffine(dest)
         } else {
-            return (this.properties & 1) != 0 ? this.invertPerspective(dest) : this.invertGeneric(dest);
+            if (properties and 1 != 0) invertPerspective(dest) else invertGeneric(dest)
         }
     }
 
-    private Matrix4f invertTranslation(Matrix4f dest) {
-        if (dest != this) {
-            dest.set(this);
+    private fun invertTranslation(dest: Matrix4f): Matrix4f {
+        if (dest !== this) {
+            dest.set(this)
         }
-
-        return dest._m30(-this.m30)._m31(-this.m31)._m32(-this.m32)._properties(26);
+        return dest._m30(-m30)._m31(-m31)._m32(-m32)._properties(26)
     }
 
-    private Matrix4f invertOrthonormal(Matrix4f dest) {
-        float nm30 = -(this.m00 * this.m30 + this.m01 * this.m31 + this.m02 * this.m32);
-        float nm31 = -(this.m10 * this.m30 + this.m11 * this.m31 + this.m12 * this.m32);
-        float nm32 = -(this.m20 * this.m30 + this.m21 * this.m31 + this.m22 * this.m32);
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m12 = this.m12;
-        return dest._m00(this.m00)._m01(this.m10)._m02(this.m20)._m03(0f)._m10(m01)._m11(this.m11)._m12(this.m21)._m13(0f)._m20(m02)._m21(m12)._m22(this.m22)._m23(0f)._m30(nm30)._m31(nm31)._m32(nm32)._m33(1f)._properties(18);
+    private fun invertOrthonormal(dest: Matrix4f): Matrix4f {
+        val nm30 = -(m00 * m30 + m01 * m31 + m02 * m32)
+        val nm31 = -(m10 * m30 + m11 * m31 + m12 * m32)
+        val nm32 = -(m20 * m30 + m21 * m31 + m22 * m32)
+        val m01 = m01
+        val m02 = m02
+        val m12 = m12
+        return dest._m00(m00)._m01(m10)._m02(m20)._m03(0f)._m10(m01)._m11(m11)._m12(m21)._m13(0f)._m20(m02)._m21(m12)
+            ._m22(
+                m22
+            )._m23(0f)._m30(nm30)._m31(nm31)._m32(nm32)._m33(1f)._properties(18)
     }
 
-    private Matrix4f invertGeneric(Matrix4f dest) {
-        return this != dest ? this.invertGenericNonThis(dest) : this.invertGenericThis(dest);
+    private fun invertGeneric(dest: Matrix4f): Matrix4f {
+        return if (this !== dest) invertGenericNonThis(dest) else invertGenericThis(dest)
     }
 
-    private Matrix4f invertGenericNonThis(Matrix4f dest) {
-        float a = this.m00 * this.m11 - this.m01 * this.m10;
-        float b = this.m00 * this.m12 - this.m02 * this.m10;
-        float c = this.m00 * this.m13 - this.m03 * this.m10;
-        float d = this.m01 * this.m12 - this.m02 * this.m11;
-        float e = this.m01 * this.m13 - this.m03 * this.m11;
-        float f = this.m02 * this.m13 - this.m03 * this.m12;
-        float g = this.m20 * this.m31 - this.m21 * this.m30;
-        float h = this.m20 * this.m32 - this.m22 * this.m30;
-        float i = this.m20 * this.m33 - this.m23 * this.m30;
-        float j = this.m21 * this.m32 - this.m22 * this.m31;
-        float k = this.m21 * this.m33 - this.m23 * this.m31;
-        float l = this.m22 * this.m33 - this.m23 * this.m32;
-        float det = a * l - b * k + c * j + d * i - e * h + f * g;
-        det = 1f / det;
-        return dest._m00(Math.fma(this.m11, l, Math.fma(-this.m12, k, this.m13 * j)) * det)._m01(Math.fma(-this.m01, l, Math.fma(this.m02, k, -this.m03 * j)) * det)._m02(Math.fma(this.m31, f, Math.fma(-this.m32, e, this.m33 * d)) * det)._m03(Math.fma(-this.m21, f, Math.fma(this.m22, e, -this.m23 * d)) * det)._m10(Math.fma(-this.m10, l, Math.fma(this.m12, i, -this.m13 * h)) * det)._m11(Math.fma(this.m00, l, Math.fma(-this.m02, i, this.m03 * h)) * det)._m12(Math.fma(-this.m30, f, Math.fma(this.m32, c, -this.m33 * b)) * det)._m13(Math.fma(this.m20, f, Math.fma(-this.m22, c, this.m23 * b)) * det)._m20(Math.fma(this.m10, k, Math.fma(-this.m11, i, this.m13 * g)) * det)._m21(Math.fma(-this.m00, k, Math.fma(this.m01, i, -this.m03 * g)) * det)._m22(Math.fma(this.m30, e, Math.fma(-this.m31, c, this.m33 * a)) * det)._m23(Math.fma(-this.m20, e, Math.fma(this.m21, c, -this.m23 * a)) * det)._m30(Math.fma(-this.m10, j, Math.fma(this.m11, h, -this.m12 * g)) * det)._m31(Math.fma(this.m00, j, Math.fma(-this.m01, h, this.m02 * g)) * det)._m32(Math.fma(-this.m30, d, Math.fma(this.m31, b, -this.m32 * a)) * det)._m33(Math.fma(this.m20, d, Math.fma(-this.m21, b, this.m22 * a)) * det)._properties(0);
+    private fun invertGenericNonThis(dest: Matrix4f): Matrix4f {
+        val a = m00 * m11 - m01 * m10
+        val b = m00 * m12 - m02 * m10
+        val c = m00 * m13 - m03 * m10
+        val d = m01 * m12 - m02 * m11
+        val e = m01 * m13 - m03 * m11
+        val f = m02 * m13 - m03 * m12
+        val g = m20 * m31 - m21 * m30
+        val h = m20 * m32 - m22 * m30
+        val i = m20 * m33 - m23 * m30
+        val j = m21 * m32 - m22 * m31
+        val k = m21 * m33 - m23 * m31
+        val l = m22 * m33 - m23 * m32
+        var det = a * l - b * k + c * j + d * i - e * h + f * g
+        det = 1f / det
+        return dest._m00(Math.fma(m11, l, Math.fma(-m12, k, m13 * j)) * det)._m01(
+            Math.fma(
+                -m01, l, Math.fma(
+                    m02, k, -m03 * j
+                )
+            ) * det
+        )._m02(Math.fma(m31, f, Math.fma(-m32, e, m33 * d)) * det)._m03(
+            Math.fma(
+                -m21, f, Math.fma(
+                    m22, e, -m23 * d
+                )
+            ) * det
+        )._m10(Math.fma(-m10, l, Math.fma(m12, i, -m13 * h)) * det)._m11(
+            Math.fma(
+                m00, l, Math.fma(-m02, i, m03 * h)
+            ) * det
+        )._m12(Math.fma(-m30, f, Math.fma(m32, c, -m33 * b)) * det)._m13(
+            Math.fma(
+                m20, f, Math.fma(-m22, c, m23 * b)
+            ) * det
+        )._m20(Math.fma(m10, k, Math.fma(-m11, i, m13 * g)) * det)._m21(
+            Math.fma(
+                -m00, k, Math.fma(
+                    m01, i, -m03 * g
+                )
+            ) * det
+        )._m22(Math.fma(m30, e, Math.fma(-m31, c, m33 * a)) * det)._m23(
+            Math.fma(
+                -m20, e, Math.fma(
+                    m21, c, -m23 * a
+                )
+            ) * det
+        )._m30(Math.fma(-m10, j, Math.fma(m11, h, -m12 * g)) * det)._m31(
+            Math.fma(
+                m00, j, Math.fma(-m01, h, m02 * g)
+            ) * det
+        )._m32(Math.fma(-m30, d, Math.fma(m31, b, -m32 * a)) * det)._m33(
+            Math.fma(
+                m20, d, Math.fma(-m21, b, m22 * a)
+            ) * det
+        )._properties(0)
     }
 
-    private Matrix4f invertGenericThis(Matrix4f dest) {
-        float a = this.m00 * this.m11 - this.m01 * this.m10;
-        float b = this.m00 * this.m12 - this.m02 * this.m10;
-        float c = this.m00 * this.m13 - this.m03 * this.m10;
-        float d = this.m01 * this.m12 - this.m02 * this.m11;
-        float e = this.m01 * this.m13 - this.m03 * this.m11;
-        float f = this.m02 * this.m13 - this.m03 * this.m12;
-        float g = this.m20 * this.m31 - this.m21 * this.m30;
-        float h = this.m20 * this.m32 - this.m22 * this.m30;
-        float i = this.m20 * this.m33 - this.m23 * this.m30;
-        float j = this.m21 * this.m32 - this.m22 * this.m31;
-        float k = this.m21 * this.m33 - this.m23 * this.m31;
-        float l = this.m22 * this.m33 - this.m23 * this.m32;
-        float det = a * l - b * k + c * j + d * i - e * h + f * g;
-        det = 1f / det;
-        float nm00 = Math.fma(this.m11, l, Math.fma(-this.m12, k, this.m13 * j)) * det;
-        float nm01 = Math.fma(-this.m01, l, Math.fma(this.m02, k, -this.m03 * j)) * det;
-        float nm02 = Math.fma(this.m31, f, Math.fma(-this.m32, e, this.m33 * d)) * det;
-        float nm03 = Math.fma(-this.m21, f, Math.fma(this.m22, e, -this.m23 * d)) * det;
-        float nm10 = Math.fma(-this.m10, l, Math.fma(this.m12, i, -this.m13 * h)) * det;
-        float nm11 = Math.fma(this.m00, l, Math.fma(-this.m02, i, this.m03 * h)) * det;
-        float nm12 = Math.fma(-this.m30, f, Math.fma(this.m32, c, -this.m33 * b)) * det;
-        float nm13 = Math.fma(this.m20, f, Math.fma(-this.m22, c, this.m23 * b)) * det;
-        float nm20 = Math.fma(this.m10, k, Math.fma(-this.m11, i, this.m13 * g)) * det;
-        float nm21 = Math.fma(-this.m00, k, Math.fma(this.m01, i, -this.m03 * g)) * det;
-        float nm22 = Math.fma(this.m30, e, Math.fma(-this.m31, c, this.m33 * a)) * det;
-        float nm23 = Math.fma(-this.m20, e, Math.fma(this.m21, c, -this.m23 * a)) * det;
-        float nm30 = Math.fma(-this.m10, j, Math.fma(this.m11, h, -this.m12 * g)) * det;
-        float nm31 = Math.fma(this.m00, j, Math.fma(-this.m01, h, this.m02 * g)) * det;
-        float nm32 = Math.fma(-this.m30, d, Math.fma(this.m31, b, -this.m32 * a)) * det;
-        float nm33 = Math.fma(this.m20, d, Math.fma(-this.m21, b, this.m22 * a)) * det;
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
+    private fun invertGenericThis(dest: Matrix4f): Matrix4f {
+        val a = m00 * m11 - m01 * m10
+        val b = m00 * m12 - m02 * m10
+        val c = m00 * m13 - m03 * m10
+        val d = m01 * m12 - m02 * m11
+        val e = m01 * m13 - m03 * m11
+        val f = m02 * m13 - m03 * m12
+        val g = m20 * m31 - m21 * m30
+        val h = m20 * m32 - m22 * m30
+        val i = m20 * m33 - m23 * m30
+        val j = m21 * m32 - m22 * m31
+        val k = m21 * m33 - m23 * m31
+        val l = m22 * m33 - m23 * m32
+        var det = a * l - b * k + c * j + d * i - e * h + f * g
+        det = 1f / det
+        val nm00 = Math.fma(m11, l, Math.fma(-m12, k, m13 * j)) * det
+        val nm01 = Math.fma(-m01, l, Math.fma(m02, k, -m03 * j)) * det
+        val nm02 = Math.fma(m31, f, Math.fma(-m32, e, m33 * d)) * det
+        val nm03 = Math.fma(-m21, f, Math.fma(m22, e, -m23 * d)) * det
+        val nm10 = Math.fma(-m10, l, Math.fma(m12, i, -m13 * h)) * det
+        val nm11 = Math.fma(m00, l, Math.fma(-m02, i, m03 * h)) * det
+        val nm12 = Math.fma(-m30, f, Math.fma(m32, c, -m33 * b)) * det
+        val nm13 = Math.fma(m20, f, Math.fma(-m22, c, m23 * b)) * det
+        val nm20 = Math.fma(m10, k, Math.fma(-m11, i, m13 * g)) * det
+        val nm21 = Math.fma(-m00, k, Math.fma(m01, i, -m03 * g)) * det
+        val nm22 = Math.fma(m30, e, Math.fma(-m31, c, m33 * a)) * det
+        val nm23 = Math.fma(-m20, e, Math.fma(m21, c, -m23 * a)) * det
+        val nm30 = Math.fma(-m10, j, Math.fma(m11, h, -m12 * g)) * det
+        val nm31 = Math.fma(m00, j, Math.fma(-m01, h, m02 * g)) * det
+        val nm32 = Math.fma(-m30, d, Math.fma(m31, b, -m32 * a)) * det
+        val nm33 = Math.fma(m20, d, Math.fma(-m21, b, m22 * a)) * det
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
 
-    public Matrix4f invert() {
-        return this.invert(this);
+    @JvmOverloads
+    fun invertPerspective(dest: Matrix4f = this): Matrix4f {
+        val a = 1f / (m00 * m11)
+        val l = -1f / (m23 * m32)
+        return dest.set(m11 * a, 0f, 0f, 0f, 0f, m00 * a, 0f, 0f, 0f, 0f, 0f, -m23 * l, 0f, 0f, -m32 * l, m22 * l)
+            ._properties(0)
     }
 
-    public Matrix4f invertPerspective(Matrix4f dest) {
-        float a = 1f / (this.m00 * this.m11);
-        float l = -1f / (this.m23 * this.m32);
-        return dest.set(this.m11 * a, 0f, 0f, 0f, 0f, this.m00 * a, 0f, 0f, 0f, 0f, 0f, -this.m23 * l, 0f, 0f, -this.m32 * l, this.m22 * l)._properties(0);
+    @JvmOverloads
+    fun invertFrustum(dest: Matrix4f = this): Matrix4f {
+        val invM00 = 1f / m00
+        val invM11 = 1f / m11
+        val invM23 = 1f / m23
+        val invM32 = 1f / m32
+        return dest.set(
+            invM00,
+            0f,
+            0f,
+            0f,
+            0f,
+            invM11,
+            0f,
+            0f,
+            0f,
+            0f,
+            0f,
+            invM32,
+            -m20 * invM00 * invM23,
+            -m21 * invM11 * invM23,
+            invM23,
+            -m22 * invM23 * invM32
+        )
     }
 
-    public Matrix4f invertPerspective() {
-        return this.invertPerspective(this);
+    @JvmOverloads
+    fun invertOrtho(dest: Matrix4f = this): Matrix4f {
+        val invM00 = 1f / m00
+        val invM11 = 1f / m11
+        val invM22 = 1f / m22
+        return dest.set(
+            invM00,
+            0f,
+            0f,
+            0f,
+            0f,
+            invM11,
+            0f,
+            0f,
+            0f,
+            0f,
+            invM22,
+            0f,
+            -m30 * invM00,
+            -m31 * invM11,
+            -m32 * invM22,
+            1f
+        )._properties(2 or (properties and 16))
     }
 
-    public Matrix4f invertFrustum(Matrix4f dest) {
-        float invM00 = 1f / this.m00;
-        float invM11 = 1f / this.m11;
-        float invM23 = 1f / this.m23;
-        float invM32 = 1f / this.m32;
-        return dest.set(invM00, 0f, 0f, 0f, 0f, invM11, 0f, 0f, 0f, 0f, 0f, invM32, -this.m20 * invM00 * invM23, -this.m21 * invM11 * invM23, invM23, -this.m22 * invM23 * invM32);
+    fun invertPerspectiveView(view: Matrix4f, dest: Matrix4f): Matrix4f {
+        val a = 1f / (m00 * m11)
+        val l = -1f / (m23 * m32)
+        val pm00 = m11 * a
+        val pm11 = m00 * a
+        val pm23 = -m23 * l
+        val pm32 = -m32 * l
+        val pm33 = m22 * l
+        val vm30 = -view.m00 * view.m30 - view.m01 * view.m31 - view.m02 * view.m32
+        val vm31 = -view.m10 * view.m30 - view.m11 * view.m31 - view.m12 * view.m32
+        val vm32 = -view.m20 * view.m30 - view.m21 * view.m31 - view.m22 * view.m32
+        val nm10 = view.m01 * pm11
+        val nm30 = view.m02 * pm32 + vm30 * pm33
+        val nm31 = view.m12 * pm32 + vm31 * pm33
+        val nm32 = view.m22 * pm32 + vm32 * pm33
+        return dest._m00(view.m00 * pm00)._m01(view.m10 * pm00)._m02(view.m20 * pm00)._m03(0f)._m10(nm10)
+            ._m11(view.m11 * pm11)._m12(view.m21 * pm11)._m13(0f)._m20(vm30 * pm23)._m21(vm31 * pm23)._m22(vm32 * pm23)
+            ._m23(pm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(pm33)._properties(0)
     }
 
-    public Matrix4f invertFrustum() {
-        return this.invertFrustum(this);
+    fun invertPerspectiveView(view: Matrix4x3f, dest: Matrix4f): Matrix4f {
+        val a = 1f / (m00 * m11)
+        val l = -1f / (m23 * m32)
+        val pm00 = m11 * a
+        val pm11 = m00 * a
+        val pm23 = -m23 * l
+        val pm32 = -m32 * l
+        val pm33 = m22 * l
+        val vm30 = -view.m00 * view.m30 - view.m01 * view.m31 - view.m02 * view.m32
+        val vm31 = -view.m10 * view.m30 - view.m11 * view.m31 - view.m12 * view.m32
+        val vm32 = -view.m20 * view.m30 - view.m21 * view.m31 - view.m22 * view.m32
+        return dest._m00(view.m00 * pm00)._m01(view.m10 * pm00)._m02(view.m20 * pm00)._m03(0f)._m10(view.m01 * pm11)
+            ._m11(view.m11 * pm11)._m12(view.m21 * pm11)._m13(0f)._m20(vm30 * pm23)._m21(vm31 * pm23)._m22(vm32 * pm23)
+            ._m23(pm23)._m30(view.m02 * pm32 + vm30 * pm33)._m31(view.m12 * pm32 + vm31 * pm33)
+            ._m32(view.m22 * pm32 + vm32 * pm33)._m33(pm33)._properties(0)
     }
 
-    public Matrix4f invertOrtho(Matrix4f dest) {
-        float invM00 = 1f / this.m00;
-        float invM11 = 1f / this.m11;
-        float invM22 = 1f / this.m22;
-        return dest.set(invM00, 0f, 0f, 0f, 0f, invM11, 0f, 0f, 0f, 0f, invM22, 0f, -this.m30 * invM00, -this.m31 * invM11, -this.m32 * invM22, 1f)._properties(2 | this.properties & 16);
+    @JvmOverloads
+    fun invertAffine(dest: Matrix4f = this): Matrix4f {
+        val m11m00 = m00 * m11
+        val m10m01 = m01 * m10
+        val m10m02 = m02 * m10
+        val m12m00 = m00 * m12
+        val m12m01 = m01 * m12
+        val m11m02 = m02 * m11
+        val det = (m11m00 - m10m01) * m22 + (m10m02 - m12m00) * m21 + (m12m01 - m11m02) * m20
+        val s = 1f / det
+        val m10m22 = m10 * m22
+        val m10m21 = m10 * m21
+        val m11m22 = m11 * m22
+        val m11m20 = m11 * m20
+        val m12m21 = m12 * m21
+        val m12m20 = m12 * m20
+        val m20m02 = m20 * m02
+        val m20m01 = m20 * m01
+        val m21m02 = m21 * m02
+        val m21m00 = m21 * m00
+        val m22m01 = m22 * m01
+        val m22m00 = m22 * m00
+        val nm31 = (m20m02 * m31 - m20m01 * m32 + m21m00 * m32 - m21m02 * m30 + m22m01 * m30 - m22m00 * m31) * s
+        val nm32 = (m11m02 * m30 - m12m01 * m30 + m12m00 * m31 - m10m02 * m31 + m10m01 * m32 - m11m00 * m32) * s
+        return dest._m00((m11m22 - m12m21) * s)._m01((m21m02 - m22m01) * s)._m02((m12m01 - m11m02) * s)._m03(0f)
+            ._m10((m12m20 - m10m22) * s)._m11((m22m00 - m20m02) * s)._m12((m10m02 - m12m00) * s)._m13(0f)
+            ._m20((m10m21 - m11m20) * s)._m21((m20m01 - m21m00) * s)._m22((m11m00 - m10m01) * s)._m23(0f)
+            ._m30((m10m22 * m31 - m10m21 * m32 + m11m20 * m32 - m11m22 * m30 + m12m21 * m30 - m12m20 * m31) * s)
+            ._m31(nm31)._m32(nm32)._m33(1f)._properties(2)
     }
 
-    public Matrix4f invertOrtho() {
-        return this.invertOrtho(this);
-    }
-
-    public Matrix4f invertPerspectiveView(Matrix4f view, Matrix4f dest) {
-        float a = 1f / (this.m00 * this.m11);
-        float l = -1f / (this.m23 * this.m32);
-        float pm00 = this.m11 * a;
-        float pm11 = this.m00 * a;
-        float pm23 = -this.m23 * l;
-        float pm32 = -this.m32 * l;
-        float pm33 = this.m22 * l;
-        float vm30 = -view.m00 * view.m30 - view.m01 * view.m31 - view.m02 * view.m32;
-        float vm31 = -view.m10 * view.m30 - view.m11 * view.m31 - view.m12 * view.m32;
-        float vm32 = -view.m20 * view.m30 - view.m21 * view.m31 - view.m22 * view.m32;
-        float nm10 = view.m01 * pm11;
-        float nm30 = view.m02 * pm32 + vm30 * pm33;
-        float nm31 = view.m12 * pm32 + vm31 * pm33;
-        float nm32 = view.m22 * pm32 + vm32 * pm33;
-        return dest._m00(view.m00 * pm00)._m01(view.m10 * pm00)._m02(view.m20 * pm00)._m03(0f)._m10(nm10)._m11(view.m11 * pm11)._m12(view.m21 * pm11)._m13(0f)._m20(vm30 * pm23)._m21(vm31 * pm23)._m22(vm32 * pm23)._m23(pm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(pm33)._properties(0);
-    }
-
-    public Matrix4f invertPerspectiveView(Matrix4x3f view, Matrix4f dest) {
-        float a = 1f / (this.m00 * this.m11);
-        float l = -1f / (this.m23 * this.m32);
-        float pm00 = this.m11 * a;
-        float pm11 = this.m00 * a;
-        float pm23 = -this.m23 * l;
-        float pm32 = -this.m32 * l;
-        float pm33 = this.m22 * l;
-        float vm30 = -view.m00 * view.m30 - view.m01 * view.m31 - view.m02 * view.m32;
-        float vm31 = -view.m10 * view.m30 - view.m11 * view.m31 - view.m12 * view.m32;
-        float vm32 = -view.m20 * view.m30 - view.m21 * view.m31 - view.m22 * view.m32;
-        return dest._m00(view.m00 * pm00)._m01(view.m10 * pm00)._m02(view.m20 * pm00)._m03(0f)._m10(view.m01 * pm11)._m11(view.m11 * pm11)._m12(view.m21 * pm11)._m13(0f)._m20(vm30 * pm23)._m21(vm31 * pm23)._m22(vm32 * pm23)._m23(pm23)._m30(view.m02 * pm32 + vm30 * pm33)._m31(view.m12 * pm32 + vm31 * pm33)._m32(view.m22 * pm32 + vm32 * pm33)._m33(pm33)._properties(0);
-    }
-
-    public Matrix4f invertAffine(Matrix4f dest) {
-        float m11m00 = this.m00 * this.m11;
-        float m10m01 = this.m01 * this.m10;
-        float m10m02 = this.m02 * this.m10;
-        float m12m00 = this.m00 * this.m12;
-        float m12m01 = this.m01 * this.m12;
-        float m11m02 = this.m02 * this.m11;
-        float det = (m11m00 - m10m01) * this.m22 + (m10m02 - m12m00) * this.m21 + (m12m01 - m11m02) * this.m20;
-        float s = 1f / det;
-        float m10m22 = this.m10 * this.m22;
-        float m10m21 = this.m10 * this.m21;
-        float m11m22 = this.m11 * this.m22;
-        float m11m20 = this.m11 * this.m20;
-        float m12m21 = this.m12 * this.m21;
-        float m12m20 = this.m12 * this.m20;
-        float m20m02 = this.m20 * this.m02;
-        float m20m01 = this.m20 * this.m01;
-        float m21m02 = this.m21 * this.m02;
-        float m21m00 = this.m21 * this.m00;
-        float m22m01 = this.m22 * this.m01;
-        float m22m00 = this.m22 * this.m00;
-        float nm31 = (m20m02 * this.m31 - m20m01 * this.m32 + m21m00 * this.m32 - m21m02 * this.m30 + m22m01 * this.m30 - m22m00 * this.m31) * s;
-        float nm32 = (m11m02 * this.m30 - m12m01 * this.m30 + m12m00 * this.m31 - m10m02 * this.m31 + m10m01 * this.m32 - m11m00 * this.m32) * s;
-        return dest._m00((m11m22 - m12m21) * s)._m01((m21m02 - m22m01) * s)._m02((m12m01 - m11m02) * s)._m03(0f)._m10((m12m20 - m10m22) * s)._m11((m22m00 - m20m02) * s)._m12((m10m02 - m12m00) * s)._m13(0f)._m20((m10m21 - m11m20) * s)._m21((m20m01 - m21m00) * s)._m22((m11m00 - m10m01) * s)._m23(0f)._m30((m10m22 * this.m31 - m10m21 * this.m32 + m11m20 * this.m32 - m11m22 * this.m30 + m12m21 * this.m30 - m12m20 * this.m31) * s)._m31(nm31)._m32(nm32)._m33(1f)._properties(2);
-    }
-
-    public Matrix4f invertAffine() {
-        return this.invertAffine(this);
-    }
-
-    public Matrix4f transpose(Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.identity();
+    @JvmOverloads
+    fun transpose(dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.identity()
         } else {
-            return this != dest ? this.transposeNonThisGeneric(dest) : this.transposeThisGeneric(dest);
+            if (this !== dest) transposeNonThisGeneric(dest) else transposeThisGeneric(dest)
         }
     }
 
-    private Matrix4f transposeNonThisGeneric(Matrix4f dest) {
-        return dest._m00(this.m00)._m01(this.m10)._m02(this.m20)._m03(this.m30)._m10(this.m01)._m11(this.m11)._m12(this.m21)._m13(this.m31)._m20(this.m02)._m21(this.m12)._m22(this.m22)._m23(this.m32)._m30(this.m03)._m31(this.m13)._m32(this.m23)._m33(this.m33)._properties(0);
+    private fun transposeNonThisGeneric(dest: Matrix4f): Matrix4f {
+        return dest._m00(m00)._m01(m10)._m02(m20)._m03(m30)._m10(m01)._m11(m11)._m12(m21)._m13(m31)._m20(m02)._m21(m12)
+            ._m22(
+                m22
+            )._m23(m32)._m30(m03)._m31(m13)._m32(m23)._m33(m33)._properties(0)
     }
 
-    private Matrix4f transposeThisGeneric(Matrix4f dest) {
-        float nm10 = this.m01;
-        float nm20 = this.m02;
-        float nm21 = this.m12;
-        float nm30 = this.m03;
-        float nm31 = this.m13;
-        float nm32 = this.m23;
-        return dest._m01(this.m10)._m02(this.m20)._m03(this.m30)._m10(nm10)._m12(this.m21)._m13(this.m31)._m20(nm20)._m21(nm21)._m23(this.m32)._m30(nm30)._m31(nm31)._m32(nm32)._properties(0);
+    private fun transposeThisGeneric(dest: Matrix4f): Matrix4f {
+        val nm10 = m01
+        val nm20 = m02
+        val nm21 = m12
+        val nm30 = m03
+        val nm31 = m13
+        val nm32 = m23
+        return dest._m01(m10)._m02(m20)._m03(m30)._m10(nm10)._m12(m21)._m13(m31)._m20(nm20)._m21(nm21)._m23(m32)
+            ._m30(nm30)._m31(nm31)._m32(nm32)._properties(0)
     }
 
-    public Matrix4f transpose3x3() {
-        return this.transpose3x3(this);
+    @JvmOverloads
+    fun transpose3x3(dest: Matrix4f = this): Matrix4f {
+        val nm10 = m01
+        val nm20 = m02
+        val nm21 = m12
+        return dest._m00(m00)._m01(m10)._m02(m20)._m10(nm10)._m11(m11)._m12(m21)._m20(nm20)._m21(nm21)._m22(m22)
+            ._properties(
+                properties and 30
+            )
     }
 
-    public Matrix4f transpose3x3(Matrix4f dest) {
-        float nm10 = this.m01;
-        float nm20 = this.m02;
-        float nm21 = this.m12;
-        return dest._m00(this.m00)._m01(this.m10)._m02(this.m20)._m10(nm10)._m11(this.m11)._m12(this.m21)._m20(nm20)._m21(nm21)._m22(this.m22)._properties(this.properties & 30);
+    fun transpose3x3(dest: Matrix3f): Matrix3f {
+        return dest._m00(m00)._m01(m10)._m02(m20)._m10(m01)._m11(m11)._m12(m21)._m20(m02)._m21(m12)._m22(m22)
     }
 
-    public Matrix3f transpose3x3(Matrix3f dest) {
-        return dest._m00(this.m00)._m01(this.m10)._m02(this.m20)._m10(this.m01)._m11(this.m11)._m12(this.m21)._m20(this.m02)._m21(this.m12)._m22(this.m22);
-    }
-
-    public Matrix4f transpose() {
-        return this.transpose(this);
-    }
-
-    public Matrix4f translation(float x, float y, float z) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun translation(x: Float, y: Float, z: Float): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        return this._m30(x)._m31(y)._m32(z)._properties(26);
+        return _m30(x)._m31(y)._m32(z)._properties(26)
     }
 
-    public Matrix4f translation(Vector3f offset) {
-        return this.translation(offset.x, offset.y, offset.z);
+    fun translation(offset: Vector3f): Matrix4f {
+        return this.translation(offset.x, offset.y, offset.z)
     }
 
-    public Matrix4f setTranslation(float x, float y, float z) {
-        return this._m30(x)._m31(y)._m32(z)._properties(this.properties & -6);
+    fun setTranslation(x: Float, y: Float, z: Float): Matrix4f {
+        return _m30(x)._m31(y)._m32(z)._properties(properties and -6)
     }
 
-    public Matrix4f setTranslation(Vector3f xyz) {
-        return this.setTranslation(xyz.x, xyz.y, xyz.z);
+    fun setTranslation(xyz: Vector3f): Matrix4f {
+        return this.setTranslation(xyz.x, xyz.y, xyz.z)
     }
 
-    public Vector3f getTranslation(Vector3f dest) {
-        dest.x = this.m30;
-        dest.y = this.m31;
-        dest.z = this.m32;
-        return dest;
+    fun getTranslation(dest: Vector3f): Vector3f {
+        dest.x = m30
+        dest.y = m31
+        dest.z = m32
+        return dest
     }
 
-    public Vector3f getScale(Vector3f dest) {
-        dest.x = Math.sqrt(this.m00 * this.m00 + this.m01 * this.m01 + this.m02 * this.m02);
-        dest.y = Math.sqrt(this.m10 * this.m10 + this.m11 * this.m11 + this.m12 * this.m12);
-        dest.z = Math.sqrt(this.m20 * this.m20 + this.m21 * this.m21 + this.m22 * this.m22);
-        return dest;
+    fun getScale(dest: Vector3f): Vector3f {
+        dest.x = Math.sqrt(m00 * m00 + m01 * m01 + m02 * m02)
+        dest.y = Math.sqrt(m10 * m10 + m11 * m11 + m12 * m12)
+        dest.z = Math.sqrt(m20 * m20 + m21 * m21 + m22 * m22)
+        return dest
     }
 
-    public String toString() {
-        String str = this.toString(Options.NUMBER_FORMAT);
-        StringBuilder res = new StringBuilder();
-        int eIndex = Integer.MIN_VALUE;
-
-        for(int i = 0; i < str.length(); ++i) {
-            char c = str.charAt(i);
+    override fun toString(): String {
+        val str = this.toString(Options.NUMBER_FORMAT)
+        val res = StringBuilder()
+        var eIndex = Int.MIN_VALUE
+        for (i in 0 until str.length) {
+            val c = str[i]
             if (c == 'E') {
-                eIndex = i;
+                eIndex = i
             } else {
                 if (c == ' ' && eIndex == i - 1) {
-                    res.append('+');
-                    continue;
+                    res.append('+')
+                    continue
                 }
-
                 if (Character.isDigit(c) && eIndex == i - 1) {
-                    res.append('+');
+                    res.append('+')
                 }
             }
-
-            res.append(c);
+            res.append(c)
         }
-
-        return res.toString();
+        return res.toString()
     }
 
-    public String toString(NumberFormat formatter) {
-        return Runtime.format(this.m00, formatter) + " " + Runtime.format(this.m10, formatter) + " " + Runtime.format(this.m20, formatter) + " " + Runtime.format(this.m30, formatter) + "\n" + Runtime.format(this.m01, formatter) + " " + Runtime.format(this.m11, formatter) + " " + Runtime.format(this.m21, formatter) + " " + Runtime.format(this.m31, formatter) + "\n" + Runtime.format(this.m02, formatter) + " " + Runtime.format(this.m12, formatter) + " " + Runtime.format(this.m22, formatter) + " " + Runtime.format(this.m32, formatter) + "\n" + Runtime.format(this.m03, formatter) + " " + Runtime.format(this.m13, formatter) + " " + Runtime.format(this.m23, formatter) + " " + Runtime.format(this.m33, formatter) + "\n";
+    fun toString(formatter: NumberFormat?): String {
+        return """${Runtime.format(m00.toDouble(), formatter)} ${Runtime.format(m10.toDouble(), formatter)} ${
+            Runtime.format(
+                m20.toDouble(), formatter
+            )
+        } ${Runtime.format(m30.toDouble(), formatter)}
+${Runtime.format(m01.toDouble(), formatter)} ${Runtime.format(m11.toDouble(), formatter)} ${
+            Runtime.format(
+                m21.toDouble(), formatter
+            )
+        } ${Runtime.format(m31.toDouble(), formatter)}
+${Runtime.format(m02.toDouble(), formatter)} ${Runtime.format(m12.toDouble(), formatter)} ${
+            Runtime.format(
+                m22.toDouble(), formatter
+            )
+        } ${Runtime.format(m32.toDouble(), formatter)}
+${Runtime.format(m03.toDouble(), formatter)} ${Runtime.format(m13.toDouble(), formatter)} ${
+            Runtime.format(
+                m23.toDouble(), formatter
+            )
+        } ${Runtime.format(m33.toDouble(), formatter)}
+"""
     }
 
-    public Matrix4f get(Matrix4f dest) {
-        return dest.set(this);
+    operator fun get(dest: Matrix4f): Matrix4f {
+        return dest.set(this)
     }
 
-    public Matrix4x3f get4x3(Matrix4x3f dest) {
-        return dest.set(this);
+    fun get4x3(dest: Matrix4x3f): Matrix4x3f {
+        return dest.set(this)
     }
 
-    public Matrix4d get(Matrix4d dest) {
-        return dest.set(this);
+    operator fun get(dest: Matrix4d): Matrix4d {
+        return dest.set(this)
     }
 
-    public Matrix3f get3x3(Matrix3f dest) {
-        return dest.set(this);
+    fun get3x3(dest: Matrix3f): Matrix3f {
+        return dest.set(this)
     }
 
-    public Matrix3d get3x3(Matrix3d dest) {
-        return dest.set(this);
+    fun get3x3(dest: Matrix3d): Matrix3d {
+        return dest.set(this)
     }
 
-    public AxisAngle4f getRotation(AxisAngle4f dest) {
-        return dest.set(this);
+    fun getRotation(dest: AxisAngle4f): AxisAngle4f {
+        return dest.set(this)
     }
 
-    public AxisAngle4d getRotation(AxisAngle4d dest) {
-        return dest.set(this);
+    fun getRotation(dest: AxisAngle4d): AxisAngle4d {
+        return dest.set(this)
     }
 
-    public Quaternionf getUnnormalizedRotation(Quaternionf dest) {
-        return dest.setFromUnnormalized(this);
+    fun getUnnormalizedRotation(dest: Quaternionf): Quaternionf {
+        return dest.setFromUnnormalized(this)
     }
 
-    public Quaternionf getNormalizedRotation(Quaternionf dest) {
-        return dest.setFromNormalized(this);
+    fun getNormalizedRotation(dest: Quaternionf): Quaternionf {
+        return dest.setFromNormalized(this)
     }
 
-    public Quaterniond getUnnormalizedRotation(Quaterniond dest) {
-        return dest.setFromUnnormalized(this);
+    fun getUnnormalizedRotation(dest: Quaterniond): Quaterniond {
+        return dest.setFromUnnormalized(this)
     }
 
-    public Quaterniond getNormalizedRotation(Quaterniond dest) {
-        return dest.setFromNormalized(this);
+    fun getNormalizedRotation(dest: Quaterniond): Quaterniond {
+        return dest.setFromNormalized(this)
     }
 
-    public float[] get(float[] arr, int offset) {
-        MemUtil.INSTANCE.copy(this, arr, offset);
-        return arr;
+    operator fun get(arr: FloatArray, offset: Int): FloatArray {
+        MemUtil.INSTANCE.copy(this, arr, offset)
+        return arr
     }
 
-    public float[] get(float[] arr) {
-        MemUtil.INSTANCE.copy(this, arr, 0);
-        return arr;
+    operator fun get(arr: FloatArray): FloatArray {
+        MemUtil.INSTANCE.copy(this, arr, 0)
+        return arr
     }
 
-    public Matrix4f zero() {
-        MemUtil.INSTANCE.zero(this);
-        return this._properties(0);
+    fun zero(): Matrix4f {
+        MemUtil.INSTANCE.zero(this)
+        return _properties(0)
     }
 
-    public Matrix4f scaling(float factor) {
-        return this.scaling(factor, factor, factor);
+    fun scaling(factor: Float): Matrix4f {
+        return this.scaling(factor, factor, factor)
     }
 
-    public Matrix4f scaling(float x, float y, float z) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun scaling(x: Float, y: Float, z: Float): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        boolean one = Math.absEqualsOne(x) && Math.absEqualsOne(y) && Math.absEqualsOne(z);
-        return this._m00(x)._m11(y)._m22(z)._properties(2 | (one ? 16 : 0));
+        val one = Math.absEqualsOne(x) && Math.absEqualsOne(y) && Math.absEqualsOne(z)
+        return _m00(x)._m11(y)._m22(z)._properties(2 or if (one) 16 else 0)
     }
 
-    public Matrix4f scaling(Vector3f xyz) {
-        return this.scaling(xyz.x, xyz.y, xyz.z);
+    fun scaling(xyz: Vector3f): Matrix4f {
+        return this.scaling(xyz.x, xyz.y, xyz.z)
     }
 
-    public Matrix4f rotation(float angle, Vector3f axis) {
-        return this.rotation(angle, axis.x, axis.y, axis.z);
+    fun rotation(angle: Float, axis: Vector3f): Matrix4f {
+        return this.rotation(angle, axis.x, axis.y, axis.z)
     }
 
-    public Matrix4f rotation(AxisAngle4f axisAngle) {
-        return this.rotation(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z);
+    fun rotation(axisAngle: AxisAngle4f): Matrix4f {
+        return this.rotation(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
-    public Matrix4f rotation(float angle, float x, float y, float z) {
-        if (y == 0f && z == 0f && Math.absEqualsOne(x)) {
-            return this.rotationX(x * angle);
+    fun rotation(angle: Float, x: Float, y: Float, z: Float): Matrix4f {
+        return if (y == 0f && z == 0f && Math.absEqualsOne(x)) {
+            rotationX(x * angle)
         } else if (x == 0f && z == 0f && Math.absEqualsOne(y)) {
-            return this.rotationY(y * angle);
+            rotationY(y * angle)
         } else {
-            return x == 0f && y == 0f && Math.absEqualsOne(z) ? this.rotationZ(z * angle) : this.rotationInternal(angle, x, y, z);
+            if (x == 0f && y == 0f && Math.absEqualsOne(z)) rotationZ(z * angle) else rotationInternal(
+                angle,
+                x,
+                y,
+                z
+            )
         }
     }
 
-    private Matrix4f rotationInternal(float angle, float x, float y, float z) {
-        float sin = Math.sin(angle);
-        float cos = Math.cosFromSin(sin, angle);
-        float C = 1f - cos;
-        float xy = x * y;
-        float xz = x * z;
-        float yz = y * z;
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    private fun rotationInternal(angle: Float, x: Float, y: Float, z: Float): Matrix4f {
+        val sin = Math.sin(angle)
+        val cos = Math.cosFromSin(sin, angle)
+        val C = 1f - cos
+        val xy = x * y
+        val xz = x * z
+        val yz = y * z
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        return this._m00(cos + x * x * C)._m10(xy * C - z * sin)._m20(xz * C + y * sin)._m01(xy * C + z * sin)._m11(cos + y * y * C)._m21(yz * C - x * sin)._m02(xz * C - y * sin)._m12(yz * C + x * sin)._m22(cos + z * z * C)._properties(18);
+        return _m00(cos + x * x * C)._m10(xy * C - z * sin)._m20(xz * C + y * sin)._m01(xy * C + z * sin)
+            ._m11(cos + y * y * C)._m21(yz * C - x * sin)._m02(xz * C - y * sin)._m12(yz * C + x * sin)
+            ._m22(cos + z * z * C)._properties(18)
     }
 
-    public Matrix4f rotationX(float ang) {
-        float sin = Math.sin(ang);
-        float cos = Math.cosFromSin(sin, ang);
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun rotationX(ang: Float): Matrix4f {
+        val sin = Math.sin(ang)
+        val cos = Math.cosFromSin(sin, ang)
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m11(cos)._m12(sin)._m21(-sin)._m22(cos)._properties(18);
-        return this;
+        _m11(cos)._m12(sin)._m21(-sin)._m22(cos)._properties(18)
+        return this
     }
 
-    public Matrix4f rotationY(float ang) {
-        float sin = Math.sin(ang);
-        float cos = Math.cosFromSin(sin, ang);
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun rotationY(ang: Float): Matrix4f {
+        val sin = Math.sin(ang)
+        val cos = Math.cosFromSin(sin, ang)
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m00(cos)._m02(-sin)._m20(sin)._m22(cos)._properties(18);
-        return this;
+        _m00(cos)._m02(-sin)._m20(sin)._m22(cos)._properties(18)
+        return this
     }
 
-    public Matrix4f rotationZ(float ang) {
-        float sin = Math.sin(ang);
-        float cos = Math.cosFromSin(sin, ang);
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun rotationZ(ang: Float): Matrix4f {
+        val sin = Math.sin(ang)
+        val cos = Math.cosFromSin(sin, ang)
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        return this._m00(cos)._m01(sin)._m10(-sin)._m11(cos)._properties(18);
+        return _m00(cos)._m01(sin)._m10(-sin)._m11(cos)._properties(18)
     }
 
-    public Matrix4f rotationTowardsXY(float dirX, float dirY) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun rotationTowardsXY(dirX: Float, dirY: Float): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        return this._m00(dirY)._m01(dirX)._m10(-dirX)._m11(dirY)._properties(18);
+        return _m00(dirY)._m01(dirX)._m10(-dirX)._m11(dirY)._properties(18)
     }
 
-    public Matrix4f rotationXYZ(float angleX, float angleY, float angleZ) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun rotationXYZ(angleX: Float, angleY: Float, angleZ: Float): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        float nm01 = -sinX * -sinY;
-        float nm02 = cosX * -sinY;
-        return this._m20(sinY)._m21(-sinX * cosY)._m22(cosX * cosY)._m00(cosY * cosZ)._m01(nm01 * cosZ + cosX * sinZ)._m02(nm02 * cosZ + sinX * sinZ)._m10(cosY * -sinZ)._m11(nm01 * -sinZ + cosX * cosZ)._m12(nm02 * -sinZ + sinX * cosZ)._properties(18);
+        val nm01 = -sinX * -sinY
+        val nm02 = cosX * -sinY
+        return _m20(sinY)._m21(-sinX * cosY)._m22(cosX * cosY)._m00(cosY * cosZ)._m01(nm01 * cosZ + cosX * sinZ)
+            ._m02(nm02 * cosZ + sinX * sinZ)._m10(cosY * -sinZ)._m11(nm01 * -sinZ + cosX * cosZ)
+            ._m12(nm02 * -sinZ + sinX * cosZ)._properties(18)
     }
 
-    public Matrix4f rotationZYX(float angleZ, float angleY, float angleX) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float nm20 = cosZ * sinY;
-        float nm21 = sinZ * sinY;
-        return this._m00(cosZ * cosY)._m01(sinZ * cosY)._m02(-sinY)._m03(0f)._m10(-sinZ * cosX + nm20 * sinX)._m11(cosZ * cosX + nm21 * sinX)._m12(cosY * sinX)._m13(0f)._m20(-sinZ * -sinX + nm20 * cosX)._m21(cosZ * -sinX + nm21 * cosX)._m22(cosY * cosX)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(18);
+    fun rotationZYX(angleZ: Float, angleY: Float, angleX: Float): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val nm20 = cosZ * sinY
+        val nm21 = sinZ * sinY
+        return _m00(cosZ * cosY)._m01(sinZ * cosY)._m02(-sinY)._m03(0f)._m10(-sinZ * cosX + nm20 * sinX)
+            ._m11(cosZ * cosX + nm21 * sinX)._m12(cosY * sinX)._m13(0f)._m20(-sinZ * -sinX + nm20 * cosX)
+            ._m21(cosZ * -sinX + nm21 * cosX)._m22(cosY * cosX)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)
+            ._properties(18)
     }
 
-    public Matrix4f rotationYXZ(float angleY, float angleX, float angleZ) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float nm10 = sinY * sinX;
-        float nm12 = cosY * sinX;
-        return this._m20(sinY * cosX)._m21(-sinX)._m22(cosY * cosX)._m23(0f)._m00(cosY * cosZ + nm10 * sinZ)._m01(cosX * sinZ)._m02(-sinY * cosZ + nm12 * sinZ)._m03(0f)._m10(cosY * -sinZ + nm10 * cosZ)._m11(cosX * cosZ)._m12(-sinY * -sinZ + nm12 * cosZ)._m13(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(18);
+    fun rotationYXZ(angleY: Float, angleX: Float, angleZ: Float): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val nm10 = sinY * sinX
+        val nm12 = cosY * sinX
+        return _m20(sinY * cosX)._m21(-sinX)._m22(cosY * cosX)._m23(0f)._m00(cosY * cosZ + nm10 * sinZ)
+            ._m01(cosX * sinZ)._m02(-sinY * cosZ + nm12 * sinZ)._m03(0f)._m10(cosY * -sinZ + nm10 * cosZ)
+            ._m11(cosX * cosZ)._m12(-sinY * -sinZ + nm12 * cosZ)._m13(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)
+            ._properties(18)
     }
 
-    public Matrix4f setRotationXYZ(float angleX, float angleY, float angleZ) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float nm01 = -sinX * -sinY;
-        float nm02 = cosX * -sinY;
-        return this._m20(sinY)._m21(-sinX * cosY)._m22(cosX * cosY)._m00(cosY * cosZ)._m01(nm01 * cosZ + cosX * sinZ)._m02(nm02 * cosZ + sinX * sinZ)._m10(cosY * -sinZ)._m11(nm01 * -sinZ + cosX * cosZ)._m12(nm02 * -sinZ + sinX * cosZ)._properties(this.properties & -14);
+    fun setRotationXYZ(angleX: Float, angleY: Float, angleZ: Float): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val nm01 = -sinX * -sinY
+        val nm02 = cosX * -sinY
+        return _m20(sinY)._m21(-sinX * cosY)._m22(cosX * cosY)._m00(cosY * cosZ)._m01(nm01 * cosZ + cosX * sinZ)
+            ._m02(nm02 * cosZ + sinX * sinZ)._m10(cosY * -sinZ)._m11(nm01 * -sinZ + cosX * cosZ)
+            ._m12(nm02 * -sinZ + sinX * cosZ)._properties(
+            properties and -14
+        )
     }
 
-    public Matrix4f setRotationZYX(float angleZ, float angleY, float angleX) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float nm20 = cosZ * sinY;
-        float nm21 = sinZ * sinY;
-        return this._m00(cosZ * cosY)._m01(sinZ * cosY)._m02(-sinY)._m10(-sinZ * cosX + nm20 * sinX)._m11(cosZ * cosX + nm21 * sinX)._m12(cosY * sinX)._m20(-sinZ * -sinX + nm20 * cosX)._m21(cosZ * -sinX + nm21 * cosX)._m22(cosY * cosX)._properties(this.properties & -14);
+    fun setRotationZYX(angleZ: Float, angleY: Float, angleX: Float): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val nm20 = cosZ * sinY
+        val nm21 = sinZ * sinY
+        return _m00(cosZ * cosY)._m01(sinZ * cosY)._m02(-sinY)._m10(-sinZ * cosX + nm20 * sinX)
+            ._m11(cosZ * cosX + nm21 * sinX)._m12(cosY * sinX)._m20(-sinZ * -sinX + nm20 * cosX)
+            ._m21(cosZ * -sinX + nm21 * cosX)._m22(cosY * cosX)._properties(
+            properties and -14
+        )
     }
 
-    public Matrix4f setRotationYXZ(float angleY, float angleX, float angleZ) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float nm10 = sinY * sinX;
-        float nm12 = cosY * sinX;
-        return this._m20(sinY * cosX)._m21(-sinX)._m22(cosY * cosX)._m00(cosY * cosZ + nm10 * sinZ)._m01(cosX * sinZ)._m02(-sinY * cosZ + nm12 * sinZ)._m10(cosY * -sinZ + nm10 * cosZ)._m11(cosX * cosZ)._m12(-sinY * -sinZ + nm12 * cosZ)._properties(this.properties & -14);
+    fun setRotationYXZ(angleY: Float, angleX: Float, angleZ: Float): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val nm10 = sinY * sinX
+        val nm12 = cosY * sinX
+        return _m20(sinY * cosX)._m21(-sinX)._m22(cosY * cosX)._m00(cosY * cosZ + nm10 * sinZ)._m01(cosX * sinZ)
+            ._m02(-sinY * cosZ + nm12 * sinZ)._m10(cosY * -sinZ + nm10 * cosZ)._m11(cosX * cosZ)
+            ._m12(-sinY * -sinZ + nm12 * cosZ)._properties(
+            properties and -14
+        )
     }
 
-    public Matrix4f rotation(Quaternionf quat) {
-        float w2 = quat.w * quat.w;
-        float x2 = quat.x * quat.x;
-        float y2 = quat.y * quat.y;
-        float z2 = quat.z * quat.z;
-        float zw = quat.z * quat.w;
-        float dzw = zw + zw;
-        float xy = quat.x * quat.y;
-        float dxy = xy + xy;
-        float xz = quat.x * quat.z;
-        float dxz = xz + xz;
-        float yw = quat.y * quat.w;
-        float dyw = yw + yw;
-        float yz = quat.y * quat.z;
-        float dyz = yz + yz;
-        float xw = quat.x * quat.w;
-        float dxw = xw + xw;
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun rotation(quat: Quaternionf): Matrix4f {
+        val w2 = quat.w * quat.w
+        val x2 = quat.x * quat.x
+        val y2 = quat.y * quat.y
+        val z2 = quat.z * quat.z
+        val zw = quat.z * quat.w
+        val dzw = zw + zw
+        val xy = quat.x * quat.y
+        val dxy = xy + xy
+        val xz = quat.x * quat.z
+        val dxz = xz + xz
+        val yw = quat.y * quat.w
+        val dyw = yw + yw
+        val yz = quat.y * quat.z
+        val dyz = yz + yz
+        val xw = quat.x * quat.w
+        val dxw = xw + xw
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        return this._m00(w2 + x2 - z2 - y2)._m01(dxy + dzw)._m02(dxz - dyw)._m10(-dzw + dxy)._m11(y2 - z2 + w2 - x2)._m12(dyz + dxw)._m20(dyw + dxz)._m21(dyz - dxw)._m22(z2 - y2 - x2 + w2)._properties(18);
+        return _m00(w2 + x2 - z2 - y2)._m01(dxy + dzw)._m02(dxz - dyw)._m10(-dzw + dxy)._m11(y2 - z2 + w2 - x2)
+            ._m12(dyz + dxw)._m20(dyw + dxz)._m21(dyz - dxw)._m22(z2 - y2 - x2 + w2)._properties(18)
     }
 
-    public Matrix4f translationRotateScale(float tx, float ty, float tz, float qx, float qy, float qz, float qw, float sx, float sy, float sz) {
-        float dqx = qx + qx;
-        float dqy = qy + qy;
-        float dqz = qz + qz;
-        float q00 = dqx * qx;
-        float q11 = dqy * qy;
-        float q22 = dqz * qz;
-        float q01 = dqx * qy;
-        float q02 = dqx * qz;
-        float q03 = dqx * qw;
-        float q12 = dqy * qz;
-        float q13 = dqy * qw;
-        float q23 = dqz * qw;
-        boolean one = Math.absEqualsOne(sx) && Math.absEqualsOne(sy) && Math.absEqualsOne(sz);
-        return this._m00(sx - (q11 + q22) * sx)._m01((q01 + q23) * sx)._m02((q02 - q13) * sx)._m03(0f)._m10((q01 - q23) * sy)._m11(sy - (q22 + q00) * sy)._m12((q12 + q03) * sy)._m13(0f)._m20((q02 + q13) * sz)._m21((q12 - q03) * sz)._m22(sz - (q11 + q00) * sz)._m23(0f)._m30(tx)._m31(ty)._m32(tz)._m33(1f)._properties(2 | (one ? 16 : 0));
+    fun translationRotateScale(
+        tx: Float,
+        ty: Float,
+        tz: Float,
+        qx: Float,
+        qy: Float,
+        qz: Float,
+        qw: Float,
+        sx: Float,
+        sy: Float,
+        sz: Float
+    ): Matrix4f {
+        val dqx = qx + qx
+        val dqy = qy + qy
+        val dqz = qz + qz
+        val q00 = dqx * qx
+        val q11 = dqy * qy
+        val q22 = dqz * qz
+        val q01 = dqx * qy
+        val q02 = dqx * qz
+        val q03 = dqx * qw
+        val q12 = dqy * qz
+        val q13 = dqy * qw
+        val q23 = dqz * qw
+        val one = Math.absEqualsOne(sx) && Math.absEqualsOne(sy) && Math.absEqualsOne(sz)
+        return _m00(sx - (q11 + q22) * sx)._m01((q01 + q23) * sx)._m02((q02 - q13) * sx)._m03(0f)._m10((q01 - q23) * sy)
+            ._m11(sy - (q22 + q00) * sy)._m12((q12 + q03) * sy)._m13(0f)._m20((q02 + q13) * sz)._m21((q12 - q03) * sz)
+            ._m22(sz - (q11 + q00) * sz)._m23(0f)._m30(tx)._m31(ty)._m32(tz)._m33(1f)
+            ._properties(2 or if (one) 16 else 0)
     }
 
-    public Matrix4f translationRotateScale(Vector3f translation, Quaternionf quat, Vector3f scale) {
-        return this.translationRotateScale(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w, scale.x, scale.y, scale.z);
+    fun translationRotateScale(translation: Vector3f, quat: Quaternionf, scale: Vector3f): Matrix4f {
+        return this.translationRotateScale(
+            translation.x,
+            translation.y,
+            translation.z,
+            quat.x,
+            quat.y,
+            quat.z,
+            quat.w,
+            scale.x,
+            scale.y,
+            scale.z
+        )
     }
 
-    public Matrix4f translationRotateScale(float tx, float ty, float tz, float qx, float qy, float qz, float qw, float scale) {
-        return this.translationRotateScale(tx, ty, tz, qx, qy, qz, qw, scale, scale, scale);
+    fun translationRotateScale(
+        tx: Float,
+        ty: Float,
+        tz: Float,
+        qx: Float,
+        qy: Float,
+        qz: Float,
+        qw: Float,
+        scale: Float
+    ): Matrix4f {
+        return this.translationRotateScale(tx, ty, tz, qx, qy, qz, qw, scale, scale, scale)
     }
 
-    public Matrix4f translationRotateScale(Vector3f translation, Quaternionf quat, float scale) {
-        return this.translationRotateScale(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w, scale, scale, scale);
+    fun translationRotateScale(translation: Vector3f, quat: Quaternionf, scale: Float): Matrix4f {
+        return this.translationRotateScale(
+            translation.x,
+            translation.y,
+            translation.z,
+            quat.x,
+            quat.y,
+            quat.z,
+            quat.w,
+            scale,
+            scale,
+            scale
+        )
     }
 
-    public Matrix4f translationRotateScaleInvert(float tx, float ty, float tz, float qx, float qy, float qz, float qw, float sx, float sy, float sz) {
-        boolean one = Math.absEqualsOne(sx) && Math.absEqualsOne(sy) && Math.absEqualsOne(sz);
-        if (one) {
-            return this.translationRotateInvert(tx, ty, tz, qx, qy, qz, qw);
+    fun translationRotateScaleInvert(
+        tx: Float,
+        ty: Float,
+        tz: Float,
+        qx: Float,
+        qy: Float,
+        qz: Float,
+        qw: Float,
+        sx: Float,
+        sy: Float,
+        sz: Float
+    ): Matrix4f {
+        val one = Math.absEqualsOne(sx) && Math.absEqualsOne(sy) && Math.absEqualsOne(sz)
+        return if (one) {
+            this.translationRotateInvert(tx, ty, tz, qx, qy, qz, qw)
         } else {
-            float nqx = -qx;
-            float nqy = -qy;
-            float nqz = -qz;
-            float dqx = nqx + nqx;
-            float dqy = nqy + nqy;
-            float dqz = nqz + nqz;
-            float q00 = dqx * nqx;
-            float q11 = dqy * nqy;
-            float q22 = dqz * nqz;
-            float q01 = dqx * nqy;
-            float q02 = dqx * nqz;
-            float q03 = dqx * qw;
-            float q12 = dqy * nqz;
-            float q13 = dqy * qw;
-            float q23 = dqz * qw;
-            float isx = 1f / sx;
-            float isy = 1f / sy;
-            float isz = 1f / sz;
-            return this._m00(isx * (1f - q11 - q22))._m01(isy * (q01 + q23))._m02(isz * (q02 - q13))._m03(0f)._m10(isx * (q01 - q23))._m11(isy * (1f - q22 - q00))._m12(isz * (q12 + q03))._m13(0f)._m20(isx * (q02 + q13))._m21(isy * (q12 - q03))._m22(isz * (1f - q11 - q00))._m23(0f)._m30(-this.m00 * tx - this.m10 * ty - this.m20 * tz)._m31(-this.m01 * tx - this.m11 * ty - this.m21 * tz)._m32(-this.m02 * tx - this.m12 * ty - this.m22 * tz)._m33(1f)._properties(2);
+            val nqx = -qx
+            val nqy = -qy
+            val nqz = -qz
+            val dqx = nqx + nqx
+            val dqy = nqy + nqy
+            val dqz = nqz + nqz
+            val q00 = dqx * nqx
+            val q11 = dqy * nqy
+            val q22 = dqz * nqz
+            val q01 = dqx * nqy
+            val q02 = dqx * nqz
+            val q03 = dqx * qw
+            val q12 = dqy * nqz
+            val q13 = dqy * qw
+            val q23 = dqz * qw
+            val isx = 1f / sx
+            val isy = 1f / sy
+            val isz = 1f / sz
+            _m00(isx * (1f - q11 - q22))._m01(isy * (q01 + q23))._m02(isz * (q02 - q13))._m03(0f)
+                ._m10(isx * (q01 - q23))._m11(isy * (1f - q22 - q00))._m12(isz * (q12 + q03))._m13(0f)
+                ._m20(isx * (q02 + q13))._m21(isy * (q12 - q03))._m22(isz * (1f - q11 - q00))._m23(0f)
+                ._m30(-m00 * tx - m10 * ty - m20 * tz)._m31(-m01 * tx - m11 * ty - m21 * tz)
+                ._m32(-m02 * tx - m12 * ty - m22 * tz)._m33(1f)._properties(2)
         }
     }
 
-    public Matrix4f translationRotateScaleInvert(Vector3f translation, Quaternionf quat, Vector3f scale) {
-        return this.translationRotateScaleInvert(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w, scale.x, scale.y, scale.z);
+    fun translationRotateScaleInvert(translation: Vector3f, quat: Quaternionf, scale: Vector3f): Matrix4f {
+        return this.translationRotateScaleInvert(
+            translation.x,
+            translation.y,
+            translation.z,
+            quat.x,
+            quat.y,
+            quat.z,
+            quat.w,
+            scale.x,
+            scale.y,
+            scale.z
+        )
     }
 
-    public Matrix4f translationRotateScaleInvert(Vector3f translation, Quaternionf quat, float scale) {
-        return this.translationRotateScaleInvert(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w, scale, scale, scale);
+    fun translationRotateScaleInvert(translation: Vector3f, quat: Quaternionf, scale: Float): Matrix4f {
+        return this.translationRotateScaleInvert(
+            translation.x,
+            translation.y,
+            translation.z,
+            quat.x,
+            quat.y,
+            quat.z,
+            quat.w,
+            scale,
+            scale,
+            scale
+        )
     }
 
-    public Matrix4f translationRotateScaleMulAffine(float tx, float ty, float tz, float qx, float qy, float qz, float qw, float sx, float sy, float sz, Matrix4f m) {
-        float w2 = qw * qw;
-        float x2 = qx * qx;
-        float y2 = qy * qy;
-        float z2 = qz * qz;
-        float zw = qz * qw;
-        float xy = qx * qy;
-        float xz = qx * qz;
-        float yw = qy * qw;
-        float yz = qy * qz;
-        float xw = qx * qw;
-        float nm00 = w2 + x2 - z2 - y2;
-        float nm01 = xy + zw + zw + xy;
-        float nm02 = xz - yw + xz - yw;
-        float nm10 = -zw + xy - zw + xy;
-        float nm11 = y2 - z2 + w2 - x2;
-        float nm12 = yz + yz + xw + xw;
-        float nm20 = yw + xz + xz + yw;
-        float nm21 = yz + yz - xw - xw;
-        float nm22 = z2 - y2 - x2 + w2;
-        float m00 = nm00 * m.m00 + nm10 * m.m01 + nm20 * m.m02;
-        float m01 = nm01 * m.m00 + nm11 * m.m01 + nm21 * m.m02;
-        this._m02(nm02 * m.m00 + nm12 * m.m01 + nm22 * m.m02)._m00(m00)._m01(m01)._m03(0f);
-        float m10 = nm00 * m.m10 + nm10 * m.m11 + nm20 * m.m12;
-        float m11 = nm01 * m.m10 + nm11 * m.m11 + nm21 * m.m12;
-        this._m12(nm02 * m.m10 + nm12 * m.m11 + nm22 * m.m12)._m10(m10)._m11(m11)._m13(0f);
-        float m20 = nm00 * m.m20 + nm10 * m.m21 + nm20 * m.m22;
-        float m21 = nm01 * m.m20 + nm11 * m.m21 + nm21 * m.m22;
-        this._m22(nm02 * m.m20 + nm12 * m.m21 + nm22 * m.m22)._m20(m20)._m21(m21)._m23(0f);
-        float m30 = nm00 * m.m30 + nm10 * m.m31 + nm20 * m.m32 + tx;
-        float m31 = nm01 * m.m30 + nm11 * m.m31 + nm21 * m.m32 + ty;
-        this._m32(nm02 * m.m30 + nm12 * m.m31 + nm22 * m.m32 + tz)._m30(m30)._m31(m31)._m33(1f);
-        boolean one = Math.absEqualsOne(sx) && Math.absEqualsOne(sy) && Math.absEqualsOne(sz);
-        return this._properties(2 | (one && (m.properties & 16) != 0 ? 16 : 0));
+    fun translationRotateScaleMulAffine(
+        tx: Float,
+        ty: Float,
+        tz: Float,
+        qx: Float,
+        qy: Float,
+        qz: Float,
+        qw: Float,
+        sx: Float,
+        sy: Float,
+        sz: Float,
+        m: Matrix4f
+    ): Matrix4f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
+        val xy = qx * qy
+        val xz = qx * qz
+        val yw = qy * qw
+        val yz = qy * qz
+        val xw = qx * qw
+        val nm00 = w2 + x2 - z2 - y2
+        val nm01 = xy + zw + zw + xy
+        val nm02 = xz - yw + xz - yw
+        val nm10 = -zw + xy - zw + xy
+        val nm11 = y2 - z2 + w2 - x2
+        val nm12 = yz + yz + xw + xw
+        val nm20 = yw + xz + xz + yw
+        val nm21 = yz + yz - xw - xw
+        val nm22 = z2 - y2 - x2 + w2
+        val m00 = nm00 * m.m00 + nm10 * m.m01 + nm20 * m.m02
+        val m01 = nm01 * m.m00 + nm11 * m.m01 + nm21 * m.m02
+        _m02(nm02 * m.m00 + nm12 * m.m01 + nm22 * m.m02)._m00(m00)._m01(m01)._m03(0f)
+        val m10 = nm00 * m.m10 + nm10 * m.m11 + nm20 * m.m12
+        val m11 = nm01 * m.m10 + nm11 * m.m11 + nm21 * m.m12
+        _m12(nm02 * m.m10 + nm12 * m.m11 + nm22 * m.m12)._m10(m10)._m11(m11)._m13(0f)
+        val m20 = nm00 * m.m20 + nm10 * m.m21 + nm20 * m.m22
+        val m21 = nm01 * m.m20 + nm11 * m.m21 + nm21 * m.m22
+        _m22(nm02 * m.m20 + nm12 * m.m21 + nm22 * m.m22)._m20(m20)._m21(m21)._m23(0f)
+        val m30 = nm00 * m.m30 + nm10 * m.m31 + nm20 * m.m32 + tx
+        val m31 = nm01 * m.m30 + nm11 * m.m31 + nm21 * m.m32 + ty
+        _m32(nm02 * m.m30 + nm12 * m.m31 + nm22 * m.m32 + tz)._m30(m30)._m31(m31)._m33(1f)
+        val one = Math.absEqualsOne(sx) && Math.absEqualsOne(sy) && Math.absEqualsOne(sz)
+        return _properties(2 or if (one && m.properties and 16 != 0) 16 else 0)
     }
 
-    public Matrix4f translationRotateScaleMulAffine(Vector3f translation, Quaternionf quat, Vector3f scale, Matrix4f m) {
-        return this.translationRotateScaleMulAffine(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w, scale.x, scale.y, scale.z, m);
+    fun translationRotateScaleMulAffine(
+        translation: Vector3f,
+        quat: Quaternionf,
+        scale: Vector3f,
+        m: Matrix4f
+    ): Matrix4f {
+        return this.translationRotateScaleMulAffine(
+            translation.x,
+            translation.y,
+            translation.z,
+            quat.x,
+            quat.y,
+            quat.z,
+            quat.w,
+            scale.x,
+            scale.y,
+            scale.z,
+            m
+        )
     }
 
-    public Matrix4f translationRotate(float tx, float ty, float tz, float qx, float qy, float qz, float qw) {
-        float w2 = qw * qw;
-        float x2 = qx * qx;
-        float y2 = qy * qy;
-        float z2 = qz * qz;
-        float zw = qz * qw;
-        float xy = qx * qy;
-        float xz = qx * qz;
-        float yw = qy * qw;
-        float yz = qy * qz;
-        float xw = qx * qw;
-        return this._m00(w2 + x2 - z2 - y2)._m01(xy + zw + zw + xy)._m02(xz - yw + xz - yw)._m10(-zw + xy - zw + xy)._m11(y2 - z2 + w2 - x2)._m12(yz + yz + xw + xw)._m20(yw + xz + xz + yw)._m21(yz + yz - xw - xw)._m22(z2 - y2 - x2 + w2)._m30(tx)._m31(ty)._m32(tz)._m33(1f)._properties(18);
+    fun translationRotate(tx: Float, ty: Float, tz: Float, qx: Float, qy: Float, qz: Float, qw: Float): Matrix4f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
+        val xy = qx * qy
+        val xz = qx * qz
+        val yw = qy * qw
+        val yz = qy * qz
+        val xw = qx * qw
+        return _m00(w2 + x2 - z2 - y2)._m01(xy + zw + zw + xy)._m02(xz - yw + xz - yw)._m10(-zw + xy - zw + xy)
+            ._m11(y2 - z2 + w2 - x2)._m12(yz + yz + xw + xw)._m20(yw + xz + xz + yw)._m21(
+            yz + yz - xw - xw
+        )._m22(z2 - y2 - x2 + w2)._m30(tx)._m31(ty)._m32(tz)._m33(1f)._properties(18)
     }
 
-    public Matrix4f translationRotate(float tx, float ty, float tz, Quaternionf quat) {
-        return this.translationRotate(tx, ty, tz, quat.x, quat.y, quat.z, quat.w);
+    fun translationRotate(tx: Float, ty: Float, tz: Float, quat: Quaternionf): Matrix4f {
+        return this.translationRotate(tx, ty, tz, quat.x, quat.y, quat.z, quat.w)
     }
 
-    public Matrix4f translationRotate(Vector3f translation, Quaternionf quat) {
-        return this.translationRotate(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w);
+    fun translationRotate(translation: Vector3f, quat: Quaternionf): Matrix4f {
+        return this.translationRotate(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w)
     }
 
-    public Matrix4f translationRotateInvert(float tx, float ty, float tz, float qx, float qy, float qz, float qw) {
-        float nqx = -qx;
-        float nqy = -qy;
-        float nqz = -qz;
-        float dqx = nqx + nqx;
-        float dqy = nqy + nqy;
-        float dqz = nqz + nqz;
-        float q00 = dqx * nqx;
-        float q11 = dqy * nqy;
-        float q22 = dqz * nqz;
-        float q01 = dqx * nqy;
-        float q02 = dqx * nqz;
-        float q03 = dqx * qw;
-        float q12 = dqy * nqz;
-        float q13 = dqy * qw;
-        float q23 = dqz * qw;
-        return this._m00(1f - q11 - q22)._m01(q01 + q23)._m02(q02 - q13)._m03(0f)._m10(q01 - q23)._m11(1f - q22 - q00)._m12(q12 + q03)._m13(0f)._m20(q02 + q13)._m21(q12 - q03)._m22(1f - q11 - q00)._m23(0f)._m30(-this.m00 * tx - this.m10 * ty - this.m20 * tz)._m31(-this.m01 * tx - this.m11 * ty - this.m21 * tz)._m32(-this.m02 * tx - this.m12 * ty - this.m22 * tz)._m33(1f)._properties(18);
+    fun translationRotateInvert(tx: Float, ty: Float, tz: Float, qx: Float, qy: Float, qz: Float, qw: Float): Matrix4f {
+        val nqx = -qx
+        val nqy = -qy
+        val nqz = -qz
+        val dqx = nqx + nqx
+        val dqy = nqy + nqy
+        val dqz = nqz + nqz
+        val q00 = dqx * nqx
+        val q11 = dqy * nqy
+        val q22 = dqz * nqz
+        val q01 = dqx * nqy
+        val q02 = dqx * nqz
+        val q03 = dqx * qw
+        val q12 = dqy * nqz
+        val q13 = dqy * qw
+        val q23 = dqz * qw
+        return _m00(1f - q11 - q22)._m01(q01 + q23)._m02(q02 - q13)._m03(0f)._m10(q01 - q23)._m11(1f - q22 - q00)
+            ._m12(q12 + q03)._m13(0f)._m20(q02 + q13)._m21(q12 - q03)._m22(1f - q11 - q00)._m23(0f)._m30(
+            -m00 * tx - m10 * ty - m20 * tz
+        )._m31(-m01 * tx - m11 * ty - m21 * tz)._m32(-m02 * tx - m12 * ty - m22 * tz)._m33(1f)._properties(18)
     }
 
-    public Matrix4f translationRotateInvert(Vector3f translation, Quaternionf quat) {
-        return this.translationRotateInvert(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w);
+    fun translationRotateInvert(translation: Vector3f, quat: Quaternionf): Matrix4f {
+        return this.translationRotateInvert(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w)
     }
 
-    public Matrix4f set3x3(Matrix3f mat) {
-        return this.set3x3Matrix3f(mat)._properties(this.properties & -30);
+    fun set3x3(mat: Matrix3f): Matrix4f {
+        return set3x3Matrix3f(mat)._properties(properties and -30)
     }
 
-    private Matrix4f set3x3Matrix3f(Matrix3f mat) {
-        return this._m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)._m21(mat.m21)._m22(mat.m22);
+    private fun set3x3Matrix3f(mat: Matrix3f): Matrix4f {
+        return _m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)
+            ._m21(mat.m21)._m22(mat.m22)
     }
 
-    public Vector4f transform(Vector4f v) {
-        return v.mul(this);
+    fun transform(v: Vector4f): Vector4f {
+        return v.mul(this)
     }
 
-    public Vector4f transform(Vector4f v, Vector4f dest) {
-        return v.mul(this, dest);
+    fun transform(v: Vector4f, dest: Vector4f?): Vector4f {
+        return v.mul(this, dest!!)
     }
 
-    public Vector4f transform(float x, float y, float z, float w, Vector4f dest) {
-        return dest.set(x, y, z, w).mul(this);
+    fun transform(x: Float, y: Float, z: Float, w: Float, dest: Vector4f): Vector4f {
+        return dest.set(x, y, z, w).mul(this)
     }
 
-    public Vector4f transformTranspose(Vector4f v) {
-        return v.mulTranspose(this);
+    fun transformTranspose(v: Vector4f): Vector4f {
+        return v.mulTranspose(this)
     }
 
-    public Vector4f transformTranspose(Vector4f v, Vector4f dest) {
-        return v.mulTranspose(this, dest);
+    fun transformTranspose(v: Vector4f, dest: Vector4f?): Vector4f {
+        return v.mulTranspose(this, dest!!)
     }
 
-    public Vector4f transformTranspose(float x, float y, float z, float w, Vector4f dest) {
-        return dest.set(x, y, z, w).mulTranspose(this);
+    fun transformTranspose(x: Float, y: Float, z: Float, w: Float, dest: Vector4f): Vector4f {
+        return dest.set(x, y, z, w).mulTranspose(this)
     }
 
-    public Vector4f transformProject(Vector4f v) {
-        return v.mulProject(this);
+    fun transformProject(v: Vector4f): Vector4f {
+        return v.mulProject(this)
     }
 
-    public Vector4f transformProject(Vector4f v, Vector4f dest) {
-        return v.mulProject(this, dest);
+    fun transformProject(v: Vector4f, dest: Vector4f?): Vector4f {
+        return v.mulProject(this, dest!!)
     }
 
-    public Vector4f transformProject(float x, float y, float z, float w, Vector4f dest) {
-        return dest.set(x, y, z, w).mulProject(this);
+    fun transformProject(x: Float, y: Float, z: Float, w: Float, dest: Vector4f): Vector4f {
+        return dest.set(x, y, z, w).mulProject(this)
     }
 
-    public Vector3f transformProject(Vector4f v, Vector3f dest) {
-        return v.mulProject(this, dest);
+    fun transformProject(v: Vector4f, dest: Vector3f?): Vector3f {
+        return v.mulProject(this, dest!!)
     }
 
-    public Vector3f transformProject(float x, float y, float z, float w, Vector3f dest) {
-        return dest.set(x, y, z).mulProject(this, w, dest);
+    fun transformProject(x: Float, y: Float, z: Float, w: Float, dest: Vector3f): Vector3f {
+        return dest.set(x, y, z).mulProject(this, w, dest)
     }
 
-    public Vector3f transformProject(Vector3f v) {
-        return v.mulProject(this);
+    fun transformProject(v: Vector3f): Vector3f {
+        return v.mulProject(this)
     }
 
-    public Vector3f transformProject(Vector3f v, Vector3f dest) {
-        return v.mulProject(this, dest);
+    fun transformProject(v: Vector3f, dest: Vector3f?): Vector3f {
+        return v.mulProject(this, dest!!)
     }
 
-    public Vector3f transformProject(float x, float y, float z, Vector3f dest) {
-        return dest.set(x, y, z).mulProject(this);
+    fun transformProject(x: Float, y: Float, z: Float, dest: Vector3f): Vector3f {
+        return dest.set(x, y, z).mulProject(this)
     }
 
-    public Vector3f transformPosition(Vector3f v) {
-        return v.mulPosition(this);
+    fun transformPosition(v: Vector3f): Vector3f {
+        return v.mulPosition(this)
     }
 
-    public Vector3f transformPosition(Vector3f v, Vector3f dest) {
-        return this.transformPosition(v.x, v.y, v.z, dest);
+    fun transformPosition(v: Vector3f, dest: Vector3f): Vector3f {
+        return this.transformPosition(v.x, v.y, v.z, dest)
     }
 
-    public Vector3f transformPosition(float x, float y, float z, Vector3f dest) {
-        return dest.set(x, y, z).mulPosition(this);
+    fun transformPosition(x: Float, y: Float, z: Float, dest: Vector3f): Vector3f {
+        return dest.set(x, y, z).mulPosition(this)
     }
 
-    public Vector3f transformDirection(Vector3f v) {
-        return this.transformDirection(v.x, v.y, v.z, v);
+    fun transformDirection(v: Vector3f): Vector3f {
+        return this.transformDirection(v.x, v.y, v.z, v)
     }
 
-    public Vector3f transformDirection(Vector3f v, Vector3f dest) {
-        return this.transformDirection(v.x, v.y, v.z, dest);
+    fun transformDirection(v: Vector3f, dest: Vector3f): Vector3f {
+        return this.transformDirection(v.x, v.y, v.z, dest)
     }
 
-    public Vector3f transformDirection(float x, float y, float z, Vector3f dest) {
-        return dest.set(x, y, z).mulDirection(this);
+    fun transformDirection(x: Float, y: Float, z: Float, dest: Vector3f): Vector3f {
+        return dest.set(x, y, z).mulDirection(this)
     }
 
-    public Vector4f transformAffine(Vector4f v) {
-        return v.mulAffine(this, v);
+    fun transformAffine(v: Vector4f): Vector4f {
+        return v.mulAffine(this, v)
     }
 
-    public Vector4f transformAffine(Vector4f v, Vector4f dest) {
-        return this.transformAffine(v.x, v.y, v.z, v.w, dest);
+    fun transformAffine(v: Vector4f, dest: Vector4f): Vector4f {
+        return this.transformAffine(v.x, v.y, v.z, v.w, dest)
     }
 
-    public Vector4f transformAffine(float x, float y, float z, float w, Vector4f dest) {
-        return dest.set(x, y, z, w).mulAffine(this, dest);
+    fun transformAffine(x: Float, y: Float, z: Float, w: Float, dest: Vector4f): Vector4f {
+        return dest.set(x, y, z, w).mulAffine(this, dest)
     }
 
-    public Matrix4f scale(Vector3f xyz, Matrix4f dest) {
-        return this.scale(xyz.x, xyz.y, xyz.z, dest);
+    fun scale(xyz: Vector3f, dest: Matrix4f): Matrix4f {
+        return this.scale(xyz.x, xyz.y, xyz.z, dest)
     }
 
-    public Matrix4f scale(Vector3f xyz) {
-        return this.scale(xyz.x, xyz.y, xyz.z, this);
+    fun scale(xyz: Vector3f): Matrix4f {
+        return this.scale(xyz.x, xyz.y, xyz.z, this)
     }
 
-    public Matrix4f scale(float xyz, Matrix4f dest) {
-        return this.scale(xyz, xyz, xyz, dest);
+    fun scale(xyz: Float, dest: Matrix4f): Matrix4f {
+        return this.scale(xyz, xyz, xyz, dest)
     }
 
-    public Matrix4f scale(float xyz) {
-        return this.scale(xyz, xyz, xyz);
+    fun scale(xyz: Float): Matrix4f {
+        return this.scale(xyz, xyz, xyz)
     }
 
-    public Matrix4f scaleXY(float x, float y, Matrix4f dest) {
-        return this.scale(x, y, 1f, dest);
+    fun scaleXY(x: Float, y: Float, dest: Matrix4f): Matrix4f {
+        return this.scale(x, y, 1f, dest)
     }
 
-    public Matrix4f scaleXY(float x, float y) {
-        return this.scale(x, y, 1f);
+    fun scaleXY(x: Float, y: Float): Matrix4f {
+        return this.scale(x, y, 1f)
     }
 
-    public Matrix4f scale(float x, float y, float z, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.scaling(x, y, z) : this.scaleGeneric(x, y, z, dest);
+    @JvmOverloads
+    fun scale(x: Float, y: Float, z: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) dest.scaling(x, y, z) else scaleGeneric(x, y, z, dest)
     }
 
-    private Matrix4f scaleGeneric(float x, float y, float z, Matrix4f dest) {
-        boolean one = Math.absEqualsOne(x) && Math.absEqualsOne(y) && Math.absEqualsOne(z);
-        return dest._m00(this.m00 * x)._m01(this.m01 * x)._m02(this.m02 * x)._m03(this.m03 * x)._m10(this.m10 * y)._m11(this.m11 * y)._m12(this.m12 * y)._m13(this.m13 * y)._m20(this.m20 * z)._m21(this.m21 * z)._m22(this.m22 * z)._m23(this.m23 * z)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & ~(13 | (one ? 0 : 16)));
+    private fun scaleGeneric(x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        val one = Math.absEqualsOne(x) && Math.absEqualsOne(y) && Math.absEqualsOne(z)
+        return dest._m00(m00 * x)._m01(m01 * x)._m02(m02 * x)._m03(m03 * x)._m10(m10 * y)._m11(m11 * y)._m12(m12 * y)
+            ._m13(
+                m13 * y
+            )._m20(m20 * z)._m21(m21 * z)._m22(m22 * z)._m23(m23 * z)._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(
+                properties and (13 or if (one) 0 else 16).inv()
+            )
     }
 
-    public Matrix4f scale(float x, float y, float z) {
-        return this.scale(x, y, z, this);
+    @JvmOverloads
+    fun scaleAround(sx: Float, sy: Float, sz: Float, ox: Float, oy: Float, oz: Float, dest: Matrix4f = this): Matrix4f {
+        val nm30 = m00 * ox + m10 * oy + m20 * oz + m30
+        val nm31 = m01 * ox + m11 * oy + m21 * oz + m31
+        val nm32 = m02 * ox + m12 * oy + m22 * oz + m32
+        val nm33 = m03 * ox + m13 * oy + m23 * oz + m33
+        val one = Math.absEqualsOne(sx) && Math.absEqualsOne(sy) && Math.absEqualsOne(sz)
+        return dest._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)._m10(m10 * sy)._m11(m11 * sy)
+            ._m12(m12 * sy)._m13(
+            m13 * sy
+        )._m20(m20 * sz)._m21(m21 * sz)._m22(m22 * sz)._m23(m23 * sz)._m30(
+            -dest.m00 * ox - dest.m10 * oy - dest.m20 * oz + nm30
+        )._m31(-dest.m01 * ox - dest.m11 * oy - dest.m21 * oz + nm31)._m32(
+            -dest.m02 * ox - dest.m12 * oy - dest.m22 * oz + nm32
+        )._m33(-dest.m03 * ox - dest.m13 * oy - dest.m23 * oz + nm33)._properties(
+            properties and (13 or if (one) 0 else 16).inv()
+        )
     }
 
-    public Matrix4f scaleAround(float sx, float sy, float sz, float ox, float oy, float oz, Matrix4f dest) {
-        float nm30 = this.m00 * ox + this.m10 * oy + this.m20 * oz + this.m30;
-        float nm31 = this.m01 * ox + this.m11 * oy + this.m21 * oz + this.m31;
-        float nm32 = this.m02 * ox + this.m12 * oy + this.m22 * oz + this.m32;
-        float nm33 = this.m03 * ox + this.m13 * oy + this.m23 * oz + this.m33;
-        boolean one = Math.absEqualsOne(sx) && Math.absEqualsOne(sy) && Math.absEqualsOne(sz);
-        return dest._m00(this.m00 * sx)._m01(this.m01 * sx)._m02(this.m02 * sx)._m03(this.m03 * sx)._m10(this.m10 * sy)._m11(this.m11 * sy)._m12(this.m12 * sy)._m13(this.m13 * sy)._m20(this.m20 * sz)._m21(this.m21 * sz)._m22(this.m22 * sz)._m23(this.m23 * sz)._m30(-dest.m00 * ox - dest.m10 * oy - dest.m20 * oz + nm30)._m31(-dest.m01 * ox - dest.m11 * oy - dest.m21 * oz + nm31)._m32(-dest.m02 * ox - dest.m12 * oy - dest.m22 * oz + nm32)._m33(-dest.m03 * ox - dest.m13 * oy - dest.m23 * oz + nm33)._properties(this.properties & ~(13 | (one ? 0 : 16)));
+    fun scaleAround(factor: Float, ox: Float, oy: Float, oz: Float): Matrix4f {
+        return this.scaleAround(factor, factor, factor, ox, oy, oz, this)
     }
 
-    public Matrix4f scaleAround(float sx, float sy, float sz, float ox, float oy, float oz) {
-        return this.scaleAround(sx, sy, sz, ox, oy, oz, this);
+    fun scaleAround(factor: Float, ox: Float, oy: Float, oz: Float, dest: Matrix4f): Matrix4f {
+        return this.scaleAround(factor, factor, factor, ox, oy, oz, dest)
     }
 
-    public Matrix4f scaleAround(float factor, float ox, float oy, float oz) {
-        return this.scaleAround(factor, factor, factor, ox, oy, oz, this);
+    @JvmOverloads
+    fun scaleLocal(x: Float, y: Float, z: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) dest.scaling(x, y, z) else scaleLocalGeneric(x, y, z, dest)
     }
 
-    public Matrix4f scaleAround(float factor, float ox, float oy, float oz, Matrix4f dest) {
-        return this.scaleAround(factor, factor, factor, ox, oy, oz, dest);
+    private fun scaleLocalGeneric(x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        val nm00 = x * m00
+        val nm01 = y * m01
+        val nm02 = z * m02
+        val nm10 = x * m10
+        val nm11 = y * m11
+        val nm12 = z * m12
+        val nm20 = x * m20
+        val nm21 = y * m21
+        val nm22 = z * m22
+        val nm30 = x * m30
+        val nm31 = y * m31
+        val nm32 = z * m32
+        val one = Math.absEqualsOne(x) && Math.absEqualsOne(y) && Math.absEqualsOne(z)
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(
+            m23
+        )._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)._properties(properties and (13 or if (one) 0 else 16).inv())
     }
 
-    public Matrix4f scaleLocal(float x, float y, float z, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.scaling(x, y, z) : this.scaleLocalGeneric(x, y, z, dest);
+    @JvmOverloads
+    fun scaleLocal(xyz: Float, dest: Matrix4f = this): Matrix4f {
+        return this.scaleLocal(xyz, xyz, xyz, dest)
     }
 
-    private Matrix4f scaleLocalGeneric(float x, float y, float z, Matrix4f dest) {
-        float nm00 = x * this.m00;
-        float nm01 = y * this.m01;
-        float nm02 = z * this.m02;
-        float nm10 = x * this.m10;
-        float nm11 = y * this.m11;
-        float nm12 = z * this.m12;
-        float nm20 = x * this.m20;
-        float nm21 = y * this.m21;
-        float nm22 = z * this.m22;
-        float nm30 = x * this.m30;
-        float nm31 = y * this.m31;
-        float nm32 = z * this.m32;
-        boolean one = Math.absEqualsOne(x) && Math.absEqualsOne(y) && Math.absEqualsOne(z);
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(this.m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(this.m13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(this.m23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(this.m33)._properties(this.properties & ~(13 | (one ? 0 : 16)));
+    @JvmOverloads
+    fun scaleAroundLocal(
+        sx: Float,
+        sy: Float,
+        sz: Float,
+        ox: Float,
+        oy: Float,
+        oz: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        val one = Math.absEqualsOne(sx) && Math.absEqualsOne(sy) && Math.absEqualsOne(sz)
+        return dest._m00(sx * (m00 - ox * m03) + ox * m03)._m01(sy * (m01 - oy * m03) + oy * m03)
+            ._m02(sz * (m02 - oz * m03) + oz * m03)._m03(
+            m03
+        )._m10(sx * (m10 - ox * m13) + ox * m13)._m11(sy * (m11 - oy * m13) + oy * m13)
+            ._m12(sz * (m12 - oz * m13) + oz * m13)._m13(
+            m13
+        )._m20(sx * (m20 - ox * m23) + ox * m23)._m21(sy * (m21 - oy * m23) + oy * m23)
+            ._m22(sz * (m22 - oz * m23) + oz * m23)._m23(
+            m23
+        )._m30(sx * (m30 - ox * m33) + ox * m33)._m31(sy * (m31 - oy * m33) + oy * m33)
+            ._m32(sz * (m32 - oz * m33) + oz * m33)._m33(
+            m33
+        )._properties(properties and (13 or if (one) 0 else 16).inv())
     }
 
-    public Matrix4f scaleLocal(float xyz, Matrix4f dest) {
-        return this.scaleLocal(xyz, xyz, xyz, dest);
+    fun scaleAroundLocal(factor: Float, ox: Float, oy: Float, oz: Float): Matrix4f {
+        return this.scaleAroundLocal(factor, factor, factor, ox, oy, oz, this)
     }
 
-    public Matrix4f scaleLocal(float xyz) {
-        return this.scaleLocal(xyz, this);
+    fun scaleAroundLocal(factor: Float, ox: Float, oy: Float, oz: Float, dest: Matrix4f): Matrix4f {
+        return this.scaleAroundLocal(factor, factor, factor, ox, oy, oz, dest)
     }
 
-    public Matrix4f scaleLocal(float x, float y, float z) {
-        return this.scaleLocal(x, y, z, this);
-    }
-
-    public Matrix4f scaleAroundLocal(float sx, float sy, float sz, float ox, float oy, float oz, Matrix4f dest) {
-        boolean one = Math.absEqualsOne(sx) && Math.absEqualsOne(sy) && Math.absEqualsOne(sz);
-        return dest._m00(sx * (this.m00 - ox * this.m03) + ox * this.m03)._m01(sy * (this.m01 - oy * this.m03) + oy * this.m03)._m02(sz * (this.m02 - oz * this.m03) + oz * this.m03)._m03(this.m03)._m10(sx * (this.m10 - ox * this.m13) + ox * this.m13)._m11(sy * (this.m11 - oy * this.m13) + oy * this.m13)._m12(sz * (this.m12 - oz * this.m13) + oz * this.m13)._m13(this.m13)._m20(sx * (this.m20 - ox * this.m23) + ox * this.m23)._m21(sy * (this.m21 - oy * this.m23) + oy * this.m23)._m22(sz * (this.m22 - oz * this.m23) + oz * this.m23)._m23(this.m23)._m30(sx * (this.m30 - ox * this.m33) + ox * this.m33)._m31(sy * (this.m31 - oy * this.m33) + oy * this.m33)._m32(sz * (this.m32 - oz * this.m33) + oz * this.m33)._m33(this.m33)._properties(this.properties & ~(13 | (one ? 0 : 16)));
-    }
-
-    public Matrix4f scaleAroundLocal(float sx, float sy, float sz, float ox, float oy, float oz) {
-        return this.scaleAroundLocal(sx, sy, sz, ox, oy, oz, this);
-    }
-
-    public Matrix4f scaleAroundLocal(float factor, float ox, float oy, float oz) {
-        return this.scaleAroundLocal(factor, factor, factor, ox, oy, oz, this);
-    }
-
-    public Matrix4f scaleAroundLocal(float factor, float ox, float oy, float oz, Matrix4f dest) {
-        return this.scaleAroundLocal(factor, factor, factor, ox, oy, oz, dest);
-    }
-
-    public Matrix4f rotateX(float ang, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.rotationX(ang);
-        } else if ((this.properties & 8) != 0) {
-            float x = this.m30;
-            float y = this.m31;
-            float z = this.m32;
-            return dest.rotationX(ang).setTranslation(x, y, z);
+    @JvmOverloads
+    fun rotateX(ang: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.rotationX(ang)
+        } else if (properties and 8 != 0) {
+            val x = m30
+            val y = m31
+            val z = m32
+            dest.rotationX(ang).setTranslation(x, y, z)
         } else {
-            return this.rotateXInternal(ang, dest);
+            rotateXInternal(ang, dest)
         }
     }
 
-    private Matrix4f rotateXInternal(float ang, Matrix4f dest) {
-        float sin = Math.sin(ang);
-        float cos = Math.cosFromSin(sin, ang);
-        float lm10 = this.m10;
-        float lm11 = this.m11;
-        float lm12 = this.m12;
-        float lm13 = this.m13;
-        float lm20 = this.m20;
-        float lm21 = this.m21;
-        float lm22 = this.m22;
-        float lm23 = this.m23;
-        return dest._m20(Math.fma(lm10, -sin, lm20 * cos))._m21(Math.fma(lm11, -sin, lm21 * cos))._m22(Math.fma(lm12, -sin, lm22 * cos))._m23(Math.fma(lm13, -sin, lm23 * cos))._m10(Math.fma(lm10, cos, lm20 * sin))._m11(Math.fma(lm11, cos, lm21 * sin))._m12(Math.fma(lm12, cos, lm22 * sin))._m13(Math.fma(lm13, cos, lm23 * sin))._m00(this.m00)._m01(this.m01)._m02(this.m02)._m03(this.m03)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    private fun rotateXInternal(ang: Float, dest: Matrix4f): Matrix4f {
+        val sin = Math.sin(ang)
+        val cos = Math.cosFromSin(sin, ang)
+        val lm10 = m10
+        val lm11 = m11
+        val lm12 = m12
+        val lm13 = m13
+        val lm20 = m20
+        val lm21 = m21
+        val lm22 = m22
+        val lm23 = m23
+        return dest._m20(Math.fma(lm10, -sin, lm20 * cos))._m21(Math.fma(lm11, -sin, lm21 * cos))
+            ._m22(Math.fma(lm12, -sin, lm22 * cos))._m23(
+            Math.fma(lm13, -sin, lm23 * cos)
+        )._m10(Math.fma(lm10, cos, lm20 * sin))._m11(Math.fma(lm11, cos, lm21 * sin))._m12(
+            Math.fma(lm12, cos, lm22 * sin)
+        )._m13(Math.fma(lm13, cos, lm23 * sin))._m00(
+            m00
+        )._m01(m01)._m02(m02)._m03(m03)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateX(float ang) {
-        return this.rotateX(ang, this);
-    }
-
-    public Matrix4f rotateY(float ang, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.rotationY(ang);
-        } else if ((this.properties & 8) != 0) {
-            float x = this.m30;
-            float y = this.m31;
-            float z = this.m32;
-            return dest.rotationY(ang).setTranslation(x, y, z);
+    @JvmOverloads
+    fun rotateY(ang: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.rotationY(ang)
+        } else if (properties and 8 != 0) {
+            val x = m30
+            val y = m31
+            val z = m32
+            dest.rotationY(ang).setTranslation(x, y, z)
         } else {
-            return this.rotateYInternal(ang, dest);
+            rotateYInternal(ang, dest)
         }
     }
 
-    private Matrix4f rotateYInternal(float ang, Matrix4f dest) {
-        float sin = Math.sin(ang);
-        float cos = Math.cosFromSin(sin, ang);
-        float nm00 = Math.fma(this.m00, cos, this.m20 * -sin);
-        float nm01 = Math.fma(this.m01, cos, this.m21 * -sin);
-        float nm02 = Math.fma(this.m02, cos, this.m22 * -sin);
-        float nm03 = Math.fma(this.m03, cos, this.m23 * -sin);
-        return dest._m20(Math.fma(this.m00, sin, this.m20 * cos))._m21(Math.fma(this.m01, sin, this.m21 * cos))._m22(Math.fma(this.m02, sin, this.m22 * cos))._m23(Math.fma(this.m03, sin, this.m23 * cos))._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m13(this.m13)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    private fun rotateYInternal(ang: Float, dest: Matrix4f): Matrix4f {
+        val sin = Math.sin(ang)
+        val cos = Math.cosFromSin(sin, ang)
+        val nm00 = Math.fma(m00, cos, m20 * -sin)
+        val nm01 = Math.fma(m01, cos, m21 * -sin)
+        val nm02 = Math.fma(m02, cos, m22 * -sin)
+        val nm03 = Math.fma(m03, cos, m23 * -sin)
+        return dest._m20(Math.fma(m00, sin, m20 * cos))._m21(Math.fma(m01, sin, m21 * cos))._m22(
+            Math.fma(
+                m02, sin, m22 * cos
+            )
+        )._m23(Math.fma(m03, sin, m23 * cos))._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(
+            m10
+        )._m11(m11)._m12(m12)._m13(m13)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateY(float ang) {
-        return this.rotateY(ang, this);
-    }
-
-    public Matrix4f rotateZ(float ang, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.rotationZ(ang);
-        } else if ((this.properties & 8) != 0) {
-            float x = this.m30;
-            float y = this.m31;
-            float z = this.m32;
-            return dest.rotationZ(ang).setTranslation(x, y, z);
+    @JvmOverloads
+    fun rotateZ(ang: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.rotationZ(ang)
+        } else if (properties and 8 != 0) {
+            val x = m30
+            val y = m31
+            val z = m32
+            dest.rotationZ(ang).setTranslation(x, y, z)
         } else {
-            return this.rotateZInternal(ang, dest);
+            rotateZInternal(ang, dest)
         }
     }
 
-    private Matrix4f rotateZInternal(float ang, Matrix4f dest) {
-        float sin = Math.sin(ang);
-        float cos = Math.cosFromSin(sin, ang);
-        return this.rotateTowardsXY(sin, cos, dest);
+    private fun rotateZInternal(ang: Float, dest: Matrix4f): Matrix4f {
+        val sin = Math.sin(ang)
+        val cos = Math.cosFromSin(sin, ang)
+        return rotateTowardsXY(sin, cos, dest)
     }
 
-    public Matrix4f rotateZ(float ang) {
-        return this.rotateZ(ang, this);
-    }
-
-    public Matrix4f rotateTowardsXY(float dirX, float dirY) {
-        return this.rotateTowardsXY(dirX, dirY, this);
-    }
-
-    public Matrix4f rotateTowardsXY(float dirX, float dirY, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.rotationTowardsXY(dirX, dirY);
+    @JvmOverloads
+    fun rotateTowardsXY(dirX: Float, dirY: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.rotationTowardsXY(dirX, dirY)
         } else {
-            float nm00 = Math.fma(this.m00, dirY, this.m10 * dirX);
-            float nm01 = Math.fma(this.m01, dirY, this.m11 * dirX);
-            float nm02 = Math.fma(this.m02, dirY, this.m12 * dirX);
-            float nm03 = Math.fma(this.m03, dirY, this.m13 * dirX);
-            return dest._m10(Math.fma(this.m00, -dirX, this.m10 * dirY))._m11(Math.fma(this.m01, -dirX, this.m11 * dirY))._m12(Math.fma(this.m02, -dirX, this.m12 * dirY))._m13(Math.fma(this.m03, -dirX, this.m13 * dirY))._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+            val nm00 = Math.fma(m00, dirY, m10 * dirX)
+            val nm01 = Math.fma(m01, dirY, m11 * dirX)
+            val nm02 = Math.fma(m02, dirY, m12 * dirX)
+            val nm03 = Math.fma(m03, dirY, m13 * dirX)
+            dest._m10(Math.fma(m00, -dirX, m10 * dirY))
+                ._m11(Math.fma(m01, -dirX, m11 * dirY))
+                ._m12(Math.fma(m02, -dirX, m12 * dirY))
+                ._m13(Math.fma(m03, -dirX, m13 * dirY))._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+                ._m20(m20)._m21(m21)._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)
+                ._m33(m33)._properties(properties and -14)
         }
     }
 
-    public Matrix4f rotateXYZ(Vector3f angles) {
-        return this.rotateXYZ(angles.x, angles.y, angles.z);
+    fun rotateXYZ(angles: Vector3f): Matrix4f {
+        return this.rotateXYZ(angles.x, angles.y, angles.z)
     }
 
-    public Matrix4f rotateXYZ(float angleX, float angleY, float angleZ) {
-        return this.rotateXYZ(angleX, angleY, angleZ, this);
-    }
-
-    public Matrix4f rotateXYZ(float angleX, float angleY, float angleZ, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.rotationXYZ(angleX, angleY, angleZ);
-        } else if ((this.properties & 8) != 0) {
-            float tx = this.m30;
-            float ty = this.m31;
-            float tz = this.m32;
-            return dest.rotationXYZ(angleX, angleY, angleZ).setTranslation(tx, ty, tz);
+    @JvmOverloads
+    fun rotateXYZ(angleX: Float, angleY: Float, angleZ: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.rotationXYZ(angleX, angleY, angleZ)
+        } else if (properties and 8 != 0) {
+            val tx = m30
+            val ty = m31
+            val tz = m32
+            dest.rotationXYZ(angleX, angleY, angleZ).setTranslation(tx, ty, tz)
         } else {
-            return (this.properties & 2) != 0 ? dest.rotateAffineXYZ(angleX, angleY, angleZ) : this.rotateXYZInternal(angleX, angleY, angleZ, dest);
+            if (properties and 2 != 0) dest.rotateAffineXYZ(angleX, angleY, angleZ) else rotateXYZInternal(
+                angleX,
+                angleY,
+                angleZ,
+                dest
+            )
         }
     }
 
-    private Matrix4f rotateXYZInternal(float angleX, float angleY, float angleZ, Matrix4f dest) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float m_sinX = -sinX;
-        float m_sinY = -sinY;
-        float m_sinZ = -sinZ;
-        float nm10 = Math.fma(this.m10, cosX, this.m20 * sinX);
-        float nm11 = Math.fma(this.m11, cosX, this.m21 * sinX);
-        float nm12 = Math.fma(this.m12, cosX, this.m22 * sinX);
-        float nm13 = Math.fma(this.m13, cosX, this.m23 * sinX);
-        float nm20 = Math.fma(this.m10, m_sinX, this.m20 * cosX);
-        float nm21 = Math.fma(this.m11, m_sinX, this.m21 * cosX);
-        float nm22 = Math.fma(this.m12, m_sinX, this.m22 * cosX);
-        float nm23 = Math.fma(this.m13, m_sinX, this.m23 * cosX);
-        float nm00 = Math.fma(this.m00, cosY, nm20 * m_sinY);
-        float nm01 = Math.fma(this.m01, cosY, nm21 * m_sinY);
-        float nm02 = Math.fma(this.m02, cosY, nm22 * m_sinY);
-        float nm03 = Math.fma(this.m03, cosY, nm23 * m_sinY);
-        return dest._m20(Math.fma(this.m00, sinY, nm20 * cosY))._m21(Math.fma(this.m01, sinY, nm21 * cosY))._m22(Math.fma(this.m02, sinY, nm22 * cosY))._m23(Math.fma(this.m03, sinY, nm23 * cosY))._m00(Math.fma(nm00, cosZ, nm10 * sinZ))._m01(Math.fma(nm01, cosZ, nm11 * sinZ))._m02(Math.fma(nm02, cosZ, nm12 * sinZ))._m03(Math.fma(nm03, cosZ, nm13 * sinZ))._m10(Math.fma(nm00, m_sinZ, nm10 * cosZ))._m11(Math.fma(nm01, m_sinZ, nm11 * cosZ))._m12(Math.fma(nm02, m_sinZ, nm12 * cosZ))._m13(Math.fma(nm03, m_sinZ, nm13 * cosZ))._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    private fun rotateXYZInternal(angleX: Float, angleY: Float, angleZ: Float, dest: Matrix4f): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val m_sinX = -sinX
+        val m_sinY = -sinY
+        val m_sinZ = -sinZ
+        val nm10 = Math.fma(m10, cosX, m20 * sinX)
+        val nm11 = Math.fma(m11, cosX, m21 * sinX)
+        val nm12 = Math.fma(m12, cosX, m22 * sinX)
+        val nm13 = Math.fma(m13, cosX, m23 * sinX)
+        val nm20 = Math.fma(m10, m_sinX, m20 * cosX)
+        val nm21 = Math.fma(m11, m_sinX, m21 * cosX)
+        val nm22 = Math.fma(m12, m_sinX, m22 * cosX)
+        val nm23 = Math.fma(m13, m_sinX, m23 * cosX)
+        val nm00 = Math.fma(m00, cosY, nm20 * m_sinY)
+        val nm01 = Math.fma(m01, cosY, nm21 * m_sinY)
+        val nm02 = Math.fma(m02, cosY, nm22 * m_sinY)
+        val nm03 = Math.fma(m03, cosY, nm23 * m_sinY)
+        return dest._m20(Math.fma(m00, sinY, nm20 * cosY))._m21(Math.fma(m01, sinY, nm21 * cosY))._m22(
+            Math.fma(
+                m02, sinY, nm22 * cosY
+            )
+        )._m23(Math.fma(m03, sinY, nm23 * cosY))._m00(Math.fma(nm00, cosZ, nm10 * sinZ))._m01(
+            Math.fma(nm01, cosZ, nm11 * sinZ)
+        )._m02(Math.fma(nm02, cosZ, nm12 * sinZ))._m03(Math.fma(nm03, cosZ, nm13 * sinZ))._m10(
+            Math.fma(nm00, m_sinZ, nm10 * cosZ)
+        )._m11(Math.fma(nm01, m_sinZ, nm11 * cosZ))._m12(Math.fma(nm02, m_sinZ, nm12 * cosZ))._m13(
+            Math.fma(nm03, m_sinZ, nm13 * cosZ)
+        )._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateAffineXYZ(float angleX, float angleY, float angleZ) {
-        return this.rotateAffineXYZ(angleX, angleY, angleZ, this);
-    }
-
-    public Matrix4f rotateAffineXYZ(float angleX, float angleY, float angleZ, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.rotationXYZ(angleX, angleY, angleZ);
-        } else if ((this.properties & 8) != 0) {
-            float tx = this.m30;
-            float ty = this.m31;
-            float tz = this.m32;
-            return dest.rotationXYZ(angleX, angleY, angleZ).setTranslation(tx, ty, tz);
+    @JvmOverloads
+    fun rotateAffineXYZ(angleX: Float, angleY: Float, angleZ: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.rotationXYZ(angleX, angleY, angleZ)
+        } else if (properties and 8 != 0) {
+            val tx = m30
+            val ty = m31
+            val tz = m32
+            dest.rotationXYZ(angleX, angleY, angleZ).setTranslation(tx, ty, tz)
         } else {
-            return this.rotateAffineXYZInternal(angleX, angleY, angleZ, dest);
+            rotateAffineXYZInternal(angleX, angleY, angleZ, dest)
         }
     }
 
-    private Matrix4f rotateAffineXYZInternal(float angleX, float angleY, float angleZ, Matrix4f dest) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float m_sinX = -sinX;
-        float m_sinY = -sinY;
-        float m_sinZ = -sinZ;
-        float nm10 = Math.fma(this.m10, cosX, this.m20 * sinX);
-        float nm11 = Math.fma(this.m11, cosX, this.m21 * sinX);
-        float nm12 = Math.fma(this.m12, cosX, this.m22 * sinX);
-        float nm20 = Math.fma(this.m10, m_sinX, this.m20 * cosX);
-        float nm21 = Math.fma(this.m11, m_sinX, this.m21 * cosX);
-        float nm22 = Math.fma(this.m12, m_sinX, this.m22 * cosX);
-        float nm00 = Math.fma(this.m00, cosY, nm20 * m_sinY);
-        float nm01 = Math.fma(this.m01, cosY, nm21 * m_sinY);
-        float nm02 = Math.fma(this.m02, cosY, nm22 * m_sinY);
-        return dest._m20(Math.fma(this.m00, sinY, nm20 * cosY))._m21(Math.fma(this.m01, sinY, nm21 * cosY))._m22(Math.fma(this.m02, sinY, nm22 * cosY))._m23(0f)._m00(Math.fma(nm00, cosZ, nm10 * sinZ))._m01(Math.fma(nm01, cosZ, nm11 * sinZ))._m02(Math.fma(nm02, cosZ, nm12 * sinZ))._m03(0f)._m10(Math.fma(nm00, m_sinZ, nm10 * cosZ))._m11(Math.fma(nm01, m_sinZ, nm11 * cosZ))._m12(Math.fma(nm02, m_sinZ, nm12 * cosZ))._m13(0f)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    private fun rotateAffineXYZInternal(angleX: Float, angleY: Float, angleZ: Float, dest: Matrix4f): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val m_sinX = -sinX
+        val m_sinY = -sinY
+        val m_sinZ = -sinZ
+        val nm10 = Math.fma(m10, cosX, m20 * sinX)
+        val nm11 = Math.fma(m11, cosX, m21 * sinX)
+        val nm12 = Math.fma(m12, cosX, m22 * sinX)
+        val nm20 = Math.fma(m10, m_sinX, m20 * cosX)
+        val nm21 = Math.fma(m11, m_sinX, m21 * cosX)
+        val nm22 = Math.fma(m12, m_sinX, m22 * cosX)
+        val nm00 = Math.fma(m00, cosY, nm20 * m_sinY)
+        val nm01 = Math.fma(m01, cosY, nm21 * m_sinY)
+        val nm02 = Math.fma(m02, cosY, nm22 * m_sinY)
+        return dest._m20(Math.fma(m00, sinY, nm20 * cosY))._m21(Math.fma(m01, sinY, nm21 * cosY))._m22(
+            Math.fma(
+                m02, sinY, nm22 * cosY
+            )
+        )._m23(0f)._m00(Math.fma(nm00, cosZ, nm10 * sinZ))._m01(Math.fma(nm01, cosZ, nm11 * sinZ))._m02(
+            Math.fma(nm02, cosZ, nm12 * sinZ)
+        )._m03(0f)._m10(Math.fma(nm00, m_sinZ, nm10 * cosZ))._m11(Math.fma(nm01, m_sinZ, nm11 * cosZ))._m12(
+            Math.fma(nm02, m_sinZ, nm12 * cosZ)
+        )._m13(0f)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateZYX(Vector3f angles) {
-        return this.rotateZYX(angles.z, angles.y, angles.x);
+    fun rotateZYX(angles: Vector3f): Matrix4f {
+        return this.rotateZYX(angles.z, angles.y, angles.x)
     }
 
-    public Matrix4f rotateZYX(float angleZ, float angleY, float angleX) {
-        return this.rotateZYX(angleZ, angleY, angleX, this);
-    }
-
-    public Matrix4f rotateZYX(float angleZ, float angleY, float angleX, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.rotationZYX(angleZ, angleY, angleX);
-        } else if ((this.properties & 8) != 0) {
-            float tx = this.m30;
-            float ty = this.m31;
-            float tz = this.m32;
-            return dest.rotationZYX(angleZ, angleY, angleX).setTranslation(tx, ty, tz);
+    @JvmOverloads
+    fun rotateZYX(angleZ: Float, angleY: Float, angleX: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.rotationZYX(angleZ, angleY, angleX)
+        } else if (properties and 8 != 0) {
+            val tx = m30
+            val ty = m31
+            val tz = m32
+            dest.rotationZYX(angleZ, angleY, angleX).setTranslation(tx, ty, tz)
         } else {
-            return (this.properties & 2) != 0 ? dest.rotateAffineZYX(angleZ, angleY, angleX) : this.rotateZYXInternal(angleZ, angleY, angleX, dest);
+            if (properties and 2 != 0) dest.rotateAffineZYX(angleZ, angleY, angleX) else rotateZYXInternal(
+                angleZ,
+                angleY,
+                angleX,
+                dest
+            )
         }
     }
 
-    private Matrix4f rotateZYXInternal(float angleZ, float angleY, float angleX, Matrix4f dest) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float m_sinZ = -sinZ;
-        float m_sinY = -sinY;
-        float m_sinX = -sinX;
-        float nm00 = this.m00 * cosZ + this.m10 * sinZ;
-        float nm01 = this.m01 * cosZ + this.m11 * sinZ;
-        float nm02 = this.m02 * cosZ + this.m12 * sinZ;
-        float nm03 = this.m03 * cosZ + this.m13 * sinZ;
-        float nm10 = this.m00 * m_sinZ + this.m10 * cosZ;
-        float nm11 = this.m01 * m_sinZ + this.m11 * cosZ;
-        float nm12 = this.m02 * m_sinZ + this.m12 * cosZ;
-        float nm13 = this.m03 * m_sinZ + this.m13 * cosZ;
-        float nm20 = nm00 * sinY + this.m20 * cosY;
-        float nm21 = nm01 * sinY + this.m21 * cosY;
-        float nm22 = nm02 * sinY + this.m22 * cosY;
-        float nm23 = nm03 * sinY + this.m23 * cosY;
-        return dest._m00(nm00 * cosY + this.m20 * m_sinY)._m01(nm01 * cosY + this.m21 * m_sinY)._m02(nm02 * cosY + this.m22 * m_sinY)._m03(nm03 * cosY + this.m23 * m_sinY)._m10(nm10 * cosX + nm20 * sinX)._m11(nm11 * cosX + nm21 * sinX)._m12(nm12 * cosX + nm22 * sinX)._m13(nm13 * cosX + nm23 * sinX)._m20(nm10 * m_sinX + nm20 * cosX)._m21(nm11 * m_sinX + nm21 * cosX)._m22(nm12 * m_sinX + nm22 * cosX)._m23(nm13 * m_sinX + nm23 * cosX)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    private fun rotateZYXInternal(angleZ: Float, angleY: Float, angleX: Float, dest: Matrix4f): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val m_sinZ = -sinZ
+        val m_sinY = -sinY
+        val m_sinX = -sinX
+        val nm00 = m00 * cosZ + m10 * sinZ
+        val nm01 = m01 * cosZ + m11 * sinZ
+        val nm02 = m02 * cosZ + m12 * sinZ
+        val nm03 = m03 * cosZ + m13 * sinZ
+        val nm10 = m00 * m_sinZ + m10 * cosZ
+        val nm11 = m01 * m_sinZ + m11 * cosZ
+        val nm12 = m02 * m_sinZ + m12 * cosZ
+        val nm13 = m03 * m_sinZ + m13 * cosZ
+        val nm20 = nm00 * sinY + m20 * cosY
+        val nm21 = nm01 * sinY + m21 * cosY
+        val nm22 = nm02 * sinY + m22 * cosY
+        val nm23 = nm03 * sinY + m23 * cosY
+        return dest._m00(nm00 * cosY + m20 * m_sinY)._m01(nm01 * cosY + m21 * m_sinY)._m02(nm02 * cosY + m22 * m_sinY)
+            ._m03(nm03 * cosY + m23 * m_sinY)._m10(nm10 * cosX + nm20 * sinX)._m11(nm11 * cosX + nm21 * sinX)
+            ._m12(nm12 * cosX + nm22 * sinX)._m13(nm13 * cosX + nm23 * sinX)._m20(nm10 * m_sinX + nm20 * cosX)
+            ._m21(nm11 * m_sinX + nm21 * cosX)._m22(nm12 * m_sinX + nm22 * cosX)._m23(nm13 * m_sinX + nm23 * cosX)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateAffineZYX(float angleZ, float angleY, float angleX) {
-        return this.rotateAffineZYX(angleZ, angleY, angleX, this);
+    @JvmOverloads
+    fun rotateAffineZYX(angleZ: Float, angleY: Float, angleX: Float, dest: Matrix4f = this): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val m_sinZ = -sinZ
+        val m_sinY = -sinY
+        val m_sinX = -sinX
+        val nm00 = m00 * cosZ + m10 * sinZ
+        val nm01 = m01 * cosZ + m11 * sinZ
+        val nm02 = m02 * cosZ + m12 * sinZ
+        val nm10 = m00 * m_sinZ + m10 * cosZ
+        val nm11 = m01 * m_sinZ + m11 * cosZ
+        val nm12 = m02 * m_sinZ + m12 * cosZ
+        val nm20 = nm00 * sinY + m20 * cosY
+        val nm21 = nm01 * sinY + m21 * cosY
+        val nm22 = nm02 * sinY + m22 * cosY
+        return dest._m00(nm00 * cosY + m20 * m_sinY)._m01(nm01 * cosY + m21 * m_sinY)._m02(nm02 * cosY + m22 * m_sinY)
+            ._m03(0f)._m10(nm10 * cosX + nm20 * sinX)._m11(nm11 * cosX + nm21 * sinX)._m12(nm12 * cosX + nm22 * sinX)
+            ._m13(0f)._m20(nm10 * m_sinX + nm20 * cosX)._m21(nm11 * m_sinX + nm21 * cosX)
+            ._m22(nm12 * m_sinX + nm22 * cosX)._m23(0f)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateAffineZYX(float angleZ, float angleY, float angleX, Matrix4f dest) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float m_sinZ = -sinZ;
-        float m_sinY = -sinY;
-        float m_sinX = -sinX;
-        float nm00 = this.m00 * cosZ + this.m10 * sinZ;
-        float nm01 = this.m01 * cosZ + this.m11 * sinZ;
-        float nm02 = this.m02 * cosZ + this.m12 * sinZ;
-        float nm10 = this.m00 * m_sinZ + this.m10 * cosZ;
-        float nm11 = this.m01 * m_sinZ + this.m11 * cosZ;
-        float nm12 = this.m02 * m_sinZ + this.m12 * cosZ;
-        float nm20 = nm00 * sinY + this.m20 * cosY;
-        float nm21 = nm01 * sinY + this.m21 * cosY;
-        float nm22 = nm02 * sinY + this.m22 * cosY;
-        return dest._m00(nm00 * cosY + this.m20 * m_sinY)._m01(nm01 * cosY + this.m21 * m_sinY)._m02(nm02 * cosY + this.m22 * m_sinY)._m03(0f)._m10(nm10 * cosX + nm20 * sinX)._m11(nm11 * cosX + nm21 * sinX)._m12(nm12 * cosX + nm22 * sinX)._m13(0f)._m20(nm10 * m_sinX + nm20 * cosX)._m21(nm11 * m_sinX + nm21 * cosX)._m22(nm12 * m_sinX + nm22 * cosX)._m23(0f)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    fun rotateYXZ(angles: Vector3f): Matrix4f {
+        return this.rotateYXZ(angles.y, angles.x, angles.z)
     }
 
-    public Matrix4f rotateYXZ(Vector3f angles) {
-        return this.rotateYXZ(angles.y, angles.x, angles.z);
-    }
-
-    public Matrix4f rotateYXZ(float angleY, float angleX, float angleZ) {
-        return this.rotateYXZ(angleY, angleX, angleZ, this);
-    }
-
-    public Matrix4f rotateYXZ(float angleY, float angleX, float angleZ, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.rotationYXZ(angleY, angleX, angleZ);
-        } else if ((this.properties & 8) != 0) {
-            float tx = this.m30;
-            float ty = this.m31;
-            float tz = this.m32;
-            return dest.rotationYXZ(angleY, angleX, angleZ).setTranslation(tx, ty, tz);
+    @JvmOverloads
+    fun rotateYXZ(angleY: Float, angleX: Float, angleZ: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.rotationYXZ(angleY, angleX, angleZ)
+        } else if (properties and 8 != 0) {
+            val tx = m30
+            val ty = m31
+            val tz = m32
+            dest.rotationYXZ(angleY, angleX, angleZ).setTranslation(tx, ty, tz)
         } else {
-            return (this.properties & 2) != 0 ? dest.rotateAffineYXZ(angleY, angleX, angleZ) : this.rotateYXZInternal(angleY, angleX, angleZ, dest);
+            if (properties and 2 != 0) dest.rotateAffineYXZ(angleY, angleX, angleZ) else rotateYXZInternal(
+                angleY,
+                angleX,
+                angleZ,
+                dest
+            )
         }
     }
 
-    private Matrix4f rotateYXZInternal(float angleY, float angleX, float angleZ, Matrix4f dest) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float m_sinY = -sinY;
-        float m_sinX = -sinX;
-        float m_sinZ = -sinZ;
-        float nm20 = this.m00 * sinY + this.m20 * cosY;
-        float nm21 = this.m01 * sinY + this.m21 * cosY;
-        float nm22 = this.m02 * sinY + this.m22 * cosY;
-        float nm23 = this.m03 * sinY + this.m23 * cosY;
-        float nm00 = this.m00 * cosY + this.m20 * m_sinY;
-        float nm01 = this.m01 * cosY + this.m21 * m_sinY;
-        float nm02 = this.m02 * cosY + this.m22 * m_sinY;
-        float nm03 = this.m03 * cosY + this.m23 * m_sinY;
-        float nm10 = this.m10 * cosX + nm20 * sinX;
-        float nm11 = this.m11 * cosX + nm21 * sinX;
-        float nm12 = this.m12 * cosX + nm22 * sinX;
-        float nm13 = this.m13 * cosX + nm23 * sinX;
-        return dest._m20(this.m10 * m_sinX + nm20 * cosX)._m21(this.m11 * m_sinX + nm21 * cosX)._m22(this.m12 * m_sinX + nm22 * cosX)._m23(this.m13 * m_sinX + nm23 * cosX)._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)._m02(nm02 * cosZ + nm12 * sinZ)._m03(nm03 * cosZ + nm13 * sinZ)._m10(nm00 * m_sinZ + nm10 * cosZ)._m11(nm01 * m_sinZ + nm11 * cosZ)._m12(nm02 * m_sinZ + nm12 * cosZ)._m13(nm03 * m_sinZ + nm13 * cosZ)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    private fun rotateYXZInternal(angleY: Float, angleX: Float, angleZ: Float, dest: Matrix4f): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val m_sinY = -sinY
+        val m_sinX = -sinX
+        val m_sinZ = -sinZ
+        val nm20 = m00 * sinY + m20 * cosY
+        val nm21 = m01 * sinY + m21 * cosY
+        val nm22 = m02 * sinY + m22 * cosY
+        val nm23 = m03 * sinY + m23 * cosY
+        val nm00 = m00 * cosY + m20 * m_sinY
+        val nm01 = m01 * cosY + m21 * m_sinY
+        val nm02 = m02 * cosY + m22 * m_sinY
+        val nm03 = m03 * cosY + m23 * m_sinY
+        val nm10 = m10 * cosX + nm20 * sinX
+        val nm11 = m11 * cosX + nm21 * sinX
+        val nm12 = m12 * cosX + nm22 * sinX
+        val nm13 = m13 * cosX + nm23 * sinX
+        return dest._m20(m10 * m_sinX + nm20 * cosX)._m21(m11 * m_sinX + nm21 * cosX)._m22(m12 * m_sinX + nm22 * cosX)
+            ._m23(
+                m13 * m_sinX + nm23 * cosX
+            )._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)._m02(nm02 * cosZ + nm12 * sinZ)
+            ._m03(nm03 * cosZ + nm13 * sinZ)._m10(nm00 * m_sinZ + nm10 * cosZ)._m11(nm01 * m_sinZ + nm11 * cosZ)
+            ._m12(nm02 * m_sinZ + nm12 * cosZ)._m13(nm03 * m_sinZ + nm13 * cosZ)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateAffineYXZ(float angleY, float angleX, float angleZ) {
-        return this.rotateAffineYXZ(angleY, angleX, angleZ, this);
+    @JvmOverloads
+    fun rotateAffineYXZ(angleY: Float, angleX: Float, angleZ: Float, dest: Matrix4f = this): Matrix4f {
+        val sinX = Math.sin(angleX)
+        val cosX = Math.cosFromSin(sinX, angleX)
+        val sinY = Math.sin(angleY)
+        val cosY = Math.cosFromSin(sinY, angleY)
+        val sinZ = Math.sin(angleZ)
+        val cosZ = Math.cosFromSin(sinZ, angleZ)
+        val m_sinY = -sinY
+        val m_sinX = -sinX
+        val m_sinZ = -sinZ
+        val nm20 = m00 * sinY + m20 * cosY
+        val nm21 = m01 * sinY + m21 * cosY
+        val nm22 = m02 * sinY + m22 * cosY
+        val nm00 = m00 * cosY + m20 * m_sinY
+        val nm01 = m01 * cosY + m21 * m_sinY
+        val nm02 = m02 * cosY + m22 * m_sinY
+        val nm10 = m10 * cosX + nm20 * sinX
+        val nm11 = m11 * cosX + nm21 * sinX
+        val nm12 = m12 * cosX + nm22 * sinX
+        return dest._m20(m10 * m_sinX + nm20 * cosX)._m21(m11 * m_sinX + nm21 * cosX)._m22(m12 * m_sinX + nm22 * cosX)
+            ._m23(0f)._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)._m02(nm02 * cosZ + nm12 * sinZ)
+            ._m03(0f)._m10(nm00 * m_sinZ + nm10 * cosZ)._m11(nm01 * m_sinZ + nm11 * cosZ)
+            ._m12(nm02 * m_sinZ + nm12 * cosZ)._m13(0f)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateAffineYXZ(float angleY, float angleX, float angleZ, Matrix4f dest) {
-        float sinX = Math.sin(angleX);
-        float cosX = Math.cosFromSin(sinX, angleX);
-        float sinY = Math.sin(angleY);
-        float cosY = Math.cosFromSin(sinY, angleY);
-        float sinZ = Math.sin(angleZ);
-        float cosZ = Math.cosFromSin(sinZ, angleZ);
-        float m_sinY = -sinY;
-        float m_sinX = -sinX;
-        float m_sinZ = -sinZ;
-        float nm20 = this.m00 * sinY + this.m20 * cosY;
-        float nm21 = this.m01 * sinY + this.m21 * cosY;
-        float nm22 = this.m02 * sinY + this.m22 * cosY;
-        float nm00 = this.m00 * cosY + this.m20 * m_sinY;
-        float nm01 = this.m01 * cosY + this.m21 * m_sinY;
-        float nm02 = this.m02 * cosY + this.m22 * m_sinY;
-        float nm10 = this.m10 * cosX + nm20 * sinX;
-        float nm11 = this.m11 * cosX + nm21 * sinX;
-        float nm12 = this.m12 * cosX + nm22 * sinX;
-        return dest._m20(this.m10 * m_sinX + nm20 * cosX)._m21(this.m11 * m_sinX + nm21 * cosX)._m22(this.m12 * m_sinX + nm22 * cosX)._m23(0f)._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)._m02(nm02 * cosZ + nm12 * sinZ)._m03(0f)._m10(nm00 * m_sinZ + nm10 * cosZ)._m11(nm01 * m_sinZ + nm11 * cosZ)._m12(nm02 * m_sinZ + nm12 * cosZ)._m13(0f)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
-    }
-
-    public Matrix4f rotate(float ang, float x, float y, float z, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.rotation(ang, x, y, z);
-        } else if ((this.properties & 8) != 0) {
-            return this.rotateTranslation(ang, x, y, z, dest);
+    @JvmOverloads
+    fun rotate(ang: Float, x: Float, y: Float, z: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.rotation(ang, x, y, z)
+        } else if (properties and 8 != 0) {
+            this.rotateTranslation(ang, x, y, z, dest)
         } else {
-            return (this.properties & 2) != 0 ? this.rotateAffine(ang, x, y, z, dest) : this.rotateGeneric(ang, x, y, z, dest);
+            if (properties and 2 != 0) this.rotateAffine(ang, x, y, z, dest) else this.rotateGeneric(
+                ang,
+                x,
+                y,
+                z,
+                dest
+            )
         }
     }
 
-    private Matrix4f rotateGeneric(float ang, float x, float y, float z, Matrix4f dest) {
-        if (y == 0f && z == 0f && Math.absEqualsOne(x)) {
-            return this.rotateX(x * ang, dest);
+    private fun rotateGeneric(ang: Float, x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        return if (y == 0f && z == 0f && Math.absEqualsOne(x)) {
+            rotateX(x * ang, dest)
         } else if (x == 0f && z == 0f && Math.absEqualsOne(y)) {
-            return this.rotateY(y * ang, dest);
+            rotateY(y * ang, dest)
         } else {
-            return x == 0f && y == 0f && Math.absEqualsOne(z) ? this.rotateZ(z * ang, dest) : this.rotateGenericInternal(ang, x, y, z, dest);
+            if (x == 0f && y == 0f && Math.absEqualsOne(z)) rotateZ(
+                z * ang,
+                dest
+            ) else rotateGenericInternal(ang, x, y, z, dest)
         }
     }
 
-    private Matrix4f rotateGenericInternal(float ang, float x, float y, float z, Matrix4f dest) {
-        float s = Math.sin(ang);
-        float c = Math.cosFromSin(s, ang);
-        float C = 1f - c;
-        float xx = x * x;
-        float xy = x * y;
-        float xz = x * z;
-        float yy = y * y;
-        float yz = y * z;
-        float zz = z * z;
-        float rm00 = xx * C + c;
-        float rm01 = xy * C + z * s;
-        float rm02 = xz * C - y * s;
-        float rm10 = xy * C - z * s;
-        float rm11 = yy * C + c;
-        float rm12 = yz * C + x * s;
-        float rm20 = xz * C + y * s;
-        float rm21 = yz * C - x * s;
-        float rm22 = zz * C + c;
-        float nm00 = this.m00 * rm00 + this.m10 * rm01 + this.m20 * rm02;
-        float nm01 = this.m01 * rm00 + this.m11 * rm01 + this.m21 * rm02;
-        float nm02 = this.m02 * rm00 + this.m12 * rm01 + this.m22 * rm02;
-        float nm03 = this.m03 * rm00 + this.m13 * rm01 + this.m23 * rm02;
-        float nm10 = this.m00 * rm10 + this.m10 * rm11 + this.m20 * rm12;
-        float nm11 = this.m01 * rm10 + this.m11 * rm11 + this.m21 * rm12;
-        float nm12 = this.m02 * rm10 + this.m12 * rm11 + this.m22 * rm12;
-        float nm13 = this.m03 * rm10 + this.m13 * rm11 + this.m23 * rm12;
-        return dest._m20(this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22)._m21(this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22)._m22(this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22)._m23(this.m03 * rm20 + this.m13 * rm21 + this.m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    private fun rotateGenericInternal(ang: Float, x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        val s = Math.sin(ang)
+        val c = Math.cosFromSin(s, ang)
+        val C = 1f - c
+        val xx = x * x
+        val xy = x * y
+        val xz = x * z
+        val yy = y * y
+        val yz = y * z
+        val zz = z * z
+        val rm00 = xx * C + c
+        val rm01 = xy * C + z * s
+        val rm02 = xz * C - y * s
+        val rm10 = xy * C - z * s
+        val rm11 = yy * C + c
+        val rm12 = yz * C + x * s
+        val rm20 = xz * C + y * s
+        val rm21 = yz * C - x * s
+        val rm22 = zz * C + c
+        val nm00 = m00 * rm00 + m10 * rm01 + m20 * rm02
+        val nm01 = m01 * rm00 + m11 * rm01 + m21 * rm02
+        val nm02 = m02 * rm00 + m12 * rm01 + m22 * rm02
+        val nm03 = m03 * rm00 + m13 * rm01 + m23 * rm02
+        val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
+        val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
+        val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
+        val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12
+        return dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+            m02 * rm20 + m12 * rm21 + m22 * rm22
+        )._m23(m03 * rm20 + m13 * rm21 + m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
+            ._m12(nm12)._m13(nm13)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotate(float ang, float x, float y, float z) {
-        return this.rotate(ang, x, y, z, this);
-    }
-
-    public Matrix4f rotateTranslation(float ang, float x, float y, float z, Matrix4f dest) {
-        float tx = this.m30;
-        float ty = this.m31;
-        float tz = this.m32;
-        if (y == 0f && z == 0f && Math.absEqualsOne(x)) {
-            return dest.rotationX(x * ang).setTranslation(tx, ty, tz);
+    fun rotateTranslation(ang: Float, x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        val tx = m30
+        val ty = m31
+        val tz = m32
+        return if (y == 0f && z == 0f && Math.absEqualsOne(x)) {
+            dest.rotationX(x * ang).setTranslation(tx, ty, tz)
         } else if (x == 0f && z == 0f && Math.absEqualsOne(y)) {
-            return dest.rotationY(y * ang).setTranslation(tx, ty, tz);
+            dest.rotationY(y * ang).setTranslation(tx, ty, tz)
         } else {
-            return x == 0f && y == 0f && Math.absEqualsOne(z) ? dest.rotationZ(z * ang).setTranslation(tx, ty, tz) : this.rotateTranslationInternal(ang, x, y, z, dest);
+            if (x == 0f && y == 0f && Math.absEqualsOne(z)) dest.rotationZ(z * ang)
+                .setTranslation(tx, ty, tz) else rotateTranslationInternal(ang, x, y, z, dest)
         }
     }
 
-    private Matrix4f rotateTranslationInternal(float ang, float x, float y, float z, Matrix4f dest) {
-        float s = Math.sin(ang);
-        float c = Math.cosFromSin(s, ang);
-        float C = 1f - c;
-        float xx = x * x;
-        float xy = x * y;
-        float xz = x * z;
-        float yy = y * y;
-        float yz = y * z;
-        float zz = z * z;
-        float rm00 = xx * C + c;
-        float rm01 = xy * C + z * s;
-        float rm02 = xz * C - y * s;
-        float rm10 = xy * C - z * s;
-        float rm11 = yy * C + c;
-        float rm12 = yz * C + x * s;
-        float rm20 = xz * C + y * s;
-        float rm21 = yz * C - x * s;
-        float rm22 = zz * C + c;
-        return dest._m20(rm20)._m21(rm21)._m22(rm22)._m23(0f)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0f)._m10(rm10)._m11(rm11)._m12(rm12)._m13(0f)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(1f)._properties(this.properties & -14);
+    private fun rotateTranslationInternal(ang: Float, x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        val s = Math.sin(ang)
+        val c = Math.cosFromSin(s, ang)
+        val C = 1f - c
+        val xx = x * x
+        val xy = x * y
+        val xz = x * z
+        val yy = y * y
+        val yz = y * z
+        val zz = z * z
+        val rm00 = xx * C + c
+        val rm01 = xy * C + z * s
+        val rm02 = xz * C - y * s
+        val rm10 = xy * C - z * s
+        val rm11 = yy * C + c
+        val rm12 = yz * C + x * s
+        val rm20 = xz * C + y * s
+        val rm21 = yz * C - x * s
+        val rm22 = zz * C + c
+        return dest._m20(rm20)._m21(rm21)._m22(rm22)._m23(0f)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0f)._m10(rm10)
+            ._m11(rm11)._m12(rm12)._m13(0f)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(1f)._properties(properties and -14)
     }
 
-    public Matrix4f rotateAffine(float ang, float x, float y, float z, Matrix4f dest) {
-        if (y == 0f && z == 0f && Math.absEqualsOne(x)) {
-            return this.rotateX(x * ang, dest);
+    @JvmOverloads
+    fun rotateAffine(ang: Float, x: Float, y: Float, z: Float, dest: Matrix4f = this): Matrix4f {
+        return if (y == 0f && z == 0f && Math.absEqualsOne(x)) {
+            rotateX(x * ang, dest)
         } else if (x == 0f && z == 0f && Math.absEqualsOne(y)) {
-            return this.rotateY(y * ang, dest);
+            rotateY(y * ang, dest)
         } else {
-            return x == 0f && y == 0f && Math.absEqualsOne(z) ? this.rotateZ(z * ang, dest) : this.rotateAffineInternal(ang, x, y, z, dest);
+            if (x == 0f && y == 0f && Math.absEqualsOne(z)) rotateZ(
+                z * ang,
+                dest
+            ) else rotateAffineInternal(ang, x, y, z, dest)
         }
     }
 
-    private Matrix4f rotateAffineInternal(float ang, float x, float y, float z, Matrix4f dest) {
-        float s = Math.sin(ang);
-        float c = Math.cosFromSin(s, ang);
-        float C = 1f - c;
-        float xx = x * x;
-        float xy = x * y;
-        float xz = x * z;
-        float yy = y * y;
-        float yz = y * z;
-        float zz = z * z;
-        float rm00 = xx * C + c;
-        float rm01 = xy * C + z * s;
-        float rm02 = xz * C - y * s;
-        float rm10 = xy * C - z * s;
-        float rm11 = yy * C + c;
-        float rm12 = yz * C + x * s;
-        float rm20 = xz * C + y * s;
-        float rm21 = yz * C - x * s;
-        float rm22 = zz * C + c;
-        float nm00 = this.m00 * rm00 + this.m10 * rm01 + this.m20 * rm02;
-        float nm01 = this.m01 * rm00 + this.m11 * rm01 + this.m21 * rm02;
-        float nm02 = this.m02 * rm00 + this.m12 * rm01 + this.m22 * rm02;
-        float nm10 = this.m00 * rm10 + this.m10 * rm11 + this.m20 * rm12;
-        float nm11 = this.m01 * rm10 + this.m11 * rm11 + this.m21 * rm12;
-        float nm12 = this.m02 * rm10 + this.m12 * rm11 + this.m22 * rm12;
-        return dest._m20(this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22)._m21(this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22)._m22(this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22)._m23(0f)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(1f)._properties(this.properties & -14);
+    private fun rotateAffineInternal(ang: Float, x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        val s = Math.sin(ang)
+        val c = Math.cosFromSin(s, ang)
+        val C = 1f - c
+        val xx = x * x
+        val xy = x * y
+        val xz = x * z
+        val yy = y * y
+        val yz = y * z
+        val zz = z * z
+        val rm00 = xx * C + c
+        val rm01 = xy * C + z * s
+        val rm02 = xz * C - y * s
+        val rm10 = xy * C - z * s
+        val rm11 = yy * C + c
+        val rm12 = yz * C + x * s
+        val rm20 = xz * C + y * s
+        val rm21 = yz * C - x * s
+        val rm22 = zz * C + c
+        val nm00 = m00 * rm00 + m10 * rm01 + m20 * rm02
+        val nm01 = m01 * rm00 + m11 * rm01 + m21 * rm02
+        val nm02 = m02 * rm00 + m12 * rm01 + m22 * rm02
+        val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
+        val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
+        val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
+        return dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+            m02 * rm20 + m12 * rm21 + m22 * rm22
+        )._m23(0f)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m30(m30)._m31(
+            m31
+        )._m32(m32)._m33(1f)._properties(properties and -14)
     }
 
-    public Matrix4f rotateAffine(float ang, float x, float y, float z) {
-        return this.rotateAffine(ang, x, y, z, this);
+    @JvmOverloads
+    fun rotateLocal(ang: Float, x: Float, y: Float, z: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) dest.rotation(ang, x, y, z) else rotateLocalGeneric(ang, x, y, z, dest)
     }
 
-    public Matrix4f rotateLocal(float ang, float x, float y, float z, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.rotation(ang, x, y, z) : this.rotateLocalGeneric(ang, x, y, z, dest);
-    }
-
-    private Matrix4f rotateLocalGeneric(float ang, float x, float y, float z, Matrix4f dest) {
-        if (y == 0f && z == 0f && Math.absEqualsOne(x)) {
-            return this.rotateLocalX(x * ang, dest);
+    private fun rotateLocalGeneric(ang: Float, x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        return if (y == 0f && z == 0f && Math.absEqualsOne(x)) {
+            rotateLocalX(x * ang, dest)
         } else if (x == 0f && z == 0f && Math.absEqualsOne(y)) {
-            return this.rotateLocalY(y * ang, dest);
+            rotateLocalY(y * ang, dest)
         } else {
-            return x == 0f && y == 0f && Math.absEqualsOne(z) ? this.rotateLocalZ(z * ang, dest) : this.rotateLocalGenericInternal(ang, x, y, z, dest);
+            if (x == 0f && y == 0f && Math.absEqualsOne(z)) rotateLocalZ(
+                z * ang,
+                dest
+            ) else rotateLocalGenericInternal(ang, x, y, z, dest)
         }
     }
 
-    private Matrix4f rotateLocalGenericInternal(float ang, float x, float y, float z, Matrix4f dest) {
-        float s = Math.sin(ang);
-        float c = Math.cosFromSin(s, ang);
-        float C = 1f - c;
-        float xx = x * x;
-        float xy = x * y;
-        float xz = x * z;
-        float yy = y * y;
-        float yz = y * z;
-        float zz = z * z;
-        float lm00 = xx * C + c;
-        float lm01 = xy * C + z * s;
-        float lm02 = xz * C - y * s;
-        float lm10 = xy * C - z * s;
-        float lm11 = yy * C + c;
-        float lm12 = yz * C + x * s;
-        float lm20 = xz * C + y * s;
-        float lm21 = yz * C - x * s;
-        float lm22 = zz * C + c;
-        float nm00 = lm00 * this.m00 + lm10 * this.m01 + lm20 * this.m02;
-        float nm01 = lm01 * this.m00 + lm11 * this.m01 + lm21 * this.m02;
-        float nm02 = lm02 * this.m00 + lm12 * this.m01 + lm22 * this.m02;
-        float nm10 = lm00 * this.m10 + lm10 * this.m11 + lm20 * this.m12;
-        float nm11 = lm01 * this.m10 + lm11 * this.m11 + lm21 * this.m12;
-        float nm12 = lm02 * this.m10 + lm12 * this.m11 + lm22 * this.m12;
-        float nm20 = lm00 * this.m20 + lm10 * this.m21 + lm20 * this.m22;
-        float nm21 = lm01 * this.m20 + lm11 * this.m21 + lm21 * this.m22;
-        float nm22 = lm02 * this.m20 + lm12 * this.m21 + lm22 * this.m22;
-        float nm30 = lm00 * this.m30 + lm10 * this.m31 + lm20 * this.m32;
-        float nm31 = lm01 * this.m30 + lm11 * this.m31 + lm21 * this.m32;
-        float nm32 = lm02 * this.m30 + lm12 * this.m31 + lm22 * this.m32;
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(this.m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(this.m13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(this.m23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(this.m33)._properties(this.properties & -14);
+    private fun rotateLocalGenericInternal(ang: Float, x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        val s = Math.sin(ang)
+        val c = Math.cosFromSin(s, ang)
+        val C = 1f - c
+        val xx = x * x
+        val xy = x * y
+        val xz = x * z
+        val yy = y * y
+        val yz = y * z
+        val zz = z * z
+        val lm00 = xx * C + c
+        val lm01 = xy * C + z * s
+        val lm02 = xz * C - y * s
+        val lm10 = xy * C - z * s
+        val lm11 = yy * C + c
+        val lm12 = yz * C + x * s
+        val lm20 = xz * C + y * s
+        val lm21 = yz * C - x * s
+        val lm22 = zz * C + c
+        val nm00 = lm00 * m00 + lm10 * m01 + lm20 * m02
+        val nm01 = lm01 * m00 + lm11 * m01 + lm21 * m02
+        val nm02 = lm02 * m00 + lm12 * m01 + lm22 * m02
+        val nm10 = lm00 * m10 + lm10 * m11 + lm20 * m12
+        val nm11 = lm01 * m10 + lm11 * m11 + lm21 * m12
+        val nm12 = lm02 * m10 + lm12 * m11 + lm22 * m12
+        val nm20 = lm00 * m20 + lm10 * m21 + lm20 * m22
+        val nm21 = lm01 * m20 + lm11 * m21 + lm21 * m22
+        val nm22 = lm02 * m20 + lm12 * m21 + lm22 * m22
+        val nm30 = lm00 * m30 + lm10 * m31 + lm20 * m32
+        val nm31 = lm01 * m30 + lm11 * m31 + lm21 * m32
+        val nm32 = lm02 * m30 + lm12 * m31 + lm22 * m32
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(
+            m23
+        )._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateLocal(float ang, float x, float y, float z) {
-        return this.rotateLocal(ang, x, y, z, this);
+    @JvmOverloads
+    fun rotateLocalX(ang: Float, dest: Matrix4f = this): Matrix4f {
+        val sin = Math.sin(ang)
+        val cos = Math.cosFromSin(sin, ang)
+        val nm02 = sin * m01 + cos * m02
+        val nm12 = sin * m11 + cos * m12
+        val nm22 = sin * m21 + cos * m22
+        val nm32 = sin * m31 + cos * m32
+        return dest._m00(m00)._m01(cos * m01 - sin * m02)._m02(nm02)._m03(m03)._m10(m10)._m11(cos * m11 - sin * m12)
+            ._m12(nm12)._m13(
+            m13
+        )._m20(m20)._m21(cos * m21 - sin * m22)._m22(nm22)._m23(m23)._m30(m30)._m31(cos * m31 - sin * m32)._m32(nm32)
+            ._m33(
+                m33
+            )._properties(properties and -14)
     }
 
-    public Matrix4f rotateLocalX(float ang, Matrix4f dest) {
-        float sin = Math.sin(ang);
-        float cos = Math.cosFromSin(sin, ang);
-        float nm02 = sin * this.m01 + cos * this.m02;
-        float nm12 = sin * this.m11 + cos * this.m12;
-        float nm22 = sin * this.m21 + cos * this.m22;
-        float nm32 = sin * this.m31 + cos * this.m32;
-        return dest._m00(this.m00)._m01(cos * this.m01 - sin * this.m02)._m02(nm02)._m03(this.m03)._m10(this.m10)._m11(cos * this.m11 - sin * this.m12)._m12(nm12)._m13(this.m13)._m20(this.m20)._m21(cos * this.m21 - sin * this.m22)._m22(nm22)._m23(this.m23)._m30(this.m30)._m31(cos * this.m31 - sin * this.m32)._m32(nm32)._m33(this.m33)._properties(this.properties & -14);
+    @JvmOverloads
+    fun rotateLocalY(ang: Float, dest: Matrix4f = this): Matrix4f {
+        val sin = Math.sin(ang)
+        val cos = Math.cosFromSin(sin, ang)
+        val nm02 = -sin * m00 + cos * m02
+        val nm12 = -sin * m10 + cos * m12
+        val nm22 = -sin * m20 + cos * m22
+        val nm32 = -sin * m30 + cos * m32
+        return dest._m00(cos * m00 + sin * m02)._m01(m01)._m02(nm02)._m03(m03)._m10(cos * m10 + sin * m12)._m11(m11)
+            ._m12(nm12)._m13(
+            m13
+        )._m20(cos * m20 + sin * m22)._m21(m21)._m22(nm22)._m23(m23)._m30(cos * m30 + sin * m32)._m31(m31)._m32(nm32)
+            ._m33(
+                m33
+            )._properties(properties and -14)
     }
 
-    public Matrix4f rotateLocalX(float ang) {
-        return this.rotateLocalX(ang, this);
+    @JvmOverloads
+    fun rotateLocalZ(ang: Float, dest: Matrix4f = this): Matrix4f {
+        val sin = Math.sin(ang)
+        val cos = Math.cosFromSin(sin, ang)
+        val nm01 = sin * m00 + cos * m01
+        val nm11 = sin * m10 + cos * m11
+        val nm21 = sin * m20 + cos * m21
+        val nm31 = sin * m30 + cos * m31
+        return dest._m00(cos * m00 - sin * m01)._m01(nm01)._m02(m02)._m03(m03)._m10(cos * m10 - sin * m11)._m11(nm11)
+            ._m12(
+                m12
+            )._m13(m13)._m20(cos * m20 - sin * m21)._m21(nm21)._m22(m22)._m23(m23)._m30(cos * m30 - sin * m31)
+            ._m31(nm31)._m32(
+            m32
+        )._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateLocalY(float ang, Matrix4f dest) {
-        float sin = Math.sin(ang);
-        float cos = Math.cosFromSin(sin, ang);
-        float nm02 = -sin * this.m00 + cos * this.m02;
-        float nm12 = -sin * this.m10 + cos * this.m12;
-        float nm22 = -sin * this.m20 + cos * this.m22;
-        float nm32 = -sin * this.m30 + cos * this.m32;
-        return dest._m00(cos * this.m00 + sin * this.m02)._m01(this.m01)._m02(nm02)._m03(this.m03)._m10(cos * this.m10 + sin * this.m12)._m11(this.m11)._m12(nm12)._m13(this.m13)._m20(cos * this.m20 + sin * this.m22)._m21(this.m21)._m22(nm22)._m23(this.m23)._m30(cos * this.m30 + sin * this.m32)._m31(this.m31)._m32(nm32)._m33(this.m33)._properties(this.properties & -14);
+    fun translate(offset: Vector3f): Matrix4f {
+        return this.translate(offset.x, offset.y, offset.z)
     }
 
-    public Matrix4f rotateLocalY(float ang) {
-        return this.rotateLocalY(ang, this);
+    fun translate(offset: Vector3f, dest: Matrix4f): Matrix4f {
+        return this.translate(offset.x, offset.y, offset.z, dest)
     }
 
-    public Matrix4f rotateLocalZ(float ang, Matrix4f dest) {
-        float sin = Math.sin(ang);
-        float cos = Math.cosFromSin(sin, ang);
-        float nm01 = sin * this.m00 + cos * this.m01;
-        float nm11 = sin * this.m10 + cos * this.m11;
-        float nm21 = sin * this.m20 + cos * this.m21;
-        float nm31 = sin * this.m30 + cos * this.m31;
-        return dest._m00(cos * this.m00 - sin * this.m01)._m01(nm01)._m02(this.m02)._m03(this.m03)._m10(cos * this.m10 - sin * this.m11)._m11(nm11)._m12(this.m12)._m13(this.m13)._m20(cos * this.m20 - sin * this.m21)._m21(nm21)._m22(this.m22)._m23(this.m23)._m30(cos * this.m30 - sin * this.m31)._m31(nm31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    fun translate(x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        return if (properties and 4 != 0) dest.translation(x, y, z) else this.translateGeneric(x, y, z, dest)
     }
 
-    public Matrix4f rotateLocalZ(float ang) {
-        return this.rotateLocalZ(ang, this);
+    private fun translateGeneric(x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        MemUtil.INSTANCE.copy(this, dest)
+        return dest._m30(Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30))))._m31(
+            Math.fma(
+                m01, x, Math.fma(m11, y, Math.fma(m21, z, m31))
+            )
+        )._m32(
+            Math.fma(
+                m02, x, Math.fma(
+                    m12, y, Math.fma(m22, z, m32)
+                )
+            )
+        )._m33(
+            Math.fma(
+                m03, x, Math.fma(
+                    m13, y, Math.fma(
+                        m23, z, m33
+                    )
+                )
+            )
+        )._properties(properties and -6)
     }
 
-    public Matrix4f translate(Vector3f offset) {
-        return this.translate(offset.x, offset.y, offset.z);
+    fun translate(x: Float, y: Float, z: Float): Matrix4f {
+        return if (properties and 4 != 0) this.translation(x, y, z) else this.translateGeneric(x, y, z)
     }
 
-    public Matrix4f translate(Vector3f offset, Matrix4f dest) {
-        return this.translate(offset.x, offset.y, offset.z, dest);
+    private fun translateGeneric(x: Float, y: Float, z: Float): Matrix4f {
+        return _m30(Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30))))._m31(
+            Math.fma(
+                m01, x, Math.fma(m11, y, Math.fma(m21, z, m31))
+            )
+        )._m32(
+            Math.fma(
+                m02, x, Math.fma(
+                    m12, y, Math.fma(m22, z, m32)
+                )
+            )
+        )._m33(
+            Math.fma(
+                m03, x, Math.fma(
+                    m13, y, Math.fma(
+                        m23, z, m33
+                    )
+                )
+            )
+        )._properties(properties and -6)
     }
 
-    public Matrix4f translate(float x, float y, float z, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.translation(x, y, z) : this.translateGeneric(x, y, z, dest);
+    fun translateLocal(offset: Vector3f): Matrix4f {
+        return this.translateLocal(offset.x, offset.y, offset.z)
     }
 
-    private Matrix4f translateGeneric(float x, float y, float z, Matrix4f dest) {
-        MemUtil.INSTANCE.copy(this, dest);
-        return dest._m30(Math.fma(this.m00, x, Math.fma(this.m10, y, Math.fma(this.m20, z, this.m30))))._m31(Math.fma(this.m01, x, Math.fma(this.m11, y, Math.fma(this.m21, z, this.m31))))._m32(Math.fma(this.m02, x, Math.fma(this.m12, y, Math.fma(this.m22, z, this.m32))))._m33(Math.fma(this.m03, x, Math.fma(this.m13, y, Math.fma(this.m23, z, this.m33))))._properties(this.properties & -6);
+    fun translateLocal(offset: Vector3f, dest: Matrix4f): Matrix4f {
+        return this.translateLocal(offset.x, offset.y, offset.z, dest)
     }
 
-    public Matrix4f translate(float x, float y, float z) {
-        return (this.properties & 4) != 0 ? this.translation(x, y, z) : this.translateGeneric(x, y, z);
+    @JvmOverloads
+    fun translateLocal(x: Float, y: Float, z: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) dest.translation(x, y, z) else translateLocalGeneric(x, y, z, dest)
     }
 
-    private Matrix4f translateGeneric(float x, float y, float z) {
-        return this._m30(Math.fma(this.m00, x, Math.fma(this.m10, y, Math.fma(this.m20, z, this.m30))))._m31(Math.fma(this.m01, x, Math.fma(this.m11, y, Math.fma(this.m21, z, this.m31))))._m32(Math.fma(this.m02, x, Math.fma(this.m12, y, Math.fma(this.m22, z, this.m32))))._m33(Math.fma(this.m03, x, Math.fma(this.m13, y, Math.fma(this.m23, z, this.m33))))._properties(this.properties & -6);
+    private fun translateLocalGeneric(x: Float, y: Float, z: Float, dest: Matrix4f): Matrix4f {
+        val nm00 = m00 + x * m03
+        val nm01 = m01 + y * m03
+        val nm02 = m02 + z * m03
+        val nm10 = m10 + x * m13
+        val nm11 = m11 + y * m13
+        val nm12 = m12 + z * m13
+        val nm20 = m20 + x * m23
+        val nm21 = m21 + y * m23
+        val nm22 = m22 + z * m23
+        val nm30 = m30 + x * m33
+        val nm31 = m31 + y * m33
+        val nm32 = m32 + z * m33
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(
+            m23
+        )._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)._properties(properties and -6)
     }
 
-    public Matrix4f translateLocal(Vector3f offset) {
-        return this.translateLocal(offset.x, offset.y, offset.z);
+    @JvmOverloads
+    fun ortho(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean = false,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setOrtho(
+            left,
+            right,
+            bottom,
+            top,
+            zNear,
+            zFar,
+            zZeroToOne
+        ) else orthoGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest)
     }
 
-    public Matrix4f translateLocal(Vector3f offset, Matrix4f dest) {
-        return this.translateLocal(offset.x, offset.y, offset.z, dest);
+    private fun orthoGeneric(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f
+    ): Matrix4f {
+        val rm00 = 2f / (right - left)
+        val rm11 = 2f / (top - bottom)
+        val rm22 = (if (zZeroToOne) 1f else 2f) / (zNear - zFar)
+        val rm30 = (left + right) / (left - right)
+        val rm31 = (top + bottom) / (bottom - top)
+        val rm32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
+        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
+            m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
+        )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)
+            ._m03(m03 * rm00)._m10(
+            m10 * rm11
+        )._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(m20 * rm22)._m21(m21 * rm22)._m22(m22 * rm22)._m23(
+            m23 * rm22
+        )._properties(properties and -30)
+        return dest
     }
 
-    public Matrix4f translateLocal(float x, float y, float z, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.translation(x, y, z) : this.translateLocalGeneric(x, y, z, dest);
+    fun ortho(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        dest: Matrix4f
+    ): Matrix4f {
+        return this.ortho(left, right, bottom, top, zNear, zFar, false, dest)
     }
 
-    private Matrix4f translateLocalGeneric(float x, float y, float z, Matrix4f dest) {
-        float nm00 = this.m00 + x * this.m03;
-        float nm01 = this.m01 + y * this.m03;
-        float nm02 = this.m02 + z * this.m03;
-        float nm10 = this.m10 + x * this.m13;
-        float nm11 = this.m11 + y * this.m13;
-        float nm12 = this.m12 + z * this.m13;
-        float nm20 = this.m20 + x * this.m23;
-        float nm21 = this.m21 + y * this.m23;
-        float nm22 = this.m22 + z * this.m23;
-        float nm30 = this.m30 + x * this.m33;
-        float nm31 = this.m31 + y * this.m33;
-        float nm32 = this.m32 + z * this.m33;
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(this.m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(this.m13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(this.m23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(this.m33)._properties(this.properties & -6);
+    @JvmOverloads
+    fun orthoLH(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean = false,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setOrthoLH(
+            left,
+            right,
+            bottom,
+            top,
+            zNear,
+            zFar,
+            zZeroToOne
+        ) else orthoLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest)
     }
 
-    public Matrix4f translateLocal(float x, float y, float z) {
-        return this.translateLocal(x, y, z, this);
+    private fun orthoLHGeneric(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f
+    ): Matrix4f {
+        val rm00 = 2f / (right - left)
+        val rm11 = 2f / (top - bottom)
+        val rm22 = (if (zZeroToOne) 1f else 2f) / (zFar - zNear)
+        val rm30 = (left + right) / (left - right)
+        val rm31 = (top + bottom) / (bottom - top)
+        val rm32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
+        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
+            m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
+        )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)
+            ._m03(m03 * rm00)._m10(
+            m10 * rm11
+        )._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(m20 * rm22)._m21(m21 * rm22)._m22(m22 * rm22)._m23(
+            m23 * rm22
+        )._properties(properties and -30)
+        return dest
     }
 
-    public Matrix4f ortho(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setOrtho(left, right, bottom, top, zNear, zFar, zZeroToOne) : this.orthoGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest);
+    fun orthoLH(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        dest: Matrix4f
+    ): Matrix4f {
+        return this.orthoLH(left, right, bottom, top, zNear, zFar, false, dest)
     }
 
-    private Matrix4f orthoGeneric(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        float rm00 = 2f / (right - left);
-        float rm11 = 2f / (top - bottom);
-        float rm22 = (zZeroToOne ? 1f : 2f) / (zNear - zFar);
-        float rm30 = (left + right) / (left - right);
-        float rm31 = (top + bottom) / (bottom - top);
-        float rm32 = (zZeroToOne ? zNear : zFar + zNear) / (zNear - zFar);
-        dest._m30(this.m00 * rm30 + this.m10 * rm31 + this.m20 * rm32 + this.m30)._m31(this.m01 * rm30 + this.m11 * rm31 + this.m21 * rm32 + this.m31)._m32(this.m02 * rm30 + this.m12 * rm31 + this.m22 * rm32 + this.m32)._m33(this.m03 * rm30 + this.m13 * rm31 + this.m23 * rm32 + this.m33)._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m20(this.m20 * rm22)._m21(this.m21 * rm22)._m22(this.m22 * rm22)._m23(this.m23 * rm22)._properties(this.properties & -30);
-        return dest;
-    }
-
-    public Matrix4f ortho(float left, float right, float bottom, float top, float zNear, float zFar, Matrix4f dest) {
-        return this.ortho(left, right, bottom, top, zNear, zFar, false, dest);
-    }
-
-    public Matrix4f ortho(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne) {
-        return this.ortho(left, right, bottom, top, zNear, zFar, zZeroToOne, this);
-    }
-
-    public Matrix4f ortho(float left, float right, float bottom, float top, float zNear, float zFar) {
-        return this.ortho(left, right, bottom, top, zNear, zFar, false);
-    }
-
-    public Matrix4f orthoLH(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setOrthoLH(left, right, bottom, top, zNear, zFar, zZeroToOne) : this.orthoLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest);
-    }
-
-    private Matrix4f orthoLHGeneric(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        float rm00 = 2f / (right - left);
-        float rm11 = 2f / (top - bottom);
-        float rm22 = (zZeroToOne ? 1f : 2f) / (zFar - zNear);
-        float rm30 = (left + right) / (left - right);
-        float rm31 = (top + bottom) / (bottom - top);
-        float rm32 = (zZeroToOne ? zNear : zFar + zNear) / (zNear - zFar);
-        dest._m30(this.m00 * rm30 + this.m10 * rm31 + this.m20 * rm32 + this.m30)._m31(this.m01 * rm30 + this.m11 * rm31 + this.m21 * rm32 + this.m31)._m32(this.m02 * rm30 + this.m12 * rm31 + this.m22 * rm32 + this.m32)._m33(this.m03 * rm30 + this.m13 * rm31 + this.m23 * rm32 + this.m33)._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m20(this.m20 * rm22)._m21(this.m21 * rm22)._m22(this.m22 * rm22)._m23(this.m23 * rm22)._properties(this.properties & -30);
-        return dest;
-    }
-
-    public Matrix4f orthoLH(float left, float right, float bottom, float top, float zNear, float zFar, Matrix4f dest) {
-        return this.orthoLH(left, right, bottom, top, zNear, zFar, false, dest);
-    }
-
-    public Matrix4f orthoLH(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne) {
-        return this.orthoLH(left, right, bottom, top, zNear, zFar, zZeroToOne, this);
-    }
-
-    public Matrix4f orthoLH(float left, float right, float bottom, float top, float zNear, float zFar) {
-        return this.orthoLH(left, right, bottom, top, zNear, zFar, false);
-    }
-
-    public Matrix4f setOrtho(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun setOrtho(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean
+    ): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m00(2f / (right - left))._m11(2f / (top - bottom))._m22((zZeroToOne ? 1f : 2f) / (zNear - zFar))._m30((right + left) / (left - right))._m31((top + bottom) / (bottom - top))._m32((zZeroToOne ? zNear : zFar + zNear) / (zNear - zFar))._properties(2);
-        return this;
+        _m00(2f / (right - left))._m11(2f / (top - bottom))._m22((if (zZeroToOne) 1f else 2f) / (zNear - zFar))
+            ._m30((right + left) / (left - right))._m31((top + bottom) / (bottom - top))
+            ._m32((if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar))._properties(2)
+        return this
     }
 
-    public Matrix4f setOrtho(float left, float right, float bottom, float top, float zNear, float zFar) {
-        return this.setOrtho(left, right, bottom, top, zNear, zFar, false);
+    fun setOrtho(left: Float, right: Float, bottom: Float, top: Float, zNear: Float, zFar: Float): Matrix4f {
+        return this.setOrtho(left, right, bottom, top, zNear, zFar, false)
     }
 
-    public Matrix4f setOrthoLH(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun setOrthoLH(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean
+    ): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m00(2f / (right - left))._m11(2f / (top - bottom))._m22((zZeroToOne ? 1f : 2f) / (zFar - zNear))._m30((right + left) / (left - right))._m31((top + bottom) / (bottom - top))._m32((zZeroToOne ? zNear : zFar + zNear) / (zNear - zFar))._properties(2);
-        return this;
+        _m00(2f / (right - left))._m11(2f / (top - bottom))._m22((if (zZeroToOne) 1f else 2f) / (zFar - zNear))
+            ._m30((right + left) / (left - right))._m31((top + bottom) / (bottom - top))
+            ._m32((if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar))._properties(2)
+        return this
     }
 
-    public Matrix4f setOrthoLH(float left, float right, float bottom, float top, float zNear, float zFar) {
-        return this.setOrthoLH(left, right, bottom, top, zNear, zFar, false);
+    fun setOrthoLH(left: Float, right: Float, bottom: Float, top: Float, zNear: Float, zFar: Float): Matrix4f {
+        return this.setOrthoLH(left, right, bottom, top, zNear, zFar, false)
     }
 
-    public Matrix4f orthoSymmetric(float width, float height, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setOrthoSymmetric(width, height, zNear, zFar, zZeroToOne) : this.orthoSymmetricGeneric(width, height, zNear, zFar, zZeroToOne, dest);
+    @JvmOverloads
+    fun orthoSymmetric(
+        width: Float,
+        height: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean = false,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setOrthoSymmetric(
+            width,
+            height,
+            zNear,
+            zFar,
+            zZeroToOne
+        ) else orthoSymmetricGeneric(width, height, zNear, zFar, zZeroToOne, dest)
     }
 
-    private Matrix4f orthoSymmetricGeneric(float width, float height, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        float rm00 = 2f / width;
-        float rm11 = 2f / height;
-        float rm22 = (zZeroToOne ? 1f : 2f) / (zNear - zFar);
-        float rm32 = (zZeroToOne ? zNear : zFar + zNear) / (zNear - zFar);
-        dest._m30(this.m20 * rm32 + this.m30)._m31(this.m21 * rm32 + this.m31)._m32(this.m22 * rm32 + this.m32)._m33(this.m23 * rm32 + this.m33)._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m20(this.m20 * rm22)._m21(this.m21 * rm22)._m22(this.m22 * rm22)._m23(this.m23 * rm22)._properties(this.properties & -30);
-        return dest;
+    private fun orthoSymmetricGeneric(
+        width: Float,
+        height: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f
+    ): Matrix4f {
+        val rm00 = 2f / width
+        val rm11 = 2f / height
+        val rm22 = (if (zZeroToOne) 1f else 2f) / (zNear - zFar)
+        val rm32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
+        dest._m30(m20 * rm32 + m30)._m31(m21 * rm32 + m31)._m32(m22 * rm32 + m32)._m33(m23 * rm32 + m33)
+            ._m00(m00 * rm00)._m01(
+            m01 * rm00
+        )._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(
+            m20 * rm22
+        )._m21(m21 * rm22)._m22(m22 * rm22)._m23(m23 * rm22)._properties(properties and -30)
+        return dest
     }
 
-    public Matrix4f orthoSymmetric(float width, float height, float zNear, float zFar, Matrix4f dest) {
-        return this.orthoSymmetric(width, height, zNear, zFar, false, dest);
+    fun orthoSymmetric(width: Float, height: Float, zNear: Float, zFar: Float, dest: Matrix4f): Matrix4f {
+        return this.orthoSymmetric(width, height, zNear, zFar, false, dest)
     }
 
-    public Matrix4f orthoSymmetric(float width, float height, float zNear, float zFar, boolean zZeroToOne) {
-        return this.orthoSymmetric(width, height, zNear, zFar, zZeroToOne, this);
+    @JvmOverloads
+    fun orthoSymmetricLH(
+        width: Float,
+        height: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean = false,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setOrthoSymmetricLH(
+            width,
+            height,
+            zNear,
+            zFar,
+            zZeroToOne
+        ) else orthoSymmetricLHGeneric(width, height, zNear, zFar, zZeroToOne, dest)
     }
 
-    public Matrix4f orthoSymmetric(float width, float height, float zNear, float zFar) {
-        return this.orthoSymmetric(width, height, zNear, zFar, false, this);
+    private fun orthoSymmetricLHGeneric(
+        width: Float,
+        height: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f
+    ): Matrix4f {
+        val rm00 = 2f / width
+        val rm11 = 2f / height
+        val rm22 = (if (zZeroToOne) 1f else 2f) / (zFar - zNear)
+        val rm32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
+        dest._m30(m20 * rm32 + m30)._m31(m21 * rm32 + m31)._m32(m22 * rm32 + m32)._m33(m23 * rm32 + m33)
+            ._m00(m00 * rm00)._m01(
+            m01 * rm00
+        )._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(
+            m20 * rm22
+        )._m21(m21 * rm22)._m22(m22 * rm22)._m23(m23 * rm22)._properties(properties and -30)
+        return dest
     }
 
-    public Matrix4f orthoSymmetricLH(float width, float height, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setOrthoSymmetricLH(width, height, zNear, zFar, zZeroToOne) : this.orthoSymmetricLHGeneric(width, height, zNear, zFar, zZeroToOne, dest);
+    fun orthoSymmetricLH(width: Float, height: Float, zNear: Float, zFar: Float, dest: Matrix4f): Matrix4f {
+        return this.orthoSymmetricLH(width, height, zNear, zFar, false, dest)
     }
 
-    private Matrix4f orthoSymmetricLHGeneric(float width, float height, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        float rm00 = 2f / width;
-        float rm11 = 2f / height;
-        float rm22 = (zZeroToOne ? 1f : 2f) / (zFar - zNear);
-        float rm32 = (zZeroToOne ? zNear : zFar + zNear) / (zNear - zFar);
-        dest._m30(this.m20 * rm32 + this.m30)._m31(this.m21 * rm32 + this.m31)._m32(this.m22 * rm32 + this.m32)._m33(this.m23 * rm32 + this.m33)._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m20(this.m20 * rm22)._m21(this.m21 * rm22)._m22(this.m22 * rm22)._m23(this.m23 * rm22)._properties(this.properties & -30);
-        return dest;
-    }
-
-    public Matrix4f orthoSymmetricLH(float width, float height, float zNear, float zFar, Matrix4f dest) {
-        return this.orthoSymmetricLH(width, height, zNear, zFar, false, dest);
-    }
-
-    public Matrix4f orthoSymmetricLH(float width, float height, float zNear, float zFar, boolean zZeroToOne) {
-        return this.orthoSymmetricLH(width, height, zNear, zFar, zZeroToOne, this);
-    }
-
-    public Matrix4f orthoSymmetricLH(float width, float height, float zNear, float zFar) {
-        return this.orthoSymmetricLH(width, height, zNear, zFar, false, this);
-    }
-
-    public Matrix4f setOrthoSymmetric(float width, float height, float zNear, float zFar, boolean zZeroToOne) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun setOrthoSymmetric(width: Float, height: Float, zNear: Float, zFar: Float, zZeroToOne: Boolean): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m00(2f / width)._m11(2f / height)._m22((zZeroToOne ? 1f : 2f) / (zNear - zFar))._m32((zZeroToOne ? zNear : zFar + zNear) / (zNear - zFar))._properties(2);
-        return this;
+        _m00(2f / width)._m11(2f / height)._m22((if (zZeroToOne) 1f else 2f) / (zNear - zFar))
+            ._m32((if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar))._properties(2)
+        return this
     }
 
-    public Matrix4f setOrthoSymmetric(float width, float height, float zNear, float zFar) {
-        return this.setOrthoSymmetric(width, height, zNear, zFar, false);
+    fun setOrthoSymmetric(width: Float, height: Float, zNear: Float, zFar: Float): Matrix4f {
+        return this.setOrthoSymmetric(width, height, zNear, zFar, false)
     }
 
-    public Matrix4f setOrthoSymmetricLH(float width, float height, float zNear, float zFar, boolean zZeroToOne) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun setOrthoSymmetricLH(width: Float, height: Float, zNear: Float, zFar: Float, zZeroToOne: Boolean): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m00(2f / width)._m11(2f / height)._m22((zZeroToOne ? 1f : 2f) / (zFar - zNear))._m32((zZeroToOne ? zNear : zFar + zNear) / (zNear - zFar))._properties(2);
-        return this;
+        _m00(2f / width)._m11(2f / height)._m22((if (zZeroToOne) 1f else 2f) / (zFar - zNear))
+            ._m32((if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar))._properties(2)
+        return this
     }
 
-    public Matrix4f setOrthoSymmetricLH(float width, float height, float zNear, float zFar) {
-        return this.setOrthoSymmetricLH(width, height, zNear, zFar, false);
+    fun setOrthoSymmetricLH(width: Float, height: Float, zNear: Float, zFar: Float): Matrix4f {
+        return this.setOrthoSymmetricLH(width, height, zNear, zFar, false)
     }
 
-    public Matrix4f ortho2D(float left, float right, float bottom, float top, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setOrtho2D(left, right, bottom, top) : this.ortho2DGeneric(left, right, bottom, top, dest);
+    @JvmOverloads
+    fun ortho2D(left: Float, right: Float, bottom: Float, top: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) dest.setOrtho2D(left, right, bottom, top) else ortho2DGeneric(
+            left,
+            right,
+            bottom,
+            top,
+            dest
+        )
     }
 
-    private Matrix4f ortho2DGeneric(float left, float right, float bottom, float top, Matrix4f dest) {
-        float rm00 = 2f / (right - left);
-        float rm11 = 2f / (top - bottom);
-        float rm30 = (right + left) / (left - right);
-        float rm31 = (top + bottom) / (bottom - top);
-        dest._m30(this.m00 * rm30 + this.m10 * rm31 + this.m30)._m31(this.m01 * rm30 + this.m11 * rm31 + this.m31)._m32(this.m02 * rm30 + this.m12 * rm31 + this.m32)._m33(this.m03 * rm30 + this.m13 * rm31 + this.m33)._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22)._m23(-this.m23)._properties(this.properties & -30);
-        return dest;
+    private fun ortho2DGeneric(left: Float, right: Float, bottom: Float, top: Float, dest: Matrix4f): Matrix4f {
+        val rm00 = 2f / (right - left)
+        val rm11 = 2f / (top - bottom)
+        val rm30 = (right + left) / (left - right)
+        val rm31 = (top + bottom) / (bottom - top)
+        dest._m30(m00 * rm30 + m10 * rm31 + m30)._m31(m01 * rm30 + m11 * rm31 + m31)._m32(
+            m02 * rm30 + m12 * rm31 + m32
+        )._m33(m03 * rm30 + m13 * rm31 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(
+            m10 * rm11
+        )._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(-m20)._m21(-m21)._m22(-m22)._m23(-m23)._properties(
+            properties and -30
+        )
+        return dest
     }
 
-    public Matrix4f ortho2D(float left, float right, float bottom, float top) {
-        return this.ortho2D(left, right, bottom, top, this);
+    @JvmOverloads
+    fun ortho2DLH(left: Float, right: Float, bottom: Float, top: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) dest.setOrtho2DLH(left, right, bottom, top) else ortho2DLHGeneric(
+            left,
+            right,
+            bottom,
+            top,
+            dest
+        )
     }
 
-    public Matrix4f ortho2DLH(float left, float right, float bottom, float top, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setOrtho2DLH(left, right, bottom, top) : this.ortho2DLHGeneric(left, right, bottom, top, dest);
+    private fun ortho2DLHGeneric(left: Float, right: Float, bottom: Float, top: Float, dest: Matrix4f): Matrix4f {
+        val rm00 = 2f / (right - left)
+        val rm11 = 2f / (top - bottom)
+        val rm30 = (right + left) / (left - right)
+        val rm31 = (top + bottom) / (bottom - top)
+        dest._m30(m00 * rm30 + m10 * rm31 + m30)._m31(m01 * rm30 + m11 * rm31 + m31)._m32(
+            m02 * rm30 + m12 * rm31 + m32
+        )._m33(m03 * rm30 + m13 * rm31 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(
+            m10 * rm11
+        )._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(m20)._m21(m21)._m22(m22)._m23(m23)._properties(
+            properties and -30
+        )
+        return dest
     }
 
-    private Matrix4f ortho2DLHGeneric(float left, float right, float bottom, float top, Matrix4f dest) {
-        float rm00 = 2f / (right - left);
-        float rm11 = 2f / (top - bottom);
-        float rm30 = (right + left) / (left - right);
-        float rm31 = (top + bottom) / (bottom - top);
-        dest._m30(this.m00 * rm30 + this.m10 * rm31 + this.m30)._m31(this.m01 * rm30 + this.m11 * rm31 + this.m31)._m32(this.m02 * rm30 + this.m12 * rm31 + this.m32)._m33(this.m03 * rm30 + this.m13 * rm31 + this.m33)._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._properties(this.properties & -30);
-        return dest;
-    }
-
-    public Matrix4f ortho2DLH(float left, float right, float bottom, float top) {
-        return this.ortho2DLH(left, right, bottom, top, this);
-    }
-
-    public Matrix4f setOrtho2D(float left, float right, float bottom, float top) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun setOrtho2D(left: Float, right: Float, bottom: Float, top: Float): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m00(2f / (right - left))._m11(2f / (top - bottom))._m22(-1f)._m30((right + left) / (left - right))._m31((top + bottom) / (bottom - top))._properties(2);
-        return this;
+        _m00(2f / (right - left))._m11(2f / (top - bottom))._m22(-1f)._m30((right + left) / (left - right))
+            ._m31((top + bottom) / (bottom - top))._properties(2)
+        return this
     }
 
-    public Matrix4f setOrtho2DLH(float left, float right, float bottom, float top) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun setOrtho2DLH(left: Float, right: Float, bottom: Float, top: Float): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m00(2f / (right - left))._m11(2f / (top - bottom))._m30((right + left) / (left - right))._m31((top + bottom) / (bottom - top))._properties(2);
-        return this;
+        _m00(2f / (right - left))._m11(2f / (top - bottom))._m30((right + left) / (left - right))
+            ._m31((top + bottom) / (bottom - top))._properties(2)
+        return this
     }
 
-    public Matrix4f lookAlong(Vector3f dir, Vector3f up) {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this);
+    fun lookAlong(dir: Vector3f, up: Vector3f): Matrix4f {
+        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
     }
 
-    public Matrix4f lookAlong(Vector3f dir, Vector3f up, Matrix4f dest) {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dest);
+    fun lookAlong(dir: Vector3f, up: Vector3f, dest: Matrix4f): Matrix4f {
+        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dest)
     }
 
-    public Matrix4f lookAlong(float dirX, float dirY, float dirZ, float upX, float upY, float upZ, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setLookAlong(dirX, dirY, dirZ, upX, upY, upZ) : this.lookAlongGeneric(dirX, dirY, dirZ, upX, upY, upZ, dest);
+    @JvmOverloads
+    fun lookAlong(
+        dirX: Float,
+        dirY: Float,
+        dirZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setLookAlong(dirX, dirY, dirZ, upX, upY, upZ) else lookAlongGeneric(
+            dirX,
+            dirY,
+            dirZ,
+            upX,
+            upY,
+            upZ,
+            dest
+        )
     }
 
-    private Matrix4f lookAlongGeneric(float dirX, float dirY, float dirZ, float upX, float upY, float upZ, Matrix4f dest) {
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        dirX *= -invDirLength;
-        dirY *= -invDirLength;
-        dirZ *= -invDirLength;
-        float leftX = upY * dirZ - upZ * dirY;
-        float leftY = upZ * dirX - upX * dirZ;
-        float leftZ = upX * dirY - upY * dirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        float upnX = dirY * leftZ - dirZ * leftY;
-        float upnY = dirZ * leftX - dirX * leftZ;
-        float upnZ = dirX * leftY - dirY * leftX;
-        float nm00 = this.m00 * leftX + this.m10 * upnX + this.m20 * dirX;
-        float nm01 = this.m01 * leftX + this.m11 * upnX + this.m21 * dirX;
-        float nm02 = this.m02 * leftX + this.m12 * upnX + this.m22 * dirX;
-        float nm03 = this.m03 * leftX + this.m13 * upnX + this.m23 * dirX;
-        float nm10 = this.m00 * leftY + this.m10 * upnY + this.m20 * dirY;
-        float nm11 = this.m01 * leftY + this.m11 * upnY + this.m21 * dirY;
-        float nm12 = this.m02 * leftY + this.m12 * upnY + this.m22 * dirY;
-        float nm13 = this.m03 * leftY + this.m13 * upnY + this.m23 * dirY;
-        return dest._m20(this.m00 * leftZ + this.m10 * upnZ + this.m20 * dirZ)._m21(this.m01 * leftZ + this.m11 * upnZ + this.m21 * dirZ)._m22(this.m02 * leftZ + this.m12 * upnZ + this.m22 * dirZ)._m23(this.m03 * leftZ + this.m13 * upnZ + this.m23 * dirZ)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    private fun lookAlongGeneric(
+        dirX: Float,
+        dirY: Float,
+        dirZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float,
+        dest: Matrix4f
+    ): Matrix4f {
+        var dirX = dirX
+        var dirY = dirY
+        var dirZ = dirZ
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        dirX *= -invDirLength
+        dirY *= -invDirLength
+        dirZ *= -invDirLength
+        var leftX = upY * dirZ - upZ * dirY
+        var leftY = upZ * dirX - upX * dirZ
+        var leftZ = upX * dirY - upY * dirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        val upnX = dirY * leftZ - dirZ * leftY
+        val upnY = dirZ * leftX - dirX * leftZ
+        val upnZ = dirX * leftY - dirY * leftX
+        val nm00 = m00 * leftX + m10 * upnX + m20 * dirX
+        val nm01 = m01 * leftX + m11 * upnX + m21 * dirX
+        val nm02 = m02 * leftX + m12 * upnX + m22 * dirX
+        val nm03 = m03 * leftX + m13 * upnX + m23 * dirX
+        val nm10 = m00 * leftY + m10 * upnY + m20 * dirY
+        val nm11 = m01 * leftY + m11 * upnY + m21 * dirY
+        val nm12 = m02 * leftY + m12 * upnY + m22 * dirY
+        val nm13 = m03 * leftY + m13 * upnY + m23 * dirY
+        return dest._m20(m00 * leftZ + m10 * upnZ + m20 * dirZ)._m21(m01 * leftZ + m11 * upnZ + m21 * dirZ)._m22(
+            m02 * leftZ + m12 * upnZ + m22 * dirZ
+        )._m23(m03 * leftZ + m13 * upnZ + m23 * dirZ)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
+            ._m12(nm12)._m13(nm13)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f lookAlong(float dirX, float dirY, float dirZ, float upX, float upY, float upZ) {
-        return this.lookAlong(dirX, dirY, dirZ, upX, upY, upZ, this);
+    fun setLookAlong(dir: Vector3f, up: Vector3f): Matrix4f {
+        return this.setLookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z)
     }
 
-    public Matrix4f setLookAlong(Vector3f dir, Vector3f up) {
-        return this.setLookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z);
+    fun setLookAlong(dirX: Float, dirY: Float, dirZ: Float, upX: Float, upY: Float, upZ: Float): Matrix4f {
+        var dirX = dirX
+        var dirY = dirY
+        var dirZ = dirZ
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        dirX *= -invDirLength
+        dirY *= -invDirLength
+        dirZ *= -invDirLength
+        var leftX = upY * dirZ - upZ * dirY
+        var leftY = upZ * dirX - upX * dirZ
+        var leftZ = upX * dirY - upY * dirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        _m00(leftX)._m01(dirY * leftZ - dirZ * leftY)._m02(dirX)._m03(0f)._m10(leftY)._m11(dirZ * leftX - dirX * leftZ)
+            ._m12(dirY)._m13(0f)._m20(leftZ)._m21(dirX * leftY - dirY * leftX)._m22(dirZ)._m23(0f)._m30(0f)._m31(0f)
+            ._m32(0f)._m33(1f)._properties(18)
+        return this
     }
 
-    public Matrix4f setLookAlong(float dirX, float dirY, float dirZ, float upX, float upY, float upZ) {
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        dirX *= -invDirLength;
-        dirY *= -invDirLength;
-        dirZ *= -invDirLength;
-        float leftX = upY * dirZ - upZ * dirY;
-        float leftY = upZ * dirX - upX * dirZ;
-        float leftZ = upX * dirY - upY * dirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        this._m00(leftX)._m01(dirY * leftZ - dirZ * leftY)._m02(dirX)._m03(0f)._m10(leftY)._m11(dirZ * leftX - dirX * leftZ)._m12(dirY)._m13(0f)._m20(leftZ)._m21(dirX * leftY - dirY * leftX)._m22(dirZ)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(18);
-        return this;
+    fun setLookAt(eye: Vector3f, center: Vector3f, up: Vector3f): Matrix4f {
+        return this.setLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z)
     }
 
-    public Matrix4f setLookAt(Vector3f eye, Vector3f center, Vector3f up) {
-        return this.setLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z);
+    fun setLookAt(
+        eyeX: Float,
+        eyeY: Float,
+        eyeZ: Float,
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float
+    ): Matrix4f {
+        var dirX = eyeX - centerX
+        var dirY = eyeY - centerY
+        var dirZ = eyeZ - centerZ
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        dirX *= invDirLength
+        dirY *= invDirLength
+        dirZ *= invDirLength
+        var leftX = upY * dirZ - upZ * dirY
+        var leftY = upZ * dirX - upX * dirZ
+        var leftZ = upX * dirY - upY * dirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        val upnX = dirY * leftZ - dirZ * leftY
+        val upnY = dirZ * leftX - dirX * leftZ
+        val upnZ = dirX * leftY - dirY * leftX
+        return _m00(leftX)._m01(upnX)._m02(dirX)._m03(0f)._m10(leftY)._m11(upnY)._m12(dirY)._m13(0f)._m20(leftZ)
+            ._m21(upnZ)._m22(dirZ)._m23(0f)._m30(-(leftX * eyeX + leftY * eyeY + leftZ * eyeZ))
+            ._m31(-(upnX * eyeX + upnY * eyeY + upnZ * eyeZ))._m32(-(dirX * eyeX + dirY * eyeY + dirZ * eyeZ))._m33(1f)
+            ._properties(18)
     }
 
-    public Matrix4f setLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
-        float dirX = eyeX - centerX;
-        float dirY = eyeY - centerY;
-        float dirZ = eyeZ - centerZ;
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        dirX *= invDirLength;
-        dirY *= invDirLength;
-        dirZ *= invDirLength;
-        float leftX = upY * dirZ - upZ * dirY;
-        float leftY = upZ * dirX - upX * dirZ;
-        float leftZ = upX * dirY - upY * dirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        float upnX = dirY * leftZ - dirZ * leftY;
-        float upnY = dirZ * leftX - dirX * leftZ;
-        float upnZ = dirX * leftY - dirY * leftX;
-        return this._m00(leftX)._m01(upnX)._m02(dirX)._m03(0f)._m10(leftY)._m11(upnY)._m12(dirY)._m13(0f)._m20(leftZ)._m21(upnZ)._m22(dirZ)._m23(0f)._m30(-(leftX * eyeX + leftY * eyeY + leftZ * eyeZ))._m31(-(upnX * eyeX + upnY * eyeY + upnZ * eyeZ))._m32(-(dirX * eyeX + dirY * eyeY + dirZ * eyeZ))._m33(1f)._properties(18);
+    fun lookAt(eye: Vector3f, center: Vector3f, up: Vector3f, dest: Matrix4f): Matrix4f {
+        return this.lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dest)
     }
 
-    public Matrix4f lookAt(Vector3f eye, Vector3f center, Vector3f up, Matrix4f dest) {
-        return this.lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dest);
+    fun lookAt(eye: Vector3f, center: Vector3f, up: Vector3f): Matrix4f {
+        return this.lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, this)
     }
 
-    public Matrix4f lookAt(Vector3f eye, Vector3f center, Vector3f up) {
-        return this.lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, this);
-    }
-
-    public Matrix4f lookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+    @JvmOverloads
+    fun lookAt(
+        eyeX: Float,
+        eyeY: Float,
+        eyeZ: Float,
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
         } else {
-            return (this.properties & 1) != 0 ? this.lookAtPerspective(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dest) : this.lookAtGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dest);
+            if (properties and 1 != 0) lookAtPerspective(
+                eyeX,
+                eyeY,
+                eyeZ,
+                centerX,
+                centerY,
+                centerZ,
+                upX,
+                upY,
+                upZ,
+                dest
+            ) else lookAtGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dest)
         }
     }
 
-    private Matrix4f lookAtGeneric(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ, Matrix4f dest) {
-        float dirX = eyeX - centerX;
-        float dirY = eyeY - centerY;
-        float dirZ = eyeZ - centerZ;
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        dirX *= invDirLength;
-        dirY *= invDirLength;
-        dirZ *= invDirLength;
-        float leftX = upY * dirZ - upZ * dirY;
-        float leftY = upZ * dirX - upX * dirZ;
-        float leftZ = upX * dirY - upY * dirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        float upnX = dirY * leftZ - dirZ * leftY;
-        float upnY = dirZ * leftX - dirX * leftZ;
-        float upnZ = dirX * leftY - dirY * leftX;
-        float rm30 = -(leftX * eyeX + leftY * eyeY + leftZ * eyeZ);
-        float rm31 = -(upnX * eyeX + upnY * eyeY + upnZ * eyeZ);
-        float rm32 = -(dirX * eyeX + dirY * eyeY + dirZ * eyeZ);
-        float nm00 = this.m00 * leftX + this.m10 * upnX + this.m20 * dirX;
-        float nm01 = this.m01 * leftX + this.m11 * upnX + this.m21 * dirX;
-        float nm02 = this.m02 * leftX + this.m12 * upnX + this.m22 * dirX;
-        float nm03 = this.m03 * leftX + this.m13 * upnX + this.m23 * dirX;
-        float nm10 = this.m00 * leftY + this.m10 * upnY + this.m20 * dirY;
-        float nm11 = this.m01 * leftY + this.m11 * upnY + this.m21 * dirY;
-        float nm12 = this.m02 * leftY + this.m12 * upnY + this.m22 * dirY;
-        float nm13 = this.m03 * leftY + this.m13 * upnY + this.m23 * dirY;
-        return dest._m30(this.m00 * rm30 + this.m10 * rm31 + this.m20 * rm32 + this.m30)._m31(this.m01 * rm30 + this.m11 * rm31 + this.m21 * rm32 + this.m31)._m32(this.m02 * rm30 + this.m12 * rm31 + this.m22 * rm32 + this.m32)._m33(this.m03 * rm30 + this.m13 * rm31 + this.m23 * rm32 + this.m33)._m20(this.m00 * leftZ + this.m10 * upnZ + this.m20 * dirZ)._m21(this.m01 * leftZ + this.m11 * upnZ + this.m21 * dirZ)._m22(this.m02 * leftZ + this.m12 * upnZ + this.m22 * dirZ)._m23(this.m03 * leftZ + this.m13 * upnZ + this.m23 * dirZ)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._properties(this.properties & -14);
+    private fun lookAtGeneric(
+        eyeX: Float,
+        eyeY: Float,
+        eyeZ: Float,
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float,
+        dest: Matrix4f
+    ): Matrix4f {
+        var dirX = eyeX - centerX
+        var dirY = eyeY - centerY
+        var dirZ = eyeZ - centerZ
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        dirX *= invDirLength
+        dirY *= invDirLength
+        dirZ *= invDirLength
+        var leftX = upY * dirZ - upZ * dirY
+        var leftY = upZ * dirX - upX * dirZ
+        var leftZ = upX * dirY - upY * dirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        val upnX = dirY * leftZ - dirZ * leftY
+        val upnY = dirZ * leftX - dirX * leftZ
+        val upnZ = dirX * leftY - dirY * leftX
+        val rm30 = -(leftX * eyeX + leftY * eyeY + leftZ * eyeZ)
+        val rm31 = -(upnX * eyeX + upnY * eyeY + upnZ * eyeZ)
+        val rm32 = -(dirX * eyeX + dirY * eyeY + dirZ * eyeZ)
+        val nm00 = m00 * leftX + m10 * upnX + m20 * dirX
+        val nm01 = m01 * leftX + m11 * upnX + m21 * dirX
+        val nm02 = m02 * leftX + m12 * upnX + m22 * dirX
+        val nm03 = m03 * leftX + m13 * upnX + m23 * dirX
+        val nm10 = m00 * leftY + m10 * upnY + m20 * dirY
+        val nm11 = m01 * leftY + m11 * upnY + m21 * dirY
+        val nm12 = m02 * leftY + m12 * upnY + m22 * dirY
+        val nm13 = m03 * leftY + m13 * upnY + m23 * dirY
+        return dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)
+            ._m32(
+                m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
+            )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m20(
+            m00 * leftZ + m10 * upnZ + m20 * dirZ
+        )._m21(m01 * leftZ + m11 * upnZ + m21 * dirZ)._m22(m02 * leftZ + m12 * upnZ + m22 * dirZ)._m23(
+            m03 * leftZ + m13 * upnZ + m23 * dirZ
+        )._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+            ._properties(properties and -14)
     }
 
-    public Matrix4f lookAtPerspective(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ, Matrix4f dest) {
-        float dirX = eyeX - centerX;
-        float dirY = eyeY - centerY;
-        float dirZ = eyeZ - centerZ;
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        dirX *= invDirLength;
-        dirY *= invDirLength;
-        dirZ *= invDirLength;
-        float leftX = upY * dirZ - upZ * dirY;
-        float leftY = upZ * dirX - upX * dirZ;
-        float leftZ = upX * dirY - upY * dirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        float upnX = dirY * leftZ - dirZ * leftY;
-        float upnY = dirZ * leftX - dirX * leftZ;
-        float upnZ = dirX * leftY - dirY * leftX;
-        float rm30 = -(leftX * eyeX + leftY * eyeY + leftZ * eyeZ);
-        float rm31 = -(upnX * eyeX + upnY * eyeY + upnZ * eyeZ);
-        float rm32 = -(dirX * eyeX + dirY * eyeY + dirZ * eyeZ);
-        float nm10 = this.m00 * leftY;
-        float nm20 = this.m00 * leftZ;
-        float nm21 = this.m11 * upnZ;
-        float nm30 = this.m00 * rm30;
-        float nm31 = this.m11 * rm31;
-        float nm32 = this.m22 * rm32 + this.m32;
-        float nm33 = this.m23 * rm32;
-        return dest._m00(this.m00 * leftX)._m01(this.m11 * upnX)._m02(this.m22 * dirX)._m03(this.m23 * dirX)._m10(nm10)._m11(this.m11 * upnY)._m12(this.m22 * dirY)._m13(this.m23 * dirY)._m20(nm20)._m21(nm21)._m22(this.m22 * dirZ)._m23(this.m23 * dirZ)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
+    fun lookAtPerspective(
+        eyeX: Float,
+        eyeY: Float,
+        eyeZ: Float,
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float,
+        dest: Matrix4f
+    ): Matrix4f {
+        var dirX = eyeX - centerX
+        var dirY = eyeY - centerY
+        var dirZ = eyeZ - centerZ
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        dirX *= invDirLength
+        dirY *= invDirLength
+        dirZ *= invDirLength
+        var leftX = upY * dirZ - upZ * dirY
+        var leftY = upZ * dirX - upX * dirZ
+        var leftZ = upX * dirY - upY * dirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        val upnX = dirY * leftZ - dirZ * leftY
+        val upnY = dirZ * leftX - dirX * leftZ
+        val upnZ = dirX * leftY - dirY * leftX
+        val rm30 = -(leftX * eyeX + leftY * eyeY + leftZ * eyeZ)
+        val rm31 = -(upnX * eyeX + upnY * eyeY + upnZ * eyeZ)
+        val rm32 = -(dirX * eyeX + dirY * eyeY + dirZ * eyeZ)
+        val nm10 = m00 * leftY
+        val nm20 = m00 * leftZ
+        val nm21 = m11 * upnZ
+        val nm30 = m00 * rm30
+        val nm31 = m11 * rm31
+        val nm32 = m22 * rm32 + m32
+        val nm33 = m23 * rm32
+        return dest._m00(m00 * leftX)._m01(m11 * upnX)._m02(m22 * dirX)._m03(m23 * dirX)._m10(nm10)._m11(m11 * upnY)
+            ._m12(
+                m22 * dirY
+            )._m13(m23 * dirY)._m20(nm20)._m21(nm21)._m22(m22 * dirZ)._m23(m23 * dirZ)._m30(nm30)._m31(nm31)._m32(nm32)
+            ._m33(nm33)._properties(0)
     }
 
-    public Matrix4f lookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
-        return this.lookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, this);
+    fun setLookAtLH(eye: Vector3f, center: Vector3f, up: Vector3f): Matrix4f {
+        return this.setLookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z)
     }
 
-    public Matrix4f setLookAtLH(Vector3f eye, Vector3f center, Vector3f up) {
-        return this.setLookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z);
+    fun setLookAtLH(
+        eyeX: Float,
+        eyeY: Float,
+        eyeZ: Float,
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float
+    ): Matrix4f {
+        var dirX = centerX - eyeX
+        var dirY = centerY - eyeY
+        var dirZ = centerZ - eyeZ
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        dirX *= invDirLength
+        dirY *= invDirLength
+        dirZ *= invDirLength
+        var leftX = upY * dirZ - upZ * dirY
+        var leftY = upZ * dirX - upX * dirZ
+        var leftZ = upX * dirY - upY * dirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        val upnX = dirY * leftZ - dirZ * leftY
+        val upnY = dirZ * leftX - dirX * leftZ
+        val upnZ = dirX * leftY - dirY * leftX
+        _m00(leftX)._m01(upnX)._m02(dirX)._m03(0f)._m10(leftY)._m11(upnY)._m12(dirY)._m13(0f)._m20(leftZ)._m21(upnZ)
+            ._m22(dirZ)._m23(0f)._m30(-(leftX * eyeX + leftY * eyeY + leftZ * eyeZ))
+            ._m31(-(upnX * eyeX + upnY * eyeY + upnZ * eyeZ))._m32(-(dirX * eyeX + dirY * eyeY + dirZ * eyeZ))._m33(1f)
+            ._properties(18)
+        return this
     }
 
-    public Matrix4f setLookAtLH(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
-        float dirX = centerX - eyeX;
-        float dirY = centerY - eyeY;
-        float dirZ = centerZ - eyeZ;
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        dirX *= invDirLength;
-        dirY *= invDirLength;
-        dirZ *= invDirLength;
-        float leftX = upY * dirZ - upZ * dirY;
-        float leftY = upZ * dirX - upX * dirZ;
-        float leftZ = upX * dirY - upY * dirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        float upnX = dirY * leftZ - dirZ * leftY;
-        float upnY = dirZ * leftX - dirX * leftZ;
-        float upnZ = dirX * leftY - dirY * leftX;
-        this._m00(leftX)._m01(upnX)._m02(dirX)._m03(0f)._m10(leftY)._m11(upnY)._m12(dirY)._m13(0f)._m20(leftZ)._m21(upnZ)._m22(dirZ)._m23(0f)._m30(-(leftX * eyeX + leftY * eyeY + leftZ * eyeZ))._m31(-(upnX * eyeX + upnY * eyeY + upnZ * eyeZ))._m32(-(dirX * eyeX + dirY * eyeY + dirZ * eyeZ))._m33(1f)._properties(18);
-        return this;
+    fun lookAtLH(eye: Vector3f, center: Vector3f, up: Vector3f, dest: Matrix4f): Matrix4f {
+        return this.lookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dest)
     }
 
-    public Matrix4f lookAtLH(Vector3f eye, Vector3f center, Vector3f up, Matrix4f dest) {
-        return this.lookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dest);
+    fun lookAtLH(eye: Vector3f, center: Vector3f, up: Vector3f): Matrix4f {
+        return this.lookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, this)
     }
 
-    public Matrix4f lookAtLH(Vector3f eye, Vector3f center, Vector3f up) {
-        return this.lookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, this);
-    }
-
-    public Matrix4f lookAtLH(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.setLookAtLH(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+    @JvmOverloads
+    fun lookAtLH(
+        eyeX: Float,
+        eyeY: Float,
+        eyeZ: Float,
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.setLookAtLH(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
         } else {
-            return (this.properties & 1) != 0 ? this.lookAtPerspectiveLH(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dest) : this.lookAtLHGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dest);
+            if (properties and 1 != 0) lookAtPerspectiveLH(
+                eyeX,
+                eyeY,
+                eyeZ,
+                centerX,
+                centerY,
+                centerZ,
+                upX,
+                upY,
+                upZ,
+                dest
+            ) else lookAtLHGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dest)
         }
     }
 
-    private Matrix4f lookAtLHGeneric(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ, Matrix4f dest) {
-        float dirX = centerX - eyeX;
-        float dirY = centerY - eyeY;
-        float dirZ = centerZ - eyeZ;
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        dirX *= invDirLength;
-        dirY *= invDirLength;
-        dirZ *= invDirLength;
-        float leftX = upY * dirZ - upZ * dirY;
-        float leftY = upZ * dirX - upX * dirZ;
-        float leftZ = upX * dirY - upY * dirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        float upnX = dirY * leftZ - dirZ * leftY;
-        float upnY = dirZ * leftX - dirX * leftZ;
-        float upnZ = dirX * leftY - dirY * leftX;
-        float rm30 = -(leftX * eyeX + leftY * eyeY + leftZ * eyeZ);
-        float rm31 = -(upnX * eyeX + upnY * eyeY + upnZ * eyeZ);
-        float rm32 = -(dirX * eyeX + dirY * eyeY + dirZ * eyeZ);
-        float nm00 = this.m00 * leftX + this.m10 * upnX + this.m20 * dirX;
-        float nm01 = this.m01 * leftX + this.m11 * upnX + this.m21 * dirX;
-        float nm02 = this.m02 * leftX + this.m12 * upnX + this.m22 * dirX;
-        float nm03 = this.m03 * leftX + this.m13 * upnX + this.m23 * dirX;
-        float nm10 = this.m00 * leftY + this.m10 * upnY + this.m20 * dirY;
-        float nm11 = this.m01 * leftY + this.m11 * upnY + this.m21 * dirY;
-        float nm12 = this.m02 * leftY + this.m12 * upnY + this.m22 * dirY;
-        float nm13 = this.m03 * leftY + this.m13 * upnY + this.m23 * dirY;
-        return dest._m30(this.m00 * rm30 + this.m10 * rm31 + this.m20 * rm32 + this.m30)._m31(this.m01 * rm30 + this.m11 * rm31 + this.m21 * rm32 + this.m31)._m32(this.m02 * rm30 + this.m12 * rm31 + this.m22 * rm32 + this.m32)._m33(this.m03 * rm30 + this.m13 * rm31 + this.m23 * rm32 + this.m33)._m20(this.m00 * leftZ + this.m10 * upnZ + this.m20 * dirZ)._m21(this.m01 * leftZ + this.m11 * upnZ + this.m21 * dirZ)._m22(this.m02 * leftZ + this.m12 * upnZ + this.m22 * dirZ)._m23(this.m03 * leftZ + this.m13 * upnZ + this.m23 * dirZ)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._properties(this.properties & -14);
+    private fun lookAtLHGeneric(
+        eyeX: Float,
+        eyeY: Float,
+        eyeZ: Float,
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float,
+        dest: Matrix4f
+    ): Matrix4f {
+        var dirX = centerX - eyeX
+        var dirY = centerY - eyeY
+        var dirZ = centerZ - eyeZ
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        dirX *= invDirLength
+        dirY *= invDirLength
+        dirZ *= invDirLength
+        var leftX = upY * dirZ - upZ * dirY
+        var leftY = upZ * dirX - upX * dirZ
+        var leftZ = upX * dirY - upY * dirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        val upnX = dirY * leftZ - dirZ * leftY
+        val upnY = dirZ * leftX - dirX * leftZ
+        val upnZ = dirX * leftY - dirY * leftX
+        val rm30 = -(leftX * eyeX + leftY * eyeY + leftZ * eyeZ)
+        val rm31 = -(upnX * eyeX + upnY * eyeY + upnZ * eyeZ)
+        val rm32 = -(dirX * eyeX + dirY * eyeY + dirZ * eyeZ)
+        val nm00 = m00 * leftX + m10 * upnX + m20 * dirX
+        val nm01 = m01 * leftX + m11 * upnX + m21 * dirX
+        val nm02 = m02 * leftX + m12 * upnX + m22 * dirX
+        val nm03 = m03 * leftX + m13 * upnX + m23 * dirX
+        val nm10 = m00 * leftY + m10 * upnY + m20 * dirY
+        val nm11 = m01 * leftY + m11 * upnY + m21 * dirY
+        val nm12 = m02 * leftY + m12 * upnY + m22 * dirY
+        val nm13 = m03 * leftY + m13 * upnY + m23 * dirY
+        return dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)
+            ._m32(
+                m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
+            )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m20(
+            m00 * leftZ + m10 * upnZ + m20 * dirZ
+        )._m21(m01 * leftZ + m11 * upnZ + m21 * dirZ)._m22(m02 * leftZ + m12 * upnZ + m22 * dirZ)._m23(
+            m03 * leftZ + m13 * upnZ + m23 * dirZ
+        )._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+            ._properties(properties and -14)
     }
 
-    public Matrix4f lookAtLH(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
-        return this.lookAtLH(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, this);
+    fun lookAtPerspectiveLH(
+        eyeX: Float,
+        eyeY: Float,
+        eyeZ: Float,
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float,
+        dest: Matrix4f
+    ): Matrix4f {
+        var dirX = centerX - eyeX
+        var dirY = centerY - eyeY
+        var dirZ = centerZ - eyeZ
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        dirX *= invDirLength
+        dirY *= invDirLength
+        dirZ *= invDirLength
+        var leftX = upY * dirZ - upZ * dirY
+        var leftY = upZ * dirX - upX * dirZ
+        var leftZ = upX * dirY - upY * dirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        val upnX = dirY * leftZ - dirZ * leftY
+        val upnY = dirZ * leftX - dirX * leftZ
+        val upnZ = dirX * leftY - dirY * leftX
+        val rm30 = -(leftX * eyeX + leftY * eyeY + leftZ * eyeZ)
+        val rm31 = -(upnX * eyeX + upnY * eyeY + upnZ * eyeZ)
+        val rm32 = -(dirX * eyeX + dirY * eyeY + dirZ * eyeZ)
+        val nm00 = m00 * leftX
+        val nm01 = m11 * upnX
+        val nm02 = m22 * dirX
+        val nm03 = m23 * dirX
+        val nm10 = m00 * leftY
+        val nm11 = m11 * upnY
+        val nm12 = m22 * dirY
+        val nm13 = m23 * dirY
+        val nm20 = m00 * leftZ
+        val nm21 = m11 * upnZ
+        val nm22 = m22 * dirZ
+        val nm23 = m23 * dirZ
+        val nm30 = m00 * rm30
+        val nm31 = m11 * rm31
+        val nm32 = m22 * rm32 + m32
+        val nm33 = m23 * rm32
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
 
-    public Matrix4f lookAtPerspectiveLH(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ, Matrix4f dest) {
-        float dirX = centerX - eyeX;
-        float dirY = centerY - eyeY;
-        float dirZ = centerZ - eyeZ;
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        dirX *= invDirLength;
-        dirY *= invDirLength;
-        dirZ *= invDirLength;
-        float leftX = upY * dirZ - upZ * dirY;
-        float leftY = upZ * dirX - upX * dirZ;
-        float leftZ = upX * dirY - upY * dirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        float upnX = dirY * leftZ - dirZ * leftY;
-        float upnY = dirZ * leftX - dirX * leftZ;
-        float upnZ = dirX * leftY - dirY * leftX;
-        float rm30 = -(leftX * eyeX + leftY * eyeY + leftZ * eyeZ);
-        float rm31 = -(upnX * eyeX + upnY * eyeY + upnZ * eyeZ);
-        float rm32 = -(dirX * eyeX + dirY * eyeY + dirZ * eyeZ);
-        float nm00 = this.m00 * leftX;
-        float nm01 = this.m11 * upnX;
-        float nm02 = this.m22 * dirX;
-        float nm03 = this.m23 * dirX;
-        float nm10 = this.m00 * leftY;
-        float nm11 = this.m11 * upnY;
-        float nm12 = this.m22 * dirY;
-        float nm13 = this.m23 * dirY;
-        float nm20 = this.m00 * leftZ;
-        float nm21 = this.m11 * upnZ;
-        float nm22 = this.m22 * dirZ;
-        float nm23 = this.m23 * dirZ;
-        float nm30 = this.m00 * rm30;
-        float nm31 = this.m11 * rm31;
-        float nm32 = this.m22 * rm32 + this.m32;
-        float nm33 = this.m23 * rm32;
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
+    @JvmOverloads
+    fun tile(x: Int, y: Int, w: Int, h: Int, dest: Matrix4f = this): Matrix4f {
+        val tx = (w - 1 - (x shl 1)).toFloat()
+        val ty = (h - 1 - (y shl 1)).toFloat()
+        return dest._m30(Math.fma(m00, tx, Math.fma(m10, ty, m30)))._m31(
+            Math.fma(
+                m01, tx, Math.fma(
+                    m11, ty, m31
+                )
+            )
+        )._m32(Math.fma(m02, tx, Math.fma(m12, ty, m32)))._m33(
+            Math.fma(
+                m03, tx, Math.fma(
+                    m13, ty, m33
+                )
+            )
+        )._m00(m00 * w.toFloat())._m01(m01 * w.toFloat())._m02(m02 * w.toFloat())._m03(m03 * w.toFloat())
+            ._m10(m10 * h.toFloat())._m11(
+            m11 * h.toFloat()
+        )._m12(m12 * h.toFloat())._m13(m13 * h.toFloat())._m20(m20)._m21(m21)._m22(m22)._m23(m23)._properties(
+            properties and -30
+        )
     }
 
-    public Matrix4f tile(int x, int y, int w, int h) {
-        return this.tile(x, y, w, h, this);
+    @JvmOverloads
+    fun perspective(
+        fovy: Float,
+        aspect: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setPerspective(
+            fovy,
+            aspect,
+            zNear,
+            zFar,
+            zZeroToOne
+        ) else perspectiveGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dest)
     }
 
-    public Matrix4f tile(int x, int y, int w, int h, Matrix4f dest) {
-        float tx = (float)(w - 1 - (x << 1));
-        float ty = (float)(h - 1 - (y << 1));
-        return dest._m30(Math.fma(this.m00, tx, Math.fma(this.m10, ty, this.m30)))._m31(Math.fma(this.m01, tx, Math.fma(this.m11, ty, this.m31)))._m32(Math.fma(this.m02, tx, Math.fma(this.m12, ty, this.m32)))._m33(Math.fma(this.m03, tx, Math.fma(this.m13, ty, this.m33)))._m00(this.m00 * (float)w)._m01(this.m01 * (float)w)._m02(this.m02 * (float)w)._m03(this.m03 * (float)w)._m10(this.m10 * (float)h)._m11(this.m11 * (float)h)._m12(this.m12 * (float)h)._m13(this.m13 * (float)h)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._properties(this.properties & -30);
-    }
-
-    public Matrix4f perspective(float fovy, float aspect, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setPerspective(fovy, aspect, zNear, zFar, zZeroToOne) : this.perspectiveGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dest);
-    }
-
-    private Matrix4f perspectiveGeneric(float fovy, float aspect, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        float h = Math.tan(fovy * 0.5F);
-        float rm00 = 1f / (h * aspect);
-        float rm11 = 1f / h;
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float rm22;
-        float rm32;
-        float e;
+    private fun perspectiveGeneric(
+        fovy: Float,
+        aspect: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f
+    ): Matrix4f {
+        val h = Math.tan(fovy * 0.5f)
+        val rm00 = 1f / (h * aspect)
+        val rm11 = 1f / h
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val rm22: Float
+        val rm32: Float
+        var e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            rm22 = e - 1f;
-            rm32 = (e - (zZeroToOne ? 1f : 2f)) * zNear;
+            e = 1.0E-6f
+            rm22 = e - 1f
+            rm32 = (e - if (zZeroToOne) 1f else 2f) * zNear
         } else if (nearInf) {
-            e = 1.0E-6F;
-            rm22 = (zZeroToOne ? 0f : 1f) - e;
-            rm32 = ((zZeroToOne ? 1f : 2f) - e) * zFar;
+            e = 1.0E-6f
+            rm22 = (if (zZeroToOne) 0f else 1f) - e
+            rm32 = ((if (zZeroToOne) 1f else 2f) - e) * zFar
         } else {
-            rm22 = (zZeroToOne ? zFar : zFar + zNear) / (zNear - zFar);
-            rm32 = (zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar);
+            rm22 = (if (zZeroToOne) zFar else zFar + zNear) / (zNear - zFar)
+            rm32 = (if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar)
         }
-
-        e = this.m20 * rm22 - this.m30;
-        float nm21 = this.m21 * rm22 - this.m31;
-        float nm22 = this.m22 * rm22 - this.m32;
-        float nm23 = this.m23 * rm22 - this.m33;
-        dest._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m30(this.m20 * rm32)._m31(this.m21 * rm32)._m32(this.m22 * rm32)._m33(this.m23 * rm32)._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)._properties(this.properties & -31);
-        return dest;
+        e = m20 * rm22 - m30
+        val nm21 = m21 * rm22 - m31
+        val nm22 = m22 * rm22 - m32
+        val nm23 = m23 * rm22 - m33
+        dest._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
+            m12 * rm11
+        )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
+            ._m22(nm22)._m23(nm23)._properties(
+            properties and -31
+        )
+        return dest
     }
 
-    public Matrix4f perspective(float fovy, float aspect, float zNear, float zFar, Matrix4f dest) {
-        return this.perspective(fovy, aspect, zNear, zFar, false, dest);
+    @JvmOverloads
+    fun perspective(fovy: Float, aspect: Float, zNear: Float, zFar: Float, dest: Matrix4f = this): Matrix4f {
+        return this.perspective(fovy, aspect, zNear, zFar, false, dest)
     }
 
-    public Matrix4f perspective(float fovy, float aspect, float zNear, float zFar, boolean zZeroToOne) {
-        return this.perspective(fovy, aspect, zNear, zFar, zZeroToOne, this);
+    @JvmOverloads
+    fun perspectiveRect(
+        width: Float,
+        height: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setPerspectiveRect(
+            width,
+            height,
+            zNear,
+            zFar,
+            zZeroToOne
+        ) else perspectiveRectGeneric(width, height, zNear, zFar, zZeroToOne, dest)
     }
 
-    public Matrix4f perspective(float fovy, float aspect, float zNear, float zFar) {
-        return this.perspective(fovy, aspect, zNear, zFar, this);
-    }
-
-    public Matrix4f perspectiveRect(float width, float height, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setPerspectiveRect(width, height, zNear, zFar, zZeroToOne) : this.perspectiveRectGeneric(width, height, zNear, zFar, zZeroToOne, dest);
-    }
-
-    private Matrix4f perspectiveRectGeneric(float width, float height, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        float rm00 = (zNear + zNear) / width;
-        float rm11 = (zNear + zNear) / height;
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float rm22;
-        float rm32;
-        float e;
+    private fun perspectiveRectGeneric(
+        width: Float,
+        height: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f
+    ): Matrix4f {
+        val rm00 = (zNear + zNear) / width
+        val rm11 = (zNear + zNear) / height
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val rm22: Float
+        val rm32: Float
+        var e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            rm22 = e - 1f;
-            rm32 = (e - (zZeroToOne ? 1f : 2f)) * zNear;
+            e = 1.0E-6f
+            rm22 = e - 1f
+            rm32 = (e - if (zZeroToOne) 1f else 2f) * zNear
         } else if (nearInf) {
-            e = 1.0E-6F;
-            rm22 = (zZeroToOne ? 0f : 1f) - e;
-            rm32 = ((zZeroToOne ? 1f : 2f) - e) * zFar;
+            e = 1.0E-6f
+            rm22 = (if (zZeroToOne) 0f else 1f) - e
+            rm32 = ((if (zZeroToOne) 1f else 2f) - e) * zFar
         } else {
-            rm22 = (zZeroToOne ? zFar : zFar + zNear) / (zNear - zFar);
-            rm32 = (zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar);
+            rm22 = (if (zZeroToOne) zFar else zFar + zNear) / (zNear - zFar)
+            rm32 = (if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar)
         }
-
-        e = this.m20 * rm22 - this.m30;
-        float nm21 = this.m21 * rm22 - this.m31;
-        float nm22 = this.m22 * rm22 - this.m32;
-        float nm23 = this.m23 * rm22 - this.m33;
-        dest._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m30(this.m20 * rm32)._m31(this.m21 * rm32)._m32(this.m22 * rm32)._m33(this.m23 * rm32)._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)._properties(this.properties & -31);
-        return dest;
+        e = m20 * rm22 - m30
+        val nm21 = m21 * rm22 - m31
+        val nm22 = m22 * rm22 - m32
+        val nm23 = m23 * rm22 - m33
+        dest._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
+            m12 * rm11
+        )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
+            ._m22(nm22)._m23(nm23)._properties(
+            properties and -31
+        )
+        return dest
     }
 
-    public Matrix4f perspectiveRect(float width, float height, float zNear, float zFar, Matrix4f dest) {
-        return this.perspectiveRect(width, height, zNear, zFar, false, dest);
+    @JvmOverloads
+    fun perspectiveRect(width: Float, height: Float, zNear: Float, zFar: Float, dest: Matrix4f = this): Matrix4f {
+        return this.perspectiveRect(width, height, zNear, zFar, false, dest)
     }
 
-    public Matrix4f perspectiveRect(float width, float height, float zNear, float zFar, boolean zZeroToOne) {
-        return this.perspectiveRect(width, height, zNear, zFar, zZeroToOne, this);
+    @JvmOverloads
+    fun perspectiveOffCenter(
+        fovy: Float,
+        offAngleX: Float,
+        offAngleY: Float,
+        aspect: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setPerspectiveOffCenter(
+            fovy,
+            offAngleX,
+            offAngleY,
+            aspect,
+            zNear,
+            zFar,
+            zZeroToOne
+        ) else perspectiveOffCenterGeneric(fovy, offAngleX, offAngleY, aspect, zNear, zFar, zZeroToOne, dest)
     }
 
-    public Matrix4f perspectiveRect(float width, float height, float zNear, float zFar) {
-        return this.perspectiveRect(width, height, zNear, zFar, this);
-    }
-
-    public Matrix4f perspectiveOffCenter(float fovy, float offAngleX, float offAngleY, float aspect, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setPerspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, zZeroToOne) : this.perspectiveOffCenterGeneric(fovy, offAngleX, offAngleY, aspect, zNear, zFar, zZeroToOne, dest);
-    }
-
-    private Matrix4f perspectiveOffCenterGeneric(float fovy, float offAngleX, float offAngleY, float aspect, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        float h = Math.tan(fovy * 0.5F);
-        float xScale = 1f / (h * aspect);
-        float yScale = 1f / h;
-        float offX = Math.tan(offAngleX);
-        float offY = Math.tan(offAngleY);
-        float rm20 = offX * xScale;
-        float rm21 = offY * yScale;
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float rm22;
-        float rm32;
-        float e;
+    private fun perspectiveOffCenterGeneric(
+        fovy: Float,
+        offAngleX: Float,
+        offAngleY: Float,
+        aspect: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f
+    ): Matrix4f {
+        val h = Math.tan(fovy * 0.5f)
+        val xScale = 1f / (h * aspect)
+        val yScale = 1f / h
+        val offX = Math.tan(offAngleX)
+        val offY = Math.tan(offAngleY)
+        val rm20 = offX * xScale
+        val rm21 = offY * yScale
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val rm22: Float
+        val rm32: Float
+        var e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            rm22 = e - 1f;
-            rm32 = (e - (zZeroToOne ? 1f : 2f)) * zNear;
+            e = 1.0E-6f
+            rm22 = e - 1f
+            rm32 = (e - if (zZeroToOne) 1f else 2f) * zNear
         } else if (nearInf) {
-            e = 1.0E-6F;
-            rm22 = (zZeroToOne ? 0f : 1f) - e;
-            rm32 = ((zZeroToOne ? 1f : 2f) - e) * zFar;
+            e = 1.0E-6f
+            rm22 = (if (zZeroToOne) 0f else 1f) - e
+            rm32 = ((if (zZeroToOne) 1f else 2f) - e) * zFar
         } else {
-            rm22 = (zZeroToOne ? zFar : zFar + zNear) / (zNear - zFar);
-            rm32 = (zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar);
+            rm22 = (if (zZeroToOne) zFar else zFar + zNear) / (zNear - zFar)
+            rm32 = (if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar)
         }
-
-        e = this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22 - this.m30;
-        float nm21 = this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22 - this.m31;
-        float nm22 = this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22 - this.m32;
-        float nm23 = this.m03 * rm20 + this.m13 * rm21 + this.m23 * rm22 - this.m33;
-        dest._m00(this.m00 * xScale)._m01(this.m01 * xScale)._m02(this.m02 * xScale)._m03(this.m03 * xScale)._m10(this.m10 * yScale)._m11(this.m11 * yScale)._m12(this.m12 * yScale)._m13(this.m13 * yScale)._m30(this.m20 * rm32)._m31(this.m21 * rm32)._m32(this.m22 * rm32)._m33(this.m23 * rm32)._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)._properties(this.properties & ~(30 | (rm20 == 0f && rm21 == 0f ? 0 : 1)));
-        return dest;
+        e = m00 * rm20 + m10 * rm21 + m20 * rm22 - m30
+        val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22 - m31
+        val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 - m32
+        val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 - m33
+        dest._m00(m00 * xScale)._m01(m01 * xScale)._m02(m02 * xScale)._m03(m03 * xScale)._m10(m10 * yScale)
+            ._m11(m11 * yScale)._m12(
+            m12 * yScale
+        )._m13(m13 * yScale)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
+            ._m22(nm22)._m23(nm23)._properties(
+            properties and (30 or if (rm20 == 0f && rm21 == 0f) 0 else 1).inv()
+        )
+        return dest
     }
 
-    public Matrix4f perspectiveOffCenter(float fovy, float offAngleX, float offAngleY, float aspect, float zNear, float zFar, Matrix4f dest) {
-        return this.perspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false, dest);
+    @JvmOverloads
+    fun perspectiveOffCenter(
+        fovy: Float,
+        offAngleX: Float,
+        offAngleY: Float,
+        aspect: Float,
+        zNear: Float,
+        zFar: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return this.perspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false, dest)
     }
 
-    public Matrix4f perspectiveOffCenter(float fovy, float offAngleX, float offAngleY, float aspect, float zNear, float zFar, boolean zZeroToOne) {
-        return this.perspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, zZeroToOne, this);
+    @JvmOverloads
+    fun perspectiveOffCenterFov(
+        angleLeft: Float,
+        angleRight: Float,
+        angleDown: Float,
+        angleUp: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return this.frustum(
+            Math.tan(angleLeft) * zNear,
+            Math.tan(angleRight) * zNear,
+            Math.tan(angleDown) * zNear,
+            Math.tan(angleUp) * zNear,
+            zNear,
+            zFar,
+            zZeroToOne,
+            dest
+        )
     }
 
-    public Matrix4f perspectiveOffCenter(float fovy, float offAngleX, float offAngleY, float aspect, float zNear, float zFar) {
-        return this.perspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, this);
+    @JvmOverloads
+    fun perspectiveOffCenterFov(
+        angleLeft: Float,
+        angleRight: Float,
+        angleDown: Float,
+        angleUp: Float,
+        zNear: Float,
+        zFar: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return this.frustum(
+            Math.tan(angleLeft) * zNear,
+            Math.tan(angleRight) * zNear,
+            Math.tan(angleDown) * zNear,
+            Math.tan(angleUp) * zNear,
+            zNear,
+            zFar,
+            dest
+        )
     }
 
-    public Matrix4f perspectiveOffCenterFov(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar, boolean zZeroToOne) {
-        return this.perspectiveOffCenterFov(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, zZeroToOne, this);
+    @JvmOverloads
+    fun perspectiveOffCenterFovLH(
+        angleLeft: Float,
+        angleRight: Float,
+        angleDown: Float,
+        angleUp: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return this.frustumLH(
+            Math.tan(angleLeft) * zNear,
+            Math.tan(angleRight) * zNear,
+            Math.tan(angleDown) * zNear,
+            Math.tan(angleUp) * zNear,
+            zNear,
+            zFar,
+            zZeroToOne,
+            dest
+        )
     }
 
-    public Matrix4f perspectiveOffCenterFov(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return this.frustum(Math.tan(angleLeft) * zNear, Math.tan(angleRight) * zNear, Math.tan(angleDown) * zNear, Math.tan(angleUp) * zNear, zNear, zFar, zZeroToOne, dest);
+    @JvmOverloads
+    fun perspectiveOffCenterFovLH(
+        angleLeft: Float,
+        angleRight: Float,
+        angleDown: Float,
+        angleUp: Float,
+        zNear: Float,
+        zFar: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return this.frustumLH(
+            Math.tan(angleLeft) * zNear,
+            Math.tan(angleRight) * zNear,
+            Math.tan(angleDown) * zNear,
+            Math.tan(angleUp) * zNear,
+            zNear,
+            zFar,
+            dest
+        )
     }
 
-    public Matrix4f perspectiveOffCenterFov(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar) {
-        return this.perspectiveOffCenterFov(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, this);
-    }
-
-    public Matrix4f perspectiveOffCenterFov(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar, Matrix4f dest) {
-        return this.frustum(Math.tan(angleLeft) * zNear, Math.tan(angleRight) * zNear, Math.tan(angleDown) * zNear, Math.tan(angleUp) * zNear, zNear, zFar, dest);
-    }
-
-    public Matrix4f perspectiveOffCenterFovLH(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar, boolean zZeroToOne) {
-        return this.perspectiveOffCenterFovLH(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, zZeroToOne, this);
-    }
-
-    public Matrix4f perspectiveOffCenterFovLH(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return this.frustumLH(Math.tan(angleLeft) * zNear, Math.tan(angleRight) * zNear, Math.tan(angleDown) * zNear, Math.tan(angleUp) * zNear, zNear, zFar, zZeroToOne, dest);
-    }
-
-    public Matrix4f perspectiveOffCenterFovLH(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar) {
-        return this.perspectiveOffCenterFovLH(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, this);
-    }
-
-    public Matrix4f perspectiveOffCenterFovLH(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar, Matrix4f dest) {
-        return this.frustumLH(Math.tan(angleLeft) * zNear, Math.tan(angleRight) * zNear, Math.tan(angleDown) * zNear, Math.tan(angleUp) * zNear, zNear, zFar, dest);
-    }
-
-    public Matrix4f setPerspective(float fovy, float aspect, float zNear, float zFar, boolean zZeroToOne) {
-        MemUtil.INSTANCE.zero(this);
-        float h = Math.tan(fovy * 0.5F);
-        this._m00(1f / (h * aspect))._m11(1f / h);
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float e;
+    fun setPerspective(fovy: Float, aspect: Float, zNear: Float, zFar: Float, zZeroToOne: Boolean): Matrix4f {
+        MemUtil.INSTANCE.zero(this)
+        val h = Math.tan(fovy * 0.5f)
+        _m00(1f / (h * aspect))._m11(1f / h)
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            this._m22(e - 1f)._m32((e - (zZeroToOne ? 1f : 2f)) * zNear);
+            e = 1.0E-6f
+            _m22(e - 1f)._m32((e - if (zZeroToOne) 1f else 2f) * zNear)
         } else if (nearInf) {
-            e = 1.0E-6F;
-            this._m22((zZeroToOne ? 0f : 1f) - e)._m32(((zZeroToOne ? 1f : 2f) - e) * zFar);
+            e = 1.0E-6f
+            _m22((if (zZeroToOne) 0f else 1f) - e)._m32(((if (zZeroToOne) 1f else 2f) - e) * zFar)
         } else {
-            this._m22((zZeroToOne ? zFar : zFar + zNear) / (zNear - zFar))._m32((zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar));
+            _m22((if (zZeroToOne) zFar else zFar + zNear) / (zNear - zFar))._m32((if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar))
         }
-
-        return this._m23(-1f)._properties(1);
+        return _m23(-1f)._properties(1)
     }
 
-    public Matrix4f setPerspective(float fovy, float aspect, float zNear, float zFar) {
-        return this.setPerspective(fovy, aspect, zNear, zFar, false);
+    fun setPerspective(fovy: Float, aspect: Float, zNear: Float, zFar: Float): Matrix4f {
+        return this.setPerspective(fovy, aspect, zNear, zFar, false)
     }
 
-    public Matrix4f setPerspectiveRect(float width, float height, float zNear, float zFar, boolean zZeroToOne) {
-        MemUtil.INSTANCE.zero(this);
-        this._m00((zNear + zNear) / width)._m11((zNear + zNear) / height);
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float e;
+    fun setPerspectiveRect(width: Float, height: Float, zNear: Float, zFar: Float, zZeroToOne: Boolean): Matrix4f {
+        MemUtil.INSTANCE.zero(this)
+        _m00((zNear + zNear) / width)._m11((zNear + zNear) / height)
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            this._m22(e - 1f)._m32((e - (zZeroToOne ? 1f : 2f)) * zNear);
+            e = 1.0E-6f
+            _m22(e - 1f)._m32((e - if (zZeroToOne) 1f else 2f) * zNear)
         } else if (nearInf) {
-            e = 1.0E-6F;
-            this._m22((zZeroToOne ? 0f : 1f) - e)._m32(((zZeroToOne ? 1f : 2f) - e) * zFar);
+            e = 1.0E-6f
+            _m22((if (zZeroToOne) 0f else 1f) - e)._m32(((if (zZeroToOne) 1f else 2f) - e) * zFar)
         } else {
-            this._m22((zZeroToOne ? zFar : zFar + zNear) / (zNear - zFar))._m32((zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar));
+            _m22((if (zZeroToOne) zFar else zFar + zNear) / (zNear - zFar))._m32((if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar))
         }
-
-        this._m23(-1f)._properties(1);
-        return this;
+        _m23(-1f)._properties(1)
+        return this
     }
 
-    public Matrix4f setPerspectiveRect(float width, float height, float zNear, float zFar) {
-        return this.setPerspectiveRect(width, height, zNear, zFar, false);
+    fun setPerspectiveRect(width: Float, height: Float, zNear: Float, zFar: Float): Matrix4f {
+        return this.setPerspectiveRect(width, height, zNear, zFar, false)
     }
 
-    public Matrix4f setPerspectiveOffCenter(float fovy, float offAngleX, float offAngleY, float aspect, float zNear, float zFar) {
-        return this.setPerspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false);
+    fun setPerspectiveOffCenter(
+        fovy: Float,
+        offAngleX: Float,
+        offAngleY: Float,
+        aspect: Float,
+        zNear: Float,
+        zFar: Float
+    ): Matrix4f {
+        return this.setPerspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false)
     }
 
-    public Matrix4f setPerspectiveOffCenter(float fovy, float offAngleX, float offAngleY, float aspect, float zNear, float zFar, boolean zZeroToOne) {
-        MemUtil.INSTANCE.zero(this);
-        float h = Math.tan(fovy * 0.5F);
-        float xScale = 1f / (h * aspect);
-        float yScale = 1f / h;
-        float offX = Math.tan(offAngleX);
-        float offY = Math.tan(offAngleY);
-        this._m00(xScale)._m11(yScale)._m20(offX * xScale)._m21(offY * yScale);
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float e;
+    fun setPerspectiveOffCenter(
+        fovy: Float,
+        offAngleX: Float,
+        offAngleY: Float,
+        aspect: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean
+    ): Matrix4f {
+        MemUtil.INSTANCE.zero(this)
+        val h = Math.tan(fovy * 0.5f)
+        val xScale = 1f / (h * aspect)
+        val yScale = 1f / h
+        val offX = Math.tan(offAngleX)
+        val offY = Math.tan(offAngleY)
+        _m00(xScale)._m11(yScale)._m20(offX * xScale)._m21(offY * yScale)
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            this._m22(e - 1f)._m32((e - (zZeroToOne ? 1f : 2f)) * zNear);
+            e = 1.0E-6f
+            _m22(e - 1f)._m32((e - if (zZeroToOne) 1f else 2f) * zNear)
         } else if (nearInf) {
-            e = 1.0E-6F;
-            this._m22((zZeroToOne ? 0f : 1f) - e)._m32(((zZeroToOne ? 1f : 2f) - e) * zFar);
+            e = 1.0E-6f
+            _m22((if (zZeroToOne) 0f else 1f) - e)._m32(((if (zZeroToOne) 1f else 2f) - e) * zFar)
         } else {
-            this._m22((zZeroToOne ? zFar : zFar + zNear) / (zNear - zFar))._m32((zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar));
+            _m22((if (zZeroToOne) zFar else zFar + zNear) / (zNear - zFar))._m32((if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar))
         }
-
-        this._m23(-1f)._properties(offAngleX == 0f && offAngleY == 0f ? 1 : 0);
-        return this;
+        _m23(-1f)._properties(if (offAngleX == 0f && offAngleY == 0f) 1 else 0)
+        return this
     }
 
-    public Matrix4f setPerspectiveOffCenterFov(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar) {
-        return this.setPerspectiveOffCenterFov(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, false);
+    fun setPerspectiveOffCenterFov(
+        angleLeft: Float,
+        angleRight: Float,
+        angleDown: Float,
+        angleUp: Float,
+        zNear: Float,
+        zFar: Float
+    ): Matrix4f {
+        return this.setPerspectiveOffCenterFov(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, false)
     }
 
-    public Matrix4f setPerspectiveOffCenterFov(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar, boolean zZeroToOne) {
-        return this.setFrustum(Math.tan(angleLeft) * zNear, Math.tan(angleRight) * zNear, Math.tan(angleDown) * zNear, Math.tan(angleUp) * zNear, zNear, zFar, zZeroToOne);
+    fun setPerspectiveOffCenterFov(
+        angleLeft: Float,
+        angleRight: Float,
+        angleDown: Float,
+        angleUp: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean
+    ): Matrix4f {
+        return this.setFrustum(
+            Math.tan(angleLeft) * zNear,
+            Math.tan(angleRight) * zNear,
+            Math.tan(angleDown) * zNear,
+            Math.tan(angleUp) * zNear,
+            zNear,
+            zFar,
+            zZeroToOne
+        )
     }
 
-    public Matrix4f setPerspectiveOffCenterFovLH(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar) {
-        return this.setPerspectiveOffCenterFovLH(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, false);
+    fun setPerspectiveOffCenterFovLH(
+        angleLeft: Float,
+        angleRight: Float,
+        angleDown: Float,
+        angleUp: Float,
+        zNear: Float,
+        zFar: Float
+    ): Matrix4f {
+        return this.setPerspectiveOffCenterFovLH(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, false)
     }
 
-    public Matrix4f setPerspectiveOffCenterFovLH(float angleLeft, float angleRight, float angleDown, float angleUp, float zNear, float zFar, boolean zZeroToOne) {
-        return this.setFrustumLH(Math.tan(angleLeft) * zNear, Math.tan(angleRight) * zNear, Math.tan(angleDown) * zNear, Math.tan(angleUp) * zNear, zNear, zFar, zZeroToOne);
+    fun setPerspectiveOffCenterFovLH(
+        angleLeft: Float,
+        angleRight: Float,
+        angleDown: Float,
+        angleUp: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean
+    ): Matrix4f {
+        return this.setFrustumLH(
+            Math.tan(angleLeft) * zNear,
+            Math.tan(angleRight) * zNear,
+            Math.tan(angleDown) * zNear,
+            Math.tan(angleUp) * zNear,
+            zNear,
+            zFar,
+            zZeroToOne
+        )
     }
 
-    public Matrix4f perspectiveLH(float fovy, float aspect, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setPerspectiveLH(fovy, aspect, zNear, zFar, zZeroToOne) : this.perspectiveLHGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dest);
+    @JvmOverloads
+    fun perspectiveLH(
+        fovy: Float,
+        aspect: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setPerspectiveLH(
+            fovy,
+            aspect,
+            zNear,
+            zFar,
+            zZeroToOne
+        ) else perspectiveLHGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dest)
     }
 
-    private Matrix4f perspectiveLHGeneric(float fovy, float aspect, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        float h = Math.tan(fovy * 0.5F);
-        float rm00 = 1f / (h * aspect);
-        float rm11 = 1f / h;
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float rm22;
-        float rm32;
-        float e;
+    private fun perspectiveLHGeneric(
+        fovy: Float,
+        aspect: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f
+    ): Matrix4f {
+        val h = Math.tan(fovy * 0.5f)
+        val rm00 = 1f / (h * aspect)
+        val rm11 = 1f / h
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val rm22: Float
+        val rm32: Float
+        var e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            rm22 = 1f - e;
-            rm32 = (e - (zZeroToOne ? 1f : 2f)) * zNear;
+            e = 1.0E-6f
+            rm22 = 1f - e
+            rm32 = (e - if (zZeroToOne) 1f else 2f) * zNear
         } else if (nearInf) {
-            e = 1.0E-6F;
-            rm22 = (zZeroToOne ? 0f : 1f) - e;
-            rm32 = ((zZeroToOne ? 1f : 2f) - e) * zFar;
+            e = 1.0E-6f
+            rm22 = (if (zZeroToOne) 0f else 1f) - e
+            rm32 = ((if (zZeroToOne) 1f else 2f) - e) * zFar
         } else {
-            rm22 = (zZeroToOne ? zFar : zFar + zNear) / (zFar - zNear);
-            rm32 = (zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar);
+            rm22 = (if (zZeroToOne) zFar else zFar + zNear) / (zFar - zNear)
+            rm32 = (if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar)
         }
-
-        e = this.m20 * rm22 + this.m30;
-        float nm21 = this.m21 * rm22 + this.m31;
-        float nm22 = this.m22 * rm22 + this.m32;
-        float nm23 = this.m23 * rm22 + this.m33;
-        dest._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m30(this.m20 * rm32)._m31(this.m21 * rm32)._m32(this.m22 * rm32)._m33(this.m23 * rm32)._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)._properties(this.properties & -31);
-        return dest;
+        e = m20 * rm22 + m30
+        val nm21 = m21 * rm22 + m31
+        val nm22 = m22 * rm22 + m32
+        val nm23 = m23 * rm22 + m33
+        dest._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
+            m12 * rm11
+        )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
+            ._m22(nm22)._m23(nm23)._properties(
+            properties and -31
+        )
+        return dest
     }
 
-    public Matrix4f perspectiveLH(float fovy, float aspect, float zNear, float zFar, boolean zZeroToOne) {
-        return this.perspectiveLH(fovy, aspect, zNear, zFar, zZeroToOne, this);
+    @JvmOverloads
+    fun perspectiveLH(fovy: Float, aspect: Float, zNear: Float, zFar: Float, dest: Matrix4f = this): Matrix4f {
+        return this.perspectiveLH(fovy, aspect, zNear, zFar, false, dest)
     }
 
-    public Matrix4f perspectiveLH(float fovy, float aspect, float zNear, float zFar, Matrix4f dest) {
-        return this.perspectiveLH(fovy, aspect, zNear, zFar, false, dest);
-    }
-
-    public Matrix4f perspectiveLH(float fovy, float aspect, float zNear, float zFar) {
-        return this.perspectiveLH(fovy, aspect, zNear, zFar, this);
-    }
-
-    public Matrix4f setPerspectiveLH(float fovy, float aspect, float zNear, float zFar, boolean zZeroToOne) {
-        MemUtil.INSTANCE.zero(this);
-        float h = Math.tan(fovy * 0.5F);
-        this._m00(1f / (h * aspect))._m11(1f / h);
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float e;
+    fun setPerspectiveLH(fovy: Float, aspect: Float, zNear: Float, zFar: Float, zZeroToOne: Boolean): Matrix4f {
+        MemUtil.INSTANCE.zero(this)
+        val h = Math.tan(fovy * 0.5f)
+        _m00(1f / (h * aspect))._m11(1f / h)
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            this._m22(1f - e)._m32((e - (zZeroToOne ? 1f : 2f)) * zNear);
+            e = 1.0E-6f
+            _m22(1f - e)._m32((e - if (zZeroToOne) 1f else 2f) * zNear)
         } else if (nearInf) {
-            e = 1.0E-6F;
-            this._m22((zZeroToOne ? 0f : 1f) - e)._m32(((zZeroToOne ? 1f : 2f) - e) * zFar);
+            e = 1.0E-6f
+            _m22((if (zZeroToOne) 0f else 1f) - e)._m32(((if (zZeroToOne) 1f else 2f) - e) * zFar)
         } else {
-            this._m22((zZeroToOne ? zFar : zFar + zNear) / (zFar - zNear))._m32((zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar));
+            _m22((if (zZeroToOne) zFar else zFar + zNear) / (zFar - zNear))._m32((if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar))
         }
-
-        this._m23(1f)._properties(1);
-        return this;
+        _m23(1f)._properties(1)
+        return this
     }
 
-    public Matrix4f setPerspectiveLH(float fovy, float aspect, float zNear, float zFar) {
-        return this.setPerspectiveLH(fovy, aspect, zNear, zFar, false);
+    fun setPerspectiveLH(fovy: Float, aspect: Float, zNear: Float, zFar: Float): Matrix4f {
+        return this.setPerspectiveLH(fovy, aspect, zNear, zFar, false)
     }
 
-    public Matrix4f frustum(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setFrustum(left, right, bottom, top, zNear, zFar, zZeroToOne) : this.frustumGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest);
+    @JvmOverloads
+    fun frustum(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setFrustum(
+            left,
+            right,
+            bottom,
+            top,
+            zNear,
+            zFar,
+            zZeroToOne
+        ) else frustumGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest)
     }
 
-    private Matrix4f frustumGeneric(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        float rm00 = (zNear + zNear) / (right - left);
-        float rm11 = (zNear + zNear) / (top - bottom);
-        float rm20 = (right + left) / (right - left);
-        float rm21 = (top + bottom) / (top - bottom);
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float rm22;
-        float rm32;
-        float e;
+    private fun frustumGeneric(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f
+    ): Matrix4f {
+        val rm00 = (zNear + zNear) / (right - left)
+        val rm11 = (zNear + zNear) / (top - bottom)
+        val rm20 = (right + left) / (right - left)
+        val rm21 = (top + bottom) / (top - bottom)
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val rm22: Float
+        val rm32: Float
+        var e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            rm22 = e - 1f;
-            rm32 = (e - (zZeroToOne ? 1f : 2f)) * zNear;
+            e = 1.0E-6f
+            rm22 = e - 1f
+            rm32 = (e - if (zZeroToOne) 1f else 2f) * zNear
         } else if (nearInf) {
-            e = 1.0E-6F;
-            rm22 = (zZeroToOne ? 0f : 1f) - e;
-            rm32 = ((zZeroToOne ? 1f : 2f) - e) * zFar;
+            e = 1.0E-6f
+            rm22 = (if (zZeroToOne) 0f else 1f) - e
+            rm32 = ((if (zZeroToOne) 1f else 2f) - e) * zFar
         } else {
-            rm22 = (zZeroToOne ? zFar : zFar + zNear) / (zNear - zFar);
-            rm32 = (zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar);
+            rm22 = (if (zZeroToOne) zFar else zFar + zNear) / (zNear - zFar)
+            rm32 = (if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar)
         }
-
-        e = this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22 - this.m30;
-        float nm21 = this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22 - this.m31;
-        float nm22 = this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22 - this.m32;
-        float nm23 = this.m03 * rm20 + this.m13 * rm21 + this.m23 * rm22 - this.m33;
-        dest._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m30(this.m20 * rm32)._m31(this.m21 * rm32)._m32(this.m22 * rm32)._m33(this.m23 * rm32)._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)._properties(0);
-        return dest;
+        e = m00 * rm20 + m10 * rm21 + m20 * rm22 - m30
+        val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22 - m31
+        val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 - m32
+        val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 - m33
+        dest._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
+            m12 * rm11
+        )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
+            ._m22(nm22)._m23(nm23)._properties(0)
+        return dest
     }
 
-    public Matrix4f frustum(float left, float right, float bottom, float top, float zNear, float zFar, Matrix4f dest) {
-        return this.frustum(left, right, bottom, top, zNear, zFar, false, dest);
+    @JvmOverloads
+    fun frustum(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return this.frustum(left, right, bottom, top, zNear, zFar, false, dest)
     }
 
-    public Matrix4f frustum(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne) {
-        return this.frustum(left, right, bottom, top, zNear, zFar, zZeroToOne, this);
-    }
-
-    public Matrix4f frustum(float left, float right, float bottom, float top, float zNear, float zFar) {
-        return this.frustum(left, right, bottom, top, zNear, zFar, this);
-    }
-
-    public Matrix4f setFrustum(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun setFrustum(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean
+    ): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m00((zNear + zNear) / (right - left))._m11((zNear + zNear) / (top - bottom))._m20((right + left) / (right - left))._m21((top + bottom) / (top - bottom));
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float e;
+        _m00((zNear + zNear) / (right - left))._m11((zNear + zNear) / (top - bottom))
+            ._m20((right + left) / (right - left))._m21((top + bottom) / (top - bottom))
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            this._m22(e - 1f)._m32((e - (zZeroToOne ? 1f : 2f)) * zNear);
+            e = 1.0E-6f
+            _m22(e - 1f)._m32((e - if (zZeroToOne) 1f else 2f) * zNear)
         } else if (nearInf) {
-            e = 1.0E-6F;
-            this._m22((zZeroToOne ? 0f : 1f) - e)._m32(((zZeroToOne ? 1f : 2f) - e) * zFar);
+            e = 1.0E-6f
+            _m22((if (zZeroToOne) 0f else 1f) - e)._m32(((if (zZeroToOne) 1f else 2f) - e) * zFar)
         } else {
-            this._m22((zZeroToOne ? zFar : zFar + zNear) / (zNear - zFar))._m32((zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar));
+            _m22((if (zZeroToOne) zFar else zFar + zNear) / (zNear - zFar))._m32((if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar))
         }
-
-        this._m23(-1f)._m33(0f)._properties(this.m20 == 0f && this.m21 == 0f ? 1 : 0);
-        return this;
+        _m23(-1f)._m33(0f)._properties(if (m20 == 0f && m21 == 0f) 1 else 0)
+        return this
     }
 
-    public Matrix4f setFrustum(float left, float right, float bottom, float top, float zNear, float zFar) {
-        return this.setFrustum(left, right, bottom, top, zNear, zFar, false);
+    fun setFrustum(left: Float, right: Float, bottom: Float, top: Float, zNear: Float, zFar: Float): Matrix4f {
+        return this.setFrustum(left, right, bottom, top, zNear, zFar, false)
     }
 
-    public Matrix4f frustumLH(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        return (this.properties & 4) != 0 ? dest.setFrustumLH(left, right, bottom, top, zNear, zFar, zZeroToOne) : this.frustumLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest);
+    @JvmOverloads
+    fun frustumLH(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return if (properties and 4 != 0) dest.setFrustumLH(
+            left,
+            right,
+            bottom,
+            top,
+            zNear,
+            zFar,
+            zZeroToOne
+        ) else frustumLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest)
     }
 
-    private Matrix4f frustumLHGeneric(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne, Matrix4f dest) {
-        float rm00 = (zNear + zNear) / (right - left);
-        float rm11 = (zNear + zNear) / (top - bottom);
-        float rm20 = (right + left) / (right - left);
-        float rm21 = (top + bottom) / (top - bottom);
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float rm22;
-        float rm32;
-        float e;
+    private fun frustumLHGeneric(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean,
+        dest: Matrix4f
+    ): Matrix4f {
+        val rm00 = (zNear + zNear) / (right - left)
+        val rm11 = (zNear + zNear) / (top - bottom)
+        val rm20 = (right + left) / (right - left)
+        val rm21 = (top + bottom) / (top - bottom)
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val rm22: Float
+        val rm32: Float
+        var e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            rm22 = 1f - e;
-            rm32 = (e - (zZeroToOne ? 1f : 2f)) * zNear;
+            e = 1.0E-6f
+            rm22 = 1f - e
+            rm32 = (e - if (zZeroToOne) 1f else 2f) * zNear
         } else if (nearInf) {
-            e = 1.0E-6F;
-            rm22 = (zZeroToOne ? 0f : 1f) - e;
-            rm32 = ((zZeroToOne ? 1f : 2f) - e) * zFar;
+            e = 1.0E-6f
+            rm22 = (if (zZeroToOne) 0f else 1f) - e
+            rm32 = ((if (zZeroToOne) 1f else 2f) - e) * zFar
         } else {
-            rm22 = (zZeroToOne ? zFar : zFar + zNear) / (zFar - zNear);
-            rm32 = (zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar);
+            rm22 = (if (zZeroToOne) zFar else zFar + zNear) / (zFar - zNear)
+            rm32 = (if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar)
         }
-
-        e = this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22 + this.m30;
-        float nm21 = this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22 + this.m31;
-        float nm22 = this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22 + this.m32;
-        float nm23 = this.m03 * rm20 + this.m13 * rm21 + this.m23 * rm22 + this.m33;
-        dest._m00(this.m00 * rm00)._m01(this.m01 * rm00)._m02(this.m02 * rm00)._m03(this.m03 * rm00)._m10(this.m10 * rm11)._m11(this.m11 * rm11)._m12(this.m12 * rm11)._m13(this.m13 * rm11)._m30(this.m20 * rm32)._m31(this.m21 * rm32)._m32(this.m22 * rm32)._m33(this.m23 * rm32)._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)._properties(0);
-        return dest;
+        e = m00 * rm20 + m10 * rm21 + m20 * rm22 + m30
+        val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22 + m31
+        val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 + m32
+        val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 + m33
+        dest._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
+            m12 * rm11
+        )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
+            ._m22(nm22)._m23(nm23)._properties(0)
+        return dest
     }
 
-    public Matrix4f frustumLH(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne) {
-        return this.frustumLH(left, right, bottom, top, zNear, zFar, zZeroToOne, this);
+    @JvmOverloads
+    fun frustumLH(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        return this.frustumLH(left, right, bottom, top, zNear, zFar, false, dest)
     }
 
-    public Matrix4f frustumLH(float left, float right, float bottom, float top, float zNear, float zFar, Matrix4f dest) {
-        return this.frustumLH(left, right, bottom, top, zNear, zFar, false, dest);
-    }
-
-    public Matrix4f frustumLH(float left, float right, float bottom, float top, float zNear, float zFar) {
-        return this.frustumLH(left, right, bottom, top, zNear, zFar, this);
-    }
-
-    public Matrix4f setFrustumLH(float left, float right, float bottom, float top, float zNear, float zFar, boolean zZeroToOne) {
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun setFrustumLH(
+        left: Float,
+        right: Float,
+        bottom: Float,
+        top: Float,
+        zNear: Float,
+        zFar: Float,
+        zZeroToOne: Boolean
+    ): Matrix4f {
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m00((zNear + zNear) / (right - left))._m11((zNear + zNear) / (top - bottom))._m20((right + left) / (right - left))._m21((top + bottom) / (top - bottom));
-        boolean farInf = zFar > 0f && Float.isInfinite(zFar);
-        boolean nearInf = zNear > 0f && Float.isInfinite(zNear);
-        float e;
+        _m00((zNear + zNear) / (right - left))._m11((zNear + zNear) / (top - bottom))
+            ._m20((right + left) / (right - left))._m21((top + bottom) / (top - bottom))
+        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
+        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val e: Float
         if (farInf) {
-            e = 1.0E-6F;
-            this._m22(1f - e)._m32((e - (zZeroToOne ? 1f : 2f)) * zNear);
+            e = 1.0E-6f
+            _m22(1f - e)._m32((e - if (zZeroToOne) 1f else 2f) * zNear)
         } else if (nearInf) {
-            e = 1.0E-6F;
-            this._m22((zZeroToOne ? 0f : 1f) - e)._m32(((zZeroToOne ? 1f : 2f) - e) * zFar);
+            e = 1.0E-6f
+            _m22((if (zZeroToOne) 0f else 1f) - e)._m32(((if (zZeroToOne) 1f else 2f) - e) * zFar)
         } else {
-            this._m22((zZeroToOne ? zFar : zFar + zNear) / (zFar - zNear))._m32((zZeroToOne ? zFar : zFar + zFar) * zNear / (zNear - zFar));
+            _m22((if (zZeroToOne) zFar else zFar + zNear) / (zFar - zNear))._m32((if (zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar))
         }
-
-        return this._m23(1f)._m33(0f)._properties(0);
+        return _m23(1f)._m33(0f)._properties(0)
     }
 
-    public Matrix4f setFrustumLH(float left, float right, float bottom, float top, float zNear, float zFar) {
-        return this.setFrustumLH(left, right, bottom, top, zNear, zFar, false);
+    fun setFrustumLH(left: Float, right: Float, bottom: Float, top: Float, zNear: Float, zFar: Float): Matrix4f {
+        return this.setFrustumLH(left, right, bottom, top, zNear, zFar, false)
     }
 
-    public Matrix4f setFromIntrinsic(float alphaX, float alphaY, float gamma, float u0, float v0, int imgWidth, int imgHeight, float near, float far) {
-        float l00 = 2f / (float)imgWidth;
-        float l11 = 2f / (float)imgHeight;
-        float l22 = 2f / (near - far);
-        return this._m00(l00 * alphaX)._m01(0f)._m02(0f)._m03(0f)._m10(l00 * gamma)._m11(l11 * alphaY)._m12(0f)._m13(0f)._m20(l00 * u0 - 1f)._m21(l11 * v0 - 1f)._m22(l22 * -(near + far) + (far + near) / (near - far))._m23(-1f)._m30(0f)._m31(0f)._m32(l22 * -near * far)._m33(0f)._properties(1);
+    fun setFromIntrinsic(
+        alphaX: Float,
+        alphaY: Float,
+        gamma: Float,
+        u0: Float,
+        v0: Float,
+        imgWidth: Int,
+        imgHeight: Int,
+        near: Float,
+        far: Float
+    ): Matrix4f {
+        val l00 = 2f / imgWidth.toFloat()
+        val l11 = 2f / imgHeight.toFloat()
+        val l22 = 2f / (near - far)
+        return _m00(l00 * alphaX)._m01(0f)._m02(0f)._m03(0f)._m10(l00 * gamma)._m11(l11 * alphaY)._m12(0f)._m13(0f)
+            ._m20(l00 * u0 - 1f)._m21(l11 * v0 - 1f)._m22(l22 * -(near + far) + (far + near) / (near - far))._m23(-1f)
+            ._m30(0f)._m31(0f)._m32(l22 * -near * far)._m33(0f)._properties(1)
     }
 
-    public Matrix4f rotate(Quaternionf quat, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.rotation(quat);
-        } else if ((this.properties & 8) != 0) {
-            return this.rotateTranslation(quat, dest);
+    @JvmOverloads
+    fun rotate(quat: Quaternionf, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.rotation(quat)
+        } else if (properties and 8 != 0) {
+            this.rotateTranslation(quat, dest)
         } else {
-            return (this.properties & 2) != 0 ? this.rotateAffine(quat, dest) : this.rotateGeneric(quat, dest);
+            if (properties and 2 != 0) this.rotateAffine(quat, dest) else this.rotateGeneric(quat, dest)
         }
     }
 
-    private Matrix4f rotateGeneric(Quaternionf quat, Matrix4f dest) {
-        float w2 = quat.w * quat.w;
-        float x2 = quat.x * quat.x;
-        float y2 = quat.y * quat.y;
-        float z2 = quat.z * quat.z;
-        float zw = quat.z * quat.w;
-        float dzw = zw + zw;
-        float xy = quat.x * quat.y;
-        float dxy = xy + xy;
-        float xz = quat.x * quat.z;
-        float dxz = xz + xz;
-        float yw = quat.y * quat.w;
-        float dyw = yw + yw;
-        float yz = quat.y * quat.z;
-        float dyz = yz + yz;
-        float xw = quat.x * quat.w;
-        float dxw = xw + xw;
-        float rm00 = w2 + x2 - z2 - y2;
-        float rm01 = dxy + dzw;
-        float rm02 = dxz - dyw;
-        float rm10 = -dzw + dxy;
-        float rm11 = y2 - z2 + w2 - x2;
-        float rm12 = dyz + dxw;
-        float rm20 = dyw + dxz;
-        float rm21 = dyz - dxw;
-        float rm22 = z2 - y2 - x2 + w2;
-        float nm00 = this.m00 * rm00 + this.m10 * rm01 + this.m20 * rm02;
-        float nm01 = this.m01 * rm00 + this.m11 * rm01 + this.m21 * rm02;
-        float nm02 = this.m02 * rm00 + this.m12 * rm01 + this.m22 * rm02;
-        float nm03 = this.m03 * rm00 + this.m13 * rm01 + this.m23 * rm02;
-        float nm10 = this.m00 * rm10 + this.m10 * rm11 + this.m20 * rm12;
-        float nm11 = this.m01 * rm10 + this.m11 * rm11 + this.m21 * rm12;
-        float nm12 = this.m02 * rm10 + this.m12 * rm11 + this.m22 * rm12;
-        float nm13 = this.m03 * rm10 + this.m13 * rm11 + this.m23 * rm12;
-        return dest._m20(this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22)._m21(this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22)._m22(this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22)._m23(this.m03 * rm20 + this.m13 * rm21 + this.m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    private fun rotateGeneric(quat: Quaternionf, dest: Matrix4f): Matrix4f {
+        val w2 = quat.w * quat.w
+        val x2 = quat.x * quat.x
+        val y2 = quat.y * quat.y
+        val z2 = quat.z * quat.z
+        val zw = quat.z * quat.w
+        val dzw = zw + zw
+        val xy = quat.x * quat.y
+        val dxy = xy + xy
+        val xz = quat.x * quat.z
+        val dxz = xz + xz
+        val yw = quat.y * quat.w
+        val dyw = yw + yw
+        val yz = quat.y * quat.z
+        val dyz = yz + yz
+        val xw = quat.x * quat.w
+        val dxw = xw + xw
+        val rm00 = w2 + x2 - z2 - y2
+        val rm01 = dxy + dzw
+        val rm02 = dxz - dyw
+        val rm10 = -dzw + dxy
+        val rm11 = y2 - z2 + w2 - x2
+        val rm12 = dyz + dxw
+        val rm20 = dyw + dxz
+        val rm21 = dyz - dxw
+        val rm22 = z2 - y2 - x2 + w2
+        val nm00 = m00 * rm00 + m10 * rm01 + m20 * rm02
+        val nm01 = m01 * rm00 + m11 * rm01 + m21 * rm02
+        val nm02 = m02 * rm00 + m12 * rm01 + m22 * rm02
+        val nm03 = m03 * rm00 + m13 * rm01 + m23 * rm02
+        val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
+        val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
+        val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
+        val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12
+        return dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+            m02 * rm20 + m12 * rm21 + m22 * rm22
+        )._m23(m03 * rm20 + m13 * rm21 + m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
+            ._m12(nm12)._m13(nm13)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotate(Quaternionf quat) {
-        return this.rotate(quat, this);
+    @JvmOverloads
+    fun rotateAffine(quat: Quaternionf, dest: Matrix4f = this): Matrix4f {
+        val w2 = quat.w * quat.w
+        val x2 = quat.x * quat.x
+        val y2 = quat.y * quat.y
+        val z2 = quat.z * quat.z
+        val zw = quat.z * quat.w
+        val dzw = zw + zw
+        val xy = quat.x * quat.y
+        val dxy = xy + xy
+        val xz = quat.x * quat.z
+        val dxz = xz + xz
+        val yw = quat.y * quat.w
+        val dyw = yw + yw
+        val yz = quat.y * quat.z
+        val dyz = yz + yz
+        val xw = quat.x * quat.w
+        val dxw = xw + xw
+        val rm00 = w2 + x2 - z2 - y2
+        val rm01 = dxy + dzw
+        val rm02 = dxz - dyw
+        val rm10 = -dzw + dxy
+        val rm11 = y2 - z2 + w2 - x2
+        val rm12 = dyz + dxw
+        val rm20 = dyw + dxz
+        val rm21 = dyz - dxw
+        val rm22 = z2 - y2 - x2 + w2
+        val nm00 = m00 * rm00 + m10 * rm01 + m20 * rm02
+        val nm01 = m01 * rm00 + m11 * rm01 + m21 * rm02
+        val nm02 = m02 * rm00 + m12 * rm01 + m22 * rm02
+        val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
+        val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
+        val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
+        return dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+            m02 * rm20 + m12 * rm21 + m22 * rm22
+        )._m23(0f)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m30(m30)._m31(
+            m31
+        )._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateAffine(Quaternionf quat, Matrix4f dest) {
-        float w2 = quat.w * quat.w;
-        float x2 = quat.x * quat.x;
-        float y2 = quat.y * quat.y;
-        float z2 = quat.z * quat.z;
-        float zw = quat.z * quat.w;
-        float dzw = zw + zw;
-        float xy = quat.x * quat.y;
-        float dxy = xy + xy;
-        float xz = quat.x * quat.z;
-        float dxz = xz + xz;
-        float yw = quat.y * quat.w;
-        float dyw = yw + yw;
-        float yz = quat.y * quat.z;
-        float dyz = yz + yz;
-        float xw = quat.x * quat.w;
-        float dxw = xw + xw;
-        float rm00 = w2 + x2 - z2 - y2;
-        float rm01 = dxy + dzw;
-        float rm02 = dxz - dyw;
-        float rm10 = -dzw + dxy;
-        float rm11 = y2 - z2 + w2 - x2;
-        float rm12 = dyz + dxw;
-        float rm20 = dyw + dxz;
-        float rm21 = dyz - dxw;
-        float rm22 = z2 - y2 - x2 + w2;
-        float nm00 = this.m00 * rm00 + this.m10 * rm01 + this.m20 * rm02;
-        float nm01 = this.m01 * rm00 + this.m11 * rm01 + this.m21 * rm02;
-        float nm02 = this.m02 * rm00 + this.m12 * rm01 + this.m22 * rm02;
-        float nm10 = this.m00 * rm10 + this.m10 * rm11 + this.m20 * rm12;
-        float nm11 = this.m01 * rm10 + this.m11 * rm11 + this.m21 * rm12;
-        float nm12 = this.m02 * rm10 + this.m12 * rm11 + this.m22 * rm12;
-        return dest._m20(this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22)._m21(this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22)._m22(this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22)._m23(0f)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
+    fun rotateTranslation(quat: Quaternionf, dest: Matrix4f): Matrix4f {
+        val w2 = quat.w * quat.w
+        val x2 = quat.x * quat.x
+        val y2 = quat.y * quat.y
+        val z2 = quat.z * quat.z
+        val zw = quat.z * quat.w
+        val dzw = zw + zw
+        val xy = quat.x * quat.y
+        val dxy = xy + xy
+        val xz = quat.x * quat.z
+        val dxz = xz + xz
+        val yw = quat.y * quat.w
+        val dyw = yw + yw
+        val yz = quat.y * quat.z
+        val dyz = yz + yz
+        val xw = quat.x * quat.w
+        val dxw = xw + xw
+        val rm00 = w2 + x2 - z2 - y2
+        val rm01 = dxy + dzw
+        val rm02 = dxz - dyw
+        val rm10 = -dzw + dxy
+        val rm11 = y2 - z2 + w2 - x2
+        val rm12 = dyz + dxw
+        val rm20 = dyw + dxz
+        val rm21 = dyz - dxw
+        val rm22 = z2 - y2 - x2 + w2
+        return dest._m20(rm20)._m21(rm21)._m22(rm22)._m23(0f)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0f)._m10(rm10)
+            ._m11(rm11)._m12(rm12)._m13(0f)._m30(
+            m30
+        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateAffine(Quaternionf quat) {
-        return this.rotateAffine(quat, this);
+    fun rotateAroundAffine(quat: Quaternionf, ox: Float, oy: Float, oz: Float, dest: Matrix4f): Matrix4f {
+        val w2 = quat.w * quat.w
+        val x2 = quat.x * quat.x
+        val y2 = quat.y * quat.y
+        val z2 = quat.z * quat.z
+        val zw = quat.z * quat.w
+        val dzw = zw + zw
+        val xy = quat.x * quat.y
+        val dxy = xy + xy
+        val xz = quat.x * quat.z
+        val dxz = xz + xz
+        val yw = quat.y * quat.w
+        val dyw = yw + yw
+        val yz = quat.y * quat.z
+        val dyz = yz + yz
+        val xw = quat.x * quat.w
+        val dxw = xw + xw
+        val rm00 = w2 + x2 - z2 - y2
+        val rm01 = dxy + dzw
+        val rm02 = dxz - dyw
+        val rm10 = -dzw + dxy
+        val rm11 = y2 - z2 + w2 - x2
+        val rm12 = dyz + dxw
+        val rm20 = dyw + dxz
+        val rm21 = dyz - dxw
+        val rm22 = z2 - y2 - x2 + w2
+        val tm30 = m00 * ox + m10 * oy + m20 * oz + m30
+        val tm31 = m01 * ox + m11 * oy + m21 * oz + m31
+        val tm32 = m02 * ox + m12 * oy + m22 * oz + m32
+        val nm00 = m00 * rm00 + m10 * rm01 + m20 * rm02
+        val nm01 = m01 * rm00 + m11 * rm01 + m21 * rm02
+        val nm02 = m02 * rm00 + m12 * rm01 + m22 * rm02
+        val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
+        val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
+        val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
+        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+            m02 * rm20 + m12 * rm21 + m22 * rm22
+        )._m23(0f)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)
+            ._m30(-nm00 * ox - nm10 * oy - m20 * oz + tm30)._m31(
+            -nm01 * ox - nm11 * oy - m21 * oz + tm31
+        )._m32(-nm02 * ox - nm12 * oy - m22 * oz + tm32)._m33(1f)._properties(
+            properties and -14
+        )
+        return dest
     }
 
-    public Matrix4f rotateTranslation(Quaternionf quat, Matrix4f dest) {
-        float w2 = quat.w * quat.w;
-        float x2 = quat.x * quat.x;
-        float y2 = quat.y * quat.y;
-        float z2 = quat.z * quat.z;
-        float zw = quat.z * quat.w;
-        float dzw = zw + zw;
-        float xy = quat.x * quat.y;
-        float dxy = xy + xy;
-        float xz = quat.x * quat.z;
-        float dxz = xz + xz;
-        float yw = quat.y * quat.w;
-        float dyw = yw + yw;
-        float yz = quat.y * quat.z;
-        float dyz = yz + yz;
-        float xw = quat.x * quat.w;
-        float dxw = xw + xw;
-        float rm00 = w2 + x2 - z2 - y2;
-        float rm01 = dxy + dzw;
-        float rm02 = dxz - dyw;
-        float rm10 = -dzw + dxy;
-        float rm11 = y2 - z2 + w2 - x2;
-        float rm12 = dyz + dxw;
-        float rm20 = dyw + dxz;
-        float rm21 = dyz - dxw;
-        float rm22 = z2 - y2 - x2 + w2;
-        return dest._m20(rm20)._m21(rm21)._m22(rm22)._m23(0f)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0f)._m10(rm10)._m11(rm11)._m12(rm12)._m13(0f)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & -14);
-    }
-
-    public Matrix4f rotateAround(Quaternionf quat, float ox, float oy, float oz) {
-        return this.rotateAround(quat, ox, oy, oz, this);
-    }
-
-    public Matrix4f rotateAroundAffine(Quaternionf quat, float ox, float oy, float oz, Matrix4f dest) {
-        float w2 = quat.w * quat.w;
-        float x2 = quat.x * quat.x;
-        float y2 = quat.y * quat.y;
-        float z2 = quat.z * quat.z;
-        float zw = quat.z * quat.w;
-        float dzw = zw + zw;
-        float xy = quat.x * quat.y;
-        float dxy = xy + xy;
-        float xz = quat.x * quat.z;
-        float dxz = xz + xz;
-        float yw = quat.y * quat.w;
-        float dyw = yw + yw;
-        float yz = quat.y * quat.z;
-        float dyz = yz + yz;
-        float xw = quat.x * quat.w;
-        float dxw = xw + xw;
-        float rm00 = w2 + x2 - z2 - y2;
-        float rm01 = dxy + dzw;
-        float rm02 = dxz - dyw;
-        float rm10 = -dzw + dxy;
-        float rm11 = y2 - z2 + w2 - x2;
-        float rm12 = dyz + dxw;
-        float rm20 = dyw + dxz;
-        float rm21 = dyz - dxw;
-        float rm22 = z2 - y2 - x2 + w2;
-        float tm30 = this.m00 * ox + this.m10 * oy + this.m20 * oz + this.m30;
-        float tm31 = this.m01 * ox + this.m11 * oy + this.m21 * oz + this.m31;
-        float tm32 = this.m02 * ox + this.m12 * oy + this.m22 * oz + this.m32;
-        float nm00 = this.m00 * rm00 + this.m10 * rm01 + this.m20 * rm02;
-        float nm01 = this.m01 * rm00 + this.m11 * rm01 + this.m21 * rm02;
-        float nm02 = this.m02 * rm00 + this.m12 * rm01 + this.m22 * rm02;
-        float nm10 = this.m00 * rm10 + this.m10 * rm11 + this.m20 * rm12;
-        float nm11 = this.m01 * rm10 + this.m11 * rm11 + this.m21 * rm12;
-        float nm12 = this.m02 * rm10 + this.m12 * rm11 + this.m22 * rm12;
-        dest._m20(this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22)._m21(this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22)._m22(this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22)._m23(0f)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m30(-nm00 * ox - nm10 * oy - this.m20 * oz + tm30)._m31(-nm01 * ox - nm11 * oy - this.m21 * oz + tm31)._m32(-nm02 * ox - nm12 * oy - this.m22 * oz + tm32)._m33(1f)._properties(this.properties & -14);
-        return dest;
-    }
-
-    public Matrix4f rotateAround(Quaternionf quat, float ox, float oy, float oz, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return this.rotationAround(quat, ox, oy, oz);
+    @JvmOverloads
+    fun rotateAround(quat: Quaternionf, ox: Float, oy: Float, oz: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            rotationAround(quat, ox, oy, oz)
         } else {
-            return (this.properties & 2) != 0 ? this.rotateAroundAffine(quat, ox, oy, oz, dest) : this.rotateAroundGeneric(quat, ox, oy, oz, dest);
+            if (properties and 2 != 0) rotateAroundAffine(quat, ox, oy, oz, dest) else rotateAroundGeneric(
+                quat,
+                ox,
+                oy,
+                oz,
+                dest
+            )
         }
     }
 
-    private Matrix4f rotateAroundGeneric(Quaternionf quat, float ox, float oy, float oz, Matrix4f dest) {
-        float w2 = quat.w * quat.w;
-        float x2 = quat.x * quat.x;
-        float y2 = quat.y * quat.y;
-        float z2 = quat.z * quat.z;
-        float zw = quat.z * quat.w;
-        float dzw = zw + zw;
-        float xy = quat.x * quat.y;
-        float dxy = xy + xy;
-        float xz = quat.x * quat.z;
-        float dxz = xz + xz;
-        float yw = quat.y * quat.w;
-        float dyw = yw + yw;
-        float yz = quat.y * quat.z;
-        float dyz = yz + yz;
-        float xw = quat.x * quat.w;
-        float dxw = xw + xw;
-        float rm00 = w2 + x2 - z2 - y2;
-        float rm01 = dxy + dzw;
-        float rm02 = dxz - dyw;
-        float rm10 = -dzw + dxy;
-        float rm11 = y2 - z2 + w2 - x2;
-        float rm12 = dyz + dxw;
-        float rm20 = dyw + dxz;
-        float rm21 = dyz - dxw;
-        float rm22 = z2 - y2 - x2 + w2;
-        float tm30 = this.m00 * ox + this.m10 * oy + this.m20 * oz + this.m30;
-        float tm31 = this.m01 * ox + this.m11 * oy + this.m21 * oz + this.m31;
-        float tm32 = this.m02 * ox + this.m12 * oy + this.m22 * oz + this.m32;
-        float nm00 = this.m00 * rm00 + this.m10 * rm01 + this.m20 * rm02;
-        float nm01 = this.m01 * rm00 + this.m11 * rm01 + this.m21 * rm02;
-        float nm02 = this.m02 * rm00 + this.m12 * rm01 + this.m22 * rm02;
-        float nm03 = this.m03 * rm00 + this.m13 * rm01 + this.m23 * rm02;
-        float nm10 = this.m00 * rm10 + this.m10 * rm11 + this.m20 * rm12;
-        float nm11 = this.m01 * rm10 + this.m11 * rm11 + this.m21 * rm12;
-        float nm12 = this.m02 * rm10 + this.m12 * rm11 + this.m22 * rm12;
-        float nm13 = this.m03 * rm10 + this.m13 * rm11 + this.m23 * rm12;
-        dest._m20(this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22)._m21(this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22)._m22(this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22)._m23(this.m03 * rm20 + this.m13 * rm21 + this.m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m30(-nm00 * ox - nm10 * oy - this.m20 * oz + tm30)._m31(-nm01 * ox - nm11 * oy - this.m21 * oz + tm31)._m32(-nm02 * ox - nm12 * oy - this.m22 * oz + tm32)._m33(this.m33)._properties(this.properties & -14);
-        return dest;
+    private fun rotateAroundGeneric(quat: Quaternionf, ox: Float, oy: Float, oz: Float, dest: Matrix4f): Matrix4f {
+        val w2 = quat.w * quat.w
+        val x2 = quat.x * quat.x
+        val y2 = quat.y * quat.y
+        val z2 = quat.z * quat.z
+        val zw = quat.z * quat.w
+        val dzw = zw + zw
+        val xy = quat.x * quat.y
+        val dxy = xy + xy
+        val xz = quat.x * quat.z
+        val dxz = xz + xz
+        val yw = quat.y * quat.w
+        val dyw = yw + yw
+        val yz = quat.y * quat.z
+        val dyz = yz + yz
+        val xw = quat.x * quat.w
+        val dxw = xw + xw
+        val rm00 = w2 + x2 - z2 - y2
+        val rm01 = dxy + dzw
+        val rm02 = dxz - dyw
+        val rm10 = -dzw + dxy
+        val rm11 = y2 - z2 + w2 - x2
+        val rm12 = dyz + dxw
+        val rm20 = dyw + dxz
+        val rm21 = dyz - dxw
+        val rm22 = z2 - y2 - x2 + w2
+        val tm30 = m00 * ox + m10 * oy + m20 * oz + m30
+        val tm31 = m01 * ox + m11 * oy + m21 * oz + m31
+        val tm32 = m02 * ox + m12 * oy + m22 * oz + m32
+        val nm00 = m00 * rm00 + m10 * rm01 + m20 * rm02
+        val nm01 = m01 * rm00 + m11 * rm01 + m21 * rm02
+        val nm02 = m02 * rm00 + m12 * rm01 + m22 * rm02
+        val nm03 = m03 * rm00 + m13 * rm01 + m23 * rm02
+        val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
+        val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
+        val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
+        val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12
+        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+            m02 * rm20 + m12 * rm21 + m22 * rm22
+        )._m23(m03 * rm20 + m13 * rm21 + m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
+            ._m12(nm12)._m13(nm13)._m30(
+            -nm00 * ox - nm10 * oy - m20 * oz + tm30
+        )._m31(-nm01 * ox - nm11 * oy - m21 * oz + tm31)._m32(-nm02 * ox - nm12 * oy - m22 * oz + tm32)._m33(
+            m33
+        )._properties(properties and -14)
+        return dest
     }
 
-    public Matrix4f rotationAround(Quaternionf quat, float ox, float oy, float oz) {
-        float w2 = quat.w * quat.w;
-        float x2 = quat.x * quat.x;
-        float y2 = quat.y * quat.y;
-        float z2 = quat.z * quat.z;
-        float zw = quat.z * quat.w;
-        float dzw = zw + zw;
-        float xy = quat.x * quat.y;
-        float dxy = xy + xy;
-        float xz = quat.x * quat.z;
-        float dxz = xz + xz;
-        float yw = quat.y * quat.w;
-        float dyw = yw + yw;
-        float yz = quat.y * quat.z;
-        float dyz = yz + yz;
-        float xw = quat.x * quat.w;
-        float dxw = xw + xw;
-        this._m20(dyw + dxz)._m21(dyz - dxw)._m22(z2 - y2 - x2 + w2)._m23(0f)._m00(w2 + x2 - z2 - y2)._m01(dxy + dzw)._m02(dxz - dyw)._m03(0f)._m10(-dzw + dxy)._m11(y2 - z2 + w2 - x2)._m12(dyz + dxw)._m13(0f)._m30(-this.m00 * ox - this.m10 * oy - this.m20 * oz + ox)._m31(-this.m01 * ox - this.m11 * oy - this.m21 * oz + oy)._m32(-this.m02 * ox - this.m12 * oy - this.m22 * oz + oz)._m33(1f)._properties(18);
-        return this;
+    fun rotationAround(quat: Quaternionf, ox: Float, oy: Float, oz: Float): Matrix4f {
+        val w2 = quat.w * quat.w
+        val x2 = quat.x * quat.x
+        val y2 = quat.y * quat.y
+        val z2 = quat.z * quat.z
+        val zw = quat.z * quat.w
+        val dzw = zw + zw
+        val xy = quat.x * quat.y
+        val dxy = xy + xy
+        val xz = quat.x * quat.z
+        val dxz = xz + xz
+        val yw = quat.y * quat.w
+        val dyw = yw + yw
+        val yz = quat.y * quat.z
+        val dyz = yz + yz
+        val xw = quat.x * quat.w
+        val dxw = xw + xw
+        _m20(dyw + dxz)._m21(dyz - dxw)._m22(z2 - y2 - x2 + w2)._m23(0f)._m00(w2 + x2 - z2 - y2)._m01(dxy + dzw)
+            ._m02(dxz - dyw)._m03(0f)._m10(-dzw + dxy)._m11(y2 - z2 + w2 - x2)._m12(dyz + dxw)._m13(0f)._m30(
+            -m00 * ox - m10 * oy - m20 * oz + ox
+        )._m31(-m01 * ox - m11 * oy - m21 * oz + oy)._m32(
+            -m02 * ox - m12 * oy - m22 * oz + oz
+        )._m33(1f)._properties(18)
+        return this
     }
 
-    public Matrix4f rotateLocal(Quaternionf quat, Matrix4f dest) {
-        float w2 = quat.w * quat.w;
-        float x2 = quat.x * quat.x;
-        float y2 = quat.y * quat.y;
-        float z2 = quat.z * quat.z;
-        float zw = quat.z * quat.w;
-        float dzw = zw + zw;
-        float xy = quat.x * quat.y;
-        float dxy = xy + xy;
-        float xz = quat.x * quat.z;
-        float dxz = xz + xz;
-        float yw = quat.y * quat.w;
-        float dyw = yw + yw;
-        float yz = quat.y * quat.z;
-        float dyz = yz + yz;
-        float xw = quat.x * quat.w;
-        float dxw = xw + xw;
-        float lm00 = w2 + x2 - z2 - y2;
-        float lm01 = dxy + dzw;
-        float lm02 = dxz - dyw;
-        float lm10 = -dzw + dxy;
-        float lm11 = y2 - z2 + w2 - x2;
-        float lm12 = dyz + dxw;
-        float lm20 = dyw + dxz;
-        float lm21 = dyz - dxw;
-        float lm22 = z2 - y2 - x2 + w2;
-        float nm00 = lm00 * this.m00 + lm10 * this.m01 + lm20 * this.m02;
-        float nm01 = lm01 * this.m00 + lm11 * this.m01 + lm21 * this.m02;
-        float nm02 = lm02 * this.m00 + lm12 * this.m01 + lm22 * this.m02;
-        float nm10 = lm00 * this.m10 + lm10 * this.m11 + lm20 * this.m12;
-        float nm11 = lm01 * this.m10 + lm11 * this.m11 + lm21 * this.m12;
-        float nm12 = lm02 * this.m10 + lm12 * this.m11 + lm22 * this.m12;
-        float nm20 = lm00 * this.m20 + lm10 * this.m21 + lm20 * this.m22;
-        float nm21 = lm01 * this.m20 + lm11 * this.m21 + lm21 * this.m22;
-        float nm22 = lm02 * this.m20 + lm12 * this.m21 + lm22 * this.m22;
-        float nm30 = lm00 * this.m30 + lm10 * this.m31 + lm20 * this.m32;
-        float nm31 = lm01 * this.m30 + lm11 * this.m31 + lm21 * this.m32;
-        float nm32 = lm02 * this.m30 + lm12 * this.m31 + lm22 * this.m32;
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(this.m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(this.m13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(this.m23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(this.m33)._properties(this.properties & -14);
+    @JvmOverloads
+    fun rotateLocal(quat: Quaternionf, dest: Matrix4f = this): Matrix4f {
+        val w2 = quat.w * quat.w
+        val x2 = quat.x * quat.x
+        val y2 = quat.y * quat.y
+        val z2 = quat.z * quat.z
+        val zw = quat.z * quat.w
+        val dzw = zw + zw
+        val xy = quat.x * quat.y
+        val dxy = xy + xy
+        val xz = quat.x * quat.z
+        val dxz = xz + xz
+        val yw = quat.y * quat.w
+        val dyw = yw + yw
+        val yz = quat.y * quat.z
+        val dyz = yz + yz
+        val xw = quat.x * quat.w
+        val dxw = xw + xw
+        val lm00 = w2 + x2 - z2 - y2
+        val lm01 = dxy + dzw
+        val lm02 = dxz - dyw
+        val lm10 = -dzw + dxy
+        val lm11 = y2 - z2 + w2 - x2
+        val lm12 = dyz + dxw
+        val lm20 = dyw + dxz
+        val lm21 = dyz - dxw
+        val lm22 = z2 - y2 - x2 + w2
+        val nm00 = lm00 * m00 + lm10 * m01 + lm20 * m02
+        val nm01 = lm01 * m00 + lm11 * m01 + lm21 * m02
+        val nm02 = lm02 * m00 + lm12 * m01 + lm22 * m02
+        val nm10 = lm00 * m10 + lm10 * m11 + lm20 * m12
+        val nm11 = lm01 * m10 + lm11 * m11 + lm21 * m12
+        val nm12 = lm02 * m10 + lm12 * m11 + lm22 * m12
+        val nm20 = lm00 * m20 + lm10 * m21 + lm20 * m22
+        val nm21 = lm01 * m20 + lm11 * m21 + lm21 * m22
+        val nm22 = lm02 * m20 + lm12 * m21 + lm22 * m22
+        val nm30 = lm00 * m30 + lm10 * m31 + lm20 * m32
+        val nm31 = lm01 * m30 + lm11 * m31 + lm21 * m32
+        val nm32 = lm02 * m30 + lm12 * m31 + lm22 * m32
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(
+            m23
+        )._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)._properties(properties and -14)
     }
 
-    public Matrix4f rotateLocal(Quaternionf quat) {
-        return this.rotateLocal(quat, this);
+    @JvmOverloads
+    fun rotateAroundLocal(quat: Quaternionf, ox: Float, oy: Float, oz: Float, dest: Matrix4f = this): Matrix4f {
+        val w2 = quat.w * quat.w
+        val x2 = quat.x * quat.x
+        val y2 = quat.y * quat.y
+        val z2 = quat.z * quat.z
+        val zw = quat.z * quat.w
+        val xy = quat.x * quat.y
+        val xz = quat.x * quat.z
+        val yw = quat.y * quat.w
+        val yz = quat.y * quat.z
+        val xw = quat.x * quat.w
+        val lm00 = w2 + x2 - z2 - y2
+        val lm01 = xy + zw + zw + xy
+        val lm02 = xz - yw + xz - yw
+        val lm10 = -zw + xy - zw + xy
+        val lm11 = y2 - z2 + w2 - x2
+        val lm12 = yz + yz + xw + xw
+        val lm20 = yw + xz + xz + yw
+        val lm21 = yz + yz - xw - xw
+        val lm22 = z2 - y2 - x2 + w2
+        val tm00 = m00 - ox * m03
+        val tm01 = m01 - oy * m03
+        val tm02 = m02 - oz * m03
+        val tm10 = m10 - ox * m13
+        val tm11 = m11 - oy * m13
+        val tm12 = m12 - oz * m13
+        val tm20 = m20 - ox * m23
+        val tm21 = m21 - oy * m23
+        val tm22 = m22 - oz * m23
+        val tm30 = m30 - ox * m33
+        val tm31 = m31 - oy * m33
+        val tm32 = m32 - oz * m33
+        dest._m00(lm00 * tm00 + lm10 * tm01 + lm20 * tm02 + ox * m03)
+            ._m01(lm01 * tm00 + lm11 * tm01 + lm21 * tm02 + oy * m03)._m02(
+            lm02 * tm00 + lm12 * tm01 + lm22 * tm02 + oz * m03
+        )._m03(m03)._m10(lm00 * tm10 + lm10 * tm11 + lm20 * tm12 + ox * m13)
+            ._m11(lm01 * tm10 + lm11 * tm11 + lm21 * tm12 + oy * m13)._m12(
+            lm02 * tm10 + lm12 * tm11 + lm22 * tm12 + oz * m13
+        )._m13(m13)._m20(lm00 * tm20 + lm10 * tm21 + lm20 * tm22 + ox * m23)
+            ._m21(lm01 * tm20 + lm11 * tm21 + lm21 * tm22 + oy * m23)._m22(
+            lm02 * tm20 + lm12 * tm21 + lm22 * tm22 + oz * m23
+        )._m23(m23)._m30(lm00 * tm30 + lm10 * tm31 + lm20 * tm32 + ox * m33)
+            ._m31(lm01 * tm30 + lm11 * tm31 + lm21 * tm32 + oy * m33)._m32(
+            lm02 * tm30 + lm12 * tm31 + lm22 * tm32 + oz * m33
+        )._m33(m33)._properties(properties and -14)
+        return dest
     }
 
-    public Matrix4f rotateAroundLocal(Quaternionf quat, float ox, float oy, float oz, Matrix4f dest) {
-        float w2 = quat.w * quat.w;
-        float x2 = quat.x * quat.x;
-        float y2 = quat.y * quat.y;
-        float z2 = quat.z * quat.z;
-        float zw = quat.z * quat.w;
-        float xy = quat.x * quat.y;
-        float xz = quat.x * quat.z;
-        float yw = quat.y * quat.w;
-        float yz = quat.y * quat.z;
-        float xw = quat.x * quat.w;
-        float lm00 = w2 + x2 - z2 - y2;
-        float lm01 = xy + zw + zw + xy;
-        float lm02 = xz - yw + xz - yw;
-        float lm10 = -zw + xy - zw + xy;
-        float lm11 = y2 - z2 + w2 - x2;
-        float lm12 = yz + yz + xw + xw;
-        float lm20 = yw + xz + xz + yw;
-        float lm21 = yz + yz - xw - xw;
-        float lm22 = z2 - y2 - x2 + w2;
-        float tm00 = this.m00 - ox * this.m03;
-        float tm01 = this.m01 - oy * this.m03;
-        float tm02 = this.m02 - oz * this.m03;
-        float tm10 = this.m10 - ox * this.m13;
-        float tm11 = this.m11 - oy * this.m13;
-        float tm12 = this.m12 - oz * this.m13;
-        float tm20 = this.m20 - ox * this.m23;
-        float tm21 = this.m21 - oy * this.m23;
-        float tm22 = this.m22 - oz * this.m23;
-        float tm30 = this.m30 - ox * this.m33;
-        float tm31 = this.m31 - oy * this.m33;
-        float tm32 = this.m32 - oz * this.m33;
-        dest._m00(lm00 * tm00 + lm10 * tm01 + lm20 * tm02 + ox * this.m03)._m01(lm01 * tm00 + lm11 * tm01 + lm21 * tm02 + oy * this.m03)._m02(lm02 * tm00 + lm12 * tm01 + lm22 * tm02 + oz * this.m03)._m03(this.m03)._m10(lm00 * tm10 + lm10 * tm11 + lm20 * tm12 + ox * this.m13)._m11(lm01 * tm10 + lm11 * tm11 + lm21 * tm12 + oy * this.m13)._m12(lm02 * tm10 + lm12 * tm11 + lm22 * tm12 + oz * this.m13)._m13(this.m13)._m20(lm00 * tm20 + lm10 * tm21 + lm20 * tm22 + ox * this.m23)._m21(lm01 * tm20 + lm11 * tm21 + lm21 * tm22 + oy * this.m23)._m22(lm02 * tm20 + lm12 * tm21 + lm22 * tm22 + oz * this.m23)._m23(this.m23)._m30(lm00 * tm30 + lm10 * tm31 + lm20 * tm32 + ox * this.m33)._m31(lm01 * tm30 + lm11 * tm31 + lm21 * tm32 + oy * this.m33)._m32(lm02 * tm30 + lm12 * tm31 + lm22 * tm32 + oz * this.m33)._m33(this.m33)._properties(this.properties & -14);
-        return dest;
+    fun rotate(axisAngle: AxisAngle4f): Matrix4f {
+        return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
-    public Matrix4f rotateAroundLocal(Quaternionf quat, float ox, float oy, float oz) {
-        return this.rotateAroundLocal(quat, ox, oy, oz, this);
+    fun rotate(axisAngle: AxisAngle4f, dest: Matrix4f): Matrix4f {
+        return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z, dest)
     }
 
-    public Matrix4f rotate(AxisAngle4f axisAngle) {
-        return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z);
+    fun rotate(angle: Float, axis: Vector3f): Matrix4f {
+        return this.rotate(angle, axis.x, axis.y, axis.z)
     }
 
-    public Matrix4f rotate(AxisAngle4f axisAngle, Matrix4f dest) {
-        return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z, dest);
+    fun rotate(angle: Float, axis: Vector3f, dest: Matrix4f): Matrix4f {
+        return this.rotate(angle, axis.x, axis.y, axis.z, dest)
     }
 
-    public Matrix4f rotate(float angle, Vector3f axis) {
-        return this.rotate(angle, axis.x, axis.y, axis.z);
+    fun unproject(winX: Float, winY: Float, winZ: Float, viewport: IntArray, dest: Vector4f): Vector4f {
+        val a = m00 * m11 - m01 * m10
+        val b = m00 * m12 - m02 * m10
+        val c = m00 * m13 - m03 * m10
+        val d = m01 * m12 - m02 * m11
+        val e = m01 * m13 - m03 * m11
+        val f = m02 * m13 - m03 * m12
+        val g = m20 * m31 - m21 * m30
+        val h = m20 * m32 - m22 * m30
+        val i = m20 * m33 - m23 * m30
+        val j = m21 * m32 - m22 * m31
+        val k = m21 * m33 - m23 * m31
+        val l = m22 * m33 - m23 * m32
+        var det = a * l - b * k + c * j + d * i - e * h + f * g
+        det = 1f / det
+        val im00 = (m11 * l - m12 * k + m13 * j) * det
+        val im01 = (-m01 * l + m02 * k - m03 * j) * det
+        val im02 = (m31 * f - m32 * e + m33 * d) * det
+        val im03 = (-m21 * f + m22 * e - m23 * d) * det
+        val im10 = (-m10 * l + m12 * i - m13 * h) * det
+        val im11 = (m00 * l - m02 * i + m03 * h) * det
+        val im12 = (-m30 * f + m32 * c - m33 * b) * det
+        val im13 = (m20 * f - m22 * c + m23 * b) * det
+        val im20 = (m10 * k - m11 * i + m13 * g) * det
+        val im21 = (-m00 * k + m01 * i - m03 * g) * det
+        val im22 = (m30 * e - m31 * c + m33 * a) * det
+        val im23 = (-m20 * e + m21 * c - m23 * a) * det
+        val im30 = (-m10 * j + m11 * h - m12 * g) * det
+        val im31 = (m00 * j - m01 * h + m02 * g) * det
+        val im32 = (-m30 * d + m31 * b - m32 * a) * det
+        val im33 = (m20 * d - m21 * b + m22 * a) * det
+        val ndcX = (winX - viewport[0].toFloat()) / viewport[2].toFloat() * 2f - 1f
+        val ndcY = (winY - viewport[1].toFloat()) / viewport[3].toFloat() * 2f - 1f
+        val ndcZ = winZ + winZ - 1f
+        val invW = 1f / (im03 * ndcX + im13 * ndcY + im23 * ndcZ + im33)
+        return dest.set(
+            (im00 * ndcX + im10 * ndcY + im20 * ndcZ + im30) * invW,
+            (im01 * ndcX + im11 * ndcY + im21 * ndcZ + im31) * invW,
+            (im02 * ndcX + im12 * ndcY + im22 * ndcZ + im32) * invW,
+            1f
+        )
     }
 
-    public Matrix4f rotate(float angle, Vector3f axis, Matrix4f dest) {
-        return this.rotate(angle, axis.x, axis.y, axis.z, dest);
+    fun unproject(winX: Float, winY: Float, winZ: Float, viewport: IntArray, dest: Vector3f): Vector3f {
+        val a = m00 * m11 - m01 * m10
+        val b = m00 * m12 - m02 * m10
+        val c = m00 * m13 - m03 * m10
+        val d = m01 * m12 - m02 * m11
+        val e = m01 * m13 - m03 * m11
+        val f = m02 * m13 - m03 * m12
+        val g = m20 * m31 - m21 * m30
+        val h = m20 * m32 - m22 * m30
+        val i = m20 * m33 - m23 * m30
+        val j = m21 * m32 - m22 * m31
+        val k = m21 * m33 - m23 * m31
+        val l = m22 * m33 - m23 * m32
+        var det = a * l - b * k + c * j + d * i - e * h + f * g
+        det = 1f / det
+        val im00 = (m11 * l - m12 * k + m13 * j) * det
+        val im01 = (-m01 * l + m02 * k - m03 * j) * det
+        val im02 = (m31 * f - m32 * e + m33 * d) * det
+        val im03 = (-m21 * f + m22 * e - m23 * d) * det
+        val im10 = (-m10 * l + m12 * i - m13 * h) * det
+        val im11 = (m00 * l - m02 * i + m03 * h) * det
+        val im12 = (-m30 * f + m32 * c - m33 * b) * det
+        val im13 = (m20 * f - m22 * c + m23 * b) * det
+        val im20 = (m10 * k - m11 * i + m13 * g) * det
+        val im21 = (-m00 * k + m01 * i - m03 * g) * det
+        val im22 = (m30 * e - m31 * c + m33 * a) * det
+        val im23 = (-m20 * e + m21 * c - m23 * a) * det
+        val im30 = (-m10 * j + m11 * h - m12 * g) * det
+        val im31 = (m00 * j - m01 * h + m02 * g) * det
+        val im32 = (-m30 * d + m31 * b - m32 * a) * det
+        val im33 = (m20 * d - m21 * b + m22 * a) * det
+        val ndcX = (winX - viewport[0].toFloat()) / viewport[2].toFloat() * 2f - 1f
+        val ndcY = (winY - viewport[1].toFloat()) / viewport[3].toFloat() * 2f - 1f
+        val ndcZ = winZ + winZ - 1f
+        val invW = 1f / (im03 * ndcX + im13 * ndcY + im23 * ndcZ + im33)
+        return dest.set(
+            (im00 * ndcX + im10 * ndcY + im20 * ndcZ + im30) * invW,
+            (im01 * ndcX + im11 * ndcY + im21 * ndcZ + im31) * invW,
+            (im02 * ndcX + im12 * ndcY + im22 * ndcZ + im32) * invW
+        )
     }
 
-    public Vector4f unproject(float winX, float winY, float winZ, int[] viewport, Vector4f dest) {
-        float a = this.m00 * this.m11 - this.m01 * this.m10;
-        float b = this.m00 * this.m12 - this.m02 * this.m10;
-        float c = this.m00 * this.m13 - this.m03 * this.m10;
-        float d = this.m01 * this.m12 - this.m02 * this.m11;
-        float e = this.m01 * this.m13 - this.m03 * this.m11;
-        float f = this.m02 * this.m13 - this.m03 * this.m12;
-        float g = this.m20 * this.m31 - this.m21 * this.m30;
-        float h = this.m20 * this.m32 - this.m22 * this.m30;
-        float i = this.m20 * this.m33 - this.m23 * this.m30;
-        float j = this.m21 * this.m32 - this.m22 * this.m31;
-        float k = this.m21 * this.m33 - this.m23 * this.m31;
-        float l = this.m22 * this.m33 - this.m23 * this.m32;
-        float det = a * l - b * k + c * j + d * i - e * h + f * g;
-        det = 1f / det;
-        float im00 = (this.m11 * l - this.m12 * k + this.m13 * j) * det;
-        float im01 = (-this.m01 * l + this.m02 * k - this.m03 * j) * det;
-        float im02 = (this.m31 * f - this.m32 * e + this.m33 * d) * det;
-        float im03 = (-this.m21 * f + this.m22 * e - this.m23 * d) * det;
-        float im10 = (-this.m10 * l + this.m12 * i - this.m13 * h) * det;
-        float im11 = (this.m00 * l - this.m02 * i + this.m03 * h) * det;
-        float im12 = (-this.m30 * f + this.m32 * c - this.m33 * b) * det;
-        float im13 = (this.m20 * f - this.m22 * c + this.m23 * b) * det;
-        float im20 = (this.m10 * k - this.m11 * i + this.m13 * g) * det;
-        float im21 = (-this.m00 * k + this.m01 * i - this.m03 * g) * det;
-        float im22 = (this.m30 * e - this.m31 * c + this.m33 * a) * det;
-        float im23 = (-this.m20 * e + this.m21 * c - this.m23 * a) * det;
-        float im30 = (-this.m10 * j + this.m11 * h - this.m12 * g) * det;
-        float im31 = (this.m00 * j - this.m01 * h + this.m02 * g) * det;
-        float im32 = (-this.m30 * d + this.m31 * b - this.m32 * a) * det;
-        float im33 = (this.m20 * d - this.m21 * b + this.m22 * a) * det;
-        float ndcX = (winX - (float)viewport[0]) / (float)viewport[2] * 2f - 1f;
-        float ndcY = (winY - (float)viewport[1]) / (float)viewport[3] * 2f - 1f;
-        float ndcZ = winZ + winZ - 1f;
-        float invW = 1f / (im03 * ndcX + im13 * ndcY + im23 * ndcZ + im33);
-        return dest.set((im00 * ndcX + im10 * ndcY + im20 * ndcZ + im30) * invW, (im01 * ndcX + im11 * ndcY + im21 * ndcZ + im31) * invW, (im02 * ndcX + im12 * ndcY + im22 * ndcZ + im32) * invW, 1f);
+    fun unproject(winCoords: Vector3f, viewport: IntArray, dest: Vector4f): Vector4f {
+        return this.unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dest)
     }
 
-    public Vector3f unproject(float winX, float winY, float winZ, int[] viewport, Vector3f dest) {
-        float a = this.m00 * this.m11 - this.m01 * this.m10;
-        float b = this.m00 * this.m12 - this.m02 * this.m10;
-        float c = this.m00 * this.m13 - this.m03 * this.m10;
-        float d = this.m01 * this.m12 - this.m02 * this.m11;
-        float e = this.m01 * this.m13 - this.m03 * this.m11;
-        float f = this.m02 * this.m13 - this.m03 * this.m12;
-        float g = this.m20 * this.m31 - this.m21 * this.m30;
-        float h = this.m20 * this.m32 - this.m22 * this.m30;
-        float i = this.m20 * this.m33 - this.m23 * this.m30;
-        float j = this.m21 * this.m32 - this.m22 * this.m31;
-        float k = this.m21 * this.m33 - this.m23 * this.m31;
-        float l = this.m22 * this.m33 - this.m23 * this.m32;
-        float det = a * l - b * k + c * j + d * i - e * h + f * g;
-        det = 1f / det;
-        float im00 = (this.m11 * l - this.m12 * k + this.m13 * j) * det;
-        float im01 = (-this.m01 * l + this.m02 * k - this.m03 * j) * det;
-        float im02 = (this.m31 * f - this.m32 * e + this.m33 * d) * det;
-        float im03 = (-this.m21 * f + this.m22 * e - this.m23 * d) * det;
-        float im10 = (-this.m10 * l + this.m12 * i - this.m13 * h) * det;
-        float im11 = (this.m00 * l - this.m02 * i + this.m03 * h) * det;
-        float im12 = (-this.m30 * f + this.m32 * c - this.m33 * b) * det;
-        float im13 = (this.m20 * f - this.m22 * c + this.m23 * b) * det;
-        float im20 = (this.m10 * k - this.m11 * i + this.m13 * g) * det;
-        float im21 = (-this.m00 * k + this.m01 * i - this.m03 * g) * det;
-        float im22 = (this.m30 * e - this.m31 * c + this.m33 * a) * det;
-        float im23 = (-this.m20 * e + this.m21 * c - this.m23 * a) * det;
-        float im30 = (-this.m10 * j + this.m11 * h - this.m12 * g) * det;
-        float im31 = (this.m00 * j - this.m01 * h + this.m02 * g) * det;
-        float im32 = (-this.m30 * d + this.m31 * b - this.m32 * a) * det;
-        float im33 = (this.m20 * d - this.m21 * b + this.m22 * a) * det;
-        float ndcX = (winX - (float)viewport[0]) / (float)viewport[2] * 2f - 1f;
-        float ndcY = (winY - (float)viewport[1]) / (float)viewport[3] * 2f - 1f;
-        float ndcZ = winZ + winZ - 1f;
-        float invW = 1f / (im03 * ndcX + im13 * ndcY + im23 * ndcZ + im33);
-        return dest.set((im00 * ndcX + im10 * ndcY + im20 * ndcZ + im30) * invW, (im01 * ndcX + im11 * ndcY + im21 * ndcZ + im31) * invW, (im02 * ndcX + im12 * ndcY + im22 * ndcZ + im32) * invW);
+    fun unproject(winCoords: Vector3f, viewport: IntArray, dest: Vector3f): Vector3f {
+        return this.unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dest)
     }
 
-    public Vector4f unproject(Vector3f winCoords, int[] viewport, Vector4f dest) {
-        return this.unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dest);
+    fun unprojectRay(winX: Float, winY: Float, viewport: IntArray, originDest: Vector3f, dirDest: Vector3f): Matrix4f {
+        val a = m00 * m11 - m01 * m10
+        val b = m00 * m12 - m02 * m10
+        val c = m00 * m13 - m03 * m10
+        val d = m01 * m12 - m02 * m11
+        val e = m01 * m13 - m03 * m11
+        val f = m02 * m13 - m03 * m12
+        val g = m20 * m31 - m21 * m30
+        val h = m20 * m32 - m22 * m30
+        val i = m20 * m33 - m23 * m30
+        val j = m21 * m32 - m22 * m31
+        val k = m21 * m33 - m23 * m31
+        val l = m22 * m33 - m23 * m32
+        var det = a * l - b * k + c * j + d * i - e * h + f * g
+        det = 1f / det
+        val im00 = (m11 * l - m12 * k + m13 * j) * det
+        val im01 = (-m01 * l + m02 * k - m03 * j) * det
+        val im02 = (m31 * f - m32 * e + m33 * d) * det
+        val im03 = (-m21 * f + m22 * e - m23 * d) * det
+        val im10 = (-m10 * l + m12 * i - m13 * h) * det
+        val im11 = (m00 * l - m02 * i + m03 * h) * det
+        val im12 = (-m30 * f + m32 * c - m33 * b) * det
+        val im13 = (m20 * f - m22 * c + m23 * b) * det
+        val im20 = (m10 * k - m11 * i + m13 * g) * det
+        val im21 = (-m00 * k + m01 * i - m03 * g) * det
+        val im22 = (m30 * e - m31 * c + m33 * a) * det
+        val im23 = (-m20 * e + m21 * c - m23 * a) * det
+        val im30 = (-m10 * j + m11 * h - m12 * g) * det
+        val im31 = (m00 * j - m01 * h + m02 * g) * det
+        val im32 = (-m30 * d + m31 * b - m32 * a) * det
+        val im33 = (m20 * d - m21 * b + m22 * a) * det
+        val ndcX = (winX - viewport[0].toFloat()) / viewport[2].toFloat() * 2f - 1f
+        val ndcY = (winY - viewport[1].toFloat()) / viewport[3].toFloat() * 2f - 1f
+        val px = im00 * ndcX + im10 * ndcY + im30
+        val py = im01 * ndcX + im11 * ndcY + im31
+        val pz = im02 * ndcX + im12 * ndcY + im32
+        val invNearW = 1f / (im03 * ndcX + im13 * ndcY - im23 + im33)
+        val nearX = (px - im20) * invNearW
+        val nearY = (py - im21) * invNearW
+        val nearZ = (pz - im22) * invNearW
+        val invW0 = 1f / (im03 * ndcX + im13 * ndcY + im33)
+        val x0 = px * invW0
+        val y0 = py * invW0
+        val z0 = pz * invW0
+        originDest.x = nearX
+        originDest.y = nearY
+        originDest.z = nearZ
+        dirDest.x = x0 - nearX
+        dirDest.y = y0 - nearY
+        dirDest.z = z0 - nearZ
+        return this
     }
 
-    public Vector3f unproject(Vector3f winCoords, int[] viewport, Vector3f dest) {
-        return this.unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dest);
+    fun unprojectRay(winCoords: Vector2f, viewport: IntArray, originDest: Vector3f, dirDest: Vector3f): Matrix4f {
+        return this.unprojectRay(winCoords.x, winCoords.y, viewport, originDest, dirDest)
     }
 
-    public Matrix4f unprojectRay(float winX, float winY, int[] viewport, Vector3f originDest, Vector3f dirDest) {
-        float a = this.m00 * this.m11 - this.m01 * this.m10;
-        float b = this.m00 * this.m12 - this.m02 * this.m10;
-        float c = this.m00 * this.m13 - this.m03 * this.m10;
-        float d = this.m01 * this.m12 - this.m02 * this.m11;
-        float e = this.m01 * this.m13 - this.m03 * this.m11;
-        float f = this.m02 * this.m13 - this.m03 * this.m12;
-        float g = this.m20 * this.m31 - this.m21 * this.m30;
-        float h = this.m20 * this.m32 - this.m22 * this.m30;
-        float i = this.m20 * this.m33 - this.m23 * this.m30;
-        float j = this.m21 * this.m32 - this.m22 * this.m31;
-        float k = this.m21 * this.m33 - this.m23 * this.m31;
-        float l = this.m22 * this.m33 - this.m23 * this.m32;
-        float det = a * l - b * k + c * j + d * i - e * h + f * g;
-        det = 1f / det;
-        float im00 = (this.m11 * l - this.m12 * k + this.m13 * j) * det;
-        float im01 = (-this.m01 * l + this.m02 * k - this.m03 * j) * det;
-        float im02 = (this.m31 * f - this.m32 * e + this.m33 * d) * det;
-        float im03 = (-this.m21 * f + this.m22 * e - this.m23 * d) * det;
-        float im10 = (-this.m10 * l + this.m12 * i - this.m13 * h) * det;
-        float im11 = (this.m00 * l - this.m02 * i + this.m03 * h) * det;
-        float im12 = (-this.m30 * f + this.m32 * c - this.m33 * b) * det;
-        float im13 = (this.m20 * f - this.m22 * c + this.m23 * b) * det;
-        float im20 = (this.m10 * k - this.m11 * i + this.m13 * g) * det;
-        float im21 = (-this.m00 * k + this.m01 * i - this.m03 * g) * det;
-        float im22 = (this.m30 * e - this.m31 * c + this.m33 * a) * det;
-        float im23 = (-this.m20 * e + this.m21 * c - this.m23 * a) * det;
-        float im30 = (-this.m10 * j + this.m11 * h - this.m12 * g) * det;
-        float im31 = (this.m00 * j - this.m01 * h + this.m02 * g) * det;
-        float im32 = (-this.m30 * d + this.m31 * b - this.m32 * a) * det;
-        float im33 = (this.m20 * d - this.m21 * b + this.m22 * a) * det;
-        float ndcX = (winX - (float)viewport[0]) / (float)viewport[2] * 2f - 1f;
-        float ndcY = (winY - (float)viewport[1]) / (float)viewport[3] * 2f - 1f;
-        float px = im00 * ndcX + im10 * ndcY + im30;
-        float py = im01 * ndcX + im11 * ndcY + im31;
-        float pz = im02 * ndcX + im12 * ndcY + im32;
-        float invNearW = 1f / (im03 * ndcX + im13 * ndcY - im23 + im33);
-        float nearX = (px - im20) * invNearW;
-        float nearY = (py - im21) * invNearW;
-        float nearZ = (pz - im22) * invNearW;
-        float invW0 = 1f / (im03 * ndcX + im13 * ndcY + im33);
-        float x0 = px * invW0;
-        float y0 = py * invW0;
-        float z0 = pz * invW0;
-        originDest.x = nearX;
-        originDest.y = nearY;
-        originDest.z = nearZ;
-        dirDest.x = x0 - nearX;
-        dirDest.y = y0 - nearY;
-        dirDest.z = z0 - nearZ;
-        return this;
+    fun unprojectInv(winCoords: Vector3f, viewport: IntArray, dest: Vector4f): Vector4f {
+        return this.unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dest)
     }
 
-    public Matrix4f unprojectRay(Vector2f winCoords, int[] viewport, Vector3f originDest, Vector3f dirDest) {
-        return this.unprojectRay(winCoords.x, winCoords.y, viewport, originDest, dirDest);
+    fun unprojectInv(winX: Float, winY: Float, winZ: Float, viewport: IntArray, dest: Vector4f): Vector4f {
+        val ndcX = (winX - viewport[0].toFloat()) / viewport[2].toFloat() * 2f - 1f
+        val ndcY = (winY - viewport[1].toFloat()) / viewport[3].toFloat() * 2f - 1f
+        val ndcZ = winZ + winZ - 1f
+        val invW = 1f / (m03 * ndcX + m13 * ndcY + m23 * ndcZ + m33)
+        return dest.set(
+            (m00 * ndcX + m10 * ndcY + m20 * ndcZ + m30) * invW,
+            (m01 * ndcX + m11 * ndcY + m21 * ndcZ + m31) * invW,
+            (m02 * ndcX + m12 * ndcY + m22 * ndcZ + m32) * invW,
+            1f
+        )
     }
 
-    public Vector4f unprojectInv(Vector3f winCoords, int[] viewport, Vector4f dest) {
-        return this.unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dest);
+    fun unprojectInvRay(winCoords: Vector2f, viewport: IntArray, originDest: Vector3f, dirDest: Vector3f): Matrix4f {
+        return this.unprojectInvRay(winCoords.x, winCoords.y, viewport, originDest, dirDest)
     }
 
-    public Vector4f unprojectInv(float winX, float winY, float winZ, int[] viewport, Vector4f dest) {
-        float ndcX = (winX - (float)viewport[0]) / (float)viewport[2] * 2f - 1f;
-        float ndcY = (winY - (float)viewport[1]) / (float)viewport[3] * 2f - 1f;
-        float ndcZ = winZ + winZ - 1f;
-        float invW = 1f / (this.m03 * ndcX + this.m13 * ndcY + this.m23 * ndcZ + this.m33);
-        return dest.set((this.m00 * ndcX + this.m10 * ndcY + this.m20 * ndcZ + this.m30) * invW, (this.m01 * ndcX + this.m11 * ndcY + this.m21 * ndcZ + this.m31) * invW, (this.m02 * ndcX + this.m12 * ndcY + this.m22 * ndcZ + this.m32) * invW, 1f);
+    fun unprojectInvRay(
+        winX: Float,
+        winY: Float,
+        viewport: IntArray,
+        originDest: Vector3f,
+        dirDest: Vector3f
+    ): Matrix4f {
+        val ndcX = (winX - viewport[0].toFloat()) / viewport[2].toFloat() * 2f - 1f
+        val ndcY = (winY - viewport[1].toFloat()) / viewport[3].toFloat() * 2f - 1f
+        val px = m00 * ndcX + m10 * ndcY + m30
+        val py = m01 * ndcX + m11 * ndcY + m31
+        val pz = m02 * ndcX + m12 * ndcY + m32
+        val invNearW = 1f / (m03 * ndcX + m13 * ndcY - m23 + m33)
+        val nearX = (px - m20) * invNearW
+        val nearY = (py - m21) * invNearW
+        val nearZ = (pz - m22) * invNearW
+        val invW0 = 1f / (m03 * ndcX + m13 * ndcY + m33)
+        val x0 = px * invW0
+        val y0 = py * invW0
+        val z0 = pz * invW0
+        originDest.x = nearX
+        originDest.y = nearY
+        originDest.z = nearZ
+        dirDest.x = x0 - nearX
+        dirDest.y = y0 - nearY
+        dirDest.z = z0 - nearZ
+        return this
     }
 
-    public Matrix4f unprojectInvRay(Vector2f winCoords, int[] viewport, Vector3f originDest, Vector3f dirDest) {
-        return this.unprojectInvRay(winCoords.x, winCoords.y, viewport, originDest, dirDest);
+    fun unprojectInv(winCoords: Vector3f, viewport: IntArray, dest: Vector3f): Vector3f {
+        return this.unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dest)
     }
 
-    public Matrix4f unprojectInvRay(float winX, float winY, int[] viewport, Vector3f originDest, Vector3f dirDest) {
-        float ndcX = (winX - (float)viewport[0]) / (float)viewport[2] * 2f - 1f;
-        float ndcY = (winY - (float)viewport[1]) / (float)viewport[3] * 2f - 1f;
-        float px = this.m00 * ndcX + this.m10 * ndcY + this.m30;
-        float py = this.m01 * ndcX + this.m11 * ndcY + this.m31;
-        float pz = this.m02 * ndcX + this.m12 * ndcY + this.m32;
-        float invNearW = 1f / (this.m03 * ndcX + this.m13 * ndcY - this.m23 + this.m33);
-        float nearX = (px - this.m20) * invNearW;
-        float nearY = (py - this.m21) * invNearW;
-        float nearZ = (pz - this.m22) * invNearW;
-        float invW0 = 1f / (this.m03 * ndcX + this.m13 * ndcY + this.m33);
-        float x0 = px * invW0;
-        float y0 = py * invW0;
-        float z0 = pz * invW0;
-        originDest.x = nearX;
-        originDest.y = nearY;
-        originDest.z = nearZ;
-        dirDest.x = x0 - nearX;
-        dirDest.y = y0 - nearY;
-        dirDest.z = z0 - nearZ;
-        return this;
+    fun unprojectInv(winX: Float, winY: Float, winZ: Float, viewport: IntArray, dest: Vector3f): Vector3f {
+        val ndcX = (winX - viewport[0].toFloat()) / viewport[2].toFloat() * 2f - 1f
+        val ndcY = (winY - viewport[1].toFloat()) / viewport[3].toFloat() * 2f - 1f
+        val ndcZ = winZ + winZ - 1f
+        val invW = 1f / (m03 * ndcX + m13 * ndcY + m23 * ndcZ + m33)
+        return dest.set(
+            (m00 * ndcX + m10 * ndcY + m20 * ndcZ + m30) * invW,
+            (m01 * ndcX + m11 * ndcY + m21 * ndcZ + m31) * invW,
+            (m02 * ndcX + m12 * ndcY + m22 * ndcZ + m32) * invW
+        )
     }
 
-    public Vector3f unprojectInv(Vector3f winCoords, int[] viewport, Vector3f dest) {
-        return this.unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dest);
+    fun project(x: Float, y: Float, z: Float, viewport: IntArray, winCoordsDest: Vector4f): Vector4f {
+        val invW = 1f / Math.fma(m03, x, Math.fma(m13, y, Math.fma(m23, z, m33)))
+        val nx = Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30))) * invW
+        val ny = Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31))) * invW
+        val nz = Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32))) * invW
+        return winCoordsDest.set(
+            Math.fma(Math.fma(nx, 0.5f, 0.5f), viewport[2].toFloat(), viewport[0].toFloat()), Math.fma(
+                Math.fma(ny, 0.5f, 0.5f), viewport[3].toFloat(), viewport[1].toFloat()
+            ), Math.fma(0.5f, nz, 0.5f), 1f
+        )
     }
 
-    public Vector3f unprojectInv(float winX, float winY, float winZ, int[] viewport, Vector3f dest) {
-        float ndcX = (winX - (float)viewport[0]) / (float)viewport[2] * 2f - 1f;
-        float ndcY = (winY - (float)viewport[1]) / (float)viewport[3] * 2f - 1f;
-        float ndcZ = winZ + winZ - 1f;
-        float invW = 1f / (this.m03 * ndcX + this.m13 * ndcY + this.m23 * ndcZ + this.m33);
-        return dest.set((this.m00 * ndcX + this.m10 * ndcY + this.m20 * ndcZ + this.m30) * invW, (this.m01 * ndcX + this.m11 * ndcY + this.m21 * ndcZ + this.m31) * invW, (this.m02 * ndcX + this.m12 * ndcY + this.m22 * ndcZ + this.m32) * invW);
+    fun project(x: Float, y: Float, z: Float, viewport: IntArray, winCoordsDest: Vector3f): Vector3f {
+        val invW = 1f / Math.fma(m03, x, Math.fma(m13, y, Math.fma(m23, z, m33)))
+        val nx = Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30))) * invW
+        val ny = Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31))) * invW
+        val nz = Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32))) * invW
+        winCoordsDest.x = Math.fma(Math.fma(nx, 0.5f, 0.5f), viewport[2].toFloat(), viewport[0].toFloat())
+        winCoordsDest.y = Math.fma(Math.fma(ny, 0.5f, 0.5f), viewport[3].toFloat(), viewport[1].toFloat())
+        winCoordsDest.z = Math.fma(0.5f, nz, 0.5f)
+        return winCoordsDest
     }
 
-    public Vector4f project(float x, float y, float z, int[] viewport, Vector4f winCoordsDest) {
-        float invW = 1f / Math.fma(this.m03, x, Math.fma(this.m13, y, Math.fma(this.m23, z, this.m33)));
-        float nx = Math.fma(this.m00, x, Math.fma(this.m10, y, Math.fma(this.m20, z, this.m30))) * invW;
-        float ny = Math.fma(this.m01, x, Math.fma(this.m11, y, Math.fma(this.m21, z, this.m31))) * invW;
-        float nz = Math.fma(this.m02, x, Math.fma(this.m12, y, Math.fma(this.m22, z, this.m32))) * invW;
-        return winCoordsDest.set(Math.fma(Math.fma(nx, 0.5F, 0.5F), (float)viewport[2], (float)viewport[0]), Math.fma(Math.fma(ny, 0.5F, 0.5F), (float)viewport[3], (float)viewport[1]), Math.fma(0.5F, nz, 0.5F), 1f);
+    fun project(position: Vector3f, viewport: IntArray, winCoordsDest: Vector4f): Vector4f {
+        return this.project(position.x, position.y, position.z, viewport, winCoordsDest)
     }
 
-    public Vector3f project(float x, float y, float z, int[] viewport, Vector3f winCoordsDest) {
-        float invW = 1f / Math.fma(this.m03, x, Math.fma(this.m13, y, Math.fma(this.m23, z, this.m33)));
-        float nx = Math.fma(this.m00, x, Math.fma(this.m10, y, Math.fma(this.m20, z, this.m30))) * invW;
-        float ny = Math.fma(this.m01, x, Math.fma(this.m11, y, Math.fma(this.m21, z, this.m31))) * invW;
-        float nz = Math.fma(this.m02, x, Math.fma(this.m12, y, Math.fma(this.m22, z, this.m32))) * invW;
-        winCoordsDest.x = Math.fma(Math.fma(nx, 0.5F, 0.5F), (float)viewport[2], (float)viewport[0]);
-        winCoordsDest.y = Math.fma(Math.fma(ny, 0.5F, 0.5F), (float)viewport[3], (float)viewport[1]);
-        winCoordsDest.z = Math.fma(0.5F, nz, 0.5F);
-        return winCoordsDest;
+    fun project(position: Vector3f, viewport: IntArray, winCoordsDest: Vector3f): Vector3f {
+        return this.project(position.x, position.y, position.z, viewport, winCoordsDest)
     }
 
-    public Vector4f project(Vector3f position, int[] viewport, Vector4f winCoordsDest) {
-        return this.project(position.x, position.y, position.z, viewport, winCoordsDest);
-    }
-
-    public Vector3f project(Vector3f position, int[] viewport, Vector3f winCoordsDest) {
-        return this.project(position.x, position.y, position.z, viewport, winCoordsDest);
-    }
-
-    public Matrix4f reflect(float a, float b, float c, float d, Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.reflection(a, b, c, d);
+    @JvmOverloads
+    fun reflect(a: Float, b: Float, c: Float, d: Float, dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.reflection(a, b, c, d)
         } else {
-            return (this.properties & 2) != 0 ? this.reflectAffine(a, b, c, d, dest) : this.reflectGeneric(a, b, c, d, dest);
+            if (properties and 2 != 0) reflectAffine(a, b, c, d, dest) else reflectGeneric(
+                a,
+                b,
+                c,
+                d,
+                dest
+            )
         }
     }
 
-    private Matrix4f reflectAffine(float a, float b, float c, float d, Matrix4f dest) {
-        float da = a + a;
-        float db = b + b;
-        float dc = c + c;
-        float dd = d + d;
-        float rm00 = 1f - da * a;
-        float rm01 = -da * b;
-        float rm02 = -da * c;
-        float rm10 = -db * a;
-        float rm11 = 1f - db * b;
-        float rm12 = -db * c;
-        float rm20 = -dc * a;
-        float rm21 = -dc * b;
-        float rm22 = 1f - dc * c;
-        float rm30 = -dd * a;
-        float rm31 = -dd * b;
-        float rm32 = -dd * c;
-        dest._m30(this.m00 * rm30 + this.m10 * rm31 + this.m20 * rm32 + this.m30)._m31(this.m01 * rm30 + this.m11 * rm31 + this.m21 * rm32 + this.m31)._m32(this.m02 * rm30 + this.m12 * rm31 + this.m22 * rm32 + this.m32)._m33(this.m33);
-        float nm00 = this.m00 * rm00 + this.m10 * rm01 + this.m20 * rm02;
-        float nm01 = this.m01 * rm00 + this.m11 * rm01 + this.m21 * rm02;
-        float nm02 = this.m02 * rm00 + this.m12 * rm01 + this.m22 * rm02;
-        float nm10 = this.m00 * rm10 + this.m10 * rm11 + this.m20 * rm12;
-        float nm11 = this.m01 * rm10 + this.m11 * rm11 + this.m21 * rm12;
-        float nm12 = this.m02 * rm10 + this.m12 * rm11 + this.m22 * rm12;
-        dest._m20(this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22)._m21(this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22)._m22(this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22)._m23(0f)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._properties(this.properties & -14);
-        return dest;
+    private fun reflectAffine(a: Float, b: Float, c: Float, d: Float, dest: Matrix4f): Matrix4f {
+        val da = a + a
+        val db = b + b
+        val dc = c + c
+        val dd = d + d
+        val rm00 = 1f - da * a
+        val rm01 = -da * b
+        val rm02 = -da * c
+        val rm10 = -db * a
+        val rm11 = 1f - db * b
+        val rm12 = -db * c
+        val rm20 = -dc * a
+        val rm21 = -dc * b
+        val rm22 = 1f - dc * c
+        val rm30 = -dd * a
+        val rm31 = -dd * b
+        val rm32 = -dd * c
+        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
+            m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
+        )._m33(m33)
+        val nm00 = m00 * rm00 + m10 * rm01 + m20 * rm02
+        val nm01 = m01 * rm00 + m11 * rm01 + m21 * rm02
+        val nm02 = m02 * rm00 + m12 * rm01 + m22 * rm02
+        val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
+        val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
+        val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
+        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+            m02 * rm20 + m12 * rm21 + m22 * rm22
+        )._m23(0f)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._properties(
+            properties and -14
+        )
+        return dest
     }
 
-    private Matrix4f reflectGeneric(float a, float b, float c, float d, Matrix4f dest) {
-        float da = a + a;
-        float db = b + b;
-        float dc = c + c;
-        float dd = d + d;
-        float rm00 = 1f - da * a;
-        float rm01 = -da * b;
-        float rm02 = -da * c;
-        float rm10 = -db * a;
-        float rm11 = 1f - db * b;
-        float rm12 = -db * c;
-        float rm20 = -dc * a;
-        float rm21 = -dc * b;
-        float rm22 = 1f - dc * c;
-        float rm30 = -dd * a;
-        float rm31 = -dd * b;
-        float rm32 = -dd * c;
-        dest._m30(this.m00 * rm30 + this.m10 * rm31 + this.m20 * rm32 + this.m30)._m31(this.m01 * rm30 + this.m11 * rm31 + this.m21 * rm32 + this.m31)._m32(this.m02 * rm30 + this.m12 * rm31 + this.m22 * rm32 + this.m32)._m33(this.m03 * rm30 + this.m13 * rm31 + this.m23 * rm32 + this.m33);
-        float nm00 = this.m00 * rm00 + this.m10 * rm01 + this.m20 * rm02;
-        float nm01 = this.m01 * rm00 + this.m11 * rm01 + this.m21 * rm02;
-        float nm02 = this.m02 * rm00 + this.m12 * rm01 + this.m22 * rm02;
-        float nm03 = this.m03 * rm00 + this.m13 * rm01 + this.m23 * rm02;
-        float nm10 = this.m00 * rm10 + this.m10 * rm11 + this.m20 * rm12;
-        float nm11 = this.m01 * rm10 + this.m11 * rm11 + this.m21 * rm12;
-        float nm12 = this.m02 * rm10 + this.m12 * rm11 + this.m22 * rm12;
-        float nm13 = this.m03 * rm10 + this.m13 * rm11 + this.m23 * rm12;
-        dest._m20(this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22)._m21(this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22)._m22(this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22)._m23(this.m03 * rm20 + this.m13 * rm21 + this.m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._properties(this.properties & -14);
-        return dest;
+    private fun reflectGeneric(a: Float, b: Float, c: Float, d: Float, dest: Matrix4f): Matrix4f {
+        val da = a + a
+        val db = b + b
+        val dc = c + c
+        val dd = d + d
+        val rm00 = 1f - da * a
+        val rm01 = -da * b
+        val rm02 = -da * c
+        val rm10 = -db * a
+        val rm11 = 1f - db * b
+        val rm12 = -db * c
+        val rm20 = -dc * a
+        val rm21 = -dc * b
+        val rm22 = 1f - dc * c
+        val rm30 = -dd * a
+        val rm31 = -dd * b
+        val rm32 = -dd * c
+        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
+            m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
+        )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)
+        val nm00 = m00 * rm00 + m10 * rm01 + m20 * rm02
+        val nm01 = m01 * rm00 + m11 * rm01 + m21 * rm02
+        val nm02 = m02 * rm00 + m12 * rm01 + m22 * rm02
+        val nm03 = m03 * rm00 + m13 * rm01 + m23 * rm02
+        val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
+        val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
+        val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
+        val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12
+        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+            m02 * rm20 + m12 * rm21 + m22 * rm22
+        )._m23(m03 * rm20 + m13 * rm21 + m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
+            ._m12(nm12)._m13(nm13)._properties(
+            properties and -14
+        )
+        return dest
     }
 
-    public Matrix4f reflect(float a, float b, float c, float d) {
-        return this.reflect(a, b, c, d, this);
+    @JvmOverloads
+    fun reflect(nx: Float, ny: Float, nz: Float, px: Float, py: Float, pz: Float, dest: Matrix4f = this): Matrix4f {
+        val invLength = Math.invsqrt(nx * nx + ny * ny + nz * nz)
+        val nnx = nx * invLength
+        val nny = ny * invLength
+        val nnz = nz * invLength
+        return this.reflect(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz, dest)
     }
 
-    public Matrix4f reflect(float nx, float ny, float nz, float px, float py, float pz) {
-        return this.reflect(nx, ny, nz, px, py, pz, this);
+    fun reflect(normal: Vector3f, point: Vector3f): Matrix4f {
+        return this.reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z)
     }
 
-    public Matrix4f reflect(float nx, float ny, float nz, float px, float py, float pz, Matrix4f dest) {
-        float invLength = Math.invsqrt(nx * nx + ny * ny + nz * nz);
-        float nnx = nx * invLength;
-        float nny = ny * invLength;
-        float nnz = nz * invLength;
-        return this.reflect(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz, dest);
+    @JvmOverloads
+    fun reflect(orientation: Quaternionf, point: Vector3f, dest: Matrix4f = this): Matrix4f {
+        val num1 = (orientation.x + orientation.x).toDouble()
+        val num2 = (orientation.y + orientation.y).toDouble()
+        val num3 = (orientation.z + orientation.z).toDouble()
+        val normalX = (orientation.x.toDouble() * num3 + orientation.w.toDouble() * num2).toFloat()
+        val normalY = (orientation.y.toDouble() * num3 - orientation.w.toDouble() * num1).toFloat()
+        val normalZ = (1.0 - (orientation.x.toDouble() * num1 + orientation.y.toDouble() * num2)).toFloat()
+        return this.reflect(normalX, normalY, normalZ, point.x, point.y, point.z, dest)
     }
 
-    public Matrix4f reflect(Vector3f normal, Vector3f point) {
-        return this.reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z);
+    fun reflect(normal: Vector3f, point: Vector3f, dest: Matrix4f): Matrix4f {
+        return this.reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z, dest)
     }
 
-    public Matrix4f reflect(Quaternionf orientation, Vector3f point) {
-        return this.reflect(orientation, point, this);
+    fun reflection(a: Float, b: Float, c: Float, d: Float): Matrix4f {
+        val da = a + a
+        val db = b + b
+        val dc = c + c
+        val dd = d + d
+        _m00(1f - da * a)._m01(-da * b)._m02(-da * c)._m03(0f)._m10(-db * a)._m11(1f - db * b)._m12(-db * c)._m13(0f)
+            ._m20(-dc * a)._m21(-dc * b)._m22(1f - dc * c)._m23(0f)._m30(-dd * a)._m31(-dd * b)._m32(-dd * c)._m33(1f)
+            ._properties(18)
+        return this
     }
 
-    public Matrix4f reflect(Quaternionf orientation, Vector3f point, Matrix4f dest) {
-        double num1 = orientation.x + orientation.x;
-        double num2 = orientation.y + orientation.y;
-        double num3 = orientation.z + orientation.z;
-        float normalX = (float)((double)orientation.x * num3 + (double)orientation.w * num2);
-        float normalY = (float)((double)orientation.y * num3 - (double)orientation.w * num1);
-        float normalZ = (float)(1.0 - ((double)orientation.x * num1 + (double)orientation.y * num2));
-        return this.reflect(normalX, normalY, normalZ, point.x, point.y, point.z, dest);
+    fun reflection(nx: Float, ny: Float, nz: Float, px: Float, py: Float, pz: Float): Matrix4f {
+        val invLength = Math.invsqrt(nx * nx + ny * ny + nz * nz)
+        val nnx = nx * invLength
+        val nny = ny * invLength
+        val nnz = nz * invLength
+        return this.reflection(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz)
     }
 
-    public Matrix4f reflect(Vector3f normal, Vector3f point, Matrix4f dest) {
-        return this.reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z, dest);
+    fun reflection(normal: Vector3f, point: Vector3f): Matrix4f {
+        return this.reflection(normal.x, normal.y, normal.z, point.x, point.y, point.z)
     }
 
-    public Matrix4f reflection(float a, float b, float c, float d) {
-        float da = a + a;
-        float db = b + b;
-        float dc = c + c;
-        float dd = d + d;
-        this._m00(1f - da * a)._m01(-da * b)._m02(-da * c)._m03(0f)._m10(-db * a)._m11(1f - db * b)._m12(-db * c)._m13(0f)._m20(-dc * a)._m21(-dc * b)._m22(1f - dc * c)._m23(0f)._m30(-dd * a)._m31(-dd * b)._m32(-dd * c)._m33(1f)._properties(18);
-        return this;
+    fun reflection(orientation: Quaternionf, point: Vector3f): Matrix4f {
+        val num1 = (orientation.x + orientation.x).toDouble()
+        val num2 = (orientation.y + orientation.y).toDouble()
+        val num3 = (orientation.z + orientation.z).toDouble()
+        val normalX = (orientation.x.toDouble() * num3 + orientation.w.toDouble() * num2).toFloat()
+        val normalY = (orientation.y.toDouble() * num3 - orientation.w.toDouble() * num1).toFloat()
+        val normalZ = (1.0 - (orientation.x.toDouble() * num1 + orientation.y.toDouble() * num2)).toFloat()
+        return this.reflection(normalX, normalY, normalZ, point.x, point.y, point.z)
     }
 
-    public Matrix4f reflection(float nx, float ny, float nz, float px, float py, float pz) {
-        float invLength = Math.invsqrt(nx * nx + ny * ny + nz * nz);
-        float nnx = nx * invLength;
-        float nny = ny * invLength;
-        float nnz = nz * invLength;
-        return this.reflection(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz);
-    }
-
-    public Matrix4f reflection(Vector3f normal, Vector3f point) {
-        return this.reflection(normal.x, normal.y, normal.z, point.x, point.y, point.z);
-    }
-
-    public Matrix4f reflection(Quaternionf orientation, Vector3f point) {
-        double num1 = orientation.x + orientation.x;
-        double num2 = orientation.y + orientation.y;
-        double num3 = orientation.z + orientation.z;
-        float normalX = (float)((double)orientation.x * num3 + (double)orientation.w * num2);
-        float normalY = (float)((double)orientation.y * num3 - (double)orientation.w * num1);
-        float normalZ = (float)(1.0 - ((double)orientation.x * num1 + (double)orientation.y * num2));
-        return this.reflection(normalX, normalY, normalZ, point.x, point.y, point.z);
-    }
-
-    public Vector4f getRow(int row, Vector4f dest) throws IndexOutOfBoundsException {
-        switch (row) {
-            case 0:
-                return dest.set(this.m00, this.m10, this.m20, this.m30);
-            case 1:
-                return dest.set(this.m01, this.m11, this.m21, this.m31);
-            case 2:
-                return dest.set(this.m02, this.m12, this.m22, this.m32);
-            case 3:
-                return dest.set(this.m03, this.m13, this.m23, this.m33);
-            default:
-                throw new IndexOutOfBoundsException();
+    @Throws(IndexOutOfBoundsException::class)
+    fun getRow(row: Int, dest: Vector4f): Vector4f {
+        return when (row) {
+            0 -> dest.set(m00, m10, m20, m30)
+            1 -> dest.set(m01, m11, m21, m31)
+            2 -> dest.set(m02, m12, m22, m32)
+            3 -> dest.set(m03, m13, m23, m33)
+            else -> throw IndexOutOfBoundsException()
         }
     }
 
-    public Vector3f getRow(int row, Vector3f dest) throws IndexOutOfBoundsException {
-        switch (row) {
-            case 0:
-                return dest.set(this.m00, this.m10, this.m20);
-            case 1:
-                return dest.set(this.m01, this.m11, this.m21);
-            case 2:
-                return dest.set(this.m02, this.m12, this.m22);
-            case 3:
-                return dest.set(this.m03, this.m13, this.m23);
-            default:
-                throw new IndexOutOfBoundsException();
+    @Throws(IndexOutOfBoundsException::class)
+    fun getRow(row: Int, dest: Vector3f): Vector3f {
+        return when (row) {
+            0 -> dest.set(m00, m10, m20)
+            1 -> dest.set(m01, m11, m21)
+            2 -> dest.set(m02, m12, m22)
+            3 -> dest.set(m03, m13, m23)
+            else -> throw IndexOutOfBoundsException()
         }
     }
 
-    public Matrix4f setRow(int row, Vector4f src) throws IndexOutOfBoundsException {
-        switch (row) {
-            case 0:
-                return this._m00(src.x)._m10(src.y)._m20(src.z)._m30(src.w)._properties(0);
-            case 1:
-                return this._m01(src.x)._m11(src.y)._m21(src.z)._m31(src.w)._properties(0);
-            case 2:
-                return this._m02(src.x)._m12(src.y)._m22(src.z)._m32(src.w)._properties(0);
-            case 3:
-                return this._m03(src.x)._m13(src.y)._m23(src.z)._m33(src.w)._properties(0);
-            default:
-                throw new IndexOutOfBoundsException();
+    @Throws(IndexOutOfBoundsException::class)
+    fun setRow(row: Int, src: Vector4f): Matrix4f {
+        return when (row) {
+            0 -> _m00(src.x)._m10(src.y)._m20(src.z)._m30(src.w)._properties(0)
+            1 -> _m01(src.x)._m11(src.y)._m21(src.z)._m31(src.w)._properties(0)
+            2 -> _m02(src.x)._m12(src.y)._m22(src.z)._m32(src.w)._properties(0)
+            3 -> _m03(src.x)._m13(src.y)._m23(src.z)._m33(src.w)._properties(0)
+            else -> throw IndexOutOfBoundsException()
         }
     }
 
-    public Vector4f getColumn(int column, Vector4f dest) throws IndexOutOfBoundsException {
-        return MemUtil.INSTANCE.getColumn(this, column, dest);
+    @Throws(IndexOutOfBoundsException::class)
+    fun getColumn(column: Int, dest: Vector4f?): Vector4f {
+        return MemUtil.INSTANCE.getColumn(this, column, dest)
     }
 
-    public Vector3f getColumn(int column, Vector3f dest) throws IndexOutOfBoundsException {
-        switch (column) {
-            case 0:
-                return dest.set(this.m00, this.m01, this.m02);
-            case 1:
-                return dest.set(this.m10, this.m11, this.m12);
-            case 2:
-                return dest.set(this.m20, this.m21, this.m22);
-            case 3:
-                return dest.set(this.m30, this.m31, this.m32);
-            default:
-                throw new IndexOutOfBoundsException();
+    @Throws(IndexOutOfBoundsException::class)
+    fun getColumn(column: Int, dest: Vector3f): Vector3f {
+        return when (column) {
+            0 -> dest.set(m00, m01, m02)
+            1 -> dest.set(m10, m11, m12)
+            2 -> dest.set(m20, m21, m22)
+            3 -> dest.set(m30, m31, m32)
+            else -> throw IndexOutOfBoundsException()
         }
     }
 
-    public Matrix4f setColumn(int column, Vector4f src) throws IndexOutOfBoundsException {
-        return MemUtil.INSTANCE.setColumn(src, column, this)._properties(0);
+    @Throws(IndexOutOfBoundsException::class)
+    fun setColumn(column: Int, src: Vector4f?): Matrix4f {
+        return MemUtil.INSTANCE.setColumn(src, column, this)._properties(0)
     }
 
-    public float get(int column, int row) {
-        return MemUtil.INSTANCE.get(this, column, row);
+    operator fun get(column: Int, row: Int): Float {
+        return MemUtil.INSTANCE[this, column, row]
     }
 
-    public Matrix4f set(int column, int row, float value) {
-        return MemUtil.INSTANCE.set(this, column, row, value);
+    operator fun set(column: Int, row: Int, value: Float): Matrix4f {
+        return MemUtil.INSTANCE.set(this, column, row, value)
     }
 
-    public float getRowColumn(int row, int column) {
-        return MemUtil.INSTANCE.get(this, column, row);
+    fun getRowColumn(row: Int, column: Int): Float {
+        return MemUtil.INSTANCE[this, column, row]
     }
 
-    public Matrix4f setRowColumn(int row, int column, float value) {
-        return MemUtil.INSTANCE.set(this, column, row, value);
+    fun setRowColumn(row: Int, column: Int, value: Float): Matrix4f {
+        return MemUtil.INSTANCE.set(this, column, row, value)
     }
 
-    public Matrix4f normal() {
-        return this.normal(this);
-    }
-
-    public Matrix4f normal(Matrix4f dest) {
-        if ((this.properties & 4) != 0) {
-            return dest.identity();
+    @JvmOverloads
+    fun normal(dest: Matrix4f = this): Matrix4f {
+        return if (properties and 4 != 0) {
+            dest.identity()
         } else {
-            return (this.properties & 16) != 0 ? this.normalOrthonormal(dest) : this.normalGeneric(dest);
+            if (properties and 16 != 0) this.normalOrthonormal(dest) else this.normalGeneric(dest)
         }
     }
 
-    private Matrix4f normalOrthonormal(Matrix4f dest) {
-        if (dest != this) {
-            dest.set(this);
+    private fun normalOrthonormal(dest: Matrix4f): Matrix4f {
+        if (dest !== this) {
+            dest.set(this)
         }
-
-        return dest._properties(18);
+        return dest._properties(18)
     }
 
-    private Matrix4f normalGeneric(Matrix4f dest) {
-        float m00m11 = this.m00 * this.m11;
-        float m01m10 = this.m01 * this.m10;
-        float m02m10 = this.m02 * this.m10;
-        float m00m12 = this.m00 * this.m12;
-        float m01m12 = this.m01 * this.m12;
-        float m02m11 = this.m02 * this.m11;
-        float det = (m00m11 - m01m10) * this.m22 + (m02m10 - m00m12) * this.m21 + (m01m12 - m02m11) * this.m20;
-        float s = 1f / det;
-        float nm00 = (this.m11 * this.m22 - this.m21 * this.m12) * s;
-        float nm01 = (this.m20 * this.m12 - this.m10 * this.m22) * s;
-        float nm02 = (this.m10 * this.m21 - this.m20 * this.m11) * s;
-        float nm10 = (this.m21 * this.m02 - this.m01 * this.m22) * s;
-        float nm11 = (this.m00 * this.m22 - this.m20 * this.m02) * s;
-        float nm12 = (this.m20 * this.m01 - this.m00 * this.m21) * s;
-        float nm20 = (m01m12 - m02m11) * s;
-        float nm21 = (m02m10 - m00m12) * s;
-        float nm22 = (m00m11 - m01m10) * s;
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m20(nm20)._m21(nm21)._m22(nm22)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties((this.properties | 2) & -10);
+    private fun normalGeneric(dest: Matrix4f): Matrix4f {
+        val m00m11 = m00 * m11
+        val m01m10 = m01 * m10
+        val m02m10 = m02 * m10
+        val m00m12 = m00 * m12
+        val m01m12 = m01 * m12
+        val m02m11 = m02 * m11
+        val det = (m00m11 - m01m10) * m22 + (m02m10 - m00m12) * m21 + (m01m12 - m02m11) * m20
+        val s = 1f / det
+        val nm00 = (m11 * m22 - m21 * m12) * s
+        val nm01 = (m20 * m12 - m10 * m22) * s
+        val nm02 = (m10 * m21 - m20 * m11) * s
+        val nm10 = (m21 * m02 - m01 * m22) * s
+        val nm11 = (m00 * m22 - m20 * m02) * s
+        val nm12 = (m20 * m01 - m00 * m21) * s
+        val nm20 = (m01m12 - m02m11) * s
+        val nm21 = (m02m10 - m00m12) * s
+        val nm22 = (m00m11 - m01m10) * s
+        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(
+            properties or 2 and -10
+        )
     }
 
-    public Matrix3f normal(Matrix3f dest) {
-        return (this.properties & 16) != 0 ? this.normalOrthonormal(dest) : this.normalGeneric(dest);
+    fun normal(dest: Matrix3f): Matrix3f {
+        return if (properties and 16 != 0) this.normalOrthonormal(dest) else this.normalGeneric(dest)
     }
 
-    private Matrix3f normalOrthonormal(Matrix3f dest) {
-        dest.set(this);
-        return dest;
+    private fun normalOrthonormal(dest: Matrix3f): Matrix3f {
+        dest.set(this)
+        return dest
     }
 
-    private Matrix3f normalGeneric(Matrix3f dest) {
-        float det = (this.m00 * this.m11 - this.m01 * this.m10) * this.m22 + (this.m02 * this.m10 - this.m00 * this.m12) * this.m21 + (this.m01 * this.m12 - this.m02 * this.m11) * this.m20;
-        float s = 1f / det;
-        return dest._m00((this.m11 * this.m22 - this.m21 * this.m12) * s)._m01((this.m20 * this.m12 - this.m10 * this.m22) * s)._m02((this.m10 * this.m21 - this.m20 * this.m11) * s)._m10((this.m21 * this.m02 - this.m01 * this.m22) * s)._m11((this.m00 * this.m22 - this.m20 * this.m02) * s)._m12((this.m20 * this.m01 - this.m00 * this.m21) * s)._m20((this.m01 * this.m12 - this.m02 * this.m11) * s)._m21((this.m02 * this.m10 - this.m00 * this.m12) * s)._m22((this.m00 * this.m11 - this.m01 * this.m10) * s);
+    private fun normalGeneric(dest: Matrix3f): Matrix3f {
+        val det = (m00 * m11 - m01 * m10) * m22 + (m02 * m10 - m00 * m12) * m21 + (m01 * m12 - m02 * m11) * m20
+        val s = 1f / det
+        return dest._m00((m11 * m22 - m21 * m12) * s)._m01((m20 * m12 - m10 * m22) * s)
+            ._m02((m10 * m21 - m20 * m11) * s)._m10((m21 * m02 - m01 * m22) * s)._m11((m00 * m22 - m20 * m02) * s)
+            ._m12((m20 * m01 - m00 * m21) * s)._m20((m01 * m12 - m02 * m11) * s)._m21((m02 * m10 - m00 * m12) * s)
+            ._m22((m00 * m11 - m01 * m10) * s)
     }
 
-    public Matrix4f cofactor3x3() {
-        return this.cofactor3x3(this);
+    fun cofactor3x3(dest: Matrix3f): Matrix3f {
+        return dest._m00(m11 * m22 - m21 * m12)._m01(m20 * m12 - m10 * m22)._m02(m10 * m21 - m20 * m11)
+            ._m10(m21 * m02 - m01 * m22)._m11(
+            m00 * m22 - m20 * m02
+        )._m12(m20 * m01 - m00 * m21)._m20(m01 * m12 - m02 * m11)._m21(m02 * m10 - m00 * m12)
+            ._m22(m00 * m11 - m01 * m10)
     }
 
-    public Matrix3f cofactor3x3(Matrix3f dest) {
-        return dest._m00(this.m11 * this.m22 - this.m21 * this.m12)._m01(this.m20 * this.m12 - this.m10 * this.m22)._m02(this.m10 * this.m21 - this.m20 * this.m11)._m10(this.m21 * this.m02 - this.m01 * this.m22)._m11(this.m00 * this.m22 - this.m20 * this.m02)._m12(this.m20 * this.m01 - this.m00 * this.m21)._m20(this.m01 * this.m12 - this.m02 * this.m11)._m21(this.m02 * this.m10 - this.m00 * this.m12)._m22(this.m00 * this.m11 - this.m01 * this.m10);
+    @JvmOverloads
+    fun cofactor3x3(dest: Matrix4f = this): Matrix4f {
+        val nm10 = m21 * m02 - m01 * m22
+        val nm11 = m00 * m22 - m20 * m02
+        val nm12 = m20 * m01 - m00 * m21
+        val nm20 = m01 * m12 - m11 * m02
+        val nm21 = m02 * m10 - m12 * m00
+        val nm22 = m00 * m11 - m10 * m01
+        return dest._m00(m11 * m22 - m21 * m12)._m01(m20 * m12 - m10 * m22)._m02(m10 * m21 - m20 * m11)._m03(0f)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m20(nm20)._m21(nm21)._m22(nm22)._m23(0f)._m30(0f)._m31(0f)
+            ._m32(0f)._m33(1f)._properties(
+            properties or 2 and -10
+        )
     }
 
-    public Matrix4f cofactor3x3(Matrix4f dest) {
-        float nm10 = this.m21 * this.m02 - this.m01 * this.m22;
-        float nm11 = this.m00 * this.m22 - this.m20 * this.m02;
-        float nm12 = this.m20 * this.m01 - this.m00 * this.m21;
-        float nm20 = this.m01 * this.m12 - this.m11 * this.m02;
-        float nm21 = this.m02 * this.m10 - this.m12 * this.m00;
-        float nm22 = this.m00 * this.m11 - this.m10 * this.m01;
-        return dest._m00(this.m11 * this.m22 - this.m21 * this.m12)._m01(this.m20 * this.m12 - this.m10 * this.m22)._m02(this.m10 * this.m21 - this.m20 * this.m11)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m20(nm20)._m21(nm21)._m22(nm22)._m23(0f)._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties((this.properties | 2) & -10);
+    @JvmOverloads
+    fun normalize3x3(dest: Matrix4f = this): Matrix4f {
+        val invXlen = Math.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
+        val invYlen = Math.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
+        val invZlen = Math.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
+        return dest._m00(m00 * invXlen)._m01(m01 * invXlen)._m02(m02 * invXlen)._m10(m10 * invYlen)._m11(m11 * invYlen)
+            ._m12(
+                m12 * invYlen
+            )._m20(m20 * invZlen)._m21(m21 * invZlen)._m22(m22 * invZlen)._m30(m30)._m31(m31)._m32(m32)._m33(
+            m33
+        )._properties(properties)
     }
 
-    public Matrix4f normalize3x3() {
-        return this.normalize3x3(this);
+    fun normalize3x3(dest: Matrix3f): Matrix3f {
+        val invXlen = Math.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
+        val invYlen = Math.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
+        val invZlen = Math.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
+        return dest._m00(m00 * invXlen)._m01(m01 * invXlen)._m02(m02 * invXlen)._m10(m10 * invYlen)._m11(m11 * invYlen)
+            ._m12(
+                m12 * invYlen
+            )._m20(m20 * invZlen)._m21(m21 * invZlen)._m22(m22 * invZlen)
     }
 
-    public Matrix4f normalize3x3(Matrix4f dest) {
-        float invXlen = Math.invsqrt(this.m00 * this.m00 + this.m01 * this.m01 + this.m02 * this.m02);
-        float invYlen = Math.invsqrt(this.m10 * this.m10 + this.m11 * this.m11 + this.m12 * this.m12);
-        float invZlen = Math.invsqrt(this.m20 * this.m20 + this.m21 * this.m21 + this.m22 * this.m22);
-        return dest._m00(this.m00 * invXlen)._m01(this.m01 * invXlen)._m02(this.m02 * invXlen)._m10(this.m10 * invYlen)._m11(this.m11 * invYlen)._m12(this.m12 * invYlen)._m20(this.m20 * invZlen)._m21(this.m21 * invZlen)._m22(this.m22 * invZlen)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties);
-    }
-
-    public Matrix3f normalize3x3(Matrix3f dest) {
-        float invXlen = Math.invsqrt(this.m00 * this.m00 + this.m01 * this.m01 + this.m02 * this.m02);
-        float invYlen = Math.invsqrt(this.m10 * this.m10 + this.m11 * this.m11 + this.m12 * this.m12);
-        float invZlen = Math.invsqrt(this.m20 * this.m20 + this.m21 * this.m21 + this.m22 * this.m22);
-        return dest._m00(this.m00 * invXlen)._m01(this.m01 * invXlen)._m02(this.m02 * invXlen)._m10(this.m10 * invYlen)._m11(this.m11 * invYlen)._m12(this.m12 * invYlen)._m20(this.m20 * invZlen)._m21(this.m21 * invZlen)._m22(this.m22 * invZlen);
-    }
-
-    public Vector4f frustumPlane(int plane, Vector4f dest) {
-        switch (plane) {
-            case 0:
-                dest.set(this.m03 + this.m00, this.m13 + this.m10, this.m23 + this.m20, this.m33 + this.m30).normalize3();
-                break;
-            case 1:
-                dest.set(this.m03 - this.m00, this.m13 - this.m10, this.m23 - this.m20, this.m33 - this.m30).normalize3();
-                break;
-            case 2:
-                dest.set(this.m03 + this.m01, this.m13 + this.m11, this.m23 + this.m21, this.m33 + this.m31).normalize3();
-                break;
-            case 3:
-                dest.set(this.m03 - this.m01, this.m13 - this.m11, this.m23 - this.m21, this.m33 - this.m31).normalize3();
-                break;
-            case 4:
-                dest.set(this.m03 + this.m02, this.m13 + this.m12, this.m23 + this.m22, this.m33 + this.m32).normalize3();
-                break;
-            case 5:
-                dest.set(this.m03 - this.m02, this.m13 - this.m12, this.m23 - this.m22, this.m33 - this.m32).normalize3();
-                break;
-            default:
-                throw new IllegalArgumentException("dest");
+    fun frustumPlane(plane: Int, dest: Vector4f): Vector4f {
+        when (plane) {
+            0 -> dest.set(m03 + m00, m13 + m10, m23 + m20, m33 + m30).normalize3()
+            1 -> dest.set(m03 - m00, m13 - m10, m23 - m20, m33 - m30).normalize3()
+            2 -> dest.set(m03 + m01, m13 + m11, m23 + m21, m33 + m31).normalize3()
+            3 -> dest.set(m03 - m01, m13 - m11, m23 - m21, m33 - m31).normalize3()
+            4 -> dest.set(m03 + m02, m13 + m12, m23 + m22, m33 + m32).normalize3()
+            5 -> dest.set(m03 - m02, m13 - m12, m23 - m22, m33 - m32).normalize3()
+            else -> throw IllegalArgumentException("dest")
         }
-
-        return dest;
+        return dest
     }
 
-    public Vector3f frustumCorner(int corner, Vector3f point) {
-        float d1;
-        float d2;
-        float d3;
-        float n1x;
-        float n1y;
-        float n1z;
-        float n2x;
-        float n2y;
-        float n2z;
-        float n3x;
-        float n3y;
-        float n3z;
-        switch (corner) {
-            case 0:
-                n1x = this.m03 + this.m00;
-                n1y = this.m13 + this.m10;
-                n1z = this.m23 + this.m20;
-                d1 = this.m33 + this.m30;
-                n2x = this.m03 + this.m01;
-                n2y = this.m13 + this.m11;
-                n2z = this.m23 + this.m21;
-                d2 = this.m33 + this.m31;
-                n3x = this.m03 + this.m02;
-                n3y = this.m13 + this.m12;
-                n3z = this.m23 + this.m22;
-                d3 = this.m33 + this.m32;
-                break;
-            case 1:
-                n1x = this.m03 - this.m00;
-                n1y = this.m13 - this.m10;
-                n1z = this.m23 - this.m20;
-                d1 = this.m33 - this.m30;
-                n2x = this.m03 + this.m01;
-                n2y = this.m13 + this.m11;
-                n2z = this.m23 + this.m21;
-                d2 = this.m33 + this.m31;
-                n3x = this.m03 + this.m02;
-                n3y = this.m13 + this.m12;
-                n3z = this.m23 + this.m22;
-                d3 = this.m33 + this.m32;
-                break;
-            case 2:
-                n1x = this.m03 - this.m00;
-                n1y = this.m13 - this.m10;
-                n1z = this.m23 - this.m20;
-                d1 = this.m33 - this.m30;
-                n2x = this.m03 - this.m01;
-                n2y = this.m13 - this.m11;
-                n2z = this.m23 - this.m21;
-                d2 = this.m33 - this.m31;
-                n3x = this.m03 + this.m02;
-                n3y = this.m13 + this.m12;
-                n3z = this.m23 + this.m22;
-                d3 = this.m33 + this.m32;
-                break;
-            case 3:
-                n1x = this.m03 + this.m00;
-                n1y = this.m13 + this.m10;
-                n1z = this.m23 + this.m20;
-                d1 = this.m33 + this.m30;
-                n2x = this.m03 - this.m01;
-                n2y = this.m13 - this.m11;
-                n2z = this.m23 - this.m21;
-                d2 = this.m33 - this.m31;
-                n3x = this.m03 + this.m02;
-                n3y = this.m13 + this.m12;
-                n3z = this.m23 + this.m22;
-                d3 = this.m33 + this.m32;
-                break;
-            case 4:
-                n1x = this.m03 - this.m00;
-                n1y = this.m13 - this.m10;
-                n1z = this.m23 - this.m20;
-                d1 = this.m33 - this.m30;
-                n2x = this.m03 + this.m01;
-                n2y = this.m13 + this.m11;
-                n2z = this.m23 + this.m21;
-                d2 = this.m33 + this.m31;
-                n3x = this.m03 - this.m02;
-                n3y = this.m13 - this.m12;
-                n3z = this.m23 - this.m22;
-                d3 = this.m33 - this.m32;
-                break;
-            case 5:
-                n1x = this.m03 + this.m00;
-                n1y = this.m13 + this.m10;
-                n1z = this.m23 + this.m20;
-                d1 = this.m33 + this.m30;
-                n2x = this.m03 + this.m01;
-                n2y = this.m13 + this.m11;
-                n2z = this.m23 + this.m21;
-                d2 = this.m33 + this.m31;
-                n3x = this.m03 - this.m02;
-                n3y = this.m13 - this.m12;
-                n3z = this.m23 - this.m22;
-                d3 = this.m33 - this.m32;
-                break;
-            case 6:
-                n1x = this.m03 + this.m00;
-                n1y = this.m13 + this.m10;
-                n1z = this.m23 + this.m20;
-                d1 = this.m33 + this.m30;
-                n2x = this.m03 - this.m01;
-                n2y = this.m13 - this.m11;
-                n2z = this.m23 - this.m21;
-                d2 = this.m33 - this.m31;
-                n3x = this.m03 - this.m02;
-                n3y = this.m13 - this.m12;
-                n3z = this.m23 - this.m22;
-                d3 = this.m33 - this.m32;
-                break;
-            case 7:
-                n1x = this.m03 - this.m00;
-                n1y = this.m13 - this.m10;
-                n1z = this.m23 - this.m20;
-                d1 = this.m33 - this.m30;
-                n2x = this.m03 - this.m01;
-                n2y = this.m13 - this.m11;
-                n2z = this.m23 - this.m21;
-                d2 = this.m33 - this.m31;
-                n3x = this.m03 - this.m02;
-                n3y = this.m13 - this.m12;
-                n3z = this.m23 - this.m22;
-                d3 = this.m33 - this.m32;
-                break;
-            default:
-                throw new IllegalArgumentException("corner");
+    fun frustumCorner(corner: Int, point: Vector3f): Vector3f {
+        val d1: Float
+        val d2: Float
+        val d3: Float
+        val n1x: Float
+        val n1y: Float
+        val n1z: Float
+        val n2x: Float
+        val n2y: Float
+        val n2z: Float
+        val n3x: Float
+        val n3y: Float
+        val n3z: Float
+        when (corner) {
+            0 -> {
+                n1x = m03 + m00
+                n1y = m13 + m10
+                n1z = m23 + m20
+                d1 = m33 + m30
+                n2x = m03 + m01
+                n2y = m13 + m11
+                n2z = m23 + m21
+                d2 = m33 + m31
+                n3x = m03 + m02
+                n3y = m13 + m12
+                n3z = m23 + m22
+                d3 = m33 + m32
+            }
+            1 -> {
+                n1x = m03 - m00
+                n1y = m13 - m10
+                n1z = m23 - m20
+                d1 = m33 - m30
+                n2x = m03 + m01
+                n2y = m13 + m11
+                n2z = m23 + m21
+                d2 = m33 + m31
+                n3x = m03 + m02
+                n3y = m13 + m12
+                n3z = m23 + m22
+                d3 = m33 + m32
+            }
+            2 -> {
+                n1x = m03 - m00
+                n1y = m13 - m10
+                n1z = m23 - m20
+                d1 = m33 - m30
+                n2x = m03 - m01
+                n2y = m13 - m11
+                n2z = m23 - m21
+                d2 = m33 - m31
+                n3x = m03 + m02
+                n3y = m13 + m12
+                n3z = m23 + m22
+                d3 = m33 + m32
+            }
+            3 -> {
+                n1x = m03 + m00
+                n1y = m13 + m10
+                n1z = m23 + m20
+                d1 = m33 + m30
+                n2x = m03 - m01
+                n2y = m13 - m11
+                n2z = m23 - m21
+                d2 = m33 - m31
+                n3x = m03 + m02
+                n3y = m13 + m12
+                n3z = m23 + m22
+                d3 = m33 + m32
+            }
+            4 -> {
+                n1x = m03 - m00
+                n1y = m13 - m10
+                n1z = m23 - m20
+                d1 = m33 - m30
+                n2x = m03 + m01
+                n2y = m13 + m11
+                n2z = m23 + m21
+                d2 = m33 + m31
+                n3x = m03 - m02
+                n3y = m13 - m12
+                n3z = m23 - m22
+                d3 = m33 - m32
+            }
+            5 -> {
+                n1x = m03 + m00
+                n1y = m13 + m10
+                n1z = m23 + m20
+                d1 = m33 + m30
+                n2x = m03 + m01
+                n2y = m13 + m11
+                n2z = m23 + m21
+                d2 = m33 + m31
+                n3x = m03 - m02
+                n3y = m13 - m12
+                n3z = m23 - m22
+                d3 = m33 - m32
+            }
+            6 -> {
+                n1x = m03 + m00
+                n1y = m13 + m10
+                n1z = m23 + m20
+                d1 = m33 + m30
+                n2x = m03 - m01
+                n2y = m13 - m11
+                n2z = m23 - m21
+                d2 = m33 - m31
+                n3x = m03 - m02
+                n3y = m13 - m12
+                n3z = m23 - m22
+                d3 = m33 - m32
+            }
+            7 -> {
+                n1x = m03 - m00
+                n1y = m13 - m10
+                n1z = m23 - m20
+                d1 = m33 - m30
+                n2x = m03 - m01
+                n2y = m13 - m11
+                n2z = m23 - m21
+                d2 = m33 - m31
+                n3x = m03 - m02
+                n3y = m13 - m12
+                n3z = m23 - m22
+                d3 = m33 - m32
+            }
+            else -> throw IllegalArgumentException("corner")
         }
-
-        float c23x = n2y * n3z - n2z * n3y;
-        float c23y = n2z * n3x - n2x * n3z;
-        float c23z = n2x * n3y - n2y * n3x;
-        float c31x = n3y * n1z - n3z * n1y;
-        float c31y = n3z * n1x - n3x * n1z;
-        float c31z = n3x * n1y - n3y * n1x;
-        float c12x = n1y * n2z - n1z * n2y;
-        float c12y = n1z * n2x - n1x * n2z;
-        float c12z = n1x * n2y - n1y * n2x;
-        float invDot = 1f / (n1x * c23x + n1y * c23y + n1z * c23z);
-        point.x = (-c23x * d1 - c31x * d2 - c12x * d3) * invDot;
-        point.y = (-c23y * d1 - c31y * d2 - c12y * d3) * invDot;
-        point.z = (-c23z * d1 - c31z * d2 - c12z * d3) * invDot;
-        return point;
+        val c23x = n2y * n3z - n2z * n3y
+        val c23y = n2z * n3x - n2x * n3z
+        val c23z = n2x * n3y - n2y * n3x
+        val c31x = n3y * n1z - n3z * n1y
+        val c31y = n3z * n1x - n3x * n1z
+        val c31z = n3x * n1y - n3y * n1x
+        val c12x = n1y * n2z - n1z * n2y
+        val c12y = n1z * n2x - n1x * n2z
+        val c12z = n1x * n2y - n1y * n2x
+        val invDot = 1f / (n1x * c23x + n1y * c23y + n1z * c23z)
+        point.x = -c23x * d1 - c31x * d2 - c12x * d3 * invDot
+        point.y = -c23y * d1 - c31y * d2 - c12y * d3 * invDot
+        point.z = -c23z * d1 - c31z * d2 - c12z * d3 * invDot
+        return point
     }
 
-    public Vector3f perspectiveOrigin(Vector3f origin) {
-        float n1x = this.m03 + this.m00;
-        float n1y = this.m13 + this.m10;
-        float n1z = this.m23 + this.m20;
-        float d1 = this.m33 + this.m30;
-        float n2x = this.m03 - this.m00;
-        float n2y = this.m13 - this.m10;
-        float n2z = this.m23 - this.m20;
-        float d2 = this.m33 - this.m30;
-        float n3x = this.m03 - this.m01;
-        float n3y = this.m13 - this.m11;
-        float n3z = this.m23 - this.m21;
-        float d3 = this.m33 - this.m31;
-        float c23x = n2y * n3z - n2z * n3y;
-        float c23y = n2z * n3x - n2x * n3z;
-        float c23z = n2x * n3y - n2y * n3x;
-        float c31x = n3y * n1z - n3z * n1y;
-        float c31y = n3z * n1x - n3x * n1z;
-        float c31z = n3x * n1y - n3y * n1x;
-        float c12x = n1y * n2z - n1z * n2y;
-        float c12y = n1z * n2x - n1x * n2z;
-        float c12z = n1x * n2y - n1y * n2x;
-        float invDot = 1f / (n1x * c23x + n1y * c23y + n1z * c23z);
-        origin.x = (-c23x * d1 - c31x * d2 - c12x * d3) * invDot;
-        origin.y = (-c23y * d1 - c31y * d2 - c12y * d3) * invDot;
-        origin.z = (-c23z * d1 - c31z * d2 - c12z * d3) * invDot;
-        return origin;
+    fun perspectiveOrigin(origin: Vector3f): Vector3f {
+        val n1x = m03 + m00
+        val n1y = m13 + m10
+        val n1z = m23 + m20
+        val d1 = m33 + m30
+        val n2x = m03 - m00
+        val n2y = m13 - m10
+        val n2z = m23 - m20
+        val d2 = m33 - m30
+        val n3x = m03 - m01
+        val n3y = m13 - m11
+        val n3z = m23 - m21
+        val d3 = m33 - m31
+        val c23x = n2y * n3z - n2z * n3y
+        val c23y = n2z * n3x - n2x * n3z
+        val c23z = n2x * n3y - n2y * n3x
+        val c31x = n3y * n1z - n3z * n1y
+        val c31y = n3z * n1x - n3x * n1z
+        val c31z = n3x * n1y - n3y * n1x
+        val c12x = n1y * n2z - n1z * n2y
+        val c12y = n1z * n2x - n1x * n2z
+        val c12z = n1x * n2y - n1y * n2x
+        val invDot = 1f / (n1x * c23x + n1y * c23y + n1z * c23z)
+        origin.x = -c23x * d1 - c31x * d2 - c12x * d3 * invDot
+        origin.y = -c23y * d1 - c31y * d2 - c12y * d3 * invDot
+        origin.z = -c23z * d1 - c31z * d2 - c12z * d3 * invDot
+        return origin
     }
 
-    public Vector3f perspectiveInvOrigin(Vector3f dest) {
-        float invW = 1f / this.m23;
-        dest.x = this.m20 * invW;
-        dest.y = this.m21 * invW;
-        dest.z = this.m22 * invW;
-        return dest;
+    fun perspectiveInvOrigin(dest: Vector3f): Vector3f {
+        val invW = 1f / m23
+        dest.x = m20 * invW
+        dest.y = m21 * invW
+        dest.z = m22 * invW
+        return dest
     }
 
-    public float perspectiveFov() {
-        float n1x = this.m03 + this.m01;
-        float n1y = this.m13 + this.m11;
-        float n1z = this.m23 + this.m21;
-        float n2x = this.m01 - this.m03;
-        float n2y = this.m11 - this.m13;
-        float n2z = this.m21 - this.m23;
-        float n1len = Math.sqrt(n1x * n1x + n1y * n1y + n1z * n1z);
-        float n2len = Math.sqrt(n2x * n2x + n2y * n2y + n2z * n2z);
-        return Math.acos((n1x * n2x + n1y * n2y + n1z * n2z) / (n1len * n2len));
+    fun perspectiveFov(): Float {
+        val n1x = m03 + m01
+        val n1y = m13 + m11
+        val n1z = m23 + m21
+        val n2x = m01 - m03
+        val n2y = m11 - m13
+        val n2z = m21 - m23
+        val n1len = Math.sqrt(n1x * n1x + n1y * n1y + n1z * n1z)
+        val n2len = Math.sqrt(n2x * n2x + n2y * n2y + n2z * n2z)
+        return Math.acos(n1x * n2x + n1y * n2y + n1z * n2z / (n1len * n2len))
     }
 
-    public float perspectiveNear() {
-        return this.m32 / (this.m23 + this.m22);
+    fun perspectiveNear(): Float {
+        return m32 / (m23 + m22)
     }
 
-    public float perspectiveFar() {
-        return this.m32 / (this.m22 - this.m23);
+    fun perspectiveFar(): Float {
+        return m32 / (m22 - m23)
     }
 
-    public Vector3f frustumRayDir(float x, float y, Vector3f dir) {
-        float a = this.m10 * this.m23;
-        float b = this.m13 * this.m21;
-        float c = this.m10 * this.m21;
-        float d = this.m11 * this.m23;
-        float e = this.m13 * this.m20;
-        float f = this.m11 * this.m20;
-        float g = this.m03 * this.m20;
-        float h = this.m01 * this.m23;
-        float i = this.m01 * this.m20;
-        float j = this.m03 * this.m21;
-        float k = this.m00 * this.m23;
-        float l = this.m00 * this.m21;
-        float m = this.m00 * this.m13;
-        float n = this.m03 * this.m11;
-        float o = this.m00 * this.m11;
-        float p = this.m01 * this.m13;
-        float q = this.m03 * this.m10;
-        float r = this.m01 * this.m10;
-        float m1x = (d + e + f - a - b - c) * (1f - y) + (a - b - c + d - e + f) * y;
-        float m1y = (j + k + l - g - h - i) * (1f - y) + (g - h - i + j - k + l) * y;
-        float m1z = (p + q + r - m - n - o) * (1f - y) + (m - n - o + p - q + r) * y;
-        float m2x = (b - c - d + e + f - a) * (1f - y) + (a + b - c - d - e + f) * y;
-        float m2y = (h - i - j + k + l - g) * (1f - y) + (g + h - i - j - k + l) * y;
-        float m2z = (n - o - p + q + r - m) * (1f - y) + (m + n - o - p - q + r) * y;
-        dir.x = m1x + (m2x - m1x) * x;
-        dir.y = m1y + (m2y - m1y) * x;
-        dir.z = m1z + (m2z - m1z) * x;
-        return dir.normalize(dir);
+    fun frustumRayDir(x: Float, y: Float, dir: Vector3f): Vector3f {
+        val a = m10 * m23
+        val b = m13 * m21
+        val c = m10 * m21
+        val d = m11 * m23
+        val e = m13 * m20
+        val f = m11 * m20
+        val g = m03 * m20
+        val h = m01 * m23
+        val i = m01 * m20
+        val j = m03 * m21
+        val k = m00 * m23
+        val l = m00 * m21
+        val m = m00 * m13
+        val n = m03 * m11
+        val o = m00 * m11
+        val p = m01 * m13
+        val q = m03 * m10
+        val r = m01 * m10
+        val m1x = (d + e + f - a - b - c) * (1f - y) + (a - b - c + d - e + f) * y
+        val m1y = (j + k + l - g - h - i) * (1f - y) + (g - h - i + j - k + l) * y
+        val m1z = (p + q + r - m - n - o) * (1f - y) + (m - n - o + p - q + r) * y
+        val m2x = (b - c - d + e + f - a) * (1f - y) + (a + b - c - d - e + f) * y
+        val m2y = (h - i - j + k + l - g) * (1f - y) + (g + h - i - j - k + l) * y
+        val m2z = (n - o - p + q + r - m) * (1f - y) + (m + n - o - p - q + r) * y
+        dir.x = m1x + (m2x - m1x) * x
+        dir.y = m1y + (m2y - m1y) * x
+        dir.z = m1z + (m2z - m1z) * x
+        return dir.normalize(dir)
     }
 
-    public Vector3f positiveZ(Vector3f dir) {
-        return (this.properties & 16) != 0 ? this.normalizedPositiveZ(dir) : this.positiveZGeneric(dir);
+    fun positiveZ(dir: Vector3f): Vector3f {
+        return if (properties and 16 != 0) normalizedPositiveZ(dir) else positiveZGeneric(dir)
     }
 
-    private Vector3f positiveZGeneric(Vector3f dir) {
-        return dir.set(this.m10 * this.m21 - this.m11 * this.m20, this.m20 * this.m01 - this.m21 * this.m00, this.m00 * this.m11 - this.m01 * this.m10).normalize();
+    private fun positiveZGeneric(dir: Vector3f): Vector3f {
+        return dir.set(m10 * m21 - m11 * m20, m20 * m01 - m21 * m00, m00 * m11 - m01 * m10).normalize()
     }
 
-    public Vector3f normalizedPositiveZ(Vector3f dir) {
-        return dir.set(this.m02, this.m12, this.m22);
+    fun normalizedPositiveZ(dir: Vector3f): Vector3f {
+        return dir.set(m02, m12, m22)
     }
 
-    public Vector3f positiveX(Vector3f dir) {
-        return (this.properties & 16) != 0 ? this.normalizedPositiveX(dir) : this.positiveXGeneric(dir);
+    fun positiveX(dir: Vector3f): Vector3f {
+        return if (properties and 16 != 0) normalizedPositiveX(dir) else positiveXGeneric(dir)
     }
 
-    private Vector3f positiveXGeneric(Vector3f dir) {
-        return dir.set(this.m11 * this.m22 - this.m12 * this.m21, this.m02 * this.m21 - this.m01 * this.m22, this.m01 * this.m12 - this.m02 * this.m11).normalize();
+    private fun positiveXGeneric(dir: Vector3f): Vector3f {
+        return dir.set(m11 * m22 - m12 * m21, m02 * m21 - m01 * m22, m01 * m12 - m02 * m11).normalize()
     }
 
-    public Vector3f normalizedPositiveX(Vector3f dir) {
-        return dir.set(this.m00, this.m10, this.m20);
+    fun normalizedPositiveX(dir: Vector3f): Vector3f {
+        return dir.set(m00, m10, m20)
     }
 
-    public Vector3f positiveY(Vector3f dir) {
-        return (this.properties & 16) != 0 ? this.normalizedPositiveY(dir) : this.positiveYGeneric(dir);
+    fun positiveY(dir: Vector3f): Vector3f {
+        return if (properties and 16 != 0) normalizedPositiveY(dir) else positiveYGeneric(dir)
     }
 
-    private Vector3f positiveYGeneric(Vector3f dir) {
-        return dir.set(this.m12 * this.m20 - this.m10 * this.m22, this.m00 * this.m22 - this.m02 * this.m20, this.m02 * this.m10 - this.m00 * this.m12).normalize();
+    private fun positiveYGeneric(dir: Vector3f): Vector3f {
+        return dir.set(m12 * m20 - m10 * m22, m00 * m22 - m02 * m20, m02 * m10 - m00 * m12).normalize()
     }
 
-    public Vector3f normalizedPositiveY(Vector3f dir) {
-        return dir.set(this.m01, this.m11, this.m21);
+    fun normalizedPositiveY(dir: Vector3f): Vector3f {
+        return dir.set(m01, m11, m21)
     }
 
-    public Vector3f originAffine(Vector3f origin) {
-        float a = this.m00 * this.m11 - this.m01 * this.m10;
-        float b = this.m00 * this.m12 - this.m02 * this.m10;
-        float d = this.m01 * this.m12 - this.m02 * this.m11;
-        float g = this.m20 * this.m31 - this.m21 * this.m30;
-        float h = this.m20 * this.m32 - this.m22 * this.m30;
-        float j = this.m21 * this.m32 - this.m22 * this.m31;
-        return origin.set(-this.m10 * j + this.m11 * h - this.m12 * g, this.m00 * j - this.m01 * h + this.m02 * g, -this.m30 * d + this.m31 * b - this.m32 * a);
+    fun originAffine(origin: Vector3f): Vector3f {
+        val a = m00 * m11 - m01 * m10
+        val b = m00 * m12 - m02 * m10
+        val d = m01 * m12 - m02 * m11
+        val g = m20 * m31 - m21 * m30
+        val h = m20 * m32 - m22 * m30
+        val j = m21 * m32 - m22 * m31
+        return origin.set(-m10 * j + m11 * h - m12 * g, m00 * j - m01 * h + m02 * g, -m30 * d + m31 * b - m32 * a)
     }
 
-    public Vector3f origin(Vector3f dest) {
-        return (this.properties & 2) != 0 ? this.originAffine(dest) : this.originGeneric(dest);
+    fun origin(dest: Vector3f): Vector3f {
+        return if (properties and 2 != 0) originAffine(dest) else originGeneric(dest)
     }
 
-    private Vector3f originGeneric(Vector3f dest) {
-        float a = this.m00 * this.m11 - this.m01 * this.m10;
-        float b = this.m00 * this.m12 - this.m02 * this.m10;
-        float c = this.m00 * this.m13 - this.m03 * this.m10;
-        float d = this.m01 * this.m12 - this.m02 * this.m11;
-        float e = this.m01 * this.m13 - this.m03 * this.m11;
-        float f = this.m02 * this.m13 - this.m03 * this.m12;
-        float g = this.m20 * this.m31 - this.m21 * this.m30;
-        float h = this.m20 * this.m32 - this.m22 * this.m30;
-        float i = this.m20 * this.m33 - this.m23 * this.m30;
-        float j = this.m21 * this.m32 - this.m22 * this.m31;
-        float k = this.m21 * this.m33 - this.m23 * this.m31;
-        float l = this.m22 * this.m33 - this.m23 * this.m32;
-        float det = a * l - b * k + c * j + d * i - e * h + f * g;
-        float invDet = 1f / det;
-        float nm30 = (-this.m10 * j + this.m11 * h - this.m12 * g) * invDet;
-        float nm31 = (this.m00 * j - this.m01 * h + this.m02 * g) * invDet;
-        float nm32 = (-this.m30 * d + this.m31 * b - this.m32 * a) * invDet;
-        float nm33 = det / (this.m20 * d - this.m21 * b + this.m22 * a);
-        return dest.set(nm30 * nm33, nm31 * nm33, nm32 * nm33);
+    private fun originGeneric(dest: Vector3f): Vector3f {
+        val a = m00 * m11 - m01 * m10
+        val b = m00 * m12 - m02 * m10
+        val c = m00 * m13 - m03 * m10
+        val d = m01 * m12 - m02 * m11
+        val e = m01 * m13 - m03 * m11
+        val f = m02 * m13 - m03 * m12
+        val g = m20 * m31 - m21 * m30
+        val h = m20 * m32 - m22 * m30
+        val i = m20 * m33 - m23 * m30
+        val j = m21 * m32 - m22 * m31
+        val k = m21 * m33 - m23 * m31
+        val l = m22 * m33 - m23 * m32
+        val det = a * l - b * k + c * j + d * i - e * h + f * g
+        val invDet = 1f / det
+        val nm30 = (-m10 * j + m11 * h - m12 * g) * invDet
+        val nm31 = (m00 * j - m01 * h + m02 * g) * invDet
+        val nm32 = (-m30 * d + m31 * b - m32 * a) * invDet
+        val nm33 = det / (m20 * d - m21 * b + m22 * a)
+        return dest.set(nm30 * nm33, nm31 * nm33, nm32 * nm33)
     }
 
-    public Matrix4f shadow(Vector4f light, float a, float b, float c, float d) {
-        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, this);
+    fun shadow(light: Vector4f, a: Float, b: Float, c: Float, d: Float): Matrix4f {
+        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, this)
     }
 
-    public Matrix4f shadow(Vector4f light, float a, float b, float c, float d, Matrix4f dest) {
-        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dest);
+    fun shadow(light: Vector4f, a: Float, b: Float, c: Float, d: Float, dest: Matrix4f): Matrix4f {
+        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dest)
     }
 
-    public Matrix4f shadow(float lightX, float lightY, float lightZ, float lightW, float a, float b, float c, float d) {
-        return this.shadow(lightX, lightY, lightZ, lightW, a, b, c, d, this);
+    @JvmOverloads
+    fun shadow(
+        lightX: Float,
+        lightY: Float,
+        lightZ: Float,
+        lightW: Float,
+        a: Float,
+        b: Float,
+        c: Float,
+        d: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        val invPlaneLen = Math.invsqrt(a * a + b * b + c * c)
+        val an = a * invPlaneLen
+        val bn = b * invPlaneLen
+        val cn = c * invPlaneLen
+        val dn = d * invPlaneLen
+        val dot = an * lightX + bn * lightY + cn * lightZ + dn * lightW
+        val rm00 = dot - an * lightX
+        val rm01 = -an * lightY
+        val rm02 = -an * lightZ
+        val rm03 = -an * lightW
+        val rm10 = -bn * lightX
+        val rm11 = dot - bn * lightY
+        val rm12 = -bn * lightZ
+        val rm13 = -bn * lightW
+        val rm20 = -cn * lightX
+        val rm21 = -cn * lightY
+        val rm22 = dot - cn * lightZ
+        val rm23 = -cn * lightW
+        val rm30 = -dn * lightX
+        val rm31 = -dn * lightY
+        val rm32 = -dn * lightZ
+        val rm33 = dot - dn * lightW
+        val nm00 = m00 * rm00 + m10 * rm01 + m20 * rm02 + m30 * rm03
+        val nm01 = m01 * rm00 + m11 * rm01 + m21 * rm02 + m31 * rm03
+        val nm02 = m02 * rm00 + m12 * rm01 + m22 * rm02 + m32 * rm03
+        val nm03 = m03 * rm00 + m13 * rm01 + m23 * rm02 + m33 * rm03
+        val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12 + m30 * rm13
+        val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12 + m31 * rm13
+        val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12 + m32 * rm13
+        val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12 + m33 * rm13
+        val nm20 = m00 * rm20 + m10 * rm21 + m20 * rm22 + m30 * rm23
+        val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22 + m31 * rm23
+        val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 + m32 * rm23
+        val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 + m33 * rm23
+        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30 * rm33)
+            ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31 * rm33)._m32(
+            m02 * rm30 + m12 * rm31 + m22 * rm32 + m32 * rm33
+        )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33 * rm33)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)
+            ._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._properties(
+            properties and -30
+        )
+        return dest
     }
 
-    public Matrix4f shadow(float lightX, float lightY, float lightZ, float lightW, float a, float b, float c, float d, Matrix4f dest) {
-        float invPlaneLen = Math.invsqrt(a * a + b * b + c * c);
-        float an = a * invPlaneLen;
-        float bn = b * invPlaneLen;
-        float cn = c * invPlaneLen;
-        float dn = d * invPlaneLen;
-        float dot = an * lightX + bn * lightY + cn * lightZ + dn * lightW;
-        float rm00 = dot - an * lightX;
-        float rm01 = -an * lightY;
-        float rm02 = -an * lightZ;
-        float rm03 = -an * lightW;
-        float rm10 = -bn * lightX;
-        float rm11 = dot - bn * lightY;
-        float rm12 = -bn * lightZ;
-        float rm13 = -bn * lightW;
-        float rm20 = -cn * lightX;
-        float rm21 = -cn * lightY;
-        float rm22 = dot - cn * lightZ;
-        float rm23 = -cn * lightW;
-        float rm30 = -dn * lightX;
-        float rm31 = -dn * lightY;
-        float rm32 = -dn * lightZ;
-        float rm33 = dot - dn * lightW;
-        float nm00 = this.m00 * rm00 + this.m10 * rm01 + this.m20 * rm02 + this.m30 * rm03;
-        float nm01 = this.m01 * rm00 + this.m11 * rm01 + this.m21 * rm02 + this.m31 * rm03;
-        float nm02 = this.m02 * rm00 + this.m12 * rm01 + this.m22 * rm02 + this.m32 * rm03;
-        float nm03 = this.m03 * rm00 + this.m13 * rm01 + this.m23 * rm02 + this.m33 * rm03;
-        float nm10 = this.m00 * rm10 + this.m10 * rm11 + this.m20 * rm12 + this.m30 * rm13;
-        float nm11 = this.m01 * rm10 + this.m11 * rm11 + this.m21 * rm12 + this.m31 * rm13;
-        float nm12 = this.m02 * rm10 + this.m12 * rm11 + this.m22 * rm12 + this.m32 * rm13;
-        float nm13 = this.m03 * rm10 + this.m13 * rm11 + this.m23 * rm12 + this.m33 * rm13;
-        float nm20 = this.m00 * rm20 + this.m10 * rm21 + this.m20 * rm22 + this.m30 * rm23;
-        float nm21 = this.m01 * rm20 + this.m11 * rm21 + this.m21 * rm22 + this.m31 * rm23;
-        float nm22 = this.m02 * rm20 + this.m12 * rm21 + this.m22 * rm22 + this.m32 * rm23;
-        float nm23 = this.m03 * rm20 + this.m13 * rm21 + this.m23 * rm22 + this.m33 * rm23;
-        dest._m30(this.m00 * rm30 + this.m10 * rm31 + this.m20 * rm32 + this.m30 * rm33)._m31(this.m01 * rm30 + this.m11 * rm31 + this.m21 * rm32 + this.m31 * rm33)._m32(this.m02 * rm30 + this.m12 * rm31 + this.m22 * rm32 + this.m32 * rm33)._m33(this.m03 * rm30 + this.m13 * rm31 + this.m23 * rm32 + this.m33 * rm33)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._properties(this.properties & -30);
-        return dest;
+    @JvmOverloads
+    fun shadow(light: Vector4f, planeTransform: Matrix4f, dest: Matrix4f = this): Matrix4f {
+        val a = planeTransform.m10
+        val b = planeTransform.m11
+        val c = planeTransform.m12
+        val d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32
+        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dest)
     }
 
-    public Matrix4f shadow(Vector4f light, Matrix4f planeTransform, Matrix4f dest) {
-        float a = planeTransform.m10;
-        float b = planeTransform.m11;
-        float c = planeTransform.m12;
-        float d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32;
-        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dest);
+    @JvmOverloads
+    fun shadow(
+        lightX: Float,
+        lightY: Float,
+        lightZ: Float,
+        lightW: Float,
+        planeTransform: Matrix4f,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        val a = planeTransform.m10
+        val b = planeTransform.m11
+        val c = planeTransform.m12
+        val d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32
+        return this.shadow(lightX, lightY, lightZ, lightW, a, b, c, d, dest)
     }
 
-    public Matrix4f shadow(Vector4f light, Matrix4f planeTransform) {
-        return this.shadow(light, planeTransform, this);
+    fun billboardCylindrical(objPos: Vector3f, targetPos: Vector3f, up: Vector3f): Matrix4f {
+        var dirX = targetPos.x - objPos.x
+        var dirY = targetPos.y - objPos.y
+        var dirZ = targetPos.z - objPos.z
+        var leftX = up.y * dirZ - up.z * dirY
+        var leftY = up.z * dirX - up.x * dirZ
+        var leftZ = up.x * dirY - up.y * dirX
+        val invLeftLen = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLen
+        leftY *= invLeftLen
+        leftZ *= invLeftLen
+        dirX = leftY * up.z - leftZ * up.y
+        dirY = leftZ * up.x - leftX * up.z
+        dirZ = leftX * up.y - leftY * up.x
+        val invDirLen = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        dirX *= invDirLen
+        dirY *= invDirLen
+        dirZ *= invDirLen
+        _m00(leftX)._m01(leftY)._m02(leftZ)._m03(0f)._m10(up.x)._m11(up.y)._m12(up.z)._m13(0f)._m20(dirX)._m21(dirY)
+            ._m22(dirZ)._m23(0f)._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1f)._properties(18)
+        return this
     }
 
-    public Matrix4f shadow(float lightX, float lightY, float lightZ, float lightW, Matrix4f planeTransform, Matrix4f dest) {
-        float a = planeTransform.m10;
-        float b = planeTransform.m11;
-        float c = planeTransform.m12;
-        float d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32;
-        return this.shadow(lightX, lightY, lightZ, lightW, a, b, c, d, dest);
+    fun billboardSpherical(objPos: Vector3f, targetPos: Vector3f, up: Vector3f): Matrix4f {
+        var dirX = targetPos.x - objPos.x
+        var dirY = targetPos.y - objPos.y
+        var dirZ = targetPos.z - objPos.z
+        val invDirLen = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        dirX *= invDirLen
+        dirY *= invDirLen
+        dirZ *= invDirLen
+        var leftX = up.y * dirZ - up.z * dirY
+        var leftY = up.z * dirX - up.x * dirZ
+        var leftZ = up.x * dirY - up.y * dirX
+        val invLeftLen = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLen
+        leftY *= invLeftLen
+        leftZ *= invLeftLen
+        val upX = dirY * leftZ - dirZ * leftY
+        val upY = dirZ * leftX - dirX * leftZ
+        val upZ = dirX * leftY - dirY * leftX
+        _m00(leftX)._m01(leftY)._m02(leftZ)._m03(0f)._m10(upX)._m11(upY)._m12(upZ)._m13(0f)._m20(dirX)._m21(dirY)
+            ._m22(dirZ)._m23(0f)._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1f)._properties(18)
+        return this
     }
 
-    public Matrix4f shadow(float lightX, float lightY, float lightZ, float lightW, Matrix4f planeTransform) {
-        return this.shadow(lightX, lightY, lightZ, lightW, planeTransform, this);
+    fun billboardSpherical(objPos: Vector3f, targetPos: Vector3f): Matrix4f {
+        val toDirX = targetPos.x - objPos.x
+        val toDirY = targetPos.y - objPos.y
+        val toDirZ = targetPos.z - objPos.z
+        var x = -toDirY
+        var w = Math.sqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ) + toDirZ
+        val invNorm = Math.invsqrt(x * x + toDirX * toDirX + w * w)
+        x *= invNorm
+        val y = toDirX * invNorm
+        w *= invNorm
+        val q00 = (x + x) * x
+        val q11 = (y + y) * y
+        val q01 = (x + x) * y
+        val q03 = (x + x) * w
+        val q13 = (y + y) * w
+        _m00(1f - q11)._m01(q01)._m02(-q13)._m03(0f)._m10(q01)._m11(1f - q00)._m12(q03)._m13(0f)._m20(q13)._m21(-q03)
+            ._m22(1f - q11 - q00)._m23(0f)._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1f)._properties(18)
+        return this
     }
 
-    public Matrix4f billboardCylindrical(Vector3f objPos, Vector3f targetPos, Vector3f up) {
-        float dirX = targetPos.x - objPos.x;
-        float dirY = targetPos.y - objPos.y;
-        float dirZ = targetPos.z - objPos.z;
-        float leftX = up.y * dirZ - up.z * dirY;
-        float leftY = up.z * dirX - up.x * dirZ;
-        float leftZ = up.x * dirY - up.y * dirX;
-        float invLeftLen = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLen;
-        leftY *= invLeftLen;
-        leftZ *= invLeftLen;
-        dirX = leftY * up.z - leftZ * up.y;
-        dirY = leftZ * up.x - leftX * up.z;
-        dirZ = leftX * up.y - leftY * up.x;
-        float invDirLen = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        dirX *= invDirLen;
-        dirY *= invDirLen;
-        dirZ *= invDirLen;
-        this._m00(leftX)._m01(leftY)._m02(leftZ)._m03(0f)._m10(up.x)._m11(up.y)._m12(up.z)._m13(0f)._m20(dirX)._m21(dirY)._m22(dirZ)._m23(0f)._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1f)._properties(18);
-        return this;
+    override fun hashCode(): Int {
+        var result = 1
+        result = 31 * result + java.lang.Float.floatToIntBits(m00)
+        result = 31 * result + java.lang.Float.floatToIntBits(m01)
+        result = 31 * result + java.lang.Float.floatToIntBits(m02)
+        result = 31 * result + java.lang.Float.floatToIntBits(m03)
+        result = 31 * result + java.lang.Float.floatToIntBits(m10)
+        result = 31 * result + java.lang.Float.floatToIntBits(m11)
+        result = 31 * result + java.lang.Float.floatToIntBits(m12)
+        result = 31 * result + java.lang.Float.floatToIntBits(m13)
+        result = 31 * result + java.lang.Float.floatToIntBits(m20)
+        result = 31 * result + java.lang.Float.floatToIntBits(m21)
+        result = 31 * result + java.lang.Float.floatToIntBits(m22)
+        result = 31 * result + java.lang.Float.floatToIntBits(m23)
+        result = 31 * result + java.lang.Float.floatToIntBits(m30)
+        result = 31 * result + java.lang.Float.floatToIntBits(m31)
+        result = 31 * result + java.lang.Float.floatToIntBits(m32)
+        result = 31 * result + java.lang.Float.floatToIntBits(m33)
+        return result
     }
 
-    public Matrix4f billboardSpherical(Vector3f objPos, Vector3f targetPos, Vector3f up) {
-        float dirX = targetPos.x - objPos.x;
-        float dirY = targetPos.y - objPos.y;
-        float dirZ = targetPos.z - objPos.z;
-        float invDirLen = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        dirX *= invDirLen;
-        dirY *= invDirLen;
-        dirZ *= invDirLen;
-        float leftX = up.y * dirZ - up.z * dirY;
-        float leftY = up.z * dirX - up.x * dirZ;
-        float leftZ = up.x * dirY - up.y * dirX;
-        float invLeftLen = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLen;
-        leftY *= invLeftLen;
-        leftZ *= invLeftLen;
-        float upX = dirY * leftZ - dirZ * leftY;
-        float upY = dirZ * leftX - dirX * leftZ;
-        float upZ = dirX * leftY - dirY * leftX;
-        this._m00(leftX)._m01(leftY)._m02(leftZ)._m03(0f)._m10(upX)._m11(upY)._m12(upZ)._m13(0f)._m20(dirX)._m21(dirY)._m22(dirZ)._m23(0f)._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1f)._properties(18);
-        return this;
-    }
-
-    public Matrix4f billboardSpherical(Vector3f objPos, Vector3f targetPos) {
-        float toDirX = targetPos.x - objPos.x;
-        float toDirY = targetPos.y - objPos.y;
-        float toDirZ = targetPos.z - objPos.z;
-        float x = -toDirY;
-        float w = Math.sqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ) + toDirZ;
-        float invNorm = Math.invsqrt(x * x + toDirX * toDirX + w * w);
-        x *= invNorm;
-        float y = toDirX * invNorm;
-        w *= invNorm;
-        float q00 = (x + x) * x;
-        float q11 = (y + y) * y;
-        float q01 = (x + x) * y;
-        float q03 = (x + x) * w;
-        float q13 = (y + y) * w;
-        this._m00(1f - q11)._m01(q01)._m02(-q13)._m03(0f)._m10(q01)._m11(1f - q00)._m12(q03)._m13(0f)._m20(q13)._m21(-q03)._m22(1f - q11 - q00)._m23(0f)._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1f)._properties(18);
-        return this;
-    }
-
-    public int hashCode() {
-        int result = 1;
-        result = 31 * result + Float.floatToIntBits(this.m00);
-        result = 31 * result + Float.floatToIntBits(this.m01);
-        result = 31 * result + Float.floatToIntBits(this.m02);
-        result = 31 * result + Float.floatToIntBits(this.m03);
-        result = 31 * result + Float.floatToIntBits(this.m10);
-        result = 31 * result + Float.floatToIntBits(this.m11);
-        result = 31 * result + Float.floatToIntBits(this.m12);
-        result = 31 * result + Float.floatToIntBits(this.m13);
-        result = 31 * result + Float.floatToIntBits(this.m20);
-        result = 31 * result + Float.floatToIntBits(this.m21);
-        result = 31 * result + Float.floatToIntBits(this.m22);
-        result = 31 * result + Float.floatToIntBits(this.m23);
-        result = 31 * result + Float.floatToIntBits(this.m30);
-        result = 31 * result + Float.floatToIntBits(this.m31);
-        result = 31 * result + Float.floatToIntBits(this.m32);
-        result = 31 * result + Float.floatToIntBits(this.m33);
-        return result;
-    }
-
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
+    override fun equals(obj: Any?): Boolean {
+        return if (this === obj) {
+            true
         } else if (obj == null) {
-            return false;
-        } else if (!(obj instanceof Matrix4f)) {
-            return false;
+            false
+        } else if (obj !is Matrix4f) {
+            false
         } else {
-            Matrix4f other = (Matrix4f)obj;
-            if (Float.floatToIntBits(this.m00) != Float.floatToIntBits(other.m00)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m01) != Float.floatToIntBits(other.m01)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m02) != Float.floatToIntBits(other.m02)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m03) != Float.floatToIntBits(other.m03)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m10) != Float.floatToIntBits(other.m10)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m11) != Float.floatToIntBits(other.m11)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m12) != Float.floatToIntBits(other.m12)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m13) != Float.floatToIntBits(other.m13)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m20) != Float.floatToIntBits(other.m20)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m21) != Float.floatToIntBits(other.m21)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m22) != Float.floatToIntBits(other.m22)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m23) != Float.floatToIntBits(other.m23)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m30) != Float.floatToIntBits(other.m30)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m31) != Float.floatToIntBits(other.m31)) {
-                return false;
-            } else if (Float.floatToIntBits(this.m32) != Float.floatToIntBits(other.m32)) {
-                return false;
+            val other = obj
+            if (java.lang.Float.floatToIntBits(m00) != java.lang.Float.floatToIntBits(other.m00)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m01) != java.lang.Float.floatToIntBits(other.m01)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m02) != java.lang.Float.floatToIntBits(other.m02)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m03) != java.lang.Float.floatToIntBits(other.m03)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m10) != java.lang.Float.floatToIntBits(other.m10)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m11) != java.lang.Float.floatToIntBits(other.m11)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m12) != java.lang.Float.floatToIntBits(other.m12)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m13) != java.lang.Float.floatToIntBits(other.m13)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m20) != java.lang.Float.floatToIntBits(other.m20)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m21) != java.lang.Float.floatToIntBits(other.m21)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m22) != java.lang.Float.floatToIntBits(other.m22)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m23) != java.lang.Float.floatToIntBits(other.m23)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m30) != java.lang.Float.floatToIntBits(other.m30)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m31) != java.lang.Float.floatToIntBits(other.m31)) {
+                false
+            } else if (java.lang.Float.floatToIntBits(m32) != java.lang.Float.floatToIntBits(other.m32)) {
+                false
             } else {
-                return Float.floatToIntBits(this.m33) == Float.floatToIntBits(other.m33);
+                java.lang.Float.floatToIntBits(m33) == java.lang.Float.floatToIntBits(other.m33)
             }
         }
     }
 
-    public boolean equals(Matrix4f m, float delta) {
-        if (this == m) {
-            return true;
+    fun equals(m: Matrix4f?, delta: Float): Boolean {
+        return if (this === m) {
+            true
         } else if (m == null) {
-            return false;
-        } else if (!Runtime.equals(this.m00, m.m00, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m01, m.m01, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m02, m.m02, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m03, m.m03, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m10, m.m10, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m11, m.m11, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m12, m.m12, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m13, m.m13, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m20, m.m20, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m21, m.m21, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m22, m.m22, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m23, m.m23, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m30, m.m30, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m31, m.m31, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m32, m.m32, delta)) {
-            return false;
+            false
+        } else if (!Runtime.equals(m00, m.m00, delta)) {
+            false
+        } else if (!Runtime.equals(m01, m.m01, delta)) {
+            false
+        } else if (!Runtime.equals(m02, m.m02, delta)) {
+            false
+        } else if (!Runtime.equals(m03, m.m03, delta)) {
+            false
+        } else if (!Runtime.equals(m10, m.m10, delta)) {
+            false
+        } else if (!Runtime.equals(m11, m.m11, delta)) {
+            false
+        } else if (!Runtime.equals(m12, m.m12, delta)) {
+            false
+        } else if (!Runtime.equals(m13, m.m13, delta)) {
+            false
+        } else if (!Runtime.equals(m20, m.m20, delta)) {
+            false
+        } else if (!Runtime.equals(m21, m.m21, delta)) {
+            false
+        } else if (!Runtime.equals(m22, m.m22, delta)) {
+            false
+        } else if (!Runtime.equals(m23, m.m23, delta)) {
+            false
+        } else if (!Runtime.equals(m30, m.m30, delta)) {
+            false
+        } else if (!Runtime.equals(m31, m.m31, delta)) {
+            false
+        } else if (!Runtime.equals(m32, m.m32, delta)) {
+            false
         } else {
-            return Runtime.equals(this.m33, m.m33, delta);
+            Runtime.equals(m33, m.m33, delta)
         }
     }
 
-    public Matrix4f pick(float x, float y, float width, float height, int[] viewport, Matrix4f dest) {
-        float sx = (float)viewport[2] / width;
-        float sy = (float)viewport[3] / height;
-        float tx = ((float)viewport[2] + 2f * ((float)viewport[0] - x)) / width;
-        float ty = ((float)viewport[3] + 2f * ((float)viewport[1] - y)) / height;
-        dest._m30(this.m00 * tx + this.m10 * ty + this.m30)._m31(this.m01 * tx + this.m11 * ty + this.m31)._m32(this.m02 * tx + this.m12 * ty + this.m32)._m33(this.m03 * tx + this.m13 * ty + this.m33)._m00(this.m00 * sx)._m01(this.m01 * sx)._m02(this.m02 * sx)._m03(this.m03 * sx)._m10(this.m10 * sy)._m11(this.m11 * sy)._m12(this.m12 * sy)._m13(this.m13 * sy)._properties(0);
-        return dest;
+    @JvmOverloads
+    fun pick(x: Float, y: Float, width: Float, height: Float, viewport: IntArray, dest: Matrix4f = this): Matrix4f {
+        val sx = viewport[2].toFloat() / width
+        val sy = viewport[3].toFloat() / height
+        val tx = (viewport[2].toFloat() + 2f * (viewport[0].toFloat() - x)) / width
+        val ty = (viewport[3].toFloat() + 2f * (viewport[1].toFloat() - y)) / height
+        dest._m30(m00 * tx + m10 * ty + m30)._m31(m01 * tx + m11 * ty + m31)._m32(m02 * tx + m12 * ty + m32)._m33(
+            m03 * tx + m13 * ty + m33
+        )._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)._m10(m10 * sy)._m11(m11 * sy)._m12(m12 * sy)._m13(
+            m13 * sy
+        )._properties(0)
+        return dest
     }
 
-    public Matrix4f pick(float x, float y, float width, float height, int[] viewport) {
-        return this.pick(x, y, width, height, viewport, this);
+    val isAffine: Boolean
+        get() = m03 == 0f && m13 == 0f && m23 == 0f && m33 == 1f
+
+    fun swap(other: Matrix4f): Matrix4f {
+        MemUtil.INSTANCE.swap(this, other)
+        val props = properties
+        properties = other.properties()
+        other.properties = props
+        return this
     }
 
-    public boolean isAffine() {
-        return this.m03 == 0f && this.m13 == 0f && this.m23 == 0f && this.m33 == 1f;
+    @JvmOverloads
+    fun arcball(
+        radius: Float,
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        angleX: Float,
+        angleY: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        val m30 = m20 * -radius + m30
+        val m31 = m21 * -radius + m31
+        val m32 = m22 * -radius + m32
+        val m33 = m23 * -radius + m33
+        var sin = Math.sin(angleX)
+        var cos = Math.cosFromSin(sin, angleX)
+        val nm10 = m10 * cos + m20 * sin
+        val nm11 = m11 * cos + m21 * sin
+        val nm12 = m12 * cos + m22 * sin
+        val nm13 = m13 * cos + m23 * sin
+        val m20 = m20 * cos - m10 * sin
+        val m21 = m21 * cos - m11 * sin
+        val m22 = m22 * cos - m12 * sin
+        val m23 = m23 * cos - m13 * sin
+        sin = Math.sin(angleY)
+        cos = Math.cosFromSin(sin, angleY)
+        val nm00 = m00 * cos - m20 * sin
+        val nm01 = m01 * cos - m21 * sin
+        val nm02 = m02 * cos - m22 * sin
+        val nm03 = m03 * cos - m23 * sin
+        val nm20 = m00 * sin + m20 * cos
+        val nm21 = m01 * sin + m21 * cos
+        val nm22 = m02 * sin + m22 * cos
+        val nm23 = m03 * sin + m23 * cos
+        dest._m30(-nm00 * centerX - nm10 * centerY - nm20 * centerZ + m30)
+            ._m31(-nm01 * centerX - nm11 * centerY - nm21 * centerZ + m31)._m32(
+            -nm02 * centerX - nm12 * centerY - nm22 * centerZ + m32
+        )._m33(-nm03 * centerX - nm13 * centerY - nm23 * centerZ + m33)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._properties(
+            properties and -14
+        )
+        return dest
     }
 
-    public Matrix4f swap(Matrix4f other) {
-        MemUtil.INSTANCE.swap(this, other);
-        int props = this.properties;
-        this.properties = other.properties();
-        other.properties = props;
-        return this;
+    fun arcball(radius: Float, center: Vector3f, angleX: Float, angleY: Float, dest: Matrix4f): Matrix4f {
+        return this.arcball(radius, center.x, center.y, center.z, angleX, angleY, dest)
     }
 
-    public Matrix4f arcball(float radius, float centerX, float centerY, float centerZ, float angleX, float angleY, Matrix4f dest) {
-        float m30 = this.m20 * -radius + this.m30;
-        float m31 = this.m21 * -radius + this.m31;
-        float m32 = this.m22 * -radius + this.m32;
-        float m33 = this.m23 * -radius + this.m33;
-        float sin = Math.sin(angleX);
-        float cos = Math.cosFromSin(sin, angleX);
-        float nm10 = this.m10 * cos + this.m20 * sin;
-        float nm11 = this.m11 * cos + this.m21 * sin;
-        float nm12 = this.m12 * cos + this.m22 * sin;
-        float nm13 = this.m13 * cos + this.m23 * sin;
-        float m20 = this.m20 * cos - this.m10 * sin;
-        float m21 = this.m21 * cos - this.m11 * sin;
-        float m22 = this.m22 * cos - this.m12 * sin;
-        float m23 = this.m23 * cos - this.m13 * sin;
-        sin = Math.sin(angleY);
-        cos = Math.cosFromSin(sin, angleY);
-        float nm00 = this.m00 * cos - m20 * sin;
-        float nm01 = this.m01 * cos - m21 * sin;
-        float nm02 = this.m02 * cos - m22 * sin;
-        float nm03 = this.m03 * cos - m23 * sin;
-        float nm20 = this.m00 * sin + m20 * cos;
-        float nm21 = this.m01 * sin + m21 * cos;
-        float nm22 = this.m02 * sin + m22 * cos;
-        float nm23 = this.m03 * sin + m23 * cos;
-        dest._m30(-nm00 * centerX - nm10 * centerY - nm20 * centerZ + m30)._m31(-nm01 * centerX - nm11 * centerY - nm21 * centerZ + m31)._m32(-nm02 * centerX - nm12 * centerY - nm22 * centerZ + m32)._m33(-nm03 * centerX - nm13 * centerY - nm23 * centerZ + m33)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._properties(this.properties & -14);
-        return dest;
+    fun arcball(radius: Float, center: Vector3f, angleX: Float, angleY: Float): Matrix4f {
+        return this.arcball(radius, center.x, center.y, center.z, angleX, angleY, this)
     }
 
-    public Matrix4f arcball(float radius, Vector3f center, float angleX, float angleY, Matrix4f dest) {
-        return this.arcball(radius, center.x, center.y, center.z, angleX, angleY, dest);
-    }
-
-    public Matrix4f arcball(float radius, float centerX, float centerY, float centerZ, float angleX, float angleY) {
-        return this.arcball(radius, centerX, centerY, centerZ, angleX, angleY, this);
-    }
-
-    public Matrix4f arcball(float radius, Vector3f center, float angleX, float angleY) {
-        return this.arcball(radius, center.x, center.y, center.z, angleX, angleY, this);
-    }
-
-    public Matrix4f frustumAabb(Vector3f min, Vector3f max) {
-        float minX = Float.POSITIVE_INFINITY;
-        float minY = Float.POSITIVE_INFINITY;
-        float minZ = Float.POSITIVE_INFINITY;
-        float maxX = Float.NEGATIVE_INFINITY;
-        float maxY = Float.NEGATIVE_INFINITY;
-        float maxZ = Float.NEGATIVE_INFINITY;
-
-        for(int t = 0; t < 8; ++t) {
-            float x = (float)((t & 1) << 1) - 1f;
-            float y = (float)((t >>> 1 & 1) << 1) - 1f;
-            float z = (float)((t >>> 2 & 1) << 1) - 1f;
-            float invW = 1f / (this.m03 * x + this.m13 * y + this.m23 * z + this.m33);
-            float nx = (this.m00 * x + this.m10 * y + this.m20 * z + this.m30) * invW;
-            float ny = (this.m01 * x + this.m11 * y + this.m21 * z + this.m31) * invW;
-            float nz = (this.m02 * x + this.m12 * y + this.m22 * z + this.m32) * invW;
-            minX = java.lang.Math.min(minX, nx);
-            minY = java.lang.Math.min(minY, ny);
-            minZ = java.lang.Math.min(minZ, nz);
-            maxX = java.lang.Math.max(maxX, nx);
-            maxY = java.lang.Math.max(maxY, ny);
-            maxZ = java.lang.Math.max(maxZ, nz);
+    fun frustumAabb(min: Vector3f, max: Vector3f): Matrix4f {
+        var minX = Float.POSITIVE_INFINITY
+        var minY = Float.POSITIVE_INFINITY
+        var minZ = Float.POSITIVE_INFINITY
+        var maxX = Float.NEGATIVE_INFINITY
+        var maxY = Float.NEGATIVE_INFINITY
+        var maxZ = Float.NEGATIVE_INFINITY
+        for (t in 0..7) {
+            val x = (t and 1 shl 1).toFloat() - 1f
+            val y = (t ushr 1 and 1 shl 1).toFloat() - 1f
+            val z = (t ushr 2 and 1 shl 1).toFloat() - 1f
+            val invW = 1f / (m03 * x + m13 * y + m23 * z + m33)
+            val nx = (m00 * x + m10 * y + m20 * z + m30) * invW
+            val ny = (m01 * x + m11 * y + m21 * z + m31) * invW
+            val nz = (m02 * x + m12 * y + m22 * z + m32) * invW
+            minX = java.lang.Math.min(minX, nx)
+            minY = java.lang.Math.min(minY, ny)
+            minZ = java.lang.Math.min(minZ, nz)
+            maxX = java.lang.Math.max(maxX, nx)
+            maxY = java.lang.Math.max(maxY, ny)
+            maxZ = java.lang.Math.max(maxZ, nz)
         }
-
-        min.x = minX;
-        min.y = minY;
-        min.z = minZ;
-        max.x = maxX;
-        max.y = maxY;
-        max.z = maxZ;
-        return this;
+        min.x = minX
+        min.y = minY
+        min.z = minZ
+        max.x = maxX
+        max.y = maxY
+        max.z = maxZ
+        return this
     }
 
-    public Matrix4f projectedGridRange(Matrix4f projector, float sLower, float sUpper, Matrix4f dest) {
-        float minX = Float.POSITIVE_INFINITY;
-        float minY = Float.POSITIVE_INFINITY;
-        float maxX = Float.NEGATIVE_INFINITY;
-        float maxY = Float.NEGATIVE_INFINITY;
-        boolean intersection = false;
-
-        for(int t = 0; t < 12; ++t) {
-            float c0X;
-            float c0Y;
-            float c0Z;
-            float c1X;
-            float c1Y;
-            float c1Z;
+    fun projectedGridRange(projector: Matrix4f, sLower: Float, sUpper: Float, dest: Matrix4f): Matrix4f? {
+        var minX = Float.POSITIVE_INFINITY
+        var minY = Float.POSITIVE_INFINITY
+        var maxX = Float.NEGATIVE_INFINITY
+        var maxY = Float.NEGATIVE_INFINITY
+        var intersection = false
+        for (t in 0..11) {
+            var c0X: Float
+            var c0Y: Float
+            var c0Z: Float
+            var c1X: Float
+            var c1Y: Float
+            var c1Z: Float
             if (t < 4) {
-                c0X = -1f;
-                c1X = 1f;
-                c0Y = c1Y = (float)((t & 1) << 1) - 1f;
-                c0Z = c1Z = (float)((t >>> 1 & 1) << 1) - 1f;
+                c0X = -1f
+                c1X = 1f
+                c1Y = (t and 1 shl 1).toFloat() - 1f
+                c0Y = c1Y
+                c1Z = (t ushr 1 and 1 shl 1).toFloat() - 1f
+                c0Z = c1Z
             } else if (t < 8) {
-                c0Y = -1f;
-                c1Y = 1f;
-                c0X = c1X = (float)((t & 1) << 1) - 1f;
-                c0Z = c1Z = (float)((t >>> 1 & 1) << 1) - 1f;
+                c0Y = -1f
+                c1Y = 1f
+                c1X = (t and 1 shl 1).toFloat() - 1f
+                c0X = c1X
+                c1Z = (t ushr 1 and 1 shl 1).toFloat() - 1f
+                c0Z = c1Z
             } else {
-                c0Z = -1f;
-                c1Z = 1f;
-                c0X = c1X = (float)((t & 1) << 1) - 1f;
-                c0Y = c1Y = (float)((t >>> 1 & 1) << 1) - 1f;
+                c0Z = -1f
+                c1Z = 1f
+                c1X = (t and 1 shl 1).toFloat() - 1f
+                c0X = c1X
+                c1Y = (t ushr 1 and 1 shl 1).toFloat() - 1f
+                c0Y = c1Y
             }
-
-            float invW = 1f / (this.m03 * c0X + this.m13 * c0Y + this.m23 * c0Z + this.m33);
-            float p0x = (this.m00 * c0X + this.m10 * c0Y + this.m20 * c0Z + this.m30) * invW;
-            float p0y = (this.m01 * c0X + this.m11 * c0Y + this.m21 * c0Z + this.m31) * invW;
-            float p0z = (this.m02 * c0X + this.m12 * c0Y + this.m22 * c0Z + this.m32) * invW;
-            invW = 1f / (this.m03 * c1X + this.m13 * c1Y + this.m23 * c1Z + this.m33);
-            float p1x = (this.m00 * c1X + this.m10 * c1Y + this.m20 * c1Z + this.m30) * invW;
-            float p1y = (this.m01 * c1X + this.m11 * c1Y + this.m21 * c1Z + this.m31) * invW;
-            float p1z = (this.m02 * c1X + this.m12 * c1Y + this.m22 * c1Z + this.m32) * invW;
-            float dirX = p1x - p0x;
-            float dirY = p1y - p0y;
-            float dirZ = p1z - p0z;
-            float invDenom = 1f / dirY;
-
-            for(int s = 0; s < 2; ++s) {
-                float isectT = -(p0y + (s == 0 ? sLower : sUpper)) * invDenom;
+            var invW = 1f / (m03 * c0X + m13 * c0Y + m23 * c0Z + m33)
+            val p0x = (m00 * c0X + m10 * c0Y + m20 * c0Z + m30) * invW
+            val p0y = (m01 * c0X + m11 * c0Y + m21 * c0Z + m31) * invW
+            val p0z = (m02 * c0X + m12 * c0Y + m22 * c0Z + m32) * invW
+            invW = 1f / (m03 * c1X + m13 * c1Y + m23 * c1Z + m33)
+            val p1x = (m00 * c1X + m10 * c1Y + m20 * c1Z + m30) * invW
+            val p1y = (m01 * c1X + m11 * c1Y + m21 * c1Z + m31) * invW
+            val p1z = (m02 * c1X + m12 * c1Y + m22 * c1Z + m32) * invW
+            val dirX = p1x - p0x
+            val dirY = p1y - p0y
+            val dirZ = p1z - p0z
+            val invDenom = 1f / dirY
+            for (s in 0..1) {
+                val isectT = -(p0y + if (s == 0) sLower else sUpper) * invDenom
                 if (isectT >= 0f && isectT <= 1f) {
-                    intersection = true;
-                    float ix = p0x + isectT * dirX;
-                    float iz = p0z + isectT * dirZ;
-                    invW = 1f / (projector.m03 * ix + projector.m23 * iz + projector.m33);
-                    float px = (projector.m00 * ix + projector.m20 * iz + projector.m30) * invW;
-                    float py = (projector.m01 * ix + projector.m21 * iz + projector.m31) * invW;
-                    minX = java.lang.Math.min(minX, px);
-                    minY = java.lang.Math.min(minY, py);
-                    maxX = java.lang.Math.max(maxX, px);
-                    maxY = java.lang.Math.max(maxY, py);
+                    intersection = true
+                    val ix = p0x + isectT * dirX
+                    val iz = p0z + isectT * dirZ
+                    invW = 1f / (projector.m03 * ix + projector.m23 * iz + projector.m33)
+                    val px = (projector.m00 * ix + projector.m20 * iz + projector.m30) * invW
+                    val py = (projector.m01 * ix + projector.m21 * iz + projector.m31) * invW
+                    minX = java.lang.Math.min(minX, px)
+                    minY = java.lang.Math.min(minY, py)
+                    maxX = java.lang.Math.max(maxX, px)
+                    maxY = java.lang.Math.max(maxY, py)
                 }
             }
         }
-
-        if (!intersection) {
-            return null;
+        return if (!intersection) {
+            null
         } else {
-            dest.set(maxX - minX, 0f, 0f, 0f, 0f, maxY - minY, 0f, 0f, 0f, 0f, 1f, 0f, minX, minY, 0f, 1f);
-            dest._properties(2);
-            return dest;
+            dest[maxX - minX, 0f, 0f, 0f, 0f, maxY - minY, 0f, 0f, 0f, 0f, 1f, 0f, minX, minY, 0f] = 1f
+            dest._properties(2)
+            dest
         }
     }
 
-    public Matrix4f perspectiveFrustumSlice(float near, float far, Matrix4f dest) {
-        float invOldNear = (this.m23 + this.m22) / this.m32;
-        float invNearFar = 1f / (near - far);
-        dest._m00(this.m00 * invOldNear * near)._m01(this.m01)._m02(this.m02)._m03(this.m03)._m10(this.m10)._m11(this.m11 * invOldNear * near)._m12(this.m12)._m13(this.m13)._m20(this.m20)._m21(this.m21)._m22((far + near) * invNearFar)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32((far + far) * near * invNearFar)._m33(this.m33)._properties(this.properties & -29);
-        return dest;
+    fun perspectiveFrustumSlice(near: Float, far: Float, dest: Matrix4f): Matrix4f {
+        val invOldNear = (m23 + m22) / m32
+        val invNearFar = 1f / (near - far)
+        dest._m00(m00 * invOldNear * near)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11 * invOldNear * near)._m12(
+            m12
+        )._m13(m13)._m20(m20)._m21(m21)._m22((far + near) * invNearFar)._m23(m23)._m30(m30)._m31(m31)
+            ._m32((far + far) * near * invNearFar)._m33(
+            m33
+        )._properties(properties and -29)
+        return dest
     }
 
-    public Matrix4f orthoCrop(Matrix4f view, Matrix4f dest) {
-        float minX = Float.POSITIVE_INFINITY;
-        float maxX = Float.NEGATIVE_INFINITY;
-        float minY = Float.POSITIVE_INFINITY;
-        float maxY = Float.NEGATIVE_INFINITY;
-        float minZ = Float.POSITIVE_INFINITY;
-        float maxZ = Float.NEGATIVE_INFINITY;
-
-        for(int t = 0; t < 8; ++t) {
-            float x = (float)((t & 1) << 1) - 1f;
-            float y = (float)((t >>> 1 & 1) << 1) - 1f;
-            float z = (float)((t >>> 2 & 1) << 1) - 1f;
-            float invW = 1f / (this.m03 * x + this.m13 * y + this.m23 * z + this.m33);
-            float wx = (this.m00 * x + this.m10 * y + this.m20 * z + this.m30) * invW;
-            float wy = (this.m01 * x + this.m11 * y + this.m21 * z + this.m31) * invW;
-            float wz = (this.m02 * x + this.m12 * y + this.m22 * z + this.m32) * invW;
-            invW = 1f / (view.m03 * wx + view.m13 * wy + view.m23 * wz + view.m33);
-            float vx = view.m00 * wx + view.m10 * wy + view.m20 * wz + view.m30;
-            float vy = view.m01 * wx + view.m11 * wy + view.m21 * wz + view.m31;
-            float vz = (view.m02 * wx + view.m12 * wy + view.m22 * wz + view.m32) * invW;
-            minX = java.lang.Math.min(minX, vx);
-            maxX = java.lang.Math.max(maxX, vx);
-            minY = java.lang.Math.min(minY, vy);
-            maxY = java.lang.Math.max(maxY, vy);
-            minZ = java.lang.Math.min(minZ, vz);
-            maxZ = java.lang.Math.max(maxZ, vz);
+    fun orthoCrop(view: Matrix4f, dest: Matrix4f): Matrix4f {
+        var minX = Float.POSITIVE_INFINITY
+        var maxX = Float.NEGATIVE_INFINITY
+        var minY = Float.POSITIVE_INFINITY
+        var maxY = Float.NEGATIVE_INFINITY
+        var minZ = Float.POSITIVE_INFINITY
+        var maxZ = Float.NEGATIVE_INFINITY
+        for (t in 0..7) {
+            val x = (t and 1 shl 1).toFloat() - 1f
+            val y = (t ushr 1 and 1 shl 1).toFloat() - 1f
+            val z = (t ushr 2 and 1 shl 1).toFloat() - 1f
+            var invW = 1f / (m03 * x + m13 * y + m23 * z + m33)
+            val wx = (m00 * x + m10 * y + m20 * z + m30) * invW
+            val wy = (m01 * x + m11 * y + m21 * z + m31) * invW
+            val wz = (m02 * x + m12 * y + m22 * z + m32) * invW
+            invW = 1f / (view.m03 * wx + view.m13 * wy + view.m23 * wz + view.m33)
+            val vx = view.m00 * wx + view.m10 * wy + view.m20 * wz + view.m30
+            val vy = view.m01 * wx + view.m11 * wy + view.m21 * wz + view.m31
+            val vz = (view.m02 * wx + view.m12 * wy + view.m22 * wz + view.m32) * invW
+            minX = java.lang.Math.min(minX, vx)
+            maxX = java.lang.Math.max(maxX, vx)
+            minY = java.lang.Math.min(minY, vy)
+            maxY = java.lang.Math.max(maxY, vy)
+            minZ = java.lang.Math.min(minZ, vz)
+            maxZ = java.lang.Math.max(maxZ, vz)
         }
-
-        return dest.setOrtho(minX, maxX, minY, maxY, -maxZ, -minZ);
+        return dest.setOrtho(minX, maxX, minY, maxY, -maxZ, -minZ)
     }
 
-    public Matrix4f trapezoidCrop(float p0x, float p0y, float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
-        float aX = p1y - p0y;
-        float aY = p0x - p1x;
-        float nm10 = -aX;
-        float nm30 = aX * p0y - aY * p0x;
-        float nm31 = -(aX * p0x + aY * p0y);
-        float c3x = aY * p3x + nm10 * p3y + nm30;
-        float c3y = aX * p3x + aY * p3y + nm31;
-        float s = -c3x / c3y;
-        float nm00 = aY + s * aX;
-        nm10 += s * aY;
-        nm30 += s * nm31;
-        float d1x = nm00 * p1x + nm10 * p1y + nm30;
-        float d2x = nm00 * p2x + nm10 * p2y + nm30;
-        float d = d1x * c3y / (d2x - d1x);
-        nm31 += d;
-        float sx = 2f / d2x;
-        float sy = 1f / (c3y + d);
-        float u = (sy + sy) * d / (1f - sy * d);
-        float m03 = aX * sy;
-        float m13 = aY * sy;
-        float m33 = nm31 * sy;
-        float nm01 = (u + 1f) * m03;
-        float nm11 = (u + 1f) * m13;
-        nm31 = (u + 1f) * m33 - u;
-        nm00 = sx * nm00 - m03;
-        nm10 = sx * nm10 - m13;
-        nm30 = sx * nm30 - m33;
-        this.set(nm00, nm01, 0f, m03, nm10, nm11, 0f, m13, 0f, 0f, 1f, 0f, nm30, nm31, 0f, m33);
-        this._properties(0);
-        return this;
+    fun trapezoidCrop(
+        p0x: Float,
+        p0y: Float,
+        p1x: Float,
+        p1y: Float,
+        p2x: Float,
+        p2y: Float,
+        p3x: Float,
+        p3y: Float
+    ): Matrix4f {
+        val aX = p1y - p0y
+        val aY = p0x - p1x
+        var nm10 = -aX
+        var nm30 = aX * p0y - aY * p0x
+        var nm31 = -(aX * p0x + aY * p0y)
+        val c3x = aY * p3x + nm10 * p3y + nm30
+        val c3y = aX * p3x + aY * p3y + nm31
+        val s = -c3x / c3y
+        var nm00 = aY + s * aX
+        nm10 += s * aY
+        nm30 += s * nm31
+        val d1x = nm00 * p1x + nm10 * p1y + nm30
+        val d2x = nm00 * p2x + nm10 * p2y + nm30
+        val d = d1x * c3y / (d2x - d1x)
+        nm31 += d
+        val sx = 2f / d2x
+        val sy = 1f / (c3y + d)
+        val u = (sy + sy) * d / (1f - sy * d)
+        val m03 = aX * sy
+        val m13 = aY * sy
+        val m33 = nm31 * sy
+        val nm01 = (u + 1f) * m03
+        val nm11 = (u + 1f) * m13
+        nm31 = (u + 1f) * m33 - u
+        nm00 = sx * nm00 - m03
+        nm10 = sx * nm10 - m13
+        nm30 = sx * nm30 - m33
+        this[nm00, nm01, 0f, m03, nm10, nm11, 0f, m13, 0f, 0f, 1f, 0f, nm30, nm31, 0f] = m33
+        _properties(0)
+        return this
     }
 
-    public Matrix4f transformAab(float minX, float minY, float minZ, float maxX, float maxY, float maxZ, Vector3f outMin, Vector3f outMax) {
-        float xax = this.m00 * minX;
-        float xay = this.m01 * minX;
-        float xaz = this.m02 * minX;
-        float xbx = this.m00 * maxX;
-        float xby = this.m01 * maxX;
-        float xbz = this.m02 * maxX;
-        float yax = this.m10 * minY;
-        float yay = this.m11 * minY;
-        float yaz = this.m12 * minY;
-        float ybx = this.m10 * maxY;
-        float yby = this.m11 * maxY;
-        float ybz = this.m12 * maxY;
-        float zax = this.m20 * minZ;
-        float zay = this.m21 * minZ;
-        float zaz = this.m22 * minZ;
-        float zbx = this.m20 * maxZ;
-        float zby = this.m21 * maxZ;
-        float zbz = this.m22 * maxZ;
-        float xminx;
-        float xmaxx;
+    fun transformAab(
+        minX: Float,
+        minY: Float,
+        minZ: Float,
+        maxX: Float,
+        maxY: Float,
+        maxZ: Float,
+        outMin: Vector3f,
+        outMax: Vector3f
+    ): Matrix4f {
+        val xax = m00 * minX
+        val xay = m01 * minX
+        val xaz = m02 * minX
+        val xbx = m00 * maxX
+        val xby = m01 * maxX
+        val xbz = m02 * maxX
+        val yax = m10 * minY
+        val yay = m11 * minY
+        val yaz = m12 * minY
+        val ybx = m10 * maxY
+        val yby = m11 * maxY
+        val ybz = m12 * maxY
+        val zax = m20 * minZ
+        val zay = m21 * minZ
+        val zaz = m22 * minZ
+        val zbx = m20 * maxZ
+        val zby = m21 * maxZ
+        val zbz = m22 * maxZ
+        val xminx: Float
+        val xmaxx: Float
         if (xax < xbx) {
-            xminx = xax;
-            xmaxx = xbx;
+            xminx = xax
+            xmaxx = xbx
         } else {
-            xminx = xbx;
-            xmaxx = xax;
+            xminx = xbx
+            xmaxx = xax
         }
-
-        float xminy;
-        float xmaxy;
+        val xminy: Float
+        val xmaxy: Float
         if (xay < xby) {
-            xminy = xay;
-            xmaxy = xby;
+            xminy = xay
+            xmaxy = xby
         } else {
-            xminy = xby;
-            xmaxy = xay;
+            xminy = xby
+            xmaxy = xay
         }
-
-        float xminz;
-        float xmaxz;
+        val xminz: Float
+        val xmaxz: Float
         if (xaz < xbz) {
-            xminz = xaz;
-            xmaxz = xbz;
+            xminz = xaz
+            xmaxz = xbz
         } else {
-            xminz = xbz;
-            xmaxz = xaz;
+            xminz = xbz
+            xmaxz = xaz
         }
-
-        float yminx;
-        float ymaxx;
+        val yminx: Float
+        val ymaxx: Float
         if (yax < ybx) {
-            yminx = yax;
-            ymaxx = ybx;
+            yminx = yax
+            ymaxx = ybx
         } else {
-            yminx = ybx;
-            ymaxx = yax;
+            yminx = ybx
+            ymaxx = yax
         }
-
-        float yminy;
-        float ymaxy;
+        val yminy: Float
+        val ymaxy: Float
         if (yay < yby) {
-            yminy = yay;
-            ymaxy = yby;
+            yminy = yay
+            ymaxy = yby
         } else {
-            yminy = yby;
-            ymaxy = yay;
+            yminy = yby
+            ymaxy = yay
         }
-
-        float yminz;
-        float ymaxz;
+        val yminz: Float
+        val ymaxz: Float
         if (yaz < ybz) {
-            yminz = yaz;
-            ymaxz = ybz;
+            yminz = yaz
+            ymaxz = ybz
         } else {
-            yminz = ybz;
-            ymaxz = yaz;
+            yminz = ybz
+            ymaxz = yaz
         }
-
-        float zminx;
-        float zmaxx;
+        val zminx: Float
+        val zmaxx: Float
         if (zax < zbx) {
-            zminx = zax;
-            zmaxx = zbx;
+            zminx = zax
+            zmaxx = zbx
         } else {
-            zminx = zbx;
-            zmaxx = zax;
+            zminx = zbx
+            zmaxx = zax
         }
-
-        float zminy;
-        float zmaxy;
+        val zminy: Float
+        val zmaxy: Float
         if (zay < zby) {
-            zminy = zay;
-            zmaxy = zby;
+            zminy = zay
+            zmaxy = zby
         } else {
-            zminy = zby;
-            zmaxy = zay;
+            zminy = zby
+            zmaxy = zay
         }
-
-        float zminz;
-        float zmaxz;
+        val zminz: Float
+        val zmaxz: Float
         if (zaz < zbz) {
-            zminz = zaz;
-            zmaxz = zbz;
+            zminz = zaz
+            zmaxz = zbz
         } else {
-            zminz = zbz;
-            zmaxz = zaz;
+            zminz = zbz
+            zmaxz = zaz
         }
-
-        outMin.x = xminx + yminx + zminx + this.m30;
-        outMin.y = xminy + yminy + zminy + this.m31;
-        outMin.z = xminz + yminz + zminz + this.m32;
-        outMax.x = xmaxx + ymaxx + zmaxx + this.m30;
-        outMax.y = xmaxy + ymaxy + zmaxy + this.m31;
-        outMax.z = xmaxz + ymaxz + zmaxz + this.m32;
-        return this;
+        outMin.x = xminx + yminx + zminx + m30
+        outMin.y = xminy + yminy + zminy + m31
+        outMin.z = xminz + yminz + zminz + m32
+        outMax.x = xmaxx + ymaxx + zmaxx + m30
+        outMax.y = xmaxy + ymaxy + zmaxy + m31
+        outMax.z = xmaxz + ymaxz + zmaxz + m32
+        return this
     }
 
-    public Matrix4f transformAab(Vector3f min, Vector3f max, Vector3f outMin, Vector3f outMax) {
-        return this.transformAab(min.x, min.y, min.z, max.x, max.y, max.z, outMin, outMax);
+    fun transformAab(min: Vector3f, max: Vector3f, outMin: Vector3f, outMax: Vector3f): Matrix4f {
+        return this.transformAab(min.x, min.y, min.z, max.x, max.y, max.z, outMin, outMax)
     }
 
-    public Matrix4f lerp(Matrix4f other, float t) {
-        return this.lerp(other, t, this);
+    @JvmOverloads
+    fun lerp(other: Matrix4f, t: Float, dest: Matrix4f = this): Matrix4f {
+        dest._m00(Math.fma(other.m00 - m00, t, m00))._m01(Math.fma(other.m01 - m01, t, m01))
+            ._m02(Math.fma(other.m02 - m02, t, m02))._m03(
+            Math.fma(other.m03 - m03, t, m03)
+        )._m10(Math.fma(other.m10 - m10, t, m10))._m11(Math.fma(other.m11 - m11, t, m11))._m12(
+            Math.fma(other.m12 - m12, t, m12)
+        )._m13(Math.fma(other.m13 - m13, t, m13))._m20(Math.fma(other.m20 - m20, t, m20))._m21(
+            Math.fma(other.m21 - m21, t, m21)
+        )._m22(Math.fma(other.m22 - m22, t, m22))._m23(Math.fma(other.m23 - m23, t, m23))._m30(
+            Math.fma(other.m30 - m30, t, m30)
+        )._m31(Math.fma(other.m31 - m31, t, m31))._m32(Math.fma(other.m32 - m32, t, m32))._m33(
+            Math.fma(other.m33 - m33, t, m33)
+        )._properties(
+            properties and other.properties()
+        )
+        return dest
     }
 
-    public Matrix4f lerp(Matrix4f other, float t, Matrix4f dest) {
-        dest._m00(Math.fma(other.m00 - this.m00, t, this.m00))._m01(Math.fma(other.m01 - this.m01, t, this.m01))._m02(Math.fma(other.m02 - this.m02, t, this.m02))._m03(Math.fma(other.m03 - this.m03, t, this.m03))._m10(Math.fma(other.m10 - this.m10, t, this.m10))._m11(Math.fma(other.m11 - this.m11, t, this.m11))._m12(Math.fma(other.m12 - this.m12, t, this.m12))._m13(Math.fma(other.m13 - this.m13, t, this.m13))._m20(Math.fma(other.m20 - this.m20, t, this.m20))._m21(Math.fma(other.m21 - this.m21, t, this.m21))._m22(Math.fma(other.m22 - this.m22, t, this.m22))._m23(Math.fma(other.m23 - this.m23, t, this.m23))._m30(Math.fma(other.m30 - this.m30, t, this.m30))._m31(Math.fma(other.m31 - this.m31, t, this.m31))._m32(Math.fma(other.m32 - this.m32, t, this.m32))._m33(Math.fma(other.m33 - this.m33, t, this.m33))._properties(this.properties & other.properties());
-        return dest;
+    fun rotateTowards(dir: Vector3f, up: Vector3f, dest: Matrix4f): Matrix4f {
+        return this.rotateTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z, dest)
     }
 
-    public Matrix4f rotateTowards(Vector3f dir, Vector3f up, Matrix4f dest) {
-        return this.rotateTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z, dest);
+    fun rotateTowards(dir: Vector3f, up: Vector3f): Matrix4f {
+        return this.rotateTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
     }
 
-    public Matrix4f rotateTowards(Vector3f dir, Vector3f up) {
-        return this.rotateTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z, this);
+    @JvmOverloads
+    fun rotateTowards(
+        dirX: Float,
+        dirY: Float,
+        dirZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float,
+        dest: Matrix4f = this
+    ): Matrix4f {
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        val ndirX = dirX * invDirLength
+        val ndirY = dirY * invDirLength
+        val ndirZ = dirZ * invDirLength
+        var leftX = upY * ndirZ - upZ * ndirY
+        var leftY = upZ * ndirX - upX * ndirZ
+        var leftZ = upX * ndirY - upY * ndirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        val upnX = ndirY * leftZ - ndirZ * leftY
+        val upnY = ndirZ * leftX - ndirX * leftZ
+        val upnZ = ndirX * leftY - ndirY * leftX
+        dest._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+        val nm00 = m00 * leftX + m10 * leftY + m20 * leftZ
+        val nm01 = m01 * leftX + m11 * leftY + m21 * leftZ
+        val nm02 = m02 * leftX + m12 * leftY + m22 * leftZ
+        val nm03 = m03 * leftX + m13 * leftY + m23 * leftZ
+        val nm10 = m00 * upnX + m10 * upnY + m20 * upnZ
+        val nm11 = m01 * upnX + m11 * upnY + m21 * upnZ
+        val nm12 = m02 * upnX + m12 * upnY + m22 * upnZ
+        val nm13 = m03 * upnX + m13 * upnY + m23 * upnZ
+        dest._m20(m00 * ndirX + m10 * ndirY + m20 * ndirZ)._m21(m01 * ndirX + m11 * ndirY + m21 * ndirZ)._m22(
+            m02 * ndirX + m12 * ndirY + m22 * ndirZ
+        )._m23(m03 * ndirX + m13 * ndirY + m23 * ndirZ)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)
+            ._m11(nm11)._m12(nm12)._m13(nm13)._properties(
+            properties and -14
+        )
+        return dest
     }
 
-    public Matrix4f rotateTowards(float dirX, float dirY, float dirZ, float upX, float upY, float upZ) {
-        return this.rotateTowards(dirX, dirY, dirZ, upX, upY, upZ, this);
+    fun rotationTowards(dir: Vector3f, up: Vector3f): Matrix4f {
+        return this.rotationTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z)
     }
 
-    public Matrix4f rotateTowards(float dirX, float dirY, float dirZ, float upX, float upY, float upZ, Matrix4f dest) {
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        float ndirX = dirX * invDirLength;
-        float ndirY = dirY * invDirLength;
-        float ndirZ = dirZ * invDirLength;
-        float leftX = upY * ndirZ - upZ * ndirY;
-        float leftY = upZ * ndirX - upX * ndirZ;
-        float leftZ = upX * ndirY - upY * ndirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        float upnX = ndirY * leftZ - ndirZ * leftY;
-        float upnY = ndirZ * leftX - ndirX * leftZ;
-        float upnZ = ndirX * leftY - ndirY * leftX;
-        dest._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33);
-        float nm00 = this.m00 * leftX + this.m10 * leftY + this.m20 * leftZ;
-        float nm01 = this.m01 * leftX + this.m11 * leftY + this.m21 * leftZ;
-        float nm02 = this.m02 * leftX + this.m12 * leftY + this.m22 * leftZ;
-        float nm03 = this.m03 * leftX + this.m13 * leftY + this.m23 * leftZ;
-        float nm10 = this.m00 * upnX + this.m10 * upnY + this.m20 * upnZ;
-        float nm11 = this.m01 * upnX + this.m11 * upnY + this.m21 * upnZ;
-        float nm12 = this.m02 * upnX + this.m12 * upnY + this.m22 * upnZ;
-        float nm13 = this.m03 * upnX + this.m13 * upnY + this.m23 * upnZ;
-        dest._m20(this.m00 * ndirX + this.m10 * ndirY + this.m20 * ndirZ)._m21(this.m01 * ndirX + this.m11 * ndirY + this.m21 * ndirZ)._m22(this.m02 * ndirX + this.m12 * ndirY + this.m22 * ndirZ)._m23(this.m03 * ndirX + this.m13 * ndirY + this.m23 * ndirZ)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._properties(this.properties & -14);
-        return dest;
-    }
-
-    public Matrix4f rotationTowards(Vector3f dir, Vector3f up) {
-        return this.rotationTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z);
-    }
-
-    public Matrix4f rotationTowards(float dirX, float dirY, float dirZ, float upX, float upY, float upZ) {
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        float ndirX = dirX * invDirLength;
-        float ndirY = dirY * invDirLength;
-        float ndirZ = dirZ * invDirLength;
-        float leftX = upY * ndirZ - upZ * ndirY;
-        float leftY = upZ * ndirX - upX * ndirZ;
-        float leftZ = upX * ndirY - upY * ndirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        float upnX = ndirY * leftZ - ndirZ * leftY;
-        float upnY = ndirZ * leftX - ndirX * leftZ;
-        float upnZ = ndirX * leftY - ndirY * leftX;
-        if ((this.properties & 4) == 0) {
-            MemUtil.INSTANCE.identity(this);
+    fun rotationTowards(dirX: Float, dirY: Float, dirZ: Float, upX: Float, upY: Float, upZ: Float): Matrix4f {
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        val ndirX = dirX * invDirLength
+        val ndirY = dirY * invDirLength
+        val ndirZ = dirZ * invDirLength
+        var leftX = upY * ndirZ - upZ * ndirY
+        var leftY = upZ * ndirX - upX * ndirZ
+        var leftZ = upX * ndirY - upY * ndirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        val upnX = ndirY * leftZ - ndirZ * leftY
+        val upnY = ndirZ * leftX - ndirX * leftZ
+        val upnZ = ndirX * leftY - ndirY * leftX
+        if (properties and 4 == 0) {
+            MemUtil.INSTANCE.identity(this)
         }
-
-        this._m00(leftX)._m01(leftY)._m02(leftZ)._m10(upnX)._m11(upnY)._m12(upnZ)._m20(ndirX)._m21(ndirY)._m22(ndirZ)._properties(18);
-        return this;
+        _m00(leftX)._m01(leftY)._m02(leftZ)._m10(upnX)._m11(upnY)._m12(upnZ)._m20(ndirX)._m21(ndirY)._m22(ndirZ)
+            ._properties(18)
+        return this
     }
 
-    public Matrix4f translationRotateTowards(Vector3f pos, Vector3f dir, Vector3f up) {
-        return this.translationRotateTowards(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, up.x, up.y, up.z);
+    fun translationRotateTowards(pos: Vector3f, dir: Vector3f, up: Vector3f): Matrix4f {
+        return this.translationRotateTowards(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, up.x, up.y, up.z)
     }
 
-    public Matrix4f translationRotateTowards(float posX, float posY, float posZ, float dirX, float dirY, float dirZ, float upX, float upY, float upZ) {
-        float invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        float ndirX = dirX * invDirLength;
-        float ndirY = dirY * invDirLength;
-        float ndirZ = dirZ * invDirLength;
-        float leftX = upY * ndirZ - upZ * ndirY;
-        float leftY = upZ * ndirX - upX * ndirZ;
-        float leftZ = upX * ndirY - upY * ndirX;
-        float invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
-        leftX *= invLeftLength;
-        leftY *= invLeftLength;
-        leftZ *= invLeftLength;
-        float upnX = ndirY * leftZ - ndirZ * leftY;
-        float upnY = ndirZ * leftX - ndirX * leftZ;
-        float upnZ = ndirX * leftY - ndirY * leftX;
-        this._m00(leftX)._m01(leftY)._m02(leftZ)._m03(0f)._m10(upnX)._m11(upnY)._m12(upnZ)._m13(0f)._m20(ndirX)._m21(ndirY)._m22(ndirZ)._m23(0f)._m30(posX)._m31(posY)._m32(posZ)._m33(1f)._properties(18);
-        return this;
+    fun translationRotateTowards(
+        posX: Float,
+        posY: Float,
+        posZ: Float,
+        dirX: Float,
+        dirY: Float,
+        dirZ: Float,
+        upX: Float,
+        upY: Float,
+        upZ: Float
+    ): Matrix4f {
+        val invDirLength = Math.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+        val ndirX = dirX * invDirLength
+        val ndirY = dirY * invDirLength
+        val ndirZ = dirZ * invDirLength
+        var leftX = upY * ndirZ - upZ * ndirY
+        var leftY = upZ * ndirX - upX * ndirZ
+        var leftZ = upX * ndirY - upY * ndirX
+        val invLeftLength = Math.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
+        leftX *= invLeftLength
+        leftY *= invLeftLength
+        leftZ *= invLeftLength
+        val upnX = ndirY * leftZ - ndirZ * leftY
+        val upnY = ndirZ * leftX - ndirX * leftZ
+        val upnZ = ndirX * leftY - ndirY * leftX
+        _m00(leftX)._m01(leftY)._m02(leftZ)._m03(0f)._m10(upnX)._m11(upnY)._m12(upnZ)._m13(0f)._m20(ndirX)._m21(ndirY)
+            ._m22(ndirZ)._m23(0f)._m30(posX)._m31(posY)._m32(posZ)._m33(1f)._properties(18)
+        return this
     }
 
-    public Vector3f getEulerAnglesZYX(Vector3f dest) {
-        dest.x = Math.atan2(this.m12, this.m22);
-        dest.y = Math.atan2(-this.m02, Math.sqrt(1f - this.m02 * this.m02));
-        dest.z = Math.atan2(this.m01, this.m00);
-        return dest;
+    fun getEulerAnglesZYX(dest: Vector3f): Vector3f {
+        dest.x = Math.atan2(m12, m22)
+        dest.y = Math.atan2(-m02, Math.sqrt(1f - m02 * m02))
+        dest.z = Math.atan2(m01, m00)
+        return dest
     }
 
-    public Vector3f getEulerAnglesXYZ(Vector3f dest) {
-        dest.x = Math.atan2(-this.m21, this.m22);
-        dest.y = Math.atan2(this.m20, Math.sqrt(1f - this.m20 * this.m20));
-        dest.z = Math.atan2(-this.m10, this.m00);
-        return dest;
+    fun getEulerAnglesXYZ(dest: Vector3f): Vector3f {
+        dest.x = Math.atan2(-m21, m22)
+        dest.y = Math.atan2(m20, Math.sqrt(1f - m20 * m20))
+        dest.z = Math.atan2(-m10, m00)
+        return dest
     }
 
-    public Matrix4f affineSpan(Vector3f corner, Vector3f xDir, Vector3f yDir, Vector3f zDir) {
-        float a = this.m10 * this.m22;
-        float b = this.m10 * this.m21;
-        float c = this.m10 * this.m02;
-        float d = this.m10 * this.m01;
-        float e = this.m11 * this.m22;
-        float f = this.m11 * this.m20;
-        float g = this.m11 * this.m02;
-        float h = this.m11 * this.m00;
-        float i = this.m12 * this.m21;
-        float j = this.m12 * this.m20;
-        float k = this.m12 * this.m01;
-        float l = this.m12 * this.m00;
-        float m = this.m20 * this.m02;
-        float n = this.m20 * this.m01;
-        float o = this.m21 * this.m02;
-        float p = this.m21 * this.m00;
-        float q = this.m22 * this.m01;
-        float r = this.m22 * this.m00;
-        float s = 1f / (this.m00 * this.m11 - this.m01 * this.m10) * this.m22 + (this.m02 * this.m10 - this.m00 * this.m12) * this.m21 + (this.m01 * this.m12 - this.m02 * this.m11) * this.m20;
-        float nm00 = (e - i) * s;
-        float nm01 = (o - q) * s;
-        float nm02 = (k - g) * s;
-        float nm10 = (j - a) * s;
-        float nm11 = (r - m) * s;
-        float nm12 = (c - l) * s;
-        float nm20 = (b - f) * s;
-        float nm21 = (n - p) * s;
-        float nm22 = (h - d) * s;
-        corner.x = -nm00 - nm10 - nm20 + (a * this.m31 - b * this.m32 + f * this.m32 - e * this.m30 + i * this.m30 - j * this.m31) * s;
-        corner.y = -nm01 - nm11 - nm21 + (m * this.m31 - n * this.m32 + p * this.m32 - o * this.m30 + q * this.m30 - r * this.m31) * s;
-        corner.z = -nm02 - nm12 - nm22 + (g * this.m30 - k * this.m30 + l * this.m31 - c * this.m31 + d * this.m32 - h * this.m32) * s;
-        xDir.x = 2f * nm00;
-        xDir.y = 2f * nm01;
-        xDir.z = 2f * nm02;
-        yDir.x = 2f * nm10;
-        yDir.y = 2f * nm11;
-        yDir.z = 2f * nm12;
-        zDir.x = 2f * nm20;
-        zDir.y = 2f * nm21;
-        zDir.z = 2f * nm22;
-        return this;
+    fun affineSpan(corner: Vector3f, xDir: Vector3f, yDir: Vector3f, zDir: Vector3f): Matrix4f {
+        val a = m10 * m22
+        val b = m10 * m21
+        val c = m10 * m02
+        val d = m10 * m01
+        val e = m11 * m22
+        val f = m11 * m20
+        val g = m11 * m02
+        val h = m11 * m00
+        val i = m12 * m21
+        val j = m12 * m20
+        val k = m12 * m01
+        val l = m12 * m00
+        val m = m20 * m02
+        val n = m20 * m01
+        val o = m21 * m02
+        val p = m21 * m00
+        val q = m22 * m01
+        val r = m22 * m00
+        val s = 1f / (m00 * m11 - m01 * m10) * m22 + (m02 * m10 - m00 * m12) * m21 + (m01 * m12 - m02 * m11) * m20
+        val nm00 = (e - i) * s
+        val nm01 = (o - q) * s
+        val nm02 = (k - g) * s
+        val nm10 = (j - a) * s
+        val nm11 = (r - m) * s
+        val nm12 = (c - l) * s
+        val nm20 = (b - f) * s
+        val nm21 = (n - p) * s
+        val nm22 = (h - d) * s
+        corner.x = -nm00 - nm10 - nm20 + (a * m31 - b * m32 + f * m32 - e * m30 + i * m30 - j * m31) * s
+        corner.y = -nm01 - nm11 - nm21 + (m * m31 - n * m32 + p * m32 - o * m30 + q * m30 - r * m31) * s
+        corner.z = -nm02 - nm12 - nm22 + (g * m30 - k * m30 + l * m31 - c * m31 + d * m32 - h * m32) * s
+        xDir.x = 2f * nm00
+        xDir.y = 2f * nm01
+        xDir.z = 2f * nm02
+        yDir.x = 2f * nm10
+        yDir.y = 2f * nm11
+        yDir.z = 2f * nm12
+        zDir.x = 2f * nm20
+        zDir.y = 2f * nm21
+        zDir.z = 2f * nm22
+        return this
     }
 
-    public boolean testPoint(float x, float y, float z) {
-        float nxX = this.m03 + this.m00;
-        float nxY = this.m13 + this.m10;
-        float nxZ = this.m23 + this.m20;
-        float nxW = this.m33 + this.m30;
-        float pxX = this.m03 - this.m00;
-        float pxY = this.m13 - this.m10;
-        float pxZ = this.m23 - this.m20;
-        float pxW = this.m33 - this.m30;
-        float nyX = this.m03 + this.m01;
-        float nyY = this.m13 + this.m11;
-        float nyZ = this.m23 + this.m21;
-        float nyW = this.m33 + this.m31;
-        float pyX = this.m03 - this.m01;
-        float pyY = this.m13 - this.m11;
-        float pyZ = this.m23 - this.m21;
-        float pyW = this.m33 - this.m31;
-        float nzX = this.m03 + this.m02;
-        float nzY = this.m13 + this.m12;
-        float nzZ = this.m23 + this.m22;
-        float nzW = this.m33 + this.m32;
-        float pzX = this.m03 - this.m02;
-        float pzY = this.m13 - this.m12;
-        float pzZ = this.m23 - this.m22;
-        float pzW = this.m33 - this.m32;
-        return nxX * x + nxY * y + nxZ * z + nxW >= 0f && pxX * x + pxY * y + pxZ * z + pxW >= 0f && nyX * x + nyY * y + nyZ * z + nyW >= 0f && pyX * x + pyY * y + pyZ * z + pyW >= 0f && nzX * x + nzY * y + nzZ * z + nzW >= 0f && pzX * x + pzY * y + pzZ * z + pzW >= 0f;
+    fun testPoint(x: Float, y: Float, z: Float): Boolean {
+        val nxX = m03 + m00
+        val nxY = m13 + m10
+        val nxZ = m23 + m20
+        val nxW = m33 + m30
+        val pxX = m03 - m00
+        val pxY = m13 - m10
+        val pxZ = m23 - m20
+        val pxW = m33 - m30
+        val nyX = m03 + m01
+        val nyY = m13 + m11
+        val nyZ = m23 + m21
+        val nyW = m33 + m31
+        val pyX = m03 - m01
+        val pyY = m13 - m11
+        val pyZ = m23 - m21
+        val pyW = m33 - m31
+        val nzX = m03 + m02
+        val nzY = m13 + m12
+        val nzZ = m23 + m22
+        val nzW = m33 + m32
+        val pzX = m03 - m02
+        val pzY = m13 - m12
+        val pzZ = m23 - m22
+        val pzW = m33 - m32
+        return nxX * x + nxY * y + nxZ * z + nxW >= 0f && pxX * x + pxY * y + pxZ * z + pxW >= 0f && nyX * x + nyY * y + nyZ * z + nyW >= 0f && pyX * x + pyY * y + pyZ * z + pyW >= 0f && nzX * x + nzY * y + nzZ * z + nzW >= 0f && pzX * x + pzY * y + pzZ * z + pzW >= 0f
     }
 
-    public boolean testSphere(float x, float y, float z, float r) {
-        float nxX = this.m03 + this.m00;
-        float nxY = this.m13 + this.m10;
-        float nxZ = this.m23 + this.m20;
-        float nxW = this.m33 + this.m30;
-        float invl = Math.invsqrt(nxX * nxX + nxY * nxY + nxZ * nxZ);
-        nxX *= invl;
-        nxY *= invl;
-        nxZ *= invl;
-        nxW *= invl;
-        float pxX = this.m03 - this.m00;
-        float pxY = this.m13 - this.m10;
-        float pxZ = this.m23 - this.m20;
-        float pxW = this.m33 - this.m30;
-        invl = Math.invsqrt(pxX * pxX + pxY * pxY + pxZ * pxZ);
-        pxX *= invl;
-        pxY *= invl;
-        pxZ *= invl;
-        pxW *= invl;
-        float nyX = this.m03 + this.m01;
-        float nyY = this.m13 + this.m11;
-        float nyZ = this.m23 + this.m21;
-        float nyW = this.m33 + this.m31;
-        invl = Math.invsqrt(nyX * nyX + nyY * nyY + nyZ * nyZ);
-        nyX *= invl;
-        nyY *= invl;
-        nyZ *= invl;
-        nyW *= invl;
-        float pyX = this.m03 - this.m01;
-        float pyY = this.m13 - this.m11;
-        float pyZ = this.m23 - this.m21;
-        float pyW = this.m33 - this.m31;
-        invl = Math.invsqrt(pyX * pyX + pyY * pyY + pyZ * pyZ);
-        pyX *= invl;
-        pyY *= invl;
-        pyZ *= invl;
-        pyW *= invl;
-        float nzX = this.m03 + this.m02;
-        float nzY = this.m13 + this.m12;
-        float nzZ = this.m23 + this.m22;
-        float nzW = this.m33 + this.m32;
-        invl = Math.invsqrt(nzX * nzX + nzY * nzY + nzZ * nzZ);
-        nzX *= invl;
-        nzY *= invl;
-        nzZ *= invl;
-        nzW *= invl;
-        float pzX = this.m03 - this.m02;
-        float pzY = this.m13 - this.m12;
-        float pzZ = this.m23 - this.m22;
-        float pzW = this.m33 - this.m32;
-        invl = Math.invsqrt(pzX * pzX + pzY * pzY + pzZ * pzZ);
-        pzX *= invl;
-        pzY *= invl;
-        pzZ *= invl;
-        pzW *= invl;
-        return nxX * x + nxY * y + nxZ * z + nxW >= -r && pxX * x + pxY * y + pxZ * z + pxW >= -r && nyX * x + nyY * y + nyZ * z + nyW >= -r && pyX * x + pyY * y + pyZ * z + pyW >= -r && nzX * x + nzY * y + nzZ * z + nzW >= -r && pzX * x + pzY * y + pzZ * z + pzW >= -r;
+    fun testSphere(x: Float, y: Float, z: Float, r: Float): Boolean {
+        var nxX = m03 + m00
+        var nxY = m13 + m10
+        var nxZ = m23 + m20
+        var nxW = m33 + m30
+        var invl = Math.invsqrt(nxX * nxX + nxY * nxY + nxZ * nxZ)
+        nxX *= invl
+        nxY *= invl
+        nxZ *= invl
+        nxW *= invl
+        var pxX = m03 - m00
+        var pxY = m13 - m10
+        var pxZ = m23 - m20
+        var pxW = m33 - m30
+        invl = Math.invsqrt(pxX * pxX + pxY * pxY + pxZ * pxZ)
+        pxX *= invl
+        pxY *= invl
+        pxZ *= invl
+        pxW *= invl
+        var nyX = m03 + m01
+        var nyY = m13 + m11
+        var nyZ = m23 + m21
+        var nyW = m33 + m31
+        invl = Math.invsqrt(nyX * nyX + nyY * nyY + nyZ * nyZ)
+        nyX *= invl
+        nyY *= invl
+        nyZ *= invl
+        nyW *= invl
+        var pyX = m03 - m01
+        var pyY = m13 - m11
+        var pyZ = m23 - m21
+        var pyW = m33 - m31
+        invl = Math.invsqrt(pyX * pyX + pyY * pyY + pyZ * pyZ)
+        pyX *= invl
+        pyY *= invl
+        pyZ *= invl
+        pyW *= invl
+        var nzX = m03 + m02
+        var nzY = m13 + m12
+        var nzZ = m23 + m22
+        var nzW = m33 + m32
+        invl = Math.invsqrt(nzX * nzX + nzY * nzY + nzZ * nzZ)
+        nzX *= invl
+        nzY *= invl
+        nzZ *= invl
+        nzW *= invl
+        var pzX = m03 - m02
+        var pzY = m13 - m12
+        var pzZ = m23 - m22
+        var pzW = m33 - m32
+        invl = Math.invsqrt(pzX * pzX + pzY * pzY + pzZ * pzZ)
+        pzX *= invl
+        pzY *= invl
+        pzZ *= invl
+        pzW *= invl
+        return nxX * x + nxY * y + nxZ * z + nxW >= -r && pxX * x + pxY * y + pxZ * z + pxW >= -r && nyX * x + nyY * y + nyZ * z + nyW >= -r && pyX * x + pyY * y + pyZ * z + pyW >= -r && nzX * x + nzY * y + nzZ * z + nzW >= -r && pzX * x + pzY * y + pzZ * z + pzW >= -r
     }
 
-    public boolean testAab(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
-        float nxX = this.m03 + this.m00;
-        float nxY = this.m13 + this.m10;
-        float nxZ = this.m23 + this.m20;
-        float nxW = this.m33 + this.m30;
-        float pxX = this.m03 - this.m00;
-        float pxY = this.m13 - this.m10;
-        float pxZ = this.m23 - this.m20;
-        float pxW = this.m33 - this.m30;
-        float nyX = this.m03 + this.m01;
-        float nyY = this.m13 + this.m11;
-        float nyZ = this.m23 + this.m21;
-        float nyW = this.m33 + this.m31;
-        float pyX = this.m03 - this.m01;
-        float pyY = this.m13 - this.m11;
-        float pyZ = this.m23 - this.m21;
-        float pyW = this.m33 - this.m31;
-        float nzX = this.m03 + this.m02;
-        float nzY = this.m13 + this.m12;
-        float nzZ = this.m23 + this.m22;
-        float nzW = this.m33 + this.m32;
-        float pzX = this.m03 - this.m02;
-        float pzY = this.m13 - this.m12;
-        float pzZ = this.m23 - this.m22;
-        float pzW = this.m33 - this.m32;
-        return nxX * (nxX < 0f ? minX : maxX) + nxY * (nxY < 0f ? minY : maxY) + nxZ * (nxZ < 0f ? minZ : maxZ) >= -nxW && pxX * (pxX < 0f ? minX : maxX) + pxY * (pxY < 0f ? minY : maxY) + pxZ * (pxZ < 0f ? minZ : maxZ) >= -pxW && nyX * (nyX < 0f ? minX : maxX) + nyY * (nyY < 0f ? minY : maxY) + nyZ * (nyZ < 0f ? minZ : maxZ) >= -nyW && pyX * (pyX < 0f ? minX : maxX) + pyY * (pyY < 0f ? minY : maxY) + pyZ * (pyZ < 0f ? minZ : maxZ) >= -pyW && nzX * (nzX < 0f ? minX : maxX) + nzY * (nzY < 0f ? minY : maxY) + nzZ * (nzZ < 0f ? minZ : maxZ) >= -nzW && pzX * (pzX < 0f ? minX : maxX) + pzY * (pzY < 0f ? minY : maxY) + pzZ * (pzZ < 0f ? minZ : maxZ) >= -pzW;
+    fun testAab(minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float): Boolean {
+        val nxX = m03 + m00
+        val nxY = m13 + m10
+        val nxZ = m23 + m20
+        val nxW = m33 + m30
+        val pxX = m03 - m00
+        val pxY = m13 - m10
+        val pxZ = m23 - m20
+        val pxW = m33 - m30
+        val nyX = m03 + m01
+        val nyY = m13 + m11
+        val nyZ = m23 + m21
+        val nyW = m33 + m31
+        val pyX = m03 - m01
+        val pyY = m13 - m11
+        val pyZ = m23 - m21
+        val pyW = m33 - m31
+        val nzX = m03 + m02
+        val nzY = m13 + m12
+        val nzZ = m23 + m22
+        val nzW = m33 + m32
+        val pzX = m03 - m02
+        val pzY = m13 - m12
+        val pzZ = m23 - m22
+        val pzW = m33 - m32
+        return nxX * (if (nxX < 0f) minX else maxX) + nxY * (if (nxY < 0f) minY else maxY) + nxZ * (if (nxZ < 0f) minZ else maxZ) >= -nxW &&
+                pxX * (if (pxX < 0f) minX else maxX) + pxY * (if (pxY < 0f) minY else maxY) + pxZ * (if (pxZ < 0f) minZ else maxZ) >= -pxW &&
+                nyX * (if (nyX < 0f) minX else maxX) + nyY * (if (nyY < 0f) minY else maxY) + nyZ * (if (nyZ < 0f) minZ else maxZ) >= -nyW &&
+                pyX * (if (pyX < 0f) minX else maxX) + pyY * (if (pyY < 0f) minY else maxY) + pyZ * (if (pyZ < 0f) minZ else maxZ) >= -pyW &&
+                nzX * (if (nzX < 0f) minX else maxX) + nzY * (if (nzY < 0f) minY else maxY) + nzZ * (if (nzZ < 0f) minZ else maxZ) >= -nzW &&
+                pzX * (if (pzX < 0f) minX else maxX) + pzY * (if (pzY < 0f) minY else maxY) + pzZ * (if (pzZ < 0f) minZ else maxZ) >= -pzW
     }
 
-    public Matrix4f obliqueZ(float a, float b) {
-        return this._m20(this.m00 * a + this.m10 * b + this.m20)._m21(this.m01 * a + this.m11 * b + this.m21)._m22(this.m02 * a + this.m12 * b + this.m22)._properties(this.properties & 2);
+    fun obliqueZ(a: Float, b: Float): Matrix4f {
+        return _m20(m00 * a + m10 * b + m20)._m21(m01 * a + m11 * b + m21)._m22(m02 * a + m12 * b + m22)._properties(
+            properties and 2
+        )
     }
 
-    public Matrix4f obliqueZ(float a, float b, Matrix4f dest) {
-        dest._m00(this.m00)._m01(this.m01)._m02(this.m02)._m03(this.m03)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m13(this.m13)._m20(this.m00 * a + this.m10 * b + this.m20)._m21(this.m01 * a + this.m11 * b + this.m21)._m22(this.m02 * a + this.m12 * b + this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 2);
-        return dest;
+    fun obliqueZ(a: Float, b: Float, dest: Matrix4f): Matrix4f {
+        dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(
+            m00 * a + m10 * b + m20
+        )._m21(m01 * a + m11 * b + m21)._m22(m02 * a + m12 * b + m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(
+                properties and 2
+            )
+        return dest
     }
 
-    public static void projViewFromRectangle(Vector3f eye, Vector3f p, Vector3f x, Vector3f y, float nearFarDist, boolean zeroToOne, Matrix4f projDest, Matrix4f viewDest) {
-        float zx = y.y * x.z - y.z * x.y;
-        float zy = y.z * x.x - y.x * x.z;
-        float zz = y.x * x.y - y.y * x.x;
-        float zd = zx * (p.x - eye.x) + zy * (p.y - eye.y) + zz * (p.z - eye.z);
-        float zs = zd >= 0f ? 1f : -1f;
-        zx *= zs;
-        zy *= zs;
-        zz *= zs;
-        zd *= zs;
-        viewDest.setLookAt(eye.x, eye.y, eye.z, eye.x + zx, eye.y + zy, eye.z + zz, y.x, y.y, y.z);
-        float px = viewDest.m00 * p.x + viewDest.m10 * p.y + viewDest.m20 * p.z + viewDest.m30;
-        float py = viewDest.m01 * p.x + viewDest.m11 * p.y + viewDest.m21 * p.z + viewDest.m31;
-        float tx = viewDest.m00 * x.x + viewDest.m10 * x.y + viewDest.m20 * x.z;
-        float ty = viewDest.m01 * y.x + viewDest.m11 * y.y + viewDest.m21 * y.z;
-        float len = Math.sqrt(zx * zx + zy * zy + zz * zz);
-        float near = zd / len;
-        float far;
-        if (Float.isInfinite(nearFarDist) && nearFarDist < 0f) {
-            far = near;
-            near = Float.POSITIVE_INFINITY;
-        } else if (Float.isInfinite(nearFarDist) && nearFarDist > 0f) {
-            far = Float.POSITIVE_INFINITY;
-        } else if (nearFarDist < 0f) {
-            far = near;
-            near += nearFarDist;
-        } else {
-            far = near + nearFarDist;
+    fun withLookAtUp(up: Vector3f): Matrix4f {
+        return this.withLookAtUp(up.x, up.y, up.z, this)
+    }
+
+    fun withLookAtUp(up: Vector3f, dest: Matrix4f?): Matrix4f {
+        return this.withLookAtUp(up.x, up.y, up.z)
+    }
+
+    @JvmOverloads
+    fun withLookAtUp(upX: Float, upY: Float, upZ: Float, dest: Matrix4f = this): Matrix4f {
+        val y = (upY * m21 - upZ * m11) * m02 + (upZ * m01 - upX * m21) * m12 + (upX * m11 - upY * m01) * m22
+        var x = upX * m01 + upY * m11 + upZ * m21
+        if (properties and 16 == 0) {
+            x *= Math.sqrt(m01 * m01 + m11 * m11 + m21 * m21)
         }
-
-        projDest.setFrustum(px, px + tx, py, py + ty, near, far, zeroToOne);
-    }
-
-    public Matrix4f withLookAtUp(Vector3f up) {
-        return this.withLookAtUp(up.x, up.y, up.z, this);
-    }
-
-    public Matrix4f withLookAtUp(Vector3f up, Matrix4f dest) {
-        return this.withLookAtUp(up.x, up.y, up.z);
-    }
-
-    public Matrix4f withLookAtUp(float upX, float upY, float upZ) {
-        return this.withLookAtUp(upX, upY, upZ, this);
-    }
-
-    public Matrix4f withLookAtUp(float upX, float upY, float upZ, Matrix4f dest) {
-        float y = (upY * this.m21 - upZ * this.m11) * this.m02 + (upZ * this.m01 - upX * this.m21) * this.m12 + (upX * this.m11 - upY * this.m01) * this.m22;
-        float x = upX * this.m01 + upY * this.m11 + upZ * this.m21;
-        if ((this.properties & 16) == 0) {
-            x *= Math.sqrt(this.m01 * this.m01 + this.m11 * this.m11 + this.m21 * this.m21);
+        val invsqrt = Math.invsqrt(y * y + x * x)
+        val c = x * invsqrt
+        val s = y * invsqrt
+        val nm00 = c * m00 - s * m01
+        val nm10 = c * m10 - s * m11
+        val nm20 = c * m20 - s * m21
+        val nm31 = s * m30 + c * m31
+        val nm01 = s * m00 + c * m01
+        val nm11 = s * m10 + c * m11
+        val nm21 = s * m20 + c * m21
+        val nm30 = c * m30 - s * m31
+        dest._m00(nm00)._m10(nm10)._m20(nm20)._m30(nm30)._m01(nm01)._m11(nm11)._m21(nm21)._m31(nm31)
+        if (dest !== this) {
+            dest._m02(m02)._m12(m12)._m22(m22)._m32(m32)._m03(m03)._m13(m13)._m23(m23)._m33(m33)
         }
+        dest._properties(properties and -14)
+        return dest
+    }
 
-        float invsqrt = Math.invsqrt(y * y + x * x);
-        float c = x * invsqrt;
-        float s = y * invsqrt;
-        float nm00 = c * this.m00 - s * this.m01;
-        float nm10 = c * this.m10 - s * this.m11;
-        float nm20 = c * this.m20 - s * this.m21;
-        float nm31 = s * this.m30 + c * this.m31;
-        float nm01 = s * this.m00 + c * this.m01;
-        float nm11 = s * this.m10 + c * this.m11;
-        float nm21 = s * this.m20 + c * this.m21;
-        float nm30 = c * this.m30 - s * this.m31;
-        dest._m00(nm00)._m10(nm10)._m20(nm20)._m30(nm30)._m01(nm01)._m11(nm11)._m21(nm21)._m31(nm31);
-        if (dest != this) {
-            dest._m02(this.m02)._m12(this.m12)._m22(this.m22)._m32(this.m32)._m03(this.m03)._m13(this.m13)._m23(this.m23)._m33(this.m33);
+    @JvmOverloads
+    fun mapXZY(dest: Matrix4f = this): Matrix4f {
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(m10)._m21(m11)
+            ._m22(m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapXZnY(dest: Matrix4f = this): Matrix4f {
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(-m10)
+            ._m21(-m11)._m22(-m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapXnYnZ(dest: Matrix4f = this): Matrix4f {
+        return dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m20)
+            ._m21(-m21)._m22(-m22)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapXnZY(dest: Matrix4f = this): Matrix4f {
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(m10)
+            ._m21(m11)._m22(m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapXnZnY(dest: Matrix4f = this): Matrix4f {
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(-m10)
+            ._m21(-m11)._m22(-m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapYXZ(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m10)._m01(m11)._m02(m12)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m20)._m21(m21)
+            ._m22(
+                m22
+            )._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapYXnZ(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m10)._m01(m11)._m02(m12)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m20)
+            ._m21(-m21)._m22(-m22)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapYZX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m10)._m01(m11)._m02(m12)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(m00)._m21(m01)
+            ._m22(m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapYZnX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m10)._m01(m11)._m02(m12)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(-m00)
+            ._m21(-m01)._m22(-m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapYnXZ(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m10)._m01(m11)._m02(m12)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m20)._m21(
+            m21
+        )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapYnXnZ(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m10)._m01(m11)._m02(m12)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m20)
+            ._m21(-m21)._m22(-m22)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapYnZX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m10)._m01(m11)._m02(m12)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(m00)
+            ._m21(m01)._m22(m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapYnZnX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m10)._m01(m11)._m02(m12)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(-m00)
+            ._m21(-m01)._m22(-m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapZXY(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m10)._m21(m11)
+            ._m22(m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapZXnY(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m10)
+            ._m21(-m11)._m22(-m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapZYX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m00)._m21(m01)
+            ._m22(m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapZYnX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m00)
+            ._m21(-m01)._m22(-m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapZnXY(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m10)
+            ._m21(m11)._m22(m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapZnXnY(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m10)
+            ._m21(-m11)._m22(-m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapZnYX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m00)
+            ._m21(m01)._m22(m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapZnYnX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m00)
+            ._m21(-m01)._m22(-m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnXYnZ(dest: Matrix4f = this): Matrix4f {
+        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m20)
+            ._m21(-m21)._m22(-m22)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnXZY(dest: Matrix4f = this): Matrix4f {
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(m10)
+            ._m21(m11)._m22(m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnXZnY(dest: Matrix4f = this): Matrix4f {
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(-m10)
+            ._m21(-m11)._m22(-m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnXnYZ(dest: Matrix4f = this): Matrix4f {
+        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m20)
+            ._m21(
+                m21
+            )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnXnYnZ(dest: Matrix4f = this): Matrix4f {
+        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m20)
+            ._m21(-m21)._m22(-m22)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnXnZY(dest: Matrix4f = this): Matrix4f {
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(m10)
+            ._m21(m11)._m22(m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnXnZnY(dest: Matrix4f = this): Matrix4f {
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(-m10)
+            ._m21(-m11)._m22(-m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnYXZ(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m20)._m21(
+            m21
+        )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnYXnZ(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m20)
+            ._m21(-m21)._m22(-m22)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnYZX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(m00)
+            ._m21(m01)._m22(m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnYZnX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(-m00)
+            ._m21(-m01)._m22(-m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnYnXZ(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m20)
+            ._m21(
+                m21
+            )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnYnXnZ(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m20)
+            ._m21(-m21)._m22(-m22)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnYnZX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(m00)
+            ._m21(m01)._m22(m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnYnZnX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(-m00)
+            ._m21(-m01)._m22(-m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnZXY(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m10)
+            ._m21(m11)._m22(m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnZXnY(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m10)
+            ._m21(-m11)._m22(-m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnZYX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m00)
+            ._m21(m01)._m22(m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnZYnX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m00)
+            ._m21(-m01)._m22(-m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnZnXY(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m10)
+            ._m21(m11)._m22(m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnZnXnY(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m10)
+            ._m21(-m11)._m22(-m12)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnZnYX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m00)
+            ._m21(m01)._m22(m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    @JvmOverloads
+    fun mapnZnYnX(dest: Matrix4f = this): Matrix4f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m00)
+            ._m21(-m01)._m22(-m02)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    fun negateX(): Matrix4f {
+        return _m00(-m00)._m01(-m01)._m02(-m02)._properties(properties and 18)
+    }
+
+    fun negateX(dest: Matrix4f): Matrix4f {
+        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m20)._m21(
+            m21
+        )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    fun negateY(): Matrix4f {
+        return _m10(-m10)._m11(-m11)._m12(-m12)._properties(properties and 18)
+    }
+
+    fun negateY(dest: Matrix4f): Matrix4f {
+        return dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m20)._m21(
+            m21
+        )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    fun negateZ(): Matrix4f {
+        return _m20(-m20)._m21(-m21)._m22(-m22)._properties(properties and 18)
+    }
+
+    fun negateZ(dest: Matrix4f): Matrix4f {
+        return dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m20)
+            ._m21(-m21)._m22(-m22)._m23(
+            m23
+        )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and 18)
+    }
+
+    val isFinite: Boolean
+        get() = Math.isFinite(m00) && Math.isFinite(m01) && Math.isFinite(m02) && Math.isFinite(
+            m03
+        ) && Math.isFinite(m10) && Math.isFinite(m11) && Math.isFinite(m12) && Math.isFinite(
+            m13
+        ) && Math.isFinite(m20) && Math.isFinite(m21) && Math.isFinite(m22) && Math.isFinite(
+            m23
+        ) && Math.isFinite(m30) && Math.isFinite(m31) && Math.isFinite(m32) && Math.isFinite(
+            m33
+        )
+
+    companion object {
+        const val PROPERTY_IDENTITY = 4
+        fun projViewFromRectangle(
+            eye: Vector3f,
+            p: Vector3f,
+            x: Vector3f,
+            y: Vector3f,
+            nearFarDist: Float,
+            zeroToOne: Boolean,
+            projDest: Matrix4f,
+            viewDest: Matrix4f
+        ) {
+            var zx = y.y * x.z - y.z * x.y
+            var zy = y.z * x.x - y.x * x.z
+            var zz = y.x * x.y - y.y * x.x
+            var zd = zx * (p.x - eye.x) + zy * (p.y - eye.y) + zz * (p.z - eye.z)
+            val zs = if (zd >= 0f) 1f else -1f
+            zx *= zs
+            zy *= zs
+            zz *= zs
+            zd *= zs
+            viewDest.setLookAt(eye.x, eye.y, eye.z, eye.x + zx, eye.y + zy, eye.z + zz, y.x, y.y, y.z)
+            val px = viewDest.m00 * p.x + viewDest.m10 * p.y + viewDest.m20 * p.z + viewDest.m30
+            val py = viewDest.m01 * p.x + viewDest.m11 * p.y + viewDest.m21 * p.z + viewDest.m31
+            val tx = viewDest.m00 * x.x + viewDest.m10 * x.y + viewDest.m20 * x.z
+            val ty = viewDest.m01 * y.x + viewDest.m11 * y.y + viewDest.m21 * y.z
+            val len = Math.sqrt(zx * zx + zy * zy + zz * zz)
+            var near = zd / len
+            val far: Float
+            if (java.lang.Float.isInfinite(nearFarDist) && nearFarDist < 0f) {
+                far = near
+                near = Float.POSITIVE_INFINITY
+            } else if (java.lang.Float.isInfinite(nearFarDist) && nearFarDist > 0f) {
+                far = Float.POSITIVE_INFINITY
+            } else if (nearFarDist < 0f) {
+                far = near
+                near += nearFarDist
+            } else {
+                far = near + nearFarDist
+            }
+            projDest.setFrustum(px, px + tx, py, py + ty, near, far, zeroToOne)
         }
-
-        dest._properties(this.properties & -14);
-        return dest;
     }
-
-    public Matrix4f mapXZY() {
-        return this.mapXZY(this);
-    }
-
-    public Matrix4f mapXZY(Matrix4f dest) {
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(this.m00)._m01(this.m01)._m02(this.m02)._m03(this.m03)._m10(this.m20)._m11(this.m21)._m12(this.m22)._m13(this.m13)._m20(m10)._m21(m11)._m22(m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapXZnY() {
-        return this.mapXZnY(this);
-    }
-
-    public Matrix4f mapXZnY(Matrix4f dest) {
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(this.m00)._m01(this.m01)._m02(this.m02)._m03(this.m03)._m10(this.m20)._m11(this.m21)._m12(this.m22)._m13(this.m13)._m20(-m10)._m21(-m11)._m22(-m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapXnYnZ() {
-        return this.mapXnYnZ(this);
-    }
-
-    public Matrix4f mapXnYnZ(Matrix4f dest) {
-        return dest._m00(this.m00)._m01(this.m01)._m02(this.m02)._m03(this.m03)._m10(-this.m10)._m11(-this.m11)._m12(-this.m12)._m13(this.m13)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapXnZY() {
-        return this.mapXnZY(this);
-    }
-
-    public Matrix4f mapXnZY(Matrix4f dest) {
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(this.m00)._m01(this.m01)._m02(this.m02)._m03(this.m03)._m10(-this.m20)._m11(-this.m21)._m12(-this.m22)._m13(this.m13)._m20(m10)._m21(m11)._m22(m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapXnZnY() {
-        return this.mapXnZnY(this);
-    }
-
-    public Matrix4f mapXnZnY(Matrix4f dest) {
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(this.m00)._m01(this.m01)._m02(this.m02)._m03(this.m03)._m10(-this.m20)._m11(-this.m21)._m12(-this.m22)._m13(this.m13)._m20(-m10)._m21(-m11)._m22(-m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapYXZ() {
-        return this.mapYXZ(this);
-    }
-
-    public Matrix4f mapYXZ(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m10)._m01(this.m11)._m02(this.m12)._m03(this.m03)._m10(m00)._m11(m01)._m12(m02)._m13(this.m13)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapYXnZ() {
-        return this.mapYXnZ(this);
-    }
-
-    public Matrix4f mapYXnZ(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m10)._m01(this.m11)._m02(this.m12)._m03(this.m03)._m10(m00)._m11(m01)._m12(m02)._m13(this.m13)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapYZX() {
-        return this.mapYZX(this);
-    }
-
-    public Matrix4f mapYZX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m10)._m01(this.m11)._m02(this.m12)._m03(this.m03)._m10(this.m20)._m11(this.m21)._m12(this.m22)._m13(this.m13)._m20(m00)._m21(m01)._m22(m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapYZnX() {
-        return this.mapYZnX(this);
-    }
-
-    public Matrix4f mapYZnX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m10)._m01(this.m11)._m02(this.m12)._m03(this.m03)._m10(this.m20)._m11(this.m21)._m12(this.m22)._m13(this.m13)._m20(-m00)._m21(-m01)._m22(-m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapYnXZ() {
-        return this.mapYnXZ(this);
-    }
-
-    public Matrix4f mapYnXZ(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m10)._m01(this.m11)._m02(this.m12)._m03(this.m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(this.m13)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapYnXnZ() {
-        return this.mapYnXnZ(this);
-    }
-
-    public Matrix4f mapYnXnZ(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m10)._m01(this.m11)._m02(this.m12)._m03(this.m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(this.m13)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapYnZX() {
-        return this.mapYnZX(this);
-    }
-
-    public Matrix4f mapYnZX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m10)._m01(this.m11)._m02(this.m12)._m03(this.m03)._m10(-this.m20)._m11(-this.m21)._m12(-this.m22)._m13(this.m13)._m20(m00)._m21(m01)._m22(m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapYnZnX() {
-        return this.mapYnZnX(this);
-    }
-
-    public Matrix4f mapYnZnX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m10)._m01(this.m11)._m02(this.m12)._m03(this.m03)._m10(-this.m20)._m11(-this.m21)._m12(-this.m22)._m13(this.m13)._m20(-m00)._m21(-m01)._m22(-m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapZXY() {
-        return this.mapZXY(this);
-    }
-
-    public Matrix4f mapZXY(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(this.m20)._m01(this.m21)._m02(this.m22)._m03(this.m03)._m10(m00)._m11(m01)._m12(m02)._m13(this.m13)._m20(m10)._m21(m11)._m22(m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapZXnY() {
-        return this.mapZXnY(this);
-    }
-
-    public Matrix4f mapZXnY(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(this.m20)._m01(this.m21)._m02(this.m22)._m03(this.m03)._m10(m00)._m11(m01)._m12(m02)._m13(this.m13)._m20(-m10)._m21(-m11)._m22(-m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapZYX() {
-        return this.mapZYX(this);
-    }
-
-    public Matrix4f mapZYX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m20)._m01(this.m21)._m02(this.m22)._m03(this.m03)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m13(this.m13)._m20(m00)._m21(m01)._m22(m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapZYnX() {
-        return this.mapZYnX(this);
-    }
-
-    public Matrix4f mapZYnX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m20)._m01(this.m21)._m02(this.m22)._m03(this.m03)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m13(this.m13)._m20(-m00)._m21(-m01)._m22(-m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapZnXY() {
-        return this.mapZnXY(this);
-    }
-
-    public Matrix4f mapZnXY(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(this.m20)._m01(this.m21)._m02(this.m22)._m03(this.m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(this.m13)._m20(m10)._m21(m11)._m22(m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapZnXnY() {
-        return this.mapZnXnY(this);
-    }
-
-    public Matrix4f mapZnXnY(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(this.m20)._m01(this.m21)._m02(this.m22)._m03(this.m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(this.m13)._m20(-m10)._m21(-m11)._m22(-m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapZnYX() {
-        return this.mapZnYX(this);
-    }
-
-    public Matrix4f mapZnYX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m20)._m01(this.m21)._m02(this.m22)._m03(this.m03)._m10(-this.m10)._m11(-this.m11)._m12(-this.m12)._m13(this.m13)._m20(m00)._m21(m01)._m22(m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapZnYnX() {
-        return this.mapZnYnX(this);
-    }
-
-    public Matrix4f mapZnYnX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(this.m20)._m01(this.m21)._m02(this.m22)._m03(this.m03)._m10(-this.m10)._m11(-this.m11)._m12(-this.m12)._m13(this.m13)._m20(-m00)._m21(-m01)._m22(-m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnXYnZ() {
-        return this.mapnXYnZ(this);
-    }
-
-    public Matrix4f mapnXYnZ(Matrix4f dest) {
-        return dest._m00(-this.m00)._m01(-this.m01)._m02(-this.m02)._m03(this.m03)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m13(this.m13)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnXZY() {
-        return this.mapnXZY(this);
-    }
-
-    public Matrix4f mapnXZY(Matrix4f dest) {
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(-this.m00)._m01(-this.m01)._m02(-this.m02)._m03(this.m03)._m10(this.m20)._m11(this.m21)._m12(this.m22)._m13(this.m13)._m20(m10)._m21(m11)._m22(m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnXZnY() {
-        return this.mapnXZnY(this);
-    }
-
-    public Matrix4f mapnXZnY(Matrix4f dest) {
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(-this.m00)._m01(-this.m01)._m02(-this.m02)._m03(this.m03)._m10(this.m20)._m11(this.m21)._m12(this.m22)._m13(this.m13)._m20(-m10)._m21(-m11)._m22(-m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnXnYZ() {
-        return this.mapnXnYZ(this);
-    }
-
-    public Matrix4f mapnXnYZ(Matrix4f dest) {
-        return dest._m00(-this.m00)._m01(-this.m01)._m02(-this.m02)._m03(this.m03)._m10(-this.m10)._m11(-this.m11)._m12(-this.m12)._m13(this.m13)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnXnYnZ() {
-        return this.mapnXnYnZ(this);
-    }
-
-    public Matrix4f mapnXnYnZ(Matrix4f dest) {
-        return dest._m00(-this.m00)._m01(-this.m01)._m02(-this.m02)._m03(this.m03)._m10(-this.m10)._m11(-this.m11)._m12(-this.m12)._m13(this.m13)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnXnZY() {
-        return this.mapnXnZY(this);
-    }
-
-    public Matrix4f mapnXnZY(Matrix4f dest) {
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(-this.m00)._m01(-this.m01)._m02(-this.m02)._m03(this.m03)._m10(-this.m20)._m11(-this.m21)._m12(-this.m22)._m13(this.m13)._m20(m10)._m21(m11)._m22(m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnXnZnY() {
-        return this.mapnXnZnY(this);
-    }
-
-    public Matrix4f mapnXnZnY(Matrix4f dest) {
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(-this.m00)._m01(-this.m01)._m02(-this.m02)._m03(this.m03)._m10(-this.m20)._m11(-this.m21)._m12(-this.m22)._m13(this.m13)._m20(-m10)._m21(-m11)._m22(-m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnYXZ() {
-        return this.mapnYXZ(this);
-    }
-
-    public Matrix4f mapnYXZ(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m10)._m01(-this.m11)._m02(-this.m12)._m03(this.m03)._m10(m00)._m11(m01)._m12(m02)._m13(this.m13)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnYXnZ() {
-        return this.mapnYXnZ(this);
-    }
-
-    public Matrix4f mapnYXnZ(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m10)._m01(-this.m11)._m02(-this.m12)._m03(this.m03)._m10(m00)._m11(m01)._m12(m02)._m13(this.m13)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnYZX() {
-        return this.mapnYZX(this);
-    }
-
-    public Matrix4f mapnYZX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m10)._m01(-this.m11)._m02(-this.m12)._m03(this.m03)._m10(this.m20)._m11(this.m21)._m12(this.m22)._m13(this.m13)._m20(m00)._m21(m01)._m22(m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnYZnX() {
-        return this.mapnYZnX(this);
-    }
-
-    public Matrix4f mapnYZnX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m10)._m01(-this.m11)._m02(-this.m12)._m03(this.m03)._m10(this.m20)._m11(this.m21)._m12(this.m22)._m13(this.m13)._m20(-m00)._m21(-m01)._m22(-m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnYnXZ() {
-        return this.mapnYnXZ(this);
-    }
-
-    public Matrix4f mapnYnXZ(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m10)._m01(-this.m11)._m02(-this.m12)._m03(this.m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(this.m13)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnYnXnZ() {
-        return this.mapnYnXnZ(this);
-    }
-
-    public Matrix4f mapnYnXnZ(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m10)._m01(-this.m11)._m02(-this.m12)._m03(this.m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(this.m13)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnYnZX() {
-        return this.mapnYnZX(this);
-    }
-
-    public Matrix4f mapnYnZX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m10)._m01(-this.m11)._m02(-this.m12)._m03(this.m03)._m10(-this.m20)._m11(-this.m21)._m12(-this.m22)._m13(this.m13)._m20(m00)._m21(m01)._m22(m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnYnZnX() {
-        return this.mapnYnZnX(this);
-    }
-
-    public Matrix4f mapnYnZnX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m10)._m01(-this.m11)._m02(-this.m12)._m03(this.m03)._m10(-this.m20)._m11(-this.m21)._m12(-this.m22)._m13(this.m13)._m20(-m00)._m21(-m01)._m22(-m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnZXY() {
-        return this.mapnZXY(this);
-    }
-
-    public Matrix4f mapnZXY(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(-this.m20)._m01(-this.m21)._m02(-this.m22)._m03(this.m03)._m10(m00)._m11(m01)._m12(m02)._m13(this.m13)._m20(m10)._m21(m11)._m22(m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnZXnY() {
-        return this.mapnZXnY(this);
-    }
-
-    public Matrix4f mapnZXnY(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(-this.m20)._m01(-this.m21)._m02(-this.m22)._m03(this.m03)._m10(m00)._m11(m01)._m12(m02)._m13(this.m13)._m20(-m10)._m21(-m11)._m22(-m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnZYX() {
-        return this.mapnZYX(this);
-    }
-
-    public Matrix4f mapnZYX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m20)._m01(-this.m21)._m02(-this.m22)._m03(this.m03)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m13(this.m13)._m20(m00)._m21(m01)._m22(m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnZYnX() {
-        return this.mapnZYnX(this);
-    }
-
-    public Matrix4f mapnZYnX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m20)._m01(-this.m21)._m02(-this.m22)._m03(this.m03)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m13(this.m13)._m20(-m00)._m21(-m01)._m22(-m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnZnXY() {
-        return this.mapnZnXY(this);
-    }
-
-    public Matrix4f mapnZnXY(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(-this.m20)._m01(-this.m21)._m02(-this.m22)._m03(this.m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(this.m13)._m20(m10)._m21(m11)._m22(m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnZnXnY() {
-        return this.mapnZnXnY(this);
-    }
-
-    public Matrix4f mapnZnXnY(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        float m10 = this.m10;
-        float m11 = this.m11;
-        float m12 = this.m12;
-        return dest._m00(-this.m20)._m01(-this.m21)._m02(-this.m22)._m03(this.m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(this.m13)._m20(-m10)._m21(-m11)._m22(-m12)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnZnYX() {
-        return this.mapnZnYX(this);
-    }
-
-    public Matrix4f mapnZnYX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m20)._m01(-this.m21)._m02(-this.m22)._m03(this.m03)._m10(-this.m10)._m11(-this.m11)._m12(-this.m12)._m13(this.m13)._m20(m00)._m21(m01)._m22(m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f mapnZnYnX() {
-        return this.mapnZnYnX(this);
-    }
-
-    public Matrix4f mapnZnYnX(Matrix4f dest) {
-        float m00 = this.m00;
-        float m01 = this.m01;
-        float m02 = this.m02;
-        return dest._m00(-this.m20)._m01(-this.m21)._m02(-this.m22)._m03(this.m03)._m10(-this.m10)._m11(-this.m11)._m12(-this.m12)._m13(this.m13)._m20(-m00)._m21(-m01)._m22(-m02)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f negateX() {
-        return this._m00(-this.m00)._m01(-this.m01)._m02(-this.m02)._properties(this.properties & 18);
-    }
-
-    public Matrix4f negateX(Matrix4f dest) {
-        return dest._m00(-this.m00)._m01(-this.m01)._m02(-this.m02)._m03(this.m03)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m13(this.m13)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f negateY() {
-        return this._m10(-this.m10)._m11(-this.m11)._m12(-this.m12)._properties(this.properties & 18);
-    }
-
-    public Matrix4f negateY(Matrix4f dest) {
-        return dest._m00(this.m00)._m01(this.m01)._m02(this.m02)._m03(this.m03)._m10(-this.m10)._m11(-this.m11)._m12(-this.m12)._m13(this.m13)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public Matrix4f negateZ() {
-        return this._m20(-this.m20)._m21(-this.m21)._m22(-this.m22)._properties(this.properties & 18);
-    }
-
-    public Matrix4f negateZ(Matrix4f dest) {
-        return dest._m00(this.m00)._m01(this.m01)._m02(this.m02)._m03(this.m03)._m10(this.m10)._m11(this.m11)._m12(this.m12)._m13(this.m13)._m20(-this.m20)._m21(-this.m21)._m22(-this.m22)._m23(this.m23)._m30(this.m30)._m31(this.m31)._m32(this.m32)._m33(this.m33)._properties(this.properties & 18);
-    }
-
-    public boolean isFinite() {
-        return Math.isFinite(this.m00) && Math.isFinite(this.m01) && Math.isFinite(this.m02) && Math.isFinite(this.m03) && Math.isFinite(this.m10) && Math.isFinite(this.m11) && Math.isFinite(this.m12) && Math.isFinite(this.m13) && Math.isFinite(this.m20) && Math.isFinite(this.m21) && Math.isFinite(this.m22) && Math.isFinite(this.m23) && Math.isFinite(this.m30) && Math.isFinite(this.m31) && Math.isFinite(this.m32) && Math.isFinite(this.m33);
-    }
-
 }

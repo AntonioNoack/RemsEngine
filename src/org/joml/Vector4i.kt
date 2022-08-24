@@ -1,557 +1,538 @@
-package org.joml;
+package org.joml
 
-@SuppressWarnings("unused")
-public class Vector4i {
+class Vector4i : Cloneable {
+    var x = 0
+    var y = 0
+    var z = 0
+    var w: Int
 
-    public int x;
-    public int y;
-    public int z;
-    public int w;
-
-    public Vector4i() {
-        this.w = 1;
+    constructor() {
+        w = 1
     }
 
-    public Vector4i(Vector4i v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        this.w = v.w;
+    constructor(v: Vector4i) {
+        x = v.x
+        y = v.y
+        z = v.z
+        w = v.w
     }
 
-    public Vector4i(Vector3i v, int w) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        this.w = w;
+    constructor(v: Vector3i, w: Int) {
+        x = v.x
+        y = v.y
+        z = v.z
+        this.w = w
     }
 
-    public Vector4i(Vector2i v, int z, int w) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = z;
-        this.w = w;
+    constructor(v: Vector2i, z: Int, w: Int) {
+        x = v.x
+        y = v.y
+        this.z = z
+        this.w = w
     }
 
-    public Vector4i(Vector3f v, float w, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(v.z, mode);
-        this.w = Math.roundUsing(w, mode);
+    constructor(v: Vector3f, w: Float, mode: Int) {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        z = Math.roundUsing(v.z, mode)
+        this.w = Math.roundUsing(w, mode)
     }
 
-    public Vector4i(Vector4f v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(v.z, mode);
-        this.w = Math.roundUsing(v.w, mode);
+    constructor(v: Vector4f, mode: Int) {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        z = Math.roundUsing(v.z, mode)
+        w = Math.roundUsing(v.w, mode)
     }
 
-    public Vector4i(Vector4d v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(v.z, mode);
-        this.w = Math.roundUsing(v.w, mode);
+    constructor(v: Vector4d, mode: Int) {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        z = Math.roundUsing(v.z, mode)
+        w = Math.roundUsing(v.w, mode)
     }
 
-    public Vector4i(int s) {
-        this.x = s;
-        this.y = s;
-        this.z = s;
-        this.w = s;
+    constructor(s: Int) {
+        x = s
+        y = s
+        z = s
+        w = s
     }
 
-    public Vector4i(int x, int y, int z, int w) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.w = w;
+    constructor(x: Int, y: Int, z: Int, w: Int) {
+        this.x = x
+        this.y = y
+        this.z = z
+        this.w = w
     }
 
-    public Vector4i(int[] xyzw) {
-        this.x = xyzw[0];
-        this.y = xyzw[1];
-        this.z = xyzw[2];
-        this.w = xyzw[3];
+    constructor(xyzw: IntArray) {
+        x = xyzw[0]
+        y = xyzw[1]
+        z = xyzw[2]
+        w = xyzw[3]
     }
 
-    public Vector4i set(Vector4i v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        this.w = v.w;
-        return this;
+    fun set(v: Vector4i): Vector4i {
+        x = v.x
+        y = v.y
+        z = v.z
+        w = v.w
+        return this
     }
 
-    public Vector4i set(Vector4d v) {
-        this.x = (int) v.x;
-        this.y = (int) v.y;
-        this.z = (int) v.z;
-        this.w = (int) v.w;
-        return this;
+    fun set(v: Vector4d): Vector4i {
+        x = v.x.toInt()
+        y = v.y.toInt()
+        z = v.z.toInt()
+        w = v.w.toInt()
+        return this
     }
 
-    public Vector4i set(Vector4d v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(v.z, mode);
-        this.w = Math.roundUsing(v.w, mode);
-        return this;
+    operator fun set(v: Vector4d, mode: Int): Vector4i {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        z = Math.roundUsing(v.z, mode)
+        w = Math.roundUsing(v.w, mode)
+        return this
     }
 
-    public Vector4i set(Vector4f v, int mode) {
-        this.x = Math.roundUsing(v.x, mode);
-        this.y = Math.roundUsing(v.y, mode);
-        this.z = Math.roundUsing(v.z, mode);
-        this.w = Math.roundUsing(v.w, mode);
-        return this;
+    operator fun set(v: Vector4f, mode: Int): Vector4i {
+        x = Math.roundUsing(v.x, mode)
+        y = Math.roundUsing(v.y, mode)
+        z = Math.roundUsing(v.z, mode)
+        w = Math.roundUsing(v.w, mode)
+        return this
     }
 
-    public Vector4i set(Vector3i v, int w) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        this.w = w;
-        return this;
+    operator fun set(v: Vector3i, w: Int): Vector4i {
+        x = v.x
+        y = v.y
+        z = v.z
+        this.w = w
+        return this
     }
 
-    public Vector4i set(Vector2i v, int z, int w) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = z;
-        this.w = w;
-        return this;
+    operator fun set(v: Vector2i, z: Int, w: Int): Vector4i {
+        x = v.x
+        y = v.y
+        this.z = z
+        this.w = w
+        return this
     }
 
-    public Vector4i set(int s) {
-        this.x = s;
-        this.y = s;
-        this.z = s;
-        this.w = s;
-        return this;
+    fun set(s: Int): Vector4i {
+        x = s
+        y = s
+        z = s
+        w = s
+        return this
     }
 
-    public Vector4i set(int x, int y, int z, int w) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.w = w;
-        return this;
+    operator fun set(x: Int, y: Int, z: Int, w: Int): Vector4i {
+        this.x = x
+        this.y = y
+        this.z = z
+        this.w = w
+        return this
     }
 
-    public Vector4i set(int[] xyzw) {
-        this.x = xyzw[0];
-        this.y = xyzw[1];
-        this.z = xyzw[2];
-        this.w = xyzw[3];
-        return this;
+    fun set(xyzw: IntArray): Vector4i {
+        x = xyzw[0]
+        y = xyzw[1]
+        z = xyzw[2]
+        w = xyzw[3]
+        return this
     }
 
-    public int get(int component) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                return this.x;
-            case 1:
-                return this.y;
-            case 2:
-                return this.z;
-            case 3:
-                return this.w;
-            default:
-                throw new IllegalArgumentException();
+    @Throws(IllegalArgumentException::class)
+    operator fun get(component: Int): Int {
+        return when (component) {
+            0 -> x
+            1 -> y
+            2 -> z
+            3 -> w
+            else -> throw IllegalArgumentException()
         }
     }
 
-    public int maxComponent() {
-        int absX = Math.abs(this.x);
-        int absY = Math.abs(this.y);
-        int absZ = Math.abs(this.z);
-        int absW = Math.abs(this.w);
-        if (absX >= absY && absX >= absZ && absX >= absW) {
-            return 0;
+    fun maxComponent(): Int {
+        val absX = Math.abs(x)
+        val absY = Math.abs(y)
+        val absZ = Math.abs(z)
+        val absW = Math.abs(w)
+        return if (absX >= absY && absX >= absZ && absX >= absW) {
+            0
         } else if (absY >= absZ && absY >= absW) {
-            return 1;
+            1
         } else {
-            return absZ >= absW ? 2 : 3;
+            if (absZ >= absW) 2 else 3
         }
     }
 
-    public int minComponent() {
-        int absX = Math.abs(this.x);
-        int absY = Math.abs(this.y);
-        int absZ = Math.abs(this.z);
-        int absW = Math.abs(this.w);
-        if (absX < absY && absX < absZ && absX < absW) {
-            return 0;
+    fun minComponent(): Int {
+        val absX = Math.abs(x)
+        val absY = Math.abs(y)
+        val absZ = Math.abs(z)
+        val absW = Math.abs(w)
+        return if (absX < absY && absX < absZ && absX < absW) {
+            0
         } else if (absY < absZ && absY < absW) {
-            return 1;
+            1
         } else {
-            return absZ < absW ? 2 : 3;
+            if (absZ < absW) 2 else 3
         }
     }
 
-    public Vector4i setComponent(int component, int value) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                this.x = value;
-                break;
-            case 1:
-                this.y = value;
-                break;
-            case 2:
-                this.z = value;
-                break;
-            case 3:
-                this.w = value;
-                break;
-            default:
-                throw new IllegalArgumentException();
+    @Throws(IllegalArgumentException::class)
+    fun setComponent(component: Int, value: Int): Vector4i {
+        when (component) {
+            0 -> x = value
+            1 -> y = value
+            2 -> z = value
+            3 -> w = value
+            else -> throw IllegalArgumentException()
         }
-
-        return this;
+        return this
     }
 
-    public Vector4i sub(Vector4i v) {
-        this.x -= v.x;
-        this.y -= v.y;
-        this.z -= v.z;
-        this.w -= v.w;
-        return this;
+    fun sub(v: Vector4i): Vector4i {
+        x -= v.x
+        y -= v.y
+        z -= v.z
+        w -= v.w
+        return this
     }
 
-    public Vector4i sub(int x, int y, int z, int w) {
-        this.x -= x;
-        this.y -= y;
-        this.z -= z;
-        this.w -= w;
-        return this;
+    fun sub(x: Int, y: Int, z: Int, w: Int): Vector4i {
+        this.x -= x
+        this.y -= y
+        this.z -= z
+        this.w -= w
+        return this
     }
 
-    public Vector4i sub(Vector4i v, Vector4i dest) {
-        dest.x = this.x - v.x;
-        dest.y = this.y - v.y;
-        dest.z = this.z - v.z;
-        dest.w = this.w - v.w;
-        return dest;
+    fun sub(v: Vector4i, dest: Vector4i): Vector4i {
+        dest.x = x - v.x
+        dest.y = y - v.y
+        dest.z = z - v.z
+        dest.w = w - v.w
+        return dest
     }
 
-    public Vector4i sub(int x, int y, int z, int w, Vector4i dest) {
-        dest.x = this.x - x;
-        dest.y = this.y - y;
-        dest.z = this.z - z;
-        dest.w = this.w - w;
-        return dest;
+    fun sub(x: Int, y: Int, z: Int, w: Int, dest: Vector4i): Vector4i {
+        dest.x = this.x - x
+        dest.y = this.y - y
+        dest.z = this.z - z
+        dest.w = this.w - w
+        return dest
     }
 
-    public Vector4i add(Vector4i v) {
-        this.x += v.x;
-        this.y += v.y;
-        this.z += v.z;
-        this.w += v.w;
-        return this;
+    fun add(v: Vector4i): Vector4i {
+        x += v.x
+        y += v.y
+        z += v.z
+        w += v.w
+        return this
     }
 
-    public Vector4i add(Vector4i v, Vector4i dest) {
-        dest.x = this.x + v.x;
-        dest.y = this.y + v.y;
-        dest.z = this.z + v.z;
-        dest.w = this.w + v.w;
-        return dest;
+    fun add(v: Vector4i, dest: Vector4i): Vector4i {
+        dest.x = x + v.x
+        dest.y = y + v.y
+        dest.z = z + v.z
+        dest.w = w + v.w
+        return dest
     }
 
-    public Vector4i add(int x, int y, int z, int w) {
-        this.x += x;
-        this.y += y;
-        this.z += z;
-        this.w += w;
-        return this;
+    fun add(x: Int, y: Int, z: Int, w: Int): Vector4i {
+        this.x += x
+        this.y += y
+        this.z += z
+        this.w += w
+        return this
     }
 
-    public Vector4i add(int x, int y, int z, int w, Vector4i dest) {
-        dest.x = this.x + x;
-        dest.y = this.y + y;
-        dest.z = this.z + z;
-        dest.w = this.w + w;
-        return dest;
+    fun add(x: Int, y: Int, z: Int, w: Int, dest: Vector4i): Vector4i {
+        dest.x = this.x + x
+        dest.y = this.y + y
+        dest.z = this.z + z
+        dest.w = this.w + w
+        return dest
     }
 
-    public Vector4i mul(Vector4i v) {
-        this.x *= v.x;
-        this.y *= v.y;
-        this.z *= v.z;
-        this.w *= v.w;
-        return this;
+    fun mul(v: Vector4i): Vector4i {
+        x *= v.x
+        y *= v.y
+        z *= v.z
+        w *= v.w
+        return this
     }
 
-    public Vector4i mul(Vector4i v, Vector4i dest) {
-        dest.x = this.x * v.x;
-        dest.y = this.y * v.y;
-        dest.z = this.z * v.z;
-        dest.w = this.w * v.w;
-        return dest;
+    fun mul(v: Vector4i, dest: Vector4i): Vector4i {
+        dest.x = x * v.x
+        dest.y = y * v.y
+        dest.z = z * v.z
+        dest.w = w * v.w
+        return dest
     }
 
-    public Vector4i div(Vector4i v) {
-        this.x /= v.x;
-        this.y /= v.y;
-        this.z /= v.z;
-        this.w /= v.w;
-        return this;
+    operator fun div(v: Vector4i): Vector4i {
+        x /= v.x
+        y /= v.y
+        z /= v.z
+        w /= v.w
+        return this
     }
 
-    public Vector4i div(Vector4i v, Vector4i dest) {
-        dest.x = this.x / v.x;
-        dest.y = this.y / v.y;
-        dest.z = this.z / v.z;
-        dest.w = this.w / v.w;
-        return dest;
+    fun div(v: Vector4i, dest: Vector4i): Vector4i {
+        dest.x = x / v.x
+        dest.y = y / v.y
+        dest.z = z / v.z
+        dest.w = w / v.w
+        return dest
     }
 
-    public Vector4i mul(int scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-        this.z *= scalar;
-        this.w *= scalar;
-        return this;
+    fun mul(scalar: Int): Vector4i {
+        x *= scalar
+        y *= scalar
+        z *= scalar
+        w *= scalar
+        return this
     }
 
-    public Vector4i mul(int scalar, Vector4i dest) {
-        dest.x = this.x * scalar;
-        dest.y = this.y * scalar;
-        dest.z = this.z * scalar;
-        dest.w = this.w * scalar;
-        return dest;
+    fun mul(scalar: Int, dest: Vector4i): Vector4i {
+        dest.x = x * scalar
+        dest.y = y * scalar
+        dest.z = z * scalar
+        dest.w = w * scalar
+        return dest
     }
 
-    public Vector4i div(float scalar) {
-        float inv = 1f / scalar;
-        this.x = (int) ((float) this.x * inv);
-        this.y = (int) ((float) this.y * inv);
-        this.z = (int) ((float) this.z * inv);
-        this.w = (int) ((float) this.w * inv);
-        return this;
+    operator fun div(scalar: Float): Vector4i {
+        val inv = 1f / scalar
+        x = (x.toFloat() * inv).toInt()
+        y = (y.toFloat() * inv).toInt()
+        z = (z.toFloat() * inv).toInt()
+        w = (w.toFloat() * inv).toInt()
+        return this
     }
 
-    public Vector4i div(float scalar, Vector4i dest) {
-        float inv = 1f / scalar;
-        dest.x = (int) ((float) this.x * inv);
-        dest.y = (int) ((float) this.y * inv);
-        dest.z = (int) ((float) this.z * inv);
-        dest.w = (int) ((float) this.w * inv);
-        return dest;
+    fun div(scalar: Float, dest: Vector4i): Vector4i {
+        val inv = 1f / scalar
+        dest.x = (x.toFloat() * inv).toInt()
+        dest.y = (y.toFloat() * inv).toInt()
+        dest.z = (z.toFloat() * inv).toInt()
+        dest.w = (w.toFloat() * inv).toInt()
+        return dest
     }
 
-    public Vector4i div(int scalar) {
-        this.x /= scalar;
-        this.y /= scalar;
-        this.z /= scalar;
-        this.w /= scalar;
-        return this;
+    operator fun div(scalar: Int): Vector4i {
+        x /= scalar
+        y /= scalar
+        z /= scalar
+        w /= scalar
+        return this
     }
 
-    public Vector4i div(int scalar, Vector4i dest) {
-        dest.x = this.x / scalar;
-        dest.y = this.y / scalar;
-        dest.z = this.z / scalar;
-        dest.w = this.w / scalar;
-        return dest;
+    fun div(scalar: Int, dest: Vector4i): Vector4i {
+        dest.x = x / scalar
+        dest.y = y / scalar
+        dest.z = z / scalar
+        dest.w = w / scalar
+        return dest
     }
 
-    public long lengthSquared() {
-        return (long) this.x * this.x + (long) this.y * this.y + (long) this.z * this.z + (long) this.w * this.w;
+    fun lengthSquared(): Long {
+        return x.toLong() * x + y.toLong() * y + z.toLong() * z + w.toLong() * w
     }
 
-    public static long lengthSquared(int x, int y, int z, int w) {
-        return (long) x * x + (long) y * y + (long) z * z + (long) w * w;
+    fun length(): Double {
+        return Math.sqrt(lengthSquared().toFloat()).toDouble()
     }
 
-    public double length() {
-        return Math.sqrt(lengthSquared());
+    fun distance(v: Vector4i): Double {
+        val dx = x - v.x
+        val dy = y - v.y
+        val dz = z - v.z
+        val dw = w - v.w
+        return length(dx, dy, dz, dw)
     }
 
-    public static double length(int x, int y, int z, int w) {
-        return Math.sqrt(((long) x * x + (long) y * y + (long) z * z + (long) w * w));
+    fun distance(x: Int, y: Int, z: Int, w: Int): Double {
+        val dx = this.x - x
+        val dy = this.y - y
+        val dz = this.z - z
+        val dw = this.w - w
+        return length(dx, dy, dz, dw)
     }
 
-    public double distance(Vector4i v) {
-        int dx = this.x - v.x;
-        int dy = this.y - v.y;
-        int dz = this.z - v.z;
-        int dw = this.w - v.w;
-        return length(dx, dy, dz, dw);
+    fun gridDistance(v: Vector4i): Long {
+        return (Math.abs(v.x - x) + Math.abs(v.y - y) + Math.abs(v.z - z) + Math.abs(
+            v.w - w
+        )).toLong()
     }
 
-    public double distance(int x, int y, int z, int w) {
-        int dx = this.x - x;
-        int dy = this.y - y;
-        int dz = this.z - z;
-        int dw = this.w - w;
-        return length(dx, dy, dz, dw);
+    fun gridDistance(x: Int, y: Int, z: Int, w: Int): Long {
+        return (Math.abs(x - this.x) + Math.abs(y - this.y) + Math.abs(z - this.z) + Math.abs(w - this.w)).toLong()
     }
 
-    public long gridDistance(Vector4i v) {
-        return Math.abs(v.x - this.x) + Math.abs(v.y - this.y) + Math.abs(v.z - this.z) + Math.abs(v.w - this.w);
+    fun distanceSquared(v: Vector4i): Long {
+        val dx = x - v.x
+        val dy = y - v.y
+        val dz = z - v.z
+        val dw = w - v.w
+        return lengthSquared(dx, dy, dz, dw)
     }
 
-    public long gridDistance(int x, int y, int z, int w) {
-        return Math.abs(x - this.x) + Math.abs(y - this.y) + Math.abs(z - this.z) + Math.abs(w - this.w);
+    fun distanceSquared(x: Int, y: Int, z: Int, w: Int): Long {
+        val dx = this.x - x
+        val dy = this.y - y
+        val dz = this.z - z
+        val dw = this.w - w
+        return lengthSquared(dx, dy, dz, dw)
     }
 
-    public long distanceSquared(Vector4i v) {
-        int dx = this.x - v.x;
-        int dy = this.y - v.y;
-        int dz = this.z - v.z;
-        int dw = this.w - v.w;
-        return lengthSquared(dx, dy, dz, dw);
+    fun dot(v: Vector4i): Int {
+        return x * v.x + y * v.y + z * v.z + w * v.w
     }
 
-    public long distanceSquared(int x, int y, int z, int w) {
-        int dx = this.x - x;
-        int dy = this.y - y;
-        int dz = this.z - z;
-        int dw = this.w - w;
-        return lengthSquared(dx, dy, dz, dw);
+    fun zero(): Vector4i {
+        x = 0
+        y = 0
+        z = 0
+        w = 0
+        return this
     }
 
-    public static double distance(int x1, int y1, int z1, int w1, int x2, int y2, int z2, int w2) {
-        int dx = x1 - x2;
-        int dy = y1 - y2;
-        int dz = z1 - z2;
-        int dw = w1 - w2;
-        return Math.sqrt(lengthSquared(dx, dy, dz, dw));
+    fun negate(): Vector4i {
+        x = -x
+        y = -y
+        z = -z
+        w = -w
+        return this
     }
 
-    public static long distanceSquared(int x1, int y1, int z1, int w1, int x2, int y2, int z2, int w2) {
-        int dx = x1 - x2;
-        int dy = y1 - y2;
-        int dz = z1 - z2;
-        int dw = w1 - w2;
-        return lengthSquared(dx, dy, dz, dw);
+    fun negate(dest: Vector4i): Vector4i {
+        dest.x = -x
+        dest.y = -y
+        dest.z = -z
+        dest.w = -w
+        return dest
     }
 
-    public int dot(Vector4i v) {
-        return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
+    override fun toString(): String {
+        return "($x,$y,$z,$w)"
     }
 
-    public Vector4i zero() {
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
-        this.w = 0;
-        return this;
+    fun min(v: Vector4i): Vector4i {
+        x = java.lang.Math.min(x, v.x)
+        y = java.lang.Math.min(y, v.y)
+        z = java.lang.Math.min(z, v.z)
+        w = java.lang.Math.min(w, v.w)
+        return this
     }
 
-    public Vector4i negate() {
-        this.x = -this.x;
-        this.y = -this.y;
-        this.z = -this.z;
-        this.w = -this.w;
-        return this;
+    fun min(v: Vector4i, dest: Vector4i): Vector4i {
+        dest.x = java.lang.Math.min(x, v.x)
+        dest.y = java.lang.Math.min(y, v.y)
+        dest.z = java.lang.Math.min(z, v.z)
+        dest.w = java.lang.Math.min(w, v.w)
+        return dest
     }
 
-    public Vector4i negate(Vector4i dest) {
-        dest.x = -this.x;
-        dest.y = -this.y;
-        dest.z = -this.z;
-        dest.w = -this.w;
-        return dest;
+    fun max(v: Vector4i): Vector4i {
+        x = java.lang.Math.max(x, v.x)
+        y = java.lang.Math.max(y, v.y)
+        z = java.lang.Math.max(z, v.z)
+        w = java.lang.Math.max(w, v.w)
+        return this
     }
 
-    public String toString() {
-        return "(" + x + "," + y + "," +z + "," + w + ")";
+    fun max(v: Vector4i, dest: Vector4i): Vector4i {
+        dest.x = java.lang.Math.max(x, v.x)
+        dest.y = java.lang.Math.max(y, v.y)
+        dest.z = java.lang.Math.max(z, v.z)
+        dest.w = java.lang.Math.max(w, v.w)
+        return dest
     }
 
-    public Vector4i min(Vector4i v) {
-        this.x = java.lang.Math.min(this.x, v.x);
-        this.y = java.lang.Math.min(this.y, v.y);
-        this.z = java.lang.Math.min(this.z, v.z);
-        this.w = java.lang.Math.min(this.w, v.w);
-        return this;
+    fun absolute(): Vector4i {
+        x = Math.abs(x)
+        y = Math.abs(y)
+        z = Math.abs(z)
+        w = Math.abs(w)
+        return this
     }
 
-    public Vector4i min(Vector4i v, Vector4i dest) {
-        dest.x = java.lang.Math.min(this.x, v.x);
-        dest.y = java.lang.Math.min(this.y, v.y);
-        dest.z = java.lang.Math.min(this.z, v.z);
-        dest.w = java.lang.Math.min(this.w, v.w);
-        return dest;
+    fun absolute(dest: Vector4i): Vector4i {
+        dest.x = Math.abs(x)
+        dest.y = Math.abs(y)
+        dest.z = Math.abs(z)
+        dest.w = Math.abs(w)
+        return dest
     }
 
-    public Vector4i max(Vector4i v) {
-        this.x = java.lang.Math.max(this.x, v.x);
-        this.y = java.lang.Math.max(this.y, v.y);
-        this.z = java.lang.Math.max(this.z, v.z);
-        this.w = java.lang.Math.max(this.w, v.w);
-        return this;
+    override fun hashCode(): Int {
+        var result = 1
+        result = 31 * result + x
+        result = 31 * result + y
+        result = 31 * result + z
+        result = 31 * result + w
+        return result
     }
 
-    public Vector4i max(Vector4i v, Vector4i dest) {
-        dest.x = java.lang.Math.max(this.x, v.x);
-        dest.y = java.lang.Math.max(this.y, v.y);
-        dest.z = java.lang.Math.max(this.z, v.z);
-        dest.w = java.lang.Math.max(this.w, v.w);
-        return dest;
-    }
-
-    public Vector4i absolute() {
-        this.x = Math.abs(this.x);
-        this.y = Math.abs(this.y);
-        this.z = Math.abs(this.z);
-        this.w = Math.abs(this.w);
-        return this;
-    }
-
-    public Vector4i absolute(Vector4i dest) {
-        dest.x = Math.abs(this.x);
-        dest.y = Math.abs(this.y);
-        dest.z = Math.abs(this.z);
-        dest.w = Math.abs(this.w);
-        return dest;
-    }
-
-    public int hashCode() {
-        int result = 1;
-        result = 31 * result + this.x;
-        result = 31 * result + this.y;
-        result = 31 * result + this.z;
-        result = 31 * result + this.w;
-        return result;
-    }
-
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (this.getClass() != obj.getClass()) {
-            return false;
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
+            true
+        } else if (other == null || this.javaClass != other.javaClass) {
+            false
         } else {
-            Vector4i other = (Vector4i) obj;
-            if (this.x != other.x) {
-                return false;
-            } else if (this.y != other.y) {
-                return false;
-            } else if (this.z != other.z) {
-                return false;
-            } else {
-                return this.w == other.w;
-            }
+            other as Vector4i
+            return x == other.x && y == other.y && z == other.z && w == other.w
         }
     }
 
-    public boolean equals(int x, int y, int z, int w) {
-        if (this.x != x) {
-            return false;
+    fun equals(x: Int, y: Int, z: Int, w: Int): Boolean {
+        return if (this.x != x) {
+            false
         } else if (this.y != y) {
-            return false;
+            false
         } else if (this.z != z) {
-            return false;
+            false
         } else {
-            return this.w == w;
+            this.w == w
         }
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    @Throws(CloneNotSupportedException::class)
+    public override fun clone(): Any {
+        return super.clone()
+    }
+
+    companion object {
+        fun lengthSquared(x: Int, y: Int, z: Int, w: Int): Long {
+            return x.toLong() * x + y.toLong() * y + z.toLong() * z + w.toLong() * w
+        }
+
+        fun length(x: Int, y: Int, z: Int, w: Int): Double {
+            return Math.sqrt((x.toLong() * x + y.toLong() * y + z.toLong() * z + w.toLong() * w).toFloat())
+                .toDouble()
+        }
+
+        fun distance(x1: Int, y1: Int, z1: Int, w1: Int, x2: Int, y2: Int, z2: Int, w2: Int): Double {
+            val dx = x1 - x2
+            val dy = y1 - y2
+            val dz = z1 - z2
+            val dw = w1 - w2
+            return Math.sqrt(lengthSquared(dx, dy, dz, dw).toFloat()).toDouble()
+        }
+
+        fun distanceSquared(x1: Int, y1: Int, z1: Int, w1: Int, x2: Int, y2: Int, z2: Int, w2: Int): Long {
+            val dx = x1 - x2
+            val dy = y1 - y2
+            val dz = z1 - z2
+            val dw = w1 - w2
+            return lengthSquared(dx, dy, dz, dw)
+        }
     }
 }

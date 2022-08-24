@@ -1,7 +1,7 @@
 package me.anno.ecs.components.chunks.cartesian
 
 import me.anno.ecs.components.chunks.PlayerLocation
-import org.joml.Vector3d.lengthSquared
+import org.joml.Vector3d.Companion.lengthSquared
 import org.joml.Vector3i
 import kotlin.math.max
 import kotlin.math.min

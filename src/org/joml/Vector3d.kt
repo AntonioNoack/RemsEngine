@@ -1,1546 +1,1655 @@
-package org.joml;
+package org.joml
 
-@SuppressWarnings("unused")
-public class Vector3d {
-    public double x;
-    public double y;
-    public double z;
+class Vector3d : Cloneable {
+    var x = 0.0
+    var y = 0.0
+    var z = 0.0
 
-    public Vector3d() {
-    }
-
-    public Vector3d(double d) {
-        this.x = d;
-        this.y = d;
-        this.z = d;
+    constructor() {}
+    constructor(d: Double) {
+        x = d
+        y = d
+        z = d
     }
 
-    public Vector3d(double x, double y, double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    constructor(x: Double, y: Double, z: Double) {
+        this.x = x
+        this.y = y
+        this.z = z
     }
 
-    public Vector3d(Vector3f v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
+    constructor(v: Vector3f) {
+        x = v.x.toDouble()
+        y = v.y.toDouble()
+        z = v.z.toDouble()
     }
 
-    public Vector3d(Vector3i v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
+    constructor(v: Vector3i) {
+        x = v.x.toDouble()
+        y = v.y.toDouble()
+        z = v.z.toDouble()
     }
 
-    public Vector3d(Vector2f v, double z) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = z;
-    }
-    public Vector3d(Vector2i v, double z) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = z;
-    }
-    public Vector3d(Vector3d v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-    }
-    public Vector3d(Vector2d v, double z) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = z;
+    constructor(v: Vector2f, z: Double) {
+        x = v.x.toDouble()
+        y = v.y.toDouble()
+        this.z = z
     }
 
-    public Vector3d(double[] xyz) {
-        this.x = xyz[0];
-        this.y = xyz[1];
-        this.z = xyz[2];
+    constructor(v: Vector2i, z: Double) {
+        x = v.x.toDouble()
+        y = v.y.toDouble()
+        this.z = z
     }
 
-    public Vector3d(float[] xyz) {
-        this.x = xyz[0];
-        this.y = xyz[1];
-        this.z = xyz[2];
+    constructor(v: Vector3d) {
+        x = v.x
+        y = v.y
+        z = v.z
     }
 
-    public Vector3d set(Vector3d v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        return this;
+    constructor(v: Vector2d, z: Double) {
+        x = v.x
+        y = v.y
+        this.z = z
     }
 
-    public Vector3d set(Vector3i v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        return this;
+    constructor(xyz: DoubleArray) {
+        x = xyz[0]
+        y = xyz[1]
+        z = xyz[2]
     }
 
-    public Vector3d set(Vector2d v, double z) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = z;
-        return this;
+    constructor(xyz: FloatArray) {
+        x = xyz[0].toDouble()
+        y = xyz[1].toDouble()
+        z = xyz[2].toDouble()
     }
 
-    public Vector3d set(Vector2i v, double z) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = z;
-        return this;
+    fun set(v: Vector3d): Vector3d {
+        x = v.x
+        y = v.y
+        z = v.z
+        return this
     }
 
-    public Vector3d set(Vector3f v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        return this;
+    fun set(v: Vector3i): Vector3d {
+        x = v.x.toDouble()
+        y = v.y.toDouble()
+        z = v.z.toDouble()
+        return this
     }
 
-    public Vector3d set(Vector2f v, double z) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = z;
-        return this;
+    operator fun set(v: Vector2d, z: Double): Vector3d {
+        x = v.x
+        y = v.y
+        this.z = z
+        return this
     }
 
-    public Vector3d set(double d) {
-        this.x = d;
-        this.y = d;
-        this.z = d;
-        return this;
+    operator fun set(v: Vector2i, z: Double): Vector3d {
+        x = v.x.toDouble()
+        y = v.y.toDouble()
+        this.z = z
+        return this
     }
 
-    public Vector3d set(double x, double y, double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        return this;
+    fun set(v: Vector3f): Vector3d {
+        x = v.x.toDouble()
+        y = v.y.toDouble()
+        z = v.z.toDouble()
+        return this
     }
 
-    public Vector3d set(double[] xyz) {
-        this.x = xyz[0];
-        this.y = xyz[1];
-        this.z = xyz[2];
-        return this;
+    operator fun set(v: Vector2f, z: Double): Vector3d {
+        x = v.x.toDouble()
+        y = v.y.toDouble()
+        this.z = z
+        return this
     }
 
-    public Vector3d set(float[] xyz) {
-        this.x = xyz[0];
-        this.y = xyz[1];
-        this.z = xyz[2];
-        return this;
+    fun set(d: Double): Vector3d {
+        x = d
+        y = d
+        z = d
+        return this
     }
 
-    public Vector3d setComponent(int component, double value) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                this.x = value;
-                break;
-            case 1:
-                this.y = value;
-                break;
-            case 2:
-                this.z = value;
-                break;
-            default:
-                throw new IllegalArgumentException();
+    operator fun set(x: Double, y: Double, z: Double): Vector3d {
+        this.x = x
+        this.y = y
+        this.z = z
+        return this
+    }
+
+    fun set(xyz: DoubleArray): Vector3d {
+        x = xyz[0]
+        y = xyz[1]
+        z = xyz[2]
+        return this
+    }
+
+    fun set(xyz: FloatArray): Vector3d {
+        x = xyz[0].toDouble()
+        y = xyz[1].toDouble()
+        z = xyz[2].toDouble()
+        return this
+    }
+
+    @Throws(IllegalArgumentException::class)
+    fun setComponent(component: Int, value: Double): Vector3d {
+        when (component) {
+            0 -> x = value
+            1 -> y = value
+            2 -> z = value
+            else -> throw IllegalArgumentException()
         }
-
-        return this;
-    }
-
-    public Vector3d sub(Vector3d v) {
-        this.x -= v.x;
-        this.y -= v.y;
-        this.z -= v.z;
-        return this;
-    }
-
-    public Vector3d sub(Vector3d v, Vector3d dest) {
-        dest.x = this.x - v.x;
-        dest.y = this.y - v.y;
-        dest.z = this.z - v.z;
-        return dest;
-    }
-
-    public Vector3d sub(Vector3f v) {
-        this.x -= v.x;
-        this.y -= v.y;
-        this.z -= v.z;
-        return this;
-    }
-
-    public Vector3d sub(Vector3f v, Vector3d dest) {
-        dest.x = this.x - (double) v.x;
-        dest.y = this.y - (double) v.y;
-        dest.z = this.z - (double) v.z;
-        return dest;
-    }
-
-    public Vector3d sub(double x, double y, double z) {
-        this.x -= x;
-        this.y -= y;
-        this.z -= z;
-        return this;
+        return this
     }
 
-    public Vector3d sub(double x, double y, double z, Vector3d dest) {
-        dest.x = this.x - x;
-        dest.y = this.y - y;
-        dest.z = this.z - z;
-        return dest;
+    fun sub(v: Vector3d): Vector3d {
+        x -= v.x
+        y -= v.y
+        z -= v.z
+        return this
     }
 
-    public Vector3d add(Vector3d v) {
-        this.x += v.x;
-        this.y += v.y;
-        this.z += v.z;
-        return this;
+    fun sub(v: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = x - v.x
+        dest.y = y - v.y
+        dest.z = z - v.z
+        return dest
     }
 
-    public Vector3d add(Vector3d v, Vector3d dest) {
-        dest.x = this.x + v.x;
-        dest.y = this.y + v.y;
-        dest.z = this.z + v.z;
-        return dest;
+    fun sub(v: Vector3f): Vector3d {
+        x -= v.x.toDouble()
+        y -= v.y.toDouble()
+        z -= v.z.toDouble()
+        return this
     }
 
-    public Vector3d add(Vector3f v) {
-        this.x += v.x;
-        this.y += v.y;
-        this.z += v.z;
-        return this;
+    fun sub(v: Vector3f, dest: Vector3d): Vector3d {
+        dest.x = x - v.x.toDouble()
+        dest.y = y - v.y.toDouble()
+        dest.z = z - v.z.toDouble()
+        return dest
     }
 
-    public Vector3d add(Vector3f v, Vector3d dest) {
-        dest.x = this.x + (double) v.x;
-        dest.y = this.y + (double) v.y;
-        dest.z = this.z + (double) v.z;
-        return dest;
+    fun sub(x: Double, y: Double, z: Double): Vector3d {
+        this.x -= x
+        this.y -= y
+        this.z -= z
+        return this
     }
 
-    public Vector3d add(double x, double y, double z) {
-        this.x += x;
-        this.y += y;
-        this.z += z;
-        return this;
+    fun sub(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+        dest.x = this.x - x
+        dest.y = this.y - y
+        dest.z = this.z - z
+        return dest
     }
 
-    public Vector3d add(double x, double y, double z, Vector3d dest) {
-        dest.x = this.x + x;
-        dest.y = this.y + y;
-        dest.z = this.z + z;
-        return dest;
+    fun add(v: Vector3d): Vector3d {
+        x += v.x
+        y += v.y
+        z += v.z
+        return this
     }
 
-    public Vector3d fma(Vector3d a, Vector3d b) {
-        this.x = Math.fma(a.x, b.x, this.x);
-        this.y = Math.fma(a.y, b.y, this.y);
-        this.z = Math.fma(a.z, b.z, this.z);
-        return this;
+    fun add(v: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = x + v.x
+        dest.y = y + v.y
+        dest.z = z + v.z
+        return dest
     }
 
-    public Vector3d fma(double a, Vector3d b) {
-        this.x = Math.fma(a, b.x, this.x);
-        this.y = Math.fma(a, b.y, this.y);
-        this.z = Math.fma(a, b.z, this.z);
-        return this;
+    fun add(v: Vector3f): Vector3d {
+        x += v.x.toDouble()
+        y += v.y.toDouble()
+        z += v.z.toDouble()
+        return this
     }
 
-    public Vector3d fma(Vector3f a, Vector3f b) {
-        this.x = Math.fma(a.x, b.x, this.x);
-        this.y = Math.fma(a.y, b.y, this.y);
-        this.z = Math.fma(a.z, b.z, this.z);
-        return this;
+    fun add(v: Vector3f, dest: Vector3d): Vector3d {
+        dest.x = x + v.x.toDouble()
+        dest.y = y + v.y.toDouble()
+        dest.z = z + v.z.toDouble()
+        return dest
     }
 
-    public Vector3d fma(Vector3f a, Vector3f b, Vector3d dest) {
-        dest.x = Math.fma(a.x, b.x, this.x);
-        dest.y = Math.fma(a.y, b.y, this.y);
-        dest.z = Math.fma(a.z, b.z, this.z);
-        return dest;
+    fun add(x: Double, y: Double, z: Double): Vector3d {
+        this.x += x
+        this.y += y
+        this.z += z
+        return this
     }
 
-    public Vector3d fma(double a, Vector3f b) {
-        this.x = Math.fma(a, b.x, this.x);
-        this.y = Math.fma(a, b.y, this.y);
-        this.z = Math.fma(a, b.z, this.z);
-        return this;
+    fun add(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+        dest.x = this.x + x
+        dest.y = this.y + y
+        dest.z = this.z + z
+        return dest
     }
 
-    public Vector3d fma(Vector3d a, Vector3d b, Vector3d dest) {
-        dest.x = Math.fma(a.x, b.x, this.x);
-        dest.y = Math.fma(a.y, b.y, this.y);
-        dest.z = Math.fma(a.z, b.z, this.z);
-        return dest;
+    fun fma(a: Vector3d, b: Vector3d): Vector3d {
+        x = Math.fma(a.x, b.x, x)
+        y = Math.fma(a.y, b.y, y)
+        z = Math.fma(a.z, b.z, z)
+        return this
     }
 
-    public Vector3d fma(double a, Vector3d b, Vector3d dest) {
-        dest.x = Math.fma(a, b.x, this.x);
-        dest.y = Math.fma(a, b.y, this.y);
-        dest.z = Math.fma(a, b.z, this.z);
-        return dest;
+    fun fma(a: Double, b: Vector3d): Vector3d {
+        x = Math.fma(a, b.x, x)
+        y = Math.fma(a, b.y, y)
+        z = Math.fma(a, b.z, z)
+        return this
     }
 
-    public Vector3d fma(Vector3d a, Vector3f b, Vector3d dest) {
-        dest.x = Math.fma(a.x, b.x, this.x);
-        dest.y = Math.fma(a.y, b.y, this.y);
-        dest.z = Math.fma(a.z, b.z, this.z);
-        return dest;
+    fun fma(a: Vector3f, b: Vector3f): Vector3d {
+        x = Math.fma(a.x.toDouble(), b.x.toDouble(), x)
+        y = Math.fma(a.y.toDouble(), b.y.toDouble(), y)
+        z = Math.fma(a.z.toDouble(), b.z.toDouble(), z)
+        return this
     }
 
-    public Vector3d fma(double a, Vector3f b, Vector3d dest) {
-        dest.x = Math.fma(a, b.x, this.x);
-        dest.y = Math.fma(a, b.y, this.y);
-        dest.z = Math.fma(a, b.z, this.z);
-        return dest;
+    fun fma(a: Vector3f, b: Vector3f, dest: Vector3d): Vector3d {
+        dest.x = Math.fma(a.x.toDouble(), b.x.toDouble(), x)
+        dest.y = Math.fma(a.y.toDouble(), b.y.toDouble(), y)
+        dest.z = Math.fma(a.z.toDouble(), b.z.toDouble(), z)
+        return dest
     }
 
-    public Vector3d mulAdd(Vector3d a, Vector3d b) {
-        this.x = Math.fma(this.x, a.x, b.x);
-        this.y = Math.fma(this.y, a.y, b.y);
-        this.z = Math.fma(this.z, a.z, b.z);
-        return this;
+    fun fma(a: Double, b: Vector3f): Vector3d {
+        x = Math.fma(a, b.x.toDouble(), x)
+        y = Math.fma(a, b.y.toDouble(), y)
+        z = Math.fma(a, b.z.toDouble(), z)
+        return this
     }
 
-    public Vector3d mulAdd(double a, Vector3d b) {
-        this.x = Math.fma(this.x, a, b.x);
-        this.y = Math.fma(this.y, a, b.y);
-        this.z = Math.fma(this.z, a, b.z);
-        return this;
+    fun fma(a: Vector3d, b: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = Math.fma(a.x, b.x, x)
+        dest.y = Math.fma(a.y, b.y, y)
+        dest.z = Math.fma(a.z, b.z, z)
+        return dest
     }
 
-    public Vector3d mulAdd(Vector3d a, Vector3d b, Vector3d dest) {
-        dest.x = Math.fma(this.x, a.x, b.x);
-        dest.y = Math.fma(this.y, a.y, b.y);
-        dest.z = Math.fma(this.z, a.z, b.z);
-        return dest;
+    fun fma(a: Double, b: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = Math.fma(a, b.x, x)
+        dest.y = Math.fma(a, b.y, y)
+        dest.z = Math.fma(a, b.z, z)
+        return dest
     }
 
-    public Vector3d mulAdd(double a, Vector3d b, Vector3d dest) {
-        dest.x = Math.fma(this.x, a, b.x);
-        dest.y = Math.fma(this.y, a, b.y);
-        dest.z = Math.fma(this.z, a, b.z);
-        return dest;
+    fun fma(a: Vector3d, b: Vector3f, dest: Vector3d): Vector3d {
+        dest.x = Math.fma(a.x, b.x.toDouble(), x)
+        dest.y = Math.fma(a.y, b.y.toDouble(), y)
+        dest.z = Math.fma(a.z, b.z.toDouble(), z)
+        return dest
     }
 
-    public Vector3d mulAdd(Vector3f a, Vector3d b, Vector3d dest) {
-        dest.x = Math.fma(this.x, a.x, b.x);
-        dest.y = Math.fma(this.y, a.y, b.y);
-        dest.z = Math.fma(this.z, a.z, b.z);
-        return dest;
+    fun fma(a: Double, b: Vector3f, dest: Vector3d): Vector3d {
+        dest.x = Math.fma(a, b.x.toDouble(), x)
+        dest.y = Math.fma(a, b.y.toDouble(), y)
+        dest.z = Math.fma(a, b.z.toDouble(), z)
+        return dest
     }
 
-    public Vector3d mul(Vector3d v) {
-        this.x *= v.x;
-        this.y *= v.y;
-        this.z *= v.z;
-        return this;
+    fun mulAdd(a: Vector3d, b: Vector3d): Vector3d {
+        x = Math.fma(x, a.x, b.x)
+        y = Math.fma(y, a.y, b.y)
+        z = Math.fma(z, a.z, b.z)
+        return this
     }
 
-    public Vector3d mul(Vector3f v) {
-        this.x *= v.x;
-        this.y *= v.y;
-        this.z *= v.z;
-        return this;
+    fun mulAdd(a: Double, b: Vector3d): Vector3d {
+        x = Math.fma(x, a, b.x)
+        y = Math.fma(y, a, b.y)
+        z = Math.fma(z, a, b.z)
+        return this
     }
 
-    public Vector3d mul(Vector3f v, Vector3d dest) {
-        dest.x = this.x * (double) v.x;
-        dest.y = this.y * (double) v.y;
-        dest.z = this.z * (double) v.z;
-        return dest;
+    fun mulAdd(a: Vector3d, b: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = Math.fma(x, a.x, b.x)
+        dest.y = Math.fma(y, a.y, b.y)
+        dest.z = Math.fma(z, a.z, b.z)
+        return dest
     }
 
-    public Vector3d mul(Vector3d v, Vector3d dest) {
-        dest.x = this.x * v.x;
-        dest.y = this.y * v.y;
-        dest.z = this.z * v.z;
-        return dest;
+    fun mulAdd(a: Double, b: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = Math.fma(x, a, b.x)
+        dest.y = Math.fma(y, a, b.y)
+        dest.z = Math.fma(z, a, b.z)
+        return dest
     }
 
-    public Vector3d div(Vector3d v) {
-        this.x /= v.x;
-        this.y /= v.y;
-        this.z /= v.z;
-        return this;
+    fun mulAdd(a: Vector3f, b: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = Math.fma(x, a.x.toDouble(), b.x)
+        dest.y = Math.fma(y, a.y.toDouble(), b.y)
+        dest.z = Math.fma(z, a.z.toDouble(), b.z)
+        return dest
     }
 
-    public Vector3d div(Vector3f v) {
-        this.x /= v.x;
-        this.y /= v.y;
-        this.z /= v.z;
-        return this;
+    fun mul(v: Vector3d): Vector3d {
+        x *= v.x
+        y *= v.y
+        z *= v.z
+        return this
     }
 
-    public Vector3d div(Vector3f v, Vector3d dest) {
-        dest.x = this.x / (double) v.x;
-        dest.y = this.y / (double) v.y;
-        dest.z = this.z / (double) v.z;
-        return dest;
-    }
-
-    public Vector3d div(Vector3d v, Vector3d dest) {
-        dest.x = this.x / v.x;
-        dest.y = this.y / v.y;
-        dest.z = this.z / v.z;
-        return dest;
+    fun mul(v: Vector3f): Vector3d {
+        x *= v.x.toDouble()
+        y *= v.y.toDouble()
+        z *= v.z.toDouble()
+        return this
+    }
+
+    fun mul(v: Vector3f, dest: Vector3d): Vector3d {
+        dest.x = x * v.x.toDouble()
+        dest.y = y * v.y.toDouble()
+        dest.z = z * v.z.toDouble()
+        return dest
     }
-
-    public Vector3d mulProject(Matrix4d mat, double w, Vector3d dest) {
-        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33 * w)));
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30 * w))) * invW;
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31 * w))) * invW;
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32 * w))) * invW;
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulProject(Matrix4d mat, Vector3d dest) {
-        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30))) * invW;
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31))) * invW;
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32))) * invW;
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulProject(Matrix4d mat) {
-        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30))) * invW;
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31))) * invW;
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32))) * invW;
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulProject(Matrix4f mat, Vector3d dest) {
-        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
-        double rx = ((double) mat.m00 * this.x + (double) mat.m10 * this.y + (double) mat.m20 * this.z + (double) mat.m30) * invW;
-        double ry = ((double) mat.m01 * this.x + (double) mat.m11 * this.y + (double) mat.m21 * this.z + (double) mat.m31) * invW;
-        double rz = ((double) mat.m02 * this.x + (double) mat.m12 * this.y + (double) mat.m22 * this.z + (double) mat.m32) * invW;
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulProject(Matrix4f mat) {
-        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
-        double rx = ((double) mat.m00 * this.x + (double) mat.m10 * this.y + (double) mat.m20 * this.z + (double) mat.m30) * invW;
-        double ry = ((double) mat.m01 * this.x + (double) mat.m11 * this.y + (double) mat.m21 * this.z + (double) mat.m31) * invW;
-        double rz = ((double) mat.m02 * this.x + (double) mat.m12 * this.y + (double) mat.m22 * this.z + (double) mat.m32) * invW;
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mul(Matrix3f mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mul(Matrix3d mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mul(Matrix3d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3f mul(Matrix3d mat, Vector3f dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
-        dest.x = (float) rx;
-        dest.y = (float) ry;
-        dest.z = (float) rz;
-        return dest;
-    }
-
-    public Vector3d mul(Matrix3f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mul(Matrix3x2d mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
-        this.x = rx;
-        this.y = ry;
-        return this;
-    }
-
-    public Vector3d mul(Matrix3x2d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = this.z;
-        return dest;
-    }
-
-    public Vector3d mul(Matrix3x2f mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
-        this.x = rx;
-        this.y = ry;
-        return this;
-    }
-
-    public Vector3d mul(Matrix3x2f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = this.z;
-        return dest;
-    }
-
-    public Vector3d mulTranspose(Matrix3d mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, mat.m02 * this.z));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, mat.m12 * this.z));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, mat.m22 * this.z));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulTranspose(Matrix3d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, mat.m02 * this.z));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, mat.m12 * this.z));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, mat.m22 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulTranspose(Matrix3f mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, (double) mat.m02 * this.z));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, (double) mat.m12 * this.z));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, (double) mat.m22 * this.z));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulTranspose(Matrix3f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, (double) mat.m02 * this.z));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, (double) mat.m12 * this.z));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, (double) mat.m22 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulPosition(Matrix4f mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulPosition(Matrix4d mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulPosition(Matrix4x3d mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulPosition(Matrix4x3f mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulPosition(Matrix4d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulPosition(Matrix4f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulPosition(Matrix4x3d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulPosition(Matrix4x3f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulTransposePosition(Matrix4d mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, Math.fma(mat.m02, this.z, mat.m03)));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m12, this.z, mat.m13)));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, Math.fma(mat.m22, this.z, mat.m23)));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulTransposePosition(Matrix4d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, Math.fma(mat.m02, this.z, mat.m03)));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m12, this.z, mat.m13)));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, Math.fma(mat.m22, this.z, mat.m23)));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulTransposePosition(Matrix4f mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, Math.fma(mat.m02, this.z, mat.m03)));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m12, this.z, mat.m13)));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, Math.fma(mat.m22, this.z, mat.m23)));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulTransposePosition(Matrix4f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, Math.fma(mat.m02, this.z, mat.m03)));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m12, this.z, mat.m13)));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, Math.fma(mat.m22, this.z, mat.m23)));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public double mulPositionW(Matrix4f mat) {
-        double w = Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return w;
-    }
-
-    public double mulPositionW(Matrix4f mat, Vector3d dest) {
-        double w = Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return w;
-    }
-
-    public double mulPositionW(Matrix4d mat) {
-        double w = Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return w;
-    }
-
-    public double mulPositionW(Matrix4d mat, Vector3d dest) {
-        double w = Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return w;
-    }
-
-    public Vector3d mulDirection(Matrix4f mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulDirection(Matrix4d mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulDirection(Matrix4x3d mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulDirection(Matrix4x3f mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulDirection(Matrix4d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulDirection(Matrix4f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulDirection(Matrix4x3d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulDirection(Matrix4x3f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
-        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
-        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulTransposeDirection(Matrix4d mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, mat.m02 * this.z));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, mat.m12 * this.z));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, mat.m22 * this.z));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulTransposeDirection(Matrix4d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, mat.m02 * this.z));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, mat.m12 * this.z));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, mat.m22 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mulTransposeDirection(Matrix4f mat) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, (double) mat.m02 * this.z));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, (double) mat.m12 * this.z));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, (double) mat.m22 * this.z));
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
-    }
-
-    public Vector3d mulTransposeDirection(Matrix4f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, (double) mat.m02 * this.z));
-        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, (double) mat.m12 * this.z));
-        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, (double) mat.m22 * this.z));
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
-    }
-
-    public Vector3d mul(double scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-        this.z *= scalar;
-        return this;
-    }
-
-    public Vector3d mul(double scalar, Vector3d dest) {
-        dest.x = this.x * scalar;
-        dest.y = this.y * scalar;
-        dest.z = this.z * scalar;
-        return dest;
-    }
-
-    public Vector3d mul(double x, double y, double z) {
-        this.x *= x;
-        this.y *= y;
-        this.z *= z;
-        return this;
-    }
-
-    public Vector3d mul(double x, double y, double z, Vector3d dest) {
-        dest.x = this.x * x;
-        dest.y = this.y * y;
-        dest.z = this.z * z;
-        return dest;
-    }
-
-    public Vector3d rotate(Quaterniond quat) {
-        return quat.transform(this, this);
-    }
-
-    public Vector3d rotate(Quaterniond quat, Vector3d dest) {
-        return quat.transform(this, dest);
-    }
-
-    public Quaterniond rotationTo(Vector3d toDir, Quaterniond dest) {
-        return dest.rotationTo(this, toDir);
-    }
-
-    public Quaterniond rotationTo(double toDirX, double toDirY, double toDirZ, Quaterniond dest) {
-        return dest.rotationTo(this.x, this.y, this.z, toDirX, toDirY, toDirZ);
-    }
-
-    public Vector3d rotateAxis(double angle, double x, double y, double z) {
-        if (y == 0.0 && z == 0.0 && Math.absEqualsOne(x)) {
-            return this.rotateX(x * angle, this);
+
+    fun mul(v: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = x * v.x
+        dest.y = y * v.y
+        dest.z = z * v.z
+        return dest
+    }
+
+    operator fun div(v: Vector3d): Vector3d {
+        x /= v.x
+        y /= v.y
+        z /= v.z
+        return this
+    }
+
+    operator fun div(v: Vector3f): Vector3d {
+        x /= v.x.toDouble()
+        y /= v.y.toDouble()
+        z /= v.z.toDouble()
+        return this
+    }
+
+    fun div(v: Vector3f, dest: Vector3d): Vector3d {
+        dest.x = x / v.x.toDouble()
+        dest.y = y / v.y.toDouble()
+        dest.z = z / v.z.toDouble()
+        return dest
+    }
+
+    fun div(v: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = x / v.x
+        dest.y = y / v.y
+        dest.z = z / v.z
+        return dest
+    }
+
+    fun mulProject(mat: Matrix4d, w: Double, dest: Vector3d): Vector3d {
+        val invW = 1.0 / Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33 * w)))
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30 * w))) * invW
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31 * w))) * invW
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32 * w))) * invW
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulProject(mat: Matrix4d, dest: Vector3d): Vector3d {
+        val invW = 1.0 / Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33)))
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30))) * invW
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31))) * invW
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32))) * invW
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulProject(mat: Matrix4d): Vector3d {
+        val invW = 1.0 / Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33)))
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30))) * invW
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31))) * invW
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32))) * invW
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulProject(mat: Matrix4f, dest: Vector3d): Vector3d {
+        val invW = 1.0 / Math.fma(
+            mat.m03.toDouble(),
+            x,
+            Math.fma(mat.m13.toDouble(), y, Math.fma(mat.m23.toDouble(), z, mat.m33.toDouble()))
+        )
+        val rx = (mat.m00.toDouble() * x + mat.m10.toDouble() * y + mat.m20.toDouble() * z + mat.m30.toDouble()) * invW
+        val ry = (mat.m01.toDouble() * x + mat.m11.toDouble() * y + mat.m21.toDouble() * z + mat.m31.toDouble()) * invW
+        val rz = (mat.m02.toDouble() * x + mat.m12.toDouble() * y + mat.m22.toDouble() * z + mat.m32.toDouble()) * invW
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulProject(mat: Matrix4f): Vector3d {
+        val invW = 1.0 / Math.fma(
+            mat.m03.toDouble(),
+            x,
+            Math.fma(mat.m13.toDouble(), y, Math.fma(mat.m23.toDouble(), z, mat.m33.toDouble()))
+        )
+        val rx = (mat.m00.toDouble() * x + mat.m10.toDouble() * y + mat.m20.toDouble() * z + mat.m30.toDouble()) * invW
+        val ry = (mat.m01.toDouble() * x + mat.m11.toDouble() * y + mat.m21.toDouble() * z + mat.m31.toDouble()) * invW
+        val rz = (mat.m02.toDouble() * x + mat.m12.toDouble() * y + mat.m22.toDouble() * z + mat.m32.toDouble()) * invW
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mul(mat: Matrix3f): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m10.toDouble(), y, mat.m20.toDouble() * z))
+        val ry = Math.fma(mat.m01.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m21.toDouble() * z))
+        val rz = Math.fma(mat.m02.toDouble(), x, Math.fma(mat.m12.toDouble(), y, mat.m22.toDouble() * z))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mul(mat: Matrix3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mul(mat: Matrix3d, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mul(mat: Matrix3d, dest: Vector3f): Vector3f {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z))
+        dest.x = rx.toFloat()
+        dest.y = ry.toFloat()
+        dest.z = rz.toFloat()
+        return dest
+    }
+
+    fun mul(mat: Matrix3f, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m10.toDouble(), y, mat.m20.toDouble() * z))
+        val ry = Math.fma(mat.m01.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m21.toDouble() * z))
+        val rz = Math.fma(mat.m02.toDouble(), x, Math.fma(mat.m12.toDouble(), y, mat.m22.toDouble() * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mul(mat: Matrix3x2d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z))
+        x = rx
+        y = ry
+        return this
+    }
+
+    fun mul(mat: Matrix3x2d, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = z
+        return dest
+    }
+
+    fun mul(mat: Matrix3x2f): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m10.toDouble(), y, mat.m20.toDouble() * z))
+        val ry = Math.fma(mat.m01.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m21.toDouble() * z))
+        x = rx
+        y = ry
+        return this
+    }
+
+    fun mul(mat: Matrix3x2f, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m10.toDouble(), y, mat.m20.toDouble() * z))
+        val ry = Math.fma(mat.m01.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m21.toDouble() * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = z
+        return dest
+    }
+
+    fun mulTranspose(mat: Matrix3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m01, y, mat.m02 * z))
+        val ry = Math.fma(mat.m10, x, Math.fma(mat.m11, y, mat.m12 * z))
+        val rz = Math.fma(mat.m20, x, Math.fma(mat.m21, y, mat.m22 * z))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulTranspose(mat: Matrix3d, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m01, y, mat.m02 * z))
+        val ry = Math.fma(mat.m10, x, Math.fma(mat.m11, y, mat.m12 * z))
+        val rz = Math.fma(mat.m20, x, Math.fma(mat.m21, y, mat.m22 * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulTranspose(mat: Matrix3f): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m01.toDouble(), y, mat.m02.toDouble() * z))
+        val ry = Math.fma(mat.m10.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m12.toDouble() * z))
+        val rz = Math.fma(mat.m20.toDouble(), x, Math.fma(mat.m21.toDouble(), y, mat.m22.toDouble() * z))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulTranspose(mat: Matrix3f, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m01.toDouble(), y, mat.m02.toDouble() * z))
+        val ry = Math.fma(mat.m10.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m12.toDouble() * z))
+        val rz = Math.fma(mat.m20.toDouble(), x, Math.fma(mat.m21.toDouble(), y, mat.m22.toDouble() * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulPosition(mat: Matrix4f): Vector3d {
+        val rx = Math.fma(
+            mat.m00.toDouble(),
+            x,
+            Math.fma(mat.m10.toDouble(), y, Math.fma(mat.m20.toDouble(), z, mat.m30.toDouble()))
+        )
+        val ry = Math.fma(
+            mat.m01.toDouble(),
+            x,
+            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m21.toDouble(), z, mat.m31.toDouble()))
+        )
+        val rz = Math.fma(
+            mat.m02.toDouble(),
+            x,
+            Math.fma(mat.m12.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m32.toDouble()))
+        )
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulPosition(mat: Matrix4d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulPosition(mat: Matrix4x3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulPosition(mat: Matrix4x3f): Vector3d {
+        val rx = Math.fma(
+            mat.m00.toDouble(),
+            x,
+            Math.fma(mat.m10.toDouble(), y, Math.fma(mat.m20.toDouble(), z, mat.m30.toDouble()))
+        )
+        val ry = Math.fma(
+            mat.m01.toDouble(),
+            x,
+            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m21.toDouble(), z, mat.m31.toDouble()))
+        )
+        val rz = Math.fma(
+            mat.m02.toDouble(),
+            x,
+            Math.fma(mat.m12.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m32.toDouble()))
+        )
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulPosition(mat: Matrix4d, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulPosition(mat: Matrix4f, dest: Vector3d): Vector3d {
+        val rx = Math.fma(
+            mat.m00.toDouble(),
+            x,
+            Math.fma(mat.m10.toDouble(), y, Math.fma(mat.m20.toDouble(), z, mat.m30.toDouble()))
+        )
+        val ry = Math.fma(
+            mat.m01.toDouble(),
+            x,
+            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m21.toDouble(), z, mat.m31.toDouble()))
+        )
+        val rz = Math.fma(
+            mat.m02.toDouble(),
+            x,
+            Math.fma(mat.m12.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m32.toDouble()))
+        )
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulPosition(mat: Matrix4x3d, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulPosition(mat: Matrix4x3f, dest: Vector3d): Vector3d {
+        val rx = Math.fma(
+            mat.m00.toDouble(),
+            x,
+            Math.fma(mat.m10.toDouble(), y, Math.fma(mat.m20.toDouble(), z, mat.m30.toDouble()))
+        )
+        val ry = Math.fma(
+            mat.m01.toDouble(),
+            x,
+            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m21.toDouble(), z, mat.m31.toDouble()))
+        )
+        val rz = Math.fma(
+            mat.m02.toDouble(),
+            x,
+            Math.fma(mat.m12.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m32.toDouble()))
+        )
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulTransposePosition(mat: Matrix4d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m01, y, Math.fma(mat.m02, z, mat.m03)))
+        val ry = Math.fma(mat.m10, x, Math.fma(mat.m11, y, Math.fma(mat.m12, z, mat.m13)))
+        val rz = Math.fma(mat.m20, x, Math.fma(mat.m21, y, Math.fma(mat.m22, z, mat.m23)))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulTransposePosition(mat: Matrix4d, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m01, y, Math.fma(mat.m02, z, mat.m03)))
+        val ry = Math.fma(mat.m10, x, Math.fma(mat.m11, y, Math.fma(mat.m12, z, mat.m13)))
+        val rz = Math.fma(mat.m20, x, Math.fma(mat.m21, y, Math.fma(mat.m22, z, mat.m23)))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulTransposePosition(mat: Matrix4f): Vector3d {
+        val rx = Math.fma(
+            mat.m00.toDouble(),
+            x,
+            Math.fma(mat.m01.toDouble(), y, Math.fma(mat.m02.toDouble(), z, mat.m03.toDouble()))
+        )
+        val ry = Math.fma(
+            mat.m10.toDouble(),
+            x,
+            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m12.toDouble(), z, mat.m13.toDouble()))
+        )
+        val rz = Math.fma(
+            mat.m20.toDouble(),
+            x,
+            Math.fma(mat.m21.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m23.toDouble()))
+        )
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulTransposePosition(mat: Matrix4f, dest: Vector3d): Vector3d {
+        val rx = Math.fma(
+            mat.m00.toDouble(),
+            x,
+            Math.fma(mat.m01.toDouble(), y, Math.fma(mat.m02.toDouble(), z, mat.m03.toDouble()))
+        )
+        val ry = Math.fma(
+            mat.m10.toDouble(),
+            x,
+            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m12.toDouble(), z, mat.m13.toDouble()))
+        )
+        val rz = Math.fma(
+            mat.m20.toDouble(),
+            x,
+            Math.fma(mat.m21.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m23.toDouble()))
+        )
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulPositionW(mat: Matrix4f): Double {
+        val w = Math.fma(
+            mat.m03.toDouble(),
+            x,
+            Math.fma(mat.m13.toDouble(), y, Math.fma(mat.m23.toDouble(), z, mat.m33.toDouble()))
+        )
+        val rx = Math.fma(
+            mat.m00.toDouble(),
+            x,
+            Math.fma(mat.m10.toDouble(), y, Math.fma(mat.m20.toDouble(), z, mat.m30.toDouble()))
+        )
+        val ry = Math.fma(
+            mat.m01.toDouble(),
+            x,
+            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m21.toDouble(), z, mat.m31.toDouble()))
+        )
+        val rz = Math.fma(
+            mat.m02.toDouble(),
+            x,
+            Math.fma(mat.m12.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m32.toDouble()))
+        )
+        x = rx
+        y = ry
+        z = rz
+        return w
+    }
+
+    fun mulPositionW(mat: Matrix4f, dest: Vector3d): Double {
+        val w = Math.fma(
+            mat.m03.toDouble(),
+            x,
+            Math.fma(mat.m13.toDouble(), y, Math.fma(mat.m23.toDouble(), z, mat.m33.toDouble()))
+        )
+        val rx = Math.fma(
+            mat.m00.toDouble(),
+            x,
+            Math.fma(mat.m10.toDouble(), y, Math.fma(mat.m20.toDouble(), z, mat.m30.toDouble()))
+        )
+        val ry = Math.fma(
+            mat.m01.toDouble(),
+            x,
+            Math.fma(mat.m11.toDouble(), y, Math.fma(mat.m21.toDouble(), z, mat.m31.toDouble()))
+        )
+        val rz = Math.fma(
+            mat.m02.toDouble(),
+            x,
+            Math.fma(mat.m12.toDouble(), y, Math.fma(mat.m22.toDouble(), z, mat.m32.toDouble()))
+        )
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return w
+    }
+
+    fun mulPositionW(mat: Matrix4d): Double {
+        val w = Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33)))
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)))
+        x = rx
+        y = ry
+        z = rz
+        return w
+    }
+
+    fun mulPositionW(mat: Matrix4d, dest: Vector3d): Double {
+        val w = Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33)))
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return w
+    }
+
+    fun mulDirection(mat: Matrix4f): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m10.toDouble(), y, mat.m20.toDouble() * z))
+        val ry = Math.fma(mat.m01.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m21.toDouble() * z))
+        val rz = Math.fma(mat.m02.toDouble(), x, Math.fma(mat.m12.toDouble(), y, mat.m22.toDouble() * z))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulDirection(mat: Matrix4d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulDirection(mat: Matrix4x3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulDirection(mat: Matrix4x3f): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m10.toDouble(), y, mat.m20.toDouble() * z))
+        val ry = Math.fma(mat.m01.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m21.toDouble() * z))
+        val rz = Math.fma(mat.m02.toDouble(), x, Math.fma(mat.m12.toDouble(), y, mat.m22.toDouble() * z))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulDirection(mat: Matrix4d, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulDirection(mat: Matrix4f, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m10.toDouble(), y, mat.m20.toDouble() * z))
+        val ry = Math.fma(mat.m01.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m21.toDouble() * z))
+        val rz = Math.fma(mat.m02.toDouble(), x, Math.fma(mat.m12.toDouble(), y, mat.m22.toDouble() * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulDirection(mat: Matrix4x3d, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z))
+        val ry = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z))
+        val rz = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulDirection(mat: Matrix4x3f, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m10.toDouble(), y, mat.m20.toDouble() * z))
+        val ry = Math.fma(mat.m01.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m21.toDouble() * z))
+        val rz = Math.fma(mat.m02.toDouble(), x, Math.fma(mat.m12.toDouble(), y, mat.m22.toDouble() * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulTransposeDirection(mat: Matrix4d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m01, y, mat.m02 * z))
+        val ry = Math.fma(mat.m10, x, Math.fma(mat.m11, y, mat.m12 * z))
+        val rz = Math.fma(mat.m20, x, Math.fma(mat.m21, y, mat.m22 * z))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulTransposeDirection(mat: Matrix4d, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00, x, Math.fma(mat.m01, y, mat.m02 * z))
+        val ry = Math.fma(mat.m10, x, Math.fma(mat.m11, y, mat.m12 * z))
+        val rz = Math.fma(mat.m20, x, Math.fma(mat.m21, y, mat.m22 * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mulTransposeDirection(mat: Matrix4f): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m01.toDouble(), y, mat.m02.toDouble() * z))
+        val ry = Math.fma(mat.m10.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m12.toDouble() * z))
+        val rz = Math.fma(mat.m20.toDouble(), x, Math.fma(mat.m21.toDouble(), y, mat.m22.toDouble() * z))
+        x = rx
+        y = ry
+        z = rz
+        return this
+    }
+
+    fun mulTransposeDirection(mat: Matrix4f, dest: Vector3d): Vector3d {
+        val rx = Math.fma(mat.m00.toDouble(), x, Math.fma(mat.m01.toDouble(), y, mat.m02.toDouble() * z))
+        val ry = Math.fma(mat.m10.toDouble(), x, Math.fma(mat.m11.toDouble(), y, mat.m12.toDouble() * z))
+        val rz = Math.fma(mat.m20.toDouble(), x, Math.fma(mat.m21.toDouble(), y, mat.m22.toDouble() * z))
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
+    }
+
+    fun mul(scalar: Double): Vector3d {
+        x *= scalar
+        y *= scalar
+        z *= scalar
+        return this
+    }
+
+    fun mul(scalar: Double, dest: Vector3d): Vector3d {
+        dest.x = x * scalar
+        dest.y = y * scalar
+        dest.z = z * scalar
+        return dest
+    }
+
+    fun mul(x: Double, y: Double, z: Double): Vector3d {
+        this.x *= x
+        this.y *= y
+        this.z *= z
+        return this
+    }
+
+    fun mul(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+        dest.x = this.x * x
+        dest.y = this.y * y
+        dest.z = this.z * z
+        return dest
+    }
+
+    fun rotate(quat: Quaterniond): Vector3d {
+        return quat.transform(this, this)
+    }
+
+    fun rotate(quat: Quaterniond, dest: Vector3d?): Vector3d {
+        return quat.transform(this, dest!!)
+    }
+
+    fun rotationTo(toDir: Vector3d?, dest: Quaterniond): Quaterniond {
+        return dest.rotationTo(this, toDir!!)
+    }
+
+    fun rotationTo(toDirX: Double, toDirY: Double, toDirZ: Double, dest: Quaterniond): Quaterniond {
+        return dest.rotationTo(x, y, z, toDirX, toDirY, toDirZ)
+    }
+
+    fun rotateAxis(angle: Double, x: Double, y: Double, z: Double): Vector3d {
+        return if (y == 0.0 && z == 0.0 && Math.absEqualsOne(x)) {
+            this.rotateX(x * angle, this)
         } else if (x == 0.0 && z == 0.0 && Math.absEqualsOne(y)) {
-            return this.rotateY(y * angle, this);
+            this.rotateY(y * angle, this)
         } else {
-            return x == 0.0 && y == 0.0 && Math.absEqualsOne(z) ? this.rotateZ(z * angle, this) : this.rotateAxisInternal(angle, x, y, z, this);
+            if (x == 0.0 && y == 0.0 && Math.absEqualsOne(z)) this.rotateZ(
+                z * angle,
+                this
+            ) else rotateAxisInternal(angle, x, y, z, this)
         }
     }
 
-    public Vector3d rotateAxis(double angle, double aX, double aY, double aZ, Vector3d dest) {
-        if (aY == 0.0 && aZ == 0.0 && Math.absEqualsOne(aX)) {
-            return this.rotateX(aX * angle, dest);
+    fun rotateAxis(angle: Double, aX: Double, aY: Double, aZ: Double, dest: Vector3d): Vector3d {
+        return if (aY == 0.0 && aZ == 0.0 && Math.absEqualsOne(aX)) {
+            this.rotateX(aX * angle, dest)
         } else if (aX == 0.0 && aZ == 0.0 && Math.absEqualsOne(aY)) {
-            return this.rotateY(aY * angle, dest);
+            this.rotateY(aY * angle, dest)
         } else {
-            return aX == 0.0 && aY == 0.0 && Math.absEqualsOne(aZ) ? this.rotateZ(aZ * angle, dest) : this.rotateAxisInternal(angle, aX, aY, aZ, dest);
+            if (aX == 0.0 && aY == 0.0 && Math.absEqualsOne(aZ)) this.rotateZ(
+                aZ * angle,
+                dest
+            ) else rotateAxisInternal(angle, aX, aY, aZ, dest)
         }
     }
 
-    private Vector3d rotateAxisInternal(double angle, double aX, double aY, double aZ, Vector3d dest) {
-        double halfAngle = angle * 0.5;
-        double sinAngle = Math.sin(halfAngle);
-        double qx = aX * sinAngle;
-        double qy = aY * sinAngle;
-        double qz = aZ * sinAngle;
-        double qw = Math.cosFromSin(sinAngle, halfAngle);
-        double w2 = qw * qw;
-        double x2 = qx * qx;
-        double y2 = qy * qy;
-        double z2 = qz * qz;
-        double zw = qz * qw;
-        double xy = qx * qy;
-        double xz = qx * qz;
-        double yw = qy * qw;
-        double yz = qy * qz;
-        double xw = qx * qw;
-        double nx = (w2 + x2 - z2 - y2) * this.x + (-zw + xy - zw + xy) * this.y + (yw + xz + xz + yw) * this.z;
-        double ny = (xy + zw + zw + xy) * this.x + (y2 - z2 + w2 - x2) * this.y + (yz + yz - xw - xw) * this.z;
-        double nz = (xz - yw + xz - yw) * this.x + (yz + yz + xw + xw) * this.y + (z2 - y2 - x2 + w2) * this.z;
-        dest.x = nx;
-        dest.y = ny;
-        dest.z = nz;
-        return dest;
+    private fun rotateAxisInternal(angle: Double, aX: Double, aY: Double, aZ: Double, dest: Vector3d): Vector3d {
+        val halfAngle = angle * 0.5
+        val sinAngle = Math.sin(halfAngle)
+        val qx = aX * sinAngle
+        val qy = aY * sinAngle
+        val qz = aZ * sinAngle
+        val qw = Math.cosFromSin(sinAngle, halfAngle)
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
+        val xy = qx * qy
+        val xz = qx * qz
+        val yw = qy * qw
+        val yz = qy * qz
+        val xw = qx * qw
+        val nx = (w2 + x2 - z2 - y2) * x + (-zw + xy - zw + xy) * y + (yw + xz + xz + yw) * z
+        val ny = (xy + zw + zw + xy) * x + (y2 - z2 + w2 - x2) * y + (yz + yz - xw - xw) * z
+        val nz = (xz - yw + xz - yw) * x + (yz + yz + xw + xw) * y + (z2 - y2 - x2 + w2) * z
+        dest.x = nx
+        dest.y = ny
+        dest.z = nz
+        return dest
     }
 
-    public Vector3d rotateX(double angle) {
-        double sin = Math.sin(angle);
-        double cos = Math.cosFromSin(sin, angle);
-        double y = this.y * cos - this.z * sin;
-        double z = this.y * sin + this.z * cos;
-        this.y = y;
-        this.z = z;
-        return this;
+    fun rotateX(angle: Double): Vector3d {
+        val sin = Math.sin(angle)
+        val cos = Math.cosFromSin(sin, angle)
+        val y = y * cos - z * sin
+        val z = this.y * sin + z * cos
+        this.y = y
+        this.z = z
+        return this
     }
 
-    public Vector3d rotateX(double angle, Vector3d dest) {
-        double sin = Math.sin(angle);
-        double cos = Math.cosFromSin(sin, angle);
-        double y = this.y * cos - this.z * sin;
-        double z = this.y * sin + this.z * cos;
-        dest.x = this.x;
-        dest.y = y;
-        dest.z = z;
-        return dest;
+    fun rotateX(angle: Double, dest: Vector3d): Vector3d {
+        val sin = Math.sin(angle)
+        val cos = Math.cosFromSin(sin, angle)
+        val y = y * cos - z * sin
+        val z = this.y * sin + z * cos
+        dest.x = x
+        dest.y = y
+        dest.z = z
+        return dest
     }
 
-    public Vector3d rotateY(double angle) {
-        double sin = Math.sin(angle);
-        double cos = Math.cosFromSin(sin, angle);
-        double x = this.x * cos + this.z * sin;
-        double z = -this.x * sin + this.z * cos;
-        this.x = x;
-        this.z = z;
-        return this;
+    fun rotateY(angle: Double): Vector3d {
+        val sin = Math.sin(angle)
+        val cos = Math.cosFromSin(sin, angle)
+        val x = x * cos + z * sin
+        val z = -this.x * sin + z * cos
+        this.x = x
+        this.z = z
+        return this
     }
 
-    public Vector3d rotateY(double angle, Vector3d dest) {
-        double sin = Math.sin(angle);
-        double cos = Math.cosFromSin(sin, angle);
-        double x = this.x * cos + this.z * sin;
-        double z = -this.x * sin + this.z * cos;
-        dest.x = x;
-        dest.y = this.y;
-        dest.z = z;
-        return dest;
+    fun rotateY(angle: Double, dest: Vector3d): Vector3d {
+        val sin = Math.sin(angle)
+        val cos = Math.cosFromSin(sin, angle)
+        val x = x * cos + z * sin
+        val z = -this.x * sin + z * cos
+        dest.x = x
+        dest.y = y
+        dest.z = z
+        return dest
     }
 
-    public Vector3d rotateZ(double angle) {
-        double sin = Math.sin(angle);
-        double cos = Math.cosFromSin(sin, angle);
-        double x = this.x * cos - this.y * sin;
-        double y = this.x * sin + this.y * cos;
-        this.x = x;
-        this.y = y;
-        return this;
+    fun rotateZ(angle: Double): Vector3d {
+        val sin = Math.sin(angle)
+        val cos = Math.cosFromSin(sin, angle)
+        val x = x * cos - y * sin
+        val y = this.x * sin + y * cos
+        this.x = x
+        this.y = y
+        return this
     }
 
-    public Vector3d rotateZ(double angle, Vector3d dest) {
-        double sin = Math.sin(angle);
-        double cos = Math.cosFromSin(sin, angle);
-        double x = this.x * cos - this.y * sin;
-        double y = this.x * sin + this.y * cos;
-        dest.x = x;
-        dest.y = y;
-        dest.z = this.z;
-        return dest;
+    fun rotateZ(angle: Double, dest: Vector3d): Vector3d {
+        val sin = Math.sin(angle)
+        val cos = Math.cosFromSin(sin, angle)
+        val x = x * cos - y * sin
+        val y = this.x * sin + y * cos
+        dest.x = x
+        dest.y = y
+        dest.z = z
+        return dest
     }
 
-    public Vector3d div(double scalar) {
-        double inv = 1.0 / scalar;
-        this.x *= inv;
-        this.y *= inv;
-        this.z *= inv;
-        return this;
+    operator fun div(scalar: Double): Vector3d {
+        val inv = 1.0 / scalar
+        x *= inv
+        y *= inv
+        z *= inv
+        return this
     }
 
-    public Vector3d div(double scalar, Vector3d dest) {
-        double inv = 1.0 / scalar;
-        dest.x = this.x * inv;
-        dest.y = this.y * inv;
-        dest.z = this.z * inv;
-        return dest;
+    fun div(scalar: Double, dest: Vector3d): Vector3d {
+        val inv = 1.0 / scalar
+        dest.x = x * inv
+        dest.y = y * inv
+        dest.z = z * inv
+        return dest
     }
 
-    public Vector3d div(double x, double y, double z) {
-        this.x /= x;
-        this.y /= y;
-        this.z /= z;
-        return this;
+    fun div(x: Double, y: Double, z: Double): Vector3d {
+        this.x /= x
+        this.y /= y
+        this.z /= z
+        return this
     }
 
-    public Vector3d div(double x, double y, double z, Vector3d dest) {
-        dest.x = this.x / x;
-        dest.y = this.y / y;
-        dest.z = this.z / z;
-        return dest;
+    fun div(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+        dest.x = this.x / x
+        dest.y = this.y / y
+        dest.z = this.z / z
+        return dest
     }
 
-    public double lengthSquared() {
-        return Math.fma(this.x, this.x, Math.fma(this.y, this.y, this.z * this.z));
+    fun lengthSquared(): Double {
+        return Math.fma(x, x, Math.fma(y, y, z * z))
     }
 
-    public static double lengthSquared(double x, double y, double z) {
-        return Math.fma(x, x, Math.fma(y, y, z * z));
+    fun length(): Double {
+        return Math.sqrt(Math.fma(x, x, Math.fma(y, y, z * z)))
     }
 
-    public double length() {
-        return Math.sqrt(Math.fma(this.x, this.x, Math.fma(this.y, this.y, this.z * this.z)));
+    fun normalize(): Vector3d {
+        val invLength = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, z * z)))
+        x *= invLength
+        y *= invLength
+        z *= invLength
+        return this
     }
 
-    public static double length(double x, double y, double z) {
-        return Math.sqrt(Math.fma(x, x, Math.fma(y, y, z * z)));
+    fun normalize(dest: Vector3d): Vector3d {
+        val invLength = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, z * z)))
+        dest.x = x * invLength
+        dest.y = y * invLength
+        dest.z = z * invLength
+        return dest
     }
 
-    public Vector3d normalize() {
-        double invLength = Math.invsqrt(Math.fma(this.x, this.x, Math.fma(this.y, this.y, this.z * this.z)));
-        this.x *= invLength;
-        this.y *= invLength;
-        this.z *= invLength;
-        return this;
+    fun normalize(length: Double): Vector3d {
+        val invLength = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, z * z))) * length
+        x *= invLength
+        y *= invLength
+        z *= invLength
+        return this
     }
 
-    public Vector3d normalize(Vector3d dest) {
-        double invLength = Math.invsqrt(Math.fma(this.x, this.x, Math.fma(this.y, this.y, this.z * this.z)));
-        dest.x = this.x * invLength;
-        dest.y = this.y * invLength;
-        dest.z = this.z * invLength;
-        return dest;
+    fun normalize(length: Double, dest: Vector3d): Vector3d {
+        val invLength = Math.invsqrt(Math.fma(x, x, Math.fma(y, y, z * z))) * length
+        dest.x = x * invLength
+        dest.y = y * invLength
+        dest.z = z * invLength
+        return dest
     }
 
-    public Vector3d normalize(double length) {
-        double invLength = Math.invsqrt(Math.fma(this.x, this.x, Math.fma(this.y, this.y, this.z * this.z))) * length;
-        this.x *= invLength;
-        this.y *= invLength;
-        this.z *= invLength;
-        return this;
+    fun cross(v: Vector3d): Vector3d {
+        val rx = Math.fma(y, v.z, -z * v.y)
+        val ry = Math.fma(z, v.x, -x * v.z)
+        val rz = Math.fma(x, v.y, -y * v.x)
+        x = rx
+        y = ry
+        z = rz
+        return this
     }
 
-    public Vector3d normalize(double length, Vector3d dest) {
-        double invLength = Math.invsqrt(Math.fma(this.x, this.x, Math.fma(this.y, this.y, this.z * this.z))) * length;
-        dest.x = this.x * invLength;
-        dest.y = this.y * invLength;
-        dest.z = this.z * invLength;
-        return dest;
+    fun cross(x: Double, y: Double, z: Double): Vector3d {
+        val rx = Math.fma(this.y, z, -this.z * y)
+        val ry = Math.fma(this.z, x, -this.x * z)
+        val rz = Math.fma(this.x, y, -this.y * x)
+        this.x = rx
+        this.y = ry
+        this.z = rz
+        return this
     }
 
-    public Vector3d cross(Vector3d v) {
-        double rx = Math.fma(this.y, v.z, -this.z * v.y);
-        double ry = Math.fma(this.z, v.x, -this.x * v.z);
-        double rz = Math.fma(this.x, v.y, -this.y * v.x);
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
+    fun cross(v: Vector3d, dest: Vector3d): Vector3d {
+        val rx = Math.fma(y, v.z, -z * v.y)
+        val ry = Math.fma(z, v.x, -x * v.z)
+        val rz = Math.fma(x, v.y, -y * v.x)
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
     }
 
-    public Vector3d cross(double x, double y, double z) {
-        double rx = Math.fma(this.y, z, -this.z * y);
-        double ry = Math.fma(this.z, x, -this.x * z);
-        double rz = Math.fma(this.x, y, -this.y * x);
-        this.x = rx;
-        this.y = ry;
-        this.z = rz;
-        return this;
+    fun cross(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+        val rx = Math.fma(this.y, z, -this.z * y)
+        val ry = Math.fma(this.z, x, -this.x * z)
+        val rz = Math.fma(this.x, y, -this.y * x)
+        dest.x = rx
+        dest.y = ry
+        dest.z = rz
+        return dest
     }
 
-    public Vector3d cross(Vector3d v, Vector3d dest) {
-        double rx = Math.fma(this.y, v.z, -this.z * v.y);
-        double ry = Math.fma(this.z, v.x, -this.x * v.z);
-        double rz = Math.fma(this.x, v.y, -this.y * v.x);
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
+    fun distance(v: Vector3d): Double {
+        val dx = x - v.x
+        val dy = y - v.y
+        val dz = z - v.z
+        return Math.sqrt(Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)))
     }
 
-    public Vector3d cross(double x, double y, double z, Vector3d dest) {
-        double rx = Math.fma(this.y, z, -this.z * y);
-        double ry = Math.fma(this.z, x, -this.x * z);
-        double rz = Math.fma(this.x, y, -this.y * x);
-        dest.x = rx;
-        dest.y = ry;
-        dest.z = rz;
-        return dest;
+    fun distance(x: Double, y: Double, z: Double): Double {
+        val dx = this.x - x
+        val dy = this.y - y
+        val dz = this.z - z
+        return Math.sqrt(Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)))
     }
 
-    public double distance(Vector3d v) {
-        double dx = this.x - v.x;
-        double dy = this.y - v.y;
-        double dz = this.z - v.z;
-        return Math.sqrt(Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)));
+    fun distanceSquared(v: Vector3d): Double {
+        val dx = x - v.x
+        val dy = y - v.y
+        val dz = z - v.z
+        return Math.fma(dx, dx, Math.fma(dy, dy, dz * dz))
     }
 
-    public double distance(double x, double y, double z) {
-        double dx = this.x - x;
-        double dy = this.y - y;
-        double dz = this.z - z;
-        return Math.sqrt(Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)));
+    fun distanceSquared(x: Double, y: Double, z: Double): Double {
+        val dx = this.x - x
+        val dy = this.y - y
+        val dz = this.z - z
+        return Math.fma(dx, dx, Math.fma(dy, dy, dz * dz))
     }
 
-    public double distanceSquared(Vector3d v) {
-        double dx = this.x - v.x;
-        double dy = this.y - v.y;
-        double dz = this.z - v.z;
-        return Math.fma(dx, dx, Math.fma(dy, dy, dz * dz));
+    fun dot(v: Vector3d): Double {
+        return Math.fma(x, v.x, Math.fma(y, v.y, z * v.z))
     }
 
-    public double distanceSquared(double x, double y, double z) {
-        double dx = this.x - x;
-        double dy = this.y - y;
-        double dz = this.z - z;
-        return Math.fma(dx, dx, Math.fma(dy, dy, dz * dz));
+    fun dot(x: Double, y: Double, z: Double): Double {
+        return Math.fma(this.x, x, Math.fma(this.y, y, this.z * z))
     }
 
-    public static double distance(double x1, double y1, double z1, double x2, double y2, double z2) {
-        return Math.sqrt(distanceSquared(x1, y1, z1, x2, y2, z2));
+    fun angleCos(v: Vector3d): Double {
+        val length1Squared = Math.fma(x, x, Math.fma(y, y, z * z))
+        val length2Squared = Math.fma(v.x, v.x, Math.fma(v.y, v.y, v.z * v.z))
+        val dot = Math.fma(x, v.x, Math.fma(y, v.y, z * v.z))
+        return dot / Math.sqrt(length1Squared * length2Squared)
     }
 
-    public static double distanceSquared(double x1, double y1, double z1, double x2, double y2, double z2) {
-        double dx = x1 - x2;
-        double dy = y1 - y2;
-        double dz = z1 - z2;
-        return Math.fma(dx, dx, Math.fma(dy, dy, dz * dz));
+    fun angle(v: Vector3d): Double {
+        var cos = angleCos(v)
+        cos = java.lang.Math.min(cos, 1.0)
+        cos = java.lang.Math.max(cos, -1.0)
+        return Math.acos(cos)
     }
 
-    public double dot(Vector3d v) {
-        return Math.fma(this.x, v.x, Math.fma(this.y, v.y, this.z * v.z));
+    fun angleSigned(v: Vector3d, n: Vector3d): Double {
+        val x = v.x
+        val y = v.y
+        val z = v.z
+        return Math.atan2(
+            (this.y * z - this.z * y) * n.x + (this.z * x - this.x * z) * n.y + (this.x * y - this.y * x) * n.z,
+            this.x * x + this.y * y + this.z * z
+        )
     }
 
-    public double dot(double x, double y, double z) {
-        return Math.fma(this.x, x, Math.fma(this.y, y, this.z * z));
+    fun angleSigned(x: Double, y: Double, z: Double, nx: Double, ny: Double, nz: Double): Double {
+        return Math.atan2(
+            (this.y * z - this.z * y) * nx + (this.z * x - this.x * z) * ny + (this.x * y - this.y * x) * nz,
+            this.x * x + this.y * y + this.z * z
+        )
     }
 
-    public double angleCos(Vector3d v) {
-        double length1Squared = Math.fma(this.x, this.x, Math.fma(this.y, this.y, this.z * this.z));
-        double length2Squared = Math.fma(v.x, v.x, Math.fma(v.y, v.y, v.z * v.z));
-        double dot = Math.fma(this.x, v.x, Math.fma(this.y, v.y, this.z * v.z));
-        return dot / Math.sqrt(length1Squared * length2Squared);
+    fun min(v: Vector3d): Vector3d {
+        x = java.lang.Math.min(x, v.x)
+        y = java.lang.Math.min(y, v.y)
+        z = java.lang.Math.min(z, v.z)
+        return this
     }
 
-    public double angle(Vector3d v) {
-        double cos = this.angleCos(v);
-        cos = java.lang.Math.min(cos, 1.0);
-        cos = java.lang.Math.max(cos, -1.0);
-        return Math.acos(cos);
+    fun min(v: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = java.lang.Math.min(x, v.x)
+        dest.y = java.lang.Math.min(y, v.y)
+        dest.z = java.lang.Math.min(z, v.z)
+        return dest
     }
 
-    public double angleSigned(Vector3d v, Vector3d n) {
-        double x = v.x;
-        double y = v.y;
-        double z = v.z;
-        return Math.atan2((this.y * z - this.z * y) * n.x + (this.z * x - this.x * z) * n.y + (this.x * y - this.y * x) * n.z, this.x * x + this.y * y + this.z * z);
+    fun max(v: Vector3d): Vector3d {
+        x = java.lang.Math.max(x, v.x)
+        y = java.lang.Math.max(y, v.y)
+        z = java.lang.Math.max(z, v.z)
+        return this
     }
 
-    public double angleSigned(double x, double y, double z, double nx, double ny, double nz) {
-        return Math.atan2((this.y * z - this.z * y) * nx + (this.z * x - this.x * z) * ny + (this.x * y - this.y * x) * nz, this.x * x + this.y * y + this.z * z);
+    fun max(v: Vector3d, dest: Vector3d): Vector3d {
+        dest.x = java.lang.Math.max(x, v.x)
+        dest.y = java.lang.Math.max(y, v.y)
+        dest.z = java.lang.Math.max(z, v.z)
+        return dest
     }
 
-    public Vector3d min(Vector3d v) {
-        this.x = java.lang.Math.min(this.x, v.x);
-        this.y = java.lang.Math.min(this.y, v.y);
-        this.z = java.lang.Math.min(this.z, v.z);
-        return this;
+    fun zero(): Vector3d {
+        x = 0.0
+        y = 0.0
+        z = 0.0
+        return this
     }
 
-    public Vector3d min(Vector3d v, Vector3d dest) {
-        dest.x = java.lang.Math.min(this.x, v.x);
-        dest.y = java.lang.Math.min(this.y, v.y);
-        dest.z = java.lang.Math.min(this.z, v.z);
-        return dest;
+    override fun toString(): String {
+        return "($x,$y,$z)"
     }
 
-    public Vector3d max(Vector3d v) {
-        this.x = java.lang.Math.max(this.x, v.x);
-        this.y = java.lang.Math.max(this.y, v.y);
-        this.z = java.lang.Math.max(this.z, v.z);
-        return this;
+    fun negate(): Vector3d {
+        x = -x
+        y = -y
+        z = -z
+        return this
     }
 
-    public Vector3d max(Vector3d v, Vector3d dest) {
-        dest.x = java.lang.Math.max(this.x, v.x);
-        dest.y = java.lang.Math.max(this.y, v.y);
-        dest.z = java.lang.Math.max(this.z, v.z);
-        return dest;
+    fun negate(dest: Vector3d): Vector3d {
+        dest.x = -x
+        dest.y = -y
+        dest.z = -z
+        return dest
     }
 
-    public Vector3d zero() {
-        this.x = 0.0;
-        this.y = 0.0;
-        this.z = 0.0;
-        return this;
+    fun absolute(): Vector3d {
+        x = Math.abs(x)
+        y = Math.abs(y)
+        z = Math.abs(z)
+        return this
     }
 
-    public String toString() {
-        return "(" + x + "," + y + "," + z + ")";
+    fun absolute(dest: Vector3d): Vector3d {
+        dest.x = Math.abs(x)
+        dest.y = Math.abs(y)
+        dest.z = Math.abs(z)
+        return dest
     }
 
-    public Vector3d negate() {
-        this.x = -this.x;
-        this.y = -this.y;
-        this.z = -this.z;
-        return this;
+    override fun hashCode(): Int {
+        var result = 1
+        var temp = java.lang.Double.doubleToLongBits(x)
+        result = 31 * result + (temp xor (temp ushr 32)).toInt()
+        temp = java.lang.Double.doubleToLongBits(y)
+        result = 31 * result + (temp xor (temp ushr 32)).toInt()
+        temp = java.lang.Double.doubleToLongBits(z)
+        result = 31 * result + (temp xor (temp ushr 32)).toInt()
+        return result
     }
 
-    public Vector3d negate(Vector3d dest) {
-        dest.x = -this.x;
-        dest.y = -this.y;
-        dest.z = -this.z;
-        return dest;
-    }
-
-    public Vector3d absolute() {
-        this.x = Math.abs(this.x);
-        this.y = Math.abs(this.y);
-        this.z = Math.abs(this.z);
-        return this;
-    }
-
-    public Vector3d absolute(Vector3d dest) {
-        dest.x = Math.abs(this.x);
-        dest.y = Math.abs(this.y);
-        dest.z = Math.abs(this.z);
-        return dest;
-    }
-
-    public int hashCode() {
-        int result = 1;
-        long temp = Double.doubleToLongBits(this.x);
-        result = 31 * result + (int) (temp ^ temp >>> 32);
-        temp = Double.doubleToLongBits(this.y);
-        result = 31 * result + (int) (temp ^ temp >>> 32);
-        temp = Double.doubleToLongBits(this.z);
-        result = 31 * result + (int) (temp ^ temp >>> 32);
-        return result;
-    }
-
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
+    override fun equals(obj: Any?): Boolean {
+        return if (this === obj) {
+            true
         } else if (obj == null) {
-            return false;
-        } else if (this.getClass() != obj.getClass()) {
-            return false;
+            false
+        } else if (this.javaClass != obj.javaClass) {
+            false
         } else {
-            Vector3d other = (Vector3d) obj;
-            if (Double.doubleToLongBits(this.x) != Double.doubleToLongBits(other.x)) {
-                return false;
-            } else if (Double.doubleToLongBits(this.y) != Double.doubleToLongBits(other.y)) {
-                return false;
+            val other = obj as Vector3d
+            if (java.lang.Double.doubleToLongBits(x) != java.lang.Double.doubleToLongBits(other.x)) {
+                false
+            } else if (java.lang.Double.doubleToLongBits(y) != java.lang.Double.doubleToLongBits(other.y)) {
+                false
             } else {
-                return Double.doubleToLongBits(this.z) == Double.doubleToLongBits(other.z);
+                java.lang.Double.doubleToLongBits(z) == java.lang.Double.doubleToLongBits(other.z)
             }
         }
     }
 
-    public boolean equals(Vector3d v, double delta) {
-        if (this == v) {
-            return true;
+    fun equals(v: Vector3d?, delta: Double): Boolean {
+        return if (this === v) {
+            true
         } else if (v == null) {
-            return false;
-        } else if (!Runtime.equals(this.x, v.x, delta)) {
-            return false;
-        } else if (!Runtime.equals(this.y, v.y, delta)) {
-            return false;
+            false
+        } else if (!Runtime.equals(x, v.x, delta)) {
+            false
+        } else if (!Runtime.equals(y, v.y, delta)) {
+            false
         } else {
-            return Runtime.equals(this.z, v.z, delta);
+            Runtime.equals(z, v.z, delta)
         }
     }
 
-    public boolean equals(double x, double y, double z) {
-        if (Double.doubleToLongBits(this.x) != Double.doubleToLongBits(x)) {
-            return false;
-        } else if (Double.doubleToLongBits(this.y) != Double.doubleToLongBits(y)) {
-            return false;
+    fun equals(x: Double, y: Double, z: Double): Boolean {
+        return if (java.lang.Double.doubleToLongBits(this.x) != java.lang.Double.doubleToLongBits(x)) {
+            false
+        } else if (java.lang.Double.doubleToLongBits(this.y) != java.lang.Double.doubleToLongBits(y)) {
+            false
         } else {
-            return Double.doubleToLongBits(this.z) == Double.doubleToLongBits(z);
+            java.lang.Double.doubleToLongBits(this.z) == java.lang.Double.doubleToLongBits(z)
         }
     }
 
-    public Vector3d reflect(Vector3d normal) {
-        double x = normal.x;
-        double y = normal.y;
-        double z = normal.z;
-        double dot = Math.fma(this.x, x, Math.fma(this.y, y, this.z * z));
-        this.x -= (dot + dot) * x;
-        this.y -= (dot + dot) * y;
-        this.z -= (dot + dot) * z;
-        return this;
+    fun reflect(normal: Vector3d): Vector3d {
+        val x = normal.x
+        val y = normal.y
+        val z = normal.z
+        val dot = Math.fma(this.x, x, Math.fma(this.y, y, this.z * z))
+        this.x -= (dot + dot) * x
+        this.y -= (dot + dot) * y
+        this.z -= (dot + dot) * z
+        return this
     }
 
-    public Vector3d reflect(double x, double y, double z) {
-        double dot = Math.fma(this.x, x, Math.fma(this.y, y, this.z * z));
-        this.x -= (dot + dot) * x;
-        this.y -= (dot + dot) * y;
-        this.z -= (dot + dot) * z;
-        return this;
+    fun reflect(x: Double, y: Double, z: Double): Vector3d {
+        val dot = Math.fma(this.x, x, Math.fma(this.y, y, this.z * z))
+        this.x -= (dot + dot) * x
+        this.y -= (dot + dot) * y
+        this.z -= (dot + dot) * z
+        return this
     }
 
-    public Vector3d reflect(Vector3d normal, Vector3d dest) {
-        double x = normal.x;
-        double y = normal.y;
-        double z = normal.z;
-        double dot = Math.fma(this.x, x, Math.fma(this.y, y, this.z * z));
-        dest.x = this.x - (dot + dot) * x;
-        dest.y = this.y - (dot + dot) * y;
-        dest.z = this.z - (dot + dot) * z;
-        return dest;
+    fun reflect(normal: Vector3d, dest: Vector3d): Vector3d {
+        val x = normal.x
+        val y = normal.y
+        val z = normal.z
+        val dot = Math.fma(this.x, x, Math.fma(this.y, y, this.z * z))
+        dest.x = this.x - (dot + dot) * x
+        dest.y = this.y - (dot + dot) * y
+        dest.z = this.z - (dot + dot) * z
+        return dest
     }
 
-    public Vector3d reflect(double x, double y, double z, Vector3d dest) {
-        double dot = Math.fma(this.x, x, Math.fma(this.y, y, this.z * z));
-        dest.x = this.x - (dot + dot) * x;
-        dest.y = this.y - (dot + dot) * y;
-        dest.z = this.z - (dot + dot) * z;
-        return dest;
+    fun reflect(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+        val dot = Math.fma(this.x, x, Math.fma(this.y, y, this.z * z))
+        dest.x = this.x - (dot + dot) * x
+        dest.y = this.y - (dot + dot) * y
+        dest.z = this.z - (dot + dot) * z
+        return dest
     }
 
-    public Vector3d half(Vector3d other) {
-        return this.set(this).add(other.x, other.y, other.z).normalize();
+    fun half(other: Vector3d): Vector3d {
+        return this.set(this).add(other.x, other.y, other.z).normalize()
     }
 
-    public Vector3d half(double x, double y, double z) {
-        return this.set(this).add(x, y, z).normalize();
+    fun half(x: Double, y: Double, z: Double): Vector3d {
+        return this.set(this).add(x, y, z).normalize()
     }
 
-    public Vector3d half(Vector3d other, Vector3d dest) {
-        return dest.set(this).add(other.x, other.y, other.z).normalize();
+    fun half(other: Vector3d, dest: Vector3d): Vector3d {
+        return dest.set(this).add(other.x, other.y, other.z).normalize()
     }
 
-    public Vector3d half(double x, double y, double z, Vector3d dest) {
-        return dest.set(this).add(x, y, z).normalize();
+    fun half(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+        return dest.set(this).add(x, y, z).normalize()
     }
 
-    public Vector3d smoothStep(Vector3d v, double t, Vector3d dest) {
-        double t2 = t * t;
-        double t3 = t2 * t;
-        dest.x = (this.x + this.x - v.x - v.x) * t3 + (3.0 * v.x - 3.0 * this.x) * t2 + this.x * t + this.x;
-        dest.y = (this.y + this.y - v.y - v.y) * t3 + (3.0 * v.y - 3.0 * this.y) * t2 + this.y * t + this.y;
-        dest.z = (this.z + this.z - v.z - v.z) * t3 + (3.0 * v.z - 3.0 * this.z) * t2 + this.z * t + this.z;
-        return dest;
+    fun smoothStep(v: Vector3d, t: Double, dest: Vector3d): Vector3d {
+        val t2 = t * t
+        val t3 = t2 * t
+        dest.x = (x + x - v.x - v.x) * t3 + (3.0 * v.x - 3.0 * x) * t2 + x * t + x
+        dest.y = (y + y - v.y - v.y) * t3 + (3.0 * v.y - 3.0 * y) * t2 + y * t + y
+        dest.z = (z + z - v.z - v.z) * t3 + (3.0 * v.z - 3.0 * z) * t2 + z * t + z
+        return dest
     }
 
-    public Vector3d hermite(Vector3d t0, Vector3d v1, Vector3d t1, double t, Vector3d dest) {
-        double t2 = t * t;
-        double t3 = t2 * t;
-        dest.x = (this.x + this.x - v1.x - v1.x + t1.x + t0.x) * t3 + (3.0 * v1.x - 3.0 * this.x - t0.x - t0.x - t1.x) * t2 + this.x * t + this.x;
-        dest.y = (this.y + this.y - v1.y - v1.y + t1.y + t0.y) * t3 + (3.0 * v1.y - 3.0 * this.y - t0.y - t0.y - t1.y) * t2 + this.y * t + this.y;
-        dest.z = (this.z + this.z - v1.z - v1.z + t1.z + t0.z) * t3 + (3.0 * v1.z - 3.0 * this.z - t0.z - t0.z - t1.z) * t2 + this.z * t + this.z;
-        return dest;
+    fun hermite(t0: Vector3d, v1: Vector3d, t1: Vector3d, t: Double, dest: Vector3d): Vector3d {
+        val t2 = t * t
+        val t3 = t2 * t
+        dest.x = (x + x - v1.x - v1.x + t1.x + t0.x) * t3 + (3.0 * v1.x - 3.0 * x - t0.x - t0.x - t1.x) * t2 + x * t + x
+        dest.y = (y + y - v1.y - v1.y + t1.y + t0.y) * t3 + (3.0 * v1.y - 3.0 * y - t0.y - t0.y - t1.y) * t2 + y * t + y
+        dest.z = (z + z - v1.z - v1.z + t1.z + t0.z) * t3 + (3.0 * v1.z - 3.0 * z - t0.z - t0.z - t1.z) * t2 + z * t + z
+        return dest
     }
 
-    public Vector3d lerp(Vector3d other, double t) {
-        this.x = Math.fma(other.x - this.x, t, this.x);
-        this.y = Math.fma(other.y - this.y, t, this.y);
-        this.z = Math.fma(other.z - this.z, t, this.z);
-        return this;
+    fun lerp(other: Vector3d, t: Double): Vector3d {
+        x = Math.fma(other.x - x, t, x)
+        y = Math.fma(other.y - y, t, y)
+        z = Math.fma(other.z - z, t, z)
+        return this
     }
 
-    public Vector3d lerp(Vector3d other, double t, Vector3d dest) {
-        dest.x = Math.fma(other.x - this.x, t, this.x);
-        dest.y = Math.fma(other.y - this.y, t, this.y);
-        dest.z = Math.fma(other.z - this.z, t, this.z);
-        return dest;
+    fun lerp(other: Vector3d, t: Double, dest: Vector3d): Vector3d {
+        dest.x = Math.fma(other.x - x, t, x)
+        dest.y = Math.fma(other.y - y, t, y)
+        dest.z = Math.fma(other.z - z, t, z)
+        return dest
     }
 
-    public double get(int component) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                return this.x;
-            case 1:
-                return this.y;
-            case 2:
-                return this.z;
-            default:
-                throw new IllegalArgumentException();
+    @Throws(IllegalArgumentException::class)
+    operator fun get(component: Int): Double {
+        return when (component) {
+            0 -> x
+            1 -> y
+            2 -> z
+            else -> throw IllegalArgumentException()
         }
     }
 
-    public Vector3i get(int mode, Vector3i dest) {
-        dest.x = Math.roundUsing(this.x, mode);
-        dest.y = Math.roundUsing(this.y, mode);
-        dest.z = Math.roundUsing(this.z, mode);
-        return dest;
+    operator fun get(mode: Int, dest: Vector3i): Vector3i {
+        dest.x = Math.roundUsing(x, mode)
+        dest.y = Math.roundUsing(y, mode)
+        dest.z = Math.roundUsing(z, mode)
+        return dest
     }
 
-    public Vector3f get(Vector3f dest) {
-        dest.x = (float) this.x;
-        dest.y = (float) this.y;
-        dest.z = (float) this.z;
-        return dest;
+    operator fun get(dest: Vector3f): Vector3f {
+        dest.x = x.toFloat()
+        dest.y = y.toFloat()
+        dest.z = z.toFloat()
+        return dest
     }
 
-    public Vector3d get(Vector3d dest) {
-        dest.x = this.x;
-        dest.y = this.y;
-        dest.z = this.z;
-        return dest;
+    operator fun get(dest: Vector3d): Vector3d {
+        dest.x = x
+        dest.y = y
+        dest.z = z
+        return dest
     }
 
-    public int maxComponent() {
-        double absX = Math.abs(this.x);
-        double absY = Math.abs(this.y);
-        double absZ = Math.abs(this.z);
-        if (absX >= absY && absX >= absZ) {
-            return 0;
+    fun maxComponent(): Int {
+        val absX = Math.abs(x)
+        val absY = Math.abs(y)
+        val absZ = Math.abs(z)
+        return if (absX >= absY && absX >= absZ) {
+            0
         } else {
-            return absY >= absZ ? 1 : 2;
+            if (absY >= absZ) 1 else 2
         }
     }
 
-    public int minComponent() {
-        double absX = Math.abs(this.x);
-        double absY = Math.abs(this.y);
-        double absZ = Math.abs(this.z);
-        if (absX < absY && absX < absZ) {
-            return 0;
+    fun minComponent(): Int {
+        val absX = Math.abs(x)
+        val absY = Math.abs(y)
+        val absZ = Math.abs(z)
+        return if (absX < absY && absX < absZ) {
+            0
         } else {
-            return absY < absZ ? 1 : 2;
+            if (absY < absZ) 1 else 2
         }
     }
 
-    public Vector3d orthogonalize(Vector3d v, Vector3d dest) {
-        double rx;
-        double ry;
-        double rz;
+    @JvmOverloads
+    fun orthogonalize(v: Vector3d, dest: Vector3d = this): Vector3d {
+        val rx: Double
+        val ry: Double
+        val rz: Double
         if (Math.abs(v.x) > Math.abs(v.z)) {
-            rx = -v.y;
-            ry = v.x;
-            rz = 0.0;
+            rx = -v.y
+            ry = v.x
+            rz = 0.0
         } else {
-            rx = 0.0;
-            ry = -v.z;
-            rz = v.y;
+            rx = 0.0
+            ry = -v.z
+            rz = v.y
+        }
+        val invLen = Math.invsqrt(rx * rx + ry * ry + rz * rz)
+        dest.x = rx * invLen
+        dest.y = ry * invLen
+        dest.z = rz * invLen
+        return dest
+    }
+
+    @JvmOverloads
+    fun orthogonalizeUnit(v: Vector3d, dest: Vector3d = this): Vector3d {
+        return orthogonalize(v, dest)
+    }
+
+    fun floor(): Vector3d {
+        x = Math.floor(x)
+        y = Math.floor(y)
+        z = Math.floor(z)
+        return this
+    }
+
+    fun floor(dest: Vector3d): Vector3d {
+        dest.x = Math.floor(x)
+        dest.y = Math.floor(y)
+        dest.z = Math.floor(z)
+        return dest
+    }
+
+    fun ceil(): Vector3d {
+        x = Math.ceil(x)
+        y = Math.ceil(y)
+        z = Math.ceil(z)
+        return this
+    }
+
+    fun ceil(dest: Vector3d): Vector3d {
+        dest.x = Math.ceil(x)
+        dest.y = Math.ceil(y)
+        dest.z = Math.ceil(z)
+        return dest
+    }
+
+    fun round(): Vector3d {
+        x = Math.round(x).toDouble()
+        y = Math.round(y).toDouble()
+        z = Math.round(z).toDouble()
+        return this
+    }
+
+    fun round(dest: Vector3d): Vector3d {
+        dest.x = Math.round(x).toDouble()
+        dest.y = Math.round(y).toDouble()
+        dest.z = Math.round(z).toDouble()
+        return dest
+    }
+
+    val isFinite: Boolean
+        get() = Math.isFinite(x) && Math.isFinite(y) && Math.isFinite(z)
+
+    @Throws(CloneNotSupportedException::class)
+    public override fun clone(): Any {
+        return super.clone()
+    }
+
+    companion object {
+        fun lengthSquared(x: Double, y: Double, z: Double): Double {
+            return Math.fma(x, x, Math.fma(y, y, z * z))
         }
 
-        double invLen = Math.invsqrt(rx * rx + ry * ry + rz * rz);
-        dest.x = rx * invLen;
-        dest.y = ry * invLen;
-        dest.z = rz * invLen;
-        return dest;
-    }
+        fun length(x: Double, y: Double, z: Double): Double {
+            return Math.sqrt(Math.fma(x, x, Math.fma(y, y, z * z)))
+        }
 
-    public Vector3d orthogonalize(Vector3d v) {
-        return this.orthogonalize(v, this);
-    }
+        fun distance(x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double): Double {
+            return Math.sqrt(distanceSquared(x1, y1, z1, x2, y2, z2))
+        }
 
-    public Vector3d orthogonalizeUnit(Vector3d v, Vector3d dest) {
-        return this.orthogonalize(v, dest);
-    }
-
-    public Vector3d orthogonalizeUnit(Vector3d v) {
-        return this.orthogonalizeUnit(v, this);
-    }
-
-    public Vector3d floor() {
-        this.x = Math.floor(this.x);
-        this.y = Math.floor(this.y);
-        this.z = Math.floor(this.z);
-        return this;
-    }
-
-    public Vector3d floor(Vector3d dest) {
-        dest.x = Math.floor(this.x);
-        dest.y = Math.floor(this.y);
-        dest.z = Math.floor(this.z);
-        return dest;
-    }
-
-    public Vector3d ceil() {
-        this.x = Math.ceil(this.x);
-        this.y = Math.ceil(this.y);
-        this.z = Math.ceil(this.z);
-        return this;
-    }
-
-    public Vector3d ceil(Vector3d dest) {
-        dest.x = Math.ceil(this.x);
-        dest.y = Math.ceil(this.y);
-        dest.z = Math.ceil(this.z);
-        return dest;
-    }
-
-    public Vector3d round() {
-        this.x = (double) Math.round(this.x);
-        this.y = (double) Math.round(this.y);
-        this.z = (double) Math.round(this.z);
-        return this;
-    }
-
-    public Vector3d round(Vector3d dest) {
-        dest.x = (double) Math.round(this.x);
-        dest.y = (double) Math.round(this.y);
-        dest.z = (double) Math.round(this.z);
-        return dest;
-    }
-
-    public boolean isFinite() {
-        return Math.isFinite(this.x) && Math.isFinite(this.y) && Math.isFinite(this.z);
-    }
-
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+        fun distanceSquared(x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double): Double {
+            val dx = x1 - x2
+            val dy = y1 - y2
+            val dz = z1 - z2
+            return Math.fma(dx, dx, Math.fma(dy, dy, dz * dz))
+        }
     }
 }
