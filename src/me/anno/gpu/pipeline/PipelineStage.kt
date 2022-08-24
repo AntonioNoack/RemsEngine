@@ -290,9 +290,9 @@ class PipelineStage(
                         val light = lightI.light
                         val m = lightI.transform.getDrawMatrix(time)
 
-                        buffer.put(((m.m30() - cameraPosition.x) * worldScale).toFloat())
-                        buffer.put(((m.m31() - cameraPosition.y) * worldScale).toFloat())
-                        buffer.put(((m.m32() - cameraPosition.z) * worldScale).toFloat())
+                        buffer.put(((m.m30 - cameraPosition.x) * worldScale).toFloat())
+                        buffer.put(((m.m31 - cameraPosition.y) * worldScale).toFloat())
+                        buffer.put(((m.m32 - cameraPosition.z) * worldScale).toFloat())
                         buffer.put(light.getShaderV0(m, worldScale))
 
                     }

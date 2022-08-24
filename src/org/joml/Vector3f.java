@@ -291,10 +291,10 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        float invW = 1f / Math.fma(mat.m03(), x, Math.fma(mat.m13(), y, Math.fma(mat.m23(), z, mat.m33())));
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30()))) * invW;
-        dest.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31()))) * invW;
-        dest.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32()))) * invW;
+        float invW = 1f / Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33)));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30))) * invW;
+        dest.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31))) * invW;
+        dest.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32))) * invW;
         return dest;
     }
 
@@ -302,10 +302,10 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        float invW = 1f / Math.fma(mat.m03(), x, Math.fma(mat.m13(), y, Math.fma(mat.m23(), z, mat.m33() * w)));
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30() * w))) * invW;
-        dest.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31() * w))) * invW;
-        dest.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32() * w))) * invW;
+        float invW = 1f / Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33 * w)));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30 * w))) * invW;
+        dest.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31 * w))) * invW;
+        dest.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32 * w))) * invW;
         return dest;
     }
 
@@ -313,10 +313,10 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        float invW = 1f / Math.fma(mat.m03(), x, Math.fma(mat.m13(), y, Math.fma(mat.m23(), z, mat.m33())));
-        this.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30()))) * invW;
-        this.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31()))) * invW;
-        this.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32()))) * invW;
+        float invW = 1f / Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33)));
+        this.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30))) * invW;
+        this.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31))) * invW;
+        this.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32))) * invW;
         return this;
     }
 
@@ -324,9 +324,9 @@ public class Vector3f {
         float lx = this.x;
         float ly = this.y;
         float lz = this.z;
-        this.x = Math.fma(mat.m00(), lx, Math.fma(mat.m10(), ly, mat.m20() * lz));
-        this.y = Math.fma(mat.m01(), lx, Math.fma(mat.m11(), ly, mat.m21() * lz));
-        this.z = Math.fma(mat.m02(), lx, Math.fma(mat.m12(), ly, mat.m22() * lz));
+        this.x = Math.fma(mat.m00, lx, Math.fma(mat.m10, ly, mat.m20 * lz));
+        this.y = Math.fma(mat.m01, lx, Math.fma(mat.m11, ly, mat.m21 * lz));
+        this.z = Math.fma(mat.m02, lx, Math.fma(mat.m12, ly, mat.m22 * lz));
         return this;
     }
 
@@ -334,9 +334,9 @@ public class Vector3f {
         float lx = this.x;
         float ly = this.y;
         float lz = this.z;
-        dest.x = Math.fma(mat.m00(), lx, Math.fma(mat.m10(), ly, mat.m20() * lz));
-        dest.y = Math.fma(mat.m01(), lx, Math.fma(mat.m11(), ly, mat.m21() * lz));
-        dest.z = Math.fma(mat.m02(), lx, Math.fma(mat.m12(), ly, mat.m22() * lz));
+        dest.x = Math.fma(mat.m00, lx, Math.fma(mat.m10, ly, mat.m20 * lz));
+        dest.y = Math.fma(mat.m01, lx, Math.fma(mat.m11, ly, mat.m21 * lz));
+        dest.z = Math.fma(mat.m02, lx, Math.fma(mat.m12, ly, mat.m22 * lz));
         return dest;
     }
 
@@ -344,9 +344,9 @@ public class Vector3f {
         float lx = this.x;
         float ly = this.y;
         float lz = this.z;
-        this.x = (float) Math.fma(mat.m00(), lx, Math.fma(mat.m10(), ly, mat.m20() * (double) lz));
-        this.y = (float) Math.fma(mat.m01(), lx, Math.fma(mat.m11(), ly, mat.m21() * (double) lz));
-        this.z = (float) Math.fma(mat.m02(), lx, Math.fma(mat.m12(), ly, mat.m22() * (double) lz));
+        this.x = (float) Math.fma(mat.m00, lx, Math.fma(mat.m10, ly, mat.m20 * (double) lz));
+        this.y = (float) Math.fma(mat.m01, lx, Math.fma(mat.m11, ly, mat.m21 * (double) lz));
+        this.z = (float) Math.fma(mat.m02, lx, Math.fma(mat.m12, ly, mat.m22 * (double) lz));
         return this;
     }
 
@@ -354,9 +354,9 @@ public class Vector3f {
         float lx = this.x;
         float ly = this.y;
         float lz = this.z;
-        dest.x = (float) Math.fma(mat.m00(), lx, Math.fma(mat.m10(), ly, mat.m20() * (double) lz));
-        dest.y = (float) Math.fma(mat.m01(), lx, Math.fma(mat.m11(), ly, mat.m21() * (double) lz));
-        dest.z = (float) Math.fma(mat.m02(), lx, Math.fma(mat.m12(), ly, mat.m22() * (double) lz));
+        dest.x = (float) Math.fma(mat.m00, lx, Math.fma(mat.m10, ly, mat.m20 * (double) lz));
+        dest.y = (float) Math.fma(mat.m01, lx, Math.fma(mat.m11, ly, mat.m21 * (double) lz));
+        dest.z = (float) Math.fma(mat.m02, lx, Math.fma(mat.m12, ly, mat.m22 * (double) lz));
         return dest;
     }
 
@@ -364,8 +364,8 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        this.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, mat.m20() * z));
-        this.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, mat.m21() * z));
+        this.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z));
+        this.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z));
         this.z = z;
         return this;
     }
@@ -374,8 +374,8 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, mat.m20() * z));
-        dest.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, mat.m21() * z));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z));
+        dest.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z));
         dest.z = z;
         return dest;
     }
@@ -384,9 +384,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        this.x = Math.fma(mat.m00(), x, Math.fma(mat.m01(), y, mat.m02() * z));
-        this.y = Math.fma(mat.m10(), x, Math.fma(mat.m11(), y, mat.m12() * z));
-        this.z = Math.fma(mat.m20(), x, Math.fma(mat.m21(), y, mat.m22() * z));
+        this.x = Math.fma(mat.m00, x, Math.fma(mat.m01, y, mat.m02 * z));
+        this.y = Math.fma(mat.m10, x, Math.fma(mat.m11, y, mat.m12 * z));
+        this.z = Math.fma(mat.m20, x, Math.fma(mat.m21, y, mat.m22 * z));
         return this;
     }
 
@@ -394,9 +394,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m01(), y, mat.m02() * z));
-        dest.y = Math.fma(mat.m10(), x, Math.fma(mat.m11(), y, mat.m12() * z));
-        dest.z = Math.fma(mat.m20(), x, Math.fma(mat.m21(), y, mat.m22() * z));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m01, y, mat.m02 * z));
+        dest.y = Math.fma(mat.m10, x, Math.fma(mat.m11, y, mat.m12 * z));
+        dest.z = Math.fma(mat.m20, x, Math.fma(mat.m21, y, mat.m22 * z));
         return dest;
     }
 
@@ -404,9 +404,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        this.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30())));
-        this.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31())));
-        this.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32())));
+        this.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)));
+        this.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)));
+        this.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)));
         return this;
     }
 
@@ -414,9 +414,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        this.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30())));
-        this.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31())));
-        this.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32())));
+        this.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)));
+        this.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)));
+        this.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)));
         return this;
     }
 
@@ -424,9 +424,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30())));
-        dest.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31())));
-        dest.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32())));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)));
+        dest.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)));
+        dest.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)));
         return dest;
     }
 
@@ -434,9 +434,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30())));
-        dest.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31())));
-        dest.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32())));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)));
+        dest.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)));
+        dest.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)));
         return dest;
     }
 
@@ -444,9 +444,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        this.x = Math.fma(mat.m00(), x, Math.fma(mat.m01(), y, Math.fma(mat.m02(), z, mat.m03())));
-        this.y = Math.fma(mat.m10(), x, Math.fma(mat.m11(), y, Math.fma(mat.m12(), z, mat.m13())));
-        this.z = Math.fma(mat.m20(), x, Math.fma(mat.m21(), y, Math.fma(mat.m22(), z, mat.m23())));
+        this.x = Math.fma(mat.m00, x, Math.fma(mat.m01, y, Math.fma(mat.m02, z, mat.m03)));
+        this.y = Math.fma(mat.m10, x, Math.fma(mat.m11, y, Math.fma(mat.m12, z, mat.m13)));
+        this.z = Math.fma(mat.m20, x, Math.fma(mat.m21, y, Math.fma(mat.m22, z, mat.m23)));
         return this;
     }
 
@@ -454,9 +454,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m01(), y, Math.fma(mat.m02(), z, mat.m03())));
-        dest.y = Math.fma(mat.m10(), x, Math.fma(mat.m11(), y, Math.fma(mat.m12(), z, mat.m13())));
-        dest.z = Math.fma(mat.m20(), x, Math.fma(mat.m21(), y, Math.fma(mat.m22(), z, mat.m23())));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m01, y, Math.fma(mat.m02, z, mat.m03)));
+        dest.y = Math.fma(mat.m10, x, Math.fma(mat.m11, y, Math.fma(mat.m12, z, mat.m13)));
+        dest.z = Math.fma(mat.m20, x, Math.fma(mat.m21, y, Math.fma(mat.m22, z, mat.m23)));
         return dest;
     }
 
@@ -464,10 +464,10 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        float w = Math.fma(mat.m03(), x, Math.fma(mat.m13(), y, Math.fma(mat.m23(), z, mat.m33())));
-        this.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30())));
-        this.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31())));
-        this.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32())));
+        float w = Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33)));
+        this.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)));
+        this.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)));
+        this.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)));
         return w;
     }
 
@@ -475,10 +475,10 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        float w = Math.fma(mat.m03(), x, Math.fma(mat.m13(), y, Math.fma(mat.m23(), z, mat.m33())));
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30())));
-        dest.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31())));
-        dest.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32())));
+        float w = Math.fma(mat.m03, x, Math.fma(mat.m13, y, Math.fma(mat.m23, z, mat.m33)));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, Math.fma(mat.m20, z, mat.m30)));
+        dest.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, Math.fma(mat.m21, z, mat.m31)));
+        dest.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, Math.fma(mat.m22, z, mat.m32)));
         return w;
     }
 
@@ -486,9 +486,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        this.x = (float) Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, mat.m20() * (double) z));
-        this.y = (float) Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, mat.m21() * (double) z));
-        this.z = (float) Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, mat.m22() * (double) z));
+        this.x = (float) Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * (double) z));
+        this.y = (float) Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * (double) z));
+        this.z = (float) Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * (double) z));
         return this;
     }
 
@@ -496,9 +496,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        this.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, mat.m20() * z));
-        this.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, mat.m21() * z));
-        this.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, mat.m22() * z));
+        this.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z));
+        this.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z));
+        this.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z));
         return this;
     }
 
@@ -506,9 +506,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        this.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, mat.m20() * z));
-        this.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, mat.m21() * z));
-        this.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, mat.m22() * z));
+        this.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z));
+        this.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z));
+        this.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z));
         return this;
     }
 
@@ -516,9 +516,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        dest.x = (float) Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, mat.m20() * (double) z));
-        dest.y = (float) Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, mat.m21() * (double) z));
-        dest.z = (float) Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, mat.m22() * (double) z));
+        dest.x = (float) Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * (double) z));
+        dest.y = (float) Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * (double) z));
+        dest.z = (float) Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * (double) z));
         return dest;
     }
 
@@ -526,9 +526,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, mat.m20() * z));
-        dest.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, mat.m21() * z));
-        dest.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, mat.m22() * z));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z));
+        dest.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z));
+        dest.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z));
         return dest;
     }
 
@@ -536,9 +536,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, mat.m20() * z));
-        dest.y = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, mat.m21() * z));
-        dest.z = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, mat.m22() * z));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m10, y, mat.m20 * z));
+        dest.y = Math.fma(mat.m01, x, Math.fma(mat.m11, y, mat.m21 * z));
+        dest.z = Math.fma(mat.m02, x, Math.fma(mat.m12, y, mat.m22 * z));
         return dest;
     }
 
@@ -546,9 +546,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        this.x = Math.fma(mat.m00(), x, Math.fma(mat.m01(), y, mat.m02() * z));
-        this.y = Math.fma(mat.m10(), x, Math.fma(mat.m11(), y, mat.m12() * z));
-        this.z = Math.fma(mat.m20(), x, Math.fma(mat.m21(), y, mat.m22() * z));
+        this.x = Math.fma(mat.m00, x, Math.fma(mat.m01, y, mat.m02 * z));
+        this.y = Math.fma(mat.m10, x, Math.fma(mat.m11, y, mat.m12 * z));
+        this.z = Math.fma(mat.m20, x, Math.fma(mat.m21, y, mat.m22 * z));
         return this;
     }
 
@@ -556,9 +556,9 @@ public class Vector3f {
         float x = this.x;
         float y = this.y;
         float z = this.z;
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m01(), y, mat.m02() * z));
-        dest.y = Math.fma(mat.m10(), x, Math.fma(mat.m11(), y, mat.m12() * z));
-        dest.z = Math.fma(mat.m20(), x, Math.fma(mat.m21(), y, mat.m22() * z));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m01, y, mat.m02 * z));
+        dest.y = Math.fma(mat.m10, x, Math.fma(mat.m11, y, mat.m12 * z));
+        dest.z = Math.fma(mat.m20, x, Math.fma(mat.m21, y, mat.m22 * z));
         return dest;
     }
 

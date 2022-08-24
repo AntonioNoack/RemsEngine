@@ -133,7 +133,7 @@ object Raycast {
             testRadiusPerUnit = 0f
             1f - computeConeInterpolation(
                 start, direction,
-                global.m30(), global.m31(), global.m32(),
+                global.m30, global.m31, global.m32,
                 radiusAtOrigin, radiusPerUnit
             ).toFloat()
         } else 1f

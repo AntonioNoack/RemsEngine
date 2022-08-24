@@ -32,9 +32,9 @@ abstract class MeshJoiner<V>(
     open fun getBoneId(element: V): Byte = 0
 
     private fun is3x3Identity(t: Matrix4x3f): Boolean {
-        return abs(t.m00() - 1f) + abs(t.m10()) + abs(t.m20()) +
-                abs(t.m01()) + abs(t.m11() - 1f) + abs(t.m21()) +
-                abs(t.m02()) + abs(t.m12()) + abs(t.m22() - 1f) < 1e-7f
+        return abs(t.m00 - 1f) + abs(t.m10) + abs(t.m20) +
+                abs(t.m01) + abs(t.m11 - 1f) + abs(t.m21) +
+                abs(t.m02) + abs(t.m12) + abs(t.m22 - 1f) < 1e-7f
     }
 
     private fun alloc(needed: Boolean, size: Int, old: FloatArray?) = if (needed) old.resize(size) else null
@@ -114,9 +114,9 @@ abstract class MeshJoiner<V>(
 
             val srcTangents = mesh.tangents
             if (is3x3Identity(localToGlobal)) { // fast path with translation only
-                val px = localToGlobal.m30()
-                val py = localToGlobal.m31()
-                val pz = localToGlobal.m32()
+                val px = localToGlobal.m30
+                val py = localToGlobal.m31
+                val pz = localToGlobal.m32
                 for (k in srcPositions.indices step 3) {
                     dstPositions[i++] = px + srcPositions[k]
                     dstPositions[i++] = py + srcPositions[k + 1]

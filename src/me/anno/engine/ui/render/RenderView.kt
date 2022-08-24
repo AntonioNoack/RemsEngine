@@ -1412,9 +1412,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     val globalTransform = transform.globalTransform
 
                     /*val doDrawCircle = camPosition.distanceSquared(
-                        globalTransform.m30(),
-                        globalTransform.m31(),
-                        globalTransform.m32()
+                        globalTransform.m30,
+                        globalTransform.m31,
+                        globalTransform.m32
                     ) < maxCircleLenSq*/
 
                     val nextClickId = clickId++

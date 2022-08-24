@@ -25,10 +25,10 @@ public class Matrix2f {
     }
 
     public Matrix2f(Matrix3f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
     }
 
     public Matrix2f(float m00, float m01, float m10, float m11) {
@@ -112,33 +112,33 @@ public class Matrix2f {
     }
 
     private void setMatrix2f(Matrix2f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
     }
 
     public Matrix2f set(Matrix3x2f m) {
-        this.m00 = m.m00();
-        this.m01 = m.m01();
-        this.m10 = m.m10();
-        this.m11 = m.m11();
+        this.m00 = m.m00;
+        this.m01 = m.m01;
+        this.m10 = m.m10;
+        this.m11 = m.m11;
         return this;
     }
 
     public Matrix2f set(Matrix3f m) {
-        this.m00 = m.m00();
-        this.m01 = m.m01();
-        this.m10 = m.m10();
-        this.m11 = m.m11();
+        this.m00 = m.m00;
+        this.m01 = m.m01;
+        this.m10 = m.m10;
+        this.m11 = m.m11;
         return this;
     }
 
     private void setMatrix3f(Matrix3f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
     }
 
     public Matrix2f mul(Matrix2f right) {
@@ -146,10 +146,10 @@ public class Matrix2f {
     }
 
     public Matrix2f mul(Matrix2f right, Matrix2f dest) {
-        float nm00 = this.m00 * right.m00() + this.m10 * right.m01();
-        float nm01 = this.m01 * right.m00() + this.m11 * right.m01();
-        float nm10 = this.m00 * right.m10() + this.m10 * right.m11();
-        float nm11 = this.m01 * right.m10() + this.m11 * right.m11();
+        float nm00 = this.m00 * right.m00 + this.m10 * right.m01;
+        float nm01 = this.m01 * right.m00 + this.m11 * right.m01;
+        float nm10 = this.m00 * right.m10 + this.m10 * right.m11;
+        float nm11 = this.m01 * right.m10 + this.m11 * right.m11;
         dest.m00 = nm00;
         dest.m01 = nm01;
         dest.m10 = nm10;
@@ -162,10 +162,10 @@ public class Matrix2f {
     }
 
     public Matrix2f mulLocal(Matrix2f left, Matrix2f dest) {
-        float nm00 = left.m00() * this.m00 + left.m10() * this.m01;
-        float nm01 = left.m01() * this.m00 + left.m11() * this.m01;
-        float nm10 = left.m00() * this.m10 + left.m10() * this.m11;
-        float nm11 = left.m01() * this.m10 + left.m11() * this.m11;
+        float nm00 = left.m00 * this.m00 + left.m10 * this.m01;
+        float nm01 = left.m01 * this.m00 + left.m11 * this.m01;
+        float nm10 = left.m00 * this.m10 + left.m10 * this.m11;
+        float nm11 = left.m01 * this.m10 + left.m11 * this.m11;
         dest.m00 = nm00;
         dest.m01 = nm01;
         dest.m10 = nm10;
@@ -654,14 +654,14 @@ public class Matrix2f {
             return true;
         } else if (m == null) {
             return false;
-        } else if (!Runtime.equals(this.m00, m.m00(), delta)) {
+        } else if (!Runtime.equals(this.m00, m.m00, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m01, m.m01(), delta)) {
+        } else if (!Runtime.equals(this.m01, m.m01, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m10, m.m10(), delta)) {
+        } else if (!Runtime.equals(this.m10, m.m10, delta)) {
             return false;
         } else {
-            return Runtime.equals(this.m11, m.m11(), delta);
+            return Runtime.equals(this.m11, m.m11, delta);
         }
     }
 
@@ -675,10 +675,10 @@ public class Matrix2f {
     }
 
     public Matrix2f add(Matrix2f other, Matrix2f dest) {
-        dest.m00 = this.m00 + other.m00();
-        dest.m01 = this.m01 + other.m01();
-        dest.m10 = this.m10 + other.m10();
-        dest.m11 = this.m11 + other.m11();
+        dest.m00 = this.m00 + other.m00;
+        dest.m01 = this.m01 + other.m01;
+        dest.m10 = this.m10 + other.m10;
+        dest.m11 = this.m11 + other.m11;
         return dest;
     }
 
@@ -687,10 +687,10 @@ public class Matrix2f {
     }
 
     public Matrix2f sub(Matrix2f other, Matrix2f dest) {
-        dest.m00 = this.m00 - other.m00();
-        dest.m01 = this.m01 - other.m01();
-        dest.m10 = this.m10 - other.m10();
-        dest.m11 = this.m11 - other.m11();
+        dest.m00 = this.m00 - other.m00;
+        dest.m01 = this.m01 - other.m01;
+        dest.m10 = this.m10 - other.m10;
+        dest.m11 = this.m11 - other.m11;
         return dest;
     }
 
@@ -699,10 +699,10 @@ public class Matrix2f {
     }
 
     public Matrix2f mulComponentWise(Matrix2f other, Matrix2f dest) {
-        dest.m00 = this.m00 * other.m00();
-        dest.m01 = this.m01 * other.m01();
-        dest.m10 = this.m10 * other.m10();
-        dest.m11 = this.m11 * other.m11();
+        dest.m00 = this.m00 * other.m00;
+        dest.m01 = this.m01 * other.m01;
+        dest.m10 = this.m10 * other.m10;
+        dest.m11 = this.m11 * other.m11;
         return dest;
     }
 
@@ -711,10 +711,10 @@ public class Matrix2f {
     }
 
     public Matrix2f lerp(Matrix2f other, float t, Matrix2f dest) {
-        dest.m00 = Math.fma(other.m00() - this.m00, t, this.m00);
-        dest.m01 = Math.fma(other.m01() - this.m01, t, this.m01);
-        dest.m10 = Math.fma(other.m10() - this.m10, t, this.m10);
-        dest.m11 = Math.fma(other.m11() - this.m11, t, this.m11);
+        dest.m00 = Math.fma(other.m00 - this.m00, t, this.m00);
+        dest.m01 = Math.fma(other.m01 - this.m01, t, this.m01);
+        dest.m10 = Math.fma(other.m10 - this.m10, t, this.m10);
+        dest.m11 = Math.fma(other.m11 - this.m11, t, this.m11);
         return dest;
     }
 

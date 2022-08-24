@@ -51,15 +51,15 @@ object Matrices {
     ): Vector3f {
         val ndcX = (mouseX - windowX) / windowW * 2.0f - 1.0f
         val ndcY = (mouseY - windowY) / windowH * 2.0f - 1.0f
-        val px = this.m00() * ndcX + this.m10() * ndcY + this.m30()
-        val py = this.m01() * ndcX + this.m11() * ndcY + this.m31()
-        val pz = this.m02() * ndcX + this.m12() * ndcY + this.m32()
-        val pw = this.m03() * ndcX + this.m13() * ndcY + this.m33()
-        val pw1 = pw - this.m23()
+        val px = this.m00 * ndcX + this.m10 * ndcY + this.m30
+        val py = this.m01 * ndcX + this.m11 * ndcY + this.m31
+        val pz = this.m02 * ndcX + this.m12 * ndcY + this.m32
+        val pw = this.m03 * ndcX + this.m13 * ndcY + this.m33
+        val pw1 = pw - this.m23
         val invNearW = 1.0f / pw1
-        val nearX = (px - this.m20()) * invNearW
-        val nearY = (py - this.m21()) * invNearW
-        val nearZ = (pz - this.m22()) * invNearW
+        val nearX = (px - this.m20) * invNearW
+        val nearY = (py - this.m21) * invNearW
+        val nearZ = (pz - this.m22) * invNearW
         val invW0 = 1.0f / pw
         val x0 = px * invW0
         val y0 = py * invW0
@@ -101,10 +101,10 @@ object Matrices {
      * */
     fun Matrix4x3f.set2(src: Matrix4x3d): Matrix4x3f {
         set(
-            src.m00().toFloat(), src.m01().toFloat(), src.m02().toFloat(),
-            src.m10().toFloat(), src.m11().toFloat(), src.m12().toFloat(),
-            src.m20().toFloat(), src.m21().toFloat(), src.m22().toFloat(),
-            src.m30().toFloat(), src.m31().toFloat(), src.m32().toFloat()
+            src.m00.toFloat(), src.m01.toFloat(), src.m02.toFloat(),
+            src.m10.toFloat(), src.m11.toFloat(), src.m12.toFloat(),
+            src.m20.toFloat(), src.m21.toFloat(), src.m22.toFloat(),
+            src.m30.toFloat(), src.m31.toFloat(), src.m32.toFloat()
         )
         return this
     }
@@ -130,28 +130,28 @@ object Matrices {
 
     fun Matrix4f.set2(other: Matrix4x3d): Matrix4f {
         return set(
-            other.m00().toFloat(), other.m01().toFloat(), other.m02().toFloat(), 0f,
-            other.m10().toFloat(), other.m11().toFloat(), other.m12().toFloat(), 0f,
-            other.m20().toFloat(), other.m21().toFloat(), other.m22().toFloat(), 0f,
-            other.m30().toFloat(), other.m31().toFloat(), other.m32().toFloat(), 1f
+            other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), 0f,
+            other.m10.toFloat(), other.m11.toFloat(), other.m12.toFloat(), 0f,
+            other.m20.toFloat(), other.m21.toFloat(), other.m22.toFloat(), 0f,
+            other.m30.toFloat(), other.m31.toFloat(), other.m32.toFloat(), 1f
         )
     }
 
     fun Matrix4f.mul2(other: Matrix4x3d): Matrix4f {
         return mul(
-            other.m00().toFloat(), other.m01().toFloat(), other.m02().toFloat(), 0f,
-            other.m10().toFloat(), other.m11().toFloat(), other.m12().toFloat(), 0f,
-            other.m20().toFloat(), other.m21().toFloat(), other.m22().toFloat(), 0f,
-            other.m30().toFloat(), other.m31().toFloat(), other.m32().toFloat(), 1f
+            other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), 0f,
+            other.m10.toFloat(), other.m11.toFloat(), other.m12.toFloat(), 0f,
+            other.m20.toFloat(), other.m21.toFloat(), other.m22.toFloat(), 0f,
+            other.m30.toFloat(), other.m31.toFloat(), other.m32.toFloat(), 1f
         )
     }
 
     fun Matrix4f.mul2(other: Matrix4d): Matrix4f {
         return mul(
-            other.m00().toFloat(), other.m01().toFloat(), other.m02().toFloat(), other.m03().toFloat(),
-            other.m10().toFloat(), other.m11().toFloat(), other.m12().toFloat(), other.m13().toFloat(),
-            other.m20().toFloat(), other.m21().toFloat(), other.m22().toFloat(), other.m23().toFloat(),
-            other.m30().toFloat(), other.m31().toFloat(), other.m32().toFloat(), other.m33().toFloat()
+            other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), other.m03.toFloat(),
+            other.m10.toFloat(), other.m11.toFloat(), other.m12.toFloat(), other.m13.toFloat(),
+            other.m20.toFloat(), other.m21.toFloat(), other.m22.toFloat(), other.m23.toFloat(),
+            other.m30.toFloat(), other.m31.toFloat(), other.m32.toFloat(), other.m33.toFloat()
         )
     }
 
@@ -179,9 +179,9 @@ object Matrices {
     fun Matrix3d.mul2(other: Matrix4d): Matrix3d {
         mul(
             Matrix3d(
-                other.m00(), other.m01(), other.m02(),
-                other.m10(), other.m11(), other.m12(),
-                other.m20(), other.m21(), other.m22()
+                other.m00, other.m01, other.m02,
+                other.m10, other.m11, other.m12,
+                other.m20, other.m21, other.m22
             )
         )
         return this

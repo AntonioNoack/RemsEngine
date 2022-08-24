@@ -540,9 +540,9 @@ class LightPipelineStage(
                 // data1: camera position, shader specific value (cone angle / size)
                 shader.v4f(
                     "data1",
-                    ((m.m30() - cameraPosition.x) * worldScale).toFloat(),
-                    ((m.m31() - cameraPosition.y) * worldScale).toFloat(),
-                    ((m.m32() - cameraPosition.z) * worldScale).toFloat(),
+                    ((m.m30 - cameraPosition.x) * worldScale).toFloat(),
+                    ((m.m31 - cameraPosition.y) * worldScale).toFloat(),
+                    ((m.m32 - cameraPosition.z) * worldScale).toFloat(),
                     light.getShaderV0(m, worldScale)
                 )
 
@@ -666,9 +666,9 @@ class LightPipelineStage(
                     nioBuffer.putFloat(color.z)
                     nioBuffer.putFloat(0f) // type, not used
                     // put data1/xyz: world position
-                    nioBuffer.putFloat(((m.m30() - cameraPosition.x) * worldScale).toFloat())
-                    nioBuffer.putFloat(((m.m31() - cameraPosition.y) * worldScale).toFloat())
-                    nioBuffer.putFloat(((m.m32() - cameraPosition.z) * worldScale).toFloat())
+                    nioBuffer.putFloat(((m.m30 - cameraPosition.x) * worldScale).toFloat())
+                    nioBuffer.putFloat(((m.m31 - cameraPosition.y) * worldScale).toFloat())
+                    nioBuffer.putFloat(((m.m32 - cameraPosition.z) * worldScale).toFloat())
                     // put data1/a: custom property
                     nioBuffer.putFloat(light.getShaderV0(m, worldScale))
                     // put data2:

@@ -419,11 +419,11 @@ public class Matrix4d {
     }
 
     public Matrix4d set(Matrix4d m) {
-        return this._m00(m.m00())._m01(m.m01())._m02(m.m02())._m03(m.m03())._m10(m.m10())._m11(m.m11())._m12(m.m12())._m13(m.m13())._m20(m.m20())._m21(m.m21())._m22(m.m22())._m23(m.m23())._m30(m.m30())._m31(m.m31())._m32(m.m32())._m33(m.m33())._properties(m.properties());
+        return this._m00(m.m00)._m01(m.m01)._m02(m.m02)._m03(m.m03)._m10(m.m10)._m11(m.m11)._m12(m.m12)._m13(m.m13)._m20(m.m20)._m21(m.m21)._m22(m.m22)._m23(m.m23)._m30(m.m30)._m31(m.m31)._m32(m.m32)._m33(m.m33)._properties(m.properties());
     }
 
     public Matrix4d set(Matrix4f m) {
-        return this._m00(m.m00())._m01(m.m01())._m02(m.m02())._m03(m.m03())._m10(m.m10())._m11(m.m11())._m12(m.m12())._m13(m.m13())._m20(m.m20())._m21(m.m21())._m22(m.m22())._m23(m.m23())._m30(m.m30())._m31(m.m31())._m32(m.m32())._m33(m.m33())._properties(m.properties());
+        return this._m00(m.m00)._m01(m.m01)._m02(m.m02)._m03(m.m03)._m10(m.m10)._m11(m.m11)._m12(m.m12)._m13(m.m13)._m20(m.m20)._m21(m.m21)._m22(m.m22)._m23(m.m23)._m30(m.m30)._m31(m.m31)._m32(m.m32)._m33(m.m33)._properties(m.properties());
     }
 
     public Matrix4d setTransposed(Matrix4d m) {
@@ -431,43 +431,43 @@ public class Matrix4d {
     }
 
     private Matrix4d setTransposedInternal(Matrix4d m) {
-        double nm10 = m.m01();
-        double nm12 = m.m21();
-        double nm13 = m.m31();
-        double nm20 = m.m02();
-        double nm21 = m.m12();
-        double nm30 = m.m03();
-        double nm31 = m.m13();
-        double nm32 = m.m23();
-        return this._m00(m.m00())._m01(m.m10())._m02(m.m20())._m03(m.m30())._m10(nm10)._m11(m.m11())._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(m.m22())._m23(m.m32())._m30(nm30)._m31(nm31)._m32(nm32)._m33(m.m33())._properties(m.properties() & 4);
+        double nm10 = m.m01;
+        double nm12 = m.m21;
+        double nm13 = m.m31;
+        double nm20 = m.m02;
+        double nm21 = m.m12;
+        double nm30 = m.m03;
+        double nm31 = m.m13;
+        double nm32 = m.m23;
+        return this._m00(m.m00)._m01(m.m10)._m02(m.m20)._m03(m.m30)._m10(nm10)._m11(m.m11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(m.m22)._m23(m.m32)._m30(nm30)._m31(nm31)._m32(nm32)._m33(m.m33)._properties(m.properties() & 4);
     }
 
     public Matrix4d set(Matrix4x3d m) {
-        return this._m00(m.m00())._m01(m.m01())._m02(m.m02())._m03(0.0)._m10(m.m10())._m11(m.m11())._m12(m.m12())._m13(0.0)._m20(m.m20())._m21(m.m21())._m22(m.m22())._m23(0.0)._m30(m.m30())._m31(m.m31())._m32(m.m32())._m33(1.0)._properties(m.properties() | 2);
+        return this._m00(m.m00)._m01(m.m01)._m02(m.m02)._m03(0.0)._m10(m.m10)._m11(m.m11)._m12(m.m12)._m13(0.0)._m20(m.m20)._m21(m.m21)._m22(m.m22)._m23(0.0)._m30(m.m30)._m31(m.m31)._m32(m.m32)._m33(1.0)._properties(m.properties() | 2);
     }
 
     public Matrix4d set(Matrix4x3f m) {
-        return this._m00(m.m00())._m01(m.m01())._m02(m.m02())._m03(0.0)._m10(m.m10())._m11(m.m11())._m12(m.m12())._m13(0.0)._m20(m.m20())._m21(m.m21())._m22(m.m22())._m23(0.0)._m30(m.m30())._m31(m.m31())._m32(m.m32())._m33(1.0)._properties(m.properties() | 2);
+        return this._m00(m.m00)._m01(m.m01)._m02(m.m02)._m03(0.0)._m10(m.m10)._m11(m.m11)._m12(m.m12)._m13(0.0)._m20(m.m20)._m21(m.m21)._m22(m.m22)._m23(0.0)._m30(m.m30)._m31(m.m31)._m32(m.m32)._m33(1.0)._properties(m.properties() | 2);
     }
 
     public Matrix4d set(Matrix3d mat) {
-        return this._m00(mat.m00())._m01(mat.m01())._m02(mat.m02())._m03(0.0)._m10(mat.m10())._m11(mat.m11())._m12(mat.m12())._m13(0.0)._m20(mat.m20())._m21(mat.m21())._m22(mat.m22())._m23(0.0)._m30(0.0)._m31(0.0)._m32(0.0)._m33(1.0)._properties(2);
+        return this._m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m03(0.0)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m13(0.0)._m20(mat.m20)._m21(mat.m21)._m22(mat.m22)._m23(0.0)._m30(0.0)._m31(0.0)._m32(0.0)._m33(1.0)._properties(2);
     }
 
     public Matrix4d set3x3(Matrix4d mat) {
-        return this._m00(mat.m00())._m01(mat.m01())._m02(mat.m02())._m10(mat.m10())._m11(mat.m11())._m12(mat.m12())._m20(mat.m20())._m21(mat.m21())._m22(mat.m22())._properties(this.properties & mat.properties() & -2);
+        return this._m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)._m21(mat.m21)._m22(mat.m22)._properties(this.properties & mat.properties() & -2);
     }
 
     public Matrix4d set4x3(Matrix4x3d mat) {
-        return this._m00(mat.m00())._m01(mat.m01())._m02(mat.m02())._m10(mat.m10())._m11(mat.m11())._m12(mat.m12())._m20(mat.m20())._m21(mat.m21())._m22(mat.m22())._m30(mat.m30())._m31(mat.m31())._m32(mat.m32())._properties(this.properties & mat.properties() & -2);
+        return this._m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)._m21(mat.m21)._m22(mat.m22)._m30(mat.m30)._m31(mat.m31)._m32(mat.m32)._properties(this.properties & mat.properties() & -2);
     }
 
     public Matrix4d set4x3(Matrix4x3f mat) {
-        return this._m00(mat.m00())._m01(mat.m01())._m02(mat.m02())._m10(mat.m10())._m11(mat.m11())._m12(mat.m12())._m20(mat.m20())._m21(mat.m21())._m22(mat.m22())._m30(mat.m30())._m31(mat.m31())._m32(mat.m32())._properties(this.properties & mat.properties() & -2);
+        return this._m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)._m21(mat.m21)._m22(mat.m22)._m30(mat.m30)._m31(mat.m31)._m32(mat.m32)._properties(this.properties & mat.properties() & -2);
     }
 
     public Matrix4d set4x3(Matrix4d mat) {
-        return this._m00(mat.m00())._m01(mat.m01())._m02(mat.m02())._m10(mat.m10())._m11(mat.m11())._m12(mat.m12())._m20(mat.m20())._m21(mat.m21())._m22(mat.m22())._m30(mat.m30())._m31(mat.m31())._m32(mat.m32())._properties(this.properties & mat.properties() & -2);
+        return this._m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)._m21(mat.m21)._m22(mat.m22)._m30(mat.m30)._m31(mat.m31)._m32(mat.m32)._properties(this.properties & mat.properties() & -2);
     }
 
     public Matrix4d set(AxisAngle4f axisAngle) {
@@ -553,22 +553,22 @@ public class Matrix4d {
     }
 
     public Matrix4d mul0(Matrix4d right, Matrix4d dest) {
-        double nm00 = Math.fma(this.m00, right.m00(), Math.fma(this.m10, right.m01(), Math.fma(this.m20, right.m02(), this.m30 * right.m03())));
-        double nm01 = Math.fma(this.m01, right.m00(), Math.fma(this.m11, right.m01(), Math.fma(this.m21, right.m02(), this.m31 * right.m03())));
-        double nm02 = Math.fma(this.m02, right.m00(), Math.fma(this.m12, right.m01(), Math.fma(this.m22, right.m02(), this.m32 * right.m03())));
-        double nm03 = Math.fma(this.m03, right.m00(), Math.fma(this.m13, right.m01(), Math.fma(this.m23, right.m02(), this.m33 * right.m03())));
-        double nm10 = Math.fma(this.m00, right.m10(), Math.fma(this.m10, right.m11(), Math.fma(this.m20, right.m12(), this.m30 * right.m13())));
-        double nm11 = Math.fma(this.m01, right.m10(), Math.fma(this.m11, right.m11(), Math.fma(this.m21, right.m12(), this.m31 * right.m13())));
-        double nm12 = Math.fma(this.m02, right.m10(), Math.fma(this.m12, right.m11(), Math.fma(this.m22, right.m12(), this.m32 * right.m13())));
-        double nm13 = Math.fma(this.m03, right.m10(), Math.fma(this.m13, right.m11(), Math.fma(this.m23, right.m12(), this.m33 * right.m13())));
-        double nm20 = Math.fma(this.m00, right.m20(), Math.fma(this.m10, right.m21(), Math.fma(this.m20, right.m22(), this.m30 * right.m23())));
-        double nm21 = Math.fma(this.m01, right.m20(), Math.fma(this.m11, right.m21(), Math.fma(this.m21, right.m22(), this.m31 * right.m23())));
-        double nm22 = Math.fma(this.m02, right.m20(), Math.fma(this.m12, right.m21(), Math.fma(this.m22, right.m22(), this.m32 * right.m23())));
-        double nm23 = Math.fma(this.m03, right.m20(), Math.fma(this.m13, right.m21(), Math.fma(this.m23, right.m22(), this.m33 * right.m23())));
-        double nm30 = Math.fma(this.m00, right.m30(), Math.fma(this.m10, right.m31(), Math.fma(this.m20, right.m32(), this.m30 * right.m33())));
-        double nm31 = Math.fma(this.m01, right.m30(), Math.fma(this.m11, right.m31(), Math.fma(this.m21, right.m32(), this.m31 * right.m33())));
-        double nm32 = Math.fma(this.m02, right.m30(), Math.fma(this.m12, right.m31(), Math.fma(this.m22, right.m32(), this.m32 * right.m33())));
-        double nm33 = Math.fma(this.m03, right.m30(), Math.fma(this.m13, right.m31(), Math.fma(this.m23, right.m32(), this.m33 * right.m33())));
+        double nm00 = Math.fma(this.m00, right.m00, Math.fma(this.m10, right.m01, Math.fma(this.m20, right.m02, this.m30 * right.m03)));
+        double nm01 = Math.fma(this.m01, right.m00, Math.fma(this.m11, right.m01, Math.fma(this.m21, right.m02, this.m31 * right.m03)));
+        double nm02 = Math.fma(this.m02, right.m00, Math.fma(this.m12, right.m01, Math.fma(this.m22, right.m02, this.m32 * right.m03)));
+        double nm03 = Math.fma(this.m03, right.m00, Math.fma(this.m13, right.m01, Math.fma(this.m23, right.m02, this.m33 * right.m03)));
+        double nm10 = Math.fma(this.m00, right.m10, Math.fma(this.m10, right.m11, Math.fma(this.m20, right.m12, this.m30 * right.m13)));
+        double nm11 = Math.fma(this.m01, right.m10, Math.fma(this.m11, right.m11, Math.fma(this.m21, right.m12, this.m31 * right.m13)));
+        double nm12 = Math.fma(this.m02, right.m10, Math.fma(this.m12, right.m11, Math.fma(this.m22, right.m12, this.m32 * right.m13)));
+        double nm13 = Math.fma(this.m03, right.m10, Math.fma(this.m13, right.m11, Math.fma(this.m23, right.m12, this.m33 * right.m13)));
+        double nm20 = Math.fma(this.m00, right.m20, Math.fma(this.m10, right.m21, Math.fma(this.m20, right.m22, this.m30 * right.m23)));
+        double nm21 = Math.fma(this.m01, right.m20, Math.fma(this.m11, right.m21, Math.fma(this.m21, right.m22, this.m31 * right.m23)));
+        double nm22 = Math.fma(this.m02, right.m20, Math.fma(this.m12, right.m21, Math.fma(this.m22, right.m22, this.m32 * right.m23)));
+        double nm23 = Math.fma(this.m03, right.m20, Math.fma(this.m13, right.m21, Math.fma(this.m23, right.m22, this.m33 * right.m23)));
+        double nm30 = Math.fma(this.m00, right.m30, Math.fma(this.m10, right.m31, Math.fma(this.m20, right.m32, this.m30 * right.m33)));
+        double nm31 = Math.fma(this.m01, right.m30, Math.fma(this.m11, right.m31, Math.fma(this.m21, right.m32, this.m31 * right.m33)));
+        double nm32 = Math.fma(this.m02, right.m30, Math.fma(this.m12, right.m31, Math.fma(this.m22, right.m32, this.m32 * right.m33)));
+        double nm33 = Math.fma(this.m03, right.m30, Math.fma(this.m13, right.m31, Math.fma(this.m23, right.m32, this.m33 * right.m33)));
         return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
     }
 
@@ -659,22 +659,22 @@ public class Matrix4d {
     }
 
     private Matrix4d mulLocalGeneric(Matrix4d left, Matrix4d dest) {
-        double nm00 = Math.fma(left.m00(), this.m00, Math.fma(left.m10(), this.m01, Math.fma(left.m20(), this.m02, left.m30() * this.m03)));
-        double nm01 = Math.fma(left.m01(), this.m00, Math.fma(left.m11(), this.m01, Math.fma(left.m21(), this.m02, left.m31() * this.m03)));
-        double nm02 = Math.fma(left.m02(), this.m00, Math.fma(left.m12(), this.m01, Math.fma(left.m22(), this.m02, left.m32() * this.m03)));
-        double nm03 = Math.fma(left.m03(), this.m00, Math.fma(left.m13(), this.m01, Math.fma(left.m23(), this.m02, left.m33() * this.m03)));
-        double nm10 = Math.fma(left.m00(), this.m10, Math.fma(left.m10(), this.m11, Math.fma(left.m20(), this.m12, left.m30() * this.m13)));
-        double nm11 = Math.fma(left.m01(), this.m10, Math.fma(left.m11(), this.m11, Math.fma(left.m21(), this.m12, left.m31() * this.m13)));
-        double nm12 = Math.fma(left.m02(), this.m10, Math.fma(left.m12(), this.m11, Math.fma(left.m22(), this.m12, left.m32() * this.m13)));
-        double nm13 = Math.fma(left.m03(), this.m10, Math.fma(left.m13(), this.m11, Math.fma(left.m23(), this.m12, left.m33() * this.m13)));
-        double nm20 = Math.fma(left.m00(), this.m20, Math.fma(left.m10(), this.m21, Math.fma(left.m20(), this.m22, left.m30() * this.m23)));
-        double nm21 = Math.fma(left.m01(), this.m20, Math.fma(left.m11(), this.m21, Math.fma(left.m21(), this.m22, left.m31() * this.m23)));
-        double nm22 = Math.fma(left.m02(), this.m20, Math.fma(left.m12(), this.m21, Math.fma(left.m22(), this.m22, left.m32() * this.m23)));
-        double nm23 = Math.fma(left.m03(), this.m20, Math.fma(left.m13(), this.m21, Math.fma(left.m23(), this.m22, left.m33() * this.m23)));
-        double nm30 = Math.fma(left.m00(), this.m30, Math.fma(left.m10(), this.m31, Math.fma(left.m20(), this.m32, left.m30() * this.m33)));
-        double nm31 = Math.fma(left.m01(), this.m30, Math.fma(left.m11(), this.m31, Math.fma(left.m21(), this.m32, left.m31() * this.m33)));
-        double nm32 = Math.fma(left.m02(), this.m30, Math.fma(left.m12(), this.m31, Math.fma(left.m22(), this.m32, left.m32() * this.m33)));
-        double nm33 = Math.fma(left.m03(), this.m30, Math.fma(left.m13(), this.m31, Math.fma(left.m23(), this.m32, left.m33() * this.m33)));
+        double nm00 = Math.fma(left.m00, this.m00, Math.fma(left.m10, this.m01, Math.fma(left.m20, this.m02, left.m30 * this.m03)));
+        double nm01 = Math.fma(left.m01, this.m00, Math.fma(left.m11, this.m01, Math.fma(left.m21, this.m02, left.m31 * this.m03)));
+        double nm02 = Math.fma(left.m02, this.m00, Math.fma(left.m12, this.m01, Math.fma(left.m22, this.m02, left.m32 * this.m03)));
+        double nm03 = Math.fma(left.m03, this.m00, Math.fma(left.m13, this.m01, Math.fma(left.m23, this.m02, left.m33 * this.m03)));
+        double nm10 = Math.fma(left.m00, this.m10, Math.fma(left.m10, this.m11, Math.fma(left.m20, this.m12, left.m30 * this.m13)));
+        double nm11 = Math.fma(left.m01, this.m10, Math.fma(left.m11, this.m11, Math.fma(left.m21, this.m12, left.m31 * this.m13)));
+        double nm12 = Math.fma(left.m02, this.m10, Math.fma(left.m12, this.m11, Math.fma(left.m22, this.m12, left.m32 * this.m13)));
+        double nm13 = Math.fma(left.m03, this.m10, Math.fma(left.m13, this.m11, Math.fma(left.m23, this.m12, left.m33 * this.m13)));
+        double nm20 = Math.fma(left.m00, this.m20, Math.fma(left.m10, this.m21, Math.fma(left.m20, this.m22, left.m30 * this.m23)));
+        double nm21 = Math.fma(left.m01, this.m20, Math.fma(left.m11, this.m21, Math.fma(left.m21, this.m22, left.m31 * this.m23)));
+        double nm22 = Math.fma(left.m02, this.m20, Math.fma(left.m12, this.m21, Math.fma(left.m22, this.m22, left.m32 * this.m23)));
+        double nm23 = Math.fma(left.m03, this.m20, Math.fma(left.m13, this.m21, Math.fma(left.m23, this.m22, left.m33 * this.m23)));
+        double nm30 = Math.fma(left.m00, this.m30, Math.fma(left.m10, this.m31, Math.fma(left.m20, this.m32, left.m30 * this.m33)));
+        double nm31 = Math.fma(left.m01, this.m30, Math.fma(left.m11, this.m31, Math.fma(left.m21, this.m32, left.m31 * this.m33)));
+        double nm32 = Math.fma(left.m02, this.m30, Math.fma(left.m12, this.m31, Math.fma(left.m22, this.m32, left.m32 * this.m33)));
+        double nm33 = Math.fma(left.m03, this.m30, Math.fma(left.m13, this.m31, Math.fma(left.m23, this.m32, left.m33 * this.m33)));
         return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
     }
 
@@ -683,22 +683,22 @@ public class Matrix4d {
     }
 
     public Matrix4d mulLocalAffine(Matrix4d left, Matrix4d dest) {
-        double nm00 = left.m00() * this.m00 + left.m10() * this.m01 + left.m20() * this.m02;
-        double nm01 = left.m01() * this.m00 + left.m11() * this.m01 + left.m21() * this.m02;
-        double nm02 = left.m02() * this.m00 + left.m12() * this.m01 + left.m22() * this.m02;
-        double nm03 = left.m03();
-        double nm10 = left.m00() * this.m10 + left.m10() * this.m11 + left.m20() * this.m12;
-        double nm11 = left.m01() * this.m10 + left.m11() * this.m11 + left.m21() * this.m12;
-        double nm12 = left.m02() * this.m10 + left.m12() * this.m11 + left.m22() * this.m12;
-        double nm13 = left.m13();
-        double nm20 = left.m00() * this.m20 + left.m10() * this.m21 + left.m20() * this.m22;
-        double nm21 = left.m01() * this.m20 + left.m11() * this.m21 + left.m21() * this.m22;
-        double nm22 = left.m02() * this.m20 + left.m12() * this.m21 + left.m22() * this.m22;
-        double nm23 = left.m23();
-        double nm30 = left.m00() * this.m30 + left.m10() * this.m31 + left.m20() * this.m32 + left.m30();
-        double nm31 = left.m01() * this.m30 + left.m11() * this.m31 + left.m21() * this.m32 + left.m31();
-        double nm32 = left.m02() * this.m30 + left.m12() * this.m31 + left.m22() * this.m32 + left.m32();
-        double nm33 = left.m33();
+        double nm00 = left.m00 * this.m00 + left.m10 * this.m01 + left.m20 * this.m02;
+        double nm01 = left.m01 * this.m00 + left.m11 * this.m01 + left.m21 * this.m02;
+        double nm02 = left.m02 * this.m00 + left.m12 * this.m01 + left.m22 * this.m02;
+        double nm03 = left.m03;
+        double nm10 = left.m00 * this.m10 + left.m10 * this.m11 + left.m20 * this.m12;
+        double nm11 = left.m01 * this.m10 + left.m11 * this.m11 + left.m21 * this.m12;
+        double nm12 = left.m02 * this.m10 + left.m12 * this.m11 + left.m22 * this.m12;
+        double nm13 = left.m13;
+        double nm20 = left.m00 * this.m20 + left.m10 * this.m21 + left.m20 * this.m22;
+        double nm21 = left.m01 * this.m20 + left.m11 * this.m21 + left.m21 * this.m22;
+        double nm22 = left.m02 * this.m20 + left.m12 * this.m21 + left.m22 * this.m22;
+        double nm23 = left.m23;
+        double nm30 = left.m00 * this.m30 + left.m10 * this.m31 + left.m20 * this.m32 + left.m30;
+        double nm31 = left.m01 * this.m30 + left.m11 * this.m31 + left.m21 * this.m32 + left.m31;
+        double nm32 = left.m02 * this.m30 + left.m12 * this.m31 + left.m22 * this.m32 + left.m32;
+        double nm33 = left.m33;
         dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(2);
         return dest;
     }
@@ -722,7 +722,7 @@ public class Matrix4d {
     }
 
     private Matrix4d mulTranslation(Matrix4x3d right, Matrix4d dest) {
-        return dest._m00(right.m00())._m01(right.m01())._m02(right.m02())._m03(this.m03)._m10(right.m10())._m11(right.m11())._m12(right.m12())._m13(this.m13)._m20(right.m20())._m21(right.m21())._m22(right.m22())._m23(this.m23)._m30(right.m30() + this.m30)._m31(right.m31() + this.m31)._m32(right.m32() + this.m32)._m33(this.m33)._properties(2 | right.properties() & 16);
+        return dest._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(this.m03)._m10(right.m10)._m11(right.m11)._m12(right.m12)._m13(this.m13)._m20(right.m20)._m21(right.m21)._m22(right.m22)._m23(this.m23)._m30(right.m30 + this.m30)._m31(right.m31 + this.m31)._m32(right.m32 + this.m32)._m33(this.m33)._properties(2 | right.properties() & 16);
     }
 
     private Matrix4d mulAffine(Matrix4x3d right, Matrix4d dest) {
@@ -735,38 +735,38 @@ public class Matrix4d {
         double m20 = this.m20;
         double m21 = this.m21;
         double m22 = this.m22;
-        double rm00 = right.m00();
-        double rm01 = right.m01();
-        double rm02 = right.m02();
-        double rm10 = right.m10();
-        double rm11 = right.m11();
-        double rm12 = right.m12();
-        double rm20 = right.m20();
-        double rm21 = right.m21();
-        double rm22 = right.m22();
-        double rm30 = right.m30();
-        double rm31 = right.m31();
-        double rm32 = right.m32();
+        double rm00 = right.m00;
+        double rm01 = right.m01;
+        double rm02 = right.m02;
+        double rm10 = right.m10;
+        double rm11 = right.m11;
+        double rm12 = right.m12;
+        double rm20 = right.m20;
+        double rm21 = right.m21;
+        double rm22 = right.m22;
+        double rm30 = right.m30;
+        double rm31 = right.m31;
+        double rm32 = right.m32;
         return dest._m00(Math.fma(m00, rm00, Math.fma(m10, rm01, m20 * rm02)))._m01(Math.fma(m01, rm00, Math.fma(m11, rm01, m21 * rm02)))._m02(Math.fma(m02, rm00, Math.fma(m12, rm01, m22 * rm02)))._m03(this.m03)._m10(Math.fma(m00, rm10, Math.fma(m10, rm11, m20 * rm12)))._m11(Math.fma(m01, rm10, Math.fma(m11, rm11, m21 * rm12)))._m12(Math.fma(m02, rm10, Math.fma(m12, rm11, m22 * rm12)))._m13(this.m13)._m20(Math.fma(m00, rm20, Math.fma(m10, rm21, m20 * rm22)))._m21(Math.fma(m01, rm20, Math.fma(m11, rm21, m21 * rm22)))._m22(Math.fma(m02, rm20, Math.fma(m12, rm21, m22 * rm22)))._m23(this.m23)._m30(Math.fma(m00, rm30, Math.fma(m10, rm31, Math.fma(m20, rm32, this.m30))))._m31(Math.fma(m01, rm30, Math.fma(m11, rm31, Math.fma(m21, rm32, this.m31))))._m32(Math.fma(m02, rm30, Math.fma(m12, rm31, Math.fma(m22, rm32, this.m32))))._m33(this.m33)._properties(2 | this.properties & right.properties() & 16);
     }
 
     private Matrix4d mulGeneric(Matrix4x3d right, Matrix4d dest) {
-        double nm00 = Math.fma(this.m00, right.m00(), Math.fma(this.m10, right.m01(), this.m20 * right.m02()));
-        double nm01 = Math.fma(this.m01, right.m00(), Math.fma(this.m11, right.m01(), this.m21 * right.m02()));
-        double nm02 = Math.fma(this.m02, right.m00(), Math.fma(this.m12, right.m01(), this.m22 * right.m02()));
-        double nm03 = Math.fma(this.m03, right.m00(), Math.fma(this.m13, right.m01(), this.m23 * right.m02()));
-        double nm10 = Math.fma(this.m00, right.m10(), Math.fma(this.m10, right.m11(), this.m20 * right.m12()));
-        double nm11 = Math.fma(this.m01, right.m10(), Math.fma(this.m11, right.m11(), this.m21 * right.m12()));
-        double nm12 = Math.fma(this.m02, right.m10(), Math.fma(this.m12, right.m11(), this.m22 * right.m12()));
-        double nm13 = Math.fma(this.m03, right.m10(), Math.fma(this.m13, right.m11(), this.m23 * right.m12()));
-        double nm20 = Math.fma(this.m00, right.m20(), Math.fma(this.m10, right.m21(), this.m20 * right.m22()));
-        double nm21 = Math.fma(this.m01, right.m20(), Math.fma(this.m11, right.m21(), this.m21 * right.m22()));
-        double nm22 = Math.fma(this.m02, right.m20(), Math.fma(this.m12, right.m21(), this.m22 * right.m22()));
-        double nm23 = Math.fma(this.m03, right.m20(), Math.fma(this.m13, right.m21(), this.m23 * right.m22()));
-        double nm30 = Math.fma(this.m00, right.m30(), Math.fma(this.m10, right.m31(), Math.fma(this.m20, right.m32(), this.m30)));
-        double nm31 = Math.fma(this.m01, right.m30(), Math.fma(this.m11, right.m31(), Math.fma(this.m21, right.m32(), this.m31)));
-        double nm32 = Math.fma(this.m02, right.m30(), Math.fma(this.m12, right.m31(), Math.fma(this.m22, right.m32(), this.m32)));
-        double nm33 = Math.fma(this.m03, right.m30(), Math.fma(this.m13, right.m31(), Math.fma(this.m23, right.m32(), this.m33)));
+        double nm00 = Math.fma(this.m00, right.m00, Math.fma(this.m10, right.m01, this.m20 * right.m02));
+        double nm01 = Math.fma(this.m01, right.m00, Math.fma(this.m11, right.m01, this.m21 * right.m02));
+        double nm02 = Math.fma(this.m02, right.m00, Math.fma(this.m12, right.m01, this.m22 * right.m02));
+        double nm03 = Math.fma(this.m03, right.m00, Math.fma(this.m13, right.m01, this.m23 * right.m02));
+        double nm10 = Math.fma(this.m00, right.m10, Math.fma(this.m10, right.m11, this.m20 * right.m12));
+        double nm11 = Math.fma(this.m01, right.m10, Math.fma(this.m11, right.m11, this.m21 * right.m12));
+        double nm12 = Math.fma(this.m02, right.m10, Math.fma(this.m12, right.m11, this.m22 * right.m12));
+        double nm13 = Math.fma(this.m03, right.m10, Math.fma(this.m13, right.m11, this.m23 * right.m12));
+        double nm20 = Math.fma(this.m00, right.m20, Math.fma(this.m10, right.m21, this.m20 * right.m22));
+        double nm21 = Math.fma(this.m01, right.m20, Math.fma(this.m11, right.m21, this.m21 * right.m22));
+        double nm22 = Math.fma(this.m02, right.m20, Math.fma(this.m12, right.m21, this.m22 * right.m22));
+        double nm23 = Math.fma(this.m03, right.m20, Math.fma(this.m13, right.m21, this.m23 * right.m22));
+        double nm30 = Math.fma(this.m00, right.m30, Math.fma(this.m10, right.m31, Math.fma(this.m20, right.m32, this.m30)));
+        double nm31 = Math.fma(this.m01, right.m30, Math.fma(this.m11, right.m31, Math.fma(this.m21, right.m32, this.m31)));
+        double nm32 = Math.fma(this.m02, right.m30, Math.fma(this.m12, right.m31, Math.fma(this.m22, right.m32, this.m32)));
+        double nm33 = Math.fma(this.m03, right.m30, Math.fma(this.m13, right.m31, Math.fma(this.m23, right.m32, this.m33)));
         dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(this.properties & -30);
         return dest;
     }
@@ -776,7 +776,7 @@ public class Matrix4d {
         double lm11 = this.m11;
         double lm22 = this.m22;
         double lm23 = this.m23;
-        dest._m00(lm00 * view.m00())._m01(lm11 * view.m01())._m02(lm22 * view.m02())._m03(lm23 * view.m02())._m10(lm00 * view.m10())._m11(lm11 * view.m11())._m12(lm22 * view.m12())._m13(lm23 * view.m12())._m20(lm00 * view.m20())._m21(lm11 * view.m21())._m22(lm22 * view.m22())._m23(lm23 * view.m22())._m30(lm00 * view.m30())._m31(lm11 * view.m31())._m32(lm22 * view.m32() + this.m32)._m33(lm23 * view.m32())._properties(0);
+        dest._m00(lm00 * view.m00)._m01(lm11 * view.m01)._m02(lm22 * view.m02)._m03(lm23 * view.m02)._m10(lm00 * view.m10)._m11(lm11 * view.m11)._m12(lm22 * view.m12)._m13(lm23 * view.m12)._m20(lm00 * view.m20)._m21(lm11 * view.m21)._m22(lm22 * view.m22)._m23(lm23 * view.m22)._m30(lm00 * view.m30)._m31(lm11 * view.m31)._m32(lm22 * view.m32 + this.m32)._m33(lm23 * view.m32)._properties(0);
         return dest;
     }
 
@@ -789,22 +789,22 @@ public class Matrix4d {
     }
 
     private Matrix4d mulGeneric(Matrix4x3f right, Matrix4d dest) {
-        double nm00 = Math.fma(this.m00, right.m00(), Math.fma(this.m10, right.m01(), this.m20 * (double)right.m02()));
-        double nm01 = Math.fma(this.m01, right.m00(), Math.fma(this.m11, right.m01(), this.m21 * (double)right.m02()));
-        double nm02 = Math.fma(this.m02, right.m00(), Math.fma(this.m12, right.m01(), this.m22 * (double)right.m02()));
-        double nm03 = Math.fma(this.m03, right.m00(), Math.fma(this.m13, right.m01(), this.m23 * (double)right.m02()));
-        double nm10 = Math.fma(this.m00, right.m10(), Math.fma(this.m10, right.m11(), this.m20 * (double)right.m12()));
-        double nm11 = Math.fma(this.m01, right.m10(), Math.fma(this.m11, right.m11(), this.m21 * (double)right.m12()));
-        double nm12 = Math.fma(this.m02, right.m10(), Math.fma(this.m12, right.m11(), this.m22 * (double)right.m12()));
-        double nm13 = Math.fma(this.m03, right.m10(), Math.fma(this.m13, right.m11(), this.m23 * (double)right.m12()));
-        double nm20 = Math.fma(this.m00, right.m20(), Math.fma(this.m10, right.m21(), this.m20 * (double)right.m22()));
-        double nm21 = Math.fma(this.m01, right.m20(), Math.fma(this.m11, right.m21(), this.m21 * (double)right.m22()));
-        double nm22 = Math.fma(this.m02, right.m20(), Math.fma(this.m12, right.m21(), this.m22 * (double)right.m22()));
-        double nm23 = Math.fma(this.m03, right.m20(), Math.fma(this.m13, right.m21(), this.m23 * (double)right.m22()));
-        double nm30 = Math.fma(this.m00, right.m30(), Math.fma(this.m10, right.m31(), Math.fma(this.m20, right.m32(), this.m30)));
-        double nm31 = Math.fma(this.m01, right.m30(), Math.fma(this.m11, right.m31(), Math.fma(this.m21, right.m32(), this.m31)));
-        double nm32 = Math.fma(this.m02, right.m30(), Math.fma(this.m12, right.m31(), Math.fma(this.m22, right.m32(), this.m32)));
-        double nm33 = Math.fma(this.m03, right.m30(), Math.fma(this.m13, right.m31(), Math.fma(this.m23, right.m32(), this.m33)));
+        double nm00 = Math.fma(this.m00, right.m00, Math.fma(this.m10, right.m01, this.m20 * (double)right.m02));
+        double nm01 = Math.fma(this.m01, right.m00, Math.fma(this.m11, right.m01, this.m21 * (double)right.m02));
+        double nm02 = Math.fma(this.m02, right.m00, Math.fma(this.m12, right.m01, this.m22 * (double)right.m02));
+        double nm03 = Math.fma(this.m03, right.m00, Math.fma(this.m13, right.m01, this.m23 * (double)right.m02));
+        double nm10 = Math.fma(this.m00, right.m10, Math.fma(this.m10, right.m11, this.m20 * (double)right.m12));
+        double nm11 = Math.fma(this.m01, right.m10, Math.fma(this.m11, right.m11, this.m21 * (double)right.m12));
+        double nm12 = Math.fma(this.m02, right.m10, Math.fma(this.m12, right.m11, this.m22 * (double)right.m12));
+        double nm13 = Math.fma(this.m03, right.m10, Math.fma(this.m13, right.m11, this.m23 * (double)right.m12));
+        double nm20 = Math.fma(this.m00, right.m20, Math.fma(this.m10, right.m21, this.m20 * (double)right.m22));
+        double nm21 = Math.fma(this.m01, right.m20, Math.fma(this.m11, right.m21, this.m21 * (double)right.m22));
+        double nm22 = Math.fma(this.m02, right.m20, Math.fma(this.m12, right.m21, this.m22 * (double)right.m22));
+        double nm23 = Math.fma(this.m03, right.m20, Math.fma(this.m13, right.m21, this.m23 * (double)right.m22));
+        double nm30 = Math.fma(this.m00, right.m30, Math.fma(this.m10, right.m31, Math.fma(this.m20, right.m32, this.m30)));
+        double nm31 = Math.fma(this.m01, right.m30, Math.fma(this.m11, right.m31, Math.fma(this.m21, right.m32, this.m31)));
+        double nm32 = Math.fma(this.m02, right.m30, Math.fma(this.m12, right.m31, Math.fma(this.m22, right.m32, this.m32)));
+        double nm33 = Math.fma(this.m03, right.m30, Math.fma(this.m13, right.m31, Math.fma(this.m23, right.m32, this.m33)));
         dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(this.properties & -30);
         return dest;
     }
@@ -814,39 +814,39 @@ public class Matrix4d {
     }
 
     public Matrix4d mul(Matrix3x2d right, Matrix4d dest) {
-        double nm00 = this.m00 * right.m00() + this.m10 * right.m01();
-        double nm01 = this.m01 * right.m00() + this.m11 * right.m01();
-        double nm02 = this.m02 * right.m00() + this.m12 * right.m01();
-        double nm03 = this.m03 * right.m00() + this.m13 * right.m01();
-        double nm10 = this.m00 * right.m10() + this.m10 * right.m11();
-        double nm11 = this.m01 * right.m10() + this.m11 * right.m11();
-        double nm12 = this.m02 * right.m10() + this.m12 * right.m11();
-        double nm13 = this.m03 * right.m10() + this.m13 * right.m11();
-        double nm30 = this.m00 * right.m20() + this.m10 * right.m21() + this.m30;
-        double nm31 = this.m01 * right.m20() + this.m11 * right.m21() + this.m31;
-        double nm32 = this.m02 * right.m20() + this.m12 * right.m21() + this.m32;
-        double nm33 = this.m03 * right.m20() + this.m13 * right.m21() + this.m33;
+        double nm00 = this.m00 * right.m00 + this.m10 * right.m01;
+        double nm01 = this.m01 * right.m00 + this.m11 * right.m01;
+        double nm02 = this.m02 * right.m00 + this.m12 * right.m01;
+        double nm03 = this.m03 * right.m00 + this.m13 * right.m01;
+        double nm10 = this.m00 * right.m10 + this.m10 * right.m11;
+        double nm11 = this.m01 * right.m10 + this.m11 * right.m11;
+        double nm12 = this.m02 * right.m10 + this.m12 * right.m11;
+        double nm13 = this.m03 * right.m10 + this.m13 * right.m11;
+        double nm30 = this.m00 * right.m20 + this.m10 * right.m21 + this.m30;
+        double nm31 = this.m01 * right.m20 + this.m11 * right.m21 + this.m31;
+        double nm32 = this.m02 * right.m20 + this.m12 * right.m21 + this.m32;
+        double nm33 = this.m03 * right.m20 + this.m13 * right.m21 + this.m33;
         dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(this.properties & -30);
         return dest;
     }
 
-    public Matrix4d mul(Matrix3x2fc right) {
+    public Matrix4d mul(Matrix3x2f right) {
         return this.mul(right, this);
     }
 
-    public Matrix4d mul(Matrix3x2fc right, Matrix4d dest) {
-        double nm00 = this.m00 * (double)right.m00() + this.m10 * (double)right.m01();
-        double nm01 = this.m01 * (double)right.m00() + this.m11 * (double)right.m01();
-        double nm02 = this.m02 * (double)right.m00() + this.m12 * (double)right.m01();
-        double nm03 = this.m03 * (double)right.m00() + this.m13 * (double)right.m01();
-        double nm10 = this.m00 * (double)right.m10() + this.m10 * (double)right.m11();
-        double nm11 = this.m01 * (double)right.m10() + this.m11 * (double)right.m11();
-        double nm12 = this.m02 * (double)right.m10() + this.m12 * (double)right.m11();
-        double nm13 = this.m03 * (double)right.m10() + this.m13 * (double)right.m11();
-        double nm30 = this.m00 * (double)right.m20() + this.m10 * (double)right.m21() + this.m30;
-        double nm31 = this.m01 * (double)right.m20() + this.m11 * (double)right.m21() + this.m31;
-        double nm32 = this.m02 * (double)right.m20() + this.m12 * (double)right.m21() + this.m32;
-        double nm33 = this.m03 * (double)right.m20() + this.m13 * (double)right.m21() + this.m33;
+    public Matrix4d mul(Matrix3x2f right, Matrix4d dest) {
+        double nm00 = this.m00 * right.m00 + this.m10 * right.m01;
+        double nm01 = this.m01 * right.m00 + this.m11 * right.m01;
+        double nm02 = this.m02 * right.m00 + this.m12 * right.m01;
+        double nm03 = this.m03 * right.m00 + this.m13 * right.m01;
+        double nm10 = this.m00 * right.m10 + this.m10 * right.m11;
+        double nm11 = this.m01 * right.m10 + this.m11 * right.m11;
+        double nm12 = this.m02 * right.m10 + this.m12 * right.m11;
+        double nm13 = this.m03 * right.m10 + this.m13 * right.m11;
+        double nm30 = this.m00 * right.m20 + this.m10 * right.m21 + this.m30;
+        double nm31 = this.m01 * right.m20 + this.m11 * right.m21 + this.m31;
+        double nm32 = this.m02 * right.m20 + this.m12 * right.m21 + this.m32;
+        double nm33 = this.m03 * right.m20 + this.m13 * right.m21 + this.m33;
         dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(this.properties & -30);
         return dest;
     }
@@ -864,22 +864,22 @@ public class Matrix4d {
     }
 
     private Matrix4d mulGeneric(Matrix4f right, Matrix4d dest) {
-        double nm00 = this.m00 * (double)right.m00() + this.m10 * (double)right.m01() + this.m20 * (double)right.m02() + this.m30 * (double)right.m03();
-        double nm01 = this.m01 * (double)right.m00() + this.m11 * (double)right.m01() + this.m21 * (double)right.m02() + this.m31 * (double)right.m03();
-        double nm02 = this.m02 * (double)right.m00() + this.m12 * (double)right.m01() + this.m22 * (double)right.m02() + this.m32 * (double)right.m03();
-        double nm03 = this.m03 * (double)right.m00() + this.m13 * (double)right.m01() + this.m23 * (double)right.m02() + this.m33 * (double)right.m03();
-        double nm10 = this.m00 * (double)right.m10() + this.m10 * (double)right.m11() + this.m20 * (double)right.m12() + this.m30 * (double)right.m13();
-        double nm11 = this.m01 * (double)right.m10() + this.m11 * (double)right.m11() + this.m21 * (double)right.m12() + this.m31 * (double)right.m13();
-        double nm12 = this.m02 * (double)right.m10() + this.m12 * (double)right.m11() + this.m22 * (double)right.m12() + this.m32 * (double)right.m13();
-        double nm13 = this.m03 * (double)right.m10() + this.m13 * (double)right.m11() + this.m23 * (double)right.m12() + this.m33 * (double)right.m13();
-        double nm20 = this.m00 * (double)right.m20() + this.m10 * (double)right.m21() + this.m20 * (double)right.m22() + this.m30 * (double)right.m23();
-        double nm21 = this.m01 * (double)right.m20() + this.m11 * (double)right.m21() + this.m21 * (double)right.m22() + this.m31 * (double)right.m23();
-        double nm22 = this.m02 * (double)right.m20() + this.m12 * (double)right.m21() + this.m22 * (double)right.m22() + this.m32 * (double)right.m23();
-        double nm23 = this.m03 * (double)right.m20() + this.m13 * (double)right.m21() + this.m23 * (double)right.m22() + this.m33 * (double)right.m23();
-        double nm30 = this.m00 * (double)right.m30() + this.m10 * (double)right.m31() + this.m20 * (double)right.m32() + this.m30 * (double)right.m33();
-        double nm31 = this.m01 * (double)right.m30() + this.m11 * (double)right.m31() + this.m21 * (double)right.m32() + this.m31 * (double)right.m33();
-        double nm32 = this.m02 * (double)right.m30() + this.m12 * (double)right.m31() + this.m22 * (double)right.m32() + this.m32 * (double)right.m33();
-        double nm33 = this.m03 * (double)right.m30() + this.m13 * (double)right.m31() + this.m23 * (double)right.m32() + this.m33 * (double)right.m33();
+        double nm00 = this.m00 * right.m00 + this.m10 * right.m01 + this.m20 * right.m02 + this.m30 * right.m03;
+        double nm01 = this.m01 * right.m00 + this.m11 * right.m01 + this.m21 * right.m02 + this.m31 * right.m03;
+        double nm02 = this.m02 * right.m00 + this.m12 * right.m01 + this.m22 * right.m02 + this.m32 * right.m03;
+        double nm03 = this.m03 * right.m00 + this.m13 * right.m01 + this.m23 * right.m02 + this.m33 * right.m03;
+        double nm10 = this.m00 * right.m10 + this.m10 * right.m11 + this.m20 * right.m12 + this.m30 * right.m13;
+        double nm11 = this.m01 * right.m10 + this.m11 * right.m11 + this.m21 * right.m12 + this.m31 * right.m13;
+        double nm12 = this.m02 * right.m10 + this.m12 * right.m11 + this.m22 * right.m12 + this.m32 * right.m13;
+        double nm13 = this.m03 * right.m10 + this.m13 * right.m11 + this.m23 * right.m12 + this.m33 * right.m13;
+        double nm20 = this.m00 * right.m20 + this.m10 * right.m21 + this.m20 * right.m22 + this.m30 * right.m23;
+        double nm21 = this.m01 * right.m20 + this.m11 * right.m21 + this.m21 * right.m22 + this.m31 * right.m23;
+        double nm22 = this.m02 * right.m20 + this.m12 * right.m21 + this.m22 * right.m22 + this.m32 * right.m23;
+        double nm23 = this.m03 * right.m20 + this.m13 * right.m21 + this.m23 * right.m22 + this.m33 * right.m23;
+        double nm30 = this.m00 * right.m30 + this.m10 * right.m31 + this.m20 * right.m32 + this.m30 * right.m33;
+        double nm31 = this.m01 * right.m30 + this.m11 * right.m31 + this.m21 * right.m32 + this.m31 * right.m33;
+        double nm32 = this.m02 * right.m30 + this.m12 * right.m31 + this.m22 * right.m32 + this.m32 * right.m33;
+        double nm33 = this.m03 * right.m30 + this.m13 * right.m31 + this.m23 * right.m32 + this.m33 * right.m33;
         dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
         return dest;
     }
@@ -889,22 +889,22 @@ public class Matrix4d {
     }
 
     public Matrix4d mulPerspectiveAffine(Matrix4d view, Matrix4d dest) {
-        double nm00 = this.m00 * view.m00();
-        double nm01 = this.m11 * view.m01();
-        double nm02 = this.m22 * view.m02();
-        double nm03 = this.m23 * view.m02();
-        double nm10 = this.m00 * view.m10();
-        double nm11 = this.m11 * view.m11();
-        double nm12 = this.m22 * view.m12();
-        double nm13 = this.m23 * view.m12();
-        double nm20 = this.m00 * view.m20();
-        double nm21 = this.m11 * view.m21();
-        double nm22 = this.m22 * view.m22();
-        double nm23 = this.m23 * view.m22();
-        double nm30 = this.m00 * view.m30();
-        double nm31 = this.m11 * view.m31();
-        double nm32 = this.m22 * view.m32() + this.m32;
-        double nm33 = this.m23 * view.m32();
+        double nm00 = this.m00 * view.m00;
+        double nm01 = this.m11 * view.m01;
+        double nm02 = this.m22 * view.m02;
+        double nm03 = this.m23 * view.m02;
+        double nm10 = this.m00 * view.m10;
+        double nm11 = this.m11 * view.m11;
+        double nm12 = this.m22 * view.m12;
+        double nm13 = this.m23 * view.m12;
+        double nm20 = this.m00 * view.m20;
+        double nm21 = this.m11 * view.m21;
+        double nm22 = this.m22 * view.m22;
+        double nm23 = this.m23 * view.m22;
+        double nm30 = this.m00 * view.m30;
+        double nm31 = this.m11 * view.m31;
+        double nm32 = this.m22 * view.m32 + this.m32;
+        double nm33 = this.m23 * view.m32;
         return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0);
     }
 
@@ -913,22 +913,22 @@ public class Matrix4d {
     }
 
     public Matrix4d mulAffineR(Matrix4d right, Matrix4d dest) {
-        double nm00 = Math.fma(this.m00, right.m00(), Math.fma(this.m10, right.m01(), this.m20 * right.m02()));
-        double nm01 = Math.fma(this.m01, right.m00(), Math.fma(this.m11, right.m01(), this.m21 * right.m02()));
-        double nm02 = Math.fma(this.m02, right.m00(), Math.fma(this.m12, right.m01(), this.m22 * right.m02()));
-        double nm03 = Math.fma(this.m03, right.m00(), Math.fma(this.m13, right.m01(), this.m23 * right.m02()));
-        double nm10 = Math.fma(this.m00, right.m10(), Math.fma(this.m10, right.m11(), this.m20 * right.m12()));
-        double nm11 = Math.fma(this.m01, right.m10(), Math.fma(this.m11, right.m11(), this.m21 * right.m12()));
-        double nm12 = Math.fma(this.m02, right.m10(), Math.fma(this.m12, right.m11(), this.m22 * right.m12()));
-        double nm13 = Math.fma(this.m03, right.m10(), Math.fma(this.m13, right.m11(), this.m23 * right.m12()));
-        double nm20 = Math.fma(this.m00, right.m20(), Math.fma(this.m10, right.m21(), this.m20 * right.m22()));
-        double nm21 = Math.fma(this.m01, right.m20(), Math.fma(this.m11, right.m21(), this.m21 * right.m22()));
-        double nm22 = Math.fma(this.m02, right.m20(), Math.fma(this.m12, right.m21(), this.m22 * right.m22()));
-        double nm23 = Math.fma(this.m03, right.m20(), Math.fma(this.m13, right.m21(), this.m23 * right.m22()));
-        double nm30 = Math.fma(this.m00, right.m30(), Math.fma(this.m10, right.m31(), Math.fma(this.m20, right.m32(), this.m30)));
-        double nm31 = Math.fma(this.m01, right.m30(), Math.fma(this.m11, right.m31(), Math.fma(this.m21, right.m32(), this.m31)));
-        double nm32 = Math.fma(this.m02, right.m30(), Math.fma(this.m12, right.m31(), Math.fma(this.m22, right.m32(), this.m32)));
-        double nm33 = Math.fma(this.m03, right.m30(), Math.fma(this.m13, right.m31(), Math.fma(this.m23, right.m32(), this.m33)));
+        double nm00 = Math.fma(this.m00, right.m00, Math.fma(this.m10, right.m01, this.m20 * right.m02));
+        double nm01 = Math.fma(this.m01, right.m00, Math.fma(this.m11, right.m01, this.m21 * right.m02));
+        double nm02 = Math.fma(this.m02, right.m00, Math.fma(this.m12, right.m01, this.m22 * right.m02));
+        double nm03 = Math.fma(this.m03, right.m00, Math.fma(this.m13, right.m01, this.m23 * right.m02));
+        double nm10 = Math.fma(this.m00, right.m10, Math.fma(this.m10, right.m11, this.m20 * right.m12));
+        double nm11 = Math.fma(this.m01, right.m10, Math.fma(this.m11, right.m11, this.m21 * right.m12));
+        double nm12 = Math.fma(this.m02, right.m10, Math.fma(this.m12, right.m11, this.m22 * right.m12));
+        double nm13 = Math.fma(this.m03, right.m10, Math.fma(this.m13, right.m11, this.m23 * right.m12));
+        double nm20 = Math.fma(this.m00, right.m20, Math.fma(this.m10, right.m21, this.m20 * right.m22));
+        double nm21 = Math.fma(this.m01, right.m20, Math.fma(this.m11, right.m21, this.m21 * right.m22));
+        double nm22 = Math.fma(this.m02, right.m20, Math.fma(this.m12, right.m21, this.m22 * right.m22));
+        double nm23 = Math.fma(this.m03, right.m20, Math.fma(this.m13, right.m21, this.m23 * right.m22));
+        double nm30 = Math.fma(this.m00, right.m30, Math.fma(this.m10, right.m31, Math.fma(this.m20, right.m32, this.m30)));
+        double nm31 = Math.fma(this.m01, right.m30, Math.fma(this.m11, right.m31, Math.fma(this.m21, right.m32, this.m31)));
+        double nm32 = Math.fma(this.m02, right.m30, Math.fma(this.m12, right.m31, Math.fma(this.m22, right.m32, this.m32)));
+        double nm33 = Math.fma(this.m03, right.m30, Math.fma(this.m13, right.m31, Math.fma(this.m23, right.m32, this.m33)));
         dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(this.properties & -30);
         return dest;
     }
@@ -947,23 +947,23 @@ public class Matrix4d {
         double m20 = this.m20;
         double m21 = this.m21;
         double m22 = this.m22;
-        double rm00 = right.m00();
-        double rm01 = right.m01();
-        double rm02 = right.m02();
-        double rm10 = right.m10();
-        double rm11 = right.m11();
-        double rm12 = right.m12();
-        double rm20 = right.m20();
-        double rm21 = right.m21();
-        double rm22 = right.m22();
-        double rm30 = right.m30();
-        double rm31 = right.m31();
-        double rm32 = right.m32();
+        double rm00 = right.m00;
+        double rm01 = right.m01;
+        double rm02 = right.m02;
+        double rm10 = right.m10;
+        double rm11 = right.m11;
+        double rm12 = right.m12;
+        double rm20 = right.m20;
+        double rm21 = right.m21;
+        double rm22 = right.m22;
+        double rm30 = right.m30;
+        double rm31 = right.m31;
+        double rm32 = right.m32;
         return dest._m00(Math.fma(m00, rm00, Math.fma(m10, rm01, m20 * rm02)))._m01(Math.fma(m01, rm00, Math.fma(m11, rm01, m21 * rm02)))._m02(Math.fma(m02, rm00, Math.fma(m12, rm01, m22 * rm02)))._m03(this.m03)._m10(Math.fma(m00, rm10, Math.fma(m10, rm11, m20 * rm12)))._m11(Math.fma(m01, rm10, Math.fma(m11, rm11, m21 * rm12)))._m12(Math.fma(m02, rm10, Math.fma(m12, rm11, m22 * rm12)))._m13(this.m13)._m20(Math.fma(m00, rm20, Math.fma(m10, rm21, m20 * rm22)))._m21(Math.fma(m01, rm20, Math.fma(m11, rm21, m21 * rm22)))._m22(Math.fma(m02, rm20, Math.fma(m12, rm21, m22 * rm22)))._m23(this.m23)._m30(Math.fma(m00, rm30, Math.fma(m10, rm31, Math.fma(m20, rm32, this.m30))))._m31(Math.fma(m01, rm30, Math.fma(m11, rm31, Math.fma(m21, rm32, this.m31))))._m32(Math.fma(m02, rm30, Math.fma(m12, rm31, Math.fma(m22, rm32, this.m32))))._m33(this.m33)._properties(2 | this.properties & right.properties() & 16);
     }
 
     public Matrix4d mulTranslationAffine(Matrix4d right, Matrix4d dest) {
-        return dest._m00(right.m00())._m01(right.m01())._m02(right.m02())._m03(this.m03)._m10(right.m10())._m11(right.m11())._m12(right.m12())._m13(this.m13)._m20(right.m20())._m21(right.m21())._m22(right.m22())._m23(this.m23)._m30(right.m30() + this.m30)._m31(right.m31() + this.m31)._m32(right.m32() + this.m32)._m33(this.m33)._properties(2 | right.properties() & 16);
+        return dest._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(this.m03)._m10(right.m10)._m11(right.m11)._m12(right.m12)._m13(this.m13)._m20(right.m20)._m21(right.m21)._m22(right.m22)._m23(this.m23)._m30(right.m30 + this.m30)._m31(right.m31 + this.m31)._m32(right.m32 + this.m32)._m33(this.m33)._properties(2 | right.properties() & 16);
     }
 
     public Matrix4d mulOrthoAffine(Matrix4d view) {
@@ -971,21 +971,21 @@ public class Matrix4d {
     }
 
     public Matrix4d mulOrthoAffine(Matrix4d view, Matrix4d dest) {
-        double nm00 = this.m00 * view.m00();
-        double nm01 = this.m11 * view.m01();
-        double nm02 = this.m22 * view.m02();
+        double nm00 = this.m00 * view.m00;
+        double nm01 = this.m11 * view.m01;
+        double nm02 = this.m22 * view.m02;
         double nm03 = 0.0;
-        double nm10 = this.m00 * view.m10();
-        double nm11 = this.m11 * view.m11();
-        double nm12 = this.m22 * view.m12();
+        double nm10 = this.m00 * view.m10;
+        double nm11 = this.m11 * view.m11;
+        double nm12 = this.m22 * view.m12;
         double nm13 = 0.0;
-        double nm20 = this.m00 * view.m20();
-        double nm21 = this.m11 * view.m21();
-        double nm22 = this.m22 * view.m22();
+        double nm20 = this.m00 * view.m20;
+        double nm21 = this.m11 * view.m21;
+        double nm22 = this.m22 * view.m22;
         double nm23 = 0.0;
-        double nm30 = this.m00 * view.m30() + this.m30;
-        double nm31 = this.m11 * view.m31() + this.m31;
-        double nm32 = this.m22 * view.m32() + this.m32;
+        double nm30 = this.m00 * view.m30 + this.m30;
+        double nm31 = this.m11 * view.m31 + this.m31;
+        double nm32 = this.m22 * view.m32 + this.m32;
         double nm33 = 1.0;
         dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(2);
         return dest;
@@ -996,7 +996,7 @@ public class Matrix4d {
     }
 
     public Matrix4d fma4x3(Matrix4d other, double otherFactor, Matrix4d dest) {
-        dest._m00(Math.fma(other.m00(), otherFactor, this.m00))._m01(Math.fma(other.m01(), otherFactor, this.m01))._m02(Math.fma(other.m02(), otherFactor, this.m02))._m03(this.m03)._m10(Math.fma(other.m10(), otherFactor, this.m10))._m11(Math.fma(other.m11(), otherFactor, this.m11))._m12(Math.fma(other.m12(), otherFactor, this.m12))._m13(this.m13)._m20(Math.fma(other.m20(), otherFactor, this.m20))._m21(Math.fma(other.m21(), otherFactor, this.m21))._m22(Math.fma(other.m22(), otherFactor, this.m22))._m23(this.m23)._m30(Math.fma(other.m30(), otherFactor, this.m30))._m31(Math.fma(other.m31(), otherFactor, this.m31))._m32(Math.fma(other.m32(), otherFactor, this.m32))._m33(this.m33)._properties(0);
+        dest._m00(Math.fma(other.m00, otherFactor, this.m00))._m01(Math.fma(other.m01, otherFactor, this.m01))._m02(Math.fma(other.m02, otherFactor, this.m02))._m03(this.m03)._m10(Math.fma(other.m10, otherFactor, this.m10))._m11(Math.fma(other.m11, otherFactor, this.m11))._m12(Math.fma(other.m12, otherFactor, this.m12))._m13(this.m13)._m20(Math.fma(other.m20, otherFactor, this.m20))._m21(Math.fma(other.m21, otherFactor, this.m21))._m22(Math.fma(other.m22, otherFactor, this.m22))._m23(this.m23)._m30(Math.fma(other.m30, otherFactor, this.m30))._m31(Math.fma(other.m31, otherFactor, this.m31))._m32(Math.fma(other.m32, otherFactor, this.m32))._m33(this.m33)._properties(0);
         return dest;
     }
 
@@ -1005,7 +1005,7 @@ public class Matrix4d {
     }
 
     public Matrix4d add(Matrix4d other, Matrix4d dest) {
-        dest._m00(this.m00 + other.m00())._m01(this.m01 + other.m01())._m02(this.m02 + other.m02())._m03(this.m03 + other.m03())._m10(this.m10 + other.m10())._m11(this.m11 + other.m11())._m12(this.m12 + other.m12())._m13(this.m13 + other.m13())._m20(this.m20 + other.m20())._m21(this.m21 + other.m21())._m22(this.m22 + other.m22())._m23(this.m23 + other.m23())._m30(this.m30 + other.m30())._m31(this.m31 + other.m31())._m32(this.m32 + other.m32())._m33(this.m33 + other.m33())._properties(0);
+        dest._m00(this.m00 + other.m00)._m01(this.m01 + other.m01)._m02(this.m02 + other.m02)._m03(this.m03 + other.m03)._m10(this.m10 + other.m10)._m11(this.m11 + other.m11)._m12(this.m12 + other.m12)._m13(this.m13 + other.m13)._m20(this.m20 + other.m20)._m21(this.m21 + other.m21)._m22(this.m22 + other.m22)._m23(this.m23 + other.m23)._m30(this.m30 + other.m30)._m31(this.m31 + other.m31)._m32(this.m32 + other.m32)._m33(this.m33 + other.m33)._properties(0);
         return dest;
     }
 
@@ -1014,7 +1014,7 @@ public class Matrix4d {
     }
 
     public Matrix4d sub(Matrix4d subtrahend, Matrix4d dest) {
-        dest._m00(this.m00 - subtrahend.m00())._m01(this.m01 - subtrahend.m01())._m02(this.m02 - subtrahend.m02())._m03(this.m03 - subtrahend.m03())._m10(this.m10 - subtrahend.m10())._m11(this.m11 - subtrahend.m11())._m12(this.m12 - subtrahend.m12())._m13(this.m13 - subtrahend.m13())._m20(this.m20 - subtrahend.m20())._m21(this.m21 - subtrahend.m21())._m22(this.m22 - subtrahend.m22())._m23(this.m23 - subtrahend.m23())._m30(this.m30 - subtrahend.m30())._m31(this.m31 - subtrahend.m31())._m32(this.m32 - subtrahend.m32())._m33(this.m33 - subtrahend.m33())._properties(0);
+        dest._m00(this.m00 - subtrahend.m00)._m01(this.m01 - subtrahend.m01)._m02(this.m02 - subtrahend.m02)._m03(this.m03 - subtrahend.m03)._m10(this.m10 - subtrahend.m10)._m11(this.m11 - subtrahend.m11)._m12(this.m12 - subtrahend.m12)._m13(this.m13 - subtrahend.m13)._m20(this.m20 - subtrahend.m20)._m21(this.m21 - subtrahend.m21)._m22(this.m22 - subtrahend.m22)._m23(this.m23 - subtrahend.m23)._m30(this.m30 - subtrahend.m30)._m31(this.m31 - subtrahend.m31)._m32(this.m32 - subtrahend.m32)._m33(this.m33 - subtrahend.m33)._properties(0);
         return dest;
     }
 
@@ -1023,7 +1023,7 @@ public class Matrix4d {
     }
 
     public Matrix4d mulComponentWise(Matrix4d other, Matrix4d dest) {
-        dest._m00(this.m00 * other.m00())._m01(this.m01 * other.m01())._m02(this.m02 * other.m02())._m03(this.m03 * other.m03())._m10(this.m10 * other.m10())._m11(this.m11 * other.m11())._m12(this.m12 * other.m12())._m13(this.m13 * other.m13())._m20(this.m20 * other.m20())._m21(this.m21 * other.m21())._m22(this.m22 * other.m22())._m23(this.m23 * other.m23())._m30(this.m30 * other.m30())._m31(this.m31 * other.m31())._m32(this.m32 * other.m32())._m33(this.m33 * other.m33())._properties(0);
+        dest._m00(this.m00 * other.m00)._m01(this.m01 * other.m01)._m02(this.m02 * other.m02)._m03(this.m03 * other.m03)._m10(this.m10 * other.m10)._m11(this.m11 * other.m11)._m12(this.m12 * other.m12)._m13(this.m13 * other.m13)._m20(this.m20 * other.m20)._m21(this.m21 * other.m21)._m22(this.m22 * other.m22)._m23(this.m23 * other.m23)._m30(this.m30 * other.m30)._m31(this.m31 * other.m31)._m32(this.m32 * other.m32)._m33(this.m33 * other.m33)._properties(0);
         return dest;
     }
 
@@ -1032,7 +1032,7 @@ public class Matrix4d {
     }
 
     public Matrix4d add4x3(Matrix4d other, Matrix4d dest) {
-        dest._m00(this.m00 + other.m00())._m01(this.m01 + other.m01())._m02(this.m02 + other.m02())._m03(this.m03)._m10(this.m10 + other.m10())._m11(this.m11 + other.m11())._m12(this.m12 + other.m12())._m13(this.m13)._m20(this.m20 + other.m20())._m21(this.m21 + other.m21())._m22(this.m22 + other.m22())._m23(this.m23)._m30(this.m30 + other.m30())._m31(this.m31 + other.m31())._m32(this.m32 + other.m32())._m33(this.m33)._properties(0);
+        dest._m00(this.m00 + other.m00)._m01(this.m01 + other.m01)._m02(this.m02 + other.m02)._m03(this.m03)._m10(this.m10 + other.m10)._m11(this.m11 + other.m11)._m12(this.m12 + other.m12)._m13(this.m13)._m20(this.m20 + other.m20)._m21(this.m21 + other.m21)._m22(this.m22 + other.m22)._m23(this.m23)._m30(this.m30 + other.m30)._m31(this.m31 + other.m31)._m32(this.m32 + other.m32)._m33(this.m33)._properties(0);
         return dest;
     }
 
@@ -1041,7 +1041,7 @@ public class Matrix4d {
     }
 
     public Matrix4d add4x3(Matrix4f other, Matrix4d dest) {
-        dest._m00(this.m00 + (double)other.m00())._m01(this.m01 + (double)other.m01())._m02(this.m02 + (double)other.m02())._m03(this.m03)._m10(this.m10 + (double)other.m10())._m11(this.m11 + (double)other.m11())._m12(this.m12 + (double)other.m12())._m13(this.m13)._m20(this.m20 + (double)other.m20())._m21(this.m21 + (double)other.m21())._m22(this.m22 + (double)other.m22())._m23(this.m23)._m30(this.m30 + (double)other.m30())._m31(this.m31 + (double)other.m31())._m32(this.m32 + (double)other.m32())._m33(this.m33)._properties(0);
+        dest._m00(this.m00 + other.m00)._m01(this.m01 + other.m01)._m02(this.m02 + other.m02)._m03(this.m03)._m10(this.m10 + other.m10)._m11(this.m11 + other.m11)._m12(this.m12 + other.m12)._m13(this.m13)._m20(this.m20 + other.m20)._m21(this.m21 + other.m21)._m22(this.m22 + other.m22)._m23(this.m23)._m30(this.m30 + other.m30)._m31(this.m31 + other.m31)._m32(this.m32 + other.m32)._m33(this.m33)._properties(0);
         return dest;
     }
 
@@ -1050,7 +1050,7 @@ public class Matrix4d {
     }
 
     public Matrix4d sub4x3(Matrix4d subtrahend, Matrix4d dest) {
-        dest._m00(this.m00 - subtrahend.m00())._m01(this.m01 - subtrahend.m01())._m02(this.m02 - subtrahend.m02())._m03(this.m03)._m10(this.m10 - subtrahend.m10())._m11(this.m11 - subtrahend.m11())._m12(this.m12 - subtrahend.m12())._m13(this.m13)._m20(this.m20 - subtrahend.m20())._m21(this.m21 - subtrahend.m21())._m22(this.m22 - subtrahend.m22())._m23(this.m23)._m30(this.m30 - subtrahend.m30())._m31(this.m31 - subtrahend.m31())._m32(this.m32 - subtrahend.m32())._m33(this.m33)._properties(0);
+        dest._m00(this.m00 - subtrahend.m00)._m01(this.m01 - subtrahend.m01)._m02(this.m02 - subtrahend.m02)._m03(this.m03)._m10(this.m10 - subtrahend.m10)._m11(this.m11 - subtrahend.m11)._m12(this.m12 - subtrahend.m12)._m13(this.m13)._m20(this.m20 - subtrahend.m20)._m21(this.m21 - subtrahend.m21)._m22(this.m22 - subtrahend.m22)._m23(this.m23)._m30(this.m30 - subtrahend.m30)._m31(this.m31 - subtrahend.m31)._m32(this.m32 - subtrahend.m32)._m33(this.m33)._properties(0);
         return dest;
     }
 
@@ -1059,7 +1059,7 @@ public class Matrix4d {
     }
 
     public Matrix4d mul4x3ComponentWise(Matrix4d other, Matrix4d dest) {
-        dest._m00(this.m00 * other.m00())._m01(this.m01 * other.m01())._m02(this.m02 * other.m02())._m03(this.m03)._m10(this.m10 * other.m10())._m11(this.m11 * other.m11())._m12(this.m12 * other.m12())._m13(this.m13)._m20(this.m20 * other.m20())._m21(this.m21 * other.m21())._m22(this.m22 * other.m22())._m23(this.m23)._m30(this.m30 * other.m30())._m31(this.m31 * other.m31())._m32(this.m32 * other.m32())._m33(this.m33)._properties(0);
+        dest._m00(this.m00 * other.m00)._m01(this.m01 * other.m01)._m02(this.m02 * other.m02)._m03(this.m03)._m10(this.m10 * other.m10)._m11(this.m11 * other.m11)._m12(this.m12 * other.m12)._m13(this.m13)._m20(this.m20 * other.m20)._m21(this.m21 * other.m21)._m22(this.m22 * other.m22)._m23(this.m23)._m30(this.m30 * other.m30)._m31(this.m31 * other.m31)._m32(this.m32 * other.m32)._m33(this.m33)._properties(0);
         return dest;
     }
 
@@ -1253,14 +1253,14 @@ public class Matrix4d {
         double pm23 = -this.m23 * l;
         double pm32 = -this.m32 * l;
         double pm33 = this.m22 * l;
-        double vm30 = -view.m00() * view.m30() - view.m01() * view.m31() - view.m02() * view.m32();
-        double vm31 = -view.m10() * view.m30() - view.m11() * view.m31() - view.m12() * view.m32();
-        double vm32 = -view.m20() * view.m30() - view.m21() * view.m31() - view.m22() * view.m32();
-        double nm10 = view.m01() * pm11;
-        double nm30 = view.m02() * pm32 + vm30 * pm33;
-        double nm31 = view.m12() * pm32 + vm31 * pm33;
-        double nm32 = view.m22() * pm32 + vm32 * pm33;
-        return dest._m00(view.m00() * pm00)._m01(view.m10() * pm00)._m02(view.m20() * pm00)._m03(0.0)._m10(nm10)._m11(view.m11() * pm11)._m12(view.m21() * pm11)._m13(0.0)._m20(vm30 * pm23)._m21(vm31 * pm23)._m22(vm32 * pm23)._m23(pm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(pm33)._properties(0);
+        double vm30 = -view.m00 * view.m30 - view.m01 * view.m31 - view.m02 * view.m32;
+        double vm31 = -view.m10 * view.m30 - view.m11 * view.m31 - view.m12 * view.m32;
+        double vm32 = -view.m20 * view.m30 - view.m21 * view.m31 - view.m22 * view.m32;
+        double nm10 = view.m01 * pm11;
+        double nm30 = view.m02 * pm32 + vm30 * pm33;
+        double nm31 = view.m12 * pm32 + vm31 * pm33;
+        double nm32 = view.m22 * pm32 + vm32 * pm33;
+        return dest._m00(view.m00 * pm00)._m01(view.m10 * pm00)._m02(view.m20 * pm00)._m03(0.0)._m10(nm10)._m11(view.m11 * pm11)._m12(view.m21 * pm11)._m13(0.0)._m20(vm30 * pm23)._m21(vm31 * pm23)._m22(vm32 * pm23)._m23(pm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(pm33)._properties(0);
     }
 
     public Matrix4d invertPerspectiveView(Matrix4x3d view, Matrix4d dest) {
@@ -1271,10 +1271,10 @@ public class Matrix4d {
         double pm23 = -this.m23 * l;
         double pm32 = -this.m32 * l;
         double pm33 = this.m22 * l;
-        double vm30 = -view.m00() * view.m30() - view.m01() * view.m31() - view.m02() * view.m32();
-        double vm31 = -view.m10() * view.m30() - view.m11() * view.m31() - view.m12() * view.m32();
-        double vm32 = -view.m20() * view.m30() - view.m21() * view.m31() - view.m22() * view.m32();
-        return dest._m00(view.m00() * pm00)._m01(view.m10() * pm00)._m02(view.m20() * pm00)._m03(0.0)._m10(view.m01() * pm11)._m11(view.m11() * pm11)._m12(view.m21() * pm11)._m13(0.0)._m20(vm30 * pm23)._m21(vm31 * pm23)._m22(vm32 * pm23)._m23(pm23)._m30(view.m02() * pm32 + vm30 * pm33)._m31(view.m12() * pm32 + vm31 * pm33)._m32(view.m22() * pm32 + vm32 * pm33)._m33(pm33)._properties(0);
+        double vm30 = -view.m00 * view.m30 - view.m01 * view.m31 - view.m02 * view.m32;
+        double vm31 = -view.m10 * view.m30 - view.m11 * view.m31 - view.m12 * view.m32;
+        double vm32 = -view.m20 * view.m30 - view.m21 * view.m31 - view.m22 * view.m32;
+        return dest._m00(view.m00 * pm00)._m01(view.m10 * pm00)._m02(view.m20 * pm00)._m03(0.0)._m10(view.m01 * pm11)._m11(view.m11 * pm11)._m12(view.m21 * pm11)._m13(0.0)._m20(vm30 * pm23)._m21(vm31 * pm23)._m22(vm32 * pm23)._m23(pm23)._m30(view.m02 * pm32 + vm30 * pm33)._m31(view.m12 * pm32 + vm31 * pm33)._m32(view.m22 * pm32 + vm32 * pm33)._m33(pm33)._properties(0);
     }
 
     public Matrix4d invertAffine(Matrix4d dest) {
@@ -1309,7 +1309,11 @@ public class Matrix4d {
         double nm30 = (m10m22 * this.m31 - m10m21 * this.m32 + m11m20 * this.m32 - m11m22 * this.m30 + m12m21 * this.m30 - m12m20 * this.m31) * s;
         double nm31 = (m20m02 * this.m31 - m20m01 * this.m32 + m21m00 * this.m32 - m21m02 * this.m30 + m22m01 * this.m30 - m22m00 * this.m31) * s;
         double nm32 = (m11m02 * this.m30 - m12m01 * this.m30 + m12m00 * this.m31 - m10m02 * this.m31 + m10m01 * this.m32 - m11m00 * this.m32) * s;
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m20(nm20)._m21(nm21)._m22(nm22)._m23(0.0)._m30(nm30)._m31(nm31)._m32(nm32)._m33(1.0)._properties(2);
+        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)
+                ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)
+                ._m20(nm20)._m21(nm21)._m22(nm22)._m23(0.0)
+                ._m30(nm30)._m31(nm31)._m32(nm32)._m33(1.0)
+                ._properties(2);
         return dest;
     }
 
@@ -1330,7 +1334,11 @@ public class Matrix4d {
     }
 
     private Matrix4d transposeNonThisGeneric(Matrix4d dest) {
-        return dest._m00(this.m00)._m01(this.m10)._m02(this.m20)._m03(this.m30)._m10(this.m01)._m11(this.m11)._m12(this.m21)._m13(this.m31)._m20(this.m02)._m21(this.m12)._m22(this.m22)._m23(this.m32)._m30(this.m03)._m31(this.m13)._m32(this.m23)._m33(this.m33)._properties(0);
+        return dest._m00(this.m00)._m01(this.m10)._m02(this.m20)._m03(this.m30)
+                ._m10(this.m01)._m11(this.m11)._m12(this.m21)._m13(this.m31)
+                ._m20(this.m02)._m21(this.m12)._m22(this.m22)._m23(this.m32)
+                ._m30(this.m03)._m31(this.m13)._m32(this.m23)._m33(this.m33)
+                ._properties(0);
     }
 
     private Matrix4d transposeThisGeneric(Matrix4d dest) {
@@ -1340,7 +1348,11 @@ public class Matrix4d {
         double nm30 = this.m03;
         double nm31 = this.m13;
         double nm32 = this.m23;
-        return dest._m01(this.m10)._m02(this.m20)._m03(this.m30)._m10(nm10)._m12(this.m21)._m13(this.m31)._m20(nm20)._m21(nm21)._m23(this.m32)._m30(nm30)._m31(nm31)._m32(nm32)._properties(0);
+        return dest._m01(this.m10)._m02(this.m20)._m03(this.m30)
+                ._m10(nm10)._m12(this.m21)._m13(this.m31)
+                ._m20(nm20)._m21(nm21)._m23(this.m32)
+                ._m30(nm30)._m31(nm31)._m32(nm32)
+                ._properties(0);
     }
 
     public Matrix4d transpose3x3() {
@@ -1351,7 +1363,10 @@ public class Matrix4d {
         double nm10 = this.m01;
         double nm20 = this.m02;
         double nm21 = this.m12;
-        return dest._m00(this.m00)._m01(this.m10)._m02(this.m20)._m10(nm10)._m11(this.m11)._m12(this.m21)._m20(nm20)._m21(nm21)._m22(this.m22)._properties(this.properties & 30);
+        return dest._m00(this.m00)._m01(this.m10)._m02(this.m20)
+                ._m10(nm10)._m11(this.m11)._m12(this.m21)
+                ._m20(nm20)._m21(nm21)._m22(this.m22)
+                ._properties(this.properties & 30);
     }
 
     public Matrix3d transpose3x3(Matrix3d dest) {
@@ -1835,7 +1850,7 @@ public class Matrix4d {
     }
 
     public Matrix4d set3x3(Matrix3d mat) {
-        return this._m00(mat.m00())._m01(mat.m01())._m02(mat.m02())._m10(mat.m10())._m11(mat.m11())._m12(mat.m12())._m20(mat.m20())._m21(mat.m21())._m22(mat.m22())._properties(this.properties & -30);
+        return this._m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)._m21(mat.m21)._m22(mat.m22)._properties(this.properties & -30);
     }
 
     public Matrix4d scale(Vector3d xyz, Matrix4d dest) {
@@ -3672,8 +3687,8 @@ public class Matrix4d {
         double im31 = (this.m00 * j - this.m01 * h + this.m02 * g) * det;
         double im32 = (-this.m30 * d + this.m31 * b - this.m32 * a) * det;
         double im33 = (this.m20 * d - this.m21 * b + this.m22 * a) * det;
-        double ndcX = (winX - (double)viewport[0]) / (double)viewport[2] * 2.0 - 1.0;
-        double ndcY = (winY - (double)viewport[1]) / (double)viewport[3] * 2.0 - 1.0;
+        double ndcX = (winX - viewport[0]) / viewport[2] * 2.0 - 1.0;
+        double ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0;
         double ndcZ = winZ + winZ - 1.0;
         double invW = 1.0 / (im03 * ndcX + im13 * ndcY + im23 * ndcZ + im33);
         dest.x = (im00 * ndcX + im10 * ndcY + im20 * ndcZ + im30) * invW;
@@ -3714,8 +3729,8 @@ public class Matrix4d {
         double im31 = (this.m00 * j - this.m01 * h + this.m02 * g) * det;
         double im32 = (-this.m30 * d + this.m31 * b - this.m32 * a) * det;
         double im33 = (this.m20 * d - this.m21 * b + this.m22 * a) * det;
-        double ndcX = (winX - (double)viewport[0]) / (double)viewport[2] * 2.0 - 1.0;
-        double ndcY = (winY - (double)viewport[1]) / (double)viewport[3] * 2.0 - 1.0;
+        double ndcX = (winX - viewport[0]) / viewport[2] * 2.0 - 1.0;
+        double ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0;
         double ndcZ = winZ + winZ - 1.0;
         double invW = 1.0 / (im03 * ndcX + im13 * ndcY + im23 * ndcZ + im33);
         dest.x = (im00 * ndcX + im10 * ndcY + im20 * ndcZ + im30) * invW;
@@ -3763,8 +3778,8 @@ public class Matrix4d {
         double im31 = (this.m00 * j - this.m01 * h + this.m02 * g) * det;
         double im32 = (-this.m30 * d + this.m31 * b - this.m32 * a) * det;
         double im33 = (this.m20 * d - this.m21 * b + this.m22 * a) * det;
-        double ndcX = (winX - (double)viewport[0]) / (double)viewport[2] * 2.0 - 1.0;
-        double ndcY = (winY - (double)viewport[1]) / (double)viewport[3] * 2.0 - 1.0;
+        double ndcX = (winX - viewport[0]) / viewport[2] * 2.0 - 1.0;
+        double ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0;
         double px = im00 * ndcX + im10 * ndcY + im30;
         double py = im01 * ndcX + im11 * ndcY + im31;
         double pz = im02 * ndcX + im12 * ndcY + im32;
@@ -3794,8 +3809,8 @@ public class Matrix4d {
     }
 
     public Vector4d unprojectInv(double winX, double winY, double winZ, int[] viewport, Vector4d dest) {
-        double ndcX = (winX - (double)viewport[0]) / (double)viewport[2] * 2.0 - 1.0;
-        double ndcY = (winY - (double)viewport[1]) / (double)viewport[3] * 2.0 - 1.0;
+        double ndcX = (winX - viewport[0]) / viewport[2] * 2.0 - 1.0;
+        double ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0;
         double ndcZ = winZ + winZ - 1.0;
         double invW = 1.0 / (this.m03 * ndcX + this.m13 * ndcY + this.m23 * ndcZ + this.m33);
         dest.x = (this.m00 * ndcX + this.m10 * ndcY + this.m20 * ndcZ + this.m30) * invW;
@@ -3810,8 +3825,8 @@ public class Matrix4d {
     }
 
     public Vector3d unprojectInv(double winX, double winY, double winZ, int[] viewport, Vector3d dest) {
-        double ndcX = (winX - (double)viewport[0]) / (double)viewport[2] * 2.0 - 1.0;
-        double ndcY = (winY - (double)viewport[1]) / (double)viewport[3] * 2.0 - 1.0;
+        double ndcX = (winX - viewport[0]) / viewport[2] * 2.0 - 1.0;
+        double ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0;
         double ndcZ = winZ + winZ - 1.0;
         double invW = 1.0 / (this.m03 * ndcX + this.m13 * ndcY + this.m23 * ndcZ + this.m33);
         dest.x = (this.m00 * ndcX + this.m10 * ndcY + this.m20 * ndcZ + this.m30) * invW;
@@ -3825,8 +3840,8 @@ public class Matrix4d {
     }
 
     public Matrix4d unprojectInvRay(double winX, double winY, int[] viewport, Vector3d originDest, Vector3d dirDest) {
-        double ndcX = (winX - (double)viewport[0]) / (double)viewport[2] * 2.0 - 1.0;
-        double ndcY = (winY - (double)viewport[1]) / (double)viewport[3] * 2.0 - 1.0;
+        double ndcX = (winX - viewport[0]) / viewport[2] * 2.0 - 1.0;
+        double ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0;
         double px = this.m00 * ndcX + this.m10 * ndcY + this.m30;
         double py = this.m01 * ndcX + this.m11 * ndcY + this.m31;
         double pz = this.m02 * ndcX + this.m12 * ndcY + this.m32;
@@ -4517,7 +4532,7 @@ public class Matrix4d {
     public Matrix4d tile(int x, int y, int w, int h, Matrix4d dest) {
         float tx = (float)(w - 1 - (x << 1));
         float ty = (float)(h - 1 - (y << 1));
-        return dest._m30(Math.fma(this.m00, tx, Math.fma(this.m10, ty, this.m30)))._m31(Math.fma(this.m01, tx, Math.fma(this.m11, ty, this.m31)))._m32(Math.fma(this.m02, tx, Math.fma(this.m12, ty, this.m32)))._m33(Math.fma(this.m03, tx, Math.fma(this.m13, ty, this.m33)))._m00(this.m00 * (double)w)._m01(this.m01 * (double)w)._m02(this.m02 * (double)w)._m03(this.m03 * (double)w)._m10(this.m10 * (double)h)._m11(this.m11 * (double)h)._m12(this.m12 * (double)h)._m13(this.m13 * (double)h)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._properties(this.properties & -30);
+        return dest._m30(Math.fma(this.m00, tx, Math.fma(this.m10, ty, this.m30)))._m31(Math.fma(this.m01, tx, Math.fma(this.m11, ty, this.m31)))._m32(Math.fma(this.m02, tx, Math.fma(this.m12, ty, this.m32)))._m33(Math.fma(this.m03, tx, Math.fma(this.m13, ty, this.m33)))._m00(this.m00 * w)._m01(this.m01 * w)._m02(this.m02 * w)._m03(this.m03 * w)._m10(this.m10 * h)._m11(this.m11 * h)._m12(this.m12 * h)._m13(this.m13 * h)._m20(this.m20)._m21(this.m21)._m22(this.m22)._m23(this.m23)._properties(this.properties & -30);
     }
 
     public Matrix4d perspective(double fovy, double aspect, double zNear, double zFar, boolean zZeroToOne, Matrix4d dest) {
@@ -5011,8 +5026,8 @@ public class Matrix4d {
     }
 
     public Matrix4d setFromIntrinsic(double alphaX, double alphaY, double gamma, double u0, double v0, int imgWidth, int imgHeight, double near, double far) {
-        double l00 = 2.0 / (double)imgWidth;
-        double l11 = 2.0 / (double)imgHeight;
+        double l00 = 2.0 / imgWidth;
+        double l11 = 2.0 / imgHeight;
         double l22 = 2.0 / (near - far);
         this.m00 = l00 * alphaX;
         this.m01 = 0.0;
@@ -5425,10 +5440,10 @@ public class Matrix4d {
     }
 
     public Matrix4d shadow(Vector4d light, Matrix4d planeTransform, Matrix4d dest) {
-        double a = planeTransform.m10();
-        double b = planeTransform.m11();
-        double c = planeTransform.m12();
-        double d = -a * planeTransform.m30() - b * planeTransform.m31() - c * planeTransform.m32();
+        double a = planeTransform.m10;
+        double b = planeTransform.m11;
+        double c = planeTransform.m12;
+        double d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32;
         return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dest);
     }
 
@@ -5437,10 +5452,10 @@ public class Matrix4d {
     }
 
     public Matrix4d shadow(double lightX, double lightY, double lightZ, double lightW, Matrix4d planeTransform, Matrix4d dest) {
-        double a = planeTransform.m10();
-        double b = planeTransform.m11();
-        double c = planeTransform.m12();
-        double d = -a * planeTransform.m30() - b * planeTransform.m31() - c * planeTransform.m32();
+        double a = planeTransform.m10;
+        double b = planeTransform.m11;
+        double c = planeTransform.m12;
+        double d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32;
         return this.shadow(lightX, lightY, lightZ, lightW, a, b, c, d, dest);
     }
 
@@ -5598,46 +5613,46 @@ public class Matrix4d {
             return true;
         } else if (m == null) {
             return false;
-        } else if (!Runtime.equals(this.m00, m.m00(), delta)) {
+        } else if (!Runtime.equals(this.m00, m.m00, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m01, m.m01(), delta)) {
+        } else if (!Runtime.equals(this.m01, m.m01, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m02, m.m02(), delta)) {
+        } else if (!Runtime.equals(this.m02, m.m02, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m03, m.m03(), delta)) {
+        } else if (!Runtime.equals(this.m03, m.m03, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m10, m.m10(), delta)) {
+        } else if (!Runtime.equals(this.m10, m.m10, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m11, m.m11(), delta)) {
+        } else if (!Runtime.equals(this.m11, m.m11, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m12, m.m12(), delta)) {
+        } else if (!Runtime.equals(this.m12, m.m12, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m13, m.m13(), delta)) {
+        } else if (!Runtime.equals(this.m13, m.m13, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m20, m.m20(), delta)) {
+        } else if (!Runtime.equals(this.m20, m.m20, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m21, m.m21(), delta)) {
+        } else if (!Runtime.equals(this.m21, m.m21, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m22, m.m22(), delta)) {
+        } else if (!Runtime.equals(this.m22, m.m22, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m23, m.m23(), delta)) {
+        } else if (!Runtime.equals(this.m23, m.m23, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m30, m.m30(), delta)) {
+        } else if (!Runtime.equals(this.m30, m.m30, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m31, m.m31(), delta)) {
+        } else if (!Runtime.equals(this.m31, m.m31, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m32, m.m32(), delta)) {
+        } else if (!Runtime.equals(this.m32, m.m32, delta)) {
             return false;
         } else {
-            return Runtime.equals(this.m33, m.m33(), delta);
+            return Runtime.equals(this.m33, m.m33, delta);
         }
     }
 
     public Matrix4d pick(double x, double y, double width, double height, int[] viewport, Matrix4d dest) {
-        double sx = (double)viewport[2] / width;
-        double sy = (double)viewport[3] / height;
-        double tx = ((double)viewport[2] + 2.0 * ((double)viewport[0] - x)) / width;
-        double ty = ((double)viewport[3] + 2.0 * ((double)viewport[1] - y)) / height;
+        double sx = viewport[2] / width;
+        double sy = viewport[3] / height;
+        double tx = (viewport[2] + 2.0 * (viewport[0] - x)) / width;
+        double ty = (viewport[3] + 2.0 * (viewport[1] - y)) / height;
         dest._m30(this.m00 * tx + this.m10 * ty + this.m30)._m31(this.m01 * tx + this.m11 * ty + this.m31)._m32(this.m02 * tx + this.m12 * ty + this.m32)._m33(this.m03 * tx + this.m13 * ty + this.m33)._m00(this.m00 * sx)._m01(this.m01 * sx)._m02(this.m02 * sx)._m03(this.m03 * sx)._m10(this.m10 * sy)._m11(this.m11 * sy)._m12(this.m12 * sy)._m13(this.m13 * sy)._properties(0);
         return dest;
     }
@@ -5755,9 +5770,9 @@ public class Matrix4d {
         double maxZ = Double.NEGATIVE_INFINITY;
 
         for(int t = 0; t < 8; ++t) {
-            double x = (double)((t & 1) << 1) - 1.0;
-            double y = (double)((t >>> 1 & 1) << 1) - 1.0;
-            double z = (double)((t >>> 2 & 1) << 1) - 1.0;
+            double x = ((t & 1) << 1) - 1.0;
+            double y = ((t >>> 1 & 1) << 1) - 1.0;
+            double z = ((t >>> 2 & 1) << 1) - 1.0;
             double invW = 1.0 / (this.m03 * x + this.m13 * y + this.m23 * z + this.m33);
             double nx = (this.m00 * x + this.m10 * y + this.m20 * z + this.m30) * invW;
             double ny = (this.m01 * x + this.m11 * y + this.m21 * z + this.m31) * invW;
@@ -5796,18 +5811,18 @@ public class Matrix4d {
             if (t < 4) {
                 c0X = -1.0;
                 c1X = 1.0;
-                c0Y = c1Y = (double)((t & 1) << 1) - 1.0;
-                c0Z = c1Z = (double)((t >>> 1 & 1) << 1) - 1.0;
+                c0Y = c1Y = ((t & 1) << 1) - 1.0;
+                c0Z = c1Z = ((t >>> 1 & 1) << 1) - 1.0;
             } else if (t < 8) {
                 c0Y = -1.0;
                 c1Y = 1.0;
-                c0X = c1X = (double)((t & 1) << 1) - 1.0;
-                c0Z = c1Z = (double)((t >>> 1 & 1) << 1) - 1.0;
+                c0X = c1X = ((t & 1) << 1) - 1.0;
+                c0Z = c1Z = ((t >>> 1 & 1) << 1) - 1.0;
             } else {
                 c0Z = -1.0;
                 c1Z = 1.0;
-                c0X = c1X = (double)((t & 1) << 1) - 1.0;
-                c0Y = c1Y = (double)((t >>> 1 & 1) << 1) - 1.0;
+                c0X = c1X = ((t & 1) << 1) - 1.0;
+                c0Y = c1Y = ((t >>> 1 & 1) << 1) - 1.0;
             }
 
             double invW = 1.0 / (this.m03 * c0X + this.m13 * c0Y + this.m23 * c0Z + this.m33);
@@ -5829,9 +5844,9 @@ public class Matrix4d {
                     intersection = true;
                     double ix = p0x + isectT * dirX;
                     double iz = p0z + isectT * dirZ;
-                    invW = 1.0 / (projector.m03() * ix + projector.m23() * iz + projector.m33());
-                    double px = (projector.m00() * ix + projector.m20() * iz + projector.m30()) * invW;
-                    double py = (projector.m01() * ix + projector.m21() * iz + projector.m31()) * invW;
+                    invW = 1.0 / (projector.m03 * ix + projector.m23 * iz + projector.m33);
+                    double px = (projector.m00 * ix + projector.m20 * iz + projector.m30) * invW;
+                    double py = (projector.m01 * ix + projector.m21 * iz + projector.m31) * invW;
                     minX = java.lang.Math.min(minX, px);
                     minY = java.lang.Math.min(minY, py);
                     maxX = java.lang.Math.max(maxX, px);
@@ -5864,17 +5879,17 @@ public class Matrix4d {
         double maxZ = Double.NEGATIVE_INFINITY;
 
         for(int t = 0; t < 8; ++t) {
-            double x = (double)((t & 1) << 1) - 1.0;
-            double y = (double)((t >>> 1 & 1) << 1) - 1.0;
-            double z = (double)((t >>> 2 & 1) << 1) - 1.0;
+            double x = ((t & 1) << 1) - 1.0;
+            double y = ((t >>> 1 & 1) << 1) - 1.0;
+            double z = ((t >>> 2 & 1) << 1) - 1.0;
             double invW = 1.0 / (this.m03 * x + this.m13 * y + this.m23 * z + this.m33);
             double wx = (this.m00 * x + this.m10 * y + this.m20 * z + this.m30) * invW;
             double wy = (this.m01 * x + this.m11 * y + this.m21 * z + this.m31) * invW;
             double wz = (this.m02 * x + this.m12 * y + this.m22 * z + this.m32) * invW;
-            invW = 1.0 / (view.m03() * wx + view.m13() * wy + view.m23() * wz + view.m33());
-            double vx = view.m00() * wx + view.m10() * wy + view.m20() * wz + view.m30();
-            double vy = view.m01() * wx + view.m11() * wy + view.m21() * wz + view.m31();
-            double vz = (view.m02() * wx + view.m12() * wy + view.m22() * wz + view.m32()) * invW;
+            invW = 1.0 / (view.m03 * wx + view.m13 * wy + view.m23 * wz + view.m33);
+            double vx = view.m00 * wx + view.m10 * wy + view.m20 * wz + view.m30;
+            double vy = view.m01 * wx + view.m11 * wy + view.m21 * wz + view.m31;
+            double vz = (view.m02 * wx + view.m12 * wy + view.m22 * wz + view.m32) * invW;
             minX = java.lang.Math.min(minX, vx);
             maxX = java.lang.Math.max(maxX, vx);
             minY = java.lang.Math.min(minY, vy);
@@ -6046,7 +6061,7 @@ public class Matrix4d {
     }
 
     public Matrix4d lerp(Matrix4d other, double t, Matrix4d dest) {
-        dest._m00(Math.fma(other.m00() - this.m00, t, this.m00))._m01(Math.fma(other.m01() - this.m01, t, this.m01))._m02(Math.fma(other.m02() - this.m02, t, this.m02))._m03(Math.fma(other.m03() - this.m03, t, this.m03))._m10(Math.fma(other.m10() - this.m10, t, this.m10))._m11(Math.fma(other.m11() - this.m11, t, this.m11))._m12(Math.fma(other.m12() - this.m12, t, this.m12))._m13(Math.fma(other.m13() - this.m13, t, this.m13))._m20(Math.fma(other.m20() - this.m20, t, this.m20))._m21(Math.fma(other.m21() - this.m21, t, this.m21))._m22(Math.fma(other.m22() - this.m22, t, this.m22))._m23(Math.fma(other.m23() - this.m23, t, this.m23))._m30(Math.fma(other.m30() - this.m30, t, this.m30))._m31(Math.fma(other.m31() - this.m31, t, this.m31))._m32(Math.fma(other.m32() - this.m32, t, this.m32))._m33(Math.fma(other.m33() - this.m33, t, this.m33))._properties(this.properties & other.properties());
+        dest._m00(Math.fma(other.m00 - this.m00, t, this.m00))._m01(Math.fma(other.m01 - this.m01, t, this.m01))._m02(Math.fma(other.m02 - this.m02, t, this.m02))._m03(Math.fma(other.m03 - this.m03, t, this.m03))._m10(Math.fma(other.m10 - this.m10, t, this.m10))._m11(Math.fma(other.m11 - this.m11, t, this.m11))._m12(Math.fma(other.m12 - this.m12, t, this.m12))._m13(Math.fma(other.m13 - this.m13, t, this.m13))._m20(Math.fma(other.m20 - this.m20, t, this.m20))._m21(Math.fma(other.m21 - this.m21, t, this.m21))._m22(Math.fma(other.m22 - this.m22, t, this.m22))._m23(Math.fma(other.m23 - this.m23, t, this.m23))._m30(Math.fma(other.m30 - this.m30, t, this.m30))._m31(Math.fma(other.m31 - this.m31, t, this.m31))._m32(Math.fma(other.m32 - this.m32, t, this.m32))._m33(Math.fma(other.m33 - this.m33, t, this.m33))._properties(this.properties & other.properties());
         return dest;
     }
 

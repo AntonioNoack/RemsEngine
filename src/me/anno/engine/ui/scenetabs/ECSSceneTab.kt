@@ -110,7 +110,7 @@ class ECSSceneTab(
                     val matrices = root.getMatrices(0, AnimGameItem.tmpMatrices) ?: break
                     for (j in skeleton.bones.indices) {
                         val offset = matrices[j]
-                        motionBounds.union(offset.m30(), offset.m31(), offset.m32())
+                        motionBounds.union(offset.m30, offset.m31, offset.m32)
                     }
                 }
                 aabb.minX += motionBounds.minX

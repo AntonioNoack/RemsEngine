@@ -193,9 +193,9 @@ class AABBf(
             val x = minX + (i and 1).toFloat() * dx
             val y = minY + (i shr 1 and 1).toFloat() * dy
             val z = minZ + (i shr 2 and 1).toFloat() * dz
-            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
-            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
-            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
+            val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
+            val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
             minx = min(tx, minx)
             miny = min(ty, miny)
             minz = min(tz, minz)
@@ -232,9 +232,9 @@ class AABBf(
             val x = mx + (i and 1).toDouble() * dx
             val y = my + ((i shr 1) and 1).toDouble() * dy
             val z = mz + ((i shr 2) and 1).toDouble() * dz
-            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
-            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
-            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
+            val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
+            val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
             minx = min(tx, minx)
             miny = min(ty, miny)
             minz = min(tz, minz)
@@ -271,9 +271,9 @@ class AABBf(
             val x = mx + (i and 1).toDouble() * dx
             val y = my + ((i shr 1) and 1).toDouble() * dy
             val z = mz + ((i shr 2) and 1).toDouble() * dz
-            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
-            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
-            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
+            val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
+            val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
             minx = min(tx, minx)
             miny = min(ty, miny)
             minz = min(tz, minz)
@@ -310,9 +310,9 @@ class AABBf(
             val x = mx + (i and 1) * dx
             val y = my + ((i shr 1) and 1) * dy
             val z = mz + ((i shr 2) and 1) * dz
-            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
-            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
-            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
+            val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
+            val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
             minx = min(tx, minx)
             miny = min(ty, miny)
             minz = min(tz, minz)
@@ -349,9 +349,9 @@ class AABBf(
             val x = mx + (i and 1) * dx
             val y = my + ((i shr 1) and 1) * dy
             val z = mz + ((i shr 2) and 1) * dz
-            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
-            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
-            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
+            val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
+            val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
             minx = min(tx, minx)
             miny = min(ty, miny)
             minz = min(tz, minz)
@@ -394,10 +394,10 @@ class AABBf(
             val x = if ((i.and(1) != 0)) xx else mx
             val y = if ((i.and(2) != 0)) xy else my
             val z = if ((i.and(4) != 0)) xz else mz
-            val tw = m.m03() * x + m.m13() * y + m.m23() * z + m.m33()
-            val tx = (m.m00() * x + m.m10() * y + m.m20() * z + m.m30()) / tw
-            val ty = (m.m01() * x + m.m11() * y + m.m21() * z + m.m31()) / tw
-            val tz = (m.m02() * x + m.m12() * y + m.m22() * z + m.m32()) / tw
+            val tw = m.m03 * x + m.m13 * y + m.m23 * z + m.m33
+            val tx = (m.m00 * x + m.m10 * y + m.m20 * z + m.m30) / tw
+            val ty = (m.m01 * x + m.m11 * y + m.m21 * z + m.m31) / tw
+            val tz = (m.m02 * x + m.m12 * y + m.m22 * z + m.m32) / tw
             minx = min(tx, minx)
             miny = min(ty, miny)
             minz = min(tz, minz)
@@ -435,9 +435,9 @@ class AABBf(
             val x = if ((i.and(1) != 0)) xx else mx
             val y = if ((i.and(2) != 0)) xy else my
             val z = if ((i.and(4) != 0)) xz else mz
-            val tx = transform.m00() * x + transform.m10() * y + transform.m20() * z + transform.m30()
-            val ty = transform.m01() * x + transform.m11() * y + transform.m21() * z + transform.m31()
-            val tz = transform.m02() * x + transform.m12() * y + transform.m22() * z + transform.m32()
+            val tx = transform.m00 * x + transform.m10 * y + transform.m20 * z + transform.m30
+            val ty = transform.m01 * x + transform.m11 * y + transform.m21 * z + transform.m31
+            val tz = transform.m02 * x + transform.m12 * y + transform.m22 * z + transform.m32
             minx = min(tx, minx)
             miny = min(ty, miny)
             minz = min(tz, minz)

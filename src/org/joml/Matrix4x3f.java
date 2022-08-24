@@ -318,35 +318,35 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f set(Matrix4x3f m) {
-        this.m00 = m.m00();
-        this.m01 = m.m01();
-        this.m02 = m.m02();
-        this.m10 = m.m10();
-        this.m11 = m.m11();
-        this.m12 = m.m12();
-        this.m20 = m.m20();
-        this.m21 = m.m21();
-        this.m22 = m.m22();
-        this.m30 = m.m30();
-        this.m31 = m.m31();
-        this.m32 = m.m32();
+        this.m00 = m.m00;
+        this.m01 = m.m01;
+        this.m02 = m.m02;
+        this.m10 = m.m10;
+        this.m11 = m.m11;
+        this.m12 = m.m12;
+        this.m20 = m.m20;
+        this.m21 = m.m21;
+        this.m22 = m.m22;
+        this.m30 = m.m30;
+        this.m31 = m.m31;
+        this.m32 = m.m32;
         this.properties = m.properties();
         return this;
     }
 
     public Matrix4x3f set(Matrix4f m) {
-        this.m00 = m.m00();
-        this.m01 = m.m01();
-        this.m02 = m.m02();
-        this.m10 = m.m10();
-        this.m11 = m.m11();
-        this.m12 = m.m12();
-        this.m20 = m.m20();
-        this.m21 = m.m21();
-        this.m22 = m.m22();
-        this.m30 = m.m30();
-        this.m31 = m.m31();
-        this.m32 = m.m32();
+        this.m00 = m.m00;
+        this.m01 = m.m01;
+        this.m02 = m.m02;
+        this.m10 = m.m10;
+        this.m11 = m.m11;
+        this.m12 = m.m12;
+        this.m20 = m.m20;
+        this.m21 = m.m21;
+        this.m22 = m.m22;
+        this.m30 = m.m30;
+        this.m31 = m.m31;
+        this.m32 = m.m32;
         this.properties = m.properties() & 28;
         return this;
     }
@@ -360,15 +360,15 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f set(Matrix3f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m02 = mat.m02();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
-        this.m12 = mat.m12();
-        this.m20 = mat.m20();
-        this.m21 = mat.m21();
-        this.m22 = mat.m22();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m02 = mat.m02;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
+        this.m12 = mat.m12;
+        this.m20 = mat.m20;
+        this.m21 = mat.m21;
+        this.m22 = mat.m22;
         this.m30 = 0f;
         this.m31 = 0f;
         this.m32 = 0f;
@@ -490,15 +490,15 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f set3x3(Matrix4x3f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m02 = mat.m02();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
-        this.m12 = mat.m12();
-        this.m20 = mat.m20();
-        this.m21 = mat.m21();
-        this.m22 = mat.m22();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m02 = mat.m02;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
+        this.m12 = mat.m12;
+        this.m20 = mat.m20;
+        this.m21 = mat.m21;
+        this.m22 = mat.m22;
         this.properties &= mat.properties();
         return this;
     }
@@ -527,23 +527,23 @@ public class Matrix4x3f {
         float m20 = this.m20;
         float m21 = this.m21;
         float m22 = this.m22;
-        float rm00 = right.m00();
-        float rm01 = right.m01();
-        float rm02 = right.m02();
-        float rm10 = right.m10();
-        float rm11 = right.m11();
-        float rm12 = right.m12();
-        float rm20 = right.m20();
-        float rm21 = right.m21();
-        float rm22 = right.m22();
-        float rm30 = right.m30();
-        float rm31 = right.m31();
-        float rm32 = right.m32();
+        float rm00 = right.m00;
+        float rm01 = right.m01;
+        float rm02 = right.m02;
+        float rm10 = right.m10;
+        float rm11 = right.m11;
+        float rm12 = right.m12;
+        float rm20 = right.m20;
+        float rm21 = right.m21;
+        float rm22 = right.m22;
+        float rm30 = right.m30;
+        float rm31 = right.m31;
+        float rm32 = right.m32;
         return dest._m00(Math.fma(m00, rm00, Math.fma(m10, rm01, m20 * rm02)))._m01(Math.fma(m01, rm00, Math.fma(m11, rm01, m21 * rm02)))._m02(Math.fma(m02, rm00, Math.fma(m12, rm01, m22 * rm02)))._m10(Math.fma(m00, rm10, Math.fma(m10, rm11, m20 * rm12)))._m11(Math.fma(m01, rm10, Math.fma(m11, rm11, m21 * rm12)))._m12(Math.fma(m02, rm10, Math.fma(m12, rm11, m22 * rm12)))._m20(Math.fma(m00, rm20, Math.fma(m10, rm21, m20 * rm22)))._m21(Math.fma(m01, rm20, Math.fma(m11, rm21, m21 * rm22)))._m22(Math.fma(m02, rm20, Math.fma(m12, rm21, m22 * rm22)))._m30(Math.fma(m00, rm30, Math.fma(m10, rm31, Math.fma(m20, rm32, this.m30))))._m31(Math.fma(m01, rm30, Math.fma(m11, rm31, Math.fma(m21, rm32, this.m31))))._m32(Math.fma(m02, rm30, Math.fma(m12, rm31, Math.fma(m22, rm32, this.m32))))._properties(this.properties & right.properties() & 16);
     }
 
     public Matrix4x3f mulTranslation(Matrix4x3f right, Matrix4x3f dest) {
-        return dest._m00(right.m00())._m01(right.m01())._m02(right.m02())._m10(right.m10())._m11(right.m11())._m12(right.m12())._m20(right.m20())._m21(right.m21())._m22(right.m22())._m30(right.m30() + this.m30)._m31(right.m31() + this.m31)._m32(right.m32() + this.m32)._properties(right.properties() & 16);
+        return dest._m00(right.m00)._m01(right.m01)._m02(right.m02)._m10(right.m10)._m11(right.m11)._m12(right.m12)._m20(right.m20)._m21(right.m21)._m22(right.m22)._m30(right.m30 + this.m30)._m31(right.m31 + this.m31)._m32(right.m32 + this.m32)._properties(right.properties() & 16);
     }
 
     public Matrix4x3f mulOrtho(Matrix4x3f view) {
@@ -551,18 +551,18 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f mulOrtho(Matrix4x3f view, Matrix4x3f dest) {
-        float nm00 = this.m00 * view.m00();
-        float nm01 = this.m11 * view.m01();
-        float nm02 = this.m22 * view.m02();
-        float nm10 = this.m00 * view.m10();
-        float nm11 = this.m11 * view.m11();
-        float nm12 = this.m22 * view.m12();
-        float nm20 = this.m00 * view.m20();
-        float nm21 = this.m11 * view.m21();
-        float nm22 = this.m22 * view.m22();
-        float nm30 = this.m00 * view.m30() + this.m30;
-        float nm31 = this.m11 * view.m31() + this.m31;
-        float nm32 = this.m22 * view.m32() + this.m32;
+        float nm00 = this.m00 * view.m00;
+        float nm01 = this.m11 * view.m01;
+        float nm02 = this.m22 * view.m02;
+        float nm10 = this.m00 * view.m10;
+        float nm11 = this.m11 * view.m11;
+        float nm12 = this.m22 * view.m12;
+        float nm20 = this.m00 * view.m20;
+        float nm21 = this.m11 * view.m21;
+        float nm22 = this.m22 * view.m22;
+        float nm30 = this.m00 * view.m30 + this.m30;
+        float nm31 = this.m11 * view.m31 + this.m31;
+        float nm32 = this.m22 * view.m32 + this.m32;
         dest.m00 = nm00;
         dest.m01 = nm01;
         dest.m02 = nm02;
@@ -601,7 +601,7 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f fma(Matrix4x3f other, float otherFactor, Matrix4x3f dest) {
-        dest._m00(Math.fma(other.m00(), otherFactor, this.m00))._m01(Math.fma(other.m01(), otherFactor, this.m01))._m02(Math.fma(other.m02(), otherFactor, this.m02))._m10(Math.fma(other.m10(), otherFactor, this.m10))._m11(Math.fma(other.m11(), otherFactor, this.m11))._m12(Math.fma(other.m12(), otherFactor, this.m12))._m20(Math.fma(other.m20(), otherFactor, this.m20))._m21(Math.fma(other.m21(), otherFactor, this.m21))._m22(Math.fma(other.m22(), otherFactor, this.m22))._m30(Math.fma(other.m30(), otherFactor, this.m30))._m31(Math.fma(other.m31(), otherFactor, this.m31))._m32(Math.fma(other.m32(), otherFactor, this.m32))._properties(0);
+        dest._m00(Math.fma(other.m00, otherFactor, this.m00))._m01(Math.fma(other.m01, otherFactor, this.m01))._m02(Math.fma(other.m02, otherFactor, this.m02))._m10(Math.fma(other.m10, otherFactor, this.m10))._m11(Math.fma(other.m11, otherFactor, this.m11))._m12(Math.fma(other.m12, otherFactor, this.m12))._m20(Math.fma(other.m20, otherFactor, this.m20))._m21(Math.fma(other.m21, otherFactor, this.m21))._m22(Math.fma(other.m22, otherFactor, this.m22))._m30(Math.fma(other.m30, otherFactor, this.m30))._m31(Math.fma(other.m31, otherFactor, this.m31))._m32(Math.fma(other.m32, otherFactor, this.m32))._properties(0);
         return dest;
     }
 
@@ -610,18 +610,18 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f add(Matrix4x3f other, Matrix4x3f dest) {
-        dest.m00 = this.m00 + other.m00();
-        dest.m01 = this.m01 + other.m01();
-        dest.m02 = this.m02 + other.m02();
-        dest.m10 = this.m10 + other.m10();
-        dest.m11 = this.m11 + other.m11();
-        dest.m12 = this.m12 + other.m12();
-        dest.m20 = this.m20 + other.m20();
-        dest.m21 = this.m21 + other.m21();
-        dest.m22 = this.m22 + other.m22();
-        dest.m30 = this.m30 + other.m30();
-        dest.m31 = this.m31 + other.m31();
-        dest.m32 = this.m32 + other.m32();
+        dest.m00 = this.m00 + other.m00;
+        dest.m01 = this.m01 + other.m01;
+        dest.m02 = this.m02 + other.m02;
+        dest.m10 = this.m10 + other.m10;
+        dest.m11 = this.m11 + other.m11;
+        dest.m12 = this.m12 + other.m12;
+        dest.m20 = this.m20 + other.m20;
+        dest.m21 = this.m21 + other.m21;
+        dest.m22 = this.m22 + other.m22;
+        dest.m30 = this.m30 + other.m30;
+        dest.m31 = this.m31 + other.m31;
+        dest.m32 = this.m32 + other.m32;
         dest.properties = 0;
         return dest;
     }
@@ -631,18 +631,18 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f sub(Matrix4x3f subtrahend, Matrix4x3f dest) {
-        dest.m00 = this.m00 - subtrahend.m00();
-        dest.m01 = this.m01 - subtrahend.m01();
-        dest.m02 = this.m02 - subtrahend.m02();
-        dest.m10 = this.m10 - subtrahend.m10();
-        dest.m11 = this.m11 - subtrahend.m11();
-        dest.m12 = this.m12 - subtrahend.m12();
-        dest.m20 = this.m20 - subtrahend.m20();
-        dest.m21 = this.m21 - subtrahend.m21();
-        dest.m22 = this.m22 - subtrahend.m22();
-        dest.m30 = this.m30 - subtrahend.m30();
-        dest.m31 = this.m31 - subtrahend.m31();
-        dest.m32 = this.m32 - subtrahend.m32();
+        dest.m00 = this.m00 - subtrahend.m00;
+        dest.m01 = this.m01 - subtrahend.m01;
+        dest.m02 = this.m02 - subtrahend.m02;
+        dest.m10 = this.m10 - subtrahend.m10;
+        dest.m11 = this.m11 - subtrahend.m11;
+        dest.m12 = this.m12 - subtrahend.m12;
+        dest.m20 = this.m20 - subtrahend.m20;
+        dest.m21 = this.m21 - subtrahend.m21;
+        dest.m22 = this.m22 - subtrahend.m22;
+        dest.m30 = this.m30 - subtrahend.m30;
+        dest.m31 = this.m31 - subtrahend.m31;
+        dest.m32 = this.m32 - subtrahend.m32;
         dest.properties = 0;
         return dest;
     }
@@ -652,18 +652,18 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f mulComponentWise(Matrix4x3f other, Matrix4x3f dest) {
-        dest.m00 = this.m00 * other.m00();
-        dest.m01 = this.m01 * other.m01();
-        dest.m02 = this.m02 * other.m02();
-        dest.m10 = this.m10 * other.m10();
-        dest.m11 = this.m11 * other.m11();
-        dest.m12 = this.m12 * other.m12();
-        dest.m20 = this.m20 * other.m20();
-        dest.m21 = this.m21 * other.m21();
-        dest.m22 = this.m22 * other.m22();
-        dest.m30 = this.m30 * other.m30();
-        dest.m31 = this.m31 * other.m31();
-        dest.m32 = this.m32 * other.m32();
+        dest.m00 = this.m00 * other.m00;
+        dest.m01 = this.m01 * other.m01;
+        dest.m02 = this.m02 * other.m02;
+        dest.m10 = this.m10 * other.m10;
+        dest.m11 = this.m11 * other.m11;
+        dest.m12 = this.m12 * other.m12;
+        dest.m20 = this.m20 * other.m20;
+        dest.m21 = this.m21 * other.m21;
+        dest.m22 = this.m22 * other.m22;
+        dest.m30 = this.m30 * other.m30;
+        dest.m31 = this.m31 * other.m31;
+        dest.m32 = this.m32 * other.m32;
         dest.properties = 0;
         return dest;
     }
@@ -1520,18 +1520,18 @@ public class Matrix4x3f {
         float nm20 = yw + xz + xz + yw;
         float nm21 = yz + yz - xw - xw;
         float nm22 = z2 - y2 - x2 + w2;
-        this.m00 = nm00 * mat.m00() + nm10 * mat.m01() + nm20 * mat.m02();
-        this.m01 = nm01 * mat.m00() + nm11 * mat.m01() + nm21 * mat.m02();
-        this.m02 = nm02 * mat.m00() + nm12 * mat.m01() + nm22 * mat.m02();
-        this.m10 = nm00 * mat.m10() + nm10 * mat.m11() + nm20 * mat.m12();
-        this.m11 = nm01 * mat.m10() + nm11 * mat.m11() + nm21 * mat.m12();
-        this.m12 = nm02 * mat.m10() + nm12 * mat.m11() + nm22 * mat.m12();
-        this.m20 = nm00 * mat.m20() + nm10 * mat.m21() + nm20 * mat.m22();
-        this.m21 = nm01 * mat.m20() + nm11 * mat.m21() + nm21 * mat.m22();
-        this.m22 = nm02 * mat.m20() + nm12 * mat.m21() + nm22 * mat.m22();
-        this.m30 = nm00 * mat.m30() + nm10 * mat.m31() + nm20 * mat.m32() + tx;
-        this.m31 = nm01 * mat.m30() + nm11 * mat.m31() + nm21 * mat.m32() + ty;
-        this.m32 = nm02 * mat.m30() + nm12 * mat.m31() + nm22 * mat.m32() + tz;
+        this.m00 = nm00 * mat.m00 + nm10 * mat.m01 + nm20 * mat.m02;
+        this.m01 = nm01 * mat.m00 + nm11 * mat.m01 + nm21 * mat.m02;
+        this.m02 = nm02 * mat.m00 + nm12 * mat.m01 + nm22 * mat.m02;
+        this.m10 = nm00 * mat.m10 + nm10 * mat.m11 + nm20 * mat.m12;
+        this.m11 = nm01 * mat.m10 + nm11 * mat.m11 + nm21 * mat.m12;
+        this.m12 = nm02 * mat.m10 + nm12 * mat.m11 + nm22 * mat.m12;
+        this.m20 = nm00 * mat.m20 + nm10 * mat.m21 + nm20 * mat.m22;
+        this.m21 = nm01 * mat.m20 + nm11 * mat.m21 + nm21 * mat.m22;
+        this.m22 = nm02 * mat.m20 + nm12 * mat.m21 + nm22 * mat.m22;
+        this.m30 = nm00 * mat.m30 + nm10 * mat.m31 + nm20 * mat.m32 + tx;
+        this.m31 = nm01 * mat.m30 + nm11 * mat.m31 + nm21 * mat.m32 + ty;
+        this.m32 = nm02 * mat.m30 + nm12 * mat.m31 + nm22 * mat.m32 + tz;
         this.properties = 0;
         return this;
     }
@@ -1566,15 +1566,15 @@ public class Matrix4x3f {
     }
 
     private void set3x3Matrix3f(Matrix3f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m02 = mat.m02();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
-        this.m12 = mat.m12();
-        this.m20 = mat.m20();
-        this.m21 = mat.m21();
-        this.m22 = mat.m22();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m02 = mat.m02;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
+        this.m12 = mat.m12;
+        this.m20 = mat.m20;
+        this.m21 = mat.m21;
+        this.m22 = mat.m22;
     }
 
     public Vector4f transform(Vector4f v) {
@@ -3634,10 +3634,10 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f shadow(Vector4f light, Matrix4x3f planeTransform, Matrix4x3f dest) {
-        float a = planeTransform.m10();
-        float b = planeTransform.m11();
-        float c = planeTransform.m12();
-        float d = -a * planeTransform.m30() - b * planeTransform.m31() - c * planeTransform.m32();
+        float a = planeTransform.m10;
+        float b = planeTransform.m11;
+        float c = planeTransform.m12;
+        float d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32;
         return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dest);
     }
 
@@ -3646,10 +3646,10 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f shadow(float lightX, float lightY, float lightZ, float lightW, Matrix4x3f planeTransform, Matrix4x3f dest) {
-        float a = planeTransform.m10();
-        float b = planeTransform.m11();
-        float c = planeTransform.m12();
-        float d = -a * planeTransform.m30() - b * planeTransform.m31() - c * planeTransform.m32();
+        float a = planeTransform.m10;
+        float b = planeTransform.m11;
+        float c = planeTransform.m12;
+        float d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32;
         return this.shadow(lightX, lightY, lightZ, lightW, a, b, c, d, dest);
     }
 
@@ -3815,30 +3815,30 @@ public class Matrix4x3f {
             return true;
         } else if (m == null) {
             return false;
-        } else if (!Runtime.equals(this.m00, m.m00(), delta)) {
+        } else if (!Runtime.equals(this.m00, m.m00, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m01, m.m01(), delta)) {
+        } else if (!Runtime.equals(this.m01, m.m01, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m02, m.m02(), delta)) {
+        } else if (!Runtime.equals(this.m02, m.m02, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m10, m.m10(), delta)) {
+        } else if (!Runtime.equals(this.m10, m.m10, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m11, m.m11(), delta)) {
+        } else if (!Runtime.equals(this.m11, m.m11, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m12, m.m12(), delta)) {
+        } else if (!Runtime.equals(this.m12, m.m12, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m20, m.m20(), delta)) {
+        } else if (!Runtime.equals(this.m20, m.m20, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m21, m.m21(), delta)) {
+        } else if (!Runtime.equals(this.m21, m.m21, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m22, m.m22(), delta)) {
+        } else if (!Runtime.equals(this.m22, m.m22, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m30, m.m30(), delta)) {
+        } else if (!Runtime.equals(this.m30, m.m30, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m31, m.m31(), delta)) {
+        } else if (!Runtime.equals(this.m31, m.m31, delta)) {
             return false;
         } else {
-            return Runtime.equals(this.m32, m.m32(), delta);
+            return Runtime.equals(this.m32, m.m32, delta);
         }
     }
 
@@ -4047,18 +4047,18 @@ public class Matrix4x3f {
     }
 
     public Matrix4x3f lerp(Matrix4x3f other, float t, Matrix4x3f dest) {
-        dest.m00 = Math.fma(other.m00() - this.m00, t, this.m00);
-        dest.m01 = Math.fma(other.m01() - this.m01, t, this.m01);
-        dest.m02 = Math.fma(other.m02() - this.m02, t, this.m02);
-        dest.m10 = Math.fma(other.m10() - this.m10, t, this.m10);
-        dest.m11 = Math.fma(other.m11() - this.m11, t, this.m11);
-        dest.m12 = Math.fma(other.m12() - this.m12, t, this.m12);
-        dest.m20 = Math.fma(other.m20() - this.m20, t, this.m20);
-        dest.m21 = Math.fma(other.m21() - this.m21, t, this.m21);
-        dest.m22 = Math.fma(other.m22() - this.m22, t, this.m22);
-        dest.m30 = Math.fma(other.m30() - this.m30, t, this.m30);
-        dest.m31 = Math.fma(other.m31() - this.m31, t, this.m31);
-        dest.m32 = Math.fma(other.m32() - this.m32, t, this.m32);
+        dest.m00 = Math.fma(other.m00 - this.m00, t, this.m00);
+        dest.m01 = Math.fma(other.m01 - this.m01, t, this.m01);
+        dest.m02 = Math.fma(other.m02 - this.m02, t, this.m02);
+        dest.m10 = Math.fma(other.m10 - this.m10, t, this.m10);
+        dest.m11 = Math.fma(other.m11 - this.m11, t, this.m11);
+        dest.m12 = Math.fma(other.m12 - this.m12, t, this.m12);
+        dest.m20 = Math.fma(other.m20 - this.m20, t, this.m20);
+        dest.m21 = Math.fma(other.m21 - this.m21, t, this.m21);
+        dest.m22 = Math.fma(other.m22 - this.m22, t, this.m22);
+        dest.m30 = Math.fma(other.m30 - this.m30, t, this.m30);
+        dest.m31 = Math.fma(other.m31 - this.m31, t, this.m31);
+        dest.m32 = Math.fma(other.m32 - this.m32, t, this.m32);
         dest.properties = this.properties & other.properties();
         return dest;
     }

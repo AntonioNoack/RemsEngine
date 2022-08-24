@@ -37,9 +37,9 @@ fun main() {
     val steps = (duration * 60.0).toInt()
     for (i in 0 until steps) physics.step((duration / steps * 1e9).toLong(), true)
 
-    logger.info(sphere.transform.globalTransform.m30())
-    logger.info(y0 - sphere.transform.globalTransform.m31())
-    logger.info(sphere.transform.globalTransform.m32())
+    logger.info(sphere.transform.globalTransform.m30)
+    logger.info(y0 - sphere.transform.globalTransform.m31)
+    logger.info(sphere.transform.globalTransform.m32)
     // LOGGER.info(sphere.transform.time)
 
     logger.info("target: $targetFallLength")

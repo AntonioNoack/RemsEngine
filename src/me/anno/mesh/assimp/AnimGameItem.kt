@@ -198,10 +198,10 @@ class AnimGameItem(
         // and scales it totally incorrectly
         localTransform.mul(
             Matrix4x3f(
-                local.m00().toFloat(), local.m01().toFloat(), local.m02().toFloat(),
-                local.m10().toFloat(), local.m11().toFloat(), local.m12().toFloat(),
-                local.m20().toFloat(), local.m21().toFloat(), local.m22().toFloat(),
-                local.m30().toFloat(), local.m31().toFloat(), local.m32().toFloat(),
+                local.m00.toFloat(), local.m01.toFloat(), local.m02.toFloat(),
+                local.m10.toFloat(), local.m11.toFloat(), local.m12.toFloat(),
+                local.m20.toFloat(), local.m21.toFloat(), local.m22.toFloat(),
+                local.m30.toFloat(), local.m31.toFloat(), local.m32.toFloat(),
             )
         )
 
@@ -358,21 +358,21 @@ class AnimGameItem(
 
         fun get(src: Matrix4f, dst: FloatBuffer) {
 
-            dst.put(src.m00())
-            dst.put(src.m01())
-            dst.put(src.m02())
+            dst.put(src.m00)
+            dst.put(src.m01)
+            dst.put(src.m02)
 
-            dst.put(src.m10())
-            dst.put(src.m11())
-            dst.put(src.m12())
+            dst.put(src.m10)
+            dst.put(src.m11)
+            dst.put(src.m12)
 
-            dst.put(src.m20())
-            dst.put(src.m21())
-            dst.put(src.m22())
+            dst.put(src.m20)
+            dst.put(src.m21)
+            dst.put(src.m22)
 
-            dst.put(src.m30())
-            dst.put(src.m31())
-            dst.put(src.m32())
+            dst.put(src.m30)
+            dst.put(src.m31)
+            dst.put(src.m32)
 
         }
 

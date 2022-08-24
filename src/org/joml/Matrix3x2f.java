@@ -94,12 +94,12 @@ public class Matrix3x2f {
     }
 
     private void setMatrix3x2fc(Matrix3x2f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
-        this.m20 = mat.m20();
-        this.m21 = mat.m21();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
+        this.m20 = mat.m20;
+        this.m21 = mat.m21;
     }
 
     public Matrix3x2f set(Matrix2f m) {
@@ -108,23 +108,23 @@ public class Matrix3x2f {
     }
 
     private void setMatrix2fc(Matrix2f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
     }
 
-    public Matrix3x2f mul(Matrix3x2fc right) {
+    public Matrix3x2f mul(Matrix3x2f right) {
         return this.mul(right, this);
     }
 
-    public Matrix3x2f mul(Matrix3x2fc right, Matrix3x2f dest) {
-        float nm00 = this.m00 * right.m00() + this.m10 * right.m01();
-        float nm01 = this.m01 * right.m00() + this.m11 * right.m01();
-        float nm10 = this.m00 * right.m10() + this.m10 * right.m11();
-        float nm11 = this.m01 * right.m10() + this.m11 * right.m11();
-        float nm20 = this.m00 * right.m20() + this.m10 * right.m21() + this.m20;
-        float nm21 = this.m01 * right.m20() + this.m11 * right.m21() + this.m21;
+    public Matrix3x2f mul(Matrix3x2f right, Matrix3x2f dest) {
+        float nm00 = this.m00 * right.m00 + this.m10 * right.m01;
+        float nm01 = this.m01 * right.m00 + this.m11 * right.m01;
+        float nm10 = this.m00 * right.m10 + this.m10 * right.m11;
+        float nm11 = this.m01 * right.m10 + this.m11 * right.m11;
+        float nm20 = this.m00 * right.m20 + this.m10 * right.m21 + this.m20;
+        float nm21 = this.m01 * right.m20 + this.m11 * right.m21 + this.m21;
         dest.m00 = nm00;
         dest.m01 = nm01;
         dest.m10 = nm10;
@@ -134,17 +134,17 @@ public class Matrix3x2f {
         return dest;
     }
 
-    public Matrix3x2f mulLocal(Matrix3x2fc left) {
+    public Matrix3x2f mulLocal(Matrix3x2f left) {
         return this.mulLocal(left, this);
     }
 
-    public Matrix3x2f mulLocal(Matrix3x2fc left, Matrix3x2f dest) {
-        float nm00 = left.m00() * this.m00 + left.m10() * this.m01;
-        float nm01 = left.m01() * this.m00 + left.m11() * this.m01;
-        float nm10 = left.m00() * this.m10 + left.m10() * this.m11;
-        float nm11 = left.m01() * this.m10 + left.m11() * this.m11;
-        float nm20 = left.m00() * this.m20 + left.m10() * this.m21 + left.m20();
-        float nm21 = left.m01() * this.m20 + left.m11() * this.m21 + left.m21();
+    public Matrix3x2f mulLocal(Matrix3x2f left, Matrix3x2f dest) {
+        float nm00 = left.m00 * this.m00 + left.m10 * this.m01;
+        float nm01 = left.m01 * this.m00 + left.m11 * this.m01;
+        float nm10 = left.m00 * this.m10 + left.m10 * this.m11;
+        float nm11 = left.m01 * this.m10 + left.m11 * this.m11;
+        float nm20 = left.m00 * this.m20 + left.m10 * this.m21 + left.m20;
+        float nm21 = left.m01 * this.m20 + left.m11 * this.m21 + left.m21;
         dest.m00 = nm00;
         dest.m01 = nm01;
         dest.m10 = nm10;
@@ -204,8 +204,8 @@ public class Matrix3x2f {
         return this;
     }
 
-    public Matrix3x2f translation(Vector2fc offset) {
-        return this.translation(offset.x(), offset.y());
+    public Matrix3x2f translation(Vector2f offset) {
+        return this.translation(offset.x, offset.y);
     }
 
     public Matrix3x2f setTranslation(float x, float y) {
@@ -683,16 +683,16 @@ public class Matrix3x2f {
         float im11 = this.m00 * s;
         float im20 = (this.m10 * this.m21 - this.m20 * this.m11) * s;
         float im21 = (this.m20 * this.m01 - this.m00 * this.m21) * s;
-        float ndcX = (winX - (float) viewport[0]) / (float) viewport[2] * 2f - 1f;
-        float ndcY = (winY - (float) viewport[1]) / (float) viewport[3] * 2f - 1f;
+        float ndcX = (winX - viewport[0]) / viewport[2] * 2f - 1f;
+        float ndcY = (winY - viewport[1]) / viewport[3] * 2f - 1f;
         dest.x = im00 * ndcX + im10 * ndcY + im20;
         dest.y = im01 * ndcX + im11 * ndcY + im21;
         return dest;
     }
 
     public Vector2f unprojectInv(float winX, float winY, int[] viewport, Vector2f dest) {
-        float ndcX = (winX - (float) viewport[0]) / (float) viewport[2] * 2f - 1f;
-        float ndcY = (winY - (float) viewport[1]) / (float) viewport[3] * 2f - 1f;
+        float ndcX = (winX - viewport[0]) / viewport[2] * 2f - 1f;
+        float ndcY = (winY - viewport[1]) / viewport[3] * 2f - 1f;
         dest.x = this.m00 * ndcX + this.m10 * ndcY + this.m20;
         dest.y = this.m01 * ndcX + this.m11 * ndcY + this.m21;
         return dest;
@@ -845,25 +845,23 @@ public class Matrix3x2f {
         }
     }
 
-    public boolean equals(Matrix3x2fc m, float delta) {
+    public boolean equals(Matrix3x2f m, float delta) {
         if (this == m) {
             return true;
         } else if (m == null) {
             return false;
-        } else if (!(m instanceof Matrix3x2f)) {
+        } else if (!Runtime.equals(this.m00, m.m00, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m00, m.m00(), delta)) {
+        } else if (!Runtime.equals(this.m01, m.m01, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m01, m.m01(), delta)) {
+        } else if (!Runtime.equals(this.m10, m.m10, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m10, m.m10(), delta)) {
+        } else if (!Runtime.equals(this.m11, m.m11, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m11, m.m11(), delta)) {
-            return false;
-        } else if (!Runtime.equals(this.m20, m.m20(), delta)) {
+        } else if (!Runtime.equals(this.m20, m.m20, delta)) {
             return false;
         } else {
-            return Runtime.equals(this.m21, m.m21(), delta);
+            return Runtime.equals(this.m21, m.m21, delta);
         }
     }
 

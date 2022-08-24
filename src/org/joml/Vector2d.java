@@ -260,96 +260,96 @@ public class Vector2d {
     }
 
     public Vector2d mul(Matrix2f mat) {
-        double rx = (double) mat.m00() * this.x + (double) mat.m10() * this.y;
-        double ry = (double) mat.m01() * this.x + (double) mat.m11() * this.y;
+        double rx = (double) mat.m00 * this.x + (double) mat.m10 * this.y;
+        double ry = (double) mat.m01 * this.x + (double) mat.m11 * this.y;
         this.x = rx;
         this.y = ry;
         return this;
     }
 
     public Vector2d mul(Matrix2d mat) {
-        double rx = mat.m00() * this.x + mat.m10() * this.y;
-        double ry = mat.m01() * this.x + mat.m11() * this.y;
+        double rx = mat.m00 * this.x + mat.m10 * this.y;
+        double ry = mat.m01 * this.x + mat.m11 * this.y;
         this.x = rx;
         this.y = ry;
         return this;
     }
 
     public Vector2d mul(Matrix2d mat, Vector2d dest) {
-        double rx = mat.m00() * this.x + mat.m10() * this.y;
-        double ry = mat.m01() * this.x + mat.m11() * this.y;
+        double rx = mat.m00 * this.x + mat.m10 * this.y;
+        double ry = mat.m01 * this.x + mat.m11 * this.y;
         dest.x = rx;
         dest.y = ry;
         return dest;
     }
 
     public Vector2d mul(Matrix2f mat, Vector2d dest) {
-        double rx = (double) mat.m00() * this.x + (double) mat.m10() * this.y;
-        double ry = (double) mat.m01() * this.x + (double) mat.m11() * this.y;
+        double rx = (double) mat.m00 * this.x + (double) mat.m10 * this.y;
+        double ry = (double) mat.m01 * this.x + (double) mat.m11 * this.y;
         dest.x = rx;
         dest.y = ry;
         return dest;
     }
 
     public Vector2d mulTranspose(Matrix2d mat) {
-        double rx = mat.m00() * this.x + mat.m01() * this.y;
-        double ry = mat.m10() * this.x + mat.m11() * this.y;
+        double rx = mat.m00 * this.x + mat.m01 * this.y;
+        double ry = mat.m10 * this.x + mat.m11 * this.y;
         this.x = rx;
         this.y = ry;
         return this;
     }
 
     public Vector2d mulTranspose(Matrix2d mat, Vector2d dest) {
-        double rx = mat.m00() * this.x + mat.m01() * this.y;
-        double ry = mat.m10() * this.x + mat.m11() * this.y;
+        double rx = mat.m00 * this.x + mat.m01 * this.y;
+        double ry = mat.m10 * this.x + mat.m11 * this.y;
         dest.x = rx;
         dest.y = ry;
         return dest;
     }
 
     public Vector2d mulTranspose(Matrix2f mat) {
-        double rx = (double) mat.m00() * this.x + (double) mat.m01() * this.y;
-        double ry = (double) mat.m10() * this.x + (double) mat.m11() * this.y;
+        double rx = (double) mat.m00 * this.x + (double) mat.m01 * this.y;
+        double ry = (double) mat.m10 * this.x + (double) mat.m11 * this.y;
         this.x = rx;
         this.y = ry;
         return this;
     }
 
     public Vector2d mulTranspose(Matrix2f mat, Vector2d dest) {
-        double rx = (double) mat.m00() * this.x + (double) mat.m01() * this.y;
-        double ry = (double) mat.m10() * this.x + (double) mat.m11() * this.y;
+        double rx = (double) mat.m00 * this.x + (double) mat.m01 * this.y;
+        double ry = (double) mat.m10 * this.x + (double) mat.m11 * this.y;
         dest.x = rx;
         dest.y = ry;
         return dest;
     }
 
     public Vector2d mulPosition(Matrix3x2d mat) {
-        double rx = mat.m00() * this.x + mat.m10() * this.y + mat.m20();
-        double ry = mat.m01() * this.x + mat.m11() * this.y + mat.m21();
+        double rx = mat.m00 * this.x + mat.m10 * this.y + mat.m20;
+        double ry = mat.m01 * this.x + mat.m11 * this.y + mat.m21;
         this.x = rx;
         this.y = ry;
         return this;
     }
 
     public Vector2d mulPosition(Matrix3x2d mat, Vector2d dest) {
-        double rx = mat.m00() * this.x + mat.m10() * this.y + mat.m20();
-        double ry = mat.m01() * this.x + mat.m11() * this.y + mat.m21();
+        double rx = mat.m00 * this.x + mat.m10 * this.y + mat.m20;
+        double ry = mat.m01 * this.x + mat.m11 * this.y + mat.m21;
         dest.x = rx;
         dest.y = ry;
         return dest;
     }
 
     public Vector2d mulDirection(Matrix3x2d mat) {
-        double rx = mat.m00() * this.x + mat.m10() * this.y;
-        double ry = mat.m01() * this.x + mat.m11() * this.y;
+        double rx = mat.m00 * this.x + mat.m10 * this.y;
+        double ry = mat.m01 * this.x + mat.m11 * this.y;
         this.x = rx;
         this.y = ry;
         return this;
     }
 
     public Vector2d mulDirection(Matrix3x2d mat, Vector2d dest) {
-        double rx = mat.m00() * this.x + mat.m10() * this.y;
-        double ry = mat.m01() * this.x + mat.m11() * this.y;
+        double rx = mat.m00 * this.x + mat.m10 * this.y;
+        double ry = mat.m01 * this.x + mat.m11 * this.y;
         dest.x = rx;
         dest.y = ry;
         return dest;

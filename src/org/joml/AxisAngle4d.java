@@ -139,18 +139,18 @@ public class AxisAngle4d {
     }
 
     public AxisAngle4d set(Matrix3f m) {
-        double nm00 = m.m00();
-        double nm01 = m.m01();
-        double nm02 = m.m02();
-        double nm10 = m.m10();
-        double nm11 = m.m11();
-        double nm12 = m.m12();
-        double nm20 = m.m20();
-        double nm21 = m.m21();
-        double nm22 = m.m22();
-        double lenX = Math.invsqrt(m.m00() * m.m00() + m.m01() * m.m01() + m.m02() * m.m02());
-        double lenY = Math.invsqrt(m.m10() * m.m10() + m.m11() * m.m11() + m.m12() * m.m12());
-        double lenZ = Math.invsqrt(m.m20() * m.m20() + m.m21() * m.m21() + m.m22() * m.m22());
+        double nm00 = m.m00;
+        double nm01 = m.m01;
+        double nm02 = m.m02;
+        double nm10 = m.m10;
+        double nm11 = m.m11;
+        double nm12 = m.m12;
+        double nm20 = m.m20;
+        double nm21 = m.m21;
+        double nm22 = m.m22;
+        double lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02);
+        double lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12);
+        double lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22);
         nm00 *= lenX;
         nm01 *= lenX;
         nm02 *= lenX;
@@ -203,18 +203,18 @@ public class AxisAngle4d {
     }
 
     public AxisAngle4d set(Matrix3d m) {
-        double nm00 = m.m00();
-        double nm01 = m.m01();
-        double nm02 = m.m02();
-        double nm10 = m.m10();
-        double nm11 = m.m11();
-        double nm12 = m.m12();
-        double nm20 = m.m20();
-        double nm21 = m.m21();
-        double nm22 = m.m22();
-        double lenX = Math.invsqrt(m.m00() * m.m00() + m.m01() * m.m01() + m.m02() * m.m02());
-        double lenY = Math.invsqrt(m.m10() * m.m10() + m.m11() * m.m11() + m.m12() * m.m12());
-        double lenZ = Math.invsqrt(m.m20() * m.m20() + m.m21() * m.m21() + m.m22() * m.m22());
+        double nm00 = m.m00;
+        double nm01 = m.m01;
+        double nm02 = m.m02;
+        double nm10 = m.m10;
+        double nm11 = m.m11;
+        double nm12 = m.m12;
+        double nm20 = m.m20;
+        double nm21 = m.m21;
+        double nm22 = m.m22;
+        double lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02);
+        double lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12);
+        double lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22);
         nm00 *= lenX;
         nm01 *= lenX;
         nm02 *= lenX;
@@ -267,18 +267,18 @@ public class AxisAngle4d {
     }
 
     public AxisAngle4d set(Matrix4f m) {
-        double nm00 = m.m00();
-        double nm01 = m.m01();
-        double nm02 = m.m02();
-        double nm10 = m.m10();
-        double nm11 = m.m11();
-        double nm12 = m.m12();
-        double nm20 = m.m20();
-        double nm21 = m.m21();
-        double nm22 = m.m22();
-        double lenX = Math.invsqrt(m.m00() * m.m00() + m.m01() * m.m01() + m.m02() * m.m02());
-        double lenY = Math.invsqrt(m.m10() * m.m10() + m.m11() * m.m11() + m.m12() * m.m12());
-        double lenZ = Math.invsqrt(m.m20() * m.m20() + m.m21() * m.m21() + m.m22() * m.m22());
+        double nm00 = m.m00;
+        double nm01 = m.m01;
+        double nm02 = m.m02;
+        double nm10 = m.m10;
+        double nm11 = m.m11;
+        double nm12 = m.m12;
+        double nm20 = m.m20;
+        double nm21 = m.m21;
+        double nm22 = m.m22;
+        double lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02);
+        double lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12);
+        double lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22);
         nm00 *= lenX;
         nm01 *= lenX;
         nm02 *= lenX;
@@ -331,18 +331,18 @@ public class AxisAngle4d {
     }
 
     public AxisAngle4d set(Matrix4x3f m) {
-        double nm00 = m.m00();
-        double nm01 = m.m01();
-        double nm02 = m.m02();
-        double nm10 = m.m10();
-        double nm11 = m.m11();
-        double nm12 = m.m12();
-        double nm20 = m.m20();
-        double nm21 = m.m21();
-        double nm22 = m.m22();
-        double lenX = Math.invsqrt(m.m00() * m.m00() + m.m01() * m.m01() + m.m02() * m.m02());
-        double lenY = Math.invsqrt(m.m10() * m.m10() + m.m11() * m.m11() + m.m12() * m.m12());
-        double lenZ = Math.invsqrt(m.m20() * m.m20() + m.m21() * m.m21() + m.m22() * m.m22());
+        double nm00 = m.m00;
+        double nm01 = m.m01;
+        double nm02 = m.m02;
+        double nm10 = m.m10;
+        double nm11 = m.m11;
+        double nm12 = m.m12;
+        double nm20 = m.m20;
+        double nm21 = m.m21;
+        double nm22 = m.m22;
+        double lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02);
+        double lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12);
+        double lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22);
         nm00 *= lenX;
         nm01 *= lenX;
         nm02 *= lenX;
@@ -395,18 +395,18 @@ public class AxisAngle4d {
     }
 
     public AxisAngle4d set(Matrix4d m) {
-        double nm00 = m.m00();
-        double nm01 = m.m01();
-        double nm02 = m.m02();
-        double nm10 = m.m10();
-        double nm11 = m.m11();
-        double nm12 = m.m12();
-        double nm20 = m.m20();
-        double nm21 = m.m21();
-        double nm22 = m.m22();
-        double lenX = Math.invsqrt(m.m00() * m.m00() + m.m01() * m.m01() + m.m02() * m.m02());
-        double lenY = Math.invsqrt(m.m10() * m.m10() + m.m11() * m.m11() + m.m12() * m.m12());
-        double lenZ = Math.invsqrt(m.m20() * m.m20() + m.m21() * m.m21() + m.m22() * m.m22());
+        double nm00 = m.m00;
+        double nm01 = m.m01;
+        double nm02 = m.m02;
+        double nm10 = m.m10;
+        double nm11 = m.m11;
+        double nm12 = m.m12;
+        double nm20 = m.m20;
+        double nm21 = m.m21;
+        double nm22 = m.m22;
+        double lenX = Math.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02);
+        double lenY = Math.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12);
+        double lenZ = Math.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22);
         nm00 *= lenX;
         nm01 *= lenX;
         nm02 *= lenX;

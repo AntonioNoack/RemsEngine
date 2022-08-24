@@ -554,16 +554,16 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             val sz = 1.0 / scale.z
             val t = Transform()
             val b = t.basis
-            b.m00 = ourTransform.m00() * sx
-            b.m01 = ourTransform.m01() * sx
-            b.m02 = ourTransform.m02() * sx
-            b.m10 = ourTransform.m10() * sy
-            b.m11 = ourTransform.m11() * sy
-            b.m12 = ourTransform.m12() * sy
-            b.m20 = ourTransform.m20() * sz
-            b.m21 = ourTransform.m21() * sz
-            b.m22 = ourTransform.m22() * sz
-            t.origin.set(ourTransform.m30(), ourTransform.m31(), ourTransform.m32())
+            b.m00 = ourTransform.m00 * sx
+            b.m01 = ourTransform.m01 * sx
+            b.m02 = ourTransform.m02 * sx
+            b.m10 = ourTransform.m10 * sy
+            b.m11 = ourTransform.m11 * sy
+            b.m12 = ourTransform.m12 * sy
+            b.m20 = ourTransform.m20 * sz
+            b.m21 = ourTransform.m21 * sz
+            b.m22 = ourTransform.m22 * sz
+            t.origin.set(ourTransform.m30, ourTransform.m31, ourTransform.m32)
             return t
         }
 

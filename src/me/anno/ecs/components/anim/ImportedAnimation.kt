@@ -69,10 +69,10 @@ class ImportedAnimation : Animation() {
 
         fun matrix4x3f(m: Matrix4f): Matrix4x3f {
             return Matrix4x3f(
-                m.m00(), m.m01(), m.m02(),
-                m.m10(), m.m11(), m.m12(),
-                m.m20(), m.m21(), m.m22(),
-                m.m30(), m.m31(), m.m32(),
+                m.m00, m.m01, m.m02,
+                m.m10, m.m11, m.m12,
+                m.m20, m.m21, m.m22,
+                m.m30, m.m31, m.m32,
             )
         }
 
@@ -81,18 +81,18 @@ class ImportedAnimation : Animation() {
             var j = 0
             for (i in list.indices) {
                 val m = list[i]
-                result[j++] = m.m00()
-                result[j++] = m.m01()
-                result[j++] = m.m02()
-                result[j++] = m.m10()
-                result[j++] = m.m11()
-                result[j++] = m.m12()
-                result[j++] = m.m20()
-                result[j++] = m.m21()
-                result[j++] = m.m22()
-                result[j++] = m.m30()
-                result[j++] = m.m31()
-                result[j++] = m.m32()
+                result[j++] = m.m00
+                result[j++] = m.m01
+                result[j++] = m.m02
+                result[j++] = m.m10
+                result[j++] = m.m11
+                result[j++] = m.m12
+                result[j++] = m.m20
+                result[j++] = m.m21
+                result[j++] = m.m22
+                result[j++] = m.m30
+                result[j++] = m.m31
+                result[j++] = m.m32
             }
             return result
         }

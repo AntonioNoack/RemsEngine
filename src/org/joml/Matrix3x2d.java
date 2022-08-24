@@ -22,10 +22,10 @@ public class Matrix3x2d {
     }
 
     public Matrix3x2d(Matrix2f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
     }
 
     public Matrix3x2d(Matrix3x2d mat) {
@@ -101,12 +101,12 @@ public class Matrix3x2d {
     }
 
     private void setMatrix3x2d(Matrix3x2d mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
-        this.m20 = mat.m20();
-        this.m21 = mat.m21();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
+        this.m20 = mat.m20;
+        this.m21 = mat.m21;
     }
 
     public Matrix3x2d set(Matrix2d m) {
@@ -115,17 +115,17 @@ public class Matrix3x2d {
     }
 
     private void setMatrix2d(Matrix2d mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
     }
 
     public Matrix3x2d set(Matrix2f m) {
-        this.m00 = m.m00();
-        this.m01 = m.m01();
-        this.m10 = m.m10();
-        this.m11 = m.m11();
+        this.m00 = m.m00;
+        this.m01 = m.m01;
+        this.m10 = m.m10;
+        this.m11 = m.m11;
         return this;
     }
 
@@ -134,12 +134,12 @@ public class Matrix3x2d {
     }
 
     public Matrix3x2d mul(Matrix3x2d right, Matrix3x2d dest) {
-        double nm00 = this.m00 * right.m00() + this.m10 * right.m01();
-        double nm01 = this.m01 * right.m00() + this.m11 * right.m01();
-        double nm10 = this.m00 * right.m10() + this.m10 * right.m11();
-        double nm11 = this.m01 * right.m10() + this.m11 * right.m11();
-        double nm20 = this.m00 * right.m20() + this.m10 * right.m21() + this.m20;
-        double nm21 = this.m01 * right.m20() + this.m11 * right.m21() + this.m21;
+        double nm00 = this.m00 * right.m00 + this.m10 * right.m01;
+        double nm01 = this.m01 * right.m00 + this.m11 * right.m01;
+        double nm10 = this.m00 * right.m10 + this.m10 * right.m11;
+        double nm11 = this.m01 * right.m10 + this.m11 * right.m11;
+        double nm20 = this.m00 * right.m20 + this.m10 * right.m21 + this.m20;
+        double nm21 = this.m01 * right.m20 + this.m11 * right.m21 + this.m21;
         dest.m00 = nm00;
         dest.m01 = nm01;
         dest.m10 = nm10;
@@ -154,12 +154,12 @@ public class Matrix3x2d {
     }
 
     public Matrix3x2d mulLocal(Matrix3x2d left, Matrix3x2d dest) {
-        double nm00 = left.m00() * this.m00 + left.m10() * this.m01;
-        double nm01 = left.m01() * this.m00 + left.m11() * this.m01;
-        double nm10 = left.m00() * this.m10 + left.m10() * this.m11;
-        double nm11 = left.m01() * this.m10 + left.m11() * this.m11;
-        double nm20 = left.m00() * this.m20 + left.m10() * this.m21 + left.m20();
-        double nm21 = left.m01() * this.m20 + left.m11() * this.m21 + left.m21();
+        double nm00 = left.m00 * this.m00 + left.m10 * this.m01;
+        double nm01 = left.m01 * this.m00 + left.m11 * this.m01;
+        double nm10 = left.m00 * this.m10 + left.m10 * this.m11;
+        double nm11 = left.m01 * this.m10 + left.m11 * this.m11;
+        double nm20 = left.m00 * this.m20 + left.m10 * this.m21 + left.m20;
+        double nm21 = left.m01 * this.m20 + left.m11 * this.m21 + left.m21;
         dest.m00 = nm00;
         dest.m01 = nm01;
         dest.m10 = nm10;
@@ -847,18 +847,18 @@ public class Matrix3x2d {
             return true;
         } else if (m == null) {
             return false;
-        } else if (!Runtime.equals(this.m00, m.m00(), delta)) {
+        } else if (!Runtime.equals(this.m00, m.m00, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m01, m.m01(), delta)) {
+        } else if (!Runtime.equals(this.m01, m.m01, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m10, m.m10(), delta)) {
+        } else if (!Runtime.equals(this.m10, m.m10, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m11, m.m11(), delta)) {
+        } else if (!Runtime.equals(this.m11, m.m11, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m20, m.m20(), delta)) {
+        } else if (!Runtime.equals(this.m20, m.m20, delta)) {
             return false;
         } else {
-            return Runtime.equals(this.m21, m.m21(), delta);
+            return Runtime.equals(this.m21, m.m21, delta);
         }
     }
 

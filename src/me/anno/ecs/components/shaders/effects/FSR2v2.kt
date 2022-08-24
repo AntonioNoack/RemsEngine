@@ -190,8 +190,8 @@ class FSR2v2: ICacheData {
         // jy = random.nextFloat() - 0.5f
         jx *= randomness
         jy *= randomness
-        m.m20(m.m20() + jx * 2f * lastScaleX / pw) // = /rw
-        m.m21(m.m21() + jy * 2f * lastScaleY / ph) // = /rh
+        m.m20(m.m20 + jx * 2f * lastScaleX / pw) // = /rw
+        m.m21(m.m21 + jy * 2f * lastScaleY / ph) // = /rh
         if (++idx > phaseCount) idx = 0
     }
 
@@ -199,9 +199,9 @@ class FSR2v2: ICacheData {
     fun unjitter(m: Matrix4f, rot: Quaterniond, pw: Int, ph: Int) {
         val v = tmpV.set(jx * 2f * lastScaleX / pw, jy * 2f * lastScaleY / ph, 0f)
         rot.transform(v)
-        m.m20(m.m20() - v.x)
-        m.m21(m.m21() - v.y)
-        m.m22(m.m22() - v.y)
+        m.m20(m.m20 - v.x)
+        m.m21(m.m21 - v.y)
+        m.m22(m.m22 - v.y)
     }
 
     var lastScaleX = 1f

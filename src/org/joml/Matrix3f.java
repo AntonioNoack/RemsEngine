@@ -177,49 +177,49 @@ public class Matrix3f {
     }
 
     public Matrix3f set(Matrix3f m) {
-        return this._m00(m.m00())._m01(m.m01())._m02(m.m02())._m10(m.m10())._m11(m.m11())._m12(m.m12())._m20(m.m20())._m21(m.m21())._m22(m.m22());
+        return this._m00(m.m00)._m01(m.m01)._m02(m.m02)._m10(m.m10)._m11(m.m11)._m12(m.m12)._m20(m.m20)._m21(m.m21)._m22(m.m22);
     }
 
     public Matrix3f setTransposed(Matrix3f m) {
-        float nm10 = m.m01();
-        float nm12 = m.m21();
-        float nm20 = m.m02();
-        float nm21 = m.m12();
-        return this._m00(m.m00())._m01(m.m10())._m02(m.m20())._m10(nm10)._m11(m.m11())._m12(nm12)._m20(nm20)._m21(nm21)._m22(m.m22());
+        float nm10 = m.m01;
+        float nm12 = m.m21;
+        float nm20 = m.m02;
+        float nm21 = m.m12;
+        return this._m00(m.m00)._m01(m.m10)._m02(m.m20)._m10(nm10)._m11(m.m11)._m12(nm12)._m20(nm20)._m21(nm21)._m22(m.m22);
     }
 
     public Matrix3f set(Matrix4x3f m) {
-        this.m00 = m.m00();
-        this.m01 = m.m01();
-        this.m02 = m.m02();
-        this.m10 = m.m10();
-        this.m11 = m.m11();
-        this.m12 = m.m12();
-        this.m20 = m.m20();
-        this.m21 = m.m21();
-        this.m22 = m.m22();
+        this.m00 = m.m00;
+        this.m01 = m.m01;
+        this.m02 = m.m02;
+        this.m10 = m.m10;
+        this.m11 = m.m11;
+        this.m12 = m.m12;
+        this.m20 = m.m20;
+        this.m21 = m.m21;
+        this.m22 = m.m22;
         return this;
     }
 
     public Matrix3f set(Matrix4f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
-        this.m02 = mat.m02();
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
-        this.m12 = mat.m12();
-        this.m20 = mat.m20();
-        this.m21 = mat.m21();
-        this.m22 = mat.m22();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
+        this.m02 = mat.m02;
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
+        this.m12 = mat.m12;
+        this.m20 = mat.m20;
+        this.m21 = mat.m21;
+        this.m22 = mat.m22;
         return this;
     }
 
     public Matrix3f set(Matrix2f mat) {
-        this.m00 = mat.m00();
-        this.m01 = mat.m01();
+        this.m00 = mat.m00;
+        this.m01 = mat.m01;
         this.m02 = 0f;
-        this.m10 = mat.m10();
-        this.m11 = mat.m11();
+        this.m10 = mat.m10;
+        this.m11 = mat.m11;
         this.m12 = 0f;
         this.m20 = 0f;
         this.m21 = 0f;
@@ -326,15 +326,15 @@ public class Matrix3f {
     }
 
     public Matrix3f mul(Matrix3f right, Matrix3f dest) {
-        float nm00 = Math.fma(this.m00, right.m00(), Math.fma(this.m10, right.m01(), this.m20 * right.m02()));
-        float nm01 = Math.fma(this.m01, right.m00(), Math.fma(this.m11, right.m01(), this.m21 * right.m02()));
-        float nm02 = Math.fma(this.m02, right.m00(), Math.fma(this.m12, right.m01(), this.m22 * right.m02()));
-        float nm10 = Math.fma(this.m00, right.m10(), Math.fma(this.m10, right.m11(), this.m20 * right.m12()));
-        float nm11 = Math.fma(this.m01, right.m10(), Math.fma(this.m11, right.m11(), this.m21 * right.m12()));
-        float nm12 = Math.fma(this.m02, right.m10(), Math.fma(this.m12, right.m11(), this.m22 * right.m12()));
-        float nm20 = Math.fma(this.m00, right.m20(), Math.fma(this.m10, right.m21(), this.m20 * right.m22()));
-        float nm21 = Math.fma(this.m01, right.m20(), Math.fma(this.m11, right.m21(), this.m21 * right.m22()));
-        float nm22 = Math.fma(this.m02, right.m20(), Math.fma(this.m12, right.m21(), this.m22 * right.m22()));
+        float nm00 = Math.fma(this.m00, right.m00, Math.fma(this.m10, right.m01, this.m20 * right.m02));
+        float nm01 = Math.fma(this.m01, right.m00, Math.fma(this.m11, right.m01, this.m21 * right.m02));
+        float nm02 = Math.fma(this.m02, right.m00, Math.fma(this.m12, right.m01, this.m22 * right.m02));
+        float nm10 = Math.fma(this.m00, right.m10, Math.fma(this.m10, right.m11, this.m20 * right.m12));
+        float nm11 = Math.fma(this.m01, right.m10, Math.fma(this.m11, right.m11, this.m21 * right.m12));
+        float nm12 = Math.fma(this.m02, right.m10, Math.fma(this.m12, right.m11, this.m22 * right.m12));
+        float nm20 = Math.fma(this.m00, right.m20, Math.fma(this.m10, right.m21, this.m20 * right.m22));
+        float nm21 = Math.fma(this.m01, right.m20, Math.fma(this.m11, right.m21, this.m21 * right.m22));
+        float nm22 = Math.fma(this.m02, right.m20, Math.fma(this.m12, right.m21, this.m22 * right.m22));
         dest.m00 = nm00;
         dest.m01 = nm01;
         dest.m02 = nm02;
@@ -352,15 +352,15 @@ public class Matrix3f {
     }
 
     public Matrix3f mulLocal(Matrix3f left, Matrix3f dest) {
-        float nm00 = left.m00() * this.m00 + left.m10() * this.m01 + left.m20() * this.m02;
-        float nm01 = left.m01() * this.m00 + left.m11() * this.m01 + left.m21() * this.m02;
-        float nm02 = left.m02() * this.m00 + left.m12() * this.m01 + left.m22() * this.m02;
-        float nm10 = left.m00() * this.m10 + left.m10() * this.m11 + left.m20() * this.m12;
-        float nm11 = left.m01() * this.m10 + left.m11() * this.m11 + left.m21() * this.m12;
-        float nm12 = left.m02() * this.m10 + left.m12() * this.m11 + left.m22() * this.m12;
-        float nm20 = left.m00() * this.m20 + left.m10() * this.m21 + left.m20() * this.m22;
-        float nm21 = left.m01() * this.m20 + left.m11() * this.m21 + left.m21() * this.m22;
-        float nm22 = left.m02() * this.m20 + left.m12() * this.m21 + left.m22() * this.m22;
+        float nm00 = left.m00 * this.m00 + left.m10 * this.m01 + left.m20 * this.m02;
+        float nm01 = left.m01 * this.m00 + left.m11 * this.m01 + left.m21 * this.m02;
+        float nm02 = left.m02 * this.m00 + left.m12 * this.m01 + left.m22 * this.m02;
+        float nm10 = left.m00 * this.m10 + left.m10 * this.m11 + left.m20 * this.m12;
+        float nm11 = left.m01 * this.m10 + left.m11 * this.m11 + left.m21 * this.m12;
+        float nm12 = left.m02 * this.m10 + left.m12 * this.m11 + left.m22 * this.m12;
+        float nm20 = left.m00 * this.m20 + left.m10 * this.m21 + left.m20 * this.m22;
+        float nm21 = left.m01 * this.m20 + left.m11 * this.m21 + left.m21 * this.m22;
+        float nm22 = left.m02 * this.m20 + left.m12 * this.m21 + left.m22 * this.m22;
         dest.m00 = nm00;
         dest.m01 = nm01;
         dest.m02 = nm02;
@@ -1591,24 +1591,24 @@ public class Matrix3f {
             return true;
         } else if (m == null) {
             return false;
-        } else if (!Runtime.equals(this.m00, m.m00(), delta)) {
+        } else if (!Runtime.equals(this.m00, m.m00, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m01, m.m01(), delta)) {
+        } else if (!Runtime.equals(this.m01, m.m01, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m02, m.m02(), delta)) {
+        } else if (!Runtime.equals(this.m02, m.m02, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m10, m.m10(), delta)) {
+        } else if (!Runtime.equals(this.m10, m.m10, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m11, m.m11(), delta)) {
+        } else if (!Runtime.equals(this.m11, m.m11, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m12, m.m12(), delta)) {
+        } else if (!Runtime.equals(this.m12, m.m12, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m20, m.m20(), delta)) {
+        } else if (!Runtime.equals(this.m20, m.m20, delta)) {
             return false;
-        } else if (!Runtime.equals(this.m21, m.m21(), delta)) {
+        } else if (!Runtime.equals(this.m21, m.m21, delta)) {
             return false;
         } else {
-            return Runtime.equals(this.m22, m.m22(), delta);
+            return Runtime.equals(this.m22, m.m22, delta);
         }
     }
 
@@ -1622,15 +1622,15 @@ public class Matrix3f {
     }
 
     public Matrix3f add(Matrix3f other, Matrix3f dest) {
-        dest.m00 = this.m00 + other.m00();
-        dest.m01 = this.m01 + other.m01();
-        dest.m02 = this.m02 + other.m02();
-        dest.m10 = this.m10 + other.m10();
-        dest.m11 = this.m11 + other.m11();
-        dest.m12 = this.m12 + other.m12();
-        dest.m20 = this.m20 + other.m20();
-        dest.m21 = this.m21 + other.m21();
-        dest.m22 = this.m22 + other.m22();
+        dest.m00 = this.m00 + other.m00;
+        dest.m01 = this.m01 + other.m01;
+        dest.m02 = this.m02 + other.m02;
+        dest.m10 = this.m10 + other.m10;
+        dest.m11 = this.m11 + other.m11;
+        dest.m12 = this.m12 + other.m12;
+        dest.m20 = this.m20 + other.m20;
+        dest.m21 = this.m21 + other.m21;
+        dest.m22 = this.m22 + other.m22;
         return dest;
     }
 
@@ -1639,15 +1639,15 @@ public class Matrix3f {
     }
 
     public Matrix3f sub(Matrix3f subtrahend, Matrix3f dest) {
-        dest.m00 = this.m00 - subtrahend.m00();
-        dest.m01 = this.m01 - subtrahend.m01();
-        dest.m02 = this.m02 - subtrahend.m02();
-        dest.m10 = this.m10 - subtrahend.m10();
-        dest.m11 = this.m11 - subtrahend.m11();
-        dest.m12 = this.m12 - subtrahend.m12();
-        dest.m20 = this.m20 - subtrahend.m20();
-        dest.m21 = this.m21 - subtrahend.m21();
-        dest.m22 = this.m22 - subtrahend.m22();
+        dest.m00 = this.m00 - subtrahend.m00;
+        dest.m01 = this.m01 - subtrahend.m01;
+        dest.m02 = this.m02 - subtrahend.m02;
+        dest.m10 = this.m10 - subtrahend.m10;
+        dest.m11 = this.m11 - subtrahend.m11;
+        dest.m12 = this.m12 - subtrahend.m12;
+        dest.m20 = this.m20 - subtrahend.m20;
+        dest.m21 = this.m21 - subtrahend.m21;
+        dest.m22 = this.m22 - subtrahend.m22;
         return dest;
     }
 
@@ -1656,15 +1656,15 @@ public class Matrix3f {
     }
 
     public Matrix3f mulComponentWise(Matrix3f other, Matrix3f dest) {
-        dest.m00 = this.m00 * other.m00();
-        dest.m01 = this.m01 * other.m01();
-        dest.m02 = this.m02 * other.m02();
-        dest.m10 = this.m10 * other.m10();
-        dest.m11 = this.m11 * other.m11();
-        dest.m12 = this.m12 * other.m12();
-        dest.m20 = this.m20 * other.m20();
-        dest.m21 = this.m21 * other.m21();
-        dest.m22 = this.m22 * other.m22();
+        dest.m00 = this.m00 * other.m00;
+        dest.m01 = this.m01 * other.m01;
+        dest.m02 = this.m02 * other.m02;
+        dest.m10 = this.m10 * other.m10;
+        dest.m11 = this.m11 * other.m11;
+        dest.m12 = this.m12 * other.m12;
+        dest.m20 = this.m20 * other.m20;
+        dest.m21 = this.m21 * other.m21;
+        dest.m22 = this.m22 * other.m22;
         return dest;
     }
 
@@ -1684,15 +1684,15 @@ public class Matrix3f {
     }
 
     public Matrix3f lerp(Matrix3f other, float t, Matrix3f dest) {
-        dest.m00 = Math.fma(other.m00() - this.m00, t, this.m00);
-        dest.m01 = Math.fma(other.m01() - this.m01, t, this.m01);
-        dest.m02 = Math.fma(other.m02() - this.m02, t, this.m02);
-        dest.m10 = Math.fma(other.m10() - this.m10, t, this.m10);
-        dest.m11 = Math.fma(other.m11() - this.m11, t, this.m11);
-        dest.m12 = Math.fma(other.m12() - this.m12, t, this.m12);
-        dest.m20 = Math.fma(other.m20() - this.m20, t, this.m20);
-        dest.m21 = Math.fma(other.m21() - this.m21, t, this.m21);
-        dest.m22 = Math.fma(other.m22() - this.m22, t, this.m22);
+        dest.m00 = Math.fma(other.m00 - this.m00, t, this.m00);
+        dest.m01 = Math.fma(other.m01 - this.m01, t, this.m01);
+        dest.m02 = Math.fma(other.m02 - this.m02, t, this.m02);
+        dest.m10 = Math.fma(other.m10 - this.m10, t, this.m10);
+        dest.m11 = Math.fma(other.m11 - this.m11, t, this.m11);
+        dest.m12 = Math.fma(other.m12 - this.m12, t, this.m12);
+        dest.m20 = Math.fma(other.m20 - this.m20, t, this.m20);
+        dest.m21 = Math.fma(other.m21 - this.m21, t, this.m21);
+        dest.m22 = Math.fma(other.m22 - this.m22, t, this.m22);
         return dest;
     }
 

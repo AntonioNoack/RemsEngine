@@ -456,9 +456,9 @@ public class Vector4d {
     }
 
     public Vector4d mulAffine(Matrix4d mat, Vector4d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30() * this.w)));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31() * this.w)));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32() * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30 * this.w)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31 * this.w)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32 * this.w)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -467,10 +467,10 @@ public class Vector4d {
     }
 
     private Vector4d mulGeneric(Matrix4d mat, Vector4d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30() * this.w)));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31() * this.w)));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32() * this.w)));
-        double rw = Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33() * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30 * this.w)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31 * this.w)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32 * this.w)));
+        double rw = Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33 * this.w)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -483,10 +483,10 @@ public class Vector4d {
         double y = this.y;
         double z = this.z;
         double w = this.w;
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m01(), y, mat.m02() * z));
-        dest.y = Math.fma(mat.m10(), x, Math.fma(mat.m11(), y, mat.m12() * z));
-        dest.z = Math.fma(mat.m20(), x, Math.fma(mat.m21(), y, mat.m22() * z));
-        dest.w = Math.fma(mat.m30(), x, Math.fma(mat.m31(), y, mat.m32() * z + w));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m01, y, mat.m02 * z));
+        dest.y = Math.fma(mat.m10, x, Math.fma(mat.m11, y, mat.m12 * z));
+        dest.z = Math.fma(mat.m20, x, Math.fma(mat.m21, y, mat.m22 * z));
+        dest.w = Math.fma(mat.m30, x, Math.fma(mat.m31, y, mat.m32 * z + w));
         return dest;
     }
 
@@ -495,17 +495,17 @@ public class Vector4d {
         double y = this.y;
         double z = this.z;
         double w = this.w;
-        dest.x = Math.fma(mat.m00(), x, Math.fma(mat.m01(), y, Math.fma(mat.m02(), z, mat.m03() * w)));
-        dest.y = Math.fma(mat.m10(), x, Math.fma(mat.m11(), y, Math.fma(mat.m12(), z, mat.m13() * w)));
-        dest.z = Math.fma(mat.m20(), x, Math.fma(mat.m21(), y, Math.fma(mat.m22(), z, mat.m23() * w)));
-        dest.w = Math.fma(mat.m30(), x, Math.fma(mat.m31(), y, Math.fma(mat.m32(), z, mat.m33() * w)));
+        dest.x = Math.fma(mat.m00, x, Math.fma(mat.m01, y, Math.fma(mat.m02, z, mat.m03 * w)));
+        dest.y = Math.fma(mat.m10, x, Math.fma(mat.m11, y, Math.fma(mat.m12, z, mat.m13 * w)));
+        dest.z = Math.fma(mat.m20, x, Math.fma(mat.m21, y, Math.fma(mat.m22, z, mat.m23 * w)));
+        dest.w = Math.fma(mat.m30, x, Math.fma(mat.m31, y, Math.fma(mat.m32, z, mat.m33 * w)));
         return dest;
     }
 
     public Vector4d mul(Matrix4x3d mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30() * this.w)));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31() * this.w)));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32() * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30 * this.w)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31 * this.w)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32 * this.w)));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -513,9 +513,9 @@ public class Vector4d {
     }
 
     public Vector4d mul(Matrix4x3d mat, Vector4d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30() * this.w)));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31() * this.w)));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32() * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30 * this.w)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31 * this.w)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32 * this.w)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -524,9 +524,9 @@ public class Vector4d {
     }
 
     public Vector4d mul(Matrix4x3f mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, (double) mat.m30() * this.w)));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, (double) mat.m31() * this.w)));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, (double) mat.m32() * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, (double) mat.m30 * this.w)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, (double) mat.m31 * this.w)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, (double) mat.m32 * this.w)));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -534,9 +534,9 @@ public class Vector4d {
     }
 
     public Vector4d mul(Matrix4x3f mat, Vector4d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, (double) mat.m30() * this.w)));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, (double) mat.m31() * this.w)));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, (double) mat.m32() * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, (double) mat.m30 * this.w)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, (double) mat.m31 * this.w)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, (double) mat.m32 * this.w)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -553,9 +553,9 @@ public class Vector4d {
     }
 
     private Vector4d mulAffine(Matrix4f mat, Vector4d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, (double) mat.m30() * this.w)));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, (double) mat.m31() * this.w)));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, (double) mat.m32() * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, (double) mat.m30 * this.w)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, (double) mat.m31 * this.w)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, (double) mat.m32 * this.w)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -564,10 +564,10 @@ public class Vector4d {
     }
 
     private Vector4d mulGeneric(Matrix4f mat, Vector4d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, (double) mat.m30() * this.w)));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, (double) mat.m31() * this.w)));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, (double) mat.m32() * this.w)));
-        double rw = Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, (double) mat.m33() * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, (double) mat.m30 * this.w)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, (double) mat.m31 * this.w)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, (double) mat.m32 * this.w)));
+        double rw = Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, (double) mat.m33 * this.w)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -576,10 +576,10 @@ public class Vector4d {
     }
 
     public Vector4d mulProject(Matrix4d mat, Vector4d dest) {
-        double invW = 1.0 / Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33() * this.w)));
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30() * this.w))) * invW;
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31() * this.w))) * invW;
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32() * this.w))) * invW;
+        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33 * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30 * this.w))) * invW;
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31 * this.w))) * invW;
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32 * this.w))) * invW;
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -588,10 +588,10 @@ public class Vector4d {
     }
 
     public Vector4d mulProject(Matrix4d mat) {
-        double invW = 1.0 / Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33() * this.w)));
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30() * this.w))) * invW;
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31() * this.w))) * invW;
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32() * this.w))) * invW;
+        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33 * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30 * this.w))) * invW;
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31 * this.w))) * invW;
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32 * this.w))) * invW;
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -600,10 +600,10 @@ public class Vector4d {
     }
 
     public Vector3d mulProject(Matrix4d mat, Vector3d dest) {
-        double invW = 1.0 / Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33() * this.w)));
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30() * this.w))) * invW;
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31() * this.w))) * invW;
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32() * this.w))) * invW;
+        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33 * this.w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30 * this.w))) * invW;
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31 * this.w))) * invW;
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32 * this.w))) * invW;
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;

@@ -362,74 +362,74 @@ public class Vector2f {
     }
 
     public Vector2f mul(Matrix2f mat) {
-        float rx = mat.m00() * this.x + mat.m10() * this.y;
-        float ry = mat.m01() * this.x + mat.m11() * this.y;
+        float rx = mat.m00 * this.x + mat.m10 * this.y;
+        float ry = mat.m01 * this.x + mat.m11 * this.y;
         this.x = rx;
         this.y = ry;
         return this;
     }
 
     public Vector2f mul(Matrix2f mat, Vector2f dest) {
-        float rx = mat.m00() * this.x + mat.m10() * this.y;
-        float ry = mat.m01() * this.x + mat.m11() * this.y;
+        float rx = mat.m00 * this.x + mat.m10 * this.y;
+        float ry = mat.m01 * this.x + mat.m11 * this.y;
         dest.x = rx;
         dest.y = ry;
         return dest;
     }
 
     public Vector2f mul(Matrix2d mat) {
-        double rx = mat.m00() * (double) this.x + mat.m10() * (double) this.y;
-        double ry = mat.m01() * (double) this.x + mat.m11() * (double) this.y;
+        double rx = mat.m00 * (double) this.x + mat.m10 * (double) this.y;
+        double ry = mat.m01 * (double) this.x + mat.m11 * (double) this.y;
         this.x = (float) rx;
         this.y = (float) ry;
         return this;
     }
 
     public Vector2f mul(Matrix2d mat, Vector2f dest) {
-        double rx = mat.m00() * (double) this.x + mat.m10() * (double) this.y;
-        double ry = mat.m01() * (double) this.x + mat.m11() * (double) this.y;
+        double rx = mat.m00 * (double) this.x + mat.m10 * (double) this.y;
+        double ry = mat.m01 * (double) this.x + mat.m11 * (double) this.y;
         dest.x = (float) rx;
         dest.y = (float) ry;
         return dest;
     }
 
     public Vector2f mulTranspose(Matrix2f mat) {
-        float rx = mat.m00() * this.x + mat.m01() * this.y;
-        float ry = mat.m10() * this.x + mat.m11() * this.y;
+        float rx = mat.m00 * this.x + mat.m01 * this.y;
+        float ry = mat.m10 * this.x + mat.m11 * this.y;
         this.x = rx;
         this.y = ry;
         return this;
     }
 
     public Vector2f mulTranspose(Matrix2f mat, Vector2f dest) {
-        float rx = mat.m00() * this.x + mat.m01() * this.y;
-        float ry = mat.m10() * this.x + mat.m11() * this.y;
+        float rx = mat.m00 * this.x + mat.m01 * this.y;
+        float ry = mat.m10 * this.x + mat.m11 * this.y;
         dest.x = rx;
         dest.y = ry;
         return dest;
     }
 
     public Vector2f mulPosition(Matrix3x2f mat) {
-        this.x = mat.m00() * this.x + mat.m10() * this.y + mat.m20();
-        this.y = mat.m01() * this.x + mat.m11() * this.y + mat.m21();
+        this.x = mat.m00 * this.x + mat.m10 * this.y + mat.m20;
+        this.y = mat.m01 * this.x + mat.m11 * this.y + mat.m21;
         return this;
     }
 
     public Vector2f mulPosition(Matrix3x2f mat, Vector2f dest) {
-        dest.x = mat.m00() * this.x + mat.m10() * this.y + mat.m20();
-        dest.y = mat.m01() * this.x + mat.m11() * this.y + mat.m21();
+        dest.x = mat.m00 * this.x + mat.m10 * this.y + mat.m20;
+        dest.y = mat.m01 * this.x + mat.m11 * this.y + mat.m21;
         return dest;
     }
 
     public Vector2f mulDirection(Matrix3x2f mat) {
-        this.x = mat.m00() * this.x + mat.m10() * this.y;
-        this.y = mat.m01() * this.x + mat.m11() * this.y;
+        this.x = mat.m00 * this.x + mat.m10 * this.y;
+        this.y = mat.m01 * this.x + mat.m11 * this.y;
         return this;
     }
 
     public Vector2f mulDirection(Matrix3x2f mat, Vector2f dest) {
-        dest.x = mat.m00() * this.x + mat.m10() * this.y;
-        dest.y = mat.m01() * this.x + mat.m11() * this.y;
+        dest.x = mat.m00 * this.x + mat.m10 * this.y;
+        dest.y = mat.m01 * this.x + mat.m11 * this.y;
         return dest;
     }
 

@@ -360,9 +360,9 @@ class Frustum {
 
     private fun calculateArea(mat: Matrix3d, x: Double, y: Double, z: Double): Double {
         if (x.isInfinite() || y.isInfinite() || z.isInfinite()) return Double.POSITIVE_INFINITY
-        val rx = mat.m00() * x + mat.m10() * y + mat.m20() * z
-        val ry = mat.m01() * x + mat.m11() * y + mat.m21() * z
-        val rz = mat.m02() * x + mat.m12() * y + mat.m22() * z
+        val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z
+        val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z
+        val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z
         return rx * rx + ry * ry + rz * rz
     }
 

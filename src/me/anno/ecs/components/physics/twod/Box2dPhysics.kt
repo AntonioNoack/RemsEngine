@@ -78,18 +78,18 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
                 val (trans, shape) = collider.createBox2dCollider(entity)
                 when (shape) {
                     is CircleShape -> {
-                        shape.m_p.set(trans.m30().toFloat(), trans.m31().toFloat())
+                        shape.m_p.set(trans.m30.toFloat(), trans.m31.toFloat())
                         shape.radius *= (trans.getScaleLength() / SQRT3).toFloat()
                         // rotation doesn't matter
                     }
                     is PolygonShape -> {
                         if (
-                            abs(trans.m00() - 1.0) +
-                            abs(trans.m10()) +
-                            abs(trans.m30()) +
-                            abs(trans.m11() - 1.0) +
-                            abs(trans.m11()) +
-                            abs(trans.m31()) > 1e-5
+                            abs(trans.m00 - 1.0) +
+                            abs(trans.m10) +
+                            abs(trans.m30) +
+                            abs(trans.m11 - 1.0) +
+                            abs(trans.m11) +
+                            abs(trans.m31) > 1e-5
                         ) {
                             val v0 = shape.vertices
                             // copy is unfortunately needed
@@ -102,8 +102,8 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
                                 val vx = vert.x
                                 val vy = vert.y
                                 vert.set(
-                                    (trans.m00() * vx + trans.m10() * vy + trans.m30()).toFloat(),
-                                    (trans.m01() * vx + trans.m11() * vy + trans.m31()).toFloat(),
+                                    (trans.m00 * vx + trans.m10 * vy + trans.m30).toFloat(),
+                                    (trans.m01 * vx + trans.m11 * vy + trans.m31).toFloat(),
                                 )
                             }
                             shape.set(
@@ -124,8 +124,8 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             val def = BodyDef()
             val transform = entity.transform
             val global = transform.globalTransform
-            def.position.set(global.m30().toFloat(), global.m31().toFloat())
-            def.angle = -atan2(global.m10(), global.m00()).toFloat() // not perfect, but good enough probably
+            def.position.set(global.m30.toFloat(), global.m31.toFloat())
+            def.angle = -atan2(global.m10, global.m00).toFloat() // not perfect, but good enough probably
             def.type = if (mass > 0f) BodyType.DYNAMIC else BodyType.STATIC // set that depending on state... Kinematic?
             def.bullet = rigidBody.preventTunneling
             def.gravityScale = rigidBody.gravityScale

@@ -347,7 +347,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
             dst.setStateAndUpdate(me.anno.ecs.Transform.State.VALID_GLOBAL)
 
-            if (!allowedSpace.testPoint(dstTransform.m30(), dstTransform.m31(), dstTransform.m32())) {
+            if (!allowedSpace.testPoint(dstTransform.m30, dstTransform.m31, dstTransform.m32)) {
                 // delete the entity
                 deadEntities.add(entity)
                 deadRigidBodies.add(rigidbody)

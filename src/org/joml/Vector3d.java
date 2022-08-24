@@ -393,10 +393,10 @@ public class Vector3d {
     }
 
     public Vector3d mulProject(Matrix4d mat, double w, Vector3d dest) {
-        double invW = 1.0 / Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33() * w)));
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30() * w))) * invW;
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31() * w))) * invW;
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32() * w))) * invW;
+        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33 * w)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30 * w))) * invW;
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31 * w))) * invW;
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32 * w))) * invW;
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -404,10 +404,10 @@ public class Vector3d {
     }
 
     public Vector3d mulProject(Matrix4d mat, Vector3d dest) {
-        double invW = 1.0 / Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33())));
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30()))) * invW;
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31()))) * invW;
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32()))) * invW;
+        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30))) * invW;
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31))) * invW;
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32))) * invW;
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -415,10 +415,10 @@ public class Vector3d {
     }
 
     public Vector3d mulProject(Matrix4d mat) {
-        double invW = 1.0 / Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33())));
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30()))) * invW;
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31()))) * invW;
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32()))) * invW;
+        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30))) * invW;
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31))) * invW;
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32))) * invW;
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -426,10 +426,10 @@ public class Vector3d {
     }
 
     public Vector3d mulProject(Matrix4f mat, Vector3d dest) {
-        double invW = 1.0 / Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33())));
-        double rx = ((double) mat.m00() * this.x + (double) mat.m10() * this.y + (double) mat.m20() * this.z + (double) mat.m30()) * invW;
-        double ry = ((double) mat.m01() * this.x + (double) mat.m11() * this.y + (double) mat.m21() * this.z + (double) mat.m31()) * invW;
-        double rz = ((double) mat.m02() * this.x + (double) mat.m12() * this.y + (double) mat.m22() * this.z + (double) mat.m32()) * invW;
+        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
+        double rx = ((double) mat.m00 * this.x + (double) mat.m10 * this.y + (double) mat.m20 * this.z + (double) mat.m30) * invW;
+        double ry = ((double) mat.m01 * this.x + (double) mat.m11 * this.y + (double) mat.m21 * this.z + (double) mat.m31) * invW;
+        double rz = ((double) mat.m02 * this.x + (double) mat.m12 * this.y + (double) mat.m22 * this.z + (double) mat.m32) * invW;
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -437,10 +437,10 @@ public class Vector3d {
     }
 
     public Vector3d mulProject(Matrix4f mat) {
-        double invW = 1.0 / Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33())));
-        double rx = ((double) mat.m00() * this.x + (double) mat.m10() * this.y + (double) mat.m20() * this.z + (double) mat.m30()) * invW;
-        double ry = ((double) mat.m01() * this.x + (double) mat.m11() * this.y + (double) mat.m21() * this.z + (double) mat.m31()) * invW;
-        double rz = ((double) mat.m02() * this.x + (double) mat.m12() * this.y + (double) mat.m22() * this.z + (double) mat.m32()) * invW;
+        double invW = 1.0 / Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
+        double rx = ((double) mat.m00 * this.x + (double) mat.m10 * this.y + (double) mat.m20 * this.z + (double) mat.m30) * invW;
+        double ry = ((double) mat.m01 * this.x + (double) mat.m11 * this.y + (double) mat.m21 * this.z + (double) mat.m31) * invW;
+        double rz = ((double) mat.m02 * this.x + (double) mat.m12 * this.y + (double) mat.m22 * this.z + (double) mat.m32) * invW;
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -448,9 +448,9 @@ public class Vector3d {
     }
 
     public Vector3d mul(Matrix3f mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, (double) mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, (double) mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -458,9 +458,9 @@ public class Vector3d {
     }
 
     public Vector3d mul(Matrix3d mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -468,9 +468,9 @@ public class Vector3d {
     }
 
     public Vector3d mul(Matrix3d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -478,9 +478,9 @@ public class Vector3d {
     }
 
     public Vector3f mul(Matrix3d mat, Vector3f dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
         dest.x = (float) rx;
         dest.y = (float) ry;
         dest.z = (float) rz;
@@ -488,9 +488,9 @@ public class Vector3d {
     }
 
     public Vector3d mul(Matrix3f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, (double) mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, (double) mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -498,16 +498,16 @@ public class Vector3d {
     }
 
     public Vector3d mul(Matrix3x2d mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, mat.m21() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
         this.x = rx;
         this.y = ry;
         return this;
     }
 
     public Vector3d mul(Matrix3x2d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, mat.m21() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = this.z;
@@ -515,16 +515,16 @@ public class Vector3d {
     }
 
     public Vector3d mul(Matrix3x2f mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, (double) mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m21() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
         this.x = rx;
         this.y = ry;
         return this;
     }
 
     public Vector3d mul(Matrix3x2f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, (double) mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m21() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = this.z;
@@ -532,9 +532,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTranspose(Matrix3d mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, mat.m02() * this.z));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, mat.m12() * this.z));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, mat.m02 * this.z));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, mat.m12 * this.z));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, mat.m22 * this.z));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -542,9 +542,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTranspose(Matrix3d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, mat.m02() * this.z));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, mat.m12() * this.z));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, mat.m02 * this.z));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, mat.m12 * this.z));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, mat.m22 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -552,9 +552,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTranspose(Matrix3f mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, (double) mat.m02() * this.z));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m12() * this.z));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, (double) mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, (double) mat.m02 * this.z));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, (double) mat.m12 * this.z));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, (double) mat.m22 * this.z));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -562,9 +562,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTranspose(Matrix3f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, (double) mat.m02() * this.z));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m12() * this.z));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, (double) mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, (double) mat.m02 * this.z));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, (double) mat.m12 * this.z));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, (double) mat.m22 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -572,9 +572,9 @@ public class Vector3d {
     }
 
     public Vector3d mulPosition(Matrix4f mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -582,9 +582,9 @@ public class Vector3d {
     }
 
     public Vector3d mulPosition(Matrix4d mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -592,9 +592,9 @@ public class Vector3d {
     }
 
     public Vector3d mulPosition(Matrix4x3d mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -602,9 +602,9 @@ public class Vector3d {
     }
 
     public Vector3d mulPosition(Matrix4x3f mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -612,9 +612,9 @@ public class Vector3d {
     }
 
     public Vector3d mulPosition(Matrix4d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -622,9 +622,9 @@ public class Vector3d {
     }
 
     public Vector3d mulPosition(Matrix4f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -632,9 +632,9 @@ public class Vector3d {
     }
 
     public Vector3d mulPosition(Matrix4x3d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -642,9 +642,9 @@ public class Vector3d {
     }
 
     public Vector3d mulPosition(Matrix4x3f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -652,9 +652,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTransposePosition(Matrix4d mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, Math.fma(mat.m02(), this.z, mat.m03())));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m12(), this.z, mat.m13())));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, Math.fma(mat.m22(), this.z, mat.m23())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, Math.fma(mat.m02, this.z, mat.m03)));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m12, this.z, mat.m13)));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, Math.fma(mat.m22, this.z, mat.m23)));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -662,9 +662,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTransposePosition(Matrix4d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, Math.fma(mat.m02(), this.z, mat.m03())));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m12(), this.z, mat.m13())));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, Math.fma(mat.m22(), this.z, mat.m23())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, Math.fma(mat.m02, this.z, mat.m03)));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m12, this.z, mat.m13)));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, Math.fma(mat.m22, this.z, mat.m23)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -672,9 +672,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTransposePosition(Matrix4f mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, Math.fma(mat.m02(), this.z, mat.m03())));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m12(), this.z, mat.m13())));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, Math.fma(mat.m22(), this.z, mat.m23())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, Math.fma(mat.m02, this.z, mat.m03)));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m12, this.z, mat.m13)));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, Math.fma(mat.m22, this.z, mat.m23)));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -682,9 +682,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTransposePosition(Matrix4f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, Math.fma(mat.m02(), this.z, mat.m03())));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m12(), this.z, mat.m13())));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, Math.fma(mat.m22(), this.z, mat.m23())));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, Math.fma(mat.m02, this.z, mat.m03)));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m12, this.z, mat.m13)));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, Math.fma(mat.m22, this.z, mat.m23)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -692,10 +692,10 @@ public class Vector3d {
     }
 
     public double mulPositionW(Matrix4f mat) {
-        double w = Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33())));
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double w = Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -703,10 +703,10 @@ public class Vector3d {
     }
 
     public double mulPositionW(Matrix4f mat, Vector3d dest) {
-        double w = Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33())));
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double w = Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -714,10 +714,10 @@ public class Vector3d {
     }
 
     public double mulPositionW(Matrix4d mat) {
-        double w = Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33())));
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double w = Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -725,10 +725,10 @@ public class Vector3d {
     }
 
     public double mulPositionW(Matrix4d mat, Vector3d dest) {
-        double w = Math.fma(mat.m03(), this.x, Math.fma(mat.m13(), this.y, Math.fma(mat.m23(), this.z, mat.m33())));
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, Math.fma(mat.m20(), this.z, mat.m30())));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, Math.fma(mat.m21(), this.z, mat.m31())));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, Math.fma(mat.m22(), this.z, mat.m32())));
+        double w = Math.fma(mat.m03, this.x, Math.fma(mat.m13, this.y, Math.fma(mat.m23, this.z, mat.m33)));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, Math.fma(mat.m20, this.z, mat.m30)));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, Math.fma(mat.m21, this.z, mat.m31)));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, Math.fma(mat.m22, this.z, mat.m32)));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -736,9 +736,9 @@ public class Vector3d {
     }
 
     public Vector3d mulDirection(Matrix4f mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, (double) mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, (double) mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -746,9 +746,9 @@ public class Vector3d {
     }
 
     public Vector3d mulDirection(Matrix4d mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -756,9 +756,9 @@ public class Vector3d {
     }
 
     public Vector3d mulDirection(Matrix4x3d mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -766,9 +766,9 @@ public class Vector3d {
     }
 
     public Vector3d mulDirection(Matrix4x3f mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, (double) mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, (double) mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -776,9 +776,9 @@ public class Vector3d {
     }
 
     public Vector3d mulDirection(Matrix4d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -786,9 +786,9 @@ public class Vector3d {
     }
 
     public Vector3d mulDirection(Matrix4f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, (double) mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, (double) mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -796,9 +796,9 @@ public class Vector3d {
     }
 
     public Vector3d mulDirection(Matrix4x3d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, mat.m22 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -806,9 +806,9 @@ public class Vector3d {
     }
 
     public Vector3d mulDirection(Matrix4x3f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m10(), this.y, (double) mat.m20() * this.z));
-        double ry = Math.fma(mat.m01(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m21() * this.z));
-        double rz = Math.fma(mat.m02(), this.x, Math.fma(mat.m12(), this.y, (double) mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m10, this.y, (double) mat.m20 * this.z));
+        double ry = Math.fma(mat.m01, this.x, Math.fma(mat.m11, this.y, (double) mat.m21 * this.z));
+        double rz = Math.fma(mat.m02, this.x, Math.fma(mat.m12, this.y, (double) mat.m22 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -816,9 +816,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTransposeDirection(Matrix4d mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, mat.m02() * this.z));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, mat.m12() * this.z));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, mat.m02 * this.z));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, mat.m12 * this.z));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, mat.m22 * this.z));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -826,9 +826,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTransposeDirection(Matrix4d mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, mat.m02() * this.z));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, mat.m12() * this.z));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, mat.m02 * this.z));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, mat.m12 * this.z));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, mat.m22 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;
@@ -836,9 +836,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTransposeDirection(Matrix4f mat) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, (double) mat.m02() * this.z));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m12() * this.z));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, (double) mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, (double) mat.m02 * this.z));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, (double) mat.m12 * this.z));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, (double) mat.m22 * this.z));
         this.x = rx;
         this.y = ry;
         this.z = rz;
@@ -846,9 +846,9 @@ public class Vector3d {
     }
 
     public Vector3d mulTransposeDirection(Matrix4f mat, Vector3d dest) {
-        double rx = Math.fma(mat.m00(), this.x, Math.fma(mat.m01(), this.y, (double) mat.m02() * this.z));
-        double ry = Math.fma(mat.m10(), this.x, Math.fma(mat.m11(), this.y, (double) mat.m12() * this.z));
-        double rz = Math.fma(mat.m20(), this.x, Math.fma(mat.m21(), this.y, (double) mat.m22() * this.z));
+        double rx = Math.fma(mat.m00, this.x, Math.fma(mat.m01, this.y, (double) mat.m02 * this.z));
+        double ry = Math.fma(mat.m10, this.x, Math.fma(mat.m11, this.y, (double) mat.m12 * this.z));
+        double rz = Math.fma(mat.m20, this.x, Math.fma(mat.m21, this.y, (double) mat.m22 * this.z));
         dest.x = rx;
         dest.y = ry;
         dest.z = rz;

@@ -56,16 +56,16 @@ fun main() {
 
             val invLocalB = localB.invert(localsInv[boneId])
 
-            val length = length(localB.m30(), localB.m31(), localB.m32())
+            val length = length(localB.m30, localB.m31, localB.m32)
             sum += length
             sum2 += length * length
             // val inv = localTransform.invert(Matrix4x3f())
             // println("scale: ${localTransform.getScale(Vector3f())}") // 1,1,1, just as expected
             /*println(inv.print())
             println(localTransform.print())
-            println(length(inv.m30(),inv.m31(),inv.m32()))
-            println(length(localTransform.m30(),localTransform.m31(),localTransform.m32()))*/
-            // println(inv.transformDirection(Vector3f(skinning.m30(), skinning.m31(), skinning.m32())).print())
+            println(length(inv.m30,inv.m31,inv.m32))
+            println(length(localTransform.m30,localTransform.m31,localTransform.m32))*/
+            // println(inv.transformDirection(Vector3f(skinning.m30, skinning.m31, skinning.m32)).print())
 
             if (bone.name == testName) {
                 println("\nframe $frameIndex")

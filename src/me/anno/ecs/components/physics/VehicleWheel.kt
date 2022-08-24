@@ -132,13 +132,13 @@ class VehicleWheel : Component() {
     fun createBulletInstance(entity: Entity, vehicle: RaycastVehicle): WheelInfo {
         val transform = this.entity!!.fromLocalToOtherLocal(entity)
         // +w
-        val position = Vector3d(transform.m30(), transform.m31(), transform.m32())
+        val position = Vector3d(transform.m30, transform.m31, transform.m32)
         // raycast direction, e.g. down, so -y
-        val wheelDirection = Vector3d(-transform.m10(), -transform.m11(), -transform.m12())
+        val wheelDirection = Vector3d(-transform.m10, -transform.m11, -transform.m12)
         val scale = abs(transform.getScaleLength() / SQRT3)
         val actualWheelRadius = radius * scale
         // wheel axis, e.g. x axis, so +x
-        val wheelAxle = Vector3d(-transform.m00(), -transform.m01(), -transform.m02())
+        val wheelAxle = Vector3d(-transform.m00, -transform.m01, -transform.m02)
         val tuning = VehicleTuning()
         tuning.frictionSlip = tuning.frictionSlip
         tuning.suspensionDamping = suspensionDamping

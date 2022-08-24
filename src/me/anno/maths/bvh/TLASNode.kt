@@ -103,36 +103,36 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             val data = buffer.nioBuffer!!
 
             if (false) {
-                data.putFloat(m.m00())
-                data.putFloat(m.m01())
-                data.putFloat(m.m02())
+                data.putFloat(m.m00)
+                data.putFloat(m.m01)
+                data.putFloat(m.m02)
 
-                data.putFloat(m.m10())
-                data.putFloat(m.m11())
-                data.putFloat(m.m12())
+                data.putFloat(m.m10)
+                data.putFloat(m.m11)
+                data.putFloat(m.m12)
 
-                data.putFloat(m.m20())
-                data.putFloat(m.m21())
-                data.putFloat(m.m22())
+                data.putFloat(m.m20)
+                data.putFloat(m.m21)
+                data.putFloat(m.m22)
 
-                data.putFloat(m.m30())
-                data.putFloat(m.m31())
-                data.putFloat(m.m32())
+                data.putFloat(m.m30)
+                data.putFloat(m.m31)
+                data.putFloat(m.m32)
             } else {
-                data.putFloat(m.m00())
-                data.putFloat(m.m10())
-                data.putFloat(m.m20())
-                data.putFloat(m.m30())
+                data.putFloat(m.m00)
+                data.putFloat(m.m10)
+                data.putFloat(m.m20)
+                data.putFloat(m.m30)
 
-                data.putFloat(m.m01())
-                data.putFloat(m.m11())
-                data.putFloat(m.m21())
-                data.putFloat(m.m31())
+                data.putFloat(m.m01)
+                data.putFloat(m.m11)
+                data.putFloat(m.m21)
+                data.putFloat(m.m31)
 
-                data.putFloat(m.m02())
-                data.putFloat(m.m12())
-                data.putFloat(m.m22())
-                data.putFloat(m.m32())
+                data.putFloat(m.m02)
+                data.putFloat(m.m12)
+                data.putFloat(m.m22)
+                data.putFloat(m.m32)
             }
 
             // val pos = data.position()
