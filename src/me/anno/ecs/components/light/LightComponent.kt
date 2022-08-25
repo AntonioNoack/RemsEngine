@@ -35,7 +35,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     // todo AES lights, and their textures?
 
-    // todo plane of light: how?
+    // todo plane of light: how? https://eheitzresearch.wordpress.com/415-2/ maybe :)
     // todo lines of light: how?
     // todo circle/sphere of light: how?
 

@@ -4,6 +4,8 @@
       <root url="jar://$PROJECT_DIR$/out/artifacts/KOML/KOML.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/KOML/src" />
+    </SOURCES>
   </library>
 </component>

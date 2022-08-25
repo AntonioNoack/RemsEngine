@@ -1,6 +1,7 @@
 package org.joml
 
 import org.joml.JomlMath.addSigns
+import java.nio.FloatBuffer
 import kotlin.math.cos
 import kotlin.math.sin
 

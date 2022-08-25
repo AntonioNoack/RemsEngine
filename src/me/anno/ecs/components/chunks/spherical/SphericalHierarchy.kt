@@ -42,13 +42,6 @@ open class SphericalHierarchy(
     // todo the meshes itself ofc should have more than 1 face, so either merge them into one optimized structure of faces,
     // todo or only go down more fine, if we really need it dearly (e.g. 10% of screen or sth like that)
 
-    // one object per triangle probably is a bad idea...
-    // todo -> when a triangle is split, use it's 4 children
-
-    // todo draw onto that sphere maybe
-    // var subdivisionsPerTriangle = 32
-
-
     fun getTopLevelTriangle(v: Vector3d): SphereTriangle {
         var bestMatch: SphereTriangle = triangles[0]
         var bestDistance = Double.POSITIVE_INFINITY

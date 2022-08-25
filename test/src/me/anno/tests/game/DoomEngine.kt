@@ -180,7 +180,7 @@ fun main() {
                     section.draw(cameraPosition, buffer1, w, h)
                 }
 
-                texture.createRGBA(buffer0)
+                texture.createRGBA(buffer0, false)
                 drawTexture(x, y, w, h, texture, true)
             }
             // todo controls

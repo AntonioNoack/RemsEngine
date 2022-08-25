@@ -28,9 +28,10 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         var attribute = "in"
 
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
-        private val identity3: Matrix3f = Matrix3f()
-        private val identity4: Matrix4f = Matrix4f()
-        private val identity4x3: Matrix4x3f = Matrix4x3f()
+        private val identity2 = Matrix2f()
+        private val identity3 = Matrix3f()
+        private val identity4 = Matrix4f()
+        private val identity4x3 = Matrix4x3f()
         const val DefaultGLSLVersion = 150
         const val UniformCacheSize = 256
         const val UniformCacheSizeX4 = UniformCacheSize * 4
@@ -620,8 +621,19 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun v4f(name: String, v: Vector4d) =
         v4f(name, v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
 
+    fun m2x2(name: String, value: Matrix2f?) = m2x2(getUniformLocation(name), value)
+    fun m2x2(loc: Int, value: Matrix2f? = null) {
+        if (loc > -1) {
+            potentiallyUse()
+            matrixBuffer.position(0).limit(4)
+            (value ?: identity2).putInto(matrixBuffer)
+            matrixBuffer.flip()
+            glUniformMatrix2fv(loc, false, matrixBuffer)
+        }
+    }
+
     fun m3x3(name: String, value: Matrix3f?) = m3x3(getUniformLocation(name), value)
-    fun m3x3(loc: Int, value: Matrix3f? = identity3) {
+    fun m3x3(loc: Int, value: Matrix3f? = null) {
         if (loc > -1) {
             potentiallyUse()
             matrixBuffer.position(0).limit(9)

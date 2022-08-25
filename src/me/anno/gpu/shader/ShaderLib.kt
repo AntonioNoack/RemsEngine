@@ -149,6 +149,16 @@ object ShaderLib {
             "   return mix(vec3(gray), color, cgSaturation);\n" +
             "}\n"
 
+    const val rgb2yuv = "" +
+            "vec3 rgb2yuv(vec3 rgb){\n" +
+            "   vec4 rgba = vec4(rgb,1);\n" +
+            "   return vec3(\n" +
+            "       dot(rgb,  vec3( 0.299,  0.587,  0.114)),\n" +
+            "       dot(rgba, vec4(-0.169, -0.331,  0.500, 0.5)),\n" +
+            "       dot(rgba, vec4( 0.500, -0.419, -0.081, 0.5)) \n" +
+            "   );\n" +
+            "}\n"
+
     const val rgb2uv = "" +
             "vec2 RGBtoUV(vec3 rgb){\n" +
             "   vec4 rgba = vec4(rgb,1);\n" +
@@ -166,6 +176,28 @@ object ShaderLib {
             "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
             "       dot(yuv, vec3( 1.164,  2.017,  0.000)));\n" +
             "}\n"
+
+    const val anisotropic16 = "" +
+            // anisotropic filtering from https://www.shadertoy.com/view/4lXfzn
+            "vec4 textureAnisotropic(sampler2D T, vec2 p, mat2 J) {\n" +
+            // "    mat2 J = inverse(mat2(dFdx(p),dFdy(p))); // dFdxy: pixel footprint in texture space\n" +
+            "   J = transpose(J)*J;\n" + // quadratic form
+            "   vec2 R = textureSize(T,0);\n" +
+            "   float d = determinant(J), t = J[0][0]+J[1][1],\n" + // find ellipse: eigenvalues, max eigenvector
+            "         D = sqrt(abs(t*t-4.*d)),\n" + // abs() fix a bug: in weird view angles 0 can be slightly negative
+            "         V = (t-D)/2., v = (t+D)/2.,\n" + // eigenvalues
+            "         M = 1./sqrt(V), m = 1./sqrt(v), l = log2(m*R.y);\n" + // = 1./radii^2
+            "  //if (M/m>16.) l = log2(M/16.*R.y);\n" + // optional
+            "    vec2 A = M * normalize(vec2( -J[0][1] , J[0][0]-V ));\n" + // max eigenvector = main axis
+            "    vec4 O = vec4(0);\n" +
+            "    for (float i = -7.5; i<8.; i++) \n" + // sample x16 along main axis at LOD min-radius
+            "        O += textureLod(T, p+(i/16.)*A, l);\n" +
+            "    return O/16.;\n" +
+            "}\n" +
+            "vec4 textureAnisotropic(sampler2D T, vec2 p, vec2 u) {\n" +
+            "   return textureAnisotropic(T, p, inverse(mat2(dFdx(u),dFdy(u))));\n" +
+            "}\n" +
+            "vec4 textureAnisotropic(sampler2D T, vec2 p) { return textureAnisotropic(T, p, p); }\n"
 
     val maxColorForceFields = DefaultConfig["objects.attractors.color.maxCount", 12]
     val getColorForceFieldLib = "" +

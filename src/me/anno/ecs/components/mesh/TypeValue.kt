@@ -62,6 +62,7 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
                 is Planef -> shader.v4f(location, value.a, value.b, value.c, value.d)
                 else -> LOGGER.warn("Unknown type for V4F, ${value::class.simpleName}")
             }
+            GLSLType.M2x2 -> shader.m2x2(location, value as Matrix2f)
             GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3f)
             GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3f)
             GLSLType.M4x4 -> shader.m4x4(location, value as Matrix4f)

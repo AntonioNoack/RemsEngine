@@ -1621,28 +1621,20 @@ open class Matrix4x3f {
         return v.mul(this, dst!!)
     }
 
-    fun transformPosition(v: Vector3f): Vector3f {
-        v[m00 * v.x + m10 * v.y + m20 * v.z + m30, m01 * v.x + m11 * v.y + m21 * v.z + m31] =
+    fun transformPosition(v: Vector3f, dst: Vector3f = v): Vector3f {
+        return dst.set(
+            m00 * v.x + m10 * v.y + m20 * v.z + m30,
+            m01 * v.x + m11 * v.y + m21 * v.z + m31,
             m02 * v.x + m12 * v.y + m22 * v.z + m32
-        return v
+        )
     }
 
-    fun transformPosition(v: Vector3f, dst: Vector3f): Vector3f {
-        dst[m00 * v.x + m10 * v.y + m20 * v.z + m30, m01 * v.x + m11 * v.y + m21 * v.z + m31] =
-            m02 * v.x + m12 * v.y + m22 * v.z + m32
-        return dst
-    }
-
-    fun transformDirection(v: Vector3f): Vector3f {
-        v[m00 * v.x + m10 * v.y + m20 * v.z, m01 * v.x + m11 * v.y + m21 * v.z] =
+    fun transformDirection(v: Vector3f, dst: Vector3f = v): Vector3f {
+        return dst.set(
+            m00 * v.x + m10 * v.y + m20 * v.z,
+            m01 * v.x + m11 * v.y + m21 * v.z,
             m02 * v.x + m12 * v.y + m22 * v.z
-        return v
-    }
-
-    fun transformDirection(v: Vector3f, dst: Vector3f): Vector3f {
-        dst[m00 * v.x + m10 * v.y + m20 * v.z, m01 * v.x + m11 * v.y + m21 * v.z] =
-            m02 * v.x + m12 * v.y + m22 * v.z
-        return dst
+        )
     }
 
     fun scale(xyz: Vector3f, dst: Matrix4x3f): Matrix4x3f {

@@ -425,7 +425,7 @@ open class Texture2D(
         check()
     }
 
-    fun createRGBA(buffer: ByteBuffer) {
+    /*fun createRGBA(buffer: ByteBuffer) {
         beforeUpload(4, buffer.remaining())
         val t0 = System.nanoTime()
         texImage2D(TargetType.UByteTarget4, buffer)
@@ -434,7 +434,7 @@ open class Texture2D(
         afterUpload(false, 4)
         val t2 = System.nanoTime() // 1e-6
         if (w * h > 1e4 && (t2 - t0) * 1e-9f > 0.01f) LOGGER.info("Used ${(t1 - t0) * 1e-9f}s + ${(t2 - t1) * 1e-9f}s to upload ${(w * h) / 1e6f} MPixel image to GPU")
-    }
+    }*/
 
     private fun beforeUpload(channels: Int, size: Int) {
         if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
@@ -716,6 +716,9 @@ open class Texture2D(
         afterUpload(false, 4)
     }
 
+    /**
+     * warning: will assume RGBA colors, but the engine works with ARGB internally!
+     * */
     fun createRGBA(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         if (checkRedundancy) checkRedundancy(data)
@@ -733,6 +736,9 @@ open class Texture2D(
         afterUpload(false, 4)
     }
 
+    /**
+     * warning: will assume RGBA colors, but the engine works with ARGB internally!
+     * */
     fun createRGB(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data

@@ -494,12 +494,12 @@ class AxisAngle4d : Cloneable {
         return m.set(this)
     }
 
-    operator fun get(dest: AxisAngle4d): AxisAngle4d {
-        return dest.set(this)
+    operator fun get(dst: AxisAngle4d): AxisAngle4d {
+        return dst.set(this)
     }
 
-    operator fun get(dest: AxisAngle4f): AxisAngle4f {
-        return dest.set(this)
+    operator fun get(dst: AxisAngle4f): AxisAngle4f {
+        return dst.set(this)
     }
 
     fun normalize(): AxisAngle4d {
@@ -517,36 +517,39 @@ class AxisAngle4d : Cloneable {
     }
 
     @JvmOverloads
-    fun transform(v: Vector3d, dest: Vector3d = v): Vector3d {
+    fun transform(v: Vector3d, dst: Vector3d = v): Vector3d {
         val sin = sin(angle)
         val cos = cos(angle)
         val dot = x * v.x + y * v.y + z * v.z
-        dest.set(
+        dst.set(
             v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x,
             v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y,
             v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z
         )
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun transform(v: Vector3f, dest: Vector3f = v): Vector3f {
+    fun transform(v: Vector3f, dst: Vector3f = v): Vector3f {
         val sin = sin(angle)
         val cos = cos(angle)
         val dot = x * v.x.toDouble() + y * v.y.toDouble() + z * v.z.toDouble()
-        dest[(v.x.toDouble() * cos + sin * (y * v.z.toDouble() - z * v.y.toDouble()) + (1.0 - cos) * dot * x).toFloat(), (v.y.toDouble() * cos + sin * (z * v.x.toDouble() - x * v.z.toDouble()) + (1.0 - cos) * dot * y).toFloat()] =
+        dst.set(
+            (v.x.toDouble() * cos + sin * (y * v.z.toDouble() - z * v.y.toDouble()) + (1.0 - cos) * dot * x).toFloat(),
+            (v.y.toDouble() * cos + sin * (z * v.x.toDouble() - x * v.z.toDouble()) + (1.0 - cos) * dot * y).toFloat(),
             (v.z.toDouble() * cos + sin * (x * v.y.toDouble() - y * v.x.toDouble()) + (1.0 - cos) * dot * z).toFloat()
-        return dest
+        )
+        return dst
     }
 
     @JvmOverloads
-    fun transform(v: Vector4d, dest: Vector4d = v): Vector4d {
+    fun transform(v: Vector4d, dst: Vector4d = v): Vector4d {
         val sin = sin(angle)
         val cos = cos(angle)
         val dot = x * v.x + y * v.y + z * v.z
-        dest[v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x, v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y, v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z] =
-            dest.w
-        return dest
+        dst[v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x, v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y, v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z] =
+            dst.w
+        return dst
     }
 
     override fun toString(): String {

@@ -471,12 +471,12 @@ class AxisAngle4f {
         return m.set(this)
     }
 
-    operator fun get(dest: AxisAngle4d): AxisAngle4d {
-        return dest.set(this)
+    operator fun get(dst: AxisAngle4d): AxisAngle4d {
+        return dst.set(this)
     }
 
-    operator fun get(dest: AxisAngle4f): AxisAngle4f {
-        return dest.set(this)
+    operator fun get(dst: AxisAngle4f): AxisAngle4f {
+        return dst.set(this)
     }
 
     fun normalize(): AxisAngle4f {
@@ -495,23 +495,28 @@ class AxisAngle4f {
     }
 
     @JvmOverloads
-    fun transform(v: Vector3f, dest: Vector3f = v): Vector3f {
+    fun transform(v: Vector3f, dst: Vector3f = v): Vector3f {
         val sin = sin(angle)
         val cos = cos(angle)
         val dot = x * v.x + y * v.y + z * v.z
-        dest[(v.x.toDouble() * cos + sin * (y * v.z - z * v.y).toDouble() + (1.0 - cos) * dot.toDouble() * x.toDouble()).toFloat(), (v.y.toDouble() * cos + sin * (z * v.x - x * v.z).toDouble() + (1.0 - cos) * dot.toDouble() * y.toDouble()).toFloat()] =
-            (v.z.toDouble() * cos + sin * (x * v.y - y * v.x).toDouble() + (1.0 - cos) * dot.toDouble() * z.toDouble()).toFloat()
-        return dest
+        return dst.set(
+            (v.x * cos + sin * (y * v.z - z * v.y) + (1f - cos) * dot * x),
+            (v.y * cos + sin * (z * v.x - x * v.z) + (1f - cos) * dot * y),
+            (v.z * cos + sin * (x * v.y - y * v.x) + (1f - cos) * dot * z)
+        )
     }
 
     @JvmOverloads
-    fun transform(v: Vector4f, dest: Vector4f = v): Vector4f {
-        val sin = sin(angle).toDouble()
-        val cos = cos(angle.toDouble())
+    fun transform(v: Vector4f, dst: Vector4f = v): Vector4f {
+        val sin = sin(angle)
+        val cos = cos(angle)
         val dot = x * v.x + y * v.y + z * v.z
-        dest[(v.x.toDouble() * cos + sin * (y * v.z - z * v.y).toDouble() + (1.0 - cos) * dot.toDouble() * x.toDouble()).toFloat(), (v.y.toDouble() * cos + sin * (z * v.x - x * v.z).toDouble() + (1.0 - cos) * dot.toDouble() * y.toDouble()).toFloat(), (v.z.toDouble() * cos + sin * (x * v.y - y * v.x).toDouble() + (1.0 - cos) * dot.toDouble() * z.toDouble()).toFloat()] =
-            dest.w
-        return dest
+       return dst.set(
+            (v.x * cos + sin * (y * v.z - z * v.y) + (1f - cos) * dot * x),
+            (v.y * cos + sin * (z * v.x - x * v.z) + (1f - cos) * dot * y),
+            (v.z * cos + sin * (x * v.y - y * v.x) + (1f - cos) * dot * z),
+            dst.w
+        )
     }
 
     override fun toString(): String {

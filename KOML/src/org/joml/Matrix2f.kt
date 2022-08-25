@@ -2,6 +2,7 @@ package org.joml
 
 import org.joml.JomlMath.addSigns
 import org.joml.Runtime.f
+import java.nio.FloatBuffer
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -111,6 +112,12 @@ open class Matrix2f {
         m10 = m.m10
         m11 = m.m11
         return this
+    }
+
+    fun putInto(arr: FloatBuffer): FloatBuffer {
+        arr.put(m00).put(m01)
+        arr.put(m10).put(m11)
+        return arr
     }
 
     @JvmOverloads

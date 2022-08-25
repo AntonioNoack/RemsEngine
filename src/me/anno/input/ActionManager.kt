@@ -152,7 +152,7 @@ object ActionManager : StringMap() {
         val la = localActions
         val universally = la["*", combination]
         val print = lastComb != combination
-        if (print) LOGGER.info("-- processing $universally, $combination")
+        // if (print) LOGGER.info("-- processing $universally, $combination")
         lastComb = combination
         targetSearch@ while (panel != null) {
             if (processActions(panel, x, y, dx, dy, isContinuous, la[panel.className, combination], print)) return

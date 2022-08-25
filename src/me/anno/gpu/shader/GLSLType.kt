@@ -14,6 +14,7 @@ enum class GLSLType(val glslName: String, val components: Int, val isFlat: Boole
     V2F("vec2", 2, false),
     V3F("vec3", 3, false),
     V4F("vec4", 4, false),
+    M2x2("mat2", 4, false),
     M3x3("mat3", 9, false),
     M4x3("mat4x3", 12, false),
     M4x4("mat4", 16, false),

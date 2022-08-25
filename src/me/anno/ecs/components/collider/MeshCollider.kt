@@ -89,7 +89,6 @@ open class MeshCollider() : Collider() {
         surfaceNormal: Vector3f?, maxDistance: Float
     ): Float {
 
-        // todo check aabb first? maybe...
         val mesh = mesh ?: return Float.POSITIVE_INFINITY
 
         // test whether we intersect any triangle of this mesh

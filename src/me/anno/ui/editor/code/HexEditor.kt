@@ -237,7 +237,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         @JvmStatic
         fun main(args: Array<String>) {
             testUI {
-                StudioBase.instance?.setVsyncEnabled(false)
+                StudioBase.instance?.enableVSync = false
                 ScrollPanelY(HexEditor(style).apply {
                     file = FileReference.getReference("E:/MacOS/macos.qcow2")
                 }, Padding.Zero, style, AxisAlignment.CENTER)

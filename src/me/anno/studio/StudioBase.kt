@@ -234,15 +234,20 @@ abstract class StudioBase(
     }
 
     fun updateVSync(window: WindowX) {
-        val vsync = DefaultConfig["debug.ui.enableVsync", Build.isDebug]
+        val vsync = DefaultConfig["debug.ui.enableVsync", !Build.isDebug]
         if (vsync != window.enableVsync) {
             window.setVsyncEnabled(vsync)
         }
     }
 
-    fun setVsyncEnabled(enabled: Boolean) {
-        DefaultConfig["debug.ui.enableVsync"] = enabled
-    }
+    /**
+     * prevents tearing, but also increase input-latency
+     * */
+    var enableVSync
+        get() = DefaultConfig["debug.ui.enableVsync", !Build.isDebug]
+        set(value) {
+            DefaultConfig["debug.ui.enableVsync"] = value
+        }
 
     fun toggleVsync() {
         DefaultConfig["debug.ui.enableVsync"] = !DefaultConfig["debug.ui.enableVsync", true]

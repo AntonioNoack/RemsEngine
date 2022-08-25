@@ -79,7 +79,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return this
     }
 
-    operator fun set(x: Float, y: Float, z: Float, w: Float): Vector4f {
+    fun set(x: Float, y: Float, z: Float, w: Float): Vector4f {
         this.x = x
         this.y = y
         this.z = z
@@ -87,7 +87,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return this
     }
 
-    operator fun set(x: Float, y: Float, z: Float): Vector4f {
+    fun set(x: Float, y: Float, z: Float): Vector4f {
         this.x = x
         this.y = y
         this.z = z

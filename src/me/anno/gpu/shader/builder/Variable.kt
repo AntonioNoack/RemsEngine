@@ -50,6 +50,7 @@ class Variable(
         GLSLType.V2I, GLSLType.V2F -> 20
         GLSLType.V3I, GLSLType.V3F -> 30
         GLSLType.V4I, GLSLType.V4F -> 40
+        GLSLType.M2x2 -> 40
         GLSLType.M3x3 -> 90
         GLSLType.M4x3 -> 120
         GLSLType.M4x4 -> 160
