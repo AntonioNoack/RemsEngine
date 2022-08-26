@@ -190,10 +190,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         variables += Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
 
         if (colors) {
-            variables += Variable(GLSLType.V2F, "uv", false)
-            variables += Variable(GLSLType.V3F, "normal", false)
-            variables += Variable(GLSLType.V4F, "tangent", false)
-            variables += Variable(GLSLType.V4F, "vertexColor", false)
+            variables += Variable(GLSLType.V2F, "uv", VariableMode.OUT)
+            variables += Variable(GLSLType.V3F, "normal", VariableMode.OUT)
+            variables += Variable(GLSLType.V4F, "tangent", VariableMode.OUT)
+            variables += Variable(GLSLType.V4F, "vertexColor", VariableMode.OUT)
         }
 
         if (limitedTransform) {

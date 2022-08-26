@@ -35,7 +35,7 @@ interface ITexture2D : ICacheData {
         } else false
     }
 
-    fun write(dst: FileReference, flipY: Boolean, withAlpha: Boolean) {
+    fun write(dst: FileReference, flipY: Boolean = false, withAlpha: Boolean = false) {
         createImage(flipY, withAlpha)
             .write(dst)
     }

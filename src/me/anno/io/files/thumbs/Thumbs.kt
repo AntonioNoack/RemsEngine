@@ -131,7 +131,7 @@ object Thumbs {
 
     // png/bmp/jpg?
     private const val destinationFormat = "png"
-    val sphereMesh = Icosahedron.createMesh(30, 30)
+    val sphereMesh = Icosahedron.createUVSphere(30, 30)
 
     init {
         LogManager.disableLogger("GlyphRenderer")

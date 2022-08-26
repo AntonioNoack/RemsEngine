@@ -7,10 +7,15 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.image.ImageGPUCache
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
+import me.anno.utils.files.UVChecker
 import org.joml.Vector3f
 import org.joml.Vector4f
 
@@ -107,6 +112,21 @@ open class Renderer(
             )
         )
         val motionVectorRenderer = attributeRenderers[DeferredLayerType.MOTION]
+
+        val uvRenderer = object : SimpleRenderer(
+            "uv-checker", true, ShaderPlus.DrawMode.COPY, ShaderStage(
+                listOf(
+                    Variable(GLSLType.V2F, "uv"),
+                    Variable(GLSLType.S2D, "checkerTex"),
+                ), "finalColor = texture(checkerTex, uv).rgb;\n"
+            )
+        ) {
+            override fun uploadDefaultUniforms(shader: Shader) {
+                super.uploadDefaultUniforms(shader)
+                val checkerTex = ImageGPUCache.getImage(UVChecker.value, true) ?: whiteTexture
+                checkerTex.bind(shader, "checkerTex", GPUFiltering.LINEAR, Clamping.REPEAT)
+            }
+        }
 
     }
 

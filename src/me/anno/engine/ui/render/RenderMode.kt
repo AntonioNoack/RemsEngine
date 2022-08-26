@@ -4,9 +4,15 @@ import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.camera.effects.ColorBlindnessEffect
 import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Renderer.Companion.uvRenderer
 import me.anno.gpu.shader.ShaderPlus
 
-enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffect? = null) {
+enum class RenderMode(
+    val dlt: DeferredLayerType? = null,
+    val effect: CameraEffect? = null,
+    val renderer: Renderer? = null
+) {
 
     DEFAULT,
     WITHOUT_POST_PROCESSING,
@@ -19,6 +25,10 @@ enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffe
 
     COLOR(DeferredLayerType.COLOR),
     NORMAL(DeferredLayerType.NORMAL),
+
+    UV(uvRenderer),
+    // mode to show bone weights? ask for it, if you're interested :)
+
     TANGENT(DeferredLayerType.TANGENT),
     BITANGENT(DeferredLayerType.BITANGENT),
     EMISSIVE(DeferredLayerType.EMISSIVE),
@@ -55,7 +65,7 @@ enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffe
     LINES, LINES_MSAA,
     FRONT_BACK,
 
-    /** visualized the triangle structure by giving each triangle its own color */
+    /** visualize the triangle structure by giving each triangle its own color */
     SHOW_TRIANGLES,
 
     SHOW_AABB,
@@ -74,5 +84,6 @@ enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffe
     ;
 
     constructor(effect: CameraEffect) : this(null, effect)
+    constructor(renderer: Renderer) : this(null, null, renderer)
 
 }

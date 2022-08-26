@@ -12,7 +12,6 @@ import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.sdf.SDFGroup
-import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.Frustum
@@ -24,6 +23,7 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.sorting.MergeSort.mergeSort
@@ -433,7 +433,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         private val LOGGER = LogManager.getLogger(Pipeline::class)
         private val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()
-        val sampleMesh = Icosahedron.createMesh(60, 60)
+        val sampleMesh = Thumbs.sphereMesh
     }
 
 }

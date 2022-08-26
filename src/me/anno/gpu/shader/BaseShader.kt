@@ -132,7 +132,6 @@ open class BaseShader(
                             stateId2.hasFlag(4),
                             stateId2.hasFlag(8)
                         )
-                        r.uploadDefaultUniforms(shader)
                         // LOGGER.info(shader.fragmentSource)
                         shader
                     }
@@ -148,6 +147,7 @@ open class BaseShader(
 
     open fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
         shader.v1i("drawMode", renderer.drawMode.id)
+        renderer.uploadDefaultUniforms(shader)
     }
 
     fun ignoreNameWarnings(names: Collection<String>) {

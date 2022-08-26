@@ -32,10 +32,6 @@ import javax.imageio.ImageIO
 
 class ImageData(file: FileReference) : ICacheData {
 
-    var texture = Texture2D("image-data", 1024, 1024, 1)
-    var framebuffer: Framebuffer? = null
-    var hasFailed = false
-
     companion object {
 
         val imageTimeout get() = DefaultConfig["ui.image.frameTimeout", 5000L]
@@ -71,29 +67,24 @@ class ImageData(file: FileReference) : ICacheData {
 
     }
 
-    fun useFFMPEG(file: FileReference) {
-        // calculate required scale? no, without animation, we don't need to scale it down ;)
-        val frame = waitUntilDefined(true) {
-            getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
-        }
-        frame.waitToLoad()
-        GFX.addGPUTask("ImageData.useFFMPEG($file)", frame.w, frame.h) {
-            frameToFramebuffer(frame, frame.w, frame.h, this)
-        }
-    }
+    var texture = Texture2D("image-data", 1024, 1024, 1)
+    var framebuffer: Framebuffer? = null
+    var hasFailed = false
 
     init {
-        load(file)
-    }
-
-    fun load(file: FileReference) {
         if (texture.isCreated) texture.reset() // shouldn't really happen, I think
         if (file is ImageReadable) {
             texture.create(file.toString(), file.readImage(), true)
         } else {
             when (Signature.findName(file)) {
-                "hdr" -> loadHDR(file)
-                "dds" -> useFFMPEG(file)
+                "hdr" -> {
+                    val img = HDRImage(file)
+                    val w = img.width
+                    val h = img.height
+                    texture.setSize(w, h)
+                    img.createTexture(texture, sync = false, checkRedundancy = true)
+                }
+                "dds", "media" -> useFFMPEG(file)
                 else -> {
                     val image = ImageCPUCache.getImage(file, 50, false)
                     if (image != null) {
@@ -114,12 +105,15 @@ class ImageData(file: FileReference) : ICacheData {
         }
     }
 
-    fun loadHDR(file: FileReference) {
-        val img = HDRImage(file)
-        val w = img.width
-        val h = img.height
-        texture.setSize(w, h)
-        img.createTexture(texture, sync = false, checkRedundancy = true)
+    fun useFFMPEG(file: FileReference) {
+        // calculate required scale? no, without animation, we don't need to scale it down ;)
+        val frame = waitUntilDefined(true) {
+            getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
+        }
+        frame.waitToLoad()
+        GFX.addGPUTask("ImageData.useFFMPEG($file)", frame.w, frame.h) {
+            frameToFramebuffer(frame, frame.w, frame.h, this)
+        }
     }
 
     fun loadTGA(file: FileReference) {

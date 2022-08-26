@@ -31,7 +31,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
     val latToWorld = Matrix2f(cos(Maths.PIf / 3f), sin(Maths.PIf / 3f), 1f, 0f).scale(0.25f)
     val worldToLat = Matrix2f(latToWorld).invert()
 
-    val sampleTile = "" +
+    const val sampleTile = "" +
             "vec4 textureAnisotropic(sampler2D, vec2, vec2);\n" +
             "float random(vec2);\n" +
             "vec3 rgb2yuv(vec3);\n" +
@@ -55,7 +55,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             "   return vec4(yuv, rgb.a);\n" +
             "}\n"
 
-    val getTexture = "" +
+    const val getTexture = "" +
             "vec4 sampleTile(sampler2D, vec2, vec2, vec2);\n" +
             "vec3 yuv2rgb(vec3);\n" +
             "vec4 getTexture(sampler2D T, vec2 pos) {\n" +

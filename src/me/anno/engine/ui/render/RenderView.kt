@@ -299,7 +299,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             RenderMode.DEFAULT, RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.FSR_X4,
             RenderMode.FSR_MSAA_X4, RenderMode.FSR_SQRT2, RenderMode.FSR_X2, RenderMode.NEAREST_X4,
             RenderMode.GHOSTING_DEBUG, RenderMode.INVERSE_DEPTH, RenderMode.WITHOUT_POST_PROCESSING,
-            RenderMode.LINES, RenderMode.LINES_MSAA, RenderMode.FRONT_BACK,
+            RenderMode.LINES, RenderMode.LINES_MSAA, RenderMode.FRONT_BACK, RenderMode.UV,
             RenderMode.SHOW_TRIANGLES, RenderMode.MSAA_X8 -> false
             else -> true
         }
@@ -362,8 +362,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 useDeferredRendering = false
                 Renderer.triangleVisRenderer
             }
-            else -> if (useDeferredRendering)
-                DeferredRenderer else pbrRenderer
+            else -> renderMode.renderer ?: (if (useDeferredRendering) DeferredRenderer else pbrRenderer)
         }
 
         val dlt = renderMode.dlt
