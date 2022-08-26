@@ -4,7 +4,7 @@ import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.ui.base.Font
 import me.anno.utils.types.Booleans.toInt
 
-class TextCacheKey(
+data class TextCacheKey(
     val text: CharSequence,
     val fontName: String,
     val properties: Int,

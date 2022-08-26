@@ -10,7 +10,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
 fun main() {
     testUI {
         StudioBase.instance?.enableVSync = false
-        val n = 1_000_000
+        val n = 100_000
         val list = PanelListY(style)
         list.allChildrenHaveSameSize = true
         for (i in 0 until n) list.add(TextPanel("Test-$i", style))

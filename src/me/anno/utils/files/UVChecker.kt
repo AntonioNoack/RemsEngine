@@ -12,10 +12,11 @@ val UVChecker = lazy {
 
     // generate uv checker texture to save 500kB of storage space
 
-    val lineColor = black
-
     // load texture with numbers
     val numbers = ImageCPUCache.getImage(FileReference.getReference("res://dig8.png"), false)!!
+    val cw = 27 // character size in <numbers>
+    val ch = 37
+    val co = 17 // character offset from top, ~ch/2
 
     val innerSize = 10
     val innerFields = 9 // should be odd
@@ -67,6 +68,7 @@ val UVChecker = lazy {
     }
 
     // draw stripes
+    val lineColor = black
     for (i in 0..numFields) {
         val k = i * (sizeOfField + 1)
         canvas.fill(lineColor, k * w, (k + 1) * w)
@@ -101,8 +103,8 @@ val UVChecker = lazy {
             val cy = y0 + sizeOfField / 2
 
             // write letter (y), then number (x)
-            drawChar(37 * numbers.width + 27 * iy, (cy) * w + cx - (17 * w) - 27, 27, 37)
-            drawChar(27 * ix, (cy) * w + cx - (17 * w), 27, 37)
+            drawChar(ch * numbers.width + cw * iy, (cy) * w + cx - (co * w) - cw, cw, ch)
+            drawChar(cw * ix, (cy) * w + cx - (co * w), cw, ch)
         }
     }
 

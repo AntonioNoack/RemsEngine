@@ -161,7 +161,7 @@ class AWTFont(val font: Font) {
             return FakeWhiteTexture(width, height)
         }
 
-        val texture = Texture2D("awt-text", width, height, 1)
+        val texture = Texture2D("awt-" + text.shorten(24), width, height, 1)
 
         worker.addPrioritized(text.length == 1) {
 
@@ -533,7 +533,7 @@ class AWTFont(val font: Font) {
         private val fallbackFontList = DefaultConfig[
                 "ui.font.fallbacks",
                 "Segoe UI Emoji,Segoe UI Symbol,DejaVu Sans,FreeMono,Unifont,Symbola"
-        ].split(',').mapNotNull { if(it.isBlank2()) null else it.trim() }
+        ].split(',').mapNotNull { if (it.isBlank2()) null else it.trim() }
 
         // val fallbacks = FontManager.getFont("", size, 0f, 0f)
         // var fallbackFont0 = Font("Segoe UI Emoji", Font.PLAIN, 25)

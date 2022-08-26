@@ -10,7 +10,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
 fun main() {
     testUI {
         StudioBase.instance?.enableVSync = false
-        val n = 1_000_000
+        val n = 100_000
         val list = PanelList2D(style)
         // todo scrollbar jumps up and down... and it covers the top bar
         list.childWidth = 120

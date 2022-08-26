@@ -26,7 +26,7 @@ object FontManager {
 
     private val LOGGER = LogManager.getLogger(FontManager::class)
 
-    private const val textureTimeout = 10000L
+    private const val textureTimeout = 10_000L
 
     private var hasFonts = false
     private val awtFontList = ArrayList<String>()
@@ -188,9 +188,7 @@ object FontManager {
         return getTexture(key)
     }
 
-    fun getTexture(
-        cacheKey: TextCacheKey
-    ): ITexture2D? {
+    fun getTexture(cacheKey: TextCacheKey): ITexture2D? {
         // must be sync:
         // - textures need to be available
         // - Java/Windows is not thread-safe
@@ -201,7 +199,7 @@ object FontManager {
             val hl = if (key.heightLimit < 0) GFX.maxTextureSize else min(key.heightLimit, GFX.maxTextureSize)
             val texture = font2.generateTexture(key.text, averageFontSize, wl, hl, false)
             if (texture == null) LOGGER.warn("Texture for '$key' was null")
-            texture ?: TextureLib.nullTexture
+            texture
         } as? ITexture2D
     }
 

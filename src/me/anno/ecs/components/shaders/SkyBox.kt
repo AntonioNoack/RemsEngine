@@ -215,6 +215,7 @@ class SkyBox : MeshComponentBase() {
             ): ShaderStage {
 
                 val funcNoise = "" +
+                        "float hash(float);\n" +
                         "float noise(vec3 x){\n" +
                         "  vec3 f = fract(x);\n" +
                         "  float n = dot(floor(x), vec3(1.0, 157.0, 113.0));\n" +
@@ -231,6 +232,7 @@ class SkyBox : MeshComponentBase() {
 
                 val funcFBM = "" +
                         "const mat3 fbmM = mat3(0.0, 1.75,  1.3, -1.8, 0.8, -1.1, -1.3, -1.1, 1.4);\n" +
+                        "float noise(vec3);" +
                         "float fbm(vec3 p){\n" +
                         "  float f = 0.0;\n" +
                         "  f += noise(p) / 2;  p = fbmM * p;\n" +

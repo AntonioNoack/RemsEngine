@@ -276,6 +276,8 @@ class MainStage {
         }
 
         // define all required functions
+        // todo find dependencies, if possible, and order them
+        // work-around: like in C, declare the function header, and then GLSL will find the dependency by itself :)
         for ((_, func) in functions) code.append(func)
         if (functions.isNotEmpty()) code.append('\n')
 

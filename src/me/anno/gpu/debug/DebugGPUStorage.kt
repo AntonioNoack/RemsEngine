@@ -25,6 +25,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.structures.Compare.ifSame
 import org.lwjgl.opengl.GL30C.*
 import kotlin.math.min
 
@@ -161,7 +162,13 @@ object DebugGPUStorage {
         Menu.openMenu(window.windowStack, listOf(
             MenuOption(NameDesc("Texture2Ds (${tex2d.size})")) {
                 create2DListOfPanels("Texture2Ds") { list ->
-                    for (tex in tex2d.sortedBy { it.w * it.h }) {
+                    for (tex in tex2d.sortedWith { a, b ->
+                        val sa = a.w * a.h
+                        val sb = b.w * b.h
+                        sa.compareTo(sb).ifSame {
+                            a.name.compareTo(b.name)
+                        }
+                    }) {
                         list.add(TexturePanel(tex.name, tex, false))
                     }
                 }
@@ -169,7 +176,7 @@ object DebugGPUStorage {
             MenuOption(NameDesc("Texture3Ds (${tex3d.size})")) {
                 // todo test this
                 create2DListOfPanels("Texture3Ds") { list ->
-                    for (tex in tex3d.sortedBy { it.w * it.h }) {
+                    for (tex in tex3d.sortedBy { it.w * it.h * it.d }) {
                         list.add(TexturePanel3D(tex.name, tex))
                     }
                 }

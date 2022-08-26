@@ -460,7 +460,12 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     companion object {
 
         private val remover = object : Maps.Remover<Any, CacheEntry>() {
-            override fun filter(key: Any, value: CacheEntry) = gameTime > value.timeoutNanoTime
+            override fun filter(key: Any, value: CacheEntry): Boolean {
+                return if (gameTime > value.timeoutNanoTime) {
+                    value.destroy()
+                    true
+                } else false
+            }
         }
 
         private val caches = ConcurrentSkipListSet<CacheSection>()
