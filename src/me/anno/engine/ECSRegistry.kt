@@ -39,6 +39,7 @@ import me.anno.ecs.components.player.RemotePlayer
 import me.anno.ecs.components.script.QuickInputScriptComponent
 import me.anno.ecs.components.script.QuickScriptComponent
 import me.anno.ecs.components.script.ScriptComponent
+import me.anno.ecs.components.shaders.AutoTileableMaterial
 import me.anno.ecs.components.shaders.CuboidMesh
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.components.shaders.TriplanarMaterial
@@ -109,6 +110,7 @@ object ECSRegistry {
         registerCustomClass(PathProfile())
         registerCustomClass(CuboidMesh())
         registerCustomClass(TriplanarMaterial())
+        registerCustomClass(AutoTileableMaterial())
 
         // animated meshes
         AnimStateNode.register()

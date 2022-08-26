@@ -65,7 +65,7 @@ class Prefab : Saveable {
         private set
 
     fun invalidateInstance() {
-        if (source !is InnerTmpFile.InnerTmpPrefabFile || sets.isNotEmpty()) {
+        if (source !is PrefabReadable || sets.isNotEmpty()) {
             synchronized(this) {
                 _sampleInstance?.destroy()
                 _sampleInstance = null

@@ -4,6 +4,7 @@ import me.anno.utils.LOGGER
 import me.anno.utils.types.Floats.f5s
 import kotlin.math.abs
 import kotlin.math.ln
+import kotlin.math.log2
 import kotlin.math.sqrt
 
 /**
@@ -158,7 +159,7 @@ object LinearAlgebra {
      * */
     fun setAx(a: DoubleArray, x: DoubleArray, m: Int, n: Int, y: DoubleArray = DoubleArray(m)): DoubleArray {
         if (a.size != m * n) throw RuntimeException("a has wrong dimensions")
-        if (x.size != n * 1) throw RuntimeException("x has wrong dimensions")
+        if (x.size != n * 1) throw RuntimeException("x has wrong dimensions, expected $n, but got ${x.size}")
         if (y.size != m * 1) throw RuntimeException("y has wrong dimensions")
         for (mi in 0 until m) {
             var sum = 0.0
@@ -171,6 +172,9 @@ object LinearAlgebra {
         return y
     }
 
+    /**
+     * calculates the inverse of matrix a; destroys a in the process
+     * */
     fun inverse(a: DoubleArray, size: Int, b: DoubleArray = DoubleArray(size * size)): DoubleArray? {
 
         if (a.size != size * size || b.size != size * size)
@@ -184,8 +188,9 @@ object LinearAlgebra {
 
         // solve the matrix
         fun score(f: Double): Double {
-            return -abs(ln(abs(f)))
+            return abs(f)
         }
+
         for (m in 0 until size) {
 
             // which column is optimized

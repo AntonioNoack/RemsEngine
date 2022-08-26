@@ -372,7 +372,7 @@ object SDFComposer {
                 builder2.append("   return res0;\n}\n")
                 builder2.append(raycasting)
                 builder2.append(normal)
-                stage.functions.add(Function(builder2.toString()))
+                stage.add(builder2.toString())
                 return stage
             }
         }

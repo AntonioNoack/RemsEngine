@@ -20,6 +20,7 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.PlaneShapes
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun
+import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.ECSShaderLib.clearPbrModelShader
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -1224,7 +1225,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         // if the scene would be dark, define lights, so we can see something
         if (pipeline.lightPseudoStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
             pipeline.ambient.set(0.5f)
-            pipeline.fill(defaultSun, cameraPosition, worldScale)
+            defaultSun.fill(pipeline, defaultSunEntity, 0, cameraPosition, worldScale)
         }
         entityBaseClickId = pipeline.lastClickId
 

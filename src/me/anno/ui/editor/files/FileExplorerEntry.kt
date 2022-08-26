@@ -506,7 +506,7 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun updateTooltip() {
+    open fun updateTooltip() {
 
         // todo add created & modified information
 

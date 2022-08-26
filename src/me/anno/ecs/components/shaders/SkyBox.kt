@@ -309,7 +309,9 @@ class SkyBox : MeshComponentBase() {
                             "finalEmissive = color;\n" +
                             "finalPosition = finalNormal * 1e20;\n"
                 )
-                stage.functions.add(Function(funcHash + funcNoise + funcFBM))
+                stage.add(funcHash)
+                stage.add(funcNoise)
+                stage.add(funcFBM)
                 return stage
             }
         }

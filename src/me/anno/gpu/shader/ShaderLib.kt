@@ -187,8 +187,8 @@ object ShaderLib {
             "         D = sqrt(abs(t*t-4.*d)),\n" + // abs() fix a bug: in weird view angles 0 can be slightly negative
             "         V = (t-D)/2., v = (t+D)/2.,\n" + // eigenvalues
             "         M = 1./sqrt(V), m = 1./sqrt(v), l = log2(m*R.y);\n" + // = 1./radii^2
-            "  //if (M/m>16.) l = log2(M/16.*R.y);\n" + // optional
-            "    vec2 A = M * normalize(vec2( -J[0][1] , J[0][0]-V ));\n" + // max eigenvector = main axis
+            "  // if (M/m>16.) l = log2(M/16.*R.y);\n" + // optional
+            "    vec2 A = M * normalize(vec2(-J[0][1] , J[0][0]-V));\n" + // max eigenvector = main axis
             "    vec4 O = vec4(0);\n" +
             "    for (float i = -7.5; i<8.; i++) \n" + // sample x16 along main axis at LOD min-radius
             "        O += textureLod(T, p+(i/16.)*A, l);\n" +

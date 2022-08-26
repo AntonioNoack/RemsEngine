@@ -17,7 +17,7 @@ import me.anno.gpu.texture.ITexture2D
 
 object ShaderPlus {
 
-    const val randomFunc = "#define GET_RANDOM(co) fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453)\n"
+    const val randomFunc = "#define GET_RANDOM(co) fract(sin(dot((co).xy, vec2(12.9898,78.233))) * 43758.5453)\n"
 
     fun createShaderStage(hasTint: Boolean = true): ShaderStage {
         val callName = "applyShaderPlus"

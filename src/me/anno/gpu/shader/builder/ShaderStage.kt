@@ -24,6 +24,16 @@ class ShaderStage(
 
     val defines = ArrayList<String>()
 
+    fun add(func: Function): ShaderStage {
+        functions.add(func)
+        return this
+    }
+
+    fun add(func: String): ShaderStage {
+        functions.add(Function(func))
+        return this
+    }
+
     fun define(value: String): ShaderStage {
         defines += value
         return this

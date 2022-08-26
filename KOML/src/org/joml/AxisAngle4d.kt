@@ -547,9 +547,12 @@ class AxisAngle4d : Cloneable {
         val sin = sin(angle)
         val cos = cos(angle)
         val dot = x * v.x + y * v.y + z * v.z
-        dst[v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x, v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y, v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z] =
+        return dst.set(
+            v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x,
+            v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y,
+            v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z,
             dst.w
-        return dst
+        )
     }
 
     override fun toString(): String {

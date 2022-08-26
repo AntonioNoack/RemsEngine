@@ -2,7 +2,6 @@
   <artifact type="jar" name="TestWithoutPhysics">
     <output-path>$PROJECT_DIR$/out/artifacts/TestWithoutPhysics</output-path>
     <root id="archive" name="VideoStudio.jar">
-      <element id="module-output" name="Tests" />
       <element id="module-output" name="VideoStudio" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-cli-1.4.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-imaging-1.0-alpha1.jar" path-in-jar="/" />
@@ -109,6 +108,7 @@
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-common/1.6.10/kotlin-stdlib-common-1.6.10.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.6.10/kotlin-stdlib-jdk7-1.6.10.jar" path-in-jar="/" />
+      <element id="module-output" name="KOML" />
     </root>
   </artifact>
 </component>

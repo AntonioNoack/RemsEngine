@@ -943,20 +943,7 @@ object Thumbs {
         if (materialReference == InvalidRef) return emptyList()
         val material = MaterialCache[materialReference]
         if (material == null) LOGGER.warn("Missing material '$materialReference'")
-        return if (material != null) listTextures(material) else emptyList()
-    }
-
-    private fun listTextures(material: Material): List<FileReference> {
-        // LOGGER.info("$material: ${material.diffuseMap}, ${material.emissiveMap}, ${material.normalMap}")
-        return listOf(
-            material.diffuseMap,
-            material.emissiveMap,
-            material.normalMap,
-            material.roughnessMap,
-            material.metallicMap,
-            material.occlusionMap,
-            material.displacementMap,
-        )
+        return material?.listTextures() ?: emptyList()
     }
 
     private fun waitForTextures(materials: List<Material>, timeout: Long = 25000) {
@@ -964,7 +951,7 @@ object Thumbs {
         // does not include personal materials / shaders...
         val textures = ArrayList<FileReference>()
         for (material in materials) {
-            textures += listTextures(material)
+            textures += material.listTextures()
         }
         waitForTextures(textures, timeout)
     }
@@ -972,7 +959,7 @@ object Thumbs {
     private fun waitForTextures(material: Material, timeout: Long = 25000) {
         // listing all textures
         // does not include personal materials / shaders...
-        val textures = listTextures(material).filter { it != InvalidRef && it.exists }
+        val textures = material.listTextures().filter { it != InvalidRef && it.exists }
         waitForTextures(textures, timeout)
     }
 

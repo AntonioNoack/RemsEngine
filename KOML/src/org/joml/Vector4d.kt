@@ -43,7 +43,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    operator fun set(v: Vector3d, w: Double): Vector4d {
+    fun set(v: Vector3d, w: Double): Vector4d {
         x = v.x
         y = v.y
         z = v.z
@@ -51,7 +51,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    operator fun set(v: Vector3i, w: Double): Vector4d {
+    fun set(v: Vector3i, w: Double): Vector4d {
         x = v.x.toDouble()
         y = v.y.toDouble()
         z = v.z.toDouble()
@@ -59,7 +59,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    operator fun set(v: Vector3f, w: Double): Vector4d {
+    fun set(v: Vector3f, w: Double): Vector4d {
         x = v.x.toDouble()
         y = v.y.toDouble()
         z = v.z.toDouble()
@@ -67,7 +67,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    operator fun set(v: Vector2d, z: Double, w: Double): Vector4d {
+    fun set(v: Vector2d, z: Double, w: Double): Vector4d {
         x = v.x
         y = v.y
         this.z = z
@@ -75,7 +75,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    operator fun set(v: Vector2i, z: Double, w: Double): Vector4d {
+    fun set(v: Vector2i, z: Double, w: Double): Vector4d {
         x = v.x.toDouble()
         y = v.y.toDouble()
         this.z = z
@@ -91,7 +91,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    operator fun set(v: Vector2f, z: Double, w: Double): Vector4d {
+    fun set(v: Vector2f, z: Double, w: Double): Vector4d {
         x = v.x.toDouble()
         y = v.y.toDouble()
         this.z = z
@@ -99,7 +99,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    operator fun set(x: Double, y: Double, z: Double, w: Double): Vector4d {
+    fun set(x: Double, y: Double, z: Double, w: Double): Vector4d {
         this.x = x
         this.y = y
         this.z = z
@@ -107,7 +107,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    operator fun set(x: Double, y: Double, z: Double): Vector4d {
+    fun set(x: Double, y: Double, z: Double): Vector4d {
         this.x = x
         this.y = y
         this.z = z
@@ -314,7 +314,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return dest
     }
 
-    operator fun div(v: Vector4d): Vector4d {
+    fun div(v: Vector4d): Vector4d {
         x /= v.x
         y /= v.y
         z /= v.z
@@ -585,7 +585,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return dest
     }
 
-    operator fun div(scalar: Double): Vector4d {
+    fun div(scalar: Double): Vector4d {
         val inv = 1.0 / scalar
         x *= inv
         y *= inv
@@ -984,7 +984,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         }
     }
 
-    operator fun get(dest: Vector4f): Vector4f {
+    fun get(dest: Vector4f): Vector4f {
         dest.x = x.toFloat()
         dest.y = y.toFloat()
         dest.z = z.toFloat()
@@ -992,7 +992,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return dest
     }
 
-    operator fun get(dest: Vector4d): Vector4d {
+    fun get(dest: Vector4d): Vector4d {
         dest.x = x
         dest.y = y
         dest.z = z

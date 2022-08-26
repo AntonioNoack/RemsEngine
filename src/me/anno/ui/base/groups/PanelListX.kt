@@ -87,7 +87,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
             return children.size
         }
 
-    override fun getChildPanelAt(x: Int, y: Int): Panel? {
+    /*override fun getChildPanelAt(x: Int, y: Int): Panel? {
         val children = children
         var idx = children.binarySearch { it.x.compareTo(x) }
         if (idx < 0) idx = -1 - idx
@@ -98,7 +98,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
             }
         }
         return null
-    }
+    }*/
 
     override fun setPosition(x: Int, y: Int) {
         if (true || needsPosUpdate(x, y)) {

@@ -1,6 +1,8 @@
 package me.anno.maths
 
 import me.anno.maths.LinearAlgebra.inverse
+import me.anno.maths.LinearAlgebra.printMatrix
+import me.anno.maths.LinearAlgebra.setAB
 import me.anno.maths.LinearAlgebra.setABt
 import me.anno.maths.LinearAlgebra.setAtB
 import me.anno.maths.LinearAlgebra.setAtX
@@ -15,28 +17,44 @@ import kotlin.math.abs
 object LinearRegression {
 
     /**
-     * @param A feature matrix, row major, [points x features]
+     * @param X feature matrix, row major, [points x features]
      * @param y solution vector, f(x)
-     * @return x such that Ax = b
+     * @return v such that Xv = y
      * */
-    fun solve(A: DoubleArray, y: DoubleArray): DoubleArray? {
+    fun solve(X: DoubleArray, y: DoubleArray): DoubleArray? {
         val numPts = y.size
-        val degree = A.size / numPts
+        val degree = X.size / numPts
         // y = (XtX)^-1 * Xt * b
         // y = (XtX)^-1 * (Xt * b)
-        val xtx = setAtB(A, A, degree, numPts, degree)
-        val xty = setAtX(A, y, degree, numPts)
-        val xtxInv = inverse(xtx, degree) ?: return null
-        return setAx(xtxInv, xty, degree, degree)
+        if (false) {
+            val xtx = setAtB(X, X, degree, numPts, degree)
+            val xty = setAtX(X, y, degree, numPts)
+            val xtxInv = inverse(xtx, degree) ?: return null
+            return setAx(xtxInv, xty, degree, degree)
+        } else {
+            // debug printing
+            println("A:")
+            printMatrix(X, degree)
+            val xtx = setAtB(X, X, degree, numPts, degree)
+            println("A*A:")
+            printMatrix(xtx, degree, degree)
+            val xty = setAtX(X, y, degree, numPts)
+            val xtxInv = inverse(xtx.clone(), degree) ?: return null
+            println("inv(A*A):")
+            printMatrix(xtxInv, degree, degree)
+            println("(A*A)*inv(A*A):")
+            printMatrix(setAB(xtx, xtxInv, degree, degree, degree))
+            return setAx(xtxInv, xty, degree, degree)
+        }
     }
 
     // not tested!
-    fun solveT(At: DoubleArray, y: DoubleArray): DoubleArray? {
+    fun solveT(Xt: DoubleArray, y: DoubleArray): DoubleArray? {
         val numPts = y.size
-        val degree = At.size / numPts
+        val degree = Xt.size / numPts
         // beta = (XtX)^-1 * Xt * Y
-        val xtx = setABt(At, At, degree, numPts, degree)
-        val xty = setAtX(At, y, degree, numPts)
+        val xtx = setABt(Xt, Xt, degree, numPts, degree)
+        val xty = setAx(Xt, y, degree, numPts)
         val xtxInv = inverse(xtx, degree) ?: return null
         return setAx(xtxInv, xty, degree, degree)
     }
@@ -57,12 +75,16 @@ object LinearRegression {
         val xt = crossMapDoubleT(points, functions)
         val y = DoubleArray(points.size) { points[it].y }
         // beta = (XtX)^-1 * Xt * Y
-        val xtx = setABt(xt, xt, points.size, functions.size, points.size)
-        val xty = setAx(xt, y, points.size, functions.size)
+        val xtx = setABt(xt, xt, functions.size, points.size, functions.size)
+        val xty = setAx(xt, y, functions.size, points.size)
         val xtxInv = inverse(xtx, functions.size) ?: return null
         return setAx(xtxInv, xty, functions.size, functions.size)
     }
 
+    /**
+     * finds the polynomial coefficients upto degree #dimensions.
+     * This falls apart for large #dimensions, probably because of my bad matrix inverter
+     * */
     fun findPolynomialCoefficients(points: List<Vector2d>, dimensions: Int = points.size): DoubleArray? {
         // the same as above, just more efficient
         val size = points.size
@@ -82,12 +104,34 @@ object LinearRegression {
         return solve(xt, y)
     }
 
+    @JvmStatic
+    fun main(args: Array<String>) {
+        // todo the error must be much smaller!!!
+        val ys = intArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+        val xs = intArrayOf(18, 17, 16, 15, 14, 13, 12, 11, 10, 9)
+        val pts = xs.withIndex()
+            .map { (idx, x) -> Vector2d(x.toDouble(), ys[idx].toDouble()) }
+            .toMutableList()
+        val poly = findPolynomialCoefficients(pts)!!
+        for (pt in pts) {
+            println("${pt.x}: ${pt.y} =?= ${evaluatePolynomial(pt.x, poly)}")
+        }
+    }
+
     fun evaluatePolynomial(x: Double, polynomial: DoubleArray): Double {
         var sum = 0.0
         var pol = 1.0
-        for (p in polynomial) {
-            sum += pol * p
+        for (coeff in polynomial) {
+            sum += pol * coeff
             pol *= x
+        }
+        return sum
+    }
+
+    fun evaluatePolynomial(x: Double, weights: DoubleArray, polynomial: List<(Double) -> Double>): Double {
+        var sum = 0.0
+        for (i in polynomial.indices) {
+            sum += polynomial[i](x) * weights[i]
         }
         return sum
     }
@@ -132,7 +176,7 @@ object LinearRegression {
                 ax += f * v.x
                 ay += f * v.y
                 az += f * v.z
-                aw *= f * 1.0
+                aw *= f
             }
             a.set(ax, ay, az, aw)
             m.setColumn(i, a)

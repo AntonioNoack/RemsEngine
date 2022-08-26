@@ -211,6 +211,16 @@ open class Material : PrefabSaveable(), Renderable {
         }
     }
 
+    open fun listTextures() = listOf(
+        diffuseMap,
+        emissiveMap,
+        normalMap,
+        roughnessMap,
+        metallicMap,
+        occlusionMap,
+        displacementMap,
+    )
+
     override fun hashCode(): Int {
         var result = shaderOverrides.hashCode()
         result = 31 * result + diffuseBase.hashCode()

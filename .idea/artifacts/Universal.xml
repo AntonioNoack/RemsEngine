@@ -99,6 +99,7 @@
       <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-opengl-natives-macos.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-openal-natives-linux-arm64.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lwjgl331/lwjgl-tinyexr-natives-windows.jar" path-in-jar="/" />
+      <element id="module-output" name="KOML" />
     </root>
   </artifact>
 </component>

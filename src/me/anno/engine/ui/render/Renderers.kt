@@ -190,10 +190,7 @@ object Renderers {
                     "   finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
                     "#endif\n" +
                     "   if(applyToneMapping) finalColor = tonemap(finalColor); \n"
-            ).apply {
-                val src = noiseFunc + tonemapGLSL
-                functions.add(Function(src))
-            }
+            ).add(noiseFunc).add(tonemapGLSL)
         }
     }
 
@@ -292,10 +289,7 @@ object Renderers {
                         "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
                         "finalColor = tonemap(finalColor);\n" +
                         ""
-            ).apply {
-                functions.add(Function(noiseFunc))
-                functions.add(Function(tonemapGLSL))
-            }
+            ).add(noiseFunc).add(tonemapGLSL)
         }
     }
 

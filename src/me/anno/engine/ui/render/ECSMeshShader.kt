@@ -381,16 +381,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
                     ShaderLib.positionPostProcessing
         )
-
-        if (isAnimated && useAnimTextures) {
-            stage.functions.add(Function(getAnimMatrix))
-        }
-        if (limitedTransform) {
-            stage.functions.add(Function(quatRot))
-        }
-
+        if (isAnimated && useAnimTextures) stage.add(getAnimMatrix)
+        if (limitedTransform) stage.add(quatRot)
         return stage
-
     }
 
     open fun createFragmentVariables(
