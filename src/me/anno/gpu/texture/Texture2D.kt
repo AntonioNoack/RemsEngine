@@ -140,7 +140,9 @@ open class Texture2D(
         if (pointer <= 0) {
             check()
             pointer = createTexture()
-            DebugGPUStorage.tex2d.add(this)
+            if (pointer != -1) synchronized(DebugGPUStorage.tex2d) {
+                DebugGPUStorage.tex2d.add(this)
+            }
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
             check()
@@ -1119,6 +1121,9 @@ open class Texture2D(
         isDestroyed = true
         val pointer = pointer
         if (pointer > -1) {
+            synchronized(DebugGPUStorage.tex2d) {
+                DebugGPUStorage.tex2d.remove(this)
+            }
             synchronized(texturesToDelete) {
                 // allocation counter is removed a bit early, shouldn't be too bad
                 locallyAllocated = allocate(locallyAllocated, 0L)

@@ -59,7 +59,9 @@ class CubemapTexture(
             // maybe we should use allocation free versions there xD
             GFX.check()
             if (pointer < 0) throw RuntimeException("Could not allocate texture pointer")
-            DebugGPUStorage.tex3dCs.add(this)
+            synchronized(DebugGPUStorage.tex3dCs) {
+                DebugGPUStorage.tex3dCs.add(this)
+            }
         }
     }
 
@@ -107,7 +109,7 @@ class CubemapTexture(
             )
         }
         Texture2D.bufferPool.returnBuffer(byteBuffer)
-        afterUpload(internalFormat,6 * 3)
+        afterUpload(internalFormat, 6 * 3)
     }
 
     fun createRGBA(sides: List<ByteArray>) {
@@ -237,7 +239,10 @@ class CubemapTexture(
     }
 
     private fun destroy(pointer: Int) {
-        DebugGPUStorage.tex3dCs.remove(this)
+        synchronized(DebugGPUStorage.tex3dCs) {
+            DebugGPUStorage.tex3dCs.remove(this)
+        }
+        GFX.checkIsGFXThread()
         Texture2D.invalidateBinding()
         locallyAllocated = allocate(locallyAllocated, 0L)
         Texture2D.texturesToDelete.add(pointer)

@@ -51,7 +51,9 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         checkSession()
         if (pointer < 0) pointer = Texture2D.createTexture()
         if (pointer < 0) throw RuntimeException("Could not generate texture")
-        DebugGPUStorage.tex3d.add(this)
+        synchronized(DebugGPUStorage.tex3d) {
+            DebugGPUStorage.tex3d.add(this)
+        }
         isDestroyed = false
     }
 
@@ -294,7 +296,10 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
     }
 
     private fun destroy(pointer: Int) {
-        DebugGPUStorage.tex3d.remove(this)
+        synchronized(DebugGPUStorage.tex3d) {
+            DebugGPUStorage.tex3d.remove(this)
+        }
+        GFX.checkIsGFXThread()
         glDeleteTextures(pointer)
         Texture2D.invalidateBinding()
         locallyAllocated = allocate(locallyAllocated, 0L)
