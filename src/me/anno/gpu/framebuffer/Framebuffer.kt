@@ -1,5 +1,6 @@
 package me.anno.gpu.framebuffer
 
+import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
@@ -37,8 +38,7 @@ class Framebuffer(
         h: Int,
         targets: Array<TargetType>,
         depthBufferType: DepthBufferType = DepthBufferType.NONE
-    ) :
-            this(name, w, h, 1, targets, depthBufferType)
+    ) : this(name, w, h, 1, targets, depthBufferType)
 
     constructor(
         name: String,
@@ -75,6 +75,8 @@ class Framebuffer(
      * but using the same depth values
      * */
     override fun attachFramebufferToDepth(targets: Array<TargetType>): IFramebuffer {
+        if (depthBufferType != DepthBufferType.TEXTURE && depthBufferType != DepthBufferType.TEXTURE_16)
+            throw IllegalStateException("Cannot attach depth to framebuffer without depth texture")
         return if (targets.size <= GFX.maxColorAttachments) {
             val buffer = Framebuffer(name, w, h, samples, targets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this
@@ -91,6 +93,7 @@ class Framebuffer(
     var lastDraw = 0L
 
     // the source of our depth texture
+    var depthAttachedPtr = -1
     var depthAttachment: Framebuffer? = null
 
     val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
@@ -144,7 +147,15 @@ class Framebuffer(
 
     fun bind() {
         needsBlit = true
+        // if the depth-attachment base changed, we need to recreate this texture
+        val da = depthAttachment
+        if (da != null && da.depthTexture!!.pointer != depthAttachedPtr) {
+            destroy()
+        }
         ensure()
+        if (da != null && da.depthTexture!!.pointer != depthAttachedPtr) {
+            throw IllegalStateException("Depth attachment could not be recreated! ${da.pointer} != $depthAttachedPtr")
+        }
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         if (withMultisampling) {
             glEnable(GL_MULTISAMPLE)
@@ -171,7 +182,7 @@ class Framebuffer(
         val pointer = glGenFramebuffers()
         if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
         session = GFXState.session
-        DebugGPUStorage.fbs.add(this)
+        if (Build.isDebug) DebugGPUStorage.fbs.add(this)
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         val w = w
@@ -205,6 +216,7 @@ class Framebuffer(
                 val texPointer = depthAttachment?.depthTexture?.pointer
                     ?: throw IllegalStateException("Depth Attachment was not found in $name, ${depthAttachment}.${depthAttachment?.depthTexture}")
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
+                depthAttachedPtr = texPointer
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
@@ -355,7 +367,7 @@ class Framebuffer(
         if (pointer > -1) {
             glDeleteFramebuffers(pointer)
             Frame.invalidate()
-            DebugGPUStorage.fbs.remove(this)
+            if (Build.isDebug) DebugGPUStorage.fbs.remove(this)
             pointer = -1
         }
     }
@@ -381,6 +393,7 @@ class Framebuffer(
 
     override fun destroy() {
         if (pointer > 0) {
+            GFX.checkIsGFXThread()
             ssBuffer?.destroy()
             destroyFramebuffer()
             destroyInternalDepth()

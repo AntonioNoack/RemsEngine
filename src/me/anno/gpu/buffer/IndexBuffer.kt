@@ -1,5 +1,6 @@
 package me.anno.gpu.buffer
 
+import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Buffer.Companion.bindAttribute
 import me.anno.gpu.buffer.Buffer.Companion.unbindAttribute
@@ -169,7 +170,7 @@ class IndexBuffer(
             }
         }
         elementCount = indices.size
-        DebugGPUStorage.buffers.add(this)
+        if (Build.isDebug) DebugGPUStorage.buffers.add(this)
         // GFX.check()
     }
 
@@ -266,7 +267,7 @@ class IndexBuffer(
     }*/
 
     override fun destroy() {
-        DebugGPUStorage.buffers.remove(this)
+        if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
         if (buffer >= 0) {
             GFX.addGPUTask("IndexBuffer.destroy()", 1) {

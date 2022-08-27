@@ -14,4 +14,7 @@ open class Planef(var a: Float, var b: Float, var c: Float, var d: Float) {
         d = w
         return this
     }
+
+    fun set(pos: Vector3f, dir: Vector3f) = set(dir.x, dir.y, dir.z, -pos.dot(dir))
+
 }

@@ -31,16 +31,18 @@ import kotlin.math.min
 
 /**
  * remember all alive instances for debugging
+ *
+ * only active, if Build.isDebug
  * */
 object DebugGPUStorage {
 
-    val tex2d = HashSet<Texture2D>()
-    val tex3d = HashSet<Texture3D>()
-    val tex3dCs = HashSet<CubemapTexture>()
+    val tex2d = HashSet<Texture2D>(512)
+    val tex3d = HashSet<Texture3D>(64)
+    val tex3dCs = HashSet<CubemapTexture>(64)
 
-    val fbs = HashSet<Framebuffer>()
+    val fbs = HashSet<Framebuffer>(256)
 
-    val buffers = HashSet<OpenGLBuffer>()
+    val buffers = HashSet<OpenGLBuffer>(256)
 
     val fontSize get() = monospaceFont.sizeInt
 

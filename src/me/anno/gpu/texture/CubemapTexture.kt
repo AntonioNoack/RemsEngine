@@ -1,5 +1,6 @@
 package me.anno.gpu.texture
 
+import me.anno.Build
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -59,7 +60,7 @@ class CubemapTexture(
             // maybe we should use allocation free versions there xD
             GFX.check()
             if (pointer < 0) throw RuntimeException("Could not allocate texture pointer")
-            synchronized(DebugGPUStorage.tex3dCs) {
+            if (Build.isDebug) synchronized(DebugGPUStorage.tex3dCs) {
                 DebugGPUStorage.tex3dCs.add(this)
             }
         }
@@ -239,7 +240,7 @@ class CubemapTexture(
     }
 
     private fun destroy(pointer: Int) {
-        synchronized(DebugGPUStorage.tex3dCs) {
+        if (Build.isDebug) synchronized(DebugGPUStorage.tex3dCs) {
             DebugGPUStorage.tex3dCs.remove(this)
         }
         GFX.checkIsGFXThread()

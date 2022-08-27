@@ -1,5 +1,6 @@
 package me.anno.gpu.texture
 
+import me.anno.Build
 import me.anno.cache.data.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
@@ -140,7 +141,7 @@ open class Texture2D(
         if (pointer <= 0) {
             check()
             pointer = createTexture()
-            if (pointer != -1) synchronized(DebugGPUStorage.tex2d) {
+            if (pointer != -1 && Build.isDebug) synchronized(DebugGPUStorage.tex2d) {
                 DebugGPUStorage.tex2d.add(this)
             }
             // many textures can be created by the console log and the fps viewer constantly xD
@@ -818,7 +819,7 @@ open class Texture2D(
                 val t1i = System.nanoTime()
                 println("used ${(t1i - t0i) / 1e9}s for p0/$this")
                 isUpToDate = true
-                DebugGPUStorage.buffers.add(this)
+                if (Build.isDebug) DebugGPUStorage.buffers.add(this)
             }
         }
         pbo.simpleBind() // create it without data
@@ -1121,7 +1122,7 @@ open class Texture2D(
         isDestroyed = true
         val pointer = pointer
         if (pointer > -1) {
-            synchronized(DebugGPUStorage.tex2d) {
+            if (Build.isDebug) synchronized(DebugGPUStorage.tex2d) {
                 DebugGPUStorage.tex2d.remove(this)
             }
             synchronized(texturesToDelete) {

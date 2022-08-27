@@ -440,7 +440,7 @@ class SDFGroup : SDFComponent() {
                             CombinationMode.INTERSECTION -> sMaxCubic(d0, d1, k)
                             CombinationMode.DIFFERENCE1 -> sMaxCubic(+d0, -d1, k)
                             CombinationMode.DIFFERENCE2 -> sMaxCubic(-d0, +d1, k)
-                            CombinationMode.DIFFERENCE_SYM -> sMaxCubic(sMinCubic(d0, d1, k), sMaxCubic(d0, d1, k), k)
+                            CombinationMode.DIFFERENCE_SYM -> sMaxCubic(sMinCubic(d0, d1, k), -sMaxCubic(d0, d1, k), k)
                             CombinationMode.INTERPOLATION -> {
                                 if (activeIndex == 1) d0 *= max(1f - abs(progress), 0f)
                                 d0 + d1 * max(1f - abs(progress - activeIndex), 0f)
@@ -487,7 +487,7 @@ class SDFGroup : SDFComponent() {
                     CombinationMode.DIFFERENCE1,
                     CombinationMode.DIFFERENCE2,
                     CombinationMode.DIFFERENCE_SYM -> {
-                        // find closest child
+                        // find the closest child
                         val bestChild = children
                             .filter { it.isEnabled }
                             .minByOrNull {
@@ -498,7 +498,7 @@ class SDFGroup : SDFComponent() {
                         return bestChild.findClosestComponent(pos)
                     }
                     CombinationMode.INTERPOLATION -> {
-                        // child with largest weight
+                        // child with the largest weight
                         pos.set(px, py, pz, 0f)
                         val enabled = children.filter { it.isEnabled }
                         return enabled[clamp(progress.roundToInt(), 0, enabled.lastIndex)]

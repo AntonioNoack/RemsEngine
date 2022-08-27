@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh.sdf.shapes
 
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.components.mesh.sdf.TwoDims
+import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
@@ -88,9 +89,15 @@ open class SDF2DShape : SDFShape() {
     }
 
     fun bound2(pos: Vector3f, dir: Vector3f) {
-        val prefab = Prefab("SDFHalfSpace")
-        prefab[Path.ROOT_PATH, "plane"] = Planef(pos, dir)
-        Hierarchy.add(prefab, Path.ROOT_PATH, this)
+        if (root.prefab != null) {
+            val prefab = Prefab("SDFHalfSpace")
+            prefab[Path.ROOT_PATH, "plane"] = Planef(pos, dir)
+            Hierarchy.add(prefab, Path.ROOT_PATH, this)
+        } else {
+            val child = SDFHalfSpace()
+            child.plane.set(pos, dir)
+            addChild(child)
+        }
     }
 
     fun boundX(min: Float, max: Float) = bound1(min, max, 0)

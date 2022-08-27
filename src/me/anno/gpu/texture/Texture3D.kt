@@ -1,5 +1,6 @@
 package me.anno.gpu.texture
 
+import me.anno.Build
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -51,7 +52,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         checkSession()
         if (pointer < 0) pointer = Texture2D.createTexture()
         if (pointer < 0) throw RuntimeException("Could not generate texture")
-        synchronized(DebugGPUStorage.tex3d) {
+        if (Build.isDebug) synchronized(DebugGPUStorage.tex3d) {
             DebugGPUStorage.tex3d.add(this)
         }
         isDestroyed = false
@@ -296,7 +297,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
     }
 
     private fun destroy(pointer: Int) {
-        synchronized(DebugGPUStorage.tex3d) {
+        if (Build.isDebug) synchronized(DebugGPUStorage.tex3d) {
             DebugGPUStorage.tex3d.remove(this)
         }
         GFX.checkIsGFXThread()

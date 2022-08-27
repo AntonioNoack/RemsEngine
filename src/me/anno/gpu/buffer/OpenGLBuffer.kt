@@ -1,5 +1,6 @@
 package me.anno.gpu.buffer
 
+import me.anno.Build
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -215,7 +216,7 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
     }
 
     override fun destroy() {
-        DebugGPUStorage.buffers.remove(this)
+        if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
         val vao = if (this is Buffer) vao else -1
         if (buffer > -1) {

@@ -14,4 +14,7 @@ open class Planed(var a: Double, var b: Double, var c: Double, var d: Double) {
         d = w
         return this
     }
+
+    fun set(pos: Vector3d, dir: Vector3d) = set(dir.x, dir.y, dir.z, -pos.dot(dir))
+
 }
