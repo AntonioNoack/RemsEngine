@@ -8,6 +8,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
 import me.anno.gpu.shader.ShaderPlus
 
+// @Deprecated("Shall be replaced by RenderGraph")
 enum class RenderMode(
     val dlt: DeferredLayerType? = null,
     val effect: CameraEffect? = null,

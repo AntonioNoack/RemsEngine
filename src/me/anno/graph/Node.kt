@@ -12,10 +12,18 @@ import org.joml.Vector3d
 
 abstract class Node() : PrefabSaveable() {
 
+    /**
+     * @param name initial node name
+     * */
     constructor(name: String) : this() {
         this.name = name
     }
 
+    /**
+     * @param name initial node name
+     * @param inputs [type, name, [type, name], [type, name], ...
+     * @param outputs [type, name], [type, name], [type, name], ...
+     * */
     constructor(name: String, inputs: List<String>, outputs: List<String>) : this(name) {
         this.inputs = Array(inputs.size / 2) { NodeInput(inputs[it * 2], inputs[it * 2 + 1], this) }
         this.outputs = Array(outputs.size / 2) { NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this) }

@@ -5,7 +5,7 @@ import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -19,7 +19,7 @@ object GaussianBlur {
     private val LOGGER = LogManager.getLogger(GaussianBlur::class)
 
     private fun drawBlur(
-        target: Framebuffer, w: Int, h: Int, resultIndex: Int,
+        target: IFramebuffer, w: Int, h: Int, resultIndex: Int,
         threshold: Float, isFirst: Boolean,
         isFullscreen: Boolean,
         localTransform: Matrix4fArrayList, size: Float, pixelSize: Float
@@ -37,7 +37,7 @@ object GaussianBlur {
     }
 
     fun draw(
-        src: Framebuffer,
+        src: IFramebuffer,
         pixelSize: Float, w: Int, h: Int, resultIndex: Int,
         threshold: Float, isFullscreen: Boolean,
         localTransform: Matrix4fArrayList

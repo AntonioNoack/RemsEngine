@@ -9,6 +9,8 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.io.base.BaseWriter
 
+// todo each camera effect shall become a node in RenderGraph
+// @Deprecated("Shall be replaced by RenderGraph")
 abstract class CameraEffect : PrefabSaveable() {
 
     @Range(0.0, 1e10)
@@ -21,12 +23,11 @@ abstract class CameraEffect : PrefabSaveable() {
 
     open fun listInputs(): List<DeferredLayerType> = emptyList()
     open fun listOutputs(): List<DeferredLayerType> = emptyList()
-    open fun render(
+    abstract fun render(
         buffer: IFramebuffer,
         format: DeferredSettingsV2,
         layers: MutableMap<DeferredLayerType, IFramebuffer>
-    ) {
-    }
+    )
 
     fun write(layers: MutableMap<DeferredLayerType, IFramebuffer>, type: DeferredLayerType, fb: IFramebuffer) {
         (fb as? Framebuffer)?.lastDraw = Engine.nanoTime

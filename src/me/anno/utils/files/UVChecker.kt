@@ -53,7 +53,7 @@ val UVChecker = lazy {
                 canvas.fill(color, i0, i0 + sizeOfField)
             }
             // draw soft stripes
-            val contrastColor = if (colorIdx in 1..3) black else -1
+            val contrastColor = if (colorIdx in 1..4 || colorIdx == 7) black else -1
             val softColor = Maths.mixARGB(color, contrastColor, 0.1f)
             for (j in 1 until innerFields) {
                 // draw vertical & horizontal stripes
@@ -83,8 +83,7 @@ val UVChecker = lazy {
     for (iy in 0 until numFields) {
         for (ix in 0 until numFields) {
             val colorIdx = (ix - iy + colors.size) % colors.size
-            val contrastColor = if (colorIdx in 1..3) black else -1
-
+            val contrastColor = if (colorIdx in 1..4 || colorIdx == 7) black else -1
             fun drawChar(srcI: Int, dstI: Int, cw: Int, ch: Int) {
                 for (dy in 0 until ch) {
                     val srcJ = srcI + dy * numbers.width

@@ -1,9 +1,9 @@
-package me.anno.engine.ui.render.graph
+package me.anno.graph.render
 
 import me.anno.graph.Node
 
 class OutputNode : Node("Output", inputs, emptyList()) {
     companion object {
-        private val inputs = listOf("Texture", "Texture")
+        private val inputs = listOf("Texture", "Result")
     }
 }

@@ -337,6 +337,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         setRenderState()
 
+        // todo only if the render-mode/camera-effects use light information
         if (pipeline.hasTooManyLights() || useBloom) useDeferredRendering = true
 
         clock.stop("preparing", 0.05)
