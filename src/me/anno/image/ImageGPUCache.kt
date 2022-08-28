@@ -1,9 +1,9 @@
 package me.anno.image
 
 import me.anno.cache.CacheSection
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.cache.data.ImageData
-import me.anno.cache.data.LateinitTexture
+import me.anno.gpu.texture.LateinitTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D

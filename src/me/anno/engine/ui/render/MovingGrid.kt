@@ -17,6 +17,7 @@ import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths
+import me.anno.utils.LOGGER
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import kotlin.math.*
@@ -84,10 +85,9 @@ object MovingGrid {
             .mul4x3delta(transform, RenderState.cameraPosition, RenderState.worldScale)
         shader.m4x4("transform", camera)
         shader.v3f("offset", 0f)
-        shader.v1i("drawMode", GFX.drawMode.id)
         shader.v3f("finalNormal", 1f, 0f, 0f)
         shader.v3f("finalEmissive", 0f, 0f, 0f)
-        GFX.shaderColor(shader, "tint", alpha, alpha, alpha, 1f)
+        shader.v4f("tint", alpha, alpha, alpha, 1f)
         whiteTexture.bind(0)
         mesh.draw(shader, 0)
         GFX.check()

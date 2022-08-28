@@ -9,6 +9,7 @@ import org.joml.Vector4d
 import kotlin.math.*
 
 // https://easings.net/
+@Suppress("unused")
 enum class Interpolation(
     val id: Int, val symbol: String,
     private val displayNameEn: String,

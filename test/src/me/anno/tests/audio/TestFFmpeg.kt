@@ -1,4 +1,4 @@
-package me.anno.audio.test
+package me.anno.tests.audio
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS

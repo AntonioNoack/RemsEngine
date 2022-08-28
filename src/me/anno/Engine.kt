@@ -5,6 +5,8 @@ import kotlin.math.min
 
 object Engine {
 
+    var projectName = "RemsEngine"
+
     var rawDeltaTime = 0f
     var deltaTime = 0f
 

@@ -44,7 +44,7 @@ fun main() {
 
     GLFW.glfwDefaultWindowHints()
 
-    val window = GLFW.glfwCreateWindow(width, height, title, MemoryUtil.NULL, MemoryUtil.NULL)
+    val window = GLFW.glfwCreateWindow(width, height, title, 0L, 0L)
 
     GLFW.glfwSetWindowTitle(window, title)
     GLFW.glfwShowWindow(window)

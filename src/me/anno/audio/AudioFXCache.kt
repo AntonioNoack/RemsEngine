@@ -8,7 +8,7 @@ import me.anno.audio.streams.AudioStreamRaw
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp

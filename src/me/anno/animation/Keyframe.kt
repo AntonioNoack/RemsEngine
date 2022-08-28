@@ -3,6 +3,7 @@ package me.anno.animation
 import me.anno.io.base.BaseWriter
 import me.anno.utils.types.AnyToFloat
 
+@Suppress("unused")
 class Keyframe<V>(
     time: Double, value: V,
     var interpolation: Interpolation

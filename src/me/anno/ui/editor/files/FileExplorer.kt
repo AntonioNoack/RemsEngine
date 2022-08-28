@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.input.Input
 import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileFileRef
@@ -641,7 +642,7 @@ abstract class FileExplorer(
 
         @JvmStatic
         fun main(args: Array<String>) {
-            GFX.disableRenderDoc()
+            GFXBase.disableRenderDoc()
             testUI {
                 ECSRegistry.init()
                 object : FileExplorer(null, style) {

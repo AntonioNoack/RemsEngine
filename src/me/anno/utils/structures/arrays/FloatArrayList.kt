@@ -1,6 +1,6 @@
 package me.anno.utils.structures.arrays
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01

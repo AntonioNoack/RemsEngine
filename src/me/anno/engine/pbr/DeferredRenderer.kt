@@ -3,8 +3,7 @@ package me.anno.engine.pbr
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.shader.SimpleRenderer
 
 // many lights with many shadow maps would
 // - require many heavy updates
@@ -19,10 +18,8 @@ import me.anno.gpu.shader.ShaderPlus
 // done easily switch between forward rendering (k nearest neighbor algorithm or only a few lights)
 // done and deferred rendering (no mapping needed, more memory intensive, more lights supported)
 
-object DeferredRenderer : Renderer(
-    "deferred", false,
-    ShaderPlus.DrawMode.COLOR,
-    DeferredSettingsV2(
+object DeferredRenderer : SimpleRenderer(
+    "deferred", DeferredSettingsV2(
         // todo while these should be matches to the program running them, the game should decide what it needs where
         when (8 + GFX.maxColorAttachments) {
             // my Huawei H10 has 4, my RX 580 has 8
@@ -73,5 +70,6 @@ object DeferredRenderer : Renderer(
                 )
             }
         }, true
-    )
+    ),
+    colorRenderer.getPostProcessing()!!
 )

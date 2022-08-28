@@ -2,6 +2,7 @@ package me.anno.studio
 
 import me.anno.Build
 import me.anno.Engine
+import me.anno.Engine.projectName
 import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
@@ -27,6 +28,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
+import me.anno.ui.Window
 import me.anno.ui.base.Tooltips
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.ui.debug.FPSPanel
@@ -139,7 +141,7 @@ abstract class StudioBase(
 
     open fun setupNames() {
         GFX.windows.firstOrNull()?.title = title
-        GFXBase.projectName = configName
+        projectName = configName
     }
 
     open fun run() {
@@ -154,17 +156,16 @@ abstract class StudioBase(
 
         tick("logging")
 
-        GFX.onInit = this::gameInit
-        GFX.onLoop = this::onGameLoop
-        GFX.onShutdown = this::onShutdown
-
         loadConfig()
 
         tick("config")
 
-        GFX.run()
+        GFXBase.run()
 
     }
+
+    var hoveredPanel: Panel? = null
+    var hoveredWindow: Window? = null
 
     private var lastMouseX = 0f
     private var lastMouseY = 0f
@@ -271,8 +272,8 @@ abstract class StudioBase(
     fun updateHoveredAndCursor(window: WindowX) {
         val hovered = window.windowStack
             .getPanelAndWindowAt(window.mouseX, window.mouseY)
-        GFX.hoveredPanel = hovered?.first
-        GFX.hoveredWindow = hovered?.second
+        hoveredPanel = hovered?.first
+        hoveredWindow = hovered?.second
         updateCursor(window, hovered?.first)
     }
 

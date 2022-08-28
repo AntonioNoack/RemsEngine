@@ -53,7 +53,6 @@ object GFXx3D {
         stack.popMatrix()
 
         GFXx2D.tiling(shader, tiling)
-        shader.v1i("drawMode", GFX.drawMode.id)
         shader.v1i("uvProjection", uvProjection?.id ?: UVProjection.Planar.id)
 
     }
@@ -91,14 +90,12 @@ object GFXx3D {
         transformUniform(shader, transform)
         GFX.shaderColor(shader, "tint", color)
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
-        shader.v1i("drawMode", GFX.drawMode.id)
     }
 
     fun shader3DUniforms(shader: Shader, transform: Matrix4f, color: Vector4f) {
         transformUniform(shader, transform)
         GFX.shaderColor(shader, "tint", color)
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
-        shader.v1i("drawMode", GFX.drawMode.id)
     }
 
     fun transformUniform(shader: Shader, transform: Matrix4f?) {
@@ -229,8 +226,6 @@ object GFXx3D {
         defineAdvancedGraphicalFeatures(shader)
 
         GFX.shaderColor(shader, "tint", color)
-
-        shader.v1i("drawMode", GFX.drawMode.id)
 
         val cc = min(colorCount, maxOutlineColors)
 

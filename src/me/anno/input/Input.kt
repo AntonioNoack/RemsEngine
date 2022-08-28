@@ -6,6 +6,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.components.ui.UIEventType
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.gpu.WindowX
 import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
@@ -99,6 +100,18 @@ object Input {
     val isCapsLockDown get() = (keyModState and GLFW.GLFW_MOD_CAPS_LOCK) != 0
     val isAltDown get() = (keyModState and GLFW.GLFW_MOD_ALT) != 0
     val isSuperDown get() = (keyModState and GLFW.GLFW_MOD_SUPER) != 0
+
+    var trapMouseWindow: WindowX? = null
+    var trapMousePanel: Panel? = null
+    var trapMouseRadius = 250f
+
+    val isMouseTrapped: Boolean
+        get() {
+            val window = trapMouseWindow
+            return trapMousePanel != null && window != null &&
+                    window.isInFocus &&
+                    trapMousePanel === window.windowStack.inFocus0
+        }
 
     val layoutFrameCount = 10
     fun needsLayoutUpdate(window: WindowX) = window.framesSinceLastInteraction < layoutFrameCount
@@ -372,7 +385,7 @@ object Input {
     val controllers = Array(15) { Controller(it) }
     fun pollControllers(window: WindowX) {
         // controllers need to be pulled constantly
-        synchronized(GFX.glfwLock) {
+        synchronized(GFXBase.glfwLock) {
             var isFirst = true
             for (index in controllers.indices) {
                 if (controllers[index].pollEvents(window, isFirst)) {

@@ -26,13 +26,13 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.mesh.Point
+import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.workEventTasks
-import me.anno.ui.Panel
-import me.anno.ui.Window
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Task
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -49,7 +49,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
 
-object GFX : GFXBase() {
+/**
+ * graphics capabilities, clipping, copying, gpu work scheduling, main render loop
+ * */
+object GFX {
 
     private val LOGGER = LogManager.getLogger(GFX::class)
 
@@ -57,7 +60,27 @@ object GFX : GFXBase() {
     // so just use a static variable
     var isFinalRendering = false
 
-    val drawMode get() = currentRenderer.drawMode
+    val windows = ArrayList<WindowX>()
+
+    /**
+     * current window, which is being rendered to by OpenGL
+     * */
+    var activeWindow: WindowX? = null
+
+    /**
+     * window, that is in focus; may be null
+     * */
+    val focusedWindow get() = windows.firstOrNull2 { it.isInFocus }
+
+    /**
+     * window, that is in focus, or arbitrary window, if undefined
+     * */
+    val someWindow get() = focusedWindow ?: windows[0] // we also could choose the one closest to the mouse :)
+
+    val idleFPS get() = DefaultConfig["ui.window.idleFPS", 10]
+
+    @Suppress("unused")
+    fun getWindow(window: Long) = windows.first { it.pointer == window }
 
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
@@ -70,15 +93,8 @@ object GFX : GFXBase() {
     var maxColorAttachments = 0
     var maxTextureSize = 0
 
-    var hoveredPanel: Panel? = null
-    var hoveredWindow: Window? = null
-
     val gpuTasks = ConcurrentLinkedQueue<Task>()
     val lowPriorityGPUTasks = ConcurrentLinkedQueue<Task>()
-
-    var onInit: (() -> Unit)? = null
-    var onLoop: ((window: WindowX, w: Int, h: Int) -> Unit)? = null
-    var onShutdown: (() -> Unit)? = null
 
     val loadTexturesSync = Stack<Boolean>()
         .apply { push(false) }
@@ -103,18 +119,12 @@ object GFX : GFXBase() {
 
     var glThread: Thread? = null
 
-    fun addGPUTask(name: String, w: Int, h: Int, task: () -> Unit) {
-        addGPUTask(name, w, h, false, task)
-    }
-
-    fun addGPUTask(name: String, weight: Int, task: () -> Unit) {
-        addGPUTask(name, weight, false, task)
-    }
-
+    fun addGPUTask(name: String, w: Int, h: Int, task: () -> Unit) = addGPUTask(name, w, h, false, task)
     fun addGPUTask(name: String, w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
         addGPUTask(name, max(1, ((w * h.toLong()) / 10_000).toInt()), lowPriority, task)
     }
 
+    fun addGPUTask(name: String, weight: Int, task: () -> Unit) = addGPUTask(name, weight, false, task)
     fun addGPUTask(name: String, weight: Int, lowPriority: Boolean, task: () -> Unit) {
         (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += Task(name, weight, task)
     }
@@ -180,11 +190,6 @@ object GFX : GFXBase() {
         }
     }
 
-    override fun addCallbacks(window: WindowX) {
-        super.addCallbacks(window)
-        Input.initForGLFW(window)
-    }
-
     fun shaderColor(shader: Shader, name: String, color: Int) =
         currentRenderer.shaderColor(shader, name, color)
 
@@ -197,12 +202,7 @@ object GFX : GFXBase() {
     fun shaderColor(shader: Shader, name: String, color: Vector3f?) =
         currentRenderer.shaderColor(shader, name, color)
 
-    fun copy(buffer: IFramebuffer) {
-        Frame.bind()
-        buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-        copy()
-    }
-
+    fun copy(buffer: IFramebuffer) = copy(buffer.getTexture0())
     fun copy(buffer: ITexture2D) {
         Frame.bind()
         buffer.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
@@ -227,10 +227,7 @@ object GFX : GFXBase() {
         check()
     }
 
-    fun copyNoAlpha(buffer: IFramebuffer) {
-        copyNoAlpha(buffer.getTexture0())
-    }
-
+    fun copyNoAlpha(buffer: IFramebuffer) = copyNoAlpha(buffer.getTexture0())
     fun copyNoAlpha(buffer: ITexture2D) {
         Frame.bind()
         buffer.bindTrulyNearest(0)
@@ -250,14 +247,13 @@ object GFX : GFXBase() {
         check()
     }
 
-    override fun renderStep0() {
-        super.renderStep0()
+    fun renderStep0() {
         glThread = Thread.currentThread()
         val tick = Clock()
         LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
         LOGGER.info("GLSL Version " + glGetString(GL_SHADING_LANGUAGE_VERSION))
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
-        val capabilities = capabilities
+        val capabilities = GFXBase.capabilities
         supportsAnisotropicFiltering = capabilities?.GL_EXT_texture_filter_anisotropic ?: false
         LOGGER.info("OpenGL supports NV mesh shader? ${capabilities?.GL_NV_mesh_shader}")
         LOGGER.info("OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
@@ -365,7 +361,7 @@ object GFX : GFXBase() {
         }
     }
 
-    override fun renderStep(window: WindowX) {
+    fun renderStep(window: WindowX) {
 
         OpenGLShader.invalidateBinding()
         Texture2D.destroyTextures()
@@ -408,8 +404,9 @@ object GFX : GFXBase() {
 
         resetFBStack()
 
-        try {
-            onLoop?.invoke(window, window.width, window.height)
+        val inst = StudioBase.instance
+        if (inst != null) try {
+            inst.onGameLoop(window, window.width, window.height)
         } catch (e: Exception) {
             e.printStackTrace()
         }

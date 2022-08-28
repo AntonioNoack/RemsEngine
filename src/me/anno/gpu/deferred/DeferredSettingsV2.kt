@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderPlus.randomFunc
+import me.anno.gpu.shader.RandomEffect.randomFunc
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D

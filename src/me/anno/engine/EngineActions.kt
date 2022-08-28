@@ -37,7 +37,7 @@ object EngineActions {
                     val window = GFX.focusedWindow
                     if (window != null) when (type) {
                         "File" -> {
-                            val hp = GFX.hoveredPanel
+                            val hp = StudioBase.instance?.hoveredPanel
                             if (hp != null) hp.onPasteFiles(
                                 window.mouseX, window.mouseY,
                                 data.split("\n").map { getReference(it) }
@@ -45,7 +45,7 @@ object EngineActions {
                             else LOGGER.warn("No panel was hovered for drop")
                         }
                         else -> {
-                            val hp = GFX.hoveredPanel
+                            val hp = StudioBase.instance?.hoveredPanel
                             if (hp != null) hp.onPaste(window.mouseX, window.mouseY, data, type)
                             else LOGGER.warn("No panel was hovered for drop")
                         }

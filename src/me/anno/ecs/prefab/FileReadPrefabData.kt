@@ -1,6 +1,6 @@
 package me.anno.ecs.prefab
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch

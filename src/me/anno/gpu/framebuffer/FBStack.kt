@@ -1,7 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.cache.CacheSection
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.maths.Maths.clamp

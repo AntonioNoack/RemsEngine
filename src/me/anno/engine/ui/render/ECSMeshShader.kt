@@ -6,7 +6,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.*
 import me.anno.gpu.shader.builder.*
-import me.anno.gpu.shader.builder.Function
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 import kotlin.math.max
@@ -504,7 +503,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         // <3, this is crazily easy
         base.addFragment(postProcessing)
-        base.addFragment(ShaderPlus.createShaderStage())
 
         val shader = base.create()
         finish(shader)

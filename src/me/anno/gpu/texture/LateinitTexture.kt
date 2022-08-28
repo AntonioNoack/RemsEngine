@@ -1,6 +1,6 @@
-package me.anno.cache.data
+package me.anno.gpu.texture
 
-import me.anno.gpu.texture.ITexture2D
+import me.anno.cache.ICacheData
 
 class LateinitTexture : ICacheData {
     var texture: ITexture2D? = null

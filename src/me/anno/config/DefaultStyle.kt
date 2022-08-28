@@ -9,6 +9,7 @@ import me.anno.utils.OS
 import org.joml.Vector3f
 import org.joml.Vector4f
 
+@Suppress("unused")
 object DefaultStyle {
 
     const val black = 0xff000000.toInt()

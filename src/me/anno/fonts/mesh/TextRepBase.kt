@@ -1,6 +1,6 @@
 package me.anno.fonts.mesh
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.StaticBuffer
 

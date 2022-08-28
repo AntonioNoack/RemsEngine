@@ -1,6 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01

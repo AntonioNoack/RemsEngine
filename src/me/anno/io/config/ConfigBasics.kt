@@ -1,6 +1,6 @@
 package me.anno.io.config
 
-import me.anno.gpu.GFXBase.Companion.projectName
+import me.anno.Engine.projectName
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference

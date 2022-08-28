@@ -75,7 +75,7 @@ object AnimationMaths {
     /**
      * a * (1-f) + f * b
      * */
-    fun mix(a: Any?, b: Any?, f: Double, type: Type): Any? {
+    fun mix(a: Any?, b: Any?, f: Double, type: Type): Any {
         val g = 1.0 - f
         return when (type) {
             Type.INT,

@@ -1,7 +1,6 @@
 package me.anno.gpu.texture
 
-import me.anno.cache.data.ICacheData
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.cache.ICacheData
 import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.Shader

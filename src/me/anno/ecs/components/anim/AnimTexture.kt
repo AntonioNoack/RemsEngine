@@ -1,8 +1,7 @@
 package me.anno.ecs.components.anim
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.assimp.AnimGameItem.Companion.tmpMatrices
 import org.joml.Matrix4x3f

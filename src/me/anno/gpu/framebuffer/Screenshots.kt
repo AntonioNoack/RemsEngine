@@ -1,6 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
@@ -24,7 +25,7 @@ import kotlin.concurrent.thread
 object Screenshots {
 
     fun takeSystemScreenshot(): Image? {
-        val robot = GFX.robot ?: return null
+        val robot = GFXBase.robot ?: return null
         val image = robot.createScreenCapture(Rectangle(Toolkit.getDefaultToolkit().screenSize))
         return BIImage(image)
     }

@@ -1,6 +1,6 @@
 package me.anno.video.formats.gpu
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader

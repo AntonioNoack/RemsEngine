@@ -176,7 +176,7 @@ object GFXState {
     // maximum expected depth for OpenGL operations
     // could be changed, if needed...
     private const val maxSize = 512
-    val renderers = Array(maxSize) { colorRenderer }
+    val renderers = Array<Renderer>(maxSize) { colorRenderer }
 
     val currentRenderer get() = renderers[framebuffer.size - 1]
     val currentBuffer get() = framebuffer.values[framebuffer.size - 1]

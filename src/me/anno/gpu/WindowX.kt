@@ -135,7 +135,7 @@ open class WindowX(var title: String) {
     }
 
     fun updateMouseTarget(): Boolean {
-        val robot = GFX.robot
+        val robot = GFXBase.robot
         return if (mouseTargetX.isFinite() && mouseTargetY.isFinite()) {
             if (isInFocus &&
                 mouseTargetX in 0.0..(width - 1.0) &&

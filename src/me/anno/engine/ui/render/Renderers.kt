@@ -13,12 +13,14 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.shader.*
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.shader.builder.Function
+import me.anno.gpu.shader.SimpleRenderer
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -66,25 +68,16 @@ object Renderers {
     }
 
     val overdrawRenderer = SimpleRenderer(
-        "overdraw", true, ShaderPlus.DrawMode.COLOR, ShaderStage(
-            "overdraw", listOf(
-                Variable(GLSLType.V3F, "finalColor", false),
-                Variable(GLSLType.V1F, "finalAlpha", false)
-            ), "" +
-                    "finalColor = vec3(0.125);\n" +
-                    "finalAlpha = 1.0;\n"
+        "overdraw", ShaderStage(
+            "overdraw", listOf(Variable(GLSLType.V4F, "finalOverdraw", VariableMode.OUT)),
+            "finalOverdraw = vec4(0.125);\n"
         )
     )
 
-    val cheapRenderer = SimpleRenderer(
-        "cheap", false, ShaderPlus.DrawMode.COLOR, ShaderStage(
-            "cheap", listOf(
-                Variable(GLSLType.V3F, "finalColor", false)
-            ), "finalColor = vec3(0.5);"
-        )
-    )
+    // same functionality :D
+    val cheapRenderer = overdrawRenderer
 
-    val pbrRenderer = object : Renderer("pbr", false, ShaderPlus.DrawMode.COLOR) {
+    val pbrRenderer = object : Renderer("pbr") {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage("pbr", listOf(
                 // rendering
@@ -122,7 +115,8 @@ object Renderers {
                 Variable(GLSLType.V1F, "finalAlpha"),
                 Variable(GLSLType.V3F, "finalPosition"),
                 Variable(GLSLType.V3F, "finalNormal"),
-                Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
+                Variable(GLSLType.V3F, "finalColor"),
+                Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
             ), "" +
                     // define all light positions, radii, types and colors
                     // use the lights to illuminate the model
@@ -189,25 +183,25 @@ object Renderers {
                     "   finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                     "   finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
                     "#endif\n" +
-                    "   if(applyToneMapping) finalColor = tonemap(finalColor); \n"
+                    "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
+                    "   finalResult = vec4(finalColor, finalAlpha);\n"
             ).add(noiseFunc).add(tonemapGLSL)
         }
     }
 
     val frontBackRenderer = SimpleRenderer(
-        "front-back", true, ShaderPlus.DrawMode.COLOR, ShaderStage(
+        "front-back", ShaderStage(
             "front-back", listOf(
-                Variable(GLSLType.V3F, "finalPosition"),
                 Variable(GLSLType.V3F, "finalNormal"),
-                Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
-            ), "" +
-                    "finalColor = gl_FrontFacing ? vec3(0.0,0.3,1.0) : vec3(1.0,0.0,0.0);\n" +
-                    "finalColor *= finalNormal.x * 0.4 + 0.6;\n" // some simple shading
+                Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
+            ), "finalResult = vec4(" +
+                    "   (gl_FrontFacing ? vec3(0.0,0.3,1.0) : vec3(1.0,0.0,0.0)) * " +
+                    "   (finalNormal.x * 0.4 + 0.6), 1.0);\n" // some simple shading
         )
     )
 
     // pbr rendering with a few fake lights (which have no falloff)
-    val previewRenderer = object : Renderer("preview", false, ShaderPlus.DrawMode.COLOR) {
+    val previewRenderer = object : Renderer("preview") {
 
         val previewLights = listOf(
             // direction, strength
@@ -244,11 +238,11 @@ object Renderers {
             return ShaderStage(
                 "previewRenderer", listOf(
                     Variable(GLSLType.V4F, "lightData", previewLights.size),
-                    Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
-                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT),
-                    Variable(GLSLType.V3F, "finalPosition", VariableMode.IN),
-                    Variable(GLSLType.V1F, "finalRoughness", VariableMode.INOUT),
-                    Variable(GLSLType.V1F, "finalMetallic", VariableMode.INOUT),
+                    Variable(GLSLType.V3F, "finalColor"),
+                    Variable(GLSLType.V1F, "finalAlpha"),
+                    Variable(GLSLType.V3F, "finalPosition"),
+                    Variable(GLSLType.V1F, "finalRoughness", VariableMode.INOUT2),
+                    Variable(GLSLType.V1F, "finalMetallic", VariableMode.INOUT2),
                     Variable(GLSLType.V1F, "finalSheen"),
                     Variable(GLSLType.V3F, "finalSheenNormal"),
                     Variable(GLSLType.V4F, "finalClearCoat"),
@@ -256,6 +250,7 @@ object Renderers {
                     Variable(GLSLType.V3F, "finalNormal"),
                     Variable(GLSLType.V3F, "finalEmissive"),
                     Variable(GLSLType.V1F, "finalOcclusion"),
+                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                 ), "" +
                         // shared pbr data
                         "   vec3 V = normalize(-finalPosition);\n" +
@@ -288,83 +283,74 @@ object Renderers {
                         "finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                         "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
                         "finalColor = tonemap(finalColor);\n" +
-                        ""
+                        "finalResult = vec4(finalColor, finalAlpha);\n"
             ).add(noiseFunc).add(tonemapGLSL)
         }
     }
 
-    val simpleNormalRenderer = object : Renderer("simple-color", false, ShaderPlus.DrawMode.COLOR) {
+    val simpleNormalRenderer = object : Renderer("simple-color") {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
-                "uiRenderer", listOf(
-                    Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
-                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT),
+                "uiRenderer",
+                listOf(
+                    Variable(GLSLType.V3F, "finalColor"),
+                    Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V3F, "finalNormal"),
-                    Variable(GLSLType.V3F, "finalEmissive")
-                ), "" +
-                        "finalColor *= 0.6 - 0.4 * normalize(finalNormal).x;\n" +
-                        "finalColor += finalEmissive;\n"
+                    Variable(GLSLType.V3F, "finalEmissive"),
+                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                ),
+                "finalResult = vec4((finalColor * (0.6 - 0.4 * normalize(finalNormal).x)) + finalEmissive, finalAlpha);\n"
             )
         }
     }
 
     val attributeRenderers = LazyMap({ type: DeferredLayerType ->
-        val variables = if (type == DeferredLayerType.COLOR) {
-            listOf(Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT))
-        } else {
-            listOf(
-                Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, VariableMode.IN),
-                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT)
-            )
-        }
+        val variables = listOf(
+            Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, VariableMode.IN),
+            Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+        )
         val shaderCode = when (type) {
-            DeferredLayerType.COLOR -> "" // is HDR
             DeferredLayerType.MOTION -> "" +
-                    "finalColor = ${type.glslName}${type.map01};" +
-                    "finalColor *= 10.0;\n" +
-                    "finalColor /= 1.0 + abs(finalColor);\n" +
-                    "finalColor += 0.5;\n"
+                    "finalResult = vec4(${type.glslName}${type.map01}, 1.0);" +
+                    "finalResult.rgb *= 10.0 / (1.0 + abs(finalColor));\n" +
+                    "finalResult.rgb += 0.5;\n"
             else -> {
-                "finalColor = ${
+                "finalResult = ${
                     when (type.dimensions) {
-                        1 -> "vec3(${type.glslName}${type.map01})"
-                        2 -> "vec3(${type.glslName}${type.map01},1)"
-                        3 -> "(${type.glslName}${type.map01})"
-                        4 -> "(${type.glslName}${type.map01}).rgb"
+                        1 -> "vec4(vec3(${type.glslName}${type.map01}),1.0)"
+                        2 -> "vec4(${type.glslName}${type.map01},1.0,1.0)"
+                        3 -> "vec4(${type.glslName}${type.map01},1.0)"
+                        4 -> "vec4(${type.glslName}${type.map01})"
                         else -> ""
                     }
                 };\n" + if (type.highDynamicRange) {
-                    "finalColor /= 1.0 + max(max(abs(finalColor).x,abs(finalColor).y),abs(finalColor).z);\n"
+                    "finalResult.rgb /= 1.0 + max(max(abs(finalColor).x,abs(finalColor).y),abs(finalColor).z);\n"
                 } else ""
             }
         }
         val name = type.name
         val stage = ShaderStage(name, variables, shaderCode)
-        SimpleRenderer(name, false, ShaderPlus.DrawMode.COLOR, stage)
+        SimpleRenderer(name, stage)
     }, DeferredLayerType.values.size)
 
     val rawAttributeRenderers = LazyMap({ type: DeferredLayerType ->
-        val variables = if (type == DeferredLayerType.COLOR) {
-            listOf(Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT))
-        } else {
-            listOf(
-                Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, VariableMode.IN),
-                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT)
-            )
-        }
+        val variables = listOf(
+            Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, VariableMode.IN),
+            Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+        )
         val shaderCode = "" +
-                "finalColor = ${
+                "finalResult = ${
                     when (type.dimensions) {
-                        1 -> "vec3(${type.glslName}${type.map01})"
-                        2 -> "vec3(${type.glslName}${type.map01},1)"
-                        3 -> "(${type.glslName}${type.map01})"
-                        4 -> "(${type.glslName}${type.map01}).rgb"
+                        1 -> "vec4(vec3(${type.glslName}${type.map01}),1.0)"
+                        2 -> "vec4(${type.glslName}${type.map01},1.0,1.0)"
+                        3 -> "(${type.glslName}${type.map01}, 1.0)"
+                        4 -> "(${type.glslName}${type.map01})"
                         else -> ""
                     }
                 };\n"
         val name = type.name
         val stage = ShaderStage(name, variables, shaderCode)
-        SimpleRenderer(name, false, ShaderPlus.DrawMode.COLOR, stage)
+        SimpleRenderer(name, stage)
     }, DeferredLayerType.values.size)
 
     val attributeEffects: Map<Pair<DeferredLayerType, DeferredSettingsV2>, CameraEffect> =

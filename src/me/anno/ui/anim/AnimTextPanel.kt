@@ -7,6 +7,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.ShaderLib
@@ -298,7 +299,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         @JvmStatic
         fun main(args: Array<String>) {
             // inspired by https://www.youtube.com/watch?v=3QXGM84ZfSw
-            GFX.disableRenderDoc()
+            GFXBase.disableRenderDoc()
             testUI {
                 val list = PanelListY(style)
                 val green = 0x8fbc8f or black

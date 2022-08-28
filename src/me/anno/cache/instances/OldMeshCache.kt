@@ -2,13 +2,14 @@ package me.anno.cache.instances
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.svg.SVGMesh
 import me.anno.io.files.FileReference
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 
+@Deprecated("Please use MeshCache and ECS if possible")
 object OldMeshCache : CacheSection("Meshes") {
 
     fun getMesh(

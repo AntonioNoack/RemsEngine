@@ -19,12 +19,11 @@ import me.anno.utils.files.UVChecker
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-open class Renderer(
-    val name: String,
-    val isFakeColor: Boolean,
-    val drawMode: ShaderPlus.DrawMode,
-    val deferredSettings: DeferredSettingsV2? = null // null, if not deferred
-) {
+/**
+ * defines render targets combined with post-processing
+ * @param deferredSettings null if not rendering multiple targets
+ * */
+open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? = null) {
 
     open fun getPostProcessing(): ShaderStage? = null
 
@@ -52,7 +51,7 @@ open class Renderer(
         if (deferredSettings == null) return this
         return cache!!.getOrPut(index.shl(16) + spliceSize) {
             val settings = deferredSettings.split(index, spliceSize)
-            object : Renderer("$name/$index/$spliceSize", isFakeColor, drawMode, settings) {
+            object : Renderer("$name/$index/$spliceSize", settings) {
                 override fun getPostProcessing(): ShaderStage? = this@Renderer.getPostProcessing()
                 override fun uploadDefaultUniforms(shader: Shader) {
                     this@Renderer.getPostProcessing()
@@ -67,15 +66,47 @@ open class Renderer(
 
     companion object {
 
-        val colorRenderer = Renderer("color", false, ShaderPlus.DrawMode.COLOR, null)
-        val colorSqRenderer = Renderer("colorSq", false, ShaderPlus.DrawMode.COLOR_SQUARED, null)
-        val idRenderer = object : SimpleRenderer(
-            "id", true, ShaderPlus.DrawMode.COPY, ShaderStage(
+        val colorRenderer = SimpleRenderer(
+            "color", null, ShaderStage(
                 listOf(
                     Variable(GLSLType.V4F, "tint"),
-                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT),
-                    Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-                ), "if(finalAlpha < 0.01) discard; finalColor = tint.rgb; finalAlpha = tint.a;\n"
+                    Variable(GLSLType.V3F, "finalColor"),
+                    Variable(GLSLType.V1F, "finalAlpha"),
+                    Variable(GLSLType.V4F, "SPResult", VariableMode.OUT),
+                ),
+                "" +
+                        RandomEffect.randomFunc +
+                        "SPResult = vec4(finalColor\n" +
+                        "   #ifndef IS_TINTED\n * tint.rgb\n #endif\n," +
+                        "clamp(finalAlpha\n #ifndef IS_TINTED\n * tint.a\n #endif\n, 0.0, 1.0));\n"
+            )
+        )
+
+        val colorSqRenderer = SimpleRenderer(
+            "colorSq", null, ShaderStage(
+                listOf(
+                    Variable(GLSLType.V4F, "tint"),
+                    Variable(GLSLType.V3F, "finalColor"),
+                    Variable(GLSLType.V1F, "finalAlpha"),
+                    Variable(GLSLType.V4F, "SPResult", VariableMode.OUT),
+                ),
+                "" +
+                        RandomEffect.randomFunc +
+                        "vec3 tmpCol = finalColor\n" +
+                        "#ifndef IS_TINTED\n" +
+                        " * tint.rgb\n" +
+                        "#endif\n" +
+                        "SPResult = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n"
+            )
+        )
+
+        val idRenderer = object : SimpleRenderer(
+            "id", ShaderStage(
+                listOf(
+                    Variable(GLSLType.V4F, "tint"),
+                    Variable(GLSLType.V1F, "finalAlpha"),
+                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
+                ), "if(finalAlpha < 0.01) discard; finalResult = tint;\n"
             )
         ) {
             override fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) {
@@ -84,41 +115,41 @@ open class Renderer(
             }
         }
 
-        val nothingRenderer = SimpleRenderer("depth", true, ShaderPlus.DrawMode.COPY, ShaderStage(emptyList(), ""))
+        val nothingRenderer = SimpleRenderer("depth", ShaderStage(emptyList(), ""))
         val depthRenderer = SimpleRenderer(
-            "depth", true, ShaderPlus.DrawMode.COPY,
-            ShaderStage(
+            "depth", ShaderStage(
                 listOf(
                     Variable(GLSLType.V1F, "zDistance"),
-                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT),
-                    Variable(GLSLType.V3F, "finalColor", VariableMode.OUT)
-                ), "if(finalAlpha<0.01) discard; finalColor = vec3(zDistance, 0.0, zDistance * zDistance);\n"
+                    Variable(GLSLType.V1F, "finalAlpha"),
+                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                ), "if(finalAlpha<0.01) discard; finalResult = vec4(zDistance, 0.0, zDistance * zDistance, 1.0);\n"
             )
         )
-        val copyRenderer = Renderer("copy", false, ShaderPlus.DrawMode.COPY, null)
+        val copyRenderer = Renderer("copy", null)
         val triangleVisRenderer = SimpleRenderer(
-            "randomId", true, ShaderPlus.DrawMode.COPY, ShaderStage(
+            "randomId", ShaderStage(
                 listOf(
                     Variable(GLSLType.V1I, "randomId"),
-                    Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT)
+                    Variable(GLSLType.V1F, "finalAlpha"),
+                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                 ),
                 "" +
                         "if(finalAlpha<0.01) discard;\n" +
                         "float flRandomId = float(randomId);\n" +
                         "vec2 seed = vec2(sin(flRandomId), cos(flRandomId));\n" +
-                        ShaderPlus.randomFunc +
-                        "finalColor = vec3(GET_RANDOM(seed.xy), GET_RANDOM(seed.yx), GET_RANDOM(100.0 - seed.yx)); finalAlpha = 1.0;\n"
+                        RandomEffect.randomFunc +
+                        "finalResult = vec4(GET_RANDOM(seed.xy), GET_RANDOM(seed.yx), GET_RANDOM(100.0 - seed.yx), 1.0);\n"
             )
         )
         val motionVectorRenderer = attributeRenderers[DeferredLayerType.MOTION]
 
         val uvRenderer = object : SimpleRenderer(
-            "uv-checker", true, ShaderPlus.DrawMode.COPY, ShaderStage(
+            "uv-checker", ShaderStage(
                 listOf(
                     Variable(GLSLType.V2F, "uv"),
                     Variable(GLSLType.S2D, "checkerTex"),
-                ), "finalColor = texture(checkerTex, uv).rgb;\n"
+                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                ), "finalResult = vec4(texture(checkerTex, uv).rgb, 1.0);\n"
             )
         ) {
             override fun uploadDefaultUniforms(shader: Shader) {

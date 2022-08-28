@@ -4,7 +4,9 @@ import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.gpu.WindowX
+import me.anno.input.Input.isMouseTrapped
 import me.anno.input.controller.ControllerCalibration
 import me.anno.input.controller.CalibrationProcedure
 import me.anno.io.config.ConfigBasics
@@ -130,7 +132,7 @@ class Controller(val id: Int) {
         if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
             Input.onMousePress(window, key)
         } else {
-            GFX.robot?.mousePress(
+            GFXBase.robot?.mousePress(
                 when (key) {
                     0 -> InputEvent.BUTTON1_MASK
                     1 -> InputEvent.BUTTON2_MASK
@@ -144,7 +146,7 @@ class Controller(val id: Int) {
         if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
             Input.onMouseRelease(window, key)
         } else {
-            GFX.robot?.mouseRelease(
+            GFXBase.robot?.mouseRelease(
                 when (key) {
                     0 -> InputEvent.BUTTON1_MASK
                     1 -> InputEvent.BUTTON2_MASK
@@ -327,7 +329,7 @@ class Controller(val id: Int) {
                     dy *= speed
 
                     ActionManager.onMouseMoved(window, dx, dy)
-                    if (!GFX.isMouseTrapped) {
+                    if (!isMouseTrapped) {
                         // only works well, if we have a single player
                         // if we have a mouse user and a controller user, the controller user will win here ...
                         // reset the mouse position, if we used the original mouse again
@@ -377,7 +379,7 @@ class Controller(val id: Int) {
                         mouseWheelFract += dy
                         val mwf = mouseWheelFract.toInt() // round towards zero
                         if (mwf != 0) {
-                            GFX.robot?.mouseWheel(+mwf)
+                            GFXBase.robot?.mouseWheel(+mwf)
                             mouseWheelFract -= mwf
                         }
                     }

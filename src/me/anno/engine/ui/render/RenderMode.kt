@@ -6,7 +6,7 @@ import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
-import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.shader.RandomEffect
 
 // @Deprecated("Shall be replaced by RenderGraph")
 enum class RenderMode(
@@ -17,7 +17,7 @@ enum class RenderMode(
 
     DEFAULT,
     WITHOUT_POST_PROCESSING,
-    CLICK_IDS(ShaderPlus.RandomEffect),
+    CLICK_IDS(RandomEffect),
     DEPTH,
     FORCE_DEFERRED,
     FORCE_NON_DEFERRED,

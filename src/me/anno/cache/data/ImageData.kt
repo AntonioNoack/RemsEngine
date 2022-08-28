@@ -1,5 +1,6 @@
 package me.anno.cache.data
 
+import me.anno.cache.ICacheData
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX

@@ -1,7 +1,7 @@
 package me.anno.config
 
+import me.anno.Engine.projectName
 import me.anno.config.DefaultStyle.baseTheme
-import me.anno.gpu.GFXBase.Companion.projectName
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.config.ConfigBasics

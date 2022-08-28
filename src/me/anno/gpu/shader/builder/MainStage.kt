@@ -253,7 +253,7 @@ class MainStage {
             for (index in stages.indices) {
                 val stage = stages[index]
                 vars@ for (variable in stage.variables) {
-                    if (variable.inOutMode == VariableMode.INOUT &&
+                    if ((variable.inOutMode == VariableMode.INOUT || variable.inOutMode == VariableMode.INOUT2) &&
                         uniforms.any { it.name == variable.name }
                     ) {
                         for (i in 0 until index) {

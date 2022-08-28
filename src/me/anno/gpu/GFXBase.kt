@@ -6,9 +6,9 @@ package me.anno.gpu
 
 import me.anno.Build.isDebug
 import me.anno.Engine
+import me.anno.Engine.projectName
 import me.anno.Engine.shutdown
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.getErrorTypeName
@@ -18,21 +18,22 @@ import me.anno.gpu.debug.LWJGLDebugCallback
 import me.anno.gpu.debug.OpenGLDebug.getDebugSeverityName
 import me.anno.gpu.debug.OpenGLDebug.getDebugSourceName
 import me.anno.gpu.debug.OpenGLDebug.getDebugTypeName
-import me.anno.gpu.drawing.DrawRectangles
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.input.Input
+import me.anno.input.Input.isMouseTrapped
+import me.anno.input.Input.trapMouseRadius
+import me.anno.input.Input.trapMouseWindow
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.utils.Clock
 import me.anno.utils.structures.lists.Lists.all2
-import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.none2
 import org.apache.logging.log4j.LogManager.getLogger
-import org.apache.logging.log4j.Logger
 import org.lwjgl.BufferUtils
 import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW
@@ -64,27 +65,13 @@ import kotlin.math.max
  * todo rebuild and recompile the glfw driver, which handles the touch input, so the input can be assigned to the window
  * (e.g. add 1 to the pointer)
  */
-open class GFXBase {
+object GFXBase {
+
+    private val LOGGER = getLogger(GFXBase::class)
+    private val windows get() = GFX.windows
 
     private var debugMsgCallback: Callback? = null
     private var errorCallback: GLFWErrorCallback? = null
-
-    val windows = ArrayList<WindowX>()
-
-    /**
-     * current window, which is being rendered to by OpenGL
-     * */
-    var activeWindow: WindowX? = null
-
-    /**
-     * window, that is in focus; may be null
-     * */
-    val focusedWindow get() = windows.firstOrNull2 { it.isInFocus }
-
-    /**
-     * window, that is in focus, or arbitrary window, if undefined
-     * */
-    val someWindow get() = focusedWindow ?: windows[0] // we also could choose the one closest to the mouse :)
 
     val glfwLock = Any()
     val openglLock = Any()
@@ -92,11 +79,6 @@ open class GFXBase {
 
     var capabilities: GLCapabilities? = null
     var robot: Robot? = null
-
-    val idleFPS get() = DefaultConfig["ui.window.idleFPS", 10]
-
-    @Suppress("unused")
-    fun getWindow(window: Long) = windows.first { it.pointer == window }
 
     /** must be executed before OpenGL-init;
      * must be disabled for Nvidia Nsight */
@@ -127,7 +109,7 @@ open class GFXBase {
         }
     }
 
-    open fun run() {
+    fun run() {
         try {
 
             loadRenderDoc()
@@ -168,7 +150,7 @@ open class GFXBase {
         }
     }
 
-    open fun init(): Clock {
+    fun init(): Clock {
         LOGGER.info("Using LWJGL Version " + Version.getVersion())
         val tick = Clock()
         GLFW.glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err).also { errorCallback = it })
@@ -187,8 +169,9 @@ open class GFXBase {
         return tick
     }
 
-    open fun addCallbacks(window: WindowX) {
+    fun addCallbacks(window: WindowX) {
         window.addCallbacks()
+        Input.initForGLFW(window)
     }
 
     @Suppress("unused")
@@ -246,7 +229,7 @@ open class GFXBase {
     }
 
     private fun makeCurrent(window: WindowX): Boolean {
-        activeWindow = window
+        GFX.activeWindow = window
         if (window.pointer != lastCurrent && window.pointer != 0L) {
             lastCurrent = window.pointer
             GLFW.glfwMakeContextCurrent(window.pointer)
@@ -257,7 +240,7 @@ open class GFXBase {
     private var neverStarveWindows = DefaultConfig["ux.neverStarveWindows", false]
 
     private var lastCurrent = 0L
-    open fun runRenderLoop(window0: WindowX) {
+    fun runRenderLoop(window0: WindowX) {
         LOGGER.info("Running RenderLoop")
         val tick = Clock()
         makeCurrent(window0)
@@ -265,7 +248,7 @@ open class GFXBase {
         tick.stop("Make context current + vsync")
         capabilities = GL.createCapabilities()
         tick.stop("OpenGL initialization")
-        setupDebugging()
+        debugMsgCallback = GLUtil.setupDebugMessageCallback(LWJGLDebugCallback)
         tick.stop("Debugging Setup")
         // render first frames = render logo
         // the engine will still be loading,
@@ -274,13 +257,13 @@ open class GFXBase {
         GFX.maxSamples = max(1, GL30C.glGetInteger(GL30C.GL_MAX_SAMPLES))
         val zeroFrames = 2
         for (i in 0 until zeroFrames) {
-            renderFrame0(window0, i, zeroFrames)
+            drawLogo(window0, i == zeroFrames - 1)
             GLFW.glfwSwapBuffers(window0.pointer)
         }
         tick.stop("Render frame zero")
         renderStep0()
         tick.stop("Render step zero")
-        GFX.onInit?.invoke()
+        StudioBase.instance?.gameInit()
         tick.stop("Game Init")
         var lastTime = System.nanoTime()
         while (!destroyed && !shutdown) {
@@ -297,13 +280,13 @@ open class GFXBase {
                 if (window.isInFocus ||
                     window.hasActiveMouseTargets() ||
                     neverStarveWindows ||
-                    abs(window.lastUpdate - time) * idleFPS > 1e9
+                    abs(window.lastUpdate - time) * GFX.idleFPS > 1e9
                 ) {
                     window.lastUpdate = time
                     // this is hopefully ok (calling it async to other glfw stuff)
                     if (makeCurrent(window)) {
                         synchronized(openglLock) {
-                            activeWindow = window
+                            GFX.activeWindow = window
                             renderStep(window)
                         }
                         synchronized(glfwLock) {
@@ -328,7 +311,7 @@ open class GFXBase {
                 // enforce 30 fps, because we don't need more
                 // and don't want to waste energy
                 val currentTime = System.nanoTime()
-                val waitingTime = idleFPS - (currentTime - lastTime) / 1000000
+                val waitingTime = GFX.idleFPS - (currentTime - lastTime) / 1000000
                 lastTime = currentTime
                 if (waitingTime > 0) try {
                     // wait does not work, causes IllegalMonitorState exception
@@ -337,14 +320,10 @@ open class GFXBase {
                 }
             }
         }
-        GFX.onShutdown?.invoke()
+        StudioBase.instance?.onShutdown()
     }
 
-    open fun setupDebugging() {
-        debugMsgCallback = GLUtil.setupDebugMessageCallback(LWJGLDebugCallback)
-    }
-
-    open fun renderStep0() {
+    fun renderStep0() {
         if (isDebug) {
             // System.loadLibrary("renderdoc");
             glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, message: Long, _: Long ->
@@ -360,31 +339,12 @@ open class GFXBase {
             glEnable(KHRDebug.GL_DEBUG_OUTPUT)
         }
         checkIsGFXThread()
+        GFX.renderStep0()
     }
 
-    open fun renderFrame0(window: WindowX, i: Int, n: Int) {
-        drawLogo(window, i == n - 1)
+    fun renderStep(window: WindowX) {
+        GFX.renderStep(window)
     }
-
-    open fun renderStep(window: WindowX) {
-        GFXState.currentBuffer.clearColor(black)
-        val width = window.width
-        val height = window.height
-        GFX.setFrameNullSize(window)
-        DrawRectangles.drawRect(10, 10, width - 20, height - 20, -1)
-    }
-
-    var trapMouseWindow: WindowX? = null
-    var trapMousePanel: Panel? = null
-    var trapMouseRadius = 250f
-
-    val isMouseTrapped: Boolean
-        get() {
-            val window = trapMouseWindow
-            return trapMousePanel != null && window != null &&
-                    window.isInFocus &&
-                    trapMousePanel === window.windowStack.inFocus0
-        }
 
     fun close(window: WindowX) {
         synchronized(glfwLock) {
@@ -399,8 +359,7 @@ open class GFXBase {
         }
     }
 
-    @Suppress("unused")
-    open fun windowLoop(window0: WindowX) {
+    fun windowLoop(window0: WindowX) {
 
         Thread.currentThread().name = "GLFW"
 
@@ -478,45 +437,39 @@ open class GFXBase {
 
     }
 
-    open fun cleanUp() {}
+    fun cleanUp() {}
 
-    companion object {
-
-        private val LOGGER: Logger = getLogger(GFXBase::class)
-        var projectName = "RemsEngine"
-
-        fun setIcon(window: Long) {
-            val src = getReference(BundledRef.prefix + "icon.png")
-            val srcImage = ImageCPUCache.getImage(src, false)
-            if (srcImage != null) {
-                setIcon(window, srcImage)
-            }
+    fun setIcon(window: Long) {
+        val src = getReference(BundledRef.prefix + "icon.png")
+        val srcImage = ImageCPUCache.getImage(src, false)
+        if (srcImage != null) {
+            setIcon(window, srcImage)
         }
-
-        fun setIcon(window: Long, srcImage: Image) {
-
-            val image = GLFWImage.malloc()
-            val buffer = GLFWImage.malloc(1)
-
-            val w = srcImage.width
-            val h = srcImage.height
-            val pixels = BufferUtils.createByteBuffer(w * h * 4)
-            for (y in 0 until h) {
-                for (x in 0 until w) {
-                    // argb -> rgba
-                    val color = srcImage.getRGB(x, y)
-                    pixels.put(color.shr(16).toByte())
-                    pixels.put(color.shr(8).toByte())
-                    pixels.put(color.toByte())
-                    pixels.put(color.shr(24).toByte())
-                }
-            }
-            pixels.flip()
-            image.set(w, h, pixels)
-            buffer.put(0, image)
-            GLFW.glfwSetWindowIcon(window, buffer)
-        }
-
     }
+
+    fun setIcon(window: Long, srcImage: Image) {
+
+        val image = GLFWImage.malloc()
+        val buffer = GLFWImage.malloc(1)
+
+        val w = srcImage.width
+        val h = srcImage.height
+        val pixels = BufferUtils.createByteBuffer(w * h * 4)
+        for (y in 0 until h) {
+            for (x in 0 until w) {
+                // argb -> rgba
+                val color = srcImage.getRGB(x, y)
+                pixels.put(color.shr(16).toByte())
+                pixels.put(color.shr(8).toByte())
+                pixels.put(color.toByte())
+                pixels.put(color.shr(24).toByte())
+            }
+        }
+        pixels.flip()
+        image.set(w, h, pixels)
+        buffer.put(0, image)
+        GLFW.glfwSetWindowIcon(window, buffer)
+    }
+
 
 }

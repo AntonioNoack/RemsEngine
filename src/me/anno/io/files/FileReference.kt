@@ -2,7 +2,7 @@ package me.anno.io.files
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.gpu.GFX

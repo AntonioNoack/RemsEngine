@@ -1277,7 +1277,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     if (toneMappedColors) tonemapInvKt(c)
                     shader.v4f("color", c.x, c.y, c.z, 1f)
                     shaderColor(shader, "tint", -1)
-                    shader.v1i("drawMode", GFXState.currentRenderer.drawMode.id)
                     Shapes.smoothCube.back.drawMeshPurely(shader)
                 }
             }

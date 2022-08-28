@@ -1,8 +1,7 @@
 package me.anno.image
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.raw.BIImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
@@ -12,7 +11,6 @@ import java.awt.Point
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.awt.image.Raster
-import java.io.IOException
 import java.io.OutputStream
 import javax.imageio.ImageIO
 import kotlin.math.floor

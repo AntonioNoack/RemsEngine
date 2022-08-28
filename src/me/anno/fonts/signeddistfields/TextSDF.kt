@@ -1,6 +1,6 @@
 package me.anno.fonts.signeddistfields
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.gpu.texture.Texture2D
 import org.joml.Vector2f
 

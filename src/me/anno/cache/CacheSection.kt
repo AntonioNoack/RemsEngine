@@ -2,7 +2,6 @@ package me.anno.cache
 
 import me.anno.Build
 import me.anno.Engine.gameTime
-import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.cache.MaterialCache

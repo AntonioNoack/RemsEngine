@@ -1,6 +1,6 @@
 package me.anno.mesh
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase

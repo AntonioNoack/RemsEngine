@@ -1,6 +1,6 @@
 package me.anno.gpu.shader
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.GFX
@@ -80,8 +80,8 @@ open class BaseShader(
         }
 
 
-        val hasTint = "vec4 tint;" in fragmentShader || "tint" in varyings.map { it.name }
-        val shaderPlusStage = ShaderPlus.createShaderStage(hasTint)
+        // todo add IS_TINTED to all RemsStudio shaders, if applicable
+        // val hasTint = "vec4 tint;" in fragmentShader || "tint" in varyings.map { it.name }
 
         val builder = ShaderBuilder(name)
 
@@ -99,14 +99,13 @@ open class BaseShader(
         builder.addFragment(fs)
         builder.addFragment(extraStage)
         builder.addFragment(postProcessing)
-        builder.addFragment(shaderPlusStage)
+        // builder.addFragment(ColorAlphaStage.createShaderStage())
 
         val shader1 = builder.create()
         shader1.glslVersion = max(shader1.glslVersion, 330)
         shader1.setTextureIndices(textures)
         shader1.ignoreNameWarnings(ignoredNameWarnings)
         shader1.use()
-        shader1.v1i("drawMode", GFXState.currentRenderer.drawMode.id)
         shader1.v4f("tint", 1f)
         return shader1
 
@@ -146,7 +145,6 @@ open class BaseShader(
         }
 
     open fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
-        shader.v1i("drawMode", renderer.drawMode.id)
         renderer.uploadDefaultUniforms(shader)
     }
 
@@ -195,7 +193,6 @@ open class BaseShader(
         shader.use()
         shader.setTextureIndices(textures)
         shader.ignoreNameWarnings(ignoredNameWarnings)
-        shader.v1i("drawMode", GFXState.currentRenderer.drawMode.id)
         shader.v4f("tint", 1f, 1f, 1f, 1f)
         GFX.check()
     }

@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
@@ -759,11 +759,9 @@ class Mesh : PrefabSaveable(), Renderable {
         if (length > 1000) throw IllegalStateException("Material Id must be less than 1000!")
         val helperMeshes = arrayOfNulls<HelperMesh>(length)
         val indices = indices
-        val materials = materials
         for (materialId in 0 until length) {
             val numTriangles = materialIds.count { it == materialId }
             if (numTriangles > 0) {
-                val material = materials.getOrNull(materialId)
                 val helperIndices = IntArray(numTriangles * 3)
                 var j = 0
                 var i3 = 0

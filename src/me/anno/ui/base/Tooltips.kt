@@ -3,10 +3,10 @@ package me.anno.ui.base
 import me.anno.Engine
 import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX.hoveredPanel
 import me.anno.gpu.WindowX
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.length
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
@@ -83,7 +83,7 @@ object Tooltips {
         val delta = abs(time - lastMovementTime)
         val tooltipReactionTimeNanos = tooltipReactionTime * MILLIS_TO_NANOS
         if (delta >= tooltipReactionTimeNanos || lastPanel?.onMovementHideTooltip == false) {
-            val hovered = hoveredPanel
+            val hovered = StudioBase.instance?.hoveredPanel
             if (hovered != null) {
 
                 val tooltip = hovered.getTooltipToP(mouseX, mouseY)

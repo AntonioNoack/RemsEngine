@@ -4,12 +4,7 @@ import me.anno.gpu.deferred.DeferredSettingsV2.Companion.glslTypes
 import me.anno.gpu.shader.GLSLType
 import kotlin.math.max
 
-class Variable(
-    val type: GLSLType,
-    var name: String,
-    var arraySize: Int,
-    var inOutMode: VariableMode
-) {
+class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inOutMode: VariableMode) {
 
     constructor(type: GLSLType, name: String, inOutMode: VariableMode) :
             this(type, name, -1, inOutMode)

@@ -74,7 +74,6 @@ class InstancedStackPSR(capacity: Int = 64) :
 
         material.bind(shader)
         GFX.shaderColor(shader, "tint", -1)
-        shader.v1i("drawMode", GFX.drawMode.id)
         shader.v1b("hasAnimation", false)
         shader.v1b("hasVertexColors", mesh.hasVertexColors)
         shader.v2i("randomIdData", mesh.numTriangles, 0)

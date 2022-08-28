@@ -1,5 +1,6 @@
 package me.anno.cache.data
 
+import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
 import me.anno.video.ffmpeg.FFMPEGMetadata

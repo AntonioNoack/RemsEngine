@@ -1,7 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.Build
-import me.anno.cache.data.ICacheData
+import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
