@@ -101,7 +101,7 @@ object HSLuvColorSpace {
     }
 
     private fun maxChromaForLH(l: Double, h: Double): Double {
-        val hRadians = h / 360 * Math.PI * 2
+        val hRadians = h / 360 * PI * 2
 
         val bounds = getBounds(l, 6)
         var min = Double.MAX_VALUE

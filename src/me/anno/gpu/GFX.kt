@@ -148,7 +148,7 @@ object GFX : GFXBase() {
     inline fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
         // from the bottom to the top
         check()
-        if (w < 1 || h < 1) throw java.lang.RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
+        if (w < 1 || h < 1) throw RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
         // val height = RenderState.currentBuffer?.h ?: height
         // val realY = height - (y + h)
         useFrame(x, y, w, h) {
@@ -196,9 +196,6 @@ object GFX : GFXBase() {
 
     fun shaderColor(shader: Shader, name: String, color: Vector3f?) =
         currentRenderer.shaderColor(shader, name, color)
-
-    fun toRadians(f: Float) = Math.toRadians(f.toDouble()).toFloat()
-    fun toRadians(f: Double) = Math.toRadians(f)
 
     fun copy(buffer: IFramebuffer) {
         Frame.bind()

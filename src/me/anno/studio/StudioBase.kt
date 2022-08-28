@@ -23,6 +23,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.Language
 import me.anno.language.translation.Dict
+import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
@@ -184,7 +185,7 @@ abstract class StudioBase(
 
         if (isFirstFrame) tick("Game loop")
 
-        if (Math.random() < 0.1) FileReference.updateCache()
+        if (Maths.random() < 0.1) FileReference.updateCache()
 
         updateVSync(window)
         updateHoveredAndCursor(window)

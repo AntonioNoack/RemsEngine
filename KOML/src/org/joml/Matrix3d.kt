@@ -1805,23 +1805,23 @@ open class Matrix3d {
 
     override fun hashCode(): Int {
         var result = 1
-        var temp = java.lang.Double.doubleToLongBits(m00)
+        var temp = (m00).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m01)
+        temp = (m01).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m02)
+        temp = (m02).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m10)
+        temp = (m10).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m11)
+        temp = (m11).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m12)
+        temp = (m12).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m20)
+        temp = (m20).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m21)
+        temp = (m21).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m22)
+        temp = (m22).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
         return result
     }
@@ -1835,24 +1835,24 @@ open class Matrix3d {
             false
         } else {
             val other = obj as Matrix3d
-            if (java.lang.Double.doubleToLongBits(m00) != java.lang.Double.doubleToLongBits(other.m00)) {
+            if ((m00) != (other.m00)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m01) != java.lang.Double.doubleToLongBits(other.m01)) {
+            } else if ((m01) != (other.m01)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m02) != java.lang.Double.doubleToLongBits(other.m02)) {
+            } else if ((m02) != (other.m02)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m10) != java.lang.Double.doubleToLongBits(other.m10)) {
+            } else if ((m10) != (other.m10)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m11) != java.lang.Double.doubleToLongBits(other.m11)) {
+            } else if ((m11) != (other.m11)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m12) != java.lang.Double.doubleToLongBits(other.m12)) {
+            } else if ((m12) != (other.m12)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m20) != java.lang.Double.doubleToLongBits(other.m20)) {
+            } else if ((m20) != (other.m20)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m21) != java.lang.Double.doubleToLongBits(other.m21)) {
+            } else if ((m21) != (other.m21)) {
                 false
             } else {
-                java.lang.Double.doubleToLongBits(m22) == java.lang.Double.doubleToLongBits(other.m22)
+                (m22) == (other.m22)
             }
         }
     }

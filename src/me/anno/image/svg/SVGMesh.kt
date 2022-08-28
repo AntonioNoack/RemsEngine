@@ -1,7 +1,6 @@
 package me.anno.image.svg
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.css.CSSReader
@@ -13,9 +12,13 @@ import me.anno.io.xml.XMLElement
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.utils.OS
+import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix4dArrayList
+import org.joml.Vector2d
+import org.joml.Vector4d
+import org.joml.Vector4f
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -451,7 +454,7 @@ class SVGMesh {
         val x1 = this.x
         val y1 = this.y
 
-        val angle = toRadians(xAxisRotation)
+        val angle = xAxisRotation.toRadians()
         val cos = cos(angle)
         val sin = sin(angle)
 

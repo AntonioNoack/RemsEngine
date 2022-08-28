@@ -522,10 +522,10 @@ open class Matrix2f {
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + java.lang.Float.floatToIntBits(m00)
-        result = 31 * result + java.lang.Float.floatToIntBits(m01)
-        result = 31 * result + java.lang.Float.floatToIntBits(m10)
-        result = 31 * result + java.lang.Float.floatToIntBits(m11)
+        result = 31 * result + (m00).toBits()
+        result = 31 * result + (m01).toBits()
+        result = 31 * result + (m10).toBits()
+        result = 31 * result + (m11).toBits()
         return result
     }
 
@@ -550,11 +550,6 @@ open class Matrix2f {
             Runtime.equals(m11, m.m11, delta)
         }
     }
-
-    /*fun swap(other: Matrix2f): Matrix2f {
-        MemUtil.INSTANCE.swap(this, other)
-        return this
-    }*/
 
     @JvmOverloads
     fun add(other: Matrix2f, dst: Matrix2f = this): Matrix2f {

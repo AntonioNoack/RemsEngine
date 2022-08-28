@@ -513,7 +513,7 @@ object BlenderReader {
         // -> (par)-1 * (par * self) = self
         val parentMatrix = obj.parent?.finalWSMatrix ?: Matrix4f()
         val localMatrix = Matrix4f(parentMatrix).invert().mul(obj.finalWSMatrix)
-        // if(path == Path.ROOT_PATH) localMatrix.rotateX(-Math.PI.toFloat() * 0.5f)
+        // if(path == Path.ROOT_PATH) localMatrix.rotateX(-PI.toFloat() * 0.5f)
         val translation = localMatrix.getTranslation2()
         if (translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0)
             prefab.setUnsafe(path, "position", translation)

@@ -24,7 +24,7 @@ fun simpleTest() {
 
     for (i in 0 until 1000) {
 
-        val x = Math.random()
+        val x = Maths.random()
 
         aabb.clear()
         aabb.union(x * (1 - f), y * (1 - f), z * (1 - f))
@@ -53,7 +53,7 @@ fun precisionTest() {
 
     for (i in 0 until 1000) {
 
-        val x = Math.random()
+        val x = Maths.random()
 
         aabb.clear()
         aabb.union(x * (1 - f), y * (1 - f), z * (1 - f))

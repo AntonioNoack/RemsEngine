@@ -2,6 +2,7 @@ package me.anno.maths
 
 import org.joml.*
 import kotlin.math.*
+import kotlin.random.Random
 
 @Suppress("unused")
 object Maths {
@@ -45,6 +46,9 @@ object Maths {
     fun clamp(x: Double, min: Double, max: Double) = if (x < min) min else if (x < max) x else max
     fun clamp(x: Double) = if (x < 0.0) 0.0 else if (x < 1.0) x else 1.0
     fun clamp(x: Float) = if (x < 0f) 0f else if (x < 1f) x else 1f
+
+    private val randomInst = Random(System.nanoTime())
+    fun random(): Double = synchronized(randomInst) { randomInst.nextDouble() }
 
     /**
      * if you want good smoothing depending on timeStep/dt, use this function
@@ -164,7 +168,7 @@ object Maths {
     fun mix(a: Vector4f, b: Vector4f, f: Double, dst: Vector4f): Vector4f = a.lerp(b, f.toFloat(), dst)
 
     fun mixRandomly(a: Int, b: Int, f: Float): Int {
-        return (a * (1f - f) + b * f + java.lang.Math.random()).toInt()
+        return (a * (1f - f) + b * f + Maths.random()).toInt()
     }
 
     fun mapClamped(input: Float, inputMin: Float, inputMax: Float, outputMin: Float, outputMax: Float): Float {

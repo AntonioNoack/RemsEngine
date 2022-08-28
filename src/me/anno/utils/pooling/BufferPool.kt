@@ -2,6 +2,7 @@ package me.anno.utils.pooling
 
 import me.anno.Engine
 import me.anno.ecs.annotations.Docs
+import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 
 abstract class BufferPool<V>(
@@ -67,7 +68,7 @@ abstract class BufferPool<V>(
                     return
                 }
             }
-            val index = (Math.random() * size).toInt()
+            val index = (Maths.random() * size).toInt()
             available[index % size] = buffer
         }
     }

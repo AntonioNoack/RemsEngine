@@ -451,7 +451,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     fun tryMkdirs(): Boolean {
         return try {
             mkdirs()
-        } catch (e: java.lang.Exception) {
+        } catch (e: Exception) {
             LOGGER.warn("Failed to create ${toString()}")
             false
         }

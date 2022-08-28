@@ -7,6 +7,7 @@ import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import kotlin.math.PI
 
 object FlatShaders {
 
@@ -126,7 +127,7 @@ object FlatShaders {
                 "uniform mat4 transform;\n" +
                 "void main(){\n" +
                 "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
-                "   uv = (coords - 0.5) * vec2(${Math.PI * 2},${Math.PI});\n" +
+                "   uv = (coords - 0.5) * vec2(${PI * 2},${PI});\n" +
                 "}", listOf(Variable(GLSLType.V2F, "uv")), "" +
                 "uniform samplerCube tex;\n" +
                 "uniform vec4 color;\n" +

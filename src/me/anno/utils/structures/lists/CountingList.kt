@@ -1,7 +1,5 @@
 package me.anno.utils.structures.lists
 
-import java.lang.RuntimeException
-
 class CountingList(capacity: Int = 16): MutableList<Any> {
 
     constructor(src: CountingList): this(src.size){

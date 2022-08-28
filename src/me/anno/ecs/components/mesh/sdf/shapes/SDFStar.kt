@@ -60,8 +60,8 @@ class SDFStar : SDF2DShape() {
             // precompute the parameters for better performance
             val n = params.x
             val m = mix(2f, n, params.y)
-            val an = (Math.PI / n).toFloat()
-            val en = (Math.PI / m).toFloat()
+            val an = (PI / n).toFloat()
+            val en = (PI / m).toFloat()
             builder.append(an).append(',')
             builder.append("vec2(").append(cos(an)).append(',').append(sin(an)).append("),")
             builder.append("vec2(").append(cos(en)).append(',').append(sin(en)).append(')')
@@ -73,8 +73,8 @@ class SDFStar : SDF2DShape() {
     override fun computeSDFBase(pos: Vector4f): Float {
         val n = params.x
         val m = mix(2f, n, params.y)
-        val an = (Math.PI / n).toFloat()
-        val en = (Math.PI / m).toFloat()
+        val an = (PI / n).toFloat()
+        val en = (PI / m).toFloat()
         val can = cos(an)
         val san = sin(an)
         val cen = cos(en)

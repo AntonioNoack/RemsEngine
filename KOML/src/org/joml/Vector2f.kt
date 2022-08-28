@@ -157,9 +157,7 @@ open class Vector2f : Cloneable {
     }
 
     override fun hashCode(): Int {
-        var result = java.lang.Float.floatToIntBits(x)
-        result = 31 * result + java.lang.Float.floatToIntBits(y)
-        return result
+        return 31 * (x).toBits() + (y).toBits()
     }
 
     override fun equals(other: Any?): Boolean {
@@ -171,10 +169,10 @@ open class Vector2f : Cloneable {
             false
         } else {
             other as Vector2f
-            if (java.lang.Float.floatToIntBits(x) != java.lang.Float.floatToIntBits(other.x)) {
+            if ((x) != (other.x)) {
                 false
             } else {
-                java.lang.Float.floatToIntBits(y) == java.lang.Float.floatToIntBits(other.y)
+                (y) == (other.y)
             }
         }
     }

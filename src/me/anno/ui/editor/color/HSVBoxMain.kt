@@ -25,7 +25,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                     val s2 = x * 2 - 1
                     val l2 = y * 2 - 1
                     if (isDownInRing) {
-                        val hue = (atan2(l2, s2) * (0.5 / Math.PI) + 0.5).toFloat()
+                        val hue = (atan2(l2, s2) * (0.5 / PI) + 0.5).toFloat()
                         setHSL(hue, this.saturation, this.lightness, opacity, colorSpace, true)
                     } else {
                         // "   vec2 uv2 = clamp((uv-0.5)*1.8+0.5, 0.0, 1.0);\n" +
@@ -49,7 +49,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                         // the wheel
                         val s2 = x2 * 2 - 1
                         val l2 = y * 2 - 1
-                        val hue = (atan2(l2, s2) * (0.5 / Math.PI) + 0.5).toFloat()
+                        val hue = (atan2(l2, s2) * (0.5 / PI) + 0.5).toFloat()
                         val saturation = min(1f, length(s2, l2))
                         setHSL(hue, saturation, lightness, opacity, colorSpace, true)
                     } else {
@@ -117,8 +117,8 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                 val y = (cy - (chooser.lightness - 0.5f) * dy / 1.8f).roundToInt()
                 drawCrossHair(x, y)
                 // draw hue line
-                // hue = (atan2(l2, s2) * (0.5/ Math.PI) + 0.5).toFloat()
-                val angle = ((chooser.hue - 0.5) * (2 * Math.PI)).toFloat()
+                // hue = (atan2(l2, s2) * (0.5/ PI) + 0.5).toFloat()
+                val angle = ((chooser.hue - 0.5) * (2 * PI)).toFloat()
                 val sin = sin(angle)
                 val cos = cos(angle)
                 val outerRadius = 0.5f * 0.975f * max(dx, dy)
@@ -143,7 +143,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                 val cx = x + w2 / 2
                 val cy = y + h / 2
                 val dy = h.toFloat()
-                val angle = ((chooser.hue - 0.5) * (2 * Math.PI)).toFloat()
+                val angle = ((chooser.hue - 0.5) * (2 * PI)).toFloat()
                 val sin = sin(angle)
                 val cos = cos(angle)
                 val radius = w2 * chooser.saturation * 0.5f

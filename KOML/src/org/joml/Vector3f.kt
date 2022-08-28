@@ -207,9 +207,12 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val lx = x
         val ly = y
         val lz = z
-        dst.x = JomlMath.fma(mat.m00, lx.toDouble(), JomlMath.fma(mat.m10, ly.toDouble(), mat.m20 * lz.toDouble())).toFloat()
-        dst.y = JomlMath.fma(mat.m01, lx.toDouble(), JomlMath.fma(mat.m11, ly.toDouble(), mat.m21 * lz.toDouble())).toFloat()
-        dst.z = JomlMath.fma(mat.m02, lx.toDouble(), JomlMath.fma(mat.m12, ly.toDouble(), mat.m22 * lz.toDouble())).toFloat()
+        dst.x = JomlMath.fma(mat.m00, lx.toDouble(), JomlMath.fma(mat.m10, ly.toDouble(), mat.m20 * lz.toDouble()))
+            .toFloat()
+        dst.y = JomlMath.fma(mat.m01, lx.toDouble(), JomlMath.fma(mat.m11, ly.toDouble(), mat.m21 * lz.toDouble()))
+            .toFloat()
+        dst.z = JomlMath.fma(mat.m02, lx.toDouble(), JomlMath.fma(mat.m12, ly.toDouble(), mat.m22 * lz.toDouble()))
+            .toFloat()
         return dst
     }
 
@@ -278,9 +281,12 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val x = x
         val y = y
         val z = z
-        dst.x = JomlMath.fma(mat.m00, x.toDouble(), JomlMath.fma(mat.m10, y.toDouble(), mat.m20 * z.toDouble())).toFloat()
-        dst.y = JomlMath.fma(mat.m01, x.toDouble(), JomlMath.fma(mat.m11, y.toDouble(), mat.m21 * z.toDouble())).toFloat()
-        dst.z = JomlMath.fma(mat.m02, x.toDouble(), JomlMath.fma(mat.m12, y.toDouble(), mat.m22 * z.toDouble())).toFloat()
+        dst.x =
+            JomlMath.fma(mat.m00, x.toDouble(), JomlMath.fma(mat.m10, y.toDouble(), mat.m20 * z.toDouble())).toFloat()
+        dst.y =
+            JomlMath.fma(mat.m01, x.toDouble(), JomlMath.fma(mat.m11, y.toDouble(), mat.m21 * z.toDouble())).toFloat()
+        dst.z =
+            JomlMath.fma(mat.m02, x.toDouble(), JomlMath.fma(mat.m12, y.toDouble(), mat.m22 * z.toDouble())).toFloat()
         return dst
     }
 
@@ -586,29 +592,16 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     }
 
     override fun hashCode(): Int {
-        var result = java.lang.Float.floatToIntBits(x)
-        result = 31 * result + java.lang.Float.floatToIntBits(y)
-        result = 31 * result + java.lang.Float.floatToIntBits(z)
+        var result = (x).toBits()
+        result = 31 * result + (y).toBits()
+        result = 31 * result + (z).toBits()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other == null) {
-            false
-        } else if (this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Vector3f
-            if (java.lang.Float.floatToIntBits(x) != java.lang.Float.floatToIntBits(other.x)) {
-                false
-            } else if (java.lang.Float.floatToIntBits(y) != java.lang.Float.floatToIntBits(other.y)) {
-                false
-            } else {
-                java.lang.Float.floatToIntBits(z) == java.lang.Float.floatToIntBits(other.z)
-            }
-        }
+        return if (this === other) true
+        else if (other !is Vector3f) false
+        else x == other.x && y == other.y && z == other.z
     }
 
     fun equals(v: Vector3f?, delta: Float): Boolean {
@@ -626,12 +619,12 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     }
 
     fun equals(x: Float, y: Float, z: Float): Boolean {
-        return if (java.lang.Float.floatToIntBits(this.x) != java.lang.Float.floatToIntBits(x)) {
+        return if ((this.x) != (x)) {
             false
-        } else if (java.lang.Float.floatToIntBits(this.y) != java.lang.Float.floatToIntBits(y)) {
+        } else if ((this.y) != (y)) {
             false
         } else {
-            java.lang.Float.floatToIntBits(this.z) == java.lang.Float.floatToIntBits(z)
+            (this.z) == (z)
         }
     }
 

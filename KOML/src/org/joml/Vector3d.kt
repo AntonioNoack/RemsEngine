@@ -673,7 +673,7 @@ open class Vector3d : Cloneable {
         return dst
     }
 
-    fun div(scalar: Double, dst: Vector3d = this) = mul(1.0/scalar, dst)
+    fun div(scalar: Double, dst: Vector3d = this) = mul(1.0 / scalar, dst)
 
     fun div(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
         dst.x = this.x / x
@@ -682,7 +682,7 @@ open class Vector3d : Cloneable {
         return dst
     }
 
-    fun lengthSquared() = x*x+y*y+z*z
+    fun lengthSquared() = x * x + y * y + z * z
     fun length() = sqrt(lengthSquared())
 
     fun normalize(dst: Vector3d = this) = mul(1.0 / length(), dst)
@@ -790,11 +790,11 @@ open class Vector3d : Cloneable {
 
     override fun hashCode(): Int {
         var result = 1
-        var temp = java.lang.Double.doubleToLongBits(x)
+        var temp = (x).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(y)
+        temp = (y).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(z)
+        temp = (z).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
         return result
     }
@@ -802,20 +802,9 @@ open class Vector3d : Cloneable {
     override fun equals(other: Any?): Boolean {
         return if (this === other) {
             true
-        } else if (other == null) {
+        } else if (other !is Vector3d) {
             false
-        } else if (this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Vector3d
-            if (java.lang.Double.doubleToLongBits(x) != java.lang.Double.doubleToLongBits(other.x)) {
-                false
-            } else if (java.lang.Double.doubleToLongBits(y) != java.lang.Double.doubleToLongBits(other.y)) {
-                false
-            } else {
-                java.lang.Double.doubleToLongBits(z) == java.lang.Double.doubleToLongBits(other.z)
-            }
-        }
+        } else x == other.x && y == other.y && z == other.z
     }
 
     fun equals(v: Vector3d?, delta: Double): Boolean {
@@ -833,12 +822,12 @@ open class Vector3d : Cloneable {
     }
 
     fun equals(x: Double, y: Double, z: Double): Boolean {
-        return if (java.lang.Double.doubleToLongBits(this.x) != java.lang.Double.doubleToLongBits(x)) {
+        return if ((this.x) != (x)) {
             false
-        } else if (java.lang.Double.doubleToLongBits(this.y) != java.lang.Double.doubleToLongBits(y)) {
+        } else if ((this.y) != (y)) {
             false
         } else {
-            java.lang.Double.doubleToLongBits(this.z) == java.lang.Double.doubleToLongBits(z)
+            (this.z) == (z)
         }
     }
 

@@ -23,15 +23,17 @@ abstract class AudioStream(
 
         fun getIndex(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
             val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
-            return Math.floorDiv(progressedSamples, bufferSize.toLong())
+            return progressedSamples.floorDiv(bufferSize.toLong())
         }
 
         fun getFraction(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
             val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
-            return Math.floorMod(progressedSamples, bufferSize.toLong())
+            val bs = bufferSize.toLong()
+            return progressedSamples - progressedSamples.floorDiv(bs) * bs
         }
 
     }
+
     private val filledBuffers = ArrayList<ShortBuffer?>(8)
     private val gettingIndex = AtomicInteger()
 

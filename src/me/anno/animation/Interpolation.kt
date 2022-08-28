@@ -113,7 +113,7 @@ enum class Interpolation(
             val expM2 = exp(-expFactor)
             return (exp(-time * expFactor) - expM2) / (1.0 - expM2) * mix(
                 1.0,
-                3.0 * cos(time * Math.PI * 5.0),
+                3.0 * cos(time * PI * 5.0),
                 clamp(2.0 * time, 0.0, 1.0)
             )
         }
@@ -236,7 +236,7 @@ enum class Interpolation(
         override fun getOut(x: Double) = BACK_IN.getInOut(x)
     },
     ELASTIC_IN(90, "Ei") {
-        private val magic = 2.0 * Math.PI / 3.0
+        private val magic = 2.0 * PI / 3.0
         override fun getReversedType() = ELASTIC_OUT
         override fun getIn(x: Double): Double {
             return -pow(2.0, 10.0 * x - 10.0) * sin((x * 10.0 - 10.75) * magic)

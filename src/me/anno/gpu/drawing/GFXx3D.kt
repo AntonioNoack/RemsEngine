@@ -13,6 +13,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.maxOutlineColors
 import me.anno.gpu.texture.*
 import me.anno.utils.Color.toARGB
+import me.anno.utils.types.Floats.toRadians
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.*
 import org.lwjgl.BufferUtils
@@ -344,8 +345,8 @@ object GFXx3D {
         } else if (a1 > a0 + 360) {
             a1 = a0 + 360
         }
-        val angle0 = GFX.toRadians(a0)
-        val angle1 = GFX.toRadians(a1)
+        val angle0 = a0.toRadians()
+        val angle1 = a1.toRadians()
         shader.v3f("circleParams", 1f - innerRadius, angle0, angle1)
         circleBuffer.draw(shader)
         GFX.check()

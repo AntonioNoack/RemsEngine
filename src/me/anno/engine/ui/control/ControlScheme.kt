@@ -231,7 +231,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         val cam = Vector3d(view.cameraPosition)
         // debugRays.add(DebugRay(cam, Vector3d(mouseDir), -1))
         // .add(camDirection.x * 20, camDirection.y * 20, camDirection.z * 20)
-        // .add(Math.random()*20-10,Math.random()*20-10, Math.random()*20-10)
+        // .add(Maths.random()*20-10,Maths.random()*20-10, Maths.random()*20-10)
         val hit = Raycast.raycast(
             world, cam, view.mouseDirection, 0.0, 0.0, // 1.0 / max(h, 1)
             view.radius * 1e3, -1, -1, emptySet(), false, hit

@@ -113,7 +113,7 @@ private fun testPrefab() {
     val sample1 = prefab.getSampleInstance()
     Hierarchy.assert(sample1 is Entity)
     val child = prefab.add(Path.ROOT_PATH, 'c', "PointLight", "PL")
-    prefab[child, "lightSize"] = Math.PI
+    prefab[child, "lightSize"] = PI
     val sample2 = prefab.getSampleInstance()
     Hierarchy.assert(sample2 is Entity)
     sample2 as Entity
@@ -121,7 +121,7 @@ private fun testPrefab() {
     val light1 = Hierarchy.getInstanceAt(sample2, child)
     println("found ${light1?.prefabPath} at $child")
     Hierarchy.assert(light1 is PointLight)
-    Hierarchy.assert((light1 as PointLight).lightSize == Math.PI)
+    Hierarchy.assert((light1 as PointLight).lightSize == PI)
 }
 
 private fun testMultiAdd() {

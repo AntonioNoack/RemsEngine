@@ -193,24 +193,17 @@ open class Vector2d : Cloneable {
 
     override fun hashCode(): Int {
         var result = 1
-        var temp = java.lang.Double.doubleToLongBits(x)
+        var temp = (x).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(y)
+        temp = (y).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other == null) {
-            false
-        } else if (this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Vector2d
-            return x == other.x && y == other.y
-        }
+        return if (this === other) true
+        else if (other !is Vector2d) false
+        else x == other.x && y == other.y
     }
 
     fun equals(v: Vector2d, delta: Double): Boolean {
@@ -223,13 +216,7 @@ open class Vector2d : Cloneable {
         }
     }
 
-    fun equals(x: Double, y: Double): Boolean {
-        return if (java.lang.Double.doubleToLongBits(this.x) != java.lang.Double.doubleToLongBits(x)) {
-            false
-        } else {
-            java.lang.Double.doubleToLongBits(this.y) == java.lang.Double.doubleToLongBits(y)
-        }
-    }
+    fun equals(x: Double, y: Double) = this.x == x && this.y == y
 
     override fun toString(): String {
         return "($x,$y)"

@@ -909,13 +909,13 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
 
     override fun hashCode(): Int {
         var result = 1
-        var temp = java.lang.Double.doubleToLongBits(w)
+        var temp = (w).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(x)
+        temp = (x).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(y)
+        temp = (y).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(z)
+        temp = (z).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
         return result
     }

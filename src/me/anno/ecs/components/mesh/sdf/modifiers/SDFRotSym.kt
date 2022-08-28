@@ -15,6 +15,7 @@ import org.joml.AABBf
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.round
 import kotlin.math.roundToInt
@@ -136,7 +137,7 @@ class SDFRotSym : PositionMapper() {
 
     companion object {
 
-        const val invTau = (1.0 / (2.0 * Math.PI)).toFloat()
+        const val invTau = (1.0 / (2.0 * PI)).toFloat()
 
         const val rotSymFunc = "" +
                 "vec3 rotSym(vec3 p, vec4 q, float invSlice){\n" +

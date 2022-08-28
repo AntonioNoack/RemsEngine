@@ -4,6 +4,7 @@ import me.anno.cache.instances.VideoCache
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.drawing.UVProjection
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
@@ -11,7 +12,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.io.files.FileReference
-import me.anno.gpu.drawing.UVProjection
+import me.anno.maths.Maths
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.video.VideoCreator.Companion.renderVideo
@@ -107,7 +108,7 @@ class BlankFrameDetector {
         private val LOGGER = LogManager.getLogger(BlankFrameDetector::class)
 
         private const val samples = 250
-        private val randomIndexSequence = FloatArray(samples) { Math.random().toFloat() }
+        private val randomIndexSequence = FloatArray(samples) { Maths.random().toFloat() }
             .apply { sort() }
 
         fun getFrame(

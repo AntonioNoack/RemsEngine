@@ -8,6 +8,8 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.math.tan
 import kotlin.math.atan2
+import kotlin.math.min
+import kotlin.math.max
 
 @Suppress("unused")
 open class Matrix4d {
@@ -5542,8 +5544,8 @@ open class Matrix4d {
         val h = tan(fovy * 0.5)
         val rm00 = 1.0 / (h * aspect)
         val rm11 = 1.0 / h
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val rm22: Double
         val rm32: Double
         var e: Double
@@ -5605,8 +5607,8 @@ open class Matrix4d {
     ): Matrix4d {
         val rm00 = (zNear + zNear) / width
         val rm11 = (zNear + zNear) / height
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val rm22: Double
         val rm32: Double
         var e: Double
@@ -5679,8 +5681,8 @@ open class Matrix4d {
         val offY = tan(offAngleY)
         val rm20 = offX * xScale
         val rm21 = offY * yScale
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val rm22: Double
         val rm32: Double
         var e: Double
@@ -5815,8 +5817,8 @@ open class Matrix4d {
         val h = tan(fovy * 0.5)
         _m00(1.0 / (h * aspect))._m01(0.0)._m02(0.0)._m03(0.0)._m10(0.0)._m11(1.0 / h)._m12(0.0)._m13(0.0)._m20(0.0)
             ._m21(0.0)
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val e: Double
         if (farInf) {
             e = 1.0E-6
@@ -5839,8 +5841,8 @@ open class Matrix4d {
         zero()
         _m00((zNear + zNear) / width)
         _m11((zNear + zNear) / height)
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val e: Double
         if (farInf) {
             e = 1.0E-6
@@ -5891,8 +5893,8 @@ open class Matrix4d {
         val offX = tan(offAngleX)
         val offY = tan(offAngleY)
         _m20(offX * xScale)._m21(offY * yScale)
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val e: Double
         if (farInf) {
             e = 1.0E-6
@@ -5998,8 +6000,8 @@ open class Matrix4d {
         val h = tan(fovy * 0.5)
         val rm00 = 1.0 / (h * aspect)
         val rm11 = 1.0 / h
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val rm22: Double
         val rm32: Double
         var e: Double
@@ -6037,8 +6039,8 @@ open class Matrix4d {
         val h = tan(fovy * 0.5)
         _m00(1.0 / (h * aspect))._m01(0.0)._m02(0.0)._m03(0.0)._m10(0.0)._m11(1.0 / h)._m12(0.0)._m13(0.0)._m20(0.0)
             ._m21(0.0)
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val e: Double
         if (farInf) {
             e = 1.0E-6
@@ -6093,8 +6095,8 @@ open class Matrix4d {
         val rm11 = (zNear + zNear) / (top - bottom)
         val rm20 = (right + left) / (right - left)
         val rm21 = (top + bottom) / (top - bottom)
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val rm22: Double
         val rm32: Double
         var e: Double
@@ -6148,8 +6150,8 @@ open class Matrix4d {
         }
         _m00((zNear + zNear) / (right - left))._m11((zNear + zNear) / (top - bottom))
             ._m20((right + left) / (right - left))._m21((top + bottom) / (top - bottom))
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val e: Double
         if (farInf) {
             e = 1.0E-6
@@ -6204,8 +6206,8 @@ open class Matrix4d {
         val rm11 = (zNear + zNear) / (top - bottom)
         val rm20 = (right + left) / (right - left)
         val rm21 = (top + bottom) / (top - bottom)
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val rm22: Double
         val rm32: Double
         var e: Double
@@ -6259,8 +6261,8 @@ open class Matrix4d {
         }
         _m00((zNear + zNear) / (right - left))._m11((zNear + zNear) / (top - bottom))
             ._m20((right + left) / (right - left))._m21((top + bottom) / (top - bottom))
-        val farInf = zFar > 0.0 && java.lang.Double.isInfinite(zFar)
-        val nearInf = zNear > 0.0 && java.lang.Double.isInfinite(zNear)
+        val farInf = zFar > 0.0 && zFar.isInfinite()
+        val nearInf = zNear > 0.0 && zNear.isInfinite()
         val e: Double
         if (farInf) {
             e = 1.0E-6
@@ -6794,37 +6796,37 @@ open class Matrix4d {
 
     override fun hashCode(): Int {
         var result = 1
-        var temp = java.lang.Double.doubleToLongBits(m00)
+        var temp = (m00).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m01)
+        temp = (m01).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m02)
+        temp = (m02).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m03)
+        temp = (m03).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m10)
+        temp = (m10).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m11)
+        temp = (m11).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m12)
+        temp = (m12).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m13)
+        temp = (m13).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m20)
+        temp = (m20).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m21)
+        temp = (m21).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m22)
+        temp = (m22).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m23)
+        temp = (m23).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m30)
+        temp = (m30).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m31)
+        temp = (m31).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m32)
+        temp = (m32).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m33)
+        temp = (m33).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
         return result
     }
@@ -6838,38 +6840,38 @@ open class Matrix4d {
             false
         } else {
             val other = obj
-            if (java.lang.Double.doubleToLongBits(m00) != java.lang.Double.doubleToLongBits(other.m00)) {
+            if ((m00) != (other.m00)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m01) != java.lang.Double.doubleToLongBits(other.m01)) {
+            } else if ((m01) != (other.m01)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m02) != java.lang.Double.doubleToLongBits(other.m02)) {
+            } else if ((m02) != (other.m02)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m03) != java.lang.Double.doubleToLongBits(other.m03)) {
+            } else if ((m03) != (other.m03)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m10) != java.lang.Double.doubleToLongBits(other.m10)) {
+            } else if ((m10) != (other.m10)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m11) != java.lang.Double.doubleToLongBits(other.m11)) {
+            } else if ((m11) != (other.m11)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m12) != java.lang.Double.doubleToLongBits(other.m12)) {
+            } else if ((m12) != (other.m12)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m13) != java.lang.Double.doubleToLongBits(other.m13)) {
+            } else if ((m13) != (other.m13)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m20) != java.lang.Double.doubleToLongBits(other.m20)) {
+            } else if ((m20) != (other.m20)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m21) != java.lang.Double.doubleToLongBits(other.m21)) {
+            } else if ((m21) != (other.m21)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m22) != java.lang.Double.doubleToLongBits(other.m22)) {
+            } else if ((m22) != (other.m22)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m23) != java.lang.Double.doubleToLongBits(other.m23)) {
+            } else if ((m23) != (other.m23)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m30) != java.lang.Double.doubleToLongBits(other.m30)) {
+            } else if ((m30) != (other.m30)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m31) != java.lang.Double.doubleToLongBits(other.m31)) {
+            } else if ((m31) != (other.m31)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m32) != java.lang.Double.doubleToLongBits(other.m32)) {
+            } else if ((m32) != (other.m32)) {
                 false
             } else {
-                java.lang.Double.doubleToLongBits(m33) == java.lang.Double.doubleToLongBits(other.m33)
+                (m33) == (other.m33)
             }
         }
     }
@@ -7053,12 +7055,12 @@ open class Matrix4d {
             val nx = (m00 * x + m10 * y + m20 * z + m30) * invW
             val ny = (m01 * x + m11 * y + m21 * z + m31) * invW
             val nz = (m02 * x + m12 * y + m22 * z + m32) * invW
-            minX = java.lang.Math.min(minX, nx)
-            minY = java.lang.Math.min(minY, ny)
-            minZ = java.lang.Math.min(minZ, nz)
-            maxX = java.lang.Math.max(maxX, nx)
-            maxY = java.lang.Math.max(maxY, ny)
-            maxZ = java.lang.Math.max(maxZ, nz)
+            minX = min(minX, nx)
+            minY = min(minY, ny)
+            minZ = min(minZ, nz)
+            maxX = max(maxX, nx)
+            maxY = max(maxY, ny)
+            maxZ = max(maxZ, nz)
         }
         min.x = minX
         min.y = minY
@@ -7125,10 +7127,10 @@ open class Matrix4d {
                     invW = 1.0 / (projector.m03 * ix + projector.m23 * iz + projector.m33)
                     val px = (projector.m00 * ix + projector.m20 * iz + projector.m30) * invW
                     val py = (projector.m01 * ix + projector.m21 * iz + projector.m31) * invW
-                    minX = java.lang.Math.min(minX, px)
-                    minY = java.lang.Math.min(minY, py)
-                    maxX = java.lang.Math.max(maxX, px)
-                    maxY = java.lang.Math.max(maxY, py)
+                    minX = kotlin.math.min(minX, px)
+                    minY = kotlin.math.min(minY, py)
+                    maxX = kotlin.math.max(maxX, px)
+                    maxY = kotlin.math.max(maxY, py)
                 }
             }
         }
@@ -7172,12 +7174,12 @@ open class Matrix4d {
             val vx = view.m00 * wx + view.m10 * wy + view.m20 * wz + view.m30
             val vy = view.m01 * wx + view.m11 * wy + view.m21 * wz + view.m31
             val vz = (view.m02 * wx + view.m12 * wy + view.m22 * wz + view.m32) * invW
-            minX = java.lang.Math.min(minX, vx)
-            maxX = java.lang.Math.max(maxX, vx)
-            minY = java.lang.Math.min(minY, vy)
-            maxY = java.lang.Math.max(maxY, vy)
-            minZ = java.lang.Math.min(minZ, vz)
-            maxZ = java.lang.Math.max(maxZ, vz)
+            minX = min(minX, vx)
+            maxX = max(maxX, vx)
+            minY = min(minY, vy)
+            maxY = max(maxY, vy)
+            minZ = min(minZ, vz)
+            maxZ = max(maxZ, vz)
         }
         return dest.setOrtho(minX, maxX, minY, maxY, -maxZ, -minZ)
     }
@@ -8292,10 +8294,10 @@ open class Matrix4d {
             val len = sqrt(zx * zx + zy * zy + zz * zz)
             var near = zd / len
             val far: Double
-            if (java.lang.Double.isInfinite(nearFarDist) && nearFarDist < 0.0) {
+            if (nearFarDist.isInfinite() && nearFarDist < 0.0) {
                 far = near
                 near = Double.POSITIVE_INFINITY
-            } else if (java.lang.Double.isInfinite(nearFarDist) && nearFarDist > 0.0) {
+            } else if (nearFarDist.isInfinite() && nearFarDist > 0.0) {
                 far = Double.POSITIVE_INFINITY
             } else if (nearFarDist < 0.0) {
                 far = near

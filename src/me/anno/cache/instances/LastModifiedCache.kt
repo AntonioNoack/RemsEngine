@@ -3,6 +3,7 @@ package me.anno.cache.instances
 import me.anno.Engine
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.structures.maps.Maps.removeIf
 import java.io.File
@@ -68,7 +69,7 @@ object LastModifiedCache {
         return values.getOrPut(absolutePath) {
             val r = Result(file)
             // randomness for random decay: from 0.75x to 1.5x
-            r.lastChecked = Engine.gameTime + ((196 + (Math.random() * 196).toInt()) * timeoutNanos ushr 8)
+            r.lastChecked = Engine.gameTime + ((196 + (Maths.random() * 196).toInt()) * timeoutNanos ushr 8)
             values[absolutePath.replace('/', '\\')] = r
             values[absolutePath.replace('\\', '/')] = r
             r

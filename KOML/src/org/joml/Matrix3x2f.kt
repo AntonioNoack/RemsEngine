@@ -1,9 +1,13 @@
 package org.joml
 
 import org.joml.JomlMath.addSigns
+import org.joml.JomlMath.invsqrt
+import org.joml.JomlMath.isFinite
 import org.joml.Runtime.f
 import java.nio.FloatBuffer
 import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sin
 
 @Suppress("unused")
@@ -561,18 +565,18 @@ open class Matrix3x2f {
         val nxpyY = -rm01 + rm11
         val pxpyX = rm00 + rm10
         val pxpyY = rm01 + rm11
-        var minX = Math.min(nxnyX, nxpyX)
-        minX = Math.min(minX, pxnyX)
-        minX = Math.min(minX, pxpyX)
-        var minY = Math.min(nxnyY, nxpyY)
-        minY = Math.min(minY, pxnyY)
-        minY = Math.min(minY, pxpyY)
-        var maxX = Math.max(nxnyX, nxpyX)
-        maxX = Math.max(maxX, pxnyX)
-        maxX = Math.max(maxX, pxpyX)
-        var maxY = Math.max(nxnyY, nxpyY)
-        maxY = Math.max(maxY, pxnyY)
-        maxY = Math.max(maxY, pxpyY)
+        var minX = min(nxnyX, nxpyX)
+        minX = min(minX, pxnyX)
+        minX = min(minX, pxpyX)
+        var minY = min(nxnyY, nxpyY)
+        minY = min(minY, pxnyY)
+        minY = min(minY, pxpyY)
+        var maxX = max(nxnyX, nxpyX)
+        maxX = max(maxX, pxnyX)
+        maxX = max(maxX, pxpyX)
+        var maxY = max(nxnyY, nxpyY)
+        maxY = max(maxY, pxnyY)
+        maxY = max(maxY, pxpyY)
         area[0] = minX + rm20
         area[1] = minY + rm21
         area[2] = maxX + rm20
@@ -692,28 +696,28 @@ open class Matrix3x2f {
         var nxX = m00
         var nxY = m10
         var nxW = 1f + m20
-        var invl = JomlMath.invsqrt(nxX * nxX + nxY * nxY)
+        var invl = invsqrt(nxX * nxX + nxY * nxY)
         nxX *= invl
         nxY *= invl
         nxW *= invl
         var pxX = -m00
         var pxY = -m10
         var pxW = 1f - m20
-        invl = JomlMath.invsqrt(pxX * pxX + pxY * pxY)
+        invl = invsqrt(pxX * pxX + pxY * pxY)
         pxX *= invl
         pxY *= invl
         pxW *= invl
         var nyX = m01
         var nyY = m11
         var nyW = 1f + m21
-        invl = JomlMath.invsqrt(nyX * nyX + nyY * nyY)
+        invl = invsqrt(nyX * nyX + nyY * nyY)
         nyX *= invl
         nyY *= invl
         nyW *= invl
         var pyX = -m01
         var pyY = -m11
         var pyW = 1f - m21
-        invl = JomlMath.invsqrt(pyX * pyX + pyY * pyY)
+        invl = invsqrt(pyX * pyX + pyY * pyY)
         pyX *= invl
         pyY *= invl
         pyW *= invl
@@ -738,36 +742,36 @@ open class Matrix3x2f {
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + java.lang.Float.floatToIntBits(m00)
-        result = 31 * result + java.lang.Float.floatToIntBits(m01)
-        result = 31 * result + java.lang.Float.floatToIntBits(m10)
-        result = 31 * result + java.lang.Float.floatToIntBits(m11)
-        result = 31 * result + java.lang.Float.floatToIntBits(m20)
-        result = 31 * result + java.lang.Float.floatToIntBits(m21)
+        result = 31 * result + (m00).toBits()
+        result = 31 * result + (m01).toBits()
+        result = 31 * result + (m10).toBits()
+        result = 31 * result + (m11).toBits()
+        result = 31 * result + (m20).toBits()
+        result = 31 * result + (m21).toBits()
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
             true
-        } else if (obj == null) {
+        } else if (other == null) {
             false
-        } else if (this.javaClass != obj.javaClass) {
+        } else if (this.javaClass != other.javaClass) {
             false
         } else {
-            val other = obj as Matrix3x2f
-            if (java.lang.Float.floatToIntBits(m00) != java.lang.Float.floatToIntBits(other.m00)) {
+            other as Matrix3x2f
+            if ((m00) != (other.m00)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m01) != java.lang.Float.floatToIntBits(other.m01)) {
+            } else if ((m01) != (other.m01)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m10) != java.lang.Float.floatToIntBits(other.m10)) {
+            } else if ((m10) != (other.m10)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m11) != java.lang.Float.floatToIntBits(other.m11)) {
+            } else if ((m11) != (other.m11)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m20) != java.lang.Float.floatToIntBits(other.m20)) {
+            } else if ((m20) != (other.m20)) {
                 false
             } else {
-                java.lang.Float.floatToIntBits(m21) == java.lang.Float.floatToIntBits(other.m21)
+                (m21) == (other.m21)
             }
         }
     }
@@ -793,7 +797,5 @@ open class Matrix3x2f {
     }
 
     val isFinite: Boolean
-        get() = JomlMath.isFinite(m00) && JomlMath.isFinite(m01) && JomlMath.isFinite(m10) && JomlMath.isFinite(
-            m11
-        ) && JomlMath.isFinite(m20) && JomlMath.isFinite(m21)
+        get() = isFinite(m00) && isFinite(m01) && isFinite(m10) && isFinite(m11) && isFinite(m20) && isFinite(m21)
 }

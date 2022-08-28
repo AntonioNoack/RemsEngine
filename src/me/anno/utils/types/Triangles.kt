@@ -1,6 +1,7 @@
 package me.anno.utils.types
 
 import me.anno.image.ImageWriter
+import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.minus
@@ -309,10 +310,10 @@ object Triangles {
     }
 
     fun testSubCrossDot() {
-        val a = Vector3f(Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat())
-        val b = Vector3f(Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat())
-        val c = Vector3f(Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat())
-        val n = Vector3f(Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat())
+        val a = Vector3f(Maths.random().toFloat(), Maths.random().toFloat(), Maths.random().toFloat())
+        val b = Vector3f(Maths.random().toFloat(), Maths.random().toFloat(), Maths.random().toFloat())
+        val c = Vector3f(Maths.random().toFloat(), Maths.random().toFloat(), Maths.random().toFloat())
+        val n = Vector3f(Maths.random().toFloat(), Maths.random().toFloat(), Maths.random().toFloat())
         println((b - a).cross(c - a).dot(n))
         println(subCrossDot(a, b, c, n))
     }

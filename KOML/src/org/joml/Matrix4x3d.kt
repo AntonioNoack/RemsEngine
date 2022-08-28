@@ -4365,66 +4365,65 @@ open class Matrix4x3d {
 
     override fun hashCode(): Int {
         var result = 1
-        var temp = java.lang.Double.doubleToLongBits(m00)
+        var temp = (m00).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m01)
+        temp = (m01).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m02)
+        temp = (m02).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m10)
+        temp = (m10).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m11)
+        temp = (m11).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m12)
+        temp = (m12).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m20)
+        temp = (m20).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m21)
+        temp = (m21).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m22)
+        temp = (m22).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m30)
+        temp = (m30).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m31)
+        temp = (m31).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(m32)
+        temp = (m32).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
             true
-        } else if (obj == null) {
+        } else if (other == null) {
             false
-        } else if (obj !is Matrix4x3d) {
+        } else if (other !is Matrix4x3d) {
             false
         } else {
-            val other = obj
-            if (java.lang.Double.doubleToLongBits(m00) != java.lang.Double.doubleToLongBits(other.m00)) {
+            if ((m00) != (other.m00)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m01) != java.lang.Double.doubleToLongBits(other.m01)) {
+            } else if ((m01) != (other.m01)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m02) != java.lang.Double.doubleToLongBits(other.m02)) {
+            } else if ((m02) != (other.m02)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m10) != java.lang.Double.doubleToLongBits(other.m10)) {
+            } else if ((m10) != (other.m10)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m11) != java.lang.Double.doubleToLongBits(other.m11)) {
+            } else if ((m11) != (other.m11)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m12) != java.lang.Double.doubleToLongBits(other.m12)) {
+            } else if ((m12) != (other.m12)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m20) != java.lang.Double.doubleToLongBits(other.m20)) {
+            } else if ((m20) != (other.m20)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m21) != java.lang.Double.doubleToLongBits(other.m21)) {
+            } else if ((m21) != (other.m21)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m22) != java.lang.Double.doubleToLongBits(other.m22)) {
+            } else if ((m22) != (other.m22)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m30) != java.lang.Double.doubleToLongBits(other.m30)) {
+            } else if ((m30) != (other.m30)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(m31) != java.lang.Double.doubleToLongBits(other.m31)) {
+            } else if ((m31) != (other.m31)) {
                 false
             } else {
-                java.lang.Double.doubleToLongBits(m32) == java.lang.Double.doubleToLongBits(other.m32)
+                (m32) == (other.m32)
             }
         }
     }

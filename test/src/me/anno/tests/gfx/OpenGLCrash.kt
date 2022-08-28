@@ -49,8 +49,8 @@ object OpenGLCrash {
 
         for(i in 0 until 64){
 
-            val w = 1590//(Math.random()*3000+10).toInt()
-            val h = 2246//(Math.random()*3000+10).toInt()
+            val w = 1590//(Maths.random()*3000+10).toInt()
+            val h = 2246//(Maths.random()*3000+10).toInt()
 
             LOGGER.info("[GLCrashTest] $w x $h")
 

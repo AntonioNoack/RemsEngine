@@ -7,6 +7,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
 import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.Vector3d
+import kotlin.math.PI
 
 // todo draw limits
 class GenericConstraint() : Constraint<Generic6DofConstraint>() {
@@ -41,7 +42,7 @@ class GenericConstraint() : Constraint<Generic6DofConstraint>() {
         }
 
     // yz only have half pi as range!
-    @Range(-Math.PI, Math.PI)
+    @Range(-PI, PI)
     var lowerAngleLimit = Vector3d()
         set(value) {
             field.set(value)
@@ -49,7 +50,7 @@ class GenericConstraint() : Constraint<Generic6DofConstraint>() {
         }
 
     // yz only have half pi as range!
-    @Range(-Math.PI, Math.PI)
+    @Range(-PI, PI)
     var upperAngleLimit = Vector3d()
         set(value) {
             field.set(value)

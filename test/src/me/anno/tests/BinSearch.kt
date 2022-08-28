@@ -5,7 +5,7 @@ fun main() {
         val vs = FloatArray(j) { (it + 1f) / j.toFloat() }
         val counts = IntArray(vs.size)
         for (i in 0 until j * 1000) {
-            val searched = Math.random()
+            val searched = Maths.random()
             var i0 = -1
             var i1 = vs.size - 1
             while (i1 > i0) {

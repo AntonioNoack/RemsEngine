@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
@@ -12,6 +11,7 @@ import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.shader3D
 import me.anno.gpu.texture.TextureLib.bindWhite
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
@@ -214,13 +214,13 @@ object Grid {
 
             drawGrid(stack, gridAlpha * f)
 
-            stack.rotateX(toRadians(90f))
+            stack.rotateX(PIf/2f)
             drawLine(stack, xAxisColor, 0.15f) // x
 
-            stack.rotateY(toRadians(90f))
+            stack.rotateY(PIf/2f)
             drawLine(stack, yAxisColor, 0.15f) // y
 
-            stack.rotateZ(toRadians(90f))
+            stack.rotateZ(PIf/2f)
             drawLine(stack, zAxisColor, 0.15f) // z
 
         }

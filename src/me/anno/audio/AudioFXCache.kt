@@ -254,7 +254,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
                     val index1i = kotlin.math.min(index0i + 256, index0 + deltaIndex * (split + 1) / splits)
                     for (i in index0i until index1i) {
 
-                        val bufferIndex = Math.floorDiv(i, bufferSize.toLong())
+                        val bufferIndex = i.floorDiv(bufferSize)
                         if (i == index0 || lastBufferIndex != bufferIndex) {
                             val time0 = getTime(bufferIndex)
                             val time1 = getTime(bufferIndex + 1)

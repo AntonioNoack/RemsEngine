@@ -305,8 +305,8 @@ abstract class Collider : CollidingComponent() {
 
     companion object {
         val guiLineColor = 0x77ffff or black
-        const val COSINE_22_5 = 1.0 / 1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
-        const val INV_COSINE_22_5 = 1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
+        const val COSINE_22_5 = 1.0 / 1.082392200292394 // 1.0/cos(45*PI/180/2)
+        const val INV_COSINE_22_5 = 1.082392200292394 // 1.0/cos(45*PI/180/2)
         const val OUTER_SPHERE_RADIUS_X8 = 1.224744871391589 // sqrt(1.5),
         // what is the inverse of the inner radius of a sphere approximated by 3 rings of 8 segments each
     }

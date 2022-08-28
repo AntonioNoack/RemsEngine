@@ -780,11 +780,13 @@ open class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy - zw), y, 2f * (xz + yw) * z)), JomlMath.fma(
+            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy - zw), y, 2f * (xz + yw) * z)),
+            JomlMath.fma(
                 2f * (xy + zw), x, JomlMath.fma(
                     JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz - xw) * z
                 )
-            ), JomlMath.fma(2f * (xz - yw), x, JomlMath.fma(2f * (yz + xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
+            ),
+            JomlMath.fma(2f * (xz - yw), x, JomlMath.fma(2f * (yz + xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
         )
     }
 
@@ -799,11 +801,13 @@ open class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy + zw), y, 2f * (xz - yw) * z)), JomlMath.fma(
+            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy + zw), y, 2f * (xz - yw) * z)),
+            JomlMath.fma(
                 2f * (xy - zw), x, JomlMath.fma(
                     JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz + xw) * z
                 )
-            ), JomlMath.fma(2f * (xz + yw), x, JomlMath.fma(2f * (yz - xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
+            ),
+            JomlMath.fma(2f * (xz + yw), x, JomlMath.fma(2f * (yz - xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
         )
     }
 
@@ -895,11 +899,13 @@ open class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy - zw), y, 2f * (xz + yw) * z)), JomlMath.fma(
+            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy - zw), y, 2f * (xz + yw) * z)),
+            JomlMath.fma(
                 2f * (xy + zw), x, JomlMath.fma(
                     JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz - xw) * z
                 )
-            ), JomlMath.fma(2f * (xz - yw), x, JomlMath.fma(2f * (yz + xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
+            ),
+            JomlMath.fma(2f * (xz - yw), x, JomlMath.fma(2f * (yz + xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
         )
     }
 
@@ -914,11 +920,13 @@ open class Quaternionf : Cloneable {
         val zz = this.z * this.z
         val zw = this.z * w
         return dest.set(
-            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy + zw), y, 2f * (xz - yw) * z)), JomlMath.fma(
+            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy + zw), y, 2f * (xz - yw) * z)),
+            JomlMath.fma(
                 2f * (xy - zw), x, JomlMath.fma(
                     JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz + xw) * z
                 )
-            ), JomlMath.fma(2f * (xz + yw), x, JomlMath.fma(2f * (yz - xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
+            ),
+            JomlMath.fma(2f * (xz + yw), x, JomlMath.fma(2f * (yz - xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
         )
     }
 
@@ -1672,7 +1680,13 @@ open class Quaternionf : Cloneable {
         dest.z = JomlMath.fma(scale0, z, scale1 * q.z)
         dest.w = JomlMath.fma(scale0, w, scale1 * q.w)
         val s =
-            JomlMath.invsqrt(JomlMath.fma(dest.x, dest.x, JomlMath.fma(dest.y, dest.y, JomlMath.fma(dest.z, dest.z, dest.w * dest.w))))
+            JomlMath.invsqrt(
+                JomlMath.fma(
+                    dest.x,
+                    dest.x,
+                    JomlMath.fma(dest.y, dest.y, JomlMath.fma(dest.z, dest.z, dest.w * dest.w))
+                )
+            )
         dest.x *= s
         dest.y *= s
         dest.z *= s
@@ -1845,7 +1859,8 @@ open class Quaternionf : Cloneable {
         toDirY: Float,
         toDirZ: Float
     ): Quaternionf {
-        val fn = JomlMath.invsqrt(JomlMath.fma(fromDirX, fromDirX, JomlMath.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
+        val fn =
+            JomlMath.invsqrt(JomlMath.fma(fromDirX, fromDirX, JomlMath.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
         val tn = JomlMath.invsqrt(JomlMath.fma(toDirX, toDirX, JomlMath.fma(toDirY, toDirY, toDirZ * toDirZ)))
         val fx = fromDirX * fn
         val fy = fromDirY * fn
@@ -1904,7 +1919,8 @@ open class Quaternionf : Cloneable {
         toDirZ: Float,
         dest: Quaternionf = this
     ): Quaternionf {
-        val fn = JomlMath.invsqrt(JomlMath.fma(fromDirX, fromDirX, JomlMath.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
+        val fn =
+            JomlMath.invsqrt(JomlMath.fma(fromDirX, fromDirX, JomlMath.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
         val tn = JomlMath.invsqrt(JomlMath.fma(toDirX, toDirX, JomlMath.fma(toDirY, toDirY, toDirZ * toDirZ)))
         val fx = fromDirX * fn
         val fy = fromDirY * fn
@@ -2042,32 +2058,17 @@ open class Quaternionf : Cloneable {
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + java.lang.Float.floatToIntBits(w)
-        result = 31 * result + java.lang.Float.floatToIntBits(x)
-        result = 31 * result + java.lang.Float.floatToIntBits(y)
-        result = 31 * result + java.lang.Float.floatToIntBits(z)
+        result = 31 * result + (w).toBits()
+        result = 31 * result + (x).toBits()
+        result = 31 * result + (y).toBits()
+        result = 31 * result + (z).toBits()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other == null) {
-            false
-        } else if (this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Quaternionf
-            if (java.lang.Float.floatToIntBits(w) != java.lang.Float.floatToIntBits(other.w)) {
-                false
-            } else if (java.lang.Float.floatToIntBits(x) != java.lang.Float.floatToIntBits(other.x)) {
-                false
-            } else if (java.lang.Float.floatToIntBits(y) != java.lang.Float.floatToIntBits(other.y)) {
-                false
-            } else {
-                java.lang.Float.floatToIntBits(z) == java.lang.Float.floatToIntBits(other.z)
-            }
-        }
+        return if (this === other) true
+        else if (other !is Quaternionf) false
+        else x == other.x && y == other.y && z == other.z && w == other.w
     }
 
     @JvmOverloads
@@ -2198,14 +2199,14 @@ open class Quaternionf : Cloneable {
     }
 
     fun equals(x: Float, y: Float, z: Float, w: Float): Boolean {
-        return if (java.lang.Float.floatToIntBits(this.x) != java.lang.Float.floatToIntBits(x)) {
+        return if ((this.x) != (x)) {
             false
-        } else if (java.lang.Float.floatToIntBits(this.y) != java.lang.Float.floatToIntBits(y)) {
+        } else if ((this.y) != (y)) {
             false
-        } else if (java.lang.Float.floatToIntBits(this.z) != java.lang.Float.floatToIntBits(z)) {
+        } else if ((this.z) != (z)) {
             false
         } else {
-            java.lang.Float.floatToIntBits(this.w) == java.lang.Float.floatToIntBits(w)
+            (this.w) == (w)
         }
     }
 

@@ -3878,18 +3878,18 @@ open class Matrix4x3f {
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + java.lang.Float.floatToIntBits(m00)
-        result = 31 * result + java.lang.Float.floatToIntBits(m01)
-        result = 31 * result + java.lang.Float.floatToIntBits(m02)
-        result = 31 * result + java.lang.Float.floatToIntBits(m10)
-        result = 31 * result + java.lang.Float.floatToIntBits(m11)
-        result = 31 * result + java.lang.Float.floatToIntBits(m12)
-        result = 31 * result + java.lang.Float.floatToIntBits(m20)
-        result = 31 * result + java.lang.Float.floatToIntBits(m21)
-        result = 31 * result + java.lang.Float.floatToIntBits(m22)
-        result = 31 * result + java.lang.Float.floatToIntBits(m30)
-        result = 31 * result + java.lang.Float.floatToIntBits(m31)
-        result = 31 * result + java.lang.Float.floatToIntBits(m32)
+        result = 31 * result + (m00).toBits()
+        result = 31 * result + (m01).toBits()
+        result = 31 * result + (m02).toBits()
+        result = 31 * result + (m10).toBits()
+        result = 31 * result + (m11).toBits()
+        result = 31 * result + (m12).toBits()
+        result = 31 * result + (m20).toBits()
+        result = 31 * result + (m21).toBits()
+        result = 31 * result + (m22).toBits()
+        result = 31 * result + (m30).toBits()
+        result = 31 * result + (m31).toBits()
+        result = 31 * result + (m32).toBits()
         return result
     }
 
@@ -3901,30 +3901,30 @@ open class Matrix4x3f {
         } else if (other !is Matrix4x3f) {
             false
         } else {
-            if (java.lang.Float.floatToIntBits(m00) != java.lang.Float.floatToIntBits(other.m00)) {
+            if ((m00) != (other.m00)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m01) != java.lang.Float.floatToIntBits(other.m01)) {
+            } else if ((m01) != (other.m01)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m02) != java.lang.Float.floatToIntBits(other.m02)) {
+            } else if ((m02) != (other.m02)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m10) != java.lang.Float.floatToIntBits(other.m10)) {
+            } else if ((m10) != (other.m10)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m11) != java.lang.Float.floatToIntBits(other.m11)) {
+            } else if ((m11) != (other.m11)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m12) != java.lang.Float.floatToIntBits(other.m12)) {
+            } else if ((m12) != (other.m12)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m20) != java.lang.Float.floatToIntBits(other.m20)) {
+            } else if ((m20) != (other.m20)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m21) != java.lang.Float.floatToIntBits(other.m21)) {
+            } else if ((m21) != (other.m21)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m22) != java.lang.Float.floatToIntBits(other.m22)) {
+            } else if ((m22) != (other.m22)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m30) != java.lang.Float.floatToIntBits(other.m30)) {
+            } else if ((m30) != (other.m30)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m31) != java.lang.Float.floatToIntBits(other.m31)) {
+            } else if ((m31) != (other.m31)) {
                 false
             } else {
-                java.lang.Float.floatToIntBits(m32) == java.lang.Float.floatToIntBits(other.m32)
+                (m32) == (other.m32)
             }
         }
     }

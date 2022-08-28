@@ -43,7 +43,7 @@ class SDFPolygon : SDF2DShape() {
         if (dynamicSize) builder.appendUniform(uniforms, GLSLType.V1F) { points.toFloat() }
         else {
             // precompute the parameters for better performance
-            val an = (Math.PI / points).toFloat()
+            val an = (PI / points).toFloat()
             builder.append(an).append(',')
             builder.append("vec2(").append(cos(an)).append(',').append(sin(an)).append(')')
         }
@@ -52,7 +52,7 @@ class SDFPolygon : SDF2DShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        val an = (Math.PI / points).toFloat()
+        val an = (PI / points).toFloat()
         val can = cos(an)
         val san = sin(an)
         var px = pos.x

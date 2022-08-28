@@ -15,6 +15,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths
 import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -52,7 +53,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
     @Docs("For displaying random triangle colors")
     @NotSerializedProperty
-    val randomTriangleId = (Math.random() * 1e9).toInt()
+    val randomTriangleId = (Maths.random() * 1e9).toInt()
 
     @DebugProperty
     @NotSerializedProperty

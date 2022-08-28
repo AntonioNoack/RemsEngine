@@ -571,13 +571,13 @@ open class Matrix2d {
 
     override fun hashCode(): Int {
         var result = 1
-        var temp = java.lang.Double.doubleToLongBits(m00)
+        var temp = (m00).toBits()
         result = 31 * result + (temp ushr 32 xor temp).toInt()
-        temp = java.lang.Double.doubleToLongBits(m01)
+        temp = (m01).toBits()
         result = 31 * result + (temp ushr 32 xor temp).toInt()
-        temp = java.lang.Double.doubleToLongBits(m10)
+        temp = (m10).toBits()
         result = 31 * result + (temp ushr 32 xor temp).toInt()
-        temp = java.lang.Double.doubleToLongBits(m11)
+        temp = (m11).toBits()
         result = 31 * result + (temp ushr 32 xor temp).toInt()
         return result
     }

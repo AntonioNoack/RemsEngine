@@ -3,6 +3,7 @@ package me.anno.image.svg
 import me.anno.gpu.GFX
 import me.anno.image.svg.tokenizer.SVGTokenizer
 import me.anno.utils.structures.lists.Lists.indexOf2
+import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Matrices.skew
 import org.joml.Matrix4d
 import java.util.*
@@ -51,13 +52,13 @@ object SVGTransform {
                     "rotate" -> {
                         when (params.size) {
                             1 -> {
-                                transform.rotateZ(GFX.toRadians(params[0]))
+                                transform.rotateZ(params[0].toRadians())
                             }
                             3 -> {
                                 val dx = params[1]
                                 val dy = params[2]
                                 transform.translate(-dx, -dy, 0.0)
-                                transform.rotateZ(GFX.toRadians(params[0]))
+                                transform.rotateZ(params[0].toRadians())
                                 transform.translate(dx, dy, 0.0)
                             }
                         }

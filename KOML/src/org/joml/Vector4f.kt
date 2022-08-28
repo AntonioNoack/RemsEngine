@@ -514,32 +514,17 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + java.lang.Float.floatToIntBits(w)
-        result = 31 * result + java.lang.Float.floatToIntBits(x)
-        result = 31 * result + java.lang.Float.floatToIntBits(y)
-        result = 31 * result + java.lang.Float.floatToIntBits(z)
+        result = 31 * result + (w).toBits()
+        result = 31 * result + (x).toBits()
+        result = 31 * result + (y).toBits()
+        result = 31 * result + (z).toBits()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other == null) {
-            false
-        } else if (this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Vector4f
-            if (java.lang.Float.floatToIntBits(w) != java.lang.Float.floatToIntBits(other.w)) {
-                false
-            } else if (java.lang.Float.floatToIntBits(x) != java.lang.Float.floatToIntBits(other.x)) {
-                false
-            } else if (java.lang.Float.floatToIntBits(y) != java.lang.Float.floatToIntBits(other.y)) {
-                false
-            } else {
-                java.lang.Float.floatToIntBits(z) == java.lang.Float.floatToIntBits(other.z)
-            }
-        }
+        return if (this === other) true
+        else if (other !is Vector4f) false
+        else x == other.x && y == other.y && z == other.z && w == other.w
     }
 
     fun equals(v: Vector4f?, delta: Float): Boolean {
@@ -559,14 +544,14 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
     }
 
     fun equals(x: Float, y: Float, z: Float, w: Float): Boolean {
-        return if (java.lang.Float.floatToIntBits(this.x) != java.lang.Float.floatToIntBits(x)) {
+        return if ((this.x) != (x)) {
             false
-        } else if (java.lang.Float.floatToIntBits(this.y) != java.lang.Float.floatToIntBits(y)) {
+        } else if ((this.y) != (y)) {
             false
-        } else if (java.lang.Float.floatToIntBits(this.z) != java.lang.Float.floatToIntBits(z)) {
+        } else if ((this.z) != (z)) {
             false
         } else {
-            java.lang.Float.floatToIntBits(this.w) == java.lang.Float.floatToIntBits(w)
+            (this.w) == (w)
         }
     }
 

@@ -4,8 +4,6 @@ import me.anno.io.utils.StringMap
 import me.anno.utils.Warning.warn
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import java.lang.Exception
-import java.lang.RuntimeException
 import java.util.logging.Level.parse
 
 class FFMPEGMetaParser(): StringMap(){

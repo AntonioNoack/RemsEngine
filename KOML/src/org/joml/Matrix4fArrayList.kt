@@ -76,17 +76,6 @@ class Matrix4fArrayList : Matrix4f() {
         return result
     }
 
-    /*
-     * Contract between Matrix4f and Matrix4fStack:
-     *
-     * - Matrix4f.equals(Matrix4fStack) is true iff all the 16 matrix elements are equal
-     * - Matrix4fStack.equals(Matrix4f) is true iff all the 16 matrix elements are equal
-     * - Matrix4fStack.equals(Matrix4fStack) is true iff all 16 matrix elements are equal AND the matrix arrays as well as the stack pointer are equal
-     * - everything else is inequal
-     *
-     * (non-Javadoc)
-     * @see org.joml.Matrix4f#equals(java.lang.Object)
-     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (!super.equals(other)) return false

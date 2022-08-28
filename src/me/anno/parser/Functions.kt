@@ -1,5 +1,6 @@
 package me.anno.parser
 
+import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.noise.FullNoise
 import java.util.*
@@ -184,11 +185,11 @@ object Functions {
 
     init {
 
-        constants["pi"] = Math.PI
+        constants["pi"] = PI
         constants["e"] = Math.E
         constants["°"] = Math.toDegrees(1.0)
 
-        functions0["rand"] = { Math.random() }
+        functions0["rand"] = { Maths.random() }
 
         // min/max
         functions1["min"] = { it }

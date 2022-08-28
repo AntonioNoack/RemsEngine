@@ -25,7 +25,7 @@ class AxisAngle4f {
     constructor(q: Quaternionf) {
         val acos = JomlMath.safeAcos(q.w)
         val invSqrt = JomlMath.invsqrt(1.0f - q.w * q.w)
-        if (java.lang.Float.isInfinite(invSqrt)) {
+        if (invSqrt.isInfinite()) {
             x = 0.0f
             y = 0.0f
             z = 1.0f
@@ -83,7 +83,7 @@ class AxisAngle4f {
     fun set(q: Quaternionf): AxisAngle4f {
         val acos = JomlMath.safeAcos(q.w)
         val invSqrt = JomlMath.invsqrt(1.0f - q.w * q.w)
-        if (java.lang.Float.isInfinite(invSqrt)) {
+        if (invSqrt.isInfinite()) {
             x = 0.0f
             y = 0.0f
             z = 1.0f
@@ -99,7 +99,7 @@ class AxisAngle4f {
     fun set(q: Quaterniond): AxisAngle4f {
         val acos = JomlMath.safeAcos(q.w)
         val invSqrt = JomlMath.invsqrt(1.0 - q.w * q.w)
-        if (java.lang.Double.isInfinite(invSqrt)) {
+        if (invSqrt.isInfinite()) {
             x = 0.0f
             y = 0.0f
             z = 1.0f
@@ -527,35 +527,29 @@ class AxisAngle4f {
         var result = 1
         val nangle =
             ((if (angle.toDouble() < 0.0) 6.283185307179586 + angle.toDouble() % 6.283185307179586 else angle.toDouble()) % 6.283185307179586).toFloat()
-        result = 31 * result + java.lang.Float.floatToIntBits(nangle)
-        result = 31 * result + java.lang.Float.floatToIntBits(x)
-        result = 31 * result + java.lang.Float.floatToIntBits(y)
-        result = 31 * result + java.lang.Float.floatToIntBits(z)
+        result = 31 * result + nangle.toBits()
+        result = 31 * result + x.toBits()
+        result = 31 * result + y.toBits()
+        result = 31 * result + z.toBits()
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
             true
-        } else if (obj == null) {
+        } else if (other == null) {
             false
-        } else if (this.javaClass != obj.javaClass) {
+        } else if (this.javaClass != other.javaClass) {
             false
         } else {
-            val other = obj as AxisAngle4f
+            other as AxisAngle4f
             val nangle =
                 ((if (angle.toDouble() < 0.0) 6.283185307179586 + angle.toDouble() % 6.283185307179586 else angle.toDouble()) % 6.283185307179586).toFloat()
             val nangleOther =
                 ((if (other.angle.toDouble() < 0.0) 6.283185307179586 + other.angle.toDouble() % 6.283185307179586 else other.angle.toDouble()) % 6.283185307179586).toFloat()
-            if (java.lang.Float.floatToIntBits(nangle) != java.lang.Float.floatToIntBits(nangleOther)) {
+            if (nangle != nangleOther || (x) != (other.x) || (y) != (other.y)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(x) != java.lang.Float.floatToIntBits(other.x)) {
-                false
-            } else if (java.lang.Float.floatToIntBits(y) != java.lang.Float.floatToIntBits(other.y)) {
-                false
-            } else {
-                java.lang.Float.floatToIntBits(z) == java.lang.Float.floatToIntBits(other.z)
-            }
+            } else (z) == (other.z)
         }
     }
 }

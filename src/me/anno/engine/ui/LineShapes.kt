@@ -9,6 +9,7 @@ import me.anno.utils.types.Vectors.findSystem
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -22,9 +23,9 @@ object LineShapes {
     }
 
     val zToX: Matrix4x3d = Matrix4x3d()
-        .rotateY(Math.PI / 2)
+        .rotateY(PI / 2)
     val zToY: Matrix4x3d = Matrix4x3d()
-        .rotateX(Math.PI / 2)
+        .rotateX(PI / 2)
 
     fun drawCone(
         entity: Entity?,
@@ -409,7 +410,7 @@ object LineShapes {
         val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
         for (i in 0 until segments) {
-            val angle = i * Math.PI * 2.0 / segments
+            val angle = i * PI * 2.0 / segments
             val position = positions[i]
             position.set(otherAxis)
             position.setComponent(cosAxis, cos(angle) * radius)
@@ -436,7 +437,7 @@ object LineShapes {
         val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
         for (i in 0..segments) {
-            val angle = startAngle + i * Math.PI / segments
+            val angle = startAngle + i * PI / segments
             val position = positions[i]
             position.set(otherAxis)
             position.setComponent(cosAxis, cos(angle) * radius)

@@ -3799,8 +3799,8 @@ open class Matrix4f {
         val h = tan(fovy * 0.5f)
         val rm00 = 1f / (h * aspect)
         val rm11 = 1f / h
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val rm22: Float
         val rm32: Float
         var e: Float
@@ -3862,8 +3862,8 @@ open class Matrix4f {
     ): Matrix4f {
         val rm00 = (zNear + zNear) / width
         val rm11 = (zNear + zNear) / height
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val rm22: Float
         val rm32: Float
         var e: Float
@@ -3936,8 +3936,8 @@ open class Matrix4f {
         val offY = tan(offAngleY)
         val rm20 = offX * xScale
         val rm21 = offY * yScale
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val rm22: Float
         val rm32: Float
         var e: Float
@@ -4072,8 +4072,8 @@ open class Matrix4f {
         zero()
         val h = tan(fovy * 0.5f)
         _m00(1f / (h * aspect))._m11(1f / h)
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val e: Float
         if (farInf) {
             e = 1.0E-6f
@@ -4094,8 +4094,8 @@ open class Matrix4f {
     fun setPerspectiveRect(width: Float, height: Float, zNear: Float, zFar: Float, zZeroToOne: Boolean): Matrix4f {
         zero()
         _m00((zNear + zNear) / width)._m11((zNear + zNear) / height)
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val e: Float
         if (farInf) {
             e = 1.0E-6f
@@ -4141,8 +4141,8 @@ open class Matrix4f {
         val offX = tan(offAngleX)
         val offY = tan(offAngleY)
         _m00(xScale)._m11(yScale)._m20(offX * xScale)._m21(offY * yScale)
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val e: Float
         if (farInf) {
             e = 1.0E-6f
@@ -4248,8 +4248,8 @@ open class Matrix4f {
         val h = tan(fovy * 0.5f)
         val rm00 = 1f / (h * aspect)
         val rm11 = 1f / h
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val rm22: Float
         val rm32: Float
         var e: Float
@@ -4287,8 +4287,8 @@ open class Matrix4f {
         zero()
         val h = tan(fovy * 0.5f)
         _m00(1f / (h * aspect))._m11(1f / h)
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val e: Float
         if (farInf) {
             e = 1.0E-6f
@@ -4343,8 +4343,8 @@ open class Matrix4f {
         val rm11 = (zNear + zNear) / (top - bottom)
         val rm20 = (right + left) / (right - left)
         val rm21 = (top + bottom) / (top - bottom)
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val rm22: Float
         val rm32: Float
         var e: Float
@@ -4396,8 +4396,8 @@ open class Matrix4f {
         identity()
         _m00((zNear + zNear) / (right - left))._m11((zNear + zNear) / (top - bottom))
             ._m20((right + left) / (right - left))._m21((top + bottom) / (top - bottom))
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val e: Float
         if (farInf) {
             e = 1.0E-6f
@@ -4452,8 +4452,8 @@ open class Matrix4f {
         val rm11 = (zNear + zNear) / (top - bottom)
         val rm20 = (right + left) / (right - left)
         val rm21 = (top + bottom) / (top - bottom)
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val rm22: Float
         val rm32: Float
         var e: Float
@@ -4505,8 +4505,8 @@ open class Matrix4f {
         identity()
         _m00((zNear + zNear) / (right - left))._m11((zNear + zNear) / (top - bottom))
             ._m20((right + left) / (right - left))._m21((top + bottom) / (top - bottom))
-        val farInf = zFar > 0f && java.lang.Float.isInfinite(zFar)
-        val nearInf = zNear > 0f && java.lang.Float.isInfinite(zNear)
+        val farInf = zFar > 0f && zFar.isInfinite()
+        val nearInf = zNear > 0f && zNear.isInfinite()
         val e: Float
         if (farInf) {
             e = 1.0E-6f
@@ -5956,66 +5956,63 @@ open class Matrix4f {
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + java.lang.Float.floatToIntBits(m00)
-        result = 31 * result + java.lang.Float.floatToIntBits(m01)
-        result = 31 * result + java.lang.Float.floatToIntBits(m02)
-        result = 31 * result + java.lang.Float.floatToIntBits(m03)
-        result = 31 * result + java.lang.Float.floatToIntBits(m10)
-        result = 31 * result + java.lang.Float.floatToIntBits(m11)
-        result = 31 * result + java.lang.Float.floatToIntBits(m12)
-        result = 31 * result + java.lang.Float.floatToIntBits(m13)
-        result = 31 * result + java.lang.Float.floatToIntBits(m20)
-        result = 31 * result + java.lang.Float.floatToIntBits(m21)
-        result = 31 * result + java.lang.Float.floatToIntBits(m22)
-        result = 31 * result + java.lang.Float.floatToIntBits(m23)
-        result = 31 * result + java.lang.Float.floatToIntBits(m30)
-        result = 31 * result + java.lang.Float.floatToIntBits(m31)
-        result = 31 * result + java.lang.Float.floatToIntBits(m32)
-        result = 31 * result + java.lang.Float.floatToIntBits(m33)
+        result = 31 * result + (m00).toBits()
+        result = 31 * result + (m01).toBits()
+        result = 31 * result + (m02).toBits()
+        result = 31 * result + (m03).toBits()
+        result = 31 * result + (m10).toBits()
+        result = 31 * result + (m11).toBits()
+        result = 31 * result + (m12).toBits()
+        result = 31 * result + (m13).toBits()
+        result = 31 * result + (m20).toBits()
+        result = 31 * result + (m21).toBits()
+        result = 31 * result + (m22).toBits()
+        result = 31 * result + (m23).toBits()
+        result = 31 * result + (m30).toBits()
+        result = 31 * result + (m31).toBits()
+        result = 31 * result + (m32).toBits()
+        result = 31 * result + (m33).toBits()
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
             true
-        } else if (obj == null) {
-            false
-        } else if (obj !is Matrix4f) {
+        } else if (other !is Matrix4f) {
             false
         } else {
-            val other = obj
-            if (java.lang.Float.floatToIntBits(m00) != java.lang.Float.floatToIntBits(other.m00)) {
+            if ((m00) != (other.m00)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m01) != java.lang.Float.floatToIntBits(other.m01)) {
+            } else if ((m01) != (other.m01)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m02) != java.lang.Float.floatToIntBits(other.m02)) {
+            } else if ((m02) != (other.m02)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m03) != java.lang.Float.floatToIntBits(other.m03)) {
+            } else if ((m03) != (other.m03)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m10) != java.lang.Float.floatToIntBits(other.m10)) {
+            } else if ((m10) != (other.m10)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m11) != java.lang.Float.floatToIntBits(other.m11)) {
+            } else if ((m11) != (other.m11)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m12) != java.lang.Float.floatToIntBits(other.m12)) {
+            } else if ((m12) != (other.m12)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m13) != java.lang.Float.floatToIntBits(other.m13)) {
+            } else if ((m13) != (other.m13)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m20) != java.lang.Float.floatToIntBits(other.m20)) {
+            } else if ((m20) != (other.m20)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m21) != java.lang.Float.floatToIntBits(other.m21)) {
+            } else if ((m21) != (other.m21)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m22) != java.lang.Float.floatToIntBits(other.m22)) {
+            } else if ((m22) != (other.m22)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m23) != java.lang.Float.floatToIntBits(other.m23)) {
+            } else if ((m23) != (other.m23)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m30) != java.lang.Float.floatToIntBits(other.m30)) {
+            } else if ((m30) != (other.m30)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m31) != java.lang.Float.floatToIntBits(other.m31)) {
+            } else if ((m31) != (other.m31)) {
                 false
-            } else if (java.lang.Float.floatToIntBits(m32) != java.lang.Float.floatToIntBits(other.m32)) {
+            } else if ((m32) != (other.m32)) {
                 false
             } else {
-                java.lang.Float.floatToIntBits(m33) == java.lang.Float.floatToIntBits(other.m33)
+                (m33) == (other.m33)
             }
         }
     }
@@ -6152,12 +6149,12 @@ open class Matrix4f {
             val nx = (m00 * x + m10 * y + m20 * z + m30) * invW
             val ny = (m01 * x + m11 * y + m21 * z + m31) * invW
             val nz = (m02 * x + m12 * y + m22 * z + m32) * invW
-            minX = java.lang.Math.min(minX, nx)
-            minY = java.lang.Math.min(minY, ny)
-            minZ = java.lang.Math.min(minZ, nz)
-            maxX = java.lang.Math.max(maxX, nx)
-            maxY = java.lang.Math.max(maxY, ny)
-            maxZ = java.lang.Math.max(maxZ, nz)
+            minX = kotlin.math.min(minX, nx)
+            minY = kotlin.math.min(minY, ny)
+            minZ = kotlin.math.min(minZ, nz)
+            maxX = kotlin.math.max(maxX, nx)
+            maxY = kotlin.math.max(maxY, ny)
+            maxZ = kotlin.math.max(maxZ, nz)
         }
         min.x = minX
         min.y = minY
@@ -6224,10 +6221,10 @@ open class Matrix4f {
                     invW = 1f / (projector.m03 * ix + projector.m23 * iz + projector.m33)
                     val px = (projector.m00 * ix + projector.m20 * iz + projector.m30) * invW
                     val py = (projector.m01 * ix + projector.m21 * iz + projector.m31) * invW
-                    minX = java.lang.Math.min(minX, px)
-                    minY = java.lang.Math.min(minY, py)
-                    maxX = java.lang.Math.max(maxX, px)
-                    maxY = java.lang.Math.max(maxY, py)
+                    minX = kotlin.math.min(minX, px)
+                    minY = kotlin.math.min(minY, py)
+                    maxX = kotlin.math.max(maxX, px)
+                    maxY = kotlin.math.max(maxY, py)
                 }
             }
         }
@@ -6271,12 +6268,12 @@ open class Matrix4f {
             val vx = view.m00 * wx + view.m10 * wy + view.m20 * wz + view.m30
             val vy = view.m01 * wx + view.m11 * wy + view.m21 * wz + view.m31
             val vz = (view.m02 * wx + view.m12 * wy + view.m22 * wz + view.m32) * invW
-            minX = java.lang.Math.min(minX, vx)
-            maxX = java.lang.Math.max(maxX, vx)
-            minY = java.lang.Math.min(minY, vy)
-            maxY = java.lang.Math.max(maxY, vy)
-            minZ = java.lang.Math.min(minZ, vz)
-            maxZ = java.lang.Math.max(maxZ, vz)
+            minX = kotlin.math.min(minX, vx)
+            maxX = kotlin.math.max(maxX, vx)
+            minY = kotlin.math.min(minY, vy)
+            maxY = kotlin.math.max(maxY, vy)
+            minZ = kotlin.math.min(minZ, vz)
+            maxZ = kotlin.math.max(maxZ, vz)
         }
         return dst.setOrtho(minX, maxX, minY, maxY, -maxZ, -minZ)
     }
@@ -7365,10 +7362,10 @@ open class Matrix4f {
             val len = sqrt(zx * zx + zy * zy + zz * zz)
             var near = zd / len
             val far: Float
-            if (java.lang.Float.isInfinite(nearFarDist) && nearFarDist < 0f) {
+            if ((nearFarDist.isInfinite()) && nearFarDist < 0f) {
                 far = near
                 near = Float.POSITIVE_INFINITY
-            } else if (java.lang.Float.isInfinite(nearFarDist) && nearFarDist > 0f) {
+            } else if ((nearFarDist.isInfinite()) && nearFarDist > 0f) {
                 far = Float.POSITIVE_INFINITY
             } else if (nearFarDist < 0f) {
                 far = near

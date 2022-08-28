@@ -1,9 +1,6 @@
 package org.joml
 
-import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.*
 
 class AxisAngle4d : Cloneable {
     var angle = 0.0
@@ -33,7 +30,7 @@ class AxisAngle4d : Cloneable {
     constructor(q: Quaternionf) {
         val acos = JomlMath.safeAcos(q.w)
         val invSqrt = JomlMath.invsqrt(1f - q.w * q.w)
-        if (java.lang.Float.isInfinite(invSqrt)) {
+        if (invSqrt.isInfinite()) {
             x = 0.0
             y = 0.0
             z = 1.0
@@ -48,7 +45,7 @@ class AxisAngle4d : Cloneable {
     constructor(q: Quaterniond) {
         val acos = JomlMath.safeAcos(q.w)
         val invSqrt = JomlMath.invsqrt(1.0 - q.w * q.w)
-        if (java.lang.Double.isInfinite(invSqrt)) {
+        if (invSqrt.isInfinite()) {
             x = 0.0
             y = 0.0
             z = 1.0
@@ -106,7 +103,7 @@ class AxisAngle4d : Cloneable {
     fun set(q: Quaternionf): AxisAngle4d {
         val acos = JomlMath.safeAcos(q.w)
         val invSqrt = JomlMath.invsqrt(1f - q.w * q.w)
-        if (java.lang.Float.isInfinite(invSqrt)) {
+        if (invSqrt.isInfinite()) {
             x = 0.0
             y = 0.0
             z = 1.0
@@ -122,7 +119,7 @@ class AxisAngle4d : Cloneable {
     fun set(q: Quaterniond): AxisAngle4d {
         val acos = JomlMath.safeAcos(q.w)
         val invSqrt = JomlMath.invsqrt(1.0 - q.w * q.w)
-        if (java.lang.Double.isInfinite(invSqrt)) {
+        if (invSqrt.isInfinite()) {
             x = 0.0
             y = 0.0
             z = 1.0
@@ -170,7 +167,7 @@ class AxisAngle4d : Cloneable {
                 z = 1.0
                 angle = 0.0
             } else {
-                angle = java.lang.Math.PI
+                angle = PI
                 xx = (nm00 + 1.0) / 2.0
                 val yy = (nm11 + 1.0) / 2.0
                 val zz = (nm22 + 1.0) / 2.0
@@ -237,7 +234,7 @@ class AxisAngle4d : Cloneable {
                 z = 1.0
                 angle = 0.0
             } else {
-                angle = java.lang.Math.PI
+                angle = PI
                 xx = (nm00 + 1.0) / 2.0
                 val yy = (nm11 + 1.0) / 2.0
                 val zz = (nm22 + 1.0) / 2.0
@@ -304,7 +301,7 @@ class AxisAngle4d : Cloneable {
                 z = 1.0
                 angle = 0.0
             } else {
-                angle = java.lang.Math.PI
+                angle = PI
                 xx = (nm00 + 1.0) / 2.0
                 val yy = (nm11 + 1.0) / 2.0
                 val zz = (nm22 + 1.0) / 2.0
@@ -371,7 +368,7 @@ class AxisAngle4d : Cloneable {
                 z = 1.0
                 angle = 0.0
             } else {
-                angle = java.lang.Math.PI
+                angle = PI
                 xx = (nm00 + 1.0) / 2.0
                 val yy = (nm11 + 1.0) / 2.0
                 val zz = (nm22 + 1.0) / 2.0
@@ -438,7 +435,7 @@ class AxisAngle4d : Cloneable {
                 z = 1.0
                 angle = 0.0
             } else {
-                angle = java.lang.Math.PI
+                angle = PI
                 xx = (nm00 + 1.0) / 2.0
                 val yy = (nm11 + 1.0) / 2.0
                 val zz = (nm22 + 1.0) / 2.0
@@ -562,13 +559,13 @@ class AxisAngle4d : Cloneable {
     override fun hashCode(): Int {
         var result = 1
         var temp =
-            java.lang.Double.doubleToLongBits((if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586)
+            ((if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(x)
+        temp = (x).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(y)
+        temp = (y).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = java.lang.Double.doubleToLongBits(z)
+        temp = (z).toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
         return result
     }
@@ -582,17 +579,17 @@ class AxisAngle4d : Cloneable {
             false
         } else {
             val other = obj as AxisAngle4d
-            if (java.lang.Double.doubleToLongBits((if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586) != java.lang.Double.doubleToLongBits(
+            if (((if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586) != (
                     (if (other.angle < 0.0) 6.283185307179586 + other.angle % 6.283185307179586 else other.angle) % 6.283185307179586
                 )
             ) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(x) != java.lang.Double.doubleToLongBits(other.x)) {
+            } else if ((x) != (other.x)) {
                 false
-            } else if (java.lang.Double.doubleToLongBits(y) != java.lang.Double.doubleToLongBits(other.y)) {
+            } else if ((y) != (other.y)) {
                 false
             } else {
-                java.lang.Double.doubleToLongBits(z) == java.lang.Double.doubleToLongBits(other.z)
+                (z) == (other.z)
             }
         }
     }

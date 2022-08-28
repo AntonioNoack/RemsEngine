@@ -16,7 +16,7 @@ fun main() {
     GFXState.useFrame(fb) {
         val black = 255 shl 24
         // random color, so we can observe changes in the preview icon
-        val color = (Math.random() * (1 shl 24)).toInt() or 0x333333
+        val color = (Maths.random() * (1 shl 24)).toInt() or 0x333333
         DrawGradients.drawRectGradient(
             0, 0, s, s, color or black, black
         )
