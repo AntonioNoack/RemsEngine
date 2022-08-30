@@ -388,7 +388,6 @@ open class Matrix2d {
         return dst
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getRow(row: Int, dst: Vector2d): Vector2d {
         when (row) {
             0 -> {
@@ -404,12 +403,10 @@ open class Matrix2d {
         return dst
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setRow(row: Int, src: Vector2d): Matrix2d {
         return this.setRow(row, src.x, src.y)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setRow(row: Int, x: Double, y: Double): Matrix2d {
         when (row) {
             0 -> {
@@ -425,7 +422,6 @@ open class Matrix2d {
         return this
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getColumn(column: Int, dst: Vector2d): Vector2d {
         when (column) {
             0 -> {
@@ -441,12 +437,10 @@ open class Matrix2d {
         return dst
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setColumn(column: Int, src: Vector2d): Matrix2d {
         return this.setColumn(column, src.x, src.y)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setColumn(column: Int, x: Double, y: Double): Matrix2d {
         when (column) {
             0 -> {

@@ -71,7 +71,6 @@ open class Vector4i(var x: Int, var y: Int, var z: Int, var w: Int) {
         return this
     }
 
-    @Throws(IllegalArgumentException::class)
     operator fun get(component: Int): Int {
         return when (component) {
             0 -> x
@@ -110,7 +109,6 @@ open class Vector4i(var x: Int, var y: Int, var z: Int, var w: Int) {
         }
     }
 
-    @Throws(IllegalArgumentException::class)
     fun setComponent(component: Int, value: Int): Vector4i {
         when (component) {
             0 -> x = value

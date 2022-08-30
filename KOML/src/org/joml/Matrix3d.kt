@@ -1500,7 +1500,6 @@ open class Matrix3d {
         return this.rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble(), dest)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getRow(row: Int, dest: Vector3d): Vector3d {
         return when (row) {
             0 -> dest.set(m00, m10, m20)
@@ -1510,12 +1509,10 @@ open class Matrix3d {
         }
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setRow(row: Int, src: Vector3d): Matrix3d {
         return this.setRow(row, src.x, src.y, src.z)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setRow(row: Int, x: Double, y: Double, z: Double): Matrix3d {
         when (row) {
             0 -> {
@@ -1538,7 +1535,6 @@ open class Matrix3d {
         return this
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getColumn(column: Int, dest: Vector3d): Vector3d {
         return when (column) {
             0 -> dest.set(m00, m01, m02)
@@ -1548,12 +1544,10 @@ open class Matrix3d {
         }
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setColumn(column: Int, src: Vector3d): Matrix3d {
         return this.setColumn(column, src.x, src.y, src.z)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setColumn(column: Int, x: Double, y: Double, z: Double): Matrix3d {
         when (column) {
             0 -> {

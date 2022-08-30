@@ -5307,7 +5307,6 @@ open class Matrix4f {
         return this.reflection(normalX, normalY, normalZ, point.x, point.y, point.z)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getRow(row: Int, dst: Vector4f): Vector4f {
         return when (row) {
             0 -> dst.set(m00, m10, m20, m30)
@@ -5318,7 +5317,6 @@ open class Matrix4f {
         }
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getRow(row: Int, dst: Vector3f): Vector3f {
         return when (row) {
             0 -> dst.set(m00, m10, m20)
@@ -5329,7 +5327,6 @@ open class Matrix4f {
         }
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setRow(row: Int, src: Vector4f): Matrix4f {
         return when (row) {
             0 -> _m00(src.x)._m10(src.y)._m20(src.z)._m30(src.w)._properties(0)
@@ -5340,12 +5337,11 @@ open class Matrix4f {
         }
     }
 
-    /*@Throws(IndexOutOfBoundsException::class)
+    /*
     fun getColumn(column: Int, dst: Vector4f): Vector4f {
         return MemUtil.INSTANCE.getColumn(this, column, dst)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getColumn(column: Int, dst: Vector3f): Vector3f {
         return when (column) {
             0 -> dst.set(m00, m01, m02)
@@ -5356,7 +5352,6 @@ open class Matrix4f {
         }
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setColumn(column: Int, src: Vector4f?): Matrix4f {
         return MemUtil.INSTANCE.setColumn(src, column, this)._properties(0)
     }

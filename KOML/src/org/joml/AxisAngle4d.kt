@@ -2,7 +2,7 @@ package org.joml
 
 import kotlin.math.*
 
-class AxisAngle4d : Cloneable {
+class AxisAngle4d {
     var angle = 0.0
     var x = 0.0
     var y = 0.0
@@ -570,32 +570,15 @@ class AxisAngle4d : Cloneable {
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
-            true
-        } else if (obj == null) {
-            false
-        } else if (this.javaClass != obj.javaClass) {
-            false
-        } else {
-            val other = obj as AxisAngle4d
-            if (((if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586) != (
-                    (if (other.angle < 0.0) 6.283185307179586 + other.angle % 6.283185307179586 else other.angle) % 6.283185307179586
-                )
-            ) {
-                false
-            } else if ((x) != (other.x)) {
-                false
-            } else if ((y) != (other.y)) {
-                false
-            } else {
-                (z) == (other.z)
-            }
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) true
+        else if (other !is AxisAngle4d) false
+        else {
+            val a0 = (if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586
+            val a1 =
+                (if (other.angle < 0.0) 6.283185307179586 + other.angle % 6.283185307179586 else other.angle) % 6.283185307179586
+            return x == other.x && y == other.y && z == other.z && a0 == a1
         }
     }
 
-    @Throws(CloneNotSupportedException::class)
-    public override fun clone(): Any {
-        return super.clone()
-    }
 }

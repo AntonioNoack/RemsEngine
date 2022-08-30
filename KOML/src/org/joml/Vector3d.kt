@@ -3,7 +3,7 @@ package org.joml
 import kotlin.math.*
 
 @Suppress("unused")
-open class Vector3d : Cloneable {
+open class Vector3d {
     var x = 0.0
     var y = 0.0
     var z = 0.0
@@ -139,7 +139,6 @@ open class Vector3d : Cloneable {
         return this
     }
 
-    @Throws(IllegalArgumentException::class)
     fun setComponent(component: Int, value: Double): Vector3d {
         when (component) {
             0 -> x = value
@@ -917,7 +916,6 @@ open class Vector3d : Cloneable {
         return dst
     }
 
-    @Throws(IllegalArgumentException::class)
     operator fun get(component: Int): Double {
         return when (component) {
             0 -> x

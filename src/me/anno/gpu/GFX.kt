@@ -93,6 +93,7 @@ object GFX {
     var maxColorAttachments = 0
     var maxTextureSize = 0
 
+    val nextGPUTasks = ArrayList<Task>()
     val gpuTasks = ConcurrentLinkedQueue<Task>()
     val lowPriorityGPUTasks = ConcurrentLinkedQueue<Task>()
 
@@ -127,6 +128,12 @@ object GFX {
     fun addGPUTask(name: String, weight: Int, task: () -> Unit) = addGPUTask(name, weight, false, task)
     fun addGPUTask(name: String, weight: Int, lowPriority: Boolean, task: () -> Unit) {
         (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += Task(name, weight, task)
+    }
+
+    fun addNextGPUTask(name: String, w: Int, h: Int, task: () -> Unit) =
+        addNextGPUTask(name, max(1, ((w * h.toLong()) / 10_000).toInt()), task)
+    fun addNextGPUTask(name: String, weight: Int, task: () -> Unit) {
+        nextGPUTasks += Task(name, weight, task)
     }
 
     inline fun useWindowXY(x: Int, y: Int, buffer: Framebuffer?, process: () -> Unit) {
@@ -278,6 +285,10 @@ object GFX {
     }
 
 
+    /**
+     * time limit in seconds
+     * returns whether time is left
+     * */
     fun workQueue(queue: ConcurrentLinkedQueue<Task>, timeLimit: Float, all: Boolean): Boolean {
         return workQueue(queue, if (all) Float.POSITIVE_INFINITY else timeLimit)
     }
@@ -329,6 +340,10 @@ object GFX {
 
     fun workGPUTasks(all: Boolean) {
         val t0 = Engine.nanoTime
+        synchronized(nextGPUTasks){
+            gpuTasks.addAll(nextGPUTasks)
+            nextGPUTasks.clear()
+        }
         if (workQueue(gpuTasks, gpuTaskBudget, all)) {
             val remainingTime = Engine.nanoTime - t0
             workQueue(lowPriorityGPUTasks, remainingTime * 1e-9f, all)

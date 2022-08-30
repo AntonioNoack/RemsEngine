@@ -34,8 +34,8 @@ import kotlin.math.max
 
 object Renderers {
 
-    // todo reinhard tonemapping works often, but not always: {0,1}³ does not work, add spilling somehow
-    // todo also maybe it should be customizable...
+    // reinhard tonemapping works often, but not always: {0,1}³ does not work, add spilling somehow
+    // also maybe it should be customizable...
 
     var tonemapGLSL = "" +
             "vec3 tonemap(vec3 color){ return color / (1.0 + max(max(color.r, color.g), max(color.b, 0.0))); }\n" +

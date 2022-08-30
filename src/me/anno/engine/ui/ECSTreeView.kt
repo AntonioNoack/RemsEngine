@@ -214,10 +214,13 @@ class ECSTreeView(val library: EditorState, style: Style) :
     override fun setCollapsed(element: ISaveable, collapsed: Boolean) {
         if (element !is PrefabSaveable) return
         element.isCollapsed = collapsed
-        try {
-            element.root.prefab!![element.prefabPath!!, "isCollapsed"] = collapsed
-        } catch (e: Exception) {
-        } // idc too much about saving that property; main thing is that we can collapse and expand stuff in the editor
+
+        // idc too much about saving that property; main thing is that we can collapse and expand stuff in the editor
+        val path = element.prefabPath
+        val prefab = element.root.prefab
+        if (path != null && prefab != null && prefab.isWritable)
+            prefab[path, "isCollapsed"] = collapsed
+
         needsTreeUpdate = true
         invalidateLayout()
     }

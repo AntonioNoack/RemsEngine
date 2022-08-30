@@ -9,7 +9,6 @@ import me.anno.gpu.GFX.check
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXState
-import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -788,69 +787,6 @@ open class Texture2D(
             GFX.addGPUTask("IntImage", width, height) {
                 create(creationType, uploadingType, dataI)
                 bufferPool.returnBuffer(data1)
-            }
-        }
-    }
-
-    /**
-     * for testing, create a pixel buffer object for uploading;
-     * not faster on Win10 at least
-     * */
-    fun testRGBPBO(data: IntArray) {
-
-        val t0 = System.nanoTime()
-
-        // pbo
-        val pbo = object : OpenGLBuffer(GL_PIXEL_UNPACK_BUFFER, emptyList(), GL_STREAM_DRAW) {
-
-            override fun createNioBuffer() {
-                throw NotImplementedError()
-            }
-
-            override fun upload(allowResize: Boolean) {
-                if (pointer <= 0) pointer = glGenBuffers()
-                if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
-                bindBuffer(type, pointer)
-                val size = data.size * 4
-                locallyAllocated = allocate(locallyAllocated, size.toLong())
-                val t0i = System.nanoTime()
-                // todo why is this taking 1s/GB, when we send no data???
-                glBufferData(type, size.toLong(), usage)
-                val t1i = System.nanoTime()
-                println("used ${(t1i - t0i) / 1e9}s for p0/$this")
-                isUpToDate = true
-                if (Build.isDebug) DebugGPUStorage.buffers.add(this)
-            }
-        }
-        pbo.simpleBind() // create it without data
-
-        val ptr = glMapBuffer(pbo.type, GL_WRITE_ONLY)
-        if (ptr != null) {
-            // upload data into ptr
-            ptr.asIntBuffer().put(data)
-            glUnmapNamedBuffer(pbo.pointer) // release ptr to mapping buffer
-        } else LOGGER.warn("glMapBuffer returned null")
-        pbo.unbind()
-
-        val t1 = System.nanoTime()
-        println("used ${(t1 - t0) / 1e9}s for p1/$this")
-
-        // then create texture
-        thread(name = name) {
-            Thread.sleep(500)
-            GFX.addGPUTask(name, w, h) {
-                val t2 = System.nanoTime()
-                beforeUpload(1, data.size)
-                writeAlignment(4 * w)
-                pbo.simpleBind()
-                texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, null, unbind = false)
-                afterUpload(false, 4)
-                pbo.unbind()
-
-                val t3 = System.nanoTime()
-                println("used ${(t3 - t2) / 1e9}s for p2/$this")
-
-                pbo.destroy()
             }
         }
     }

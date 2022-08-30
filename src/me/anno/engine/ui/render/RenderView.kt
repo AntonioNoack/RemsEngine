@@ -215,14 +215,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         val rotation = cameraNode.transform.localRotation
 
-        if (!position.isFinite) {
-            LOGGER.warn("Invalid position $position")
-            Thread.sleep(100)
-        }
-        if (!rotation.isFinite) {
-            LOGGER.warn("Invalid rotation $rotation")
-            Thread.sleep(100)
-        }
+        if (!position.isFinite) LOGGER.warn("Invalid position $position")
+        if (!rotation.isFinite) LOGGER.warn("Invalid rotation $rotation")
 
         val tmp3d = JomlPools.vec3d.borrow()
         cameraNode.transform.localPosition = rotation.transform(tmp3d.set(0.0, 0.0, radius)).add(position)

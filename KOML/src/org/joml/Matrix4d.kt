@@ -4014,7 +4014,6 @@ open class Matrix4d {
         return this.rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble(), dest)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getRow(row: Int, dest: Vector4d): Vector4d {
         when (row) {
             0 -> {
@@ -4046,7 +4045,6 @@ open class Matrix4d {
         return dest
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getRow(row: Int, dest: Vector3d): Vector3d {
         when (row) {
             0 -> {
@@ -4074,7 +4072,6 @@ open class Matrix4d {
         return dest
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setRow(row: Int, src: Vector4d): Matrix4d {
         return when (row) {
             0 -> _m00(src.x)._m10(src.y)._m20(src.z)._m30(src.w)._properties(0)
@@ -4085,7 +4082,6 @@ open class Matrix4d {
         }
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getColumn(column: Int, dest: Vector4d): Vector4d {
         when (column) {
             0 -> {
@@ -4117,7 +4113,6 @@ open class Matrix4d {
         return dest
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getColumn(column: Int, dest: Vector3d): Vector3d {
         when (column) {
             0 -> {
@@ -4145,7 +4140,6 @@ open class Matrix4d {
         return dest
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setColumn(column: Int, src: Vector4d): Matrix4d {
         return when (column) {
             0 -> _m00(src.x)._m01(src.y)._m02(src.z)._m03(src.w)._properties(0)

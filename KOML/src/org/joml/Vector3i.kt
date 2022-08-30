@@ -54,7 +54,6 @@ open class Vector3i(var x: Int, var y: Int, var z: Int) {
         return this
     }
 
-    @Throws(IllegalArgumentException::class)
     operator fun get(component: Int): Int {
         return when (component) {
             0 -> x
@@ -64,7 +63,6 @@ open class Vector3i(var x: Int, var y: Int, var z: Int) {
         }
     }
 
-    @Throws(IllegalArgumentException::class)
     fun setComponent(component: Int, value: Int): Vector3i {
         when (component) {
             0 -> x = value

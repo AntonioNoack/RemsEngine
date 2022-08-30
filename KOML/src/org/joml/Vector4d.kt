@@ -130,7 +130,6 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    @Throws(IllegalArgumentException::class)
     fun setComponent(component: Int, value: Double): Vector4d {
         when (component) {
             0 -> x = value
@@ -973,7 +972,6 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return dest
     }
 
-    @Throws(IllegalArgumentException::class)
     operator fun get(component: Int): Double {
         return when (component) {
             0 -> x

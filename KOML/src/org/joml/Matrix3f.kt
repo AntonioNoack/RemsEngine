@@ -1275,7 +1275,6 @@ open class Matrix3f {
         return this
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getRow(row: Int, dst: Vector3f): Vector3f {
         return when (row) {
             0 -> dst.set(m00, m10, m20)
@@ -1285,12 +1284,10 @@ open class Matrix3f {
         }
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setRow(row: Int, src: Vector3f): Matrix3f {
         return this.setRow(row, src.x, src.y, src.z)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setRow(row: Int, x: Float, y: Float, z: Float): Matrix3f {
         when (row) {
             0 -> {
@@ -1313,7 +1310,6 @@ open class Matrix3f {
         return this
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getColumn(column: Int, dst: Vector3f): Vector3f {
         return when (column) {
             0 -> dst.set(m00, m01, m02)
@@ -1323,12 +1319,10 @@ open class Matrix3f {
         }
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setColumn(column: Int, src: Vector3f): Matrix3f {
         return this.setColumn(column, src.x, src.y, src.z)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setColumn(column: Int, x: Float, y: Float, z: Float): Matrix3f {
         when (column) {
             0 -> {

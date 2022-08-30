@@ -3,7 +3,7 @@ package org.joml
 import kotlin.math.*
 
 @Suppress("unused")
-open class Quaternionf : Cloneable {
+open class Quaternionf {
     var x = 0f
     var y = 0f
     var z = 0f
@@ -2208,11 +2208,6 @@ open class Quaternionf : Cloneable {
         } else {
             (this.w) == (w)
         }
-    }
-
-    @Throws(CloneNotSupportedException::class)
-    public override fun clone(): Any {
-        return super.clone()
     }
 
     companion object {

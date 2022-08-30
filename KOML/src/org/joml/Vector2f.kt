@@ -3,7 +3,7 @@ package org.joml
 import kotlin.math.hypot
 
 @Suppress("unused")
-open class Vector2f : Cloneable {
+open class Vector2f {
 
     @JvmField
     var x = 0f
@@ -38,7 +38,6 @@ open class Vector2f : Cloneable {
     fun set(v: Vector2d) = set(v.x.toFloat(), v.y.toFloat())
     fun set(xy: FloatArray) = set(xy[0], xy[1])
 
-    @Throws(IllegalArgumentException::class)
     operator fun get(component: Int): Float {
         return when (component) {
             0 -> x
@@ -50,7 +49,6 @@ open class Vector2f : Cloneable {
     operator fun get(dst: Vector2f) = dst.set(x, y)
     operator fun get(dst: Vector2d): Vector2d = dst.set(x.toDouble(), y.toDouble())
 
-    @Throws(IllegalArgumentException::class)
     fun setComponent(component: Int, value: Float): Vector2f {
         when (component) {
             0 -> x = value

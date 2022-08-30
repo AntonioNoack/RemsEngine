@@ -5,7 +5,7 @@ import kotlin.math.atan2
 import kotlin.math.hypot
 
 @Suppress("unused")
-open class Vector2d : Cloneable {
+open class Vector2d {
     var x = 0.0
     var y = 0.0
 
@@ -36,7 +36,6 @@ open class Vector2d : Cloneable {
     fun set(xy: DoubleArray) = set(xy[0], xy[1])
     fun set(xy: FloatArray) = set(xy[0].toDouble(), xy[1].toDouble())
 
-    @Throws(IllegalArgumentException::class)
     operator fun get(component: Int): Double {
         return when (component) {
             0 -> x
@@ -57,7 +56,6 @@ open class Vector2d : Cloneable {
         return dst
     }
 
-    @Throws(IllegalArgumentException::class)
     fun setComponent(component: Int, value: Double): Vector2d {
         when (component) {
             0 -> x = value

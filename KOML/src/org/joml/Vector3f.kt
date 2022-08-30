@@ -90,7 +90,6 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return this
     }
 
-    @Throws(IllegalArgumentException::class)
     fun setComponent(component: Int, value: Float): Vector3f {
         when (component) {
             0 -> x = value
@@ -704,7 +703,6 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return dst
     }
 
-    @Throws(IllegalArgumentException::class)
     operator fun get(component: Int): Float {
         return when (component) {
             0 -> x

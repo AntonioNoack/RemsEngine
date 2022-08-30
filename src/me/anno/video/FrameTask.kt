@@ -51,21 +51,22 @@ abstract class FrameTask(
     )
 
     fun start(callback: () -> Unit) {
-
-        /**
-         * runs on GPU thread
-         * */
         GFX.addGPUTask("FrameTask", width, height) {
-            if (renderFrame(time)) {
-                writeFrame(averageFrame)
-                destroy()
-                callback()
-            } else {
-                // waiting
-                thread(name = "FrameTask::start") { start(callback) }
+            start1(callback)
+        }
+    }
+
+    private fun start1(callback: () -> Unit) {
+        if (renderFrame(time)) {
+            writeFrame(averageFrame)
+            destroy()
+            callback()
+        } else {
+            // waiting
+            GFX.addNextGPUTask("FrameTask::start", 1) {
+                start1(callback)
             }
         }
-
     }
 
     fun writeFrame(frame: Framebuffer) {

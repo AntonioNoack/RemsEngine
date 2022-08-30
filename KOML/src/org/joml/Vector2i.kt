@@ -22,7 +22,6 @@ open class Vector2i(var x: Int, var y: Int) {
     fun set(v: Vector2d) = set(v.x.toInt(), v.y.toInt())
     fun set(xy: IntArray) = set(xy[0], xy[1])
 
-    @Throws(IllegalArgumentException::class)
     operator fun get(component: Int): Int {
         return when (component) {
             0 -> x
@@ -31,7 +30,6 @@ open class Vector2i(var x: Int, var y: Int) {
         }
     }
 
-    @Throws(IllegalArgumentException::class)
     fun setComponent(component: Int, value: Int): Vector2i {
         when (component) {
             0 -> x = value

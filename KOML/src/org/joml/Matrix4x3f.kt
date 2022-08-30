@@ -3354,7 +3354,6 @@ open class Matrix4x3f {
         return this.reflection(normalX, normalY, normalZ, point.x, point.y, point.z)
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getRow(row: Int, dst: Vector4f): Vector4f {
         when (row) {
             0 -> {
@@ -3380,7 +3379,6 @@ open class Matrix4x3f {
         return dst
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setRow(row: Int, src: Vector4f): Matrix4x3f {
         when (row) {
             0 -> {
@@ -3407,7 +3405,6 @@ open class Matrix4x3f {
         return this
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun getColumn(column: Int, dst: Vector3f): Vector3f {
         when (column) {
             0 -> {
@@ -3435,7 +3432,6 @@ open class Matrix4x3f {
         return dst
     }
 
-    @Throws(IndexOutOfBoundsException::class)
     fun setColumn(column: Int, src: Vector3f): Matrix4x3f {
         when (column) {
             0 -> {

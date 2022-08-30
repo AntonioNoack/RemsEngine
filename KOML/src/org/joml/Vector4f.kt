@@ -118,7 +118,6 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return this
     }
 
-    @Throws(IllegalArgumentException::class)
     fun setComponent(component: Int, value: Float): Vector4f {
         when (component) {
             0 -> x = value
@@ -591,7 +590,6 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return dst
     }
 
-    @Throws(IllegalArgumentException::class)
     operator fun get(component: Int): Float {
         return when (component) {
             0 -> x
