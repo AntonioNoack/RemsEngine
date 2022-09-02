@@ -1,5 +1,7 @@
 package me.anno.tests
 
+import me.anno.maths.Maths
+
 fun main() {
     for (j in 2 until 100) {
         val vs = FloatArray(j) { (it + 1f) / j.toFloat() }

@@ -213,33 +213,6 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             return lutData
 
         }
-
-        fun test() {
-            // todo erf() is just a polynomial, and erfInv is just trying to traverse that polynomial;
-            //  surely, we can express truncCdfInv as some simple polynomial
-            //  and it's used for graphics, so slight errors shouldn't be too bad
-            /*fun truncCdfInv2(x: Float): Float {// fitted curve by eye
-                val v = x - 0.5f
-                return 0.5f + 0.42f * v + 32f * v.pow(7) - sin(v * 3f * PIf) / 60f
-            }*/
-            val points = Array(1001) {
-                val raw = it / 1000f
-                // more weights at the edges
-                val densityMapped = 1f / (1f + exp(-(raw - .5f) * 20f))
-                Vector2d(
-                    (densityMapped - 0.5) * 2.0,
-                    (truncCdfInv(densityMapped) - 0.5)
-                )
-            }.toList()
-            val funcs: List<(Double) -> Double> =
-                listOf({ it }, { it.pow(3) }, { it.pow(11) })
-            val polynomial = LinearRegression.solve(points, funcs)!!
-            println("weights: ${polynomial.joinToString()}")
-            // todo draw these points with error bars...
-            for (p in points) {
-                println("$p -> ${LinearRegression.evaluatePolynomial(p.x, polynomial, funcs)}")
-            }
-        }
     }
 
 }

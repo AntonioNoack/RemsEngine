@@ -31,6 +31,8 @@ object SDFRegistry {
         registerCustomClass(SDFStar())
         registerCustomClass(SDFTorus())
         registerCustomClass(SDFTriangle())
+        registerCustomClass(SDFHyperCube())
+        registerCustomClass(SDFHyperBBox()) // idk whether I want to keep that one
         // groups
         registerCustomClass(SDFGroup())
         // modifiers

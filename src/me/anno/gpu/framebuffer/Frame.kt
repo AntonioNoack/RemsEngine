@@ -44,6 +44,8 @@ object Frame {
             framebuffer.ensure()
         }
 
+        GFX.check()
+
         // made more ugly, but trying to avoid allocations as much as possible :)
         var w = w0
         var h = h0

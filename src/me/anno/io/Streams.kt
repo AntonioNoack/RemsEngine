@@ -8,6 +8,7 @@ import java.io.OutputStream
 import java.io.Reader
 import kotlin.concurrent.thread
 
+@Suppress("unused")
 object Streams {
 
     fun InputStream.readLine(reader: Reader, builder: StringBuilder = StringBuilder()): String? {
@@ -93,6 +94,30 @@ object Streams {
         val d = read()
         if (a < 0 || b < 0 || c < 0 || d < 0) throw EOFException()
         return a.shl(24) + b.shl(16) + c.shl(8) + d
+    }
+
+    fun OutputStream.writeBE16(a: Int) {
+        write(a shr 8)
+        write(a)
+    }
+
+    fun OutputStream.writeLE16(a: Int) {
+        write(a)
+        write(a shr 8)
+    }
+
+    fun OutputStream.writeLE32(a: Int) {
+        write(a shr 24)
+        write(a shr 16)
+        write(a shr 8)
+        write(a)
+    }
+
+    fun OutputStream.writeBE32(a: Int) {
+        write(a)
+        write(a shr 8)
+        write(a shr 16)
+        write(a shr 24)
     }
 
 }

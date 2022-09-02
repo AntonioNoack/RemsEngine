@@ -3,7 +3,7 @@ package me.anno.tests.game
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -17,7 +17,7 @@ import org.lwjgl.glfw.GLFW
 import java.util.*
 
 fun main() {
-    GFX.disableRenderDoc()
+    GFXBase.disableRenderDoc()
     testUI {
         object : Panel(style) {
 

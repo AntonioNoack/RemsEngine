@@ -11,9 +11,8 @@ import me.anno.Engine.shutdown
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.checkIsGFXThread
+import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GFX.getErrorTypeName
-import me.anno.gpu.GFX.viewportHeight
-import me.anno.gpu.GFX.viewportWidth
 import me.anno.gpu.debug.LWJGLDebugCallback
 import me.anno.gpu.debug.OpenGLDebug.getDebugSeverityName
 import me.anno.gpu.debug.OpenGLDebug.getDebugSourceName
@@ -30,8 +29,10 @@ import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
+import me.anno.ui.input.InputPanel
 import me.anno.utils.Clock
 import me.anno.utils.structures.lists.Lists.all2
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
 import org.apache.logging.log4j.LogManager.getLogger
 import org.lwjgl.BufferUtils
@@ -191,7 +192,6 @@ object GFXBase {
             instance.pointer = window
             if (window == 0L) throw RuntimeException("Failed to create the GLFW window")
             windows.add(instance)
-
             tick?.stop("Create window")
             addCallbacks(instance)
             tick?.stop("Adding callbacks")
@@ -369,7 +369,7 @@ object GFXBase {
             cleanUp()
         }.start()
 
-        var lastMtWindow: WindowX? = null
+        var lastTrapWindow: WindowX? = null
 
         while (!windows.all2 { it.shouldClose } && !shutdown) {
             for (index in 0 until windows.size) {
@@ -405,24 +405,43 @@ object GFXBase {
                 }
             }
 
-            val mtWindow = trapMouseWindow
-            if (isMouseTrapped && mtWindow != null && !mtWindow.shouldClose) {
-                if (lastMtWindow == null) {
-                    GLFW.glfwSetInputMode(mtWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN)
-                    lastMtWindow = mtWindow
+            val trapWindow = trapMouseWindow
+            if (isMouseTrapped && trapWindow != null && !trapWindow.shouldClose) {
+                if (lastTrapWindow == null) {
+                    GLFW.glfwSetInputMode(trapWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
+                    // GLFW.glfwSetInputMode(trapWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN)
+                    lastTrapWindow = trapWindow
                 }
-                val x = mtWindow.mouseX
-                val y = mtWindow.mouseY
-                val centerX = viewportWidth * 0.5f
-                val centerY = viewportHeight * 0.5f
+                /*val x = trapWindow.mouseX
+                val y = trapWindow.mouseY
+                val centerX = trapWindow.width * 0.5
+                val centerY = trapWindow.height * 0.5
                 val dx = x - centerX
                 val dy = y - centerY
                 if (dx * dx + dy * dy > trapMouseRadius * trapMouseRadius) {
-                    GLFW.glfwSetCursorPos(mtWindow.pointer, centerX.toDouble(), centerY.toDouble())
+                    GLFW.glfwSetCursorPos(trapWindow.pointer, centerX, centerY)
+                }*/
+            } else if (lastTrapWindow != null && !lastTrapWindow.shouldClose) {
+                GLFW.glfwSetInputMode(lastTrapWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL)
+                lastTrapWindow = null
+            } else if (Input.mouseMovementSinceMouseDown > 5f && Input.mouseKeysDown.isNotEmpty() && DefaultConfig["ui.enableMouseJumping", true]) {
+                // when dragging a value (dragging + selected.isInput), and cursor is on the border, respawn it in the middle of the screen
+                // for that, the cursor should be within 2 frames of reaching the border...
+                // for that, we need the last mouse movement :)
+                val window = focusedWindow
+                if (window != null) {
+                    val margin = 10f
+                    if (window.mouseX !in margin..window.width - margin || window.mouseY !in margin..window.height - margin) {
+                        val inFocus = window.windowStack.inFocus
+                        if (inFocus.any2 { p -> p.anyInHierarchy { h -> h is InputPanel<*> } }) {
+                            val centerX = window.width * 0.5
+                            val centerY = window.height * 0.5
+                            GLFW.glfwSetCursorPos(window.pointer, centerX, centerY)
+                            window.mouseX = centerX.toFloat()
+                            window.mouseY = centerY.toFloat()
+                        }
+                    }
                 }
-            } else if (lastMtWindow != null && !lastMtWindow.shouldClose) {
-                GLFW.glfwSetInputMode(lastMtWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL)
-                lastMtWindow = null
             }
 
             for (index in windows.indices) {

@@ -468,4 +468,43 @@ object Lists {
     inline fun <reified Type> Sequence<*>.firstInstanceOrNull() =
         firstOrNull { it is Type } as? Type
 
+    fun <V> List<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V> =
+        ArrayList(this).sortByTopology(getDependencies)
+
+    /**
+     * returns an order such that elements without dependencies come first,
+     * and elements with dependencies come after their dependencies;
+     * https://en.wikipedia.org/wiki/Topological_sorting
+     *
+     * @throws IllegalArgumentException if there is cyclic dependencies
+     * */
+    fun <V> MutableList<V>.sortByTopology(getDependencies: (V) -> Collection<V>?): List<V> {
+
+        val noPermanentMark = toHashSet()
+        val temporaryMark = HashSet<V>()
+
+        clear()
+
+        fun visit(node: V) {
+            if (node !in noPermanentMark) return
+            if (node in temporaryMark) throw IllegalArgumentException("Found cyclic dependency by $temporaryMark")
+            temporaryMark.add(node)
+            val dependencies = getDependencies(node)
+            if (dependencies != null && dependencies.isNotEmpty()) {
+                for (dep in dependencies) {
+                    visit(dep)
+                }
+            }
+            temporaryMark.remove(node)
+            noPermanentMark.remove(node)
+            this.add(node)
+        }
+
+        while (noPermanentMark.isNotEmpty()) {
+            visit(noPermanentMark.first())
+        }
+
+        return this
+    }
+
 }
