@@ -1,6 +1,6 @@
 package me.anno
 
-import me.anno.ui.debug.FrameTimes
+import me.anno.ui.debug.FrameTimings
 import kotlin.math.min
 
 // todo compare engine size compiled without and with "inline"
@@ -48,7 +48,7 @@ object Engine {
         val thisTime = System.nanoTime()
         rawDeltaTime = (thisTime - lastTime) * 1e-9f
         deltaTime = min(rawDeltaTime, 0.1f)
-        FrameTimes.putTime(rawDeltaTime)
+        FrameTimings.putTime(rawDeltaTime)
 
         val newFPS = 1f / rawDeltaTime
         currentFPS = min(currentFPS + (newFPS - currentFPS) * 0.05f, newFPS)

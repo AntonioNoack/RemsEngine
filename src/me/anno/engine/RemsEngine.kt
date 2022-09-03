@@ -24,7 +24,7 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
-import me.anno.ui.debug.FrameTimes
+import me.anno.ui.debug.FrameTimings
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.WelcomeUI
@@ -220,7 +220,7 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     class RuntimeInfoPlaceholder : Panel(style) {
         override fun calculateSize(w: Int, h: Int) {
-            minW = if (instance?.showFPS == true) FrameTimes.width else 0
+            minW = if (instance?.showFPS == true) FrameTimings.width else 0
             minH = 1
         }
     }

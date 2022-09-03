@@ -15,7 +15,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.debug.FrameTimes
+import me.anno.ui.debug.FrameTimings
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
@@ -41,8 +41,8 @@ object DrawTexts {
         x: Int, y: Int,
         padding: Int,
         text: CharArray,
-        textColor: Int = FrameTimes.textColor,
-        backgroundColor: Int = FrameTimes.backgroundColor,
+        textColor: Int = FrameTimings.textColor,
+        backgroundColor: Int = FrameTimings.backgroundColor,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN
     ) {
@@ -82,8 +82,8 @@ object DrawTexts {
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN,
     ): Int = drawSimpleTextCharByChar(
-        x, y, padding, text, FrameTimes.textColor,
-        FrameTimes.backgroundColor and black.inv(),
+        x, y, padding, text, FrameTimings.textColor,
+        FrameTimings.backgroundColor and black.inv(),
         alignX, alignY
     )
 
@@ -91,8 +91,8 @@ object DrawTexts {
         x: Int, y: Int,
         padding: Int,
         text: String,
-        textColor: Int = FrameTimes.textColor,
-        backgroundColor: Int = FrameTimes.backgroundColor,
+        textColor: Int = FrameTimings.textColor,
+        backgroundColor: Int = FrameTimings.backgroundColor,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN,
     ): Int {

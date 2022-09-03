@@ -1,14 +1,15 @@
 package me.anno.ui.debug
 
+import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.WindowX
+import me.anno.gpu.drawing.DrawRectangles
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2
-import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2List
-import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -18,8 +19,9 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.utils.OS
 import java.nio.ByteOrder
 import kotlin.math.max
+import kotlin.math.roundToInt
 
-object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
+object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
     val width = 200 * max(DefaultConfig.style.getSize("fontSize", 12), 12) / 12
     val height = width / 4
@@ -31,8 +33,8 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
 
     private val shader = BaseShader(
         "frameTimes",
-        simpleVertexShaderV2List,
-        simpleVertexShaderV2, uvList, listOf(
+        ShaderLib.simpleVertexShaderV2List,
+        ShaderLib.simpleVertexShaderV2, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V4F, "background"),
             Variable(GLSLType.S2D, "tex"),
@@ -147,7 +149,91 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
     // to reduce draw calls by bundling stacks of the same height
     fun drawLine(lastX: Int, nextX: Int, barHeight: Int, barColor: Int) {
         if (lastX < nextX) {
-            drawRect(lastX, y + height - barHeight, nextX - lastX, barHeight, barColor)
+            DrawRectangles.drawRect(lastX, y + height - barHeight, nextX - lastX, barHeight, barColor)
+        }
+    }
+
+    val text = "theFPS, min: theFPS".toCharArray()
+
+    fun add(nanos: Long, color: Int) {
+        putValue(nanos * 1e-9f, color)
+    }
+
+    fun showFPS(window: WindowX) {
+
+        val x0 = max(0, window.width - width)
+        val y0 = max(0, window.height - height)
+
+        setPosSize(x0, y0, width, height)
+        draw()
+
+        GFX.loadTexturesSync.push(true)
+
+        val maxTime = timeContainer.maxValue
+        formatNumber(text, 0, 6, Engine.currentFPS)
+        formatNumber(text, 13, 6, 1f / maxTime)
+
+        drawSimpleTextCharByChar(x0, y0, 2, text)
+
+        GFX.loadTexturesSync.pop()
+
+    }
+
+    fun getChar(digit: Int) = ((digit % 10) + '0'.code).toChar()
+
+    fun formatNumber(chars: CharArray, index: Int, space: Int, number: Float) {
+
+        if (number < 0) {
+            chars[index] = '-'
+            formatNumber(chars, index + 1, space - 1, -number)
+            return
+        }
+
+        if (number >= 999.5f) {
+            formatNumber(chars, index, space, number.roundToInt())
+        }
+
+        val numberX = (number * 10).roundToInt()
+        chars[index + space - 2] = '.'
+        chars[index + space - 1] = getChar(numberX)
+        formatNumber(chars, index, space - 2, numberX / 10)
+
+    }
+
+    fun formatNumber(chars: CharArray, index: Int, space: Int, number: Int) {
+
+        if (number < 0) {
+            chars[index] = '-'
+            formatNumber(chars, index + 1, space - 1, -number)
+            return
+        }
+
+        var limit = 1
+        for (i in 0 until space) {
+            limit *= 10
+        }
+
+        if (number >= limit) {
+            // all 9, maybe an x for extra much?
+            chars.fill('x', index, index + space)
+            return
+        }
+
+        // can print it :)
+        printNumber(chars, index, space, number)
+
+    }
+
+    fun printNumber(chars: CharArray, index: Int, space: Int, number: Int) {
+        // can print it :)
+        chars[index + space - 1] = getChar(number)
+        if (space > 1) {
+            // we need to print more
+            if (number >= 10) {
+                printNumber(chars, index, space - 1, number / 10)
+            } else {
+                chars.fill(' ', index, index + space - 1)
+            }
         }
     }
 

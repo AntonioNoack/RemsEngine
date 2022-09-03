@@ -4,13 +4,18 @@ import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.studio.Inspectable
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.debug.FrameTimings
 import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
@@ -148,6 +153,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             ins[0].createInspector(ins, list, style) { title, description, dictSubPath ->
                 createGroup(title, description, dictSubPath, list, groups, style)
             }
+            addSpacingForFrameTimings(list)
         }
 
         fun createInspector(ins: Inspectable, list: PanelListY, style: Style) {
@@ -155,6 +161,31 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             ins.createInspector(list, style) { title, description, dictSubPath ->
                 createGroup(title, description, dictSubPath, list, groups, style)
             }
+            addSpacingForFrameTimings(list)
+        }
+
+        /**
+         * add extra spacing, so this panel doesn't get covered by the fps panel
+         * */
+        fun addSpacingForFrameTimings(list: PanelListY) {
+            val panel = object : SpacerPanel(1, FrameTimings.height, list.style) {
+                override fun onUpdate() {
+                    super.onUpdate()
+                    val window = window
+                    val parent = uiParent
+                    val win = GFX.activeWindow
+                    sizeY = if (win != null && window != null && win.windowStack.contains(window)) {
+                        if (parent != null && x + w >= window.w - FrameTimings.width) {
+                            if (StudioBase.instance?.showFPS == true) {
+                                max(1, window.y + min(parent.y + parent.h, window.h) + FrameTimings.height - win.height)
+                            } else 1
+                        } else 1
+                    } else 1
+                }
+            }
+            panel.name = "Spacing For FrameTimings"
+            panel.backgroundColor = list.backgroundColor and 0xffffff
+            list.add(panel)
         }
 
         /** expensive operation if something major was changed */
@@ -162,7 +193,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         fun invalidateUI(major: Boolean) {
             val time = Engine.gameTime
             if (time != lastInvalidated) {
-                lastInvalidated = time + (if(major) 0L else 500L * MILLIS_TO_NANOS)
+                lastInvalidated = time + (if (major) 0L else 500L * MILLIS_TO_NANOS)
                 for (window in GFX.windows) {
                     invalidateUI(window.windowStack)
                 }

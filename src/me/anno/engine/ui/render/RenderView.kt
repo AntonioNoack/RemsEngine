@@ -76,7 +76,7 @@ import me.anno.maths.Maths.roundDiv
 import me.anno.mesh.Shapes
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.debug.FrameTimes
+import me.anno.ui.debug.FrameTimings
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Tabs
@@ -426,8 +426,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 x, y + h - 2 - DrawTexts.monospaceFont.sizeInt,
                 2,
                 deltaCount.toString(), // todo dots to make long numbers readable
-                FrameTimes.textColor,
-                FrameTimes.backgroundColor
+                FrameTimings.textColor,
+                FrameTimings.backgroundColor
             )
         }
 

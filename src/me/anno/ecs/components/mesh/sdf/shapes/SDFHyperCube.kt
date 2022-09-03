@@ -92,6 +92,8 @@ open class SDFHyperCube : SDFSmoothShape() {
         super.copy(clone)
         clone as SDFHyperCube
         clone.halfExtends.set(halfExtends)
+        clone.rotation4d.set(rotation4d)
+        clone.w = w
     }
 
     override val className = "SDFHyperCube"

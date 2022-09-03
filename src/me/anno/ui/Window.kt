@@ -75,8 +75,8 @@ open class Window(
         }
     }
 
-    var lastW = -1
-    var lastH = -1
+    var w = -1
+    var h = -1
 
     // the graphics may want to draw directly on the panel in 3D, so we need a depth texture
     // we could use multiple samples, but for performance reasons, let's not do that, when it's not explicitly requested
@@ -174,9 +174,9 @@ open class Window(
 
     fun validateLayouts(w: Int, h: Int, panel: Panel) {
         val needsLayout = needsLayout
-        if (lastW != w || lastH != h || panel in needsLayout || needsLayout.isFull()) {
-            lastW = w
-            lastH = h
+        if (this.w != w || this.h != h || panel in needsLayout || needsLayout.isFull()) {
+            this.w = w
+            this.h = h
             calculateFullLayout(w, h)
             needsRedraw.add(panel)
             needsLayout.clear()

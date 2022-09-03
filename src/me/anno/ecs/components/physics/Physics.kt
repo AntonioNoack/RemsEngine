@@ -16,7 +16,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.studio.StudioBase.Companion.addEvent
-import me.anno.ui.debug.FrameTimes
+import me.anno.ui.debug.FrameTimings
 import me.anno.utils.structures.sets.ParallelHashSet
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
@@ -254,7 +254,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                         }
                         step(targetStepNanos, debug)
                         val t1 = System.nanoTime()
-                        addEvent { FrameTimes.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
+                        addEvent { FrameTimings.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
                     }
                 }
             } catch (e: InterruptedException) {

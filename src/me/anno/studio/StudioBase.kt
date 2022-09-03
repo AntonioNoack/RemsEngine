@@ -31,7 +31,7 @@ import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.Tooltips
 import me.anno.ui.base.progress.ProgressBar
-import me.anno.ui.debug.FPSPanel
+import me.anno.ui.debug.FrameTimings
 import me.anno.ui.dragging.IDraggable
 import me.anno.utils.Clock
 import me.anno.utils.Logging
@@ -286,7 +286,7 @@ abstract class StudioBase(
         var didSomething = false
 
         if (showFPS) {
-            FPSPanel.showFPS(window)
+            FrameTimings.showFPS(window)
         }
 
         if (showTutorialKeys) {
