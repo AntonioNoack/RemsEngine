@@ -6,7 +6,14 @@ import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.GFXx2D.posSize
+import me.anno.gpu.drawing.GFXx2D.posSizeDraw
+import me.anno.gpu.drawing.GFXx2D.transform
+import me.anno.gpu.framebuffer.NullFramebuffer
+import me.anno.gpu.shader.ComputeShader
+import me.anno.gpu.shader.ComputeTextureMode
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -16,6 +23,8 @@ import me.anno.maths.Maths
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
+import me.anno.utils.OS
+import me.anno.utils.types.Matrices.isIdentity
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
@@ -124,6 +133,15 @@ object DrawTexts {
         return width
     }
 
+    // slightly buggy (missing barriers?), but allows for correct rendering of text against any background with correct subpixel rendering
+    var enableComputeRendering = false
+    fun canUseComputeShader(): Boolean {
+        if (!enableComputeRendering) return false
+        if (OS.isWeb) return false
+        if (GFXState.currentBuffer == NullFramebuffer) return false
+        return transform.isIdentity()
+    }
+
     fun drawTextCharByChar(
         x: Int, y: Int,
         font: Font,
@@ -160,8 +178,14 @@ object DrawTexts {
             return GFXx2D.getSize(0, h)
 
         GFX.check()
-        val shader = ShaderLib.subpixelCorrectTextShader.value
+        val cuc = canUseComputeShader()
+        val shader = if (cuc) ShaderLib.subpixelCorrectTextShader2
+        else ShaderLib.subpixelCorrectTextShader.value
         shader.use()
+
+        if (shader is ComputeShader) {
+            shader.bindTexture(1, GFXState.currentBuffer.getTexture0() as Texture2D, ComputeTextureMode.READ_WRITE)
+        }
 
         shader.v4f("textColor", color)
         shader.v4f("backgroundColor", backgroundColor)
@@ -192,8 +216,13 @@ object DrawTexts {
                         val x2 = fx + (charWidth - texture.w) / 2
                         // println("cp[1] $codepoint, $x2 by $fx + ($charWidth - ${texture.w}) / 2")
                         shader.use()
-                        posSize(shader, x2, y2, texture.w, texture.h)
-                        GFX.flat01.draw(shader)
+                        if (shader is Shader) {
+                            posSize(shader, x2, y2, texture.w, texture.h)
+                            GFX.flat01.draw(shader)
+                        } else {
+                            shader as ComputeShader
+                            posSizeDraw(shader, x2, y2, texture.w, texture.h)
+                        }
                         GFX.check()
                     } else {
                         LOGGER.warn(
@@ -243,9 +272,14 @@ object DrawTexts {
                         val x2 = fx + (w - texture.w) / 2
                         // println("cp[2] $codepoint, $x2 by $fx + ($w - ${texture.w}) / 2")
                         GFX.check()
-                        posSize(shader, x2, y2, texture.w.toFloat(), texture.h.toFloat())
-                        GFX.check()
-                        GFX.flat01.draw(shader)
+                        if (shader is Shader) {
+                            posSize(shader, x2, y2, texture.w.toFloat(), texture.h.toFloat())
+                            GFX.flat01.draw(shader)
+                        } else {
+                            shader as ComputeShader
+                            shader.v2i("offset", x2.toInt(), y2.toInt())
+                            shader.runBySize(texture.w, texture.h)
+                        }
                         GFX.check()
                     }
                 }
@@ -294,19 +328,28 @@ object DrawTexts {
         // done if pixel is on the border of the drawn rectangle, make it grayscale, so we see no color seams
         if (texture !is Texture2D || texture.isCreated) {
             GFX.check()
-            texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             GFX.check()
-            val shader = ShaderLib.subpixelCorrectTextShader.value
-            shader.use()
+            texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             val x2 = x + getOffset(w, alignX)
             val y2 = y + getOffset(h, alignY)
             val windowWidth = GFX.viewportWidth.toFloat()
             val windowHeight = GFX.viewportHeight.toFloat()
-            posSize(shader, x2, y2, w, h)
-            shader.v2f("windowSize", windowWidth, windowHeight)
-            shader.v4f("textColor", color)
-            shader.v4f("backgroundColor", backgroundColor)
-            GFX.flat01.draw(shader)
+            val cuc = canUseComputeShader()
+            if (cuc) {
+                val shader = ShaderLib.subpixelCorrectTextShader2
+                shader.use()
+                shader.bindTexture(1, GFXState.currentBuffer.getTexture0() as Texture2D, ComputeTextureMode.READ_WRITE)
+                shader.v4f("textColor", color)
+                posSizeDraw(shader, x2, y2, w, h)
+            } else {
+                val shader = ShaderLib.subpixelCorrectTextShader.value
+                shader.use()
+                posSize(shader, x2, y2, w, h)
+                shader.v2f("windowSize", windowWidth, windowHeight)
+                shader.v4f("textColor", color)
+                shader.v4f("backgroundColor", backgroundColor)
+                GFX.flat01.draw(shader)
+            }
             GFX.check()
         }
         return GFXx2D.getSize(w, h)

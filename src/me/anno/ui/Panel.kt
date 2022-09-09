@@ -14,7 +14,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Corner.drawRoundedRect
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -75,7 +74,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
             }
         }
 
-    open var visibility = Visibility.VISIBLE
+    open var isVisible = true
         set(value) {
             if (field != value) {
                 field = value
@@ -96,7 +95,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     val depth: Int get() = 1 + (uiParent?.depth ?: 0)
 
     fun toggleVisibility() {
-        visibility = if (visibility == Visibility.VISIBLE) Visibility.GONE else Visibility.VISIBLE
+        isVisible = !isVisible
         invalidateLayout()
     }
 
@@ -109,17 +108,11 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     fun hide() {
-        if (visibility != Visibility.GONE) {
-            visibility = Visibility.GONE
-            invalidateLayout()
-        }
+        isVisible = false
     }
 
     fun show() {
-        if (visibility != Visibility.VISIBLE) {
-            visibility = Visibility.VISIBLE
-            invalidateLayout()
-        }
+        isVisible = true
     }
 
     fun withPadding(l: Int, t: Int, r: Int, b: Int) = PanelContainer(this, Padding(l, t, r, b), style)
@@ -307,9 +300,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun updateVisibility(mx: Int, my: Int) {
         isInFocus = false
         isAnyChildInFocus = false
-        canBeSeen = (uiParent?.canBeSeen != false) &&
-                visibility == Visibility.VISIBLE &&
-                lx1 > lx0 && ly1 > ly0
+        canBeSeen = (uiParent?.canBeSeen != false) && isVisible && lx1 > lx0 && ly1 > ly0
         isHovered = mx in lx0 until lx1 && my in ly0 until ly1
     }
 
@@ -584,7 +575,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         val tooltip = tooltip
         println(
             "${Tabs.spaces(tabDepth * 2)}${this::class.simpleName}(${(weight * 10).roundToInt()}, " +
-                    "${if (visibility == Visibility.VISIBLE) "v" else "_"})) " +
+                    "${if (isVisible) "v" else "_"})) " +
                     "$x-${x + w}, $y-${y + h} ($minW $minH) ${
                         if (tooltip == null) "" else "'${tooltip.shorten(20)}' "
                     }${getPrintSuffix()}"
@@ -832,7 +823,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         clone.tooltip = tooltip
         clone.tooltipPanel = clone.tooltipPanel // could create issues, should be found in parent or cloned
         clone.weight = weight
-        clone.visibility = visibility
+        clone.isVisible = isVisible
         clone.backgroundColor = backgroundColor
         clone.backgroundRadiusCorners = backgroundRadiusCorners
         clone.backgroundRadius = backgroundRadius
@@ -848,7 +839,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
             "h" -> h = value
             "minW" -> minW = value
             "minH" -> minH = value
-            "visibility" -> visibility = Visibility[value != 0]
+            "visibility" -> isVisible = value != 0
             "alignmentX" -> alignmentX = AxisAlignment.find(value) ?: alignmentX
             "alignmentY" -> alignmentY = AxisAlignment.find(value) ?: alignmentY
             "background" -> backgroundColor = value
@@ -867,12 +858,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     override fun readString(name: String, value: String?) {
-        if(name == "tooltip") tooltip = value
+        if (name == "tooltip") tooltip = value
         else super.readString(name, value)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        if(name == "tooltipPanel") tooltipPanel = value as? Panel
+        if (name == "tooltipPanel") tooltipPanel = value as? Panel
         else super.readObject(name, value)
     }
 
@@ -890,7 +881,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         // writer.writeObjectList(this, "clickListeners", clickListeners)
         writer.writeObjectList(this, "layoutConstraints", layoutConstraints)
         writer.writeFloat("weight", weight)
-        writer.writeEnum("visibility", visibility)
+        writer.writeBoolean("visibility", isVisible)
         writer.writeColor("background", backgroundColor)
         writer.writeInt("backgroundRadiusCorners", backgroundRadiusCorners)
         writer.writeColor("backgroundOutline", backgroundOutlineColor)

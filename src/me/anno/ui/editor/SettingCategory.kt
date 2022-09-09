@@ -5,7 +5,6 @@ import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
@@ -49,7 +48,7 @@ open class SettingCategory(
     }
 
     val content = object : PanelListY(style) {
-        override var visibility: Visibility
+        override var isVisible: Boolean
             get() = InputVisibility[visibilityKey]
             set(_) {}
     }
@@ -57,7 +56,7 @@ open class SettingCategory(
     val scrollbar: ScrollPanelY? =
         if (withScrollbar) {
             object : ScrollPanelY(content, Padding.Zero, style) {
-                override var visibility: Visibility
+                override var isVisible: Boolean
                     get() = InputVisibility[visibilityKey]
                     set(_) {}
             }
@@ -98,7 +97,7 @@ open class SettingCategory(
             val children = content.children
             for (index in children.indices) {
                 val child = children[index]
-                if (child.visibility == Visibility.VISIBLE) {
+                if (child.isVisible) {
                     return false
                 }
             }
@@ -113,13 +112,13 @@ open class SettingCategory(
         } else {
             titlePanel.calculateSize(w, h)
             val panel2 = scrollbar ?: content
-            if (panel2.visibility == Visibility.GONE) {
-                minW = titlePanel.minW
-                minH = titlePanel.minH
-            } else {
+            if (panel2.isVisible) {
                 panel2.calculateSize(w - padding.width, h)
                 minW = max(titlePanel.minW, content.minW + padding.width)
                 minH = titlePanel.minH + content.minH + padding.height
+            } else {
+                minW = titlePanel.minW
+                minH = titlePanel.minH
             }
         }
     }

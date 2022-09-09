@@ -1,29 +1,29 @@
 package me.anno.ui.input
 
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 
 object InputVisibility {
 
-    private val visible = HashMap<String, Visibility>()
+    private val visible = HashSet<String>()
 
     operator fun get(title: String) =
-        if (title.isEmpty()) Visibility.VISIBLE
-        else visible[title] ?: Visibility.GONE
+        if (title.isEmpty()) true
+        else title in visible
 
     fun toggle(visibilityKey: String, panel: Panel?) {
         // LOGGER.debug("Toggle $visibilityKey")
-        visible[visibilityKey] = Visibility[this[visibilityKey] != Visibility.VISIBLE]
+        if (visibilityKey in visible) visible.remove(visibilityKey)
+        else visible.add(visibilityKey)
         panel?.invalidateLayout()
     }
 
     fun show(visibilityKey: String, panel: Panel?) {
-        visible[visibilityKey] = Visibility.VISIBLE
+        visible.add(visibilityKey)
         panel?.invalidateLayout()
     }
 
     fun hide(visibilityKey: String, panel: Panel?) {
-        visible[visibilityKey] = Visibility.GONE
+        visible.remove(visibilityKey)
         panel?.invalidateLayout()
     }
 

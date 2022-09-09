@@ -2,7 +2,6 @@ package me.anno.ui.base.groups
 
 import me.anno.Engine
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
@@ -36,7 +35,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         if (allChildrenHaveSameSize && children.isNotEmpty()) {
             // optimize for case that all children have same size
             val child = children[min(visibleIndex0, children.lastIndex)]
-            val count = children.count2 { it.visibility != Visibility.GONE }
+            val count = children.count2 { it.isVisible }
             child.calculateSize(availableW, availableH)
             // apply constraints?
             constantSum += count * child.minH
@@ -53,7 +52,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         } else {
             for (i in children.indices) {
                 val child = children[i]
-                if (child.visibility != Visibility.GONE) {
+                if (child.isVisible) {
                     child.calculateSize(availableW, availableH)
                     // apply constraints?
                     constantSum += child.minH
@@ -124,7 +123,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
             val children = children
             for (i in children.indices) {
                 val child = children[i]
-                if (child.visibility != Visibility.GONE) {
+                if (child.isVisible) {
                     var childH = (child.minH + perWeight * max(0f, child.weight)).roundToInt()
                     val currentH = currentY - y
                     val remainingH = availableH - currentH

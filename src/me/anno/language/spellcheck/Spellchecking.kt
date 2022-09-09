@@ -50,6 +50,7 @@ object Spellchecking : CacheSection("Spellchecking") {
             }
             answer
         } as? CacheData<*> ?: return null
+        @Suppress("unchecked_cast")
         val value = data.value as? List<Suggestion> ?: return null
         return if (sentence != sentence2) {
             val offset = sentence
@@ -168,6 +169,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                             if (queue.isEmpty()) sleepShortly(true)
                             else {
                                 val sentence = queue.poll() as CharSequence
+                                @Suppress("unchecked_cast")
                                 val callback = queue.poll() as ((List<Suggestion>) -> Unit)
                                 var lines = sentence
                                     .toString()

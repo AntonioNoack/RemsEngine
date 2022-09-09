@@ -9,32 +9,25 @@ import kotlin.math.sqrt
 
 object FibonacciSphere {
 
+    val goldenAngle = (PI * (3.0 - sqrt(5.0))).toFloat() // golden angle in radians
+
     /**
      * creates a sphere with N regularly positioned points
+     * https://stackoverflow.com/a/26127012/4979303
      * */
     fun create(n: Int): Array<Vector3f> {
-
-        // https://stackoverflow.com/a/26127012/4979303
-
-        val points = Array(n) { Vector3f() }
-        val phi = (PI * (3.0 - sqrt(5.0))).toFloat() // golden angle in radians
-
         val div = 2f / (n - 1f)
-        for (i in 0 until n) {
-
+        return Array(n) { i ->
             val y = 1f - i * div  // y goes from 1 to -1
             val radius = sqrt(1f - y * y)  // radius at y
 
-            val theta = phi * i // golden angle increment
+            val theta = goldenAngle * i // golden angle increment
 
             val x = cos(theta) * radius
             val z = sin(theta) * radius
 
-            points[i].set(x, y, z)
-
+            Vector3f(x, y, z)
         }
-
-        return points
     }
 
     fun create2(n: Int): FloatArray {
@@ -45,7 +38,6 @@ object FibonacciSphere {
         // http://extremelearning.com.au/evenly-distributing-points-on-a-sphere/
 
         val points = FloatArray(3 * n)
-        val phi = (PI * (3.0 - sqrt(5.0))).toFloat() // golden angle in radians
 
         val div = 2f / (n - 1f)
         var j = 0
@@ -54,7 +46,7 @@ object FibonacciSphere {
             val y = 1f - i * div  // y goes from 1 to -1
             val radius = sqrt(1f - y * y)  // radius at y
 
-            val theta = phi * i // golden angle increment
+            val theta = goldenAngle * i // golden angle increment
 
             val x = cos(theta) * radius
             val z = sin(theta) * radius

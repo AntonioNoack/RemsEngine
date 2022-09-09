@@ -10,7 +10,7 @@ import org.joml.Vector4f
 import java.io.EOFException
 import kotlin.math.sqrt
 
-class MTLReader(val file: FileReference) : OBJMTLReader(file.inputStream()) {
+class MTLReader(val file: FileReference) : TextFileReader(file.inputStream()) {
 
     val materials = HashMap<String, Prefab>()
 

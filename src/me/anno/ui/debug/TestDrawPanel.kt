@@ -7,6 +7,9 @@ import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import org.lwjgl.glfw.GLFW.GLFW_KEY_V
 
+/**
+ * panel to test drawing functions
+ * */
 open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
 
     override fun onUpdate() {

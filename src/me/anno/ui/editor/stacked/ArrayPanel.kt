@@ -179,6 +179,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
                             is Saveable -> TextReader.read(TextWriter.toText(value, InvalidRef), InvalidRef, true)
                             else -> value // may be incorrect
                         }
+                        @Suppress("unchecked_cast")
                         insert(index + 1, clone as EntryType)
                     },
                 )

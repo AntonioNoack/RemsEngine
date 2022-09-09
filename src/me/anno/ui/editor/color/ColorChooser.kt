@@ -9,7 +9,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.base.SpacerPanel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.spaces.HSLuv
@@ -122,9 +121,9 @@ open class ColorChooser(
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val needsHueChooser = Visibility[visualisation.needsHueChooser]
-        hueChooser.visibility = needsHueChooser
-        hueChooserSpace.visibility = needsHueChooser
+        val needsHueChooser = visualisation.needsHueChooser
+        hueChooser.isVisible = needsHueChooser
+        hueChooserSpace.isVisible = needsHueChooser
         super.onDraw(x0, y0, x1, y1)
     }
 

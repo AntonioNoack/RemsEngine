@@ -2,9 +2,7 @@ package me.anno.utils.structures.arrays
 
 import kotlin.math.max
 
-class ExpandingGenericArray<V>(
-    private val initCapacity: Int
-) {
+open class ExpandingGenericArray<V>(private val initCapacity: Int) {
 
     var size = 0
 

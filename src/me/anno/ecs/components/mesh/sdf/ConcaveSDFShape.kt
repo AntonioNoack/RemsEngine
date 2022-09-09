@@ -1,6 +1,5 @@
 package me.anno.ecs.components.mesh.sdf
 
-import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.collision.shapes.ConcaveShape
 import com.bulletphysics.collision.shapes.TriangleCallback
@@ -18,15 +17,13 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
         private val LOGGER = LogManager.getLogger(ConcaveSDFShape::class)
     }
 
-    private var margin = BulletGlobals.CONVEX_DISTANCE_MARGIN
-
     override fun getAabb(t: Transform, aabbMin: javax.vecmath.Vector3d, aabbMax: javax.vecmath.Vector3d) {
         collider.getAABB(t, aabbMin, aabbMax)
     }
 
     // might be correct...
     override fun getShapeType(): BroadphaseNativeType {
-        return BroadphaseNativeType.CONVEX_SHAPE_PROXYTYPE
+        return BroadphaseNativeType.FAST_CONCAVE_MESH_PROXYTYPE
     }
 
     val localScaling = javax.vecmath.Vector3d(1.0, 1.0, 1.0)
@@ -45,10 +42,10 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
     }
 
     override fun getName() = collider.name
-    override fun getMargin() = this.margin
+    override fun getMargin() = collider.margin
 
     override fun setMargin(margin: Double) {
-        this.margin = margin
+        collider.margin = margin
     }
 
     val fx = 6

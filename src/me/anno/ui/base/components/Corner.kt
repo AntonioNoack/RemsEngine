@@ -8,7 +8,6 @@ import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.FlatShaders.flatShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib.simpleVertexShader
 import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2
 import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2List
 import me.anno.gpu.shader.ShaderLib.uvList

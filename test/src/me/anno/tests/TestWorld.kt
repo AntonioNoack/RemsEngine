@@ -1,4 +1,4 @@
-package me.anno.maths.paths
+package me.anno.tests
 
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.components.chunks.cartesian.ByteArrayChunkSystem
@@ -14,7 +14,7 @@ import me.anno.utils.Color.toVecRGB
 import me.anno.utils.structures.maps.Maps.flatten
 
 /**
- * a voxel test world that can be used for testing
+ * a voxel test world, that can be used for testing
  * */
 object TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
 

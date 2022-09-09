@@ -1,14 +1,8 @@
 package me.anno.maths.geometry
 
-import me.anno.fonts.signeddistfields.edges.LinearSegment
-import me.anno.image.ImageWriter
 import me.anno.image.raw.FloatImage
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.unmix
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
-import kotlin.math.sqrt
 
 object MarchingSquares {
 

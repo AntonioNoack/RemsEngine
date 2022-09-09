@@ -1,20 +1,11 @@
 package me.anno.maths.geometry
 
-import me.anno.ecs.components.mesh.ProceduralMesh.Companion.testProceduralMesh
-import me.anno.fonts.signeddistfields.edges.LinearSegment
-import me.anno.image.ImageWriter
-import me.anno.image.raw.FloatImage
 import me.anno.io.ResourceHelper
-import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
-import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.unmix
-import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import kotlin.math.max
-import kotlin.math.sqrt
 
 object MarchingCubes {
 

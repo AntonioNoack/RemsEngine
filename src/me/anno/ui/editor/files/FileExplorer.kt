@@ -21,7 +21,6 @@ import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList2D
@@ -76,12 +75,12 @@ import kotlin.math.roundToInt
 
 // todo list view
 
-abstract class FileExplorer(
+open class FileExplorer(
     initialLocation: FileReference?,
     style: Style
 ) : PanelListY(style.getChild("fileExplorer")) {
 
-    abstract fun getRightClickOptions(): List<FileExplorerOption>
+    open fun getRightClickOptions(): List<FileExplorerOption> = emptyList()
 
     open fun openOptions(file: FileReference) {
         if (file.exists) {
@@ -109,7 +108,7 @@ abstract class FileExplorer(
         return listOf(rename, openInExplorer, openInStandard, editInStandard, copyPath, delete)
     }
 
-    abstract fun onDoubleClick(file: FileReference)
+    open fun onDoubleClick(file: FileReference) {}
 
     val searchBar = TextInput("Search Term", "", false, style)
         .addChangeListener {
@@ -359,7 +358,7 @@ abstract class FileExplorer(
             } else {
                 val fe = content.children.filterIsInstance<FileExplorerEntry>()
                 for (it in fe) {
-                    it.visibility = Visibility[search.matches(getReferenceOrTimeout(it.path).name)]
+                    it.isVisible = search.matches(getReferenceOrTimeout(it.path).name)
                 }
             }
         }
@@ -487,8 +486,6 @@ abstract class FileExplorer(
         } catch (_: Exception) {
         }
     }
-
-    abstract override fun onPaste(x: Float, y: Float, data: String, type: String)
 
     override fun onGotAction(
         x: Float,

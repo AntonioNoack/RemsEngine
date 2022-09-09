@@ -1,7 +1,6 @@
 package me.anno
 
 // hot topics:
-// todo find difference in assimp between LWJGL 3.2.2 and 3.3.1
 
 // todo Retargeting
 // todo Anim-Model blending (top/bottom) around rest-pose by plane or spherical distance
@@ -59,5 +58,5 @@ package me.anno
 // done load plugins
 // done complete logging support
 // todo support most svg files as meshes
-// todo load svg animations?
+// to do load svg animations?
 

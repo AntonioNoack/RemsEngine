@@ -1,7 +1,7 @@
 package me.anno.tests
 
 import me.anno.io.files.InvalidRef
-import me.anno.mesh.obj.OBJMTLReader
+import me.anno.mesh.obj.TextFileReader
 import me.anno.mesh.obj.OBJReader
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
@@ -21,7 +21,7 @@ fun main() {
     val ints1 = ints0.joinToString(" ", "", "x")
     val ints2 = ints1.toByteArray()
     var idx = 0
-    val reader = OBJMTLReader(object : InputStream() {
+    val reader = TextFileReader(object : InputStream() {
         override fun read() = ints2[idx++].toInt()
     })
     clock.benchmark(

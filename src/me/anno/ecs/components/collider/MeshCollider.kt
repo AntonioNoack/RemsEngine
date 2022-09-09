@@ -36,6 +36,9 @@ open class MeshCollider() : Collider() {
     @SerializedProperty
     override var isConvex = true
 
+    @SerializedProperty
+    var enableSimplifications = true
+
     @Type("Mesh/PrefabSaveable")
     var mesh: Mesh? = null
         get() {
@@ -239,7 +242,7 @@ open class MeshCollider() : Collider() {
                 }
                 ConvexHullShape(points)
             }
-            if (positions.size < 30) return convex
+            if (positions.size < 30 || !enableSimplifications) return convex
 
             val hull = ShapeHull(convex)
             hull.buildHull(convex.margin)

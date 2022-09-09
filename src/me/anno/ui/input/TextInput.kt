@@ -3,7 +3,6 @@ package me.anno.ui.input
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextStyleable
@@ -39,7 +38,7 @@ open class TextInput(
         base.backgroundColor = backgroundColor
     }
 
-    override var visibility: Visibility
+    override var isVisible: Boolean
         get() = InputVisibility[visibilityKey]
         set(_) {}
 

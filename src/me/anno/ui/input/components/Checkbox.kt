@@ -2,6 +2,8 @@ package me.anno.ui.input.components
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache.getInternalTexture
@@ -68,6 +70,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         val color = (if (isHovered) 0xccffffff.toInt() else -1)
             .withAlpha(if (isInputAllowed) 1f else 0.5f)
         val texture = getImage(isChecked) ?: whiteTexture
+        texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         drawTexture(
             x + (w - size) / 2,
             y + (h - size) / 2,

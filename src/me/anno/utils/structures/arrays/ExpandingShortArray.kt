@@ -2,7 +2,8 @@ package me.anno.utils.structures.arrays
 
 import kotlin.math.max
 
-class ExpandingShortArray(private val initCapacity: Int) {
+@Suppress("unused")
+open class ExpandingShortArray(private val initCapacity: Int) {
 
     var size = 0
 

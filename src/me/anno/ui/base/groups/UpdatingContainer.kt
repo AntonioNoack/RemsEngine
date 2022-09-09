@@ -2,7 +2,6 @@ package me.anno.ui.base.groups
 
 import me.anno.Engine
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
 import kotlin.math.abs
@@ -18,7 +17,7 @@ class UpdatingContainer(updateMillis: Long, val getter: () -> Panel?, style: Sty
         val time = Engine.gameTime
         if (abs(lastUpdate - time) >= updateNanos) {
             val value = getter()
-            visibility = Visibility[value != null]
+            isVisible = value != null
             if (value != null) {
                 child = value
                 child.parent = this

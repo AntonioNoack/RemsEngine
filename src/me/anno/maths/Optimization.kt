@@ -115,7 +115,7 @@ object Optimization {
 
         var lastError = err(v0)
 
-        // 1e-16, but there may be numerical issues
+        // 1e-16, but there may be numerical issues,
         // which cause stair-stepping, which would be an issue
         val precision = 1e-14
 

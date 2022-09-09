@@ -36,10 +36,10 @@ class VoxelMeshBuildInfo(
         nz = side.z
     }
 
-    fun add(v: Vector3i) {
-        vertices += ox + v.x
-        vertices += oy + v.y
-        vertices += oz + v.z
+    fun add(vx: Int, vy: Int, vz: Int) {
+        vertices += ox + vx
+        vertices += oy + vy
+        vertices += oz + vz
         if (normals != null) {
             normals.add(nx.toFloat())
             normals.add(ny.toFloat())

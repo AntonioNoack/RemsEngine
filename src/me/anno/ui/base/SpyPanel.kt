@@ -8,6 +8,7 @@ import me.anno.ui.style.Style
  * an invisible panel that executes a function every tick
  * */
 open class SpyPanel(style: Style, val update: () -> Unit) : Panel(style) {
+    @Suppress("unused")
     constructor(update: () -> Unit) : this(DefaultConfig.style, update)
 
     override fun onUpdate() {

@@ -266,6 +266,7 @@ class MainStage {
                         }
                         bridgeVariables2.add(variable)
                         // define helper function
+                        // todo the uniform for these is no longer being defined, why ever...
                         code.append(variable.type.glslName)
                             .append(" get_").append(variable.name)
                             .append("(){ return ").append(variable.name)

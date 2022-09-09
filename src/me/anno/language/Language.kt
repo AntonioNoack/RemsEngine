@@ -2,12 +2,16 @@ package me.anno.language
 
 import me.anno.language.translation.NameDesc
 
+/**
+ * languages from LanguageTool for spellchecking;
+ * could be good enough for most game dev projects;
+ * if you need more languages to be added here, just write me :)
+ * */
 @Suppress("CanBeParameter")
 enum class Language(val prettyName: String, val code: String) {
 
     None("None", ""),
 
-    // GermanyGerman("GermanyGerman", "de-de"),
     Arabic("Arabic", "ar"),
     // English("English", "en"),
     AmericanEnglish("English (American)", "en-US"),

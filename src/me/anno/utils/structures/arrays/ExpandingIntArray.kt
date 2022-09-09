@@ -6,9 +6,7 @@ import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
-class ExpandingIntArray(
-    private val initCapacity: Int
-) : Collection<Int> {
+open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
 
     override var size = 0
 

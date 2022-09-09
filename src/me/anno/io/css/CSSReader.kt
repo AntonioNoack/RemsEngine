@@ -1,15 +1,10 @@
-package me.anno.image.css
+package me.anno.io.css
 
 import me.anno.image.svg.SVGMesh
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
-class CSSReader {
-
-    constructor()
-    constructor(mesh: SVGMesh, str: String) {
-        read(mesh, str)
-    }
+object CSSReader {
 
     fun read(mesh: SVGMesh, str: String) {
 
@@ -50,7 +45,7 @@ class CSSReader {
             }
 
             // interpret the stuff
-            if(container != null){
+            if (container != null) {
                 val keyValuePairs = content
                     .split(';')
                     .filter { !it.isBlank2() }
@@ -70,8 +65,6 @@ class CSSReader {
 
     }
 
-    companion object {
-        private val LOGGER = LogManager.getLogger(CSSReader::class)
-    }
+    private val LOGGER = LogManager.getLogger(CSSReader::class)
 
 }

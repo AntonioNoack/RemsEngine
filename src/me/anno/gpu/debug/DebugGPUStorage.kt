@@ -16,7 +16,6 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelList2D
@@ -70,7 +69,7 @@ object DebugGPUStorage {
                 DrawTextures.drawTransparentBackground(xi, yi, w, h)
                 drawTexture(xi, yi, w, h)
                 DrawTexts.drawSimpleTextCharByChar(x, y, 2, title)
-            } else visibility = Visibility.GONE
+            } else isVisible = false
         }
 
         abstract fun drawTexture(x: Int, y: Int, w: Int, h: Int)

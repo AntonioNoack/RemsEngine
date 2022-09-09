@@ -1,12 +1,18 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.FlatShaders.flatShader
 import me.anno.gpu.shader.FlatSymbols.flatShaderCircle
 import me.anno.gpu.shader.FlatSymbols.flatShaderHalfArrow
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -170,6 +176,21 @@ object GFXx2D {
 
     fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int) {
         posSize(shader, x.toFloat(), y.toFloat(), w.toFloat(), h.toFloat())
+    }
+
+    fun posSizeDraw(shader: ComputeShader, x: Int, y: Int, w: Int, h: Int) {
+        val fb = GFXState.currentBuffer as? Framebuffer
+        // check how much this out of bounds
+        val minX = max(x, GFX.viewportX)
+        val minY = max(y, GFX.viewportY)
+        val maxX = min(x + w, GFX.viewportX + GFX.viewportWidth)
+        val maxY = min(y + h, GFX.viewportY + GFX.viewportHeight)
+        if (minX < maxX && minY < maxY) {
+            shader.v2i("srcOffset", minX - x, minY - y)
+            shader.v2i("dstOffset", minX - (fb?.offsetX ?: 0), minY - (fb?.offsetY ?: 0))
+            shader.v2i("invokeSize", maxX - minX, maxY - minY)
+            shader.runBySize(maxX - minX, maxY - minY)
+        }
     }
 
     fun posSize(shader: Shader, x: Float, y: Float, w: Float, h: Float) {

@@ -10,7 +10,6 @@ import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.control.PlayControls
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
 import me.anno.ui.editor.PropertyInspector
@@ -49,8 +48,8 @@ class SceneView(
     override fun onUpdate() {
         super.onUpdate()
         val editing = renderer.playMode == PlayMode.EDITING
-        editControls.visibility = Visibility[editing]
-        playControls.visibility = Visibility[!editing]
+        editControls.isVisible = editing
+        playControls.isVisible = !editing
         renderer.controlScheme = if (editing) editControls else playControls
     }
 

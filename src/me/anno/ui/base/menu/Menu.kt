@@ -4,13 +4,11 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -270,16 +268,16 @@ object Menu {
                 val children = list.children
                 for (child in children.subList(startIndex, children.size)) {
                     // check all text elements inside this panel for matches
-                    child.visibility = Visibility[child.listOfAll.any {
+                    child.isVisible = child.listOfAll.any {
                         it is TextPanel && (search.matches(it.text))
-                    }]
+                    }
                 }
             }
             searchPanel.setEnterListener {
                 val children = list.children
                 // find the first element, and click it
                 val chosen = children.subList(startIndex, children.size)
-                    .firstOrNull { it.visibility == Visibility.VISIBLE && it.canBeSeen }
+                    .firstOrNull { it.isVisible && it.canBeSeen }
                 if (chosen != null) {
                     val deepest = chosen.getPanelAt(chosen.x, chosen.y)!!
                     deepest.requestFocus()

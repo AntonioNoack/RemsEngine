@@ -369,23 +369,6 @@ enum class Interpolation(
 
         val values2 = values()
 
-        fun getWeights(
-
-            f0: Keyframe<*>,
-            f1: Keyframe<*>,
-            f2: Keyframe<*>,
-            f3: Keyframe<*>,
-            t0: Double
-
-        ): Vector4d {
-
-            val interpolation = (if (t0 > 1.0) f2 else f1).interpolation
-            return interpolation.getWeights(
-                f0.time, f1.time, f2.time, f3.time, t0
-            )
-
-        }
-
         val left = Vector4d(0.0, 1.0, 0.0, 0.0)
         val right = Vector4d(0.0, 0.0, 1.0, 0.0)
 

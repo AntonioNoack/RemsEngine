@@ -3,7 +3,6 @@ package me.anno.ui.base.groups
 import me.anno.Engine
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.scrolling.ScrollableX
 import me.anno.ui.base.scrolling.ScrollableY
@@ -77,10 +76,10 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     fun selectPrevious(): Boolean {
         if (!isAnyChildInFocus) return false
-        val childIndex = children.indexOfFirst { it.visibility == Visibility.VISIBLE && it.isInFocus }
+        val childIndex = children.indexOfFirst { it.isVisible && it.isInFocus }
         val newChild = if (childIndex >= 0) {
             children.subList(0, childIndex)
-                .lastOrNull { it.visibility == Visibility.VISIBLE }
+                .lastOrNull { it.isVisible }
         } else null
         if (newChild != null) {
             // todo call click event?
@@ -94,10 +93,9 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     fun selectNext(): Boolean {
         if (!isAnyChildInFocus) return false
-        val childIndex = children.indexOfFirst { it.visibility == Visibility.VISIBLE && it.isAnyChildInFocus }
+        val childIndex = children.indexOfFirst { it.isVisible && it.isAnyChildInFocus }
         val newChild = if (childIndex >= 0) {
-            children.subList(childIndex + 1, children.size)
-                .firstOrNull { it.visibility == Visibility.VISIBLE }
+            children.subList(childIndex + 1, children.size).firstOrNull { it.isVisible }
         } else null
         if (newChild != null) {
             // todo call click event?

@@ -76,22 +76,6 @@ object BakeMesh {
         addQuad(base, side, sx, sy, sz)
     }
 
-    /*fun addFaces(
-        side: BlockSide, base: VoxelMeshBuildInfo,
-        x: Int, y: Int, z: Int, size: Int, color: Byte, model: VoxelModel
-    ) {
-        // must be the inverse of size info
-        val sx0 = model.sizeX + 1
-        val sz0 = model.sizeZ + 1
-        val sz = size % sz0
-        val sxy = size / sz0
-        val sx = sxy % sx0
-        val sy = sxy / sx0
-        base.setOffset(x - model.centerX, y - model.centerY, z - model.centerZ)
-        base.setColor(color)
-        addQuad(base, side, sx, sy, sz)
-    }*/
-
     fun removeSolidInnerBlocks(
         model: VoxelModel,
         blockSide: BlockSide,

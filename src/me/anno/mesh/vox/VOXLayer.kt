@@ -17,8 +17,13 @@ class VOXLayer(var name: String) {
         val name = name.ifEmpty { "Layer $index" }
         val entity = prefab.add(CAdd(Path.ROOT_PATH, 'e', "Entity", name), index, -1)
         prefab.setUnsafe(entity, "name", name)
-        for ((childIndex, node) in nodes.withIndex()) {
-            node.toEntityPrefab(
+        val names = HashSet<String>()
+        for ((childIndex, child) in nodes.withIndex()) {
+            while (!names.add(child.name)) {
+                // not ideal
+                child.name += '_'
+            }
+            child.toEntityPrefab(
                 prefab, meshes, entity,
                 childIndex
             )

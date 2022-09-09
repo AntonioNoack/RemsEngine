@@ -7,7 +7,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
@@ -87,7 +86,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
         // only execute for visible children
         for (i in visibleIndex0 until visibleIndex1) {
             val child = children[i]
-            if (child.visibility != Visibility.GONE) {
+            if (child.isVisible) {
                 child.calculateSize(calcChildWidth, calcChildHeight)
             }
         }
@@ -226,7 +225,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
 
         for (i in idx0 until idx1) {
             val child = children[i]
-            if (child.visibility != Visibility.GONE) {
+            if (child.isVisible) {
                 val ix = i % columns
                 val iy = i / columns
                 val cx = x + when (child.alignmentX) {

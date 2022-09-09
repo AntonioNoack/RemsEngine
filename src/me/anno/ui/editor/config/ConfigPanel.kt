@@ -76,9 +76,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
 
             if (lastTopic.isNotEmpty()) createContent("")
             contentList.forEach { (name, ui) ->
-                if (queryTerms.all { it in name }) {
-                    ui.show()
-                } else ui.hide()
+                ui.isVisible = queryTerms.all { it in name }
             }
 
         }

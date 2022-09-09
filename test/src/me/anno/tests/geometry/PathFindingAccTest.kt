@@ -16,7 +16,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.input.MouseButton
 import me.anno.maths.Maths.sq
 import me.anno.maths.paths.PathFindingAccelerator
-import me.anno.maths.paths.TestWorld
+import me.anno.tests.TestWorld
 import me.anno.mesh.Shapes
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.LOGGER

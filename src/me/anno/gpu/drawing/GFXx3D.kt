@@ -284,7 +284,7 @@ object GFXx3D {
         threshold: Float, isFirst: Boolean,
         isFullscreen: Boolean
     ) {
-        val shader = ShaderLib.shader3DGaussianBlur.value
+        val shader = ShaderLib.shader3DGaussianBlur
         shader.use()
         transformUniform(shader, stack)
         if (isFirst) shader.v2f("stepSize", 0f, 1f / h)
@@ -301,7 +301,7 @@ object GFXx3D {
         steps: Int, w: Int, h: Int,
         isFirst: Boolean
     ) {
-        val shader = ShaderLib.shader3DBoxBlur.value
+        val shader = ShaderLib.shader3DBoxBlur
         shader.use()
         transformUniform(shader, stack)
         if (isFirst) {

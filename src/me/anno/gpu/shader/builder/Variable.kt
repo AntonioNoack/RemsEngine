@@ -30,7 +30,7 @@ class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inO
     constructor(type: GLSLType, name: String) :
             this(type, name, -1, VariableMode.IN)
 
-    constructor(base: Variable, mode: VariableMode):
+    constructor(base: Variable, mode: VariableMode) :
             this(base.type, base.name, base.arraySize, mode)
 
     fun flat(): Variable {
@@ -56,31 +56,19 @@ class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inO
         if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.glslName.startsWith("sampler")) {
             // define sampler array
             for (index in 0 until arraySize) {
-                    code.append(prefix)
-                    code.append(' ')
-                code.append(type.glslName)
-                code.append(' ')
-                code.append(name)
-                code.append(index)
-                code.append(";\n")
+                code.append(prefix).append(' ')
+                code.append(type.glslName).append(' ')
+                code.append(name).append(index).append(";\n")
             }
         } else {
             // define normal variable
-            if (prefix != null) {
-                code.append(prefix)
-                code.append(' ')
-            }
+            if (prefix != null) code.append(prefix).append(' ')
             code.append(type.glslName)
             if (arraySize > 0) {
-                code.append('[')
-                code.append(arraySize)
-                code.append(']')
+                code.append('[').append(arraySize).append(']')
             }
-            code.append(' ')
-            code.append(name)
-            code.append(";\n")
+            code.append(' ').append(name).append(";\n")
         }
-
     }
 
     var isFlat = false

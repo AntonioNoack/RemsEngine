@@ -1,17 +1,12 @@
 package me.anno.ecs.components.mesh.sdf
 
-import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.abs
 
 class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexShape() {
-
-    private var margin = BulletGlobals.CONVEX_DISTANCE_MARGIN
 
     override fun getAabb(t: Transform, aabbMin: javax.vecmath.Vector3d, aabbMax: javax.vecmath.Vector3d) {
         collider.getAABB(t, aabbMin, aabbMax)
@@ -19,7 +14,7 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
 
     // might be correct...
     override fun getShapeType(): BroadphaseNativeType {
-        return BroadphaseNativeType.TERRAIN_SHAPE_PROXYTYPE
+        return BroadphaseNativeType.CONVEX_SHAPE_PROXYTYPE
     }
 
     val localScaling = javax.vecmath.Vector3d(1.0, 1.0, 1.0)
@@ -38,10 +33,10 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
     }
 
     override fun getName() = collider.name
-    override fun getMargin() = this.margin
+    override fun getMargin() = collider.margin
 
     override fun setMargin(margin: Double) {
-        this.margin = margin
+        collider.margin = margin
     }
 
     override fun localGetSupportingVertex(
@@ -55,29 +50,22 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
         margin: Double
     ): javax.vecmath.Vector3d {
 
-        // this shape is convex, and the center is supposed to be central, so we need to query the first intersection from outside
-
-        LOGGER.debug("localGetSupportingVertex($dir)")
+        dir.normalize()
 
         val bounds = sdf.localAABB
+        val dir2 = JomlPools.vec3f.create().set(dir.x, dir.y, dir.z)
         val maxDistance =
-            max(
-                dir.x / (if (dir.x < 0f) bounds.minX else bounds.maxX),
-                max(
-                    dir.y / (if (dir.y < 0f) bounds.minY else bounds.maxY),
-                    dir.z / (if (dir.z < 0f) bounds.minZ else bounds.maxZ)
-                )
-            ).toFloat()
-        val start = JomlPools.vec3f.create()
-            .set(dir.x, dir.y, dir.z).mul(maxDistance)
-        val dir2 = JomlPools.vec3f.create()
-            .set(dir.x, dir.y, dir.z)
+            (bounds.deltaX() * abs(dir.x) + bounds.deltaY() * abs(dir.y) + bounds.deltaZ() * abs(dir.z)).toFloat()
+        val start = JomlPools.vec3f.create().set(dir2).mul(maxDistance)
+            .add(bounds.avgX().toFloat(), bounds.avgY().toFloat(), bounds.avgZ().toFloat())
+        dir2.mul(-1f)
+        val distance = sdf.raycast(
+            start, dir2, 0f,
+            maxDistance * 2f,
+        ) - margin.toFloat()
 
-        // todo how accurate do we need to be?
-        val distance = maxDistance - min(sdf.raycast(start, dir2, 0f, maxDistance), maxDistance) + margin
-
-        out.set(dir)
-        out.scale(distance)
+        start.add(dir2.x * distance, dir2.y * distance, dir2.z * distance)
+        out.set(start.x.toDouble(), start.y.toDouble(), start.z.toDouble())
 
         JomlPools.vec3f.sub(2)
         return out
@@ -93,20 +81,9 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
         supportVerticesOut: Array<out javax.vecmath.Vector3d>,
         numVectors: Int
     ) {
-        val hit = JomlPools.vec3f.create()
-        val normal = JomlPools.vec3f.create()
-        val pos = JomlPools.vec4f.create()
         for (i in 0 until numVectors) {
-            val vec = vectors[i]
-            val out = supportVerticesOut[i]
-            pos.set(vec.x, vec.y, vec.z, 0.0)
-            hit.set(vec.x, vec.y, vec.z)
-            sdf.calcNormal(hit, normal)
-            val distance = sdf.computeSDF(pos).toDouble()
-            out.set(normal.x * distance, normal.y * distance, normal.z * distance)
+            localGetSupportingVertex(vectors[i], supportVerticesOut[i], 0.0)
         }
-        JomlPools.vec3f.sub(2)
-        JomlPools.vec4f.sub(1)
     }
 
     override fun getAabbSlow(

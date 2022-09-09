@@ -10,8 +10,6 @@ import kotlin.math.max
 
 object MeshUtils {
 
-    // todo make target frame usage dependent on size? probably better: ensure we have a ~ 3px padding
-
     fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, mesh: Mesh, targetFrameUsage: Float = 0.95f) {
         mesh.ensureBounds()
         centerMesh(stack, localStack, AABBd().set(mesh.aabb), { mesh.getBounds(it, false) }, targetFrameUsage)

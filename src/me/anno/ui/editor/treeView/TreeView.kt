@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
@@ -143,7 +142,7 @@ abstract class TreeView<V>(
             val children = list.children
             for (i in index until children.size) {
                 val child = children[i]
-                child.visibility = Visibility.GONE
+                child.isVisible = false
             }
             needsTreeUpdate = false
         } catch (e: Exception) {
@@ -179,7 +178,7 @@ abstract class TreeView<V>(
         if (index < list.children.size) {
             elementByIndex[index] = element
             val panel = list.children[index] as TreeViewPanel<*>
-            panel.visibility = Visibility.VISIBLE
+            panel.isVisible = true
             return panel
         }
         elementByIndex += element

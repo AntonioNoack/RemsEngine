@@ -39,7 +39,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return this
     }
 
-    operator fun set(v: Vector3f, w: Float): Vector4f {
+    fun set(v: Vector3f, w: Float): Vector4f {
         x = v.x
         y = v.y
         z = v.z
@@ -47,7 +47,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return this
     }
 
-    operator fun set(v: Vector3i, w: Float): Vector4f {
+    fun set(v: Vector3i, w: Float): Vector4f {
         x = v.x.toFloat()
         y = v.y.toFloat()
         z = v.z.toFloat()
@@ -55,7 +55,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return this
     }
 
-    operator fun set(v: Vector2f, z: Float, w: Float): Vector4f {
+    fun set(v: Vector2f, z: Float, w: Float): Vector4f {
         x = v.x
         y = v.y
         this.z = z
@@ -63,7 +63,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return this
     }
 
-    operator fun set(v: Vector2i, z: Float, w: Float): Vector4f {
+    fun set(v: Vector2i, z: Float, w: Float): Vector4f {
         x = v.x.toFloat()
         y = v.y.toFloat()
         this.z = z
@@ -102,7 +102,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return this
     }
 
-    operator fun set(x: Double, y: Double, z: Double, w: Double): Vector4f {
+    fun set(x: Double, y: Double, z: Double, w: Double): Vector4f {
         this.x = x.toFloat()
         this.y = y.toFloat()
         this.z = z.toFloat()
@@ -600,7 +600,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         }
     }
 
-    operator fun get(dst: Vector4f = this): Vector4f {
+    fun get(dst: Vector4f = this): Vector4f {
         dst.x = x
         dst.y = y
         dst.z = z
@@ -608,7 +608,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return dst
     }
 
-    operator fun get(dst: Vector4d): Vector4d {
+    fun get(dst: Vector4d): Vector4d {
         dst.x = x.toDouble()
         dst.y = y.toDouble()
         dst.z = z.toDouble()

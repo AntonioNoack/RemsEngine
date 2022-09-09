@@ -7,6 +7,9 @@ import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.round
 
+/**
+ * patterns that, e.g., can be used for chunk loading
+ * */
 object SpiralPattern {
 
     fun roundSpiral2d(radius: Int, y: Int, fillBlock: Boolean, increment: Float = 1.5f): List<Vector3i> {

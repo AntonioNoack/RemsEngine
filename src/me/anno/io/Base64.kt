@@ -9,17 +9,17 @@ import java.io.OutputStream
 
 object Base64 {
 
-    private const val invalidCode = 0x1.shl(24)
-    private val base64ToCode = IntArray(256) { invalidCode }
+    private const val invalidCode: Byte = -1
+    private val base64ToCode = ByteArray(256) { invalidCode }
     private val codeToBase64 = (('A'..'Z') + ('a'..'z') + ('0'..'9') + listOf('+', '/'))
-        .map { it.code }
-        .toIntArray()
+        .map { it.code.toByte() }
+        .toByteArray()
 
     init {
 
         for (index in codeToBase64.indices) {
             val letter = codeToBase64[index]
-            base64ToCode[letter] = index
+            base64ToCode[letter.toInt()] = index.toByte()
         }
 
         // 62
@@ -52,21 +52,21 @@ object Base64 {
             val b = input.read()
             val c = input.read()
             val value = a.shl(16) + max(b, 0).shl(8) + max(c, 0)
-            output.write(codeToBase64[value.shr(18).and(63)])
-            output.write(codeToBase64[value.shr(12).and(63)])
+            output.write(codeToBase64[value.shr(18).and(63)].toInt())
+            output.write(codeToBase64[value.shr(12).and(63)].toInt())
             if (b < 0) {
                 if (writePadding) {
                     output.write('='.code)
                     output.write('='.code)
                 }
             } else {
-                output.write(codeToBase64[value.shr(6).and(63)])
+                output.write(codeToBase64[value.shr(6).and(63)].toInt())
                 if (c < 0) {
                     if (writePadding) {
                         output.write('='.code)
                     }
                 } else {
-                    output.write(codeToBase64[value.and(63)])
+                    output.write(codeToBase64[value.and(63)].toInt())
                 }
             }
         }
@@ -89,11 +89,11 @@ object Base64 {
                 when {
                     x == invalidCode -> throw IOException("Illegal character in Base64: $a '${a.toChar()}'")
                     (b >= 0 && y == invalidCode) -> throw IOException("Illegal character in Base64: $b '${b.toChar()}'")
-                    (c >= 0 && z == invalidCode) -> throw IOException("Illegal character in Base64: $c '${d.toChar()}'")
+                    (c >= 0 && z == invalidCode) -> throw IOException("Illegal character in Base64: $c '${c.toChar()}'")
                     (d >= 0 && w == invalidCode) -> throw IOException("Illegal character in Base64: $d '${d.toChar()}'")
                 }
             }
-            val code = x.shl(18) + y.shl(12) + z.shl(6) + w
+            val code = x.toInt().shl(18) + y.toInt().shl(12) + z.toInt().shl(6) + w
             output.write(code.shr(16).and(255))
             if (c != padding) {
                 output.write(code.shr(8).and(255))

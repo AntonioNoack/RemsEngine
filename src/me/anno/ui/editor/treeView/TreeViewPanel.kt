@@ -16,7 +16,6 @@ import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.askName
@@ -285,7 +284,7 @@ class TreeViewPanel<V>(
     override fun getCursor() = Cursor.drag
 
     override fun getTooltipText(x: Float, y: Float): String? {
-        return if (visibility == Visibility.VISIBLE) treeView.getTooltipText(getElement())
+        return if (isVisible) treeView.getTooltipText(getElement())
         else null
     }
 

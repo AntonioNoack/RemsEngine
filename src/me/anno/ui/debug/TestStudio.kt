@@ -11,6 +11,9 @@ import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
 
+/**
+ * engine runtime for testing
+ * */
 class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Test", 1) {
 
     override fun createUI() {

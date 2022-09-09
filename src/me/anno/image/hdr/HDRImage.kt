@@ -170,12 +170,12 @@ class HDRImage : Image {
         val isHDR = readLine(input)
         require(isHDR == HDR_MAGIC) { "Unrecognized format: $isHDR" }
 
-        // Besides the first line, there are serveral lines describing the different information of this HDR file.
+        // Besides the first line, there are several lines describing the different information of this HDR file.
         // Maybe it will have the exposure time, format(Must be either"32-bit_rle_rgbe" or "32-bit_rle_xyze")
         // Also the owner's information, the software's version, etc.
 
         // The above information is not so important for us.
-        // The only important information for us is the Resolution which shows the size of the HDR image
+        // The only important information for us is the resolution, which shows the size of the HDR image
         // The resolution information's format is fixed. Usually, it will be -Y 1024 +X 2048 something like this.
         var inform = readLine(input)
         while (inform != "") {
@@ -196,7 +196,7 @@ class HDRImage : Image {
         // In the above, the basic information has been collected. Now, we will deal with the pixel data.
         // According to the HDR format document, each pixel is stored as 4 bytes, one bytes mantissa for each r,g,b and a shared one byte exponent.
         // The pixel data may be stored uncompressed or using a straightforward run length encoding scheme.
-        val din: DataInput = DataInputStream(input)
+        val din = DataInputStream(input)
         pixels = FloatArray(height * width * 3)
 
         // optimized from the original; it does not need to be full image size; one row is enough
@@ -249,9 +249,9 @@ class HDRImage : Image {
                 val i2 = x * 4
                 val exp = lineBuffer[i2 + 3].toInt() and 255
                 if (exp == 0) {
-                    index += 3 // 0 is default
+                    index += 3 // black is default
                 } else {
-                    val exponent = 2f.pow(exp - 128 - 8)
+                    val exponent = 2f.pow(exp - 128 - 8) // could be optimized by using integer arithmetic to calculate this float
                     pixels[index++] = (lineBuffer[i2].toInt() and 255) * exponent
                     pixels[index++] = (lineBuffer[i2 + 1].toInt() and 255) * exponent
                     pixels[index++] = (lineBuffer[i2 + 2].toInt() and 255) * exponent
@@ -294,7 +294,7 @@ class HDRImage : Image {
         fun writeHDR(w: Int, h: Int, pixels: FloatArray, out0: OutputStream?) {
             val out = DataOutputStream(out0)
             out.writeBytes(HDR_MAGIC)
-            // meta data, which seems to be required
+            // metadata, which seems to be required
             out.writeBytes("\nFORMAT=32-bit_rle_rgbe\n\n")
             out.writeBytes("-Y ")
             out.writeBytes(h.toString())
@@ -320,9 +320,8 @@ class HDRImage : Image {
                     val max = max(max(r0, g0), b0)
                     if (max > 0) {
                         // Math.pow(2, exp - 128 - 8)
-                        var exp0 = ceil(ln(max * 256f / 255f) / ln(2f)) // +128
-                        if (exp0 < -128) exp0 = -128f
-                        if (exp0 > +127) exp0 = +127f
+                        // probably could be optimized massively by extracting the exponent from the binary representation
+                        val exp0 = clamp(ceil(log2(max * 256f / 255f)), -128f, 127f) // +128
                         val invPow = 2f.pow(-exp0 + 8)
                         val r = (r0 * invPow).roundToInt()
                         val g = (g0 * invPow).roundToInt()
@@ -333,7 +332,7 @@ class HDRImage : Image {
                         rowBytes[i++] = (exp0 + 128).toInt().toByte()
                     } else {
                         // just zeros; exponent could be the same as the old value,
-                        // but zero is rare probably anyways
+                        // but zero is rare probably anyway
                         i += 4
                     }
                     x++

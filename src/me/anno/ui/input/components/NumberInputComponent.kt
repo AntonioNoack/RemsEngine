@@ -1,6 +1,5 @@
 package me.anno.ui.input.components
 
-import me.anno.ui.base.Visibility
 import me.anno.ui.input.InputVisibility
 import me.anno.ui.style.Style
 
@@ -16,7 +15,7 @@ open class NumberInputComponent(
     override val enableSpellcheck: Boolean
         get() = false
 
-    override var visibility: Visibility
+    override var isVisible: Boolean
         get() = InputVisibility[visibilityKey]
         set(_) {}
 

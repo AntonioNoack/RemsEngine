@@ -36,10 +36,13 @@ import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FloatInput
+import me.anno.utils.Warning.unused
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.none2
@@ -500,16 +503,30 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                         if (meshComponent != null) {
                             val mesh = meshComponent.getMesh()
                             val numMaterials = mesh?.numMaterials ?: 1
-                            if (numMaterials < 2 || true) {
+                            if (numMaterials <= 1) {
                                 // assign material
                                 meshComponent.materials = listOf(file)
                                 meshComponent.prefab?.set(meshComponent, "materials", meshComponent.materials)
                             } else {
-                                // todo ask for slot to place material
-                                // todo what if there are multiple materials being dragged? :)
-                                // todo set this material in the prefab
-
-                                // todo or find what material is used at that triangle :), maybe draw component ids + material ids for this
+                                // ask for slot to place material
+                                Menu.openMenu(
+                                    windowStack, NameDesc("Destination Slot for ${file.nameWithoutExtension}?"),
+                                    (0 until numMaterials).map { i ->
+                                        MenuOption(NameDesc("$i", "", "")) {
+                                            meshComponent.materials = Array(numMaterials) {
+                                                if (it == i) file
+                                                else meshComponent.materials.getOrNull(it) ?: InvalidRef
+                                            }.toList()
+                                            meshComponent.prefab?.set(
+                                                meshComponent,
+                                                "materials",
+                                                meshComponent.materials
+                                            )
+                                        }
+                                    }
+                                )
+                                // what if there are multiple materials being dragged? :); we ask multiple times 😅
+                                // todo find what material is used at that triangle :), maybe draw component ids + material ids for this
                             }
                         }
                     }
@@ -584,6 +601,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     fun findDropPosition(drop: FileReference, dst: Vector3d): Vector3d {
+        unused(drop)
         // val prefab = PrefabCache[drop] ?: return null
         // val sample = prefab.getSampleInstance() as? Entity ?: return null
         // todo depending on mode, use other strategies to find zero-point on object

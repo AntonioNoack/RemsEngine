@@ -6,8 +6,8 @@ import me.anno.utils.types.InputStreams.readNBytes2
 // the standard readers work well and good, but unfortunately,
 //  then don't allow me to load the image as a small size;
 //  which should definitively be possible
-// is there a way to read jpg thumbnails from the primary data?
-// writing our own reader is MUCH to complicated; jpeg is insane
+// is there a way to read JPG thumbnails from the primary data?
+// writing our own reader is MUCH too complicated; JPEG is insane
 object JPGThumbnails {
 
     fun extractThumbnail(file: FileReference): ByteArray? {

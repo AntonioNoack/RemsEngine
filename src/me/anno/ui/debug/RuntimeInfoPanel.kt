@@ -30,7 +30,9 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         }
     }
 
-    // todo another slot may be interesting: how much ram is used by sub-processes
+    // to do another slot may be interesting: how much ram is used by sub-processes
+    // I don't know how to implement that... we'd need to track, which sub-processes are alive,
+    // and get their process id, so we can ask the OS about RAM usage
 
     private fun getDebugText(): String {
         val runtime = Runtime.getRuntime()

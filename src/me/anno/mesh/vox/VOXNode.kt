@@ -11,7 +11,7 @@ import org.joml.Vector3d
 class VOXNode {
 
     // meta data
-    var name: String = ""
+    var name = ""
 
     // hierarchy
     var child: VOXNode? = null
@@ -52,8 +52,14 @@ class VOXNode {
         }
         val children = children
         if (children != null) {
-            for (childIndex in children.indices) {
-                children[childIndex].toEntityPrefab(prefab, meshes, path, childIndex)
+            val names = HashSet<String>(children.size)
+            for (i in children.indices) {
+                val child = children[i]
+                while (!names.add(child.name)) {
+                    // not ideal
+                    child.name += '_'
+                }
+                children[i].toEntityPrefab(prefab, meshes, path, i)
             }
         }
     }

@@ -1,22 +1,20 @@
 package me.anno.mesh.vox.meshing
 
-import org.joml.Vector3i
-
 object BlockBuffer {
 
     fun addQuad(
         base: VoxelMeshBuildInfo,
-        a: Vector3i,
-        b: Vector3i,
-        c: Vector3i,
-        d: Vector3i
+        ax: Int, ay: Int, az: Int,
+        bx: Int, by: Int, bz: Int,
+        cx: Int, cy: Int, cz: Int,
+        dx: Int, dy: Int, dz: Int
     ) {
-        base.add(a)
-        base.add(c)
-        base.add(b)
-        base.add(a)
-        base.add(d)
-        base.add(c)
+        base.add(ax, ay, az)
+        base.add(cx, cy, cz)
+        base.add(bx, by, bz)
+        base.add(ax, ay, az)
+        base.add(dx, dy, dz)
+        base.add(cx, cy, cz)
     }
 
     fun addQuad(
@@ -28,55 +26,55 @@ object BlockBuffer {
             BlockSide.NX -> {
                 addQuad(
                     base,
-                    Vector3i(0, 0, 0),
-                    Vector3i(0, dy, 0),
-                    Vector3i(0, dy, dz),
-                    Vector3i(0, 0, dz)
+                    0, 0, 0,
+                    0, dy, 0,
+                    0, dy, dz,
+                    0, 0, dz
                 )
             }
             BlockSide.PX -> {
                 addQuad(
                     base,
-                    Vector3i(dx, dy, 0),
-                    Vector3i(dx, 0, 0),
-                    Vector3i(dx, 0, dz),
-                    Vector3i(dx, dy, dz)
+                    dx, dy, 0,
+                    dx, 0, 0,
+                    dx, 0, dz,
+                    dx, dy, dz
                 )
             }
             BlockSide.NY -> {
                 addQuad(
                     base,
-                    Vector3i(0, 0, 0),
-                    Vector3i(0, 0, dz),
-                    Vector3i(dx, 0, dz),
-                    Vector3i(dx, 0, 0)
+                    0, 0, 0,
+                    0, 0, dz,
+                    dx, 0, dz,
+                    dx, 0, 0
                 )
             }
             BlockSide.PY -> {
                 addQuad(
                     base,
-                    Vector3i(0, dy, dz),
-                    Vector3i(0, dy, 0),
-                    Vector3i(dx, dy, 0),
-                    Vector3i(dx, dy, dz)
+                    0, dy, dz,
+                    0, dy, 0,
+                    dx, dy, 0,
+                    dx, dy, dz
                 )
             }
             BlockSide.NZ -> {
                 addQuad(
                     base,
-                    Vector3i(0, dy, 0),
-                    Vector3i(0, 0, 0),
-                    Vector3i(dx, 0, 0),
-                    Vector3i(dx, dy, 0)
+                    0, dy, 0,
+                    0, 0, 0,
+                    dx, 0, 0,
+                    dx, dy, 0
                 )
             }
             BlockSide.PZ -> {
                 addQuad(
                     base,
-                    Vector3i(0, 0, dz),
-                    Vector3i(0, dy, dz),
-                    Vector3i(dx, dy, dz),
-                    Vector3i(dx, 0, dz)
+                    0, 0, dz,
+                    0, dy, dz,
+                    dx, dy, dz,
+                    dx, 0, dz
                 )
             }
         }

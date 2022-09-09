@@ -1,7 +1,5 @@
 package me.anno.maths
 
-import me.anno.maths.Maths.factorial
-
 @Suppress("unused")
 object Permutations {
 

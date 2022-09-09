@@ -457,24 +457,6 @@ class VOXReader {
             defaultPalette = defaultPalette0
 
         }
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // extremely complex:
-            val file = OS.downloads.getChild("MagicaVoxel/vox/PrinceOfPersia.vox")
-            // medium:
-            // val file = OS.downloads.getChild("MagicaVoxel/vox/truck.vox")
-            // val file = OS.downloads.getChild("MagicaVoxel/vox/ForestHeavy.vox")
-            // VOXReader().read(file)
-            /*writeImageInt(6, 256 / 6, false, "vox.png", 256) { _, _, i ->
-                defaultPalette[i + 1]
-            }*/
-            // time for debugger to attach
-            // for (i in 0 until 100) Thread.sleep(100)
-            Thumbs.testGeneration(file, this::readAsFolder)
-        }
-
     }
-
 
 }

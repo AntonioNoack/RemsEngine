@@ -5,7 +5,7 @@ import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
 
-//  execute every O(sx*sy) operation in an optimized loop, or smarter
+// execute every O(sx*sy) operation in an optimized loop, or smarter
 class RayGroup(val sx: Int, val sy: Int, val local: RayGroup? = null) {
 
     val size = sx * sy

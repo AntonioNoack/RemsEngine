@@ -4,11 +4,11 @@ import me.anno.utils.LOGGER
 import kotlin.math.max
 import kotlin.math.min
 
-class ExpandingByteArray(private val initCapacity: Int) {
+open class ExpandingByteArray(private val initCapacity: Int) {
 
     var size = 0
 
-    fun clear(){
+    fun clear() {
         size = 0
     }
 
@@ -36,6 +36,7 @@ class ExpandingByteArray(private val initCapacity: Int) {
     }
 
     fun add(v: ExpandingByteArray, startIndex: Int, length: Int) {
+        if (length == 0) return
         ensureExtra(length)
         addUnsafe(v, startIndex, length)
     }
@@ -65,7 +66,7 @@ class ExpandingByteArray(private val initCapacity: Int) {
             val newArray = try {
                 ByteArray(newSize)
             } catch (e: OutOfMemoryError) {
-                LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingIntArray")
+                LOGGER.warn("Failed to allocated $newSize bytes for ExpandingByteArray")
                 throw e
             }
             if (array != null) System.arraycopy(array, 0, newArray, 0, this.size)

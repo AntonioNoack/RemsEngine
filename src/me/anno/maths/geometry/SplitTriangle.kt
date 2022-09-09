@@ -1,6 +1,20 @@
 package me.anno.maths.geometry
 
+import me.anno.maths.Maths
+import org.joml.Vector2f
+import org.joml.Vector3f
+
 object SplitTriangle {
+
+    class Point3D(val pt: Vector3f, val normal: Vector3f, val uv: Vector2f) {
+        fun mix(b: Point3D, factor: Float): Point3D = Point3D(
+            Maths.mix(pt, b.pt, factor),
+            Maths.mix(normal, b.normal, factor),
+            Maths.mix(uv, b.uv, factor)
+        )
+    }
+
+    class Triangle(var a: Point3D, var b: Point3D, var c: Point3D)
 
     /**
      * Clip a triangle against a plane knowing, that a to b crosses the clipping plane

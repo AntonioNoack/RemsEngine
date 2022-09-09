@@ -10,7 +10,6 @@ import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.SpacerPanel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
@@ -41,9 +40,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             // todo if an element is hidden by VisibilityKey, and it contains the search term, toggle that VisibilityKey
             val search = Search(searchTerms)
             for ((index, child) in oldValues.children.withIndex()) {
-                if (index > 0) {
-                    child.visibility = Visibility[child.fulfillsSearch(search)]
-                }
+                if (index > 0) child.isVisible = child.fulfillsSearch(search)
             }
         }
     }

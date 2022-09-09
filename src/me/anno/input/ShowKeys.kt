@@ -8,6 +8,7 @@ import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.ui.base.text.TextPanel
 import org.lwjgl.glfw.GLFW
@@ -106,11 +107,14 @@ object ShowKeys {
         Input.keysDown.forEach(addKeyConsumer)
 
         return if (activeKeys.isNotEmpty()) {
-            activeKeys.removeIf { key ->
-                key.time = if (key.time > 1f) 1f else key.time - deltaTime * decaySpeed
-                val becameOutdated = key.time < 0f
-                if (becameOutdated) activeKeysMap.remove(key.keyCode)
-                becameOutdated
+            val dt = deltaTime * decaySpeed
+            val iter = activeKeys.iterator()
+            for (key in iter) {
+                key.time = min(key.time - dt, 1f)
+                if (key.time < 0f) {
+                    activeKeysMap.remove(key.keyCode)
+                    iter.remove()
+                }
             }
             if (activeKeys.isNotEmpty()) {
                 activeKeys.sortBy { !it.isSuperKey }

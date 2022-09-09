@@ -25,11 +25,6 @@ open class SpacerPanel(
         minH = sizeY
     }
 
-    fun setColor(color: Int): SpacerPanel {
-        backgroundColor = color
-        return this
-    }
-
     override fun clone(): SpacerPanel {
         val clone = SpacerPanel(sizeX, sizeY, style)
         copy(clone)

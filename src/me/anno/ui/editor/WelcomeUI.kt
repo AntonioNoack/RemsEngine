@@ -18,7 +18,6 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.SizeLimitingContainer
@@ -192,7 +191,7 @@ abstract class WelcomeUI {
                         )
                     ) {
                         Projects.removeFromRecentProjects(project.file)
-                        tp.visibility = Visibility.GONE
+                        tp.isVisible = false
                     },
                     MenuOption(
                         NameDesc(
@@ -203,7 +202,7 @@ abstract class WelcomeUI {
                         Menu.ask(window.windowStack, NameDesc("Are you sure?", "", "")) {
                             Projects.removeFromRecentProjects(project.file)
                             project.file.deleteRecursively()
-                            tp.visibility = Visibility.GONE
+                            tp.isVisible = false
                         }
                     }
                 ))

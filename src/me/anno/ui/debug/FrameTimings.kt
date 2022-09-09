@@ -14,6 +14,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.OS
@@ -22,6 +23,34 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
+
+    class TimeContainer(val width: Int, val color: Int) : Comparable<TimeContainer> {
+
+        var maxValue = 0f
+        val values = FloatArray(width)
+        var nextIndex = 0
+
+        fun putValue(value: Float) {
+            values[nextIndex] = value
+            nextIndex = (nextIndex + 1) % width
+            val max = values.max()
+            maxValue = max(maxValue * Maths.clamp((1f - 3f * value), 0f, 1f), max)
+        }
+
+        override fun compareTo(other: TimeContainer): Int {
+            return maxValue.compareTo(other.maxValue)
+        }
+
+        fun FloatArray.max(): Float {
+            var max = this[0]
+            for (i in 1 until size) {
+                val v = this[i]
+                if (v > max) max = v
+            }
+            return max
+        }
+
+    }
 
     val width = 200 * max(DefaultConfig.style.getSize("fontSize", 12), 12) / 12
     val height = width / 4

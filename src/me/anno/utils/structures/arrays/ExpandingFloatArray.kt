@@ -10,7 +10,7 @@ import org.joml.Vector4f
 import kotlin.math.max
 import kotlin.math.min
 
-class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
+open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
 
     var size = 0
 
@@ -69,7 +69,7 @@ class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
             val newArray = try {
                 FloatArray(newSize)
             } catch (e: OutOfMemoryError) {
-                LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingIntArray")
+                LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingFloatArray")
                 throw e
             }
             if (array != null) System.arraycopy(array, 0, newArray, 0, this.size)

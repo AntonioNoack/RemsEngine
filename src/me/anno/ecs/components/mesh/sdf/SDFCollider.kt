@@ -1,14 +1,16 @@
 package me.anno.ecs.components.mesh.sdf
 
+import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.ecs.Component
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.MeshCollider.Companion.defaultShape
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.MarchingCubes
@@ -26,7 +28,10 @@ class SDFCollider : Collider() {
     // could be assigned by hand...
     val sdf get() = entity?.getComponent(SDFComponent::class)
 
-    override var isConvex = false
+    @Docs("Invisible gap between rigidbodies to simplify computations")
+    var margin = BulletGlobals.CONVEX_DISTANCE_MARGIN
+
+    override var isConvex = true
 
     fun getAABB(t: Transform, aabbMin: javax.vecmath.Vector3d, aabbMax: javax.vecmath.Vector3d) {
 
@@ -54,6 +59,7 @@ class SDFCollider : Collider() {
             aabbMax.y = max(aabbMax.y, tmp.y)
             aabbMax.z = max(aabbMax.z, tmp.z)
         }
+
         aabbMin.add(t.origin)
         aabbMax.add(t.origin)
         Stack.subVec(1)
@@ -126,6 +132,13 @@ class SDFCollider : Collider() {
         val clone = SDFCollider()
         copy(clone)
         return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as SDFCollider
+        clone.isConvex = isConvex
+        clone.margin = margin
     }
 
     override val className = "SDFCollider"

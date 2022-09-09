@@ -988,8 +988,8 @@ object ComponentUI {
                             }
                         }
 
-                        val clazzName = type0.substring(0, type0.lastIndexOf('/'))
-                        val project = (StudioBase.instance as? RemsEngine)?.currentProject
+                        // val clazzName = type0.substring(0, type0.lastIndexOf('/'))
+                        // val project = (StudioBase.instance as? RemsEngine)?.currentProject
                         val options = ArrayList<Prefab?>()
                         options.add(null)
                         // dangerous & slow at the moment :/
@@ -1171,20 +1171,10 @@ object ComponentUI {
         }
     }
 
-    fun instanceOf(clazz: KClass<*>, clazzName: String): Boolean {
-        if (clazz.simpleName == clazzName || clazz.qualifiedName == clazzName) return true
-        if (clazz.superclasses.any { instanceOf(it, clazzName) }) return true
-        return false
-    }
-
     fun instanceOf(clazz: KClass<*>, parent: KClass<*>): Boolean {
         if (clazz == parent) return true
         if (clazz.superclasses.any { instanceOf(it, parent) }) return true
         return false
-    }
-
-    fun instanceOf(sample: Any, clazzName: String): Boolean {
-        return instanceOf(sample::class, clazzName)
     }
 
 }

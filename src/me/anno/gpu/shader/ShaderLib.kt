@@ -11,6 +11,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.pooling.ByteBufferPool
+import org.joml.Vector3i
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
@@ -821,37 +822,7 @@ object ShaderLib {
         "cgOffset", "cgSlope", "cgPower", "cgSaturation"
     )
 
-    val shaderObjMtl = createShader(
-        "obj/mtl", listOf(
-            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-            Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "normals", VariableMode.ATTR),
-            Variable(GLSLType.V1F, "zDistance", VariableMode.OUT),
-            Variable(GLSLType.M4x4, "transform")
-        ),
-        "void main(){\n" +
-                "   finalPosition = coords;\n" +
-                "   gl_Position = transform * vec4(coords, 1.0);\n" +
-                "   uv = uvs;\n" +
-                "   normal = normals;\n" +
-                positionPostProcessing +
-                "}", y3D + listOf(Variable(GLSLType.V3F, "normal")), listOf(
-            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
-        ), "" +
-                "uniform sampler2D tex;\n" +
-                getTextureLib +
-                getColorForceFieldLib +
-                "void main(){\n" +
-                "   vec4 color = getTexture(tex, uv);\n" +
-                "   color.rgb *= 0.5 + 0.5 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
-                "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
-                "   finalColor = color.rgb;\n" +
-                "   finalAlpha = color.a;\n" +
-                "}", listOf("tex")
-    )
-
-    val shader3DBoxBlur = createShader(
+    val shader3DBoxBlur = Shader(
         "3d-blur", coordsList, coordsVShader, uvList, listOf(), "" +
                 "precision highp float;\n" + // why?
                 "uniform sampler2D tex;\n" +
@@ -869,43 +840,42 @@ object ShaderLib {
                 "       color /= float(steps);\n" +
                 "   }\n" +
                 "   gl_FragColor = color;\n" +
-                "}", listOf("tex")
+                "}"
     )
 
-    val shader3DGaussianBlur =
-        createShader(
-            "3d-blur", v3DlMasked, v3DMasked, y3DMasked, listOf(
-                Variable(GLSLType.S2D, "tex"),
-                Variable(GLSLType.V2F, "stepSize"),
-                Variable(GLSLType.V1F, "steps"),
-                Variable(GLSLType.V1F, "threshold")
-            ), "" +
-                    brightness +
-                    "void main(){\n" +
-                    "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
-                    "   vec4 color;\n" +
-                    "   float sum = 0.0;\n" +
-                    // test all steps for -pixelating*2 .. pixelating*2, then average
-                    "   int iSteps = max(0, int(2.7 * steps));\n" +
-                    "   if(iSteps == 0){\n" +
-                    "       color = texture(tex, uv2);\n" +
-                    "   } else {\n" +
-                    "       color = vec4(0.0);\n" +
-                    "       for(int i=-iSteps;i<=iSteps;i++){\n" +
-                    "           float fi = float(i);\n" +
-                    "           float relativeX = fi/steps;\n" +
-                    "           vec4 colorHere = texture(tex, uv2 + fi * stepSize);\n" +
-                    "           float weight = exp(-relativeX*relativeX);\n" +
-                    "           sum += weight;\n" +
-                    "           color += vec4(max(vec3(0.0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
-                    "       }\n" +
-                    "       color /= sum;\n" +
-                    "   }\n" +
-                    "   gl_FragColor = color;\n" +
-                    "}", listOf("tex")
-        )
+    val shader3DGaussianBlur = Shader(
+        "3d-blur", v3DlMasked, v3DMasked, y3DMasked, listOf(
+            Variable(GLSLType.S2D, "tex"),
+            Variable(GLSLType.V2F, "stepSize"),
+            Variable(GLSLType.V1F, "steps"),
+            Variable(GLSLType.V1F, "threshold")
+        ), "" +
+                brightness +
+                "void main(){\n" +
+                "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
+                "   vec4 color;\n" +
+                "   float sum = 0.0;\n" +
+                // test all steps for -pixelating*2 .. pixelating*2, then average
+                "   int iSteps = max(0, int(2.7 * steps));\n" +
+                "   if(iSteps == 0){\n" +
+                "       color = texture(tex, uv2);\n" +
+                "   } else {\n" +
+                "       color = vec4(0.0);\n" +
+                "       for(int i=-iSteps;i<=iSteps;i++){\n" +
+                "           float fi = float(i);\n" +
+                "           float relativeX = fi/steps;\n" +
+                "           vec4 colorHere = texture(tex, uv2 + fi * stepSize);\n" +
+                "           float weight = exp(-relativeX*relativeX);\n" +
+                "           sum += weight;\n" +
+                "           color += vec4(max(vec3(0.0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
+                "       }\n" +
+                "       color /= sum;\n" +
+                "   }\n" +
+                "   gl_FragColor = color;\n" +
+                "}"
+    )
 
-    val textShader = createShader(
+    val textShader = BaseShader(
         "textShader", listOf(),
         "" +
                 "$attribute vec2 coords;\n" +
@@ -931,10 +901,10 @@ object ShaderLib {
                 "   if(color.a < 0.001) discard;\n" +
                 "   finalColor = color.rgb;\n" +
                 "   finalAlpha = color.a;\n" +
-                "}", listOf("tex")
+                "}"
     )
 
-    val subpixelCorrectTextShader = createShader(
+    val subpixelCorrectTextShader = BaseShader(
         "subpixelCorrectTextShader", listOf(
             Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
             Variable(GLSLType.V2F, "pos"),
@@ -959,18 +929,41 @@ object ShaderLib {
         ), "" +
                 brightness +
                 "void main(){\n" +
-                "   vec3 textMask = texture(tex, uv).rgb;\n" +
-                "   vec3 mixing = textMask.rgb;\n" +
-                "   mixing *= textColor.a;\n" +
+                "   vec3 mixing = texture(tex, uv).rgb * textColor.a;\n" +
                 "   float mixingAlpha = brightness(mixing);\n" +
-                // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g. x on my screen
+                // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
                 "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0)\n" +
                 "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
                 "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, mixingAlpha));\n" +
                 "   if(color.a < 0.001) discard;\n" +
                 "   finalColor = color.rgb;\n" +
                 "   finalAlpha = 1.0;\n" +
-                "}", listOf("tex")
+                "}"
+    )
+
+    val subpixelCorrectTextShader2 = ComputeShader(
+        "subpixelCorrectTextShader", Vector3i(16, 16, 1), "" +
+                brightness +
+                "uniform sampler2D tex;\n" +
+                "layout(rgba8, binding = 1) restrict uniform image2D dst;\n" +
+                "uniform vec4 textColor;\n" +
+                "uniform ivec2 srcOffset, dstOffset, invokeSize;\n" +
+                "void main(){\n" +
+                "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy);\n" +
+                "   if(uv.x >= invokeSize.x || uv.y >= invokeSize.y) return;\n" +
+                "   ivec2 size = textureSize(tex, 0);\n" +
+                "   vec3 mixing = texture(tex, vec2(uv + srcOffset)/vec2(size-1), 0).rgb * textColor.a;\n" +
+                "   float mixingAlpha = brightness(mixing);\n" +
+                "   size = imageSize(dst);\n" +
+                // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
+                "   if(uv.x <= 0 || uv.y <= 0 || uv.x >= invokeSize.x-1 || uv.y >= invokeSize.y - 1)\n" +
+                "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
+                "   uv += dstOffset;\n" +
+                "   uv.y = size.y - 1 - uv.y;\n" +
+                "   vec4 backgroundColor = imageLoad(dst, uv);\n" +
+                "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, mixingAlpha));\n" +
+                "   imageStore(dst, uv, color);\n" +
+                "}"
     )
 
     fun createShader(

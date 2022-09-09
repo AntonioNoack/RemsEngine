@@ -7,7 +7,6 @@ import me.anno.input.Input.controllers
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.SpyPanel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -47,7 +46,7 @@ object CalibrationProcedure {
         val panel = PanelListY(style)
         // hide non-connected controllers
         panel.add(SpyPanel(style) {
-            panel.visibility = Visibility[controller.isConnected]
+            panel.isVisible = controller.isConnected
         })
         panel.weight = 1f
         val list = PanelListX(style)

@@ -3,7 +3,7 @@ package me.anno.image.svg
 import me.anno.config.DefaultConfig
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.image.css.CSSReader
+import me.anno.io.css.CSSReader
 import me.anno.image.svg.SVGTransform.applyTransform
 import me.anno.image.svg.gradient.Formula
 import me.anno.image.svg.gradient.LinearGradient
@@ -159,7 +159,7 @@ class SVGMesh {
                         when (val type = this["type"]?.lowercase(Locale.getDefault())) {
                             "text/css" -> {
                                 val content = this.children.filterIsInstance<String>().joinToString("\n")
-                                CSSReader(this@SVGMesh, content)
+                                CSSReader.read(this@SVGMesh, content)
                             }
                             null, "" -> {
                                 if (id != null) styles[id] = SVGStyle(this@SVGMesh, this)

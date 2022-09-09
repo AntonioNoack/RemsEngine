@@ -3,7 +3,6 @@ package me.anno.ui.editor.frames
 import me.anno.config.DefaultConfig
 import me.anno.language.translation.NameDesc
 import me.anno.parser.SimpleExpressionParser.parseDouble
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
@@ -33,14 +32,14 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
             .setChangeListener { it, _, _ ->
                 when (it) {
                     "Custom" -> {
-                        customInput.visibility = Visibility.VISIBLE
+                        customInput.isVisible = true
                     }
                     else -> {
                         val wh = it.split('x')
                         val ws = wh[0].trim().toInt()
                         val hs = wh[1].trim().toInt()
                         update(ws, hs)
-                        customInput.visibility = Visibility.GONE
+                        customInput.isVisible = false
                     }
                 }
             }
@@ -48,7 +47,7 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
         customY.setValue(val0.h, false)
         customInput += customX.setChangeListener { update(it, customY.lastValue) }.setWeight(1f)
         customInput += customY.setChangeListener { update(customX.lastValue, it) }.setWeight(1f)
-        customInput.visibility = Visibility.GONE
+        customInput.isVisible = false
         this += customInput
     }
 

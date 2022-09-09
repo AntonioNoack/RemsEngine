@@ -27,7 +27,7 @@ import java.io.InputStream
 // this was 3x faster than assimp: 13s instead of 40s
 // without unzipping, it still was 10s for this, and 34s for assimp
 // (yes, when using assimp, I am copying everything, which is non-optimal)
-class OBJReader(input: InputStream, val file: FileReference) : OBJMTLReader(input) {
+class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(input) {
 
     constructor(file: FileReference) : this(file.inputStream(), file)
 

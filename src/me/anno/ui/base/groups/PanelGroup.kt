@@ -5,7 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import kotlin.math.max
@@ -33,7 +32,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         val children = children
         for (index in children.indices) {
             val child = children[index]
-            if (child.visibility == Visibility.VISIBLE) {
+            if (child.isVisible) {
                 drawChild(child, x0, y0, x1, y1)
             }
         }
@@ -77,7 +76,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
 
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
-        if (visibility == Visibility.VISIBLE) {
+        if (isVisible) {
             for (child in children) {
                 child.printLayout(tabDepth + 1)
             }
@@ -85,7 +84,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     }
 
     override fun onSelectAll(x: Float, y: Float) {
-        if (children.any { it.visibility == Visibility.VISIBLE && it.getMultiSelectablePanel() == it }) {
+        if (children.any { it.isVisible && it.getMultiSelectablePanel() == it }) {
             // select all panels, which are multi-selectable
             children
                 .filter { it.getMultiSelectablePanel() == it }

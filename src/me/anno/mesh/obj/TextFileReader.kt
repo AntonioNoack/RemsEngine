@@ -9,10 +9,10 @@ import java.io.EOFException
 import java.io.InputStream
 import kotlin.math.pow
 
-open class OBJMTLReader(val reader: InputStream) {
+open class TextFileReader(val reader: InputStream) {
 
     companion object {
-        private val LOGGER = LogManager.getLogger(OBJMTLReader::class)
+        private val LOGGER = LogManager.getLogger(TextFileReader::class)
         const val minus = '-'.code
         private const val zero = '0'.code
         private const val nine = '9'.code

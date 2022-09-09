@@ -44,7 +44,6 @@ import me.anno.maths.Maths.sq
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
@@ -221,7 +220,7 @@ open class FileExplorerEntry(
 
         // needs to be disabled in the future, I think
         if (ref1?.isHidden == true) {
-            visibility = Visibility.GONE
+            isVisible = false
         }
 
         backgroundColor = when {

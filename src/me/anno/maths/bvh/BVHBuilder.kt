@@ -19,7 +19,7 @@ import org.joml.Vector3f
 import kotlin.math.sqrt
 
 // to do visualize a bvh structure in-engine
-// todo special query type: for sun-shadow checks, we can skip everything once we found something
+// to do special query type: for sun-shadow checks, we can skip everything once we found something
 /**
  * creates a bounding volume hierarchy for triangle meshes
  * */
