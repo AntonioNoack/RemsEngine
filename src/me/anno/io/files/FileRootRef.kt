@@ -2,11 +2,13 @@ package me.anno.io.files
 
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.net.URI
 
 object FileRootRef : FileReference("root") {
 
-    override fun inputStream() = throw IOException()
+    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) =
+        throw IOException()
 
     override fun outputStream(append: Boolean) = throw IOException()
 

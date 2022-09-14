@@ -2,6 +2,7 @@ package me.anno.tests
 
 import me.anno.io.files.FileReference
 import me.anno.utils.OS.documents
+import me.anno.utils.structures.Iterators.filter
 import me.anno.utils.types.Strings.addPrefix
 
 fun main() {
@@ -26,7 +27,7 @@ fun main() {
             } else {
                 when (file.lcExtension) {
                     "java", "kt" -> {
-                        val lines = file.readText().split('\n')
+                        val lines = file.readLinesSync()
                             .filter { line ->
                                 val startIndex = line.indexOfFirst { c -> c != ' ' && c != '\t' }
                                 startIndex >= 0 && (line.startsWith("import ", startIndex) || line.startsWith(
@@ -34,7 +35,7 @@ fun main() {
                                     startIndex
                                 ))
                             }
-                        if (lines.isNotEmpty()) {
+                        if (lines.hasNext()) {
                             val name = folderPath ?: ""
                             val node = graph.getOrPut(name) { HashSet() }
                             for (line in lines) {

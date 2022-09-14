@@ -29,7 +29,7 @@ import java.io.InputStream
 // (yes, when using assimp, I am copying everything, which is non-optimal)
 class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(input) {
 
-    constructor(file: FileReference) : this(file.inputStream(), file)
+    // constructor(file: FileReference) : this(file.inputStream(), file)
 
     val folder = InnerFolder(file)
     val materialsFolder by lazy { InnerFolder(folder, "materials") }
@@ -63,14 +63,6 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
     private var numNormals = 0
 
     private val points = ExpandingIntArray(256)
-
-    fun printSizes() {
-        LOGGER.info(
-            "positions: ${positions.size}, normals: ${normals.size}, uvs: ${uvs.size}, " +
-                    "facePositions: ${facePositions.capacity}, faceNormals: ${faceNormals.capacity}, faceUVs: ${faceUVs.capacity}, " +
-                    "points: ${points.size}, defaultSize: $defaultSize1/$defaultSize2"
-        )
-    }
 
     private fun putPoint(p: Point) {
         facePositions += p.position
@@ -270,7 +262,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
             val file2 = readFile(file)
             if (file2.exists && !file2.isDirectory) {
                 try {
-                    val folder = MTLReader.readAsFolder(file2, materialsFolder)
+                    val folder = MTLReader.readAsFolderSync(file2, materialsFolder)
                     val subMaterials = folder.listChildren()
                     materials.putAll(subMaterials.map {
                         it.nameWithoutExtension to it
@@ -473,8 +465,11 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
 
         private val LOGGER = LogManager.getLogger(OBJReader::class)
 
-        fun readAsFolder(file: FileReference): InnerFolder {
-            return file.inputStream().use { OBJReader(it, file) }.folder
+        fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
+            file.inputStream { it, exc ->
+                if (it != null) callback(OBJReader(it, file).folder, exc)
+                else callback(null, exc)
+            }
         }
 
         @JvmStatic
@@ -484,22 +479,25 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
             // so the theoretical speed limit is my memory bandwidth
             // 3.2Gb/s -> 400MB/s -> 20MB file should be readable within 0.05s
             if (source.length() < 100e6) {
-                val data = source.readText() // remove material references for clearer reading performance
-                    .replace("mtllib", "#mtllib")
-                    .toByteArray()
-                val clock = Clock()
-                for (i in 0 until 1000) {
-                    clock.start()
-                    OBJReader(data.inputStream(), source)
-                    clock.stop("Reading OBJ with 20MB", data.size)
+                source.readText { it, _ ->
+                    val data = it!! // remove material references for clearer reading performance
+                        .replace("mtllib", "#mtllib")
+                        .toByteArray()
+                    val clock = Clock()
+                    for (i in 0 until 1000) {
+                        clock.start()
+                        OBJReader(data.inputStream(), source)
+                        clock.stop("Reading OBJ with 20MB", data.size)
+                    }
                 }
             } else {
-                val clock = Clock()
+                // removed, because now it's more complicated with the async api
+                /*val clock = Clock()
                 for (i in 0 until 1000) {
                     clock.start()
                     OBJReader(source.inputStream(), source)
                     clock.stop("Reading OBJ with 20MB", source.length().toInt())
-                }
+                }*/
             }
             // 0.5s, so 10x slower than possible... ok, but slow...
             // goes down to 0.13s after the first 10 runs

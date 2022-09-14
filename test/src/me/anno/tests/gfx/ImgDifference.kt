@@ -13,8 +13,8 @@ import kotlin.math.abs
 fun main() {
 
     val folder = OS.screenshots
-    val i0 = ImageIO.read(folder.getChild("i0.png").inputStream())
-    val i1 = ImageIO.read(folder.getChild("i1.png").inputStream())
+    val i0 = ImageIO.read(folder.getChild("i0.png").inputStreamSync())
+    val i1 = ImageIO.read(folder.getChild("i1.png").inputStreamSync())
 
     val w = Maths.min(i0.width, i1.width)
     val h = Maths.min(i0.height, i1.height)

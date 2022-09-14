@@ -50,13 +50,13 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
     init {
 
-        when (val signature = Signature.findName(file)) {
+        when (val signature = Signature.findNameSync(file)) {
             "gimp" -> {
                 // Gimp files are a special case, which is not covered by FFMPEG
-                setImage(file.inputStream().use { GimpImage.findSize(it) })
+                setImage(file.inputStreamSync().use { GimpImage.findSize(it) })
             }
             "qoi" -> {// we have a simple reader, so use it :)
-                setImage(file.inputStream().use { QOIImage.findSize(it) })
+                setImage(file.inputStreamSync().use { QOIImage.findSize(it) })
             }
             // only load ffmpeg for ffmpeg files
             "gif", "media" -> {
@@ -67,7 +67,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             "png", "jpg", "psd", "dds", "exr" -> {
                 for (reader in ImageIO.getImageReadersBySuffix(signature)) {
                     try {
-                        file.inputStream().use {
+                        file.inputStreamSync().use {
                             reader.input = ImageIO.createImageInputStream(it)
                             setImage(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
                         }
@@ -78,11 +78,11 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                     }
                 }
             }
-            "ico" -> setImage(file.inputStream().use { ICOReader.findSize(it) })
+            "ico" -> setImage(file.inputStreamSync().use { ICOReader.findSize(it) })
             null -> {
                 when (file.lcExtension) {
-                    "tga" -> setImage(file.inputStream().use { TGAImage.findSize(it) })
-                    "ico" -> setImage(file.inputStream().use { ICOReader.findSize(it) })
+                    "tga" -> setImage(file.inputStreamSync().use { TGAImage.findSize(it) })
+                    "ico" -> setImage(file.inputStreamSync().use { ICOReader.findSize(it) })
                     // else unknown
                 }
             }

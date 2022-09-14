@@ -32,6 +32,7 @@ import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
+// todo make everything work async
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 object PrefabCache : CacheSection("Prefab") {
 
@@ -59,7 +60,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     private fun loadVOXModel(resource: FileReference): Prefab? {
         return try {
-            VOXReader().read(resource).toEntityPrefab(resource)
+            VOXReader().read(resource.inputStreamSync()).toEntityPrefab(resource)
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -68,7 +69,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     private fun loadObjModel(resource: FileReference): Prefab? {
         return try {
-            OBJReader(resource).scenePrefab
+            OBJReader(resource.inputStreamSync(), resource).scenePrefab
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -77,7 +78,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     private fun loadBlenderModel(resource: FileReference): Prefab? {
         return try {
-            val folder = BlenderReader.readAsFolder(resource)
+            val folder = BlenderReader.readAsFolder(resource, resource.readByteBufferSync(false))
             val sceneFile = folder.getChild("Scene.json") as InnerPrefabFile
             return sceneFile.prefab
         } catch (e: Exception) {
@@ -114,7 +115,7 @@ object PrefabCache : CacheSection("Prefab") {
     private fun loadPrefab2(resource: FileReference): ISaveable? {
         return if (resource.exists && !resource.isDirectory) {
             // LOGGER.info("resource $resource has signature $signature")
-            val prefab = when (Signature.findName(resource)) {
+            val prefab = when (Signature.findNameSync(resource)) {
                 "vox" -> loadVOXModel(resource)
                 "fbx", "gltf", "md2", "md5mesh" ->
                     loadAssimpModel(resource)
@@ -149,7 +150,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     private fun loadPrefab3(file: FileReference): ISaveable? {
         if (file is PrefabReadable) return file.readPrefab()
-        when (Signature.findName(file)) {
+        when (Signature.findNameSync(file)) {
             "json" ->
                 try {
                     val prefab = TextReader.read(file, StudioBase.workspace, false).firstOrNull()

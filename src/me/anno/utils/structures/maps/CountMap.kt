@@ -1,22 +1,22 @@
 package me.anno.utils.structures.maps
 
-open class CountMap<V> {
+open class CountMap<V>(capacity: Int = 16) {
 
-    private class Count(var value: Int = 0)
+    class Count(var value: Int = 0)
 
-    private val store = HashMap<V, Count>()
+    val values = HashMap<V, Count>(capacity)
 
     open fun getInitialCount(key: V): Int = 0
 
-    operator fun get(key: V) = store[key]?.value ?: 0
+    operator fun get(key: V) = values[key]?.value ?: 0
 
     fun getAndInc(key: V): Int {
-        val count = store.getOrPut(key) { Count(getInitialCount(key)) }
+        val count = values.getOrPut(key) { Count(getInitialCount(key)) }
         return count.value++
     }
 
     fun incAndGet(key: V): Int {
-        val count = store.getOrPut(key) { Count(getInitialCount(key)) }
+        val count = values.getOrPut(key) { Count(getInitialCount(key)) }
         return ++count.value
     }
 

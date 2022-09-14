@@ -235,7 +235,7 @@ object ExtensionLoader {
 
     fun loadInfoFromZip(file: FileReference): ExtensionInfo? {
         LOGGER.info("Loading info about $file")
-        ZipInputStream(file.inputStream()).use { zis ->
+        ZipInputStream(file.inputStreamSync()).use { zis ->
             while (true) {
                 val entry = zis.nextEntry ?: break
                 if (entry.name.startsWith("extension.info")) {
@@ -266,7 +266,7 @@ object ExtensionLoader {
     }
 
     fun loadInfoFromTxt(modFile: FileReference, infoFile: FileReference = modFile): ExtensionInfo? {
-        return infoFile.inputStream().use { loadInfoFromTxt(modFile, it) }
+        return infoFile.inputStreamSync().use { loadInfoFromTxt(modFile, it) }
     }
 
     fun loadInfoFromTxt(file: FileReference, input: InputStream): ExtensionInfo? {

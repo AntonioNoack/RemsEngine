@@ -29,7 +29,7 @@ fun main() {
     val books = folder.listChildren()!!
         .filter { it.lcExtension == "txt" }
         .map { file ->
-            file.readText()
+            file.readTextSync()
                 .split(' ')
                 .map { word -> word.trim() }
                 .filter { it.isNotEmpty() }

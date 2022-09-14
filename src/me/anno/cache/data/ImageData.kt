@@ -77,7 +77,7 @@ class ImageData(file: FileReference) : ICacheData {
         if (file is ImageReadable) {
             texture.create(file.toString(), file.readImage(), true)
         } else {
-            when (Signature.findName(file)) {
+            when (Signature.findNameSync(file)) {
                 "hdr" -> {
                     val img = HDRImage(file)
                     val w = img.width
@@ -118,7 +118,7 @@ class ImageData(file: FileReference) : ICacheData {
     }
 
     fun loadTGA(file: FileReference) {
-        val img = file.inputStream().use { stream ->
+        val img = file.inputStreamSync().use { stream ->
             TGAImage.read(stream, false)
                 .createBufferedImage()
         }
@@ -157,7 +157,7 @@ class ImageData(file: FileReference) : ICacheData {
 
     private fun tryGetImage(file: FileReference): Image? {
         if (file is ImageReadable) return file.readImage()
-        return tryGetImage(file, file.inputStream())
+        return tryGetImage(file, file.inputStreamSync())
     }
 
     private fun tryGetImage(file: FileReference, stream: InputStream): Image? {

@@ -53,7 +53,7 @@ fun main() {
     for (file in folder.listChildren()!!) {
         if (file.lcExtension == "css" && file.nameWithoutExtension != "ambiance-mobile") {
             var name = file.nameWithoutExtension.trim()
-            val text = file.readText()
+            val text = file.readTextSync()
             var index = 0
             var baseColor = 0
             var baseBGColor = -1

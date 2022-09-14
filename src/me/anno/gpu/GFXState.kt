@@ -1,7 +1,7 @@
 package me.anno.gpu
 
-import me.anno.cache.instances.TextCache
 import me.anno.cache.instances.VideoCache
+import me.anno.fonts.FontManager.TextCache
 import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.OpenGLBuffer

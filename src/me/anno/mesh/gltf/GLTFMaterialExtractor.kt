@@ -12,7 +12,7 @@ object GLTFMaterialExtractor {
     data class PBRMaterialData(val metallic: Float, val roughness: Float)
 
     fun extract(file: FileReference): Map<String, PBRMaterialData>? {
-        val materialList = file.inputStream().use {
+        val materialList = file.inputStreamSync().use {
             // first check whether it is binary glTF;
             // binary glTF has a 20 byte header, and then follows the structure data as JSON, and then the (unused) binary data
             val first = it.read()

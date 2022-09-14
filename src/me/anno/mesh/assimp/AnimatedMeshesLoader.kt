@@ -69,7 +69,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
         unitScaleFactor = (metadata["UnitScaleFactor"] as? Double)?.toFloat() ?: unitScaleFactor
 
-        val signature = Signature.findName(file)
+        val signature = Signature.findNameSync(file)
         LOGGER.info("$metadata, $signature")
         // if (signature == "fbx") unitScaleFactor *= 0.01f // a test, works for the ghost...
 
@@ -99,7 +99,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val instance = prefab.createInstance() as Entity
         val animations = folder.getChild("animations").listChildren()?.mapNotNull {
             try {
-                val text = it.readText()
+                val text = it.readTextSync()
                 // not sure about the workspace... probably should be the next project above file
                 val animation = TextReader.read(text, StudioBase.workspace, true).first() as Animation
                 it.nameWithoutExtension to animation

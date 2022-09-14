@@ -12,20 +12,9 @@ gradientTransform="matrix(0.9867 -0.1624 -0.1833 -1.1132 16.8427 148.0534)" grad
 <stop  offset="0.7945" style="stop-color:#6D4C41;stop-opacity:0"/>
 <stop  offset="1" style="stop-color:#6D4C41"/>
  * */
-class RadialGradient : Gradient1D {
+class RadialGradient(mesh: SVGMesh, xmlElement: XMLElement) : Gradient1D(xmlElement) {
 
     // https://www.w3.org/TR/SVG/pservers.html#RadialGradientElementFXAttribute
-
-    constructor() : super()
-
-    constructor(mesh: SVGMesh, xmlElement: XMLElement) : super(xmlElement) {
-        parseStops(mesh, xmlElement.children)
-        position.set(
-            xmlElement["cx"]?.toDouble() ?: position.x,
-            xmlElement["cy"]?.toDouble() ?: position.y
-        )
-        r = xmlElement["r"]?.toDouble() ?: r
-    }
 
     val position = Vector2d()
     var r = 0.5
@@ -36,11 +25,20 @@ class RadialGradient : Gradient1D {
 
     override fun fillFormula(formula: Formula) {
         val invR = 1 / r // why inverted???
-        formula.position.set(0.5-position.x, 0.5-position.y)
+        formula.position.set(0.5 - position.x, 0.5 - position.y)
         formula.directionOrRadius.set(invR)
         formula.isCircle = true
     }
 
     override fun toString(): String = "RadialGradient(${position.print()} $r)"
+
+    init {
+        parseStops(mesh, xmlElement.children)
+        position.set(
+            xmlElement["cx"]?.toDouble() ?: position.x,
+            xmlElement["cy"]?.toDouble() ?: position.y
+        )
+        r = xmlElement["r"]?.toDouble() ?: r
+    }
 
 }

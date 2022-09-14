@@ -6,6 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import java.io.InputStream
+import java.nio.charset.Charset
 
 open class InnerPrefabFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
@@ -26,11 +27,23 @@ open class InnerPrefabFile(
     override fun isSerializedFolder(): Boolean = false
     override fun listChildren(): List<FileReference>? = null
 
-    override fun readText() = text
-    override fun readBytes() = bytes
+    override fun readTextSync() = text
+    override fun readBytesSync() = bytes
 
-    override fun getInputStream(): InputStream {
+    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+        callback(text, null)
+    }
+
+    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+        callback(bytes, null)
+    }
+
+    override fun inputStreamSync(): InputStream {
         return text.byteInputStream()
+    }
+
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+        callback(text.byteInputStream(), null)
     }
 
     override fun readPrefab(): Prefab {

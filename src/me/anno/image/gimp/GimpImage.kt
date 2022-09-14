@@ -58,21 +58,28 @@ class GimpImage {
             return Pair(width, height)
         }
 
-        fun readImage(file: FileReference): GimpImage {
-            val data = file.readByteBuffer(false)
-                .order(ByteOrder.BIG_ENDIAN)
-            return readImage(data)
+        fun readImage(file: FileReference, callback: (GimpImage?, Exception?) -> Unit) {
+            file.readByteBuffer(false) { data, exc ->
+                if (data != null) {
+                    data.order(ByteOrder.BIG_ENDIAN)
+                    callback(readImage(data), null)
+                } else callback(null, exc)
+            }
         }
 
         fun readImage(input: InputStream): GimpImage {
             val bytes = input.readBytes()
+            input.close()
             val data = ByteBuffer.wrap(bytes)
                 .order(ByteOrder.BIG_ENDIAN)
             return readImage(data)
         }
 
-        fun read(file: FileReference): Image {
-            return combineLayers(readImage(file))
+        fun read(file: FileReference, callback: (Image?, Exception?) -> Unit) {
+            readImage(file) { it, exc ->
+                if (it != null) callback(combineLayers(it), null)
+                else callback(null, exc)
+            }
         }
 
         fun read(input: InputStream): Image {
@@ -148,8 +155,16 @@ class GimpImage {
             return rgba(nr, ng, nb, alpha)
         }
 
-        fun readAsFolder(file: FileReference): InnerFolder {
-            val info = readImage(file)
+        fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
+            file.inputStream { it, exc ->
+                if (it != null) {
+                    callback(readAsFolder(file, it), null)
+                } else callback(null, exc)
+            }
+        }
+
+        fun readAsFolder(file: FileReference, input: InputStream): InnerFolder {
+            val info = readImage(input)
             val folder = InnerFolder(file)
             for (layer in info.layers) {
                 val image = layer.image

@@ -22,6 +22,7 @@ interface Hierarchical<V : Hierarchical<V>> {
 
     fun deleteChild(child: V)
 
+    @Suppress("unused")
     fun addBefore(sibling: V) {
         val p = parent!!
         val index = p.children.indexOf(this)
@@ -29,6 +30,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         sibling.parent = p
     }
 
+    @Suppress("unused")
     fun addAfter(sibling: V) {
         val p = parent!!
         val index = p.children.indexOf(this)
@@ -59,6 +61,7 @@ interface Hierarchical<V : Hierarchical<V>> {
 
     fun contains(t: V): Boolean {
         if (t === this) return true
+        @Suppress("SENSELESS_COMPARISON")
         if (children != null) {// can be null on init
             for (child in children) {
                 if (child === t || child.contains(t)) return true
@@ -91,7 +94,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         onDestroy()
     }
 
-    @Suppress("unchecked_cast")
+    @Suppress("unchecked_cast", "unused")
     fun listOfHierarchy(callback: (V) -> Unit) {
         parent?.listOfHierarchy(callback)
         callback(this as V)
@@ -103,7 +106,7 @@ interface Hierarchical<V : Hierarchical<V>> {
             return parent.depthInHierarchy + 1
         }
 
-    @Suppress("unchecked_cast")
+    @Suppress("unchecked_cast", "unused")
     fun forAllInHierarchy(lambda: (V) -> Unit) {
         var v = this as V
         while (true) {
@@ -139,7 +142,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         }
     }
 
-    @Suppress("unchecked_cast")
+    @Suppress("unchecked_cast", "unused")
     fun lastInHierarchy(lambda: (V) -> Boolean): V? {
         val v = this as V
         val p = v.parent
@@ -242,6 +245,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         return null
     }
 
+    @Suppress("unused")
     fun breathFirstTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
         if (processDisabled || isEnabled) {
             val queue = ArrayList<V>()

@@ -5,15 +5,13 @@ import me.anno.io.xml.XMLElement
 import me.anno.parser.SimpleExpressionParser
 import org.joml.Vector2d
 
-class LinearGradient : Gradient1D {
+class LinearGradient(mesh: SVGMesh, xmlElement: XMLElement) : Gradient1D(xmlElement) {
 
     // gradient vector
     val p0 = Vector2d()
     val p1 = Vector2d()
 
-    constructor() : super()
-
-    constructor(mesh: SVGMesh, xmlElement: XMLElement) : super(xmlElement) {
+    init {
         parseStops(mesh, xmlElement.children)
         p0.set(parseFloat(xmlElement["x1"], 0.0), parseFloat(xmlElement["y1"], 0.0))
         p1.set(parseFloat(xmlElement["x2"], 1.0), parseFloat(xmlElement["y2"], 0.0))

@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.network
 
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.files.FileReference.Companion.getReference
@@ -51,7 +51,7 @@ fun main() {
                     )
                 )
                 // copy the data
-                file.inputStream().use { it.copyTo(client.dos) }
+                file.inputStreamSync().use { it.copyTo(client.dos) }
                 client.dos.flush()
                 logger.info("Sent $file")
             } else {

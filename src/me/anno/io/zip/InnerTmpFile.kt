@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.lang.ref.WeakReference
+import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicInteger
 
 abstract class InnerTmpFile private constructor(
@@ -50,9 +51,15 @@ abstract class InnerTmpFile private constructor(
                 this.compressedSize = size
             }
 
-        override fun getInputStream(): InputStream {
-            return bytes.inputStream()
+        override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+            callback(bytes.inputStream(), null)
         }
+
+        override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+            callback(bytes, null)
+        }
+
+        override fun readBytesSync() = bytes
 
     }
 
@@ -67,10 +74,18 @@ abstract class InnerTmpFile private constructor(
                 this.compressedSize = size
             }
 
-        override fun readText(): String = text
-        override fun readBytes(): ByteArray = text.toByteArray()
-        override fun getInputStream(): InputStream {
-            return text.byteInputStream()
+        override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+            callback(text, null)
+        }
+
+        override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+            callback(text.toByteArray(), null)
+        }
+
+        override fun readTextSync() = text
+        override fun readBytesSync() = text.toByteArray()
+        override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+            callback(text.byteInputStream(), null)
         }
 
     }
@@ -93,11 +108,19 @@ abstract class InnerTmpFile private constructor(
         override fun isSerializedFolder(): Boolean = false
         override fun listChildren(): List<FileReference>? = null
 
-        override fun readText() = text
-        override fun readBytes() = bytes
+        override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+            callback(text, null)
+        }
 
-        override fun getInputStream(): InputStream {
-            return text.byteInputStream()
+        override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+            callback(bytes, null)
+        }
+
+        override fun readTextSync() = text
+        override fun readBytesSync() = bytes
+
+        override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+            callback(text.byteInputStream(), null)
         }
 
         override fun readPrefab(): Prefab {
@@ -124,12 +147,16 @@ abstract class InnerTmpFile private constructor(
         override fun isSerializedFolder(): Boolean = false
         override fun listChildren(): List<FileReference>? = null
 
-        override fun readText() = text.value
-        override fun readBytes(): ByteArray = bytes.value
-
-        override fun getInputStream(): InputStream {
-            return text.value.byteInputStream()
+        override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+            callback(bytes.value.inputStream(), null)
         }
+
+        override fun inputStreamSync() = bytes.value.inputStream()
+        override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+            callback(bytes.value, null)
+        }
+
+        override fun readBytesSync(): ByteArray = bytes.value
 
         override fun readImage(): Image = image
 

@@ -1,7 +1,5 @@
 package me.anno.io.json
 
-import me.anno.io.json.ObjectMapper.toJsonNode
-
 class JsonObject : JsonNode() {
 
     val map = HashMap<String, Any?>()

@@ -9,11 +9,14 @@ import me.anno.gpu.GFX
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.io.zip.InnerTmpFile
+import me.anno.io.zip.NextEntryIterator
 import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.min
 import me.anno.studio.StudioBase
 import me.anno.ui.editor.files.FileExplorer
+import me.anno.utils.Sleep
+import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.LocalFile.toLocalPath
@@ -82,9 +85,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
          * this happens rarely, and can be disabled in the shipping game
          * therefore it can be a little expensive
          * */
-        fun invalidate(
-            absolutePath: String
-        ) {
+        fun invalidate(absolutePath: String) {
             LOGGER.info("Invalidating $absolutePath")
             val path = absolutePath.replace('\\', '/')
             synchronized(fileCache) {
@@ -230,7 +231,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             return ref
         }
 
-        fun appendPath(fileI: File, i: Int, parts: List<String>)=
+        fun appendPath(fileI: File, i: Int, parts: List<String>) =
             appendPath(FileFileRef(fileI), i, parts)
 
         fun getReference(file: File?): FileReference {
@@ -260,9 +261,14 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             }
         }
 
-        fun createZipFile(file: FileReference): ZipFile {
-            return if (file is FileFileRef) ZipFile(file.file) else
-                ZipFile(SeekableInMemoryByteChannel(file.inputStream().readBytes()))
+        fun createZipFile(file: FileReference, callback: (ZipFile?, Exception?) -> Unit) {
+            return if (file is FileFileRef) callback(ZipFile(file.file), null) else {
+                file.readBytes { it, exc ->
+                    if (it != null) {
+                        callback(ZipFile(SeekableInMemoryByteChannel(it)), null)
+                    } else callback(null, exc)
+                }
+            }
         }
 
     }
@@ -336,7 +342,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
      * give access to an input stream;
      * should be buffered for better performance
      * */
-    abstract fun inputStream(): InputStream
+    abstract fun inputStream(lengthLimit: Long = Long.MAX_VALUE, callback: (it: InputStream?, exc: Exception?) -> Unit)
 
     /**
      * give access to an output stream;
@@ -344,51 +350,138 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
      * */
     abstract fun outputStream(append: Boolean = false): OutputStream
 
-    open fun readText() = String(readBytes())
-    open fun readText(charset: Charset) = String(readBytes(), charset)
+    open fun readText(callback: (String?, Exception?) -> Unit) {
+        readText(Charset.forName("UTF-8"), callback)
+    }
 
-    open fun readBytes() = inputStream().readBytes()
-    fun readByteBuffer(native: Boolean): ByteBuffer {
-        val bytes = readBytes()
-        return if (native) {
-            val buffer = ByteBufferPool.allocateDirect(bytes.size)
-            buffer.put(bytes).flip()
-            buffer
-        } else {
-            ByteBuffer.wrap(bytes)
+    open fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+        readBytes { it, exc ->
+            callback(if (it != null) String(it, charset) else null, exc)
         }
     }
 
-    // todo read as sequence? :)
-    fun readLines(): Iterable<String> = readText()
-        .replace("\r", "")
-        .split('\n')
+    open fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+        inputStream { it, exc ->
+            if (it != null) try {
+                val bytes = it.readBytes()
+                callback(bytes, null)
+            } catch (e: Exception) {
+                callback(null, e)
+            } finally {
+                it.close()
+            }
+            else callback(null, exc)
+        }
+    }
 
-    fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit) {
+    open fun inputStreamSync(): InputStream {
+        var e: Exception? = null
+        var d: InputStream? = null
+        inputStream { it, exc ->
+            e = exc
+            d = it
+        }
+        waitUntil(true) { e != null || d != null }
+        return d ?: throw e!!
+    }
+
+    open fun readBytesSync(): ByteArray {
+        var e: Exception? = null
+        var d: ByteArray? = null
+        readBytes { it, exc ->
+            e = exc
+            d = it
+        }
+        waitUntil(true) { e != null || d != null }
+        return d ?: throw e!!
+    }
+
+    open fun readTextSync(): String {
+        var e: Exception? = null
+        var d: String? = null
+        readText { it, exc ->
+            e = exc
+            d = it
+        }
+        waitUntil(true) { e != null || d != null }
+        return d ?: throw e!!
+    }
+
+    open fun readByteBufferSync(native: Boolean): ByteBuffer {
+        var e: Exception? = null
+        var d: ByteBuffer? = null
+        readByteBuffer(native) { it, exc ->
+            e = exc
+            d = it
+        }
+        waitUntil(true) { e != null || d != null }
+        return d ?: throw e!!
+    }
+
+    open fun readByteBuffer(native: Boolean, callback: (ByteBuffer?, Exception?) -> Unit) {
+        readBytes { bytes, exc ->
+            if (bytes != null) {
+                callback(
+                    if (native) {
+                        val buffer = ByteBufferPool.allocateDirect(bytes.size)
+                        buffer.put(bytes).flip()
+                        buffer
+                    } else {
+                        ByteBuffer.wrap(bytes)
+                    }, null
+                )
+            } else callback(null, exc)
+        }
+    }
+
+    open fun readLines(callback: (itr: Iterator<String>?, exc: Exception?) -> Unit) {
+        inputStream { it, exc ->
+            if (it != null) {
+                val reader = it.bufferedReader()
+                callback(object : NextEntryIterator<String>() {
+                    override fun nextEntry(): String? {
+                        return try {
+                            reader.readLine()
+                        } catch (e: IOException) {
+                            reader.close()
+                            null
+                        }
+                    }
+                }, null)
+            } else callback(null, exc)
+        }
+    }
+
+    open fun readLinesSync(): Iterator<String> {
+        var e: Exception? = null
+        var d: Iterator<String>? = null
+        readLines { it, exc ->
+            e = exc
+            d = it
+        }
+        waitUntil(true) { e != null || d != null }
+        return d ?: throw e!!
+    }
+
+    fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit, callback: (Exception?) -> Unit) {
         outputStream().use { output ->
-            file.inputStream().use { input ->
-                val buffer = ByteArray(2048)
-                while (true) {
-                    val numReadBytes = input.read(buffer)
-                    if (numReadBytes < 0) break
-                    output.write(buffer, 0, numReadBytes)
-                    deltaProgress(numReadBytes.toLong())
-                }
+            file.inputStream { input, exc ->
+                if (input != null) {
+                    val buffer = ByteArray(2048)
+                    while (true) {
+                        val numReadBytes = input.read(buffer)
+                        if (numReadBytes < 0) break
+                        output.write(buffer, 0, numReadBytes)
+                        deltaProgress(numReadBytes.toLong())
+                    }
+                    callback(null)
+                } else callback(exc)
             }
         }
     }
 
-    fun writeFile(file: FileReference) {
-        outputStream().use { output ->
-            file.inputStream().use { input ->
-                val buffer = ByteArray(2048)
-                while (true) {
-                    val numReadBytes = input.read(buffer)
-                    if (numReadBytes < 0) break
-                    output.write(buffer, 0, numReadBytes)
-                }
-            }
-        }
+    fun writeFile(file: FileReference, callback: (Exception?) -> Unit) {
+        writeFile(file, {}, callback)
     }
 
     open fun writeText(text: String) {
@@ -416,7 +509,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     open fun writeBytes(bytes: ByteBuffer) {
         val byte2 = ByteArray(bytes.remaining())
         bytes.get(byte2)
-        if (!exists || length() != byte2.size.toLong() || !readBytes().contentEquals(byte2)) {
+        // readBytes() may potentially be awfully slow
+        if (!exists || length() != byte2.size.toLong()/* || !readBytes().contentEquals(byte2)*/) {
             writeBytes(byte2)
         }
     }
@@ -489,7 +583,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     open fun isSerializedFolder(): Boolean {
         // only read the first bytes
-        val signature = Signature.findName(this)
+        val signature = Signature.findNameSync(this)
         if (ZipCache.hasReaderForFileExtension(lcExtension)) {
             LOGGER.info("Checking $absolutePath for zip/similar file, matches extension")
             return true
@@ -507,11 +601,17 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                         true
                     }
                     else -> try {
-                        val zis = createZipFile(this)
-                        val result = zis.entries.hasMoreElements()
+                        var zis: ZipFile? = null
+                        var e: Exception? = null
+                        createZipFile(this) { z, exc ->
+                            zis = z
+                            e = exc
+                        }
+                        waitUntil(true) { zis != null || e != null }
+                        val result = (zis ?: throw e!!).entries.hasMoreElements()
                         LOGGER.info("Checking $absolutePath for zip file, success")
                         result
-                    } catch (e: IOException) {
+                    } catch (e: Exception) {
                         LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
                         false
                     }
@@ -589,15 +689,17 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return false
     }
 
-    fun <V> toFile(run: (File) -> V): V {
-        return if (this is FileFileRef) {
-            run(file)
-        } else {
-            val tmp = File.createTempFile(nameWithoutExtension, extension)
-            tmp.writeBytes(readBytes())
-            val result = run(tmp)
-            tmp.deleteOnExit()
-            result
+    open fun <V> toFile(run: (File) -> V, callback: (V?, Exception?) -> Unit) {
+        val tmp = File.createTempFile(nameWithoutExtension, extension)
+        readBytes { bytes, exc ->
+            if (bytes != null) {
+                tmp.writeBytes(bytes)
+                val result = run(tmp)
+                tmp.deleteOnExit()
+                callback(result, null)
+            } else {
+                callback(null, exc)
+            }
         }
     }
 

@@ -4,6 +4,7 @@ import me.anno.utils.LOGGER
 import kotlin.math.max
 import kotlin.math.min
 
+@Suppress("unused")
 open class ExpandingByteArray(private val initCapacity: Int) {
 
     var size = 0
@@ -23,6 +24,10 @@ open class ExpandingByteArray(private val initCapacity: Int) {
     fun addUnsafe(src: ByteArray, startIndex: Int = 0, length: Int = src.size) {
         System.arraycopy(src, startIndex, array!!, size, length)
         size += length
+    }
+
+    fun addUnsafe(src: Byte) {
+        array!![size++] = src
     }
 
     fun addUnsafe(src: ExpandingByteArray, startIndex: Int, length: Int) {

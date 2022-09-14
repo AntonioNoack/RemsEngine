@@ -4,19 +4,17 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.zip.SignatureFile.Companion.setDataAndSignature
-import me.anno.utils.Sleep.waitUntilDefined
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.zip.ZipException
 
 class InnerZipFile(
     absolutePath: String,
     val zipSource: FileReference,
-    val getZipStream: () -> ZipFile,
+    val getZipStream: (callback: (ZipFile?, Exception?) -> Unit) -> Unit,
     relativePath: String,
     _parent: FileReference
 ) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
@@ -25,17 +23,20 @@ class InnerZipFile(
 
     override fun length(): Long = size
 
-    override fun getInputStream(): InputStream {
-        var bytes: ByteArray? = null
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
         HeavyAccess.access(zipSource, object : IHeavyAccess<ZipFile> {
-            override fun openStream(source: FileReference) = getZipStream()
+
+            override fun openStream(source: FileReference, callback: (ZipFile?, Exception?) -> Unit) =
+                getZipStream(callback)
+
             override fun closeStream(source: FileReference, stream: ZipFile) = stream.close()
+
             override fun process(stream: ZipFile) {
                 val entry = stream.getEntry(relativePath)
-                bytes = stream.getInputStream(entry).readBytes()
+                callback(stream.getInputStream(entry).readBytes().inputStream(), null)
             }
-        })
-        return waitUntilDefined(true) { bytes }.inputStream()
+
+        }) { callback(null, it) }
     }
 
     override fun outputStream(append: Boolean): OutputStream {
@@ -61,7 +62,7 @@ class InnerZipFile(
             zipFile: FileReference,
             entry: ZipArchiveEntry,
             zis: ZipFile,
-            getStream: () -> ZipFile,
+            getStream: (GetStreamCallback) -> Unit,
             registry: HashMap<String, InnerFile>
         ): InnerFile {
             val zipFileLocation = zipFile.absolutePath
@@ -78,36 +79,39 @@ class InnerZipFile(
             return file
         }
 
-        fun fileFromStreamV2(file: FileReference): ZipFile {
+        fun fileFromStreamV2(file: FileReference, callback: GetStreamCallback) {
             return if (file is FileFileRef) {
-                ZipFile(file.file)
-            } else ZipFile(SeekableInMemoryByteChannel(file.inputStream().readBytes()))
+                callback(ZipFile(file.file), null)
+            } else {
+                file.readBytes { it, exc ->
+                    if (it != null) callback(ZipFile(SeekableInMemoryByteChannel(it)), null)
+                    else callback(null, exc)
+                }
+            }
         }
 
         fun createZipRegistryV2(
-            zipFileLocation: FileReference,
-            getStream: () -> ZipFile = { fileFromStreamV2(zipFileLocation) }
-        ): InnerFolder {
-            val (file, registry) = createMainFolder(zipFileLocation)
+            file0: FileReference,
+            callback: (InnerFolder?, Exception?) -> Unit,
+            getStream: (GetStreamCallback) -> Unit = { fileFromStreamV2(file0, it) }
+        ) {
+            val (file, registry) = createMainFolder(file0)
             var hasReadEntry = false
-            var e: Exception? = null
-            try {
-                val zis = getStream()
-                val entries = zis.entries
-                while (entries.hasMoreElements()) {
-                    val entry = entries.nextElement()
-                    hasReadEntry = true
-                    createEntryV2(zipFileLocation, entry, zis, getStream, registry)
-                }
-                zis.close()
-            } catch (e2: IOException) {
-                e = e2
-                // e.printStackTrace()
-            } catch (e2: ZipException) {
-                e = e2
-                // e.printStackTrace()
+            getStream { zis, exc ->
+                if (zis != null) {
+                    val entries = zis.entries
+                    while (entries.hasMoreElements()) {
+                        val entry = entries.nextElement()
+                        hasReadEntry = true
+                        createEntryV2(file, entry, zis, getStream, registry)
+                    }
+                    zis.close()
+                    if (hasReadEntry) callback(file, null) else {
+                        callback(null, IOException("Zip was empty"))
+                    }
+                } else callback(null, exc)
             }
-            return if (hasReadEntry) file else throw e ?: IOException("Zip was empty")
+            return
         }
 
     }

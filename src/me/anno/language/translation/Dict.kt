@@ -74,7 +74,7 @@ object Dict {
         externalFiles?.forEach { file ->
             if (!file.isDirectory && file.name.endsWith(".lang")) {
                 try {
-                    val data = file.readText()
+                    val data = file.readTextSync()
                     val name = getLanguageName(data)
                     if (name?.isNotEmpty() == true) {
                         options += LanguageOption(data, "config/${file.name}", name)

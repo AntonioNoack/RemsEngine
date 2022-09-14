@@ -106,14 +106,14 @@ object Streams {
         write(a shr 8)
     }
 
-    fun OutputStream.writeLE32(a: Int) {
+    fun OutputStream.writeBE32(a: Int) {
         write(a shr 24)
         write(a shr 16)
         write(a shr 8)
         write(a)
     }
 
-    fun OutputStream.writeBE32(a: Int) {
+    fun OutputStream.writeLE32(a: Int) {
         write(a)
         write(a shr 8)
         write(a shr 16)

@@ -11,7 +11,7 @@ import javax.net.ssl.SSLServerSocketFactory
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
-// todo there are multiple client-server models:
+// there are multiple client-server models:
 // todo 1 simulating server, many clients
 // todo we should support multiple players in a single client
 // todo 1 data transfer server, many clients

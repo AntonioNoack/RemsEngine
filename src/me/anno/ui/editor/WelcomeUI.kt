@@ -315,7 +315,7 @@ abstract class WelcomeUI {
                     msg = translate("Cannot write in folder", "ui.project.writeFailed")
                 }
                 try {
-                    writeAccessTestFile.readText() != writeAccessTestFile.name
+                    writeAccessTestFile.readTextSync() != writeAccessTestFile.name
                 } catch (e: Exception) {
                     true
                 } -> {

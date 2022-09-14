@@ -4,6 +4,7 @@ import me.anno.Engine
 import me.anno.engine.RemsEngine
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS.documents
+import me.anno.utils.Sleep.waitUntil
 import kotlin.concurrent.thread
 
 fun main() {
@@ -17,8 +18,21 @@ fun main() {
 
     thread(name = "ToggleThread") {
         var ctr = 0
-        val data1 = getReference(documents, "cube.obj").readBytes()
-        val data2 = getReference(documents, "sphere.obj").readBytes()
+        var data1: ByteArray? = null
+        getReference(documents, "cube.obj").readBytes { it, exc ->
+            data1 = if (it == null) {
+                exc!!.printStackTrace()
+                ByteArray(0)
+            } else it
+        }
+        var data2: ByteArray? = null
+        getReference(documents, "sphere.obj").readBytes { it, exc ->
+            data2 = if (it == null) {
+                exc!!.printStackTrace()
+                ByteArray(0)
+            } else it
+        }
+        waitUntil(true) { data1 != null && data2 != null }
         Thread.sleep(5000)
         var toggle = false
         while (!Engine.shutdown && ctr < 100) {
@@ -26,11 +40,11 @@ fun main() {
             if (ctr++ % 10 == 0) {
                 // switch the contents of file1 and file2 every 2 seconds
                 if (toggle) {
-                    file1.writeBytes(data1)
-                    file2.writeBytes(data2)
+                    file1.writeBytes(data1!!)
+                    file2.writeBytes(data2!!)
                 } else {
-                    file2.writeBytes(data1)
-                    file1.writeBytes(data2)
+                    file2.writeBytes(data1!!)
+                    file1.writeBytes(data2!!)
                 }
                 toggle = !toggle
             }

@@ -3,6 +3,7 @@ package me.anno.tests.files
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.LOGGER
+import me.anno.utils.structures.Iterators.count
 import me.anno.utils.types.Strings.isBlank2
 
 fun main() {
@@ -15,7 +16,7 @@ fun countLines(file: FileReference): Int {
         file.listChildren()?.sumOf { countLines(it) } ?: 0
     } else when (file.lcExtension) {
         "kt", "java" -> {
-            file.readLines().count {
+            file.readLinesSync().count {
                 !it.isBlank2() && !it.trim().startsWith("//")
             }
         }

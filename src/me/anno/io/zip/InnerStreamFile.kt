@@ -22,8 +22,8 @@ class InnerStreamFile(
         compressedSize = size
     }
 
-    override fun getInputStream(): InputStream {
-        return getStream()
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+        callback(getStream(), null)
     }
 
 }

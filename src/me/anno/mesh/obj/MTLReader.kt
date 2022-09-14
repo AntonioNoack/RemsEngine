@@ -8,9 +8,10 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector4f
 import java.io.EOFException
+import java.io.InputStream
 import kotlin.math.sqrt
 
-class MTLReader(val file: FileReference) : TextFileReader(file.inputStream()) {
+class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(input) {
 
     val materials = HashMap<String, Prefab>()
 
@@ -131,8 +132,26 @@ class MTLReader(val file: FileReference) : TextFileReader(file.inputStream()) {
 
     companion object {
 
-        fun readAsFolder(file: FileReference, dstFolder: InnerFolder = InnerFolder(file)): InnerFolder {
-            val materials = MTLReader(file).materials
+        fun readAsFolder(
+            file: FileReference, callback: (InnerFolder?, Exception?) -> Unit,
+            dstFolder: InnerFolder = InnerFolder(file)
+        ) {
+            file.inputStream { it, exc ->
+                if (it != null) {
+                    val materials = MTLReader(file, it).materials
+                    for ((name, material) in materials)
+                        dstFolder.createPrefabChild("$name.json", material)
+                    callback(dstFolder, null)
+                } else callback(null, exc)
+            }
+        }
+
+        fun readAsFolderSync(
+            file: FileReference,
+            dstFolder: InnerFolder = InnerFolder(file)
+        ): InnerFolder {
+            val it = file.inputStreamSync()
+            val materials = MTLReader(file, it).materials
             for ((name, material) in materials)
                 dstFolder.createPrefabChild("$name.json", material)
             return dstFolder

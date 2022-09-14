@@ -4,6 +4,7 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.Streams.copy
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
 import java.nio.charset.Charset
@@ -22,14 +23,26 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
             return p
         }
 
-        fun copyHierarchy(src: FileReference, dst: File) {
+        fun copyHierarchy(
+            src: FileReference,
+            dst: File,
+            started: (FileReference) -> Unit,
+            finished: (FileReference) -> Unit
+        ) {
             if (src.isDirectory) {
                 dst.mkdirs()
+                started(src)
                 for (child in src.listChildren() ?: emptyList()) {
-                    copyHierarchy(child, File(dst, child.name))
+                    copyHierarchy(child, File(dst, child.name), started, finished)
                 }
+                finished(src)
             } else {
-                src.inputStream().copy(dst.outputStream())
+                started(src)
+                src.inputStream { it, exc ->
+                    it?.copy(dst.outputStream())
+                    exc?.printStackTrace()
+                    finished(src)
+                }
             }
         }
 
@@ -37,11 +50,33 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun toFile(): File = file
 
-    override fun inputStream() = file.inputStream().buffered()
+    override fun inputStream(lengthLimit: Long, callback: (InputStream?, Exception?) -> Unit) {
+        try {
+            callback(file.inputStream().buffered(), null)
+        } catch (e: Exception) {
+            callback(null, e)
+        }
+    }
 
-    override fun readBytes() = file.readBytes()
-    override fun readText() = file.readText()
-    override fun readText(charset: Charset) = file.readText(charset)
+    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+        try {
+            callback(file.readBytes(), null)
+        } catch (e: Exception) {
+            callback(null, e)
+        }
+    }
+
+    override fun readBytesSync() = file.readBytes()
+
+    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+        try {
+            callback(file.readText(charset), null)
+        } catch (e: Exception) {
+            callback(null, e)
+        }
+    }
+
+    override fun readTextSync() = file.readText()
 
     override fun outputStream(append: Boolean): OutputStream {
         val ret = FileOutputStream(file, append).buffered()
@@ -123,6 +158,10 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun toUri(): URI {
         return URI("file:/${absolutePath.replace(" ", "%20")}")
+    }
+
+    override fun <V> toFile(run: (File) -> V, callback: (V?, Exception?) -> Unit) {
+        callback(run(file), null)
     }
 
     override val isDirectory: Boolean

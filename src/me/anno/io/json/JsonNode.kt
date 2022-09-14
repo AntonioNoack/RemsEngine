@@ -19,4 +19,13 @@ abstract class JsonNode {
     open fun getDouble(key: String, default: Double = 0.0) = JsonValue.asDouble(get(key), default)
     open fun getBool(key: String, default: Boolean = false) = getInt(key, if (default) 1 else 0) != 0
 
+    companion object {
+        @Suppress("unused")
+        fun Any?.toJsonNode(): JsonNode {
+            val value = this
+            if (value is JsonNode) return value
+            return JsonValue(value)
+        }
+    }
+
 }

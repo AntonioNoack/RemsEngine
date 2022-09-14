@@ -21,6 +21,7 @@ class SIProperty<V>(
     override val annotations: List<Annotation>
         get() = reflections.allProperties[name]?.annotations ?: emptyList()
 
+    @Suppress("unchecked_cast")
     override fun set(panel: Panel?, value: Any?) {
         // depending on the type, call a different "setter"
         // better depending on actual type first...

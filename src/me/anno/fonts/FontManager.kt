@@ -1,19 +1,18 @@
 package me.anno.fonts
 
 import me.anno.cache.CacheData
-import me.anno.cache.instances.TextCache
-import me.anno.cache.instances.TextSizeCache
+import me.anno.cache.CacheSection
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Clock
+import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -23,6 +22,9 @@ import kotlin.concurrent.thread
 import kotlin.math.*
 
 object FontManager {
+
+    val TextCache = CacheSection("Text")
+    val TextSizeCache = CacheSection("TextSize")
 
     private val LOGGER = LogManager.getLogger(FontManager::class)
 
@@ -232,25 +234,29 @@ object FontManager {
         val cached = awtFonts[key]
         if (cached != null) return cached
         val font = if ('/' in name) {
-            try {
-                loadFont(getReference(name))
-            } catch (e: Exception) {
-                e.printStackTrace()
-                return null
+            var font: Font? = null
+            var hasFont = false
+            loadFont(getReference(name)) {
+                font = it
+                hasFont = true
             }
-        } else Font.decode(name) ?: return null
-        awtFonts[key] = font
+            waitUntil(true) { hasFont }
+            font
+        } else Font.decode(name)
+        awtFonts[key] = font ?: return null
         return font
     }
 
-    private fun loadFont(ref: FileReference): Font {
-        return ref.inputStream().use { stream ->
-            // what is type1_font?
-            val font = Font.createFont(Font.TRUETYPE_FONT, stream)
-            GraphicsEnvironment
-                .getLocalGraphicsEnvironment()
-                .registerFont(font)
-            font
+    private fun loadFont(ref: FileReference, callback: (Font?) -> Unit) {
+        ref.inputStream { it, _ ->
+            if (it != null) {
+                // what is type1_font?
+                val font = Font.createFont(Font.TRUETYPE_FONT, it)
+                GraphicsEnvironment
+                    .getLocalGraphicsEnvironment()
+                    .registerFont(font)
+                callback(font)
+            } else callback(null)
         }
     }
 

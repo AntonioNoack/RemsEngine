@@ -72,9 +72,7 @@ import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.io.files.thumbs.ThumbsExt.findModelMatrix
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerPrefabFile
-import me.anno.io.zip.ZipCache
+import me.anno.io.zip.*
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.MeshData.Companion.warnMissingMesh
@@ -94,6 +92,7 @@ import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.structures.Iterators.firstOrNull
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
@@ -202,17 +201,29 @@ object Thumbs {
         }
     }
 
-    private fun FileReference.getCacheFile(size: Int): FileReference {
-
+    private fun FileReference.getFileHash(callback: (Long) -> Unit) {
         val hashReadLimit = 4096
         val length = this.length()
-        var hash: Long = lastModified xor (454781903L * length)
+        val baseHash = lastModified xor (454781903L * length)
         if (!isDirectory && length > 0) {
-            val reader = inputStream().buffered()
-            val bytes = reader.readNBytes2(hashReadLimit, false)
-            reader.close()
-            hash = hash xor CRC64.fromInputStream(bytes.inputStream())
+            inputStream(hashReadLimit.toLong()) { reader, _ ->
+                if (reader != null) {
+                    val bytes = reader.readNBytes2(hashReadLimit, false)
+                    reader.close()
+                    callback(baseHash xor CRC64.fromInputStream(bytes.inputStream()))
+                } else callback(baseHash)
+            }
+
+        } else callback(baseHash)
+    }
+
+    private fun FileReference.getCacheFile(size: Int, callback: (FileReference) -> Unit) {
+        getFileHash { hash ->
+            callback(createCacheFile(hash, size))
         }
+    }
+
+    private fun createCacheFile(hash: Long, size: Int): FileReference {
         val dstFormat = destinationFormat
         val str1 = CharArray(16 + 1 + dstFormat.length) { '0' }
         for (i in 0 until 16) {
@@ -1015,54 +1026,106 @@ object Thumbs {
         }
     }
 
-    fun returnIfExists(srcFile: FileReference, dstFile: FileReference, callback: (Texture2D) -> Unit): Boolean {
+    fun shallReturnIfExists(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        callback: (Texture2D) -> Unit,
+        callback1: (Boolean) -> Unit
+    ) {
         if (dstFile.exists) {
             // LOGGER.info("cached preview for $srcFile exists")
-            val image = ImageIO.read(dstFile.inputStream())
-            if (image == null) LOGGER.warn("Could not read $dstFile")
-            else {
-                val rotation = ImageData.getRotation(srcFile)
-                GFX.addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
-                    val texture = Texture2D(srcFile.name, image, true)
-                    texture.rotation = rotation
-                    callback(texture)
+            dstFile.inputStream { it, _ ->
+                val hasImage = if (it != null) {
+                    val image = ImageIO.read(it)
+                    if (image == null) {
+                        LOGGER.warn("Could not read $dstFile")
+                        false
+                    } else {
+                        val rotation = ImageData.getRotation(srcFile)
+                        GFX.addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
+                            val texture = Texture2D(srcFile.name, image, true)
+                            texture.rotation = rotation
+                            callback(texture)
+                        }
+                        true
+                    }
+                } else {
+                    LOGGER.warn("Could not read $dstFile")
+                    false
                 }
-                return true
+                callback1(hasImage)
             }
-        }
-        return false
+        } else callback1(false)
     }
 
     private fun findScale(
         src: Image,
         srcFile: FileReference,
         size0: Int,
-        callback: (Texture2D) -> Unit
-    ): BufferedImage? {
-        var dstFile: FileReference
+        callback: (Texture2D) -> Unit,
+        callback1: (BufferedImage) -> Unit
+    ) {
         var size = size0
         val sw = src.width
         val sh = src.height
-        while (max(sw, sh) < size) {
+        if (max(sw, sh) < size) {
             size /= 2
-            if (size < 3) return null
-            dstFile = srcFile.getCacheFile(size)
-            if (returnIfExists(srcFile, dstFile, callback)) return null
+            if (size < 3) return
+            srcFile.getFileHash { hash ->
+                findScale(src, srcFile, size0, hash, callback, callback1)
+            }
+        } else {
+            val (w, h) = scaleMax(sw, sh, size)
+            if (w < 2 || h < 2) return
+            callback1(src.createBufferedImage(w, h))
         }
-        val (w, h) = scaleMax(sw, sh, size)
-        if (w < 2 || h < 2) return null
-        return src.createBufferedImage(w, h)
+    }
+
+    private fun findScale(
+        src: Image,
+        srcFile: FileReference,
+        size0: Int,
+        hash: Long,
+        callback: (Texture2D) -> Unit,
+        callback1: (BufferedImage) -> Unit
+    ) {
+        var size = size0
+        val sw = src.width
+        val sh = src.height
+        if (max(sw, sh) < size) {
+            size /= 2
+            if (size < 3) return
+            val dstFile = createCacheFile(hash, size)
+            shallReturnIfExists(srcFile, dstFile, callback) { shallReturn ->
+                if (!shallReturn) {
+                    findScale(src, srcFile, size, hash, callback, callback1)
+                }
+            }
+        } else {
+            val (w, h) = scaleMax(sw, sh, size)
+            if (w < 2 || h < 2) return
+            callback1(src.createBufferedImage(w, h))
+        }
     }
 
     private fun generate(srcFile: FileReference, size: Int, callback: (ITexture2D) -> Unit) {
+        if (size < 3) return
+        if (useCacheFolder) {
+            srcFile.getCacheFile(size) { dstFile ->
+                shallReturnIfExists(srcFile, dstFile, callback) { shallReturn ->
+                    if (!shallReturn) {
+                        generate(srcFile, size, dstFile, callback)
+                    }
+                }
+            }
+        } else {
+            generate(srcFile, size, InvalidRef, callback)
+        }
+    }
+
+    private fun generate(srcFile: FileReference, size: Int, dstFile: FileReference, callback: (ITexture2D) -> Unit) {
 
         if (size < 3) return
-
-        val dstFile = if (useCacheFolder) {
-            val dstFile = srcFile.getCacheFile(size)
-            if (returnIfExists(srcFile, dstFile, callback)) return
-            dstFile
-        } else InvalidRef
 
         // for some stuff, the icons are really nice
         // for others, we need our previews
@@ -1100,169 +1163,189 @@ object Thumbs {
             return
         }
 
-        when (Signature.findName(srcFile)) {
-            // list all signatures, which can be assigned strictly by their signature
-            "vox" -> generateVOXMeshFrame(srcFile, dstFile, size, callback)
-            "hdr" -> {
-                val src = HDRImage(srcFile)
-                val dst = findScale(src, srcFile, size, callback) ?: return
-                saveNUpload(srcFile, false, dstFile, dst, callback)
-            }
-            "pdf" -> {
-                try {
-                    val ref = PDFCache.getDocumentRef(srcFile, borrow = true, async = false) ?: return
-                    val image = PDFCache.getImageCachedBySize(ref.doc, size, 0)
-                    ref.returnInstance()
-                    saveNUpload(srcFile, false, dstFile, image, callback)
-                } catch (_: NullPointerException) {
-                    // can happen ^^
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-            "jpg" -> {
-                val data2 = JPGThumbnails.extractThumbnail(srcFile)
-                if (data2 != null) {
-                    try {
-                        val image = ImageIO.read(data2.inputStream())
-                        transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
-                    } catch (e: Exception) {
-                        generateImage(srcFile, dstFile, size, callback)
-                    }
-                } else generateImage(srcFile, dstFile, size, callback)
-            }
-            // for ico we could find the best image from looking at the headers
-            "ico" -> {
-                val image = ICOReader.read(srcFile.inputStream(), size)
-                transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
-            }
-            "png", "bmp", "psd", "qoi" ->
-                generateImage(srcFile, dstFile, size, callback)
-            "blend" -> generateSomething(
-                PrefabCache.getPrefabInstance(srcFile),
-                srcFile,
-                dstFile,
-                size,
-                callback
-            )
-            "zip", "bz2", "tar", "gzip", "xz", "lz4", "7z", "xar" -> {
-            }
-            "sims" -> {
-            }
-            "ttf", "woff1", "woff2" -> {
-                // for woff does not show the contents :/
-                // generateSystemIcon(srcFile, dstFile, size, callback)
-                // todo generate font preview
-            }
-            "lua-bytecode" -> {
-            }
-            "exe" -> generateSystemIcon(srcFile, dstFile, size, callback)
-            "media" -> generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
-            else -> try {
-                when (srcFile.lcExtension) {
-
-                    // done start exe files from explorer
-                    // done preview icon for exe files / links using generateSystemIcon
-
-                    // done thumbnails and import for .vox files (MagicaVoxel voxel meshes)
-
-                    // done thumbnails for meshes, and components
-                    // todo thumbnails for visual scripts, when they exist?
-                    // todo thumbnails for Rem's Studio transforms
-                    "obj", "fbx", "gltf", "glb", "dae", "md2", "md5mesh" -> {
-                        // todo list all mesh extensions, which are supported by assimp
-                        // preview for mtl file? idk...
-                        generateAssimpMeshFrame(srcFile, dstFile, size, callback)
-                    }
-                    in UnityReader.unityExtensions -> {
-                        try {
-                            // parse unity files
-                            val decoded = UnityReader.readAsAsset(srcFile)
-                            if (decoded != InvalidRef) {
-                                when {
-                                    decoded is PrefabReadable ->
-                                        generateSomething(decoded.readPrefab(), srcFile, dstFile, size, callback)
-                                    decoded.length() > 0 -> {
-                                        // try to read the file as an asset
-                                        // not sure about using the workspace here...
-                                        val sth = TextReader.read(decoded, StudioBase.workspace, true).firstOrNull()
-                                        generateSomething(sth, srcFile, dstFile, size, callback)
-                                    }
-                                    else -> LOGGER.warn("File $decoded is empty")
-                                }
-                            } else LOGGER.warn("Could not understand unity asset $srcFile, result is InvalidRef")
-                        } catch (e: Throwable) {
-                            LOGGER.warn("${e.message}; by $srcFile")
-                            e.printStackTrace()
-                        }
-                    }
-                    "json" -> {
-                        try {
-                            // try to read the file as an asset
-                            val something = PrefabCache.getPrefabInstance(srcFile)
-                            generateSomething(something, srcFile, dstFile, size, callback)
-                        } catch (_: ShutdownException) {
-                        } catch (e: InvalidClassException) {
-                            LOGGER.info("${e.message}; by $srcFile")
-                        } catch (e: Throwable) {
-                            LOGGER.info("${e.message}; by $srcFile")
-                            e.printStackTrace()
-                        }
-                    }
-                    "tga" -> {
-                        val src = srcFile.inputStream().use { TGAImage.read(it, false) }
-                        val dst = findScale(src, srcFile, size, callback) ?: return
+        Signature.findName(srcFile) { signature ->
+            when (signature) {
+                // list all signatures, which can be assigned strictly by their signature
+                "vox" -> generateVOXMeshFrame(srcFile, dstFile, size, callback)
+                "hdr" -> {
+                    val src = HDRImage(srcFile)
+                    findScale(src, srcFile, size, callback) { dst ->
                         saveNUpload(srcFile, false, dstFile, dst, callback)
                     }
-                    "svg" -> generateSVGFrame(srcFile, dstFile, size, callback)
-                    "mtl" -> {
-                        // read as folder
-                        val children = ZipCache.unzip(srcFile, false)?.listChildren() ?: emptyList()
-                        if (children.isNotEmpty()) {
-                            val maxSize = 25 // with more, too many details are lost
-                            generateMaterialFrame(
-                                srcFile, dstFile,
-                                if (children.size < maxSize) children else
-                                    children.subList(0, maxSize), size, callback
-                            )
-                        } else {
-                            // just an empty material to symbolize, that the file is empty
-                            // we maybe could do better with some kind of texture...
-                            generateMaterialFrame(srcFile, dstFile, Material(), size, callback)
-                        }
-                    }
-                    "url" -> {
-                        // try to read the url, and redirect to the icon
-                        val text = srcFile.readText()
-                        val lines = text.split('\n')
-                        val iconFileLine = lines.firstOrNull { it.startsWith("IconFile=", true) }
-                        if (iconFileLine != null) {
-                            val iconFile = iconFileLine
-                                .substring(9)
-                                .trim() // against \r
-                                .replace('\\', '/')
-                            // LOGGER.info("Found icon file from URL '$srcFile': '$iconFile'")
-                            generate(getReference(iconFile), size, callback)
-                        }
-                    }
-                    // ImageIO says it can do webp, however it doesn't understand most pics...
-                    "webp", "dds" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
-                    "lnk", "desktop" -> {
-                        // not images, and I don't know yet how to get the image from them
-                    }
-                    "ico" -> {
-                        val image = ICOReader.read(srcFile.inputStream(), size)
-                        transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
-                    }
-                    "txt", "html", "md" -> generateTextImage(srcFile, size, callback)
-                    // png, jpg, jpeg, ico, webp, mp4, ...
-                    else -> generateImage(srcFile, dstFile, size, callback)
                 }
-            } catch (e: ShutdownException) {
-                // don't care
-            } catch (e: Exception) {
-                e.printStackTrace()
-                LOGGER.warn("Could not load image from $srcFile: ${e.message}")
+                "pdf" -> {
+                    srcFile.inputStream { it, exc ->
+                        if (it != null) {
+                            val ref = PDFCache.getDocumentRef(srcFile, it, borrow = true, async = false)
+                            if (ref != null) {
+                                val image = PDFCache.getImageCachedBySize(ref.doc, size, 0)
+                                ref.returnInstance()
+                                saveNUpload(srcFile, false, dstFile, image, callback)
+                            }
+                        } else exc?.printStackTrace()
+                    }
+                }
+                "jpg" -> {
+                    JPGThumbnails.extractThumbnail(srcFile) { data2 ->
+                        if (data2 != null) {
+                            try {
+                                val image = ImageIO.read(data2.inputStream())
+                                transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
+                            } catch (e: Exception) {
+                                generateImage(srcFile, dstFile, size, callback)
+                            }
+                        } else generateImage(srcFile, dstFile, size, callback)
+                    }
+                }
+                // for ico we could find the best image from looking at the headers
+                "ico" -> {
+                    srcFile.inputStream { it, exc ->
+                        if (it != null) {
+                            val image = ICOReader.read(it, size)
+                            transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
+                        } else exc?.printStackTrace()
+                    }
+                }
+                "png", "bmp", "psd", "qoi" ->
+                    generateImage(srcFile, dstFile, size, callback)
+                "blend" -> generateSomething(
+                    PrefabCache.getPrefabInstance(srcFile),
+                    srcFile,
+                    dstFile,
+                    size,
+                    callback
+                )
+                "zip", "bz2", "tar", "gzip", "xz", "lz4", "7z", "xar" -> {
+                }
+                "sims" -> {
+                }
+                "ttf", "woff1", "woff2" -> {
+                    // for woff does not show the contents :/
+                    // generateSystemIcon(srcFile, dstFile, size, callback)
+                    // todo generate font preview
+                }
+                "lua-bytecode" -> {
+                }
+                "exe" -> generateSystemIcon(srcFile, dstFile, size, callback)
+                "media" -> generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
+                else -> try {
+                    when (srcFile.lcExtension) {
+
+                        // done start exe files from explorer
+                        // done preview icon for exe files / links using generateSystemIcon
+
+                        // done thumbnails and import for .vox files (MagicaVoxel voxel meshes)
+
+                        // done thumbnails for meshes, and components
+                        // todo thumbnails for visual scripts, when they exist?
+                        // todo thumbnails for Rem's Studio transforms
+                        "obj", "fbx", "gltf", "glb", "dae", "md2", "md5mesh" -> {
+                            // todo list all mesh extensions, which are supported by assimp
+                            // preview for mtl file? idk...
+                            generateAssimpMeshFrame(srcFile, dstFile, size, callback)
+                        }
+                        in UnityReader.unityExtensions -> {
+                            try {
+                                // parse unity files
+                                val decoded = UnityReader.readAsAsset(srcFile)
+                                if (decoded != InvalidRef) {
+                                    when {
+                                        decoded is PrefabReadable ->
+                                            generateSomething(decoded.readPrefab(), srcFile, dstFile, size, callback)
+                                        decoded.length() > 0 -> {
+                                            // try to read the file as an asset
+                                            // not sure about using the workspace here...
+                                            val sth = TextReader.read(decoded, StudioBase.workspace, true).firstOrNull()
+                                            generateSomething(sth, srcFile, dstFile, size, callback)
+                                        }
+                                        else -> LOGGER.warn("File $decoded is empty")
+                                    }
+                                } else LOGGER.warn("Could not understand unity asset $srcFile, result is InvalidRef")
+                            } catch (e: Throwable) {
+                                LOGGER.warn("${e.message}; by $srcFile")
+                                e.printStackTrace()
+                            }
+                        }
+                        "json" -> {
+                            try {
+                                // try to read the file as an asset
+                                val something = PrefabCache.getPrefabInstance(srcFile)
+                                generateSomething(something, srcFile, dstFile, size, callback)
+                            } catch (_: ShutdownException) {
+                            } catch (e: InvalidClassException) {
+                                LOGGER.info("${e.message}; by $srcFile")
+                            } catch (e: Throwable) {
+                                LOGGER.info("${e.message}; by $srcFile")
+                                e.printStackTrace()
+                            }
+                        }
+                        "tga" -> {
+                            srcFile.inputStream { it, exc ->
+                                if (it != null) {
+                                    val src = it.use { TGAImage.read(it, false) }
+                                    findScale(src, srcFile, size, callback) { dst ->
+                                        saveNUpload(srcFile, false, dstFile, dst, callback)
+                                    }
+                                }
+                                exc?.printStackTrace()
+                            }
+                        }
+                        "svg" -> generateSVGFrame(srcFile, dstFile, size, callback)
+                        "mtl" -> {
+                            // read as folder
+                            val children = ZipCache.unzip(srcFile, false)?.listChildren() ?: emptyList()
+                            if (children.isNotEmpty()) {
+                                val maxSize = 25 // with more, too many details are lost
+                                generateMaterialFrame(
+                                    srcFile, dstFile,
+                                    if (children.size < maxSize) children else
+                                        children.subList(0, maxSize), size, callback
+                                )
+                            } else {
+                                // just an empty material to symbolize, that the file is empty
+                                // we maybe could do better with some kind of texture...
+                                generateMaterialFrame(srcFile, dstFile, Material(), size, callback)
+                            }
+                        }
+                        "url" -> {
+                            // try to read the url, and redirect to the icon
+                            srcFile.readLines { lines, exc ->
+                                if (lines != null) {
+                                    val iconFileLine = lines.firstOrNull { it.startsWith("IconFile=", true) }
+                                    if (iconFileLine != null) {
+                                        val iconFile = iconFileLine
+                                            .substring(9)
+                                            .trim() // against \r
+                                            .replace('\\', '/')
+                                        // LOGGER.info("Found icon file from URL '$srcFile': '$iconFile'")
+                                        generate(getReference(iconFile), size, callback)
+                                    }
+                                } else exc?.printStackTrace()
+                            }
+                        }
+                        // ImageIO says it can do webp, however it doesn't understand most pics...
+                        "webp", "dds" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
+                        "lnk", "desktop" -> {
+                            // not images, and I don't know yet how to get the image from them
+                        }
+                        "ico" -> {
+                            srcFile.inputStream { it, exc ->
+                                if (it != null) {
+                                    val image = ICOReader.read(it, size)
+                                    transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
+                                } else exc?.printStackTrace()
+                            }
+                        }
+                        "txt", "html", "md" -> generateTextImage(srcFile, size, callback)
+                        // png, jpg, jpeg, ico, webp, mp4, ...
+                        else -> generateImage(srcFile, dstFile, size, callback)
+                    }
+                } catch (e: ShutdownException) {
+                    // don't care
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    LOGGER.warn("Could not load image from $srcFile: ${e.message}")
+                }
             }
         }
     }
@@ -1280,41 +1363,47 @@ object Thumbs {
         val maxLineCount = clamp(size / 24, 3, 40)
         val maxLineLength = maxLineCount * 5 / 2
         val maxLength = 64 * 1024
-        val bytes = srcFile.inputStream().use {
-            it.readNBytes2(maxLength, false)
-        }
-        if (bytes.isNotEmpty()) {
-            if (bytes.last() < 0) {
-                bytes[bytes.lastIndex] = ' '.code.toByte()
-            }
-            var lines = String(bytes)
-                .split('\n')
-                .map { it.shorten(maxLineLength) }
-                .toMutableList()
-            if (lines.size > maxLineCount) {
-                lines = lines.subList(0, maxLineCount)
-                lines[lines.lastIndex] = "..."
-            }
-            // remove empty lines at the end
-            while (lines.isNotEmpty() && lines.last().isEmpty()) {
-                lines = lines.subList(0, lines.size - 1)
-            }
-            val text = lines
-                .joinToString("\n")
-            val lineCount = lines.size
-            val key = Font(DefaultConfig.defaultFontName, size * 0.7f / lineCount, isBold = false, isItalic = false)
-            val font2 = FontManager.getFont(key)
-            val texture = font2.generateTexture(
-                text, key.size, size * 2, size * 2,
-                portableImages = true,
-                textColor = 255 shl 24,
-                backgroundColor = -1,
-                extraPadding = key.sizeInt / 2
-            )
-            if (texture is ITexture2D) {
-                if (texture is Texture2D)
-                    waitUntil(true) { texture.isCreated || texture.isDestroyed }
-                callback(texture)
+        srcFile.inputStream { it, exc ->
+            exc?.printStackTrace()
+            if (it != null) {
+                val bytes = it.use {
+                    it.readNBytes2(maxLength, false)
+                }
+                if (bytes.isNotEmpty()) {
+                    if (bytes.last() < 0) {
+                        bytes[bytes.lastIndex] = ' '.code.toByte()
+                    }
+                    var lines = String(bytes)
+                        .split('\n')
+                        .map { it.shorten(maxLineLength) }
+                        .toMutableList()
+                    if (lines.size > maxLineCount) {
+                        lines = lines.subList(0, maxLineCount)
+                        lines[lines.lastIndex] = "..."
+                    }
+                    // remove empty lines at the end
+                    while (lines.isNotEmpty() && lines.last().isEmpty()) {
+                        lines = lines.subList(0, lines.size - 1)
+                    }
+                    val text = lines
+                        .joinToString("\n")
+                    val lineCount = lines.size
+                    val key =
+                        Font(DefaultConfig.defaultFontName, size * 0.7f / lineCount, isBold = false, isItalic = false)
+                    val font2 = FontManager.getFont(key)
+                    val texture = font2.generateTexture(
+                        text, key.size, size * 2, size * 2,
+                        portableImages = true,
+                        textColor = 255 shl 24,
+                        backgroundColor = -1,
+                        extraPadding = key.sizeInt / 2
+                    )
+                    if (texture is ITexture2D) {
+                        if (texture is Texture2D)
+                            waitUntil(true) { texture.isCreated || texture.isDestroyed }
+                        callback(texture)
+                    }
+                }
             }
         }
     }
@@ -1358,7 +1447,7 @@ object Thumbs {
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
-        val icon = srcFile.toFile {
+        srcFile.toFile({
             try {
                 val shellFolder = javaClass.classLoader.loadClass("sun.awt.shell.ShellFolder")
                 val shellMethod = shellFolder.getMethod("getShellFolder", java.io.File::class.java)
@@ -1371,13 +1460,16 @@ object Thumbs {
             } catch (e: Exception) {
                 FileSystemView.getFileSystemView().getSystemIcon(it)
             }
-        }
-        val image = BufferedImage(icon.iconWidth + 2, icon.iconHeight + 2, 2)
-        val gfx = image.createGraphics()
-        icon.paintIcon(null, gfx, 1, 1)
-        gfx.dispose()
-        // respect the size
-        transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
+        }, { icon, exc ->
+            if (icon != null) {
+                val image = BufferedImage(icon.iconWidth + 2, icon.iconHeight + 2, 2)
+                val gfx = image.createGraphics()
+                icon.paintIcon(null, gfx, 1, 1)
+                gfx.dispose()
+                // respect the size
+                transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
+            } else exc?.printStackTrace()
+        })
     }
 
     fun testGeneration(
@@ -1399,6 +1491,30 @@ object Thumbs {
         generateSomething(scene.prefab, src, dst, size) {}
         clock.stop("rendered & saved image")
         Engine.requestShutdown()
+    }
+
+    fun testGeneration2(
+        src: FileReference,
+        readAsFolder: InnerFolderReader,
+        dst: FileReference = desktop.getChild("test.png"),
+        size: Int = 512
+    ) {
+        // time for debugger to attach
+        // for (i in 0 until 100) Thread.sleep(100)
+        val clock = Clock()
+        LOGGER.info("File Size: ${src.length().formatFileSize()}")
+        readAsFolder(src) { folder, e ->
+            folder!!
+            clock.stop("read file")
+            ECSRegistry.initWithGFX(size)
+            clock.stop("inited opengl")
+            val scene = folder.getChild("Scene.json") as InnerPrefabFile
+            useCacheFolder = true
+            generateSomething(scene.prefab, src, dst, size) {}
+            clock.stop("rendered & saved image")
+            Engine.requestShutdown()
+        }
+
     }
 
 }

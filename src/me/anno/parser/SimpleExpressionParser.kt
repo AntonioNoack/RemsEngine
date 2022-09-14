@@ -287,9 +287,9 @@ object SimpleExpressionParser {
      * */
     fun Double.toBool() = abs(this) > 1e-16
 
-    private fun Any.getOperatorLevel() = when (this) {
+    /*private fun Any.getOperatorLevel() = when (this) {
         // like Java
-        // todo check for left to right, because 6 / 1 * 2 shall be 12, not 3
+        // to do check for left to right, because 6 / 1 * 2 shall be 12, not 3
         '(', ')', '[', ']' -> 15
         '!', '~' -> 13
         '*', '/', '%' -> 12
@@ -304,7 +304,7 @@ object SimpleExpressionParser {
         "||" -> 3
         '?', ':', "if", "else" -> 2
         else -> 0
-    }
+    }*/
 
     private fun Any.isOperator() = when (this) {
         '(', ')', '[', ']', '?', ':' -> false
@@ -534,7 +534,7 @@ object SimpleExpressionParser {
                             // ok
                         } else continue@ops
                     }
-                    // todo check if left/right is free
+                    // to do check if left/right is free
                     // apply
                     val replacement = op.action(parts, i0)
                     for (j in 0 until condSize - 1) {
@@ -552,9 +552,7 @@ object SimpleExpressionParser {
     }
 
     fun simplify(parts: CountingList?, additionalConstants: Map<String, Any>?): CountingList? {
-
         if (parts == null) return null
-
         try {
 
             parts.replaceConstants(additionalConstants)
@@ -594,12 +592,10 @@ object SimpleExpressionParser {
             }
             return null
         }
-
     }
 
     var knownMessages = HashSet<String>()
     fun parseDouble(parts: CountingList?, additionalConstants: Map<String, Any>? = null): Double? {
-
         val parts2 = simplify(parts, additionalConstants) ?: return null
         return when (parts2.size) {
             0 -> null
@@ -609,8 +605,6 @@ object SimpleExpressionParser {
                 null
             }
         }
-
     }
-
 
 }

@@ -41,7 +41,7 @@ fun main() {
 
     val file = OS.desktop.getChild("sdf.data")
     if (file.exists) {
-        val bytes = file.readBytes()
+        val bytes = file.readBytesSync()
         val sum = calculated.withIndex().sumOf { (index, value) -> sq(value - bytes[index]) }
         logger.info("Error: $sum, ${sum.toDouble() / calculated.size}")
     } else {

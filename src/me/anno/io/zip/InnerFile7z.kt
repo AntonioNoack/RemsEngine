@@ -4,7 +4,6 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.zip.SignatureFile.Companion.setDataAndSignature
-import me.anno.utils.Sleep.waitUntilDefined
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -26,8 +25,7 @@ class InnerFile7z(
         override fun nextEntry(): SevenZArchiveEntry? = file.nextEntry
     }
 
-    override fun getInputStream(): InputStream {
-        var bytes: ByteArray? = null
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
         HeavyIterator.iterate(zipFile, object : IHeavyIterable<SevenZArchiveEntry, Iterate7z, ByteArray> {
             override fun openStream(source: FileReference) = Iterate7z(getZipStream())
             override fun hasInterest(stream: Iterate7z, item: SevenZArchiveEntry) =
@@ -39,17 +37,16 @@ class InnerFile7z(
                 previous: ByteArray?,
                 index: Int,
                 total: Int
-            ): ByteArray? {
-                bytes = previous ?: stream.file.getInputStream(item).readBytes()
+            ): ByteArray {
+                val bytes = previous ?: stream.file.getInputStream(item).readBytes()
+                callback(bytes.inputStream(), null)
                 return bytes
             }
 
             override fun closeStream(source: FileReference, stream: Iterate7z) {
                 stream.file.close()
             }
-
         })
-        return waitUntilDefined(true) { bytes }.inputStream()
     }
 
     companion object {
@@ -58,7 +55,7 @@ class InnerFile7z(
             return if (file is FileFileRef) {
                 SevenZFile(file.file)
             } else {
-                SevenZFile(SeekableInMemoryByteChannel(file.inputStream().readBytes()))
+                SevenZFile(SeekableInMemoryByteChannel(file.readBytesSync()))
             }
         }
 

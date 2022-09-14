@@ -21,7 +21,7 @@ object UnrealReader {
                     "PolygonOffice/Content/PolygonOffice/Meshes/Generic/" +
                     "SM_Generic_Cloud_01.uasset"
         )
-        ref.inputStream().use { read(it) }
+        ref.inputStreamSync().use { read(it) }
     }
 
     fun read(input: InputStream) {

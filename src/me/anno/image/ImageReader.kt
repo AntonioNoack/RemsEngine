@@ -15,7 +15,7 @@ import java.io.IOException
  * */
 object ImageReader {
 
-    fun readAsFolder(file: FileReference): InnerFolder {
+    fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
 
         // todo white with transparency, black with transparency
         // (overriding color)
@@ -51,21 +51,29 @@ object ImageReader {
         if (hasA) createComponent(folder, "rgb1.png", OpaqueImage(image))
 
         if (file.lcExtension == "ico") {
-            val sign = Signature.findName(file)
-            if (sign == null || sign == "ico") {
-                try {
-                    val layers = ICOReader.readAllLayers(file.inputStream())
-                    for (index in layers.indices) {
-                        val layer = layers[index]
-                        folder.createImageChild("layer$index", layer)
+            Signature.findName(file) { sign ->
+                if (sign == null || sign == "ico") {
+                    file.inputStream { it, exc ->
+                        if (it != null) {
+                            val layers = ICOReader.readAllLayers(it)
+                            for (index in layers.indices) {
+                                val layer = layers[index]
+                                folder.createImageChild("layer$index", layer)
+                            }
+                            it.close()
+                            callback(folder, null)
+                        } else {
+                            exc?.printStackTrace()
+                            callback(folder, null)
+                        }
                     }
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
+                } else callback(folder, null)
             }
+            return
         }
 
-        return folder
+        callback(folder, null)
+
     }
 
     private fun createComponent(folder: InnerFolder, name: String, image: Image) {

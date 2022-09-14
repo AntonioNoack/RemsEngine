@@ -21,11 +21,11 @@ fun main() {
     }
 
     fun imageIOTest(file: FileReference): BufferedImage {
-        return ImageIO.read(file.inputStream())
+        return ImageIO.read(file.inputStreamSync())
     }
 
     fun imagingTest(file: FileReference): BufferedImage {
-        return Imaging.getBufferedImage(file.inputStream())
+        return Imaging.getBufferedImage(file.inputStreamSync())
     }
 
     val progress = OS.documents.getChild("IdeaProjects/VideoStudio/progress")

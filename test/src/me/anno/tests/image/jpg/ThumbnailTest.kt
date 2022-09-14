@@ -1,5 +1,6 @@
 package me.anno.tests.image.jpg
 
+import me.anno.image.jpg.JPGThumbnails.extractThumbnail
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
@@ -10,8 +11,9 @@ fun main() {
     for (file in pictures.listChildren()!!) {
         if (file.isDirectory) continue
         if (file.lcExtension != "jpg") continue
-        val data = JPGReader.extractThumbnail(file)
-        if (data != null) desktop.getChild("jpg/" + file.name).writeBytes(data)
-        else LOGGER.debug("didn't find thumbs in $file")
+        extractThumbnail(file) { data ->
+            if (data != null) desktop.getChild("jpg/" + file.name).writeBytes(data)
+            else LOGGER.debug("didn't find thumbs in $file")
+        }
     }
 }

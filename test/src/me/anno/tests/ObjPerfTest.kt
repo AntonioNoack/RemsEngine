@@ -39,7 +39,7 @@ fun main() {
 
     // large OBJ file, we get so 5-7ns/byte
     val src = downloads.getChild("ogldev-source/crytek_sponza/sponza.obj")
-    val data = src.readBytes()
+    val data = src.readBytesSync()
     clock.benchmark(10, 100, data.size, "loading ${data.size.toLong().formatFileSize()}") {
         OBJReader(data.inputStream(), InvalidRef)
     }

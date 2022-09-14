@@ -48,7 +48,7 @@ class AIFileIOStream(val file: FileReference) : IFileIOStream {
     }
 
     private fun ensureInput() {
-        if (input == null) input = file.inputStream()
+        if (input == null) input = file.inputStreamSync()
     }
 
     override fun read(buffer: Long, size: Long, count: Long): Long {

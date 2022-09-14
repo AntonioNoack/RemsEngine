@@ -35,8 +35,8 @@ open class InnerFolder(
         for (child in children.values) child.invalidate()
     }
 
-    override fun getInputStream(): InputStream {
-        throw IOException("File is directory")
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+        callback(null, IOException("File is directory")) // could be thrown as well
     }
 
     override fun getChild(name: String): FileReference {

@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream
 
 fun main() {
 
-
     val text = "<svg height=\"100\" width=\"100\">\n" +
             "  <circle cx=\"50\" cy=\"50\" r=\"40\" stroke=\"black\" stroke-width=\"3\" fill=\"red\" />\n" +
             "<rect x=\"50\" y=\"20\" rx=\"20\" ry=\"20\" width=\"150\" height=\"150\" style=\"fill:red;stroke:black;stroke-width:5;opacity:0.5\" />" +
@@ -22,7 +21,7 @@ fun main() {
             "</svg> "
 
     testSVG(text)
-    testSVG(OS.downloads.getChild("tiger.svg").readText())
+    testSVG(OS.downloads.getChild("tiger.svg").readTextSync())
 
 }
 

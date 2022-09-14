@@ -35,7 +35,7 @@ object ConfigBasics {
     inline fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
         val value = if (file.exists) {
             try {
-                file.readText()
+                file.readTextSync()
             } catch (e: IOException) {
                 e.printStackTrace()
                 null

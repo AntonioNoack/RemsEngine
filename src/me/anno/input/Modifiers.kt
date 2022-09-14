@@ -2,6 +2,7 @@ package me.anno.input
 
 import me.anno.utils.types.Booleans.toInt
 
+@Suppress("unused")
 object Modifiers {
 
     private fun modifierString(ctrl: Boolean, shift: Boolean, alt: Boolean): String {

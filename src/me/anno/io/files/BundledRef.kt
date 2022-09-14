@@ -20,11 +20,10 @@ class BundledRef(
 
     override fun getChild(name: String) = getReference(zipFileForDirectory, name)
 
-    override fun inputStream(): InputStream {
+    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
         // needs to be the same package
         val stream = BundledRef::class.java.classLoader.getResourceAsStream(resName)
-            ?: throw FileNotFoundException(absolutePath)
-        return stream.useBuffered()
+        callback(stream?.useBuffered(), if (stream == null) FileNotFoundException(absolutePath) else null)
     }
 
     override fun outputStream(append: Boolean): OutputStream {
@@ -34,7 +33,7 @@ class BundledRef(
     override val exists: Boolean = true // mmh...
     override fun length(): Long {
         var length = 0L
-        inputStream().use {
+        inputStreamSync().use {
             when (it) {
                 is ByteArrayInputStream ->
                     length = it.available().toLong()

@@ -92,7 +92,7 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
 
         fun read(file: FileReference, workspace: FileReference, safely: Boolean): List<ISaveable> {
             // buffered is very important and delivers an improvement of 5x
-            return file.inputStream().useBuffered().use { read(it, workspace, file.absolutePath, safely) }
+            return file.inputStreamSync().use { read(it, workspace, file.absolutePath, safely) }
         }
 
         fun read(data: InputStream, workspace: FileReference, safely: Boolean): List<ISaveable> {

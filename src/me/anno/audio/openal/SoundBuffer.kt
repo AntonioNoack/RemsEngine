@@ -88,7 +88,7 @@ class SoundBuffer() : ICacheData {
     fun load(file: FileReference) {
         when (val ending = file.lcExtension) {
             "ogg" -> loadOGG(file)
-            "wav" -> loadWAV(WaveData.create(file.inputStream())!!)
+            "wav" -> loadWAV(WaveData.create(file.inputStreamSync())!!)
             else -> throw RuntimeException("Unknown audio format $ending!")
         }
     }
@@ -96,7 +96,7 @@ class SoundBuffer() : ICacheData {
     fun load0(file: FileReference) {
         when (val ending = file.lcExtension) {
             "ogg" -> loadOGG0(file)
-            "wav" -> loadWAV0(WaveData.create(file.inputStream())!!)
+            "wav" -> loadWAV0(WaveData.create(file.inputStreamSync())!!)
             else -> throw RuntimeException("Unknown audio format $ending!")
         }
     }
@@ -129,7 +129,7 @@ class SoundBuffer() : ICacheData {
     }
 
     private fun ioResourceToByteBuffer(file: FileReference): ByteBuffer {
-        val bytes = file.readBytes()
+        val bytes = file.readBytesSync()
         val buffer = ByteBufferPool
             .allocateDirect(bytes.size)
         buffer.put(bytes)

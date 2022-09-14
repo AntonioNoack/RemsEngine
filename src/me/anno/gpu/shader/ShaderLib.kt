@@ -941,6 +941,7 @@ object ShaderLib {
                 "}"
     )
 
+    // todo experiment with adding a small contrast-colored border
     val subpixelCorrectTextShader2 = ComputeShader(
         "subpixelCorrectTextShader", Vector3i(16, 16, 1), "" +
                 brightness +

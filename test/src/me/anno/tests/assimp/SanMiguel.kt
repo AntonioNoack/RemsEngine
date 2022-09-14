@@ -53,7 +53,7 @@ fun main() {
     clock.stop("unzip buffered")*/
 
     clock.start()
-    val input = file.inputStream()
+    val input = file.inputStreamSync()
     while (true) {
         val read = input.read()
         if (read < 0) break

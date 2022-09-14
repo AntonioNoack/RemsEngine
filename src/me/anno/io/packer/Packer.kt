@@ -3,6 +3,7 @@ package me.anno.io.packer
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.createZipFile
+import me.anno.io.zip.GetStreamCallback
 import me.anno.io.zip.InnerImageFile
 import me.anno.io.zip.InnerZipFile
 import me.anno.utils.files.Files.formatFileSize
@@ -140,7 +141,9 @@ object Packer {
         var doneSize = 0L
         val zos = ZipOutputStream(dst.outputStream())
         val map = if (createMap) HashMap<FileReference, FileReference>(resources.size) else null
-        val getStream = { createZipFile(dst) }
+        val getStream = { callback: GetStreamCallback ->
+            createZipFile(dst, callback)
+        }
         val absolute = dst.absolutePath
         val buffer = ByteArray(1024)
         for ((index, resource) in resources.withIndex()) {
@@ -172,21 +175,24 @@ object Packer {
                     doneSize += resource.compressedSize
                     reportProgress(doneSize, totalSize)
                 } else {
-                    val input = resource.inputStream()
-                    while (true) {
-                        val readLength = input.read(buffer)
-                        if (readLength < 0) break
-                        if (readLength > 0) {
-                            zos.write(buffer, 0, readLength)
-                            doneSize += readLength
-                            try {
-                                reportProgress(doneSize, totalSize)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                    // will only work in synchronous environments!
+                    resource.inputStream { input, _ ->
+                        input!!
+                        while (true) {
+                            val readLength = input.read(buffer)
+                            if (readLength < 0) break
+                            if (readLength > 0) {
+                                zos.write(buffer, 0, readLength)
+                                doneSize += readLength
+                                try {
+                                    reportProgress(doneSize, totalSize)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
                         }
+                        input.close()
                     }
-                    input.close()
                 }
             } catch (e: Exception) {
                 LOGGER.warn("Issue when copying $resource: ${e.message}")

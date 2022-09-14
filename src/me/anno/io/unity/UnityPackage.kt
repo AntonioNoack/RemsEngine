@@ -1,19 +1,16 @@
 package me.anno.io.unity
 
 import me.anno.io.files.FileReference
-import me.anno.io.zip.InnerFile
+import me.anno.io.zip.*
 import me.anno.io.zip.InnerFile.Companion.createRegistry
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerTarFile
-import me.anno.io.zip.ZipCache
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.util.zip.GZIPInputStream
 
 object UnityPackage {
 
-    fun unpack(parent: FileReference): InnerFolder {
+    fun unpack(parent: FileReference, callback: InnerFolderCallback) {
 
-        val getStream = { TarArchiveInputStream(GZIPInputStream(parent.inputStream())) }
+        val getStream = { TarArchiveInputStream(GZIPInputStream(parent.inputStreamSync())) }
         val rawArchive = InnerTarFile.createZipRegistryArchive(parent, getStream)
         try {
             val unityArchive = UnityPackageFolder(parent)
@@ -23,7 +20,7 @@ object UnityPackage {
                 val pathname0 = value.getChild("pathname")
                 if (pathname0.exists && pathname0.length() in 1 until 1024) {
                     val guid = value.name
-                    val name = String(pathname0.readBytes())
+                    val name = pathname0.readTextSync()
                     val meta = value.getChild("asset.meta")
                     val metaFile = if (meta is InnerTarFile) {
                         createEntryArchive(parent, "$name.meta", meta, registry)
@@ -37,20 +34,20 @@ object UnityPackage {
                     }
                 }
             }
-            return if (registry.size == 1) {
-                // only return the unity archive, if we found at least one valid entry
-                rawArchive
-            } else {
-                // create artificial assets?
-                // it would be really helpful, if we could read non-packaged unity files as well ->
-                // don't do it here, handle .mat files and such as Asset files
-                unityArchive
-            }
+            callback(
+                if (registry.size == 1) {
+                    // only return the unity archive, if we found at least one valid entry
+                    rawArchive
+                } else {
+                    // create artificial assets?
+                    // it would be really helpful, if we could read non-packaged unity files as well ->
+                    // don't do it here, handle .mat files and such as Asset files
+                    unityArchive
+                }, null
+            )
         } catch (e: Exception) {
-            e.printStackTrace()
-            return rawArchive
+            callback(rawArchive, e)
         }
-
     }
 
     fun createEntryArchive(

@@ -224,7 +224,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
         fun get(file: FileReference, index: Long, async: Boolean): ByteArray? {
             val data = cache.getEntry(Triple(file, file.lastModified, index), timeout, async) { (file1, _, index1) ->
-                val bytes = file1.inputStream()
+                val bytes = file1.inputStreamSync()
                     .use {
                         it.skipN(index1 * sectionSize)
                             .readNBytes2(sectionSize, ByteArray(sectionSize), false)

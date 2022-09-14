@@ -7,6 +7,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
 import me.anno.io.zip.InnerFolder
+import me.anno.io.zip.InnerFolderCallback
 import me.anno.maths.Maths
 import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager
@@ -16,6 +17,7 @@ import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -38,11 +40,16 @@ object PDFCache : CacheSection("PDFCache") {
         }
     }
 
-    fun getDocumentRef(src: FileReference, borrow: Boolean, async: Boolean): AtomicCountedDocument? {
+    fun getDocumentRef(
+        src: FileReference,
+        input: InputStream,
+        borrow: Boolean,
+        async: Boolean
+    ): AtomicCountedDocument? {
         val data = getEntry(src, timeout, async) {
             val doc = AtomicCountedDocument(
                 try {
-                    PDDocument.load(src.inputStream())
+                    PDDocument.load(input)
                 } catch (e: Exception) {
                     LOGGER.error(e.message ?: "Error loading PDF", e)
                     PDDocument()
@@ -59,39 +66,43 @@ object PDFCache : CacheSection("PDFCache") {
         return value
     }
 
-    fun readAsFolder(src: FileReference): InnerFolder {
-        val ref = getDocumentRef(src, borrow = true, async = false)!!
-        val doc = ref.doc
-        val folder = InnerFolder(src)
-        synchronized(doc) {
-            val numberOfPages = doc.numberOfPages
-            if (numberOfPages > 1) {
-                // not optimal, but finding sth optimal is hard anyways, because
-                // we can read a document only sequentially
-                for (i in 1..numberOfPages) {
-                    // don't render them, create a sub-pdfs, which contain a single file each
-                    val fileName = "$i.pdf"
-                    val page = doc.getPage(i - 1)
-                    val doc2 = PDDocument()
-                    doc2.addPage(page)
-                    val bos = ByteArrayOutputStream(1024)
-                    val writer = COSWriter(bos)
-                    writer.write(doc2)
-                    writer.close()
-                    doc2.close()
-                    // val image = getImage(doc, 1f, i)
-                    // ImageIO.write(image, imageIOFormat, bos)
-                    val bytes = bos.toByteArray()
-                    folder.createByteChild(fileName, bytes)
+    fun readAsFolder(src: FileReference, callback: InnerFolderCallback) {
+        src.inputStream { it, exc ->
+            if (it != null) {
+                val ref = getDocumentRef(src, it, borrow = true, async = false)!!
+                val doc = ref.doc
+                val folder = InnerFolder(src)
+                synchronized(doc) {
+                    val numberOfPages = doc.numberOfPages
+                    if (numberOfPages > 1) {
+                        // not optimal, but finding sth optimal is hard anyway, because
+                        // we can read a document only sequentially
+                        for (i in 1..numberOfPages) {
+                            // don't render them, create a sub-pdfs, which contain a single file each
+                            val fileName = "$i.pdf"
+                            val page = doc.getPage(i - 1)
+                            val doc2 = PDDocument()
+                            doc2.addPage(page)
+                            val bos = ByteArrayOutputStream(1024)
+                            val writer = COSWriter(bos)
+                            writer.write(doc2)
+                            writer.close()
+                            doc2.close()
+                            // val image = getImage(doc, 1f, i)
+                            // ImageIO.write(image, imageIOFormat, bos)
+                            val bytes = bos.toByteArray()
+                            folder.createByteChild(fileName, bytes)
+                        }
+                    } else {
+                        // todo create pngs/jpegs of different resolution?
+                        // todo create image type from it :)
+                        // todo add attribute, that marks it as infinite resolution
+                    }
                 }
-            } else {
-                // todo create pngs/jpegs of different resolution?
-                // todo create image type from it :)
-                // todo add attribute, that marks it as infinite resolution
-            }
+                ref.returnInstance()
+                callback(folder, null)
+            } else callback(null, exc)
         }
-        ref.returnInstance()
-        return folder
     }
 
     fun getTexture(src: FileReference, doc: PDDocument, quality: Float, pageNumber: Int): Texture2D? {

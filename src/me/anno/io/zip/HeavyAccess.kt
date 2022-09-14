@@ -10,13 +10,17 @@ object HeavyAccess {
 
     fun <Stream> access(
         source: FileReference,
-        access: IHeavyAccess<Stream>
+        access: IHeavyAccess<Stream>,
+        onError: (Exception) -> Unit
     ) {
         if (source.length() < 1e5) {
             // simple processing for small files
-            val stream = access.openStream(source)
-            access.process(stream)
-            access.closeStream(source, stream)
+            access.openStream(source) { stream, e ->
+                if (stream != null) {
+                    access.process(stream)
+                    access.closeStream(source, stream)
+                } else onError(e!!)
+            }
         } else {
             var waiting: List<IHeavyAccess<Stream>>? = null
             val process = synchronized(this) {
@@ -34,42 +38,47 @@ object HeavyAccess {
             }
             if (process) {
                 val listOfAll = if (waiting == null) listOf(access) else waiting!! + access
-                process(source, listOfAll)
+                process(source, listOfAll, onError)
             }
         }
     }
 
-    private fun <Stream> process(source: FileReference, listOfAll: List<IHeavyAccess<Stream>>) {
-
+    private fun <Stream> process(
+        source: FileReference,
+        listOfAll: List<IHeavyAccess<Stream>>,
+        onError: (Exception) -> Unit
+    ) {
         val first = listOfAll.first()
-        val stream = first.openStream(source)
-        for(entry in listOfAll){
-            entry.process(stream)
-        }
-        first.closeStream(source, stream)
+        first.openStream(source) { stream, e ->
+            if (stream != null) {
+                for (entry in listOfAll) {
+                    entry.process(stream)
+                }
+                first.closeStream(source, stream)
 
-        // process all instances, which were waiting because of us
-        val waiting = synchronized(this) {
-            val waiting = waitingRequests.remove(source)
-            if (waiting == null || waiting.isEmpty()) {
-                // we are done 🥳
-                lockedFiles.remove(source)
-                null
-            } else {
-                // process all missing instances
-                // open new thread?
-                waiting
-            }
-        }
+                // process all instances, which were waiting because of us
+                val waiting = synchronized(this) {
+                    val waiting = waitingRequests.remove(source)
+                    if (waiting == null || waiting.isEmpty()) {
+                        // we are done 🥳
+                        lockedFiles.remove(source)
+                        null
+                    } else {
+                        // process all missing instances
+                        // open new thread?
+                        waiting
+                    }
+                }
 
-        if (waiting != null) {
-            // new thread, because our original is finished anyway
-            thread(name = "HeavyAccess.process($source)") {
-                @Suppress("unchecked_cast")
-                process(source, waiting as List<IHeavyAccess<Stream>>)
-            }
+                if (waiting != null) {
+                    // new thread, because our original is finished anyway
+                    thread(name = "HeavyAccess.process($source)") {
+                        @Suppress("unchecked_cast")
+                        process(source, waiting as List<IHeavyAccess<Stream>>, onError)
+                    }
+                }
+            } else onError(e!!)
         }
-
     }
 
 }

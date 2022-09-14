@@ -45,7 +45,7 @@ fun main() {
     val ref = getReference(OS.downloads, "Stone_Wall_uljlcdwew_4K_surface_ms.zip")
     logger.info(ref.isSomeKindOfDirectory)
 
-    val zis2 = ZipFile(SeekableInMemoryByteChannel(ref.inputStream().readBytes()))
+    val zis2 = ZipFile(SeekableInMemoryByteChannel(ref.readBytesSync()))
     val entries = zis2.entries
     while (entries.hasMoreElements()) {
         val next = entries.nextElement()

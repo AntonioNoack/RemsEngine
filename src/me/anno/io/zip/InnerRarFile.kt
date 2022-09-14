@@ -10,6 +10,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
 
 class InnerRarFile(
     absolutePath: String,
@@ -19,7 +20,13 @@ class InnerRarFile(
 
     override var signature: Signature? = null
 
-    override fun getInputStream() = data!!.inputStream()
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+        callback(data!!.inputStream(),null)
+    }
+
+    override fun inputStreamSync(): InputStream {
+        return data!!.inputStream()
+    }
 
     class ZipReadOnlyAccess(val bytes: ByteArray) : IReadOnlyAccess {
 
@@ -54,7 +61,7 @@ class InnerRarFile(
     }
 
     class ZipVolume(val a: Archive, val file: FileReference) : Volume {
-        val bytes = lazy { file.readBytes() }
+        val bytes = lazy { file.readBytesSync() }
         override fun getReadOnlyAccess(): IReadOnlyAccess {
             return ZipReadOnlyAccess(bytes.value)
         }
@@ -69,7 +76,7 @@ class InnerRarFile(
             return if (file is FileFileRef) {
                 Archive(file.file)
             } else {
-                // probably for loading a set of files
+                // probably for loading a set of files,
                 // which will/would be combined into a single one
                 Archive { a, v ->
                     // see FileArchive as an example

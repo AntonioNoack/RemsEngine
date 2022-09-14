@@ -27,6 +27,7 @@ import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.editor.treeView.TreeViewPanel
+import me.anno.utils.Sleep
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.structures.maps.BiMap
@@ -44,6 +45,7 @@ import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.image.RenderedImage
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
 import kotlin.collections.set
 import kotlin.concurrent.thread
@@ -790,9 +792,11 @@ object Input {
             else {
                 // create a temporary copy, that the OS understands
                 val tmp0 = copiedInternalFiles.reverse[it]
+                val ctr = AtomicInteger()
                 if (tmp0 != null) tmp0 else {
                     val tmp = File(tmpFolder.value, it.name)
-                    copyHierarchy(it, tmp)
+                    copyHierarchy(it, tmp, { ctr.incrementAndGet() }, { ctr.decrementAndGet() })
+                    Sleep.waitUntil(true) { ctr.get() == 0 } // wait for all copying to complete
                     copiedInternalFiles[tmp] = it
                     tmp
                 }

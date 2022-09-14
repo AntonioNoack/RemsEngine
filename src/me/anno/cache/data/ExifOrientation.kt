@@ -10,7 +10,7 @@ import javax.imageio.ImageReader
 import javax.imageio.metadata.IIOMetadataNode
 
 fun findRotation(src: FileReference): RotateJPEG? {
-    val input = ImageIO.createImageInputStream(src.inputStream())
+    val input = ImageIO.createImageInputStream(src.inputStreamSync())
     for (reader in ImageIO.getImageReaders(input)) {
         try {
             reader.input = input

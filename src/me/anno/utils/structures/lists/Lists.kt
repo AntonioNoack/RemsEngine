@@ -1,8 +1,11 @@
 package me.anno.utils.structures.lists
 
+import me.anno.io.zip.NextEntryIterator
 import me.anno.utils.structures.heap.Heap
 import kotlin.math.max
+import kotlin.math.min
 
+@Suppress("unused")
 object Lists {
 
     /**
@@ -468,7 +471,7 @@ object Lists {
     inline fun <reified Type> Sequence<*>.firstInstanceOrNull() =
         firstOrNull { it is Type } as? Type
 
-    fun <V> List<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V> =
+    fun <V> Collection<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V> =
         ArrayList(this).sortByTopology(getDependencies)
 
     /**
@@ -481,7 +484,7 @@ object Lists {
     fun <V> MutableList<V>.sortByTopology(getDependencies: (V) -> Collection<V>?): List<V> {
 
         val noPermanentMark = toHashSet()
-        val temporaryMark = HashSet<V>()
+        val temporaryMark = HashSet<V>(min(64, size))
 
         clear()
 

@@ -38,6 +38,7 @@ object FileExplorerSelectWrapper {
         selectFileOrFolder(lastFile, false, callback)
     }
 
+    @Suppress("unused")
     fun selectFolder(lastFile: File?, callback: (File?) -> Unit) {
         selectFileOrFolder(lastFile, true, callback)
     }

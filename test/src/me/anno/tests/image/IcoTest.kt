@@ -10,7 +10,7 @@ fun main() {
     dst.tryMkdirs()
     for (source in getReference("C:/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/data/games").listChildren()!!) {
         try {
-            ICOReader.readAllLayers(source.inputStream())
+            ICOReader.readAllLayers(source.inputStreamSync())
                 .forEachIndexed { index, image ->
                     image.write(dst.getChild("${source.nameWithoutExtension}.$index.png"))
                 }

@@ -12,7 +12,7 @@ class JsonReader(val data: InputStream) {
 
     constructor(data: ByteArray) : this(data.inputStream())
     constructor(data: String) : this(data.toByteArray())
-    constructor(file: FileReference) : this(file.inputStream())
+    constructor(file: FileReference) : this(file.inputStreamSync())
 
     var index = 0
     var tmpChar = 0.toChar()

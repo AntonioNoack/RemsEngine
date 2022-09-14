@@ -22,7 +22,7 @@ fun convert(file: FileReference) {
     } else {
         if (file.lcExtension == "tga") {
             logger.info("reading file $file")
-            val image = TGAImage.read(file.inputStream(), false)
+            val image = TGAImage.read(file.inputStreamSync(), false)
             val data = image.data
             logger.info("${file.name}: ${image.width} x ${image.height}, ${image.numChannels}, ${data.size}")
             // LOGGER.infoOS.desktop)

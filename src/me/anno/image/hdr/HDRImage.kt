@@ -31,7 +31,7 @@ class HDRImage : Image {
     }
 
     constructor(file: FileReference) : super(0, 0, 3, false) {
-        optimizeStream(file.inputStream()).use { input -> read(input) }
+        optimizeStream(file.inputStreamSync()).use { input -> read(input) }
     }
 
     fun optimizeStream(input: InputStream): InputStream {

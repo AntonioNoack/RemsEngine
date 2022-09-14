@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.gimp.GimpImage
 import me.anno.io.zip.SignatureFile
 import me.anno.utils.Color.hex8
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -117,18 +118,41 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             signatures.remove(signature)
         }
 
-        fun findName(fileReference: FileReference) = find(fileReference)?.name
-        fun find(fileReference: FileReference): Signature? {
-            if (fileReference is SignatureFile) return fileReference.signature
-            if (!fileReference.exists) return null
-            return when (fileReference) {
+        fun findName(file: FileReference, callback: (String?) -> Unit) {
+            find(file) { callback(it?.name) }
+        }
+
+        fun find(file: FileReference, callback: (Signature?) -> Unit) {
+            if (file is SignatureFile) return callback(file.signature)
+            if (!file.exists) return callback(null)
+            return when (file) {
+                is PrefabReadable -> callback(signatures.firstOrNull2 { it.name == "json" })
+                else -> {
+                    // reads the bytes, or 255 if at end of file
+                    // how much do we read? 🤔
+                    // some formats are easy, others require more effort
+                    // maybe we could read them piece by piece...
+                    file.inputStream(sampleSize.toLong()) { it, _ ->
+                        if (it != null) {
+                            callback(find(ByteArray(sampleSize) { _ -> it.read().toByte() }))
+                        } else callback(null)
+                    }
+                }
+            }
+        }
+
+        fun findNameSync(file: FileReference) = findSync(file)?.name
+        fun findSync(file: FileReference): Signature? {
+            if (file is SignatureFile) return file.signature
+            if (!file.exists) return null
+            return when (file) {
                 is PrefabReadable -> signatures.first { it.name == "json" }
                 else -> {
                     // reads the bytes, or 255 if at end of file
                     // how much do we read? 🤔
                     // some formats are easy, others require more effort
                     // maybe we could read them piece by piece...
-                    fileReference.inputStream().use { input ->
+                    file.inputStreamSync().use { input ->
                         find(ByteArray(sampleSize) { input.read().toByte() })
                     }
                 }

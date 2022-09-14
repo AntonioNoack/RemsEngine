@@ -59,11 +59,16 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
         return WebRef("$basePath/$name", emptyMap())
     }
 
-    override fun inputStream(): InputStream =
-        toURL().openStream()
+    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
+        callback(toURL().openStream(), null)
+    }
+
+    override fun inputStreamSync(): InputStream {
+        return toURL().openStream()
+    }
 
     override fun outputStream(append: Boolean): OutputStream {
-        if(append) throw IOException("Appending isn't supported (yet?)")
+        if (append) throw IOException("Appending isn't supported (yet?)")
         // in the future, we might use the Apache HTTP API
         // a simple helper function,
         // may be incomplete for your purposes, e.g.,

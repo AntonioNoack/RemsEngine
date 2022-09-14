@@ -48,6 +48,9 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.popBetterBlending
+import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.DrawTextures.drawDepthTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.DrawTextures.drawTextureAlpha
@@ -383,23 +386,25 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             size, cols, rows, layers.size
         )
 
+        val pbb = pushBetterBlending(true)
         if (world == null) {
-            DrawTexts.drawSimpleTextCharByChar(
+            drawSimpleTextCharByChar(
                 x + w / 2, y + h / 2, 4, "World Not Found!", AxisAlignment.CENTER, AxisAlignment.CENTER
             )
         }
 
         if (showSpecialBuffer) {
-            DrawTexts.drawSimpleTextCharByChar(
+            drawSimpleTextCharByChar(
                 x + 20, y, 2, renderMode.name
             )
         }
 
         if (useDeferredRendering) {
-            DrawTexts.drawSimpleTextCharByChar(
+            drawSimpleTextCharByChar(
                 x + w, y, 2, "DEFERRED", AxisAlignment.MAX
             )
         }
+        popBetterBlending(pbb)
 
         if (!isFinalRendering) {
             DebugRendering.showShadowMapDebug(this)
@@ -420,15 +425,17 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         }
 
         if (playMode == PlayMode.EDITING) {
+            pushBetterBlending(true)
             val count1 = PipelineStage.drawnTriangles
             val deltaCount = count1 - count0
-            DrawTexts.drawSimpleTextCharByChar(
+            drawSimpleTextCharByChar(
                 x, y + h - 2 - DrawTexts.monospaceFont.sizeInt,
                 2,
-                deltaCount.toString(), // todo dots to make long numbers readable
+                deltaCount.toString(),
                 FrameTimings.textColor,
-                FrameTimings.backgroundColor
+                FrameTimings.backgroundColor and 0xffffff
             )
+            popBetterBlending(pbb)
         }
 
         updatePrevState()
@@ -443,20 +450,12 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     private val fsr22 by lazy { FSR2v2() }
 
     private fun drawScene(
-        x0: Int,
-        y0: Int,
-        x1: Int,
-        y1: Int,
-        camera0: Camera,
-        camera1: Camera,
-        blending: Float,
+        x0: Int, y0: Int, x1: Int, y1: Int,
+        camera0: Camera, camera1: Camera, blending: Float,
         renderer: Renderer,
         buffer: IFramebuffer,
         useDeferredRendering: Boolean,
-        size: Int,
-        cols: Int,
-        rows: Int,
-        layersSize: Int
+        size: Int, cols: Int, rows: Int, layersSize: Int
     ) {
 
         var w = x1 - x0
@@ -639,7 +638,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         drawTexture(x, y + h - 1, w, -h, tex, true, -1, null)
                         if (ssao == null) {
                             // write warning message
-                            DrawTexts.drawSimpleTextCharByChar(
+                            val pbb = pushBetterBlending(true)
+                            drawSimpleTextCharByChar(
                                 x + w / 2,
                                 y + h / 2,
                                 2,
@@ -647,6 +647,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                                 AxisAlignment.CENTER,
                                 AxisAlignment.CENTER
                             )
+                            popBetterBlending(pbb)
                         }
                         return
                     }
@@ -683,9 +684,11 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             )
                         drawTexture(x, y + h - 1, w, -h, result ?: buffer.getTexture0(), true, -1, null)
                         if (result == null) {
-                            DrawTexts.drawSimpleTextCharByChar(
+                            val pbb = pushBetterBlending(true)
+                            drawSimpleTextCharByChar(
                                 x + w / 2, y + h / 2, 2, "SSR not supported", AxisAlignment.CENTER, AxisAlignment.CENTER
                             )
+                            popBetterBlending(pbb)
                         }
                         return
                     }
@@ -702,6 +705,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
                         drawSceneLights(camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
 
+                        val pbb = pushBetterBlending(true)
                         for (index in 0 until size) {
 
                             // rows x N field
@@ -729,9 +733,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             ) { // draw alpha on right/bottom side
                                 drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture)
                             }
-                            DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, name)
+                           drawSimpleTextCharByChar(x02, y02, 2, name)
 
                         }
+                       popBetterBlending(pbb)
                         return
                     }
                     renderMode == RenderMode.ALL_DEFERRED_LAYERS -> {
@@ -755,6 +760,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             settings.findTexture(buffer, it)!!
                                 .wrapAsFramebuffer()
                         })
+
+                        val pbb = pushBetterBlending(true)
                         for (index in 0 until size) {
 
                             // rows x N field
@@ -793,12 +800,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                             // y flipped, because it would be incorrect otherwise
                             drawTexture(x02, y12, tw, -th, texture, true, -1, null)
-                            DrawTexts.drawSimpleTextCharByChar(
+                            drawSimpleTextCharByChar(
                                 (x02 + x12) / 2, (y02 + y12) / 2, 2,
                                 name, AxisAlignment.CENTER, AxisAlignment.CENTER
                             )
 
                         }
+                        popBetterBlending(pbb)
                         return
                     }
                     renderer != DeferredRenderer -> {

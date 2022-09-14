@@ -32,7 +32,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
             yamlCache.getOrPut(file) {
                 if (file.lcExtension == "meta") file.hide()
                 try {
-                    parseYAML(file.readText(), true)
+                    parseYAML(file.readTextSync(), true)
                 } catch (e: Exception) {
                     LOGGER.warn("$e by $file")
                     throw e
@@ -146,7 +146,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 when (file.lcExtension) {
                     "meta"/*, "mat", "prefab", "unity", "asset"*/ -> {
                         try {
-                            val yaml = parseYAML(file.readText(), true)
+                            val yaml = parseYAML(file.readTextSync(), true)
                             val guid = yaml["Guid"]?.value
                             if (guid != null) {
                                 // LOGGER.info("Registered guid $file")

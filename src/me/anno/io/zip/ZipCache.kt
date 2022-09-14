@@ -1,5 +1,6 @@
 package me.anno.io.zip
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.instances.PDFCache
@@ -32,25 +33,25 @@ object ZipCache : CacheSection("ZipCache") {
     // done display unity packages differently: display them as their usual file structure
     // it kind of is a new format, that is based on another decompression
 
-    private val readerBySignature = HashMap<String, (FileReference) -> InnerFile>(64)
-    private val readerByFileExtension = HashMap<String, (FileReference) -> InnerFile>(64)
+    private val readerBySignature = HashMap<String, InnerFolderReader>(64)
+    private val readerByFileExtension = HashMap<String,  InnerFolderReader>(64)
 
     @Suppress("unused")
-    fun registerFileExtension(signature: String, reader: (FileReference) -> InnerFolder) {
+    fun registerFileExtension(signature: String, reader:  InnerFolderReader) {
         readerBySignature[signature] = reader
     }
 
-    fun registerFileExtension(signatures: List<String>, reader: (FileReference) -> InnerFolder) {
+    fun registerFileExtension(signatures: List<String>, reader:  InnerFolderReader) {
         for (signature in signatures) {
             readerBySignature[signature] = reader
         }
     }
 
-    fun register(signature: String, reader: (FileReference) -> InnerFolder) {
+    fun register(signature: String, reader:  InnerFolderReader) {
         readerBySignature[signature] = reader
     }
 
-    fun register(signatures: List<String>, reader: (FileReference) -> InnerFolder) {
+    fun register(signatures: List<String>, reader:  InnerFolderReader) {
         for (signature in signatures) {
             readerBySignature[signature] = reader
         }
@@ -66,16 +67,18 @@ object ZipCache : CacheSection("ZipCache") {
 
     init {
         // compressed folders
-        register(listOf("bz2", "lz4", "xar", "oar")) { createZipRegistryV2(it) }
-        register("7z") { createZipRegistry7z(it) { fileFromStream7z(it) } }
-        register("rar") { createZipRegistryRar(it) { fileFromStreamRar(it) } }
+        register(listOf("bz2", "lz4", "xar", "oar")) { it, c -> createZipRegistryV2(it, c) }
+        register("7z") { it, c -> c(createZipRegistry7z(it) { fileFromStream7z(it) }, null) }
+        register("rar") { it, c -> c(createZipRegistryRar(it) { fileFromStreamRar(it) }, null) }
         register("gzip", ::readAsGZip)
         register("tar", ::readAsGZip)
         // pdf documents
         register("pdf", PDFCache::readAsFolder)
         // meshes
         // to do all mesh extensions
-        register(listOf("fbx", "gltf", "dae", "draco", "md2", "md5mesh"), AnimatedMeshesLoader::readAsFolder)
+        register(listOf("fbx", "gltf", "dae", "draco", "md2", "md5mesh")) { it, c ->
+            c(AnimatedMeshesLoader.readAsFolder(it), null)
+        }
         register("blend", BlenderReader::readAsFolder)
         register("obj", OBJReader::readAsFolder)
         register("mtl", MTLReader::readAsFolder)
@@ -90,9 +93,9 @@ object ZipCache : CacheSection("ZipCache") {
         register("gimp", GimpImage::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos
         // register yaml generally for unity files?
-        registerFileExtension(UnityReader.unityExtensions) {
-            UnityReader.readAsFolder(it) as? InnerFolder
-                ?: throw IOException("$it cannot be read as Unity project")
+        registerFileExtension(UnityReader.unityExtensions) { it, c ->
+            val f = UnityReader.readAsFolder(it) as? InnerFolder
+            c(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
         }
     }
 
@@ -103,22 +106,28 @@ object ZipCache : CacheSection("ZipCache") {
 
     fun unzip(file: FileReference, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
-        return getFileEntry(file, false, timeout, async) { file1, _ ->
-            val signature = Signature.findName(file1)
+        val data = getFileEntry(file, false, timeout, async) { file1, _ ->
+            val signature = Signature.findNameSync(file1)
             val ext = file1.lcExtension
             if (signature == "json" && ext == "json") null
             else {
-                try {
-                    val reader = readerBySignature[signature] ?: readerBySignature[ext] ?: readerByFileExtension[ext]
-                    val folder = if (reader != null) reader(file1) else createZipRegistryV2(file1)
+                val data = AsyncCacheData<InnerFolder?>()
+                val reader = readerBySignature[signature] ?: readerBySignature[ext] ?: readerByFileExtension[ext]
+                val callback = { folder: InnerFolder?, ec: Exception? ->
                     if (file1 is InnerFile) file1.folder = folder
-                    folder
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
+                    data.value = folder
+                    ec?.printStackTrace()
+                    Unit
                 }
+                if (reader != null) {
+                    reader(file1, callback)
+                } else {
+                    createZipRegistryV2(file1, callback)
+                }
+                data
             }
-        } as? InnerFile
+        } as? AsyncCacheData<*>
+        return data?.value as? InnerFile
     }
 
     fun splitParent(name: String): Pair<String, String> {

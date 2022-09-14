@@ -1,6 +1,5 @@
 package me.anno.io.zip
 
-import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.EmptyInputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -48,19 +47,25 @@ abstract class InnerFile(
 
     override fun length(): Long = size
 
-    override fun inputStream(): InputStream {
+    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
         val data = data
-        return when {
-            size <= 0 -> EmptyInputStream
-            data != null -> data.inputStream()
-            else -> getInputStream().useBuffered()
+        when {
+            size <= 0 -> callback(EmptyInputStream, null)
+            data != null -> callback(data.inputStream(), null)
+            else -> getInputStream(callback)
         }
     }
 
-    abstract fun getInputStream(): InputStream
+    /**
+     * should return buffered inputstream in callback
+     * */
+    abstract fun getInputStream(callback: (InputStream?, Exception?) -> Unit)
 
-    override fun readBytes(): ByteArray {
-        return this.data ?: inputStream().readBytes()
+    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+        val data = data
+        if (data != null) {
+            callback(data, null)
+        } else super.readBytes(callback)
     }
 
     override fun outputStream(append: Boolean): OutputStream {

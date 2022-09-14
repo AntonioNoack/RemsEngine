@@ -38,7 +38,7 @@ object AIFileIOImpl {
                 val callbacks = AIFile.create()
                 openedStreams[callbacks.address()] = if (length < 50_000_000) {// huge files are not cached
                     AIFileIOStream2(byteCache.getOrPut(file1) {
-                        file1.readBytes()
+                        file1.readBytesSync()
                     })
                 } else AIFileIOStream(file1)
 

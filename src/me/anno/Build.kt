@@ -10,6 +10,7 @@ object Build {
             if (!isLocked) field = value
         }
     private var isLocked = false
+
     @Suppress("unused")
     fun lock() {
         // probably not save because of Java reflections, but whatever

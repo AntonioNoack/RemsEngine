@@ -26,7 +26,7 @@ class InnerByteFile(
         compressedSize = size
     }
 
-    override fun getInputStream(): InputStream {
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
         throw IOException("Missing data")
     }
 

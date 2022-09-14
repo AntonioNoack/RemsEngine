@@ -2,6 +2,10 @@ package me.anno
 
 // hot topics:
 
+// todo convert all programmer-visible IO into async structures, so the engine could run single-threaded
+
+
+
 // todo Retargeting
 // todo Anim-Model blending (top/bottom) around rest-pose by plane or spherical distance
 

@@ -1,5 +1,6 @@
 package me.anno.input
 
+@Suppress("unused")
 enum class MouseButton(val code: Int) {
     LEFT(0),
     RIGHT(1),

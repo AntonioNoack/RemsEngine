@@ -146,10 +146,12 @@ object Files {
         else "$partString$separator$newNumber"
     }
 
-    fun Long.formatFileSize(): String {
+    fun Long.formatFileSize(): String =
+        formatFileSize(if (DefaultConfig["ui.file.showGiB", true]) 1024 else 1000)
+
+    fun Long.formatFileSize(divider: Int): String {
         if (this < 0) return "-" + (-this).formatFileSize()
         val endings = "kMGTPEZY"
-        val divider = if (DefaultConfig["ui.file.showGiB", true]) 1024 else 1000
         val suffix = if (divider == 1024) "i" else ""
         val halfDivider = divider / 2
         var v = this

@@ -37,7 +37,10 @@ class CacheEntry private constructor(
     var hasGenerator = false
 
     fun waitForValue(key: Any?, limitNanos: Long = 60_000_000_000) {
-        Sleep.waitUntil(true, limitNanos, key) { hasValue || hasBeenDestroyed }
+        Sleep.waitUntil(true, limitNanos, key) {
+            (hasValue && (data as? AsyncCacheData<*>)?.hasValue != false)
+                    || hasBeenDestroyed
+        }
     }
 
     /**
@@ -45,7 +48,10 @@ class CacheEntry private constructor(
      * @return whether you need to keep waiting
      * */
     fun waitForValue2(limitNanos: Long = 500_000_000): Boolean {
-        return Sleep.waitUntil2(true, limitNanos) { hasValue || hasBeenDestroyed }
+        return Sleep.waitUntil2(true, limitNanos) {
+            (hasValue && (data as? AsyncCacheData<*>)?.hasValue != false)
+                    || hasBeenDestroyed
+        }
     }
 
     var deletingThreadName: String? = null

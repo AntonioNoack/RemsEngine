@@ -136,7 +136,7 @@ abstract class History<V> : Saveable() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(History::class)
-        val maxChanged = 512
+        var maxChanged = 512
     }
 
 }

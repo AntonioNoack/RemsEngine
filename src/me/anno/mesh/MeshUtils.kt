@@ -61,7 +61,7 @@ object MeshUtils {
         if (aabb0.isEmpty()) return
 
         if (modelMatrix.determinant().isNaN())
-            throw IllegalArgumentException()
+            return
 
         // rough approximation using bounding box
         AnimGameItem.centerStackFromAABB(modelMatrix, aabb0)

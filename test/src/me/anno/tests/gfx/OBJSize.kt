@@ -10,7 +10,8 @@ fun main() {
     // val defaultSize = Maths.clamp(file.length() / 64, 64, 1 shl 20).toInt()
     val ref = getReference(downloads, "ogldev-source/Content/crytek_sponza/sponza.obj")
     // val ref = getReference(documents, "sphere.obj")
-    val reader = ref.inputStream().use { OBJReader(it, ref) }
-    reader.printSizes()
+    val reader = ref.inputStreamSync().use { OBJReader(it, ref) }
+    println("materials: " + reader.materialsFolder.children.size)
+    println("meshes: " + reader.meshesFolder.children.size)
 
 }

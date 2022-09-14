@@ -28,10 +28,6 @@ class VOXReader {
         return "#${idCtr++}"
     }
 
-    fun read(file: FileReference): VOXReader {
-        return file.inputStream().use { read(it) }
-    }
-
     fun read(input: InputStream): VOXReader {
 
         //val t0 = System.nanoTime()
@@ -368,16 +364,20 @@ class VOXReader {
 
     companion object {
 
-        fun readAsFolder(file: FileReference): InnerFolder {
-            val reader = VOXReader().read(file)
-            return readAsFolder(reader, file).a
+        fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
+            file.inputStream { it, exc ->
+                if (it != null) {
+                    val reader = VOXReader().read(it)
+                    callback(readAsFolder(reader, file).a, null)
+                } else callback(null, exc)
+            }
         }
 
-        @Suppress("unused")
+        /*@Suppress("unused")
         fun readAsFolder2(file: FileReference): Quad<InnerFolder, FileReference, Prefab, List<FileReference>> {
             val reader = VOXReader().read(file)
             return readAsFolder(reader, file)
-        }
+        }*/
 
         fun readAsFolder(
             reader: VOXReader,

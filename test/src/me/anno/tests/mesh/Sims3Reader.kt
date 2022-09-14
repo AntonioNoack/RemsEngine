@@ -33,7 +33,7 @@ fun main() {
     // dst.listChildren()?.map { it.delete() }
     // DBPP would be encrypted data
 
-    val input = ref.readByteBuffer(false)
+    val input = ref.readByteBufferSync(false)
         .order(ByteOrder.LITTLE_ENDIAN)
 
     val magic = input.int

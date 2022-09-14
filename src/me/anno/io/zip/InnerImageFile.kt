@@ -7,6 +7,7 @@ import me.anno.image.bmp.BMPWriter.createBMP
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import java.io.InputStream
+import java.nio.charset.Charset
 
 class InnerImageFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
@@ -36,15 +37,27 @@ class InnerImageFile(
         return content
     }
 
-    override fun readBytes(): ByteArray {
+    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+        callback(bytes.value, null)
+    }
+
+    override fun readBytesSync(): ByteArray {
         return bytes.value
     }
 
-    override fun readText(): String {
+    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+        callback(String(bytes.value, charset), null)
+    }
+
+    override fun readTextSync(): String {
         return String(bytes.value) // what are you doing? ;)
     }
 
-    override fun getInputStream(): InputStream {
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+        callback(bytes.value.inputStream(), null)
+    }
+
+    override fun inputStreamSync(): InputStream {
         return bytes.value.inputStream()
     }
 

@@ -3,6 +3,7 @@ package me.anno.io.zip
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import java.io.InputStream
+import java.nio.charset.Charset
 
 class InnerLazyByteFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
@@ -26,16 +27,21 @@ class InnerLazyByteFile(
         get() = Signature.find(content.value)
         set(_) {}
 
-    override fun readBytes(): ByteArray {
-        return content.value
+    override fun readBytesSync() = content.value
+    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+        callback(content.value, null)
     }
 
-    override fun readText(): String {
+    override fun readTextSync(): String {
         return String(content.value)
     }
 
-    override fun getInputStream(): InputStream {
-        return content.value.inputStream()
+    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+        callback(String(content.value), null)
+    }
+
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+        callback(content.value.inputStream(), null)
     }
 
 }

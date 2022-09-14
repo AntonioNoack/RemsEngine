@@ -83,7 +83,6 @@ open class Shader(
                 VariableMode.ATTR -> attribute
                 VariableMode.IN, VariableMode.INOUT -> "uniform"
                 VariableMode.OUT -> "out"
-                VariableMode.INOUT2 -> continue // not supported
             }
             v.declare(builder, prefix)
         }
@@ -126,7 +125,6 @@ open class Shader(
         for (v in fragmentVariables) {
             val prefix = when (v.inOutMode) {
                 VariableMode.IN, VariableMode.INOUT -> { "uniform" }
-                VariableMode.INOUT2 -> continue // not really supported
                 VariableMode.ATTR -> throw IllegalArgumentException("Fragment variable must not have type ATTR")
                 VariableMode.OUT -> {
                     builder.append("layout(location=")

@@ -134,7 +134,18 @@ object DrawTexts {
     }
 
     // slightly buggy (missing barriers?), but allows for correct rendering of text against any background with correct subpixel rendering
-    var enableComputeRendering = false
+    private var enableComputeRendering = false
+
+    fun pushBetterBlending(enabled: Boolean): Boolean {
+        val pbb = enableComputeRendering
+        enableComputeRendering = enabled
+        return pbb
+    }
+
+    fun popBetterBlending(pbb: Boolean) {
+        enableComputeRendering = pbb
+    }
+
     fun canUseComputeShader(): Boolean {
         if (!enableComputeRendering) return false
         if (OS.isWeb) return false

@@ -14,7 +14,7 @@ fun main() {
     val image = ImageCPUCache.getImage(ref, false)
     LOGGER.info(image)
 
-    println(ref.readText())
+    println(ref.readTextSync())
 
     // ffmpeg does not support it either
     /*val tmp = File.createTempFile("ref", ".eps")

@@ -3,13 +3,14 @@ package me.anno.tests
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageWriter
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.io.json.ObjectMapper.write
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.HeavyProcessing
+import me.anno.utils.structures.Iterators.filter
+import me.anno.utils.structures.Iterators.toList
 import kotlin.math.roundToInt
 
 fun main() {
@@ -31,13 +32,13 @@ fun createMesh() {
         for (i in 0 until w) {
             val rgb = image.getRGB(i, j)
             val y = (rgb.r() * 256 + rgb.g()) * 0.1
-            out.write("v $i $y $j\n")
+            out.write("v $i $y $j\n".toByteArray())
         }
     }
     for (y in 1 until h) {
         for (x in 1 until w) {
             val i = x + y * w - w
-            out.write("f $i ${i + 1} ${i + w + 1} ${i + w}\n")
+            out.write("f $i ${i + 1} ${i + w + 1} ${i + w}\n".toByteArray())
         }
     }
     out.close()
@@ -58,10 +59,9 @@ fun convert() {
             val y0 = (name[2].toInt() - 5644) * 1000
             val i0 = x0 + y0 * tw
             val data = zip.listChildren()!!.first { it.lcExtension == "xyz" }
-            val text = data.readText()
-            val lines = text
-                .split('\n')
+            val lines = data.readLinesSync()
                 .filter { it.isNotEmpty() }
+                .toList()
             val uniqueX = HashSet<Float>()
             val uniqueY = HashSet<Float>()
             for (line in lines) {

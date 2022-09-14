@@ -17,7 +17,7 @@ fun main() {
     val timer = Clock()
     timer.start()
 
-    val text = file.readText()
+    val text = file.readTextSync()
 
     timer.stop("just reading")
 

@@ -89,7 +89,7 @@ fun main() {
             val tmpResource = tmp.getChild(type).getChild(resource.name)
             if (!tmpResource.exists) {
                 tmpResource.getParent()!!.mkdirs()
-                tmpResource.writeFile(resource)
+                tmpResource.writeFile(resource) {}
             }
             tmpResource
         }

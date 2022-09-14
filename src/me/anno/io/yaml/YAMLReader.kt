@@ -12,7 +12,7 @@ object YAMLReader {
 
     @Suppress("unused")
     fun parseYAML(file: FileReference, beautify: Boolean = true): YAMLNode {
-        return parseYAML(file.readText(), beautify)
+        return parseYAML(file.readTextSync(), beautify)
     }
 
     /**

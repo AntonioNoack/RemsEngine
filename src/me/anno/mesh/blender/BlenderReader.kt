@@ -5,11 +5,10 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.fonts.mesh.Triangulation
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.zip.InnerFolder
+import me.anno.io.zip.InnerFolderCallback
 import me.anno.mesh.blender.impl.*
 import me.anno.utils.Clock
-import me.anno.utils.OS.documents
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Matrices.getScale2
@@ -309,7 +308,15 @@ object BlenderReader {
         prefab.setProperty("indices", indices.toIntArray())
     }
 
-    fun readAsFolder(ref: FileReference): InnerFolder {
+    fun readAsFolder(ref: FileReference, callback: InnerFolderCallback) {
+        ref.readByteBuffer(false) { it, exc ->
+            if (it != null) {
+                callback(readAsFolder(ref, it), null)
+            } else callback(null, exc)
+        }
+    }
+
+    fun readAsFolder(ref: FileReference, nio: ByteBuffer): InnerFolder {
 
         // todo 1: the normals are often awkward
         // todo 2: find equivalent meshes, and replace them for speed
@@ -319,11 +326,8 @@ object BlenderReader {
         // because we want y up, and Blender has z up
 
         val clock = Clock()
-        val bytes = ref.readBytes()
         clock.stop("read bytes")
-        val nio = ByteBuffer.allocate(bytes.size)
-        nio.put(bytes)
-        nio.flip()
+
         clock.stop("put into other array")
         val binaryFile = BinaryFile(nio)
         val folder = InnerFolder(ref)

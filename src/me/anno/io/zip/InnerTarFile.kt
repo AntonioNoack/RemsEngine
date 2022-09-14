@@ -4,7 +4,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.unity.UnityPackage.unpack
 import me.anno.io.zip.SignatureFile.Companion.setDataAndSignature
-import me.anno.utils.Sleep
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
@@ -31,8 +30,7 @@ class InnerTarFile(
         override fun nextEntry(): ArchiveEntry? = file.nextEntry
     }
 
-    override fun getInputStream(): InputStream {
-        var bytes: ByteArray? = null
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
         HeavyIterator.iterate(zipFile, object : IHeavyIterable<ArchiveEntry, ZipArchiveIterator, ByteArray> {
             override fun openStream(source: FileReference) = ZipArchiveIterator(getZipStream())
             override fun closeStream(source: FileReference, stream: ZipArchiveIterator) = stream.file.close()
@@ -42,13 +40,12 @@ class InnerTarFile(
                 stream: ZipArchiveIterator,
                 item: ArchiveEntry, previous: ByteArray?,
                 index: Int, total: Int
-            ): ByteArray? {
-                bytes = previous ?: stream.file.readBytes()
+            ): ByteArray {
+                val bytes = previous ?: stream.file.readBytes()
+                callback(bytes.inputStream(), null)
                 return bytes
             }
-
         })
-        return Sleep.waitUntilDefined(true) { bytes }.inputStream()
     }
 
     override fun outputStream(append: Boolean): OutputStream {
@@ -58,12 +55,18 @@ class InnerTarFile(
     companion object {
 
         // assumes tar.gz format
-        fun readAsGZip(parent: FileReference): InnerFolder {
-            return if (parent.lcExtension == "unitypackage") {
-                unpack(parent)
+        fun readAsGZip(parent: FileReference, callback: InnerFolderCallback) {
+            if (parent.lcExtension == "unitypackage") {
+                unpack(parent, callback)
             } else {
                 // only check if valid, later decode it, when required? may be expensive...
-                createZipRegistryArchive(parent) { TarArchiveInputStream(GZIPInputStream(parent.inputStream())) }
+                parent.inputStream { it, exc ->
+                    if (it != null) {
+                        createZipRegistryArchive(parent) {
+                            TarArchiveInputStream(GZIPInputStream(it))
+                        }
+                    } else callback(null, exc)
+                }
             }
         }
 
@@ -116,6 +119,7 @@ class InnerTarFile(
                     override fun read(p0: ByteArray): Int {
                         return zis.read(p0)
                     }
+
                     override fun read(p0: ByteArray, p1: Int, p2: Int): Int {
                         return zis.read(p0, p1, p2)
                     }

@@ -1,10 +1,14 @@
 package me.anno.io.json
 
-import java.io.IOException
+import me.anno.io.json.JsonNode.Companion.toJsonNode
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.reflect.Modifier
 
+/**
+ * class to write non-ISaveable() as JSON; not used anywhere
+ * idk how correct/complete it is...
+ * */
 object ObjectMapper {
 
     fun writeJsonString(output: OutputStream, str: String) {
@@ -325,13 +329,6 @@ object ObjectMapper {
         val clazz = javaClass.classLoader.loadClass(name)
         classes[name] = clazz
         return clazz
-    }
-
-    @Suppress("unused")
-    fun Any?.toJsonNode(): JsonNode {
-        val value = this
-        if (value is JsonNode) return value
-        return JsonValue(value)
     }
 
     val classes = HashMap<String, Class<*>>()

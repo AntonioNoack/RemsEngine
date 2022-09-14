@@ -3,8 +3,6 @@ package me.anno
 import me.anno.ui.debug.FrameTimings
 import kotlin.math.min
 
-// todo compare engine size compiled without and with "inline"
-
 object Engine {
 
     var projectName = "RemsEngine"

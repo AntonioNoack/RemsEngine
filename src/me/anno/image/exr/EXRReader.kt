@@ -71,7 +71,7 @@ object EXRReader {
     }
 
     fun read(file: FileReference): Image {
-        val memory = file.readByteBuffer(true)
+        val memory = file.readByteBufferSync(true)
         val image = try {
             read(memory)
         } finally {

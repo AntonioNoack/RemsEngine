@@ -17,8 +17,7 @@ fun main() {
                 add(child, if (path.isEmpty()) child.name else "$path/${child.name}")
             }
         } else {
-            val data = file.readBytes()
-            files[path] = data
+            files[path] = file.readBytesSync()
         }
     }
 

@@ -424,7 +424,7 @@ open class FileExplorer(
         val progress = StudioBase.addProgressBar("Bytes", files.sumOf { it.length() }.toDouble())
         for (file in files) {
             val newFile = findNextFile(folder, file, 1, '-', 1)
-            newFile.writeFile(file) { progress.add(it) }
+            newFile.writeFile(file, { progress.add(it) }, { it?.printStackTrace() })
         }
         invalidate()
     }

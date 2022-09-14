@@ -84,7 +84,7 @@ open class ScriptComponent : Component() {
         fun getFunction(name: String, source: FileReference, instructionLimit: Int = 10_000): LuaValue? {
             val value = luaCache.getFileEntry(source, false, timeout, false) { file, _ ->
                 val vm = defineVM()
-                val text = file.readText()
+                val text = file.readTextSync()
                 val code0 = vm.load(text)
                 val code1 = if (Build.isDebug) wrapIntoLimited(code0, vm, instructionLimit) else code0
                 val code2 = code1.call()

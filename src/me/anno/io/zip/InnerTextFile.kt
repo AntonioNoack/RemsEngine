@@ -14,12 +14,22 @@ class InnerTextFile(
         compressedSize = size
     }
 
-    override fun getInputStream(): InputStream {
-        return content.byteInputStream()
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+        callback(content.byteInputStream(), null)
     }
 
-    override fun readText(): String = content
-    override fun readText(charset: Charset): String = content
-    override fun readBytes(): ByteArray = content.toByteArray()
+    override fun inputStreamSync() = content.byteInputStream()
+
+    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+        callback(content, null)
+    }
+
+    override fun readTextSync() = content
+
+    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+        callback(readBytesSync(), null)
+    }
+
+    override fun readBytesSync() = content.toByteArray()
 
 }

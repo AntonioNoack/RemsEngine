@@ -3,6 +3,9 @@ package me.anno.image.bmp
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
 
+/**
+ * the quickest way to save images
+ * */
 object BMPWriter {
 
     const val pixelDataStart = 0x7a

@@ -24,7 +24,7 @@ fun main() {
         }
     }
 
-    logger.info(getReference("res://mesh/arrowX.obj").readText())
+    logger.info(getReference("res://mesh/arrowX.obj").readTextSync())
 
     // val file = getReference("E:\\Documents\\Uni\\Master\\SS21\\HPC\\u8")
     /*val zis = ZipInputStream(file.inputStream())

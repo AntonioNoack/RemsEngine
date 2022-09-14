@@ -21,7 +21,7 @@ fun main() {
     ShaderLib.init()
 
     val srcFile = desktop.getChild("fox100.png")
-    val testImage = ImageIO.read(srcFile.inputStream())
+    val testImage = ImageIO.read(srcFile.inputStreamSync())
     //BufferedImage(2, 2, 2)
     /*testImage.setRGB(0, 0, 0xff0000 or black)
     testImage.setRGB(0, 1, 0x00ff00 or black)

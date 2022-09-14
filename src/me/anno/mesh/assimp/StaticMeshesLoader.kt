@@ -62,22 +62,27 @@ open class StaticMeshesLoader {
     fun loadFile(file: FileReference, flags: Int): AIScene {
         // obj files should use our custom importer
         // if (file.lcExtension == "obj") throw IllegalArgumentException()
+
+        // we could load in parallel,
+        // but we'd need to keep track of the scale factor;
+        // it only is allowed to be set, if the file is a fbx file
         return synchronized(StaticMeshesLoader) {
-            // we could load in parallel,
-            // but we'd need to keep track of the scale factor;
-            // it only is allowed to be set, if the file is a fbx file
-            val store = aiCreatePropertyStore()!!
-            aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1f)
-            if (file is FileFileRef /*&&/|| file.absolutePath.count { it == '.' } <= 1*/) {
+            val obj = if (file is FileFileRef /*&&/|| file.absolutePath.count { it == '.' } <= 1*/) {
+                val store = aiCreatePropertyStore()!!
+                aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1f)
                 aiImportFileExWithProperties(file.absolutePath, flags, null, store)
             } else {
+                val store = aiCreatePropertyStore()!!
+                aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1f)
                 val fileIO = AIFileIOImpl.create(file, file.getParent()!!)
                 aiImportFileExWithProperties(file.name, flags, fileIO, store)
                     ?: aiImportFileFromMemoryWithProperties( // the first method threw "bad allocation" somehow 🤷‍♂️
-                        file.readByteBuffer(true), flags, null as ByteBuffer?, store
+                        file.readByteBufferSync(true), flags, null as ByteBuffer?, store
                     )
             }
-        } ?: throw IOException("Error loading model $file, ${aiGetErrorString()}")
+            // should be sync as well
+            obj ?: throw IOException("Error loading model $file, ${aiGetErrorString()}")
+        }
     }
 
     fun load(file: FileReference): AnimGameItem = read(file, file.getParent() ?: InvalidRef, defaultFlags)
@@ -375,7 +380,7 @@ open class StaticMeshesLoader {
         val size = if (isCompressed) width else width * height * 4
 
         // lwjgl 3.3.1
-        val data = if(isCompressed){
+        val data = if (isCompressed) {
             bufferToBytes(texture.pcDataCompressed(), size)
         } else {
             bufferToBytes(texture.pcData(), size)

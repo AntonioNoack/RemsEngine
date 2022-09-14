@@ -1,6 +1,9 @@
 package me.anno.io.zip
 
 import me.anno.io.files.FileReference
+import java.io.InputStream
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
 
 class InnerLinkFile(
     absolutePath: String,
@@ -29,10 +32,24 @@ class InnerLinkFile(
     override val isSomeKindOfDirectory: Boolean
         get() = link.isSomeKindOfDirectory
 
-    override fun getInputStream() = link.inputStream()
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+        link.inputStream(Long.MAX_VALUE, callback)
+    }
 
-    override fun readBytes() = link.readBytes()
-    override fun readText() = link.readText()
+    override fun readBytesSync(): ByteArray = link.readBytesSync()
+    override fun readTextSync(): String = link.readTextSync()
+    override fun readByteBufferSync(native: Boolean): ByteBuffer = link.readByteBufferSync(native)
+    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+        link.readText(charset, callback)
+    }
+
+    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+        link.readBytes(callback)
+    }
+
+    override fun readByteBuffer(native: Boolean, callback: (ByteBuffer?, Exception?) -> Unit) {
+        link.readByteBuffer(native, callback)
+    }
 
     override fun length() = link.length()
 

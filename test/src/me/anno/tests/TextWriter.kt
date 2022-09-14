@@ -27,7 +27,7 @@ fun main() {
     val tmp = FileFileRef.createTempFile("smiley", ".tmp")
     val ref = getReference(tmp.absolutePath)
     ref.writeText(asString)
-    println(ref.readText())
+    println(ref.readTextSync())
     println(tmp)
     // tmp.delete()
 }

@@ -4,7 +4,6 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.io.File
-import java.io.IOException
 
 class FileTransferable(val files: List<File>) : Transferable {
 

@@ -253,7 +253,7 @@ class MainStage {
             for (index in stages.indices) {
                 val stage = stages[index]
                 vars@ for (variable in stage.variables) {
-                    if ((variable.inOutMode == VariableMode.INOUT || variable.inOutMode == VariableMode.INOUT2) &&
+                    if ((variable.inOutMode == VariableMode.INOUT) &&
                         uniforms.any { it.name == variable.name }
                     ) {
                         for (i in 0 until index) {
@@ -266,7 +266,6 @@ class MainStage {
                         }
                         bridgeVariables2.add(variable)
                         // define helper function
-                        // todo the uniform for these is no longer being defined, why ever...
                         code.append(variable.type.glslName)
                             .append(" get_").append(variable.name)
                             .append("(){ return ").append(variable.name)

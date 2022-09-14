@@ -670,7 +670,7 @@ object UnityReader {
                     if (script != InvalidRef) LOGGER.debug(
                         "script for behaviour: ${
                             try {
-                                script.readText()
+                                script.readTextSync()
                             } catch (e: Exception) {
                                 script
                             }
@@ -942,7 +942,7 @@ object UnityReader {
         if (project == null) {
             LOGGER.warn("No project found in $file")
             // try to read without project
-            val node = parseYAML(file.readText(), true)
+            val node = parseYAML(file.readTextSync(), true)
             val tmpFolder = InnerFolder(file)
             val objects = readUnityObjects(node, "0", invalidProject, tmpFolder)
             if (objects !== tmpFolder) return InvalidRef
@@ -984,12 +984,12 @@ object UnityReader {
     }
 
     fun inspectAsset(asset: FileReference) {
-        for (file in asset.listChildren()!!.filterIsInstance<InnerLinkFile>().sortedBy { -it.readText().length }) {
+        for (file in asset.listChildren()!!.filterIsInstance<InnerLinkFile>().sortedBy { -it.length() }) {
             LOGGER.info(file.name + " links to " + file.link)
         }
-        for (file in asset.listChildren()!!.filter { it !is InnerLinkFile }.sortedBy { -it.readText().length }) {
-            LOGGER.info(file.name + ", " + file.readText().length.toLong().formatFileSize())
-            LOGGER.info(JsonFormatter.format(file.readText()))
+        for (file in asset.listChildren()!!.filter { it !is InnerLinkFile }.sortedBy { -it.length() }) {
+            LOGGER.info(file.name + ", " + file.length().formatFileSize())
+            LOGGER.info(JsonFormatter.format(file.readTextSync()))
         }
     }
 

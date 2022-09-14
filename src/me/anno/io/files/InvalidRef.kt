@@ -10,7 +10,7 @@ object InvalidRef : FileReference("") {
 
     private val LOGGER = LogManager.getLogger(InvalidRef::class)
 
-    override fun inputStream(): InputStream {
+    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
         throw FileNotFoundException("InvalidRef is no valid source")
     }
 

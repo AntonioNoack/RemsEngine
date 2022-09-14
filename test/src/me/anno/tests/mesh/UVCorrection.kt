@@ -38,10 +38,12 @@ fun main() {
     val clock = Clock()
     for (sample in samples) {
         val ref = FileReference.getReference(OS.downloads, sample)
-        val folder = OBJReader.readAsFolder(ref)
-        clock.start()
-        UVCorrection.correct(folder)
-        clock.stop("calc") // the first one is always extra long
+        OBJReader.readAsFolder(ref) { folder, _ ->
+            folder!!
+            clock.start()
+            UVCorrection.correct(folder)
+            clock.stop("calc") // the first one is always extra long
+        }
     }
 }
 
