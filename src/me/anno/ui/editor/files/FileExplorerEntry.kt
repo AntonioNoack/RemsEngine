@@ -6,7 +6,7 @@ import me.anno.audio.openal.AudioTasks
 import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.ecs.prefab.PrefabCache

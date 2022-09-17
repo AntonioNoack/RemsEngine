@@ -1,6 +1,6 @@
 package me.anno.utils.files
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.image.ImageCPUCache
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference

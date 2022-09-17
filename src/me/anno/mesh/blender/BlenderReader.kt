@@ -420,7 +420,7 @@ object BlenderReader {
                 // LOGGER.debug("loop uvs: " + mesh.loopUVs?.size)
                 val uvs = mesh.loopUVs ?: BInstantList.emptyList()
                 // todo vertex colors
-                val hasUVs = uvs.isNotEmpty() && uvs.any { it.u != 0f || it.v != 0f }
+                val hasUVs = uvs.any { it.u != 0f || it.v != 0f }
                 // LOGGER.debug("loop cols: " + mesh.loopColor?.size)
                 val triCount = polygons.sumOf {
                     when (val size = it.loopSize) {

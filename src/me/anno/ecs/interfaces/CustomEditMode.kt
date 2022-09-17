@@ -1,6 +1,6 @@
 package me.anno.ecs.interfaces
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.input.MouseButton
 
 interface CustomEditMode {

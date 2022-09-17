@@ -3,6 +3,7 @@ package me.anno.tests.shader
 import me.anno.config.DefaultStyle
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.ui.debug.TestDrawPanel
+import me.anno.utils.Color.black
 
 fun main() {
     TestDrawPanel.testDrawing {
@@ -25,7 +26,7 @@ fun main() {
             dx + s, dy,
             dx + s, dy + s,
             5f,
-            0x777777 or DefaultStyle.black,
+            0x777777 or black,
             0x777777,
             false
         )
@@ -33,7 +34,7 @@ fun main() {
             dx, dy,
             dx + s, dy + s,
             5f,
-            0xff0000 or DefaultStyle.black,
+            0xff0000 or black,
             0xff0000,
             false
         )

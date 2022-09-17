@@ -2,7 +2,7 @@ package me.anno.graph.ui
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.drawing.DrawCurves.drawCubicBezier
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier

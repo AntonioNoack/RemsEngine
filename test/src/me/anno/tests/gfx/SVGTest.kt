@@ -3,40 +3,85 @@ package me.anno.tests.gfx
 import me.anno.cache.data.ImageData.Companion.imageTimeout
 import me.anno.cache.instances.OldMeshCache
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle
+import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.SVGxGFX
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
-import me.anno.io.files.FileReference
+import me.anno.input.Input
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI
-import me.anno.utils.OS
+import me.anno.utils.Color.white4
+import me.anno.utils.OS.downloads
 import org.joml.Matrix4fArrayList
 
 fun main() {
 
-    // what was the error?: 1) we renamed finalPosition to localPosition, but not everywhere...
-
+    GFXBase.forceLoadRenderDoc()
     testUI {
-        val srcFile = FileReference.getReference(OS.downloads, "tiger.svg")
+
+        // val srcFile = downloads.getChild("2d/tiger.svg")
+        val srcFile = downloads.getChild("2d/gradientSample2.svg")
+        // val srcFile = downloads.getChild("2d/spreadSample.svg")
+        // val srcFile = downloads.getChild("2d/recruitment.svg")
+        // val srcFile = downloads.getChild("2d/polyline2.svg")
         val panel = object : Panel(DefaultConfig.style) {
+            override val canDrawOverBorders = true
             override fun onUpdate() {
                 invalidateDrawing()
             }
 
+            // show lines with new method
+            /*init {
+                val v = RenderView(EditorState, PlayMode.PLAYING, style)
+                v.renderMode = RenderMode.LINES
+                RenderView.currentInstance = v
+            }*/
+
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                val buffer = OldMeshCache.getSVG(srcFile, imageTimeout, false)!!
+                super.onDraw(x0, y0, x1, y1)
+
+                val msaaBuffer = FBStack["svg", x1 - x0, y1 - y0, TargetType.UByteTarget4, 8, false]
+                msaaBuffer.clearColor(-1, false)
+
                 val transform = Matrix4fArrayList()
-                transform.scale((buffer.maxY / buffer.maxX).toFloat(), 1f, 1f)
-                val white = TextureLib.whiteTexture
-                SVGxGFX.draw3DSVG(
-                    transform, buffer, white,
-                    DefaultStyle.white4, Filtering.NEAREST,
-                    white.clamping!!, null
-                )
+                transform.scale((y1 - y0).toFloat() / (x1 - x0).toFloat(), 1f, 1f)
+                if (Input.isControlDown) transform.scale(0.2f, 0.2f, 1f)
+
+                useFrame(msaaBuffer) {
+                    if (Input.isShiftDown) {
+                        // new method, uses standard shader and more complex meshes, but is incomplete
+                        transform.scale(1f, -1f, 1f)
+                        val shader = ECSShaderLib.pbrModelShader.value
+                        shader.use()
+                        shader.m4x3("localTransform", null)
+                        shader.m4x4("transform", transform)
+                        val mesh = OldMeshCache.getSVG2(srcFile, imageTimeout, false)!!
+                        defaultMaterial.bind(shader)
+                        shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                        mesh.draw(shader, 0)
+
+                    } else {
+                        // old method, uses specialized shader
+                        val buffer = OldMeshCache.getSVG(srcFile, imageTimeout, false)!!
+                        val white = TextureLib.whiteTexture
+                        SVGxGFX.draw3DSVG(
+                            transform, buffer, white,
+                            white4, Filtering.NEAREST,
+                            Clamping.CLAMP, null
+                        )
+                    }
+                }
+
+                GFX.copy(msaaBuffer)
             }
         }
-        panel
+        panel.setWeight(1f)
     }
-
 }

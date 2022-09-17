@@ -1,7 +1,7 @@
 package me.anno.ui.style
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding

@@ -8,7 +8,7 @@ import me.anno.cache.instances.OldMeshCache
 import me.anno.cache.instances.PDFCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.white4
+import me.anno.utils.Color.white4
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
@@ -70,6 +70,8 @@ import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
 import me.anno.io.files.thumbs.ThumbsExt.createModelMatrix
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.io.files.thumbs.ThumbsExt.findModelMatrix
+import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
+import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.*
@@ -523,75 +525,6 @@ object Thumbs {
 
     }
 
-    private fun waitForTextures(comp: MeshComponentBase, mesh: Mesh, srcFile: FileReference) {
-        // wait for all textures
-        val textures = HashSet<FileReference>()
-        iterateMaterials(comp.materials, mesh.materials) { material ->
-            textures += listTextures(material)
-        }
-        textures.removeIf { it == InvalidRef }
-        textures.removeIf {
-            if (!it.exists) {
-                LOGGER.warn("Missing texture $it by $srcFile")
-                true
-            } else false
-        }
-        waitForTextures(textures)
-    }
-
-    private fun waitForTextures(mesh: Mesh, file: FileReference) {
-        // wait for all textures
-        val textures = HashSet<FileReference>()
-        for (material in mesh.materials) {
-            textures += listTextures(material)
-        }
-        textures.removeIf { it == InvalidRef }
-        textures.removeIf {
-            if (!it.exists) {
-                LOGGER.warn("Missing texture $it by $file")
-                true
-            } else false
-        }
-        waitForTextures(textures)
-    }
-
-    private fun waitForTextures(entity: Entity, srcFile: FileReference) {
-        // wait for all textures
-        val textures = HashSet<FileReference>()
-        collectTextures(entity, textures)
-        textures.removeIf { it == InvalidRef }
-        textures.removeIf {
-            if (!it.exists) {
-                LOGGER.warn("Missing texture $it by $srcFile")
-                true
-            } else false
-        }
-        waitForTextures(textures)
-    }
-
-    private fun waitForMeshes(entity: Entity) {
-        // wait for all textures
-        entity.forAll {
-            if (it is MeshComponentBase) {
-                // does the CPU part -> not perfect, but maybe good enough
-                it.ensureBuffer()
-            }
-        }
-    }
-
-    private fun collectTextures(entity: Entity, textures: MutableSet<FileReference>) {
-        for (comp in entity.getComponentsInChildren(MeshComponentBase::class, false)) {
-            val mesh = comp.getMesh()
-            if (mesh == null) {
-                warnMissingMesh(comp, null)
-                continue
-            }
-            iterateMaterials(comp.materials, mesh.materials) { material ->
-                textures += listTextures(material)
-            }
-        }
-    }
-
     inline fun iterateMaterials(l0: List<FileReference>, l1: List<FileReference>, run: (FileReference) -> Unit) {
         for (index in 0 until max(l0.size, l1.size)) {
             val li = l0.getOrNull(index)?.nullIfUndefined() ?: l1.getOrNull(index)
@@ -825,7 +758,7 @@ object Thumbs {
             srcFile, false, dstFile, true,
             renderer0, true, callback, w, h
         ) {
-            val frame = GFXState.currentBuffer!!
+            val frame = GFXState.currentBuffer
             val renderer = GFXState.currentRenderer
             for (i in 0 until count) {
                 val ix = i % sx
@@ -950,46 +883,6 @@ object Thumbs {
         mesh.destroy()
     }
 
-    private fun listTextures(materialReference: FileReference): List<FileReference> {
-        if (materialReference == InvalidRef) return emptyList()
-        val material = MaterialCache[materialReference]
-        if (material == null) LOGGER.warn("Missing material '$materialReference'")
-        return material?.listTextures() ?: emptyList()
-    }
-
-    private fun waitForTextures(materials: List<Material>, timeout: Long = 25000) {
-        // listing all textures
-        // does not include personal materials / shaders...
-        val textures = ArrayList<FileReference>()
-        for (material in materials) {
-            textures += material.listTextures()
-        }
-        waitForTextures(textures, timeout)
-    }
-
-    private fun waitForTextures(material: Material, timeout: Long = 25000) {
-        // listing all textures
-        // does not include personal materials / shaders...
-        val textures = material.listTextures().filter { it != InvalidRef && it.exists }
-        waitForTextures(textures, timeout)
-    }
-
-    private fun waitForTextures(textures: Collection<FileReference>, timeout: Long = 25000) {
-        // 25s timeout, because unzipping all can take its time
-        // wait for textures
-        if (textures.isEmpty()) return
-        val endTime = Engine.gameTime + timeout * MILLIS_TO_NANOS
-        waitForGFXThread(true) {
-            if (Engine.gameTime > endTime) {
-                // textures may be missing; just ignore them, if they cannot be read
-                textures
-                    .filter { !ImageGPUCache.hasImageOrCrashed(it, timeout, true) }
-                    .forEach { LOGGER.warn("Missing texture $it") }
-                true
-            } else textures.all { ImageGPUCache.hasImageOrCrashed(it, timeout, true) }
-        }
-    }
-
     fun generateSomething(
         asset: ISaveable?,
         srcFile: FileReference,
@@ -1009,7 +902,6 @@ object Thumbs {
                 val gt = JomlPools.mat4x3d.borrow()
                 val ab = JomlPools.aabbd.borrow()
                 if (asset.fillSpace(gt, ab)) {
-                    // todo render component somehow... just return an icon?
                     // todo render debug ui :)
                 }
             }
@@ -1163,6 +1055,7 @@ object Thumbs {
             return
         }
 
+        // todo font previews
         Signature.findName(srcFile) { signature ->
             when (signature) {
                 // list all signatures, which can be assigned strictly by their signature
@@ -1226,6 +1119,8 @@ object Thumbs {
                 }
                 "lua-bytecode" -> {
                 }
+                // todo dds files have no preview... why? they can be opened as a folder
+                "dds" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                 "exe" -> generateSystemIcon(srcFile, dstFile, size, callback)
                 "media" -> generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
                 else -> try {
@@ -1503,7 +1398,7 @@ object Thumbs {
         // for (i in 0 until 100) Thread.sleep(100)
         val clock = Clock()
         LOGGER.info("File Size: ${src.length().formatFileSize()}")
-        readAsFolder(src) { folder, e ->
+        readAsFolder(src) { folder, _ ->
             folder!!
             clock.stop("read file")
             ECSRegistry.initWithGFX(size)

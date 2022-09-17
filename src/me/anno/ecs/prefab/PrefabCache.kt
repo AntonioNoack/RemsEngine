@@ -1,6 +1,5 @@
 package me.anno.ecs.prefab
 
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache.Companion.ensureClasses
@@ -20,20 +19,14 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerLinkFile
-import me.anno.io.zip.InnerPrefabFile
 import me.anno.io.zip.ZipCache
-import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.mesh.blender.BlenderReader
-import me.anno.mesh.obj.OBJReader
-import me.anno.mesh.vox.VOXReader
 import me.anno.studio.StudioBase
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
-// todo make everything work async
-@Suppress("unused", "MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate")
 object PrefabCache : CacheSection("Prefab") {
 
     var printJsonErrors = true
@@ -46,142 +39,6 @@ object PrefabCache : CacheSection("Prefab") {
 
     operator fun get(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false) =
         getPrefabPair(resource, depth, async)?.prefab
-
-    private fun loadAssimpModel(resource: FileReference): Prefab? {
-        return try {
-            val reader = AnimatedMeshesLoader
-            val meshes = reader.readAsFolder2(resource)
-            meshes.second
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private fun loadVOXModel(resource: FileReference): Prefab? {
-        return try {
-            VOXReader().read(resource.inputStreamSync()).toEntityPrefab(resource)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private fun loadObjModel(resource: FileReference): Prefab? {
-        return try {
-            OBJReader(resource.inputStreamSync(), resource).scenePrefab
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private fun loadBlenderModel(resource: FileReference): Prefab? {
-        return try {
-            val folder = BlenderReader.readAsFolder(resource, resource.readByteBufferSync(false))
-            val sceneFile = folder.getChild("Scene.json") as InnerPrefabFile
-            return sceneFile.prefab
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private fun loadJson(resource: FileReference?): ISaveable? {
-        return when (resource) {
-            InvalidRef, null -> null
-            is PrefabReadable -> resource.readPrefab()
-            else -> {
-                try {
-                    val read = TextReader.read(resource, StudioBase.workspace, true)
-                    val prefab = read.firstOrNull()
-                    if (prefab == null) LOGGER.warn("No Prefab found in $resource:${resource::class.simpleName}! $read")
-                    // else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
-                    (prefab as? Prefab)?.wasCreatedFromJson = true
-                    prefab
-                } catch (e: Exception) {
-                    LOGGER.warn("$e by $resource")
-                    e.printStackTrace()
-                    null
-                }
-            }
-        }
-    }
-
-    private fun loadUnityFile(resource: FileReference): Prefab? {
-        return loadJson(UnityReader.readAsAsset(resource)) as? Prefab
-    }
-
-    private fun loadPrefab2(resource: FileReference): ISaveable? {
-        return if (resource.exists && !resource.isDirectory) {
-            // LOGGER.info("resource $resource has signature $signature")
-            val prefab = when (Signature.findNameSync(resource)) {
-                "vox" -> loadVOXModel(resource)
-                "fbx", "gltf", "md2", "md5mesh" ->
-                    loadAssimpModel(resource)
-                "blend" -> loadBlenderModel(resource)
-                "obj" -> loadObjModel(resource)
-                "yaml" -> loadUnityFile(resource)
-                "json" -> {
-                    // could be gltf as well
-                    when (resource.lcExtension) {
-                        "gltf", "glb" -> loadAssimpModel(resource)
-                        else -> loadJson(resource)
-                    }
-                }
-                else -> {
-                    when (resource.lcExtension) {
-                        "vox" -> loadVOXModel(resource)
-                        "fbx", "dae", "gltf", "glb",
-                        "md2", "md5mesh" ->
-                            loadAssimpModel(resource)
-                        "blend" -> loadBlenderModel(resource)
-                        "obj" -> loadObjModel(resource)
-                        in UnityReader.unityExtensions -> loadUnityFile(resource)
-                        "mtl" -> null
-                        else -> loadJson(resource)
-                    }
-                }
-            }
-            (prefab as? Prefab)?.source = resource
-            prefab
-        } else null
-    }
-
-    private fun loadPrefab3(file: FileReference): ISaveable? {
-        if (file is PrefabReadable) return file.readPrefab()
-        when (Signature.findNameSync(file)) {
-            "json" ->
-                try {
-                    val prefab = TextReader.read(file, StudioBase.workspace, false).firstOrNull()
-                    if (prefab is Prefab) prefab.source = file
-                    if (prefab != null) return prefab
-                } catch (e: UnknownClassException) {
-                    LOGGER.warn("$e by $file", e)
-                } catch (e: InvalidFormatException) {
-                    if (printJsonErrors && file.lcExtension == "json")
-                        LOGGER.warn("$e by $file", e)
-                    // don't care
-                } catch (e: Exception) {
-                    // might be interesting
-                    e.printStackTrace()
-                }
-            "yaml" -> try {
-                val prefab = loadUnityFile(file)
-                if (prefab is Prefab) prefab.source = file
-                if (prefab != null) return prefab
-            } catch (e: Exception) {
-                LOGGER.warn("$file is yaml, but not from Unity")
-                e.printStackTrace()
-            }
-        }
-        val folder = ZipCache.unzip(file, false) ?: return null
-        val scene = folder.getChild("Scene.json") as? PrefabReadable
-        val scene2 = scene ?: folder.listChildren()?.firstInstanceOrNull<PrefabReadable>() ?: return null
-        val prefab = scene2.readPrefab()
-        prefab.source = file
-        return prefab
-    }
 
     fun getPrefabInstance(resource: FileReference?, async: Boolean) =
         getPrefabInstance(resource, maxPrefabDepth, async)
@@ -203,35 +60,6 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-    var debugLoading = false
-    private fun getPrefabPair(
-        resource: FileReference?,
-        depth: Int = maxPrefabDepth,
-        async: Boolean = false
-    ): FileReadPrefabData? {
-        // LOGGER.info("get prefab from $resource, ${resource?.exists}, ${resource?.isDirectory}")
-        return when {
-            resource == null -> null
-            resource is InnerLinkFile -> getPrefabPair(resource.link, depth, async)
-            resource.exists && !resource.isDirectory -> {
-                val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
-                    if (debugLoading) LOGGER.info("loading $file")
-                    ensureClasses()
-                    val loaded = loadPrefab3(file)
-                    if (debugLoading) LOGGER.info("loaded $file, got ${loaded?.className}")
-                    // if (loaded is Prefab) LOGGER.info(loaded)
-                    if (loaded != null) {
-                        FileWatch.addWatchDog(file)
-                        FileReadPrefabData(loaded as? Prefab, if (loaded is Prefab) null else loaded, file)
-                    } else CacheData(null)
-                }
-                if (entry is CacheData<*> && entry.value == null)
-                    throw IOException("Could not load $resource as prefab")
-                return entry as? FileReadPrefabData
-            }
-            else -> null
-        }
-    }
 
     fun createInstance(
         prefab: Prefab?,
@@ -368,6 +196,123 @@ object PrefabCache : CacheSection("Prefab") {
         prefab.source = file
         if (!file.exists) file.writeText(TextWriter.toText(prefab, StudioBase.workspace))
         return prefab
+    }
+
+    private fun loadJson(resource: FileReference?): ISaveable? {
+        return when (resource) {
+            InvalidRef, null -> null
+            is PrefabReadable -> resource.readPrefab()
+            else -> {
+                try {
+                    val read = TextReader.read(resource, StudioBase.workspace, true)
+                    val prefab = read.firstOrNull()
+                    if (prefab == null) LOGGER.warn("No Prefab found in $resource:${resource::class.simpleName}! $read")
+                    // else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
+                    (prefab as? Prefab)?.wasCreatedFromJson = true
+                    prefab
+                } catch (e: Exception) {
+                    LOGGER.warn("$e by $resource")
+                    e.printStackTrace()
+                    null
+                }
+            }
+        }
+    }
+
+    private fun loadUnityFile(resource: FileReference): Prefab? {
+        return loadJson(UnityReader.readAsAsset(resource)) as? Prefab
+    }
+
+    private fun loadPrefab4(file: FileReference, callback: (ISaveable?, Exception?) -> Unit) {
+        if (file is PrefabReadable) {
+            callback(file.readPrefab(), null)
+            return
+        }
+        Signature.findName(file) { signature ->
+            when (signature) {
+                "json" -> {
+                    file.inputStream { it, e ->
+                        if (it != null) {
+                            val prefab = TextReader.read(file, StudioBase.workspace, false).firstOrNull()
+                            if (prefab is Prefab) prefab.source = file
+                            if (prefab != null) {
+                                callback(prefab, null)
+                            } else {
+                                loadPrefab4i(file, callback)
+                            }
+                        } else {
+                            when (e) {
+                                is UnknownClassException -> LOGGER.warn("$e by $file", e)
+                                is InvalidFormatException -> if (printJsonErrors && file.lcExtension == "json")
+                                    LOGGER.warn("$e by $file", e)
+                                else -> e?.printStackTrace() // may be interesting
+                            }
+                            loadPrefab4i(file, callback)
+                        }
+                    }
+                }
+                "yaml" -> {
+                    try { // todo support async (?)
+                        val prefab = loadUnityFile(file)
+                        if (prefab is Prefab) prefab.source = file
+                        if (prefab != null) {
+                            callback(prefab, null)
+                        }
+                        loadPrefab4i(file, callback)
+                    } catch (e: Exception) {
+                        LOGGER.warn("$file is yaml, but not from Unity")
+                        e.printStackTrace()
+                        loadPrefab4i(file, callback)
+                    }
+                }
+                else -> loadPrefab4i(file, callback)
+            }
+        }
+    }
+
+    private fun loadPrefab4i(file: FileReference, callback: (ISaveable?, Exception?) -> Unit) {
+        val folder = ZipCache.unzip(file, false)
+        if (folder != null) {
+            val scene = folder.getChild("Scene.json") as? PrefabReadable
+            val scene2 = scene ?: folder.listChildren()?.firstInstanceOrNull<PrefabReadable>()
+            if (scene2 != null) {
+                val prefab = scene2.readPrefab()
+                prefab.source = file
+                callback(prefab, null)
+            } else callback(null, null)
+        } else callback(null, null)
+    }
+
+    var debugLoading = false
+    private fun getPrefabPair(
+        resource: FileReference?,
+        depth: Int = maxPrefabDepth,
+        async: Boolean = false
+    ): FileReadPrefabData? {
+        // LOGGER.info("get prefab from $resource, ${resource?.exists}, ${resource?.isDirectory}")
+        return when {
+            resource == null -> null
+            resource is InnerLinkFile -> getPrefabPair(resource.link, depth, async)
+            resource.exists && !resource.isDirectory -> {
+                val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
+                    if (debugLoading) LOGGER.info("loading $file")
+                    ensureClasses()
+                    val data = FileReadPrefabData(file)
+                    loadPrefab4(file) { loaded, e ->
+                        println("$file -> $e")
+                        data.value = loaded
+                        if (loaded != null) FileWatch.addWatchDog(file)
+                        if (debugLoading) LOGGER.info("loaded $file, got ${loaded?.className}")
+                        e?.printStackTrace()
+                    }
+                    data
+                }
+                if (entry is FileReadPrefabData && entry.hasValue && entry.value == null)
+                    throw IOException("Could not load $resource as prefab")
+                return entry as? FileReadPrefabData
+            }
+            else -> null
+        }
     }
 
 }

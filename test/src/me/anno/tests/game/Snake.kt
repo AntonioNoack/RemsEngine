@@ -2,7 +2,7 @@ package me.anno.tests.game
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText

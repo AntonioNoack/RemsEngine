@@ -2,18 +2,19 @@ package me.anno.image.svg.gradient
 
 import me.anno.utils.types.Vectors.print
 import org.joml.Vector2d
+import org.joml.Vector2f
 
 class Formula(
-    val position: Vector2d,
-    val directionOrRadius: Vector2d,
+    val position: Vector2f,
+    val directionOrRadius: Vector2f,
     var isCircle: Boolean
 ) {
 
-    constructor() : this(Vector2d(), Vector2d(), false)
+    constructor() : this(Vector2f(), Vector2f(), false)
 
     fun clear() {
-        position.set(0.0)
-        directionOrRadius.set(0.0)
+        position.set(0f)
+        directionOrRadius.set(0f)
         isCircle = false
     }
 

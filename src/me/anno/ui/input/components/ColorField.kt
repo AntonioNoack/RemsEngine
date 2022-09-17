@@ -1,6 +1,6 @@
 package me.anno.ui.input.components
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures

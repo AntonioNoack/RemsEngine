@@ -33,8 +33,8 @@ object DefaultConfig : StringMap() {
         val tick = Clock()
 
         // in case it wasn't registered yet
-        registerCustomClass(StringMap::class)
-        registerCustomClass(SaveableArray::class)
+        registerCustomClass(StringMap())
+        registerCustomClass(SaveableArray())
 
         tick.stop("registering classes for config")
 

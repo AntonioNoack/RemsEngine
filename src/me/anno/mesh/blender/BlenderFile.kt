@@ -20,7 +20,11 @@ class BlenderFile(val file: BinaryFile) {
     var pointerSize = 0
 
     init {
-        file.consumeIdentifier("BLENDER")
+        val magic = "BLENDER"
+        for (i in magic.indices) {
+            val char = file.char()
+            if (char != magic[i]) throw IOException("Identifier is not matching $magic, got $char at $i")
+        }
         file.is64Bit = when (file.char()) {
             '_' -> false
             '-' -> true
@@ -48,7 +52,7 @@ class BlenderFile(val file: BinaryFile) {
         this.blocks = blocks
         file.offset(firstBlockOffset)
         var blockHeader = BlockHeader(file)
-        while (blockHeader.code != ENDBlock) {
+        while (blockHeader.code != ENDB) {
             blocks.add(Block(blockHeader, file.index))
             file.skip(blockHeader.size)
             blockHeader = BlockHeader(file)
@@ -61,8 +65,8 @@ class BlenderFile(val file: BinaryFile) {
     }
 
     init {
-        file.consumeIdentifier("SDNA")
-        file.consumeIdentifier("NAME")
+        file.consumeIdentifier('S', 'D', 'N', 'A')
+        file.consumeIdentifier('N', 'A', 'M', 'E')
     }
 
     // read struct dna
@@ -72,7 +76,7 @@ class BlenderFile(val file: BinaryFile) {
 
     init {
         file.padding(4)
-        file.consumeIdentifier("TYPE")
+        file.consumeIdentifier('T', 'Y', 'P', 'E')
     }
 
     private val typeNames = Array(file.readInt()) {
@@ -81,8 +85,7 @@ class BlenderFile(val file: BinaryFile) {
 
     init {
         file.padding(4)
-        @Suppress("SpellCheckingInspection")
-        file.consumeIdentifier("TLEN")
+        file.consumeIdentifier('T', 'L', 'E', 'N')
     }
 
     val types: Array<DNAType> = Array(typeNames.size) { i ->
@@ -94,13 +97,12 @@ class BlenderFile(val file: BinaryFile) {
 
     init {
         file.padding(4)
-        @Suppress("SpellCheckingInspection")
-        file.consumeIdentifier("STRC")
+        file.consumeIdentifier('S', 'T', 'R', 'C')
     }
 
     private val structsWithIndices = Array(file.readInt()) { Struct(file) }
 
-    val structs: Array<DNAStruct> = Array(structsWithIndices.size) { i ->
+    val structs = Array(structsWithIndices.size) { i ->
         val s = structsWithIndices[i]
         val type = types[s.type.toUShort().toInt()]
         val fields = Array(s.fieldsAsTypeName.size shr 1) { j ->
@@ -142,7 +144,7 @@ class BlenderFile(val file: BinaryFile) {
         for (block in blockTable.blockList) {
             val header = block.header
             val code = header.code
-            if (!(code == DNA1 || code == ENDBlock || code == TEST)) {
+            if (code != DNA1 && code != ENDB && code != TEST) {
                 val struct = structs[header.sdnaIndex]
                 val blendFields = struct.fields
                 // println("block ${header.address} contains ${header.count}x ${struct.type.name}")
@@ -199,6 +201,7 @@ class BlenderFile(val file: BinaryFile) {
         val position = (address + block.dataOffset).toInt()
         val data = file.data
         return when (clazz) {
+            // unused classes have been commented out
             "Mesh" -> BMesh(this, struct, data, position)
             "Material" -> BMaterial(this, struct, data, position)
             "MVert" -> MVert(this, struct, data, position)
@@ -208,29 +211,27 @@ class BlenderFile(val file: BinaryFile) {
             "MLoopCol" -> MLoopCol(this, struct, data, position)
             "MEdge" -> MEdge(this, struct, data, position)
             "ID" -> BID(this, struct, data, position)
-            "Image" -> BImage(this, struct, data, position)
+            // "Image" -> BImage(this, struct, data, position)
             "Object" -> BObject(this, struct, data, position)
-            "bNodeTree" -> BNodeTree(this, struct, data, position)
+            // "bNodeTree" -> BNodeTree(this, struct, data, position)
             "Link" -> BLink(this, struct, data, position)
             "LinkData" -> BLinkData(this, struct, data, position)
             "ListBase" -> BListBase(this, struct, data, position)
-            "Scene" -> BScene(this, struct, data, position)
+            // "Scene" -> BScene(this, struct, data, position)
             // node trees, collections and such may be interesting
             "CustomData" -> BCustomData(this, struct, data, position)
             "CustomDataExternal" -> BCustomDataExternal(this, struct, data, position)
             "CustomDataLayer" -> BCustomDataLayer(this, struct, data, position)
-            "Brush", "bScreen", "wmWindowManager" -> null // idc
-            else -> {
-                null
-            }
+            // "Brush", "bScreen", "wmWindowManager" -> null // idc
+            else -> null
         }
     }
 
     @Suppress("unused")
-    fun searchReferencesByStructsAtPositions(positions: List<Int>, names: List<String>){
+    fun searchReferencesByStructsAtPositions(positions: List<Int>, names: List<String>) {
         val positionsOfInterest = HashSet<Int>()
         val nextPositions = ArrayList<Pair<Int, String>>()
-        for(i in positions.indices){
+        for (i in positions.indices) {
             positionsOfInterest.add(positions[i])
             nextPositions.add(positions[i] to names[i])
         }
@@ -268,17 +269,18 @@ class BlenderFile(val file: BinaryFile) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(BlenderFile::class)
-        val DNA1 = getCode("DNA1")
+
         @Suppress("SpellCheckingInspection")
-        val ENDBlock = getCode("ENDB")
-        val TEST = getCode("TEST")
-        private fun getCode(code: String) = rgba(
+        private val ENDB = getCode('E', 'N', 'D', 'B')
+        private val DNA1 = getCode('D', 'N', 'A', '1')
+        private val TEST = getCode('T', 'E', 'S', 'T')
+        private fun getCode(c0: Char, c1: Char, c2: Char, c3: Char) = rgba(
             // must be the same function as inside BinaryFile
             // the order itself doesn't matter, as long as it's consistent
-            code[0].code.toByte(),
-            code[1].code.toByte(),
-            code[2].code.toByte(),
-            code[3].code.toByte()
+            c0.code.toByte(),
+            c1.code.toByte(),
+            c2.code.toByte(),
+            c3.code.toByte()
         )
     }
 }

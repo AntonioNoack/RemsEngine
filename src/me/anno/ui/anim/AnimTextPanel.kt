@@ -2,7 +2,7 @@ package me.anno.ui.anim
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.annotations.Docs
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup

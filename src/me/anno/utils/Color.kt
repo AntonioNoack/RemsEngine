@@ -1,6 +1,5 @@
 package me.anno.utils
 
-import me.anno.config.DefaultStyle.black
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import org.joml.*
@@ -8,6 +7,14 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 object Color {
+
+    const val black = 0xff000000.toInt()
+    const val white = -1
+
+    val black4 = Vector4f(0f)
+    val black3 = Vector3f(0f)
+    val white4 = Vector4f(1f)
+    val white3 = Vector3f(1f)
 
     fun Int.r() = shr(16) and 255
     fun Int.g() = shr(8) and 255
@@ -75,8 +82,8 @@ object Color {
         return dr + dg + db
     }
 
-    fun Int.toVecRGBA() = Vector4f(r01(), g01(), b01(), a01())
-    fun Int.toVecRGB() = Vector3f(r01(), g01(), b01())
+    fun Int.toVecRGBA(dst: Vector4f = Vector4f()) = dst.set(r01(), g01(), b01(), a01())
+    fun Int.toVecRGB(dst: Vector3f = Vector3f()) = dst.set(r01(), g01(), b01())
 
     const val base36 = "0123456789abcdefghijklmnopqrstuvwxyz"
 

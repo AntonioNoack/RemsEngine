@@ -2,7 +2,7 @@ package me.anno.ui.editor
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -121,8 +121,11 @@ abstract class WelcomeUI {
         val scroll = ScrollPanelY(welcome, Padding(5), style)
         scroll += WrapAlign.Center
 
-        val background = createBackground(style)
-        windowStack.push(background)
+        // todo where is the obstructing block coming from?
+        /*scroll.backgroundRadius = 20f
+        welcome.backgroundRadius = scroll.backgroundRadius*/
+
+        windowStack.push(createBackground(style))
 
         val mainWindow = Window(scroll, isTransparent = true, isFullscreen = false, windowStack, 0, 0)
         mainWindow.cannotClose()

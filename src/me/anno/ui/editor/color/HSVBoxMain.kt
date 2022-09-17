@@ -1,6 +1,6 @@
 package me.anno.ui.editor.color
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
 import me.anno.gpu.drawing.DrawTextures.drawTexture

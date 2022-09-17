@@ -1,6 +1,5 @@
 package me.anno.utils
 
-import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.process.BetterProcessBuilder
 import java.lang.management.ManagementFactory
@@ -15,7 +14,7 @@ object OS {
     val data = System.getProperty("os.name")
     var isWindows = data.contains("windows", true)
     var isLinux = !isWindows // ^^
-    var isMac = false // ^^
+    var isMacOS = false // ^^
     var isIPhoneOS = false // ^^
     var isIPadOS = false // ^^
 
@@ -34,7 +33,7 @@ object OS {
     val pictures = getReference(home, "Pictures")
     val videos = getReference(home, "Videos")
     val music = getReference(home, "Music")
-    val res = getReference(BundledRef.prefix)
+    // val res = getReference(BundledRef.prefix) // getChild() is not supported on all platforms, so I'd rather not provide this
 
     val screenshots = getReference(pictures, "Screenshots")
 

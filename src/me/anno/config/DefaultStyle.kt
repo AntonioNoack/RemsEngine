@@ -5,6 +5,8 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
+import me.anno.utils.Color.white
 import me.anno.utils.OS
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -12,7 +14,6 @@ import org.joml.Vector4f
 @Suppress("unused")
 object DefaultStyle {
 
-    const val black = 0xff000000.toInt()
     const val nearWhite = black or 0xdddddd
     const val lightGray = black or 0xcccccc
     const val midGray = black or 0xaaaaaa
@@ -23,12 +24,6 @@ object DefaultStyle {
     const val iconGray = black or 0xafb1b3
 
     const val fontGray = black or 0xbbbbbb
-    const val white = -1
-
-    val black4 = Vector4f(0f)
-    val black3 = Vector3f(0f)
-    val white4 = Vector4f(1f)
-    val white3 = Vector3f(1f)
 
     const val shinyBlue = black or 0x4986f5
     const val brightYellow = black or 0xffba50

@@ -2,7 +2,7 @@ package me.anno.ui.editor.config
 
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel

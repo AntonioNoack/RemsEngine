@@ -7,6 +7,7 @@ import me.anno.cache.instances.PDFCache
 import me.anno.config.DefaultConfig
 import me.anno.image.ImageReader
 import me.anno.image.gimp.GimpImage
+import me.anno.image.svg.SVGMesh
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.unity.UnityReader
@@ -34,24 +35,24 @@ object ZipCache : CacheSection("ZipCache") {
     // it kind of is a new format, that is based on another decompression
 
     private val readerBySignature = HashMap<String, InnerFolderReader>(64)
-    private val readerByFileExtension = HashMap<String,  InnerFolderReader>(64)
+    private val readerByFileExtension = HashMap<String, InnerFolderReader>(64)
 
     @Suppress("unused")
-    fun registerFileExtension(signature: String, reader:  InnerFolderReader) {
+    fun registerFileExtension(signature: String, reader: InnerFolderReader) {
         readerBySignature[signature] = reader
     }
 
-    fun registerFileExtension(signatures: List<String>, reader:  InnerFolderReader) {
+    fun registerFileExtension(signatures: List<String>, reader: InnerFolderReader) {
         for (signature in signatures) {
             readerBySignature[signature] = reader
         }
     }
 
-    fun register(signature: String, reader:  InnerFolderReader) {
+    fun register(signature: String, reader: InnerFolderReader) {
         readerBySignature[signature] = reader
     }
 
-    fun register(signatures: List<String>, reader:  InnerFolderReader) {
+    fun register(signatures: List<String>, reader: InnerFolderReader) {
         for (signature in signatures) {
             readerBySignature[signature] = reader
         }
@@ -92,6 +93,9 @@ object ZipCache : CacheSection("ZipCache") {
         register(imageFormats, ImageReader::readAsFolder)
         register("gimp", GimpImage::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos
+
+        register(listOf("xml", "svg"), SVGMesh::readAsFolder)
+
         // register yaml generally for unity files?
         registerFileExtension(UnityReader.unityExtensions) { it, c ->
             val f = UnityReader.readAsFolder(it) as? InnerFolder

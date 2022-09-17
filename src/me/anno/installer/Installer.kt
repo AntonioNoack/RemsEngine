@@ -45,7 +45,7 @@ object Installer {
         download(fileName, dstFile, true, callback)
 
     fun download(fileName: String, dstFile: FileReference, withHttps: Boolean = true, callback: () -> Unit) {
-        // change files to files.phychi.com?
+        // change "files" to "files.phychi.com"?
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = getReference(dstFile.getParent(), dstFile.name + ".tmp")
         thread(name = "Download $fileName") {

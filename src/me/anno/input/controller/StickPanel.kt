@@ -1,6 +1,6 @@
 package me.anno.input.controller
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Controller
 import me.anno.maths.Maths.length

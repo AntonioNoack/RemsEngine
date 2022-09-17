@@ -1,7 +1,7 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton

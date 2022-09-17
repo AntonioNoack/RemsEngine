@@ -1,6 +1,6 @@
 package me.anno.ecs.prefab
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode

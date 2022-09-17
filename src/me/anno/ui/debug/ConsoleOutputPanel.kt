@@ -19,6 +19,8 @@ import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.debug.console.ConsoleOutputLine
 import me.anno.ui.style.Style
+import me.anno.utils.Color
+import me.anno.utils.Color.black
 import me.anno.utils.files.Files.formatFileSize
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
@@ -46,7 +48,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             msg.startsWith("[ERR") -> 0xff0000
             msg.startsWith("[DEB") || msg.startsWith("[FIN") -> 0x77ff77
             else -> -1
-        } or DefaultStyle.black
+        } or black
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {

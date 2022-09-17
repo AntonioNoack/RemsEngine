@@ -18,7 +18,7 @@ import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider

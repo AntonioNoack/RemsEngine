@@ -5,11 +5,11 @@ import java.io.IOException
 
 class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStructs: IntArray?) {
 
-    constructor(file: BlenderFile) : this(file, null, null)
-
     companion object {
         private const val HEAP_BASE = 4096L
     }
+
+    constructor(file: BlenderFile) : this(file, null, null)
 
     val sorted = blocks?.sortedBy { it.header.address }?.toMutableList() ?: ArrayList()
     val blockList = blocks?.toMutableList() ?: ArrayList()

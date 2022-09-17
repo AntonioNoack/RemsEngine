@@ -5,7 +5,6 @@ import me.anno.Engine.gameTime
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.components.ui.UIEventType
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.WindowX
 import me.anno.input.MouseButton.Companion.toMouseButton
@@ -35,7 +34,6 @@ import me.anno.utils.types.Strings.isArray
 import me.anno.utils.types.Strings.isName
 import me.anno.utils.types.Strings.isNumber
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2d
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
 import java.awt.Toolkit
@@ -86,7 +84,7 @@ object Input {
         }
 
     var mouseMovementSinceMouseDown = 0f
-    val maxClickDistance = 5f
+    var maxClickDistance = 5f
     var hadMouseMovement = false
 
     var isLeftDown = false
@@ -106,7 +104,6 @@ object Input {
 
     var trapMouseWindow: WindowX? = null
     var trapMousePanel: Panel? = null
-    var trapMouseRadius = 250f
 
     val isMouseTrapped: Boolean
         get() {
@@ -116,7 +113,7 @@ object Input {
                     trapMousePanel === window.windowStack.inFocus0
         }
 
-    val layoutFrameCount = 10
+    var layoutFrameCount = 10
     fun needsLayoutUpdate(window: WindowX) = window.framesSinceLastInteraction < layoutFrameCount
 
     fun initForGLFW(window: WindowX) {
@@ -374,7 +371,7 @@ object Input {
             val mouseX = window.mouseX
             val mouseY = window.mouseY
             val clicked = window.windowStack.getPanelAt(mouseX, mouseY)
-            if (!byMouse && abs(dx) > abs(dy)) userCanScrollX = true // e.g. by touchpad: use can scroll x
+            if (!byMouse && abs(dx) > abs(dy)) userCanScrollX = true // e.g., by touchpad: use can scroll x
             if (clicked != null) {
                 if (!userCanScrollX && byMouse && (isShiftDown || isControlDown)) {
                     clicked.onMouseWheel(mouseX, mouseY, -dy, dx, byMouse = true)
@@ -493,13 +490,18 @@ object Input {
 
             if (!UIEvent(
                     window.currentWindow,
-                    window.mouseX,
-                    window.mouseY, 0f, 0f,
+                    mouseX, mouseY, 0f, 0f,
                     0, true, button2,
                     false, UIEventType.MOUSE_DOWN
                 ).call().isCancelled
             ) {
-                inFocus0?.onMouseDown(mouseX, mouseY, button2)
+                if (inFocus0 != null && inFocus0.isHovered) {
+                    inFocus0.onMouseDown(mouseX, mouseY, button2)
+                } else {
+                    val inFocus = window.currentWindow?.panel?.getPanelAt(mouseX.toInt(), mouseY.toInt())
+                    inFocus?.requestFocus()
+                    inFocus?.onMouseDown(mouseX, mouseY, button2)
+                }
                 ActionManager.onKeyDown(window, button)
             }
 

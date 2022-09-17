@@ -16,11 +16,9 @@ class BinaryFile(val data: ByteBuffer) {
         return clone
     }
 
-    fun consumeIdentifier(string: String) {
-        for (i in string.indices) {
-            val char = char()
-            if (char != string[i]) throw IOException("Identifier is not matching $string, got $char at $i")
-        }
+    fun consumeIdentifier(c0: Char, c1: Char, c2: Char, c3: Char) {
+        if (char() != c0 || char() != c1 || char() != c2 || char() != c3)
+            throw IOException("Identifier is not matching $c0$c1$c2$c3")
     }
 
     fun read(): Byte {
@@ -58,12 +56,8 @@ class BinaryFile(val data: ByteBuffer) {
         return String(ByteArray(length) { data.get(index++) })
     }
 
-    // fun readByte() = read()
-    // fun readBoolean() = read() != 0.toByte()
     fun read0String(): String {
-        // control codes?
         var length = 0
-        // find \0
         val data = data
         for (i in index until data.capacity()) {
             if (data.get(i).toInt() == 0) break

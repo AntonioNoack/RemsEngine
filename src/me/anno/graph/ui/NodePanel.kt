@@ -1,6 +1,6 @@
 package me.anno.graph.ui
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.fonts.FontManager.getBaselineY
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawText

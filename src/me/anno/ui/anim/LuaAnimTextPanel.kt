@@ -1,6 +1,6 @@
 package me.anno.ui.anim
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.components.script.ScriptComponent.Companion.toLua

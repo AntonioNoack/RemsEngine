@@ -6,13 +6,13 @@ import me.anno.utils.ColorParsing.parseColor
 
 class SVGStyle(mesh: SVGMesh?, data: XMLElement) {
 
-    val stroke = parseColorEx(mesh, data["stroke"] ?: "none")
+    val stroke = parseColor2(mesh, data["stroke"] ?: "none")
     val isStroke = stroke != null
-    val fill = parseColorEx(mesh, data["fill"] ?: if (isStroke) "none" else "black")
+    val fill = parseColor2(mesh, data["fill"] ?: if (isStroke) "none" else "black")
     val isFill = fill != null
-    val strokeWidth = data["stroke-width"]?.toDoubleOrNull() ?: 1.0
+    val strokeWidth = data["stroke-width"]?.toFloatOrNull() ?: 1f
 
-    fun parseColorEx(mesh: SVGMesh?, name: String): Gradient1D? {
+    private fun parseColor2(mesh: SVGMesh?, name: String): Gradient1D? {
         return if (name.startsWith("url(")) {
             val link = name.substring(4, name.length - 1)
             if (link.startsWith("#")) {

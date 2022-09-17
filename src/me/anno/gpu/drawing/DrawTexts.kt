@@ -1,7 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey

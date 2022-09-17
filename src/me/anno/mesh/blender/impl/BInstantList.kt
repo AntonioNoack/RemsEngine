@@ -23,9 +23,7 @@ class BInstantList<V : BlendData>(val size: Int, val instance: V?) {
         return instance
     }
 
-    fun isNotEmpty() = size > 0
-
-    fun any(lambda: (V) -> Boolean): Boolean {
+    inline fun any(lambda: (V) -> Boolean): Boolean {
         for (i in 0 until size) {
             if (lambda(this[i])) {
                 return true

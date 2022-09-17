@@ -11,6 +11,8 @@ class XMLElement(val type: String){
         properties[key] = value
     }
 
+    operator fun contains(key: String) = key in properties
+
     fun toString(depth: Int): String {
         val tabs = Tabs.spaces(depth * 2)
         return if(children.isEmpty()){

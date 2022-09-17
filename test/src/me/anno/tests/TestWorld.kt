@@ -1,6 +1,6 @@
 package me.anno.tests
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.components.chunks.cartesian.ByteArrayChunkSystem
 import me.anno.ecs.components.mesh.ManualProceduralMesh
 import me.anno.ecs.components.shaders.CuboidMesh

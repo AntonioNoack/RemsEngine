@@ -1,7 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.config.DefaultConfig.style
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame

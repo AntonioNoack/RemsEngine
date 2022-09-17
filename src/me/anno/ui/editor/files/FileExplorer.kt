@@ -456,7 +456,7 @@ open class FileExplorer(
                     invalidate()
                     progress.add(1.0)
                 }
-                OS.isLinux || OS.isMac -> {
+                OS.isLinux || OS.isMacOS -> {
                     val newFile = findNextFile(folder, file, 1, '-', 1)
                     // create symbolic link
                     // ln -s target_file link_name

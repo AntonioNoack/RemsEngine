@@ -43,6 +43,11 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/javaFx/OpenWithExplorer.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/recast4j/Recast4j.jar" path-in-jar="/" />
       <element id="module-output" name="KOML" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/luaj-jse-3.0.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows-x86.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows-arm64.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

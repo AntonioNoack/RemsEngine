@@ -2,7 +2,7 @@ package me.anno.engine.ui.render
 
 // this list of imports is insane XD
 import me.anno.Engine
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera

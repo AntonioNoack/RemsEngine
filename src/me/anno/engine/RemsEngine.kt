@@ -3,6 +3,7 @@ package me.anno.engine
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
@@ -12,12 +13,17 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.WindowX
+import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
 import me.anno.io.files.FileReference
+import me.anno.io.files.thumbs.Thumbs
+import me.anno.io.files.thumbs.ThumbsExt
 import me.anno.language.translation.Dict
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
@@ -34,8 +40,7 @@ import me.anno.ui.utils.WindowStack.Companion.createReloadWindow
 import me.anno.utils.OS
 import me.anno.utils.files.Files.findNextFileName
 import org.apache.logging.log4j.LogManager
-
-
+import org.joml.Matrix4f
 
 
 // todo loading is slow: all tabs are loaded, even if only a single one is actually used
@@ -162,8 +167,27 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         object : WelcomeUI() {
 
             override fun createBackground(style: Style): Panel {
-                // todo create sky for background :)
-                return super.createBackground(style)
+                return object : Panel(style) {
+                    val sky = SkyBox()
+                    val cameraMatrix = Matrix4f()
+                    override val canDrawOverBorders = true
+                    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                        useFrame(previewRenderer) {
+                            sky.nadirSharpness = 10f
+                            val shader = sky.shader!!.value
+                            shader.use()
+                            Perspective.setPerspective(
+                                cameraMatrix,
+                                0.7f,
+                                (x1 - x0) * 1f / (y1 - y0),
+                                0.001f, 10f, 0f, 0f
+                            )
+                            ThumbsExt.bindShader(shader, cameraMatrix, Thumbs.matModelMatrix)
+                            sky.material.bind(shader)
+                            sky.draw(shader, 0)
+                        }
+                    }
+                }
             }
 
             override fun createProjectUI() {

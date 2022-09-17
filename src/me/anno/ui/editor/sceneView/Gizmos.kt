@@ -17,6 +17,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
+import me.anno.utils.Color.black
 import org.joml.*
 import kotlin.math.PI
 
@@ -140,7 +141,7 @@ object Gizmos {
             drawRect(
                 gx + gizmoSize * x - rectSize * 0.5f,
                 gy - gizmoSize * y - rectSize * 0.5f,
-                rectSize, rectSize, color or DefaultStyle.black
+                rectSize, rectSize, color or black
             )
         }
 

@@ -15,15 +15,14 @@ object OpenInBrowser {
     }
 
     fun URL.openInBrowser() {
-        if(openInExplorer101()) return
+        if (openInExplorer101()) return
         val url = toString()
         when {
             OS.isWindows -> {
-                val rt = Runtime.getRuntime()
-                rt.exec("rundll32 url.dll,FileProtocolHandler $url")
+                Runtime.getRuntime()
+                    .exec("rundll32 url.dll,FileProtocolHandler $url")
             }
             OS.isLinux -> {
-                val rt = Runtime.getRuntime()
                 val browsers = arrayOf(
                     "epiphany", "firefox", "mozilla", "konqueror",
                     "netscape", "opera", "links", "lynx"
@@ -33,11 +32,12 @@ object OpenInBrowser {
                     "${browsers[i]} \"$url\""
                 ) else cmd.append(" || ${browsers[i]} \"$url\"")
                 // If the first didn't work, try the next browser and so on
-                rt.exec(arrayOf("sh", "-c", cmd.toString()))
+                Runtime.getRuntime()
+                    .exec(arrayOf("sh", "-c", cmd.toString()))
             }
-            OS.isMac -> {
-                val rt = Runtime.getRuntime()
-                rt.exec("open $url")
+            OS.isMacOS -> {
+                Runtime.getRuntime()
+                    .exec("open $url")
             }
             else -> LOGGER.warn("Opening a file in browser is not supported")
         }

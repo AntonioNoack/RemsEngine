@@ -43,9 +43,6 @@ class Touch(var x: Float, var y: Float) {
 
         val touches = HashMap<Int, Touch>()
 
-        fun getNumTouches() = touches.size
-        fun getTouchIds() = touches.keys
-
         fun update() {
             for (touch in touches.values) {
                 touch.update()

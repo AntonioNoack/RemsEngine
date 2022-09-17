@@ -1,11 +1,10 @@
 package me.anno.image.raw
 
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
+import me.anno.utils.Color.black
 import java.awt.image.BufferedImage
 
 class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :

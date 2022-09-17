@@ -2,7 +2,7 @@ package me.anno.ecs.components.physics
 
 import cz.advel.stack.Stack
 import me.anno.Engine
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugAction

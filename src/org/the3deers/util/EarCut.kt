@@ -536,9 +536,9 @@ object EarCut {
     }
 
     /**
-     * check if a point lies within a convex triangle
+     * check if a point lies within a triangle
      * */
-    private fun pointInTriangle(
+    fun pointInTriangle(
         ax: Float, ay: Float,
         bx: Float, by: Float,
         cx: Float, cy: Float,

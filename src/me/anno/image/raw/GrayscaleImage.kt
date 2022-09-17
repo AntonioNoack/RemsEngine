@@ -1,6 +1,6 @@
 package me.anno.image.raw
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool

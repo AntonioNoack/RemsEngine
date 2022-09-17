@@ -2,7 +2,7 @@ package me.anno.engine.ui.control
 
 import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig.style
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera

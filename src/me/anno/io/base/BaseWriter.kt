@@ -257,7 +257,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     /**
      * saves an array of objects of one single class
-     * all elements are guaranteed to be of the exact same getClassName()
+     * all elements are guaranteed to be of the same getClassName()
      * */
     abstract fun <V : ISaveable?> writeHomogenousObjectArray(
         self: ISaveable?,

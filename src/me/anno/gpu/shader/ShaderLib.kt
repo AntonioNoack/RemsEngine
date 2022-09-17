@@ -473,10 +473,10 @@ object ShaderLib {
             Variable(GLSLType.V4F, "color2"),
             Variable(GLSLType.V4F, "color3"),
             Variable(GLSLType.V4F, "stops"),
-            Variable(GLSLType.V4F, "formula0"),
-            Variable(GLSLType.V1F, "formula1"),
-            Variable(GLSLType.V1F, "padding"),
-            Variable(GLSLType.V2F, "localPos2"),
+            Variable(GLSLType.V4F, "formula0"), // pos, dir
+            Variable(GLSLType.V1F, "formula1"), // is circle
+            Variable(GLSLType.V1F, "padding"), // spread method / repetition type
+            Variable(GLSLType.V2F, "localPos2"), // position for gradient
         )
 
         val fSVGl = listOf(
@@ -502,17 +502,16 @@ object ShaderLib {
                 // apply the formula; polynomial of 2nd degree
                 "   vec2 delta = localPos2 - formula0.xy;\n" +
                 "   vec2 dir = formula0.zw;\n" +
-                "   vec2 deltaXDir = delta * dir;\n" +
-                "   float stopValue = formula1 > 0.5 ? length(deltaXDir) : dot(dir, delta);\n" +
-                "   if(stopValue < 0.0 || stopValue > 1.0){" +
-                "       if(padding < 0.5){\n" + // clamp
-                "           stopValue = clamp(stopValue, 0.0, 1.0);\n" +
-                "       } else if(padding < 1.5){\n" + // repeat mirrored, and yes, it looks like magic xD
-                "           stopValue = 1.0 - abs(fract(stopValue*0.5)*2.0-1.0);\n" +
-                "       } else {\n" + // repeat
-                "           stopValue = fract(stopValue);\n" +
-                "       }\n" +
+                "   float stopValue = formula1 > 0.5 ? length(delta * dir) : dot(dir, delta);\n" +
+
+                "   if(padding < 0.5){\n" + // clamp
+                "       stopValue = clamp(stopValue, 0.0, 1.0);\n" +
+                "   } else if(padding < 1.5){\n" + // repeat mirrored, and yes, it looks like magic xD
+                "       stopValue = 1.0 - abs(fract(stopValue*0.5)*2.0-1.0);\n" +
+                "   } else {\n" + // repeat
+                "       stopValue = fract(stopValue);\n" +
                 "   }\n" +
+
                 // find the correct color
                 "   vec4 color = \n" +
                 "       stopValue <= stops.x ? color0:\n" +

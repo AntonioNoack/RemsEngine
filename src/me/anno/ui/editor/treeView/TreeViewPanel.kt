@@ -1,8 +1,8 @@
 package me.anno.ui.editor.treeView
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.config.DefaultStyle.midGray
-import me.anno.config.DefaultStyle.white
+import me.anno.utils.Color.white
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles.drawRect

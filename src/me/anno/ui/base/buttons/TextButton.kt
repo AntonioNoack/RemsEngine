@@ -1,6 +1,6 @@
 package me.anno.ui.base.buttons
 
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts

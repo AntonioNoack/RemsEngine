@@ -21,7 +21,6 @@ import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.input.Input
 import me.anno.input.Input.isMouseTrapped
-import me.anno.input.Input.trapMouseRadius
 import me.anno.input.Input.trapMouseWindow
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference

@@ -26,6 +26,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
+import me.anno.utils.Color.black
 import me.anno.utils.Color.hex4
 import me.anno.utils.types.InputStreams.readNBytes2
 import kotlin.math.ceil
@@ -180,7 +181,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             val x = this.x + padding.left + xi * charWidth + ox
             val y = this.y + padding.top + yi * lineHeight - extraScrolling
             if (backgroundColor != this.backgroundColor) {
-                drawRect(x, y.toInt(), charWidth, lineHeight, background or DefaultStyle.black)
+                drawRect(x, y.toInt(), charWidth, lineHeight, background or black)
             }
             drawText(x - (charWidth - tw) / 2, y.toInt(), font, key, textColor, background and 0xffffff)
         } else drawChar2(xi, yi, ox, char, textColor, backgroundColor)
@@ -197,7 +198,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         val y = this.y + padding.top + yi * lineHeight - extraScrolling
         val tw = getTextSizeX(font, text, -1, -1)
         if (backgroundColor != this.backgroundColor) {
-            drawRect(x, y.toInt(), charWidth, lineHeight, background or DefaultStyle.black)
+            drawRect(x, y.toInt(), charWidth, lineHeight, background or black)
         }
         drawText(x - (charWidth - tw) / 2, y.toInt(), font, key, textColor, background and 0xffffff)
     }

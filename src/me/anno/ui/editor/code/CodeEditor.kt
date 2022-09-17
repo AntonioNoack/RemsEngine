@@ -3,7 +3,7 @@ package me.anno.ui.editor.code
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped

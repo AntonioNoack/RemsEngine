@@ -111,5 +111,4 @@ abstract class BaseReader {
 
     }
 
-
 }

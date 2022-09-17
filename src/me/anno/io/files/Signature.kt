@@ -213,6 +213,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("exr", 0, 0x76, 0x2f, 0x31, 0x01), // HDR image format, can be exported from Blender
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
+            Signature("svg", 0, "<svg"),
             Signature("exe", 0, "MZ"),
             // media (video/audio)
             Signature("media", 0, 0x1A, 0x45, 0xDF, 0xA3), // mkv, mka, mks, mk3d, webm

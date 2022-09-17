@@ -1,7 +1,7 @@
 package me.anno.ui.base.progress
 
 import me.anno.Engine
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths
 import me.anno.maths.Maths.mix

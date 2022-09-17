@@ -2,7 +2,7 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range

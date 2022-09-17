@@ -61,7 +61,7 @@ class ColorPicker(
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         // only show the lens, when it makes sense
-        val red = 0xff0000 or DefaultStyle.black
+        val red = 0xffff shl 16
         if (pixelScale > ceilDiv(abs(lih), max(1, gpuTexture.h))) {
             val width = pixelCount * (pixelScale + pixelSpacing) - pixelSpacing
             val totalWidth = width + generalPadding * 2

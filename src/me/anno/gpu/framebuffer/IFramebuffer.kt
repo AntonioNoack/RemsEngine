@@ -1,6 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -13,7 +14,6 @@ import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11C.*
-import org.lwjgl.opengl.GL45
 
 interface IFramebuffer {
 
@@ -88,10 +88,16 @@ interface IFramebuffer {
         clearColor(color.x, color.y, color.z, color.w, depth)
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float, depth: Boolean = false) {
-        Frame.bind()
-        glClearColor(r, g, b, a)
-        glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
-        glClear(GL_COLOR_BUFFER_BIT or depth.toInt(GL_DEPTH_BUFFER_BIT))
+        if (GFXState.currentBuffer != this) {
+            useFrame(this) {
+                clearColor(r, g, b, a, depth)
+            }
+        } else {
+            Frame.bind()
+            glClearColor(r, g, b, a)
+            glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
+            glClear(GL_COLOR_BUFFER_BIT or depth.toInt(GL_DEPTH_BUFFER_BIT))
+        }
     }
 
     fun clearColor(color: Int, stencil: Int, depth: Boolean) =
@@ -105,17 +111,29 @@ interface IFramebuffer {
         clearColor(color.x, color.y, color.z, color.w, stencil, depth)
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float, stencil: Int, depth: Boolean = false) {
-        Frame.bind()
-        glClearStencil(stencil)
-        glClearColor(r, g, b, a)
-        glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
-        glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or depth.toInt(GL_DEPTH_BUFFER_BIT))
+        if (GFXState.currentBuffer != this) {
+            useFrame(this) {
+                clearColor(r, g, b, a, stencil, depth)
+            }
+        } else {
+            Frame.bind()
+            glClearStencil(stencil)
+            glClearColor(r, g, b, a)
+            glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
+            glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or depth.toInt(GL_DEPTH_BUFFER_BIT))
+        }
     }
 
     fun clearDepth() {
-        Frame.bind()
-        glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
-        glClear(GL_DEPTH_BUFFER_BIT)
+        if (GFXState.currentBuffer != this) {
+            useFrame(this) {
+                clearDepth()
+            }
+        } else {
+            Frame.bind()
+            glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
+            glClear(GL_DEPTH_BUFFER_BIT)
+        }
     }
 
 }

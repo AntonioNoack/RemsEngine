@@ -81,9 +81,9 @@ class Controller(val id: Int) {
 
     /**
      * get the calibrated values for the axes
-     * 0,1 = x,y of left wheel,
-     * 2,3 = x,y of right wheel,
-     * 4,5 = left,right trigger
+     * 0/1 = x/y of left wheel,
+     * 2/3 = x/y of right wheel,
+     * 4/5 = left/right trigger
      * */
     fun getAxis(axis: Int): Float {
         return if (axis in 0 until numAxes) axisValues[axis] else 0f

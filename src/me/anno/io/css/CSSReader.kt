@@ -1,5 +1,6 @@
 package me.anno.io.css
 
+import me.anno.image.svg.CSSData
 import me.anno.image.svg.SVGMesh
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -33,10 +34,10 @@ object CSSReader {
             i = endIndex + 1
             val container = when {
                 prefix.startsWith("#") -> {
-                    mesh.ids.getOrPut(prefix.substring(1)) { SVGMesh.CSSData() }
+                    mesh.ids.getOrPut(prefix.substring(1)) { CSSData() }
                 }
                 prefix.startsWith(".") -> {
-                    mesh.classes.getOrPut(prefix.substring(1)) { SVGMesh.CSSData() }
+                    mesh.classes.getOrPut(prefix.substring(1)) { CSSData() }
                 }
                 else -> {
                     LOGGER.warn("Couldn't understand CSS container '$prefix'")
@@ -55,7 +56,7 @@ object CSSReader {
                     if (colonIndex > 0) {
                         val name = kvp.substring(0, colonIndex).trim()
                         val value = kvp.substring(colonIndex + 1).trim()
-                        container.values[name] = value
+                        container[name] = value
                     } else {
                         LOGGER.warn("Missing color/name in CSS for '$kvp'")
                     }

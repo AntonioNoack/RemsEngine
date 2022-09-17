@@ -1,7 +1,7 @@
 package me.anno.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
+import me.anno.utils.Color.black
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
@@ -177,7 +177,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     var backgroundOutlineColor = 0
     var backgroundOutlineThickness = 0f
     var backgroundRadius = style.getSize("background.radius", 0f)
-    var backgroundRadiusCorners = style.getInt("background.radiusSides", 15)
+    var backgroundRadiusCorners = style.getInt("background.radiusCorners", 15)
 
     var backgroundColor = style.getColor("background", -1)
         set(value) {
