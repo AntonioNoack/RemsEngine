@@ -133,7 +133,7 @@ object TangentCalculator {
 
         tan1.fill(0f) // in the future we could keep old values, probably not worth the effort
         val tan2 = FloatArray(tan1.size)
-        for (i0 in 0 until positions.size / 3 step 3) {
+        for (i0 in 0 until (positions.size - 8) / 3 step 3) {
 
             // https://gamedev.stackexchange.com/questions/68612/how-to-compute-tangent-and-bitangent-vectors
 

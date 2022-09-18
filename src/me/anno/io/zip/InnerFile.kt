@@ -25,13 +25,17 @@ abstract class InnerFile(
 
     init {
         if (_parent is InnerFolder) {
-            val old = _parent.children.put(name, this)
-            _parent.childrenList.add(this)
-            if (old != null) {
-                _parent.childrenList.remove(old)
-                old.folder = this
-                _parent.children[name] = old
-                // LOGGER.warn("Overrode $old")
+            val pc = _parent.children
+            val pcl = _parent.childrenList
+            synchronized(pc) {
+                val old = _parent.children.put(name, this)
+                pcl.add(this)
+                if (old != null) {
+                    pcl.remove(old)
+                    old.folder = this
+                    pc[name] = old
+                    // LOGGER.warn("Overrode $old")
+                }
             }
         }
     }

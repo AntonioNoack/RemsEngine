@@ -299,7 +299,6 @@ object PrefabCache : CacheSection("Prefab") {
                     ensureClasses()
                     val data = FileReadPrefabData(file)
                     loadPrefab4(file) { loaded, e ->
-                        println("$file -> $e")
                         data.value = loaded
                         if (loaded != null) FileWatch.addWatchDog(file)
                         if (debugLoading) LOGGER.info("loaded $file, got ${loaded?.className}")

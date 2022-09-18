@@ -1,7 +1,7 @@
 package me.anno.image.svg.gradient
 
 import me.anno.image.svg.SVGMesh
-import me.anno.io.xml.XMLElement
+import me.anno.io.xml.XMLNode
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mixARGB2
@@ -31,8 +31,8 @@ open class Gradient1D {
         averageColor = color
     }
 
-    constructor(xmlElement: XMLElement) {
-        spreadMethod = when (xmlElement["spreadMethod"]?.lowercase()) {
+    constructor(xmlNode: XMLNode) {
+        spreadMethod = when (xmlNode["spreadMethod"]?.lowercase()) {
             "pad" -> SpreadMethod.CLAMP
             "reflect" -> SpreadMethod.MIRRORED_REPEAT
             "repeat" -> SpreadMethod.REPEAT
@@ -187,7 +187,7 @@ open class Gradient1D {
         hasStops = false
         for (index in stops.indices) {
             val stop = stops[index]
-            if (stop is XMLElement && stop.type.equals("stop", true)) {
+            if (stop is XMLNode && stop.type.equals("stop", true)) {
 
                 var colorStr = stop["stop-color"]
                 var opacityStr = stop["stop-opacity"]

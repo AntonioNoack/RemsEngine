@@ -31,6 +31,7 @@
       <w>branchless</w>
       <w>brdf</w>
       <w>broadphase</w>
+      <w>bsdf</w>
       <w>burlywood</w>
       <w>bvec</w>
       <w>cacheable</w>
@@ -236,6 +237,7 @@
       <w>mids</w>
       <w>mintcream</w>
       <w>mistyrose</w>
+      <w>mitsuba</w>
       <w>mixamo</w>
       <w>mkdirs</w>
       <w>mmmh</w>

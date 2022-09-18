@@ -8,7 +8,6 @@ import me.anno.cache.instances.OldMeshCache
 import me.anno.cache.instances.PDFCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
-import me.anno.utils.Color.white4
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
@@ -74,15 +73,17 @@ import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
-import me.anno.io.zip.*
-import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.io.zip.InnerFolder
+import me.anno.io.zip.InnerFolderReader
+import me.anno.io.zip.InnerPrefabFile
+import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.clamp
-import me.anno.mesh.MeshData.Companion.warnMissingMesh
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
 import me.anno.utils.Clock
 import me.anno.utils.Color.hex4
+import me.anno.utils.Color.white4
 import me.anno.utils.OS.desktop
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitForGFXThread
@@ -1055,7 +1056,6 @@ object Thumbs {
             return
         }
 
-        // todo font previews
         Signature.findName(srcFile) { signature ->
             when (signature) {
                 // list all signatures, which can be assigned strictly by their signature
@@ -1099,14 +1099,10 @@ object Thumbs {
                         } else exc?.printStackTrace()
                     }
                 }
-                "png", "bmp", "psd", "qoi" ->
-                    generateImage(srcFile, dstFile, size, callback)
+                "png", "bmp", "psd", "qoi" -> generateImage(srcFile, dstFile, size, callback)
                 "blend" -> generateSomething(
                     PrefabCache.getPrefabInstance(srcFile),
-                    srcFile,
-                    dstFile,
-                    size,
-                    callback
+                    srcFile, dstFile, size, callback
                 )
                 "zip", "bz2", "tar", "gzip", "xz", "lz4", "7z", "xar" -> {
                 }
@@ -1120,9 +1116,14 @@ object Thumbs {
                 "lua-bytecode" -> {
                 }
                 // todo dds files have no preview... why? they can be opened as a folder
+                // todo MIP images... are used by gradient domain samples
                 "dds" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                 "exe" -> generateSystemIcon(srcFile, dstFile, size, callback)
                 "media" -> generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
+                "mitsuba-scene", "mitsuba-meshes" -> generateSomething(
+                    PrefabCache.getPrefabInstance(srcFile),
+                    srcFile, dstFile, size, callback
+                )
                 else -> try {
                     when (srcFile.lcExtension) {
 

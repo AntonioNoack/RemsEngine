@@ -19,6 +19,7 @@ import me.anno.io.zip.InnerTarFile.Companion.readAsGZip
 import me.anno.io.zip.InnerZipFile.Companion.createZipRegistryV2
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
+import me.anno.mesh.mitsuba.MitsubaReader
 import me.anno.mesh.obj.MTLReader
 import me.anno.mesh.obj.OBJReader
 import me.anno.mesh.vox.VOXReader
@@ -67,14 +68,17 @@ object ZipCache : CacheSection("ZipCache") {
     }
 
     init {
+
         // compressed folders
         register(listOf("bz2", "lz4", "xar", "oar")) { it, c -> createZipRegistryV2(it, c) }
         register("7z") { it, c -> c(createZipRegistry7z(it) { fileFromStream7z(it) }, null) }
         register("rar") { it, c -> c(createZipRegistryRar(it) { fileFromStreamRar(it) }, null) }
         register("gzip", ::readAsGZip)
         register("tar", ::readAsGZip)
+
         // pdf documents
         register("pdf", PDFCache::readAsFolder)
+
         // meshes
         // to do all mesh extensions
         register(listOf("fbx", "gltf", "dae", "draco", "md2", "md5mesh")) { it, c ->
@@ -85,6 +89,10 @@ object ZipCache : CacheSection("ZipCache") {
         register("mtl", MTLReader::readAsFolder)
         register("vox", VOXReader::readAsFolder)
         register("zip", ::createZipRegistryV2)
+
+        register("mitsuba-meshes", MitsubaReader::readMeshesAsFolder)
+        register("mitsuba-scene", MitsubaReader::readSceneAsFolder)
+
         // cannot be read by assimp anyway
         // registerFileExtension("max", AnimatedMeshesLoader::readAsFolder) // 3ds max file, idk about its file signature
         // images
@@ -101,6 +109,7 @@ object ZipCache : CacheSection("ZipCache") {
             val f = UnityReader.readAsFolder(it) as? InnerFolder
             c(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
         }
+
     }
 
     fun unzipMaybe(file: FileReference): InnerFolder? {

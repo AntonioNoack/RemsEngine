@@ -87,6 +87,11 @@ object Streams {
         return d.shl(24) + c.shl(16) + b.shl(8) + a
     }
 
+    fun InputStream.readLE64(): Long {
+        return readLE32().toLong().and(0xffffffff) +
+                readLE32().toLong().shl(32)
+    }
+
     fun InputStream.readBE32(): Int {
         val a = read()
         val b = read()
@@ -118,6 +123,16 @@ object Streams {
         write(a shr 8)
         write(a shr 16)
         write(a shr 24)
+    }
+
+    fun InputStream.read0String(): String {
+        val builder = StringBuilder()
+        while (true) {
+            val n = read()
+            if (n == 0) break
+            builder.append(n.toChar())
+        }
+        return builder.toString()
     }
 
 }

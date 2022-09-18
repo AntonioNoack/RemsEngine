@@ -12,7 +12,6 @@ import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.engine.ui.LineShapes.drawRect
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.RenderView
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector2f

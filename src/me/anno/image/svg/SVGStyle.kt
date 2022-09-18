@@ -1,10 +1,10 @@
 package me.anno.image.svg
 
 import me.anno.image.svg.gradient.Gradient1D
-import me.anno.io.xml.XMLElement
+import me.anno.io.xml.XMLNode
 import me.anno.utils.ColorParsing.parseColor
 
-class SVGStyle(mesh: SVGMesh?, data: XMLElement) {
+class SVGStyle(mesh: SVGMesh?, data: XMLNode) {
 
     val stroke = parseColor2(mesh, data["stroke"] ?: "none")
     val isStroke = stroke != null

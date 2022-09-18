@@ -171,7 +171,8 @@ object FindLines {
             // compare vertices
             positions ?: return null
             var i = 0
-            while (i < positions.size) {
+            val l = positions.size - 8
+            while (i < l) {
                 if (isLine(
                         positions[i++], positions[i++], positions[i++],
                         positions[i++], positions[i++], positions[i++],
@@ -183,7 +184,7 @@ object FindLines {
                 val lineIndices = IntArray(lineCount * 2)
                 var j = 0
                 i = 0
-                while (i < positions.size) {
+                while (i < l) {
                     val ax = positions[i++]
                     val ay = positions[i++]
                     val az = positions[i++]

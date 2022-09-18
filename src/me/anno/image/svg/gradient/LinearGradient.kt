@@ -1,19 +1,19 @@
 package me.anno.image.svg.gradient
 
 import me.anno.image.svg.SVGMesh
-import me.anno.io.xml.XMLElement
+import me.anno.io.xml.XMLNode
 import me.anno.parser.SimpleExpressionParser
 import org.joml.Vector2f
 
-class LinearGradient(mesh: SVGMesh, xmlElement: XMLElement) : Gradient1D(xmlElement) {
+class LinearGradient(mesh: SVGMesh, xmlNode: XMLNode) : Gradient1D(xmlNode) {
 
     init {
-        parseStops(mesh, xmlElement.children)
+        parseStops(mesh, xmlNode.children)
     }
 
     // gradient vector
-    val p0 = Vector2f(parseFloat(xmlElement["x1"], 0f), parseFloat(xmlElement["y1"], 0f))
-    val p1 = Vector2f(parseFloat(xmlElement["x2"], 1f), parseFloat(xmlElement["y2"], 0f))
+    val p0 = Vector2f(parseFloat(xmlNode["x1"], 0f), parseFloat(xmlNode["y1"], 0f))
+    val p1 = Vector2f(parseFloat(xmlNode["x2"], 1f), parseFloat(xmlNode["y2"], 0f))
 
     private fun parseFloat(str: String?, default: Float): Float {
         if (str == null) return default

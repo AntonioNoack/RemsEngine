@@ -43,8 +43,10 @@ open class InnerFolder(
         return if ('\\' in name || '/' in name) {
             getReference(this, name)
         } else {
-            val c0 = children.values.filter { it.name.equals(name, true) }
-            c0.firstOrNull { it.name == name } ?: c0.firstOrNull() ?: InvalidRef
+            synchronized(children) {
+                val c0 = children.values.filter { it.name.equals(name, true) }
+                c0.firstOrNull { it.name == name } ?: c0.firstOrNull() ?: InvalidRef
+            }
         }
     }
 
@@ -65,10 +67,12 @@ open class InnerFolder(
     }
 
     fun getOrPut(name: String, create: () -> InnerFile): InnerFile {
-        return children.getOrPut(name) {
-            val child = create()
-            childrenList.add(child)
-            child
+        return synchronized(children){
+            children.getOrPut(name) {
+                val child = create()
+                childrenList.add(child)
+                child
+            }
         }
     }
 

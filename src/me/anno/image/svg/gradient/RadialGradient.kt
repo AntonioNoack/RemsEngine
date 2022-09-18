@@ -1,7 +1,7 @@
 package me.anno.image.svg.gradient
 
 import me.anno.image.svg.SVGMesh
-import me.anno.io.xml.XMLElement
+import me.anno.io.xml.XMLNode
 import me.anno.maths.Maths.length
 import me.anno.utils.types.Vectors.print
 import org.joml.Vector2f
@@ -15,18 +15,18 @@ import org.joml.Vector2f
  * <stop  offset="0.7945" style="stop-color:#6D4C41;stop-opacity:0"/>
  * <stop  offset="1" style="stop-color:#6D4C41"/>
  * */
-class RadialGradient(mesh: SVGMesh, xmlElement: XMLElement) : Gradient1D(xmlElement) {
+class RadialGradient(mesh: SVGMesh, xmlNode: XMLNode) : Gradient1D(xmlNode) {
 
     init {
-        parseStops(mesh, xmlElement.children)
+        parseStops(mesh, xmlNode.children)
     }
 
     val position = Vector2f(
-        xmlElement["cx"]?.toFloatOrNull() ?: 0f,
-        xmlElement["cy"]?.toFloatOrNull() ?: 0f
+        xmlNode["cx"]?.toFloatOrNull() ?: 0f,
+        xmlNode["cy"]?.toFloatOrNull() ?: 0f
     )
 
-    val r = xmlElement["r"]?.toFloatOrNull() ?: 0.5f
+    val r = xmlNode["r"]?.toFloatOrNull() ?: 0.5f
 
     override fun fillFormula(formula: Formula) {
         formula.position.set(0.5f - position.x, 0.5f - position.y)

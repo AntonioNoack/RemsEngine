@@ -11,7 +11,7 @@ import me.anno.image.svg.gradient.LinearGradient
 import me.anno.image.svg.gradient.RadialGradient
 import me.anno.io.css.CSSReader
 import me.anno.io.files.FileReference
-import me.anno.io.xml.XMLElement
+import me.anno.io.xml.XMLNode
 import me.anno.io.xml.XMLReader
 import me.anno.io.zip.InnerFolder
 import me.anno.maths.Maths.PIf
@@ -60,7 +60,7 @@ class SVGMesh {
     val ids = HashMap<String, CSSData>()
     val classes = HashMap<String, CSSData>()
 
-    fun parse(xml: XMLElement) {
+    fun parse(xml: XMLNode) {
         parseChildren(xml.children, null)
         val viewBox = (xml["viewBox"] ?: "0 0 100 100")
             .replace(',', ' ')
@@ -77,9 +77,9 @@ class SVGMesh {
         maxY = +0.5f
     }
 
-    fun parseChildren(children: List<Any>, parentGroup: XMLElement?) {
+    fun parseChildren(children: List<Any>, parentGroup: XMLNode?) {
         for (it in children) {
-            it as? XMLElement ?: continue
+            it as? XMLNode ?: continue
             it.apply {
                 convertStyle(this)
                 parentGroup?.properties?.forEach { (key, value) ->
@@ -455,7 +455,7 @@ class SVGMesh {
         }
     }
 
-    fun convertStyle(xml: XMLElement) {
+    fun convertStyle(xml: XMLNode) {
         val style = xml["style"]
         if (style != null) {
             val properties = style.split(';')
@@ -507,14 +507,14 @@ class SVGMesh {
         z += deltaZ
     }
 
-    fun addLine(xml: XMLElement, style: SVGStyle, fill: Boolean) {
+    fun addLine(xml: XMLNode, style: SVGStyle, fill: Boolean) {
         init(style, fill)
         moveTo(xml["x1"]!!.toFloat(), xml["y1"]!!.toFloat())
         lineTo(xml["x2"]!!.toFloat(), xml["y2"]!!.toFloat())
         endElement()
     }
 
-    fun addPath(xml: XMLElement, style: SVGStyle, fill: Boolean) {
+    fun addPath(xml: XMLNode, style: SVGStyle, fill: Boolean) {
         init(style, fill)
         val data = xml["d"] ?: return
         var i = 0
@@ -722,7 +722,7 @@ class SVGMesh {
         return sign * acos(clamp(dotTerm, -1f, 1f))
     }
 
-    fun addPolyline(xml: XMLElement, style: SVGStyle, fill: Boolean) {
+    fun addPolyline(xml: XMLNode, style: SVGStyle, fill: Boolean) {
         init(style, fill)
         val data = xml["points"]!!
 
@@ -802,7 +802,7 @@ class SVGMesh {
         endElement()
     }
 
-    fun addEllipse(xml: XMLElement, style: SVGStyle, fill: Boolean) {
+    fun addEllipse(xml: XMLNode, style: SVGStyle, fill: Boolean) {
         init(style, fill)
         addSimpleEllipse(xml["cx"]!!.toFloat(), xml["cy"]!!.toFloat(), xml["rx"]!!.toFloat(), xml["ry"]!!.toFloat())
         endElement()
@@ -820,7 +820,7 @@ class SVGMesh {
         close()
     }
 
-    fun addRectangle(xml: XMLElement, style: SVGStyle, fill: Boolean) {
+    fun addRectangle(xml: XMLNode, style: SVGStyle, fill: Boolean) {
 
         init(style, fill)
 
@@ -880,7 +880,7 @@ class SVGMesh {
         lineTo(x + rx * cos(angle), y + ry * sin(angle))
     }
 
-    fun addCircle(xml: XMLElement, style: SVGStyle, fill: Boolean) {
+    fun addCircle(xml: XMLNode, style: SVGStyle, fill: Boolean) {
         init(style, fill)
         val r = xml["r"]!!.toFloat()
         val cx = xml["cx"]!!.toFloat()
@@ -889,7 +889,7 @@ class SVGMesh {
         endElement()
     }
 
-    fun addPolygon(xml: XMLElement, style: SVGStyle, fill: Boolean) {
+    fun addPolygon(xml: XMLNode, style: SVGStyle, fill: Boolean) {
         unused(xml)
         init(style, fill)
         endElement()
@@ -1016,7 +1016,7 @@ class SVGMesh {
             file.inputStream { it, exc ->
                 if (it != null) {
                     val svg = SVGMesh()
-                    svg.parse(XMLReader.parse(it) as XMLElement)
+                    svg.parse(XMLReader.parse(it) as XMLNode)
                     it.close()
                     val mesh = svg.mesh // may be null if the parsing failed / the svg is blank
                     if (mesh != null) {

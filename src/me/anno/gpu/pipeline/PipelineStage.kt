@@ -499,7 +499,13 @@ class PipelineStage(
                     if (component is MeshComponentBase) component.randomTriangleId else 0
                 )
 
-                mesh.draw(shader, materialIndex)
+                if (material.isDoubleSided) {
+                    GFXState.cullMode.use(CullMode.BOTH) {
+                        mesh.draw(shader, materialIndex)
+                    }
+                } else {
+                    mesh.draw(shader, materialIndex)
+                }
                 drawnTriangles += mesh.numTriangles
 
             }
@@ -582,6 +588,8 @@ class PipelineStage(
             val request = drawRequests[index]
             val mesh = request.mesh
             val entity = request.entity
+            val materialIndex = request.materialIndex
+            val material = getMaterial(request.component, mesh, materialIndex)
 
             val transform = entity.transform
             val renderer = request.component
@@ -605,7 +613,13 @@ class PipelineStage(
             shaderColor(shader, "tint", -1)
             shader.v1b("hasVertexColors", mesh.hasVertexColors)
 
-            mesh.drawDepth(shader)
+            if (material.isDoubleSided) {
+                GFXState.cullMode.use(CullMode.BOTH) {
+                    mesh.drawDepth(shader)
+                }
+            } else {
+                mesh.drawDepth(shader)
+            }
             drawnTriangles += mesh.numTriangles
 
         }

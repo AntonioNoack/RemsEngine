@@ -185,7 +185,7 @@ object XMLReader {
                 name.startsWith('/') -> return endElement
             }
 
-            val xmlElement = XMLElement(name)
+            val xmlNode = XMLNode(name)
             // / is the end of an element
             var end2 = end
             if (end == ' '.code) {
@@ -200,7 +200,7 @@ object XMLReader {
                     val start = input.skipSpaces()
                     assert(start, '"', '\'')
                     val value = input.readString(start)
-                    xmlElement[if (next < 0) propName else "${next.toChar()}$propName"] = value
+                    xmlNode[if (next < 0) propName else "${next.toChar()}$propName"] = value
                     next = input.skipSpaces()
                     when (next) {
                         '/'.code, '>'.code -> {
@@ -214,7 +214,7 @@ object XMLReader {
             when (end2) {
                 '/'.code -> {
                     assert(input.read(), '>')
-                    return xmlElement
+                    return xmlNode
                 }
                 '>'.code -> {
                     // read the body (all children)
@@ -223,13 +223,13 @@ object XMLReader {
                         val child = parse(next, input)
                         next = null
                         when (child) {
-                            endElement -> return xmlElement
+                            endElement -> return xmlNode
                             is String -> {
-                                xmlElement.children.add(child)
+                                xmlNode.children.add(child)
                                 next = '<'.code
                             }
                             null -> throw RuntimeException()
-                            else -> xmlElement.children.add(child)
+                            else -> xmlNode.children.add(child)
                         }
                     }
                 }

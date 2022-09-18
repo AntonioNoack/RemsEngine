@@ -241,6 +241,10 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("mesh-draco", 0, "DRACO"),
             Signature("md2", 0, "IDP2"),
             Signature("md5mesh", 0, "MD5Version"),
+            // scenes and meshes from mitsuba renderer
+            Signature("mitsuba-meshes", 0, byteArrayOf(0x1c, 0x04)),
+            Signature("mitsuba-scene", 0, "<scene version="),
+            Signature("mitsuba-scene", -1, "<scene version="),
             // unity support
             Signature("yaml", 0, "%YAML"),
             // json, kind of

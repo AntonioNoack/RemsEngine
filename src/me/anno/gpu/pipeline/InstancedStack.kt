@@ -4,6 +4,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.RenderState
+import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta
@@ -252,11 +253,13 @@ open class InstancedStack {
                 for ((mesh, list) in values) {
                     for ((material, values) in list) {
                         if (values.isNotEmpty()) {
-                            Companion.draw(
-                                mesh, material, 0,
-                                pipeline, stage, needsLightUpdateForEveryMesh,
-                                time, values, depth
-                            )
+                            GFXState.cullMode.use(if (material.isDoubleSided) CullMode.BOTH else stage.cullMode) {
+                                Companion.draw(
+                                    mesh, material, 0,
+                                    pipeline, stage, needsLightUpdateForEveryMesh,
+                                    time, values, depth
+                                )
+                            }
                             sum += mesh.numTriangles * values.size.toLong()
                         }
                     }
