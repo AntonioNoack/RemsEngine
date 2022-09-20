@@ -13,10 +13,10 @@ interface SignatureFile {
             if (!file.isDirectory) {
                 file as SignatureFile
                 if (file.size in 1..ZipCache.sizeLimit) {
-                    file.data = getInputStream().use { it.readBytes() }
+                    file.data = getInputStream().buffered().use { it.readBytes() }
                     file.signature = Signature.find(file.data!!)
                 } else {
-                    val bytes = getInputStream().use { it.readNBytes2(Signature.sampleSize, false) }
+                    val bytes = getInputStream().buffered().use { it.readNBytes2(Signature.sampleSize, false) }
                     file.signature = Signature.find(bytes)
                 }
             }

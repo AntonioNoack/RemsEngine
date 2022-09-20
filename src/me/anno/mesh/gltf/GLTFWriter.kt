@@ -216,6 +216,12 @@ object GLTFWriter {
                     }
                 }
 
+                val name = node.name
+                if (name.isNotEmpty()) {
+                    writer.attr("name")
+                    writer.write(name)
+                }
+
                 val translation = node.transform.localPosition
                 if (translation != Vector3d()) {
                     writer.attr("translation")
@@ -237,6 +243,12 @@ object GLTFWriter {
             } else {
 
                 node as MeshComponent
+                val name = node.name
+                if (name.isNotEmpty()) {
+                    writer.attr("name")
+                    writer.write(name)
+                }
+
                 val mesh = node.getMesh()
                 if (mesh != null) {
                     writer.attr("mesh")
@@ -587,7 +599,7 @@ object GLTFWriter {
                     writer.attr("bufferView")
                     writer.write(views.size)
                     val pos0 = binary.size()
-                    it.inputStreamSync().copyTo(binary)
+                    it.inputStreamSync().copyTo(binary) // must be sync, or we'd need to unpack this loop
                     val pos1 = binary.size()
                     views.add(BufferView(pos0, pos1 - pos0, 0))
                     val ext = when (Signature.findNameSync(it)) {

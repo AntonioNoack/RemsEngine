@@ -15,7 +15,6 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.min
 import me.anno.studio.StudioBase
 import me.anno.ui.editor.files.FileExplorer
-import me.anno.utils.Sleep
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer

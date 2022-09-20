@@ -8,7 +8,7 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import java.nio.ByteBuffer
 import kotlin.math.min
 
-class Signature(val name: String, val offset: Int, val signature: ByteArray) {
+class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
 
     constructor(name: String, offset: Int, signature: String) : this(name, offset, signature.toByteArray())
 
@@ -38,9 +38,9 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         if (offset >= size) return false
         if (offset < 0) {
             // search the signature instead of requiring it
-            search@ for (offset in 0 until size - signature.size) {
-                for (i in 0 until min(size - offset, signature.size)) {
-                    if (bytes[position + i + offset] != signature[i]) {
+            search@ for (offset in 0 until size - this.bytes.size) {
+                for (i in 0 until min(size - offset, this.bytes.size)) {
+                    if (bytes[position + i + offset] != this.bytes[i]) {
                         continue@search
                     }
                 }
@@ -48,8 +48,8 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             }
             return false
         } else {
-            for (i in 0 until min(size - offset, signature.size)) {
-                if (bytes[position + i + offset] != signature[i]) return false
+            for (i in 0 until min(size - offset, this.bytes.size)) {
+                if (bytes[position + i + offset] != this.bytes[i]) return false
             }
             return true
         }
@@ -59,9 +59,9 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         if (offset >= bytes.size) return false
         if (offset < 0) {
             // search the signature instead of requiring it
-            search@ for (offset in 0 until bytes.size - signature.size) {
-                for (i in 0 until min(bytes.size - offset, signature.size)) {
-                    if (bytes[i + offset] != signature[i]) {
+            search@ for (offset in 0 until bytes.size - this.bytes.size) {
+                for (i in 0 until min(bytes.size - offset, this.bytes.size)) {
+                    if (bytes[i + offset] != this.bytes[i]) {
                         continue@search
                     }
                 }
@@ -69,14 +69,14 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             }
             return false
         } else {
-            for (i in 0 until min(bytes.size - offset, signature.size)) {
-                if (bytes[i + offset] != signature[i]) return false
+            for (i in 0 until min(bytes.size - offset, this.bytes.size)) {
+                if (bytes[i + offset] != this.bytes[i]) return false
             }
             return true
         }
     }
 
-    override fun toString() = "\"$name\" by [${signature.joinToString { hex8(it.toInt()) }}] + $offset"
+    override fun toString() = "\"$name\" by [${bytes.joinToString { hex8(it.toInt()) }}] + $offset"
 
     companion object {
 
@@ -86,8 +86,9 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
         fun findName(bytes: ByteBuffer) = find(bytes)?.name
         fun find(bytes: ByteBuffer): Signature? {
-            for (i in signatures.indices) {
-                val s = signatures[i]
+            val nonHashed = signatures
+            for (i in nonHashed.indices) {
+                val s = nonHashed[i]
                 if (s.matches(bytes)) return s
             }
             return null
@@ -95,8 +96,9 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
         fun findName(bytes: ByteArray) = find(bytes)?.name
         fun find(bytes: ByteArray): Signature? {
-            for (i in signatures.indices) {
-                val s = signatures[i]
+            val nonHashed = signatures
+            for (i in nonHashed.indices) {
+                val s = nonHashed[i]
                 if (s.matches(bytes)) {
                     return s
                 }
@@ -107,8 +109,12 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         fun register(signature: Signature) {
             // alternatively could find the correct insert index
             // still would be O(n)
-            signatures.add(signature)
-            signatures.sortByDescending { it.signature.size }
+            // to
+            var index = signatures.binarySearch {
+                signature.bytes.size.compareTo(it.bytes.size)
+            }
+            if (index < 0) index = -1 - index
+            signatures.add(index, signature)
         }
 
         @Suppress("unused")
@@ -162,7 +168,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         // source: https://en.wikipedia.org/wiki/List_of_file_signatures
         // https://www.garykessler.net/library/file_sigs.html
         @Suppress("SpellCheckingInspection")
-        val signatures = arrayListOf(
+        private val signatures = arrayListOf(
             Signature("bz2", 0, "BZh"),
             Signature("rar", 0, "Rar!", 0x1a, 0x07),
             Signature("zip", 0, "PK", 3, 4),
@@ -253,7 +259,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("sims", 0, "DBPF")
         ).apply {
             // first long ones, then short ones; to be more specific first
-            sortByDescending { it.signature.size }
+            sortByDescending { it.bytes.size }
         }
 
     }

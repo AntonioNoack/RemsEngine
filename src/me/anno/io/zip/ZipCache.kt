@@ -4,7 +4,6 @@ import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.instances.PDFCache
-import me.anno.config.DefaultConfig
 import me.anno.image.ImageReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.svg.SVGMesh
@@ -151,11 +150,11 @@ object ZipCache : CacheSection("ZipCache") {
         return parent to path
     }
 
-    val timeout = DefaultConfig["zipCache.timeoutMillis", 60_000L]
+    var timeout = 60_000L
 
     // opening a packed stream again would be really expensive for large packages
     // is there a better strategy than this?? maybe index a few on every go to load something
-    val sizeLimit = DefaultConfig["zipCache.autoLoadLimit", 20_000_000L]
+    var sizeLimit = 20_000_000L
 
     // private val LOGGER = LogManager.getLogger(ZipCache::class)
 

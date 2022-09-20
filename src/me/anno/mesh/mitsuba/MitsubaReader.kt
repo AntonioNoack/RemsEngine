@@ -51,7 +51,7 @@ object MitsubaReader {
         val version = file.readLE16()
         if (version !in 3..4) throw IOException("Unknown version $version")
 
-        file.skipN(length - 8) // 4 bytes were already read
+        file.skipN(length - 8) // 4 bytes were already read, 4 bytes for mesh count
 
         val numMeshes = file.readLE32()
         if (numMeshes < 1 || numMeshes > 65536) {
@@ -110,7 +110,7 @@ object MitsubaReader {
 
     fun readMeshData(file: InputStream, version: Int): Mesh {
 
-        val input = InflaterInputStream(file)
+        val input = InflaterInputStream(file).buffered() // buffering is necessary; it makes reading 30x faster
         val flags = input.readLE32()
         val hasVertexNormals = flags.hasFlag(1)
         val hasUVs = flags.hasFlag(2)
@@ -124,43 +124,55 @@ object MitsubaReader {
         val numVertices = input.readLE64()
         val numTriangles = input.readLE64()
 
-        fun readNumber(): Float {
-            return if (singlePrecision) {
-                Float.fromBits(input.readLE32())
+        fun readFloat() = Float.fromBits(input.readLE32())
+        fun readDouble() = Double.fromBits(input.readLE64()).toFloat()
+
+        fun readNumbers(size: Int): FloatArray {
+            val data = FloatArray(size)
+            if (singlePrecision) {
+                for (i in 0 until size) {
+                    data[i] = readFloat()
+                }
             } else {
-                Double.fromBits(input.readLE64()).toFloat()
+                for (i in 0 until size) {
+                    data[i] = readDouble()
+                }
             }
+            return data
         }
 
-        val vertices = FloatArray(3 * numVertices.toInt()) {
-            readNumber()
-        }
+        val vertices = readNumbers(3 * numVertices.toInt())
         val normals = if (hasVertexNormals) {
-            FloatArray(3 * numVertices.toInt()) {
-                readNumber()
-            }
+            readNumbers(3 * numVertices.toInt())
         } else if (hasFaceNormals) {
-            FloatArray(3 * numTriangles.toInt()) {
-                readNumber()
-            }
+            readNumbers(3 * numTriangles.toInt())
         } else null
         val uvs = if (hasUVs) {
-            FloatArray(2 * numVertices.toInt()) {
-                if (it and 1 == 0) readNumber()
-                else 1f - readNumber()
-            }
+            val uvs = readNumbers(2 * numVertices.toInt())
+            for (i in 1 until uvs.size step 2) uvs[i] = 1f - uvs[i]
+            uvs
         } else null
-        val vertexColors = if (hasVertexColors) IntArray(numVertices.toInt()) {
-            rgba(readNumber(), readNumber(), readNumber(), 1f)
+        val vertexColors = if (hasVertexColors) {
+            if (singlePrecision) {
+                IntArray(numVertices.toInt()) {
+                    val r = readFloat()
+                    val g = readFloat()
+                    val b = readFloat()
+                    rgba(r, g, b, 1f)
+                }
+            } else {
+                IntArray(numVertices.toInt()) {
+                    val r = readDouble()
+                    val g = readDouble()
+                    val b = readDouble()
+                    rgba(r, g, b, 1f)
+                }
+            }
         } else null
         val indices = if (numVertices <= 0xffffffff) {
-            IntArray(3 * numTriangles.toInt()) {
-                input.readLE32()
-            }
+            IntArray(3 * numTriangles.toInt()) { input.readLE32() }
         } else {
-            IntArray(3 * numTriangles.toInt()) {
-                input.readLE64().toInt()
-            }
+            IntArray(3 * numTriangles.toInt()) { input.readLE64().toInt() }
         }
 
         val mesh = Mesh()
@@ -172,11 +184,11 @@ object MitsubaReader {
         return mesh
     }
 
-    fun readSceneAsFolder(sceneMain: FileReference): InnerFolder {
+    fun readSceneAsFolder(sceneMain: FileReference, inputStream: InputStream): InnerFolder {
 
         val folder = sceneMain.getParent() ?: InvalidRef
 
-        val scene = XMLReader.parse(sceneMain.inputStreamSync()) as XMLNode
+        val scene = XMLReader.parse(inputStream) as XMLNode
         if (scene.type != "scene") throw IOException("Wrong type: ${scene.type}")
 
         val byId = HashMap<String, XMLNode>()
@@ -626,7 +638,11 @@ object MitsubaReader {
     }
 
     fun readSceneAsFolder(file: FileReference, callback: InnerFolderCallback) {
-        callback(readSceneAsFolder(file), null)
+        file.inputStream { it, exc ->
+            if (it != null) {
+                callback(readSceneAsFolder(file, it), null)
+            } else callback(null, exc)
+        }
     }
 
     @JvmStatic
