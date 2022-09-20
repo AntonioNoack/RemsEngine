@@ -62,9 +62,9 @@ class InnerTarFile(
                 // only check if valid, later decode it, when required? may be expensive...
                 parent.inputStream { it, exc ->
                     if (it != null) {
-                        createZipRegistryArchive(parent) {
+                        callback(createZipRegistryArchive(parent) {
                             TarArchiveInputStream(GZIPInputStream(it))
-                        }
+                        }, null)
                     } else callback(null, exc)
                 }
             }

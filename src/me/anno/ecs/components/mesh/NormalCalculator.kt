@@ -22,7 +22,7 @@ object NormalCalculator {
         for (j in 0 until normals.size / stride) {
             val i = j * stride
             val normalL1 = abs(normals[i]) + abs(normals[i + 1]) + abs(normals[i + 2])
-            if (normalL1 < 0.001f) return true
+            if (normalL1 > 0.001f || normalL1.isNaN()) return true
         }
         return false
     }
@@ -47,7 +47,9 @@ object NormalCalculator {
         c.set(positions[i2], positions[i2 + 1], positions[i2 + 2])
         b.sub(a)
         c.sub(a)
-        return b.cross(c).normalize()
+        val r = b.cross(c)
+        val l = r.length()
+        return if (l > 0f) r.div(l) else r.set(0f)
         // todo sometimes one is correct, and sometimes the opposite.. why?
         // c-b: Shape.smoothCube.front
         // b-c: Shape.tetrahedron.front, mesh from nav mesh

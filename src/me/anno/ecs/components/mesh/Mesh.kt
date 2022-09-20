@@ -38,10 +38,7 @@ import kotlin.math.roundToInt
 class Mesh : PrefabSaveable(), Renderable {
 
     // a single helper mesh could be used to represent the default indices...
-    class HelperMesh(
-        val indices: IntArray,
-        mesh: Mesh
-    ) : ICacheData {
+    class HelperMesh(val indices: IntArray) : ICacheData {
 
         var triBuffer: IndexBuffer? = null
         var lineBuffer: IndexBuffer? = null
@@ -50,8 +47,7 @@ class Mesh : PrefabSaveable(), Renderable {
         var invalidDebugLines = true
         var lineIndices: IntArray? = null
 
-        init {
-
+        fun init(mesh: Mesh) {
             val buffer = mesh.buffer!!
             triBuffer = IndexBuffer(buffer, indices)
             triBuffer?.drawMode = mesh.drawMode
@@ -59,7 +55,6 @@ class Mesh : PrefabSaveable(), Renderable {
             lineIndices = lineIndices ?: FindLines.findLines(indices, mesh.positions)
             lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
             lineBuffer?.drawMode = GL_LINES
-
         }
 
         fun ensureDebugLines(mesh: Mesh) {
@@ -748,7 +743,7 @@ class Mesh : PrefabSaveable(), Renderable {
         }
     }
 
-    private fun createHelperMeshes(materialIds: IntArray) {
+    fun createHelperMeshes(materialIds: IntArray, init: Boolean = true) {
         // todo use the same geometry data buffers: allow different index buffers per buffer
         // lines, per-material, all-together
         // creating separate buffers on the gpu,
@@ -787,7 +782,9 @@ class Mesh : PrefabSaveable(), Renderable {
                     }
                 }
                 if (j != helperIndices.size) throw IllegalStateException("Ids must have changed while processing")
-                helperMeshes[materialId] = HelperMesh(helperIndices, this)
+                val helper = HelperMesh(helperIndices)
+                if (init) helper.init(this)
+                helperMeshes[materialId] = helper
             }// else mesh not required
         }
         this.helperMeshes = helperMeshes
@@ -965,8 +962,6 @@ class Mesh : PrefabSaveable(), Renderable {
                 null
             }
         }
-
-
     }
 
 }

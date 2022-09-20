@@ -1,5 +1,6 @@
 package me.anno.mesh
 
+import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.ISaveable
@@ -13,6 +14,15 @@ object MeshUtils {
     fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, mesh: Mesh, targetFrameUsage: Float = 0.95f) {
         mesh.ensureBounds()
         centerMesh(stack, localStack, AABBd().set(mesh.aabb), { mesh.getBounds(it, false) }, targetFrameUsage)
+    }
+
+    fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, mesh: Entity, targetFrameUsage: Float = 0.95f) {
+        mesh.validateAABBs()
+        val aabb = AABBf()
+        centerMesh(stack, localStack, AABBd().set(mesh.aabb), {
+            aabb.set(mesh.aabb)
+            aabb.transform(it)
+        }, targetFrameUsage)
     }
 
     fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, collider: Collider, targetFrameUsage: Float = 0.95f) {

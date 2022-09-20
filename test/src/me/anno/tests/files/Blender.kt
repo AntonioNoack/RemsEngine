@@ -11,5 +11,5 @@ fun main() {
     val ref = OS.documents.getChild("Blender/MaterialTest-2.blend")
     @Suppress("SpellCheckingInspection")
     // val ref = getReference("E:/Documents/Blender/Aerial Aircraft Carrier (CVNA-82)II.blend")
-    Thumbs.testGeneration2(ref, BlenderReader::readAsFolder)
+    Thumbs.testGeneration(ref, BlenderReader::readAsFolder)
 }

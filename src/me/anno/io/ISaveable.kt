@@ -291,8 +291,12 @@ interface ISaveable {
         fun registerCustomClass(instance0: ISaveable) {
             checkInstance(instance0)
             val className = instance0.className
-            val constructor = instance0.javaClass
-            register(className, RegistryEntry(instance0) { constructor.newInstance() })
+            if (instance0 is PrefabSaveable) {
+                register(className, RegistryEntry(instance0) { instance0.clone() })
+            } else {
+                val constructor = instance0.javaClass
+                register(className, RegistryEntry(instance0) { constructor.newInstance() })
+            }
         }
 
         @JvmStatic
@@ -306,7 +310,7 @@ interface ISaveable {
         }
 
         @JvmStatic
-        fun <V: ISaveable> registerCustomClass(clazz: Class<V>) {
+        fun <V : ISaveable> registerCustomClass(clazz: Class<V>) {
             val constructor = clazz.getConstructor()
             val instance0 = constructor.newInstance()
             checkInstance(instance0)
@@ -315,9 +319,9 @@ interface ISaveable {
         }
 
         @JvmStatic
-        fun <V: ISaveable> registerCustomClass(clazz: KClass<V>) {
+        fun <V : ISaveable> registerCustomClass(clazz: KClass<V>) {
             val constructor = clazz.constructors.firstOrNull { it.parameters.isEmpty() }
-                ?:throw IllegalArgumentException("$clazz is missing constructor without parameters")
+                ?: throw IllegalArgumentException("$clazz is missing constructor without parameters")
             val instance0 = constructor.call()
             checkInstance(instance0)
             val className = instance0.className

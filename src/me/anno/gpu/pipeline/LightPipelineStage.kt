@@ -37,9 +37,7 @@ import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW
 
-class LightPipelineStage(
-    val deferred: DeferredSettingsV2
-) : Saveable() {
+class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
 
     companion object {
 
@@ -487,6 +485,7 @@ class LightPipelineStage(
             if (isInstanced) visualizeLightCountShaderInstanced.value
             else visualizeLightCountShader.value
         } else {
+            if (deferred == null) throw IllegalStateException("Cannot draw lights directly without deferred buffers")
             Companion.getShader(deferred, type)
         }
     }

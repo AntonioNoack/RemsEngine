@@ -96,7 +96,7 @@ object MitsubaReader {
 
                     val name = "$i.json"
                     val relativePath = folder.getSubName(name)
-                    val mesh = readSerializedData(stream, version)
+                    val mesh = readMeshData(stream, version)
                     val prefab = (mesh.ref as PrefabReadable).readPrefab()
 
                     InnerPrefabFile("$absolutePath/$name", relativePath, folder, prefab)
@@ -108,7 +108,7 @@ object MitsubaReader {
         }
     }
 
-    fun readSerializedData(file: InputStream, version: Int): Mesh {
+    fun readMeshData(file: InputStream, version: Int): Mesh {
 
         val input = InflaterInputStream(file)
         val flags = input.readLE32()

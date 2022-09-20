@@ -21,14 +21,18 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.shapes.Icosahedron
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.fonts.FontManager
+import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isGFXThread
@@ -47,6 +51,9 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Filtering
@@ -73,11 +80,11 @@ import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
-import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderReader
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.clamp
+import me.anno.mesh.MeshUtils
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
@@ -96,6 +103,7 @@ import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.Iterators.firstOrNull
+import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
@@ -105,6 +113,7 @@ import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Matrix4x3f
+import org.joml.Vector3d
 import org.joml.Vector3f
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -651,6 +660,67 @@ object Thumbs {
         }
     }
 
+    fun generateMeshFrame(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        comp: Renderable,
+        callback: (Texture2D) -> Unit
+    ) {
+
+        // todo check that this is correct
+
+        // todo how could we wait for resources here?
+        /*comp.ensureBuffer()
+        val mesh = comp.getMesh() ?: return
+        mesh.checkCompleteness()
+        mesh.ensureBuffer()
+        waitForTextures(comp, mesh, srcFile)*/
+
+        val pipeline = Pipeline(null)
+        pipeline.defaultStage = PipelineStage(
+            "default", Sorting.FRONT_TO_BACK, 16,
+            null, DepthMode.CLOSER, true, CullMode.BACK, pbrModelShader
+        )
+
+        val sampleEntity = Entity()
+        sampleEntity.add(comp as Component)
+
+        val cm = createCameraMatrix(1f)
+        val mm = createModelMatrix()
+
+        sampleEntity.validateAABBs()
+        mm.scale(AnimGameItem.getScaleFromAABB(sampleEntity.aabb))
+        MeshUtils.centerMesh(cm, mm, sampleEntity)
+
+        cm.mul(mm) // join matrices; is this order correct?
+
+        // todo set camera position
+        val cameraPosition = Vector3d()
+        val worldScale = 1.0
+
+        comp.fill(pipeline, sampleEntity, 0, cameraPosition, worldScale)
+
+        renderToImage(srcFile, false, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
+
+            // setup full render state
+            RenderState.cameraPosition.set(cameraPosition)
+            RenderState.cameraMatrix.set(cm)
+            RenderState.cameraRotation.identity()
+                .rotateX((15.0).toRadians())// rotate it into a nice viewing angle
+                .rotateY((-25.0).toRadians())
+            RenderState.cameraDirection.set(0.0, 0.0, -1.0)
+                .rotate(RenderState.cameraRotation)
+
+            RenderState.fovYRadians = 1f
+            RenderState.isPerspective = true
+            RenderState.worldScale = worldScale
+
+            pipeline.defaultStage.drawColors(pipeline)
+
+        }
+    }
+
     val matCameraMatrix = createCameraMatrix(1f)
     val matModelMatrix = createModelMatrix().scale(0.62f)
 
@@ -898,6 +968,7 @@ object Thumbs {
             is Animation -> generateAnimationFrame(srcFile, dstFile, asset, size, callback)
             is Entity -> generateEntityFrame(srcFile, dstFile, size, asset, callback)
             is MeshComponentBase -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
+            is Renderable -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
             is Collider -> generateColliderFrame(srcFile, dstFile, size, asset, callback)
             is Component -> {
                 val gt = JomlPools.mat4x3d.borrow()
@@ -1369,27 +1440,6 @@ object Thumbs {
     }
 
     fun testGeneration(
-        src: FileReference,
-        readAsFolder: (FileReference) -> InnerFolder,
-        dst: FileReference = desktop.getChild("test.png"),
-        size: Int = 512
-    ) {
-        // time for debugger to attach
-        // for (i in 0 until 100) Thread.sleep(100)
-        val clock = Clock()
-        LOGGER.info("File Size: ${src.length().formatFileSize()}")
-        val folder = readAsFolder(src)
-        clock.stop("read file")
-        ECSRegistry.initWithGFX(size)
-        clock.stop("inited opengl")
-        val scene = folder.getChild("Scene.json") as InnerPrefabFile
-        useCacheFolder = true
-        generateSomething(scene.prefab, src, dst, size) {}
-        clock.stop("rendered & saved image")
-        Engine.requestShutdown()
-    }
-
-    fun testGeneration2(
         src: FileReference,
         readAsFolder: InnerFolderReader,
         dst: FileReference = desktop.getChild("test.png"),
