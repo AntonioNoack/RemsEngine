@@ -50,7 +50,7 @@ class InnerZipFile(
             entry: String,
             registry: HashMap<String, InnerFile>
         ): InnerFile {
-            val (parent, path) = ZipCache.splitParent(entry)
+            val (parent, path) = InnerFolderCache.splitParent(entry)
             return registry.getOrPut(path) {
                 val absolutePath = "$zipFileLocation/$path"
                 val parent2 = registry.getOrPut(parent) { createFolderEntryV2(zipFileLocation, parent, registry) }
@@ -66,7 +66,7 @@ class InnerZipFile(
             registry: HashMap<String, InnerFile>
         ): InnerFile {
             val zipFileLocation = zipFile.absolutePath
-            val (parent, path) = ZipCache.splitParent(entry.name)
+            val (parent, path) = InnerFolderCache.splitParent(entry.name)
             val file = registry.getOrPut(path) {
                 val absolutePath = "$zipFileLocation/$path"
                 val parent2 = registry.getOrPut(parent) { createFolderEntryV2(zipFileLocation, parent, registry) }

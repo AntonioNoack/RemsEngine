@@ -91,7 +91,7 @@ class InnerFile7z(
             getStream: () -> SevenZFile,
             registry: HashMap<String, InnerFile>
         ): InnerFile {
-            val (parent, path) = ZipCache.splitParent(entry.name)
+            val (parent, path) = InnerFolderCache.splitParent(entry.name)
             val file = registry.getOrPut(path) {
                 val zipFileLocation = zipFile.absolutePath
                 if (entry.isDirectory) {

@@ -79,13 +79,13 @@ abstract class InnerFile(
     fun get(path: String) = getLc(path.replace('\\', '/').lowercase())
 
     open fun getLc(path: String): FileReference? {
-        if (path.isEmpty()) return ZipCache.unzip(this, false)
-        val m = ZipCache.unzip(this, false)
+        if (path.isEmpty()) return InnerFolderCache.readAsFolder(this, false)
+        val m = InnerFolderCache.readAsFolder(this, false)
         return m?.getLc(path)
     }
 
     override fun getChild(name: String): FileReference {
-        return ZipCache.unzip(this, false)?.getChild(name) ?: InvalidRef
+        return InnerFolderCache.readAsFolder(this, false)?.getChild(name) ?: InvalidRef
     }
 
     override val exists: Boolean = true

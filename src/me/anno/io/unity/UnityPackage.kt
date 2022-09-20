@@ -56,7 +56,7 @@ object UnityPackage {
         original: InnerTarFile,
         registry: HashMap<String, InnerFile>
     ): InnerFile {
-        val (parent, path) = ZipCache.splitParent(name)
+        val (parent, path) = InnerFolderCache.splitParent(name)
         val getStream = original.getZipStream
         val file = registry.getOrPut(path) {
             val zipFileLocation = zipFile.absolutePath

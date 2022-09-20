@@ -82,7 +82,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFolderReader
 import me.anno.io.zip.InnerPrefabFile
-import me.anno.io.zip.ZipCache
+import me.anno.io.zip.InnerFolderCache
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.MeshUtils
 import me.anno.mesh.assimp.AnimGameItem
@@ -1260,7 +1260,7 @@ object Thumbs {
                         "svg" -> generateSVGFrame(srcFile, dstFile, size, callback)
                         "mtl" -> {
                             // read as folder
-                            val children = ZipCache.unzip(srcFile, false)?.listChildren() ?: emptyList()
+                            val children = InnerFolderCache.readAsFolder(srcFile, false)?.listChildren() ?: emptyList()
                             if (children.isNotEmpty()) {
                                 val maxSize = 25 // with more, too many details are lost
                                 generateMaterialFrame(

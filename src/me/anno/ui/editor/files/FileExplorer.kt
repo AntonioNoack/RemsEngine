@@ -13,7 +13,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
-import me.anno.io.zip.ZipCache
+import me.anno.io.zip.InnerFolderCache
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
@@ -590,7 +590,7 @@ open class FileExplorer(
 
     fun canSensiblyEnter(file: FileReference): Boolean {
         return file.isDirectory || (file.isSomeKindOfDirectory &&
-                ZipCache.unzip(file, false)?.listChildren()?.isEmpty() == false)
+                InnerFolderCache.readAsFolder(file, false)?.listChildren()?.isEmpty() == false)
     }
 
     var hoveredItemIndex = 0

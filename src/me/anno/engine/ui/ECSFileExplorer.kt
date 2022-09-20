@@ -14,7 +14,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.io.zip.ZipCache
+import me.anno.io.zip.InnerFolderCache
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.ui.base.menu.Menu.msg
@@ -102,7 +102,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
     private fun import(current: FileReference, files: List<FileReference>) {
         for (src in files) {
             // in the future, we could do this async
-            val innerFolder = ZipCache.unzip(src, false)
+            val innerFolder = InnerFolderCache.readAsFolder(src, false)
             if (innerFolder != null) {
 
                 // ask user for destination directory... or do we just use this one? yes :)

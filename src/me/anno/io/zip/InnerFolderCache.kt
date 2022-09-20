@@ -24,7 +24,7 @@ import me.anno.mesh.obj.OBJReader
 import me.anno.mesh.vox.VOXReader
 import java.io.IOException
 
-object ZipCache : CacheSection("ZipCache") {
+object InnerFolderCache : CacheSection("InnerFolderCache") {
 
     // cache all content? if less than a certain file size
     // cache the whole hierarchy [? only less than a certain depth level - not done]
@@ -111,12 +111,12 @@ object ZipCache : CacheSection("ZipCache") {
 
     }
 
-    fun unzipMaybe(file: FileReference): InnerFolder? {
+    fun wasReadAsFolder(file: FileReference): InnerFolder? {
         val data = getEntryWithoutGenerator(file) as? CacheData<*>
         return data?.value as? InnerFolder
     }
 
-    fun unzip(file: FileReference, async: Boolean): InnerFile? {
+    fun readAsFolder(file: FileReference, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
         val data = getFileEntry(file, false, timeout, async) { file1, _ ->
             val signature = Signature.findNameSync(file1)

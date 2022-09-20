@@ -10,7 +10,7 @@ import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.io.zip.InnerTmpFile
 import me.anno.io.zip.NextEntryIterator
-import me.anno.io.zip.ZipCache
+import me.anno.io.zip.InnerFolderCache
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.min
 import me.anno.studio.StudioBase
@@ -330,7 +330,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         LOGGER.info("Invalidated $absolutePath")
         isValid = false
         // if this has inner folders, replace all of their children as well
-        ZipCache.unzipMaybe(this)?.invalidate()
+        InnerFolderCache.wasReadAsFolder(this)?.invalidate()
     }
 
     fun validate(): FileReference {
@@ -562,12 +562,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         get(): FileReference? {
             var zipFile = zipFile ?: return null
             if (!zipFile.isDirectory) {
-                zipFile = ZipCache.unzip(zipFile, false) ?: return null
+                zipFile = InnerFolderCache.readAsFolder(zipFile, false) ?: return null
             }
             return zipFile
         }
 
-    private val zipFile get() = ZipCache.unzip(this, false)
+    private val zipFile get() = InnerFolderCache.readAsFolder(this, false)
 
     abstract fun getParent(): FileReference?
 
@@ -583,11 +583,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     open fun isSerializedFolder(): Boolean {
         // only read the first bytes
         val signature = Signature.findNameSync(this)
-        if (ZipCache.hasReaderForFileExtension(lcExtension)) {
+        if (InnerFolderCache.hasReaderForFileExtension(lcExtension)) {
             LOGGER.info("Checking $absolutePath for zip/similar file, matches extension")
             return true
         }
-        if (ZipCache.hasReaderForSignature(signature)) {
+        if (InnerFolderCache.hasReaderForSignature(signature)) {
             LOGGER.info("Checking $absolutePath for zip/similar file, matches signature")
             return true
         }

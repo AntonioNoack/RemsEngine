@@ -12,7 +12,7 @@ interface SignatureFile {
         fun setDataAndSignature(file: InnerFile, getInputStream: () -> InputStream) {
             if (!file.isDirectory) {
                 file as SignatureFile
-                if (file.size in 1..ZipCache.sizeLimit) {
+                if (file.size in 1..InnerFolderCache.sizeLimit) {
                     file.data = getInputStream().buffered().use { it.readBytes() }
                     file.signature = Signature.find(file.data!!)
                 } else {

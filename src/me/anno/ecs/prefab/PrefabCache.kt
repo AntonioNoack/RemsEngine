@@ -19,7 +19,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerLinkFile
-import me.anno.io.zip.ZipCache
+import me.anno.io.zip.InnerFolderCache
 import me.anno.studio.StudioBase
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.maps.KeyPairMap
@@ -271,7 +271,7 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     private fun loadPrefab4i(file: FileReference, callback: (ISaveable?, Exception?) -> Unit) {
-        val folder = ZipCache.unzip(file, false)
+        val folder = InnerFolderCache.readAsFolder(file, false)
         if (folder != null) {
             val scene = folder.getChild("Scene.json") as? PrefabReadable
             val scene2 = scene ?: folder.listChildren()?.firstInstanceOrNull<PrefabReadable>()

@@ -100,7 +100,7 @@ class InnerTarFile(
             getStream: () -> ArchiveInputStream,
             registry: HashMap<String, InnerFile>
         ): InnerFile {
-            val (parent, path) = ZipCache.splitParent(entry.name)
+            val (parent, path) = InnerFolderCache.splitParent(entry.name)
             val file = registry.getOrPut(path) {
                 val zipFileLocation = zipFile.absolutePath
                 val absolutePath = "$zipFileLocation/$path"
@@ -133,7 +133,7 @@ class InnerTarFile(
             entry: String,
             registry: HashMap<String, InnerFile>
         ): InnerFile {
-            val (parent, path) = ZipCache.splitParent(entry)
+            val (parent, path) = InnerFolderCache.splitParent(entry)
             /*file.lastModified = 0L
             val parent2 = file._parent as InnerFolder
             parent2.children[file.lcName] = file

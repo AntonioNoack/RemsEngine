@@ -122,7 +122,7 @@ class InnerRarFile(
             header: FileHeader,
             registry: HashMap<String, InnerFile>
         ): InnerFile {
-            val (parent, path) = ZipCache.splitParent(header.fileNameString)
+            val (parent, path) = InnerFolderCache.splitParent(header.fileNameString)
             val file = registry.getOrPut(path) {
                 val parent2 = registry.getOrPut(parent) { createFolderEntryRar(zipFileLocation, parent, registry) }
                 if (header.isDirectory) {
@@ -157,7 +157,7 @@ class InnerRarFile(
             entry: String,
             registry: HashMap<String, InnerFile>
         ): InnerFile {
-            val (parent, path) = ZipCache.splitParent(entry)
+            val (parent, path) = InnerFolderCache.splitParent(entry)
             val file = registry.getOrPut(path) {
                 val parent2 = registry.getOrPut(parent) { createFolderEntryRar(zipFileLocation, parent, registry) }
                 InnerFolder("$zipFileLocation/$path", path, parent2)
