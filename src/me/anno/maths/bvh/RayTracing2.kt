@@ -68,7 +68,7 @@ object RayTracing2 {
             "               numIntersections++;\n" +
             // transform ray into local coordinates
             "               vec3 localPos = node.worldToLocal * vec4(worldPos, 1.0);\n" +
-            "               vec3 localDir0 = node.worldToLocal * vec4(worldDir, 0.0);\n" +
+            "               vec3 localDir0 = mat3x3(node.worldToLocal) * worldDir;\n" +
             "               vec3 localDir = normalize(localDir0);\n" +
             "               vec3 localInvDir = 1.0 / localDir;\n" +
             // transform world distance into local coordinates
@@ -83,7 +83,7 @@ object RayTracing2 {
             "                   if(worldDistance1 < worldDistance){\n" + // could be false by numerical errors
             // transform hit normal into world coordinates
             "                       worldDistance = worldDistance1;\n" +
-            "                       worldNormal = node.localToWorld * vec4(localNormal, 0.0);\n" +
+            "                       worldNormal = mat3x3(node.localToWorld) * localNormal;\n" +
             "                   }\n" +
             "               }\n" + // end of blas; get next tlas node
             "               if(stackIndex < 1u) break;\n" +

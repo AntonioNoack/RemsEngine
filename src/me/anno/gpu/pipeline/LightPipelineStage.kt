@@ -39,6 +39,9 @@ import org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW
 
 class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
 
+    // todo add optional iridescence parameter for shading ... it looks really nice on leather and metal :)
+    // todo or even better, make this rendering part here modular, so you can use any parameters and materials, you want
+
     companion object {
 
         private val lightInstancedAttributes = listOf(
@@ -249,7 +252,7 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
                         Variable(GLSLType.V4F, "data1"),
                         Variable(GLSLType.V4F, "data2"), // only if with shadows
                         // light maps for shadows
-                        // - spot lights, directional lights
+                        // - spotlights, directional lights
                         Variable(GLSLType.S2D, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
                         // - point lights
                         Variable(GLSLType.SCube, "shadowMapCubic", 1),
@@ -275,7 +278,7 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
                             // light properties, which are typically inside the loop
                             "vec3 lightColor = data0.rgb;\n" +
                             "vec3 dir = WStoLightSpace * vec4(finalPosition, 1.0);\n" +
-                            "vec3 localNormal = normalize(WStoLightSpace * vec4(finalNormal, 0.0));\n" +
+                            "vec3 localNormal = normalize(mat3x3(WStoLightSpace) * finalNormal);\n" +
                             "float NdotL = 0.0;\n" + // normal dot light
                             "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS = vec3(0.0);\n" +
                             coreFragment +
@@ -287,7 +290,7 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
                             specularBRDFv2NoColorEnd +
                             "}\n" +
                             // translucency; looks good and approximately correct
-                            // sheen is a fresnel effect, which adds light at the edge, e.g. for clothing
+                            // sheen is a fresnel effect, which adds light at the edge, e.g., for clothing
                             "NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
                             "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
                             "light = vec4(mix(diffuseLight, specularLight, finalMetallic), 1.0);\n"
@@ -720,6 +723,6 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
     }
 
     override val className = "LightPipelineStage"
-    override val approxSize: Int = 5
+    override val approxSize = 5
 
 }

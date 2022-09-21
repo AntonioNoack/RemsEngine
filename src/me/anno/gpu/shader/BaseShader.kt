@@ -193,7 +193,7 @@ open class BaseShader(
         shader.use()
         shader.setTextureIndices(textures)
         shader.ignoreNameWarnings(ignoredNameWarnings)
-        shader.v4f("tint", 1f, 1f, 1f, 1f)
+        shader.v4f("tint", 1f)
         GFX.check()
     }
 

@@ -60,12 +60,12 @@ graph TB
 - supports loading all kinds of formats
   - Image formats (ffmpeg, ImageIO, Image4j, custom): png, jpg, tga, ico, dds, exr, hdr, svg, pcx, xcf (Gimp)
   - Video formats (ffmpeg): wav, mp3, mp4, avi, flv, gif
-  - Mesh formats (Assimp, custom) obj, fbx, gltf, dae, blend, vox, md2, md5mesh
+  - Mesh formats (Assimp, custom) obj, fbx, gltf, dae, blend, vox, md2, md5mesh, mitsuba
   - Package formats (Apache Compress, JUnRar): zip, tar, tar.gz, rar, 7z, bz2, lz4, xar, oar
-  - Metadata formats (custom): json, csv, yaml
+  - Metadata formats (custom): json, csv, yaml, xml
   - Others (Apache PDFBox, custom): pdf, tar/text-based Unity-packages
   - Note: not all are fully supported
-- can load files from compressed folders
+- can load files from compressed folders (recursively as well)
 - pbr workflow
 - Bullet as 3d physics engine
     - running on a separate thread for uninterrupted graphics (optional)
@@ -77,7 +77,7 @@ graph TB
 - simple switch between forward- and deferred rendering
     - for beautiful MSAA with a few lights,
     - or thousands of lights without performance hit
-    - forward rendering does not support SSR nor SSAO
+    - Note: forward rendering does not support SSR nor SSAO
 - depth-edge-detection based anti-aliasing (like FXAA)
 - different light types, with shadow support: directional, spot, point
 - shadows with cascades (directional)
@@ -162,6 +162,7 @@ You can find most examples in the "tests" folder.
 
 ## Ports
 - [Android](https://github.com/AntonioNoack/RemsEngine-Android)
+- Web WIP
 
 ## Used libraries
 
@@ -195,13 +196,15 @@ All listed libraries need to be added to the project in some way.
 ## Use It
 
 If you don't want to compile the engine yourself, and just want to focus on developing games, plugins or mods, you can use pre-built versions.
-There isn't an official release yet, because my UI isn't stable enough (imo), but you can use the in-official build from my [Cellular Automata Demo](https://github.com/AntonioNoack/CellularAutomata/tree/main/out/artifacts/Demo). 
+There isn't an official release yet, but you can use the in-official build from my [Cellular Automata Demo](https://github.com/AntonioNoack/CellularAutomata/tree/main/out/artifacts/Demo). 
 A release of [Rem's Studio](https://github.com/AntonioNoack/RemsStudio) would work as well.
 
 ## Documentation
 
 The code is mainly documented within itself, so I recommend you to download the engine source code.
 You can also take a look at the Wiki. There, I describe the serialization system, how to create a mod, and supported file formats.
+
+In the future, I might create a website for it :).
 
 ## Wiki
 

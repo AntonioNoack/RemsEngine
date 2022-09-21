@@ -146,7 +146,7 @@ object Renderers {
                     "           int lightType = int(data0.a);\n" +
                     "           vec3 lightPosition, lightDirWS, localNormal, effectiveSpecular, effectiveDiffuse;\n" +
                     "           lightDirWS = effectiveDiffuse = effectiveSpecular = vec3(0.0);\n" + // making Nvidia GPUs happy
-                    "           localNormal = normalize(WStoLightSpace * vec4(finalNormal,0.0));\n" +
+                    "           localNormal = normalize(mat3x3(WStoLightSpace) * finalNormal);\n" +
                     "           float NdotL = 0.0;\n" + // normal dot light
                     "           int shadowMapIdx0 = int(data2.r);\n" +
                     "           int shadowMapIdx1 = int(data2.g);\n" +

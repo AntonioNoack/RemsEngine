@@ -89,6 +89,7 @@ object GFX {
 
     var maxFragmentUniformComponents = 0
     var maxVertexUniformComponents = 0
+    var maxBoundTextures = 0
     var maxUniforms = 0
     var maxColorAttachments = 0
     var maxTextureSize = 0
@@ -132,6 +133,7 @@ object GFX {
 
     fun addNextGPUTask(name: String, w: Int, h: Int, task: () -> Unit) =
         addNextGPUTask(name, max(1, ((w * h.toLong()) / 10_000).toInt()), task)
+
     fun addNextGPUTask(name: String, weight: Int, task: () -> Unit) {
         nextGPUTasks += Task(name, weight, task)
     }
@@ -270,6 +272,7 @@ object GFX {
         }
         maxVertexUniformComponents = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniformComponents = glGetInteger(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
+        maxBoundTextures = glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS)
         maxUniforms = glGetInteger(GL_MAX_UNIFORM_LOCATIONS)
         maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
         maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
@@ -340,7 +343,7 @@ object GFX {
 
     fun workGPUTasks(all: Boolean) {
         val t0 = Engine.nanoTime
-        synchronized(nextGPUTasks){
+        synchronized(nextGPUTasks) {
             gpuTasks.addAll(nextGPUTasks)
             nextGPUTasks.clear()
         }

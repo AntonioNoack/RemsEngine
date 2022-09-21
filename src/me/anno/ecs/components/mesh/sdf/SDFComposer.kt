@@ -248,7 +248,7 @@ object SDFComposer {
                             "if(!gl_FrontFacing) discard;\n" +
                             "vec3 localDir, localPos;\n" +
                             "if(perspectiveCamera){\n" +
-                            "   localDir = normalize(invLocalTransform * vec4(finalPosition, 0.0));\n" +
+                            "   localDir = normalize(mat3x3(invLocalTransform) * finalPosition);\n" +
                             "   localPos = localCamPos;\n" +
                             "} else {\n" +
                             // todo this is close, but not yet perfect...
@@ -295,7 +295,7 @@ object SDFComposer {
                             "               vec3 localNormal = calcNormal(localPos, localDir, localHit, sdfNormalEpsilon);\n" +
                             // convert localHit to global hit
                             "               finalPosition = localTransform * vec4(localHit, 1.0);\n" +
-                            "               finalNormal = normalize(localTransform * vec4(localNormal, 0.0));\n" +
+                            "               finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
                             // respect reflection plane
                             "               if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
                             // calculate depth

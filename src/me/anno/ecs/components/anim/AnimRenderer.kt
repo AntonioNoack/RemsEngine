@@ -148,6 +148,7 @@ open class AnimRenderer : MeshComponent() {
                 return false
             }
 
+            lastWarning = null
             animTexture2.bindTrulyNearest(shader, "animTexture")
             return true
 

@@ -100,7 +100,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
                     "vec3 bounds1 = vec3(bounds-1);\n" +
                     // start our ray on the surface of the cube: we don't need to project the ray onto the box
-                    "vec3 dir = normalize(invLocalTransform * vec4(finalPosition, 0.0));\n" +
+                    "vec3 dir = normalize(mat3x3(invLocalTransform) * finalPosition);\n" +
                     // prevent divisions by zero
                     "if(abs(dir.x) < 1e-7) dir.x = 1e-7;\n" +
                     "if(abs(dir.y) < 1e-7) dir.y = 1e-7;\n" +
@@ -148,7 +148,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     "if(lastNormal == 0){ localNormal.x = -dn.x; } else\n" +
                     "if(lastNormal == 1){ localNormal.y = -dn.y; }\n" +
                     "else {               localNormal.z = -dn.z; }\n" +
-                    "finalNormal = normalize((localTransform * vec4(localNormal, 0.0)).xyz);\n" +
+                    "finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
                     // correct depth
                     modifyDepth(isInstanced) +
                     "vec3 localPos = localStart - halfBounds + dir * dist;\n" +

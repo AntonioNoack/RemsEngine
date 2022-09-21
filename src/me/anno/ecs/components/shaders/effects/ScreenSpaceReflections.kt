@@ -85,7 +85,7 @@ object ScreenSpaceReflections {
                     "   vec3  endView       = positionFrom + pivot * testDistance;\n" +
                     "   float endDistance   = length(endView);\n" +
 
-                    "   vec4 endUV0    = transform * vec4(endView,1);\n" +
+                    "   vec4 endUV0    = transform * vec4(endView, 1.0);\n" +
                     "   vec2 endUV     = endUV0.xy / endUV0.w * 0.5 + 0.5;\n" +
 
                     "   vec2 dstUV = uv;\n" +

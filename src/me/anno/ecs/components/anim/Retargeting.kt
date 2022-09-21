@@ -1,14 +1,19 @@
 package me.anno.ecs.components.anim
 
+import me.anno.animation.LoopingState
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.BoneEmbeddings.getWEs
 import me.anno.ecs.components.anim.BoneEmbeddings.helperWE
 import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
@@ -41,11 +46,17 @@ class Retargeting : NamedSaveable() {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            // find two human meshes with different skeletons
-            val human = downloads.getChild("3d/trooper fbx/silly_dancing.fbx")
-            val animation = downloads.getChild("fbx/walk.fbx/animations").listChildren()!!.first()
-            // todo and render the retargeted result
-
+            testUI {
+                ECSRegistry.init()
+                // find two human meshes with different skeletons
+                val human = downloads.getChild("3d/trooper fbx/silly_dancing.fbx")
+                val animation = downloads.getChild("fbx/Walking.fbx/animations").listChildren()!!.first()
+                val mesh = AnimRenderer()
+                mesh.mesh = human
+                mesh.skeleton = human.getChild("Skeleton.json")
+                mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
+                testScene(mesh)
+            }
         }
 
     }
@@ -140,7 +151,7 @@ class Retargeting : NamedSaveable() {
         // word embeddings for best match? :)
         val srcEmbeddings = getWEs(srcSkeleton)
         val dstEmbedding = getWEs(dstSkeleton)[dstIndex] ?: return ""
-        // to do hierarchy for matches? :)
+        // todo hierarchy and positions for matches
         val index = helperWE.find(srcEmbeddings, dstEmbedding, 0f)
         if (index < 0) return ""
         return srcSkeleton.bones[index].name

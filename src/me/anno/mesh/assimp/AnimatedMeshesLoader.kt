@@ -367,7 +367,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             for (i in 0 until metadata.mNumProperties()) {
                 val key = keys[i].dataString()
                 val valueRaw = values[i]
-                val value = when (valueRaw.mType()) {
+                val value: Any = when (valueRaw.mType()) {
                     0 -> valueRaw.mData(1)[0] // bool
                     1 -> valueRaw.mData(4).int // int
                     2 -> valueRaw.mData(8).long // long, unsigned
@@ -643,6 +643,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             val aiBones = aiMesh.mBones()!!
             boneList.ensureCapacity(boneList.size + numBones)
 
+            val aiWeight = AIVertexWeight.calloc()
             for (i in 0 until numBones) {
 
                 val aiBone = AIBone.create(aiBones[i])
@@ -660,7 +661,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
                 val numWeights = aiBone.mNumWeights()
                 val aiWeights = aiBone.mWeights()
-                val aiWeight = AIVertexWeight.mallocStack()
                 for (j in 0 until numWeights) {
                     aiWeights.get(j, aiWeight)
                     val vertexId = aiWeight.mVertexId()
@@ -675,6 +675,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 }
 
             }
+            aiWeight.free()
 
             val maxBoneId = 255 // maxBones - 1
             for (i in 0 until numVertices) {

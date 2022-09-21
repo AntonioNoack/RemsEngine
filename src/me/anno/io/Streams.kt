@@ -64,17 +64,20 @@ object Streams {
         }
     }
 
+    // the following functions are reading and writing functions for little and big endian integers and floats
+    // half precision floats might be added in the future (on request maybe)
+
     fun InputStream.readBE16(): Int {
         val a = read()
         val b = read()
-        if (a < 0 || b < 0) throw EOFException()
+        if (a or b < 0) throw EOFException()
         return a.shl(8) + b
     }
 
     fun InputStream.readLE16(): Int {
         val a = read()
         val b = read()
-        if (a < 0 || b < 0) throw EOFException()
+        if (a or b < 0) throw EOFException()
         return a + b.shl(8)
     }
 
@@ -83,7 +86,7 @@ object Streams {
         val b = read()
         val c = read()
         val d = read()
-        if (a < 0 || b < 0 || c < 0 || d < 0) throw EOFException()
+        if (a or b or c or d < 0) throw EOFException()
         return d.shl(24) + c.shl(16) + b.shl(8) + a
     }
 
@@ -97,9 +100,19 @@ object Streams {
         val b = read()
         val c = read()
         val d = read()
-        if (a < 0 || b < 0 || c < 0 || d < 0) throw EOFException()
+        if (a or b or c or d < 0) throw EOFException()
         return a.shl(24) + b.shl(16) + c.shl(8) + d
     }
+
+    fun InputStream.readBE64(): Long {
+        return readBE32().toLong().shl(32) +
+                readBE32().toLong().and(0xffffffff)
+    }
+
+    fun InputStream.readFloatLE() = Float.fromBits(readLE32())
+    fun InputStream.readDoubleLE() = Double.fromBits(readLE64())
+    fun InputStream.readFloatBE() = Float.fromBits(readBE32())
+    fun InputStream.readDoubleBE() = Double.fromBits(readBE64())
 
     fun OutputStream.writeBE16(a: Int) {
         write(a shr 8)
@@ -125,6 +138,9 @@ object Streams {
         write(a shr 24)
     }
 
+    /**
+     * read a zero-terminated string, as they are commonly used in C
+     * */
     fun InputStream.read0String(): String {
         val builder = StringBuilder()
         while (true) {

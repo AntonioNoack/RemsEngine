@@ -112,7 +112,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val normalTanBitanCalculation = "" +
                 "finalTangent   = normalize(tangent.xyz);\n" + // for debugging
                 "finalNormal    = normalize(normal);\n" +
-                "finalBitangent = normalize(cross(finalNormal, finalTangent) * tangent.w);\n"
+                "finalBitangent = cross(finalNormal, finalTangent) * tangent.w;\n" +
+                "if(dot(finalBitangent,finalBitangent) > 0.0) finalBitangent = normalize(finalBitangent);\n"
 
         val emissiveCalculation = "finalEmissive  = texture(emissiveMap, uv).rgb * emissiveBase;\n"
         val occlusionCalculation = "finalOcclusion = (1.0 - texture(occlusionMap, uv).r) * occlusionStrength;\n"
@@ -334,8 +335,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     animationCode2 +
                     "       #endif\n" +
                     "       #ifdef COLORS\n" +
-                    "           normal = jointMat * vec4(normals, 0.0);\n" +
-                    "           tangent.xyz = jointMat * vec4(tangents.xyz, 0.0);\n" + // how is w behaving? stays the same, I think
+                    "           normal = mat3x3(jointMat) * normals;\n" +
+                    "           tangent = vec4(mat3x3(jointMat) * tangents.xyz, tangents.w);\n" +
                     "       #endif\n" +
                     "   } else {\n" +
                     "   #endif\n" + // animated
@@ -357,8 +358,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "#else\n" +
                     "   finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
                     "   #ifdef COLORS\n" +
-                    "       normal = normalize(localTransform * vec4(normal, 0.0));\n" +
-                    "       tangent.xyz = normalize(localTransform * vec4(tangent.xyz, 0.0));\n" +
+                    "       normal = normalize(mat3x3(localTransform) * normal);\n" +
+                    "       tangent.xyz = normalize(mat3x3(localTransform) * tangent.xyz);\n" +
                     "   #endif\n" + // colors
                     "#endif\n" +
 
@@ -478,7 +479,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 limitedTransform
             )
         )
-        // no random id required
 
         // for the future, we could respect transparency from textures :)
         // base.addFragment(ShaderStage("material", emptyList(), ""))
@@ -500,14 +500,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     ): Shader {
 
         val base = createBase(isInstanced, isAnimated, !motionVectors, motionVectors, limitedTransform)
-
-        // <3, this is crazily easy
         base.addFragment(postProcessing)
 
         val shader = base.create()
         finish(shader)
         return shader
-
     }
 
     override fun createDeferredShader(

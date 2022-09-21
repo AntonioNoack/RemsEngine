@@ -22,7 +22,7 @@ object NormalCalculator {
         for (j in 0 until normals.size / stride) {
             val i = j * stride
             val normalL1 = abs(normals[i]) + abs(normals[i + 1]) + abs(normals[i + 2])
-            if (normalL1 > 0.001f || normalL1.isNaN()) return true
+            if (normalL1 < 0.01f || normalL1.isNaN()) return true
         }
         return false
     }

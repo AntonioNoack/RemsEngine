@@ -11,7 +11,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.zip.InnerTmpFile
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.CountMap
@@ -277,6 +276,7 @@ class Prefab : Saveable {
         return sets[ROOT_PATH, name]
     }
 
+    @Suppress("PropertyName")
     var _sampleInstance: PrefabSaveable? = null
 
     override fun save(writer: BaseWriter) {

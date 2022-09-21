@@ -9,6 +9,8 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.io.Streams.read0String
+import me.anno.io.Streams.readDoubleLE
+import me.anno.io.Streams.readFloatLE
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE64
@@ -124,14 +126,13 @@ object MitsubaReader {
         val numVertices = input.readLE64()
         val numTriangles = input.readLE64()
 
-        fun readFloat() = Float.fromBits(input.readLE32())
-        fun readDouble() = Double.fromBits(input.readLE64()).toFloat()
+        fun readDouble() = input.readDoubleLE().toFloat()
 
         fun readNumbers(size: Int): FloatArray {
             val data = FloatArray(size)
             if (singlePrecision) {
                 for (i in 0 until size) {
-                    data[i] = readFloat()
+                    data[i] = input.readFloatLE()
                 }
             } else {
                 for (i in 0 until size) {
@@ -155,9 +156,9 @@ object MitsubaReader {
         val vertexColors = if (hasVertexColors) {
             if (singlePrecision) {
                 IntArray(numVertices.toInt()) {
-                    val r = readFloat()
-                    val g = readFloat()
-                    val b = readFloat()
+                    val r = input.readFloatLE()
+                    val g = input.readFloatLE()
+                    val b = input.readFloatLE()
                     rgba(r, g, b, 1f)
                 }
             } else {

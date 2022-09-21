@@ -1,9 +1,11 @@
 package me.anno.io.binary
 
 import me.anno.utils.types.InputStreams.readNBytes2
+import java.io.DataInputStream
 import java.io.EOFException
 import java.io.InputStream
 
+@Deprecated("where is this being used? alternative: InputStream.readLE32(),...")
 @Suppress("unused")
 open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
 

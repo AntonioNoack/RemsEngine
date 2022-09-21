@@ -56,6 +56,9 @@ class BinaryFile(val data: ByteBuffer) {
         return String(ByteArray(length) { data.get(index++) })
     }
 
+    /**
+     * read zero-terminated string
+     * */
     fun read0String(): String {
         var length = 0
         val data = data

@@ -123,9 +123,9 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         when (value) {
             in 'A'..'Z', in 'a'..'z', in '0'..'9',
             in " _+-*/!§$%&()[]{}|~<>" -> {
-                append('\'')
+                append('\"')
                 append(value)
-                append('\'')
+                append('\"')
             }
             else -> append(value.code)
         }

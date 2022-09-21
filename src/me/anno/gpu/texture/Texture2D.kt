@@ -8,11 +8,13 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.check
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.GFX.maxBoundTextures
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.Image
 import me.anno.image.RotateJPEG
 import me.anno.maths.Maths
@@ -1153,6 +1155,13 @@ open class Texture2D(
             floatArrayPool.freeUnusedEntries()
         }
 
+        @Docs("Method for debugging by unloading all textures")
+        fun unbindAllTextures() {
+            for (i in maxBoundTextures - 1 downTo 0) {
+                whiteTexture.bind(i)
+            }
+        }
+
         @Docs("Remove all pooled entries")
         fun gc() {
             bufferPool.gc()
@@ -1174,9 +1183,7 @@ open class Texture2D(
         fun invalidateBinding() {
             boundTextureSlot = -1
             activeSlot(0)
-            for (i in boundTextures.indices) {
-                boundTextures[i] = -1
-            }
+            boundTextures.fill(-1)
         }
 
         fun activeSlot(index: Int) {

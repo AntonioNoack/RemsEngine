@@ -35,6 +35,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Saveable
+import me.anno.utils.LOGGER
 import me.anno.utils.types.Matrices.set2
 import org.joml.AABBd
 import org.joml.Matrix4x3f
@@ -183,6 +184,7 @@ class PipelineStage(
     )
 
     fun bindDraw(pipeline: Pipeline) {
+        Texture2D.unbindAllTextures()
         GFXState.blendMode.use(blendMode) {
             GFXState.depthMode.use(depthMode) {
                 GFXState.depthMask.use(writeDepth) {
@@ -506,6 +508,7 @@ class PipelineStage(
                 } else {
                     mesh.draw(shader, materialIndex)
                 }
+
                 drawnTriangles += mesh.numTriangles
 
             }

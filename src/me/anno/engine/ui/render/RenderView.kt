@@ -365,7 +365,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         val dlt = renderMode.dlt
         if (dlt != null) {
-            useDeferredRendering = true
+            useDeferredRendering = false
             renderer = attributeRenderers[dlt]!!
         }
 
