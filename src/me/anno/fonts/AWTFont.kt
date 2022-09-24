@@ -499,7 +499,7 @@ class AWTFont(val font: Font) {
     }
 
     fun wait(text: CharSequence, texture: Texture2D) {
-        if (GFX.loadTexturesSync.peek()) {
+        if (GFX.loadTexturesSync.peek() || text.length == 1) {
             val timeout = (if (text.length == 1) 1000 else 30) * MILLIS_TO_NANOS
             val t0 = Engine.nanoTime
             waitForGFXThread(true) {

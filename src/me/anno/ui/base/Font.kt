@@ -16,7 +16,7 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
             this(name, size.toFloat(), isBold, isItalic)
 
     class SampleSize(font: Font) {
-        val size = DrawTexts.getTextSize(font, "w", -1, -1)
+        val size = DrawTexts.getTextSize(font, "x", -1, -1)
         val width = GFXx2D.getSizeX(size)
         val height = GFXx2D.getSizeY(size)
     }

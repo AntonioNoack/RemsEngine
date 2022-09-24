@@ -44,13 +44,9 @@ object FontListMenu {
             fontList.sortByDescending { if (it.name == Menu.menuSeparator) 1 else if (it.name in lastUsedSet) 2 else 0 }
         }
 
-        FontManager.requestFontList { systemFonts ->
-            synchronized(fontList) {
-                fontList += systemFonts
-                    .filter { it != oldValue }
-                    .map { NameDesc(it) }
-            }
-        }
+        fontList += FontManager.fontList
+            .filter { it != oldValue }
+            .map { NameDesc(it) }
 
         // todo Consolas is not correctly centered?
 

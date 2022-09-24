@@ -33,22 +33,33 @@ class BundledRef(
     override val exists: Boolean = true // mmh...
     override fun length(): Long {
         var length = 0L
-        inputStreamSync().use {
-            when (it) {
-                is ByteArrayInputStream ->
-                    length = it.available().toLong()
-                else -> {
-                    // todo this doesn't work :/
-                    // https://stackoverflow.com/questions/34360826/get-the-size-of-a-resource might work, when we find the correct jar
-                    var test = 1L shl 16 // 65k .. as large as needed
-                    while (test > 0L) {
-                        val skipped = it.skip(test)
-                        if (skipped <= 0) break
-                        length += skipped
-                        test = test shl 1
+        try {
+            inputStreamSync().use {
+                when (it) {
+                    is ByteArrayInputStream ->
+                        length = it.available().toLong()
+
+                    is BufferedInputStream -> {
+                        it
+                    }
+
+                    else -> {
+                        // todo this doesn't work :/
+                        // https://stackoverflow.com/questions/34360826/get-the-size-of-a-resource might work, when we find the correct jar
+                        var test = 1L shl 16 // 65k .. as large as needed
+                        while (test > 0L) {
+                            println(test)
+                            val skipped = it.skip(test)
+                            if (skipped <= 0) break
+                            length += skipped
+                            test = test shl 1
+                        }
                     }
                 }
             }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            length = 65536
         }
         return length
     }

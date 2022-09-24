@@ -190,8 +190,11 @@ You can find most examples in the "tests" folder.
 
 ## Build It
 
-The project can be built like [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), just the main class now is [me.anno.engine.RemsEngine](src/me/anno/engine/RemsEngine.kt).
-All listed libraries need to be added to the project in some way.
+All libraries are shipped with the engine :).
+Use any IDE you want, with Java and Kotlin support. Best use Intellij Idea.
+
+First build the KOML module, and compile the artifact.
+Then build the main module :).
 
 ## Use It
 

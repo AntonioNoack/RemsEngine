@@ -151,7 +151,7 @@ class NodePanel(
 
         val backgroundColor = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
         val font = gp.font
-        val textSize = DrawTexts.getTextSizeY(font, "w", -1, -1)
+        val textSize = font.sampleHeight
 
         val textColor = -1
 

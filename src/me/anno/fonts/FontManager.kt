@@ -18,6 +18,9 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.GraphicsEnvironment
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.concurrent.thread
 import kotlin.math.*
 
@@ -30,32 +33,23 @@ object FontManager {
 
     private const val textureTimeout = 10_000L
 
-    private var hasFonts = false
-    private val awtFontList = ArrayList<String>()
     private val awtFonts = HashMap<FontKey, Font>()
-
     private val fonts = HashMap<FontKey, AWTFont>()
 
-    fun requestFontList(callback: (List<String>) -> Unit) {
-        if (hasFonts) callback(awtFontList)
-        else {
-            hasFonts = true
-            thread(name = "FontManager") {
-                synchronized(awtFontList) {
-                    val tick = Clock()
-                    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-                    val fontNames = ge.availableFontFamilyNames
-                    awtFontList.clear()
-                    awtFontList += fontNames
-                    // 0.17s on Win 10, R5 2600, a few extra fonts
-                    // this lag would not be acceptable :)
-                    // worst-case-scenario: list too long, and no fonts are returned
-                    // (because of that, the already used one is added)
-                    tick.stop("getting the font list")
-                    callback(awtFontList)
-                }
-            }
-        }
+    val fontList by lazy {
+        val tick = Clock()
+        val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+        val fontNames = ge.getAvailableFontFamilyNames(Locale.ROOT).toList()
+        // 0.17s on Win 10, R5 2600, a few extra fonts
+        // this lag would not be acceptable :)
+        // worst-case-scenario: list too long, and no fonts are returned
+        // (because of that, the already used one is added)
+        tick.stop("getting the font list")
+        fontNames
+    }
+
+    val fontSet by lazy {
+        fontList.toSortedSet()
     }
 
     fun getFontSizeIndex(fontSize: Float): Int = max(0, round(100.0 * ln(fontSize)).toInt())
@@ -107,7 +101,7 @@ object FontManager {
     fun getSize(
         key: TextCacheKey
     ): Int {
-        GFX.checkIsGFXThread()
+        // GFX.checkIsGFXThread()
         val data = TextSizeCache.getEntry(key, 100_000, false) {
             val awtFont = getFont(it)
             val averageFontSize = getAvgFontSize(it.fontSizeIndex())

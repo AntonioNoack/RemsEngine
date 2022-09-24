@@ -92,7 +92,7 @@ object GFX {
     var maxBoundTextures = 0
     var maxUniforms = 0
     var maxColorAttachments = 0
-    var maxTextureSize = 0
+    var maxTextureSize = 512 // assumption before loading anything
 
     val nextGPUTasks = ArrayList<Task>()
     val gpuTasks = ConcurrentLinkedQueue<Task>()
@@ -256,7 +256,7 @@ object GFX {
         check()
     }
 
-    fun renderStep0() {
+    fun setupBasics() {
         glThread = Thread.currentThread()
         val tick = Clock()
         LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
@@ -283,6 +283,10 @@ object GFX {
         LOGGER.info("Max Samples: $maxSamples")
         LOGGER.info("Max Texture Size: $maxTextureSize")
         tick.stop("Checking OpenGL properties")
+    }
+
+    fun renderStep0() {
+        setupBasics()
         ShaderLib.init()
         ECSShaderLib.init()
     }

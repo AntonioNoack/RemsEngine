@@ -53,7 +53,7 @@ object HiddenOpenGLContext {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
         glfwWindowHint(GLFW_DECORATED, GLFW_FALSE)
         // should allow OpenGL to run without a window in the background
-        // some people on Github said it only would use software rendering,
+        // some people on GitHub said it only would use software rendering,
         // so that's of no use to us
         // glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API)
 
@@ -70,6 +70,8 @@ object HiddenOpenGLContext {
         capabilities = GL.createCapabilities()
 
         GFX.check()
+
+        GFX.setupBasics()
 
     }
 

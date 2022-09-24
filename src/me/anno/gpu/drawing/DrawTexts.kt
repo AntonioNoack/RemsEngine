@@ -1,7 +1,6 @@
 package me.anno.gpu.drawing
 
 import me.anno.config.DefaultConfig
-import me.anno.utils.Color.black
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey
@@ -23,6 +22,7 @@ import me.anno.maths.Maths
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
+import me.anno.utils.Color.black
 import me.anno.utils.OS
 import me.anno.utils.types.Matrices.isIdentity
 import me.anno.utils.types.Strings.isBlank2
@@ -37,7 +37,15 @@ object DrawTexts {
 
     val monospaceFont by lazy {
         val size = DefaultConfig.style.getSize("fontSize", 12)
-        Font("Consolas", size, isBold = false, isItalic = false)
+        val fonts = FontManager.fontSet
+        val bold = false
+        val italic = false
+        val fontName = when {
+            "Consolas" in fonts -> "Consolas" // best case
+            "Courier New" in fonts -> "Courier New" // second best case
+            else -> fonts.firstOrNull { it.contains("mono", true) } ?: fonts.firstOrNull() ?: "Courier New"
+        }
+        Font(fontName, size, bold, italic)
     }
 
     val monospaceKeys by lazy {
@@ -77,7 +85,9 @@ object DrawTexts {
                 val key = keys[charInt] ?: continue
                 drawText(
                     x1, y1,
-                    font, key, textColor, backgroundColor.and(0xffffff)
+                    font, key, textColor, backgroundColor.and(0xffffff),
+                    AxisAlignment.MIN, AxisAlignment.MIN,
+                    true
                 )
             }
             x1 += charWidth
@@ -126,7 +136,9 @@ object DrawTexts {
                 val key = keys[charInt] ?: continue
                 drawText(
                     x + dx + padding + i * charWidth, y + dy + padding,
-                    font, key, textColor, backgroundColor.and(0xffffff)
+                    font, key, textColor, backgroundColor.and(0xffffff),
+                    AxisAlignment.MIN, AxisAlignment.MIN,
+                    true
                 )
             }
         }
@@ -204,12 +216,12 @@ object DrawTexts {
 
         if (equalSpaced) {
 
-            val charWidth = getTextSizeX(font, "x", widthLimit, heightLimit)
+            val charWidth = font.sampleWidth
             val textWidth = charWidth * text.length
 
             val dx = getOffset(textWidth, alignX)
             val dy = getOffset(font.sampleHeight, alignY)
-            val y2 = y + dy
+            val y2 = y + dy - 1
 
             // todo respect width limit
 
@@ -385,6 +397,17 @@ object DrawTexts {
 
         GFX.check()
 
+        if (equalSpaced) {
+            return drawTextCharByChar(
+                x, y, font, key.text,
+                color, backgroundColor,
+                key.widthLimit,
+                key.heightLimit,
+                alignX, alignY,
+                true
+            )
+        }
+
         val tex0 = FontManager.getTexture(key)
         val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.isCreated
         if (charByChar) {
@@ -394,7 +417,7 @@ object DrawTexts {
                 key.widthLimit,
                 key.heightLimit,
                 alignX, alignY,
-                equalSpaced
+                false
             )
         }
 
