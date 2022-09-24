@@ -329,6 +329,14 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    fun v1fs(name: String, vs: FloatBuffer) = v1fs(getUniformLocation(name), vs)
+    fun v1fs(loc: Int, vs: FloatBuffer) {
+        if (loc > -1) {
+            potentiallyUse()
+            glUniform1fv(loc, vs)
+        }
+    }
+
     fun v2f(name: String, x: Float, y: Float) = v2f(getUniformLocation(name), x, y)
     fun v2f(loc: Int, x: Float, y: Float) {
         if (loc > -1) {
@@ -355,6 +363,14 @@ abstract class OpenGLShader(val name: String) : ICacheData {
      * */
     fun v2fs(name: String, vs: FloatArray) = v2fs(getUniformLocation(name), vs)
     fun v2fs(loc: Int, vs: FloatArray) {
+        if (loc > -1) {
+            potentiallyUse()
+            glUniform2fv(loc, vs)
+        }
+    }
+
+    fun v2fs(name: String, vs: FloatBuffer) = v2fs(getUniformLocation(name), vs)
+    fun v2fs(loc: Int, vs: FloatBuffer) {
         if (loc > -1) {
             potentiallyUse()
             glUniform2fv(loc, vs)
@@ -419,6 +435,14 @@ abstract class OpenGLShader(val name: String) : ICacheData {
      * */
     fun v3fs(name: String, vs: FloatArray) = v3fs(getUniformLocation(name), vs)
     fun v3fs(loc: Int, vs: FloatArray) {
+        if (loc > -1) {
+            potentiallyUse()
+            glUniform3fv(loc, vs)
+        }
+    }
+
+    fun v3fs(name: String, vs: FloatBuffer) = v3fs(getUniformLocation(name), vs)
+    fun v3fs(loc: Int, vs: FloatBuffer) {
         if (loc > -1) {
             potentiallyUse()
             glUniform3fv(loc, vs)
@@ -517,6 +541,14 @@ abstract class OpenGLShader(val name: String) : ICacheData {
      * */
     fun v4fs(name: String, vs: FloatArray) = v4fs(getUniformLocation(name), vs)
     fun v4fs(loc: Int, vs: FloatArray) {
+        if (loc > -1) {
+            potentiallyUse()
+            glUniform4fv(loc, vs)
+        }
+    }
+
+    fun v4fs(name: String, vs: FloatBuffer) = v4fs(getUniformLocation(name), vs)
+    fun v4fs(loc: Int, vs: FloatBuffer) {
         if (loc > -1) {
             potentiallyUse()
             glUniform4fv(loc, vs)
