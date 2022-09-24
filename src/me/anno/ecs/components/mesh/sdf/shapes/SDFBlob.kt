@@ -5,7 +5,6 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.maths.Maths.PHIf
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.length
-import me.anno.utils.types.Vectors.dot2
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector3f

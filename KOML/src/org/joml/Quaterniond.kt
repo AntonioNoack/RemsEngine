@@ -59,22 +59,22 @@ open class Quaterniond {
         return this
     }
 
-    fun normalize(dest: Quaterniond): Quaterniond {
+    fun normalize(dst: Quaterniond): Quaterniond {
         val invNorm = JomlMath.invsqrt(lengthSquared())
-        dest.x = x * invNorm
-        dest.y = y * invNorm
-        dest.z = z * invNorm
-        dest.w = w * invNorm
-        return dest
+        dst.x = x * invNorm
+        dst.y = y * invNorm
+        dst.z = z * invNorm
+        dst.w = w * invNorm
+        return dst
     }
 
     @JvmOverloads
-    fun add(x: Double, y: Double, z: Double, w: Double, dest: Quaterniond = this): Quaterniond {
-        dest.x = this.x + x
-        dest.y = this.y + y
-        dest.z = this.z + z
-        dest.w = this.w + w
-        return dest
+    fun add(x: Double, y: Double, z: Double, w: Double, dst: Quaterniond = this): Quaterniond {
+        dst.x = this.x + x
+        dst.y = this.y + y
+        dst.z = this.z + z
+        dst.w = this.w + w
+        return dst
     }
 
     fun add(q2: Quaterniond): Quaterniond {
@@ -85,12 +85,12 @@ open class Quaterniond {
         return this
     }
 
-    fun add(q2: Quaterniond, dest: Quaterniond): Quaterniond {
-        dest.x = x + q2.x
-        dest.y = y + q2.y
-        dest.z = z + q2.z
-        dest.w = w + q2.w
-        return dest
+    fun add(q2: Quaterniond, dst: Quaterniond): Quaterniond {
+        dst.x = x + q2.x
+        dst.y = y + q2.y
+        dst.z = z + q2.z
+        dst.w = w + q2.w
+        return dst
     }
 
     fun dot(otherQuat: Quaterniond): Double {
@@ -101,23 +101,23 @@ open class Quaterniond {
         return 2.0 * JomlMath.safeAcos(w)
     }
 
-    operator fun get(dest: Matrix3d): Matrix3d {
-        return dest.set(this)
+    fun get(dst: Matrix3d): Matrix3d {
+        return dst.set(this)
     }
 
-    operator fun get(dest: Matrix3f): Matrix3f {
-        return dest.set(this)
+    fun get(dst: Matrix3f): Matrix3f {
+        return dst.set(this)
     }
 
-    operator fun get(dest: Matrix4d): Matrix4d {
-        return dest.set(this)
+    fun get(dst: Matrix4d): Matrix4d {
+        return dst.set(this)
     }
 
-    operator fun get(dest: Matrix4f): Matrix4f {
-        return dest.set(this)
+    fun get(dst: Matrix4f): Matrix4f {
+        return dst.set(this)
     }
 
-    operator fun get(dest: AxisAngle4f): AxisAngle4f {
+    fun get(dst: AxisAngle4f): AxisAngle4f {
         var x = x
         var y = y
         var z = z
@@ -130,22 +130,22 @@ open class Quaterniond {
             z *= s
             w *= s
         }
-        dest.angle = (2.0 * acos(w)).toFloat()
+        dst.angle = (2.0 * acos(w)).toFloat()
         s = sqrt(1.0 - w * w)
         if (s < 0.001) {
-            dest.x = x.toFloat()
-            dest.y = y.toFloat()
-            dest.z = z.toFloat()
+            dst.x = x.toFloat()
+            dst.y = y.toFloat()
+            dst.z = z.toFloat()
         } else {
             s = 1.0 / s
-            dest.x = (x * s).toFloat()
-            dest.y = (y * s).toFloat()
-            dest.z = (z * s).toFloat()
+            dst.x = (x * s).toFloat()
+            dst.y = (y * s).toFloat()
+            dst.z = (z * s).toFloat()
         }
-        return dest
+        return dst
     }
 
-    operator fun get(dest: AxisAngle4d): AxisAngle4d {
+    fun get(dst: AxisAngle4d): AxisAngle4d {
         var x = x
         var y = y
         var z = z
@@ -158,30 +158,30 @@ open class Quaterniond {
             z *= s
             w *= s
         }
-        dest.angle = 2.0 * acos(w)
+        dst.angle = 2.0 * acos(w)
         s = sqrt(1.0 - w * w)
         if (s < 0.001) {
-            dest.x = x
-            dest.y = y
-            dest.z = z
+            dst.x = x
+            dst.y = y
+            dst.z = z
         } else {
             s = 1.0 / s
-            dest.x = x * s
-            dest.y = y * s
-            dest.z = z * s
+            dst.x = x * s
+            dst.y = y * s
+            dst.z = z * s
         }
-        return dest
+        return dst
     }
 
-    operator fun get(dest: Quaterniond): Quaterniond {
-        return dest.set(this)
+    fun get(dst: Quaterniond): Quaterniond {
+        return dst.set(this)
     }
 
-    operator fun get(dest: Quaternionf): Quaternionf {
-        return dest.set(this)
+    fun get(dst: Quaternionf): Quaternionf {
+        return dst.set(this)
     }
 
-    operator fun set(x: Double, y: Double, z: Double, w: Double): Quaterniond {
+    fun set(x: Double, y: Double, z: Double, w: Double): Quaterniond {
         this.x = x
         this.y = y
         this.z = z
@@ -437,13 +437,13 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun mul(q: Quaterniond, dest: Quaterniond = this): Quaterniond {
-        return this.mul(q.x, q.y, q.z, q.w, dest)
+    fun mul(q: Quaterniond, dst: Quaterniond = this): Quaterniond {
+        return this.mul(q.x, q.y, q.z, q.w, dst)
     }
 
     @JvmOverloads
-    fun mul(qx: Double, qy: Double, qz: Double, qw: Double, dest: Quaterniond = this): Quaterniond {
-        return dest.set(
+    fun mul(qx: Double, qy: Double, qz: Double, qw: Double, dst: Quaterniond = this): Quaterniond {
+        return dst.set(
             JomlMath.fma(w, qx, JomlMath.fma(x, qw, JomlMath.fma(y, qz, -z * qy))), JomlMath.fma(
                 w, qy, JomlMath.fma(-x, qz, JomlMath.fma(y, qw, z * qx))
             ), JomlMath.fma(
@@ -455,13 +455,13 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun premul(q: Quaterniond, dest: Quaterniond = this): Quaterniond {
-        return this.premul(q.x, q.y, q.z, q.w, dest)
+    fun premul(q: Quaterniond, dst: Quaterniond = this): Quaterniond {
+        return this.premul(q.x, q.y, q.z, q.w, dst)
     }
 
     @JvmOverloads
-    fun premul(qx: Double, qy: Double, qz: Double, qw: Double, dest: Quaterniond = this): Quaterniond {
-        return dest.set(
+    fun premul(qx: Double, qy: Double, qz: Double, qw: Double, dst: Quaterniond = this): Quaterniond {
+        return dst.set(
             JomlMath.fma(qw, x, JomlMath.fma(qx, w, JomlMath.fma(qy, z, -qz * y))),
             JomlMath.fma(qw, y, JomlMath.fma(-qx, z, JomlMath.fma(qy, w, qz * x))),
             JomlMath.fma(qw, z, JomlMath.fma(qx, y, JomlMath.fma(-qy, x, qz * w))),
@@ -485,7 +485,7 @@ open class Quaterniond {
         return this.transformInverseUnit(vec.x, vec.y, vec.z, vec)
     }
 
-    fun transformPositiveX(dest: Vector3d): Vector3d {
+    fun transformPositiveX(dst: Vector3d): Vector3d {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -494,13 +494,13 @@ open class Quaterniond {
         val xy = x * y
         val xz = x * z
         val yw = y * w
-        dest.x = ww + xx - zz - yy
-        dest.y = xy + zw + zw + xy
-        dest.z = xz - yw + xz - yw
-        return dest
+        dst.x = ww + xx - zz - yy
+        dst.y = xy + zw + zw + xy
+        dst.z = xz - yw + xz - yw
+        return dst
     }
 
-    fun transformPositiveX(dest: Vector4d): Vector4d {
+    fun transformPositiveX(dst: Vector4d): Vector4d {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -509,39 +509,39 @@ open class Quaterniond {
         val xy = x * y
         val xz = x * z
         val yw = y * w
-        dest.x = ww + xx - zz - yy
-        dest.y = xy + zw + zw + xy
-        dest.z = xz - yw + xz - yw
-        return dest
+        dst.x = ww + xx - zz - yy
+        dst.y = xy + zw + zw + xy
+        dst.z = xz - yw + xz - yw
+        return dst
     }
 
-    fun transformUnitPositiveX(dest: Vector3d): Vector3d {
+    fun transformUnitPositiveX(dst: Vector3d): Vector3d {
         val yy = y * y
         val zz = z * z
         val xy = x * y
         val xz = x * z
         val yw = y * w
         val zw = z * w
-        dest.x = 1.0 - yy - yy - zz - zz
-        dest.y = xy + zw + xy + zw
-        dest.z = xz - yw + xz - yw
-        return dest
+        dst.x = 1.0 - yy - yy - zz - zz
+        dst.y = xy + zw + xy + zw
+        dst.z = xz - yw + xz - yw
+        return dst
     }
 
-    fun transformUnitPositiveX(dest: Vector4d): Vector4d {
+    fun transformUnitPositiveX(dst: Vector4d): Vector4d {
         val yy = y * y
         val zz = z * z
         val xy = x * y
         val xz = x * z
         val yw = y * w
         val zw = z * w
-        dest.x = 1.0 - yy - yy - zz - zz
-        dest.y = xy + zw + xy + zw
-        dest.z = xz - yw + xz - yw
-        return dest
+        dst.x = 1.0 - yy - yy - zz - zz
+        dst.y = xy + zw + xy + zw
+        dst.z = xz - yw + xz - yw
+        return dst
     }
 
-    fun transformPositiveY(dest: Vector3d): Vector3d {
+    fun transformPositiveY(dst: Vector3d): Vector3d {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -550,13 +550,13 @@ open class Quaterniond {
         val xy = x * y
         val yz = y * z
         val xw = x * w
-        dest.x = -zw + xy - zw + xy
-        dest.y = yy - zz + ww - xx
-        dest.z = yz + yz + xw + xw
-        return dest
+        dst.x = -zw + xy - zw + xy
+        dst.y = yy - zz + ww - xx
+        dst.z = yz + yz + xw + xw
+        return dst
     }
 
-    fun transformPositiveY(dest: Vector4d): Vector4d {
+    fun transformPositiveY(dst: Vector4d): Vector4d {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -565,39 +565,39 @@ open class Quaterniond {
         val xy = x * y
         val yz = y * z
         val xw = x * w
-        dest.x = -zw + xy - zw + xy
-        dest.y = yy - zz + ww - xx
-        dest.z = yz + yz + xw + xw
-        return dest
+        dst.x = -zw + xy - zw + xy
+        dst.y = yy - zz + ww - xx
+        dst.z = yz + yz + xw + xw
+        return dst
     }
 
-    fun transformUnitPositiveY(dest: Vector4d): Vector4d {
+    fun transformUnitPositiveY(dst: Vector4d): Vector4d {
         val xx = x * x
         val zz = z * z
         val xy = x * y
         val yz = y * z
         val xw = x * w
         val zw = z * w
-        dest.x = xy - zw + xy - zw
-        dest.y = 1.0 - xx - xx - zz - zz
-        dest.z = yz + yz + xw + xw
-        return dest
+        dst.x = xy - zw + xy - zw
+        dst.y = 1.0 - xx - xx - zz - zz
+        dst.z = yz + yz + xw + xw
+        return dst
     }
 
-    fun transformUnitPositiveY(dest: Vector3d): Vector3d {
+    fun transformUnitPositiveY(dst: Vector3d): Vector3d {
         val xx = x * x
         val zz = z * z
         val xy = x * y
         val yz = y * z
         val xw = x * w
         val zw = z * w
-        dest.x = xy - zw + xy - zw
-        dest.y = 1.0 - xx - xx - zz - zz
-        dest.z = yz + yz + xw + xw
-        return dest
+        dst.x = xy - zw + xy - zw
+        dst.y = 1.0 - xx - xx - zz - zz
+        dst.z = yz + yz + xw + xw
+        return dst
     }
 
-    fun transformPositiveZ(dest: Vector3d): Vector3d {
+    fun transformPositiveZ(dst: Vector3d): Vector3d {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -606,13 +606,13 @@ open class Quaterniond {
         val yw = y * w
         val yz = y * z
         val xw = x * w
-        dest.x = yw + xz + xz + yw
-        dest.y = yz + yz - xw - xw
-        dest.z = zz - yy - xx + ww
-        return dest
+        dst.x = yw + xz + xz + yw
+        dst.y = yz + yz - xw - xw
+        dst.z = zz - yy - xx + ww
+        return dst
     }
 
-    fun transformPositiveZ(dest: Vector4d): Vector4d {
+    fun transformPositiveZ(dst: Vector4d): Vector4d {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -621,47 +621,47 @@ open class Quaterniond {
         val yw = y * w
         val yz = y * z
         val xw = x * w
-        dest.x = yw + xz + xz + yw
-        dest.y = yz + yz - xw - xw
-        dest.z = zz - yy - xx + ww
-        return dest
+        dst.x = yw + xz + xz + yw
+        dst.y = yz + yz - xw - xw
+        dst.z = zz - yy - xx + ww
+        return dst
     }
 
-    fun transformUnitPositiveZ(dest: Vector4d): Vector4d {
+    fun transformUnitPositiveZ(dst: Vector4d): Vector4d {
         val xx = x * x
         val yy = y * y
         val xz = x * z
         val yz = y * z
         val xw = x * w
         val yw = y * w
-        dest.x = xz + yw + xz + yw
-        dest.y = yz + yz - xw - xw
-        dest.z = 1.0 - xx - xx - yy - yy
-        return dest
+        dst.x = xz + yw + xz + yw
+        dst.y = yz + yz - xw - xw
+        dst.z = 1.0 - xx - xx - yy - yy
+        return dst
     }
 
-    fun transformUnitPositiveZ(dest: Vector3d): Vector3d {
+    fun transformUnitPositiveZ(dst: Vector3d): Vector3d {
         val xx = x * x
         val yy = y * y
         val xz = x * z
         val yz = y * z
         val xw = x * w
         val yw = y * w
-        dest.x = xz + yw + xz + yw
-        dest.y = yz + yz - xw - xw
-        dest.z = 1.0 - xx - xx - yy - yy
-        return dest
+        dst.x = xz + yw + xz + yw
+        dst.y = yz + yz - xw - xw
+        dst.z = 1.0 - xx - xx - yy - yy
+        return dst
     }
 
-    fun transform(vec: Vector3d, dest: Vector3d): Vector3d {
-        return this.transform(vec.x, vec.y, vec.z, dest)
+    fun transform(vec: Vector3d, dst: Vector3d): Vector3d {
+        return this.transform(vec.x, vec.y, vec.z, dst)
     }
 
-    fun transformInverse(vec: Vector3d, dest: Vector3d): Vector3d {
-        return this.transformInverse(vec.x, vec.y, vec.z, dest)
+    fun transformInverse(vec: Vector3d, dst: Vector3d): Vector3d {
+        return this.transformInverse(vec.x, vec.y, vec.z, dst)
     }
 
-    fun transform(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+    fun transform(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
         val xx = this.x * this.x
         val yy = this.y * this.y
         val zz = this.z * this.z
@@ -673,14 +673,14 @@ open class Quaterniond {
         val zw = this.z * w
         val yw = this.y * w
         val k = 1.0 / (xx + yy + zz + ww)
-        return dest.set(
+        return dst.set(
             JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2.0 * (xy - zw) * k, y, 2.0 * (xz + yw) * k * z)),
             JomlMath.fma(2.0 * (xy + zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2.0 * (yz - xw) * k * z)),
             JomlMath.fma(2.0 * (xz - yw) * k, x, JomlMath.fma(2.0 * (yz + xw) * k, y, (zz - xx - yy + ww) * k * z))
         )
     }
 
-    fun transformInverse(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+    fun transformInverse(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
         val n = 1.0 / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
         val qx = this.x * n
         val qy = this.y * n
@@ -697,7 +697,7 @@ open class Quaterniond {
         val zw = qz * qw
         val yw = qy * qw
         val k = 1.0 / (xx + yy + zz + ww)
-        return dest.set(
+        return dst.set(
             JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2.0 * (xy + zw) * k, y, 2.0 * (xz - yw) * k * z)),
             JomlMath.fma(2.0 * (xy - zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2.0 * (yz + xw) * k * z)),
             JomlMath.fma(2.0 * (xz + yw) * k, x, JomlMath.fma(2.0 * (yz - xw) * k, y, (zz - xx - yy + ww) * k * z))
@@ -705,16 +705,16 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun transform(vec: Vector4d, dest: Vector4d = vec): Vector4d {
-        return this.transform(vec.x, vec.y, vec.z, dest)
+    fun transform(vec: Vector4d, dst: Vector4d = vec): Vector4d {
+        return this.transform(vec.x, vec.y, vec.z, dst)
     }
 
     @JvmOverloads
-    fun transformInverse(vec: Vector4d, dest: Vector4d = vec): Vector4d {
-        return this.transformInverse(vec.x, vec.y, vec.z, dest)
+    fun transformInverse(vec: Vector4d, dst: Vector4d = vec): Vector4d {
+        return this.transformInverse(vec.x, vec.y, vec.z, dst)
     }
 
-    fun transform(x: Double, y: Double, z: Double, dest: Vector4d): Vector4d {
+    fun transform(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
         val xx = this.x * this.x
         val yy = this.y * this.y
         val zz = this.z * this.z
@@ -726,15 +726,15 @@ open class Quaterniond {
         val zw = this.z * w
         val yw = this.y * w
         val k = 1.0 / (xx + yy + zz + ww)
-        return dest.set(
+        return dst.set(
             JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2.0 * (xy - zw) * k, y, 2.0 * (xz + yw) * k * z)),
             JomlMath.fma(2.0 * (xy + zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2.0 * (yz - xw) * k * z)),
             JomlMath.fma(2.0 * (xz - yw) * k, x, JomlMath.fma(2.0 * (yz + xw) * k, y, (zz - xx - yy + ww) * k * z)),
-            dest.w
+            dst.w
         )
     }
 
-    fun transformInverse(x: Double, y: Double, z: Double, dest: Vector4d): Vector4d {
+    fun transformInverse(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
         val n = 1.0 / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
         val qx = this.x * n
         val qy = this.y * n
@@ -751,7 +751,7 @@ open class Quaterniond {
         val zw = qz * qw
         val yw = qy * qw
         val k = 1.0 / (xx + yy + zz + ww)
-        return dest.set(
+        return dst.set(
             JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2.0 * (xy + zw) * k, y, 2.0 * (xz - yw) * k * z)),
             JomlMath.fma(2.0 * (xy - zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2.0 * (yz + xw) * k * z)),
             JomlMath.fma(2.0 * (xz + yw) * k, x, JomlMath.fma(2.0 * (yz - xw) * k, y, (zz - xx - yy + ww) * k * z))
@@ -766,15 +766,15 @@ open class Quaterniond {
         return this.transformInverse(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), vec)
     }
 
-    fun transformUnit(vec: Vector3d, dest: Vector3d): Vector3d {
-        return this.transformUnit(vec.x, vec.y, vec.z, dest)
+    fun transformUnit(vec: Vector3d, dst: Vector3d): Vector3d {
+        return this.transformUnit(vec.x, vec.y, vec.z, dst)
     }
 
-    fun transformInverseUnit(vec: Vector3d, dest: Vector3d): Vector3d {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, dest)
+    fun transformInverseUnit(vec: Vector3d, dst: Vector3d): Vector3d {
+        return this.transformInverseUnit(vec.x, vec.y, vec.z, dst)
     }
 
-    fun transformUnit(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+    fun transformUnit(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
         val xx = this.x * this.x
         val xy = this.x * this.y
         val xz = this.x * this.z
@@ -784,7 +784,7 @@ open class Quaterniond {
         val yw = this.y * w
         val zz = this.z * this.z
         val zw = this.z * w
-        return dest.set(
+        return dst.set(
             JomlMath.fma(JomlMath.fma(-2.0, yy + zz, 1.0), x, JomlMath.fma(2.0 * (xy - zw), y, 2.0 * (xz + yw) * z)),
             JomlMath.fma(
                 2.0 * (xy + zw), x, JomlMath.fma(
@@ -795,7 +795,7 @@ open class Quaterniond {
         )
     }
 
-    fun transformInverseUnit(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+    fun transformInverseUnit(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
         val xx = this.x * this.x
         val xy = this.x * this.y
         val xz = this.x * this.z
@@ -805,7 +805,7 @@ open class Quaterniond {
         val yw = this.y * w
         val zz = this.z * this.z
         val zw = this.z * w
-        return dest.set(
+        return dst.set(
             JomlMath.fma(JomlMath.fma(-2.0, yy + zz, 1.0), x, JomlMath.fma(2.0 * (xy + zw), y, 2.0 * (xz - yw) * z)),
             JomlMath.fma(
                 2.0 * (xy - zw), x, JomlMath.fma(
@@ -817,16 +817,16 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun transformUnit(vec: Vector4d, dest: Vector4d = vec): Vector4d {
-        return this.transformUnit(vec.x, vec.y, vec.z, dest)
+    fun transformUnit(vec: Vector4d, dst: Vector4d = vec): Vector4d {
+        return this.transformUnit(vec.x, vec.y, vec.z, dst)
     }
 
     @JvmOverloads
-    fun transformInverseUnit(vec: Vector4d, dest: Vector4d = vec): Vector4d {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, dest)
+    fun transformInverseUnit(vec: Vector4d, dst: Vector4d = vec): Vector4d {
+        return this.transformInverseUnit(vec.x, vec.y, vec.z, dst)
     }
 
-    fun transformUnit(x: Double, y: Double, z: Double, dest: Vector4d): Vector4d {
+    fun transformUnit(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
         val xx = this.x * this.x
         val xy = this.x * this.y
         val xz = this.x * this.z
@@ -836,7 +836,7 @@ open class Quaterniond {
         val yw = this.y * w
         val zz = this.z * this.z
         val zw = this.z * w
-        return dest.set(
+        return dst.set(
             JomlMath.fma(JomlMath.fma(-2.0, yy + zz, 1.0), x, JomlMath.fma(2.0 * (xy - zw), y, 2.0 * (xz + yw) * z)),
             JomlMath.fma(
                 2.0 * (xy + zw), x, JomlMath.fma(
@@ -844,11 +844,11 @@ open class Quaterniond {
                 )
             ),
             JomlMath.fma(2.0 * (xz - yw), x, JomlMath.fma(2.0 * (yz + xw), y, JomlMath.fma(-2.0, xx + yy, 1.0) * z)),
-            dest.w
+            dst.w
         )
     }
 
-    fun transformInverseUnit(x: Double, y: Double, z: Double, dest: Vector4d): Vector4d {
+    fun transformInverseUnit(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
         val xx = this.x * this.x
         val xy = this.x * this.y
         val xz = this.x * this.z
@@ -858,7 +858,7 @@ open class Quaterniond {
         val yw = this.y * w
         val zz = this.z * this.z
         val zw = this.z * w
-        return dest.set(
+        return dst.set(
             JomlMath.fma(JomlMath.fma(-2.0, yy + zz, 1.0), x, JomlMath.fma(2.0 * (xy + zw), y, 2.0 * (xz - yw) * z)),
             JomlMath.fma(
                 2.0 * (xy - zw), x, JomlMath.fma(
@@ -866,7 +866,7 @@ open class Quaterniond {
                 )
             ),
             JomlMath.fma(2.0 * (xz + yw), x, JomlMath.fma(2.0 * (yz - xw), y, JomlMath.fma(-2.0, xx + yy, 1.0) * z)),
-            dest.w
+            dst.w
         )
     }
 
@@ -878,7 +878,7 @@ open class Quaterniond {
         return this.transformInverseUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), vec)
     }
 
-    fun transformPositiveX(dest: Vector3f): Vector3f {
+    fun transformPositiveX(dst: Vector3f): Vector3f {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -887,13 +887,13 @@ open class Quaterniond {
         val xy = x * y
         val xz = x * z
         val yw = y * w
-        dest.x = (ww + xx - zz - yy).toFloat()
-        dest.y = (xy + zw + zw + xy).toFloat()
-        dest.z = (xz - yw + xz - yw).toFloat()
-        return dest
+        dst.x = (ww + xx - zz - yy).toFloat()
+        dst.y = (xy + zw + zw + xy).toFloat()
+        dst.z = (xz - yw + xz - yw).toFloat()
+        return dst
     }
 
-    fun transformPositiveX(dest: Vector4f): Vector4f {
+    fun transformPositiveX(dst: Vector4f): Vector4f {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -902,39 +902,39 @@ open class Quaterniond {
         val xy = x * y
         val xz = x * z
         val yw = y * w
-        dest.x = (ww + xx - zz - yy).toFloat()
-        dest.y = (xy + zw + zw + xy).toFloat()
-        dest.z = (xz - yw + xz - yw).toFloat()
-        return dest
+        dst.x = (ww + xx - zz - yy).toFloat()
+        dst.y = (xy + zw + zw + xy).toFloat()
+        dst.z = (xz - yw + xz - yw).toFloat()
+        return dst
     }
 
-    fun transformUnitPositiveX(dest: Vector3f): Vector3f {
+    fun transformUnitPositiveX(dst: Vector3f): Vector3f {
         val yy = y * y
         val zz = z * z
         val xy = x * y
         val xz = x * z
         val yw = y * w
         val zw = z * w
-        dest.x = (1.0 - yy - yy - zz - zz).toFloat()
-        dest.y = (xy + zw + xy + zw).toFloat()
-        dest.z = (xz - yw + xz - yw).toFloat()
-        return dest
+        dst.x = (1.0 - yy - yy - zz - zz).toFloat()
+        dst.y = (xy + zw + xy + zw).toFloat()
+        dst.z = (xz - yw + xz - yw).toFloat()
+        return dst
     }
 
-    fun transformUnitPositiveX(dest: Vector4f): Vector4f {
+    fun transformUnitPositiveX(dst: Vector4f): Vector4f {
         val yy = y * y
         val zz = z * z
         val xy = x * y
         val xz = x * z
         val yw = y * w
         val zw = z * w
-        dest.x = (1.0 - yy - yy - zz - zz).toFloat()
-        dest.y = (xy + zw + xy + zw).toFloat()
-        dest.z = (xz - yw + xz - yw).toFloat()
-        return dest
+        dst.x = (1.0 - yy - yy - zz - zz).toFloat()
+        dst.y = (xy + zw + xy + zw).toFloat()
+        dst.z = (xz - yw + xz - yw).toFloat()
+        return dst
     }
 
-    fun transformPositiveY(dest: Vector3f): Vector3f {
+    fun transformPositiveY(dst: Vector3f): Vector3f {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -943,13 +943,13 @@ open class Quaterniond {
         val xy = x * y
         val yz = y * z
         val xw = x * w
-        dest.x = (-zw + xy - zw + xy).toFloat()
-        dest.y = (yy - zz + ww - xx).toFloat()
-        dest.z = (yz + yz + xw + xw).toFloat()
-        return dest
+        dst.x = (-zw + xy - zw + xy).toFloat()
+        dst.y = (yy - zz + ww - xx).toFloat()
+        dst.z = (yz + yz + xw + xw).toFloat()
+        return dst
     }
 
-    fun transformPositiveY(dest: Vector4f): Vector4f {
+    fun transformPositiveY(dst: Vector4f): Vector4f {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -958,39 +958,39 @@ open class Quaterniond {
         val xy = x * y
         val yz = y * z
         val xw = x * w
-        dest.x = (-zw + xy - zw + xy).toFloat()
-        dest.y = (yy - zz + ww - xx).toFloat()
-        dest.z = (yz + yz + xw + xw).toFloat()
-        return dest
+        dst.x = (-zw + xy - zw + xy).toFloat()
+        dst.y = (yy - zz + ww - xx).toFloat()
+        dst.z = (yz + yz + xw + xw).toFloat()
+        return dst
     }
 
-    fun transformUnitPositiveY(dest: Vector4f): Vector4f {
+    fun transformUnitPositiveY(dst: Vector4f): Vector4f {
         val xx = x * x
         val zz = z * z
         val xy = x * y
         val yz = y * z
         val xw = x * w
         val zw = z * w
-        dest.x = (xy - zw + xy - zw).toFloat()
-        dest.y = (1.0 - xx - xx - zz - zz).toFloat()
-        dest.z = (yz + yz + xw + xw).toFloat()
-        return dest
+        dst.x = (xy - zw + xy - zw).toFloat()
+        dst.y = (1.0 - xx - xx - zz - zz).toFloat()
+        dst.z = (yz + yz + xw + xw).toFloat()
+        return dst
     }
 
-    fun transformUnitPositiveY(dest: Vector3f): Vector3f {
+    fun transformUnitPositiveY(dst: Vector3f): Vector3f {
         val xx = x * x
         val zz = z * z
         val xy = x * y
         val yz = y * z
         val xw = x * w
         val zw = z * w
-        dest.x = (xy - zw + xy - zw).toFloat()
-        dest.y = (1.0 - xx - xx - zz - zz).toFloat()
-        dest.z = (yz + yz + xw + xw).toFloat()
-        return dest
+        dst.x = (xy - zw + xy - zw).toFloat()
+        dst.y = (1.0 - xx - xx - zz - zz).toFloat()
+        dst.z = (yz + yz + xw + xw).toFloat()
+        return dst
     }
 
-    fun transformPositiveZ(dest: Vector3f): Vector3f {
+    fun transformPositiveZ(dst: Vector3f): Vector3f {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -999,13 +999,13 @@ open class Quaterniond {
         val yw = y * w
         val yz = y * z
         val xw = x * w
-        dest.x = (yw + xz + xz + yw).toFloat()
-        dest.y = (yz + yz - xw - xw).toFloat()
-        dest.z = (zz - yy - xx + ww).toFloat()
-        return dest
+        dst.x = (yw + xz + xz + yw).toFloat()
+        dst.y = (yz + yz - xw - xw).toFloat()
+        dst.z = (zz - yy - xx + ww).toFloat()
+        return dst
     }
 
-    fun transformPositiveZ(dest: Vector4f): Vector4f {
+    fun transformPositiveZ(dst: Vector4f): Vector4f {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -1014,47 +1014,47 @@ open class Quaterniond {
         val yw = y * w
         val yz = y * z
         val xw = x * w
-        dest.x = (yw + xz + xz + yw).toFloat()
-        dest.y = (yz + yz - xw - xw).toFloat()
-        dest.z = (zz - yy - xx + ww).toFloat()
-        return dest
+        dst.x = (yw + xz + xz + yw).toFloat()
+        dst.y = (yz + yz - xw - xw).toFloat()
+        dst.z = (zz - yy - xx + ww).toFloat()
+        return dst
     }
 
-    fun transformUnitPositiveZ(dest: Vector4f): Vector4f {
+    fun transformUnitPositiveZ(dst: Vector4f): Vector4f {
         val xx = x * x
         val yy = y * y
         val xz = x * z
         val yz = y * z
         val xw = x * w
         val yw = y * w
-        dest.x = (xz + yw + xz + yw).toFloat()
-        dest.y = (yz + yz - xw - xw).toFloat()
-        dest.z = (1.0 - xx - xx - yy - yy).toFloat()
-        return dest
+        dst.x = (xz + yw + xz + yw).toFloat()
+        dst.y = (yz + yz - xw - xw).toFloat()
+        dst.z = (1.0 - xx - xx - yy - yy).toFloat()
+        return dst
     }
 
-    fun transformUnitPositiveZ(dest: Vector3f): Vector3f {
+    fun transformUnitPositiveZ(dst: Vector3f): Vector3f {
         val xx = x * x
         val yy = y * y
         val xz = x * z
         val yz = y * z
         val xw = x * w
         val yw = y * w
-        dest.x = (xz + yw + xz + yw).toFloat()
-        dest.y = (yz + yz - xw - xw).toFloat()
-        dest.z = (1.0 - xx - xx - yy - yy).toFloat()
-        return dest
+        dst.x = (xz + yw + xz + yw).toFloat()
+        dst.y = (yz + yz - xw - xw).toFloat()
+        dst.z = (1.0 - xx - xx - yy - yy).toFloat()
+        return dst
     }
 
-    fun transform(vec: Vector3f, dest: Vector3f): Vector3f {
-        return this.transform(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dest)
+    fun transform(vec: Vector3f, dst: Vector3f): Vector3f {
+        return this.transform(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
     }
 
-    fun transformInverse(vec: Vector3f, dest: Vector3f): Vector3f {
-        return this.transformInverse(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dest)
+    fun transformInverse(vec: Vector3f, dst: Vector3f): Vector3f {
+        return this.transformInverse(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
     }
 
-    fun transform(x: Double, y: Double, z: Double, dest: Vector3f): Vector3f {
+    fun transform(x: Double, y: Double, z: Double, dst: Vector3f): Vector3f {
         val xx = this.x * this.x
         val yy = this.y * this.y
         val zz = this.z * this.z
@@ -1066,14 +1066,14 @@ open class Quaterniond {
         val zw = this.z * w
         val yw = this.y * w
         val k = 1.0 / (xx + yy + zz + ww)
-        return dest.set(
+        return dst.set(
             JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2.0 * (xy - zw) * k, y, 2.0 * (xz + yw) * k * z)),
             JomlMath.fma(2.0 * (xy + zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2.0 * (yz - xw) * k * z)),
             JomlMath.fma(2.0 * (xz - yw) * k, x, JomlMath.fma(2.0 * (yz + xw) * k, y, (zz - xx - yy + ww) * k * z))
         )
     }
 
-    fun transformInverse(x: Double, y: Double, z: Double, dest: Vector3f): Vector3f {
+    fun transformInverse(x: Double, y: Double, z: Double, dst: Vector3f): Vector3f {
         val n = 1.0 / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
         val qx = this.x * n
         val qy = this.y * n
@@ -1090,7 +1090,7 @@ open class Quaterniond {
         val zw = qz * qw
         val yw = qy * qw
         val k = 1.0 / (xx + yy + zz + ww)
-        return dest.set(
+        return dst.set(
             JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2.0 * (xy + zw) * k, y, 2.0 * (xz - yw) * k * z)),
             JomlMath.fma(2.0 * (xy - zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2.0 * (yz + xw) * k * z)),
             JomlMath.fma(2.0 * (xz + yw) * k, x, JomlMath.fma(2.0 * (yz - xw) * k, y, (zz - xx - yy + ww) * k * z))
@@ -1098,16 +1098,16 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun transform(vec: Vector4f, dest: Vector4f = vec): Vector4f {
-        return this.transform(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dest)
+    fun transform(vec: Vector4f, dst: Vector4f = vec): Vector4f {
+        return this.transform(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
     }
 
     @JvmOverloads
-    fun transformInverse(vec: Vector4f, dest: Vector4f = vec): Vector4f {
-        return this.transformInverse(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dest)
+    fun transformInverse(vec: Vector4f, dst: Vector4f = vec): Vector4f {
+        return this.transformInverse(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
     }
 
-    fun transform(x: Double, y: Double, z: Double, dest: Vector4f): Vector4f {
+    fun transform(x: Double, y: Double, z: Double, dst: Vector4f): Vector4f {
         val xx = this.x * this.x
         val yy = this.y * this.y
         val zz = this.z * this.z
@@ -1119,18 +1119,18 @@ open class Quaterniond {
         val zw = this.z * w
         val yw = this.y * w
         val k = 1.0 / (xx + yy + zz + ww)
-        return dest.set(
+        return dst.set(
             JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2.0 * (xy - zw) * k, y, 2.0 * (xz + yw) * k * z))
                 .toFloat(),
             JomlMath.fma(2.0 * (xy + zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2.0 * (yz - xw) * k * z))
                 .toFloat(),
             JomlMath.fma(2.0 * (xz - yw) * k, x, JomlMath.fma(2.0 * (yz + xw) * k, y, (zz - xx - yy + ww) * k * z))
                 .toFloat(),
-            dest.w
+            dst.w
         )
     }
 
-    fun transformInverse(x: Double, y: Double, z: Double, dest: Vector4f): Vector4f {
+    fun transformInverse(x: Double, y: Double, z: Double, dst: Vector4f): Vector4f {
         val n = 1.0 / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
         val qx = this.x * n
         val qy = this.y * n
@@ -1147,23 +1147,23 @@ open class Quaterniond {
         val zw = qz * qw
         val yw = qy * qw
         val k = 1.0 / (xx + yy + zz + ww)
-        return dest.set(
+        return dst.set(
             JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2.0 * (xy + zw) * k, y, 2.0 * (xz - yw) * k * z)),
             JomlMath.fma(2.0 * (xy - zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2.0 * (yz + xw) * k * z)),
             JomlMath.fma(2.0 * (xz + yw) * k, x, JomlMath.fma(2.0 * (yz - xw) * k, y, (zz - xx - yy + ww) * k * z)),
-            dest.w.toDouble()
+            dst.w.toDouble()
         )
     }
 
-    fun transformUnit(vec: Vector3f, dest: Vector3f): Vector3f {
-        return this.transformUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dest)
+    fun transformUnit(vec: Vector3f, dst: Vector3f): Vector3f {
+        return this.transformUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
     }
 
-    fun transformInverseUnit(vec: Vector3f, dest: Vector3f): Vector3f {
-        return this.transformInverseUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dest)
+    fun transformInverseUnit(vec: Vector3f, dst: Vector3f): Vector3f {
+        return this.transformInverseUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
     }
 
-    fun transformUnit(x: Double, y: Double, z: Double, dest: Vector3f): Vector3f {
+    fun transformUnit(x: Double, y: Double, z: Double, dst: Vector3f): Vector3f {
         val xx = this.x * this.x
         val xy = this.x * this.y
         val xz = this.x * this.z
@@ -1173,7 +1173,7 @@ open class Quaterniond {
         val yw = this.y * w
         val zz = this.z * this.z
         val zw = this.z * w
-        return dest.set(
+        return dst.set(
             JomlMath.fma(JomlMath.fma(-2.0, yy + zz, 1.0), x, JomlMath.fma(2.0 * (xy - zw), y, 2.0 * (xz + yw) * z))
                 .toFloat(),
             JomlMath.fma(
@@ -1186,7 +1186,7 @@ open class Quaterniond {
         )
     }
 
-    fun transformInverseUnit(x: Double, y: Double, z: Double, dest: Vector3f): Vector3f {
+    fun transformInverseUnit(x: Double, y: Double, z: Double, dst: Vector3f): Vector3f {
         val xx = this.x * this.x
         val xy = this.x * this.y
         val xz = this.x * this.z
@@ -1196,7 +1196,7 @@ open class Quaterniond {
         val yw = this.y * w
         val zz = this.z * this.z
         val zw = this.z * w
-        return dest.set(
+        return dst.set(
             JomlMath.fma(JomlMath.fma(-2.0, yy + zz, 1.0), x, JomlMath.fma(2.0 * (xy + zw), y, 2.0 * (xz - yw) * z))
                 .toFloat(),
             JomlMath.fma(
@@ -1210,16 +1210,16 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun transformUnit(vec: Vector4f, dest: Vector4f = vec): Vector4f {
-        return this.transformUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dest)
+    fun transformUnit(vec: Vector4f, dst: Vector4f = vec): Vector4f {
+        return this.transformUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
     }
 
     @JvmOverloads
-    fun transformInverseUnit(vec: Vector4f, dest: Vector4f = vec): Vector4f {
-        return this.transformInverseUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dest)
+    fun transformInverseUnit(vec: Vector4f, dst: Vector4f = vec): Vector4f {
+        return this.transformInverseUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
     }
 
-    fun transformUnit(x: Double, y: Double, z: Double, dest: Vector4f): Vector4f {
+    fun transformUnit(x: Double, y: Double, z: Double, dst: Vector4f): Vector4f {
         val xx = this.x * this.x
         val xy = this.x * this.y
         val xz = this.x * this.z
@@ -1229,7 +1229,7 @@ open class Quaterniond {
         val yw = this.y * w
         val zz = this.z * this.z
         val zw = this.z * w
-        return dest.set(
+        return dst.set(
             JomlMath.fma(JomlMath.fma(-2.0, yy + zz, 1.0), x, JomlMath.fma(2.0 * (xy - zw), y, 2.0 * (xz + yw) * z))
                 .toFloat(),
             JomlMath.fma(
@@ -1242,7 +1242,7 @@ open class Quaterniond {
         )
     }
 
-    fun transformInverseUnit(x: Double, y: Double, z: Double, dest: Vector4f): Vector4f {
+    fun transformInverseUnit(x: Double, y: Double, z: Double, dst: Vector4f): Vector4f {
         val xx = this.x * this.x
         val xy = this.x * this.y
         val xz = this.x * this.z
@@ -1252,7 +1252,7 @@ open class Quaterniond {
         val yw = this.y * w
         val zz = this.z * this.z
         val zw = this.z * w
-        return dest.set(
+        return dst.set(
             JomlMath.fma(JomlMath.fma(-2.0, yy + zz, 1.0), x, JomlMath.fma(2.0 * (xy + zw), y, 2.0 * (xz - yw) * z))
                 .toFloat(),
             JomlMath.fma(
@@ -1266,23 +1266,23 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun invert(dest: Quaterniond = this): Quaterniond {
+    fun invert(dst: Quaterniond = this): Quaterniond {
         val invNorm = 1.0 / lengthSquared()
-        dest.x = -x * invNorm
-        dest.y = -y * invNorm
-        dest.z = -z * invNorm
-        dest.w = w * invNorm
-        return dest
+        dst.x = -x * invNorm
+        dst.y = -y * invNorm
+        dst.z = -z * invNorm
+        dst.w = w * invNorm
+        return dst
     }
 
     @JvmOverloads
-    fun div(b: Quaterniond, dest: Quaterniond = this): Quaterniond {
+    fun div(b: Quaterniond, dst: Quaterniond = this): Quaterniond {
         val invNorm = 1.0 / JomlMath.fma(b.x, b.x, JomlMath.fma(b.y, b.y, JomlMath.fma(b.z, b.z, b.w * b.w)))
         val x = -b.x * invNorm
         val y = -b.y * invNorm
         val z = -b.z * invNorm
         val w = b.w * invNorm
-        return dest.set(
+        return dst.set(
             JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
             JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
             JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
@@ -1297,12 +1297,12 @@ open class Quaterniond {
         return this
     }
 
-    fun conjugate(dest: Quaterniond): Quaterniond {
-        dest.x = -x
-        dest.y = -y
-        dest.z = -z
-        dest.w = w
-        return dest
+    fun conjugate(dst: Quaterniond): Quaterniond {
+        dst.x = -x
+        dst.y = -y
+        dst.z = -z
+        dst.w = w
+        return dst
     }
 
     fun identity(): Quaterniond {
@@ -1372,7 +1372,7 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun slerp(target: Quaterniond, alpha: Double, dest: Quaterniond = this): Quaterniond {
+    fun slerp(target: Quaterniond, alpha: Double, dst: Quaterniond = this): Quaterniond {
         val cosom = JomlMath.fma(x, target.x, JomlMath.fma(y, target.y, JomlMath.fma(z, target.z, w * target.w)))
         val absCosom = abs(cosom)
         val scale0: Double
@@ -1388,21 +1388,21 @@ open class Quaterniond {
             scale1 = alpha
         }
         scale1 = if (cosom >= 0.0) scale1 else -scale1
-        dest.x = JomlMath.fma(scale0, x, scale1 * target.x)
-        dest.y = JomlMath.fma(scale0, y, scale1 * target.y)
-        dest.z = JomlMath.fma(scale0, z, scale1 * target.z)
-        dest.w = JomlMath.fma(scale0, w, scale1 * target.w)
-        return dest
+        dst.x = JomlMath.fma(scale0, x, scale1 * target.x)
+        dst.y = JomlMath.fma(scale0, y, scale1 * target.y)
+        dst.z = JomlMath.fma(scale0, z, scale1 * target.z)
+        dst.w = JomlMath.fma(scale0, w, scale1 * target.w)
+        return dst
     }
 
     @JvmOverloads
-    fun scale(factor: Double, dest: Quaterniond = this): Quaterniond {
+    fun scale(factor: Double, dst: Quaterniond = this): Quaterniond {
         val sqrt = sqrt(factor)
-        dest.x = sqrt * x
-        dest.y = sqrt * y
-        dest.z = sqrt * z
-        dest.w = sqrt * w
-        return dest
+        dst.x = sqrt * x
+        dst.y = sqrt * y
+        dst.z = sqrt * z
+        dst.w = sqrt * w
+        return dst
     }
 
     fun scaling(factor: Double): Quaterniond {
@@ -1415,7 +1415,7 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun integrate(dt: Double, vx: Double, vy: Double, vz: Double, dest: Quaterniond = this): Quaterniond {
+    fun integrate(dt: Double, vx: Double, vy: Double, vz: Double, dst: Quaterniond = this): Quaterniond {
         val thetaX = dt * vx * 0.5
         val thetaY = dt * vy * 0.5
         val thetaZ = dt * vz * 0.5
@@ -1434,7 +1434,7 @@ open class Quaterniond {
         val dqX = thetaX * s
         val dqY = thetaY * s
         val dqZ = thetaZ * s
-        return dest.set(
+        return dst.set(
             JomlMath.fma(dqW, x, JomlMath.fma(dqX, w, JomlMath.fma(dqY, z, -dqZ * y))),
             JomlMath.fma(dqW, y, JomlMath.fma(-dqX, z, JomlMath.fma(dqY, w, dqZ * x))),
             JomlMath.fma(dqW, z, JomlMath.fma(dqX, y, JomlMath.fma(-dqY, x, dqZ * w))),
@@ -1443,31 +1443,31 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun nlerp(q: Quaterniond, factor: Double, dest: Quaterniond = this): Quaterniond {
+    fun nlerp(q: Quaterniond, factor: Double, dst: Quaterniond = this): Quaterniond {
         val cosom = JomlMath.fma(x, q.x, JomlMath.fma(y, q.y, JomlMath.fma(z, q.z, w * q.w)))
         val scale0 = 1.0 - factor
         val scale1 = if (cosom >= 0.0) factor else -factor
-        dest.x = JomlMath.fma(scale0, x, scale1 * q.x)
-        dest.y = JomlMath.fma(scale0, y, scale1 * q.y)
-        dest.z = JomlMath.fma(scale0, z, scale1 * q.z)
-        dest.w = JomlMath.fma(scale0, w, scale1 * q.w)
+        dst.x = JomlMath.fma(scale0, x, scale1 * q.x)
+        dst.y = JomlMath.fma(scale0, y, scale1 * q.y)
+        dst.z = JomlMath.fma(scale0, z, scale1 * q.z)
+        dst.w = JomlMath.fma(scale0, w, scale1 * q.w)
         val s =
             JomlMath.invsqrt(
                 JomlMath.fma(
-                    dest.x,
-                    dest.x,
-                    JomlMath.fma(dest.y, dest.y, JomlMath.fma(dest.z, dest.z, dest.w * dest.w))
+                    dst.x,
+                    dst.x,
+                    JomlMath.fma(dst.y, dst.y, JomlMath.fma(dst.z, dst.z, dst.w * dst.w))
                 )
             )
-        dest.x *= s
-        dest.y *= s
-        dest.z *= s
-        dest.w *= s
-        return dest
+        dst.x *= s
+        dst.y *= s
+        dst.z *= s
+        dst.w *= s
+        return dst
     }
 
     @JvmOverloads
-    fun nlerpIterative(q: Quaterniond, alpha: Double, dotThreshold: Double, dest: Quaterniond = this): Quaterniond {
+    fun nlerpIterative(q: Quaterniond, alpha: Double, dotThreshold: Double, dst: Quaterniond = this): Quaterniond {
         var q1x = x
         var q1y = y
         var q1z = z
@@ -1479,7 +1479,7 @@ open class Quaterniond {
         var dot = JomlMath.fma(q1x, q2x, JomlMath.fma(q1y, q2y, JomlMath.fma(q1z, q2z, q1w * q2w)))
         var absDot = abs(dot)
         return if (0.999999 < absDot) {
-            dest.set(this)
+            dst.set(this)
         } else {
             var alphaN: Double
             var scale0: Double
@@ -1540,11 +1540,11 @@ open class Quaterniond {
                     JomlMath.fma(resY, resY, JomlMath.fma(resZ, resZ, resW * resW))
                 )
             )
-            dest.x = resX * s
-            dest.y = resY * s
-            dest.z = resZ * s
-            dest.w = resW * s
-            dest
+            dst.x = resX * s
+            dst.y = resY * s
+            dst.z = resZ * s
+            dst.w = resW * s
+            dst
         }
     }
 
@@ -1552,8 +1552,8 @@ open class Quaterniond {
         return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
     }
 
-    fun lookAlong(dir: Vector3d, up: Vector3d, dest: Quaterniond): Quaterniond {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dest)
+    fun lookAlong(dir: Vector3d, up: Vector3d, dst: Quaterniond): Quaterniond {
+        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
     }
 
     @JvmOverloads
@@ -1564,7 +1564,7 @@ open class Quaterniond {
         upX: Double,
         upY: Double,
         upZ: Double,
-        dest: Quaterniond = this
+        dst: Quaterniond = this
     ): Quaterniond {
         val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
         val dirnX = -dirX * invDirLength
@@ -1615,7 +1615,7 @@ open class Quaterniond {
             y = (upnZ + dirnY) * t
             w = (upnX - leftY) * t
         }
-        return dest.set(
+        return dst.set(
             JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
             JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
             JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
@@ -1647,22 +1647,19 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun difference(other: Quaterniond, dest: Quaterniond = this): Quaterniond {
+    fun difference(other: Quaterniond, dst: Quaterniond = this): Quaterniond {
         val invNorm = 1.0 / lengthSquared()
         val x = -x * invNorm
         val y = -y * invNorm
         val z = -z * invNorm
         val w = w * invNorm
-        dest[JomlMath.fma(w, other.x, JomlMath.fma(x, other.w, JomlMath.fma(y, other.z, -z * other.y))), JomlMath.fma(
-            w,
-            other.y,
-            JomlMath.fma(-x, other.z, JomlMath.fma(y, other.w, z * other.x))
-        ), JomlMath.fma(
-            w,
-            other.z,
-            JomlMath.fma(x, other.y, JomlMath.fma(-y, other.x, z * other.w))
-        )] = JomlMath.fma(w, other.w, JomlMath.fma(-x, other.x, JomlMath.fma(-y, other.y, -z * other.z)))
-        return dest
+        dst.set(
+            JomlMath.fma(w, other.x, JomlMath.fma(x, other.w, JomlMath.fma(y, other.z, -z * other.y))),
+            JomlMath.fma(w, other.y, JomlMath.fma(-x, other.z, JomlMath.fma(y, other.w, z * other.x))),
+            JomlMath.fma(w, other.z, JomlMath.fma(x, other.y, JomlMath.fma(-y, other.x, z * other.w))),
+            JomlMath.fma(w, other.w, JomlMath.fma(-x, other.x, JomlMath.fma(-y, other.y, -z * other.z)))
+        )
+        return dst
     }
 
     fun rotationTo(
@@ -1731,7 +1728,7 @@ open class Quaterniond {
         toDirX: Double,
         toDirY: Double,
         toDirZ: Double,
-        dest: Quaterniond = this
+        dst: Quaterniond = this
     ): Quaterniond {
         val fn =
             JomlMath.invsqrt(JomlMath.fma(fromDirX, fromDirX, JomlMath.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
@@ -1774,7 +1771,7 @@ open class Quaterniond {
             z *= n2
             w *= n2
         }
-        return dest.set(
+        return dst.set(
             JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
             JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
             JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
@@ -1821,8 +1818,8 @@ open class Quaterniond {
         return this.set(0.0, 0.0, sin, cos)
     }
 
-    fun rotateTo(fromDir: Vector3d, toDir: Vector3d, dest: Quaterniond): Quaterniond {
-        return this.rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, dest)
+    fun rotateTo(fromDir: Vector3d, toDir: Vector3d, dst: Quaterniond): Quaterniond {
+        return this.rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, dst)
     }
 
     fun rotateTo(fromDir: Vector3d, toDir: Vector3d): Quaterniond {
@@ -1830,55 +1827,55 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun rotateX(angle: Double, dest: Quaterniond = this): Quaterniond {
+    fun rotateX(angle: Double, dst: Quaterniond = this): Quaterniond {
         val sin = sin(angle * 0.5)
         val cos = cos(angle * 0.5)
-        return dest.set(w * sin + x * cos, y * cos + z * sin, z * cos - y * sin, w * cos - x * sin)
+        return dst.set(w * sin + x * cos, y * cos + z * sin, z * cos - y * sin, w * cos - x * sin)
     }
 
     @JvmOverloads
-    fun rotateY(angle: Double, dest: Quaterniond = this): Quaterniond {
+    fun rotateY(angle: Double, dst: Quaterniond = this): Quaterniond {
         val sin = sin(angle * 0.5)
         val cos = cos(angle * 0.5)
-        return dest.set(x * cos - z * sin, w * sin + y * cos, x * sin + z * cos, w * cos - y * sin)
+        return dst.set(x * cos - z * sin, w * sin + y * cos, x * sin + z * cos, w * cos - y * sin)
     }
 
     @JvmOverloads
-    fun rotateZ(angle: Double, dest: Quaterniond = this): Quaterniond {
+    fun rotateZ(angle: Double, dst: Quaterniond = this): Quaterniond {
         val sin = sin(angle * 0.5)
         val cos = cos(angle * 0.5)
-        return dest.set(x * cos + y * sin, y * cos - x * sin, w * sin + z * cos, w * cos - z * sin)
+        return dst.set(x * cos + y * sin, y * cos - x * sin, w * sin + z * cos, w * cos - z * sin)
     }
 
     @JvmOverloads
-    fun rotateLocalX(angle: Double, dest: Quaterniond = this): Quaterniond {
+    fun rotateLocalX(angle: Double, dst: Quaterniond = this): Quaterniond {
         val halfAngle = angle * 0.5
         val s = sin(halfAngle)
         val c = cos(halfAngle)
-        dest[c * x + s * w, c * y - s * z, c * z + s * y] = c * w - s * x
-        return dest
+        dst.set(c * x + s * w, c * y - s * z, c * z + s * y,c * w - s * x)
+        return dst
     }
 
     @JvmOverloads
-    fun rotateLocalY(angle: Double, dest: Quaterniond = this): Quaterniond {
+    fun rotateLocalY(angle: Double, dst: Quaterniond = this): Quaterniond {
         val halfAngle = angle * 0.5
         val s = sin(halfAngle)
         val c = cos(halfAngle)
-        dest[c * x + s * z, c * y + s * w, c * z - s * x] = c * w - s * y
-        return dest
+        dst.set(c * x + s * z, c * y + s * w, c * z - s * x, c * w - s * y)
+        return dst
     }
 
     @JvmOverloads
-    fun rotateLocalZ(angle: Double, dest: Quaterniond = this): Quaterniond {
+    fun rotateLocalZ(angle: Double, dst: Quaterniond = this): Quaterniond {
         val halfAngle = angle * 0.5
         val s = sin(halfAngle)
         val c = cos(halfAngle)
-        dest[c * x - s * y, c * y + s * x, c * z + s * w] = c * w - s * z
-        return dest
+        dst.set(c * x - s * y, c * y + s * x, c * z + s * w, c * w - s * z)
+        return dst
     }
 
     @JvmOverloads
-    fun rotateXYZ(angleX: Double, angleY: Double, angleZ: Double, dest: Quaterniond = this): Quaterniond {
+    fun rotateXYZ(angleX: Double, angleY: Double, angleZ: Double, dst: Quaterniond = this): Quaterniond {
         val sx = sin(angleX * 0.5)
         val cx = cos(angleX * 0.5)
         val sy = sin(angleY * 0.5)
@@ -1893,7 +1890,7 @@ open class Quaterniond {
         val x = sx * cycz + cx * sysz
         val y = cx * sycz - sx * cysz
         val z = cx * cysz + sx * sycz
-        return dest.set(
+        return dst.set(
             JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
             JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
             JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
@@ -1902,7 +1899,7 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun rotateZYX(angleZ: Double, angleY: Double, angleX: Double, dest: Quaterniond = this): Quaterniond {
+    fun rotateZYX(angleZ: Double, angleY: Double, angleX: Double, dst: Quaterniond = this): Quaterniond {
         val sx = sin(angleX * 0.5)
         val cx = cos(angleX * 0.5)
         val sy = sin(angleY * 0.5)
@@ -1917,7 +1914,7 @@ open class Quaterniond {
         val x = sx * cycz - cx * sysz
         val y = cx * sycz + sx * cysz
         val z = cx * cysz - sx * sycz
-        return dest.set(
+        return dst.set(
             JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
             JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
             JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
@@ -1926,7 +1923,7 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun rotateYXZ(angleY: Double, angleX: Double, angleZ: Double, dest: Quaterniond = this): Quaterniond {
+    fun rotateYXZ(angleY: Double, angleX: Double, angleZ: Double, dst: Quaterniond = this): Quaterniond {
         val sx = sin(angleX * 0.5)
         val cx = cos(angleX * 0.5)
         val sy = sin(angleY * 0.5)
@@ -1941,7 +1938,7 @@ open class Quaterniond {
         val y = yy * cz - yx * sz
         val z = yw * sz - yz * cz
         val w = yw * cz + yz * sz
-        return dest.set(
+        return dst.set(
             JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
             JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
             JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
@@ -1978,7 +1975,7 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun rotateAxis(angle: Double, axisX: Double, axisY: Double, axisZ: Double, dest: Quaterniond = this): Quaterniond {
+    fun rotateAxis(angle: Double, axisX: Double, axisY: Double, axisZ: Double, dst: Quaterniond = this): Quaterniond {
         val halfAngle = angle / 2.0
         val sinAngle = sin(halfAngle)
         val invVLength = JomlMath.invsqrt(JomlMath.fma(axisX, axisX, JomlMath.fma(axisY, axisY, axisZ * axisZ)))
@@ -1986,7 +1983,7 @@ open class Quaterniond {
         val ry = axisY * invVLength * sinAngle
         val rz = axisZ * invVLength * sinAngle
         val rw = cos(halfAngle)
-        return dest.set(
+        return dst.set(
             JomlMath.fma(w, rx, JomlMath.fma(x, rw, JomlMath.fma(y, rz, -z * ry))), JomlMath.fma(
                 w, ry, JomlMath.fma(-x, rz, JomlMath.fma(y, rw, z * rx))
             ), JomlMath.fma(
@@ -1997,8 +1994,8 @@ open class Quaterniond {
         )
     }
 
-    fun rotateAxis(angle: Double, axis: Vector3d, dest: Quaterniond): Quaterniond {
-        return this.rotateAxis(angle, axis.x, axis.y, axis.z, dest)
+    fun rotateAxis(angle: Double, axis: Vector3d, dst: Quaterniond): Quaterniond {
+        return this.rotateAxis(angle, axis.x, axis.y, axis.z, dst)
     }
 
     fun rotateAxis(angle: Double, axis: Vector3d): Quaterniond {
@@ -2079,7 +2076,7 @@ open class Quaterniond {
     }
 
     @JvmOverloads
-    fun conjugateBy(q: Quaterniond, dest: Quaterniond = this): Quaterniond {
+    fun conjugateBy(q: Quaterniond, dst: Quaterniond = this): Quaterniond {
         val invNorm = 1.0 / q.lengthSquared()
         val qix = -q.x * invNorm
         val qiy = -q.y * invNorm
@@ -2089,7 +2086,7 @@ open class Quaterniond {
         val qpy = JomlMath.fma(q.w, y, JomlMath.fma(-q.x, z, JomlMath.fma(q.y, w, q.z * x)))
         val qpz = JomlMath.fma(q.w, z, JomlMath.fma(q.x, y, JomlMath.fma(-q.y, x, q.z * w)))
         val qpw = JomlMath.fma(q.w, w, JomlMath.fma(-q.x, x, JomlMath.fma(-q.y, y, -q.z * z)))
-        return dest.set(
+        return dst.set(
             JomlMath.fma(qpw, qix, JomlMath.fma(qpx, qiw, JomlMath.fma(qpy, qiz, -qpz * qiy))),
             JomlMath.fma(qpw, qiy, JomlMath.fma(-qpx, qiz, JomlMath.fma(qpy, qiw, qpz * qix))),
             JomlMath.fma(qpw, qiz, JomlMath.fma(qpx, qiy, JomlMath.fma(-qpy, qix, qpz * qiw))),
@@ -2129,45 +2126,45 @@ open class Quaterniond {
     }
 
     companion object {
-        fun slerp(qs: Array<Quaterniond>, weights: DoubleArray, dest: Quaterniond): Quaterniond {
-            dest.set(qs[0])
+        fun slerp(qs: Array<Quaterniond>, weights: DoubleArray, dst: Quaterniond): Quaterniond {
+            dst.set(qs[0])
             var w = weights[0]
             for (i in 1 until qs.size) {
                 val w1 = weights[i]
                 val rw1 = w1 / (w + w1)
                 w += w1
-                dest.slerp(qs[i], rw1)
+                dst.slerp(qs[i], rw1)
             }
-            return dest
+            return dst
         }
 
-        fun nlerp(qs: Array<Quaterniond>, weights: DoubleArray, dest: Quaterniond): Quaterniond {
-            dest.set(qs[0])
+        fun nlerp(qs: Array<Quaterniond>, weights: DoubleArray, dst: Quaterniond): Quaterniond {
+            dst.set(qs[0])
             var w = weights[0]
             for (i in 1 until qs.size) {
                 val w1 = weights[i]
                 val rw1 = w1 / (w + w1)
                 w += w1
-                dest.nlerp(qs[i], rw1)
+                dst.nlerp(qs[i], rw1)
             }
-            return dest
+            return dst
         }
 
         fun nlerpIterative(
             qs: Array<Quaterniond>,
             weights: DoubleArray,
             dotThreshold: Double,
-            dest: Quaterniond
+            dst: Quaterniond
         ): Quaterniond {
-            dest.set(qs[0])
+            dst.set(qs[0])
             var w = weights[0]
             for (i in 1 until qs.size) {
                 val w1 = weights[i]
                 val rw1 = w1 / (w + w1)
                 w += w1
-                dest.nlerpIterative(qs[i], rw1, dotThreshold)
+                dst.nlerpIterative(qs[i], rw1, dotThreshold)
             }
-            return dest
+            return dst
         }
     }
 }

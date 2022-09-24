@@ -14,7 +14,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -23,16 +22,12 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Vectors.mulAdd
 import me.anno.utils.types.Vectors.safeNormalize
 import org.joml.*
 
 class SkyBox : MeshComponentBase() {
 
-
-    // todo sky cubemap
     // todo make this a light, such that all things can be lighted from it
-
 
     // todo override raytracing for clicking: if ray goes far enough, let it click us
 

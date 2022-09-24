@@ -5,6 +5,7 @@ import me.anno.input.Input
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import org.joml.Vector2f
 import org.lwjgl.glfw.GLFW.GLFW_KEY_V
 
 /**
@@ -33,11 +34,20 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
 
     var mx = 0f
     var my = 0f
+    var mz = 0f
+
+    var allowLeft = false
+    var allowRight = true
+
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (Input.isRightDown) {
-            mx += dx / h
-            my += dy / h
+        if ((allowLeft && Input.isLeftDown) || (allowRight && Input.isRightDown)) {
+            mx += dx
+            my += dy
         }
+    }
+
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
+        mz += dy
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Int) {

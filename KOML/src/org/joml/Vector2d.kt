@@ -291,6 +291,14 @@ open class Vector2d {
         return dst
     }
 
+    fun cross(other: Vector2d): Double {
+        return x * other.y - y * other.x
+    }
+
+    fun mulAdd(f: Double, b: Vector2d, dst: Vector2d): Vector2d {
+        return dst.set(x * f + b.x, y * f + b.y)
+    }
+
     companion object {
         fun lengthSquared(x: Double, y: Double) = x * x + y * y
         fun length(x: Double, y: Double) = hypot(x, y)

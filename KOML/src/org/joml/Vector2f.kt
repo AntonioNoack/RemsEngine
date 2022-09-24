@@ -262,6 +262,16 @@ open class Vector2f {
         return dst
     }
 
+    fun dot2(x: Float, y: Float) = this.x * x + this.y * y
+
+    fun cross(other: Vector2f): Float {
+        return x * other.y - y * other.x
+    }
+
+    fun mulAdd(f: Float, b: Vector2f, dst: Vector2f): Vector2f {
+        return dst.set(x * f + b.x, y * f + b.y)
+    }
+
     companion object {
 
         fun lengthSquared(x: Float, y: Float) = x * x + y * y

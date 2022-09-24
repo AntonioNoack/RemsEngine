@@ -11,6 +11,8 @@ import kotlin.math.sqrt
 @Suppress("unused")
 object Vectors {
 
+    // todo move them into their respective files in KOML
+
     /**
      * the following functions allow for comfortable debugging with vectors;
      * they shouldn't be used in production to keep allocations at a minimum
@@ -271,8 +273,6 @@ object Vectors {
         return this
     }
 
-    fun Vector2f.dot2(x: Float, y: Float) = this.x * x + this.y * y
-
     fun Vector3f.fract(dst: Vector3f = this): Vector3f = dst.set(Maths.fract(x), Maths.fract(y), Maths.fract(z))
     fun Vector3d.fract(dst: Vector3d = this): Vector3d = dst.set(Maths.fract(x), Maths.fract(y), Maths.fract(z))
 
@@ -327,14 +327,6 @@ object Vectors {
         } else { // down
             return dst.set(1f, 0f, 0f, 0f)
         }
-    }
-
-    fun Vector2f.cross(other: Vector2f): Float {
-        return x * other.y - y * other.x
-    }
-
-    fun Vector2f.mulAdd(f: Float, b: Vector2f, dst: Vector2f): Vector2f {
-        return dst.set(x * f + b.x, y * f + b.y)
     }
 
     fun crossLength(pos: FloatArray, ai: Int, bi: Int, ci: Int): Float {

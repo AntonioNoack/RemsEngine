@@ -165,25 +165,23 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     private val lightNBuffer = baseNBuffer.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
 
     private val clock = Clock()
-    private var lastPhysics: BulletPhysics? = null
-
     private var entityBaseClickId = 0
 
     val pipeline = Pipeline(deferred)
-    private val stage0 by lazy {
-        val stage0 = PipelineStage(
-            "default",
-            Sorting.NO_SORTING,
-            MAX_FORWARD_LIGHTS,
-            null,
-            DepthMode.CLOSER,
-            true,
-            CullMode.BACK,
-            pbrModelShader
-        )
+    private val stage0 = PipelineStage(
+        "default",
+        Sorting.NO_SORTING,
+        MAX_FORWARD_LIGHTS,
+        null,
+        DepthMode.CLOSER,
+        true,
+        CullMode.BACK,
+        pbrModelShader
+    )
+
+    init {
         pipeline.defaultStage = stage0
         pipeline.stages.add(stage0)
-        stage0
     }
 
     override val canDrawOverBorders: Boolean = true
@@ -251,10 +249,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         setRenderState()
 
         val world = getWorld()
-        if (world is Entity) {
-            lastPhysics = world.physics
-        }
-
         if (isKeyDown(GLFW.GLFW_KEY_PAUSE)) {
             world?.simpleTraversal(false) {
                 if (it is Entity && it.hasComponentInChildren(MeshComponentBase::class)) {
@@ -1381,6 +1375,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         useFrame(framebuffer, simpleNormalRenderer) {
             drawGizmos(drawGridLines, drawDebug)
         }
+        (0L).takeLowestOneBit()
     }
 
     fun drawGizmos(drawGridLines: Boolean, drawDebug: Boolean = true) {

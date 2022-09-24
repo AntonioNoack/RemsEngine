@@ -159,8 +159,8 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
                 if (group2.dynamicRotation) group2.rotation.rotateY(-dt * 3f)
             }
             camRotation.identity()
-                .rotateY(it.mx * 2f)
-                .rotateX(it.my * 2f)
+                .rotateY(it.mx / it.h * 2f)
+                .rotateX(it.my / it.h * 2f)
             camMatrix.identity().rotate(camRotation)
             shader.m3x3("camMatrix", camMatrix)
             for ((key, value) in uniforms) {

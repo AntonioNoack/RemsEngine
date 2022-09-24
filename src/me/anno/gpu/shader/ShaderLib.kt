@@ -574,7 +574,7 @@ object ShaderLib {
                         ) +
                 "       finalPosition = jointMat * vec4(coords, 1.0);\n" +
                 "       normal = mat3x3(jointMat) * normals;\n" +
-                "       tangent = vec4(mat3x3(jointMat) * tangents, 0.0), tangents.w);\n" +
+                "       tangent = vec4(mat3x3(jointMat) * tangents.xyz, tangents.w);\n" +
                 "   } else {\n" +
                 "       finalPosition = coords;\n" +
                 "       normal = normals;\n" +

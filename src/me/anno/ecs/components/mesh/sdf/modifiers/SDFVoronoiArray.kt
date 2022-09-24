@@ -13,7 +13,6 @@ import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Vectors.dot2
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector3f
