@@ -3,6 +3,7 @@ package me.anno.tests.gfx
 import me.anno.cache.data.ImageData.Companion.imageTimeout
 import me.anno.cache.instances.OldMeshCache
 import me.anno.config.DefaultConfig
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFX
@@ -62,7 +63,7 @@ fun main() {
                         shader.use()
                         shader.m4x3("localTransform", null)
                         shader.m4x4("transform", transform)
-                        val mesh = OldMeshCache.getSVG2(srcFile, imageTimeout, false)!!
+                        val mesh = MeshCache[srcFile, false]!!
                         defaultMaterial.bind(shader)
                         shader.v1b("hasVertexColors", mesh.hasVertexColors)
                         mesh.draw(shader, 0)

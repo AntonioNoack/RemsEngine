@@ -36,6 +36,7 @@ object Reduction {
             kotlinImpl: (a: Vector4f, b: Vector4f) -> Unit
         ) : this(name, Vector4f(startValue), function, normalize, kotlinImpl)
 
+        @Suppress("unused")
         constructor(
             name: String, startValue: Float, normalize: Boolean, function: String,
             kotlinImpl: (a: Float, b: Float) -> Float
@@ -71,9 +72,11 @@ object Reduction {
     val SUM = Operation("sum", 0f, "a+b") { a, b -> a + b }
 
     /** finds the maximum amplitude */
+    @Suppress("unused")
     val MAX_ABS = Operation("max-abs", 0f, "max(abs(a),abs(b))") { a, b -> max(abs(a), abs(b)) }
 
     /** finds the maximum amplitude, but keeps the sign */
+    @Suppress("unused")
     val MAX_ABS_SIGNED = Operation(
         "max-abs-signed", 0f,
         "vec4(abs(a.x)>abs(b.x)?a.x:b.x," +

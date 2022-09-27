@@ -184,6 +184,8 @@ fun main() {
                     step()
                     invalidateDrawing()
                     lastStep = Engine.gameTime
+                    if (windowStack.inFocus0 == null)
+                        requestFocus()
                 }
             }
 

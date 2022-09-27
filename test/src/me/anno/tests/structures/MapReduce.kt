@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.structures
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Clock
@@ -11,7 +11,7 @@ fun main() {
 
     // this sample used 16s in Python:
     // https://www.michael-noll.com/tutorials/writing-an-hadoop-mapreduce-program-in-python/
-    // and I wondered, what decently efficient performance by doing things right would look like
+    // and I wondered what decently efficient performance by doing things right would look like
     // result: 0.25s io + 0.25s computation in Kotlin
 
     // on the ARA cluster with Hadoop, it uses 25s without combination stage, and 45s with.

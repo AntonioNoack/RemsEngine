@@ -66,8 +66,8 @@ object FontManager {
             loadTexturesSync.push(true)
             val size0 = getSize(font, text, GFX.maxTextureSize, heightLimit)
             val w = GFXx2D.getSizeX(size0)
-            if (w <= widthLimit) return size0
             loadTexturesSync.pop()
+            if (w <= widthLimit) return size0
             val step = max(1, font.size.toInt())
             min(w, (widthLimit + step / 2) / step * step)
         }
@@ -158,6 +158,7 @@ object FontManager {
 
         if (text.isBlank2()) return null
         val fontSize = font.size
+
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val sub = fontSizeIndex * 8 + font.isItalic.toInt(4) + font.isBold.toInt(2)
 

@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.structures
 
 import me.anno.maths.Maths.factorial
 import me.anno.maths.Permutations

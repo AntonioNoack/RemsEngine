@@ -3,7 +3,6 @@ package me.anno.gpu.shader.builder
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.OpenGLShader
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 
@@ -163,6 +162,7 @@ class MainStage {
                 "" +
                         // depth bias
                         // dynamic bias is hard...
+                        // todo base it on the normal as suggested by https://digitalrune.github.io/DigitalRune-Documentation/html/3f4d959e-9c98-4a97-8d85-7a73c26145d7.htm ? :)
                         "depth += 0.005;\n" +
                         "return float(d0>depth);\n"
             )

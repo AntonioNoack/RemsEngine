@@ -13,6 +13,8 @@ import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.Color.a
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f

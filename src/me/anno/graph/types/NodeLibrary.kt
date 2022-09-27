@@ -12,9 +12,7 @@ import me.anno.graph.types.flow.control.IfElseNode
 import me.anno.graph.types.flow.control.WhileNode
 import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
-import me.anno.graph.types.flow.maths.CompareNode
-import me.anno.graph.types.flow.maths.MathD2Node
-import me.anno.graph.types.flow.maths.MathL2Node
+import me.anno.graph.types.flow.maths.*
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
 class NodeLibrary(val nodes: Collection<() -> Node>) {
@@ -40,8 +38,12 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { IfElseNode() },
             { WhileNode() },
             { PrintNode() },
+            { MathL1Node() },
             { MathL2Node() },
+            { MathL3Node() },
+            { MathD1Node() },
             { MathD2Node() },
+            { MathD3Node() },
             { CompareNode() }
         )
 

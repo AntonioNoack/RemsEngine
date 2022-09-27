@@ -43,7 +43,7 @@ import me.anno.utils.OS.downloads
 import java.io.FileNotFoundException
 import javax.imageio.ImageIO
 
-val size = 128
+var size = 128
 
 fun FileReference.dst() = desktop.getChild("$nameWithoutExtension.png")
 fun FileReference.dst2() = desktop.getChild("$nameWithoutExtension-2.png")
@@ -66,6 +66,7 @@ fun testEntityMeshFrame(file: FileReference) {
     generateEntityFrame(file, file.dst(), size, entity) {}
 }
 
+@Suppress("unused")
 fun testSkeletonFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
@@ -73,6 +74,7 @@ fun testSkeletonFrame(file: FileReference) {
     generateSkeletonFrame(file, file.dst(), skeleton, size) {}
 }
 
+@Suppress("unused")
 fun testImage(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
@@ -95,16 +97,19 @@ fun testImage(file: FileReference) {
     //println("texture from thumbs: ${tex2.toString()}")
 }
 
+@Suppress("unused")
 fun testFFMPEGImage(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     generateVideoFrame(file, file.dst(), size, {}, 0.0)
 }
 
+@Suppress("unused")
 fun testSVG(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     generateSVGFrame(file, file.dst(), size) {}
 }
 
+@Suppress("unused")
 fun testMeshFrame(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     val mesh = MeshCache[file]!!
@@ -115,11 +120,11 @@ fun testMaterial(file: FileReference) {
     generateMaterialFrame(file, desktop.getChild(file.nameWithoutExtension + ".png"), size) {}
 }
 
+@Suppress("unused")
 fun testVOXMeshFrame(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     generateVOXMeshFrame(file, file.dst(), size) {}
 }
-
 
 fun main() {
 
@@ -198,7 +203,6 @@ fun main() {
     // 3ds max files are not supported by assimp, sadly :/
     // testAssimpMeshFrame(getReference(downloads, "3d/Diningtable.max"))
 
-    // todo test the following meshes
     /*testAssimpMeshFrame(getReference(documents, "sphere.obj"))
     testAssimpMeshFrame(getReference(documents, "cube bricks.fbx"))
     testAssimpMeshFrame(getReference(downloads, "3d/robot_kyle_walking.fbx"))
@@ -211,7 +215,7 @@ fun main() {
 
 
     // testMeshFrame(desktop.getChild("Object_0.json")) // from the fox
-    // testMeshFrame(desktop.getChild("Object_1.json")) // from the fox, without materials, normals, and animation
+    // testMeshFrame(desktop.getChild("Object_1.json")) // from the fox, without materials, normals and animation
     // testMeshFrame(desktop.getChild("Lights.json")) // problematic invisible mesh
 
 

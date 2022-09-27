@@ -2,7 +2,7 @@ package me.anno.graph.types.flow
 
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.FlowGraph
-import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 
 abstract class ValueNode : FlowGraphNode {
@@ -18,7 +18,7 @@ abstract class ValueNode : FlowGraphNode {
         outputCount: Int
     ) : this(name, Array(inputCount) { inputType }.toList(), Array(outputCount) { outputType }.toList())*/
 
-    override fun createUI(list: PanelListY, style: Style) {}
+    override fun createUI(list: PanelList, style: Style) {}
 
     abstract fun compute(graph: FlowGraph)
 

@@ -37,14 +37,17 @@ import org.apache.logging.log4j.LogManager.getLogger
 import org.lwjgl.BufferUtils
 import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFW.glfwGetError
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL11C.glEnable
+import org.lwjgl.opengl.GL11C.glGetError
 import org.lwjgl.opengl.GL43C.glDebugMessageCallback
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
+import sun.plugin.dom.exception.InvalidStateException
 import java.awt.AWTException
 import java.awt.Robot
 import kotlin.math.abs
@@ -254,13 +257,20 @@ object GFXBase {
         // so it has to be a still image
         // alternatively we could play a small animation
         GFX.maxSamples = max(1, GL30C.glGetInteger(GL30C.GL_MAX_SAMPLES))
+        GFX.check()
         val zeroFrames = 2
         for (i in 0 until zeroFrames) {
             drawLogo(window0, i == zeroFrames - 1)
+            GFX.check()
             GLFW.glfwSwapBuffers(window0.pointer)
+            val err = glGetError()
+            if (err != 0)
+                LOGGER.warn("Got awkward OpenGL error from calling glfwSwapBuffers: ${getErrorTypeName(err)}")
+            // GFX.check()
         }
         tick.stop("Render frame zero")
         renderStep0()
+        GFX.check()
         tick.stop("Render step zero")
         StudioBase.instance?.gameInit()
         tick.stop("Game Init")

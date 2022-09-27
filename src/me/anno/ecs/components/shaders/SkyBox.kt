@@ -230,11 +230,11 @@ class SkyBox : MeshComponentBase() {
                         "float noise(vec3);" +
                         "float fbm(vec3 p){\n" +
                         "  float f = 0.0;\n" +
-                        "  f += noise(p) / 2;  p = fbmM * p;\n" +
-                        "  f += noise(p) / 4;  p = fbmM * (p * 1.1);\n" +
-                        "  f += noise(p) / 6;  p = fbmM * (p * 1.2);\n" +
-                        "  f += noise(p) / 12; p = fbmM * (p * 1.3);\n" +
-                        "  f += noise(p) / 24;\n" +
+                        "  f += noise(p) * 0.50; p = fbmM * p;\n" +
+                        "  f += noise(p) * 0.25; p = fbmM * (p * 1.1);\n" +
+                        "  f += noise(p) * 0.16; p = fbmM * (p * 1.2);\n" +
+                        "  f += noise(p) * 0.08; p = fbmM * (p * 1.3);\n" +
+                        "  f += noise(p) * 0.04;\n" +
                         "  return f;\n" +
                         "}\n" +
                         "float fbm(vec2 p){ return fbm(vec3(p, 0.0)); }\n"

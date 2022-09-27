@@ -1165,11 +1165,12 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             fsr22.jitter(cameraMatrix, width, height)
         }
 
-        cameraMatrix.rotate(rot)
+        if(!cameraMatrix.isFinite){
+            cameraMatrix.identity()
+            LOGGER.warn("Set matrix to identity, because it was non-finite! $cameraMatrix")
+        }
 
-        if (!cameraMatrix.isFinite) throw RuntimeException(
-            "camera matrix is NaN, by setPerspective, $fovYRadians, $aspectRatio, $near, $far, $worldScale, $rot"
-        )
+        cameraMatrix.rotate(rot)
 
         // lerp the world transforms
         val camTransform = camTransform
@@ -1494,7 +1495,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         super.onMouseMoved(x, y, dx, dy)
     }
 
-    var scale = 1.0
     var worldScale = 1.0
 
     var fovYRadians = 1f

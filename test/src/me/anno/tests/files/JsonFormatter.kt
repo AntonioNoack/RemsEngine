@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.files
 
 import me.anno.io.json.JsonFormatter
 

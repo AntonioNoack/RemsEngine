@@ -17,15 +17,35 @@ class Bone(var id: Int, var parentId: Int, name: String) : NamedSaveable() {
     // parent is unknown, maybe be indirect...
     // var parent: Bone? = null
 
+    /**
+     * transformation relative to parent
+     * */
     val relativeTransform = Matrix4x3f()
 
+    /**
+     * bone space to mesh space in bind pose
+     * */
     val originalTransform = Matrix4x3f()
 
-    val inverseBindPose = Matrix4x3f() // offsetMatrix; inverse of bone position + rotation
-    val offsetVector = Vector3f() // inverseBindPose.m30, inverseBindPose.m31, inverseBindPose.m32
+    /**
+     * offsetMatrix; inverse of bone position + rotation in mesh space
+     * */
+    val inverseBindPose = Matrix4x3f()
+    /**
+     * inverseBindPose.m30, inverseBindPose.m31, inverseBindPose.m32
+     * */
+    val offsetVector = Vector3f()
 
-    val bindPose = Matrix4x3f() // = inverseBindPose.invert()
-    val bindPosition = Vector3f() // bindPose.m30, bindPose.m31, bindPose.m32
+    /**
+     * = inverseBindPose.invert()
+     *
+     * bone position + rotation in mesh space
+     * */
+    val bindPose = Matrix4x3f()
+    /**
+     * bindPose.m30, bindPose.m31, bindPose.m32
+     * */
+    val bindPosition = Vector3f()
 
     fun setBindPose(m: Matrix4f) {
         bindPose.set(m)

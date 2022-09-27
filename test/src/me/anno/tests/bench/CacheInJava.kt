@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.bench
 
 import me.anno.utils.LOGGER
 import me.anno.utils.hpc.HeavyProcessing.processBalanced

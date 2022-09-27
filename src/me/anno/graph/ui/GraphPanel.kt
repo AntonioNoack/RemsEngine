@@ -2,8 +2,9 @@ package me.anno.graph.ui
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
-import me.anno.utils.Color.black
 import me.anno.engine.ECSRegistry
+import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawCurves.drawCubicBezier
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
@@ -37,6 +38,7 @@ import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
+import me.anno.utils.Color.black
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.joml.Vector3d
 import kotlin.math.*
@@ -81,8 +83,8 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
 
     var gridColor = 0x10ffffff
 
-    var lineThickness = max(1, sqrt(windowStack.height / 120f).roundToInt())
-    var lineThicknessBold = max(1, sqrt(windowStack.height / 50f).roundToInt())
+    var lineThickness = max(1, sqrt(GFX.someWindow.height / 120f).roundToInt())
+    var lineThicknessBold = max(1, sqrt(GFX.someWindow.height / 50f).roundToInt())
 
     var library = NodeLibrary.flowNodes
 
@@ -509,17 +511,33 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         }
     }
 
-    fun getInputField(con: NodeConnector, np: NodePanel, old: Panel?): Panel? {
+    fun getInputField(con: NodeConnector, old: Panel?): Panel? {
         if (!con.isEmpty()) return null
         if (con !is NodeInput) return null
         // todo text size is not updating...
         when (con.type) {
+            "Float" -> {
+                if (old is FloatInput) return old
+                    .apply { textSize = font.size }
+                return FloatInput(style)
+                    .setValue(con.value as? Float ?: 0f, false)
+                    .setChangeListener { con.value = it.toFloat() }
+                    .apply { textSize = font.size }
+            }
             "Double" -> {
                 if (old is FloatInput) return old
                     .apply { textSize = font.size }
                 return FloatInput(style)
                     .setValue(con.value as? Double ?: 0.0, false)
                     .setChangeListener { con.value = it }
+                    .apply { textSize = font.size }
+            }
+            "Int" -> {
+                if (old is IntInput) return old
+                    .apply { textSize = font.size }
+                return IntInput(style)
+                    .setValue(con.value as? Int ?: 0, false)
+                    .setChangeListener { con.value = it.toInt() }
                     .apply { textSize = font.size }
             }
             "Long" -> {
@@ -541,10 +559,9 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
                 if (old is Checkbox) return old
                     .apply { size = font.sizeInt }
                 return Checkbox(con.value == true, false, font.sizeInt, style)
+                    .apply { makeBackgroundTransparent() }
             }
         }
-        // todo give int,float,bool input fields
-        // dx += inputWidth
         // todo enum input for enums...
         return null
     }
@@ -579,6 +596,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         @JvmStatic
         fun main(args: Array<String>) {
             ECSRegistry.init()
+            GFXBase.forceLoadRenderDoc()
             TestStudio.testUI {
                 val g = FlowGraph.testLocalVariables()
                 calculateNodePositions(g.nodes)

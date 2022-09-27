@@ -19,7 +19,7 @@ import kotlin.random.Random
  * when true: each block has 9 neighbors in 2d, 27 in 3d;
  * when false: each block has 4 neighbors in 3d, 6 in 3d;
  * */
-val enableCrossLinks = true
+var enableCrossLinks = true
 
 class TestNode(var x: Float, var y: Float, val i: Int, val j: Int, val id: Int) {
     var distToEnd = 0.0

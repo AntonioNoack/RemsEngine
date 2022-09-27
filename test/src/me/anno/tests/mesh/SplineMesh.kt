@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.mesh
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
@@ -8,7 +8,6 @@ import me.anno.ecs.components.mesh.spline.Splines
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.image.ImageWriter
-import me.anno.maths.Maths.PIf
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import org.joml.Quaternionf
 import org.joml.Vector2f

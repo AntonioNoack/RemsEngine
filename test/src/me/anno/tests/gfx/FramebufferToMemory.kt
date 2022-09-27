@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.gfx
 
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFXState

@@ -314,7 +314,6 @@ object DrawTexts {
             return GFXx2D.getSize(textWidth.roundToInt(), h)
 
         }
-
     }
 
     fun drawText(
@@ -330,6 +329,7 @@ object DrawTexts {
         if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
 
         GFX.check()
+
         val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit)
 
         val charByChar = (tex0 == null || tex0 !is Texture2D || !tex0.isCreated || tex0.isDestroyed) && text.length > 1

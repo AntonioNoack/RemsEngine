@@ -8,6 +8,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.EnumValuePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.withAlpha
@@ -19,7 +20,7 @@ import kotlin.reflect.full.memberProperties
 open class EnumInput(
     val title: String, withTitle: Boolean, startValue: String,
     val options: List<NameDesc>, style: Style
-) : PanelListX(style), InputPanel<NameDesc> {
+) : PanelListX(style), InputPanel<NameDesc>, TextStyleable {
 
     constructor(title: String, ttt: String, startValue: String, options: List<NameDesc>, style: Style) :
             this(title, true, startValue, options, style) {
@@ -204,5 +205,33 @@ open class EnumInput(
         }
 
     }
+
+    override var textSize: Float
+        get() = inputPanel.textSize
+        set(value) {
+            inputPanel.textSize = value
+            titleView?.textSize = value
+        }
+
+    override var textColor: Int
+        get() = inputPanel.textColor
+        set(value) {
+            inputPanel.textColor = value
+            titleView?.textColor = value
+        }
+
+    override var isBold: Boolean
+        get() = inputPanel.isBold
+        set(value) {
+            inputPanel.isBold = value
+            titleView?.isBold = value
+        }
+
+    override var isItalic: Boolean
+        get() = inputPanel.isItalic
+        set(value) {
+            inputPanel.isItalic = value
+            titleView?.isItalic = value
+        }
 
 }

@@ -33,6 +33,7 @@ fun main() {
         else random.getSmooth(x * 0.03f, y * 0.03f, z * 0.03f) + y * 0.01f
     }
 
+    @Suppress("unused")
     fun testOnTexture() {
         val triangles = MarchingCubes.march(w, h, d, values, 0f, false)
         val scale = 32

@@ -8,6 +8,7 @@ import me.anno.utils.structures.arrays.IntArrayList
 import java.io.IOException
 import java.util.*
 
+@Suppress("UNUSED_PARAMETER")
 object ImageTracing {
 
     fun computeOutline(w: Int, h: Int, pixels: IntArray) {

@@ -1,6 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFXState
+import me.anno.maths.Maths.PIf
 import org.joml.Matrix4f
 import kotlin.math.atan
 import kotlin.math.tan
@@ -85,6 +86,13 @@ object Perspective {
             val fov = atan(fy) * 2f
             setPerspective(viewTransform, fov, 1f, near, far, cx, cy, false)
         }
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val m = Matrix4f()
+        setPerspective(m, PIf / 2f, 2.8675f, 1e-10f, 1e10f, 0f, 0f)
+        println(m)
     }
 
 }

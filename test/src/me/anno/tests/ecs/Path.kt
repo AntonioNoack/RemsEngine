@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.ecs
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd

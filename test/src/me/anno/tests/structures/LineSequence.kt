@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.structures
 
 import me.anno.utils.structures.arrays.LineSequence
 

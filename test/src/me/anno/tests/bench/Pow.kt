@@ -5,7 +5,6 @@ import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer

@@ -1,8 +1,6 @@
 package me.anno.graph.ui
 
-import me.anno.utils.Color.black
 import me.anno.fonts.FontManager.getBaselineY
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.gpu.drawing.GFXx2D.drawHalfArrow
@@ -20,20 +18,21 @@ import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
+import me.anno.utils.Color.black
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+// todo show output value in tooltip on connector (for where it is easily computable without actions)
+// todo can we add debug-clamps?: input and output overrides for debugging...
 class NodePanel(
     val node: Node,
     val gp: GraphPanel,
     style: Style
 ) : PanelList(style) {
-
-    // todo bug: text size is only updating, when typing a character
-    // todo bug: backspace is not working :/
 
     var lineCount = 0
     val baseTextSize get() = gp.baseTextSize
@@ -43,7 +42,10 @@ class NodePanel(
     init {
         // slightly transparent, so covered connections can be seen
         backgroundColor = mulAlpha(mixARGB(backgroundColor, black, 0.5f), 0.7f)
+        node.createUI(this, style)
     }
+
+    val customLayoutEndIndex = children.size
 
     var isDragged = false
 
@@ -63,7 +65,7 @@ class NodePanel(
         minW = (expectedChars * baseTextSize).toInt()
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
 
-        // calculate how many lines, and space we need
+        // calculate how many lines, and space we need;
         // base that calculation on w maybe
 
         backgroundRadius = w / 10f
@@ -72,7 +74,7 @@ class NodePanel(
         if (inputs != null) for (con in inputs) {
             // add all needed new input fields
             val oldField = inputFields[con]
-            val newField = gp.getInputField(con, this, oldField)
+            val newField = gp.getInputField(con, oldField)
             if (newField !== oldField) {
                 if (oldField != null) remove(oldField)
                 if (newField != null) {
@@ -89,6 +91,16 @@ class NodePanel(
             inputFields.clear()
         }
 
+        val minH0 = minH
+        for (i in 0 until customLayoutEndIndex) {
+            val child = children[i]
+            if (child is TextStyleable) {
+                child.textSize = gp.font.size
+            }
+            child.calculateSize(minW, minH0)
+            minH += child.minH
+        }
+
         this.w = minW
         this.h = minH
 
@@ -96,9 +108,20 @@ class NodePanel(
 
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
+        val font = gp.font
+        val textSize = font.sampleHeight
+        val titleOffset = textSize * 3 / 2
+        var yi = y + titleOffset
+        for (i in 0 until customLayoutEndIndex) {
+            val child = children[i]
+            child.minW = min(child.minW, w - textSize)
+            child.setPosSize(x + (w - child.minW).shr(1), yi, child.minW, child.minH)
+            yi += child.minH
+        }
+        yi -= titleOffset
         // calculate positions for connectors
-        placeConnectors(node.inputs, gp.windowToCoordsX(this.x + baseTextSize))
-        placeConnectors(node.outputs, gp.windowToCoordsX(this.x + this.w - baseTextSize))
+        placeConnectors(node.inputs, yi, gp.windowToCoordsX(this.x + baseTextSize))
+        placeConnectors(node.outputs, yi, gp.windowToCoordsX(this.x + this.w - baseTextSize))
         // place all input fields to the correct position
         val baseTextSize = baseTextSize.toInt()
         if (inputFields.isNotEmpty()) for ((key, panel) in inputFields) {
@@ -106,7 +129,7 @@ class NodePanel(
             val cx = gp.coordsToWindowX(pos.x).toInt()
             val cy = gp.coordsToWindowY(pos.y).toInt()
             // place to the right by radius
-            panel.setPosSize(cx + baseTextSize / 2, cy - panel.minH / 2, panel.minW, panel.minH)
+            panel.setPosSize(cx + baseTextSize.shr(1), cy - panel.minH.shr(1), panel.minW, panel.minH)
         }
     }
 
@@ -130,10 +153,10 @@ class NodePanel(
         }
     }
 
-    private fun <V : NodeConnector> placeConnectors(connectors: Array<V>?, x: Double) {
+    private fun <V : NodeConnector> placeConnectors(connectors: Array<V>?, y: Int, x: Double) {
         connectors ?: return
         for ((index, con) in connectors.withIndex()) {
-            con.position.set(x, gp.windowToCoordsY(this.y + (index + 1.5) * baseTextSize * (1.0 + lineSpacing)), 0.0)
+            con.position.set(x, gp.windowToCoordsY(y + (index + 1.5) * baseTextSize * (1.0 + lineSpacing)), 0.0)
         }
     }
 
@@ -179,7 +202,6 @@ class NodePanel(
             if (panel != null) dx += panel.w //+ baseTextSize.toInt()
             drawConnector(con, baseTextSize, mouseX, mouseY, dx, dyTxt, font, textColor)
         }
-
         val outputs = node.outputs
         if (outputs != null) for (con in outputs) {
             drawConnector(con, baseTextSize, mouseX, mouseY, -dxTxt, dyTxt, font, textColor)

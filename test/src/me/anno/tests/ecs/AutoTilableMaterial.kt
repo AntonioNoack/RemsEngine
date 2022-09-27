@@ -37,13 +37,13 @@ fun main() {
                 (AutoTileableShader.TileMath.truncCdfInv(densityMapped) - 0.5)
             )
         }.toList()
-        val funcs: List<(Double) -> Double> =
+        val functions: List<(Double) -> Double> =
             listOf({ it }, { it.pow(3) }, { it.pow(11) })
-        val polynomial = LinearRegression.solve(points, funcs)!!
+        val polynomial = LinearRegression.solve(points, functions)!!
         println("weights: ${polynomial.joinToString()}")
         // todo draw these points with error bars...
         for (p in points) {
-            println("$p -> ${LinearRegression.evaluatePolynomial(p.x, polynomial, funcs)}")
+            println("$p -> ${LinearRegression.evaluatePolynomial(p.x, polynomial, functions)}")
         }
     }
 

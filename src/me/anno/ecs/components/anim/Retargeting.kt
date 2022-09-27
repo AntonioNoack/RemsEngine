@@ -3,7 +3,6 @@ package me.anno.ecs.components.anim
 import me.anno.animation.LoopingState
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.BoneEmbeddings.getWEs
 import me.anno.ecs.components.anim.BoneEmbeddings.helperWE
 import me.anno.ecs.components.cache.SkeletonCache
@@ -16,6 +15,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import kotlin.math.min
@@ -31,14 +31,16 @@ class Retargeting : NamedSaveable() {
         fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Retargeting? {
             if (srcSkeleton == dstSkeleton) return null
             val data = cache.getEntry(
-                Pair(srcSkeleton, srcSkeleton.lastModified),
-                Pair(dstSkeleton, dstSkeleton.lastModified),
+                Quad(
+                    srcSkeleton, srcSkeleton.lastModified,
+                    dstSkeleton, dstSkeleton.lastModified
+                ),
                 timeout,
                 false
-            ) { k1, k2 ->
+            ) { k12 ->
                 val ret = Retargeting()
-                ret.srcSkeleton = k1.first
-                ret.dstSkeleton = k2.first
+                ret.srcSkeleton = k12.a
+                ret.dstSkeleton = k12.c
                 CacheData(ret)
             } as CacheData<*>
             return data.value as Retargeting
@@ -47,13 +49,16 @@ class Retargeting : NamedSaveable() {
         @JvmStatic
         fun main(args: Array<String>) {
             testUI {
+                // fbx animation seems to be broken for the trooper... probably Assimps fault or incorrect decoding from our side
+                val testRetargeting = false
                 ECSRegistry.init()
                 // find two human meshes with different skeletons
-                val human = downloads.getChild("3d/trooper fbx/silly_dancing.fbx")
-                val animation = downloads.getChild("fbx/Walking.fbx/animations").listChildren()!!.first()
+                val file1 = downloads.getChild("3d/trooper gltf/scene.gltf")
+                val file2 = downloads.getChild("fbx/Walking.fbx")
+                val animation = (if (testRetargeting) file2 else file1).getChild("animations").listChildren()!!.first()
                 val mesh = AnimRenderer()
-                mesh.mesh = human
-                mesh.skeleton = human.getChild("Skeleton.json")
+                mesh.mesh = file1
+                mesh.skeleton = file1.getChild("Skeleton.json")
                 mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
                 testScene(mesh)
             }
@@ -84,6 +89,14 @@ class Retargeting : NamedSaveable() {
     var dstToSrc = IntArray(0)
 
     fun validate() {
+
+        // todo a) save animation as rotations only; best in global space :)
+        // todo b) map bones correctly;
+        //  - hierarchy distance
+        //  - embedding distance
+        //  - location distance
+        // todo c) apply them
+
         synchronized(this) {
             if (isValid) return
             // calculate all the indices
@@ -98,6 +111,7 @@ class Retargeting : NamedSaveable() {
                 dstToSrcM = Array(size) { Matrix4x3f() }
                 srcToDstM = Array(size) { Matrix4x3f() }
             }
+
             if (srcBoneMapping.size != size) {
                 val newNames = ArrayList<String>(size)
                 newNames.addAll(srcBoneMapping.subList(0, min(srcBoneMapping.size, size)))
@@ -108,8 +122,10 @@ class Retargeting : NamedSaveable() {
                 }
                 srcBoneMapping = newNames
             }
+
             val dstToSrcM = dstToSrcM
             val srcToDstM = srcToDstM
+
             for (dstBoneIndex in 0 until size) {
                 val srcBoneIndex = srcMap[this.srcBoneMapping[dstBoneIndex]]
                 if (srcBoneIndex != null) {
@@ -119,7 +135,7 @@ class Retargeting : NamedSaveable() {
                     val dstBone = dstSkeleton.bones[dstBoneIndex]
                     val dstToSrcMi = dstToSrcM[dstBoneIndex]
                     val srcToDstMi = srcToDstM[dstBoneIndex]
-                    // todo test this or sth similar; is incorrect
+                    // todo is incorrect
                     // idea: transform the animation matrix = an offset matrix, so be transformed from src space to dst space
                     val s0 = srcBone.bindPose
                     val s1 = srcBone.inverseBindPose

@@ -144,7 +144,7 @@ object AnimationLoader {
         timeIndex: Double,
         aiNode: AINode,
         skinningMatrices: Array<Matrix4x3f>,
-        nodeTransformParent: Matrix4x3f?,
+        parentTransform: Matrix4x3f?,
         globalTransform: Matrix4x3f?,
         globalInverseTransform: Matrix4x3f?
     ) {
@@ -158,7 +158,7 @@ object AnimationLoader {
             false
         } else isRootAnim
 
-        nodeTransformParent?.mul(localTransform, localTransform)
+        parentTransform?.mul(localTransform, localTransform)
 
         val bone = boneMap[name]
         if (bone != null) {

@@ -332,6 +332,7 @@ abstract class StudioBase(
     }
 
     private var isFirstFrame = true
+    // todo can this be removed?
     var hideUnusedProperties = false
 
     fun check() = GFX.check()
@@ -413,10 +414,6 @@ abstract class StudioBase(
                     e.printStackTrace()
                 }
             }
-        }
-
-        init {
-            System.setProperty("joml.format", "false")
         }
 
     }

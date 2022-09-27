@@ -101,7 +101,8 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         register("gimp", GimpImage::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos
 
-        register(listOf("xml", "svg"), SVGMesh::readAsFolder)
+        // "xml" can be "dae" as well
+        register(listOf("svg"), SVGMesh::readAsFolder)
 
         // register yaml generally for unity files?
         registerFileExtension(UnityReader.unityExtensions) { it, c ->

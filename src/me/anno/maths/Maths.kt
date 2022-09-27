@@ -58,8 +58,11 @@ object Maths {
     fun dtTo01(x: Float) = 1f - exp(-x)
     fun dtTo01(x: Double) = 1.0 - exp(-x)
 
-    fun median(a: Float, b: Float, c: Float): Float = max(min(a, b), min(max(a, b), c))
-    fun median(a: Double, b: Double, c: Double): Double = max(min(a, b), min(max(a, b), c))
+    fun median(a: Float, b: Float, c: Float) = max(min(a, b), min(max(a, b), c))
+    fun median(a: Double, b: Double, c: Double) = max(min(a, b), min(max(a, b), c))
+
+    fun median(a: Int, b: Int, c: Int): Int = max(min(a, b), min(max(a, b), c))
+    fun median(a: Long, b: Long, c: Long) = max(min(a, b), min(max(a, b), c))
 
     fun smoothStep(x: Float): Float {
         return when {

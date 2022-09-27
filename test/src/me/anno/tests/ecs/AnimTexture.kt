@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.ecs
 
 import me.anno.ecs.components.anim.AnimTexture
 import me.anno.ecs.components.anim.Retargeting

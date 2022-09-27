@@ -5,6 +5,7 @@ import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
@@ -20,6 +21,7 @@ import me.anno.utils.Color.r01
 import me.anno.utils.Color.toVecRGB
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
+import kotlin.math.log
 import kotlin.math.min
 
 // can be set by the application
@@ -33,10 +35,9 @@ val shader by lazy {
             Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
             Variable(GLSLType.V3F, "size")
         ), "void main(){ gl_Position = vec4(coords * size, 1.0); }",
-        emptyList(), emptyList(), "" +
-                "void main(){\n" + // color uniform didn't want to work :/, why?
-                "   gl_FragColor = vec4(${logoIconColor.toVecRGB().run { "$x, $y, $z" }}, 1.0);\n" +
-                "}"
+        emptyList(), listOf(
+            Variable(GLSLType.V4F, "logoColor")
+        ), "void main(){ gl_FragColor = logoColor; }"
     )
 
     shader.use()
@@ -76,18 +77,21 @@ fun drawLogo(window: WindowX, destroy: Boolean) {
     val shader = shader
     shader.use()
     shader.v3f("size", sw, sh, 0f)
+    shader.v4f("logoColor", logoIconColor)
 
     GFX.check()
 
     val frame = if (GFX.maxSamples > 1) frame else null
 
-    if (frame != null) {
-        GFX.setFrameNullSize(window)
-        useFrame(width, height, true, frame) {
-            drawLogo(shader)
-        }
-        GFX.copy(frame)
-    } else drawLogo(shader)
+    GFXState.blendMode.use(null) {
+        if (frame != null) {
+            GFX.setFrameNullSize(window)
+            useFrame(width, height, true, frame) {
+                drawLogo(shader)
+            }
+            frame.blitTo(NullFramebuffer)
+        } else drawLogo(shader)
+    }
 
     if (destroy) {
         frame?.destroy()

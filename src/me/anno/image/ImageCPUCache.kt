@@ -158,7 +158,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         file.inputStream { it, exc ->
             if (it != null) {
                 try {
-                    val img = ImageIO.read(it) ?: throw IOException()
+                    val img = ImageIO.read(it) ?: throw IOException(file.toString())
                     it.close()
                     callback(BIImage(img), null)
                 } catch (e: Exception) {

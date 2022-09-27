@@ -264,7 +264,7 @@ class Framebuffer(
         depthAllocated = Texture2D.allocate(depthAllocated, w * h * bytesPerPixel.toLong())
     }
 
-    fun blitTo(target: Framebuffer) {
+    fun blitTo(target: IFramebuffer) {
         if (!needsBlit) return
         needsBlit = false
 
@@ -278,12 +278,12 @@ class Framebuffer(
 
         // ensure that it exists
         // + bind it, it seems important
-        target.ensureSize(w, h)
+        if (target is Framebuffer) target.ensureSize(w, h)
         target.ensure()
 
         GFX.check()
 
-        if (pointer <= 0 || target.pointer <= 0) throw RuntimeException("Something went wrong $this -> $target")
+        if (pointer < 0 || target.pointer < 0) throw RuntimeException("Something went wrong $this -> $target")
         // LOGGER.info("Blit: $pointer -> ${target.pointer}")
         bindFramebuffer(GL_DRAW_FRAMEBUFFER, target.pointer)
         bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
@@ -321,9 +321,9 @@ class Framebuffer(
     override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
         checkSession()
         if (withMultisampling) {
-            val msBuffer = ssBuffer!!
-            blitTo(msBuffer)
-            msBuffer.bindTextureI(index, offset, nearest, clamping)
+            val ssBuffer = ssBuffer!!
+            blitTo(ssBuffer)
+            ssBuffer.bindTextureI(index, offset, nearest, clamping)
         } else {
             textures[index].bind(offset, nearest, clamping)
         }
@@ -332,10 +332,10 @@ class Framebuffer(
     override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
         GFX.check()
         if (withMultisampling) {
-            val msBuffer = ssBuffer!!
-            blitTo(msBuffer)
+            val ssBuffer = ssBuffer!!
+            blitTo(ssBuffer)
             GFX.check()
-            msBuffer.bindTextures(offset, nearest, clamping)
+            ssBuffer.bindTextures(offset, nearest, clamping)
         } else {
             for ((index, texture) in textures.withIndex()) {
                 texture.bind(offset + index, nearest, clamping)

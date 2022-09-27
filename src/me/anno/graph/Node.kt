@@ -6,7 +6,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 import org.joml.Vector3d
 
@@ -32,7 +32,7 @@ abstract class Node() : PrefabSaveable() {
     // make name final
     final override var name = ""
 
-    open fun createUI(list: PanelListY, style: Style) {}
+    open fun createUI(list: PanelList, style: Style) {}
 
     val position = Vector3d()
 

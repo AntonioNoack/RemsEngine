@@ -180,14 +180,14 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                         animMap.values.first().source, 1f, 0f, 1f, LoopingState.PLAY_LOOP
                     )
                 )
-            } else arrayListOf() // must be ArrayList
+            } else null // must be ArrayList
             addSkeleton(hierarchy, skeleton, skeletonPath, sampleAnimations)
 
             // create an animation node to show the first animation
             if (meshes.isEmpty() && animMap.isNotEmpty()) {
                 val animPath = hierarchy.add(ROOT_PATH, 'c', "AnimRenderer", "AnimRenderer")
                 hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
-                hierarchy.setUnsafe(animPath, "animations", sampleAnimations)
+                if (sampleAnimations != null) hierarchy.setUnsafe(animPath, "animations", sampleAnimations)
             }
 
             correctBonePositions(name, rootNode, boneList, boneMap)
@@ -280,10 +280,10 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     private fun correctBonePositions(
         name: String, rootNode: AINode, boneList: List<Bone>, boneMap: HashMap<String, Bone>
     ) {
-        val (gt, git) = findRootTransform(name, rootNode, boneMap)
-        if (gt != null && git != null) {
+        val (gt, globalInvTransform) = findRootTransform(name, rootNode, boneMap)
+        if (gt != null && globalInvTransform != null) {
             for (bone in boneList) {
-                bone.setBindPose(Matrix4f(git).mul(bone.bindPose))
+                bone.setBindPose(Matrix4f(globalInvTransform).mul(bone.bindPose))
             }
         }
     }
@@ -320,7 +320,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         hierarchyPrefab: Prefab,
         skeleton: Prefab,
         skeletonPath: FileReference,
-        sampleAnimations: ArrayList<AnimationState>
+        sampleAnimations: ArrayList<AnimationState>?
     ): Prefab {
         val adds = hierarchyPrefab.adds
         for (change in adds) {
@@ -328,7 +328,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 val indexInEntity = adds.filter { it.path == change.path }.indexOfFirst { it === change }
                 val path = change.path.added(change.nameId, indexInEntity, 'c')
                 hierarchyPrefab.setUnsafe(path, "skeleton", skeletonPath)
-                hierarchyPrefab.setUnsafe(path, "animations", sampleAnimations)
+                if (sampleAnimations != null) hierarchyPrefab.setUnsafe(path, "animations", sampleAnimations)
             }
         }
         return skeleton

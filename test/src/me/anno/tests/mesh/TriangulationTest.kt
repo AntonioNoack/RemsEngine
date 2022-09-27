@@ -1,9 +1,10 @@
-package org.the3deers.util
+package me.anno.tests.mesh
 
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
 import org.joml.Vector2f
+import org.the3deers.util.EarCut
 import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
@@ -15,7 +16,7 @@ fun main() {
     val outer = 50
 
     val random = Random(1234L)
-    val points = Array<Vector2f>(outer) {
+    val points = Array(outer) {
         val angle = Maths.TAUf * it / outer
         Vector2f(cos(angle), sin(angle))
             .mul(mix(0.5f, 1f, random.nextFloat()))

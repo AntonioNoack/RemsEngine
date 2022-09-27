@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFXBase

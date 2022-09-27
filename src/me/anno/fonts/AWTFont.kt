@@ -460,6 +460,9 @@ class AWTFont(val font: Font) {
 
         if (result.isEmpty() || width < 1 || height < 1) return FakeWhiteTexture(width, height)
 
+        // todo can we somehow increase priority, so we don't need to wait soo long?
+        // todo measure how long it actually takes to generate text... my node graph example lags when zooming in/out...
+
         val texture = Texture2D("awt-font-v3", width, height, 1)
         worker.addPrioritized(text.length == 1) {
 

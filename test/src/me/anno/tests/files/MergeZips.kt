@@ -6,7 +6,6 @@ import me.anno.utils.OS.documents
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-
 fun main() {
 
     val files = HashMap<String, ByteArray>()
