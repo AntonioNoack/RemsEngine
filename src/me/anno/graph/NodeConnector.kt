@@ -44,8 +44,6 @@ abstract class NodeConnector : NamedSaveable {
     var node: Node? = null
     var others: List<NodeConnector> = emptyList()
 
-    val connectorPosition = Vector3d()
-
     fun isEmpty() = others.isEmpty()
 
     fun connect(other: NodeConnector) {
@@ -106,8 +104,5 @@ abstract class NodeConnector : NamedSaveable {
             else -> super.readObjectArray(name, values)
         }
     }
-
-    override val approxSize: Int = 10
-    override fun isDefaultValue(): Boolean = false
 
 }

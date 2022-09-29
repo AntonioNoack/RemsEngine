@@ -54,8 +54,11 @@ object Shapes {
      * */
     class FBBMesh(val positions: FloatArray, val indices: IntArray?, val normals: FloatArray? = null) {
 
-        constructor(base: FBBMesh, scale: Float) :
-                this(scale(base.positions, abs(scale)), base.indices, base.normals)
+        constructor(base: FBBMesh, scale: Float) : this(scale(base.positions, abs(scale)), base.indices, base.normals) {
+            front.uvs = base.front.uvs
+            back.uvs = base.back.uvs
+            both.uvs = base.both.uvs
+        }
 
         fun scaled(scale: Float) =
             FBBMesh(this, scale)
@@ -96,7 +99,34 @@ object Shapes {
             both.indices = bothIndices
             both.normals = if (normals != null) normals + back.normals!! else null
         }
+
+        fun withUVs(): FBBMesh {
+            front.ensureBounds()
+            val bounds = front.aabb
+            val su = 1f / (bounds.maxX - bounds.minX)
+            val sv = 1f / (bounds.maxY - bounds.minY)
+            val uvs = FloatArray(positions.size / 3 * 2)
+            for (i in positions.indices step 3) {
+                val j = i / 3 * 2
+                uvs[j] = (positions[i] - bounds.minX) * su
+                uvs[j + 1] = (positions[i + 1] - bounds.minY) * sv
+            }
+            front.uvs = uvs
+            back.uvs = uvs
+            both.uvs = uvs
+            return this
+        }
+
     }
+
+    val flat11 = FBBMesh(
+        floatArrayOf(
+            -1f, -1f, 0f,
+            +1f, -1f, 0f,
+            -1f, +1f, 0f,
+            +1f, +1f, 0f,
+        ), intArrayOf(0, 1, 3, 3, 2, 0)
+    ).withUVs()
 
     /**
      * cube with halfExtends = 1, full extends = 2;

@@ -1,5 +1,6 @@
 package me.anno.gpu.shader
 
+import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.ShaderLib.blacklist
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -98,16 +99,19 @@ object FlatShaders {
         listOf(
             Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
             Variable(GLSLType.V4F, "color"),
-            Variable(GLSLType.S2D, "tex")
+            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.S2D, "tex"),
         ), "" +
+                tonemapGLSL +
                 "void main(){\n" +
                 "   vec4 col = color;\n" +
                 "   if(alphaMode == 0) col *= texture(tex, uv);\n" +
                 "   else if(alphaMode == 1) col.rgb *= texture(tex, uv).rgb;\n" +
                 "   else col.rgb *= texture(tex, uv).a;\n" +
+                "   if(applyToneMapping) col = tonemap(col);\n" +
                 "   gl_FragColor = col;\n" +
                 "}"
-    ).ignoreNameWarnings("applyToneMapping")
+    )
 
     val depthShader = BaseShader(
         "depth", ShaderLib.simpleVertexShaderV2List, ShaderLib.simpleVertexShaderV2, uvList, listOf(

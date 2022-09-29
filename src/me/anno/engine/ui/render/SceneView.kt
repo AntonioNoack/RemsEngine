@@ -12,6 +12,7 @@ import me.anno.engine.ui.control.PlayControls
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.style.Style
 
@@ -54,6 +55,13 @@ class SceneView(
     }
 
     companion object {
+
+        fun testSceneWithUI(scene: PrefabSaveable, init: (SceneView) -> Unit = {}) {
+            testUI {
+                testScene(scene, init)
+            }
+        }
+
         @Suppress("unused")
         fun testScene(scene: PrefabSaveable, init: (SceneView) -> Unit = {}): Panel {
             scene.prefabPath = Path.ROOT_PATH

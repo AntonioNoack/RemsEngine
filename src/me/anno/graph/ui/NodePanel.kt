@@ -9,6 +9,7 @@ import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mapClamped
@@ -18,10 +19,12 @@ import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -160,6 +163,13 @@ class NodePanel(
         }
     }
 
+    var titleWidth = 0
+
+    var titleY0 = 0
+    var titleY1 = 0
+
+    var textColor = -1
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         // draw whether the node is in focus
@@ -176,12 +186,13 @@ class NodePanel(
         val font = gp.font
         val textSize = font.sampleHeight
 
-        val textColor = -1
-
         // node title
-        drawText(
-            x + w / 2, y + textSize / 2, font, node.name, textColor,
-            backgroundColor, w * 3 / 4, -1, AxisAlignment.CENTER
+        titleY0 = y + textSize / 2
+        titleY1 = titleY0 + textSize
+
+        titleWidth = drawText(
+            x + w.shr(1), titleY0, font, node.name, textColor,
+            backgroundColor, (w * 3).shr(2), -1, AxisAlignment.CENTER
         )
 
         val window = window
@@ -402,8 +413,21 @@ class NodePanel(
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        gp.target.set(node.position)
-        invalidateLayout()
+        // if user is clicking onto title, ask for new name
+        val xi = x.toInt()
+        val yi = y.toInt()
+        if (yi in titleY0 until titleY1 &&
+            abs(xi * 2 - (this.x * 2 + this.w)) < max(titleWidth, titleY1 - titleY0)
+        ) {
+            askName(windowStack, xi, yi, NameDesc("Set Node Name"), node.name, NameDesc("OK"),
+                { textColor }, {
+                    node.name = it
+                    invalidateLayout()
+                })
+        } else {
+            gp.target.set(node.position)
+            invalidateLayout()
+        }
     }
 
     override fun getTooltipText(x: Float, y: Float): String? {

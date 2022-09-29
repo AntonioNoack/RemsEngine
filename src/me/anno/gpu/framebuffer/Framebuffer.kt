@@ -152,6 +152,11 @@ class Framebuffer(
         if (da != null && da.depthTexture!!.pointer != depthAttachedPtr) {
             destroy()
         }
+
+        if (da != null && (w != da.w || h != da.h)) {
+            throw IllegalStateException("Depth is not matching dimensions, $w x $h vs ${da.w} x ${da.h}")
+        }
+
         ensure()
         if (da != null && da.depthTexture!!.pointer != depthAttachedPtr) {
             throw IllegalStateException("Depth attachment could not be recreated! ${da.pointer} != $depthAttachedPtr")

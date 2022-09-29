@@ -44,18 +44,19 @@ open class Vector2d {
         }
     }
 
-    operator fun get(dst: Vector2f): Vector2f {
+    fun get(dst: Vector2f): Vector2f {
         dst.x = x.toFloat()
         dst.y = y.toFloat()
         return dst
     }
 
-    operator fun get(dst: Vector2d = this): Vector2d {
+    fun get(dst: Vector2d = this): Vector2d {
         dst.x = x
         dst.y = y
         return dst
     }
 
+    operator fun set(component: Int, value: Double) = setComponent(component, value)
     fun setComponent(component: Int, value: Double): Vector2d {
         when (component) {
             0 -> x = value

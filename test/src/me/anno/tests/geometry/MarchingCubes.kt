@@ -7,6 +7,7 @@ import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths
 import me.anno.maths.geometry.MarchingCubes
 import me.anno.maths.noise.PerlinNoise
+import org.joml.AABBf
 import kotlin.math.sqrt
 
 fun main() {
@@ -35,7 +36,11 @@ fun main() {
 
     @Suppress("unused")
     fun testOnTexture() {
-        val triangles = MarchingCubes.march(w, h, d, values, 0f, false)
+        val triangles = MarchingCubes.march(
+            w, h, d, values, 0f,
+            AABBf(0f, 0f, 0f, w - 1f, h - 1f, d - 1f),
+            false
+        )
         val scale = 32
         val f0 = 1f / scale
         val f1 = 2f / scale
@@ -48,12 +53,17 @@ fun main() {
             val px = x.toFloat() / scale
             val py = y.toFloat() / scale
             var distanceSq = Float.POSITIVE_INFINITY
-            for (i in triangles.indices step 3) {
-                var b = triangles[i + 2]
+            for (i in 0 until triangles.size step 3) {
+                val bi = (i + 2) * 3
+                var bx = triangles[bi]
+                var by = triangles[bi + 1]
                 for (idx in i until i + 3) {
-                    val a = triangles[idx]
-                    distanceSq = Maths.min(distanceSq, LinearSegment.signedDistanceSq(px, py, a.x, a.y, b.x, b.y))
-                    b = a
+                    val ai = idx * 3
+                    val ax = triangles[ai]
+                    val ay = triangles[ai + 1]
+                    distanceSq = Maths.min(distanceSq, LinearSegment.signedDistanceSq(px, py, ax, ay, bx, by))
+                    bx = ax
+                    by = ay
                 }
             }
             val distance = sqrt(distanceSq)
@@ -63,15 +73,12 @@ fun main() {
     }
 
     ProceduralMesh.testProceduralMesh { mesh ->
-        val points = MarchingCubes.march(w, h, d, values, 0f, false)
-        val positions = FloatArray(points.size * 3)
-        var i = 0
-        for (point in points) {
-            positions[i++] = point.x
-            positions[i++] = point.y
-            positions[i++] = point.z
-        }
-        mesh.positions = positions
+        val points = MarchingCubes.march(
+            w, h, d, values, 0f,
+            AABBf(0f, 0f, 0f, w - 1f, h - 1f, d - 1f),
+            false
+        )
+        mesh.positions = points.toFloatArray()
         // - normals can be calculated using the field to get better results,
         //   however we're using a random field, so we don't really have a field
         // - both true and false can be tried here

@@ -1,5 +1,6 @@
 package me.anno.graph.types.flow.maths
 
+import me.anno.graph.EnumNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
 import me.anno.io.base.BaseWriter
@@ -8,7 +9,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 
-class MathD3Node() : ValueNode("FP Math 3", inputs, outputs) {
+class MathD3Node() : ValueNode("FP Math 3", inputs, outputs), EnumNode {
 
     enum class FloatMathsTernary(
         val id: Int,
@@ -47,16 +48,20 @@ class MathD3Node() : ValueNode("FP Math 3", inputs, outputs) {
         ;
 
         companion object {
-            val byId = values().associateBy { it.id }
+            val values = values()
+            val byId = values.associateBy { it.id }
         }
 
     }
 
+    var type: FloatMathsTernary = FloatMathsTernary.ADD
+
     constructor(type: FloatMathsTernary) : this() {
         this.type = type
+        this.name = "Float " + type.name
     }
 
-    var type: FloatMathsTernary = FloatMathsTernary.ADD
+    override fun listNodes() = FloatMathsTernary.values.map { MathD3Node(it) }
 
     override fun compute(graph: FlowGraph) {
         val inputs = inputs!!
@@ -70,9 +75,9 @@ class MathD3Node() : ValueNode("FP Math 3", inputs, outputs) {
         super.createUI(list, style)
         list += EnumInput(
             "Type", true, type.name,
-            FloatMathsTernary.values().map { NameDesc(it.name, it.glsl, "") }, style
+            FloatMathsTernary.values.map { NameDesc(it.name, it.glsl, "") }, style
         ).setChangeListener { _, index, _ ->
-            type = FloatMathsTernary.values()[index]
+            type = FloatMathsTernary.values[index]
         }
     }
 

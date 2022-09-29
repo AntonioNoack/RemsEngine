@@ -15,8 +15,19 @@ object RenderState {
 
     val cameraMatrix = Matrix4f()
     val cameraPosition = Vector3d()
-    val cameraDirection = Vector3d()
     val cameraRotation = Quaterniond()
+    val cameraDirectionRight = Vector3d() // = cameraRotation.transform([1,0,0])
+    val cameraDirectionUp = Vector3d() // = cameraRotation.transform([0,1,0])
+    val cameraDirection = Vector3d() // = cameraRotation.transform([0,0,-1])
+    
+    fun calculateDirections(){
+        cameraDirection.set(0.0, 0.0, -1.0)
+            .rotate(cameraRotation)
+        cameraDirectionRight.set(1.0, 0.0, 0.0)
+            .rotate(cameraRotation)
+        cameraDirectionUp.set(0.0, 1.0, 0.0)
+            .rotate(cameraRotation)
+    }
 
     val prevCamMatrix = Matrix4f()
     val prevCameraPosition = Vector3d()

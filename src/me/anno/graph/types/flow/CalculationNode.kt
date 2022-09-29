@@ -4,6 +4,7 @@ import me.anno.graph.types.FlowGraph
 
 abstract class CalculationNode : ValueNode {
 
+    @Suppress("unused")
     constructor(name: String) : super(name)
     constructor(name: String, inputs: List<String>, outputs: List<String>) : super(name, inputs, outputs)
 

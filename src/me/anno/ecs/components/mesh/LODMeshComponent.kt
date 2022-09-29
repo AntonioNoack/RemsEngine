@@ -16,6 +16,7 @@ import kotlin.math.log2
 
 class LODMeshComponent() : MeshComponentBase() {
 
+    @Suppress("unused")
     constructor(meshes: List<FileReference>) : this() {
         this.meshes = meshes
     }

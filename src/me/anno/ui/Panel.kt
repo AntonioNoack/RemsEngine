@@ -762,10 +762,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     /**
      * when shift/ctrl clicking on items to select multiples...
-     * which parent is the common parent?
+     * whose parent is the common parent?
      *
      * isn't really meant to be concatenated as a function
      * (multiselect inside multiselect)
+     *
+     * return **this**, if your panel is multi-selectable
      * */
     open fun getMultiSelectablePanel(): Panel? = uiParent?.getMultiSelectablePanel()
 

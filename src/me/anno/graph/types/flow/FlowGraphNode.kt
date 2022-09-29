@@ -7,6 +7,7 @@ import me.anno.graph.types.FlowGraph
 
 abstract class FlowGraphNode : Node {
 
+    @Suppress("unused")
     constructor() : super()
 
     constructor(name: String) : super(name)

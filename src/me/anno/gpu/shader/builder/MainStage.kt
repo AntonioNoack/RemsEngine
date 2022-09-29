@@ -148,11 +148,8 @@ class MainStage {
                     code.append(": ")
                 }
                 // interpolation? we would need to know the side, and switch case on that
-                if (isMoreThanOne) {
-                    code.append("d0=texture(").append(nameIndex).append(", uv).r; break;\n")
-                } else {
-                    code.append("d0=texture(").append(nameIndex).append(", uv).r;\n")
-                }
+                code.append("d0=texture(").append(nameIndex).append(", uv).r;")
+                code.append(if (isMoreThanOne) "break;\n" else '\n')
             }
             if (isMoreThanOne) {
                 code.append("default: return 0.0;\n")
@@ -175,9 +172,7 @@ class MainStage {
             for (index in 0 until uniform.arraySize) {
                 val nameIndex = name + index.toString()
                 if (isMoreThanOne) {
-                    code.append("case ")
-                    code.append(index)
-                    code.append(":\n")
+                    code.append("case ").append(index).append(":\n")
                 }
                 code.append(
                     "" +
@@ -196,8 +191,7 @@ class MainStage {
                 }
             }
             if (isMoreThanOne) {
-                code.append("default: return 0.0;\n")
-                code.append("}\n")
+                code.append("default: return 0.0;\n}\n")
             }
             code.append(
                 "" +
@@ -210,9 +204,7 @@ class MainStage {
                         "f.y), mix(\n" +
                         "   float(d2>depth),\n" +
                         "   float(d3>depth),\n" +
-                        "f.y), f.x);\n"
-            )
-            code.append("}\n")
+                        "f.y), f.x);\n}\n")
         }
     }
 

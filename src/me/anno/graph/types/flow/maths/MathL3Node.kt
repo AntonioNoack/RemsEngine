@@ -1,5 +1,6 @@
 package me.anno.graph.types.flow.maths
 
+import me.anno.graph.EnumNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
 import me.anno.io.base.BaseWriter
@@ -8,7 +9,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 
-class MathL3Node() : ValueNode("Integer Math 3", inputs, outputs) {
+class MathL3Node() : ValueNode("Integer Math 3", inputs, outputs), EnumNode {
 
     enum class IntMathsTernary(
         val id: Int,
@@ -30,14 +31,18 @@ class MathL3Node() : ValueNode("Integer Math 3", inputs, outputs) {
         ;
 
         companion object {
-            val byId = values().associateBy { it.id }
+            val values = values()
+            val byId = values.associateBy { it.id }
         }
 
     }
 
     constructor(type: IntMathsTernary) : this() {
         this.type = type
+        this.name = "Int " + type.name
     }
+
+    override fun listNodes() = IntMathsTernary.values.map { MathL3Node(it) }
 
     var type: IntMathsTernary = IntMathsTernary.ADD
 
@@ -45,9 +50,9 @@ class MathL3Node() : ValueNode("Integer Math 3", inputs, outputs) {
         super.createUI(list, style)
         list += EnumInput(
             "Type", true, type.name,
-            IntMathsTernary.values().map { NameDesc(it.name, it.glsl, "") }, style
+            IntMathsTernary.values.map { NameDesc(it.name, it.glsl, "") }, style
         ).setChangeListener { _, index, _ ->
-            type = IntMathsTernary.values()[index]
+            type = IntMathsTernary.values[index]
         }
     }
 

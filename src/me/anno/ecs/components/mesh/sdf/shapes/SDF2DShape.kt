@@ -106,8 +106,8 @@ open class SDF2DShape : SDFShape() {
     fun bound1(min: Float, max: Float, axis: Int) {
         val mv = JomlPools.vec3f.create().set(0f)
         val xv = JomlPools.vec3f.create().set(0f)
-        mv.setComponent(axis, min)
-        xv.setComponent(axis, max)
+        mv[axis] = min
+        xv[axis] = max
         bound1(mv, xv)
         JomlPools.vec3f.sub(2)
     }

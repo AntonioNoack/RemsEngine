@@ -36,7 +36,7 @@ fun main() {
             val color = Vector4f()
             while (run) {
                 val v = abs(sin(frameIndex++ / 30f))
-                color.setComponent(index, v)
+                color[index] = v
                 GFXState.currentBuffer.clearColor(color)
                 GLFW.glfwSwapBuffers(window)
             }

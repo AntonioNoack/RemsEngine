@@ -1,5 +1,6 @@
 package me.anno.graph.types
 
+import me.anno.graph.EnumNode
 import me.anno.graph.Node
 import me.anno.graph.NodeInput
 import me.anno.graph.NodeOutput
@@ -16,6 +17,14 @@ import me.anno.graph.types.flow.maths.*
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
 class NodeLibrary(val nodes: Collection<() -> Node>) {
+
+    val allNodes: List<Pair<Node, () -> Node>> = nodes.map { gen ->
+        val sample = gen()
+        if (sample is EnumNode) sample.listNodes().map {
+            it to { it.clone() }
+        }
+        else listOf(sample to gen)
+    }.flatten()
 
     constructor(vararg nodes: () -> Node) :
             this(nodes.toList())

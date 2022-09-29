@@ -10,15 +10,10 @@ import me.anno.io.serialization.SerializedProperty
 
 // todo light beams: when inside the cone, from that view, then add a little brightness
 
-// done (file) references to meshes and animations inside mesh files
-//      - bird.fbx:anim:walk
-//      - bird.fbx:mesh:wings
 // todo static storage of things, e.g. for retargeting
 // todo skeleton identity shall be defined by same names-array (for finding retargetings)
 
 // todo drag item into inspector, and when clicking on something, let it show up the the last recently used? would allow to drag things from one to the other :3
-
-// todo packages are mods/plugins, which are just installed with dependencies?
 
 /////////////////////////////////////////////////////////////////////////////////////////
 

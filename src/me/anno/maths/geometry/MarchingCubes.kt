@@ -2,8 +2,11 @@ package me.anno.maths.geometry
 
 import me.anno.io.ResourceHelper
 import me.anno.maths.Maths.min
+import me.anno.maths.Maths.mix
+import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBf
 import org.joml.Vector3f
 import kotlin.math.max
 
@@ -60,15 +63,17 @@ object MarchingCubes {
         d: Int,
         values: FloatArray,
         threshold: Float,
-        makeBordersUniform: Boolean
-    ): List<Vector3f> {
+        bounds: AABBf,
+        makeBordersUniform: Boolean,
+        dst: ExpandingFloatArray = ExpandingFloatArray(255)
+    ): ExpandingFloatArray {
 
         // the values on the edge need to be enforced to have the same sign
         val wh = w * h
         if (makeBordersUniform) {
             if (w <= 2 || h <= 2 || d <= 2) {
                 LOGGER.warn("Returned empty list, because bounds were too small")
-                return emptyList()
+                return dst
             }
             val firstValue = values[0]
             val firstSign = firstValue >= threshold
@@ -97,86 +102,111 @@ object MarchingCubes {
         // return list of all polygons at level zero
         // first collect all segments, later combine them
 
-        // there is at max 1 point per edge & they always will be on edges
+        // there is at max 1 point per edge & they will always be on edges
 
-        val edges = ArrayList<Vector3f>(12)
-        val triangles = ArrayList<Vector3f>()
+        val edges = ExpandingFloatArray(12 * 3)
+
+        val invX = 1f / (w - 1f)
+        val invY = 1f / (h - 1f)
+        val invZ = 1f / (d - 1f)
+        val sx = bounds.deltaX() * invX
+        val sy = bounds.deltaY() * invY
+        val sz = bounds.deltaZ() * invZ
 
         for (z in 0 until d - 1) {
             val indexOffset = z * wh
-            val zf = z.toFloat()
+            val pz = mix(bounds.minZ, bounds.maxZ, z * invZ)
             for (y in 0 until h - 1) {
-                val yf = y.toFloat()
+                val py = mix(bounds.minY, bounds.maxY, y * invY)
                 var index = y * w + indexOffset
                 // using this awkward grid: http://paulbourke.net/geometry/polygonise/
-                var v0 = values[index] - threshold
-                var v1 = values[index + wh] - threshold
-                var v4 = values[index + w] - threshold
-                var v5 = values[index + w + wh] - threshold
+                var v000 = values[index] - threshold
+                var v001 = values[index + wh] - threshold
+                var v010 = values[index + w] - threshold
+                var v011 = values[index + w + wh] - threshold
                 index++
                 for (x in 0 until w - 1) {
-                    val xf = x.toFloat()
-                    val v3 = values[index] - threshold
-                    val v2 = values[index + wh] - threshold
-                    val v7 = values[index + w] - threshold
-                    val v6 = values[index + w + wh] - threshold
-                    val b0 = v0 >= 0f
-                    val b1 = v1 >= 0f
-                    val b4 = v4 >= 0f
-                    val b5 = v5 >= 0f
-                    val b3 = v3 >= 0f
-                    val b2 = v2 >= 0f
-                    val b7 = v7 >= 0f
-                    val b6 = v6 >= 0f
-                    val code = b0.toInt(1) + b1.toInt(2) + b2.toInt(4) + b3.toInt(8) +
-                            b4.toInt(16) + b5.toInt(32) + b6.toInt(64) + b7.toInt(128) - 1
-                    if (code in 0 until 254) {
-
-                        val edgeMask = getEdge(code)
-                        if (edgeMask.and(1) != 0) edges.add(Vector3f(0f, 0f, findZero(v0, v1)))
-                        if (edgeMask.and(2) != 0) edges.add(Vector3f(findZero(v1, v2), 0f, 1f))
-                        if (edgeMask.and(4) != 0) edges.add(Vector3f(1f, 0f, findZero(v3, v2)))
-                        if (edgeMask.and(8) != 0) edges.add(Vector3f(findZero(v0, v3), 0f, 0f))
-                        if (edgeMask.and(16) != 0) edges.add(Vector3f(0f, 1f, findZero(v4, v5)))
-                        if (edgeMask.and(32) != 0) edges.add(Vector3f(findZero(v5, v6), 1f, 1f))
-                        if (edgeMask.and(64) != 0) edges.add(Vector3f(1f, 1f, findZero(v7, v6)))
-                        if (edgeMask.and(128) != 0) edges.add(Vector3f(findZero(v4, v7), 1f, 0f))
-                        if (edgeMask.and(256) != 0) edges.add(Vector3f(0f, findZero(v0, v4), 0f))
-                        if (edgeMask.and(512) != 0) edges.add(Vector3f(0f, findZero(v1, v5), 1f))
-                        if (edgeMask.and(1024) != 0) edges.add(Vector3f(1f, findZero(v2, v6), 1f))
-                        if (edgeMask.and(2048) != 0) edges.add(Vector3f(1f, findZero(v3, v7), 0f))
-                        for (i in edges.indices) {
-                            edges[i].add(xf, yf, zf)
-                        }
-
-                        // create triangles based on map
-                        var triIndex = code * 15
-                        for (i in 0 until 5) {
-                            val i0 = triTable[triIndex++].toInt()
-                            if (i0 < 0) break
-                            val i1 = triTable[triIndex++].toInt()
-                            val i2 = triTable[triIndex++].toInt()
-                            if (max(max(i0, i1), i2) >= edges.size) {
-                                throw IndexOutOfBoundsException("max($i0,$i1,$i2) >= ${edges.size} for code $code, $edgeMask")
-                            }
-                            triangles.add(edges[i0])
-                            triangles.add(edges[i1])
-                            triangles.add(edges[i2])
-                        }
-
-                        edges.clear()
-
-                    }
-                    v0 = v3
-                    v4 = v7
-                    v1 = v2
-                    v5 = v6
+                    val px = mix(bounds.minX, bounds.maxX, x * invX)
+                    val v100 = values[index] - threshold
+                    val v101 = values[index + wh] - threshold
+                    val v110 = values[index + w] - threshold
+                    val v111 = values[index + w + wh] - threshold
+                    march(v000, v001, v010, v011, v100, v101, v110, v111, px, py, pz, sx, sy, sz, edges, dst)
+                    v000 = v100
+                    v010 = v110
+                    v001 = v101
+                    v011 = v111
                     index++
                 }
             }
         }
 
-        return triangles
+        return dst
+    }
+
+    fun march(
+        v000: Float, v001: Float, v010: Float, v011: Float,
+        v100: Float, v101: Float, v110: Float, v111: Float,
+        px: Float, py: Float, pz: Float,
+        sx: Float, sy: Float, sz: Float,
+        edges: ExpandingFloatArray,
+        dst: ExpandingFloatArray
+    ) {
+
+        val b0 = v000 >= 0f
+        val b1 = v001 >= 0f
+        val b4 = v010 >= 0f
+        val b5 = v011 >= 0f
+        val b3 = v100 >= 0f
+        val b2 = v101 >= 0f
+        val b7 = v110 >= 0f
+        val b6 = v111 >= 0f
+        val code = b0.toInt(1) + b1.toInt(2) + b2.toInt(4) + b3.toInt(8) +
+                b4.toInt(16) + b5.toInt(32) + b6.toInt(64) + b7.toInt(128) - 1
+        if (code in 0 until 254) {
+
+            val edgeMask = getEdge(code)
+            if (edgeMask.and(1) != 0) edges.add(0f, 0f, findZero(v000, v001))
+            if (edgeMask.and(2) != 0) edges.add(findZero(v001, v101), 0f, 1f)
+            if (edgeMask.and(4) != 0) edges.add(1f, 0f, findZero(v100, v101))
+            if (edgeMask.and(8) != 0) edges.add(findZero(v000, v100), 0f, 0f)
+            if (edgeMask.and(16) != 0) edges.add(0f, 1f, findZero(v010, v011))
+            if (edgeMask.and(32) != 0) edges.add(findZero(v011, v111), 1f, 1f)
+            if (edgeMask.and(64) != 0) edges.add(1f, 1f, findZero(v110, v111))
+            if (edgeMask.and(128) != 0) edges.add(findZero(v010, v110), 1f, 0f)
+            if (edgeMask.and(256) != 0) edges.add(0f, findZero(v000, v010), 0f)
+            if (edgeMask.and(512) != 0) edges.add(0f, findZero(v001, v011), 1f)
+            if (edgeMask.and(1024) != 0) edges.add(1f, findZero(v101, v111), 1f)
+            if (edgeMask.and(2048) != 0) edges.add(1f, findZero(v100, v110), 0f)
+
+            val data = edges.array!!
+            for (i in 0 until edges.size step 3) {
+                data[i] = data[i] * sx + px
+                data[i + 1] = data[i + 1] * sy + py
+                data[i + 2] = data[i + 2] * sz + pz
+            }
+
+            // create triangles based on map
+            var triIndex = code * 15
+            for (i in 0 until 5) {
+                val i0 = triTable[triIndex++].toInt() * 3
+                if (i0 < 0) break
+                val i1 = triTable[triIndex++].toInt() * 3
+                val i2 = triTable[triIndex++].toInt() * 3
+                dst.add(data[i0])
+                dst.add(data[i0 + 1])
+                dst.add(data[i0 + 2])
+                dst.add(data[i1])
+                dst.add(data[i1 + 1])
+                dst.add(data[i1 + 2])
+                dst.add(data[i2])
+                dst.add(data[i2 + 1])
+                dst.add(data[i2 + 2])
+            }
+
+            edges.clear()
+
+        }
     }
 
     /**
@@ -195,6 +225,7 @@ object MarchingCubes {
         d: Int,
         values: FloatArray,
         threshold: Float,
+        bounds: AABBf,
         makeBordersUniform: Boolean,
         callback: (Vector3f, Vector3f, Vector3f) -> Unit
     ) {
@@ -233,15 +264,22 @@ object MarchingCubes {
         // return list of all polygons at level zero
         // first collect all segments, later combine them
 
-        // there is at max 1 point per edge & they always will be on edges
+        // there is at max 1 point per edge & they will always be on edges
 
         val edges = Array(12) { Vector3f() }
 
+        val invX = 1f / (w - 1f)
+        val invY = 1f / (h - 1f)
+        val invZ = 1f / (d - 1f)
+        val sx = bounds.deltaX() * invX
+        val sy = bounds.deltaY() * invY
+        val sz = bounds.deltaZ() * invZ
+
         for (z in 0 until d - 1) {
             val indexOffset = z * wh
-            val zf = z.toFloat()
+            val pz = z.toFloat()
             for (y in 0 until h - 1) {
-                val yf = y.toFloat()
+                val py = y.toFloat()
                 var index = y * w + indexOffset
                 // using this awkward grid: http://paulbourke.net/geometry/polygonise/
                 var v0 = values[index] - threshold
@@ -250,7 +288,7 @@ object MarchingCubes {
                 var v5 = values[index + w + wh] - threshold
                 index++
                 for (x in 0 until w - 1) {
-                    val xf = x.toFloat()
+                    val px = x.toFloat()
                     val v3 = values[index] - threshold
                     val v2 = values[index + wh] - threshold
                     val v7 = values[index + w] - threshold
@@ -283,7 +321,7 @@ object MarchingCubes {
                         if (edgeMask.and(2048) != 0) edges[ei++].set(1f, findZero(v3, v7), 0f)
 
                         for (i in 0 until ei) {
-                            edges[i].add(xf, yf, zf)
+                            edges[i].mul(sx, sy, sz).add(px, py, pz)
                         }
 
                         // create triangles based on map

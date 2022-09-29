@@ -266,6 +266,21 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return variables
     }
 
+    open fun createDefines(
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        colors: Boolean,
+        motionVectors: Boolean,
+        limitedTransform: Boolean
+    ): String {
+        return "" +
+                (if (isInstanced) "#define INSTANCED\n" else "") +
+                (if (isAnimated) "#define ANIMATED\n" else "") +
+                (if (colors) "#define COLORS\n" else "") +
+                (if (motionVectors) "#define MOTION_VECTORS\n" else "") +
+                (if (limitedTransform) "#define LIMITED_TRANSFORM\n" else "")
+    }
+
     open fun createVertexStage(
         isInstanced: Boolean,
         isAnimated: Boolean,
@@ -274,13 +289,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         limitedTransform: Boolean
     ): ShaderStage {
 
-        val defines =
-            "" +
-                    (if (isInstanced) "#define INSTANCED\n" else "") +
-                    (if (isAnimated) "#define ANIMATED\n" else "") +
-                    (if (colors) "#define COLORS\n" else "") +
-                    (if (motionVectors) "#define MOTION_VECTORS\n" else "") +
-                    (if (limitedTransform) "#define LIMITED_TRANSFORM\n" else "")
+        val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
 
         val animationCode = if (useAnimTextures) {
             "" +

@@ -83,9 +83,9 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         forwardVec.set(0f)
         rightVec.set(0f)
 
-        upVec.setComponent(upAxis, upAxisSign * unitScaleFactor)
-        forwardVec.setComponent(frontAxis, frontAxisSign * unitScaleFactor)
-        rightVec.setComponent(coordAxis, coordAxisSign * unitScaleFactor)
+        upVec[upAxis] = upAxisSign * unitScaleFactor
+        forwardVec[frontAxis] = frontAxisSign * unitScaleFactor
+        rightVec[coordAxis] = coordAxisSign * unitScaleFactor
 
         JomlPools.vec3f.sub(3)
 

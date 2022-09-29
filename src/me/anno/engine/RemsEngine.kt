@@ -42,6 +42,8 @@ import me.anno.utils.files.Files.findNextFileName
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 
+// todo graphics: billboards: light only / override color (decals)
+// todo rendered when point is visible, or always (for nice light camera-bug effects, e.g. stars with many blades)
 
 // todo loading is slow: all tabs are loaded, even if only a single one is actually used
 

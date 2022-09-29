@@ -9,8 +9,6 @@ import me.anno.graph.types.flow.actions.PrintNode
 import me.anno.graph.types.flow.control.ForNode
 import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
-import me.anno.graph.types.flow.maths.FloatMathsBinary
-import me.anno.graph.types.flow.maths.IntMathsBinary
 import me.anno.graph.types.flow.maths.MathD2Node
 import me.anno.graph.types.flow.maths.MathL2Node
 import org.apache.logging.log4j.LogManager
@@ -102,8 +100,8 @@ open class FlowGraph : Graph() {
 
         fun testCalculation(): FlowGraph {
             val g = FlowGraph()
-            val n0 = MathD2Node(FloatMathsBinary.ADD)
-            val n1 = MathD2Node(FloatMathsBinary.DIV)
+            val n0 = MathD2Node(MathD2Node.FloatMathsBinary.ADD)
+            val n1 = MathD2Node(MathD2Node.FloatMathsBinary.DIV)
             n0.connectTo(n1, 0)
             n0.setInputs(listOf(1.0, 2.0))
             n1.setInput(1, 2.0)
@@ -132,7 +130,7 @@ open class FlowGraph : Graph() {
             val forNode = ForNode()
             forNode.setInputs(listOf(null, 1L, 5L, 1L))
             initNode.connectTo(forNode)
-            val mulNode = MathL2Node(IntMathsBinary.MUL)
+            val mulNode = MathL2Node(MathL2Node.IntMathsBinary.MUL)
             val getNode = GetLocalVariableNode("var")
             forNode.connectTo(1, mulNode, 0)
             getNode.connectTo(0, mulNode, 1)

@@ -28,6 +28,16 @@ object ShaderGraph {
             // todo define/get output buffer
             // todo draw
             shader.use()
+
+            val inputs = inputs
+            if (inputs != null) for ((idx, input) in inputs.withIndex()) {
+                when (input.type) {
+                    "Int" -> shader.v1i(input.name, getInput(graph, idx) as Int)
+                    "Float" -> shader.v1f(input.name, getInput(graph, idx) as Float)
+                    // "Texture" -> getInput()
+                }
+            }
+
             flat01.draw(shader)
         }
 

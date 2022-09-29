@@ -66,6 +66,16 @@ abstract class OpenGLShader(val name: String) : ICacheData {
             return shader
         }
 
+        // shader loading from SPIR-V is an option for the future for faster load times :)
+        /*fun compile2(shaderName: String, program: Int, type: Int, source: ByteBuffer, entryPoint: String): Int {
+            val shader = glCreateShader(type)
+            glShaderBinary(intArrayOf(0), shader, source)
+            glSpecializeShader(shader, entryPoint, null as IntBuffer?, null)
+            glAttachShader(program, shader)
+            postPossibleError(shaderName, shader, true, "")
+            return shader
+        }*/
+
         fun postPossibleError(shaderName: String, shader: Int, isShader: Boolean, s0: String, s1: String = "") {
             val log = if (isShader) {
                 glGetShaderInfoLog(shader)

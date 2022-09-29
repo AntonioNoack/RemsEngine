@@ -111,6 +111,7 @@ object ECSRegistry {
         registerCustomClass(CuboidMesh())
         registerCustomClass(TriplanarMaterial())
         registerCustomClass(AutoTileableMaterial())
+        registerCustomClass(BillboardTransformer())
 
         // animated meshes
         AnimStateNode.register()

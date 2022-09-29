@@ -1,5 +1,6 @@
 package me.anno.graph.types.flow.maths
 
+import me.anno.graph.EnumNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
 import me.anno.io.base.BaseWriter
@@ -10,7 +11,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import kotlin.math.pow
 
-class MathD2Node() : ValueNode("FP Math 2", inputs, outputs) {
+class MathD2Node() : ValueNode("FP Math 2", inputs, outputs), EnumNode {
 
     enum class FloatMathsBinary(
         val id: Int,
@@ -44,16 +45,20 @@ class MathD2Node() : ValueNode("FP Math 2", inputs, outputs) {
         ;
 
         companion object {
-            val byId = values().associateBy { it.id }
+            val values = values()
+            val byId = values.associateBy { it.id }
         }
 
     }
 
+    var type: FloatMathsBinary = FloatMathsBinary.ADD
+
     constructor(type: FloatMathsBinary) : this() {
         this.type = type
+        this.name = "Float " + type.name
     }
 
-    var type: FloatMathsBinary = FloatMathsBinary.ADD
+    override fun listNodes() = FloatMathsBinary.values.map { MathD2Node(it) }
 
     override fun compute(graph: FlowGraph) {
         val inputs = inputs!!
@@ -66,9 +71,9 @@ class MathD2Node() : ValueNode("FP Math 2", inputs, outputs) {
         super.createUI(list, style)
         list += EnumInput(
             "Type", true, type.name,
-            FloatMathsBinary.values().map { NameDesc(it.name, it.glsl, "") }, style
+            FloatMathsBinary.values.map { NameDesc(it.name, it.glsl, "") }, style
         ).setChangeListener { _, index, _ ->
-            type = FloatMathsBinary.values()[index]
+            type = FloatMathsBinary.values[index]
         }
     }
 

@@ -308,7 +308,7 @@ open class Material : PrefabSaveable(), Renderable {
 
     companion object {
 
-        val timeout = 1000L
+        var timeout = 1000L
         private val LOGGER = LogManager.getLogger(Material::class)
 
         fun getTex(image: FileReference) = ImageGPUCache.getImage(image, timeout, true)

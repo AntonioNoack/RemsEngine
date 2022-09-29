@@ -12,6 +12,10 @@ import kotlin.math.max
 
 class SSAOEffect : CameraEffect() {
 
+    // todo this can become extremely with complex geometry
+    // (40 fps on a RTX 3070 🤯, where a pure-color scene has 600 fps)
+    // todo why is pure color soo slow? 600 fps instead of 1200 fps in mode "without post-processing")
+
     @Range(0.0, 1e10)
     var radius = 2f // 0.1 of world size looks pretty good :)
 

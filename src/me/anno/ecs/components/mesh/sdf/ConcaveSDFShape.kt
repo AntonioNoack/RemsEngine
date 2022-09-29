@@ -64,8 +64,6 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
 
         LOGGER.debug("Requesting ConcaveSDFShape.processAllTriangles($aabbMin, $aabbMax)")
 
-        // todo is this local or global?
-
         // it looks like we need to meshify our sdf before we can use bullet physics
         // to do dual contouring for a better mesh
         // small walls just are ignored by this method
@@ -82,7 +80,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
         max2.z = min(max2.z, bounds.maxZ)
 
         // else not really defined
-        if (min2.x < max2.x && min2.y < max2.y && min2.z < max2.z) {
+        if (min2.x <= max2.x && min2.y <= max2.y && min2.z <= max2.z) {
 
             // sizes could be adjusted to match the "aspect ratio" of the aabb better
             var i = 0
@@ -102,9 +100,15 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
                 }
             }
 
+            JomlPools.vec4f.sub(1)
+
+            val bounds1 = JomlPools.aabbf.create()
+            bounds1.setMin(min2.x.toFloat(), min2.y.toFloat(), min2.z.toFloat())
+            bounds1.setMax(max2.x.toFloat(), max2.y.toFloat(), max2.z.toFloat())
+
             val triangle = Array(3) { javax.vecmath.Vector3d() }
             var ctr = 0
-            MarchingCubes.march(fx, fy, fz, field, 0f, false) { a, b, c ->
+            MarchingCubes.march(fx, fy, fz, field, 0f, bounds1, false) { a, b, c ->
                 // is the order correct? (front/back sides)
                 // or is this ignored by Bullet?
                 triangle[0].set(a.x.toDouble(), a.y.toDouble(), a.z.toDouble())

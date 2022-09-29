@@ -91,6 +91,7 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return this
     }
 
+    operator fun set(component: Int, value: Float) = setComponent(component, value)
     fun setComponent(component: Int, value: Float): Vector3f {
         when (component) {
             0 -> x = value

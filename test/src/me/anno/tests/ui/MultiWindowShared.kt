@@ -52,7 +52,7 @@ fun main() {
                 color.set(0f)
                 GLFW.glfwMakeContextCurrent(window)
                 val v = abs(sin(frameIndex / 30f))
-                color.setComponent(i, v)
+                color[i] = v
                 GFXState.currentBuffer.clearColor(color)
                 GLFW.glfwSwapBuffers(window)
             }

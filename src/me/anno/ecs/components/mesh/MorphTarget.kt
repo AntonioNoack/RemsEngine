@@ -15,7 +15,7 @@ class MorphTarget(name: String, var positions: FloatArray, var weight: Float = 0
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFloatArray("positions", positions)
-        writer.writeFloat("weight", weight) // todo is this the correct location for a weight? idk..
+        writer.writeFloat("weight", weight)
     }
 
     override fun readFloat(name: String, value: Float) {

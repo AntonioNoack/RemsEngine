@@ -1,5 +1,6 @@
 package me.anno.graph.types.flow.maths
 
+import me.anno.graph.EnumNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
 import me.anno.io.base.BaseWriter
@@ -11,7 +12,7 @@ import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
 import kotlin.math.pow
 
-class MathD1Node() : ValueNode("FP Math 1", inputs, outputs) {
+class MathD1Node() : ValueNode("FP Math 1", inputs, outputs), EnumNode {
 
     enum class FloatMathsUnary(
         val id: Int, val glsl: String,
@@ -56,16 +57,20 @@ class MathD1Node() : ValueNode("FP Math 1", inputs, outputs) {
         ;
 
         companion object {
-            val byId = values().associateBy { it.id }
+            val values = values()
+            val byId = values.associateBy { it.id }
         }
 
     }
 
+    var type: FloatMathsUnary = FloatMathsUnary.ABS
+
     constructor(type: FloatMathsUnary) : this() {
         this.type = type
+        this.name = "Float " + type.name
     }
 
-    var type: FloatMathsUnary = FloatMathsUnary.ABS
+    override fun listNodes() = FloatMathsUnary.values.map { MathD1Node(it) }
 
     override fun compute(graph: FlowGraph) {
         val inputs = inputs!!
@@ -77,9 +82,9 @@ class MathD1Node() : ValueNode("FP Math 1", inputs, outputs) {
         super.createUI(list, style)
         list += EnumInput(
             "Type", true, type.name,
-            FloatMathsUnary.values().map { NameDesc(it.name, it.glsl, "") }, style
+            FloatMathsUnary.values.map { NameDesc(it.name, it.glsl, "") }, style
         ).setChangeListener { _, index, _ ->
-            type = FloatMathsUnary.values()[index]
+            type = FloatMathsUnary.values[index]
         }
     }
 

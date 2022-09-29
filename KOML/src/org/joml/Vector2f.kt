@@ -46,9 +46,10 @@ open class Vector2f {
         }
     }
 
-    operator fun get(dst: Vector2f) = dst.set(x, y)
-    operator fun get(dst: Vector2d): Vector2d = dst.set(x.toDouble(), y.toDouble())
+    fun get(dst: Vector2f) = dst.set(x, y)
+    fun get(dst: Vector2d): Vector2d = dst.set(x.toDouble(), y.toDouble())
 
+    operator fun set(component: Int, value: Float) = setComponent(component, value)
     fun setComponent(component: Int, value: Float): Vector2f {
         when (component) {
             0 -> x = value

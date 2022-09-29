@@ -13,6 +13,9 @@ class AABBd(
     constructor(base: AABBd) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
     constructor(min: Double, max: Double) : this(min, min, min, max, max, max)
     constructor() : this(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY)
+    constructor(base: AABBf) : this() {
+        set(base)
+    }
 
     override fun toString() = "($minX,$minY,$minZ)-($maxX,$maxY,$maxZ)"
 

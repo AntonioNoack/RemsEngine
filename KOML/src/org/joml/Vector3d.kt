@@ -83,14 +83,14 @@ open class Vector3d {
         return this
     }
 
-    operator fun set(v: Vector2d, z: Double): Vector3d {
+    fun set(v: Vector2d, z: Double): Vector3d {
         x = v.x
         y = v.y
         this.z = z
         return this
     }
 
-    operator fun set(v: Vector2i, z: Double): Vector3d {
+    fun set(v: Vector2i, z: Double): Vector3d {
         x = v.x.toDouble()
         y = v.y.toDouble()
         this.z = z
@@ -104,7 +104,7 @@ open class Vector3d {
         return this
     }
 
-    operator fun set(v: Vector2f, z: Double): Vector3d {
+    fun set(v: Vector2f, z: Double): Vector3d {
         x = v.x.toDouble()
         y = v.y.toDouble()
         this.z = z
@@ -139,6 +139,7 @@ open class Vector3d {
         return this
     }
 
+    operator fun set(component: Int, value: Double) = setComponent(component, value)
     fun setComponent(component: Int, value: Double): Vector3d {
         when (component) {
             0 -> x = value

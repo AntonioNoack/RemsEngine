@@ -130,6 +130,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
+    operator fun set(component: Int, value: Double) = setComponent(component, value)
     fun setComponent(component: Int, value: Double): Vector4d {
         when (component) {
             0 -> x = value

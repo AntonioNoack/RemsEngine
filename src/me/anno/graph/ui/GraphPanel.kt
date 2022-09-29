@@ -5,7 +5,6 @@ import me.anno.config.DefaultConfig
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
-import me.anno.gpu.drawing.DrawCurves.drawCubicBezier
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -45,11 +44,6 @@ import kotlin.math.*
 
 open class GraphPanel(var graph: Graph? = null, style: Style) :
     PanelList(null, style) {
-
-    // todo graphics: billboards: light only / override color (decals)
-    // todo rendered when point is visible, or always (for nice light camera-bug effects, e.g. stars with many blades)
-
-    // todo reset transform to get back in case you are lost
 
     // todo add scroll bars, when the content goes over the borders
 
@@ -115,8 +109,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
             val mouseX = window.mouseX
             val mouseY = window.mouseY
             openMenu(windowStack,
-                library.nodes.map { newNode ->
-                    val sample = newNode()
+                library.allNodes.map { (sample, newNode) ->
                     MenuOption(NameDesc(sample.name)) {
                         // place node at mouse position
                         val node = newNode()
@@ -342,10 +335,13 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         inIndex: Int, outIndex: Int, c0: Int, c1: Int,
         type: String
     ) {
-        drawCurvyNodeConnectionV2(x0, y0, x1, y1, c0, c1, type)
+        // if you want other connection styles, just implement them here :)
+        drawCurvyNodeConnection(x0, y0, x1, y1, c0, c1, type)
+        // e.g., straight connections
+        // drawStraightNodeConnection(x0, y0, x1, y1, inIndex, outIndex, c0, c1, type)
     }
 
-    fun drawCurvyNodeConnectionV2(
+    fun drawCurvyNodeConnection(
         x0: Float, y0: Float, x1: Float, y1: Float,
         c0: Int, c1: Int, type: String
     ) {
@@ -365,82 +361,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         )
     }
 
-    fun drawCurvyNodeConnectionV1(// only good for forwards
-        x0: Float, y0: Float, x1: Float, y1: Float,
-        c0: Int, c1: Int, type: String
-    ) {
-        val lt = if (type == "Flow") lineThicknessBold else lineThickness
-        val xc = (x0 + x1) * 0.5f
-        // right, down, right
-        val s0 = abs(xc - x0)
-        val s1 = abs(y0 - y1)
-        val s2 = abs(xc - x1)
-        val ss = s0 + s1 + s2
-        if (ss > 0f) {
-            val ci1 = mixARGB(c0, c1, s0 / ss)
-            val ci2 = mixARGB(c0, c1, (s0 + s1) / ss)
-            drawCubicBezier(
-                x0, y0, c0,
-                xc, y0, ci1,
-                xc, y1, ci2,
-                x1, y1, c1,
-                lt * 0.5f, 0, true,
-                2f
-            )
-        }
-    }
-
-    fun drawCurvyNodeConnectionV0(
-        x0: Float, y0: Float, x1: Float, y1: Float,
-        c0: Int, c1: Int, type: String
-    ) {
-        val yc = (y0 + y1) * 0.5f
-        val d0 = 20f * scale.toFloat() + (abs(y1 - y0) + abs(x1 - x0)) / 8f
-        // line thickness depending on flow/non-flow
-        val lt = if (type == "Flow") lineThicknessBold else lineThickness
-        // go back distance x, and draw around
-        // to do make the transition between them smooth
-        if (x0 + d0 > x1 - d0) {
-            val cc = mixARGB(c0, c1, 0.5f)
-            val xc = (x0 + x1) * 0.5f
-            val yc0 = (yc + y0) * 0.5f
-            val yc1 = (yc + y1) * 0.5f
-            drawCubicBezier(
-                x0, y0, c0,
-                x0 + d0, y0, mixARGB(c0, c1, 0.1667f),
-                x0 + d0, yc0, mixARGB(c0, c1, 0.3333f),
-                xc, yc, cc,
-                lt * 0.5f, 0, true, 2f
-            )
-            drawCubicBezier(
-                x1, y1, c1,
-                x1 - d0, y1, mixARGB(c1, c0, 0.1667f),
-                x1 - d0, yc1, mixARGB(c1, c0, 0.3333f),
-                xc, yc, cc,
-                lt * 0.5f, 0, true, 2f
-            )
-        } else {
-            val xc = (x0 + x1) * 0.5f
-            // right, down, right
-            val s0 = abs(xc - x0)
-            val s1 = abs(y0 - y1)
-            val s2 = abs(xc - x1)
-            val ss = s0 + s1 + s2
-            if (ss > 0f) {
-                val ci1 = mixARGB(c0, c1, s0 / ss)
-                val ci2 = mixARGB(c0, c1, (s0 + s1) / ss)
-                drawCubicBezier(
-                    x0, y0, c0,
-                    xc, y0, ci1,
-                    xc, y1, ci2,
-                    x1, y1, c1,
-                    lt * 0.5f, 0, true,
-                    2f
-                )
-            }
-        }
-    }
-
+    @Suppress("unused")
     fun drawStraightNodeConnection(
         x0: Float, y0: Float, x1: Float, y1: Float,
         inIndex: Int, outIndex: Int, c0: Int, c1: Int,

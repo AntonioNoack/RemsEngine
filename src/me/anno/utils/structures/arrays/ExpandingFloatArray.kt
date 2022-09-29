@@ -122,6 +122,15 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
         array!![index] = value
     }
 
+    fun add(v: Vector2f) {
+        ensureExtra(2)
+        val array = array!!
+        var size = size
+        array[size++] = v.x
+        array[size++] = v.y
+        this.size = size
+    }
+
     fun add(v: Vector3f) {
         ensureExtra(3)
         val array = array!!

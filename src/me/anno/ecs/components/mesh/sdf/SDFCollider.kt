@@ -16,6 +16,7 @@ import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.MarchingCubes
 import me.anno.utils.types.Matrices.transformPosition2
 import org.joml.AABBd
+import org.joml.AABBf
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import kotlin.math.max
@@ -112,7 +113,7 @@ class SDFCollider : Collider() {
         val transform = transform?.getDrawMatrix()
         (shape as? ConcaveSDFShape)?.run {
             // draw last used triangles for debugging
-            MarchingCubes.march(fx, fy, fz, field, 0f, false) { a, b, c ->
+            MarchingCubes.march(fx, fy, fz, field, 0f, AABBf(sdf.entity!!.aabb), false) { a, b, c ->
                 if (transform != null) {
                     transform.transformPosition2(a)
                     transform.transformPosition2(b)

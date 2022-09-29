@@ -413,8 +413,8 @@ object LineShapes {
             val angle = i * PI * 2.0 / segments
             val position = positions[i]
             position.set(otherAxis)
-            position.setComponent(cosAxis, cos(angle) * radius)
-            position.setComponent(sinAxis, sin(angle) * radius)
+            position[cosAxis] = cos(angle) * radius
+            position[sinAxis] = sin(angle) * radius
             if (offset != null) position.add(offset)
             transform?.transformPosition(position)
         }
@@ -440,8 +440,8 @@ object LineShapes {
             val angle = startAngle + i * PI / segments
             val position = positions[i]
             position.set(otherAxis)
-            position.setComponent(cosAxis, cos(angle) * radius)
-            position.setComponent(sinAxis, sin(angle) * radius)
+            position[cosAxis] = cos(angle) * radius
+            position[sinAxis] = sin(angle) * radius
             if (offset != null) position.add(offset)
             transform?.transformPosition(position)
         }

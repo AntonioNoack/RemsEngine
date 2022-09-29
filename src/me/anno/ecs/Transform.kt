@@ -105,11 +105,11 @@ class Transform() : Saveable() {
 
     private var needsStaticUpdate = true
 
-    fun checkTransform(drawTransform: Matrix4x3d) {
-        if (!drawTransform.isFinite) {
+    fun checkTransform(transform: Matrix4x3d) {
+        if (!transform.isFinite) {
             Engine.requestShutdown()
             Thread.sleep(100)
-            throw RuntimeException("Transform became invalid")
+            throw RuntimeException("Transform became invalid: $transform")
         }
     }
 
