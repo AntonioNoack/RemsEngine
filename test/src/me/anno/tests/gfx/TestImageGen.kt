@@ -2,12 +2,12 @@ package me.anno.tests.gfx
 
 import me.anno.Engine
 import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.cache.SkeletonCache
-import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
@@ -15,7 +15,6 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
-import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
@@ -138,7 +137,6 @@ fun main() {
     // like Rem's CLI instantiate OpenGL
     HiddenOpenGLContext.createOpenGL(size / 4, size / 4)
     ShaderLib.init()
-    ECSShaderLib.init()
 
     clock.stop("Init-Stuff")
 

@@ -2,7 +2,6 @@ package me.anno.tests.assimp
 
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.io.files.FileReference.Companion.getReference
@@ -18,7 +17,6 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
 
     ShaderLib.init()
-    ECSShaderLib.init()
 
     ECSRegistry.init()
     Thumbs.useCacheFolder = true

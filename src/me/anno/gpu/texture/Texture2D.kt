@@ -32,6 +32,7 @@ import org.lwjgl.opengl.GL11.GL_R
 import org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP
 import org.lwjgl.opengl.GL45C.*
 import java.awt.image.BufferedImage
+import java.awt.image.DataBufferByte
 import java.awt.image.DataBufferInt
 import java.nio.*
 import kotlin.concurrent.thread
@@ -377,6 +378,19 @@ open class Texture2D(
                     val data2 = if (checkRedundancy) checkRedundancy(data) else data
                     GFX.addGPUTask("Texture2D-BGR", w, h) {
                         createRGB(data2, false)
+                    }
+                }
+            }
+            BufferedImage.TYPE_BYTE_GRAY -> {
+                buffer as DataBufferByte
+                val data = buffer.data
+                // data is already in the correct format; no swizzling needed
+                if (sync && isGFXThread()) {
+                    createMonochrome(data, checkRedundancy)
+                } else {
+                    val data2 = if (checkRedundancy) checkRedundancy(data) else data
+                    GFX.addGPUTask("Texture2D-Mono", w, h) {
+                        createMonochrome(data2, false)
                     }
                 }
             }

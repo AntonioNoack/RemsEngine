@@ -8,11 +8,12 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     constructor() : this(0f, 0f, 0f)
     constructor(d: Float) : this(d, d, d)
     constructor(v: Vector3f) : this(v.x, v.y, v.z)
+    constructor(v: Vector3d) : this(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     constructor(v: Vector3i) : this(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     constructor(v: Vector2f, z: Float) : this(v.x, v.y, z)
     constructor(v: Vector2i, z: Float) : this(v.x.toFloat(), v.y.toFloat(), z)
     constructor(xyz: FloatArray) : this(xyz[0], xyz[1], xyz[2])
-    constructor(x: Int, y: Int, z: Int): this(x.toFloat(), y.toFloat(), z.toFloat())
+    constructor(x: Int, y: Int, z: Int) : this(x.toFloat(), y.toFloat(), z.toFloat())
 
     fun set(v: Vector3f): Vector3f {
         x = v.x

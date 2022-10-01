@@ -186,6 +186,7 @@ class AABBd(
     }
 
     fun transform(trans: Matrix4x3d, dst: AABBd = this): AABBd {
+        if (isEmpty()) return dst.clear()
         val dx: Double = this.maxX - this.minX
         val dy: Double = this.maxY - this.minY
         val dz: Double = this.maxZ - this.minZ
@@ -222,6 +223,7 @@ class AABBd(
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
     fun transformUnion(m: Matrix4x3d, base: AABBd, dst: AABBd): AABBd {
+        if (isEmpty()) return dst.set(base)
         val dx = this.maxX - this.minX
         val dy = this.maxY - this.minY
         val dz = this.maxZ - this.minZ
@@ -258,6 +260,7 @@ class AABBd(
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
     fun transformUnion(m: Matrix4x3d, base: AABBf, dst: AABBd): AABBd {
+        if (isEmpty()) return dst.set(base)
         val mx = minX
         val my = minY
         val mz = minZ

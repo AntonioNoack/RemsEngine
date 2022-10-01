@@ -6,6 +6,7 @@ import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
 import me.anno.utils.Color.black
 import java.awt.image.BufferedImage
+import java.awt.image.DataBufferByte
 
 class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
     Image(src.width, src.height, 1, false) {
@@ -18,38 +19,31 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
     }
 
     override fun createBufferedImage(): BufferedImage {
-        val image = BufferedImage(width, height, 1)
-        val black = 0xff shl 24
-        var i = 0
+        val image = BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
+        val buffer = image.data.dataBuffer as DataBufferByte
+        val data1 = buffer.data
+        val shift = shift
         when (src) {
-            is BIImage -> {
+            is IntImage -> {
                 val data = src.data
                 if (inverse) {
-                    for (y in 0 until height) {
-                        for (x in 0 until width) {
-                            image.setRGB(x, y, (255 - data[i++].shr(shift).and(255)) * 0x10101 + black)
-                        }
+                    for (i in 0 until width * height) {
+                        data1[i] = (255 - data[i].shr(shift)).toByte()
                     }
                 } else {
-                    for (y in 0 until height) {
-                        for (x in 0 until width) {
-                            image.setRGB(x, y, data[i++].shr(shift).and(255) * 0x10101 + black)
-                        }
+                    for (i in 0 until width * height) {
+                        data1[i] = data[i].shr(shift).toByte()
                     }
                 }
             }
             else -> {
                 if (inverse) {
-                    for (y in 0 until height) {
-                        for (x in 0 until width) {
-                            image.setRGB(x, y, (255 - src.getRGB(i++).shr(shift).and(255)) * 0x10101 + black)
-                        }
+                    for (i in 0 until width * height) {
+                        data1[i] = (255 - src.getRGB(i).shr(shift)).toByte()
                     }
                 } else {
-                    for (y in 0 until height) {
-                        for (x in 0 until width) {
-                            image.setRGB(x, y, src.getRGB(i++).shr(shift).and(255) * 0x10101 + black)
-                        }
+                    for (i in 0 until width * height) {
+                        data1[i] = src.getRGB(i).shr(shift).toByte()
                     }
                 }
             }
@@ -61,7 +55,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         val size = width * height
         val bytes = bufferPool[size, false, false]
         when (src) {
-            is BIImage -> {
+            is IntImage -> {
                 // use direct data access
                 val data = src.data
                 if (inverse) {

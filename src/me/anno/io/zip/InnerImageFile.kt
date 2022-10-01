@@ -29,8 +29,8 @@ class InnerImageFile(
         compressedSize = size // unknown until we compress it
     }
 
-    val bytes = lazy {
-        createBMP(content.createIntImage())
+    val bytes by lazy {
+        createBMP(content)
     }
 
     override fun readImage(): Image {
@@ -38,27 +38,27 @@ class InnerImageFile(
     }
 
     override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-        callback(bytes.value, null)
+        callback(bytes, null)
     }
 
     override fun readBytesSync(): ByteArray {
-        return bytes.value
+        return bytes
     }
 
     override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
-        callback(String(bytes.value, charset), null)
+        callback(String(bytes, charset), null)
     }
 
     override fun readTextSync(): String {
-        return String(bytes.value) // what are you doing? ;)
+        return String(bytes) // what are you doing? ;)
     }
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(bytes.value.inputStream(), null)
+        callback(bytes.inputStream(), null)
     }
 
     override fun inputStreamSync(): InputStream {
-        return bytes.value.inputStream()
+        return bytes.inputStream()
     }
 
 }

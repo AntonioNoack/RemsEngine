@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.io.IOException
 import java.io.InputStream
+import java.nio.IntBuffer
 import kotlin.math.min
 
 /**
@@ -87,11 +88,11 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             1 -> 0x10101 * (data[index].toInt() and 255)
             2 -> {
                 val j = index * 2
-                bgra(0, data[j].toInt(), data[j + 1].toInt(), 255)
+                argb(255, data[j + 1].toInt(), data[j].toInt(), 0)
             }
             3 -> {
                 val j = index * 3
-                bgra(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), 255)
+                argb(255, data[j + 2].toInt(), data[j + 1].toInt(), data[j].toInt())
             }
             4 -> {
                 val j = index * 4

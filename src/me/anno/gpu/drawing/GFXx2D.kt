@@ -180,13 +180,13 @@ object GFXx2D {
         posSize(shader, x.toFloat(), y.toFloat(), w.toFloat(), h.toFloat())
     }
 
-    fun posSizeDraw(shader: ComputeShader, x: Int, y: Int, w: Int, h: Int) {
+    fun posSizeDraw(shader: ComputeShader, x: Int, y: Int, w: Int, h: Int, padding: Int = 0) {
         val fb = GFXState.currentBuffer as? Framebuffer
         // check how much this out of bounds
-        val minX = max(x, GFX.viewportX)
-        val minY = max(y, GFX.viewportY)
-        val maxX = min(x + w, GFX.viewportX + GFX.viewportWidth)
-        val maxY = min(y + h, GFX.viewportY + GFX.viewportHeight)
+        val minX = max(x - padding, GFX.viewportX)
+        val minY = max(y - padding, GFX.viewportY)
+        val maxX = min(x + w + padding, GFX.viewportX + GFX.viewportWidth)
+        val maxY = min(y + h + padding, GFX.viewportY + GFX.viewportHeight)
         if (minX < maxX && minY < maxY) {
             shader.v2i("srcOffset", minX - x, minY - y)
             shader.v2i("dstOffset", minX - (fb?.offsetX ?: 0), minY - (fb?.offsetY ?: 0))

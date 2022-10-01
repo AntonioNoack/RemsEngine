@@ -12,7 +12,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
@@ -233,7 +232,6 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         }.create(this)
 
         ShaderLib.init()
-        ECSShaderLib.init()
 
         // todo different editing modes like Blender?, e.g. animating stuff, scripting, ...
 

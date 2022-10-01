@@ -51,7 +51,6 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.graph.types.NodeLibrary
@@ -209,7 +208,6 @@ object ECSRegistry {
     fun initWithGFX(w: Int = 512, h: Int = w) {
         HiddenOpenGLContext.createOpenGL(w, h)
         ShaderLib.init()
-        ECSShaderLib.init()
         init()
     }
 

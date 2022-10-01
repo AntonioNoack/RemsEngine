@@ -2,7 +2,6 @@ package me.anno.engine.ui.render
 
 // this list of imports is insane XD
 import me.anno.Engine
-import me.anno.utils.Color.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -14,6 +13,7 @@ import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.effects.*
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.debug.DebugShapes
 import me.anno.engine.pbr.DeferredRenderer
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.PlaneShapes
@@ -50,7 +50,6 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
-import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.DrawTextures.drawDepthTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.DrawTextures.drawTextureAlpha
@@ -71,7 +70,6 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.maths.Maths.clamp
@@ -83,6 +81,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
+import me.anno.utils.Color.black
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
@@ -425,7 +424,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             val count1 = PipelineStage.drawnTriangles
             val deltaCount = count1 - count0
             drawSimpleTextCharByChar(
-                x, y + h - 2 - DrawTexts.monospaceFont.sizeInt,
+                x + DrawTexts.monospaceFont.sizeInt / 4,
+                y + h - 2 - DrawTexts.monospaceFont.sizeInt,
                 2,
                 deltaCount.toString(),
                 FrameTimings.textColor,
@@ -1124,8 +1124,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         // this needs to be separate from the stack
         // (for normal calculations and such)
-        val scaledNear = (near * worldScale)
-        val scaledFar = (far * worldScale)
+        var scaledNear = (near * worldScale)
+        var scaledFar = (far * worldScale)
         this.scaledNear = scaledNear
         this.scaledFar = scaledFar
         this.isPerspective = isPerspective
@@ -1136,11 +1136,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 cameraMatrix, fovYRadians, aspectRatio, scaledNear.toFloat(), scaledFar.toFloat(), centerX, centerY
             )
         } else {
+            scaledNear = max(scaledNear, worldScale * 0.001)
+            scaledFar = min(scaledFar, worldScale * 1000.0)
             fovYRadians = fov // not really defined
             val sceneScaleXY = 2f / fov // 2, because OpenGL goes from -1 to +1
             val n: Float
             val f: Float
-            // todo only devices may not support 01-range, so make this optional
+            // todo some devices may not support 01-range, so make this optional
             val range01 = reverseDepth
             if (reverseDepth) {
                 // range is 0 .. 1
@@ -1200,6 +1202,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
         prevCamMatrix.set(lastCamMat)
         prevCamPosition.set(lastCamPos)
+        prevCamRotation.set(lastCamRot)
         prevWorldScale = lastWorldScale
 
         currentInstance = this
@@ -1268,13 +1271,29 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         GFXState.blendMode.use(null) {
             GFXState.depthMode.use(DepthMode.ALWAYS) {
                 // don't write depth, only all buffers
-                // todo this buffer is very small in orthographic case, because the camera matrix contains scale, which it shouldn't
                 GFXState.depthMask.use(false) {
                     // draw a huge cube with default values for all buffers
                     val shader = clearPbrModelShader.value
                     shader.use()
-                    shader.m4x4("transform", cameraMatrix)
-                    shader.m4x4("prevTransform", prevCamMatrix)
+                    if (isPerspective) {
+                        shader.m4x4("transform", cameraMatrix)
+                        shader.m4x4("prevTransform", prevCamMatrix)
+                    } else {
+                        // this buffer can be very small in orthographic case, because the camera matrix contains scale, which it shouldn't;
+                        // aspect ratio shouldn't matter, because it's orthographic = the same direction and position at infinity anyway
+                        val tmpQ = JomlPools.quat4f.borrow()
+                        val tmp1 = JomlPools.mat4f.borrow()
+                        tmp1
+                            .identity()
+                            .scale(2f, 2f, 0.3f)
+                            .rotate(tmpQ.set(cameraRotation))
+                        shader.m4x4("transform", tmp1)
+                        tmp1
+                            .identity()
+                            .scale(2f, 2f, 0.3f)
+                            .rotate(tmpQ.set(prevCamRotation))
+                        shader.m4x4("prevTransform", tmp1)
+                    }
                     val c = tmp4f
                     c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
                     // inverse tonemapping
@@ -1391,7 +1410,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     fun drawGizmos(drawGridLines: Boolean, drawDebug: Boolean = true) {
 
-        if (playMode != PlayMode.EDITING) return
+        if (playMode != PlayMode.EDITING) {
+            DebugShapes.clear()
+            return
+        }
 
         val world = getWorld()
         // draw UI
@@ -1473,6 +1495,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                 if (drawDebug) {
                     DebugRendering.drawDebug(this)
+                } else {
+                    DebugShapes.clear()
                 }
 
                 LineBuffer.finish(cameraMatrix)
@@ -1526,16 +1550,19 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     val cameraRotation = Quaterniond()
     val mouseDirection = Vector3d()
 
+    val prevCamRotation = Quaterniond()
     val prevCamMatrix = Matrix4f()
     val prevCamPosition = Vector3d()
     var prevWorldScale = worldScale
 
     private val lastCamPos = Vector3d()
+    private val lastCamRot = Quaterniond()
     private val lastCamMat = Matrix4f()
     private var lastWorldScale = worldScale
 
     fun updatePrevState() {
         lastCamPos.set(cameraPosition)
+        lastCamRot.set(cameraRotation)
         lastCamMat.set(cameraMatrix)
         lastWorldScale = worldScale
     }

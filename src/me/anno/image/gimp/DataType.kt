@@ -22,8 +22,6 @@ enum class DataType(val value: Int, val bpp: Int) {
     DOUBLE_PERCEPTUAL(775, 8);
 
     companion object {
-
         val valueById = values().associateBy { it.value }
-
     }
 }

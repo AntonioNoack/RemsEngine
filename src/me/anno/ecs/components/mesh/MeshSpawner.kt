@@ -132,17 +132,16 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     private val tmpAABB = AABBd()
 
     fun getTransform(i: Int): Transform {
-        val entity = entity
-        for (j in transforms.size..i) {
-            transforms.add(Transform(entity))
-        }
+        ensureTransforms(i + 1)
         return transforms[i]
     }
 
     fun ensureTransforms(count: Int) {
         val entity = entity
         for (i in transforms.size until count) {
-            transforms.add(Transform(entity))
+            val tr = Transform()
+            tr.parentEntity = entity
+            transforms.add(tr)
         }
     }
 

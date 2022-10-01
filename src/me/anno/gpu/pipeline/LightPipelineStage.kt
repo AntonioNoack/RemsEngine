@@ -40,6 +40,8 @@ import org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW
 class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
 
     // todo add optional iridescence parameter for shading ... it looks really nice on leather and metal :)
+    // https://belcour.github.io/blog/research/publication/2017/05/01/brdf-thin-film.html
+    // source code it at the top of the page
     // todo or even better, make this rendering part here modular, so you can use any parameters and materials, you want
 
     companion object {

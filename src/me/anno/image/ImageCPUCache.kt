@@ -6,7 +6,7 @@ import me.anno.cache.CacheSection
 import me.anno.image.exr.EXRReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.hdr.HDRImage
-import me.anno.image.raw.BIImage
+import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
@@ -15,7 +15,6 @@ import me.anno.io.files.Signature
 import me.anno.io.zip.SignatureFile
 import me.anno.maths.Maths.min
 import me.anno.utils.Sleep
-import me.anno.utils.Sleep.waitUntil
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.saharnooby.qoi.QOIImage
@@ -160,13 +159,13 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                 try {
                     val img = ImageIO.read(it) ?: throw IOException(file.toString())
                     it.close()
-                    callback(BIImage(img), null)
+                    callback(img.toImage(), null)
                 } catch (e: Exception) {
                     e.printStackTrace()
                     file.inputStream { it2, exc2 ->
                         if (it2 != null) {
                             try {
-                                callback(BIImage(Imaging.getBufferedImage(it2)), null)
+                                callback(Imaging.getBufferedImage(it2).toImage(), null)
                             } catch (e: Exception) {
                                 callback(null, e)
                             }
@@ -211,7 +210,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         if (image == null) {
             LOGGER.debug("Imaging failed for $file")
         }
-        return if (image == null) null else BIImage(image)
+        return image?.toImage()
     }
 
 }

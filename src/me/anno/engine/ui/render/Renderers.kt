@@ -253,12 +253,12 @@ object Renderers {
                     Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                 ), "" +
                         // shared pbr data
-                        "   vec3 V = normalize(-finalPosition);\n" +
+                        "vec3 V = normalize(-finalPosition);\n" +
                         // light calculations
-                        "   float NdotV = abs(dot(finalNormal,V));\n" +
+                        "float NdotV = abs(dot(finalNormal,V));\n" +
                         // precalculate sheen
-                        "   float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
-                        "   float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
+                        "float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
+                        "float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
                         // light calculation
                         "vec3 ambientLight = vec3(0.2);\n" +
                         "vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
@@ -270,7 +270,7 @@ object Renderers {
                         "   vec4 data = lightData[i];\n" +
                         "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
                         "   float NdotL = dot(finalNormal, lightDirection);\n" +
-                        "   if(NdotL > 0.001){\n" +
+                        "   if(NdotL > 0.0){\n" +
                         "       vec3 H = normalize(V + lightDirection);\n" +
                         "       if(hasSpecular){\n" +
                         specularBRDFv2NoDivInlined2 +

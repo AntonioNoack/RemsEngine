@@ -1027,7 +1027,6 @@ object UnityReader {
         HiddenOpenGLContext.createOpenGL()
 
         ShaderLib.init()
-        ECSShaderLib.init()
 
         ECSRegistry.init()
 
@@ -1086,7 +1085,6 @@ Transform:
         HiddenOpenGLContext.createOpenGL()
 
         ShaderLib.init()
-        ECSShaderLib.init()
 
         ECSRegistry.init()
 
@@ -1135,7 +1133,6 @@ Transform:
         HiddenOpenGLContext.createOpenGL()*/
 
         ShaderLib.init()
-        ECSShaderLib.init()
 
         ECSRegistry.init()
 

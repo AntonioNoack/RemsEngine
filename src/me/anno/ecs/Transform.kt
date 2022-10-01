@@ -36,7 +36,8 @@ class Transform() : Saveable() {
     val needsUpdate get() = state != State.VALID
 
     var entity: Entity? = null
-    val parent get() = entity?.parentEntity?.transform
+    var parentEntity: Entity? = null
+    val parent get() = (entity?.parentEntity ?: parentEntity)?.transform
 
     var lastUpdateTime = 0L
     var lastDrawTime = 0L

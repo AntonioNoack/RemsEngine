@@ -288,7 +288,6 @@ object GFX {
     fun renderStep0() {
         setupBasics()
         ShaderLib.init()
-        ECSShaderLib.init()
     }
 
 

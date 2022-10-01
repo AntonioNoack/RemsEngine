@@ -2,6 +2,7 @@ package me.anno.ecs.components.test
 
 import me.anno.Engine
 import me.anno.ecs.Component
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.physics.VehicleWheel
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabSaveable
@@ -18,12 +19,18 @@ class TestVehicleController : Component(), ControlReceiver {
 
     var smoothing = 5.0
 
+    @DebugProperty
+    val controls = "tfgh"
+
+    @DebugProperty
     @NotSerializedProperty
     private var lastForce = 0.0
 
+    @DebugProperty
     @NotSerializedProperty
     private var lastSteering = 0.0
 
+    @DebugProperty
     @NotSerializedProperty
     private var lastBrake = 0.0
 
@@ -45,7 +52,7 @@ class TestVehicleController : Component(), ControlReceiver {
         lastSteering = mix(lastSteering, steeringSum, factor)
         lastBrake = mix(lastBrake, brakeForcePerWheel, factor)
 
-        entity!!.anyComponentInChildren(VehicleWheel::class) {
+        entity?.anyComponentInChildren(VehicleWheel::class) {
             it.steering = lastSteering * it.steeringMultiplier
             it.brakeForce = lastBrake * it.brakeForceMultiplier
             it.engineForce = lastForce * it.engineForceMultiplier

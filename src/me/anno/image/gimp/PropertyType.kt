@@ -2,7 +2,7 @@ package me.anno.image.gimp
 
 enum class PropertyType {
     END,
-    COLORMAP,
+    COLOR_MAP,
     ACTIVE_LAYER,
     ACTIVE_CHANNEL,
     SELECTION,

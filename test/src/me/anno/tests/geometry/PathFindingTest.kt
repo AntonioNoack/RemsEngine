@@ -1,7 +1,7 @@
 package me.anno.tests.geometry
 
 import me.anno.Engine
-import me.anno.image.raw.BIImage
+import me.anno.image.raw.write
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
 import me.anno.maths.paths.PathFinding
@@ -341,6 +341,6 @@ fun main() {
     ox += 3; oy -= 3
     drawPath(path1, "Dijkstra", 1, Color.CYAN)
     gfx.dispose()
-    BIImage(image).write(OS.desktop.getChild("aStar.png"))
+    image.write(OS.desktop.getChild("aStar.png"))
 }
 

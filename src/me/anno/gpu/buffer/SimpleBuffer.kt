@@ -24,7 +24,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             }
         }
 
-        // todo "move" towards the viewer for large distance, so it stays fullscreen?
+        // to do "move" towards the viewer for large distance, so it stays fullscreen?
         // like a sphere?
         // or add a sphere additionally? (then without our effects)
         private fun createFlatLarge(): StaticBuffer {

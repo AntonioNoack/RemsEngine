@@ -178,7 +178,8 @@ class AABBf(
         return dst
     }
 
-    fun transform(m: Matrix4f, dest: AABBf = this): AABBf {
+    fun transform(m: Matrix4f, dst: AABBf = this): AABBf {
+        if (isEmpty()) return dst.clear()
         val dx = maxX - minX
         val dy = maxY - minY
         val dz = maxZ - minZ
@@ -202,19 +203,20 @@ class AABBf(
             maxy = max(ty, maxy)
             maxz = max(tz, maxz)
         }
-        dest.minX = minx
-        dest.minY = miny
-        dest.minZ = minz
-        dest.maxX = maxx
-        dest.maxY = maxy
-        dest.maxZ = maxz
-        return dest
+        dst.minX = minx
+        dst.minY = miny
+        dst.minZ = minz
+        dst.maxX = maxx
+        dst.maxY = maxy
+        dst.maxZ = maxz
+        return dst
     }
 
     /**
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
     fun transform(m: Matrix4x3d, dst: AABBd): AABBd {
+        if (isEmpty()) return dst.clear()
         val mx = minX.toDouble()
         val my = minY.toDouble()
         val mz = minZ.toDouble()
@@ -254,6 +256,7 @@ class AABBf(
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
     fun transformUnion(m: Matrix4x3d, base: AABBd, dst: AABBd = base): AABBd {
+        if (isEmpty()) return dst.set(base)
         val mx = minX.toDouble()
         val my = minY.toDouble()
         val mz = minZ.toDouble()
@@ -293,6 +296,7 @@ class AABBf(
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
     fun transformUnion(m: Matrix4x3f, base: AABBf, dst: AABBf = base): AABBf {
+        if (isEmpty()) return dst.set(base)
         val mx = minX
         val my = minY
         val mz = minZ
@@ -332,6 +336,7 @@ class AABBf(
      * transforms this matrix, and places the result in dst
      * */
     fun transform(m: Matrix4x3f, dst: AABBf = this): AABBf {
+        if (isEmpty()) return dst.clear()
         val mx = minX
         val my = minY
         val mz = minZ
@@ -368,6 +373,7 @@ class AABBf(
     }
 
     fun transformProject(m: Matrix4f, dst: AABBf = this): AABBf {
+        if (isEmpty()) return dst.clear()
         val mx = minX
         val my = minY
         val mz = minZ
@@ -408,6 +414,7 @@ class AABBf(
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
     fun transformProjectUnion(m: Matrix4f, base: AABBf, dst: AABBf = base): AABBf {
+        if (isEmpty()) return dst.set(base)
         val mx = minX
         val my = minY
         val mz = minZ
@@ -449,6 +456,7 @@ class AABBf(
      * transforms this aabb, then unions it with base, and places the result in dst
      * */
     fun transformUnion(transform: Matrix4x3d, base: AABBd, scale: Double, dst: AABBd = base): AABBd {
+        if (isEmpty()) return dst.set(base)
         val mx = minX.toDouble() * scale
         val my = minY.toDouble() * scale
         val mz = minZ.toDouble() * scale

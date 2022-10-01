@@ -8,7 +8,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.image.Image
-import me.anno.image.raw.BIImage
+import me.anno.image.raw.toImage
 import me.anno.image.raw.IntImage
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
@@ -27,7 +27,7 @@ object Screenshots {
     fun takeSystemScreenshot(): Image? {
         val robot = GFXBase.robot ?: return null
         val image = robot.createScreenCapture(Rectangle(Toolkit.getDefaultToolkit().screenSize))
-        return BIImage(image)
+        return image.toImage()
     }
 
     fun getPixels(

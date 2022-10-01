@@ -337,13 +337,14 @@ object GFXBase {
             // System.loadLibrary("renderdoc");
             glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, message: Long, _: Long ->
                 val message2 = if (message != 0L) MemoryUtil.memUTF8(message) else null
-                LOGGER.warn(
-                    message2 +
-                            ", source: " + getDebugSourceName(source) +
-                            ", type: " + getDebugTypeName(type) + // mmh, not correct, at least for my simple sample I got a non-mapped code
-                            ", id: " + getErrorTypeName(id) +
-                            ", severity: " + getDebugSeverityName(severity)
-                )
+                if (message2 != null && "will use VIDEO memory as the source for buffer object operations" !in message2)
+                    LOGGER.warn(
+                        message2 +
+                                ", source: " + getDebugSourceName(source) +
+                                ", type: " + getDebugTypeName(type) + // mmh, not correct, at least for my simple sample I got a non-mapped code
+                                ", id: " + getErrorTypeName(id) +
+                                ", severity: " + getDebugSeverityName(severity)
+                    )
             }, 0)
             glEnable(KHRDebug.GL_DEBUG_OUTPUT)
         }

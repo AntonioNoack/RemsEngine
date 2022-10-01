@@ -27,6 +27,7 @@ import me.anno.utils.OS
 import me.anno.utils.types.Matrices.isIdentity
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.opengl.GL45C
 import kotlin.math.roundToInt
 
 object DrawTexts {
@@ -102,7 +103,7 @@ object DrawTexts {
         alignY: AxisAlignment = AxisAlignment.MIN,
     ): Int = drawSimpleTextCharByChar(
         x, y, padding, text, FrameTimings.textColor,
-        FrameTimings.backgroundColor and black.inv(),
+        FrameTimings.backgroundColor or black,
         alignX, alignY
     )
 
@@ -111,7 +112,7 @@ object DrawTexts {
         padding: Int,
         text: String,
         textColor: Int = FrameTimings.textColor,
-        backgroundColor: Int = FrameTimings.backgroundColor,
+        backgroundColor: Int = FrameTimings.backgroundColor or black,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN,
     ): Int {
@@ -244,7 +245,8 @@ object DrawTexts {
                             GFX.flat01.draw(shader)
                         } else {
                             shader as ComputeShader
-                            posSizeDraw(shader, x2, y2, texture.w, texture.h)
+                            posSizeDraw(shader, x2, y2, texture.w, texture.h, 1)
+                            GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
                         }
                         GFX.check()
                     } else {
@@ -363,7 +365,9 @@ object DrawTexts {
                 shader.use()
                 shader.bindTexture(1, GFXState.currentBuffer.getTexture0() as Texture2D, ComputeTextureMode.READ_WRITE)
                 shader.v4f("textColor", color)
-                posSizeDraw(shader, x2, y2, w, h)
+                shader.v4f("backgroundColor", backgroundColor)
+                posSizeDraw(shader, x2, y2, w, h, 1)
+                GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             } else {
                 val shader = ShaderLib.subpixelCorrectTextShader.value
                 shader.use()

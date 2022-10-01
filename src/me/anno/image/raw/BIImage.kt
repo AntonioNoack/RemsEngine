@@ -1,16 +1,19 @@
 package me.anno.image.raw
 
+import me.anno.io.files.FileReference
 import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 
-class BIImage(src: BufferedImage) : IntImage(
-    src.width, src.height,
-    src.getRGB(0, 0, src.width, src.height, null, 0, src.width),
-    src.colorModel.hasAlpha()
-) {
+// todo if image is grayscale, produce grayscale image
+fun BufferedImage.toImage() = IntImage(
+    width, height,
+    getRGB(0, 0, width, height, null, 0, width),
+    colorModel.hasAlpha()
+)
 
-    init {
-        width = src.width
-        height = src.height
+fun BufferedImage.write(dst: FileReference) {
+    val format = dst.lcExtension
+    dst.outputStream().use { out ->
+        ImageIO.write(this, format, out)
     }
-
 }

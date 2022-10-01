@@ -2,7 +2,6 @@ package me.anno.image
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.raw.BIImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
@@ -42,10 +41,6 @@ abstract class Image(
         return image
     }
 
-    fun createBImage(width: Int, height: Int): BIImage {
-        return BIImage(createBufferedImage(width, height))
-    }
-
     open fun createBufferedImage(): BufferedImage {
         val width = width
         val height = height
@@ -62,6 +57,7 @@ abstract class Image(
     }
 
     abstract fun getRGB(index: Int): Int
+
     fun getValueAt(x: Float, y: Float, shift: Int): Float {
         val xf = floor(x)
         val yf = floor(y)
@@ -112,6 +108,10 @@ abstract class Image(
     }
 
     open fun createBufferedImage(dstWidth: Int, dstHeight: Int): BufferedImage {
+        return resize(dstWidth, dstHeight).createBufferedImage()
+    }
+
+    open fun resize(dstWidth: Int, dstHeight: Int): Image {
 
         var dstWidth1 = dstWidth
         var dstHeight1 = dstHeight
@@ -130,11 +130,11 @@ abstract class Image(
         }
 
         if (dstWidth1 == srcWidth && dstHeight1 == srcHeight) {
-            return createBufferedImage()
+            return this
         }
 
-        val img = BufferedImage(dstWidth1, dstHeight1, if (hasAlphaChannel) 2 else 1)
-        val buffer = img.data.dataBuffer
+        val img = IntImage(dstWidth1, dstHeight1, hasAlphaChannel)
+        val buffer = img.data
         var srcY0 = 0
         var dstY = 0
         var dstIndex = 0
@@ -172,15 +172,13 @@ abstract class Image(
                     g /= count
                     b /= count
                 }
-                buffer.setElem(dstIndex, argb(a, r, g, b))
+                buffer[dstIndex] = argb(a, r, g, b)
                 dstX++
                 dstIndex++
             }
             srcY0 = srcY1
             dstY++
         }
-        // update the image, otherwise the result is broken
-        img.data = Raster.createRaster(img.raster.sampleModel, buffer, Point())
         return img
     }
 

@@ -18,7 +18,7 @@ import me.anno.image.ImageCPUCache
 import me.anno.image.ImageReadable
 import me.anno.image.RotateJPEG
 import me.anno.image.hdr.HDRImage
-import me.anno.image.raw.BIImage
+import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -173,7 +173,7 @@ class ImageData(file: FileReference) : ICacheData {
             LOGGER.warn("Cannot read image from input $file", e)
             return null
         }
-        return BIImage(image)
+        return image.toImage()
     }
 
     override fun destroy() {

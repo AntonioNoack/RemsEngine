@@ -224,7 +224,7 @@ class GimpImage {
                     2 -> DataType.U32_LINEAR
                     3 -> DataType.HALF_LINEAR
                     4 -> DataType.FLOAT_LINEAR
-                    else -> throw IOException()
+                    else -> throw IOException("Unknown precision")
                 }
                 5, 6 -> {
                     when (p) {
@@ -238,10 +238,10 @@ class GimpImage {
                         450 -> DataType.HALF_NON_LINEAR
                         500 -> DataType.FLOAT_LINEAR
                         550 -> DataType.FLOAT_NON_LINEAR
-                        else -> throw IOException()
+                        else -> throw IOException("Unknown precision")
                     }
                 }
-                else -> DataType.valueById[p] ?: throw IOException()
+                else -> DataType.valueById[p] ?: throw IOException("Unknown precision")
             }
         } else DataType.U8_NON_LINEAR
 
@@ -609,7 +609,7 @@ class GimpImage {
             val position = data.position()
             when (propType) {
                 PropertyType.END -> break
-                PropertyType.COLORMAP -> {
+                PropertyType.COLOR_MAP -> {
                     val size = data.int
                     val colors = if (fileVersion == 0) {
                         data.position(data.position() + size)

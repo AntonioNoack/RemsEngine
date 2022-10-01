@@ -3,8 +3,9 @@ package me.anno.image
 import me.anno.image.BoxBlur.gaussianBlur
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
-import me.anno.image.raw.BIImage
+import me.anno.image.raw.toImage
 import me.anno.image.raw.IntImage
+import me.anno.image.raw.write
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
@@ -499,7 +500,7 @@ object ImageWriter {
             gfx.fillOval(px - 2, py - 2, 5, 5)
 
         }
-        BIImage(bi).write(desktop.getChild(name))
+        bi.write(desktop.getChild(name))
     }
 
 }

@@ -1,7 +1,7 @@
 package net.sf.image4j.codec.ico
 
 import me.anno.image.Image
-import me.anno.image.raw.BIImage
+import me.anno.image.raw.toImage
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import net.sf.image4j.codec.bmp.BMPDecoder
@@ -132,7 +132,7 @@ object ICOReader {
                 }
                 val pngBytes = packPNGBytes(input1, entry.sizeInBytes)
                 val stream = ByteArrayInputStream(pngBytes)
-                BIImage(ImageIO.read(stream))
+                ImageIO.read(stream).toImage()
             }
             else -> throw IOException("Unrecognized icon format for image #$i")
         }

@@ -12,8 +12,8 @@ import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache
 import me.anno.utils.structures.stacks.SecureStack
-import org.lwjgl.opengl.GL20.GL_LOWER_LEFT
-import org.lwjgl.opengl.GL45.*
+import org.lwjgl.opengl.GL20C.GL_LOWER_LEFT
+import org.lwjgl.opengl.GL45C.*
 
 /**
  * holds rendering-related state,

@@ -9,7 +9,7 @@ package me.anno.graph.octtree
  *
  * it also could be a dual list, e.g., list of positions, and triangle indices
  *
- * modifications must be in order, queries can be multithreaded
+ * modifications must be in order, queries can be multi-threaded
  * */
 abstract class KdTree<Point, Data>(
     val maxNumChildren: Int,
@@ -35,8 +35,12 @@ abstract class KdTree<Point, Data>(
     }
 
     abstract fun chooseSplitDimension(min: Point, max: Point): Int
-    abstract fun contains(min: Point, max: Point, x: Point): Boolean
-    abstract fun getPoint(data: Data): Point
+    abstract fun overlaps(min0: Point, max0: Point, min1: Point, max1: Point): Boolean
+
+    open fun getPoint(data: Data): Point = getMin(data)
+    open fun getMin(data: Data): Point = getPoint(data)
+    open fun getMax(data: Data): Point = getPoint(data)
+
     abstract fun get(p: Point, axis: Int): Double
     abstract fun min(a: Point, b: Point): Point
     abstract fun max(a: Point, b: Point): Point
@@ -54,11 +58,12 @@ abstract class KdTree<Point, Data>(
 
     fun add(d: Data) {
 
-        val p = getPoint(d)
-        val px = get(p, axis)
+        val minI = getMin(d)
+        val maxI = getMax(d)
+        val px = get(minI, axis)
 
-        min = min(min, p)
-        max = max(max, p)
+        min = min(min, minI)
+        max = max(max, maxI)
 
         // if already has children, add it to them...
         if (left != null) {
@@ -96,27 +101,25 @@ abstract class KdTree<Point, Data>(
                 val leftMax = children[median]
                 val rightMin = children[median + 1]
 
-                var lMin = getPoint(leftMax)
-                var lMax = lMin
+                var lMin = getMin(leftMax)
+                var lMax = getMax(leftMax)
 
-                var rMin = getPoint(rightMin)
-                var rMax = rMin
+                var rMin = getMin(rightMin)
+                var rMax = getMax(rightMin)
 
                 // calculate bounds and split up children
                 val rightChildren = ArrayList<Data>(maxNumChildren)
                 for (i in children.size - 1 downTo median + 1) {
-                    val rc = children.removeAt(i)
-                    rightChildren.add(rc)
-                    val rp = getPoint(rc)
-                    rMin = min(rMin, rp)
-                    rMax = max(rMax, rp)
+                    val child = children.removeAt(i)
+                    rightChildren.add(child)
+                    rMin = min(rMin, getMin(child))
+                    rMax = max(rMax, getMax(child))
                 }
 
                 for (i in children.indices) {
-                    val lc = children[i]
-                    val lp = getPoint(lc)
-                    lMin = min(lMin, lp)
-                    lMax = max(lMax, lp)
+                    val child = children[i]
+                    lMin = min(lMin, getMin(child))
+                    lMax = max(lMax, getMax(child))
                 }
 
                 left = createChild(children, lMin, lMax)
@@ -146,9 +149,9 @@ abstract class KdTree<Point, Data>(
         if (children != null) {
             for (i in children.indices) {
                 val d = children.getOrNull(i) ?: break
-                val p = getPoint(d)
-                val x = get(p, axis)
-                if (x in minV..maxV && contains(min, max, p)) {
+                val minI = getMin(d)
+                val maxI = getMax(d)
+                if (overlaps(min, max, minI, maxI)) {
                     if (hasFound(d)) return true
                 }
             }
@@ -199,28 +202,21 @@ abstract class KdTree<Point, Data>(
             }
         }.iterator()
 
-    // todo test this
-    fun remove(d: Data): Boolean {
+    fun remove(d: Data, minI: Point = getMin(d), maxI: Point = getMax(d)): Boolean {
         val left = left
         if (left != null) {
             val right = right!!
-            val p = getPoint(d)
-            val px = get(p, axis)
-            if (px <= get(left.max, axis)) {
+            if (left.overlaps(left.min, left.max, minI, maxI)) {
                 if (left.remove(d)) {
                     size--
-                    // todo does this still work after joining?
-                    min = min(left.min, right.min)
-                    max = max(left.max, right.max)
+                    recalculateBounds()
                     return true
                 }
             }
-            if (px >= get(right.min, axis)) {
+            if (right.overlaps(right.min, right.max, minI, maxI)) {
                 if (right.remove(d)) {
-                    // todo does this still work after joining?
                     size--
-                    min = min(left.min, right.min)
-                    max = max(left.max, right.max)
+                    recalculateBounds()
                     return true
                 }
             }
@@ -236,23 +232,26 @@ abstract class KdTree<Point, Data>(
                     }
                 }
                 // update bounds
-                val d0 = children.firstOrNull()
-                if (d0 != null) {
-                    val p0 = getPoint(d0)
-                    min = p0
-                    max = p0
-                    for (i in 1 until children.size) {
-                        val di = children[i]
-                        val pi = getPoint(di)
-                        min = min(min, pi)
-                        max = max(max, pi)
-                    }
-                }
                 size--
+                recalculateBounds()
                 return false
             }
         }
         return false
+    }
+
+    private fun recalculateBounds() {
+        val children = children ?: return
+        val d0 = children.firstOrNull() ?: return
+        var min = getMin(d0)
+        var max = getMax(d0)
+        for (i in 1 until children.size) {
+            val child = children[i]
+            min = min(min, getMin(child))
+            max = max(max, getMax(child))
+        }
+        this.min = min
+        this.max = max
     }
 
     private fun join() {

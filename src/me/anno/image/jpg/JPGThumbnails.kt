@@ -12,7 +12,7 @@ object JPGThumbnails {
 
     fun extractThumbnail(file: FileReference, callback: (ByteArray?) -> Unit) {
         // a small file -> reading the thumbnail is probably not worth it
-        if (file.length() < 128 shl 10) {
+        if (file.length() < 65536) {
             callback(null)
             return
         }

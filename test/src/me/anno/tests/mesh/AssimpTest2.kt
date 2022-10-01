@@ -1,7 +1,6 @@
-package me.anno.tests
+package me.anno.tests.mesh
 
 import me.anno.ecs.components.anim.Skeleton
-import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
@@ -36,7 +35,6 @@ fun main() {
 
     HiddenOpenGLContext.createOpenGL()
     ShaderLib.init()
-    ECSShaderLib.init()
     Thumbs.useCacheFolder = true
 
     val size = 512

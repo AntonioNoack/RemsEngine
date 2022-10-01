@@ -284,7 +284,7 @@ class HDRImage : Image {
     companion object {
 
         private fun rgb(r: Int, g: Int, b: Int): Int {
-            return -0x1000000 or (r shl 16) or (g shl 8) or b
+            return (255 shl 24) or (r shl 16) or (g shl 8) or b
         }
 
         // with the reinhard tonemapping, the average brightness of pixels is expected to be
@@ -360,11 +360,11 @@ class HDRImage : Image {
                             var indexI = i0 + 4
                             while (length < 128 && xi + length < w) {
                                 val valueI = rowBytes[indexI]
-                                indexI += if (rowBytes[indexI + 4] == valueI && rowBytes[indexI + 8] == valueI) {
+                                if (rowBytes[indexI + 4] == valueI && rowBytes[indexI + 8] == valueI) {
                                     break // found repeating strip
                                 } else {
                                     length++
-                                    4
+                                    indexI += 4
                                 }
                             }
                             out.writeByte(length)

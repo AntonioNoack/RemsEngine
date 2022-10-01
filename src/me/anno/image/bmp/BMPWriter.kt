@@ -31,6 +31,25 @@ object BMPWriter {
         return dst
     }
 
+    fun createBMP(img: Image): ByteArray {
+        if (img is IntImage) return createBMP(img)
+        val width = img.width
+        val height = img.height
+        val dst = createBMPHeader(width, height)
+        // a lot of zeros
+        var j = pixelDataStart
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val color = img.getRGB(x, y)
+                dst[j++] = (color shr 24).toByte()
+                dst[j++] = (color shr 16).toByte()
+                dst[j++] = (color shr 8).toByte()
+                dst[j++] = color.toByte()
+            }
+        }
+        return dst
+    }
+
     private fun createBMPHeader(width: Int, height: Int): ByteArray {
         val dst = ByteArray(pixelDataStart + width * height * 4)
         // BM

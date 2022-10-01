@@ -42,6 +42,14 @@ object Iterators {
         }
     }
 
+    fun <A,B> Iterator<A>.map(mapping: (A) -> B): Iterator<B> {
+        val base = this
+        return object : Iterator<B> {
+            override fun hasNext() = base.hasNext()
+            override fun next() = mapping(base.next())
+        }
+    }
+
     fun <V> Iterator<V>.toList(): List<V> {
         val list = ArrayList<V>()
         while (hasNext()) {

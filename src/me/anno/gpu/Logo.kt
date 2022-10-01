@@ -18,10 +18,8 @@ import me.anno.mesh.obj.OBJReader
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
-import me.anno.utils.Color.toVecRGB
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
-import kotlin.math.log
 import kotlin.math.min
 
 // can be set by the application
