@@ -80,9 +80,9 @@ import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
+import me.anno.io.zip.InnerFolderCache
 import me.anno.io.zip.InnerFolderReader
 import me.anno.io.zip.InnerPrefabFile
-import me.anno.io.zip.InnerFolderCache
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.MeshUtils
 import me.anno.mesh.assimp.AnimGameItem
@@ -1179,9 +1179,23 @@ object Thumbs {
                 "sims" -> {
                 }
                 "ttf", "woff1", "woff2" -> {
-                    // for woff does not show the contents :/
-                    // generateSystemIcon(srcFile, dstFile, size, callback)
-                    // todo generate font preview
+                    // generate font preview
+                    val text = "The quick brown\nfox jumps over\nthe lazy dog"
+                    val lineCount = 3
+                    val key = Font(srcFile.absolutePath, size * 0.7f / lineCount, isBold = false, isItalic = false)
+                    val font = FontManager.getFont(key)
+                    val texture = font.generateTexture(
+                        text, key.size, size * 2, size * 2,
+                        portableImages = true,
+                        textColor = 255 shl 24,
+                        backgroundColor = -1,
+                        extraPadding = key.sizeInt / 2
+                    )
+                    if (texture is ITexture2D) {
+                        if (texture is Texture2D)
+                            waitUntil(true) { texture.isCreated || texture.isDestroyed }
+                        callback(texture)
+                    }
                 }
                 "lua-bytecode" -> {
                 }
