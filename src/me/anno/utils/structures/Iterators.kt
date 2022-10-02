@@ -42,7 +42,7 @@ object Iterators {
         }
     }
 
-    fun <A,B> Iterator<A>.map(mapping: (A) -> B): Iterator<B> {
+    fun <A, B> Iterator<A>.map(mapping: (A) -> B): Iterator<B> {
         val base = this
         return object : Iterator<B> {
             override fun hasNext() = base.hasNext()
@@ -53,6 +53,19 @@ object Iterators {
     fun <V> Iterator<V>.toList(): List<V> {
         val list = ArrayList<V>()
         while (hasNext()) {
+            list.add(next())
+        }
+        return list
+    }
+
+    fun <V> Iterator<V>.subList(startIndex: Int, endIndex: Int): List<V> {
+        for (i in 0 until startIndex) {
+            if (hasNext()) next()
+            else return emptyList()
+        }
+        val length = endIndex - startIndex
+        val list = ArrayList<V>(length)
+        while (list.size < length && hasNext()) {
             list.add(next())
         }
         return list

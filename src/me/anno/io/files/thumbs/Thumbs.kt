@@ -103,6 +103,7 @@ import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.Iterators.firstOrNull
+import me.anno.utils.structures.Iterators.subList
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.Strings.getImportType
@@ -463,9 +464,8 @@ object Thumbs {
                 texture.rotation = if (flipY) flipYRot else null
                 callback(texture)
             } else {
-                // todo check if this is working (Android or disable MSAA), should be, it's really simple
                 val texture = renderTarget.textures[0]
-                renderTarget.destroyExceptTextures(false)
+                renderTarget.destroyExceptTextures(true)
                 callback(texture)
             }
         }
@@ -1143,7 +1143,9 @@ object Thumbs {
                             if (ref != null) {
                                 val image = PDFCache.getImageCachedBySize(ref.doc, size, 0)
                                 ref.returnInstance()
-                                saveNUpload(srcFile, false, dstFile, image, callback)
+                                if (image != null) {
+                                    saveNUpload(srcFile, false, dstFile, image, callback)
+                                } else LOGGER.warn("Couldn't generate image for pdf $srcFile")
                             }
                         } else exc?.printStackTrace()
                     }
@@ -1180,8 +1182,8 @@ object Thumbs {
                 }
                 "ttf", "woff1", "woff2" -> {
                     // generate font preview
-                    val text = "The quick brown\nfox jumps over\nthe lazy dog"
-                    val lineCount = 3
+                    val text = "The quick\nbrown fox\njumps over\nthe lazy dog"
+                    val lineCount = 4
                     val key = Font(srcFile.absolutePath, size * 0.7f / lineCount, isBold = false, isItalic = false)
                     val font = FontManager.getFont(key)
                     val texture = font.generateTexture(
@@ -1300,6 +1302,7 @@ object Thumbs {
                                         // LOGGER.info("Found icon file from URL '$srcFile': '$iconFile'")
                                         generate(getReference(iconFile), size, callback)
                                     }
+                                    lines.close()
                                 } else exc?.printStackTrace()
                             }
                         }
@@ -1342,47 +1345,38 @@ object Thumbs {
         // scale text with size?
         val maxLineCount = clamp(size / 24, 3, 40)
         val maxLineLength = maxLineCount * 5 / 2
-        val maxLength = 64 * 1024
-        srcFile.inputStream { it, exc ->
+        srcFile.readLines { itr, exc ->
             exc?.printStackTrace()
-            if (it != null) {
-                val bytes = it.use {
-                    it.readNBytes2(maxLength, false)
+            if (itr != null) {
+                var lines = itr
+                    .subList(0, maxLineCount)
+                    .map { it.shorten(maxLineLength) }
+                    .toMutableList()
+                if (itr.hasNext()/*lines.size > maxLineCount*/) {
+                    lines = lines.subList(0, maxLineCount)
+                    lines[lines.lastIndex] = "..."
                 }
-                if (bytes.isNotEmpty()) {
-                    if (bytes.last() < 0) {
-                        bytes[bytes.lastIndex] = ' '.code.toByte()
-                    }
-                    var lines = String(bytes)
-                        .split('\n')
-                        .map { it.shorten(maxLineLength) }
-                        .toMutableList()
-                    if (lines.size > maxLineCount) {
-                        lines = lines.subList(0, maxLineCount)
-                        lines[lines.lastIndex] = "..."
-                    }
-                    // remove empty lines at the end
-                    while (lines.isNotEmpty() && lines.last().isEmpty()) {
-                        lines = lines.subList(0, lines.size - 1)
-                    }
-                    val text = lines
-                        .joinToString("\n")
-                    val lineCount = lines.size
-                    val key =
-                        Font(DefaultConfig.defaultFontName, size * 0.7f / lineCount, isBold = false, isItalic = false)
-                    val font2 = FontManager.getFont(key)
-                    val texture = font2.generateTexture(
-                        text, key.size, size * 2, size * 2,
-                        portableImages = true,
-                        textColor = 255 shl 24,
-                        backgroundColor = -1,
-                        extraPadding = key.sizeInt / 2
-                    )
-                    if (texture is ITexture2D) {
-                        if (texture is Texture2D)
-                            waitUntil(true) { texture.isCreated || texture.isDestroyed }
-                        callback(texture)
-                    }
+                itr.close()
+                // remove empty lines at the end
+                while (lines.isNotEmpty() && lines.last().isEmpty()) {
+                    lines = lines.subList(0, lines.size - 1)
+                }
+                val text = lines.joinToString("\n")
+                val lineCount = lines.size
+                val key =
+                    Font(DefaultConfig.defaultFontName, size * 0.7f / lineCount, isBold = false, isItalic = false)
+                val font2 = FontManager.getFont(key)
+                val texture = font2.generateTexture(
+                    text, key.size, size * 2, size * 2,
+                    portableImages = true,
+                    textColor = 255 shl 24,
+                    backgroundColor = -1,
+                    extraPadding = key.sizeInt / 2
+                )
+                if (texture is ITexture2D) {
+                    if (texture is Texture2D)
+                        waitUntil(true) { texture.isCreated || texture.isDestroyed }
+                    callback(texture)
                 }
             }
         }

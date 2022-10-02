@@ -19,5 +19,6 @@
     <orderEntry type="library" name="Apache Compress 4 Zips" level="project" />
     <orderEntry type="library" name="LWJGL-331" level="project" />
     <orderEntry type="library" name="KOML" level="project" />
+    <orderEntry type="library" name="PDFBox" level="project" />
   </component>
 </module>

@@ -61,6 +61,7 @@ object PDFCache : CacheSection("PDFCache") {
                 }
             }
         } as? CacheData<*>
+        if (!async) input.close()
         val value = data?.value as? AtomicCountedDocument
         if (borrow) value?.borrow()
         return value
@@ -125,26 +126,26 @@ object PDFCache : CacheSection("PDFCache") {
     }
 
     @Suppress("unused")
-    fun getImageCached(doc: PDDocument, dpi: Float, pageNumber: Int): BufferedImage {
+    fun getImageCached(doc: PDDocument, dpi: Float, pageNumber: Int): BufferedImage? {
         val data = getEntry(Triple(doc, dpi, pageNumber), 10_000, false) {
             CacheData(getImage(doc, dpi, pageNumber))
-        } as CacheData<*>
-        return data.value as BufferedImage
+        } as? CacheData<*>
+        return data?.value as? BufferedImage
     }
 
-    fun getImageCachedBySize(doc: PDDocument, size: Int, pageNumber: Int): BufferedImage {
-        val data = getEntry(Quad(doc, size, pageNumber, ""), 10_000, false) {
+    fun getImageCachedBySize(doc: PDDocument, size: Int, pageNumber: Int): BufferedImage? {
+        val data = getEntry(Quad(doc, size, pageNumber, ""), 10_000, false) { (doc, size, pageNumber) ->
             CacheData(getImageBySize(doc, size, pageNumber))
-        } as CacheData<*>
-        return data.value as BufferedImage
+        } as? CacheData<*>
+        return data?.value as? BufferedImage
     }
 
     @Suppress("unused")
-    fun getImageCachedByHeight(doc: PDDocument, height: Int, pageNumber: Int): BufferedImage {
-        val data = getEntry(Triple(doc, height, pageNumber), 10_000, false) {
+    fun getImageCachedByHeight(doc: PDDocument, height: Int, pageNumber: Int): BufferedImage? {
+        val data = getEntry(Triple(doc, height, pageNumber), 10_000, false) { (doc, height, pageNumber) ->
             CacheData(getImageByHeight(doc, height, pageNumber))
-        } as CacheData<*>
-        return data.value as BufferedImage
+        } as? CacheData<*>
+        return data?.value as? BufferedImage
     }
 
     fun getImageBySize(doc: PDDocument, size: Int, pageNumber: Int): BufferedImage {

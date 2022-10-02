@@ -624,9 +624,9 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
 
     private fun readChar(): Char {
         return when (val first = skipSpace()) {
-            '\'' -> {
+            '\'', '"' -> {
                 val value = next()
-                assert(next(), '\'')
+                assert(next(), first)
                 value
             }
             else -> {

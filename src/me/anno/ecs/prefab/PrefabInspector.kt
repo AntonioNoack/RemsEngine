@@ -27,6 +27,7 @@ import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
+import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.Color.mulARGB
@@ -163,7 +164,8 @@ class PrefabInspector(val reference: FileReference) {
             return path
         }
 
-        val prefab = instance.getOriginal()
+        val isWritable = prefab.isWritable
+        val original = instance.getOriginal()
 
         list.add(TextButton("Select Parent", false, style).addLeftClickListener {
             EditorState.select(instance.parent)
@@ -180,16 +182,16 @@ class PrefabInspector(val reference: FileReference) {
             addChangeListener { isBold = true; change(getPath(), instance, "name", it) }
             setResetListener {
                 isBold = false; reset(getPath(), "name")
-                instance.name = prefab?.name ?: ""; instance.name
+                instance.name = original?.name ?: ""; instance.name
             }
-        })
+        }.apply { this.isInputAllowed = isWritable })
         list.add(TextInput("Description", "", instance.description, style).apply {
             addChangeListener { isBold = true; change(getPath(), instance, "description", it) }
             setResetListener {
                 isBold = false; reset(getPath(), "description")
-                instance.description = prefab?.description ?: ""; instance.description
+                instance.description = original?.description ?: ""; instance.description
             }
-        })
+        }.apply { this.isInputAllowed = isWritable })
 
         // for debugging
         /*list.add(TextButton("Copy Internal Data", false, style).addLeftClickListener {
@@ -319,6 +321,11 @@ class PrefabInspector(val reference: FileReference) {
                     val property2 = PIProperty(this, instance, name, property)
                     val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: continue
                     panel.tooltip = property.description
+                    for (panel2 in panel.listOfAll) {
+                        if (panel2 is InputPanel<*>) {
+                            panel2.isInputAllowed = isWritable
+                        }
+                    }
                     list.add(panel)
                 } catch (e: Error) {
                     RuntimeException("Error from ${reflections.clazz}, property $name", e)
@@ -337,6 +344,9 @@ class PrefabInspector(val reference: FileReference) {
         //  - only create UI when it is visible,
         //  - show a preview
         //  - hide this
+
+        // todo disable this if !prefab.isWritable
+
         val types = instance.listChildTypes()
         for (i in types.indices) {
             val type = types[i]

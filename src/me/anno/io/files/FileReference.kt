@@ -8,9 +8,8 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.gpu.GFX
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
-import me.anno.io.zip.InnerTmpFile
-import me.anno.io.zip.NextEntryIterator
 import me.anno.io.zip.InnerFolderCache
+import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.min
 import me.anno.studio.StudioBase
@@ -26,7 +25,10 @@ import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
-import java.io.*
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
+import java.io.OutputStreamWriter
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
@@ -50,7 +52,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     // done if there is a !!, it's into a zip file -> it only needs to be a slash;
     // all zip files should be detected automatically
     // done if res:// at the start, then it's a local resource
-    // todo other protocols as well, so like an URI replacement?
 
     companion object {
 
@@ -189,18 +190,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             if (LastModifiedCache.exists(str)) return FileFileRef(File(str))
             // split by /, and check when we need to enter a zip file
             val parts = str.trim().split('/', '\\')
-
-            // todo correct binary search here
-            /*val cache = ExpensiveList(parts.size) { i ->
-                val substr = parts.subList(0, i)
-                    .joinToString("/")
-                val file = File(substr)
-                Pair(file, file.exists())
-            }
-            // we're searching for 0, but that will never be found
-            val firstVirtualIndex = cache.findInsertIndex { if (it.second) -1 else +1 }
-            val fileExists = cache[firstVirtualIndex - 1]
-            if (fileExists.second) return appendPath(fileExists.first, firstVirtualIndex, parts)*/
 
             // binary search? let's do linear first
             for (i in parts.lastIndex downTo 0) {
@@ -433,27 +422,18 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    open fun readLines(callback: (itr: Iterator<String>?, exc: Exception?) -> Unit) {
+    open fun readLines(callback: (itr: ReadLineIterator?, exc: Exception?) -> Unit) {
         inputStream { it, exc ->
             if (it != null) {
                 val reader = it.bufferedReader()
-                callback(object : NextEntryIterator<String>() {
-                    override fun nextEntry(): String? {
-                        return try {
-                            reader.readLine()
-                        } catch (e: IOException) {
-                            reader.close()
-                            null
-                        }
-                    }
-                }, null)
+                callback(ReadLineIterator(reader), null)
             } else callback(null, exc)
         }
     }
 
-    open fun readLinesSync(): Iterator<String> {
+    open fun readLinesSync(): ReadLineIterator {
         var e: Exception? = null
-        var d: Iterator<String>? = null
+        var d: ReadLineIterator? = null
         readLines { it, exc ->
             e = exc
             d = it

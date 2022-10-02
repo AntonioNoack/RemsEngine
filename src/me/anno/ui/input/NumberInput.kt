@@ -119,7 +119,7 @@ abstract class NumberInput<BaseType>(
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         // super.onMouseMoved(x, y, dx, dy)
-        if (mouseIsDown) {
+        if (mouseIsDown && isInputAllowed) {
             changeValue(dx, dy)
         } else super.onMouseMoved(x, y, dx, dy)
     }

@@ -16,11 +16,13 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.FrameTimings
 import me.anno.ui.editor.files.Search
+import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.structures.lists.Lists.size
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.logging.log4j.LogManager
 
 class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
     ScrollPanelY(Padding(3), AxisAlignment.MIN, style.getChild("propertyInspector")) {
@@ -72,8 +74,13 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
 
     fun update(selected: List<Inspectable>) {
         invalidateDrawing()
+
+        if (oldValues.isAnyChildInFocus)
+            return
+
         lastSelected = selected
         needsUpdate = false
+
         newValues.clear()
         if (selected.isNotEmpty()) {
             createInspector(selected, newValues, style)
@@ -81,22 +88,32 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         // is matching required? not really
         val newPanels = newValues.listOfAll.toList()
         val oldPanels = oldValues.listOfAll.toList()
-        val newSize = newPanels.size + searchPanel.listOfAll.size
+        val sps = searchPanel.listOfAll.size
+        val newSize = newPanels.size + sps
         val oldSize = oldPanels.size
-        //val newPanelIter = newPanels.iterator()
-        //val oldPanelIter = oldPanels.iterator()
-        // todo why doesn't it have to be skipped?
-        // todo why do we have to skip it sometimes???
-        //if (newPanelIter.hasNext()) newPanelIter.next() // skip search panel
+        val newPanelIter = newPanels.iterator()
+        val oldPanelIter = oldPanels.iterator()
+        for (i in 0 until sps) {
+            oldPanelIter.next()
+        }
         // works as long as the structure stays the same
-        /*while (newPanelIter.hasNext() and oldPanelIter.hasNext()) {
+        var mismatch = false
+        var isInFocus = false
+        while (newPanelIter.hasNext() and oldPanelIter.hasNext()) {
             val newPanel = newPanelIter.next()
             val oldPanel = oldPanelIter.next()
             // don't change the value while the user is editing it
             // this would cause bad user experience:
-            // e.g. 0.0001 would be replaced with 1e-4
-            if (!oldPanel.isAnyChildInFocus &&
-                !newPanel.isAnyChildInFocus &&
+            // e.g., 0.0001 would be replaced with 1e-4
+            if (newPanel.isAnyChildInFocus || oldPanel.isAnyChildInFocus) {
+                isInFocus = true
+                break
+            }
+            if (!mismatch && newPanel::class != oldPanel::class) {
+                LOGGER.warn("Mismatch: ${newPanel::class} vs ${oldPanel::class}")
+                mismatch = true
+            }
+            if (!mismatch &&
                 newPanel is InputPanel<*> &&
                 newPanel::class == oldPanel::class
             ) {
@@ -107,14 +124,12 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
                     oldPanel.setValue(newPanel.lastValue, false)
                 }
             }
-        }*/
-        if (true || newSize != oldSize && selected.isNotEmpty()) {
-            // we need to update the structure...
-            // todo transfer focussed elements, so we don't loose focus
-            // LOGGER.info("Whole structure needed update, new: ${newPanels.size} vs old: ${oldPanels.size}")
+        }
+        if (!isInFocus && (mismatch || newSize != oldSize)) {
             oldValues.clear()
             oldValues.add(searchPanel)
             oldValues.addAll(newValues.children)
+            LOGGER.debug("Updating everything")
         }
     }
 
@@ -129,6 +144,8 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
     override val className = "PropertyInspector"
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(PropertyInspector::class)
 
         private fun createGroup(
             title: String, description: String, dictSubPath: String,

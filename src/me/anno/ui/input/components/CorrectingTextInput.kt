@@ -1,6 +1,5 @@
 package me.anno.ui.input.components
 
-import me.anno.config.DefaultStyle
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.language.spellcheck.Spellchecking
@@ -11,6 +10,8 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.code.CodeEditor.Companion.drawSquiggles
 import me.anno.ui.style.Style
 import me.anno.utils.Color.black
+import me.anno.utils.types.Strings.joinChars
+import kotlin.streams.toList
 
 abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
 
@@ -119,14 +120,13 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
     // todo find synonyms by clicking on stuff, I think this library can do that
     // todo automatically show hints, when the user is typing
     private fun applySuggestion(suggestion: Suggestion, choice: String) {
-        // todo the indexing still isn't completely correct... (example: Eine Löwenfuß -> Ein Löwenfußß)
         val text = text
-        val bytes = text.toByteArray()
-        val begin = if (suggestion.start == 0) "" else String(bytes, 0, suggestion.start)
-        val end = if (suggestion.end >= bytes.size) "" else String(bytes, suggestion.end, bytes.size - suggestion.end)
-        this.text = begin + choice + end
+        val bytes = text.codePoints().toList()
+        val start = if (suggestion.start == 0) emptyList() else bytes.subList(0, suggestion.start)
+        val end = if (suggestion.end >= bytes.size) emptyList() else bytes.subList(suggestion.end, bytes.size - suggestion.end)
+        this.text = (start + choice.codePoints().toList() + end).joinChars().toString()
         updateChars(true)
-        setCursor((begin + choice).codePoints().count().toInt()) // set the cursor to after the edit
+        setCursor(start.size + choice.codePoints().toList().size) // set the cursor to after the edit
     }
 
     abstract fun updateChars(notify: Boolean)

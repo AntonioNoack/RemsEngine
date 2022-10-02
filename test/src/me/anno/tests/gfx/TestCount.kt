@@ -12,7 +12,6 @@ import me.anno.utils.OS.downloads
 
 fun main() {
 
-    pbrModelShader = BaseShader()
     ECSRegistry.init()
 
     val file = getReference(downloads, "San_Miguel/san-miguel.obj")

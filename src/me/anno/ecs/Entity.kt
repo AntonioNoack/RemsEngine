@@ -1015,10 +1015,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     ) {
         // all tests can be removed
         // interpolation tests
-        list += UpdatingTextPanel(50, style) {
+        /*list += UpdatingTextPanel(50, style) {
             val t = transform
             "1x/${(t.lastUpdateDt * 1e-9).f3()}s, ${((Engine.gameTime - t.lastUpdateTime) * 1e-9).f3()}s ago"
-        }
+        }.apply { useMonospaceCharacters = true }*/
         PrefabInspector.currentInspector!!.inspect(this, list, style)
     }
 

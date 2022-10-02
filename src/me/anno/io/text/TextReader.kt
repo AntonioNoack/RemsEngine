@@ -1,8 +1,6 @@
 package me.anno.io.text
 
-import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
-import me.anno.io.base.InvalidFormatException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -35,7 +33,7 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
             val v = tmpChar.toChar()
             tmpChar = -1
             when (v) {
-                '\r', '\n', '\t', ' ' -> {
+                '\n' ,'\r', '\t', ' ' -> {
                 }
                 else -> return v
             }
@@ -141,13 +139,3 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
 
     }
 }
-
-// testing for a warning that appeared
-/*fun main() {
-    registerCustomClass(StringMap())
-    val readTest = OS.home.getChild(".config/Test/main.config")
-    val result = TextReader.read(readTest, false)
-    for (entry in result) {
-        println(entry)
-    }
-}*/

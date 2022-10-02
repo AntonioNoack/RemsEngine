@@ -43,7 +43,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         get() {
             var prefab = prefab
             if (prefab == null) {
-                prefab = Prefab()
+                prefab = Prefab(className)
                 prefab.source = InnerTmpFile.InnerTmpPrefabFile(prefab)
                 prefab._sampleInstance = this
                 this.prefab = prefab

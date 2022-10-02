@@ -36,7 +36,6 @@ class PIProperty(
     override fun set(panel: Panel?, value: Any?) {
         if (pi.prefab.isWritable) {
             (panel as? TextStyleable)?.isBold = true
-            // info("setting value of $name, ${panel is TextStyleable}")
             property[instance] = value
             pi.change(getPath(), instance, name, value)
         } else LOGGER.warn("Cannot modify ${pi.prefab.source}")

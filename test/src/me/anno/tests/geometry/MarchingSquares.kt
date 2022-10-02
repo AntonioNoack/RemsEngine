@@ -5,6 +5,7 @@ import me.anno.image.ImageWriter
 import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths
 import me.anno.maths.geometry.MarchingSquares
+import org.joml.AABBf
 import kotlin.math.sqrt
 
 fun main() {
@@ -20,7 +21,8 @@ fun main() {
         (x * x + y * y) * 2f - t
         // random.nextFloat() - 0.5f
     }
-    val polygons = MarchingSquares.march(w, h, values, 0f)
+    val polygons = MarchingSquares.march(w, h, values, 0f,
+        AABBf(0f, 0f, 0f, w - 1f, h - 1f, 0f))
     val scale = 8
     val f0 = 1f / scale
     val f1 = 3f / scale

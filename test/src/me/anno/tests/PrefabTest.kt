@@ -1,13 +1,25 @@
 package me.anno.tests
 
+import me.anno.config.DefaultConfig
+import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.ECSTreeView
+import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.render.PlayMode
+import me.anno.engine.ui.render.SceneView
+import me.anno.gpu.GFXBase
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerTmpFile
+import me.anno.studio.StudioBase
+import me.anno.ui.custom.CustomList
+import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.editor.PropertyInspector
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 
@@ -15,7 +27,29 @@ fun main() {
 
     ECSRegistry.init()
 
+    test1()
     test2()
+
+    GFXBase.disableRenderDoc()
+
+    val sample = Entity()
+
+    // broken text input
+    // testSceneWithUI(sample)
+    testUI {
+        StudioBase.instance?.enableVSync = true
+        sample.prefabPath = Path.ROOT_PATH
+        EditorState.prefabSource = sample.ref
+        PrefabInspector.currentInspector = PrefabInspector(sample.ref)
+        EditorState.select(sample)
+        PropertyInspector({ EditorState.selection }, DefaultConfig.style)
+    }
+    /*testUI { // works
+        val list = PanelListY(style)
+        sample.prefabPath = Path.ROOT_PATH
+        PrefabInspector(sample.ref).inspect(sample, list, style)
+        list
+    }*/
 
 }
 
@@ -25,10 +59,6 @@ fun test1() {
 
     fun <V> assert(v1: V, v2: V) {
         if (v1 != v2) throw RuntimeException("$v1 != $v2")
-    }
-
-    fun assert(b: Boolean) {
-        if (!b) throw RuntimeException()
     }
 
     // test adding, appending, setting of properties

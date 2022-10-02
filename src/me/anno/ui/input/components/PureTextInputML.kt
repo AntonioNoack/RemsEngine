@@ -1,10 +1,10 @@
 package me.anno.ui.input.components
 
 import me.anno.Engine
-import me.anno.utils.Color.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.input.Input
@@ -13,6 +13,7 @@ import me.anno.input.Input.isLeftDown
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mixARGB
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
@@ -22,6 +23,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
@@ -162,6 +164,11 @@ open class PureTextInputML(style: Style) :
         val content = content as PanelList
         while (lines.size > children.size) {// add new TextInput panels
             val panel = object : CorrectingTextInput(style) {
+
+                override val effectiveTextColor: Int
+                    get() = if (isInputAllowed) super.effectiveTextColor else
+                        mixARGB(textColor, backgroundColor, 0.5f)
+
                 override val isShowingPlaceholder: Boolean
                     get() = this@PureTextInputML.text.isEmpty()
 
@@ -180,6 +187,7 @@ open class PureTextInputML(style: Style) :
                 override fun updateChars(notify: Boolean) {
                     // replace chars in main string...
                     // convert text back to lines
+                    println("setting line $indexInParent to $text")
                     lines[indexInParent] = text.codePoints().toList().toMutableList()
                     this@PureTextInputML.update(true)
                 }
@@ -298,7 +306,9 @@ open class PureTextInputML(style: Style) :
             )
             // cursor 2
         }
+
         loadTexturesSync.pop()
+
     }
 
     fun <V : Comparable<V>> min(a: V, b: V): V = if (a < b) a else b
@@ -331,8 +341,9 @@ open class PureTextInputML(style: Style) :
     }
 
     private fun updateText(notify: Boolean) {
+        val previousText = lastText
         text = joinedText
-        if (text != lastText) {
+        if (text != previousText) {
             lastText = text
             if (notify) {
                 for (changeListener in changeListeners) {
@@ -486,6 +497,7 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
+        if (!isInputAllowed) return
         lastChangeTime = Engine.gameTime
         addKey(key)
     }
@@ -654,6 +666,7 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onEmpty(x: Float, y: Float) {
+        if (!isInputAllowed) return
         if (isNothingSelected() || isEverythingSelected()) {
             clear()
         } else {
@@ -685,14 +698,14 @@ open class PureTextInputML(style: Style) :
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
-            "DeleteAfter" -> deleteAfter()
-            "DeleteBefore" -> likeBackspaceKey()
-            "DeleteSelection" -> deleteSelection()
+            "DeleteAfter" -> if (isInputAllowed) deleteAfter()
+            "DeleteBefore" -> if (isInputAllowed) likeBackspaceKey()
+            "DeleteSelection" -> if (isInputAllowed) deleteSelection()
             "MoveLeft" -> moveLeft()
             "MoveRight" -> moveRight()
             "MoveUp" -> moveUp()
             "MoveDown" -> moveDown()
-            "Clear" -> clearText()
+            "Clear" -> if (isInputAllowed) clearText()
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
@@ -706,6 +719,7 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onBackSpaceKey(x: Float, y: Float) {
+        if (!isInputAllowed) return
         likeBackspaceKey()
     }
 
@@ -718,12 +732,14 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onEnterKey(x: Float, y: Float) {
-        if (lines.size + 1 < lineLimit) insert('\n'.code, true)
+        if (isInputAllowed && lines.size + 1 < lineLimit)
+            insert('\n'.code, true)
         else enterListener?.invoke(text)
         invalidateDrawing()
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
+        if (!isInputAllowed) return
         deleteAfter()
     }
 
