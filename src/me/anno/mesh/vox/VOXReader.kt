@@ -84,10 +84,6 @@ class VOXReader {
         } else this.indexMap = null // done and pseudo-applied
     }
 
-    fun toEntityPrefab(root: FileReference): Prefab {
-        return readAsFolder(this, root).c
-    }
-
     fun toEntityPrefab(meshPaths: List<FileReference>): Prefab {
         val prefab = Prefab("Entity")
         prefab.ensureMutableLists()

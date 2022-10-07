@@ -85,6 +85,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         if (selected.isNotEmpty()) {
             createInspector(selected, newValues, style)
         }
+
         // is matching required? not really
         val newPanels = newValues.listOfAll.toList()
         val oldPanels = oldValues.listOfAll.toList()
@@ -93,30 +94,35 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         val oldSize = oldPanels.size
         val newPanelIter = newPanels.iterator()
         val oldPanelIter = oldPanels.iterator()
+
+        // skip self
+        newPanelIter.next()
+        oldPanelIter.next()
+
+        // skip search panel
         for (i in 0 until sps) {
-            oldPanelIter.next()
+            if (oldPanelIter.hasNext()) oldPanelIter.next()
+            else break
         }
+
         // works as long as the structure stays the same
         var mismatch = false
         var isInFocus = false
         while (newPanelIter.hasNext() and oldPanelIter.hasNext()) {
+
             val newPanel = newPanelIter.next()
             val oldPanel = oldPanelIter.next()
-            // don't change the value while the user is editing it
-            // this would cause bad user experience:
-            // e.g., 0.0001 would be replaced with 1e-4
-            if (newPanel.isAnyChildInFocus || oldPanel.isAnyChildInFocus) {
-                isInFocus = true
-                break
-            }
+
             if (!mismatch && newPanel::class != oldPanel::class) {
                 LOGGER.warn("Mismatch: ${newPanel::class} vs ${oldPanel::class}")
                 mismatch = true
             }
-            if (!mismatch &&
-                newPanel is InputPanel<*> &&
-                newPanel::class == oldPanel::class
-            ) {
+
+            if (!mismatch && newPanel is InputPanel<*>) {
+                if (newPanel.isAnyChildInFocus || oldPanel.isAnyChildInFocus) {
+                    isInFocus = true
+                    break
+                }
                 // only the value needs to be updated
                 // no one to be notified
                 @Suppress("unused", "unchecked_cast")
@@ -221,7 +227,5 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
                 }
             }
         }
-
     }
-
 }

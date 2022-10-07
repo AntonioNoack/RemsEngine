@@ -16,7 +16,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.Image
-import me.anno.image.RotateJPEG
+import me.anno.image.ImageTransform
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
@@ -108,7 +108,7 @@ open class Texture2D(
     var clamping: Clamping? = null
 
     // only used for images with exif rotation tag...
-    var rotation: RotateJPEG? = null
+    var rotation: ImageTransform? = null
 
     var locallyAllocated = 0L
 

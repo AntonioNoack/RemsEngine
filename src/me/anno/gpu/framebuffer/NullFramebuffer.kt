@@ -54,7 +54,7 @@ object NullFramebuffer : IFramebuffer {
         throw UnsupportedOperationException()
     }
 
-    override val depthTexture: ITexture2D?
+    override val depthTexture
         get() = throw UnsupportedOperationException()
 
 }

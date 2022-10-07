@@ -162,7 +162,7 @@ You can find most examples in the "tests" folder.
 
 ## Ports
 - [Android](https://github.com/AntonioNoack/RemsEngine-Android)
-- Web WIP
+- Web (WASM) WIP, not published yet
 
 ## Used libraries
 
@@ -191,20 +191,34 @@ You can find most examples in the "tests" folder.
 ## Build It
 
 All libraries are shipped with the engine :).
-Use any IDE you want, with Java and Kotlin support. Best use Intellij Idea.
+Use any IDE you want, with Java and Kotlin support. Best use IntelliJ IDEA.
 
 First build the KOML module, and compile the artifact.
 Then build the main module :).
 
-## Use It
+If you want PDF support, compile the PDF module, and add it to your project, or add it to the plugins or mods folder.
+
+## Ship It
+
+Shipping is easy on Windows and Linux: just export your projects will all dependencies into a .jar file, or download  dependencies on the first start (as I do with FFMPEG and spellchecking).
+To load plugins from your built jar, because your jar won't be scanned at runtime, register them from your main class as internal :).
+
+Shipping to Android is a bit more complicated: download the Android fork as an Android Studio project, and modify it to your needs.
+Libraries can be added just like in IntelliJ IDEA.
+
+## Just Try/Use It
 
 If you don't want to compile the engine yourself, and just want to focus on developing games, plugins or mods, you can use pre-built versions.
 There isn't an official release yet, but you can use the in-official build from my [Cellular Automata Demo](https://github.com/AntonioNoack/CellularAutomata/tree/main/out/artifacts/Demo). 
 A release of [Rem's Studio](https://github.com/AntonioNoack/RemsStudio) would work as well.
 
+Until I create a release, they might be a bit out of date 😅.
+
 ## Documentation
 
 The code is mainly documented within itself, so I recommend you to download the engine source code.
+Using it, you can easily look up how and where pieces of engine code are being used.
+
 You can also take a look at the Wiki. There, I describe the serialization system, how to create a mod, and supported file formats.
 
 In the future, I might create a website for it :).

@@ -82,6 +82,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
             )
         )
 
+        @Suppress("unused")
         val colorSqRenderer = SimpleRenderer(
             "colorSq", null, ShaderStage(
                 listOf(

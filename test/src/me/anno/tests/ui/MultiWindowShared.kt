@@ -2,7 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import org.joml.Vector4f
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
@@ -19,7 +19,7 @@ fun main() {
     var frameIndex = 0
     val color = Vector4f()
 
-    GFX.activeWindow = WindowX(titles[0])
+    GFX.activeWindow = OSWindow(titles[0])
 
     GLFWErrorCallback.createPrint().set()
     check(GLFW.glfwInit()) { "Failed to initialize GLFW." }

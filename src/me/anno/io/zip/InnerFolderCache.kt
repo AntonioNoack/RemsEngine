@@ -3,7 +3,6 @@ package me.anno.io.zip
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.cache.instances.PDFCache
 import me.anno.image.ImageReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.svg.SVGMesh
@@ -58,6 +57,10 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         }
     }
 
+    fun unregister(signature: String) {
+        readerBySignature.remove(signature)
+    }
+
     fun hasReaderForSignature(signature: String?): Boolean {
         return signature != null && signature in readerBySignature
     }
@@ -74,9 +77,6 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         register("rar") { it, c -> c(createZipRegistryRar(it) { fileFromStreamRar(it) }, null) }
         register("gzip", ::readAsGZip)
         register("tar", ::readAsGZip)
-
-        // pdf documents
-        register("pdf", PDFCache::readAsFolder)
 
         // meshes
         // to do all mesh extensions

@@ -21,6 +21,10 @@ object Maths {
     const val SQRT2F = 1.4142135f
     const val SQRT3 = 1.7320508075688772
     const val GOLDEN_RATIO = 1.618033988749895 // phi
+
+    const val SQRT_PIf = 1.7724539f
+    const val INV_SQRT_PIf = 0.5641896f
+
     const val PHI = GOLDEN_RATIO
     const val PHIf = PHI.toFloat()
 
@@ -473,5 +477,54 @@ object Maths {
         }
         return prod
     }
+
+    fun erfInv(x: Float): Float {
+        // Based on "Approximating the erfInv function" by Mark Giles
+        var w = -ln((1f - x) * (1f + x))
+        var p: Float
+        if (w < 5f) {
+            w -= 2.5f
+            p = 2.8102264E-8f
+            p = 3.4327394E-7f + p * w
+            p = -3.52338770e-06f + p * w
+            p = -4.3915065E-6f + p * w
+            p = 0.00021858087f + p * w
+            p = -0.001253725f + p * w
+            p = -0.0041776816f + p * w
+            p = 0.24664073f + p * w
+            p = 1.5014094f + p * w
+        } else {
+            w = sqrt(w) - 3f
+            p = -2.0021426e-4f
+            p = 1.0095056e-4f + p * w
+            p = 0.0013493432f + p * w
+            p = -0.0036734284f + p * w
+            p = 0.0057395077f + p * w
+            p = -0.00762246130f + p * w
+            p = 0.0094388705f + p * w
+            p = 1.001674f + p * w
+            p = 2.8329768f + p * w
+        }
+        return p * x
+    }
+
+    fun erf(x: Float): Float {
+        val a1 = 0.2548296f
+        val a2 = -0.28449672f
+        val a3 = 1.4214138f
+        val a4 = -1.4531521f
+        val a5 = 1.0614054f
+        val p = 0.3275911f
+
+        val absX = abs(x)
+
+        // A&S formula 7.1.26
+        val t = 1f / (1f + p * absX)
+        val y = 1f - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * exp(-x * x)
+
+        return sign(x) * y
+    }
+
+    fun dErf(x: Float) = 2f * exp(-x * x) * INV_SQRT_PIf
 
 }

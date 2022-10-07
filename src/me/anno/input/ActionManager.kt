@@ -2,7 +2,7 @@ package me.anno.input
 
 import me.anno.Engine.gameTime
 import me.anno.config.DefaultConfig
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel
@@ -101,30 +101,30 @@ object ActionManager : StringMap() {
         }
     }
 
-    fun onKeyTyped(window: WindowX, key: Int) {
+    fun onKeyTyped(window: OSWindow, key: Int) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.TYPED), false)
     }
 
-    fun onKeyUp(window: WindowX, key: Int) {
+    fun onKeyUp(window: OSWindow, key: Int) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.UP), false)
     }
 
-    fun onKeyDown(window: WindowX, key: Int) {
+    fun onKeyDown(window: OSWindow, key: Int) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOWN), false)
     }
 
-    fun onKeyDoubleClick(window: WindowX, key: Int) {
+    fun onKeyDoubleClick(window: OSWindow, key: Int) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOUBLE), false)
     }
 
-    fun onKeyHoldDown(window: WindowX, dx: Float, dy: Float, key: Int, isSafe: Boolean) {
+    fun onKeyHoldDown(window: OSWindow, dx: Float, dy: Float, key: Int, isSafe: Boolean) {
         val type = if (isSafe) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE
         onEvent(window, dx, dy, KeyCombination(key, Input.keyModState, type), true)
     }
 
-    fun onMouseIdle(window: WindowX) = onMouseMoved(window, 0f, 0f)
+    fun onMouseIdle(window: OSWindow) = onMouseMoved(window, 0f, 0f)
 
-    fun onMouseMoved(window: WindowX, dx: Float, dy: Float) {
+    fun onMouseMoved(window: OSWindow, dx: Float, dy: Float) {
         if (Input.keysDown.isEmpty()) return
         val mouseMoveConsumer = BiConsumer<Int, Long> { key, downTime ->
             onKeyHoldDown(window, dx, dy, key, false)
@@ -137,7 +137,7 @@ object ActionManager : StringMap() {
         Input.keysDown.forEach(mouseMoveConsumer)
     }
 
-    fun onEvent(window: WindowX, dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
+    fun onEvent(window: OSWindow, dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
         val stack = window.windowStack
         var panel = stack.inFocus0
         if (stack.isEmpty() || stack.peek() != panel?.window) panel = null
@@ -194,7 +194,7 @@ object ActionManager : StringMap() {
     }
 
     fun executeLocally(
-        window: WindowX,
+        window: OSWindow,
         dx: Float, dy: Float, isContinuous: Boolean,
         panel: Panel, actions: List<String>?
     ): Boolean {
@@ -210,7 +210,7 @@ object ActionManager : StringMap() {
         return false
     }
 
-    fun executeGlobally(window: WindowX, dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?) {
+    fun executeGlobally(window: OSWindow, dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?) {
         if (actions == null) return
         for (index in actions.indices) {
             val action = actions[index]

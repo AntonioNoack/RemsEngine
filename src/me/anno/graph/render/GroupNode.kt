@@ -1,5 +1,9 @@
 package me.anno.graph.render
 
-// todo group flow nodes
 class GroupNode {
+
+    // todo - draws in the background
+    // todo - has a user-customizable size
+    // todo - when moved, moves all children
+
 }

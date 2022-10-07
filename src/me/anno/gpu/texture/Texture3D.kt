@@ -72,12 +72,14 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         GFX.check()
     }
 
+    @Suppress("unused")
     fun createRGBA8() {
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
         afterUpload(GL_RGBA8, 4)
     }
 
+    @Suppress("unused")
     fun createRGBAFP32() {
         beforeUpload(w * 16)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)

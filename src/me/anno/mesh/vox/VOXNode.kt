@@ -112,7 +112,6 @@ class VOXNode {
                 }
                 rot0.getNormalizedRotation(rot1)
                 // rotation correction for y<->z
-                // todo is this correct?
                 val t = rot1.y
                 rot1.y = rot1.z
                 rot1.z = -t

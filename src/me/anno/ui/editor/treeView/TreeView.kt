@@ -1,6 +1,7 @@
 package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
@@ -213,8 +214,12 @@ abstract class TreeView<V>(
                             val element = child.getElement() as V
                             val parent = getParent(element)
                             if (parent != null && studioBase.isSelected(element)) {
-                                removeChild(parent, element)
-                                ctr++
+                                if (!(element is PrefabSaveable && element.root.prefab?.isWritable == false)) {
+                                    removeChild(parent, element)
+                                    ctr++
+                                } else {
+                                    LOGGER.warn("Cannot remove element, because prefab is not writable!")
+                                }
                             }
                         }
                     }

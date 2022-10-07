@@ -68,7 +68,7 @@ open class InstancedStack {
             val motionVectors = BaseShader.motionVectors
             GFXState.animated.use(useAnimations) {
 
-                val t0 = System.nanoTime()
+                // val t0 = System.nanoTime()
 
                 val shader = stage.getShader(material)
                 shader.use()
@@ -118,7 +118,7 @@ open class InstancedStack {
                 val cameraPosition = RenderState.cameraPosition
                 val worldScale = RenderState.worldScale
 
-                val t1 = System.nanoTime()
+                // val t1 = System.nanoTime()
                 var st23 = 0L
                 var st34 = 0L
                 var st45 = 0L

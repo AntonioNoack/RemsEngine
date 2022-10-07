@@ -49,7 +49,7 @@ object SVGxGFX {
     ) {
 
         // normalized on y-axis, width unknown
-        val sx = (buffer.minX / buffer.minY).toFloat()
+        val sx = buffer.minX / buffer.minY
         val sy = 1f
         if (tiling == null) {
 

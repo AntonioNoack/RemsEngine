@@ -12,6 +12,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.studio.StudioBase
 import me.anno.utils.hpc.HeavyProcessing.processStage
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 import java.io.InputStream
 import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
@@ -48,6 +49,7 @@ object ExtensionLoader {
 
         // load all extensions
         val extensions = loadExtensions(extInfos)
+
         val mods = extensions.filterIsInstance<Mod>()
         val plugins = extensions.filterIsInstance<Plugin>()
 
@@ -110,6 +112,7 @@ object ExtensionLoader {
         addAllFromFolder(modsFolder, threads, result)
         threads.forEach { it.join() }
         for (internal in internally) {
+            println("removing $internal")
             result.removeIf { it.uuid == internal.uuid }
             result.add(internal)
         }
@@ -238,7 +241,8 @@ object ExtensionLoader {
         ZipInputStream(file.inputStreamSync()).use { zis ->
             while (true) {
                 val entry = zis.nextEntry ?: break
-                if (entry.name.startsWith("extension.info")) {
+                val name = entry.name
+                if (name.endsWith("extension.info") || name.endsWith("ext.info")) {
                     return loadInfoFromTxt(file, zis)
                 }
             }
@@ -250,10 +254,23 @@ object ExtensionLoader {
      * loads the extension within the current mod project;
      * very useful for setting up a quick project
      * */
-    @Suppress("unused")
     fun loadMainInfo(fileName: String = "res://extension.info") {
         val extensionSource = getReference(fileName)
         loadInternally(loadInfoFromTxt(InvalidRef, extensionSource)!!)
+    }
+
+    /**
+     * loads the extension within the current mod project;
+     * very useful for setting up a quick project;
+     *
+     * fails without exception
+     * */
+    fun tryLoadMainInfo(fileName: String = "res://extension.info") {
+        try {
+            loadMainInfo(fileName)
+        } catch (e: IOException) {
+            LOGGER.warn("$fileName could not be loaded")
+        }
     }
 
     fun loadInternally(info: ExtensionInfo) {

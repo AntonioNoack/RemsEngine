@@ -70,16 +70,6 @@ object EXRReader {
         return read(buffer)
     }
 
-    fun read(file: FileReference): Image {
-        val memory = file.readByteBufferSync(true)
-        val image = try {
-            read(memory)
-        } finally {
-            ByteBufferPool.free(memory)
-        }
-        return image
-    }
-
     fun read(memory: ByteBuffer): Image {
 
         val version = EXRVersion.create()

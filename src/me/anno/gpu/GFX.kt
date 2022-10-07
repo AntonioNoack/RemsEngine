@@ -4,7 +4,6 @@ import me.anno.Build.isDebug
 import me.anno.Engine
 import me.anno.audio.streams.AudioStream
 import me.anno.config.DefaultConfig
-import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.currentRenderer
 import me.anno.gpu.GFXState.depthMode
@@ -60,12 +59,12 @@ object GFX {
     // so just use a static variable
     var isFinalRendering = false
 
-    val windows = ArrayList<WindowX>()
+    val windows = ArrayList<OSWindow>()
 
     /**
      * current window, which is being rendered to by OpenGL
      * */
-    var activeWindow: WindowX? = null
+    var activeWindow: OSWindow? = null
 
     /**
      * window, that is in focus; may be null
@@ -366,7 +365,7 @@ object GFX {
         }
     }
 
-    fun setFrameNullSize(window: WindowX) {
+    fun setFrameNullSize(window: OSWindow) {
         GFXState.apply {
             // this should be the state for the default framebuffer
             xs[0] = 0
@@ -382,7 +381,7 @@ object GFX {
         }
     }
 
-    fun renderStep(window: WindowX) {
+    fun renderStep(window: OSWindow) {
 
         OpenGLShader.invalidateBinding()
         Texture2D.destroyTextures()

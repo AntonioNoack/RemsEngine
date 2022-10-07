@@ -1,6 +1,6 @@
 package me.anno.cache.data
 
-import me.anno.image.RotateJPEG
+import me.anno.image.ImageTransform
 import me.anno.io.files.FileReference
 import me.anno.utils.types.Buffers.skip
 import java.nio.ByteBuffer
@@ -9,7 +9,7 @@ import javax.imageio.ImageIO
 import javax.imageio.ImageReader
 import javax.imageio.metadata.IIOMetadataNode
 
-fun findRotation(src: FileReference): RotateJPEG? {
+fun findRotation(src: FileReference): ImageTransform? {
     val input = ImageIO.createImageInputStream(src.inputStreamSync())
     for (reader in ImageIO.getImageReaders(input)) {
         try {
@@ -25,16 +25,16 @@ fun findRotation(src: FileReference): RotateJPEG? {
 }
 
 val orientations = arrayOf(
-    RotateJPEG(mirrorHorizontal = true, mirrorVertical = false, 0),
-    RotateJPEG(mirrorHorizontal = false, mirrorVertical = false, 180),
-    RotateJPEG(mirrorHorizontal = false, mirrorVertical = true, 0),
-    RotateJPEG(mirrorHorizontal = true, mirrorVertical = false, 270),
-    RotateJPEG(mirrorHorizontal = false, mirrorVertical = false, 90),
-    RotateJPEG(mirrorHorizontal = true, mirrorVertical = false, 90),
-    RotateJPEG(mirrorHorizontal = false, mirrorVertical = false, 270)
+    ImageTransform(mirrorHorizontal = true, mirrorVertical = false, 0),
+    ImageTransform(mirrorHorizontal = false, mirrorVertical = false, 180),
+    ImageTransform(mirrorHorizontal = false, mirrorVertical = true, 0),
+    ImageTransform(mirrorHorizontal = true, mirrorVertical = false, 270),
+    ImageTransform(mirrorHorizontal = false, mirrorVertical = false, 90),
+    ImageTransform(mirrorHorizontal = true, mirrorVertical = false, 90),
+    ImageTransform(mirrorHorizontal = false, mirrorVertical = false, 270)
 )
 
-fun getExifOrientation(reader: ImageReader, imageIndex: Int): RotateJPEG? {
+fun getExifOrientation(reader: ImageReader, imageIndex: Int): ImageTransform? {
     val metadata = reader.getImageMetadata(imageIndex)
     val rootNode = metadata.getAsTree("javax_imageio_jpeg_image_1.0")
     val childNodes = rootNode.childNodes

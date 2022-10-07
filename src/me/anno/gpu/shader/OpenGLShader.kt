@@ -179,6 +179,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         uniformCache.fill(Float.NaN)
     }
 
+    @Suppress("unused")
     fun printLocationsAndValues() {
         for ((key, value) in attributeLocations.entries.sortedBy { it.value }) {
             LOGGER.info("Attribute $key = $value")
@@ -188,6 +189,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    @Suppress("unused")
     fun invalidateCacheForTests() {
         attributeLocations.clear()
         uniformLocations.clear()
@@ -339,6 +341,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    @Suppress("unused")
     fun v1fs(name: String, vs: FloatBuffer) = v1fs(getUniformLocation(name), vs)
     fun v1fs(loc: Int, vs: FloatBuffer) {
         if (loc > -1) {
@@ -371,6 +374,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     /**
      * sets an array of vec2 uniforms
      * */
+    @Suppress("unused")
     fun v2fs(name: String, vs: FloatArray) = v2fs(getUniformLocation(name), vs)
     fun v2fs(loc: Int, vs: FloatArray) {
         if (loc > -1) {
@@ -379,6 +383,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    @Suppress("unused")
     fun v2fs(name: String, vs: FloatBuffer) = v2fs(getUniformLocation(name), vs)
     fun v2fs(loc: Int, vs: FloatBuffer) {
         if (loc > -1) {
@@ -443,6 +448,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     /**
      * sets an array of vec3 uniforms
      * */
+    @Suppress("unused")
     fun v3fs(name: String, vs: FloatArray) = v3fs(getUniformLocation(name), vs)
     fun v3fs(loc: Int, vs: FloatArray) {
         if (loc > -1) {
@@ -451,6 +457,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    @Suppress("unused")
     fun v3fs(name: String, vs: FloatBuffer) = v3fs(getUniformLocation(name), vs)
     fun v3fs(loc: Int, vs: FloatBuffer) {
         if (loc > -1) {
@@ -459,9 +466,13 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    @Suppress("unused")
     fun v3X(loc: Int, x: Float, y: Float, z: Float, w: Float) = v3f(loc, x / w, y / w, z / w)
+    @Suppress("unused")
     fun v3X(name: String, x: Float, y: Float, z: Float, w: Float) = v3f(name, x / w, y / w, z / w)
+    @Suppress("unused")
     fun v3X(loc: Int, v: Vector4f) = v3f(loc, v.x / v.w, v.y / v.w, v.z / v.w)
+    @Suppress("unused")
     fun v3X(name: String, v: Vector4f) = v3f(name, v.x / v.w, v.y / v.w, v.z / v.w)
 
     fun v3f(name: String, color: Int) = v3f(getUniformLocation(name), color)
@@ -557,6 +568,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    @Suppress("unused")
     fun v4fs(name: String, vs: FloatBuffer) = v4fs(getUniformLocation(name), vs)
     fun v4fs(loc: Int, vs: FloatBuffer) {
         if (loc > -1) {
@@ -714,6 +726,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    @Suppress("unused")
     fun v1Array(name: String, value: FloatBuffer) = v1Array(getUniformLocation(name), value)
     fun v1Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {
@@ -730,6 +743,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
+    @Suppress("unused")
     fun v3Array(name: String, value: FloatBuffer) = v3Array(getUniformLocation(name), value)
     fun v3Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {

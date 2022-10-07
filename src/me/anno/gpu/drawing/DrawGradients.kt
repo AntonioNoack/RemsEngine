@@ -48,6 +48,7 @@ object DrawGradients {
         GFX.check()
     }
 
+    @Suppress("unused")
     fun drawRectGradient(
         x: Int, y: Int, w: Int, h: Int,
         leftColor: Vector4f, rightColor: Vector4f,
@@ -69,6 +70,7 @@ object DrawGradients {
         GFX.check()
     }
 
+    @Suppress("unused")
     fun drawRectGradient(
         x: Int, y: Int, w: Int, h: Int, leftColor: Int, rightColor: Int,
         frame: GPUFrame, uvs: Vector4f,

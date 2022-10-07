@@ -13,7 +13,7 @@ import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.Renderer
@@ -178,7 +178,7 @@ abstract class StudioBase(
         onGameClose()
     }
 
-    open fun onGameLoop(window: WindowX, w: Int, h: Int) {
+    open fun onGameLoop(window: OSWindow, w: Int, h: Int) {
 
         check()
 
@@ -235,7 +235,7 @@ abstract class StudioBase(
 
     }
 
-    fun updateVSync(window: WindowX) {
+    fun updateVSync(window: OSWindow) {
         val vsync = DefaultConfig["debug.ui.enableVsync", !Build.isDebug]
         if (vsync != window.enableVsync) {
             window.setVsyncEnabled(vsync)
@@ -255,7 +255,7 @@ abstract class StudioBase(
         DefaultConfig["debug.ui.enableVsync"] = !DefaultConfig["debug.ui.enableVsync", true]
     }
 
-    fun processMouseMovement(window: WindowX) {
+    fun processMouseMovement(window: OSWindow) {
         if (!Input.hadMouseMovement && window.isInFocus) {
             // if our window doesn't have focus, or the cursor is outside,
             // we need to ask for updates manually
@@ -269,7 +269,7 @@ abstract class StudioBase(
         Input.hadMouseMovement = false
     }
 
-    fun updateHoveredAndCursor(window: WindowX) {
+    fun updateHoveredAndCursor(window: OSWindow) {
         val hovered = window.windowStack
             .getPanelAndWindowAt(window.mouseX, window.mouseY)
         hoveredPanel = hovered?.first
@@ -277,11 +277,11 @@ abstract class StudioBase(
         updateCursor(window, hovered?.first)
     }
 
-    fun updateCursor(window: WindowX, hoveredPanel: Panel?) {
+    fun updateCursor(window: OSWindow, hoveredPanel: Panel?) {
         hoveredPanel?.getCursor()?.useCursor(window)
     }
 
-    open fun drawUIOverlay(window: WindowX, w: Int, h: Int): Boolean {
+    open fun drawUIOverlay(window: OSWindow, w: Int, h: Int): Boolean {
 
         var didSomething = false
 

@@ -14,6 +14,7 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.min
 import me.anno.studio.StudioBase
 import me.anno.ui.editor.files.FileExplorer
+import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
@@ -500,6 +501,45 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     // fun length() = if (isInsideCompressed) zipFile?.size ?: 0L else file.length()
     fun openInExplorer() = toFile().openInExplorer()
+
+    open fun relativePathTo(basePath: FileReference, maxNumBackPaths: Int): String? {
+        if (maxNumBackPaths < 1 && !absolutePath.startsWith(basePath.absolutePath)) return null
+        val parts = absolutePath.split('/')
+        val baseParts = basePath.absolutePath.split('/')
+        var matchingStartPaths = 0 // those can be skipped
+        val ignoreCase = OS.isLinux || OS.isAndroid
+        for (i in 0 until min(parts.size, baseParts.size)) {
+            if (!parts[i].equals(baseParts[i], ignoreCase)) break
+            matchingStartPaths++
+        }
+        if (parts.size - matchingStartPaths > maxNumBackPaths) return null
+        // calculate size for result
+        var resultSize = (baseParts.size - matchingStartPaths) * 3 - 1
+        for (i in matchingStartPaths until parts.size) {
+            resultSize += parts[i].length + 1
+        }
+        val result = StringBuilder(resultSize)
+        for (i in matchingStartPaths until baseParts.size) {
+            result.append("../")
+        }
+        for (i in matchingStartPaths until parts.size) {
+            result.append(parts[i])
+            if (i + 1 < parts.size) result.append('/')
+        }
+        return result.toString()
+    }
+
+    fun findRecursively(maxDepth: Int, find: (FileReference) -> Boolean): FileReference? {
+        if (find(this)) return this
+        if (maxDepth > 0 && isDirectory) {
+            val children = listChildren()
+            if (children != null) for (child in children) {
+                val r = child.findRecursively(maxDepth - 1, find)
+                if (r != null) return r
+            }
+        }
+        return null
+    }
 
     fun openInStandardProgram() {
         try {

@@ -19,6 +19,7 @@ import me.anno.io.text.TextWriter
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.ui.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -360,8 +361,21 @@ class PrefabInspector(val reference: FileReference) {
             val nicerName = niceName.camelCaseToTitle()
             list.add(object : StackPanel(
                 nicerName, "",
-                options, children, style
+                options, children, {
+                    it as ISaveable
+                    Option(it.className.camelCaseToTitle(), "") { it }
+                }, style
             ) {
+
+                override val lastValue: List<Inspectable>
+                    get() = instance.getChildListByType(type)
+
+                override fun setValue(value: List<Inspectable>, notify: Boolean): Panel {
+                    if (value != lastValue) {
+                        throw IllegalStateException("Cannot directly set the value of components[]!")
+                    } // else done
+                    return this
+                }
 
                 override fun onAddComponent(component: Inspectable, index: Int) {
                     component as PrefabSaveable
@@ -377,11 +391,7 @@ class PrefabInspector(val reference: FileReference) {
                     Hierarchy.removePathFromPrefab(this@PrefabInspector.prefab, component)
                 }
 
-                override fun getOptionFromInspectable(inspectable: Inspectable): Option {
-                    inspectable as ISaveable
-                    return Option(inspectable.className.camelCaseToTitle(), "") { inspectable }
-                }
-            })
+            }.apply { isInputAllowed = isWritable })
         }
     }
 

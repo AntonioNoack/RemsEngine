@@ -343,7 +343,7 @@ object Renderers {
                     when (type.dimensions) {
                         1 -> "vec4(vec3(${type.glslName}${type.map01}),1.0)"
                         2 -> "vec4(${type.glslName}${type.map01},1.0,1.0)"
-                        3 -> "(${type.glslName}${type.map01}, 1.0)"
+                        3 -> "vec4(${type.glslName}${type.map01},1.0)"
                         4 -> "(${type.glslName}${type.map01})"
                         else -> ""
                     }

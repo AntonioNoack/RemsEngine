@@ -63,6 +63,7 @@ object TextureLib {
 
         override fun destroy() {}
 
+        @Suppress("unused")
         fun doDestroy() {
             super.destroy()
         }

@@ -16,7 +16,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageReadable
-import me.anno.image.RotateJPEG
+import me.anno.image.ImageTransform
 import me.anno.image.hdr.HDRImage
 import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAImage
@@ -39,7 +39,7 @@ class ImageData(file: FileReference) : ICacheData {
 
         private val LOGGER = LogManager.getLogger(ImageData::class)
 
-        fun getRotation(src: FileReference): RotateJPEG? {
+        fun getRotation(src: FileReference): ImageTransform? {
             if (src == InvalidRef || src.isDirectory) return null
             // which files can contain exif metadata?
             // according to https://exiftool.org/TagNames/EXIF.html,

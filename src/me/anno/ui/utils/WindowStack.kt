@@ -2,7 +2,7 @@ package me.anno.ui.utils
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import me.anno.input.Input
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -109,7 +109,7 @@ class WindowStack : Stack<Window>() {
     private var w1 = 0
     private var h1 = 0
 
-    fun updateTransform(window: WindowX, w: Int, h: Int) {
+    fun updateTransform(window: OSWindow, w: Int, h: Int) {
 
         viewTransform.identity()
 
@@ -130,7 +130,7 @@ class WindowStack : Stack<Window>() {
     }
 
     fun updateTransform(
-        window: WindowX,
+        window: OSWindow,
         transform: Matrix4f,
         x0: Int,
         y0: Int,
@@ -157,7 +157,7 @@ class WindowStack : Stack<Window>() {
 
     }
 
-    fun updateMousePosition(window: WindowX) {
+    fun updateMousePosition(window: OSWindow) {
 
         val tmp = JomlPools.vec3f.create()
 

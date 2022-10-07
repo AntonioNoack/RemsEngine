@@ -37,7 +37,6 @@ import org.apache.logging.log4j.LogManager.getLogger
 import org.lwjgl.BufferUtils
 import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFW.glfwGetError
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.*
@@ -47,7 +46,6 @@ import org.lwjgl.opengl.GL43C.glDebugMessageCallback
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
-import sun.plugin.dom.exception.InvalidStateException
 import java.awt.AWTException
 import java.awt.Robot
 import kotlin.math.abs
@@ -62,11 +60,8 @@ import kotlin.math.max
  * modified by Antonio Noack
  * including all os natives has luckily only very few overhead :) (&lt; 1 MiB)
  *
- * todo rewrite this such that we can have multiple windows, which may be nice for the color picker, and maybe other stuff,
- * todo e.g. having multiple editor windows
- *
  * todo rebuild and recompile the glfw driver, which handles the touch input, so the input can be assigned to the window
- * (e.g. add 1 to the pointer)
+ * (e.g., add 1 to the pointer)
  */
 object GFXBase {
 
@@ -118,7 +113,7 @@ object GFXBase {
             loadRenderDoc()
             val clock = init()
 
-            val window0 = createWindow(WindowX(projectName), clock)
+            val window0 = createWindow(OSWindow(projectName), clock)
 
             try {
                 robot = Robot()
@@ -172,20 +167,20 @@ object GFXBase {
         return tick
     }
 
-    fun addCallbacks(window: WindowX) {
+    fun addCallbacks(window: OSWindow) {
         window.addCallbacks()
         Input.initForGLFW(window)
     }
 
     @Suppress("unused")
-    fun createWindow(title: String, panel: Panel): WindowX {
-        val window = WindowX(title)
+    fun createWindow(title: String, panel: Panel): OSWindow {
+        val window = OSWindow(title)
         createWindow(window, null)
         window.windowStack.push(panel)
         return window
     }
 
-    fun createWindow(instance: WindowX, tick: Clock?): WindowX {
+    fun createWindow(instance: OSWindow, tick: Clock?): OSWindow {
         synchronized(glfwLock) {
             val width = instance.width
             val height = instance.height
@@ -230,7 +225,7 @@ object GFXBase {
         return instance
     }
 
-    private fun makeCurrent(window: WindowX): Boolean {
+    private fun makeCurrent(window: OSWindow): Boolean {
         GFX.activeWindow = window
         if (window.pointer != lastCurrent && window.pointer != 0L) {
             lastCurrent = window.pointer
@@ -242,7 +237,7 @@ object GFXBase {
     private var neverStarveWindows = DefaultConfig["ux.neverStarveWindows", false]
 
     private var lastCurrent = 0L
-    fun runRenderLoop(window0: WindowX) {
+    fun runRenderLoop(window0: OSWindow) {
         LOGGER.info("Running RenderLoop")
         val tick = Clock()
         makeCurrent(window0)
@@ -352,11 +347,11 @@ object GFXBase {
         GFX.renderStep0()
     }
 
-    fun renderStep(window: WindowX) {
+    fun renderStep(window: OSWindow) {
         GFX.renderStep(window)
     }
 
-    fun close(window: WindowX) {
+    fun close(window: OSWindow) {
         synchronized(glfwLock) {
             if (window.pointer != 0L) {
                 GLFW.glfwDestroyWindow(window.pointer)
@@ -369,7 +364,7 @@ object GFXBase {
         }
     }
 
-    fun windowLoop(window0: WindowX) {
+    fun windowLoop(window0: OSWindow) {
 
         Thread.currentThread().name = "GLFW"
 
@@ -379,7 +374,7 @@ object GFXBase {
             cleanUp()
         }.start()
 
-        var lastTrapWindow: WindowX? = null
+        var lastTrapWindow: OSWindow? = null
 
         while (!windows.all2 { it.shouldClose } && !shutdown) {
             for (index in 0 until windows.size) {

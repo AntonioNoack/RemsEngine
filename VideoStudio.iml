@@ -31,7 +31,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="JavaNativeAccess" level="project" />
-    <orderEntry type="library" name="PDFBox" level="project" />
     <orderEntry type="library" name="Other" level="project" />
     <orderEntry type="library" name="Apache Compress 4 Zips" level="project" />
     <orderEntry type="library" name="JBullet2x64" level="project" />

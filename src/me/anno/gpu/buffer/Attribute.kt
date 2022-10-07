@@ -11,8 +11,6 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
     var offset = 0L
     var stride = 0
 
-    fun withName(name: String) = Attribute(name, type, components, isNativeInt)
-
     override fun toString(): String {
         return "Attribute($name,$type,$components${if (isNativeInt) ",nativeInt" else ""})"
     }

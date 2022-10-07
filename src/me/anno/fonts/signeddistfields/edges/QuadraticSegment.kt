@@ -1,6 +1,5 @@
 package me.anno.fonts.signeddistfields.edges
 
-import me.anno.maths.EquationSolver.solveCubic
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
@@ -9,10 +8,10 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
+import me.anno.maths.EquationSolver.solveCubic
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.avg
-import me.anno.utils.types.Vectors.cross
 import org.joml.AABBf
 import org.joml.Vector2f
 import kotlin.math.abs

@@ -65,4 +65,13 @@ object DrawRectangles {
         drawRect(x + w - thicknessX, y, thicknessX, h, color)
     }
 
+    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, size: Int) {
+        GFXx2D.flatColor(color)
+        drawRect(x, y, w, size)
+        drawRect(x, y + h - size, w, size)
+        drawRect(x, y + size, size, h - 2 * size)
+        drawRect(x + w - size, y + size, size, h - 2 * size)
+    }
+
+
 }

@@ -4,12 +4,15 @@ import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
+import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
 import me.anno.utils.Warning.unused
 
@@ -27,8 +30,9 @@ abstract class StackPanel(
     tooltipText: String,
     val options: List<Option>,
     val values: List<Inspectable>,
+    val getOptionFromInspectable: (inspectable: Inspectable) -> Option?,
     style: Style
-) : PanelListY(style) {
+) : PanelListY(style), InputPanel<List<Inspectable>> {
 
     val content = PanelListY(style)
 
@@ -44,7 +48,13 @@ abstract class StackPanel(
         tooltip = tooltipText
     }
 
-    fun showMenu() {
+    override var isInputAllowed = true
+
+    final override fun add(child: Panel): PanelList {
+        return super.add(child)
+    }
+
+    open fun showMenu() {
         openMenu(windowStack, options.map { option ->
             MenuOption(
                 NameDesc(
@@ -53,7 +63,7 @@ abstract class StackPanel(
                 ).with("%1", option.title)
             ) {
                 addComponent(option, content.children.size, true)
-            }
+            }.setEnabled(isInputAllowed, "Property is immutable")
         })
     }
 
@@ -100,7 +110,7 @@ abstract class StackPanel(
 
         // todo drag and drop customizable windows (like ImGUI, Hazel engine)
 
-        when (type) {
+        if (isInputAllowed) when (type) {
             "CopyPaste" -> {
                 val dragged = dragged!!
                 val content = dragged.getContent()
@@ -109,12 +119,11 @@ abstract class StackPanel(
                 // todo place/insert it there
             }
             else -> super.onPaste(x, y, data, type)
-        }
+        } else super.onPaste(x, y, data, type)
     }
 
     abstract fun onAddComponent(component: Inspectable, index: Int)
     abstract fun onRemoveComponent(component: Inspectable)
-    abstract fun getOptionFromInspectable(inspectable: Inspectable): Option?
 
     override val className = "StackPanel"
 

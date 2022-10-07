@@ -9,9 +9,11 @@ import java.io.InputStream
 import kotlin.concurrent.thread
 
 @Suppress("unused")
-object CommandLineReader {
+open class CommandLineReader {
 
-    private val LOGGER = LogManager.getLogger(CommandLineReader::class)
+    companion object {
+        private val LOGGER = LogManager.getLogger(CommandLineReader::class)
+    }
 
     class TimeoutReader(val input: InputStream) : Closeable {
 
@@ -54,11 +56,14 @@ object CommandLineReader {
             val input = TimeoutReader(System.`in`)
             while (true) {
                 val line = input.readLine() ?: break
-                // todo analyse the line content
                 if (line.isBlank2()) continue
-                LOGGER.info(line)
+                interpret(line)
             }
         }
+    }
+
+    open fun interpret(line: String) {
+        LOGGER.info(line)
     }
 
 }

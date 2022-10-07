@@ -35,7 +35,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Saveable
-import me.anno.utils.LOGGER
 import me.anno.utils.types.Matrices.set2
 import org.joml.AABBd
 import org.joml.Matrix4x3f

@@ -49,15 +49,16 @@ object Packer {
     // ffmpeg         63.1  MB
     // ffprobe        63.0  MB
 
+    // (dynamically loaded)
     // spellcheck    169.7  MB
     // spellcheck-en  82.6  MB
 
 
     // the best formats (probably)
-    // images  png, jpg
+    // images  png, jpg, hdr
     // audio  mp3
     // video  mp4
-    // documents  svg/pdf?
+    // documents  md/svg/pdf?
 
 
     private val LOGGER = LogManager.getLogger(Packer::class)

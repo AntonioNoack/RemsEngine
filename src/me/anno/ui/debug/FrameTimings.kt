@@ -3,7 +3,7 @@ package me.anno.ui.debug
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.GFXx2D
@@ -188,7 +188,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         putValue(nanos * 1e-9f, color)
     }
 
-    fun showFPS(window: WindowX) {
+    fun showFPS(window: OSWindow) {
 
         val x0 = max(0, window.width - width)
         val y0 = max(0, window.height - height)

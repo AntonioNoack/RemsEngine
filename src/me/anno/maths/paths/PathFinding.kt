@@ -10,7 +10,7 @@ import kotlin.math.max
 object PathFinding {
 
     // todo Dijkstra without specific target, just find something good enough,
-    // todo or all distances to good things within a certain radius
+    //  or all distances to good things within a certain radius
 
     private val LOGGER = LogManager.getLogger(PathFinding::class)
 

@@ -4,7 +4,7 @@ import org.joml.Matrix4f
 import kotlin.math.PI
 import kotlin.math.abs
 
-class RotateJPEG(val mirrorHorizontal: Boolean, val mirrorVertical: Boolean, val angleCW: Int) {
+class ImageTransform(val mirrorHorizontal: Boolean, val mirrorVertical: Boolean, val angleCW: Int) {
     val switchWH = (abs(angleCW) % 180) > 45
     private val angleRadians = -(PI * angleCW / 180).toFloat() // CCW
     fun apply(stack: Matrix4f) {

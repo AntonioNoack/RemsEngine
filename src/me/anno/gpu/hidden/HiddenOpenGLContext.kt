@@ -2,7 +2,7 @@ package me.anno.gpu.hidden
 
 import me.anno.Engine.projectName
 import me.anno.gpu.GFX
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version
@@ -17,7 +17,7 @@ import org.lwjgl.system.MemoryUtil
  * */
 object HiddenOpenGLContext {
 
-    private val window = WindowX(HiddenOpenGLContext::class.simpleName.toString())
+    private val window = OSWindow(HiddenOpenGLContext::class.simpleName.toString())
     private val width get() = window.width
     private val height get() = window.height
 

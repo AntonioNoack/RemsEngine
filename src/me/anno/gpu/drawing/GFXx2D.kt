@@ -2,8 +2,6 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.FlatShaders.flatShader
@@ -13,8 +11,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.utils.Color.a
-import me.anno.utils.Color.toHexColor
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -35,14 +31,6 @@ object GFXx2D {
 
     fun noTiling(shader: Shader) {
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
-    }
-
-    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, size: Int) {
-        flatColor(color)
-        drawRect(x, y, w, size)
-        drawRect(x, y + h - size, w, size)
-        drawRect(x, y + size, size, h - 2 * size)
-        drawRect(x + w - size, y + size, size, h - 2 * size)
     }
 
     fun flatColor(color: Int) {

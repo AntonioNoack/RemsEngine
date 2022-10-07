@@ -17,6 +17,7 @@ class ComputeBuffer(elementCount: Int, attr: List<Attribute>) : OpenGLBuffer(GL_
         nioBuffer = ByteBufferPool.allocateDirect(byteSize)
     }
 
+    @Suppress("unused")
     fun readDataF(
         startIndex: Long = 0L,
         values: FloatArray = FloatArray(((elementCount - startIndex) * stride / 4).toInt())

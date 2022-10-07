@@ -12,7 +12,7 @@ fun main() {
         .filter { it.lcExtension == "exr" }
         .forEach {
             try {
-                EXRReader.read(it).write(dst.getChild("${it.nameWithoutExtension}.png"))
+                EXRReader.read(it.readByteBufferSync(false)).write(dst.getChild("${it.nameWithoutExtension}.png"))
             } catch (e: IOException) {
                 IOException(it.absolutePath, e)
                     .printStackTrace()

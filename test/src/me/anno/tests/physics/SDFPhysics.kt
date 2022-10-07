@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh.sdf
+package me.anno.tests.physics
 
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexShape
@@ -6,6 +6,7 @@ import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.SphereCollider
+import me.anno.ecs.components.mesh.sdf.SDFCollider
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
 import me.anno.ecs.components.mesh.sdf.shapes.SDFSphere
 import me.anno.ecs.components.physics.BulletPhysics

@@ -22,6 +22,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.black3
 import me.anno.utils.Color.white4
 import me.anno.utils.OS.desktop
+import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
 import org.joml.*
 import org.lwjgl.opengl.GL11.*
@@ -32,10 +33,15 @@ object GLTFWriter {
     @JvmStatic
     fun main(args: Array<String>) {
         ECSRegistry.init()
-        val main = downloads.getChild("gradientdomain-scenes.zip/gradientdomain-scenes")
-        val name = "sponza"
-        val sceneMain = main.getChild("$name/$name-gpt.xml/Scene.json")
-        write(PrefabCache[sceneMain]!!, desktop.getChild("$name.glb"))
+        if (false) {
+            val main = downloads.getChild("gradientdomain-scenes.zip/gradientdomain-scenes")
+            val name = "sponza"
+            val sceneMain = main.getChild("$name/$name-gpt.xml/Scene.json")
+            write(PrefabCache[sceneMain]!!, desktop.getChild("$name.glb"))
+        } else {
+            // test for non-packed references
+            write(PrefabCache[documents.getChild("cube bricks.fbx")]!!, desktop.getChild("bricks.glb"))
+        }
         Engine.requestShutdown()
     }
 
@@ -95,6 +101,7 @@ object GLTFWriter {
         packedDepsToFolder: Boolean = false,
         allDepsToBinary: Boolean = false,
         packedDepsToBinary: Boolean = true,
+        maxNumBackPaths: Int = 0,
     ) {
 
         if (scene is Prefab) {
@@ -502,12 +509,23 @@ object GLTFWriter {
             writer.close(false) // mesh
         }
 
+        fun getTextureIndex(source: FileReference, sampler: Int): Int {
+            return textures.getOrPut(
+                Pair(images.getOrPut(source) { images.size }, sampler)
+            ) { textures.size }
+        }
+
         write("materials", materials) { material ->
             // https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/schema/material.schema.json
             writer.open(false)
             writer.attr("pbrMetallicRoughness")
             writer.open(false)
-            val sampler = if (material.emissiveMap != InvalidRef || material.diffuseMap != InvalidRef) {
+            val sampler = if (
+                material.emissiveMap.exists ||
+                material.diffuseMap.exists ||
+                material.normalMap.exists ||
+                material.occlusionMap.exists
+            ) {
                 samplers.getOrPut(
                     Pair(
                         if (material.linearFiltering) GPUFiltering.TRULY_LINEAR
@@ -516,15 +534,11 @@ object GLTFWriter {
                     )
                 ) { samplers.size }
             } else -1
-            if (material.diffuseMap != InvalidRef) {
+            if (material.diffuseMap.exists) {
                 writer.attr("baseColorTexture")
                 writer.open(false)
                 writer.attr("index")
-                writer.write(
-                    textures.getOrPut(
-                        Pair(images.getOrPut(material.diffuseMap) { images.size }, sampler)
-                    ) { textures.size }
-                )
+                writer.write(getTextureIndex(material.diffuseMap, sampler))
                 writer.close(false)
             }
             val color = material.diffuseBase
@@ -552,20 +566,30 @@ object GLTFWriter {
                 writer.attr("doubleSided")
                 writer.write(true)
             }
-            if (material.emissiveMap != InvalidRef) {
+            if (material.emissiveMap.exists) {
                 writer.attr("emissiveTexture")
                 writer.open(false)
                 writer.attr("index")
-                writer.write(
-                    textures.getOrPut(
-                        Pair(images.getOrPut(material.emissiveMap) { images.size }, sampler)
-                    ) { textures.size }
-                )
+                writer.write(getTextureIndex(material.emissiveMap, sampler))
                 writer.close(false)
             }
             if (material.emissiveBase != black3) {
                 writer.attr("emissiveFactor")
                 writer.write(material.emissiveBase)
+            }
+            if (material.normalMap.exists) {
+                writer.attr("normalTexture")
+                writer.open(false)
+                writer.attr("index")
+                writer.write(getTextureIndex(material.normalMap, sampler))
+                writer.close(false)
+            }
+            if(material.occlusionMap.exists){
+                writer.attr("occlusionTexture")
+                writer.open(false)
+                writer.attr("index")
+                writer.write(getTextureIndex(material.occlusionMap, sampler))
+                writer.close(false)
             }
             writer.close(false)
         }
@@ -585,15 +609,15 @@ object GLTFWriter {
             // if contains inaccessible assets, pack them, or write them to same directory
             val sameFolder = it.getParent() == dstParent
             val packed = it is InnerFile
-            when {
-                (packed && packedDepsToFolder) || (!sameFolder && allDepsToFolder) -> {
-                    // copy the file
-                    val newFile = dstParent.getChild(it.name)
-                    newFile.writeFile(it) {}
-                    writer.attr("uri")
-                    writer.write(newFile.absolutePath) // todo relative path to file
-                }
-                (packed && packedDepsToBinary) || (!sameFolder && allDepsToBinary) -> {
+            if ((packed && packedDepsToFolder) || (!sameFolder && allDepsToFolder)) {
+                // copy the file
+                val newFile = dstParent.getChild(it.name)
+                newFile.writeFile(it) {}
+                writer.attr("uri")
+                writer.write(newFile.absolutePath)
+            } else {
+                val path = it.relativePathTo(dstParent, maxNumBackPaths)
+                if ((packed && packedDepsToBinary) || (!sameFolder && allDepsToBinary) || path == null) {
                     // "bufferView": 3,
                     // "mimeType" : "image/jpeg"
                     writer.attr("bufferView")
@@ -611,10 +635,9 @@ object GLTFWriter {
                         writer.attr("mimeType")
                         writer.write(ext)
                     }
-                }
-                else -> {
+                } else {
                     writer.attr("uri")
-                    writer.write(it.absolutePath) // todo relative path to file
+                    writer.write(path)
                 }
             }
             writer.close(false)

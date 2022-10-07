@@ -4,9 +4,6 @@
     <root id="archive" name="VideoStudio.jar">
       <element id="module-output" name="VideoStudio" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-2.0.22-with-libs.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-jai-imageio-core-1.4.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-jai-imageio-jpeg2000-1.4.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/bullet/JBullet2x64.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/maven/annotations-13.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-assimp-natives-linux-arm32.jar" path-in-jar="/" />

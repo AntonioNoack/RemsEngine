@@ -82,11 +82,11 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         GFX.check()
         isUpToDate = true
 
-        if (DebugGPUStorage.buffers.add(this)) {
-            /*val title = "Created buffer of size ${locallyAllocated.formatFileSize()}"
+        /*if (*/DebugGPUStorage.buffers.add(this)/*) {
+            val title = "Created buffer of size ${locallyAllocated.formatFileSize()}"
             if (locallyAllocated > 1e6) RuntimeException(title).printStackTrace()
-            else LOGGER.debug(title)*/
-        }
+            else LOGGER.debug(title)
+        }*/
 
     }
 

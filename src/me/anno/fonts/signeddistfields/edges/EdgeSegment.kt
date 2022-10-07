@@ -3,7 +3,6 @@ package me.anno.fonts.signeddistfields.edges
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.cross
 import org.joml.AABBf
 import org.joml.Vector2f
 import kotlin.math.abs

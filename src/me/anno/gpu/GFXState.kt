@@ -141,6 +141,7 @@ object GFXState {
         }
     }
 
+    @Suppress("unused")
     val stencilTest = object : SecureStack<Boolean>(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             if (newValue) glEnable(GL_STENCIL_TEST)

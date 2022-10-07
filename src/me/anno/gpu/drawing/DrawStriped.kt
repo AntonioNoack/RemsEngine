@@ -7,6 +7,7 @@ import org.joml.Vector4f
 
 object DrawStriped {
 
+    @Suppress("unused")
     fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4f) {
         if (w == 0 || h == 0) return
         val shader = flatShaderStriped.value

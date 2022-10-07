@@ -1,8 +1,7 @@
 package me.anno.ui.editor.treeView
 
-import me.anno.utils.Color.black
 import me.anno.config.DefaultStyle.midGray
-import me.anno.utils.Color.white
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -24,8 +23,11 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.style.Style
 import me.anno.utils.Color.b
+import me.anno.utils.Color.black
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
+import me.anno.utils.Color.white
+import org.apache.logging.log4j.LogManager
 
 class TreeViewPanel<V>(
     val getElement: () -> V,
@@ -39,6 +41,10 @@ class TreeViewPanel<V>(
     showSymbol: Boolean,
     private val treeView: TreeView<V>, style: Style
 ) : PanelListX(style) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(TreeViewPanel::class)
+    }
 
     val uiSymbol: TextPanel? = if (showSymbol) {
         object : TextPanel("", style) {
@@ -175,6 +181,11 @@ class TreeViewPanel<V>(
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        val element = getElement()
+        if (element is PrefabSaveable && element.root.prefab?.isWritable == false) {
+            LOGGER.warn("Prefab is not writable!")
+            return
+        }
         try {
             val child0 = TextReader.read(data, StudioBase.workspace, true).firstOrNull()
 
@@ -184,7 +195,7 @@ class TreeViewPanel<V>(
             @Suppress("unchecked_cast")
             val original = (dragged as? Draggable)?.getOriginal() as? V
             val relativeY = (y - this.y) / this.h
-            val element = getElement()!!
+            element!!
             moveChange {
                 if (relativeY < 0.33f) {
                     // paste on top

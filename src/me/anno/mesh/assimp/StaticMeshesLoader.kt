@@ -35,8 +35,6 @@ open class StaticMeshesLoader {
 
     companion object {
 
-        // todo we need a gltf reader for the materials :annoyed:, because assimp doesn't have separate metallic and roughness values...
-
         const val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
                 aiProcess_Triangulate or // we don't want to triangulate ourselves
                 aiProcess_JoinIdenticalVertices or // is required to load indexed geometry

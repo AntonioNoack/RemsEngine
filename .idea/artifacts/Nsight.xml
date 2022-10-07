@@ -13,10 +13,6 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/maven/annotations-13.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/maven/kotlin-stdlib-jdk7-1.6.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/maven/kotlin-stdlib-common-1.6.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-2.0.22-with-libs.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-jai-imageio-core-1.4.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-jai-imageio-jpeg2000-1.4.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows-touch.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows-x86.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw-natives-windows.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-glfw.jar" path-in-jar="/" />

@@ -458,6 +458,7 @@ object DrawTexts {
     fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int) =
         GFXx2D.getSizeX(getTextSize(font, text, widthLimit, heightLimit))
 
+    @Suppress("unused")
     fun getTextSizeY(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int) =
         GFXx2D.getSizeY(getTextSize(font, text, widthLimit, heightLimit))
 

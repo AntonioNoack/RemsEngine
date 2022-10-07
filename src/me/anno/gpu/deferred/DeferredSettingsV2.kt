@@ -3,8 +3,8 @@ package me.anno.gpu.deferred
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.RandomEffect.randomFunc
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
@@ -76,7 +76,9 @@ class DeferredSettingsV2(
             layers.add(layer)
             spaceInLayers[layerIndex] -= dimensions
             usedTextures0 = max(usedTextures0, layerIndex)
-            needsHighPrecision[layerIndex] = needsHighPrecision[layerIndex].max(layerType.minimumQuality)
+            val op = needsHighPrecision[layerIndex]
+            val np = layerType.minimumQuality
+            needsHighPrecision[layerIndex] = if (op > np) op else np
         }
         usedTextures0++
 

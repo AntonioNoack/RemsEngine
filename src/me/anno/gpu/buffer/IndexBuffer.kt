@@ -252,6 +252,7 @@ class IndexBuffer(
         unbind()
     }
 
+    @Suppress("unused")
     fun drawSimpleInstanced(shader: Shader, mode: Int, count: Int) {
         bind(shader) // defines drawLength
         if (base.drawLength > 0) {

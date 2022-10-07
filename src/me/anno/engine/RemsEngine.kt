@@ -14,9 +14,10 @@ import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
@@ -54,8 +55,6 @@ import org.joml.Matrix4f
 
 // todo runtime-only-PrefabSaveables must show warning in UI, that they are temporary
 
-// todo to reduce the size of the engine, physics engines could be turned into mods
-// todo libraries like jpeg2000, pdf and such should become mods as well
 // todo spellchecking could then become a mod :)
 
 
@@ -116,6 +115,8 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         // to avoid race conditions
         ScenePrefab.prefab.getSampleInstance()
 
+        PluginRegistry.init()
+
     }
 
     override fun onGameLoopStart() {
@@ -128,7 +129,7 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
     override fun isSelected(obj: Any?) =
         EditorState.selection.contains(obj)
 
-    override fun onGameLoop(window: WindowX, w: Int, h: Int) {
+    override fun onGameLoop(window: OSWindow, w: Int, h: Int) {
         DefaultConfig.saveMaybe("main.config")
         super.onGameLoop(window, w, h)
     }

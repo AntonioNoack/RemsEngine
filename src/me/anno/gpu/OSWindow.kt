@@ -12,13 +12,13 @@ import org.lwjgl.glfw.GLFWKeyCallback
 import kotlin.math.abs
 
 /**
- * OS level window; on some platforms like Android, there only will be a single one
+ * on some platforms like Android, there only will be a single one
  * */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-open class WindowX(var title: String) {
+open class OSWindow(var title: String) {
 
     companion object {
-        private val LOGGER = LogManager.getLogger(WindowX::class)
+        private val LOGGER = LogManager.getLogger(OSWindow::class)
     }
 
     var pointer = 0L
@@ -73,7 +73,7 @@ open class WindowX(var title: String) {
 
     val currentWindow: Window?
         get() {
-            // todo find window at coordinates
+            // todo find window at mouse coordinates (?)
             return windowStack.lastOrNull()
         }
 

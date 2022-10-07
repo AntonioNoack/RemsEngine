@@ -55,7 +55,6 @@ interface IFramebuffer {
     }
 
     fun bindTextureI(index: Int, offset: Int) {
-        checkSession()
         bindTextureI(index, offset, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
     }
 

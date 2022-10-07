@@ -10,14 +10,15 @@ import me.anno.gpu.shader.ShaderLib.yuv2rgb
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.image.Image
-import me.anno.maths.LinearRegression
 import me.anno.maths.Maths
+import me.anno.maths.Maths.erf
+import me.anno.maths.Maths.erfInv
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import org.joml.Matrix2f
-import org.joml.Vector2d
-import kotlin.math.*
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * implements https://benedikt-bitterli.me/histogram-tiling/
@@ -122,35 +123,9 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
     }
 
     object TileMath {
-        fun erf(x: Float): Float {
 
-            val a1 = +0.2548296f
-            val a2 = -0.28449672f
-            val a3 = +1.4214138f
-            val a4 = -1.4531521f
-            val a5 = +1.0614054f
-            val p = +0.3275911f
 
-            val sign = x.sign
-
-            val t = 1f / (1f + p * abs(x))
-            val y = 1f - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * exp(-x * x)
-
-            return sign * y
-        }
-
-        fun dErf(x: Float): Float = 2f * exp(-x * x) / sqrt(Maths.PIf)
-        fun erfInv(x: Float): Float {
-            var y = 0f
-            var ctr = 0
-            do {
-                val err = erf(y) - x
-                y -= err / dErf(y)
-            } while (abs(err) > 1e-7f && ctr++ < 32)
-            return y
-        }
-
-        fun C(sigma: Float): Float = 1f / erf(0.5f / (sigma * Maths.SQRT2F))
+        fun C(sigma: Float) = 1f / erf(0.5f / (sigma * Maths.SQRT2F))
         fun truncCdfInv(x: Float, sigma: Float = 1f / 6f) =
             0.5f + Maths.SQRT2F * sigma * erfInv((2f * x - 1f) / C(sigma))
 

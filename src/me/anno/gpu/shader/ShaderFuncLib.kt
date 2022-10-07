@@ -7,17 +7,20 @@ object ShaderFuncLib {
             "    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);\n" +
             "}\n"
 
+    @Suppress("unused")
     val reinhardToneMapping = "" +
             "vec3 reinhard(vec3 color){\n" +
             "   return color / (color + 1.0);\n" +
             "}\n"
 
+    @Suppress("unused")
     val reinhard2ToneMapping = "" +
             "vec3 reinhard(vec3 color){\n" +
             "   const float invWhiteSq = ${1.0 / 16.0};\n" +
             "   return (color * (1.0 + color * invWhiteSq)) / (color + 1.0);\n" +
             "}\n"
 
+    @Suppress("unused")
     val uchimuraToneMapping = "" +
             // Uchimura 2017, "HDR theory and practice"
             // Math: https://www.desmos.com/calculator/gslcdxvipg
@@ -55,6 +58,7 @@ object ShaderFuncLib {
 
     // academy color encoding system; e.g., used by UE4
     // says it shall be standard for the film industry
+    @Suppress("unused")
     val acesToneMapping = "" +
             // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
             // source^2: https://github.com/dmnsgn/glsl-tone-map/blob/master/aces.glsl

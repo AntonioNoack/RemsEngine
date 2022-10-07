@@ -1063,7 +1063,10 @@ object ComponentUI {
 
                 LOGGER.warn("Missing knowledge to edit $type0, '$title'")
 
-                return TextPanel("?? $title : ${if(value != null) value::class.simpleName else null}, type $type0", style)
+                return TextPanel(
+                    "?? $title : ${if (value != null) value::class.simpleName else null}, type $type0",
+                    style
+                )
             }
         }
 
@@ -1134,9 +1137,10 @@ object ComponentUI {
         addOnClickListener { _, _, button, _ ->
             if (button.isRight) {
                 // todo option to edit the parent... how will that work?
+                val enabled = this !is InputPanel<*> || this.isInputAllowed
                 Menu.openMenu(windowStack, listOf(MenuOption(NameDesc("Reset")) {
                     callback(property.reset(this))
-                }))
+                }.setEnabled(enabled, "Instance is immutable, inherit from it!")))
                 true
             } else false
         }

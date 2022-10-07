@@ -52,7 +52,7 @@ val frame by lazy {
     )
 }
 
-fun drawLogo(window: WindowX, destroy: Boolean) {
+fun drawLogo(window: OSWindow, destroy: Boolean) {
 
     GFX.check()
 

@@ -6,16 +6,22 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 
-class NullableInput(val content: Panel, val property: IProperty<*>, style: Style) : PanelListX(style) {
+class NullableInput<V>(val content: Panel, val property: IProperty<V>, style: Style) :
+    PanelListX(style), InputPanel<V> {
+
+    val value0 = property.get()
+    val default = property.getDefault()
 
     init {
-        val value0 = property.get()
-        val default = property.getDefault()
         add(content)
-        val checkbox = Checkbox(
-            value0 != null, default != null,
-            style.getSize("fontSize", 10), style
-        )
+    }
+
+    val checkbox = Checkbox(
+        value0 != null, default != null,
+        style.getSize("fontSize", 10), style
+    )
+
+    init {
         add(checkbox.apply {
             tooltip = "Toggle Null"
             @Suppress("unchecked_cast")
@@ -30,6 +36,21 @@ class NullableInput(val content: Panel, val property: IProperty<*>, style: Style
                 }
             }
         })
+    }
+
+    override var isInputAllowed
+        get() = checkbox.isInputAllowed && (content !is InputPanel<*> || content.isInputAllowed)
+        set(value) {
+            checkbox.isInputAllowed = value
+            (content as? InputPanel<*>)?.isInputAllowed = value
+        }
+
+    override val lastValue: V
+        get() = property.get()
+
+    override fun setValue(value: V, notify: Boolean): Panel {
+        property.set(this, value)
+        return this
     }
 
     var changeListener = {}

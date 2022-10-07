@@ -15,7 +15,7 @@ import org.lwjgl.opengl.NVMeshShader
 fun main() {
 
     // todo get raytracing on opengl working Nvidia
-    // todo is there an extension for AMD?
+    // to do is there an extension for AMD? yes, there is Nvidia specific RT and general RT in Vulkan
 
     // GL_NV_ray_tracing
     // https://github.com/KhronosGroup/GLSL/blob/master/extensions/nv/GLSL_NV_ray_tracing.txt
@@ -85,7 +85,7 @@ fun main() {
                    int payload);
     * */
 
-    // todo continue at line 713 or give up, because it seems unavailable for OpenGL
+    // to do continue at line 713 or give up, because it seems unavailable for OpenGL
     // todo can we combine OpenGL with Vulkan, so we can progressively move from OpenGL to Vulkan?
 
     // init OpenGL

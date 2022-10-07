@@ -61,9 +61,9 @@ class InnerRarFile(
     }
 
     class ZipVolume(val a: Archive, val file: FileReference) : Volume {
-        val bytes = lazy { file.readBytesSync() }
+        val bytes by lazy { file.readBytesSync() }
         override fun getReadOnlyAccess(): IReadOnlyAccess {
-            return ZipReadOnlyAccess(bytes.value)
+            return ZipReadOnlyAccess(bytes)
         }
 
         override fun getLength(): Long = file.length()

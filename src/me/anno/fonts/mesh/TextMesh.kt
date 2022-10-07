@@ -359,14 +359,14 @@ class TextMesh(
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(TextMesh::class)
+        // private val LOGGER = LogManager.getLogger(TextMesh::class)
 
         val attributes = listOf(
             Attribute("coords", 2)
         )
 
         const val DEFAULT_LINE_HEIGHT = 0.2f
-        const val DEFAULT_FONT_HEIGHT = 100f
+        // const val DEFAULT_FONT_HEIGHT = 100f
 
         private fun mergeRings2(outer: MutableList<Vector2f>, innerList: List<List<Vector2f>>) {
             for (inner in innerList.sortedBy { it.minOfOrNull { p -> p.x }!! }) {

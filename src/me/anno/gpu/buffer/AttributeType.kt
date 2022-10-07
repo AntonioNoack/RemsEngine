@@ -2,6 +2,7 @@ package me.anno.gpu.buffer
 
 import org.lwjgl.opengl.GL11C.*
 
+@Suppress("unused")
 enum class AttributeType(val byteSize: Int, val glType: Int, val normalized: Boolean) {
 
     FLOAT(4, GL_FLOAT, false),

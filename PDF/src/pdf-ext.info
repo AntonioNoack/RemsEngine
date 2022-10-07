@@ -1,0 +1,4 @@
+plugin-name: PDFBox Integration
+author: Antonio Noack
+description: Allows PDFs to be read as folders, and to generate thumbnails from them
+main-class: me.anno.cache.instances.PDFPlugin

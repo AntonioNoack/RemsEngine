@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import me.anno.input.Input.isMouseTrapped
 import me.anno.input.controller.ControllerCalibration
 import me.anno.input.controller.CalibrationProcedure
@@ -128,7 +128,7 @@ class Controller(val id: Int) {
         }
     }
 
-    private fun mouseButtonDown(window: WindowX, key: Int) {
+    private fun mouseButtonDown(window: OSWindow, key: Int) {
         if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
             Input.onMousePress(window, key)
         } else {
@@ -142,7 +142,7 @@ class Controller(val id: Int) {
         }
     }
 
-    private fun mouseButtonUp(window: WindowX, key: Int) {
+    private fun mouseButtonUp(window: OSWindow, key: Int) {
         if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
             Input.onMouseRelease(window, key)
         } else {
@@ -156,7 +156,7 @@ class Controller(val id: Int) {
         }
     }
 
-    private fun buttonDown(window: WindowX, key: Int) {
+    private fun buttonDown(window: OSWindow, key: Int) {
         if (isFirst) {
             when (key) {
                 DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonDown(window, 0)
@@ -169,12 +169,12 @@ class Controller(val id: Int) {
         isActiveMaybe = 1f
     }
 
-    private fun buttonType(window: WindowX, key: Int) {
+    private fun buttonType(window: OSWindow, key: Int) {
         ActionManager.onKeyTyped(window, baseKey + key)
         isActiveMaybe = 1f
     }
 
-    private fun buttonUp(window: WindowX, key: Int) {
+    private fun buttonUp(window: OSWindow, key: Int) {
         if (isFirst) {
             when (key) {
                 DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonUp(window, 0)
@@ -187,7 +187,7 @@ class Controller(val id: Int) {
         isActiveMaybe = 1f
     }
 
-    fun pollEvents(window: WindowX, isFirst: Boolean): Boolean {
+    fun pollEvents(window: OSWindow, isFirst: Boolean): Boolean {
 
         val time = Engine.nanoTime
         val dt = clamp((time - lastTime) * 1e-9f, 1e-3f, 0.2f)
@@ -234,7 +234,7 @@ class Controller(val id: Int) {
 
     }
 
-    private fun updateButtons(window: WindowX, buttons: ByteBuffer? = glfwGetJoystickButtons(glfwId)) {
+    private fun updateButtons(window: OSWindow, buttons: ByteBuffer? = glfwGetJoystickButtons(glfwId)) {
         if (buttons != null) {
             val time = Engine.gameTime
             numButtons = min(buttons.remaining(), MAX_NUM_BUTTONS)
@@ -266,7 +266,7 @@ class Controller(val id: Int) {
         }
     }
 
-    private fun updateAxes(window: WindowX, dt: Float, axes: FloatBuffer? = glfwGetJoystickAxes(glfwId)) {
+    private fun updateAxes(window: OSWindow, dt: Float, axes: FloatBuffer? = glfwGetJoystickAxes(glfwId)) {
         if (axes != null) {
 
             val time = Engine.gameTime

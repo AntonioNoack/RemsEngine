@@ -22,7 +22,7 @@ object Cursor {
         arrow = glfwCreateStandardCursor(GLFW_ARROW_CURSOR)
     }
 
-    fun Long.useCursor(window: WindowX) {
+    fun Long.useCursor(window: OSWindow) {
         // the cursor is only updating when moving the mouse???
         // bug in the api maybe, how to fix that? -> we can't really fix that
         // -> don't use it as an important feature

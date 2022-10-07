@@ -3,6 +3,8 @@ package me.anno.engine.ui.render
 import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.camera.effects.ColorBlindnessEffect
 import me.anno.ecs.components.camera.effects.OutlineEffect
+import me.anno.engine.ui.render.Renderers.previewRenderer
+import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
@@ -41,6 +43,9 @@ enum class RenderMode(
     SHEEN(DeferredLayerType.SHEEN),
     ANISOTROPY(DeferredLayerType.ANISOTROPIC),
     MOTION_VECTORS(DeferredLayerType.MOTION),
+
+    PREVIEW(previewRenderer),
+    SIMPLE(simpleNormalRenderer),
 
     // ALPHA, // currently not defined
     LIGHT_SUM, // todo implement dust-light-spilling for impressive fog

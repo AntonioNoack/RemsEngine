@@ -8,6 +8,7 @@ object ImageScale {
     /**
      * cuts off excess of the image
      * */
+    @Suppress("unused")
     fun scaleMin(imageWidth: Int, imageHeight: Int, minSize: Int): Pair<Int, Int> {
         return if (imageWidth < imageHeight) {
             Pair(minSize, max(1, (imageHeight * minSize + imageWidth / 2) / imageWidth))

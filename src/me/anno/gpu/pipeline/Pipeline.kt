@@ -175,7 +175,7 @@ class Pipeline(val deferred: DeferredSettingsV2?) : Saveable() {
     }
 
     fun fill(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double): Int {
-        // todo more complex traversal:
+        // more complex traversal:
         // done exclude static entities by their AABB
         // done exclude entities, if they contain no meshes
         // done exclude entities, if they are off-screen

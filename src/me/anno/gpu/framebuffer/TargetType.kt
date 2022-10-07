@@ -18,6 +18,7 @@ class TargetType(
                 "fillType=${getName(fillType)}, bytesPerPixel=$bytesPerPixel, channels=$channels, isHDR=$isHDR)"
     }
 
+    @Suppress("unused")
     companion object {
         // luminance counts as a compressed format, so it can't be used
         // luminance_alpha neither

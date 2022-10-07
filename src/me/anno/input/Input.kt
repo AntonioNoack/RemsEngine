@@ -6,7 +6,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.components.ui.UIEventType
 import me.anno.gpu.GFXBase
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
@@ -102,7 +102,7 @@ object Input {
     val isAltDown get() = (keyModState and GLFW.GLFW_MOD_ALT) != 0
     val isSuperDown get() = (keyModState and GLFW.GLFW_MOD_SUPER) != 0
 
-    var trapMouseWindow: WindowX? = null
+    var trapMouseWindow: OSWindow? = null
     var trapMousePanel: Panel? = null
 
     val isMouseTrapped: Boolean
@@ -114,9 +114,9 @@ object Input {
         }
 
     var layoutFrameCount = 10
-    fun needsLayoutUpdate(window: WindowX) = window.framesSinceLastInteraction < layoutFrameCount
+    fun needsLayoutUpdate(window: OSWindow) = window.framesSinceLastInteraction < layoutFrameCount
 
-    fun initForGLFW(window: WindowX) {
+    fun initForGLFW(window: OSWindow) {
 
         GLFW.glfwSetDropCallback(window.pointer) { _: Long, count: Int, names: Long ->
             if (count > 0) {
@@ -205,7 +205,7 @@ object Input {
 
     // val inFocus0 get() = defaultWindowStack?.inFocus0
 
-    fun onCharTyped(window: WindowX, codepoint: Int, mods: Int) {
+    fun onCharTyped(window: OSWindow, codepoint: Int, mods: Int) {
         window.framesSinceLastInteraction = 0
         KeyMap.onCharTyped(codepoint)
         if (!UIEvent(
@@ -218,7 +218,7 @@ object Input {
         keyModState = mods
     }
 
-    fun onKeyPressed(window: WindowX, key: Int) {
+    fun onKeyPressed(window: OSWindow, key: Int) {
         window.framesSinceLastInteraction = 0
         keysDown[key] = gameTime
         keysWentDown += key
@@ -235,7 +235,7 @@ object Input {
         }
     }
 
-    fun onKeyReleased(window: WindowX, key: Int) {
+    fun onKeyReleased(window: OSWindow, key: Int) {
         window.framesSinceLastInteraction = 0
         keyUpCtr++
         keysWentUp += key
@@ -252,7 +252,7 @@ object Input {
         keysDown.remove(key)
     }
 
-    fun onKeyTyped(window: WindowX, key: Int) {
+    fun onKeyTyped(window: OSWindow, key: Int) {
 
         window.framesSinceLastInteraction = 0
 
@@ -335,7 +335,7 @@ object Input {
         }
     }
 
-    fun onMouseMove(window: WindowX, newX: Float, newY: Float) {
+    fun onMouseMove(window: OSWindow, newX: Float, newY: Float) {
 
         if (keysDown.isNotEmpty()) window.framesSinceLastInteraction = 0
 
@@ -363,7 +363,7 @@ object Input {
     }
 
     var userCanScrollX = false
-    fun onMouseWheel(window: WindowX, dx: Float, dy: Float, byMouse: Boolean) {
+    fun onMouseWheel(window: OSWindow, dx: Float, dy: Float, byMouse: Boolean) {
         mouseWheelSumX += dx
         mouseWheelSumY += dy
         if (length(dx, dy) > 0f) window.framesSinceLastInteraction = 0
@@ -383,7 +383,7 @@ object Input {
     }
 
     val controllers = Array(15) { Controller(it) }
-    fun pollControllers(window: WindowX) {
+    fun pollControllers(window: OSWindow) {
         // controllers need to be pulled constantly
         synchronized(GFXBase.glfwLock) {
             var isFirst = true
@@ -395,7 +395,7 @@ object Input {
         }
     }
 
-    fun onClickIntoWindow(window: WindowX, button: Int, panelWindow: Pair<Panel, Window>?) {
+    fun onClickIntoWindow(window: OSWindow, button: Int, panelWindow: Pair<Panel, Window>?) {
         if (panelWindow != null) {
             val mouseButton = button.toMouseButton()
             val ws = window.windowStack
@@ -412,7 +412,7 @@ object Input {
     var windowWasClosed = false
     var maySelectByClick = false
 
-    fun onMousePress(window: WindowX, button: Int) {
+    fun onMousePress(window: OSWindow, button: Int) {
 
         val mouseX = window.mouseX
         val mouseY = window.mouseY
@@ -513,7 +513,7 @@ object Input {
 
     }
 
-    fun onMouseRelease(window: WindowX, button: Int) {
+    fun onMouseRelease(window: OSWindow, button: Int) {
 
         keyUpCtr++
         keysWentUp += button
@@ -591,7 +591,7 @@ object Input {
 
     }
 
-    fun empty(window: WindowX) {
+    fun empty(window: OSWindow) {
         // LOGGER.info("[Input] emptying, $inFocus0, ${inFocus0?.javaClass}")
         window.windowStack.inFocus0?.onEmpty(window.mouseX, window.mouseY)
     }
@@ -609,7 +609,7 @@ object Input {
         }
     }
 
-    fun copy(window: WindowX) {
+    fun copy(window: OSWindow) {
         val mouseX = window.mouseX
         val mouseY = window.mouseY
         val dws = window.windowStack
@@ -658,7 +658,7 @@ object Input {
         }
     }
 
-    fun copy(window: WindowX, panel: Panel) {
+    fun copy(window: OSWindow, panel: Panel) {
         val mouseX = window.mouseX
         val mouseY = window.mouseY
         setClipboardContent(panel.onCopyRequested(mouseX, mouseY)?.toString())
@@ -706,7 +706,7 @@ object Input {
         return null
     }
 
-    fun paste(window: WindowX, panel: Panel? = window.windowStack.inFocus0) {
+    fun paste(window: OSWindow, panel: Panel? = window.windowStack.inFocus0) {
         if (panel == null) return
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
         /*val flavors = clipboard.availableDataFlavors

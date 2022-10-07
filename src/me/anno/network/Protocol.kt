@@ -17,8 +17,6 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
     constructor(bigEndianMagic: String, networkProtocol: NetworkProtocol) :
             this(convertMagic(bigEndianMagic), networkProtocol)
 
-    // todo user groups, and requests to those groups specifically? (e.g. friends)
-
     private val packets = HashMap<Int, Any>()
     var pingDelayMillis = 500
 

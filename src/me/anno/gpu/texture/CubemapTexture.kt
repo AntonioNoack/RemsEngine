@@ -95,6 +95,7 @@ class CubemapTexture(
         GFX.check()
     }
 
+    @Suppress("unused")
     fun createRGB(sides: List<ByteArray>) {
         beforeUpload(6 * 3, sides[0].size)
         val size = size

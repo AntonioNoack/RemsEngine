@@ -3,7 +3,7 @@ package me.anno.tests.ui
 import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import org.joml.Vector4f
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
@@ -25,7 +25,7 @@ fun main() {
 
     // to prevent errors from the engine, which is currently using single-threaded OpenGL
     Build.isDebug = false
-    GFX.activeWindow = WindowX("")
+    GFX.activeWindow = OSWindow("")
 
     class GLFWThread(val window: Long, val index: Int) : Thread() {
         override fun run() {

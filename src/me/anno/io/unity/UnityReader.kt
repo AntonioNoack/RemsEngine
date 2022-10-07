@@ -1012,7 +1012,7 @@ object UnityReader {
         Thumbs.generateSomething(
             prefab, file,
             desktop.getChild("$index.png"), size
-        ) {}
+        ) { _, exc -> exc?.printStackTrace() }
     }
 
     fun smallRenderTest() {

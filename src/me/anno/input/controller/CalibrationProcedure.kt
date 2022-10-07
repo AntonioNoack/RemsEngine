@@ -1,6 +1,6 @@
 package me.anno.input.controller
 
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import me.anno.input.Controller
 import me.anno.input.Controller.Companion.saveCalibration
 import me.anno.input.Input.controllers
@@ -15,7 +15,7 @@ import me.anno.ui.style.Style
 
 object CalibrationProcedure {
 
-    fun start(window: WindowX, style: Style) {
+    fun start(window: OSWindow, style: Style) {
         val oldValue = Controller.enableControllerInputs
         Controller.enableControllerInputs = false // disable temporarily
         val ws = window.windowStack

@@ -3,7 +3,7 @@ package me.anno.ui.base
 import me.anno.Engine
 import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig
-import me.anno.gpu.WindowX
+import me.anno.gpu.OSWindow
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.length
 import me.anno.studio.StudioBase
@@ -37,7 +37,7 @@ object Tooltips {
 
     var lastPanel: Panel? = null
 
-    fun draw(window: WindowX, sourcePanel: Panel, panel: Panel) {
+    fun draw(window: OSWindow, sourcePanel: Panel, panel: Panel) {
         val w = window.width
         val h = window.height
         val fontSize = textPanel.font.sizeInt
@@ -60,7 +60,7 @@ object Tooltips {
         panel.draw(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h)
     }
 
-    fun draw(window: WindowX): Boolean {
+    fun draw(window: OSWindow): Boolean {
 
         if (tooltipReactionTime < 0) return false
 

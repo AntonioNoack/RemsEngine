@@ -32,9 +32,6 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-cli-1.4.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/jna-5.7.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/jna-platform-5.7.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-2.0.22-with-libs.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-jai-imageio-core-1.4.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-jai-imageio-jpeg2000-1.4.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/bullet/JBullet2x64.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-vfs2-2.8.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/unrar/jUnRAR.jar" path-in-jar="/" />

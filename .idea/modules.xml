@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/KOML/KOML.iml" filepath="$PROJECT_DIR$/KOML/KOML.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PDF/PDF.iml" filepath="$PROJECT_DIR$/PDF/PDF.iml" />
       <module fileurl="file://$PROJECT_DIR$/test/Tests.iml" filepath="$PROJECT_DIR$/test/Tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/VideoStudio.iml" filepath="$PROJECT_DIR$/VideoStudio.iml" />
     </modules>
