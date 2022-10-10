@@ -209,6 +209,13 @@ class AnimGameItem(
 
             shader.use()
             shader.m4x3("localTransform", localTransform)
+
+            if (shader["invLocalTransform"] >= 0) {
+                val tmp = JomlPools.mat4x3f.borrow()
+                tmp.set(localTransform).invert()
+                shader.m4x3("invLocalTransform", tmp)
+            }
+
             shader.v1f("worldScale", 1f) // correct?
             GFX.shaderColor(shader, "tint", -1)
 
@@ -268,6 +275,11 @@ class AnimGameItem(
                                 .set(localTransform0)
                                 .mul2(transform.getDrawMatrix())
                             shader.m4x3("localTransform", localTransform)
+                            if (shader["invLocalTransform"] >= 0) {
+                                val tmp = JomlPools.mat4x3f.borrow()
+                                tmp.set(localTransform).invert()
+                                shader.m4x3("invLocalTransform", tmp)
+                            }
                             shader.v1b("hasVertexColors", mesh.hasVertexColors)
                             val materials = mesh.materials
                             for (index in 0 until mesh.numMaterials) {
@@ -293,6 +305,11 @@ class AnimGameItem(
                                 .set(localTransform0)
                                 .mul2(transform.getDrawMatrix())
                             shader.m4x3("localTransform", localTransform)
+                            if (shader["invLocalTransform"] >= 0) {
+                                val tmp = JomlPools.mat4x3f.borrow()
+                                tmp.set(localTransform).invert()
+                                shader.m4x3("invLocalTransform", tmp)
+                            }
                             shader.v1b("hasVertexColors", mesh.hasVertexColors)
                             for (i in 0 until mesh.numMaterials) {
                                 mesh.draw(shader, i)

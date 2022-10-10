@@ -20,12 +20,6 @@ import me.anno.gpu.shader.builder.VariableMode
  * */
 abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
 
-    /*override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
-        super.bind(shader, renderer, instanced)
-        shader.v3i("bounds", size)
-        shader.v1i("maxSteps", max(1, size.x + size.y + size.z)) // max amount of blocks that can be traversed
-    }*/
-
     // needs to be adjusted as well for accurate shadows
     // I hope this gets optimized well, because no material data is actually required...
     override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, limitedTransform: Boolean): Shader {
@@ -66,30 +60,20 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
         isAnimated: Boolean,
         motionVectors: Boolean
     ): ArrayList<Variable> {
-        return arrayListOf(
-            // input varyings
-            Variable(GLSLType.V3F, "localPosition"),
-            Variable(GLSLType.M4x4, "transform"),
-            Variable(GLSLType.M4x3, "localTransform"),
-            Variable(GLSLType.M4x3, "invLocalTransform"),
-            Variable(GLSLType.V1I, "maxSteps"),
-            Variable(GLSLType.V1F, "worldScale"),
-            Variable(GLSLType.V3I, "bounds"),
-            // must-have/standard outputs
-            Variable(GLSLType.V3F, "finalPosition", VariableMode.INOUT),
-            Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
-            // material outputs
-            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-            Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
-            // for reflections
-            Variable(GLSLType.V1B, "hasReflectionPlane"),
-            Variable(GLSLType.V3F, "reflectionPlaneNormal"),
-            Variable(GLSLType.S2D, "reflectionPlane"),
-            Variable(GLSLType.V4F, "reflectionCullingPlane"),
+        val list = super.createFragmentVariables(isInstanced, isAnimated, motionVectors)
+        list.addAll(
+            listOf(
+                // input varyings
+                Variable(GLSLType.V3F, "localPosition"),
+                Variable(GLSLType.M4x4, "transform"),
+                Variable(GLSLType.M4x3, "localTransform"),
+                Variable(GLSLType.M4x3, "invLocalTransform"),
+                Variable(GLSLType.V1I, "maxSteps"),
+                Variable(GLSLType.V1F, "worldScale"),
+                Variable(GLSLType.V3I, "bounds"),
+            )
         )
+        return list
     }
 
     override fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): ShaderStage {
@@ -149,6 +133,8 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     "if(lastNormal == 1){ localNormal.y = -dn.y; }\n" +
                     "else {               localNormal.z = -dn.z; }\n" +
                     "finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
+                    "finalTangent = finalBitangent = vec3(0.0);\n" +
+                    "mat3x3 tbn = mat3x3(finalTangent,finalBitangent,finalNormal);\n" +
                     // correct depth
                     modifyDepth(isInstanced) +
                     "vec3 localPos = localStart - halfBounds + dir * dist;\n" +

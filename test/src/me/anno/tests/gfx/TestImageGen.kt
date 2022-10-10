@@ -55,14 +55,14 @@ fun init() {
 fun testAssimpMeshFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    generateAssimpMeshFrame(file, file.dst(), size) { }
+    generateAssimpMeshFrame(file, file.dst(), size) { _, exc -> exc?.printStackTrace() }
 }
 
 fun testEntityMeshFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     val entity = PrefabCache.getPrefabInstance(file) as Entity
-    generateEntityFrame(file, file.dst(), size, entity) {}
+    generateEntityFrame(file, file.dst(), size, entity) { _, exc -> exc?.printStackTrace() }
 }
 
 @Suppress("unused")
@@ -70,7 +70,7 @@ fun testSkeletonFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     val skeleton = SkeletonCache[file]!!
-    generateSkeletonFrame(file, file.dst(), skeleton, size) {}
+    generateSkeletonFrame(file, file.dst(), skeleton, size) { _, exc -> exc?.printStackTrace() }
 }
 
 @Suppress("unused")
@@ -88,7 +88,9 @@ fun testImage(file: FileReference) {
         ImageIO.write(smaller, "png", it)
     }
     // also write image to the gpu, and then get it back to test the uploading
-    Thumbs.renderToImage(file, false, file.dst2(), false, Renderer.copyRenderer, true, {}, w, h) {
+    Thumbs.renderToImage(file, false, file.dst2(), false, Renderer.copyRenderer, true,
+        { _, exc -> exc?.printStackTrace() }, w, h
+    ) {
         val texture = ImageGPUCache.getImage(file, 10_000, false)!!
         drawTexture(0, 0, w, h, texture, -1, null)
     }
@@ -99,30 +101,32 @@ fun testImage(file: FileReference) {
 @Suppress("unused")
 fun testFFMPEGImage(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    generateVideoFrame(file, file.dst(), size, {}, 0.0)
+    generateVideoFrame(file, file.dst(), size, { _, exc -> exc?.printStackTrace() }, 0.0)
 }
 
 @Suppress("unused")
 fun testSVG(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    generateSVGFrame(file, file.dst(), size) {}
+    generateSVGFrame(file, file.dst(), size) { _, exc -> exc?.printStackTrace() }
 }
 
 @Suppress("unused")
 fun testMeshFrame(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     val mesh = MeshCache[file]!!
-    generateMeshFrame(file, file.dst(), size, mesh) {}
+    generateMeshFrame(file, file.dst(), size, mesh) { _, exc -> exc?.printStackTrace() }
 }
 
 fun testMaterial(file: FileReference) {
-    generateMaterialFrame(file, desktop.getChild(file.nameWithoutExtension + ".png"), size) {}
+    generateMaterialFrame(file, desktop.getChild(file.nameWithoutExtension + ".png"), size) { _, exc ->
+        exc?.printStackTrace()
+    }
 }
 
 @Suppress("unused")
 fun testVOXMeshFrame(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    generateVOXMeshFrame(file, file.dst(), size) {}
+    generateVOXMeshFrame(file, file.dst(), size) { _, exc -> exc?.printStackTrace() }
 }
 
 fun main() {

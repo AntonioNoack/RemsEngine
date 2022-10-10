@@ -23,16 +23,31 @@ object StringHelper {
     }
 
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
-    fun String.splitCamelCase(): String {
+    fun String.splitCamelCase(titlecase: Boolean = false): String {
         return replace('_', ' ') // snake case replacements
-            .replace(splitCamelCaseRegex, " ") // camelCase -> camel Case
+            .splitCamelCaseI(titlecase)
+            // .replace(splitCamelCaseRegex, " ") // camelCase -> camel Case
             .replace("    ", " ")
             .replace("  ", " ")
             .replace("  ", " ")
     }
 
+    private fun String.splitCamelCaseI(titlecase: Boolean): String {
+        if (isEmpty()) return this
+        val builder = StringBuilder(length + 4)
+        builder.append(if (titlecase) this[0].uppercase() else this[0])
+        for (i in 1 until length) {
+            val c = this[i]
+            if (this[i - 1] in 'a'..'z' && c in 'A'..'Z') {
+                builder.append(' ')
+            }
+            builder.append(c)
+        }
+        return builder.toString()
+    }
+
     fun String.camelCaseToTitle() =
-        splitCamelCase().titlecase()
+        splitCamelCase(true)
 
     fun String.upperSnakeCaseToTitle() =
         lowercase().split('_').joinToString(" ") { it.titlecase() }
@@ -102,12 +117,13 @@ object StringHelper {
     }
 
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
-    private val splitCamelCaseRegex = Regex("(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])")
+    // private val splitCamelCaseRegex = Regex("(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])")
 
     @JvmStatic
     fun main(args: Array<String>) {
         println("abc".distance("abcdef"))
         println("abcdef".distance("abc"))
+        println("polyGeneLubricants".camelCaseToTitle())
     }
 
 }

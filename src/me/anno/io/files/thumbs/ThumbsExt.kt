@@ -110,6 +110,11 @@ object ThumbsExt {
         shaderColor(shader, "tint", -1)
         shader.v1b("hasAnimation", false)
         shader.m4x3("localTransform", modelMatrix)
+        if (shader["invLocalTransform"] >= 0) {
+            val tmp = JomlPools.mat4x3f.borrow()
+            tmp.set(modelMatrix).invert()
+            shader.m4x3("invLocalTransform", tmp)
+        }
         shader.v1f("worldScale", 1f)
         GFXx3D.shader3DUniforms(shader, cameraMatrix, -1)
         GFXx3D.uploadAttractors0(shader)

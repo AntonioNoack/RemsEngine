@@ -1,6 +1,5 @@
 package me.anno.graph.knn
 
-import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.HexDecTree
 import me.anno.utils.structures.lists.Lists.smallestKElementsBy
 import org.joml.Vector3d
@@ -12,18 +11,7 @@ class KNearestNeighbors<V> : HexDecTree<KNearestNeighbors.Element<V>>(16) {
     data class Element<V>(val posSize: Vector4d, val element: V)
 
     override fun getPoint(data: Element<V>) = data.posSize
-
-    override fun createChild(
-        children: ArrayList<Element<V>>,
-        min: Vector4d,
-        max: Vector4d
-    ): KdTree<Vector4d, Element<V>> {
-        val node = KNearestNeighbors<V>()
-        node.min.set(min)
-        node.max.set(max)
-        node.children = children
-        return node
-    }
+    override fun createChild() = KNearestNeighbors<V>()
 
     fun find1(position: Vector3d, minSize: Double, maxSize: Double, maxDistance: Double): Element<V>? {
         val min = Vector4d(position, minSize).sub(maxDistance, maxDistance, maxDistance, 0.0)

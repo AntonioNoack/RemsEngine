@@ -27,12 +27,6 @@ class Stream(val stream: IntSequence) {
         } else false
     }
 
-    fun eatWhile(regex: Regex) {
-        while (index < stream.length && regex.matches(peek())) {
-            index++
-        }
-    }
-
     fun eatWhile(test: (Char) -> Boolean) {
         while (index < stream.length && test(stream[index].toChar())) {
             index++

@@ -1,6 +1,7 @@
 package me.anno.utils
 
 import me.anno.io.base.InvalidFormatException
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.Color.b
@@ -32,8 +33,33 @@ object ColorParsing {
         }
     * */
 
-    private val separationRegex = Regex("[,()\\[\\]]")
-    private fun parseFloats(data: String) = data.split(separationRegex).mapNotNull { it.trim().toFloatOrNull() }
+    // private val separationRegex = Regex("[,()\\[\\]]") // split by ,()[]
+    private fun parseFloats(data: String, limit: Int = 4): List<Float> {
+        val result = ArrayList<Float>(min(limit, data.length ushr 1))
+        var si = 0
+        var isFloat = true
+        for (ei in data.indices) {
+            val isFloat2 = when (data[ei]) {
+                '+', '-', '.', in '0'..'9', 'e', 'E' -> true
+                else -> false
+            }
+            if (isFloat != isFloat2) {
+                if (isFloat) {
+                    si = ei
+                } else if (ei > si) {
+                    val value = data.substring(si, ei).toFloatOrNull()
+                    if (value != null) result.add(value)
+                }
+            }
+            isFloat = isFloat2
+        }
+        if (isFloat) {
+            val value = data.substring(si).toFloatOrNull()
+            if (value != null) result.add(value)
+        }
+        // data.split(separationRegex).mapNotNull { it.trim().toFloatOrNull() }
+        return result
+    }
 
     fun parseColorComplex(name: String): Any? {
         // check for HSVuv(h,s,v,a), HSV(h,s,v,a), or #... or RGB(r,g,b,a) or [1,1,0,1]
@@ -70,7 +96,9 @@ object ColorParsing {
     fun parseHex(name: String): Int {
         return when (name.length) {
             3 -> (parseHex(name[0]) * 0x110000 + parseHex(name[1]) * 0x1100 + parseHex(name[2]) * 0x11) or black
-            4 -> (parseHex(name[0]) * 0x11000000 + parseHex(name[1]) * 0x110000 + parseHex(name[2]) * 0x1100 + parseHex(name[3]) * 0x11)
+            4 -> (parseHex(name[0]) * 0x11000000 + parseHex(name[1]) * 0x110000 + parseHex(name[2]) * 0x1100 + parseHex(
+                name[3]
+            ) * 0x11)
             6 -> name.toInt(16) or black
             8 -> name.toLong(16).toInt()
             else -> throw InvalidFormatException("Unknown color $name")

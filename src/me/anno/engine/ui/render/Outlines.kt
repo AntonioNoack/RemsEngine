@@ -105,6 +105,7 @@ object Outlines {
                     shader.m4x4("prevTransform", RenderState.prevCamMatrix)
 
                     shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
+                    // todo inv local transform
                     shader.m4x3delta("prevLocalTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
                     shader.v1f("worldScale", worldScale)
                     shader.v1f("prevWorldScale", RenderState.prevWorldScale)

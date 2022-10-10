@@ -3,7 +3,6 @@ package me.anno.gpu.shader
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.shader.builder.Varying
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.files.toAllowedFilename
@@ -194,30 +193,6 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         attributeLocations.clear()
         uniformLocations.clear()
         uniformCache.fill(Float.NaN)
-    }
-
-    fun String.replaceVaryingNames(isVertex: Boolean, varyings: List<Varying>): String {
-        var str = this
-        if (varyings.isNotEmpty() && varyings.first().run { vShaderName != fShaderName })
-            for (v in varyings) {
-                // regex to really only replace these words
-                val target = if (isVertex) v.vShaderName else v.fShaderName
-                val anything = "[ .,\\n;(){}\\[\\]]"
-                val regex = Regex(anything + v.name + anything)
-                val result = StringBuilder()
-                var i0 = 0
-                while (true) {
-                    val match = regex.find(str, i0) ?: break
-                    val startIndex = match.range.first + 1
-                    result.append(str.substring(i0, startIndex))
-                    result.append(target)
-                    i0 = startIndex + v.name.length
-                }
-                result.append(str.substring(i0))
-                // str = str.replace(v.name, target)
-                str = result.toString()
-            }
-        return str
     }
 
     fun setTextureIndices(vararg textures: String) =

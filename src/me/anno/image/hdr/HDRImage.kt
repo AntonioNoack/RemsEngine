@@ -182,7 +182,7 @@ class HDRImage : Image {
             inform = readLine(input)
         }
         inform = readLine(input)
-        val tokens = inform.split(" ".toRegex(), 4).toTypedArray()
+        val tokens = inform.split(" ")
         if (tokens[0][1] == 'Y') {
             width = tokens[3].toInt()
             height = tokens[1].toInt()

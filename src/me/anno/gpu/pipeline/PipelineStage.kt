@@ -136,8 +136,8 @@ class PipelineStage(
             time: Long
         ) {
 
-            val drawTransform = transform.getDrawMatrix(time)
-            shader.m4x3delta("localTransform", drawTransform)
+            val localTransform = transform.getDrawMatrix(time)
+            shader.m4x3delta("localTransform", localTransform)
             shader.v1f("worldScale", RenderState.worldScale)
 
             val oldTransform = shader["prevLocalTransform"]
@@ -152,7 +152,7 @@ class PipelineStage(
 
             val invLocalUniform = shader["invLocalTransform"]
             if (invLocalUniform >= 0) {
-                val invLocal = tmp4x3.set2(drawTransform).invert()
+                val invLocal = tmp4x3.set2(localTransform).invert()
                 shader.m4x3(invLocalUniform, invLocal)
             }
 

@@ -289,7 +289,7 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         var instance2: RemsEngine? = null
 
         @JvmStatic
-        fun main(args: Array<String>) {
+        fun main(args: Array<String>?) {
             RemsEngine().run()
         }
 

@@ -153,40 +153,16 @@ Some feature tests:
 - [GFX: MarchingSquares.kt](test/src/me/anno/tests/geometry/MarchingSquares.kt)
 - [GFX: Reduction.kt](test/src/me/anno/tests/shader/Reduction.kt)
 - [GFX: FSR.kt](src/me/anno/ecs/components/shaders/effects/FSR.kt)
-- [Debug: JsonFormatter.kt](test/src/me/anno/tests/JsonFormatter.kt)
+- [Debug: JsonFormatter.kt](test/src/me/anno/tests/files/JsonFormatter.kt)
 - [UI: DrawCurves.kt](test/src/me/anno/tests/shader/DrawCurves.kt)
 - [UI: AnimTest.kt](test/src/me/anno/tests/ui/AnimTest.kt)
-- [Snake Game](test/src/me/anno/tests/Snake.kt)
+- [Snake Game](test/src/me/anno/tests/game/Snake.kt)
 
 You can find most examples in the "tests" folder.
 
 ## Ports
 - [Android](https://github.com/AntonioNoack/RemsEngine-Android)
 - Web (WASM) WIP, not published yet
-
-## Used libraries
-
-* [LWJGL](https://www.lwjgl.org/) (Graphics and Audio; OpenGL + GLFW + OpenAL + stb (audio))
-* [Assimp](https://github.com/assimp/assimp) (loading 3d meshes; from LWJGL)
-* [JOML](https://github.com/JOML-CI/JOML) (Matrix calculations and transforms for rendering)
-* [FFMpeg](https://ffmpeg.org/) (Video/Image/Audio Import & Export)
-* [HSLuv](https://github.com/hsluv/hsluv-java) (HSL alternative with constant brightness)
-* [LanguageTool](https://languagetool.org/) (Spellchecking)
-* [JTransforms](https://sites.google.com/site/piotrwendykier/software/jtransforms) (Fast Fourier Transform)
-* [Apache Imaging](https://commons.apache.org/proper/commons-imaging/) (More supported image formats, like .ico)
-* [Apache CLI](https://commons.apache.org/proper/commons-cli/) (Basics of Command Line Interface)
-* [Thumbnailator](https://github.com/coobird/thumbnailator/) (Only EXIF related code, detecting rotated JPEG files)
-* [JNA Platform](https://github.com/java-native-access/jna) (Moving files to trash)
-* [Apache PDFBox](https://pdfbox.apache.org/) (Rendering PDFs)
-* [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDFs)
-* [JAI ImageIO JPEG2000](https://github.com/jai-imageio/jai-imageio-jpeg2000) (JPEG 2000 support for PDFs)
-* [jUnRAR](https://github.com/edmund-wagner/junrar), [Apache VFS](https://search.maven.org/artifact/org.apache.commons/commons-vfs2/2.8.0/jar) (Reading RAR files)
-* [Image4j](https://github.com/imcdonagh/image4j) (Reading ICO images)
-* [Bullet](http://jbullet.advel.cz/) (3d Physics, adjusted to be FP64 instead of FP32)
-* [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
-* [LuaJ](https://github.com/luaj/luaj) (Lua scripting)
-* [QOI-Java](https://github.com/saharNooby/qoi-java) (QOI image format)
-* [Recast4j](https://github.com/AntonioNoack/recast4j/) (NavMesh generation; adjusted for JOML; not yet integrated)
 
 ## Build It
 
@@ -213,6 +189,30 @@ There isn't an official release yet, but you can use the in-official build from 
 A release of [Rem's Studio](https://github.com/AntonioNoack/RemsStudio) would work as well.
 
 Until I create a release, they might be a bit out of date 😅.
+
+## Used libraries
+
+* [LWJGL](https://www.lwjgl.org/) (Graphics and Audio; OpenGL + GLFW + OpenAL + stb (audio))
+* [Assimp](https://github.com/assimp/assimp) (loading 3d meshes; from LWJGL)
+* [JOML](https://github.com/JOML-CI/JOML) (Matrix calculations and transforms for rendering)
+* [FFMpeg](https://ffmpeg.org/) (Video/Image/Audio Import & Export)
+* [HSLuv](https://github.com/hsluv/hsluv-java) (HSL alternative with constant brightness)
+* [LanguageTool](https://languagetool.org/) (Spellchecking)
+* [JTransforms](https://sites.google.com/site/piotrwendykier/software/jtransforms) (Fast Fourier Transform)
+* [Apache Imaging](https://commons.apache.org/proper/commons-imaging/) (More supported image formats, like .ico)
+* [Apache CLI](https://commons.apache.org/proper/commons-cli/) (Basics of Command Line Interface)
+* [Thumbnailator](https://github.com/coobird/thumbnailator/) (Only EXIF related code, detecting rotated JPEG files)
+* [JNA Platform](https://github.com/java-native-access/jna) (Moving files to trash)
+* [Apache PDFBox](https://pdfbox.apache.org/) (Rendering PDFs)
+* [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDFs)
+* [JAI ImageIO JPEG2000](https://github.com/jai-imageio/jai-imageio-jpeg2000) (JPEG 2000 support for PDFs)
+* [jUnRAR](https://github.com/edmund-wagner/junrar), [Apache VFS](https://search.maven.org/artifact/org.apache.commons/commons-vfs2/2.8.0/jar) (Reading RAR files)
+* [Image4j](https://github.com/imcdonagh/image4j) (Reading ICO images)
+* [Bullet](http://jbullet.advel.cz/) (3d Physics, adjusted to be FP64 instead of FP32)
+* [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
+* [LuaJ](https://github.com/luaj/luaj) (Lua scripting)
+* [QOI-Java](https://github.com/saharNooby/qoi-java) (QOI image format)
+* [Recast4j](https://github.com/AntonioNoack/recast4j/) (NavMesh generation; adjusted for JOML; not yet integrated)
 
 ## Documentation
 

@@ -44,11 +44,19 @@ abstract class KdTree<Point, Data>(
     abstract fun get(p: Point, axis: Int): Double
     abstract fun min(a: Point, b: Point): Point
     abstract fun max(a: Point, b: Point): Point
-    abstract fun createChild(
+    open fun createChild(
         children: ArrayList<Data>,
         min: Point,
         max: Point
-    ): KdTree<Point, Data>
+    ): KdTree<Point, Data> {
+        val child = createChild()
+        child.children = children
+        child.min = min
+        child.max = max
+        return child
+    }
+
+    abstract fun createChild(): KdTree<Point, Data>
 
     var left: KdTree<Point, Data>? = null
     var right: KdTree<Point, Data>? = null

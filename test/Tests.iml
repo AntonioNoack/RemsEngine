@@ -20,5 +20,6 @@
     <orderEntry type="library" name="LWJGL-331" level="project" />
     <orderEntry type="library" name="KOML" level="project" />
     <orderEntry type="library" name="PDFBox" level="project" />
+    <orderEntry type="module" module-name="PDF" />
   </component>
 </module>

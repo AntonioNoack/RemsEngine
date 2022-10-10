@@ -34,7 +34,7 @@ fun main() {
 
     Thumbs.renderToImage(
         srcFile, false, desktop.getChild("result.png"), false,
-        Renderer.colorRenderer, true, { },
+        Renderer.colorRenderer, true, { _, exc -> exc?.printStackTrace() },
         formats.size * testImage.width * magnification, testImage.height * magnification
     ) {
         GFXState.currentBuffer.clearColor(0, false)

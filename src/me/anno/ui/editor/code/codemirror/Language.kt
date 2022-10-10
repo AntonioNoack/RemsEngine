@@ -10,7 +10,6 @@ interface Language {
 
     fun getIndentation(state: State, indentUnit: Int, textAfter: CharSequence): Int
 
-    val electricInput: Regex
     val lineComment: String
     val blockCommentStart: String
     val blockCommentEnd: String

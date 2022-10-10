@@ -11,8 +11,8 @@ import kotlin.concurrent.thread
  * */
 object OS {
 
-    val data = System.getProperty("os.name")
-    var isWindows = data.contains("windows", true)
+    val data: String? = System.getProperty("os.name")
+    var isWindows = data != null && data.contains("windows", true)
     var isLinux = !isWindows // ^^
     var isMacOS = false // ^^
     var isIPhoneOS = false // ^^
@@ -22,7 +22,7 @@ object OS {
     // and idk about performance
     var isAndroid = false
 
-    var isWeb = false
+    var isWeb = data == "web"
 
     val supportsNetworkUDP get() = !isWeb
 

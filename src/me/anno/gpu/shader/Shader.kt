@@ -96,7 +96,6 @@ open class Shader(
         }
         builder.append(
             vertexShader
-                .replaceVaryingNames(true, varyings)
                 .replace("#extension ", "// #extension ")
         )
         vertexSource = builder.toString()
@@ -140,11 +139,7 @@ open class Shader(
         ) "out vec4 glFragColor;\n" + fragmentShader.replace("gl_FragColor", "glFragColor")
         else fragmentShader
 
-        builder.append(
-            base
-                .replaceVaryingNames(false, varyings)
-                .replace("#extension ", "// #extension ")
-        )
+        builder.append(base.replace("#extension ", "// #extension "))
 
         fragmentSource = builder.toString()
         builder.clear()
