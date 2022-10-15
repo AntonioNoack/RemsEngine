@@ -90,12 +90,12 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
                 "void main(){\n" +
                 // define ray origin and ray direction from projection matrix
                 "   vec3 dir = vec3((uv*2.0-1.0)*camScale, -1.0);\n" +
-                "   dir = normalize(camMatrix * dir);\n" +
+                "   dir = me.anno.tests.normalize(camMatrix * dir);\n" +
                 "   vec2 ray = raycast(camPosition, dir);\n" +
                 "   if(ray.y < 0.0) discard;\n" +
                 "   vec3 hit = camPosition + ray.x * dir;\n" +
                 "   vec3 normal = calcNormal(hit, sdfNormalEpsilon);\n" +
-                // "   gl_FragColor = vec4(vec3(dot(normal,sunDir)*.4+.8), 1.0);\n" +
+                // "   gl_FragColor = vec4(vec3(me.anno.tests.dot(normal,sunDir)*.4+.8), 1.0);\n" +
                 "   gl_FragColor = vec4(normal*.5+.5, 1.0);\n" +
                 "}")
 }

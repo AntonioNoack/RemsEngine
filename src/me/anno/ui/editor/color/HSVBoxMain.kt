@@ -1,18 +1,18 @@
 package me.anno.ui.editor.color
 
-import me.anno.utils.Color.black
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.TextureLib
 import me.anno.input.MouseButton
+import me.anno.maths.Maths.length
 import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGBA
-import me.anno.maths.Maths.length
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.*
@@ -89,8 +89,9 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
             ColorVisualisation.WHEEL -> {
                 val s2 = rx * 2 - 1
                 val l2 = ry * 2 - 1
-                val dst = s2 * s2 + l2 * l2
-                chooser.isDownInRing = dst >= 0.62
+                val distToCircle = 0.787f - sqrt(s2 * s2 + l2 * l2)
+                val distToBox = max(abs(s2), abs(l2)) - 0.55f
+                chooser.isDownInRing = distToCircle < distToBox
             }
             ColorVisualisation.CIRCLE -> {
                 chooser.isDownInRing = (rx * (1f + circleBarRatio) <= 1f)

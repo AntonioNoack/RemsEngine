@@ -22,12 +22,15 @@ import me.anno.maths.Maths
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
+import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.OS
 import me.anno.utils.types.Matrices.isIdentity
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL45C
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 object DrawTexts {
@@ -170,7 +173,7 @@ object DrawTexts {
         x: Int, y: Int,
         font: Font,
         text: CharSequence,
-        color: Int,
+        textColor: Int,
         backgroundColor: Int,
         widthLimit: Int,
         heightLimit: Int,
@@ -189,7 +192,7 @@ object DrawTexts {
                 val s = split[index]
                 val size = drawTextCharByChar(
                     x, y + index * lineOffset, font, s,
-                    color, backgroundColor,
+                    textColor, backgroundColor,
                     widthLimit, heightLimit, alignX, alignY, equalSpaced
                 )
                 sizeX = Maths.max(GFXx2D.getSizeX(size), sizeX)
@@ -202,7 +205,7 @@ object DrawTexts {
             return GFXx2D.getSize(0, h)
 
         GFX.check()
-        val cuc = canUseComputeShader()
+        val cuc = canUseComputeShader() && min(textColor.a(), backgroundColor.a()) < 255
         val shader = if (cuc) ShaderLib.subpixelCorrectTextShader2
         else ShaderLib.subpixelCorrectTextShader.value
         shader.use()
@@ -211,7 +214,7 @@ object DrawTexts {
             shader.bindTexture(1, GFXState.currentBuffer.getTexture0() as Texture2D, ComputeTextureMode.READ_WRITE)
         }
 
-        shader.v4f("textColor", color)
+        shader.v4f("textColor", textColor)
         shader.v4f("backgroundColor", backgroundColor)
         GFX.check()
 
@@ -343,7 +346,7 @@ object DrawTexts {
 
     fun drawText(
         x: Int, y: Int,
-        color: Int, backgroundColor: Int,
+        textColor: Int, backgroundColor: Int,
         texture: ITexture2D,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN
@@ -359,12 +362,12 @@ object DrawTexts {
             val y2 = y + getOffset(h, alignY)
             val windowWidth = GFX.viewportWidth.toFloat()
             val windowHeight = GFX.viewportHeight.toFloat()
-            val cuc = canUseComputeShader()
+            val cuc = canUseComputeShader() && min(textColor.a(), backgroundColor.a()) < 255
             if (cuc) {
                 val shader = ShaderLib.subpixelCorrectTextShader2
                 shader.use()
                 shader.bindTexture(1, GFXState.currentBuffer.getTexture0() as Texture2D, ComputeTextureMode.READ_WRITE)
-                shader.v4f("textColor", color)
+                shader.v4f("textColor", textColor)
                 shader.v4f("backgroundColor", backgroundColor)
                 posSizeDraw(shader, x2, y2, w, h, 1)
                 GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
@@ -373,7 +376,7 @@ object DrawTexts {
                 shader.use()
                 posSize(shader, x2, y2, w, h)
                 shader.v2f("windowSize", windowWidth, windowHeight)
-                shader.v4f("textColor", color)
+                shader.v4f("textColor", textColor)
                 shader.v4f("backgroundColor", backgroundColor)
                 GFX.flat01.draw(shader)
             }

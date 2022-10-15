@@ -20,7 +20,7 @@ object Packer {
 
     // todo remove unnecessary classes, if possible
     // todo e.g. we only need a few image formats,
-    // todo we don't need pdf etc. (except we export an editor), ...
+    // we don't need pdf etc. (except we export an editor), ...
 
     //////////////////////////////////////////
     //           features by size           //

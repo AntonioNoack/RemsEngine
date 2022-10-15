@@ -1,9 +1,9 @@
 package me.anno.ui.input
 
 import me.anno.config.DefaultConfig.style
-import me.anno.utils.Color.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -18,6 +18,7 @@ import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.Window
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
@@ -30,6 +31,7 @@ import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.input.components.ColorPicker
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
 import me.anno.utils.Color.toARGB
 import org.joml.Vector4f
 import kotlin.math.max
@@ -265,7 +267,14 @@ open class ColorInput(
         // test the UI
         @JvmStatic
         fun main(args: Array<String>) {
-            testUI { ColorInput(style) }
+            GFXBase.disableRenderDoc()
+            testUI {
+                ColorInput(style)
+                    .apply {
+                        alignmentX = AxisAlignment.CENTER
+                        alignmentY = AxisAlignment.CENTER
+                    }
+            }
         }
     }
 

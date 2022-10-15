@@ -1,7 +1,7 @@
 package me.anno.input
 
 @Suppress("unused")
-enum class MouseButton(val code: Int) {
+enum class MouseButton(val id: Int) {
     LEFT(0),
     RIGHT(1),
     MIDDLE(2),
@@ -13,13 +13,13 @@ enum class MouseButton(val code: Int) {
     M8(8),
     UNKNOWN(-1);
 
-    val isLeft = code == 0
-    val isRight = code == 1
-    val isMiddle = code == 2
+    val isLeft = id == 0
+    val isRight = id == 1
+    val isMiddle = id == 2
 
     // 4 & 3 or 5 & 4???...
-    val isForward = code == 5
-    val isBackward = code == 4
+    val isForward = id == 5
+    val isBackward = id == 4
 
     companion object {
 

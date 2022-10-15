@@ -1,15 +1,10 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.texture.Clamping
 import me.anno.maths.Maths.clamp
-import me.anno.mesh.Shapes
-import me.anno.utils.OS.pictures
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -50,22 +45,23 @@ open class BillboardTransformer : Component() {
         size = clamp(size, minSize, maxSize)
 
         val scale = size * distance
-        val rotation = if (tiltX && tiltY && tiltZ) { // easy path: objects look towards +z, camera towards -z, so just copy the rotation
-            RenderState.cameraRotation
-        } else {
+        val rotation =
+            if (tiltX && tiltY && tiltZ) { // easy path: objects look towards +z, camera towards -z, so just copy the rotation
+                RenderState.cameraRotation
+            } else {
 
-            if (!tiltX) dir.x = 0.0
-            if (!tiltY) dir.y = 0.0
-            if (!tiltZ) dir.z = 0.0
+                if (!tiltX) dir.x = 0.0
+                if (!tiltY) dir.y = 0.0
+                if (!tiltZ) dir.z = 0.0
 
-            val length = dir.length()
+                val length = dir.length()
 
-            if (length > 0.0) {
-                dir.div(length)
-                JomlPools.quat4d.create().identity()
-                    .lookAlong(dir, RenderState.cameraDirectionUp).conjugate()
-            } else null
-        }
+                if (length > 0.0) {
+                    dir.div(length)
+                    JomlPools.quat4d.create().identity()
+                        .lookAlong(dir, RenderState.cameraDirectionUp).conjugate()
+                } else null
+            }
 
         if (rotation != null) {
             if (useGlobalTransform) {
@@ -101,22 +97,6 @@ open class BillboardTransformer : Component() {
         clone.tiltX = tiltX
         clone.tiltY = tiltY
         clone.tiltZ = tiltZ
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val material = Material().apply {
-                diffuseMap = pictures.getChild("fav128.ico")
-                clamping = Clamping.CLAMP
-            }
-            testSceneWithUI(Entity().apply {
-                add(MeshComponent(Shapes.flat11.front.ref).apply {
-                    materials = listOf(material.ref)
-                })
-                add(BillboardTransformer())
-            })
-        }
     }
 
 }

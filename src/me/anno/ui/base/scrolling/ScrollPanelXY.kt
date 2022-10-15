@@ -259,27 +259,24 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             lx0: Int, ly0: Int, lx1: Int, ly1: Int,
             sbHeight: Int,
             x0: Int, y0: Int, x1: Int = x0 + 1, y1: Int = y0 + 1
-        ): Boolean {
-            val sbWidth = lx1 - lx0
-            // val sbHeight = touchScrollbarHeight + 2 * scrollbarPadding
-            val centerX = lx0 + lx1
-            val centerY = ly1 * 2 - sbHeight
-            return abs((x0 + x1) - centerX) < sbWidth && // hasScrollbarY &&
-                    abs((y0 + y1) - centerY) < sbHeight
-        }
+        ) = overlaps(
+            lx0, ly1 - sbHeight, lx1, ly1,
+            x0, y0, x1, y1
+        )
 
         @Suppress("unused_parameter")
         fun drawsOverY(
             lx0: Int, ly0: Int, lx1: Int, ly1: Int,
             sbWidth: Int,
             x0: Int, y0: Int, x1: Int = x0 + 1, y1: Int = y0 + 1
+        ) = overlaps(lx1 - sbWidth, ly0, lx1, ly1, x0, y0, x1, y1)
+
+        fun overlaps(
+            x0: Int, y0: Int, x1: Int, y1: Int,
+            x2: Int, y2: Int, x3: Int, y3: Int
         ): Boolean {
-            // val sbWidth = touchScrollbarWidth + 2 * scrollbarPadding
-            val sbHeight = ly1 - ly0
-            val centerX = lx1 * 2 - sbWidth
-            val centerY = ly0 + ly1
-            return abs((x0 + x1) - centerX) < sbWidth && // hasScrollbarY &&
-                    abs((y0 + y1) - centerY) < sbHeight
+            return abs((x0 + x1) - (x2 + x3)) < (x1 - x0) + (x3 - x2) &&
+                    abs((y0 + y1) - (y2 + y3)) < (y1 - y0) + (y3 - y2)
         }
 
     }

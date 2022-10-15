@@ -1,3 +1,5 @@
+package me.anno.tests
+
 import me.anno.io.files.FileReference.Companion.getReference
 import org.joml.Quaternionf
 import org.joml.Vector2f
@@ -52,13 +54,13 @@ fun main() {
     for (i in 0 until 100000) {
         // gen normal
         val v = Vector3f(Vector3d(r.nextGaussian(), r.nextGaussian(), r.nextGaussian()))
-        v.normalize()
+        v.me.anno.tests.normalize()
         // gen quat
-        val qy = normalToQuaternion(v).conjugate()
+        val qy = me.anno.tests.normalToQuaternion(v).conjugate()
         // test alignment
         if (qy.transform(v, Vector3f()).distance(0f, 1f, 0f) > epsilon)
             throw IllegalStateException("[$i] $qy x $v = ${qy.transform(v, Vector3f())} != (0,1,0)")
-        val qz = normalToQuaternionZ(v).conjugate()
+        val qz = me.anno.tests.normalToQuaternionZ(v).conjugate()
         // test alignment
         if (qz.transform(v, Vector3f()).distance(0f, 0f, 1f) > epsilon)
             throw IllegalStateException("[$i] $qz x $v = ${qz.transform(v, Vector3f())} != (0,0,1)")

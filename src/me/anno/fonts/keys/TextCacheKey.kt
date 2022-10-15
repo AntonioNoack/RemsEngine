@@ -1,6 +1,8 @@
 package me.anno.fonts.keys
 
 import me.anno.fonts.FontManager.getAvgFontSize
+import me.anno.gpu.GFX
+import me.anno.gpu.drawing.GFXx2D
 import me.anno.ui.base.Font
 import me.anno.utils.types.Booleans.toInt
 
@@ -8,20 +10,19 @@ data class TextCacheKey(
     val text: CharSequence,
     val fontName: String,
     val properties: Int,
-    val widthLimit: Int,
-    val heightLimit: Int
+    val limits: Int
 ) {
 
-    @Suppress("unused")
-    constructor(
-        text: String, fontName: String, fontSizeIndex: Int, isBold: Boolean, isItalic: Boolean,
-        widthLimit: Int, heightLimit: Int
-    ) : this(text, fontName, getProperties(fontSizeIndex, isBold, isItalic), widthLimit, heightLimit)
+    constructor(text: CharSequence, fontName: String, properties: Int, widthLimit: Int, heightLimit: Int) :
+            this(text, fontName, properties, GFXx2D.getSize(widthLimit, heightLimit)) {
+        if (widthLimit < 0 || heightLimit < 0)
+            throw IllegalStateException()
+    }
 
     constructor(text: String, font: Font, widthLimit: Int, heightLimit: Int) :
             this(text, font.name, getProperties(font.sizeIndex, font), widthLimit, heightLimit)
 
-    constructor(text: String, font: Font) : this(text, font, -1, -1)
+    constructor(text: String, font: Font) : this(text, font, GFX.maxTextureSize, GFX.maxTextureSize)
 
     fun fontSizeIndex() = properties.shr(3)
     fun isItalic() = properties.and(4) != 0
@@ -42,9 +43,12 @@ data class TextCacheKey(
         var result = text.hashCode()
         result = 31 * result + fontName.hashCode()
         result = 31 * result + properties
-        result = 31 * result + widthLimit
+        result = 31 * result + limits
         return result
     }
+
+    val widthLimit get() = GFXx2D.getSizeX(limits)
+    val heightLimit get() = GFXx2D.getSizeY(limits)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -57,7 +61,7 @@ data class TextCacheKey(
         if (text != other.text) return false
         if (fontName != other.fontName) return false
         if (properties != other.properties) return false
-        if (widthLimit != other.widthLimit) return false
+        if (limits != other.limits) return false
 
         return true
     }

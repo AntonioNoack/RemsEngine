@@ -345,37 +345,8 @@ class FullNoise(val seed: Long) {
     }
 
     companion object {
-
         private const val invMax = 1f / 0xffff
         private const val invMaxD = 1.0 / 0xffff
-
-        // benchmark vs simplex noise
-        // simplex noise: less computation, more unpredictable branches
-        @JvmStatic
-        fun main(args: Array<String>) {
-            noiseQualityTest()
-            // test1D() // 17 ns vs 31 ns (1 ns less for OpenSimplexNoise because of less prediction errors, I'd guess)
-            // test2D() // 26 ns vs 32 ns
-            // test3D() // 23 ns vs 92 ns
-            // test4D() // 48 ns vs 3470 ns (no joke, OpenSimplexNoise in 4d is awful)
-        }
-
-        private fun noiseQualityTest() {
-            val noise = FullNoise(1234L)
-            ImageWriter.writeImageFloat(512, 512, "n1d.png", 512, false) { x, y, _ ->
-                noise[x + y * 512]
-            }
-            ImageWriter.writeImageFloat(512, 512, "n2d.png", 512, false) { x, y, _ ->
-                noise[x, y]
-            }
-            ImageWriter.writeImageFloat(512, 512, "n3d.png", 512, false) { x, y, _ ->
-                noise[x, x - y, y]
-            }
-            ImageWriter.writeImageFloat(512, 512, "n4d.png", 512, false) { x, y, _ ->
-                noise[x + y, x - y, x, y]
-            }
-        }
-
     }
 
 }

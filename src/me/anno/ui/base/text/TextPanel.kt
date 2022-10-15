@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.iconGray
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawTextCharByChar
@@ -61,7 +62,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             }
         }
 
-    var font = style.getFont("text")
+    open var font = style.getFont("text")
         set(value) {
             if (field != value) {
                 field = value
@@ -106,7 +107,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         }
 
     @NotSerializedProperty
-    var textCacheKey: TextCacheKey = TextCacheKey(text, font, 0, 0)
+    var textCacheKey: TextCacheKey = TextCacheKey(text, font)
 
     // only really, if it might...
     override val canDrawOverBorders: Boolean = true
@@ -221,8 +222,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     fun calculateSize(w: Int, text: String) {
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
-        val widthLimit = if (breaksIntoMultiline) w - padding.width else -1
-        val heightLimit = -1
+        val widthLimit = if (breaksIntoMultiline) w - padding.width else GFX.maxTextureSize
+        val heightLimit = GFX.maxTextureSize
         if (widthLimit != textCacheKey.widthLimit ||
             heightLimit != textCacheKey.heightLimit ||
             text != textCacheKey.text ||

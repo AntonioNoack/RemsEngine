@@ -45,7 +45,7 @@ fun main() {
                 li = i
             }
         }
-        // dir1.set(rand.nextGaussian(), rand.nextGaussian(), rand.nextGaussian()).normalize()
+        // dir1.set(rand.nextGaussian(), rand.nextGaussian(), rand.nextGaussian()).me.anno.tests.normalize()
         if (testCorrectness) {
             dir1.set(
                 rand.nextFloat() * 2f - 1f,

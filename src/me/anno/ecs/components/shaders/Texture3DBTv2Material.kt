@@ -41,6 +41,7 @@ class Texture3DBTv2Material : Material() {
         // max amount of blocks that can be traversed
         val maxSteps = max(1, size.x + size.y + size.z)
         shader.v1i("maxSteps", maxSteps)
+        me.anno.utils.LOGGER.warn(shader.fragmentSource)
     }
 
     override fun clone(): Texture3DBTv2Material {

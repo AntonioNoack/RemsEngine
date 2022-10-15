@@ -1,6 +1,7 @@
 package me.anno.io.json
 
 import me.anno.utils.types.Strings
+import org.joml.*
 import java.io.OutputStream
 
 /**
@@ -82,6 +83,47 @@ class JsonWriter(val output: OutputStream) {
 
     fun finish() {
         output.close()
+    }
+
+    fun write(v: Vector2f) {
+        open(true)
+        write(v.x)
+        write(v.y)
+        close(true)
+    }
+
+    fun write(v: Vector3f) {
+        open(true)
+        write(v.x)
+        write(v.y)
+        write(v.z)
+        close(true)
+    }
+
+    fun write(v: Vector3d) {
+        open(true)
+        write(v.x)
+        write(v.y)
+        write(v.z)
+        close(true)
+    }
+
+    fun write(v: Vector4f) {
+        open(true)
+        write(v.x)
+        write(v.y)
+        write(v.z)
+        write(v.w)
+        close(true)
+    }
+
+    fun write(q: Quaterniond) {
+        open(true)
+        write(q.x)
+        write(q.y)
+        write(q.z)
+        write(q.w)
+        close(true)
     }
 
 }

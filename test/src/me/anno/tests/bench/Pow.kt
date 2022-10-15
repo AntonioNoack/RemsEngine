@@ -49,7 +49,7 @@ fun main() {
 
                 // to reduce the overhead of other stuff
                 val repeats = 100
-                val init = "float x1 = dot(uv, vec2(1.0)),x2,x4,x8,x16,x32,x64;\n"
+                val init = "float x1 = me.anno.tests.dot(uv, vec2(1.0)),x2,x4,x8,x16,x32,x64;\n"
                 val end = "gl_FragColor = vec4(x1,x1,x1,x1);\n"
                 val manualCode = StringBuilder()
                 for (bit in 1 until 32) {

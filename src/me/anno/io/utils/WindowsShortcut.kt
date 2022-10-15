@@ -1,6 +1,7 @@
 package me.anno.io.utils
 
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths.hasFlag
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.*
 import java.nio.charset.StandardCharsets
@@ -90,80 +91,74 @@ class WindowsShortcut {
     /**
      * Gobbles up link data by parsing it and storing info in member fields
      *
-     * @param link all the bytes from the .lnk file
+     * @param data all the bytes from the .lnk file
      */
-    private fun parseLink(link: ByteArray) {
+    private fun parseLink(data: ByteArray) {
         try {
-            if (!isMagicPresent(link)) throw IOException("Invalid shortcut; magic is missing")
+            if (!isMagicPresent(data)) throw IOException("Invalid shortcut; magic is missing")
 
             // get the flags byte
-            val flags = link[0x14].toInt()
+            val flags = data[0x14].toInt()
 
             // get the file attributes byte
-            val fileAttributes = link[0x18].toInt()
-            isDirectory = fileAttributes and 0x10 > 0
+            val fileAttributes = data[0x18].toInt()
+            isDirectory = fileAttributes.hasFlag(0x10)
 
             // if the shell settings are present, skip them
             var shellLen = 0
-            if (flags and 1 > 0) {
+            if (flags.hasFlag(1)) {
                 // the plus 2 accounts for the length marker itself
-                shellLen = readLE16(link, 0x4c) + 2
+                shellLen = readLE16(data, 0x4c) + 2
             }
 
             // get to the file settings
             val fileStart = 0x4c + shellLen
-            val fileLocationInfoFlagOffsetOffset = 0x08
-            val fileLocationInfoFlag = link[fileStart + fileLocationInfoFlagOffsetOffset].toInt()
-            isLocal = fileLocationInfoFlag and 1 == 1
             // get the local volume and local system values
-            val finalNameOffset = readLE32(link, fileStart + 0x18) + fileStart
-            val finalName = getNullDelimitedString(link, finalNameOffset)
+            val fileLocationSize = readLE32(data, fileStart)
+            val fileLocationInfoFlag = data[fileStart + 0x08].toInt()
+            val basenameOffset = readLE32(data, fileStart + 0x10) + fileStart
+            val networkVolumeTableOffset = data[fileStart + 0x14] + fileStart
+            val finalNameOffset = readLE32(data, fileStart + 0x18) + fileStart
+            val finalName = getNullDelimitedString(data, finalNameOffset)
+            isLocal = fileLocationInfoFlag.hasFlag(1)
             absolutePath = if (isLocal) {
-                val basenameOffset = readLE32(link, fileStart + 0x10) + fileStart
-                val basename = getNullDelimitedString(link, basenameOffset)
+                val basename = getNullDelimitedString(data, basenameOffset)
                 basename + finalName
             } else {
-                val networkVolumeTableOffset = link[fileStart + 0x14] + fileStart
-                val shareNameOffsetOffset = 0x08
-                val shareNameOffset = link[networkVolumeTableOffset + shareNameOffsetOffset] + networkVolumeTableOffset
-                val shareName = getNullDelimitedString(link, shareNameOffset)
+                val shareNameOffset = data[networkVolumeTableOffset + 0x08] + networkVolumeTableOffset
+                val shareName = getNullDelimitedString(data, shareNameOffset)
                 "$shareName/$finalName"
             }
 
             // parse additional strings coming after file location
-            val fileLocationSize = readLE32(link, fileStart)
             var nextStringStart = fileStart + fileLocationSize
-            val hasDescription = 4
-            val hasRelativePath = 8
-            val hasWorkingDirectory = 16
-            val hasCommandLineArguments = 32
 
             // if description is present, parse it
-            if (flags and hasDescription > 0) {
-                val stringLen = readLE16(link, nextStringStart) * 2 // times 2 because UTF-16
-                description = readUTF16LE(link, nextStringStart + 2, stringLen)
+            if (flags.hasFlag(4)) {
+                val stringLen = readLE16(data, nextStringStart) shl 1 // times 2 because UTF-16
+                description = readUTF16LE(data, nextStringStart + 2, stringLen)
                 nextStringStart += stringLen + 2
             }
 
             // if relative path is present, parse it
-            if (flags and hasRelativePath > 0) {
-                val stringLen = readLE16(link, nextStringStart) * 2 // times 2 because UTF-16
-                relativePath = readUTF16LE(link, nextStringStart + 2, stringLen)
+            if (flags.hasFlag(8)) {
+                val stringLen = readLE16(data, nextStringStart) shl 1 // times 2 because UTF-16
+                relativePath = readUTF16LE(data, nextStringStart + 2, stringLen)
                 nextStringStart += stringLen + 2
             }
 
             // if working directory is present, parse it
-            if (flags and hasWorkingDirectory > 0) {
-                val stringLen = readLE16(link, nextStringStart) * 2 // times 2 because UTF-16
-                workingDirectory = readUTF16LE(link, nextStringStart + 2, stringLen)
+            if (flags.hasFlag(16)) {
+                val stringLen = readLE16(data, nextStringStart) shl 1 // times 2 because UTF-16
+                workingDirectory = readUTF16LE(data, nextStringStart + 2, stringLen)
                 nextStringStart += stringLen + 2
             }
 
             // if command line arguments are present, parse them
-            if (flags and hasCommandLineArguments > 0) {
-                val stringLen = readLE16(link, nextStringStart) * 2 // times 2 because UTF-16
-                commandLineArguments = readUTF16LE(link, nextStringStart + 2, stringLen)
-                // next_string_start = next_string_start + string_len + 2;
+            if (flags.hasFlag(32)) {
+                val stringLen = readLE16(data, nextStringStart) shl 1 // times 2 because UTF-16
+                commandLineArguments = readUTF16LE(data, nextStringStart + 2, stringLen)
+                // next_string_start = next_string_start + string_len + 2
             }
         } catch (e: ArrayIndexOutOfBoundsException) {
             throw ParseException("Could not be parsed, probably not a valid WindowsShortcut", 0)
@@ -180,7 +175,7 @@ class WindowsShortcut {
 
         /**
          * Provides a quick test to see if this could be a valid link
-         * If you try to instantiate a new WindowShortcut and the link is not valid,
+         * If you try to instantiate a new WindowShortcut, and the link is not valid,
          * Exceptions may be thrown and Exceptions are extremely slow to generate,
          * therefore any code needing to loop through several files should first check this.
          *
@@ -189,8 +184,7 @@ class WindowsShortcut {
          * @throws IOException if an IOException is thrown while reading from the file
          */
         fun isPotentialValidLink(file: FileReference): Boolean {
-            val minimumLength = 0x64
-            if (file.lcExtension != "lnk" || file.isDirectory || file.length() < minimumLength) return false
+            if (file.lcExtension != "lnk" || file.isDirectory || file.length() < 0x64) return false
             file.inputStreamSync().use { fis -> return isMagicPresent(fis.readNBytes2(32, false)) }
         }
 

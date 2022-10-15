@@ -384,7 +384,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val pbb = pushBetterBlending(true)
         if (world == null) {
             drawSimpleTextCharByChar(
-                x + w / 2, y + h / 2, 4, "World Not Found!", AxisAlignment.CENTER, AxisAlignment.CENTER
+                x + w / 2, y + h / 2, 4, "Scene Not Found!", AxisAlignment.CENTER, AxisAlignment.CENTER
             )
         }
 

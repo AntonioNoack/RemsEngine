@@ -61,7 +61,7 @@ fun main() {
             buckets[bucket.toInt()]++
         }
 
-        // normalize line and write it
+        // me.anno.tests.normalize line and write it
         val maxFillHeight = buckets.maxOrNull()!!
         val invFillHeight = 1f / maxFillHeight
         val analyticNorm = 1f

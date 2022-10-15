@@ -47,7 +47,7 @@ object GFXx2D {
         drawText(x, y, font, text, color, backgroundColor, widthLimit, centerX)*/
 
     fun getSizeX(value: Int) = value.and(0xffff)
-    fun getSizeY(value: Int) = value.shr(16).and(0xffff)
+    fun getSizeY(value: Int) = value.ushr(16)
     fun getSize(x: Int, y: Int) = clamp(x, 0, 0xffff) or clamp(y, 0, 0xffff).shl(16)
 
     private val circleStack = Matrix4fArrayList()

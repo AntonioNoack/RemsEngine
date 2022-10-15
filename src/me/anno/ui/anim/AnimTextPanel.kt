@@ -1,13 +1,11 @@
 package me.anno.ui.anim
 
 import me.anno.Engine
-import me.anno.config.DefaultConfig.style
-import me.anno.utils.Color.black
 import me.anno.ecs.annotations.Docs
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
+import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.ShaderLib
@@ -17,33 +15,37 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
-import me.anno.maths.Maths.mixARGB
-import me.anno.maths.Maths.smoothStep
-import me.anno.maths.noise.FullNoise
-import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.toRGB
-import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.isBlank2
-import kotlin.math.*
+import kotlin.math.round
+import kotlin.math.roundToInt
+import kotlin.streams.toList
 
 @Docs("Text panel with char-wise animation")
 open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
+
     @Docs("AnimTextPanel, which can be created with a lambda")
     class SimpleAnimTextPanel(
         text: String, style: Style,
-        val animation: (SimpleAnimTextPanel, time: Float, index: Int, cx: Float, cy: Float) -> Int,
+        val animation: SimpleAnimation,
     ) : AnimTextPanel(text, style) {
+
+        // saving allocations by declaring it a functional interface;
+        // for lambdas, floats and integers would need to be wrapped into Objects
+        fun interface SimpleAnimation {
+            fun animate(panel: SimpleAnimTextPanel, time: Float, index: Int, cx: Float, cy: Float): Int
+        }
+
         override fun animate(time: Float, index: Int, cx: Float, cy: Float): Int {
-            return animation(this, time, index, cx, cy)
+            return animation.animate(this, time, index, cx, cy)
         }
     }
 
@@ -57,6 +59,46 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
     var disableSubpixels = true
     var periodMillis = 24L * 3600L * 1000L // 1 day
 
+    override var text: String
+        get() = super.text
+        set(value) {
+            if (super.text != value) {
+                lines = value.split('\n')
+                    .map { line -> line.cpList() }
+            }
+            super.text = value
+        }
+
+    override var font: Font
+        get() = super.font
+        set(value) {
+            if (value != super.font) {
+                super.font = value
+                lines = text.split('\n')
+                    .map { line -> line.cpList() }
+            }
+        }
+
+    // cached text and lines for fewer allocations
+    private var lines = text.split('\n')
+        .map { line -> line.cpList() }
+
+    fun String.cpList() = Pair(this,
+        codePoints().toList().map {
+            TextCacheKey(String(Character.toChars(it)), font)
+        })
+
+    var textGroup: TextGroup? = null
+    fun getTextGroup(text: String): TextGroup {
+        val font2 = FontManager.getFont(font).font
+        val group1 = textGroup
+        if (group1 != null && group1.text == text && group1.font == font2)
+            return group1
+        val group2 = TextGroup(font2, text, 0.0)
+        textGroup = group2
+        return group2
+    }
+
     override fun onUpdate() {
         super.onUpdate()
         if (autoRedraw) invalidateDrawing()
@@ -67,24 +109,29 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
     }
 
     override fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
+        return if (text != this.text) {
+            drawText2(dx, dy, text.cpList())
+        } else {
+            val lines = lines
+            var sizeX = 0
+            val lineOffset = (font.size * (1f + lineSpacing)).roundToInt()
+            for (index in lines.indices) {
+                val s = lines[index]
+                val size = drawText2(dx, dy + index * lineOffset, s)
+                sizeX = max(GFXx2D.getSizeX(size), sizeX)
+            }
+            GFXx2D.getSize(sizeX, (lines.size - 1) * lineOffset + font.sizeInt)
+        }
+    }
+
+    fun drawText2(dx: Int, dy: Int, text: Pair<String, List<TextCacheKey>>): Int {
+
         val x = this.x + dx + padding.left
         val y = this.y + dy + padding.top
 
         val alignX = alignmentX
         val alignY = alignmentY
         val equalSpaced = useMonospaceCharacters
-
-        if ('\n' in text) {
-            var sizeX = 0
-            val split = text.split('\n')
-            val lineOffset = (font.size * (1f + lineSpacing)).roundToInt()
-            for (index in split.indices) {
-                val s = split[index]
-                val size = drawText(dx, dy + index * lineOffset, s, color)
-                sizeX = max(GFXx2D.getSizeX(size), sizeX)
-            }
-            return GFXx2D.getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
-        }
 
         val time = (Engine.gameTime % max(1, periodMillis * MILLIS_TO_NANOS)) / 1e9f
         val shader = (if (disableSubpixels) ShaderLib.textShader else ShaderLib.subpixelCorrectTextShader).value
@@ -103,8 +150,9 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
         if (equalSpaced) {
 
+            val text1 = text.second
             val charWidth = DrawTexts.getTextSizeX(font, "x", widthLimit, heightLimit)
-            val textWidth = charWidth * text.length
+            val textWidth = charWidth * text1.size
 
             val dxi = DrawTexts.getOffset(textWidth, alignX)
             val dyi = DrawTexts.getOffset(font.sampleHeight, alignY)
@@ -112,13 +160,12 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             var fx = x + dxi
             val y2 = y + dyi
 
-            var index = 0
-            for (codepoint in text.codePoints()) {
-                val txt = String(Character.toChars(codepoint))
-                val size = FontManager.getSize(font, txt, -1, -1)
+            for (index in text1.indices) {
+                val key = text1[index]
+                val size = FontManager.getSize(key)
                 h = GFXx2D.getSizeY(size)
-                if (!txt.isBlank2()) {
-                    val texture = FontManager.getTexture(font, txt, -1, -1)
+                if (!key.text.isBlank2()) {
+                    val texture = FontManager.getTexture(key)
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                         texture.bindTrulyNearest(0)
                         val x2 = fx + (charWidth - texture.w) / 2
@@ -134,7 +181,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                     }
                 }
                 fx += charWidth
-                index++
             }
 
             transform.set(backup)
@@ -146,8 +192,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
         } else {
 
-            val font2 = FontManager.getFont(font).font
-            val group = TextGroup(font2, text, 0.0)
+            val group = getTextGroup(text.first)
 
             val textWidth = group.offsets.last().toFloat()
 
@@ -156,18 +201,18 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
             val y2 = (y + dyi).toFloat()
 
-            var index = 0
-            for (codepoint in text.codePoints()) {
-                val txt = String(Character.toChars(codepoint))
-                val size = FontManager.getSize(font, txt, -1, -1)
+            val text1 = text.second
+            for (index in text1.indices) {
+                val txt = text1[index]
+                val size = FontManager.getSize(txt)
                 val o0 = group.offsets[index].toFloat()
                 val o1 = group.offsets[index + 1].toFloat()
                 val fx = x + dxi + o0
                 val w = o1 - o0
                 h = GFXx2D.getSizeY(size)
-                if (!txt.isBlank2()) {
+                if (!txt.text.isBlank2()) {
                     // todo in TextGroup, ti is broken ... why??
-                    val texture = FontManager.getTexture(font, txt, -1, -1)
+                    val texture = FontManager.getTexture(txt)
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
                         val x2 = fx + (w - texture.w) / 2
@@ -182,7 +227,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                         }
                     }
                 }
-                index++
             }
 
             totalWidth = textWidth.roundToInt()
@@ -195,7 +239,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         GFX.loadTexturesSync.pop()
 
         return GFXx2D.getSize(totalWidth, h)
-
     }
 
     override fun save(writer: BaseWriter) {
@@ -285,6 +328,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             val m = JomlPools.mat4f.borrow()
             val px = px(cx)
             val py = py(cy)
+            m.identity()
             m.perspective(PIf / 2f, 1f, 0f, 2f)
             transform.translate(+px, +py, 0f)
             transform.scale(1f, a, 1f)
@@ -296,112 +340,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             transform.translate(-px, -py, 0f)
         }
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // inspired by https://www.youtube.com/watch?v=3QXGM84ZfSw
-            GFXBase.disableRenderDoc()
-            testUI {
-                val list = PanelListY(style)
-                val green = 0x8fbc8f or black
-                val blue = 0x7777ff or black
-                val fontSize = 50f
-                val font = AnimTextPanel("", style).font
-                    .withSize(fontSize)
-                    .withBold(true)
-                list.add(SimpleAnimTextPanel("Rainbow Text", style) { p, time, index, cx, cy ->
-                    p.font = font
-                    val s = time * 5f + index / 3f
-                    translate(0f, sin(s) * 5f)
-                    rotate(sin(s) * 0.1f, cx, cy)
-                    hsluv(time * 2f - index / 2f)
-                })
-                // test of a panel with a lua script :3
-                list.add(LuaAnimTextPanel(
-                    "Lua Rainbow Text", "" +
-                            "s = time*5+index/3\n" +
-                            "translate(0,math.sin(s)*5)\n" +
-                            "rotate(math.sin(s)*0.1)\n" +
-                            "return hsluv(time*2-index/2)", style
-                ).apply { this.font = font })
-                list.add(SimpleAnimTextPanel("Growing Text", style) { p, time, index, _, _ ->
-                    p.font = font
-                    val growTime = 0.4f
-                    val dissolveTime = 1.0f
-                    val phase = time - index * 0.03f
-                    val s = smoothStep((phase) / growTime)
-                    translate(0f, (1f - s) * p.font.size / 2f)
-                    scale(1f, s)
-                    green.withAlpha(min(1f, 20f * (dissolveTime - phase)))
-                }.apply { periodMillis = 1500 }) // total time
-                list.add(SimpleAnimTextPanel("Special Department", style) { p, time, index, _, _ ->
-                    p.font = font
-                    val phase = time * 4f - index * 0.15f
-                    val s = clamp(sin(phase) * 2f + 1f, -1f, +1f)
-                    scale(1f, s)
-                    if (s < 0f) hsluv(0f, 1f - s) else blue
-                })
-                val burnPalette = intArrayOf(
-                    0, 0x66 shl 24, 0xaa shl 24,
-                    black, black, black, black, black,
-                    0x533637 or black,
-                    0xdd4848 or black,
-                    0xf6b24c or black,
-                    0xfffab3 or black, 0
-                )
-                list.add(SimpleAnimTextPanel("Burning", style) { p, time, index, cx, cy ->
-                    p.font = font
-                    val phase = time * 10f - index * 0.75f
-                    val index1 = clamp(burnPalette.lastIndex - phase, 0f, burnPalette.size - 0.001f)
-                    val scale = max(1f, 2f - phase / 2f)
-                    scale(sqrt(scale), scale)
-                    rotate(1f - scale, cx, cy)
-                    // smooth index
-                    val index1i = clamp(index1.toInt(), 0, burnPalette.size - 2)
-                    mixARGB(burnPalette[index1i], burnPalette[index1i + 1], clamp(index1 - index1i))
-                }.apply { periodMillis = 1200 })
-                val noise = FullNoise(1234L)
-                val sketchPalette = intArrayOf(
-                    0xa6dee9 or black,
-                    0xc5c5c8 or black,
-                    0xbecbd2 or black,
-                    0x7c99a9 or black
-                )
-                list.add(SimpleAnimTextPanel("Sketchy", style) { p, time, index, cx, cy ->
-                    p.font = font
-                    val seed = limitFps(time, 3f) * 3f
-                    val pos = index * 5f + seed
-                    val y = seed * 0.3f
-                    val scale = 5f
-                    translate(
-                        (noise[pos, y] - 0.5f) * scale,
-                        (noise[pos, y + 0.1f] - 0.5f) * scale
-                    )
-                    rotate(noise[pos, y + 3f] - 0.5f, cx, cy)
-                    sketchPalette[(noise[pos] * 1e5).toInt() % sketchPalette.size] // choose a random color
-                })
-                list.add(SimpleAnimTextPanel("Sketchy²", style) { p, time, index, cx, cy ->
-                    p.font = font
-                    val seed = limitFps(time, 3f) * 3f
-                    val pos = index * 5f + seed
-                    val y = seed * 0.3f
-                    val scale = 5f
-                    translate(
-                        (noise[pos, y] - 0.5f) * scale,
-                        (noise[pos, y + 0.1f] - 0.5f) * scale
-                    )
-                    rotate(noise[pos, y + 3f] - 0.5f, cx, cy)
-                    val scale2 = 1.5f
-                    // todo why is every 2nd letter missing???
-                    perspective(
-                        cx, cy,
-                        (noise[pos, y + 7f] - 0.5f) * scale2,
-                        (noise[pos, y + 9.3f] - 0.5f) * scale2
-                    )
-                    sketchPalette[(noise[pos] * 1e5).toInt() % sketchPalette.size] // choose a random color
-                })
-                list
-            }
-        }
     }
 
 }

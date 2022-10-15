@@ -1,9 +1,6 @@
 package me.anno.ui.editor.code
 
 import me.anno.Engine
-import me.anno.config.DefaultConfig
-import me.anno.config.DefaultConfig.style
-import me.anno.utils.Color.black
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped
@@ -13,21 +10,18 @@ import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.language.spellcheck.Suggestion
-import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
-import me.anno.studio.StudioBase
 import me.anno.studio.history.StringHistory
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
-import me.anno.ui.debug.TestStudio.Companion.testUI2
 import me.anno.ui.editor.code.codemirror.*
-import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.CursorPosition
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
 import me.anno.utils.structures.arrays.IntSequence
 import me.anno.utils.structures.arrays.LineSequence
 import me.anno.utils.structures.lists.Lists.binarySearch
@@ -726,40 +720,6 @@ open class CodeEditor(style: Style) : Panel(style) {
             ActionManager.register("CodeEditor.y.t.cs", "Redo")
         }
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            testUI2 {
-
-                DefaultConfig["debug.ui.enableVsync"] = true
-
-                StudioBase.instance?.language = me.anno.language.Language.German
-
-                registerActions()
-
-                // doesn't work somehow :/
-                ActionManager.register("EnumInput.arrowUp.t", "Up")
-                ActionManager.register("EnumInput.arrowDown.t", "Down")
-
-                val editor = CodeEditor(style)
-                editor.setText(
-                    "" +
-                            "if cnt == 1 and state == 0 then\n" +
-                            "  print('this is cool')\n" +
-                            "end\n" +
-                            " 4\n 5\n 6\n 7\n 8\n 9\n10\n"
-                )
-
-                listOf(
-                    EnumInput(
-                        "Theme", "", editor.theme.name,
-                        LanguageThemeLib.listOfAll.map { NameDesc(it.name) }, style
-                    ).setChangeListener { _, index, _ ->
-                        editor.theme = LanguageThemeLib.listOfAll[index]
-                    },
-                    editor,
-                )
-            }
-        }
     }
 
 }

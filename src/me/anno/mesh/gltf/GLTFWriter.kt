@@ -1,6 +1,5 @@
 package me.anno.mesh.gltf
 
-import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.mesh.Material
@@ -8,8 +7,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.ECSRegistry
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.Streams.writeLE32
@@ -21,63 +18,11 @@ import me.anno.io.zip.InnerFile
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.black3
 import me.anno.utils.Color.white4
-import me.anno.utils.OS.desktop
-import me.anno.utils.OS.documents
-import me.anno.utils.OS.downloads
 import org.joml.*
 import org.lwjgl.opengl.GL11.*
 import java.io.ByteArrayOutputStream
 
 object GLTFWriter {
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        ECSRegistry.init()
-        if (false) {
-            val main = downloads.getChild("gradientdomain-scenes.zip/gradientdomain-scenes")
-            val name = "sponza"
-            val sceneMain = main.getChild("$name/$name-gpt.xml/Scene.json")
-            write(PrefabCache[sceneMain]!!, desktop.getChild("$name.glb"))
-        } else {
-            // test for non-packed references
-            write(PrefabCache[documents.getChild("cube bricks.fbx")]!!, desktop.getChild("bricks.glb"))
-        }
-        Engine.requestShutdown()
-    }
-
-    fun JsonWriter.write(v: Vector4f) {
-        open(true)
-        write(v.x)
-        write(v.y)
-        write(v.z)
-        write(v.w)
-        close(true)
-    }
-
-    fun JsonWriter.write(v: Vector3f) {
-        open(true)
-        write(v.x)
-        write(v.y)
-        write(v.z)
-        close(true)
-    }
-
-    fun JsonWriter.write(v: Vector3d) {
-        open(true)
-        write(v.x)
-        write(v.y)
-        write(v.z)
-        close(true)
-    }
-
-    fun JsonWriter.write(q: Quaterniond) {
-        open(true)
-        write(q.x)
-        write(q.y)
-        write(q.z)
-        write(q.w)
-        close(true)
-    }
 
     fun JsonWriter.write(v: Any) {
         when (v) {
@@ -584,7 +529,7 @@ object GLTFWriter {
                 writer.write(getTextureIndex(material.normalMap, sampler))
                 writer.close(false)
             }
-            if(material.occlusionMap.exists){
+            if (material.occlusionMap.exists) {
                 writer.attr("occlusionTexture")
                 writer.open(false)
                 writer.attr("index")

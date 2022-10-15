@@ -1,12 +1,7 @@
 package me.anno.gpu.shader
 
-import me.anno.Engine
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.ComputeBuffer
-import me.anno.gpu.hidden.HiddenOpenGLContext
 import org.joml.Vector3i
 import org.lwjgl.opengl.GL42C
 import kotlin.math.min
@@ -86,57 +81,25 @@ object Accumulation {
         return src
     }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-
-        val src = IntArray(100) { it + 1 }
-        val dst = IntArray(src.size)
-
-        val buffer = ComputeBuffer(src.size, listOf(Attribute("v", AttributeType.UINT32, 1, true)))
-        val tmp = ComputeBuffer(buffer.elementCount, buffer.attributes)
-
-        GFXBase.forceLoadRenderDoc()
-
-        HiddenOpenGLContext.createOpenGL()
-
-        // store it inside a shader buffer
-        val nio = buffer.nioBuffer!!
-        nio.position(0)
-        nio.asIntBuffer().put(src)
-        nio.position(src.size * 4)
-        buffer.ensureBuffer()
-        tmp.ensureBuffer()
-
-        // accumulate the values
-        val dstBuffer = accumulateI32(buffer, tmp)
-
-        // read data from buffer
-        val data = dstBuffer.readDataI(0L, dst)
-        println("dst: ${data.joinToString()}")
-
-        Engine.requestShutdown()
-
-    }
-
     // todo graphics-only implementation for web
 
     // I just re-invented geometry shaders... stupid!
     // todo how well do/would they work compared to normal geometry buffers?
     //class ConditionalDynamicShader {
 
-        // to do components:
-        // to do (compute-)generation shader
+    // to do components:
+    // to do (compute-)generation shader
 
-        // to do update() -> ensures buffers, generates geometry on gpu side
-        // to do -> accumulate number of triangles
-        // to do -> then write the triangles at their correct place
+    // to do update() -> ensures buffers, generates geometry on gpu side
+    // to do -> accumulate number of triangles
+    // to do -> then write the triangles at their correct place
 
-        // to do then later, use the mesh for rendering :)
+    // to do then later, use the mesh for rendering :)
 
-        // sample: max(sin(x+y*0.1), 0), only generate triangle, if at least one entry is > 0
+    // sample: max(sin(x+y*0.1), 0), only generate triangle, if at least one entry is > 0
 
-        // to do invoke drawing based on last element of accumulation table
+    // to do invoke drawing based on last element of accumulation table
 
-   // }
+    // }
 
 }

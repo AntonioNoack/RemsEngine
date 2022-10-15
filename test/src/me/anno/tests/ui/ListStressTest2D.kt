@@ -12,7 +12,7 @@ fun main() {
         StudioBase.instance?.enableVSync = false
         val n = 100_000
         val list = PanelList2D(style)
-        // todo scrollbar jumps up and down... and it covers the top bar
+        // to do scrollbar jumps up and down... and it covers the top bar
         list.childWidth = 120
         list.childHeight = 24
         for (i in 0 until n) {

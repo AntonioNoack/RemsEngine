@@ -646,18 +646,4 @@ object MitsubaReader {
         }
     }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        testUI {
-
-            ECSRegistry.init()
-
-            val main = downloads.getChild("gradientdomain-scenes.zip/gradientdomain-scenes")
-            val name = "veach-lamp"
-            val sceneMain = main.getChild("$name/$name-gpt.xml/Scene.json")
-            testScene(PrefabCache.loadScenePrefab(sceneMain).createInstance())
-
-        }
-    }
-
 }

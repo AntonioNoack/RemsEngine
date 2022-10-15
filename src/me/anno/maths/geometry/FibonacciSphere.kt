@@ -61,12 +61,4 @@ object FibonacciSphere {
 
     }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val pts = create(12)
-        pts.forEach {
-            println(it.print())
-        }
-    }
-
 }

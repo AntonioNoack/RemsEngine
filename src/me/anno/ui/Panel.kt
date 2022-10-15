@@ -1,7 +1,6 @@
 package me.anno.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.utils.Color.black
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
@@ -26,6 +25,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.Search
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
+import me.anno.utils.Color.black
 import me.anno.utils.Tabs
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.arrays.ExpandingGenericArray
@@ -138,6 +138,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         wasInFocus = isInFocus
     }
 
+    // the following is the last drawn size, clipped stuff clipped
     @NotSerializedProperty
     var lx0 = 0
 
@@ -593,34 +594,23 @@ open class Panel(val style: Style) : PrefabSaveable() {
     /**
      * if this returns true, the parent must be drawn for the child to look correct
      * */
-    fun drawsOverlayOverChildren(x: Int, y: Int) =
-        drawsOverlayOverChildren(x, y, x + 1, y + 1)
+    fun drawsOverlayOverChildren(x: Int, y: Int) = drawsOverlayOverChildren(x, y, x + 1, y + 1)
+    fun drawsOverlayOverChildren() = drawsOverlayOverChildren(lx0, ly0, lx1, ly1)
 
     open fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = false
 
     fun capturesChildEvents(x: Int, y: Int) = capturesChildEvents(x, y, x + 1, y + 1)
 
-    // todo overlays don't work perfectly: the cross over the scrollbar is blinking when regularly redrawing...
-    // first or null would be correct, however our overlays are all the same
-    // (the small cross, which should be part of the ui instead)
-    //, so we can use the last one
-    open fun getOverlayParent(): Panel? {
-        return uiParent?.getOverlayParent() ?: (if (drawsOverlayOverChildren(lx0, ly0, lx1, ly1)) this else null)
-    }
-
+    fun getOverlayParent() = getOverlayParent(lx0, ly0, lx1, ly1)
     open fun getOverlayParent(x0: Int, y0: Int, x1: Int, y1: Int): Panel? {
-        return uiParent?.getOverlayParent(x0, y0, x1, y1) ?: (if (drawsOverlayOverChildren(
-                x0,
-                y0,
-                x1,
-                y1
-            )
-        ) this else null)
+        return uiParent?.getOverlayParent(x0, y0, x1, y1) ?: (
+                if (drawsOverlayOverChildren(x0, y0, x1, y1)
+                ) this else null)
     }
 
     /**
      * if this element is in focus,
-     * low-priority global events wont be fired (e.g. space for start/stop vs typing a space)
+     * low-priority global events won't be fired (e.g., space for start/stop vs typing a space)
      * */
     open fun isKeyInput() = false
     open fun acceptsChar(char: Int) = true

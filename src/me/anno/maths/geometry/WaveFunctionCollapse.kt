@@ -1,21 +1,13 @@
 package me.anno.maths.geometry
 
-import me.anno.Engine
-import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
 import me.anno.image.raw.IntImage
-import me.anno.maths.Maths.ceilDiv
-import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS.desktop
-import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
 import java.util.*
 import kotlin.math.abs
@@ -34,65 +26,6 @@ class WaveFunctionCollapse {
     companion object {
 
         private val LOGGER = LogManager.getLogger(WaveFunctionCollapse::class)
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // load a set of images
-            val wfc = WaveFunctionCollapse()
-            wfc.enableMinimalEntropyHeuristic = true
-            var id = 0
-            // val src = downloads.getChild("2d/tilesetCircuit.png") // 14x14
-            val src = downloads.getChild("2d/caveTilesetOpenGameArt-3.png") // 16x16
-            val tileW = 16
-            val tileH = 16
-            val tileAtlas = ImageCPUCache.getImage(src, false)!!
-            for (yi in 0 until tileAtlas.height step tileH) {
-                for (xi in 0 until tileAtlas.width step tileW) {
-                    val pixels = IntArray(tileW * tileH)
-                    var i = 0
-                    for (y in 0 until tileH) {
-                        for (x in 0 until tileW) {
-                            pixels[i++] = tileAtlas.getRGB(xi + x, yi + y)
-                        }
-                    }
-                    if (pixels.any { it.a() > 64 }) {
-                        val tile = IntImage(tileW, tileH, pixels, tileAtlas.hasAlphaChannel)
-                        wfc.types.add(ImageCellType(id++, tile))
-                    }
-                }
-            }
-            wfc.calculateEdges()
-            wfc.addTransformedTypes(allowMirrorX = true, allowMirrorY = true, 4)
-            wfc.defineNeighborsByImages(16)
-            for (idx in wfc.types.indices) {
-                LOGGER.debug("$idx -> ${wfc.types[idx].neighbors.joinToString()}")
-            }
-            LOGGER.debug("num types: ${wfc.types.size}")
-            wfc.removeInvalidCells()
-            if (wfc.types.isEmpty())
-                throw IllegalStateException("Cannot connect any tiles")
-            val sizeX = 64
-            val sizeY = 64
-            val random = Random(Engine.nanoTime)
-            val grid = wfc.collapseInit(sizeX, sizeY)
-            val texToImage = LazyMap({ key: Image -> Texture2D(key, false) }, wfc.types.size)
-            var hasRemaining = true
-            testDrawing {
-                it.clear()
-                val t0 = Engine.nanoTime
-                while (hasRemaining && Engine.nanoTime - t0 < 1e9 / 60)
-                    hasRemaining = wfc.collapseStep(sizeX, sizeY, grid, random)
-                for (y in 0 until min(sizeY, ceilDiv(it.h, tileH))) {
-                    var i = y * sizeX
-                    for (x in 0 until min(sizeX, ceilDiv(it.w, tileW))) {
-                        // draw tile onto result
-                        val cell = (grid[i++].result as? ImageCellType) ?: continue
-                        val tile = cell.image
-                        drawTexture(x * tileW, y * tileH, tileW, tileH, texToImage[tile]!!, false, -1)
-                    }
-                }
-            }
-        }
 
         fun Image.rotate(r: Int): Image {
             val w = width
@@ -396,7 +329,7 @@ class WaveFunctionCollapse {
 
         // collapse cell
         cell.result = (cell.types ?: types)[selectedIndex]
-        LOGGER.debug("collapsing $x,$y by ${cell.types?.size} types to ${cell.result}")
+        // LOGGER.debug("collapsing $x,$y by ${cell.types?.size} types to ${cell.result}")
         cell.types = null
         cell.length = 1
 
@@ -500,7 +433,7 @@ class WaveFunctionCollapse {
         val cell = grid[x + y * sizeX]
         if (cell.length < 2) return
         val newTypes = if (cell.types == null) ArrayList(types) else cell.types!!
-        val oldSize = newTypes.size
+        // val oldSize = newTypes.size
         val changed = newTypes.retainAll { type ->
             // check if cell type is allowed by all sides
             isCompatible(sizeX, sizeY, grid, x, y, type, 0) &&
@@ -508,7 +441,7 @@ class WaveFunctionCollapse {
                     isCompatible(sizeX, sizeY, grid, x, y, type, 2) &&
                     isCompatible(sizeX, sizeY, grid, x, y, type, 3)
         }
-        LOGGER.debug("[$x,$y] $oldSize -> ${cell.length}")
+        // LOGGER.debug("[$x,$y] $oldSize -> ${cell.length}")
         if (changed || cell.types == null) {
             if (newTypes.size == 1) {
                 cell.result = newTypes.first()

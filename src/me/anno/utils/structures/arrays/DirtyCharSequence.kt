@@ -10,6 +10,8 @@ class DirtyCharSequence(val base: IntSequence, val i0: Int = 0, val i1: Int = ba
 
     override fun get(index: Int): Char = base[i0 + index].toChar()
 
+    fun firstOrNull() = base.getOrNull(i0)?.toChar()
+
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {
         return DirtyCharSequence(base, i0 + startIndex, i0 + endIndex)
     }

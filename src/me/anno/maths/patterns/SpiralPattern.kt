@@ -34,21 +34,6 @@ object SpiralPattern {
         return list
     }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val width = 256
-        val radius = 10
-        val size = 2 * radius + 1
-        val list = roundSpiral2d(radius, 0, false)
-        val coordsToIndex =
-            list.withIndex().associate { it.value to (255f * it.index / (list.size - 1f)).toInt() * 0x10101 }
-        ImageWriter.writeImageInt(width, width, false, "spiral.png", 512) { x, y, _ ->
-            val cx = (x * size / width) - radius
-            val cz = (y * size / width) - radius
-            coordsToIndex[Vector3i(cx, 0, cz)] ?: 0x770077
-        }
-    }
-
     @Suppress("unused")
     fun sortedBlock(radius: Int): List<Vector3i> {
         val size = 2 * radius + 1

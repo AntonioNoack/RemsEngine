@@ -2,7 +2,6 @@ package me.anno.utils.structures.arrays
 
 import me.anno.utils.LOGGER
 import me.anno.utils.search.BinarySearch
-import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
@@ -88,6 +87,8 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
     }
 
     fun add(values: ExpandingIntArray, srcStartIndex: Int = 0, length: Int = values.size - srcStartIndex) {
+        if (length < 0) throw IllegalArgumentException()
+        if (length == 0) return
         ensureCapacity(size + length)
         val dst = array!!
         val src = values.array!!
@@ -124,6 +125,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
     fun last() = array!![size - 1]
 
     operator fun get(index: Int) = array!![index]
+    fun getOrNull(index: Int) = array?.getOrNull(index)
 
     fun addUnsafe(x: Int) {
         array!![size++] = x
@@ -203,8 +205,8 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
     }
 
     fun binarySearch(element: Int): Int {
-        return BinarySearch.binarySearch(size) {
-            it.compareTo(element)
+        return BinarySearch.binarySearch(size) { index ->
+            this[index].compareTo(element)
         }
     }
 
@@ -238,24 +240,6 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
         }
         builder.append(']')
         return builder.toString()
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val logger = LogManager.getLogger(ExpandingIntArray::class)
-            val list = ExpandingIntArray(16)
-            list.add(1)
-            list.add(2)
-            list.add(3)
-            logger.info(list) // 1,2,3
-            list.removeAt(1)
-            logger.info(list) // 1,3
-            list.add(0, 5)
-            logger.info(list) // 5,1,3
-            list.removeBetween(0, 1)
-            logger.info(list) // 1,3
-        }
     }
 
 }

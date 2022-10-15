@@ -58,7 +58,7 @@ class TreeViewPanel<V>(
                 minW = font.sampleWidth * 2 + padding.width
                 minH = font.sampleHeight + padding.height
                 if (text != textCacheKey.text || font.isBold != textCacheKey.isBold() || font.isItalic != textCacheKey.isItalic()) {
-                    textCacheKey = TextCacheKey(text, font, -1, -1)
+                    textCacheKey = TextCacheKey(text, font)
                 }
             }
 

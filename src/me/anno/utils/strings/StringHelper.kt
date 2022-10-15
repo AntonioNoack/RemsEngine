@@ -119,11 +119,4 @@ object StringHelper {
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
     // private val splitCamelCaseRegex = Regex("(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])")
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        println("abc".distance("abcdef"))
-        println("abcdef".distance("abc"))
-        println("polyGeneLubricants".camelCaseToTitle())
-    }
-
 }

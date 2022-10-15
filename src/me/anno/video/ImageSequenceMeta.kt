@@ -2,9 +2,6 @@ package me.anno.video
 
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.utils.OS
-import org.apache.logging.log4j.LogManager
 import kotlin.math.min
 
 class ImageSequenceMeta(file: FileReference) {
@@ -58,23 +55,7 @@ class ImageSequenceMeta(file: FileReference) {
     override fun toString() = "$duration: $matches"
 
     companion object {
-
         val imageSequenceIdentifier get() = DefaultConfig["video.imageSequence.identifier", "%"]
-
-        private val LOGGER = LogManager.getLogger(ImageSequenceMeta::class)
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val file = getReference(OS.documents, "Blender\\Image Sequence\\%.jpg")
-            val meta = ImageSequenceMeta(file)
-            LOGGER.info(meta.toString())
-            /*meta.matches.forEach { (file, _) ->
-                val src = ImageIO.read(file)
-                val dst = src.withoutAlpha()
-                val out = File(file.parentFile, file.nameWithoutExtension + ".jpg")
-                ImageIO.write(dst, "jpg", out)
-            }*/
-        }
     }
 
 }

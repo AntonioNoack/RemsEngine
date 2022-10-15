@@ -27,4 +27,6 @@ fun main() {
     val gFlops = ops / duration / 1e9
     println("dur: ${duration}s, GFlops: $gFlops")
 
+    // 1s, 17.3-17.6 GFlops on Ryzen 5 2600
+
 }

@@ -1,6 +1,5 @@
 package me.anno.utils.hpc
 
-import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -21,16 +20,5 @@ object HeavyProcessing : WorkSplitter(max(1, Runtime.getRuntime().availableProce
     }
 
     private val counter = AtomicInteger()
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val logger = LogManager.getLogger(HeavyProcessing::class)
-        // should return (5,1)
-        logger.info(splitWork(50, 10, 5))
-        // should return (7,1)
-        logger.info(splitWork(50, 10, 7))
-        // should return (4,2)
-        logger.info(splitWork(50, 10, 8))
-    }
 
 }

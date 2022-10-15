@@ -1,27 +1,13 @@
 package me.anno.video
 
 import me.anno.cache.instances.VideoCache
-import me.anno.gpu.GFX
-import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.drawing.GFXx3D
-import me.anno.gpu.drawing.UVProjection
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
-import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep.waitUntilDefined
-import me.anno.video.VideoCreator.Companion.renderVideo
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4fArrayList
 import java.nio.ByteBuffer
-import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
 
@@ -197,41 +183,5 @@ class BlankFrameDetector {
 
             } else false
         }
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val src = downloads.getChild("2d/black frames sample.mp4")
-            val dst = src.getSibling(src.nameWithoutExtension + "-result." + src.extension)
-            val meta = FFMPEGMetadata.getMeta(src, false)!!
-            val delta = 5
-            val start = 2 * 60 + 59 - delta // 2:59
-            val end = start + 2 * delta
-            var frameIndex = (start * meta.videoFPS).toInt()
-            val frameCount = (end * meta.videoFPS).toInt() - frameIndex
-            val bufferSize = 64
-            val fps = meta.videoFPS
-            val timeout = 1000L
-            HiddenOpenGLContext.createOpenGL(meta.videoWidth, meta.videoHeight)
-            ShaderLib.init()
-            val fb = Framebuffer("tmp", meta.videoWidth, meta.videoHeight, 1, 1, false, DepthBufferType.NONE)
-            renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb) { _, callback ->
-                thread(name = "frame$frameIndex") {
-                    val frame = getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!
-                    GFX.addGPUTask("bfd", 1) {
-                        useFrame(fb) {
-                            val stack = Matrix4fArrayList()
-                            stack.scale(meta.videoHeight / meta.videoWidth.toFloat(), -1f, 1f)
-                            GFXx3D.draw3D(
-                                stack, frame, -1, Filtering.CUBIC, Clamping.CLAMP,
-                                null, UVProjection.Planar
-                            )
-                        }
-                        frameIndex++
-                        callback()
-                    }
-                }
-            }
-        }
     }
-
 }

@@ -158,7 +158,7 @@ Some feature tests:
 - [UI: AnimTest.kt](test/src/me/anno/tests/ui/AnimTest.kt)
 - [Snake Game](test/src/me/anno/tests/game/Snake.kt)
 
-You can find most examples in the "tests" folder.
+You can find most examples in the "tests" folder. In total, there are more than 200 handwritten tests for you to see how the engine works :).
 
 ## Ports
 - [Android](https://github.com/AntonioNoack/RemsEngine-Android)
