@@ -76,6 +76,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
         size += length
     }
 
+    @Suppress("unused")
     fun addUnsafe(src: ExpandingIntArray, startIndex: Int, length: Int) {
         System.arraycopy(src.array!!, startIndex, array!!, size, length)
         size += length
@@ -127,10 +128,12 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
     operator fun get(index: Int) = array!![index]
     fun getOrNull(index: Int) = array?.getOrNull(index)
 
+    @Suppress("unused")
     fun addUnsafe(x: Int) {
         array!![size++] = x
     }
 
+    @Suppress("unused")
     fun addUnsafe(x: Int, y: Int) {
         val array = array!!
         var size = size
@@ -149,6 +152,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
         this.size = size
     }
 
+    @Suppress("unused")
     fun addUnsafe(x: Int, y: Int, z: Int) {
         val array = array!!
         var size = size
@@ -204,6 +208,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
         return IntArray(toIndex - fromIndex) { array[fromIndex + it] }.toList()
     }
 
+    @Suppress("unused")
     fun binarySearch(element: Int): Int {
         return BinarySearch.binarySearch(size) { index ->
             this[index].compareTo(element)

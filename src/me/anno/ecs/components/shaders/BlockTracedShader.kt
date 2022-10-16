@@ -86,12 +86,13 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     "vec3 bounds1 = vec3(bounds-1);\n" +
                     // start our ray on the surface of the cube: we don't need to project the ray onto the box
                     "vec3 dir = normalize(mat3x3(invLocalTransform) * finalPosition);\n" +
+                    // "vec3 dir = normalize(finalPosition);\n" +
                     // prevent divisions by zero
                     "if(abs(dir.x) < 1e-7) dir.x = 1e-7;\n" +
                     "if(abs(dir.y) < 1e-7) dir.y = 1e-7;\n" +
                     "if(abs(dir.z) < 1e-7) dir.z = 1e-7;\n" +
-                    // could be a uniform too
-                    "vec3 localStart = -(localTransform * vec4(0.0,0.0,0.0,1.0))/worldScale;\n" +
+                    // could be a uniform, too (if perspective is projection, not ortho)
+                    "vec3 localStart = -(mat3x3(invLocalTransform) * vec3(localTransform[3][0],localTransform[3][1],localTransform[3][2])/worldScale);\n" +
                     // start from camera, and project onto front sides
                     // for proper rendering, we need to use the backsides, and therefore we project the ray from the back onto the front
                     "vec3 dtf3 = (sign(dir) * halfBounds + localStart) / dir;\n" +

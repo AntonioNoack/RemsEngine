@@ -40,6 +40,7 @@ class TargetType(
         val R32UNorm = TargetType("u32norm", GL_R32UI, GL_RED_INTEGER, GL_INT, 4, 1, false)
         val R16UInt = TargetType("u32norm", GL_R16UI, GL_RED_INTEGER, GL_INT, 2, 1, false)
         val RG16UInt = TargetType("u32norm", GL_RG16UI, GL_RG_INTEGER, GL_INT, 4, 2, false)
+        val DEPTH16 = TargetType("depth16", GL_DEPTH_COMPONENT16, GL_DEPTH, GL_UNSIGNED_INT, 2, 1, false)
         val DEPTH32 = TargetType("depth32", GL_DEPTH_COMPONENT32, GL_DEPTH, GL_UNSIGNED_INT, 4, 1, false)
         val DEPTH32F = TargetType("depth32f", GL_DEPTH_COMPONENT32F, GL_DEPTH, GL_FLOAT, 4, 1, false)
         val R32U = TargetType("r32u", GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 4, 1, false)

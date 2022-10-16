@@ -3,6 +3,7 @@ package me.anno.mesh.assimp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.mesh.assimp.AssimpTree.convert
+import me.anno.utils.search.BinarySearch
 import me.anno.utils.search.BinarySearch.binarySearch
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
@@ -15,7 +16,7 @@ object AnimationLoader {
 
     // private val LOGGER = LogManager.getLogger(AnimationLoader::class)
 
-    private inline fun findIndex(count: Int, compare: (Int) -> Int): Int {
+    private fun findIndex(count: Int, compare: BinarySearch.IndexComparator): Int {
         if (count == 2) return 0
         var index = binarySearch(count - 1, compare)
         if (index < 0) index = -1 - index

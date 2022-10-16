@@ -1,6 +1,8 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -115,6 +117,16 @@ class MultiFramebuffer(
     override fun destroy() {
         for (target in targetsI) {
             target.destroy()
+        }
+    }
+
+    override fun use(index: Int, renderer: Renderer, render: () -> Unit) {
+        val targets = targetsI
+        for (targetIndex in targets.indices) {
+            val target = targets[targetIndex]
+            // split renderer by targets
+            GFXState.renderers[index] = renderer.split(targetIndex, div)
+            GFXState.framebuffer.use(target, render)
         }
     }
 

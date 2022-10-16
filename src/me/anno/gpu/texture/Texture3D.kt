@@ -5,7 +5,11 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.framebuffer.VRAMToRAM
+import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
@@ -14,14 +18,21 @@ import me.anno.gpu.texture.Texture2D.Companion.textureBudgetUsed
 import me.anno.gpu.texture.Texture2D.Companion.writeAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
+import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL45C
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.concurrent.thread
 
-open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICacheData {
+open class Texture3D(
+    var name: String,
+    override var w: Int,
+    override var h: Int,
+    var d: Int
+) : ICacheData, ITexture2D {
 
     constructor(name: String, img: BufferedImage, depth: Int) : this(name, img.width / depth, img.height, depth) {
         create(img, true)
@@ -38,6 +49,11 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
     var locallyAllocated = 0L
 
     var internalFormat = 0
+
+    val target get() = GL_TEXTURE_3D
+
+    // todo set this depending on creation method
+    override var isHDR = false
 
     fun checkSession() {
         if (session != GFXState.session) {
@@ -64,26 +80,31 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         writeAlignment(alignment)
     }
 
-    private fun afterUpload(internalFormat: Int, bpp: Int) {
+    private fun afterUpload(internalFormat: Int, bpp: Int, hdr: Boolean) {
         isCreated = true
         this.internalFormat = internalFormat
         locallyAllocated = allocate(locallyAllocated, w.toLong() * h.toLong() * d.toLong() * bpp)
         filtering(filtering)
+        isHDR = hdr
         GFX.check()
+        when (internalFormat) {
+            GL_R8, GL_R16, GL_R16F,
+            GL_R32F -> swizzleMonochrome()
+        }
     }
 
     @Suppress("unused")
     fun createRGBA8() {
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-        afterUpload(GL_RGBA8, 4)
+        afterUpload(GL_RGBA8, 4, false)
     }
 
     @Suppress("unused")
     fun createRGBAFP32() {
         beforeUpload(w * 16)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
-        afterUpload(GL_RGBA32F, 16)
+        afterUpload(GL_RGBA32F, 16, true)
     }
 
     fun create(createImage: () -> BufferedImage) {
@@ -127,13 +148,13 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
     fun createRGBA8(data: IntArray) {
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
-        afterUpload(GL_RGBA8, 4)
+        afterUpload(GL_RGBA8, 4, false)
     }
 
     fun createBGRA8(data: ByteBuffer) {
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
-        afterUpload(GL_RGBA8, 4)
+        afterUpload(GL_RGBA8, 4, false)
     }
 
     fun createMonochrome(data: ByteArray) {
@@ -186,10 +207,10 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         if (w * h * d != data.remaining()) throw RuntimeException("incorrect size!")
         beforeUpload(w)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE, data)
-        afterUpload(GL_R8, 1)
+        afterUpload(GL_R8, 1, false)
     }
 
-    fun create(type: TargetType, data: ByteArray?) {
+    fun create(type: TargetType, data: ByteArray? = null) {
         // might be incorrect for RGB!!
         if (data != null && type.bytesPerPixel != 3 && w * h * d * type.bytesPerPixel != data.size)
             throw RuntimeException("incorrect size!, got ${data.size}, expected $w * $h * $d * ${type.bytesPerPixel} bpp")
@@ -206,7 +227,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
             type.uploadFormat, type.fillType, byteBuffer
         )
         bufferPool.returnBuffer(byteBuffer)
-        afterUpload(type.internalFormat, type.bytesPerPixel)
+        afterUpload(type.internalFormat, type.bytesPerPixel, type.isHDR)
     }
 
     fun createRGBA(data: FloatArray) {
@@ -225,7 +246,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         beforeUpload(w * 16)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         bufferPool.returnBuffer(byteBuffer)
-        afterUpload(GL_RGBA32F, 16)
+        afterUpload(GL_RGBA32F, 16, true)
     }
 
     fun createRGBA(data: ByteArray) {
@@ -237,14 +258,14 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
-        afterUpload(GL_RGBA8, 4)
+        afterUpload(GL_RGBA8, 4, false)
     }
 
     fun createRGBA(data: ByteBuffer) {
         if (w * h * d * 4 != data.remaining()) throw RuntimeException("incorrect size!, got ${data.remaining()}, expected $w * $h * $d * 4 bpp")
         beforeUpload(w * 4)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
-        afterUpload(GL_RGBA8, 4)
+        afterUpload(GL_RGBA8, 4, false)
     }
 
     fun ensureFiltering(nearest: GPUFiltering) {
@@ -289,6 +310,15 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         }
     }
 
+    override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
+        bind(index, filtering)
+        return true
+    }
+
+    override fun wrapAsFramebuffer(): IFramebuffer {
+        throw NotImplementedError()
+    }
+
     override fun destroy() {
         val pointer = pointer
         if (pointer > -1) {
@@ -307,6 +337,64 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
         Texture2D.invalidateBinding()
         locallyAllocated = allocate(locallyAllocated, 0L)
         isDestroyed = true
+    }
+
+    override fun createBufferedImage(flipY: Boolean, withAlpha: Boolean) =
+        VRAMToRAM.createBufferedImage(w * d, h, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->
+            drawSlice(x2, y2, w2, withAlpha)
+        }
+
+    override fun createImage(flipY: Boolean, withAlpha: Boolean) =
+        VRAMToRAM.createImage(w * d, h, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->
+            drawSlice(x2, y2, w2, withAlpha)
+        }
+
+    private fun drawSlice(x2: Int, y2: Int, w2: Int, withAlpha: Boolean) {
+        val z0 = x2 / w
+        val z1 = (x2 + w2 - 1) / w
+        drawSlice(x2, y2, z0 / maxOf(1f, d - 1f), withAlpha)
+        if (z1 > z0) {
+            // todo we have to draw two slices
+            // drawSlice(x2, y2, z0 / maxOf(1f, d - 1f), withAlpha)
+        }
+    }
+
+    private fun drawSlice(x2: Int, y2: Int, z: Float, withAlpha: Boolean) {
+        val x = -x2
+        val y = -y2
+        GFX.check()
+        // we could use an easier shader here
+        val shader = FlatShaders.flatShaderTexture3D.value
+        shader.use()
+        GFXx2D.posSize(shader, x, GFX.viewportHeight - y, w, -h)
+        GFXx2D.defineAdvancedGraphicalFeatures(shader)
+        shader.v4f("color", -1)
+        shader.v1i("alphaMode", 1 - withAlpha.toInt())
+        shader.v1b("applyToneMapping", isHDR)
+        shader.v1f("uvZ", z)
+        GFXx2D.noTiling(shader)
+        bind(0, filtering, Clamping.CLAMP)
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
+    fun swizzleMonochrome() {
+        swizzle(GL_RED, GL_RED, GL_RED, GL_ONE)
+    }
+
+    fun swizzleAlpha() {
+        swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED)
+    }
+
+    // could and should be used for roughness/metallic like textures in the future
+    fun swizzle(r: Int, g: Int, b: Int, a: Int) {
+        Texture2D.tmp4i[0] = r
+        Texture2D.tmp4i[1] = g
+        Texture2D.tmp4i[2] = b
+        Texture2D.tmp4i[3] = a
+        GFX.check()
+        glTexParameteriv(target, GL45C.GL_TEXTURE_SWIZZLE_RGBA, Texture2D.tmp4i)
+        GFX.check()
     }
 
     companion object {

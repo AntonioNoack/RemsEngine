@@ -7,34 +7,33 @@ package me.anno.utils.structures.maps
  * not thread-safe
  * */
 open class LazyMap<K, V>(
-    val generator: (K) -> V?,
+    val generator: (K) -> V,
     val nullsAreValid: Boolean = false,
     initialCapacity: Int = 16
 ) : Map<K, V> {
 
-    constructor(generator: (K) -> V?) :
+    constructor(generator: (K) -> V) :
             this(generator, false)
 
-    constructor(generator: (K) -> V?, initialCapacity: Int) :
+    constructor(generator: (K) -> V, initialCapacity: Int) :
             this(generator, false, initialCapacity)
 
-    val cache = HashMap<K, V?>(initialCapacity)
+    val cache = HashMap<K, V>(initialCapacity)
 
     override fun containsKey(key: K) = true
 
     override fun containsValue(value: V) = false
 
-    override fun get(key: K): V? =
-        cache.getOrPut(key) { generator(key) }
+    override fun get(key: K): V = cache.getOrPut(key) { generator(key) }
 
     @Suppress("unchecked_cast")
     override val entries
         get() = if (nullsAreValid) {
-            cache.entries as Set<Map.Entry<K, V>>
+            cache.entries
         } else {
             cache.entries
                 .filter { it.value != null }
-                .toSet() as Set<Map.Entry<K, V>>
+                .toSet()
         }
 
     override val keys: Set<K>

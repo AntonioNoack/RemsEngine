@@ -63,6 +63,8 @@ object Shapes {
         fun scaled(scale: Float) =
             FBBMesh(this, scale)
 
+        fun scaled(scale: Vector3f) = linear(Vector3f(), scale)
+
         fun linear(offset: Vector3f, scale: Vector3f) =
             FBBMesh(linear(positions, offset, scale), indices)
 

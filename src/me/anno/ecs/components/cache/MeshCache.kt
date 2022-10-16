@@ -47,6 +47,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                 }
                 is MeshComponentBase -> instance.getMesh()
                 is Entity -> {
+                    instance.forAll { if (it is Entity) it.validateTransform() }
                     val seq = ArrayList<Component>(64)
                     instance.forAll {
                         if (it is MeshComponentBase || it is MeshSpawner) {

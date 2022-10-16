@@ -113,6 +113,29 @@ object FlatShaders {
                 "}"
     )
 
+    val flatShaderTexture3D = BaseShader(
+        "flatShaderTexture3D",
+        ShaderLib.simpleVertexShaderV2List,
+        ShaderLib.simpleVertexShaderV2, uvList,
+        listOf(
+            Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
+            Variable(GLSLType.V4F, "color"),
+            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.V1F,"uvZ"),
+            Variable(GLSLType.S3D, "tex"),
+        ), "" +
+                tonemapGLSL +
+                "void main(){\n" +
+                "   vec4 col = color;\n" +
+                "   vec3 uvw = vec3(uv, uvZ);\n" +
+                "   if(alphaMode == 0) col *= texture(tex, uvw);\n" +
+                "   else if(alphaMode == 1) col.rgb *= texture(tex, uvw).rgb;\n" +
+                "   else col.rgb *= texture(tex, uvw).a;\n" +
+                "   if(applyToneMapping) col = tonemap(col);\n" +
+                "   gl_FragColor = col;\n" +
+                "}"
+    )
+
     val depthShader = BaseShader(
         "depth", ShaderLib.simpleVertexShaderV2List, ShaderLib.simpleVertexShaderV2, uvList, listOf(
             Variable(GLSLType.S2D, "tex")

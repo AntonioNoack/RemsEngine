@@ -287,8 +287,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val showOverdraw = renderMode == RenderMode.OVERDRAW
         val showSpecialBuffer = showIds || showOverdraw || isKeyDown('j')
         var useDeferredRendering = when (renderMode) {
-            RenderMode.DEFAULT, RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.FSR_X4,
-            RenderMode.FSR_MSAA_X4, RenderMode.FSR_SQRT2, RenderMode.FSR_X2, RenderMode.NEAREST_X4,
+            RenderMode.DEFAULT, RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.NO_DEPTH,
+            RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4, RenderMode.FSR_SQRT2, RenderMode.FSR_X2, RenderMode.NEAREST_X4,
             RenderMode.GHOSTING_DEBUG, RenderMode.INVERSE_DEPTH, RenderMode.WITHOUT_POST_PROCESSING,
             RenderMode.LINES, RenderMode.LINES_MSAA, RenderMode.FRONT_BACK, RenderMode.UV,
             RenderMode.SHOW_TRIANGLES, RenderMode.MSAA_X8 -> false
@@ -1256,8 +1256,12 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         pipeline.lightPseudoStage.depthMode = invDepthMode
     }
 
-    private val depthMode get() = if (reverseDepth) DepthMode.CLOSER else DepthMode.FORWARD_CLOSER
-    private val invDepthMode get() = if (reverseDepth) DepthMode.FARTHER else DepthMode.FORWARD_FARTHER
+    private val depthMode
+        get() = if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
+        else if (reverseDepth) DepthMode.CLOSER else DepthMode.FORWARD_CLOSER
+    private val invDepthMode
+        get() = if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
+        else if (reverseDepth) DepthMode.FARTHER else DepthMode.FORWARD_FARTHER
 
     var skipClear = false
 
@@ -1533,8 +1537,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     var fovYRadians = 1f
 
-    var near = 1e-10
-    var scaledNear = 1e-10
+    var near = 1e-3
+    var scaledNear = 1e-3
 
     // infinity
     var far = 1e10

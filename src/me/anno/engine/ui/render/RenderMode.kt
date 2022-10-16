@@ -21,6 +21,7 @@ enum class RenderMode(
     WITHOUT_POST_PROCESSING,
     CLICK_IDS(RandomEffect),
     DEPTH,
+    NO_DEPTH,
     FORCE_DEFERRED,
     FORCE_NON_DEFERRED,
     ALL_DEFERRED_LAYERS,

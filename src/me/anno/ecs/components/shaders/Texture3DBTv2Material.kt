@@ -41,7 +41,6 @@ class Texture3DBTv2Material : Material() {
         // max amount of blocks that can be traversed
         val maxSteps = max(1, size.x + size.y + size.z)
         shader.v1i("maxSteps", maxSteps)
-        me.anno.utils.LOGGER.warn(shader.fragmentSource)
     }
 
     override fun clone(): Texture3DBTv2Material {
@@ -55,6 +54,14 @@ class Texture3DBTv2Material : Material() {
         clone as Texture3DBTv2Material
         clone.size.set(size)
         // texture cannot be simply copied
+    }
+
+    override fun hashCode(): Int {
+        return System.identityHashCode(this)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other === this
     }
 
     override val className = "Texture3DBTv2Material"

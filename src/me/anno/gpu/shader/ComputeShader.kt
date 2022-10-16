@@ -139,11 +139,11 @@ class ComputeShader(
 
     }
 
-    fun runBySize(width: Int, height: Int, depth: Int = 1) {
+    fun runBySize(width: Int, height: Int = 1, depth: Int = 1) {
         runByGroups(ceilDiv(width, groupSize.x), ceilDiv(height, groupSize.y), ceilDiv(depth, groupSize.z))
     }
 
-    fun runByGroups(widthGroups: Int, heightGroups: Int, depthGroups: Int = 1) {
+    fun runByGroups(widthGroups: Int, heightGroups: Int = 1, depthGroups: Int = 1) {
         if (lastProgram != program) {
             glUseProgram(program)
             lastProgram = program

@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -133,6 +134,11 @@ interface IFramebuffer {
             glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
             glClear(GL_DEPTH_BUFFER_BIT)
         }
+    }
+
+    fun use(index: Int, renderer: Renderer, render: () -> Unit){
+        GFXState.renderers[index] = renderer
+        GFXState.framebuffer.use(this, render)
     }
 
 }

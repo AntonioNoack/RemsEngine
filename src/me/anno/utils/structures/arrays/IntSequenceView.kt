@@ -5,6 +5,7 @@ class IntSequenceView(val base: IntSequence, val i0: Int, val i1: Int) : IntSequ
     override val length: Int = i1 - i0
 
     override fun get(index: Int): Int = base[index + i0]
+    override fun getOrNull(index: Int): Int? = base.getOrNull(index + i0)
 
     override fun subSequence(startIndex: Int, endIndex: Int): IntSequence {
         if (startIndex == 0 && endIndex == length) return this

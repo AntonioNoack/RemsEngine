@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL11C.*
 enum class DepthMode(val func: Int, val reversedDepth: Boolean) {
     // default depth mode is reversed in the engine, because it is superior
     ALWAYS(0, true),
+    ALWAYS11(0, false),
     DIFFERENT(GL_NOTEQUAL, true),
     FARTHER(GL_LESS, true),
     FAR(GL_LEQUAL, true),

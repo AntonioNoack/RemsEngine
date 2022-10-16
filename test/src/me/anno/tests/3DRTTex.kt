@@ -8,10 +8,9 @@ import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.Shapes.flatCube
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import org.joml.Vector3f
 
 fun main() {
-    // todo for unknown reasons, this doesn't work and flickers
-    // - it only flickers when close, so it might be the depth channel...
     testUI {
         StudioBase.instance?.enableVSync = true
         val material = Texture3DBTv2Material()
@@ -26,14 +25,15 @@ fun main() {
                 val ys = y * scale
                 for (x in 0 until size.x) {
                     val xs = x * scale
-                    densities[i++] = if (noise[xs, ys, zs] > 0.5f) 1 else -1
+                    densities[i++] = if (noise[xs, ys, zs] > 0.5f) 0 else -1
                 }
             }
         }
         val data = Texture3D("density", size.x, size.y, size.z)
         data.createMonochrome(densities)
+        data.swizzleAlpha()
         material.blocks = data
-        val mesh = MeshComponent(flatCube.front.ref)
+        val mesh = MeshComponent(flatCube.scaled(Vector3f(size).mul(0.5f)).back.ref)
         mesh.materials = listOf(material.ref)
         testScene(mesh)
     }

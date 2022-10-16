@@ -33,7 +33,15 @@ class LineSequence : IntSequence {
         val lineIndex = getLineIndexAt(index)
         val line = lines[lineIndex]
         val indexInLine = index - indexTable[lineIndex]
+        if (indexInLine < 0) throw IllegalStateException("$indexInLine by $index -> $lineIndex | ${indexTable.joinToString()}")
         return if (indexInLine < line.size) line[indexInLine] else '\n'.code
+    }
+
+    override fun getOrNull(index: Int): Int? {
+        val lineIndex = getLineIndexAt(index)
+        val line = lines.getOrNull(lineIndex) ?: return null
+        val indexInLine = index - indexTable[lineIndex]
+        return if (indexInLine < line.size) line.getOrNull(indexInLine) else '\n'.code
     }
 
     val lineCount get() = lines.size

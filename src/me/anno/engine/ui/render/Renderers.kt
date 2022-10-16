@@ -353,7 +353,7 @@ object Renderers {
         SimpleRenderer(name, stage)
     }, DeferredLayerType.values.size)
 
-    val attributeEffects: Map<Pair<DeferredLayerType, DeferredSettingsV2>, CameraEffect> =
+    val attributeEffects: Map<Pair<DeferredLayerType, DeferredSettingsV2>, CameraEffect?> =
         LazyMap({ (type, settings) ->
             val layer = settings.findLayer(type)
             if (layer != null) {

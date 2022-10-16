@@ -2,20 +2,32 @@ package me.anno.utils.search
 
 object BinarySearch {
 
+    fun interface IndexComparator {
+        fun compare(index: Int): Int
+    }
+
     /**
      * performs a binary search;
      * @length number of values within the collection
-     * @param compare compare element at this index with the searched element; return 0 if found
+     * @param comparator compare element at this index with the searched element; return 0 if found
      * @return index of element or -1-insertIndex if not found
      * */
-    inline fun binarySearch(length: Int, compare: (index: Int) -> Int): Int {
+    fun binarySearch(length: Int, comparator: IndexComparator) =
+        binarySearch(0, length - 1, comparator)
 
-        var min = 0
-        var max = length - 1
+    /**
+     * performs a binary search;
+     * @param comparator compare element at this index with the searched element; return 0 if found
+     * @return index of element or -1-insertIndex if not found
+     * */
+    fun binarySearch(minIndex: Int, maxIndex: Int, comparator: IndexComparator): Int {
+
+        var min = minIndex
+        var max = maxIndex
 
         while (max >= min) {
             val mid = (min + max).ushr(1)
-            val cmp = compare(mid)
+            val cmp = comparator.compare(mid)
             if (cmp == 0) return mid
             if (cmp < 0) {
                 // right

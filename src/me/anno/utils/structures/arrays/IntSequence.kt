@@ -17,6 +17,8 @@ interface IntSequence {
      */
     operator fun get(index: Int): Int
 
+    fun getOrNull(index: Int): Int?
+
     /**
      * Returns a new character sequence that is a subsequence of this character sequence,
      * starting at the specified [startIndex] and ending right before the specified [endIndex].

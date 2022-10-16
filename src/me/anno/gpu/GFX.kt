@@ -163,7 +163,7 @@ object GFX {
         }
     }
 
-    inline fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
+    fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
         // from the bottom to the top
         check()
         if (w < 1 || h < 1) throw RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
@@ -174,8 +174,8 @@ object GFX {
         }
     }
 
-    inline fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) = clip(x0, y0, x1 - x0, y1 - y0, render)
-    inline fun clip2Save(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
+    fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) = clip(x0, y0, x1 - x0, y1 - y0, render)
+    fun clip2Save(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
         val w = x1 - x0
         val h = y1 - y0
         if (w > 0 && h > 0) {
@@ -183,7 +183,7 @@ object GFX {
         }
     }
 
-    inline fun clip2Dual(
+    fun clip2Dual(
         x0: Int, y0: Int, x1: Int, y1: Int,
         x2: Int, y2: Int, x3: Int, y3: Int,
         render: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit

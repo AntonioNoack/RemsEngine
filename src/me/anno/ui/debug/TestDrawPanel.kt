@@ -5,7 +5,6 @@ import me.anno.input.Input
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI
-import org.joml.Vector2f
 import org.lwjgl.glfw.GLFW.GLFW_KEY_V
 
 /**
@@ -59,6 +58,14 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
     companion object {
         fun testDrawing(draw: (p: TestDrawPanel) -> Unit) {
             testUI { TestDrawPanel(draw) }
+        }
+
+        fun testDrawing(init: (p: TestDrawPanel) -> Unit, draw: (p: TestDrawPanel) -> Unit) {
+            testUI {
+                val panel = TestDrawPanel(draw)
+                init(panel)
+                panel
+            }
         }
     }
 }

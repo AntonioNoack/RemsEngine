@@ -21,7 +21,7 @@ object Texture3DBTv2Shader : BlockTracedShader("3dTex-rt") {
     }
 
     override fun initProperties(instanced: Boolean): String {
-        return "vec4 totalColor = vec4(1.0);\n"
+        return "vec4 totalColor = vec4(0.0);\n"
     }
 
     override fun processBlock(instanced: Boolean): String {
@@ -34,7 +34,7 @@ object Texture3DBTv2Shader : BlockTracedShader("3dTex-rt") {
     }
 
     override fun onFinish(instanced: Boolean): String {
-        return "//if(totalColor.a <= 0.0) discard;\n"
+        return "if(totalColor.a <= 0.0) discard;\n"
     }
 
     override fun computeMaterialProperties(instanced: Boolean): String {

@@ -5,7 +5,10 @@ import me.anno.fonts.FontManager.TextCache
 import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.OpenGLBuffer
-import me.anno.gpu.framebuffer.*
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
@@ -194,94 +197,62 @@ object GFXState {
         }
     }
 
-    inline fun useFrame(
+    fun useFrame(
         buffer: IFramebuffer,
         renderer: Renderer,
         render: () -> Unit
     ) = useFrame(0, 0, -1, -1, buffer, renderer, render)
 
-    inline fun useFrame(
+    fun useFrame(
         x: Int, y: Int, w: Int, h: Int,
-        buffer: IFramebuffer,
-        renderer: Renderer,
-        render: () -> Unit
+        buffer: IFramebuffer, renderer: Renderer, render: () -> Unit
+    ) = useFrame(x, y, w, h, false, buffer, renderer, render)
+
+    private fun useFrame(
+        x: Int, y: Int, w: Int, h: Int, changeSize: Boolean,
+        buffer: IFramebuffer, renderer: Renderer, render: () -> Unit
     ) {
         val index = framebuffer.size
         xs[index] = x
         ys[index] = y
         ws[index] = w
         hs[index] = h
-        changeSizes[index] = false
-        // todo depth must be cleared only once
-        if (buffer is MultiFramebuffer) {
-            val targets = buffer.targetsI
-            for (targetIndex in targets.indices) {
-                val target = targets[targetIndex]
-                // split renderer by targets
-                renderers[index] = renderer.split(targetIndex, buffer.div)
-                framebuffer.use(target, render)
-            }
-        } else {
-            renderers[index] = renderer
-            framebuffer.use(buffer, render)
-        }
+        changeSizes[index] = changeSize
+        // todo depth must maybe be cleared only once
+        buffer.use(index, renderer, render)
     }
 
-    inline fun useFrame(renderer: Renderer, render: () -> Unit) =
+    fun useFrame(renderer: Renderer, render: () -> Unit) =
         useFrame(currentBuffer, renderer, render)
 
-    inline fun useFrame(buffer: IFramebuffer, render: () -> Unit) =
+    fun useFrame(buffer: IFramebuffer, render: () -> Unit) =
         useFrame(buffer, currentRenderer, render)
 
-    inline fun useFrame(
-        w: Int,
-        h: Int,
-        changeSize: Boolean,
-        buffer: IFramebuffer,
-        renderer: Renderer,
-        render: () -> Unit
-    ) {
-        val index = framebuffer.size
-        xs[index] = 0
-        ys[index] = 0
-        ws[index] = w
-        hs[index] = h
-        changeSizes[index] = changeSize
-        // todo depth must be cleared only once
-        if (buffer is MultiFramebuffer) {
-            val targets = buffer.targetsI
-            for (targetIndex in targets.indices) {
-                val target = targets[targetIndex]
-                // split renderer by targets
-                renderers[index] = renderer.split(targetIndex, buffer.div)
-                framebuffer.use(target, render)
-            }
-        } else {
-            renderers[index] = renderer
-            framebuffer.use(buffer, render)
-        }
-    } //= useFrame(0, 0, w, h, changeSize, buffer, renderer, render)
+    fun useFrame(
+        w: Int, h: Int, changeSize: Boolean,
+        buffer: IFramebuffer, renderer: Renderer, render: () -> Unit
+    ) = useFrame(0, 0, w, h, changeSize, buffer, renderer, render)
 
-    inline fun useFrame(w: Int, h: Int, changeSize: Boolean, buffer: IFramebuffer, render: () -> Unit) =
+    fun useFrame(w: Int, h: Int, changeSize: Boolean, buffer: IFramebuffer, render: () -> Unit) =
         useFrame(w, h, changeSize, buffer, currentRenderer, render)
 
-    inline fun useFrame(w: Int, h: Int, changeSize: Boolean, render: () -> Unit) =
+    fun useFrame(w: Int, h: Int, changeSize: Boolean, render: () -> Unit) =
         useFrame(w, h, changeSize, currentBuffer, currentRenderer, render)
 
-    inline fun useFrame(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) =
+    fun useFrame(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) =
         useFrame(x, y, w, h, currentBuffer, currentRenderer, render)
 
-    inline fun useFrame(
+    fun useFrame(
         x: Int, y: Int, w: Int, h: Int,
         buffer: IFramebuffer, render: () -> Unit
     ) = useFrame(x, y, w, h, buffer, currentRenderer, render)
 
-    inline fun useFrame(
+    fun useFrame(
         w: Int, h: Int, changeSize: Boolean,
         renderer: Renderer, render: () -> Unit
     ) = useFrame(w, h, changeSize, currentBuffer, renderer, render)
 
-    inline fun useFrame(
+    fun useFrame(
         x: Int, y: Int, w: Int, h: Int,
         renderer: Renderer, render: () -> Unit
     ) = useFrame(x, y, w, h, currentBuffer, renderer, render)

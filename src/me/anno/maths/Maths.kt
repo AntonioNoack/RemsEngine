@@ -51,6 +51,9 @@ object Maths {
     fun clamp(x: Double) = if (x < 0.0) 0.0 else if (x < 1.0) x else 1.0
     fun clamp(x: Float) = if (x < 0f) 0f else if (x < 1f) x else 1f
 
+    fun cbrt(x: Float) = Math.cbrt(x.toDouble()).toFloat()
+    fun cbrt(x: Double) = Math.cbrt(x)
+
     private val randomInst = Random(System.nanoTime())
     fun random(): Double = synchronized(randomInst) { randomInst.nextDouble() }
 
