@@ -37,6 +37,7 @@ open class Texture3D(
     constructor(name: String, img: BufferedImage, depth: Int) : this(name, img.width / depth, img.height, depth) {
         create(img, true)
         filtering(filtering)
+        clamping(clamping)
     }
 
     var pointer = -1
@@ -45,6 +46,7 @@ open class Texture3D(
     var isCreated = false
     var isDestroyed = false
     var filtering = GPUFiltering.NEAREST
+    var clamping = Clamping.CLAMP
 
     var locallyAllocated = 0L
 
@@ -85,6 +87,7 @@ open class Texture3D(
         this.internalFormat = internalFormat
         locallyAllocated = allocate(locallyAllocated, w.toLong() * h.toLong() * d.toLong() * bpp)
         filtering(filtering)
+        clamping(clamping)
         isHDR = hdr
         GFX.check()
         when (internalFormat) {
@@ -268,8 +271,9 @@ open class Texture3D(
         afterUpload(GL_RGBA8, 4, false)
     }
 
-    fun ensureFiltering(nearest: GPUFiltering) {
+    fun ensureFiltering(nearest: GPUFiltering, clamping: Clamping) {
         if (nearest != filtering) filtering(nearest)
+        if (clamping != this.clamping) clamping(clamping)
     }
 
     fun filtering(nearest: GPUFiltering) {
@@ -283,12 +287,12 @@ open class Texture3D(
         filtering = nearest
     }
 
-    // todo full clamping support
-    fun clamping(repeat: Boolean) {
-        val type = if (repeat) GL_REPEAT else GL_CLAMP_TO_EDGE
+    fun clamping(clamping: Clamping) {
+        val type = clamping.mode
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, type)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, type)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, type)
+        this.clamping = clamping
     }
 
     private fun forceBind() {
@@ -297,21 +301,17 @@ open class Texture3D(
     }
 
     fun bind(index: Int) {
-        bind(index, filtering)
-    }
-
-    open fun bind(index: Int, filtering: GPUFiltering) {
-        activeSlot(index)
-        if (pointer > -1 && isCreated) {
-            bindTexture(GL_TEXTURE_3D, pointer)
-            ensureFiltering(filtering)
-        } else {
-            invisibleTex3d.bind(index, GPUFiltering.LINEAR)
-        }
+        bind(index, filtering, clamping)
     }
 
     override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
-        bind(index, filtering)
+        activeSlot(index)
+        if (pointer > -1 && isCreated) {
+            bindTexture(GL_TEXTURE_3D, pointer)
+            ensureFiltering(filtering, clamping)
+        } else {
+            invisibleTex3d.bind(index, GPUFiltering.LINEAR, Clamping.CLAMP)
+        }
         return true
     }
 

@@ -17,11 +17,13 @@ object Texture3DBTv2Shader : BlockTracedShader("3dTex-rt") {
     ): ArrayList<Variable> {
         val base = super.createFragmentVariables(isInstanced, isAnimated, motionVectors)
         base += Variable(GLSLType.S3D, "blocksTexture")
+        base += Variable(GLSLType.V1B, "skipByRGB")
         return base
     }
 
     override fun initProperties(instanced: Boolean): String {
-        return "vec4 totalColor = vec4(0.0);\n"
+        return "vec4 totalColor = vec4(0.0);\n" +
+                "float skippingFactor = 147.2;\n" // 255/sqrt3
     }
 
     override fun processBlock(instanced: Boolean): String {
@@ -30,7 +32,10 @@ object Texture3DBTv2Shader : BlockTracedShader("3dTex-rt") {
                 "float effect = min(blockColor.a, 1.0-totalColor.a);\n" +
                 "totalColor += vec4(blockColor.rgb * effect, effect);\n" +
                 "continueTracing = (totalColor.a < 0.99);\n" +
-                "setNormal = totalColor.a == 0.0;\n"
+                "setNormal = totalColor.a == 0.0;\n" +
+                "if(skipByRGB && totalColor.a <= 0.0){\n" +
+                "   skippingDist = blockColor.x * skippingFactor - 1.0;\n" +
+                "}\n"
     }
 
     override fun onFinish(instanced: Boolean): String {

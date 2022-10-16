@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.ManualProceduralMesh
 import me.anno.ecs.components.shaders.CuboidMesh
 import me.anno.ecs.components.shaders.Texture3DBTMaterial
 import me.anno.ecs.components.shaders.Texture3DBTv2Material
+import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture3D
 import me.anno.maths.noise.FullNoise
 import me.anno.maths.noise.PerlinNoise
@@ -104,7 +105,7 @@ object TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
     fun createRaytracingMesh(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): CuboidMesh {
         val texture = Texture3D("blocks", sx, sy, sz)
         texture.createMonochrome { x, y, z -> getElementAt(x0 + x, y0 + y, z0 + z) }
-        texture.clamping(false)
+        texture.clamping(Clamping.CLAMP)
         val material = Texture3DBTMaterial()
         material.color0 = dirtColor.toVecRGB()
         material.color1 = grassColor.toVecRGB()
@@ -123,7 +124,7 @@ object TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
             palette[getElementAt(x0 + x, y0 + y, z0 + z)
                 .toInt().and(255)]
         }
-        texture.clamping(false)
+        texture.clamping(Clamping.CLAMP)
         val material = Texture3DBTv2Material()
         material.blocks = texture
 

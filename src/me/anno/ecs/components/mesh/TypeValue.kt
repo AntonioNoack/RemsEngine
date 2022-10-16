@@ -78,7 +78,7 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
             GLSLType.S3D -> {
                 value as Texture3D
                 if (value.isCreated) {
-                    value.bind(location, value.filtering)
+                    value.bind(location, value.filtering, value.clamping)
                 } else {
                     whiteTex3d.bind(location)
                     LOGGER.warn("Texture ${value.name} has not been created")

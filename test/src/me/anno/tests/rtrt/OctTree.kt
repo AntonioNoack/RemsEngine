@@ -1,6 +1,5 @@
 package me.anno.tests.rtrt
 
-import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
@@ -24,14 +23,22 @@ import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.cbrt
 import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.mesh.Shapes.smoothCube
+import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
-import org.joml.*
+import org.joml.AABBf
+import org.joml.Matrix4f
+import org.joml.Vector3f
+import org.joml.Vector3i
 import kotlin.math.ceil
 import kotlin.math.pow
+
+// interesting applications for oct-trees:
+// https://developer.nvidia.com/gpugems/gpugems2/part-v-image-oriented-computing/chapter-37-octree-textures-gpu
 
 fun meshToVoxels(
     mesh: Mesh, renderer: Renderer, blocksX: Int, blocksY: Int, blocksZ: Int,
@@ -47,6 +54,27 @@ fun meshToVoxels(
     dataXYZ.destroyExceptTextures(false)
     return tex
 }
+
+val mergeChannelsShader = ComputeShader(
+    "merge-channels", Vector3i(8, 8, 8), "" +
+            "layout(rgba8, binding = 0) uniform image3D xyz;\n" +
+            "layout(rgba8, binding = 1) uniform image3D zyx;\n" +
+            "layout(rgba8, binding = 2) uniform image3D xzy;\n" +
+            "layout(rgba8, binding = 3) uniform image3D dst;\n" +
+            "uniform ivec3 size;\n" +
+            "void main(){\n" +
+            "   ivec3 uvw = ivec3(gl_GlobalInvocationID);\n" +
+            "   if(all(lessThan(uvw, size))) {\n" +
+            // todo better max function: use max by alpha, not combine all colors
+            // it could introduce wrong colors, e.g. max(red, blue) should not become violet
+            "       imageStore(dst, uvw, max(max(\n" +
+            "           imageLoad(xyz, uvw),\n" +
+            "           imageLoad(zyx, ivec3(size.z-1-uvw.z,uvw.y,uvw.x))),\n" +
+            "           imageLoad(xzy, ivec3(uvw.x,size.z-1-uvw.z,size.y-1-uvw.y))\n" +
+            "       ));\n" +
+            "   }\n" +
+            "}\n"
+)
 
 fun meshToSeparatedVoxels(
     mesh: Mesh, renderer: Renderer,
@@ -119,24 +147,51 @@ fun meshToSeparatedVoxels(
 
 }
 
-val mergeChannels = ComputeShader(
-    "oct-tree", Vector3i(8, 8, 8), "" +
-            "layout(rgba8, binding = 0) uniform image3D xyz;\n" +
-            "layout(rgba8, binding = 1) uniform image3D zyx;\n" +
-            "layout(rgba8, binding = 2) uniform image3D xzy;\n" +
-            "layout(rgba8, binding = 3) uniform image3D dst;\n" +
+val skipDistanceShader = ComputeShader(
+    "skip-distances", Vector3i(8, 8, 8), "" +
+            "layout(rgba8, binding = 0) uniform image3D data;\n" +
             "uniform ivec3 size;\n" +
+            "#define s 0.003921569\n" +
+            "float read(ivec3 coords){\n" +
+            "   if(all(greaterThanEqual(coords,ivec3(0))) && all(lessThan(coords,size))){\n" +
+            "       vec4 v = imageLoad(data, coords);\n" +
+            "       if(v.a > 0.0){\n" +
+            "           return -s;\n" +
+            "       } else {\n" +
+            "           return v.x;\n" +
+            "       }\n" +
+            "   } else return 1.0;\n" +
+            "}\n" +
             "void main(){\n" +
             "   ivec3 uvw = ivec3(gl_GlobalInvocationID);\n" +
             "   if(all(lessThan(uvw, size))) {\n" +
-            "       imageStore(dst, uvw, max(max(\n" +
-            "           imageLoad(xyz, uvw),\n" +
-            "           imageLoad(zyx, ivec3(size.z-1-uvw.z,uvw.y,uvw.x))),\n" +
-            "           imageLoad(xzy, ivec3(uvw.x,size.z-1-uvw.z,size.y-1-uvw.y))\n" +
-            "       ));\n" +
+            "       vec4 v = imageLoad(data, uvw);\n" +
+            "       if(v.a <= 0.0){\n" +
+            "           float w = v.x;\n" +
+            "           w = min(w, read(uvw+ivec3(1,0,0)));\n" +
+            "           w = min(w, read(uvw-ivec3(1,0,0)));\n" +
+            "           w = min(w, read(uvw+ivec3(0,1,0)));\n" +
+            "           w = min(w, read(uvw-ivec3(0,1,0)));\n" +
+            "           w = min(w, read(uvw+ivec3(0,0,1)));\n" +
+            "           w = min(w, read(uvw-ivec3(0,0,1)));\n" +
+            "           w += s;\n" +
+            "           imageStore(data, uvw, vec4(clamp(w, 0.0, 1.0), 0.0, 0.0, 0.0));\n" +
+            "       }\n" +
             "   }\n" +
             "}\n"
 )
+
+fun calculateSkipDistances(data: Texture3D) {
+    val shader = skipDistanceShader
+    shader.use()
+    shader.v3i("size", data.w, data.h, data.d)
+    shader.bindTexture(0, data, ComputeTextureMode.READ_WRITE)
+    for (i in 0 until min(max(max(data.w, data.h), data.d) / 2, 255)) {
+        shader.runBySize(data.w, data.h, data.d)
+        // is this correct / needed? idk...
+        // glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT)
+    }
+}
 
 fun mergeChannels(
     blocksX: Int, blocksY: Int, blocksZ: Int,
@@ -146,7 +201,7 @@ fun mergeChannels(
     dst: Texture3D = dataXYZ
 ): Texture3D {
     // merge all channels
-    val shader = mergeChannels.apply { }
+    val shader = mergeChannelsShader.apply { }
     shader.use()
     shader.v3i("size", blocksX, blocksY, blocksZ)
     shader.bindTexture(0, dataXYZ, ComputeTextureMode.READ)
@@ -202,71 +257,7 @@ fun main() {
 
     println("size: $blocksX x $blocksY x $blocksZ")
 
-    val dataXYZ = Framebuffer3D("3d", blocksX, blocksY, blocksZ, arrayOf(TargetType.UByteTarget4), DepthBufferType.NONE)
-    val dataZYX = Framebuffer3D("3d", blocksZ, blocksY, blocksX, arrayOf(TargetType.UByteTarget4), DepthBufferType.NONE)
-    val dataXZY = Framebuffer3D("3d", blocksX, blocksZ, blocksY, arrayOf(TargetType.UByteTarget4), DepthBufferType.NONE)
-
-    val transform = Matrix4f()
-
-    fun rasterize() {
-        // goal: rasterize into cubes quickly
-        // strategy: draw slices onto textures, which then are part of a 3d texture
-        // https://stackoverflow.com/questions/17504750/opengl-how-to-render-object-to-3d-texture-as-a-volumetric-billboard
-        // draw mesh for XYZ, YZX, ZXY
-        // sample code for xyz:
-        val renderer = attributeRenderers[DeferredLayerType.COLOR]
-        fun drawMesh() {
-            for (i in 0 until mesh.numMaterials) {
-                // find shader
-                val material = MaterialCache[mesh.materials.getOrNull(i)] ?: defaultMaterial
-                val shader = (material.shader ?: pbrModelShader).value
-                shader.use()
-                // bind & prepare shader
-                shader.m4x4("transform", transform)
-                shader.m4x3("localTransform", null)
-                shader.m4x3("invLocalTransform", null)
-                material.bind(shader)
-                // draw mesh
-                mesh.draw(shader, i)
-            }
-        }
-        GFXState.depthMode.use(DepthMode.ALWAYS11) {
-            waitForTextures(mesh, file)
-            val clock = Clock()
-            val invX = 1f / blocksX
-            val invY = 1f / blocksY
-            val invZ = 1f / blocksZ
-            dataXYZ.draw(renderer) { z ->
-                dataXYZ.clearColor(0)
-                val min = -mix(bounds.minZ, bounds.maxZ, z * invZ)
-                val max = -mix(bounds.minZ, bounds.maxZ, (z + 1) * invZ)
-                transform.identity()
-                transform.ortho(bounds.minX, bounds.maxX, bounds.minY, bounds.maxY, min, max)
-                drawMesh()
-            }
-            dataZYX.draw(renderer) { x ->
-                dataZYX.clearColor(0)
-                val min = mix(bounds.minX, bounds.maxX, x * invX)
-                val max = mix(bounds.minX, bounds.maxX, (x + 1) * invX)
-                transform.identity()
-                transform.rotateY(PIf / 2f)
-                transform.ortho(min, max, bounds.minY, bounds.maxY, -bounds.maxZ, -bounds.minZ)
-                drawMesh()
-            }
-            dataXZY.draw(renderer) { y ->
-                dataXZY.clearColor(0)
-                val min = mix(bounds.maxY, bounds.minY, y * invY)
-                val max = mix(bounds.maxY, bounds.minY, (y + 1) * invY)
-                transform.identity()
-                transform.rotateX(PIf / 2f)
-                transform.ortho(bounds.minX, bounds.maxX, min, max, -bounds.minZ, -bounds.maxZ)
-                drawMesh()
-            }
-            clock.stop("Mesh -> Dense Voxels")
-        }
-    }
-
-    val buildOctTree = ComputeShader(
+    /*val buildOctTree = ComputeShader(
         "oct-tree", Vector3i(8, 8, 8), "" +
                 "readonly sampler3D xyz, yzx, zxy;\n" +
                 "" +
@@ -291,29 +282,36 @@ fun main() {
 
         shader.runBySize(blocksX, blocksY, blocksZ)
         // todo finally render using this oct-tree
-    }
+    }*/
+
+    // other optimization: use r/g/b in transparent pixels to encode distance to the closest wall -> massive speed up to traversal :)
 
     // draw using dense voxels
     testUI {
-        rasterize()
-        val entity = Entity()
-        fun add(data: Texture3D, rotation: Quaterniond?) {
-            val mesh1 = smoothCube.scaled(Vector3f(data.w / 2f, data.h / 2f, data.d / 2f)).back
-            val comp = MeshComponent(mesh1.ref)
-            val mat = Texture3DBTv2Material()
-            mat.blocks = data
-            comp.materials = listOf(mat.ref)
-            if (rotation != null) {
-                val child = Entity()
-                entity.add(child)
-                child.add(comp)
-                child.transform.localRotation = rotation
-            } else entity.add(comp)
+
+        // to measure performance
+        StudioBase.instance?.enableVSync = false
+
+        val renderer = attributeRenderers[DeferredLayerType.COLOR]
+
+        val data = meshToVoxels(mesh, renderer, blocksX, blocksY, blocksZ, true)
+        val mesh1 = smoothCube.scaled(Vector3f(data.w / 2f, data.h / 2f, data.d / 2f)).back
+        val comp = MeshComponent(mesh1.ref)
+        val mat = Texture3DBTv2Material()
+
+        val skipByRGB = true
+        // helmet at 512 resolution (511 x 487 x 541) ; RTX 3070 on square section of 1080p
+        // false -> ~200 fps
+        // true -> ~390 fps :3
+
+        if (skipByRGB) {
+            calculateSkipDistances(data)
         }
-        // add(dataXYZ.getTexture0(), null)
-        // add(dataZYX.getTexture0(), Quaterniond().rotateY(PI / 2))
-        // add(dataXZY.getTexture0(), Quaterniond().rotateX(PI / 2))
-        add(mergeChannels(dataXYZ, dataZYX, dataXZY), null)
-        testScene(entity)
+
+        mat.blocks = data
+        mat.skipByRGB = skipByRGB
+        comp.materials = listOf(mat.ref)
+
+        testScene(comp)
     }
 }

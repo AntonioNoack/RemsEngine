@@ -79,9 +79,9 @@ object TextureLib {
             }
         }
 
-        override fun bind(index: Int, filtering: GPUFiltering) {
+        override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
             checkExistence()
-            super.bind(index, filtering)
+            return super.bind(index, filtering, clamping)
         }
 
     }

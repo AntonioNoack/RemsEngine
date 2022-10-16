@@ -182,12 +182,12 @@ class Framebuffer3D(
     }
 
     override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
-        textures[index].bind(offset, nearest)
+        textures[index].bind(offset, nearest, clamping)
     }
 
     override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
         for (index in textures.indices) {
-            textures[index].bind(index + offset, nearest)
+            textures[index].bind(index + offset, nearest, clamping)
         }
     }
 
@@ -237,9 +237,9 @@ class Framebuffer3D(
             ssBuffer = null
             destroy()
         } else {*/
-            destroyFramebuffer()
-            destroyInternalDepth()
-            if (deleteDepth) destroyDepthTexture()
+        destroyFramebuffer()
+        destroyInternalDepth()
+        if (deleteDepth) destroyDepthTexture()
         //}
     }
 

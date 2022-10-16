@@ -3,6 +3,7 @@ package me.anno.ecs.components.shaders
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTex3d
@@ -16,6 +17,8 @@ import org.joml.Vector3i
 class Texture3DBTv2Material : Material() {
 
     val size = Vector3i(1)
+
+    var skipByRGB = false
 
     var blocks: Texture3D? = null
         set(value) {
@@ -34,13 +37,14 @@ class Texture3DBTv2Material : Material() {
         val ti = shader.getTextureIndex("blocksTexture")
         val blocks = blocks
         if (ti >= 0) {
-            if (blocks != null) blocks.bind(ti, GPUFiltering.TRULY_NEAREST)
-            else whiteTex3d.bind(ti, GPUFiltering.TRULY_NEAREST)
+            if (blocks != null) blocks.bind(ti, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            else whiteTex3d.bind(ti, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
         }
         shader.v3i("bounds", size)
         // max amount of blocks that can be traversed
         val maxSteps = max(1, size.x + size.y + size.z)
         shader.v1i("maxSteps", maxSteps)
+        shader.v1b("skipByRGB", skipByRGB)
     }
 
     override fun clone(): Texture3DBTv2Material {
@@ -53,6 +57,7 @@ class Texture3DBTv2Material : Material() {
         super.copy(clone)
         clone as Texture3DBTv2Material
         clone.size.set(size)
+        clone.skipByRGB = skipByRGB
         // texture cannot be simply copied
     }
 

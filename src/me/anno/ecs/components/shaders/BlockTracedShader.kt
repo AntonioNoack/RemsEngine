@@ -83,7 +83,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     // step by step define all material properties
                     "if(!gl_FrontFacing) discard;\n" +
                     "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
-                    "vec3 bounds1 = vec3(bounds-1);\n" +
+                    "vec3 bounds1 = vec3(bounds-1.0);\n" +
                     // start our ray on the surface of the cube: we don't need to project the ray onto the box
                     "vec3 dir = normalize(mat3x3(invLocalTransform) * finalPosition);\n" +
                     // "vec3 dir = normalize(finalPosition);\n" +
@@ -95,34 +95,39 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     "vec3 localStart = -(mat3x3(invLocalTransform) * vec3(localTransform[3][0],localTransform[3][1],localTransform[3][2])/worldScale);\n" +
                     // start from camera, and project onto front sides
                     // for proper rendering, we need to use the backsides, and therefore we project the ray from the back onto the front
-                    "vec3 dtf3 = (sign(dir) * halfBounds + localStart) / dir;\n" +
+                    "vec3 dirSign = sign(dir);\n" +
+                    "vec3 dtf3 = (dirSign * halfBounds + localStart) / dir;\n" +
                     "float dtf = min(min(dtf3.x, min(dtf3.y, dtf3.z)), 0.0);\n" +
                     "localStart += -dtf * dir + halfBounds;\n" +
-                    "vec3 position = localStart;\n" +
-                    "vec3 blockPosition = clamp(floor(position), vec3(0.0), bounds1);\n" +
-                    "vec3 fractXYZ = position - blockPosition;\n" +
-                    "vec3 fractOffset = sign(dir)*.5+.5;\n" +
-                    "vec3 s = (fractOffset - fractXYZ)/dir;\n" +
-                    "vec3 dn = sign(dir);\n" +
-                    "vec3 ds = dn/dir;\n" +
+                    "vec3 blockPosition = clamp(floor(localStart), vec3(0.0), bounds1);\n" +
+                    "vec3 dist3 = (dirSign*.5+.5 + blockPosition - localStart)/dir;\n" +
+                    "vec3 invUStep = dirSign/dir;\n" +
                     "float nextDist, dist = 0.0;\n" +
                     initProperties(isInstanced) +
                     "int lastNormal = dtf3.z == dtf ? 2 : dtf3.y == dtf ? 1 : 0, i;\n" +
                     "bool done = false;\n" +
                     "for(i=0;i<maxSteps;i++){\n" +
-                    "   nextDist = min(s.x, min(s.y, s.z));\n" +
+                    "   nextDist = min(dist3.x, min(dist3.y, dist3.z));\n" +
                     "   bool continueTracing = false;\n" +
                     "   bool setNormal = true;\n" +
+                    "   float skippingDist = 0.0;\n" +
                     processBlock(isInstanced) +
-                    "   if(continueTracing){\n" + // continue traversal
-                    "       if(nextDist == s.x){\n" +
-                    "           blockPosition.x += dn.x; s.x += ds.x; if(setNormal) lastNormal = 0;\n" +
+                    "   if(skippingDist >= 1.0){\n" +
+                    // skip multiple blocks; and then recalculate all necessary stats
+                    "       blockPosition = floor(localStart + dir * (dist + skippingDist));\n" +
+                    "       if(any(lessThan(blockPosition, vec3(0.0))) || any(greaterThan(blockPosition, bounds1))) break;\n" +
+                    "       dist3 = (dirSign*.5+.5 + blockPosition - localStart)/dir;\n" +
+                    "       nextDist = min(dist3.x, min(dist3.y, dist3.z));\n" +
+                    "       dist = nextDist;\n" +
+                    "   } else if(continueTracing){\n" + // continue traversal
+                    "       if(nextDist == dist3.x){\n" +
+                    "           blockPosition.x += dirSign.x; dist3.x += invUStep.x; if(setNormal) lastNormal = 0;\n" +
                     "           if(blockPosition.x < 0.0 || blockPosition.x > bounds1.x){ break; }\n" +
-                    "       } else if(nextDist == s.y){\n" +
-                    "           blockPosition.y += dn.y; s.y += ds.y; if(setNormal) lastNormal = 1;\n" +
+                    "       } else if(nextDist == dist3.y){\n" +
+                    "           blockPosition.y += dirSign.y; dist3.y += invUStep.y; if(setNormal) lastNormal = 1;\n" +
                     "           if(blockPosition.y < 0.0 || blockPosition.y > bounds1.y){ break; }\n" +
                     "       } else {\n" +
-                    "           blockPosition.z += dn.z; s.z += ds.z; if(setNormal) lastNormal = 2;\n" +
+                    "           blockPosition.z += dirSign.z; dist3.z += invUStep.z; if(setNormal) lastNormal = 2;\n" +
                     "           if(blockPosition.z < 0.0 || blockPosition.z > bounds1.z){ break; }\n" +
                     "       }\n" +
                     "       dist = nextDist;\n" +
@@ -131,9 +136,9 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                     onFinish(isInstanced) +
                     // compute normal
                     "vec3 localNormal = vec3(0.0);\n" +
-                    "if(lastNormal == 0){ localNormal.x = -dn.x; } else\n" +
-                    "if(lastNormal == 1){ localNormal.y = -dn.y; }\n" +
-                    "else {               localNormal.z = -dn.z; }\n" +
+                    "if(lastNormal == 0){ localNormal.x = -dirSign.x; } else\n" +
+                    "if(lastNormal == 1){ localNormal.y = -dirSign.y; }\n" +
+                    "else {               localNormal.z = -dirSign.z; }\n" +
                     "finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
                     "finalTangent = finalBitangent = vec3(0.0);\n" +
                     "mat3x3 tbn = mat3x3(finalTangent,finalBitangent,finalNormal);\n" +
