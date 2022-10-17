@@ -299,17 +299,17 @@ fun main() {
         val comp = MeshComponent(mesh1.ref)
         val mat = Texture3DBTv2Material()
 
-        val skipByRGB = true
+        val useSDF = true
         // helmet at 512 resolution (511 x 487 x 541) ; RTX 3070 on square section of 1080p
         // false -> ~200 fps
         // true -> ~390 fps :3
 
-        if (skipByRGB) {
+        if (useSDF) {
             calculateSkipDistances(data)
         }
 
         mat.blocks = data
-        mat.skipByRGB = skipByRGB
+        mat.useSDF = useSDF
         comp.materials = listOf(mat.ref)
 
         testScene(comp)

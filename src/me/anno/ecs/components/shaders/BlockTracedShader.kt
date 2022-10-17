@@ -78,8 +78,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
 
     override fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): ShaderStage {
         return ShaderStage(
-            // todo this flickering randomly, even without discard, why??
-            "material", createFragmentVariables(isInstanced, isAnimated, motionVectors), "" +
+            "block-traced shader", createFragmentVariables(isInstanced, isAnimated, motionVectors), "" +
                     // step by step define all material properties
                     "if(!gl_FrontFacing) discard;\n" +
                     "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +

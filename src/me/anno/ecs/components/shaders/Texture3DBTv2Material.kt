@@ -18,7 +18,7 @@ class Texture3DBTv2Material : Material() {
 
     val size = Vector3i(1)
 
-    var skipByRGB = false
+    var useSDF = false
 
     var blocks: Texture3D? = null
         set(value) {
@@ -44,7 +44,7 @@ class Texture3DBTv2Material : Material() {
         // max amount of blocks that can be traversed
         val maxSteps = max(1, size.x + size.y + size.z)
         shader.v1i("maxSteps", maxSteps)
-        shader.v1b("skipByRGB", skipByRGB)
+        shader.v1b("useSDF", useSDF)
     }
 
     override fun clone(): Texture3DBTv2Material {
@@ -57,7 +57,7 @@ class Texture3DBTv2Material : Material() {
         super.copy(clone)
         clone as Texture3DBTv2Material
         clone.size.set(size)
-        clone.skipByRGB = skipByRGB
+        clone.useSDF = useSDF
         // texture cannot be simply copied
     }
 
