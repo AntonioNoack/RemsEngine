@@ -27,7 +27,7 @@ open class Graph : PrefabSaveable() {
     var outputs = ArrayList<Node>()
 
     // nodes without connections
-    // could be all nodes as well, wouldn't really hurt space, because we save pointers anyways
+    // could be all nodes as well, wouldn't really hurt space, because we save pointers anyway
     var nodes = ArrayList<Node>()
 
     fun addAll(nodes: List<Node>) {

@@ -69,7 +69,7 @@ class NodePanel(
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
 
         // calculate how many lines, and space we need;
-        // base that calculation on w maybe
+        // base calculation on w maybe
 
         backgroundRadius = w / 10f
 
@@ -123,8 +123,7 @@ class NodePanel(
         }
         yi -= titleOffset
         // calculate positions for connectors
-        placeConnectors(node.inputs, yi, gp.windowToCoordsX(this.x + baseTextSize))
-        placeConnectors(node.outputs, yi, gp.windowToCoordsX(this.x + this.w - baseTextSize))
+        placeConnectors()
         // place all input fields to the correct position
         val baseTextSize = baseTextSize.toInt()
         if (inputFields.isNotEmpty()) for ((key, panel) in inputFields) {
@@ -161,6 +160,15 @@ class NodePanel(
         for ((index, con) in connectors.withIndex()) {
             con.position.set(x, gp.windowToCoordsY(y + (index + 1.5) * baseTextSize * (1.0 + lineSpacing)), 0.0)
         }
+    }
+
+    fun placeConnectors() {
+        var yi = this.y
+        for (i in 0 until customLayoutEndIndex) {
+            yi += children[i].minH
+        }
+        placeConnectors(node.inputs, yi, gp.windowToCoordsX(this.x + baseTextSize))
+        placeConnectors(node.outputs, yi, gp.windowToCoordsX(this.x + this.w - baseTextSize))
     }
 
     var titleWidth = 0
@@ -361,17 +369,7 @@ class NodePanel(
                 if (con1 in con0) {
                     con0.disconnect(con1)
                 } else {
-                    // todo only connect, if types are compatible (flow only to flow)
-                    val input = if (con0 is NodeInput) con0 else con1
-                    val output = if (con0 === input) con1 else con0
-                    // only connect, if connection is supported, otherwise replace
-                    if (!input.isEmpty() && !input.node!!.supportsMultipleInputs(input)) {
-                        input.disconnectAll()
-                    }
-                    if (!output.isEnabled && !output.node!!.supportsMultipleOutputs(output)) {
-                        output.disconnectAll()
-                    }
-                    con0.connect(con1)
+                    connect(con0, con1)
                 }
             }
             con0 != null && con1 != null && con0 !== con1 /* && con0.node == con1.node */ -> {
@@ -392,11 +390,35 @@ class NodePanel(
                 // loosen this connection
                 con0.disconnectAll()
             }
+            con0 != null -> {
+                // open new node menu, and then connect them automatically
+                gp.openNewNodeMenu {
+                    val base = if (con0 is NodeInput) it.outputs else it.inputs
+                    val newCon = base?.firstOrNull()
+                    if (newCon != null) {
+                        connect(con0, newCon)
+                    }
+                }
+            }
             else -> super.onMouseUp(x, y, button)
         }
         isDragged = false
         gp.dragged = null
         gp.invalidateDrawing()
+    }
+
+    fun connect(con0: NodeConnector, con1: NodeConnector) {
+        // todo only connect, if types are compatible (flow only to flow)
+        val input = if (con0 is NodeInput) con0 else con1
+        val output = if (con0 === input) con1 else con0
+        // only connect, if connection is supported, otherwise replace
+        if (!input.isEmpty() && !input.node!!.supportsMultipleInputs(input)) {
+            input.disconnectAll()
+        }
+        if (!output.isEnabled && !output.node!!.supportsMultipleOutputs(output)) {
+            output.disconnectAll()
+        }
+        con0.connect(con1)
     }
 
     override fun onDeleteKey(x: Float, y: Float) {

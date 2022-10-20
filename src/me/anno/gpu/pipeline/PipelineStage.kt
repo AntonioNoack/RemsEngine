@@ -725,6 +725,9 @@ class PipelineStage(
         return (material.shader ?: defaultShader).value
     }
 
+    fun clone() =
+        PipelineStage(name, sorting, maxNumberOfLights, blendMode, depthMode, writeDepth, cullMode, defaultShader)
+
     override val className = "PipelineStage"
     override val approxSize: Int = 5
     override fun isDefaultValue(): Boolean = false

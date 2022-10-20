@@ -118,18 +118,18 @@ abstract class Node() : PrefabSaveable() {
         connectTo(0, otherNode, 0)
     }
 
-    fun connectTo(otherNode: Node, othersInputIndex: Int) {
-        connectTo(0, otherNode, othersInputIndex)
+    fun connectTo(otherNode: Node, inputIndex: Int) {
+        connectTo(0, otherNode, inputIndex)
     }
 
-    fun connectTo(outputIndex: Int, otherNode: Node, othersInputIndex: Int) {
+    fun connectTo(outputIndex: Int, otherNode: Node, inputIndex: Int) {
 
         val output = outputs!![outputIndex]
         // todo check if the node connector can have multiple outputs
         // flow only can have one,
         // values can have many
 
-        val input = otherNode.inputs!![othersInputIndex]
+        val input = otherNode.inputs!![inputIndex]
         // todo check if the node connector can have multiple inputs
         // flow can have many,
         // values only can have one

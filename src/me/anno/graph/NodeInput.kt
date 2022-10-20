@@ -1,11 +1,14 @@
 package me.anno.graph
 
+import me.anno.gpu.texture.ITexture2D
+import me.anno.graph.render.Texture
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.AnyToLong
+import org.joml.Vector4f
 
 class NodeInput : NodeConnector {
 
@@ -59,6 +62,14 @@ class NodeInput : NodeConnector {
                 is String -> v.isNotEmpty()
                 is Boolean -> v
                 else -> v != null
+            }
+            "Texture" -> when (val v = value) {
+                is ITexture2D -> Texture(v)
+                is Vector4f -> Texture(v)
+                is Int -> Texture(v)
+                is Float -> Texture(Vector4f(v, v, v, 1f))
+                is Texture -> v
+                else -> null
             }
             else -> TODO("type $type")
         }

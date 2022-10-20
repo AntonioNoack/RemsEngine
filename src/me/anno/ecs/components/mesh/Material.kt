@@ -6,7 +6,6 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -28,8 +27,8 @@ import org.joml.Vector4f
 
 open class Material : PrefabSaveable(), Renderable {
 
-    // todo most properties here should be defined by the shader, not this class
-    // todo we then somehow must display them dynamically
+    // to do most properties here could be defined by the shader, not this class
+    // to do we then somehow would need to display them dynamically
 
     @SerializedProperty
     var linearFiltering = true
@@ -47,13 +46,13 @@ open class Material : PrefabSaveable(), Renderable {
             }
         }
 
-    // or not yet...
-    // todo this needs to be easy to change for transparency/non-transparent objects
-    @Type("PipelineStage?")
+    // todo create a standard for what which value means
+    // 0 = opaque
+    // 1 = transparent
+    // 2 = decal
     @NotSerializedProperty
-    var pipelineStage: PipelineStage? = null
+    var pipelineStage: Int = 0
 
-    // or not yet...
     @Type("BaseShader?")
     @NotSerializedProperty
     var shader: BaseShader? = null
@@ -193,7 +192,7 @@ open class Material : PrefabSaveable(), Renderable {
         worldScale: Double
     ): Int {
         val mesh = Pipeline.sampleMesh
-        val stage = pipelineStage ?: pipeline.getDefaultStage(mesh, this)
+        val stage = pipeline.findStage(mesh, this)
         val materialSource = root.ref
         mesh.material = materialSource
         stage.add(Pipeline.sampleMeshComponent, mesh, entity, 0, clickId)
@@ -246,7 +245,7 @@ open class Material : PrefabSaveable(), Renderable {
         if (this === other) return true
         if (other !is Material) return false
 
-        if (pipelineStage !== other.pipelineStage) return false
+        if (pipelineStage != other.pipelineStage) return false
         if (shader !== other.shader) return false
         if (diffuseBase != other.diffuseBase) return false
         if (diffuseMap != other.diffuseMap) return false

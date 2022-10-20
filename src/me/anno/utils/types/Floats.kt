@@ -82,6 +82,7 @@ object Floats {
     fun Float.f4s() = "% .4f".format(Locale.ENGLISH, this)
     fun Float.f3s() = "% .3f".format(Locale.ENGLISH, this)
     fun Float.f2s() = "% .2f".format(Locale.ENGLISH, this)
+    fun Float.f2x() = "% .2f".format(Locale.ENGLISH, this).replace("-0.00", " 0.00")
     fun Float.f1s() = "% .1f".format(Locale.ENGLISH, this)
 
     fun Double.f6s() = "% .6f".format(Locale.ENGLISH, this)

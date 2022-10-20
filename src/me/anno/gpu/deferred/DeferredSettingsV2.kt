@@ -17,7 +17,7 @@ class DeferredSettingsV2(
     fpLights: Boolean
 ) {
 
-    class Layer(val type: DeferredLayerType, val textureName: String, val layerIndex: Int, val mapping: String) {
+    class Layer(val type: DeferredLayerType, val textureName: String, val index: Int, val mapping: String) {
 
         fun appendMapping(fragment: StringBuilder, suffix: String, uv: String, imported: MutableSet<String>) {
             if (imported.add(textureName)) {
@@ -220,7 +220,7 @@ class DeferredSettingsV2(
     }
 
     fun findTexture(buffer: IFramebuffer, layer: Layer): ITexture2D {
-        return buffer.getTextureI(layer.layerIndex)
+        return buffer.getTextureI(layer.index)
     }
 
     fun split(index: Int, splitSize: Int): DeferredSettingsV2 {
@@ -228,7 +228,7 @@ class DeferredSettingsV2(
         val index1 = index0 + splitSize
         return DeferredSettingsV2(
             layerTypes.filter { type ->
-                findLayer(type)!!.layerIndex in index0 until index1
+                findLayer(type)!!.index in index0 until index1
             },
             settingsV1.fpLights
         )

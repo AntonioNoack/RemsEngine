@@ -28,12 +28,12 @@ import kotlin.math.min
  * */
 class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
-    data class AnimTexIndex(
+    class AnimTexIndex(
         val anim: Animation,
         val retargeting: Retargeting?,
-        val index: Int,
         val start: Int,
-        val length: Int
+        val length: Int,
+        var needsUpdate: Boolean
     )
 
     private val animationMap = HashMap<Animation, AnimTexIndex>()
@@ -49,13 +49,22 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         }
 
     fun addAnimation(anim: Animation, retargeting: Retargeting?): AnimTexIndex {
-        return animationMap.getOrPut(anim) {
+        val index = animationMap.getOrPut(anim) {
             val ni = nextIndex
-            val v = AnimTexIndex(anim, retargeting, animationList.size, ni, anim.numFrames)
+            val v = AnimTexIndex(anim, retargeting, ni, anim.numFrames, false)
             animationList.add(v)
             putNewAnim(anim, retargeting)
             v
         }
+        if (index.needsUpdate) {
+            updateAnim(anim, retargeting, index.start)
+        }
+        return index
+    }
+
+    fun invalidate(anim: Animation) {
+        val index = animationMap[anim] ?: return
+        index.needsUpdate = true
     }
 
     fun getIndex(anim: Animation, retargeting: Retargeting?, index: Int): Int {
@@ -70,7 +79,15 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
     private fun putNewAnim(animation: Animation, retargeting: Retargeting?): Int {
         val numFrames = animation.numFrames + 1
-        ensureCapacity(nextIndex + numFrames)
+        updateAnim(animation, retargeting, nextIndex)
+        nextIndex += numFrames
+        return numFrames
+    }
+
+    private fun updateAnim(animation: Animation, retargeting: Retargeting?, start: Int): Int {
+        val numFrames = animation.numFrames + 1
+        ensureCapacity(start + numFrames)
+        val textureType = TargetType.FloatTarget4
         if (internalTexture.isCreated) {
             // extend texture
             // 4 for sizeof(float), 4 for rgba
@@ -80,28 +97,30 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             data.position(0)
             internalTexture.overridePartially(
                 buffer,
-                0,
-                0,
-                nextIndex,
+                0, 0, start,
                 internalTexture.w,
                 numFrames,
-                TargetType.FloatTarget4
+                textureType
             )
             Texture2D.bufferPool.returnBuffer(buffer)
         } else {
+            if (start != 0) throw IllegalStateException()
             // create new texture
             val buffer = Texture2D.bufferPool[internalTexture.w * internalTexture.h * 4 * 4, false, false]
             val data = buffer.asFloatBuffer()
             fillData(data)
             data.position(0)
-            internalTexture.create(TargetType.FloatTarget4, buffer)
+            internalTexture.create(textureType, buffer)
             Texture2D.bufferPool.returnBuffer(buffer)
         }
-        nextIndex += numFrames
         return numFrames
     }
 
-    private fun fillData(data: FloatBuffer, anim: Animation, retargeting: Retargeting?) {
+    private fun fillData(
+        data: FloatBuffer,
+        anim: Animation,
+        retargeting: Retargeting?
+    ) {
         val tmp = tmpMatrices
         for (frameIndex in 0 until anim.numFrames) {
             fillData(data, anim, retargeting, tmp, frameIndex)
@@ -148,6 +167,9 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
     override fun destroy() {
         internalTexture.destroy()
+        animationMap.clear()
+        animationList.clear()
+        nextIndex = 0
     }
 
     companion object {

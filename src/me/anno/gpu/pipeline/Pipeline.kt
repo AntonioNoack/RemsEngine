@@ -82,7 +82,15 @@ class Pipeline(val deferred: DeferredSettingsV2?) : Saveable() {
         return lightPseudoStage.size > RenderView.MAX_FORWARD_LIGHTS
     }
 
-    fun getDefaultStage(mesh: Mesh, material: Material?): PipelineStage {
+    fun findStage(mesh: Mesh?, material: Material): PipelineStage {
+        if (material != null) {
+            val stage0 = material.pipelineStage
+            if (stage0 < 0) return defaultStage
+            while (stages.size <= stage0) {
+                stages.add(defaultStage.clone())
+            }
+            return stages[stage0]
+        }
         // todo analyse, whether the material has transparency, and if so,
         // todo add it to the transparent pass
         return defaultStage
@@ -96,7 +104,7 @@ class Pipeline(val deferred: DeferredSettingsV2?) : Saveable() {
             val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
             val m1 = m0 ?: materials.getOrNull(index)
             val material = MaterialCache[m1, defaultMaterial]
-            val stage = material.pipelineStage ?: getDefaultStage(mesh, material)
+            val stage = findStage(mesh, material)
             stage.add(renderer, mesh, entity, index, clickId)
         }
     }
@@ -113,7 +121,7 @@ class Pipeline(val deferred: DeferredSettingsV2?) : Saveable() {
             val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
             val m1 = m0 ?: materials.getOrNull(index)
             val material = MaterialCache[m1, defaultMaterial]
-            val stage = material.pipelineStage ?: defaultStage
+            val stage = findStage(mesh, material)
             stage.addInstanced(mesh, renderer, entity, material, index, clickId)
         }
     }

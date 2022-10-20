@@ -229,7 +229,7 @@ object DualContouring3d {
                         max(0f, it[1] - y1) +
                         max(0f, it[2] - z1)
                         )
-            }
+            }.second
 
             vertices[wi] = Vector3f(s)
 

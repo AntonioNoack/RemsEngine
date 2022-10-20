@@ -61,6 +61,12 @@ open class AnimRenderer : MeshComponent() {
         return if (anyIsRunning) 1 else 10
     }
 
+    override fun onVisibleUpdate(): Boolean {
+        super.onVisibleUpdate()
+        updateAnimState()
+        return true
+    }
+
     override val hasAnimation: Boolean
         get() {
             val skeleton = SkeletonCache[skeleton]

@@ -3,7 +3,7 @@ package me.anno.graph.types.flow.control
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.FlowGraph
 
-class IfElseNode : FixedControlFlowNode("If-Else", inputs, outputs) {
+class IfElseNode : FixedControlFlowNode("If-Else Branch", inputs, outputs) {
 
     override fun execute(graph: FlowGraph): NodeOutput {
         val condition = graph.getValue(inputs!![1]) != false

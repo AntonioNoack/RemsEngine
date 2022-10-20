@@ -159,7 +159,7 @@ object DualContouring {
                         max(0f, it[0] - x1) +
                         max(0f, it[1] - y1)
                         )
-            }
+            }.second
 
             vertices[wi] = Vector2f(s)
 

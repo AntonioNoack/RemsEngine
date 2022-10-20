@@ -136,7 +136,7 @@ interface IFramebuffer {
         }
     }
 
-    fun use(index: Int, renderer: Renderer, render: () -> Unit){
+    fun use(index: Int, renderer: Renderer, render: () -> Unit) {
         GFXState.renderers[index] = renderer
         GFXState.framebuffer.use(this, render)
     }

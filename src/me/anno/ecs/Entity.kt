@@ -1,6 +1,5 @@
 package me.anno.ecs
 
-import me.anno.Engine
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
@@ -25,13 +24,11 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.studio.Inspectable
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
-import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -46,6 +43,8 @@ import kotlin.reflect.KClass
 //  - other way around: when a file changes, update all nodes
 
 // done delta settings & control: only saves as values, what was changed from the prefab
+
+// todo unordered remove
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class Entity() : PrefabSaveable(), Inspectable, Renderable {

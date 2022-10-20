@@ -3,6 +3,7 @@ package me.anno.utils.types
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
+import me.anno.utils.types.Floats.f2x
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -108,6 +109,11 @@ object Vectors {
             "[(${m00.f2s()} ${m10.f2s()} ${m20.f2s()} ${m30.f2s()})\n" +
             " (${m01.f2s()} ${m11.f2s()} ${m21.f2s()} ${m31.f2s()})\n" +
             " (${m02.f2s()} ${m12.f2s()} ${m22.f2s()} ${m32.f2s()})]"
+
+    fun Matrix4x3f.f2x() = "" +
+            "[(${m00.f2x()} ${m10.f2x()} ${m20.f2x()} ${m30.f2x()})\n" +
+            " (${m01.f2x()} ${m11.f2x()} ${m21.f2x()} ${m31.f2x()})\n" +
+            " (${m02.f2x()} ${m12.f2x()} ${m22.f2x()} ${m32.f2x()})]"
 
     fun Vector4f.toVec3f(): Vector3f {
         val w = w

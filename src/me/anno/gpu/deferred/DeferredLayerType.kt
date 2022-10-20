@@ -99,7 +99,7 @@ open class DeferredLayerType(
         )
 
         // may be in camera space, player space, or world space
-        // the best probably would be player space: relative to the player, same rotation, scale, etc as world
+        // the best probably would be player space: relative to the player, same rotation, scale, etc. as world
         val POSITION = DeferredLayerType("POSITION", "finalPosition", 3, BufferQuality.HIGH_32, true, 0, "", "")
 
         val METALLIC = DeferredLayerType("METALLIC", "finalMetallic", 0)
@@ -164,7 +164,6 @@ open class DeferredLayerType(
         val values = arrayListOf(
             COLOR,
             EMISSIVE,
-            COLOR_EMISSIVE,
             NORMAL,
             TANGENT,
             POSITION,
@@ -183,8 +182,8 @@ open class DeferredLayerType(
             FLAGS,
             HDR_RESULT,
             SDR_RESULT,
-            LIGHT_SUM,
             COLOR_EMISSIVE,
+            LIGHT_SUM,
             MOTION,
             DEPTH
         )

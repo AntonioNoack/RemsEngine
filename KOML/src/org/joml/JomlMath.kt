@@ -33,7 +33,11 @@ object JomlMath {
 
     fun invsqrt(x: Float) = 1f / sqrt(x)
     fun invsqrt(x: Double) = 1.0 / sqrt(x)
+
+    /** a*b+c */
     fun fma(a: Float, b: Float, c: Float) = a * b + c
+
+    /** a*b+c */
     fun fma(a: Double, b: Double, c: Double) = a * b + c
 
     // for the transition away from fma()

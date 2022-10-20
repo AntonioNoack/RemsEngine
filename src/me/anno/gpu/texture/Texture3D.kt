@@ -54,7 +54,6 @@ open class Texture3D(
 
     val target get() = GL_TEXTURE_3D
 
-    // todo set this depending on creation method
     override var isHDR = false
 
     fun checkSession() {
@@ -388,12 +387,13 @@ open class Texture3D(
 
     // could and should be used for roughness/metallic like textures in the future
     fun swizzle(r: Int, g: Int, b: Int, a: Int) {
-        Texture2D.tmp4i[0] = r
-        Texture2D.tmp4i[1] = g
-        Texture2D.tmp4i[2] = b
-        Texture2D.tmp4i[3] = a
+        val tmp = Texture2D.tmp4i
+        tmp[0] = r
+        tmp[1] = g
+        tmp[2] = b
+        tmp[3] = a
         GFX.check()
-        glTexParameteriv(target, GL45C.GL_TEXTURE_SWIZZLE_RGBA, Texture2D.tmp4i)
+        glTexParameteriv(target, GL45C.GL_TEXTURE_SWIZZLE_RGBA, tmp)
         GFX.check()
     }
 

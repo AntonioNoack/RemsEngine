@@ -1,6 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.config.DefaultConfig
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
@@ -55,6 +56,10 @@ class SceneView(
     }
 
     companion object {
+
+        fun testSceneWithUI(prefab: Prefab, init: (SceneView) -> Unit = {}) {
+            testSceneWithUI(prefab.createInstance(), init)
+        }
 
         fun testSceneWithUI(scene: PrefabSaveable, init: (SceneView) -> Unit = {}) {
             testUI {

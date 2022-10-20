@@ -47,11 +47,12 @@ class MultiFramebuffer(
             Framebuffer(
                 "$name/$targetIndex", w, h, samples,
                 Array(targetIndex1 - targetIndex0) { targets[targetIndex0 + it] },
-                if (targetIndex == 0) depthBufferType
+                /*if (targetIndex == 0) depthBufferType
                 else when (depthBufferType) {
                     DepthBufferType.NONE -> DepthBufferType.NONE
                     else -> DepthBufferType.ATTACHMENT
-                }
+                }*/
+                depthBufferType
             )
         }
         val firstBuffer = targetsI[0]

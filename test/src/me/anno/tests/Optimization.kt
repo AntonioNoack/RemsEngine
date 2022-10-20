@@ -18,7 +18,7 @@ fun main() {
     * */
     val solution = Optimization.simplexAlgorithm(doubleArrayOf(0.0, 0.0), 1.0, 1e-6, 500) {
         himmelblau(it[0], it[1])
-    }
+    }.second
     val t1 = System.nanoTime()
     println(solution.joinToString() + ", value: ${himmelblau(solution[0], solution[1])}")
     println("${Optimization.ctr} sub-steps used")

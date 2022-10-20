@@ -45,6 +45,10 @@ import kotlin.math.*
 open class GraphPanel(var graph: Graph? = null, style: Style) :
     PanelList(null, style) {
 
+    // todo copy-paste nodes
+    // todo control+d to duplicate selected node
+    // todo bug: cannot multi-select nodes
+
     // todo add scroll bars, when the content goes over the borders
 
     var center = Vector3d()
@@ -97,6 +101,13 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         }
     }
 
+    override fun onCharTyped(x: Float, y: Float, key: Int) {
+        val graph = graph
+        if (graph != null && key == 'r'.code) {
+            calculateNodePositions(graph.nodes)
+        } else super.onCharTyped(x, y, key)
+    }
+
     init {
         addRightClickListener {
             // todo grid snapping
@@ -105,22 +116,27 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
             // todo reset graph? idk...
             // todo button to save graph (?)
             // todo button to create new sub function (?)
-            val window = window!!
-            val mouseX = window.mouseX
-            val mouseY = window.mouseY
-            openMenu(windowStack,
-                library.allNodes.map { (sample, newNode) ->
-                    MenuOption(NameDesc(sample.name)) {
-                        // place node at mouse position
-                        val node = newNode()
-                        // todo if placed on line, connect left & right sides where types match from top to bottom
-                        node.position.set(windowToCoordsX(mouseX.toDouble()), windowToCoordsY(mouseY.toDouble()), 0.0)
-                        graph!!.nodes.add(node)
-                        invalidateLayout()
-                    }
-                }
-            )
+            openNewNodeMenu()
         }
+    }
+
+    fun openNewNodeMenu(callback: ((Node) -> Unit)? = null) {
+        val window = window!!
+        val mouseX = window.mouseX
+        val mouseY = window.mouseY
+        openMenu(windowStack,
+            library.allNodes.map { (sample, newNode) ->
+                MenuOption(NameDesc(sample.name)) {
+                    // place node at mouse position
+                    val node = newNode()
+                    // todo if placed on line, connect left & right sides where types match from top to bottom
+                    node.position.set(windowToCoordsX(mouseX.toDouble()), windowToCoordsY(mouseY.toDouble()), 0.0)
+                    graph!!.nodes.add(node)
+                    if (callback != null) callback(node)
+                    invalidateLayout()
+                }
+            }
+        )
     }
 
     override fun onUpdate() {
@@ -312,9 +328,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
             val mx = ws.mouseX
             val my = ws.mouseY
             // if hovers over a socket, use its color as end color
-            val endSocket = children
-                .mapNotNull { if (it is NodePanel) it.getConnectorAt(mx, my) else null }
-                .firstOrNull()
+            val endSocket = children.firstNotNullOfOrNull { if (it is NodePanel) it.getConnectorAt(mx, my) else null }
             val endColor = if (endSocket == null) startColor else getTypeColor(endSocket)
             val node = dragged.node
             val type = dragged.type
@@ -480,6 +494,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
                 if (old is Checkbox) return old
                     .apply { size = font.sizeInt }
                 return Checkbox(con.value == true, false, font.sizeInt, style)
+                    .setChangeListener { con.value = it }
                     .apply { makeBackgroundTransparent() }
             }
         }
@@ -497,16 +512,17 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
 
     open fun getTypeColor(con: NodeConnector): Int {
         return when (con.type) {
-            "Int", "Long" -> 0x1cdeaa
-            "Float", "Double" -> 0x9cf841
-            "Flow" -> 0xffffff
-            "Bool", "Boolean" -> 0xa90505
+            "Int", "Long" -> 0x1cdeaa // greenish
+            "Float", "Double" -> 0x9cf841 // yellow-greenish
+            "Flow" -> 0xffffff // white
+            "Bool", "Boolean" -> 0xa90505 // red
             "Vector2f", "Vector3f", "Vector4f",
-            "Vector2d", "Vector3d", "Vector4d" -> 0xf8c522 // like in UE4
-            "Quaternion4f", "Quaternion4d" -> 0x707fb0 // like in UE4
-            "Transform", "Matrix4x3f", "Matrix4x3d" -> 0xfc7100
-            "String" -> 0xdf199a
-            "?" -> 0x819ef3
+            "Vector2d", "Vector3d", "Vector4d" -> 0xf8c522 // like in UE4, yellow
+            "Quaternion4f", "Quaternion4d" -> 0x707fb0 // like in UE4, light blueish
+            "Transform", "Matrix4x3f", "Matrix4x3d" -> 0xfc7100 // orange
+            "String" -> 0xdf199a // pink
+            "Texture" -> 0xebe496 // soft yellow
+            "?" -> 0x819ef3 // light blueish
             else -> 0x00a7f2 // object
         } or black
     }

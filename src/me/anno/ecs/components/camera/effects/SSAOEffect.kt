@@ -25,6 +25,8 @@ class SSAOEffect : CameraEffect() {
     @Range(0.0, 4096.0)
     var samples = max(1, DefaultConfig["gpu.ssao.samples", 128])
 
+    var enable2x2Blur = true
+
     override fun listInputs() = inputList
     override fun listOutputs() = outputList
 
@@ -39,7 +41,8 @@ class SSAOEffect : CameraEffect() {
                 layers[DeferredLayerType.POSITION]!!.getTexture0(),
                 layers[DeferredLayerType.NORMAL]!!.getTexture0(),
                 RenderState.cameraMatrix,
-                radius, strength, samples
+                radius, strength, samples,
+                enable2x2Blur
             )
         )
     }
@@ -55,6 +58,7 @@ class SSAOEffect : CameraEffect() {
         clone as SSAOEffect
         clone.samples = samples
         clone.radius = radius
+        clone.enable2x2Blur = enable2x2Blur
     }
 
     override val className = "SSAOEffect"

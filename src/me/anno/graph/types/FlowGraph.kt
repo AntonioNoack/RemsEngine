@@ -52,18 +52,15 @@ open class FlowGraph : Graph() {
     fun execute(startNode: Node): Node {
         // LOGGER.debug("Execute ${startNode.className}")
         startNode as FlowGraphNode
-        val nextNodes = startNode.execute(this)?.others?.mapNotNull { it.node } ?: return startNode
+        val exec = startNode.execute(this)
+        val nextNodes = exec?.others ?: return startNode
         // LOGGER.debug("${startNode.className} -> ${nextNodes.map { it.className }}")
         var lastNode = startNode
         for (nodeI in nextNodes) {
-            if (nodeI == nextNodes) penalty()
-            lastNode = execute(nodeI)
+            val nodeX = nodeI.node ?: continue
+            lastNode = execute(nodeX)
         }
         return lastNode
-    }
-
-    fun penalty() {
-        Thread.sleep(5000) // penalty for this infinity loop
     }
 
     fun executeConnectors(inputs: List<NodeConnector>) {

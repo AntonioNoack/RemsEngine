@@ -636,7 +636,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         drawGizmos(buffer, true)
                         val strength = max(ssao.strength, 0.01f)
                         val ssao = ScreenSpaceAmbientOcclusion.compute(
-                            buffer, deferred, cameraMatrix, ssao.radius, strength, ssao.samples
+                            buffer, deferred, cameraMatrix, ssao.radius, strength, ssao.samples,
+                            ssao.enable2x2Blur
                         )
                         val tex = ssao ?: buffer.getTexture0()
                         drawTexture(x, y + h - 1, w, -h, tex, true, -1, null)
@@ -838,7 +839,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                         val ssaoStrength = ssao.strength
                         val ssao = if (ssaoStrength > 0f) ScreenSpaceAmbientOcclusion.compute(
-                            buffer, deferred, cameraMatrix, ssao.radius, ssaoStrength, ssao.samples
+                            buffer, deferred, cameraMatrix, ssao.radius, ssaoStrength, ssao.samples,
+                            ssao.enable2x2Blur
                         ) ?: blackTexture else blackTexture
 
                         // use the existing depth buffer for the 3d ui
@@ -1240,7 +1242,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     private val reverseDepth get() = renderMode != RenderMode.INVERSE_DEPTH
 
-    private fun setClearDepth() {
+    fun setClearDepth() {
         val stages = pipeline.stages
         for (index in stages.indices) {
             stages[index].depthMode = depthMode
@@ -1265,7 +1267,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     var skipClear = false
 
-    private fun clearColor(
+    fun clearColor(
         previousCamera: Camera, camera: Camera,
         blending: Float, hdr: Boolean
     ) {

@@ -483,46 +483,40 @@ open class Quaternionf {
     @JvmOverloads
     fun mul(q: Quaternionf, dst: Quaternionf = this): Quaternionf {
         return dst.set(
-            JomlMath.fma(w, q.x, JomlMath.fma(x, q.w, JomlMath.fma(y, q.z, -z * q.y))), JomlMath.fma(
-                w, q.y, JomlMath.fma(-x, q.z, JomlMath.fma(y, q.w, z * q.x))
-            ), JomlMath.fma(
-                w, q.z, JomlMath.fma(
-                    x, q.y, JomlMath.fma(-y, q.x, z * q.w)
-                )
-            ), JomlMath.fma(w, q.w, JomlMath.fma(-x, q.x, JomlMath.fma(-y, q.y, -z * q.z)))
+            w * q.x + x * q.w + y * q.z - z * q.y,
+            w * q.y - x * q.z + y * q.w + z * q.x,
+            w * q.z + x * q.y - y * q.x + z * q.w,
+            w * q.w - x * q.x - y * q.y - z * q.z
         )
     }
 
     @JvmOverloads
     fun mul(qx: Float, qy: Float, qz: Float, qw: Float, dst: Quaternionf = this): Quaternionf {
         return dst.set(
-            JomlMath.fma(w, qx, JomlMath.fma(x, qw, JomlMath.fma(y, qz, -z * qy))), JomlMath.fma(
-                w, qy, JomlMath.fma(-x, qz, JomlMath.fma(y, qw, z * qx))
-            ), JomlMath.fma(
-                w, qz, JomlMath.fma(
-                    x, qy, JomlMath.fma(-y, qx, z * qw)
-                )
-            ), JomlMath.fma(w, qw, JomlMath.fma(-x, qx, JomlMath.fma(-y, qy, -z * qz)))
+            w * qx + x * qw + y * qz - z * qy,
+            w * qy - x * qz + y * qw + z * qx,
+            w * qz + x * qy - y * qx + z * qw,
+            w * qw - x * qx - y * qy - z * qz
         )
     }
 
     @JvmOverloads
     fun premul(q: Quaternionf, dst: Quaternionf = this): Quaternionf {
         return dst.set(
-            JomlMath.fma(q.w, x, JomlMath.fma(q.x, w, JomlMath.fma(q.y, z, -q.z * y))),
-            JomlMath.fma(q.w, y, JomlMath.fma(-q.x, z, JomlMath.fma(q.y, w, q.z * x))),
-            JomlMath.fma(q.w, z, JomlMath.fma(q.x, y, JomlMath.fma(-q.y, x, q.z * w))),
-            JomlMath.fma(q.w, w, JomlMath.fma(-q.x, x, JomlMath.fma(-q.y, y, -q.z * z)))
+            w * q.x + x * q.w + y * q.z - z * q.y,
+            w * q.y - x * q.z + y * q.w + z * q.x,
+            w * q.z + x * q.y - y * q.x + z * q.w,
+            w * q.w - x * q.x - y * q.y - z * q.z
         )
     }
 
     @JvmOverloads
     fun premul(qx: Float, qy: Float, qz: Float, qw: Float, dst: Quaternionf = this): Quaternionf {
         return dst.set(
-            JomlMath.fma(qw, x, JomlMath.fma(qx, w, JomlMath.fma(qy, z, -qz * y))),
-            JomlMath.fma(qw, y, JomlMath.fma(-qx, z, JomlMath.fma(qy, w, qz * x))),
-            JomlMath.fma(qw, z, JomlMath.fma(qx, y, JomlMath.fma(-qy, x, qz * w))),
-            JomlMath.fma(qw, w, JomlMath.fma(-qx, x, JomlMath.fma(-qy, y, -qz * z)))
+            w * qx + x * qw + y * qz - z * qy,
+            w * qy - x * qz + y * qw + z * qx,
+            w * qz + x * qy - y * qx + z * qw,
+            w * qw - x * qx - y * qy - z * qz
         )
     }
 

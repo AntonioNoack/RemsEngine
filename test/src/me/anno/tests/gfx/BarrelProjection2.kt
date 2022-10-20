@@ -20,7 +20,7 @@ fun findParams(image: Image, channel: Int, i: Int, n: Int): Pair<Int, Polynomial
     val params = simplexAlgorithm(floatArrayOf(startX, startY), s, 0f, 100) { params ->
         val polynomial = Polynomial(params[0], params[1])
         getError(image, channel, polynomial).toFloat()
-    }
+    }.second
 
     val bestPolynomial = Polynomial(params[2], params[3])
     val bestError = getError(image, channel, bestPolynomial)

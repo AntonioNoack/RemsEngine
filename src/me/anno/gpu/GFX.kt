@@ -90,7 +90,7 @@ object GFX {
     var maxVertexUniformComponents = 0
     var maxBoundTextures = 0
     var maxUniforms = 0
-    var maxColorAttachments = 0
+    var maxColorAttachments = 1
     var maxTextureSize = 512 // assumption before loading anything
 
     val nextGPUTasks = ArrayList<Task>()

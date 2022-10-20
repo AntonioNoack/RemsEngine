@@ -12,7 +12,7 @@ object Optimization {
         goodEnoughError: Float,
         maxSteps: Int,
         err: (v1: FloatArray) -> Float
-    ): FloatArray {
+    ): Pair<Float, FloatArray> {
         val expansion = 1.3f
         val contraction = -0.5f
         return simplexAlgorithm(v0, firstStepSize, goodEnoughError, maxSteps, expansion, contraction, err)
@@ -26,7 +26,7 @@ object Optimization {
         expansion: Float,
         contraction: Float,
         err: (v1: FloatArray) -> Float
-    ): FloatArray {
+    ): Pair<Float, FloatArray> {
 
         val l = v0.size
 
@@ -36,7 +36,7 @@ object Optimization {
 
         var lastError = err(v0)
 
-        // 1e-7, but there may be numerical issues
+        // 1e-7, but there may be numerical issues;
         // which cause stair-stepping, which would be an issue
         val precision = 1e-6f
 
@@ -54,7 +54,7 @@ object Optimization {
                     val nextX = lastX + step
                     v0[axis] = nextX
                     val nextError = err(v0)
-                    if (nextError <= goodEnoughError) return v0
+                    if (nextError <= goodEnoughError) return Pair(nextError, v0)
                     if (nextError < lastError) {
                         // better: expand and keep
                         steps[axis] = step * expansion
@@ -81,7 +81,7 @@ object Optimization {
             }
         } while (wasChanged && stepCtr++ < maxSteps)
 
-        return v0
+        return Pair(lastError, v0)
 
     }
 
@@ -91,7 +91,7 @@ object Optimization {
         goodEnoughError: Double,
         maxSteps: Int,
         err: (v1: DoubleArray) -> Double
-    ): DoubleArray {
+    ): Pair<Double, DoubleArray> {
         val expansion = 1.3
         val contraction = -0.5
         return simplexAlgorithm(v0, firstStepSize, goodEnoughError, maxSteps, expansion, contraction, err)
@@ -105,7 +105,7 @@ object Optimization {
         expansion: Double,
         contraction: Double,
         err: (v1: DoubleArray) -> Double
-    ): DoubleArray {
+    ): Pair<Double, DoubleArray> {
 
         val l = v0.size
 
@@ -133,7 +133,7 @@ object Optimization {
                     val nextX = lastX + step
                     v0[axis] = nextX
                     val nextError = err(v0)
-                    if (nextError <= goodEnoughError) return v0
+                    if (nextError <= goodEnoughError) return Pair(nextError, v0)
                     if (nextError < lastError) {
                         // better: expand and keep
                         steps[axis] = step * expansion
@@ -160,7 +160,7 @@ object Optimization {
             }
         } while (wasChanged && stepCtr++ < maxSteps)
 
-        return v0
+        return Pair(lastError, v0)
 
     }
 

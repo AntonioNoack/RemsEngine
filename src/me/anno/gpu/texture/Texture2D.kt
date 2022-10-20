@@ -128,12 +128,13 @@ open class Texture2D(
 
     // could and should be used for roughness/metallic like textures in the future
     fun swizzle(r: Int, g: Int, b: Int, a: Int) {
-        tmp4i[0] = r
-        tmp4i[1] = g
-        tmp4i[2] = b
-        tmp4i[3] = a
+        val tmp = tmp4i
+        tmp[0] = r
+        tmp[1] = g
+        tmp[2] = b
+        tmp[3] = a
         check()
-        glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, tmp4i)
+        glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, tmp)
         check()
     }
 
@@ -1064,7 +1065,10 @@ open class Texture2D(
             val result = bindTexture(target, pointer)
             ensureFilterAndClamping(filtering, clamping)
             return result
-        } else throw IllegalStateException("Cannot bind non-created texture!, $name")
+        } else throw IllegalStateException(
+            if (isDestroyed) "Cannot bind destroyed texture!, $name"
+            else "Cannot bind non-created texture!, $name"
+        )
     }
 
     fun bind(index: Int) = bind(index, filtering, clamping ?: Clamping.REPEAT)

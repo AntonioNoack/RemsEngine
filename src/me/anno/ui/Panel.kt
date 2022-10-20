@@ -269,7 +269,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open val canDrawOverBorders get() = hasRoundedCorners
 
-    fun drawBackground(x0: Int, y0: Int, x1: Int, y1: Int, dx: Int = 0, dy: Int = dx) {
+    open fun drawBackground(x0: Int, y0: Int, x1: Int, y1: Int, dx: Int = 0, dy: Int = dx) {
         // if the children are overlapping, this is incorrect
         // this however, should rarely happen...
         if (backgroundColor.a() > 0) {

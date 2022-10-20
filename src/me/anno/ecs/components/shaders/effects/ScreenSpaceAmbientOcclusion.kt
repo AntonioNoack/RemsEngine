@@ -88,27 +88,32 @@ object ScreenSpaceAmbientOcclusion {
     // 2 passes: occlusion factor, then blurring
     private val occlusionShader = lazy {
         Shader(
-            "ssao-occlusion",
-            coordsList, coordsVShader, uvList, emptyList(), "" +
-                    "layout(location=0) out vec4 glFragColor;\n" +
-                    "uniform float radius, strength, skipRadiusSq;\n" +
-                    "uniform ivec2 size;\n" +
-                    "uniform int numSamples;\n" +
-                    "uniform mat4 transform;\n" +
-                    "uniform sampler2D sampleKernel;\n" +
-                    "uniform sampler2D finalPosition, finalNormal, random4x4;\n" +
+            "ssao",
+            coordsList, coordsVShader, uvList, listOf(
+                Variable(GLSLType.V1F,"radius"),
+                Variable(GLSLType.V1F,"strength"),
+                Variable(GLSLType.V1F,"skipRadiusSq"),
+                Variable(GLSLType.V1I,"numSamples"),
+                Variable(GLSLType.V1I,"mask"),
+                Variable(GLSLType.V2I,"size"),
+                Variable(GLSLType.M4x4,"transform"),
+                Variable(GLSLType.S2D,"sampleKernel"),
+                Variable(GLSLType.S2D,"finalPosition"),
+                Variable(GLSLType.S2D,"finalNormal"),
+                Variable(GLSLType.S2D,"random4x4"),
+                Variable(GLSLType.V4F,"glFragColor",VariableMode.OUT)
+            ), "" +
                     "float dot2(vec3 p){ return dot(p,p); }\n" +
                     "void main(){\n" +
                     "   vec3 origin = texture(finalPosition, uv).xyz;\n" +
                     "   if(dot2(origin) > skipRadiusSq){\n" + // sky and such can be skipped automatically
                     "       glFragColor = vec4(0.0);\n" +
                     "   } else {\n" +
-                    // "  float originDepth = length(origin);\n" +
                     "       vec3 normal = texture(finalNormal, uv).xyz * 2.0 - 1.0;\n" +
                     // reverse back sides, e.g., for plants
                     // could be done by the material as well...
                     "       if(dot(origin,normal) > 0.0) normal = -normal;\n" +
-                    "       vec3 randomVector = texelFetch(random4x4, ivec2(gl_FragCoord.xy) & 3, 0).xyz * 2.0 - 1.0;\n" +
+                    "       vec3 randomVector = texelFetch(random4x4, ivec2(gl_FragCoord.xy) & mask, 0).xyz * 2.0 - 1.0;\n" +
                     "       vec3 tangent = normalize(randomVector - normal * dot(normal, randomVector));\n" +
                     "       vec3 bitangent = cross(normal, tangent);\n" +
                     "       mat3 tbn = mat3(tangent, bitangent, normal);\n" +
@@ -169,12 +174,13 @@ object ScreenSpaceAmbientOcclusion {
         transform: Matrix4f,
         radius: Float,
         strength: Float,
-        samples: Int
+        samples: Int,
+        enableBlur: Boolean,
     ): Framebuffer? {
         // ensure we can find the required inputs
         val position = settingsV2.findTexture(data, DeferredLayerType.POSITION) ?: return null
         val normal = settingsV2.findTexture(data, DeferredLayerType.NORMAL) ?: return null
-        return calculate(position, normal, transform, radius, strength, samples)
+        return calculate(position, normal, transform, radius, strength, samples, enableBlur)
     }
 
     private fun copy(src: ITexture2D, dst: Framebuffer): ITexture2D {
@@ -190,7 +196,8 @@ object ScreenSpaceAmbientOcclusion {
         transform: Matrix4f,
         radius: Float,
         strength: Float,
-        samples: Int
+        samples: Int,
+        enableBlur: Boolean,
     ): Framebuffer {
 
         var random4x4 = random4x4
@@ -236,6 +243,7 @@ object ScreenSpaceAmbientOcclusion {
             shader.m4x4("transform", transform)
             shader.v1i("numSamples", samples)
             shader.v1f("strength", strength)
+            shader.v1i("mask", if(enableBlur) 3 else 0)
             // draw
             GFX.flat01.draw(shader)
             GFX.check()
@@ -267,13 +275,14 @@ object ScreenSpaceAmbientOcclusion {
         transform: Matrix4f,
         radius: Float,
         strength: Float,
-        samples: Int
+        samples: Int,
+        enableBlur: Boolean,
     ): ITexture2D? {
         if (strength <= 0f) return whiteTexture
         lateinit var result: ITexture2D
         renderPurely {
-            val tmp = calculate(data, settingsV2, transform, radius, strength, min(samples, MAX_SAMPLES)) ?: return null
-            result = average(tmp).getTexture0()
+            val tmp = calculate(data, settingsV2, transform, radius, strength, min(samples, MAX_SAMPLES), enableBlur) ?: return null
+            result = if(enableBlur) average(tmp).getTexture0() else tmp.getTexture0()
         }
         return result
     }
@@ -284,12 +293,13 @@ object ScreenSpaceAmbientOcclusion {
         transform: Matrix4f,
         radius: Float,
         strength: Float,
-        samples: Int
+        samples: Int,
+        enableBlur: Boolean,
     ): IFramebuffer {
         lateinit var result: IFramebuffer
         renderPurely {
-            val tmp = calculate(position, normal, transform, radius, strength, min(samples, MAX_SAMPLES))
-            result = average(tmp)
+            val tmp = calculate(position, normal, transform, radius, strength, min(samples, MAX_SAMPLES), enableBlur)
+            result = if(enableBlur) average(tmp) else tmp
         }
         return result
     }
