@@ -7,6 +7,9 @@ import me.anno.utils.OS
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.joml.Vector3f
 
+// todo make this work again
+// todo generate procedural sound
+// todo generate sound similar to https://github.com/ange-yaghi/engine-sim (probably can be simplified 100x for sound gen; no engine nor physics needed)
 fun main() {
 
     AudioManager.init()

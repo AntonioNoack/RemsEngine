@@ -14,7 +14,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
     thread {
         val tex = waitUntilDefined(true) {
-            ImageGPUCache.getImage(source, false)
+            ImageGPUCache[source, false]
         }
         println(tex)
         Engine.requestShutdown()

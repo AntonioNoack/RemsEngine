@@ -182,7 +182,7 @@ class EnvironmentMap : LightComponentBase() {
 
     fun canBind(): Boolean {
         return when (type) {
-            SourceType.TEXTURE -> ImageGPUCache.getImage(textureSource, textureTimeout, true) != null
+            SourceType.TEXTURE -> ImageGPUCache[textureSource, textureTimeout, true] != null
             else -> texture != null
         }
     }
@@ -190,7 +190,7 @@ class EnvironmentMap : LightComponentBase() {
     fun bind(index: Int) {
         when (type) {
             SourceType.TEXTURE -> {
-                val texture = ImageGPUCache.getImage(textureSource, textureTimeout, true)
+                val texture = ImageGPUCache[textureSource, textureTimeout, true]
                 texture!!.bind(index)
             }
             else -> {

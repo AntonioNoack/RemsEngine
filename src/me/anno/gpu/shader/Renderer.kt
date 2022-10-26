@@ -155,7 +155,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
         ) {
             override fun uploadDefaultUniforms(shader: Shader) {
                 super.uploadDefaultUniforms(shader)
-                val checkerTex = ImageGPUCache.getImage(UVChecker.value, true) ?: whiteTexture
+                val checkerTex = ImageGPUCache[UVChecker.value, true] ?: whiteTexture
                 checkerTex.bind(shader, "checkerTex", GPUFiltering.LINEAR, Clamping.REPEAT)
             }
         }

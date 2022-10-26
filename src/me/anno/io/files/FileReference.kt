@@ -169,6 +169,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
 
         private fun createReference(str: String): FileReference {
+
             // internal resource
             if (str.startsWith(BundledRef.prefix, true))
                 return BundledRef.parse(str)
@@ -189,6 +190,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             // real or compressed files
             // check whether it exists -> easy then :)
             if (LastModifiedCache.exists(str)) return FileFileRef(File(str))
+
             // split by /, and check when we need to enter a zip file
             val parts = str.trim().split('/', '\\')
 

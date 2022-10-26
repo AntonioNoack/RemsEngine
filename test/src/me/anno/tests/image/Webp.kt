@@ -13,14 +13,14 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
     for (file in pictures.getChild("Anime").listChildren()!!) {
         if (file.lcExtension == "webp" && !file.isDirectory) {
-            ImageGPUCache.getImage(file, false)!!
+            ImageGPUCache[file, false]!!
                 .write(dst.getChild("${file.nameWithoutExtension}.png"))
         }
     }
     // todo why is video not working there either?
     for (file in videos.listChildren()!!) {
         if (!file.isDirectory) {
-            ImageGPUCache.getImage(file, false)!!
+            ImageGPUCache[file, false]!!
                 .write(dst.getChild("${file.nameWithoutExtension}.png"))
         }
     }

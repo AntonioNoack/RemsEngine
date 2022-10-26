@@ -73,7 +73,7 @@ fun main() {
 
     val src = pictures.getChild("bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg")
     val ext = ".png"
-    val original = ImageCPUCache.getImage(src, false)!!.floats()
+    val original = ImageCPUCache[src, false]!!.floats()
     val dst = desktop.getChild("poisson")
     dst.tryMkdirs()
 
@@ -84,7 +84,7 @@ fun main() {
 
     val originalFB = FBStack["original", original.width, original.height, 3, false, 1, false]
     useFrame(originalFB) {
-        GFX.copy(ImageGPUCache.getImage(src, false)!!)
+        GFX.copy(ImageGPUCache[src, false]!!)
     }
     PoissonFramebuffer()
         .execute(originalFB, dst, ext)

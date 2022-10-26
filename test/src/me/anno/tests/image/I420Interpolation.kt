@@ -112,6 +112,6 @@ fun main() {
     val t2 = System.nanoTime()
     println("${(t1 - t0) / 1e9} vs ${(t2 - t1) / 1e9}")
 
-    ImageCPUCache.getImage(OS.pictures.getChild("Anime/70697252_p4_master1200.webp"), false)!!
+    ImageCPUCache[OS.pictures.getChild("Anime/70697252_p4_master1200.webp"), false]!!
         .write(OS.desktop.getChild("anime.png"))
 }

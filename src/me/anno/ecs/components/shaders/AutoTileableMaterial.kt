@@ -73,7 +73,7 @@ class AutoTileableMaterial : Material() {
 
         // get cached LUT, bind LUT
         val tex = AutoTileableShader.cache.getFileEntry(diffuseMap, false, 10_000L, true) { it, _ ->
-            ImageCPUCache.getImage(it, false)?.run {
+            ImageCPUCache[it, false]?.run {
                 val hist = AutoTileableShader.TileMath.buildYHistogram(this)
                 val lut = AutoTileableShader.TileMath.buildLUT(hist)
                 val tex = Texture2D("auto-tileable-lut", lut.size / 2, 2, 1)

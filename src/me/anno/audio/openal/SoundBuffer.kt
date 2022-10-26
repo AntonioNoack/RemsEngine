@@ -4,13 +4,14 @@ import me.anno.audio.openal.AudioManager.openALSession
 import me.anno.audio.streams.AudioStream.Companion.bufferPool
 import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
+import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.openal.AL10.*
 import org.lwjgl.stb.STBVorbis.*
 import org.lwjgl.stb.STBVorbisInfo
-import org.lwjgl.system.MemoryStack
 import org.newdawn.slick.openal.WaveData
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.ShortBuffer
 
 class SoundBuffer() : ICacheData {
@@ -102,30 +103,28 @@ class SoundBuffer() : ICacheData {
     }
 
     private fun readVorbis(file: FileReference, info: STBVorbisInfo): ShortBuffer {
-        MemoryStack.stackPush().use { stack ->
-            // needed functions:
-            // stb_vorbis_open_memory
-            // stb_vorbis_get_info
-            // stb_vorbis_stream_length_in_samples
-            // stb_vorbis_get_samples_short_interleaved
-            // stb_vorbis_close
-            val rawBytes = ioResourceToByteBuffer(file)
-            val error = stack.mallocInt(1)
-            val decoder = stb_vorbis_open_memory(rawBytes, error, null)
-            if (decoder == 0L) {
-                bufferPool.returnBuffer(rawBytes)
-                throw RuntimeException("Failed to open Ogg Vorbis file. Error: " + error[0])
-            }
-            stb_vorbis_get_info(decoder, info)
-            val channels = info.channels()
-            val lengthSamples = stb_vorbis_stream_length_in_samples(decoder)
-            val pcm = bufferPool[lengthSamples * 2, false, true].asShortBuffer()
-            this.data = pcm
-            pcm.limit(stb_vorbis_get_samples_short_interleaved(decoder, channels, pcm) * channels)
-            stb_vorbis_close(decoder)
+        // needed functions:
+        // stb_vorbis_open_memory
+        // stb_vorbis_get_info
+        // stb_vorbis_stream_length_in_samples
+        // stb_vorbis_get_samples_short_interleaved
+        // stb_vorbis_close
+        val rawBytes = ioResourceToByteBuffer(file)
+        val error = buffer.get().asIntBuffer()
+        val decoder = stb_vorbis_open_memory(rawBytes, error, null)
+        if (decoder == 0L) {
             bufferPool.returnBuffer(rawBytes)
-            return pcm
+            throw RuntimeException("Failed to open Ogg Vorbis file. Error: " + error[0])
         }
+        stb_vorbis_get_info(decoder, info)
+        val channels = info.channels()
+        val lengthSamples = stb_vorbis_stream_length_in_samples(decoder)
+        val pcm = bufferPool[lengthSamples * 2, false, true].asShortBuffer()
+        this.data = pcm
+        pcm.limit(stb_vorbis_get_samples_short_interleaved(decoder, channels, pcm) * channels)
+        stb_vorbis_close(decoder)
+        bufferPool.returnBuffer(rawBytes)
+        return pcm
     }
 
     private fun ioResourceToByteBuffer(file: FileReference): ByteBuffer {
@@ -146,6 +145,13 @@ class SoundBuffer() : ICacheData {
             bufferPool.returnBuffer(data0)
             data0 = null
             data = null
+        }
+    }
+
+    companion object {
+        val buffer = ThreadLocal2 {
+            ByteBuffer.allocateDirect(4)
+                .order(ByteOrder.nativeOrder())
         }
     }
 

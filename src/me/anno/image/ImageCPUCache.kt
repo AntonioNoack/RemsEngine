@@ -70,8 +70,8 @@ object ImageCPUCache : CacheSection("BufferedImages") {
 
     // eps: like svg, we could implement it, but we don't really need it that dearly...
 
-    fun getImage(file: FileReference, async: Boolean): Image? {
-        return getImage(file, 50, async)
+    operator fun get(file: FileReference, async: Boolean): Image? {
+        return get(file, 50, async)
     }
 
     fun getImageWithoutGenerator(file: FileReference): Image? {
@@ -87,7 +87,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         return signature == "dds" || signature == "media" || file.lcExtension == "webp"
     }
 
-    fun getImage(file0: FileReference, timeout: Long, async: Boolean): Image? {
+    operator fun get(file0: FileReference, timeout: Long, async: Boolean): Image? {
         if (file0 is ImageReadable) return file0.readImage()
         val data = getFileEntry(file0, false, timeout, async) { file, _ ->
             val data = AsyncCacheData<Image?>()

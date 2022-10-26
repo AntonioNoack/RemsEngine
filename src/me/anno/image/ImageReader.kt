@@ -24,7 +24,7 @@ object ImageReader {
 
         // add the most common swizzles: r,g,b,a
         // to do maybe bgra or similar in the future
-        val image = ImageCPUCache.getImage(file, false) ?: throw IOException("Could not read $file as image")
+        val image = ImageCPUCache[file, false] ?: throw IOException("Could not read $file as image")
         val hasG = image.numChannels > 1
         val hasB = image.numChannels > 2
         val hasA = image.hasAlphaChannel

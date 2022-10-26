@@ -52,7 +52,7 @@ val frame by lazy {
     )
 }
 
-fun drawLogo(window: OSWindow, destroy: Boolean) {
+fun drawLogo(width: Int, height: Int, destroy: Boolean) {
 
     GFX.check()
 
@@ -60,8 +60,6 @@ fun drawLogo(window: OSWindow, destroy: Boolean) {
     logger.info("Showing Engine Logo")
 
     // extend space left+right/top+bottom (zooming out a little)
-    val width = window.width
-    val height = window.height
     val sw: Float
     val sh: Float
     if (width > height) {
@@ -83,7 +81,7 @@ fun drawLogo(window: OSWindow, destroy: Boolean) {
 
     GFXState.blendMode.use(null) {
         if (frame != null) {
-            GFX.setFrameNullSize(window)
+            GFX.setFrameNullSize(width, height)
             useFrame(width, height, true, frame) {
                 drawLogo(shader)
             }

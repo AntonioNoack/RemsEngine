@@ -168,7 +168,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(Component::class)
+        // private val LOGGER = LogManager.getLogger(Component::class)
 
         fun create(type: String): Component {
             return (ISaveable.createOrNull(type) ?: throw TypeNotPresentException(

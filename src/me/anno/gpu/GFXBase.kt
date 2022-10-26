@@ -30,6 +30,7 @@ import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Clock
+import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
@@ -44,10 +45,12 @@ import org.lwjgl.opengl.GL11C.glEnable
 import org.lwjgl.opengl.GL11C.glGetError
 import org.lwjgl.opengl.GL43C.glDebugMessageCallback
 import org.lwjgl.system.Callback
-import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import java.awt.AWTException
 import java.awt.Robot
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -76,7 +79,12 @@ object GFXBase {
     var destroyed = false
 
     var capabilities: GLCapabilities? = null
-    var robot: Robot? = null
+    val robot = try {
+        Robot()
+    } catch (e: AWTException) {
+        e.printStackTrace()
+        null
+    }
 
     /** must be executed before OpenGL-init;
      * must be disabled for Nvidia Nsight */
@@ -93,6 +101,7 @@ object GFXBase {
     }
 
     fun forceLoadRenderDoc(renderDocPath: String? = null) {
+        if (OS.isWeb) return // not supported
         val path = renderDocPath ?: DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
         try {
             // if renderdoc is installed on linux, or given in the path, we could use it as well with loadLibrary()
@@ -111,17 +120,12 @@ object GFXBase {
         try {
 
             loadRenderDoc()
-            val clock = init()
+
+            val clock = initLWJGL()
 
             val window0 = createWindow(OSWindow(projectName), clock)
 
-            try {
-                robot = Robot()
-            } catch (e: AWTException) {
-                e.printStackTrace()
-            }
-
-            windowLoop(window0)
+            runLoops(window0)
 
             // wait for the last frame to be finished,
             // before we actually destroy the window and its framebuffer
@@ -148,8 +152,8 @@ object GFXBase {
         }
     }
 
-    fun init(): Clock {
-        LOGGER.info("Using LWJGL Version " + Version.getVersion())
+    fun initLWJGL(): Clock {
+        if (!OS.isWeb) LOGGER.info("Using LWJGL Version " + Version.getVersion())
         val tick = Clock()
         GLFW.glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err).also { errorCallback = it })
         tick.stop("Error callback")
@@ -172,7 +176,6 @@ object GFXBase {
         Input.initForGLFW(window)
     }
 
-    @Suppress("unused")
     fun createWindow(title: String, panel: Panel): OSWindow {
         val window = OSWindow(title)
         createWindow(window, null)
@@ -198,16 +201,19 @@ object GFXBase {
                 (videoMode.width() - width) / 2,
                 (videoMode.height() - height) / 2
             )
-            MemoryStack.stackPush().use { frame ->
-                val framebufferSize = frame.mallocInt(2)
-                GLFW.nglfwGetFramebufferSize(
-                    window,
-                    MemoryUtil.memAddress(framebufferSize),
-                    MemoryUtil.memAddress(framebufferSize) + 4
-                )
-                instance.width = framebufferSize[0]
-                instance.height = framebufferSize[1]
-            }
+
+            val buffer = ByteBuffer.allocateDirect(8)
+                .order(ByteOrder.nativeOrder())
+            val framebufferSize = buffer.asIntBuffer()
+            GLFW.nglfwGetFramebufferSize(
+                window,
+                MemoryUtil.memAddress(framebufferSize),
+                MemoryUtil.memAddress(framebufferSize) + 4
+            )
+
+            instance.width = framebufferSize[0]
+            instance.height = framebufferSize[1]
+
             tick?.stop("Window position")
             GLFW.glfwSetWindowTitle(window, instance.title)
 
@@ -225,37 +231,33 @@ object GFXBase {
         return instance
     }
 
-    private fun makeCurrent(window: OSWindow): Boolean {
-        GFX.activeWindow = window
-        if (window.pointer != lastCurrent && window.pointer != 0L) {
-            lastCurrent = window.pointer
-            GLFW.glfwMakeContextCurrent(window.pointer)
-        }
-        return window.pointer != 0L
-    }
-
     private var neverStarveWindows = DefaultConfig["ux.neverStarveWindows", false]
 
-    private var lastCurrent = 0L
-    fun runRenderLoop(window0: OSWindow) {
-        LOGGER.info("Running RenderLoop")
-        val tick = Clock()
-        makeCurrent(window0)
-        window0.forceUpdateVsync()
-        tick.stop("Make context current + vsync")
+    fun prepareForRendering(tick: Clock?) {
         capabilities = GL.createCapabilities()
-        tick.stop("OpenGL initialization")
+        tick?.stop("OpenGL initialization")
         debugMsgCallback = GLUtil.setupDebugMessageCallback(LWJGLDebugCallback)
-        tick.stop("Debugging Setup")
+        tick?.stop("Debugging Setup")
         // render first frames = render logo
         // the engine will still be loading,
         // so it has to be a still image
         // alternatively we could play a small animation
         GFX.maxSamples = max(1, GL30C.glGetInteger(GL30C.GL_MAX_SAMPLES))
         GFX.check()
+        checkIsGFXThread()
+    }
+
+    var lastCurrent = 0L
+    fun runRenderLoop0(window0: OSWindow) {
+        LOGGER.info("Running RenderLoop")
+        val tick = Clock()
+        window0.makeCurrent()
+        window0.forceUpdateVsync()
+        tick.stop("Make context current + vsync")
+        prepareForRendering(tick)
         val zeroFrames = 2
         for (i in 0 until zeroFrames) {
-            drawLogo(window0, i == zeroFrames - 1)
+            drawLogo(window0.width, window0.height, i == zeroFrames - 1)
             GFX.check()
             GLFW.glfwSwapBuffers(window0.pointer)
             val err = glGetError()
@@ -264,72 +266,7 @@ object GFXBase {
             // GFX.check()
         }
         tick.stop("Render frame zero")
-        renderStep0()
-        GFX.check()
-        tick.stop("Render step zero")
-        StudioBase.instance?.gameInit()
-        tick.stop("Game Init")
-        var lastTime = System.nanoTime()
-        while (!destroyed && !shutdown) {
-
-            Engine.updateTime()
-
-            val time = Engine.nanoTime
-
-            val firstWindow = windows.firstOrNull()
-            if (firstWindow != null) Input.pollControllers(firstWindow)
-
-            for (index in 0 until windows.size) {
-                val window = windows.getOrNull(index) ?: break
-                if (window.isInFocus ||
-                    window.hasActiveMouseTargets() ||
-                    neverStarveWindows ||
-                    abs(window.lastUpdate - time) * GFX.idleFPS > 1e9
-                ) {
-                    window.lastUpdate = time
-                    // this is hopefully ok (calling it async to other glfw stuff)
-                    if (makeCurrent(window)) {
-                        synchronized(openglLock) {
-                            GFX.activeWindow = window
-                            renderStep(window)
-                        }
-                        synchronized(glfwLock) {
-                            if (!destroyed) {
-                                GLFW.glfwWaitEventsTimeout(0.0)
-                                GLFW.glfwSwapBuffers(window.pointer)
-                                window.updateVsync()
-                            }
-                        }
-                    }
-                }
-            }
-
-            for (index in 0 until windows.size) {
-                val window = windows.getOrNull(index) ?: break
-                if (window.shouldClose) close(window)
-            }
-
-            if (windows.isNotEmpty() &&
-                windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() }
-            ) {
-                // enforce 30 fps, because we don't need more
-                // and don't want to waste energy
-                val currentTime = System.nanoTime()
-                val waitingTime = GFX.idleFPS - (currentTime - lastTime) / 1000000
-                lastTime = currentTime
-                if (waitingTime > 0) try {
-                    // wait does not work, causes IllegalMonitorState exception
-                    Thread.sleep(waitingTime)
-                } catch (ignored: InterruptedException) {
-                }
-            }
-        }
-        StudioBase.instance?.onShutdown()
-    }
-
-    fun renderStep0() {
         if (isDebug) {
-            // System.loadLibrary("renderdoc");
             glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, message: Long, _: Long ->
                 val message2 = if (message != 0L) MemoryUtil.memUTF8(message) else null
                 if (message2 != null && "will use VIDEO memory as the source for buffer object operations" !in message2)
@@ -343,129 +280,184 @@ object GFXBase {
             }, 0)
             glEnable(KHRDebug.GL_DEBUG_OUTPUT)
         }
-        checkIsGFXThread()
-        GFX.renderStep0()
+        init2(tick)
     }
 
-    fun renderStep(window: OSWindow) {
-        GFX.renderStep(window)
+    fun init2(tick: Clock?) {
+        GFX.setup(tick)
+        GFX.check()
+        tick?.stop("Render step zero")
+        StudioBase.instance?.gameInit()
+        tick?.stop("Game Init")
     }
 
-    fun close(window: OSWindow) {
-        synchronized(glfwLock) {
-            if (window.pointer != 0L) {
-                GLFW.glfwDestroyWindow(window.pointer)
-                window.keyCallback?.free()
-                window.keyCallback = null
-                window.fsCallback?.free()
-                window.fsCallback = null
-                window.pointer = 0L
-            }
+    fun runRenderLoop() {
+        lastTime = System.nanoTime()
+        while (!destroyed && !shutdown) {
+            renderFrame()
         }
+        StudioBase.instance?.onShutdown()
     }
 
-    fun windowLoop(window0: OSWindow) {
+    fun runLoops(window0: OSWindow) {
 
         Thread.currentThread().name = "GLFW"
 
         // Start new thread to have the OpenGL context current in and that does the rendering.
-        Thread {
-            runRenderLoop(window0)
-            cleanUp()
-        }.start()
-
-        var lastTrapWindow: OSWindow? = null
+        thread(name = "OpenGL") {
+            runRenderLoop0(window0)
+            runRenderLoop()
+        }
 
         while (!windows.all2 { it.shouldClose } && !shutdown) {
-            for (index in 0 until windows.size) {
-                val window = windows[index]
-                if (!window.shouldClose) {
-                    if (GLFW.glfwWindowShouldClose(window.pointer)) {
-                        val ws = window.windowStack
-                        if (ws.isEmpty() ||
-                            DefaultConfig["window.close.directly", false] ||
-                            ws.peek().isClosingQuestion
-                        ) {
-                            window.shouldClose = true
-                            GLFW.glfwSetWindowShouldClose(window.pointer, true)
-                        } else {
-                            GLFW.glfwSetWindowShouldClose(window.pointer, false)
-                            addGPUTask("close-request", 1) {
-                                ask(
-                                    ws, NameDesc("Close %1?", "", "ui.closeProgram")
-                                        .with("%1", projectName)
-                                ) {
-                                    window.shouldClose = true
-                                    GLFW.glfwSetWindowShouldClose(window.pointer, true)
-                                }?.isClosingQuestion = true
-                                window.framesSinceLastInteraction = 0
-                                ws.peek().setAcceptsClickAway(false)
-                            }
-                        }
-                    } else {
-                        // update small stuff, that may need to be updated;
-                        // currently only the title
-                        window.updateTitle()
-                    }
-                }
-            }
-
-            val trapWindow = trapMouseWindow
-            if (isMouseTrapped && trapWindow != null && !trapWindow.shouldClose) {
-                if (lastTrapWindow == null) {
-                    GLFW.glfwSetInputMode(trapWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
-                    // GLFW.glfwSetInputMode(trapWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN)
-                    lastTrapWindow = trapWindow
-                }
-                /*val x = trapWindow.mouseX
-                val y = trapWindow.mouseY
-                val centerX = trapWindow.width * 0.5
-                val centerY = trapWindow.height * 0.5
-                val dx = x - centerX
-                val dy = y - centerY
-                if (dx * dx + dy * dy > trapMouseRadius * trapMouseRadius) {
-                    GLFW.glfwSetCursorPos(trapWindow.pointer, centerX, centerY)
-                }*/
-            } else if (lastTrapWindow != null && !lastTrapWindow.shouldClose) {
-                GLFW.glfwSetInputMode(lastTrapWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL)
-                lastTrapWindow = null
-            } else if (Input.mouseMovementSinceMouseDown > 5f && Input.mouseKeysDown.isNotEmpty() && DefaultConfig["ui.enableMouseJumping", true]) {
-                // when dragging a value (dragging + selected.isInput), and cursor is on the border, respawn it in the middle of the screen
-                // for that, the cursor should be within 2 frames of reaching the border...
-                // for that, we need the last mouse movement :)
-                val window = focusedWindow
-                if (window != null) {
-                    val margin = 10f
-                    if (window.mouseX !in margin..window.width - margin || window.mouseY !in margin..window.height - margin) {
-                        val inFocus = window.windowStack.inFocus
-                        if (inFocus.any2 { p -> p.anyInHierarchy { h -> h is InputPanel<*> } }) {
-                            val centerX = window.width * 0.5
-                            val centerY = window.height * 0.5
-                            GLFW.glfwSetCursorPos(window.pointer, centerX, centerY)
-                            window.mouseX = centerX.toFloat()
-                            window.mouseY = centerY.toFloat()
-                        }
-                    }
-                }
-            }
-
-            for (index in windows.indices) {
-                val window = windows[index]
-                if (!window.shouldClose && window.updateMouseTarget()) break
-            }
-
-            // glfwWaitEventsTimeout() without args only terminates, if keyboard or mouse state is changed
-            GLFW.glfwWaitEventsTimeout(0.0)
-
+            updateWindows()
         }
 
     }
 
-    fun cleanUp() {}
+    var lastTime = System.nanoTime()
+    fun renderFrame() {
+
+        Engine.updateTime()
+
+        val time = Engine.nanoTime
+
+        val firstWindow = windows.firstOrNull()
+        if (firstWindow != null) Input.pollControllers(firstWindow)
+
+        for (index in 0 until windows.size) {
+            val window = windows.getOrNull(index) ?: break
+            if (window.isInFocus ||
+                window.hasActiveMouseTargets() ||
+                neverStarveWindows ||
+                abs(window.lastUpdate - time) * GFX.idleFPS > 1e9
+            ) {
+                window.lastUpdate = time
+                // this is hopefully ok (calling it async to other glfw stuff)
+                if (window.makeCurrent()) {
+                    synchronized(openglLock) {
+                        GFX.activeWindow = window
+                        GFX.renderStep(window)
+                    }
+                    synchronized(glfwLock) {
+                        if (!destroyed) {
+                            GLFW.glfwWaitEventsTimeout(0.0)
+                            GLFW.glfwSwapBuffers(window.pointer)
+                            window.updateVsync()
+                        }
+                    }
+                }
+            }
+        }
+
+        for (index in 0 until windows.size) {
+            val window = windows.getOrNull(index) ?: break
+            if (window.shouldClose) close(window)
+        }
+
+        if (windows.isNotEmpty() &&
+            windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() }
+        ) {
+            // enforce 30 fps, because we don't need more
+            // and don't want to waste energy
+            val currentTime = System.nanoTime()
+            val waitingTime = GFX.idleFPS - (currentTime - lastTime) / 1000000
+            lastTime = currentTime
+            if (waitingTime > 0) try {
+                // wait does not work, causes IllegalMonitorState exception
+                Thread.sleep(waitingTime)
+            } catch (ignored: InterruptedException) {
+            }
+        }
+    }
+
+    var lastTrapWindow: OSWindow? = null
+    fun updateWindows() {
+        for (index in 0 until windows.size) {
+            val window = windows[index]
+            if (!window.shouldClose) {
+                if (GLFW.glfwWindowShouldClose(window.pointer)) {
+                    val ws = window.windowStack
+                    if (ws.isEmpty() ||
+                        DefaultConfig["window.close.directly", false] ||
+                        ws.peek().isClosingQuestion
+                    ) {
+                        window.shouldClose = true
+                        GLFW.glfwSetWindowShouldClose(window.pointer, true)
+                    } else {
+                        GLFW.glfwSetWindowShouldClose(window.pointer, false)
+                        addGPUTask("close-request", 1) {
+                            ask(
+                                ws, NameDesc("Close %1?", "", "ui.closeProgram")
+                                    .with("%1", projectName)
+                            ) {
+                                window.shouldClose = true
+                                GLFW.glfwSetWindowShouldClose(window.pointer, true)
+                            }?.isClosingQuestion = true
+                            window.framesSinceLastInteraction = 0
+                            ws.peek().setAcceptsClickAway(false)
+                        }
+                    }
+                } else {
+                    // update small stuff, that may need to be updated;
+                    // currently only the title
+                    window.updateTitle()
+                }
+            }
+        }
+
+        val trapWindow = trapMouseWindow
+        if (isMouseTrapped && trapWindow != null && !trapWindow.shouldClose) {
+            if (lastTrapWindow == null) {
+                GLFW.glfwSetInputMode(trapWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
+                // GLFW.glfwSetInputMode(trapWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN)
+                lastTrapWindow = trapWindow
+            }
+            /*val x = trapWindow.mouseX
+            val y = trapWindow.mouseY
+            val centerX = trapWindow.width * 0.5
+            val centerY = trapWindow.height * 0.5
+            val dx = x - centerX
+            val dy = y - centerY
+            if (dx * dx + dy * dy > trapMouseRadius * trapMouseRadius) {
+                GLFW.glfwSetCursorPos(trapWindow.pointer, centerX, centerY)
+            }*/
+        } else if (lastTrapWindow?.shouldClose == false) {
+            GLFW.glfwSetInputMode(lastTrapWindow!!.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL)
+            lastTrapWindow = null
+        } else if (Input.mouseMovementSinceMouseDown > 5f && Input.mouseKeysDown.isNotEmpty() && DefaultConfig["ui.enableMouseJumping", true]) {
+            // when dragging a value (dragging + selected.isInput), and cursor is on the border, respawn it in the middle of the screen
+            // for that, the cursor should be within 2 frames of reaching the border...
+            // for that, we need the last mouse movement :)
+            val window = focusedWindow
+            if (window != null) {
+                val margin = 10f
+                if (window.mouseX !in margin..window.width - margin || window.mouseY !in margin..window.height - margin) {
+                    val inFocus = window.windowStack.inFocus
+                    if (inFocus.any2 { p -> p.anyInHierarchy { h -> h is InputPanel<*> } }) {
+                        val centerX = window.width * 0.5
+                        val centerY = window.height * 0.5
+                        GLFW.glfwSetCursorPos(window.pointer, centerX, centerY)
+                        window.mouseX = centerX.toFloat()
+                        window.mouseY = centerY.toFloat()
+                    }
+                }
+            }
+        }
+
+        for (index in windows.indices) {
+            val window = windows[index]
+            if (!window.shouldClose && window.updateMouseTarget()) break
+        }
+
+        // glfwWaitEventsTimeout() without args only terminates, if keyboard or mouse state is changed
+        GLFW.glfwWaitEventsTimeout(0.0)
+
+    }
 
     fun setIcon(window: Long) {
         val src = getReference(BundledRef.prefix + "icon.png")
-        val srcImage = ImageCPUCache.getImage(src, false)
+        val srcImage = ImageCPUCache[src, false]
         if (srcImage != null) {
             setIcon(window, srcImage)
         }
@@ -493,7 +485,20 @@ object GFXBase {
         image.set(w, h, pixels)
         buffer.put(0, image)
         GLFW.glfwSetWindowIcon(window, buffer)
+
     }
 
+    fun close(window: OSWindow) {
+        synchronized(glfwLock) {
+            if (window.pointer != 0L) {
+                GLFW.glfwDestroyWindow(window.pointer)
+                window.keyCallback?.free()
+                window.keyCallback = null
+                window.fsCallback?.free()
+                window.fsCallback = null
+                window.pointer = 0L
+            }
+        }
+    }
 
 }

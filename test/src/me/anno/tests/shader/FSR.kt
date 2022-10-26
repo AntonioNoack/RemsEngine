@@ -16,7 +16,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
 
     val src = FileReference.getReference(OS.pictures, "rem-original.jpg")
-    val texture = ImageGPUCache.getImage(src, 10000, false)!!
+    val texture = ImageGPUCache[src, 10000, false]!!
 
     ShaderLib.init()
 

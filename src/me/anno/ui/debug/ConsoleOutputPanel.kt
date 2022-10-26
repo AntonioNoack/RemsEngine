@@ -1,7 +1,5 @@
 package me.anno.ui.debug
 
-import me.anno.utils.Logging.lastConsoleLines
-import me.anno.config.DefaultStyle
 import me.anno.engine.RemsEngine
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
@@ -19,8 +17,8 @@ import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.debug.console.ConsoleOutputLine
 import me.anno.ui.style.Style
-import me.anno.utils.Color
 import me.anno.utils.Color.black
+import me.anno.utils.Logging.lastConsoleLines
 import me.anno.utils.files.Files.formatFileSize
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread

@@ -4,7 +4,6 @@ import me.anno.Engine
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.input.Input
@@ -187,7 +186,6 @@ open class PureTextInputML(style: Style) :
                 override fun updateChars(notify: Boolean) {
                     // replace chars in main string...
                     // convert text back to lines
-                    println("setting line $indexInParent to $text")
                     lines[indexInParent] = text.codePoints().toList().toMutableList()
                     this@PureTextInputML.update(true)
                 }

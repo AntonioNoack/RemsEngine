@@ -13,7 +13,8 @@ object OS {
 
     val data: String? = System.getProperty("os.name")
     var isWindows = data != null && data.contains("windows", true)
-    var isLinux = !isWindows // ^^
+    var isWeb = data == "Linux Web"
+    var isLinux = !isWindows && !isWeb // ^^
     var isMacOS = false // ^^
     var isIPhoneOS = false // ^^
     var isIPadOS = false // ^^
@@ -21,8 +22,6 @@ object OS {
     // we haven't implemented a mobile version yet (because that needs different controls),
     // and idk about performance
     var isAndroid = false
-
-    var isWeb = data == "web"
 
     val supportsNetworkUDP get() = !isWeb
 

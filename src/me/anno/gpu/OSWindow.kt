@@ -268,6 +268,15 @@ open class OSWindow(var title: String) {
         GLFW.glfwSetWindowShouldClose(pointer, true)
     }
 
+    fun makeCurrent(): Boolean {
+        GFX.activeWindow = this
+        if (pointer != GFXBase.lastCurrent && pointer != 0L) {
+            GFXBase.lastCurrent = pointer
+            GLFW.glfwMakeContextCurrent(pointer)
+        }
+        return pointer != 0L
+    }
+
     val isFramebufferTransparent: Boolean
         get() = GLFW.glfwGetWindowAttrib(pointer, GLFW.GLFW_TRANSPARENT_FRAMEBUFFER) != GLFW.GLFW_FALSE
 

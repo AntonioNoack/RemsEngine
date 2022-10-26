@@ -177,7 +177,7 @@ object Thumbs {
 
         if (file == InvalidRef) return null
         if (file is ImageReadable) {
-            return ImageGPUCache.getImage(file, timeout, async)
+            return ImageGPUCache[file, timeout, async]
         }
 
         // currently not supported
@@ -1415,7 +1415,7 @@ object Thumbs {
         val startTime = System.nanoTime()
         waitUntil(true) {
             if (System.nanoTime() < startTime + totalNanos) {
-                image = ImageCPUCache.getImage(srcFile, timeout, true)
+                image = ImageCPUCache[srcFile, timeout, true]
                 image != null || ImageCPUCache.hasFileEntry(srcFile, timeout)
             } else true
         }

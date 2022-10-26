@@ -32,6 +32,7 @@ import me.anno.utils.ColorParsing
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -44,6 +45,8 @@ import kotlin.math.*
  * https://github.com/mitsuba-renderer/mitsuba3/blob/master/src/shapes/serialized.cpp
  * */
 object MitsubaReader {
+
+    private val LOGGER = LogManager.getLogger(MitsubaReader::class)
 
     fun readHeader(file: InputStream, length: Long): Pair<Int, LongArray> {
 
@@ -348,7 +351,7 @@ object MitsubaReader {
                         when (child["name"]) {
                             "reflectance", "diffuseReflectance", "specularTransmittance" ->
                                 material.diffuseMap = ref
-                            else -> println("texture of unknown type: ${child["name"]} by $child")
+                            else -> LOGGER.warn("texture of unknown type: ${child["name"]} by $child")
                         }
                     } else when (child["name"]) {
                         "alpha" -> {
@@ -565,7 +568,7 @@ object MitsubaReader {
                                     meshRef = folder.getChild(file)
                                 }
                             }
-                            else -> println("Unknown mesh type: $type")
+                            else -> LOGGER.warn("Unknown mesh type: $type")
                         }
                         /*<transform name="toWorld">
                             <matrix value="1 0 0 0.00724 0 1 1.39626e-07 0.093312 0 -1.39626e-07 1 0.00149 0 0 0 1"/>

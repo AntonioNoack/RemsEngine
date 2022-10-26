@@ -5,8 +5,8 @@ import java.nio.*
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * there should be only a few instances of this
- * which cache byte buffers for a similar purpose (e.g. textures or audio buffers)
+ * there should be only a few instances of this;
+ * which cache byte buffers for a similar purpose (e.g., textures or audio buffers)
  *
  * the instances should be regularly checked whether they are still in use
  * */

@@ -42,6 +42,15 @@ import me.anno.utils.files.Files.findNextFileName
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 
+
+// todo Unity($)/RemsEngine(research) shader debugger:
+//  - go up/down one instruction
+//  - see local variables for all execution units
+//  - printf() statements
+//  - branching maps & branching results
+//  - go into/out of/step
+
+
 // todo graphics: billboards: light only / override color (decals)
 // todo rendered when point is visible, or always (for nice light camera-bug effects, e.g. stars with many blades)
 
@@ -250,11 +259,6 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         }
     }
 
-    override fun run() {
-        instance2 = this
-        super.run()
-    }
-
     override fun openHistory() {
         PrefabInspector.currentInspector?.history?.display()
     }
@@ -286,7 +290,7 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         }
 
         private val LOGGER = LogManager.getLogger(RemsEngine::class)
-        var instance2: RemsEngine? = null
+        val instance2: RemsEngine? get() = instance as? RemsEngine
 
         @JvmStatic
         fun main(args: Array<String>?) {

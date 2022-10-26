@@ -310,7 +310,7 @@ open class Material : PrefabSaveable(), Renderable {
         var timeout = 1000L
         private val LOGGER = LogManager.getLogger(Material::class)
 
-        fun getTex(image: FileReference) = ImageGPUCache.getImage(image, timeout, true)
+        fun getTex(image: FileReference) = ImageGPUCache[image, timeout, true]
 
         fun bindTexture(shader: Shader, name: String, file: FileReference, default: Texture2D): Texture2D? {
             val index = shader.getTextureIndex(name)

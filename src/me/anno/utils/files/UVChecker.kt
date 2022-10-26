@@ -13,7 +13,7 @@ val UVChecker = lazy {
     // generate uv checker texture to save 500kB of storage space
 
     // load texture with numbers
-    val numbers = ImageCPUCache.getImage(FileReference.getReference("res://dig8.png"), false)!!
+    val numbers = ImageCPUCache[FileReference.getReference("res://dig8.png"), false]!!
     val cw = 27 // character size in <numbers>
     val ch = 37
     val co = 17 // character offset from top, ~ch/2

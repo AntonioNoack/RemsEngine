@@ -13,6 +13,6 @@ import org.apache.logging.log4j.LogManager
 fun main() {
     HiddenOpenGLContext.createOpenGL()
     val fileReference = OS.pictures.getChild("4k.jpg")
-    val image = ImageGPUCache.getImage(fileReference, false)!!
+    val image = ImageGPUCache[fileReference, false]!!
     LogManager.getLogger("Reduction").info(Reduction.reduce(image, Reduction.AVG).toHexColor())
 }

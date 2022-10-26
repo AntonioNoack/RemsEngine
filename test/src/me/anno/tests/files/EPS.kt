@@ -11,7 +11,7 @@ fun main() {
     // like svg
     // except with programming code???? ... too complicated for us to handle
     val ref = getReference(downloads, "2d/blank-empty-speech-bubbles-vector-illustration.zip/42894.eps")
-    val image = ImageCPUCache.getImage(ref, false)
+    val image = ImageCPUCache[ref, false]
     LOGGER.info(image)
 
     println(ref.readTextSync())

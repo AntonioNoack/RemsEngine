@@ -18,7 +18,7 @@ class CachedImage(val src: FileReference, w: Int, h: Int, numChannels: Int, hasA
     /** cache timeout in milli seconds */
     var timeout = 50L
 
-    val base get() = ImageCPUCache.getImage(src, timeout, false)
+    val base get() = ImageCPUCache[src, timeout, false]
 
     override fun getRGB(index: Int): Int {
         val img = base!!

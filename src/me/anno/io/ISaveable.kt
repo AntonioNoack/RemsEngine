@@ -7,6 +7,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.CachedReflections
+import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -215,7 +216,9 @@ interface ISaveable {
     companion object {
 
         private val LOGGER = LogManager.getLogger(ISaveable::class)
-        private val reflectionCache = ConcurrentHashMap<KClass<*>, CachedReflections>()
+        private val reflectionCache: MutableMap<KClass<*>, CachedReflections> =
+            if (OS.isWeb) HashMap()
+            else ConcurrentHashMap()
 
         fun getReflections(instance: Any): CachedReflections {
             val clazz = instance::class
@@ -344,7 +347,19 @@ interface ISaveable {
             }
             objectTypeRegistry[className] = entry
             objectTypeByClass[clazz] = entry
-            registerSuperClasses(clazz)
+            try {
+                registerSuperClasses(clazz)
+            } catch (e: KotlinReflectionNotSupportedError) {
+                // Kotlin reflection is broken for me in JVM2WASM :/
+                // todo support kotlin.reflect.jvm.internal.ReflectionFactoryImpl
+                var clazz1: Class<*> = entry.sampleInstance.javaClass
+                while (true) {
+                    superTypeRegistry[clazz1.simpleName] = clazz1.kotlin as KClass<out ISaveable>
+                    if (clazz1 == ISaveable::class.java) break
+                    @Suppress("unchecked_cast")
+                    clazz1 = clazz1.superclass ?: break
+                }
+            }
         }
 
     }

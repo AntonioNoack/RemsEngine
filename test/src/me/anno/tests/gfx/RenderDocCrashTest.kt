@@ -9,7 +9,6 @@ import org.lwjgl.opengl.GL11C.glClear
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL45C
 import org.lwjgl.opengl.GL46C
-import org.lwjgl.system.MemoryUtil
 import kotlin.reflect.full.staticProperties
 
 fun main() {

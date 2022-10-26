@@ -77,7 +77,7 @@ fun testSkeletonFrame(file: FileReference) {
 fun testImage(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    val image = ImageCPUCache.getImage(file, false)!!
+    val image = ImageCPUCache[file, false]!!
     val (w, h) = scaleMax(image.width, image.height, size)
     // test cpu loading
     if (file != file.dst()) file.dst().outputStream().use {
@@ -91,7 +91,7 @@ fun testImage(file: FileReference) {
     Thumbs.renderToImage(file, false, file.dst2(), false, Renderer.copyRenderer, true,
         { _, exc -> exc?.printStackTrace() }, w, h
     ) {
-        val texture = ImageGPUCache.getImage(file, 10_000, false)!!
+        val texture = ImageGPUCache[file, 10_000, false]!!
         drawTexture(0, 0, w, h, texture, -1, null)
     }
     //val tex2 = Thumbs.getThumbnail(file,size,false)

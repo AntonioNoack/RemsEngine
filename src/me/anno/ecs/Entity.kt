@@ -44,8 +44,6 @@ import kotlin.reflect.KClass
 
 // done delta settings & control: only saves as values, what was changed from the prefab
 
-// todo unordered remove
-
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
@@ -652,17 +650,23 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     fun onChangeComponent(component: Component) {
-        hasRenderables = hasComponent(MeshComponentBase::class, false) ||
-                hasComponent(LightComponentBase::class, false)
+        if (component is MeshComponentBase || component is LightComponentBase) {
+            hasRenderables = hasComponent(MeshComponentBase::class, false) ||
+                    hasComponent(LightComponentBase::class, false)
+        }
         val tmpAABB = JomlPools.aabbd.create().all()
         val fillsSpace = component.fillSpace(transform.globalTransform, tmpAABB)
         if (fillsSpace) invalidateOwnAABB()
-        hasSpaceFillingComponents = hasRenderables ||
-                anyComponent {
-                    it !is MeshComponentBase && it !is LightComponentBase &&
-                            it.fillSpace(transform.globalTransform, tmpAABB)
-                }
-        hasControlReceiver = hasComponent(ControlReceiver::class)
+        if (component is MeshComponentBase || component is LightComponentBase || fillsSpace) {
+            hasSpaceFillingComponents = hasRenderables ||
+                    anyComponent {
+                        it !is MeshComponentBase && it !is LightComponentBase &&
+                                it.fillSpace(transform.globalTransform, tmpAABB)
+                    }
+        }
+        if (component is ControlReceiver) {
+            hasControlReceiver = hasComponent(ControlReceiver::class)
+        }
         for (idx in components.indices) {
             components[idx].onChangeStructure(this)
         }
@@ -684,6 +688,21 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     fun deleteComponent(component: Component) {
         internalComponents.remove(component)
         onChangeComponent(component)
+    }
+
+    /**
+     * removes the component in O(1) time, but may change the order
+     * todo this is O(n) without lots of caching, because we need to update status flags and deliver change-updates
+     * */
+    fun removeUnordered(component: Component, index: Int) {
+        val test = internalComponents.getOrNull(index)
+        if (test !== component) { // invalid index -> no speedup
+            remove(component)
+        } else {
+            internalComponents[index] = internalComponents.last()
+            internalComponents.removeLast()
+            onChangeComponent(component)
+        }
     }
 
     fun <V : Any> hasComponent(clazz: KClass<V>, includingDisabled: Boolean = false): Boolean {

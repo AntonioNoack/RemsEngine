@@ -26,7 +26,8 @@ object ConfigBasics {
     fun save(file: FileReference, data: String): String {
         val parentFile = file.getParent() ?: return data
         if (!parentFile.exists) parentFile.tryMkdirs()
-        file.writeText(JsonFormatter.format(data))
+        val formatted = JsonFormatter.format(data)
+        file.writeText(formatted)
         return data
     }
 

@@ -8,7 +8,7 @@ import me.anno.utils.OS
 // test this with real letters
 // to do set the test size for meshes to 120 instead of 20-ish
 fun main() {
-    val image = ImageCPUCache.getImage(OS.documents.getChild("test-text.png"), false)!!
+    val image = ImageCPUCache[OS.documents.getChild("test-text.png"), false]!!
     val pixels = (image as IntImage).data
     val black = -0x1000000
     var i = 0

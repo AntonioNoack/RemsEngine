@@ -71,7 +71,7 @@ object HiddenOpenGLContext {
 
         GFX.check()
 
-        GFX.setupBasics()
+        GFX.setupBasics(tick)
 
     }
 

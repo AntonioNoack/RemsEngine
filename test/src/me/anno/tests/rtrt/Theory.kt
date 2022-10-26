@@ -11,9 +11,14 @@ import org.lwjgl.opengl.NVMeshShader.*
 fun main() {
 
     // todo optional vulkan backend for us to support hardware RayTracing
-    //  ways:
-    //  - https://gitlab.freedesktop.org/kusma/mesa/tree/zink, has task to support everything in OpenGL :3
-    //  - learn vulkan ourselves, and implement it ourselves
+    // todo  ways:
+    // todo   - https://gitlab.freedesktop.org/kusma/mesa/tree/zink, has task to support everything in OpenGL :3
+    // todo   - learn vulkan ourselves, and implement it ourselves
+    // todo   - implement Vulkan RT as a C++/Rust server
+    // https://github.com/vulkano-rs/vulkano -> RT is commented -> probably not supported :/
+    // https://github.com/GPSnoopy/RayTracingInVulkan -> C++, includes rasterizer and raytracer and uses resources like images and shaders :3
+    // todo   - indeed Vulkan backend for memory, but rendering done in OpenGL
+    // https://github.com/nvpro-samples/gl_vk_simple_interop
     // https://github.com/kbiElude/VKGL -> last update 2019, it says it's unusable :/ ; only supports OpenGL 3.2 Core, so glVertexAttribDivisor is missing
 
     // trying to understand Mesh shaders and Task shaders...

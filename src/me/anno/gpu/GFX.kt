@@ -53,6 +53,11 @@ import kotlin.reflect.KClass
  * */
 object GFX {
 
+    // todo there is per-framebuffer blending since OpenGL 4.0 😍
+    // todo and it somehow can be used for order-independent transparency
+    // (Weighted Blended Order-Independent Transparency by Morgan McGuire Louis Bavoil)
+    // glBlendFunci()
+
     private val LOGGER = LogManager.getLogger(GFX::class)
 
     // for final rendering we need to use the GPU anyway;
@@ -255,9 +260,8 @@ object GFX {
         check()
     }
 
-    fun setupBasics() {
+    fun setupBasics(tick: Clock?) {
         glThread = Thread.currentThread()
-        val tick = Clock()
         LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
         LOGGER.info("GLSL Version " + glGetString(GL_SHADING_LANGUAGE_VERSION))
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
@@ -281,14 +285,13 @@ object GFX {
         LOGGER.info("Max Color Attachments: $maxColorAttachments")
         LOGGER.info("Max Samples: $maxSamples")
         LOGGER.info("Max Texture Size: $maxTextureSize")
-        tick.stop("Checking OpenGL properties")
+        tick?.stop("Checking OpenGL properties")
     }
 
-    fun renderStep0() {
-        setupBasics()
+    fun setup(tick: Clock?) {
+        setupBasics(tick)
         ShaderLib.init()
     }
-
 
     /**
      * time limit in seconds
@@ -366,18 +369,22 @@ object GFX {
     }
 
     fun setFrameNullSize(window: OSWindow) {
+        setFrameNullSize(window.width, window.height)
+    }
+
+    fun setFrameNullSize(width: Int, height: Int) {
         GFXState.apply {
             // this should be the state for the default framebuffer
             xs[0] = 0
             ys[0] = 0
-            ws[0] = window.width
-            hs[0] = window.height
+            ws[0] = width
+            hs[0] = height
             changeSizes[0] = false
             Frame.invalidate()
             viewportX = 0
             viewportY = 0
-            viewportWidth = window.width
-            viewportHeight = window.height
+            viewportWidth = width
+            viewportHeight = height
         }
     }
 

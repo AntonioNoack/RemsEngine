@@ -87,7 +87,7 @@ class ImageData(file: FileReference) : ICacheData {
                 }
                 "dds", "media" -> useFFMPEG(file)
                 else -> {
-                    val image = ImageCPUCache.getImage(file, 50, false)
+                    val image = ImageCPUCache[file, 50, false]
                     if (image != null) {
                         texture.create(file.toString(), image, true)
                         texture.rotation = getRotation(file)

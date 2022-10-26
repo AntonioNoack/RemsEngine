@@ -12,9 +12,9 @@ fun main() {
     // the following code works fine, and confirms that GPU and CPU methods are working correctly
     HiddenOpenGLContext.createOpenGL()
     val source = downloads.getChild("3d/DamagedHelmet.glb/textures/1.jpg")
-    ImageGPUCache.getImage(source, false)!!
+    ImageGPUCache[source, false]!!
         .createImage(flipY = false, withAlpha = false)
         .write(desktop.getChild(source.nameWithoutExtension + ".gpu.png"))
-    ImageCPUCache.getImage(source, false)!!.write(desktop.getChild(source.nameWithoutExtension + ".cpu.png"))
+    ImageCPUCache[source, false]!!.write(desktop.getChild(source.nameWithoutExtension + ".cpu.png"))
     Engine.requestShutdown()
 }

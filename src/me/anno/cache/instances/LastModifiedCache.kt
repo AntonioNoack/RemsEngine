@@ -5,6 +5,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.utils.OS
 import me.anno.utils.structures.maps.Maps.removeIf
 import java.io.File
 import java.nio.file.Files
@@ -40,7 +41,9 @@ object LastModifiedCache {
 
     }
 
-    var values = ConcurrentHashMap<String, Result>()
+    val values: MutableMap<String, Result> =
+        if (OS.isWeb) HashMap()
+        else ConcurrentHashMap()
 
     fun invalidate(absolutePath: String) {
         // we store both variants
@@ -78,9 +81,13 @@ object LastModifiedCache {
 
     operator fun get(absolutePath: String): Result {
         return values.getOrPut(absolutePath) {
-            val r = Result(File(absolutePath))
-            values[absolutePath.replace('/', '\\')] = r
-            values[absolutePath.replace('\\', '/')] = r
+            val file = File(absolutePath)
+            val exists = file.exists()
+            val dir = if (exists) file.isDirectory else false
+            val lm = if (exists) file.lastModified() else 0L
+            val r = Result(file, exists, dir, lm)
+            if ('/' in absolutePath) values[absolutePath.replace('/', '\\')] = r
+            if ('\\' in absolutePath) values[absolutePath.replace('\\', '/')] = r
             r
         }
     }

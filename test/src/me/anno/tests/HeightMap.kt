@@ -21,7 +21,7 @@ fun main() {
 fun createMesh() {
 
     val file = getReference("C:/XAMPP/htdocs/DigitalCampus/images/map/h750.png")
-    val image = ImageCPUCache.getImage(file, false)!!
+    val image = ImageCPUCache[file, false]!!
 
     val w = image.width
     val h = image.height

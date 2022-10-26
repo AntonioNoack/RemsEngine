@@ -8,7 +8,6 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.image.ImageCPUCache
@@ -1166,7 +1165,7 @@ Transform:
 
         return*/
 
-        ImageCPUCache.getImage(getReference(projectPath, "Assets/PolygonSciFiCity/Textures/LineTex 4.png"), false)!!
+        ImageCPUCache[getReference(projectPath, "Assets/PolygonSciFiCity/Textures/LineTex 4.png"), false]!!
             .write(desktop.getChild("LineTex4.png"))
 
         // circular sample

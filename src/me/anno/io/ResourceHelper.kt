@@ -2,7 +2,6 @@ package me.anno.io
 
 import me.anno.io.Streams.readText
 import java.io.FileNotFoundException
-import java.io.IOException
 import java.io.InputStream
 
 object ResourceHelper {
