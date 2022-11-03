@@ -116,7 +116,7 @@ object LastModifiedCache {
         values.clear()
     }
 
-    private const val timeoutNanos = 20_000L * MILLIS_TO_NANOS
+    private var timeoutNanos = 20_000L * MILLIS_TO_NANOS
     // private val LOGGER = LogManager.getLogger(LastModifiedCache::class)
 
 }

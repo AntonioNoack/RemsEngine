@@ -42,9 +42,14 @@ object Engine {
         private set
 
     fun updateTime() {
-
         val thisTime = System.nanoTime()
         rawDeltaTime = (thisTime - lastTime) * 1e-9f
+        updateTime(rawDeltaTime, thisTime)
+    }
+
+    fun updateTime(dt: Float, thisTime: Long) {
+
+        rawDeltaTime = dt
         deltaTime = min(rawDeltaTime, 0.1f)
         FrameTimings.putTime(rawDeltaTime)
 

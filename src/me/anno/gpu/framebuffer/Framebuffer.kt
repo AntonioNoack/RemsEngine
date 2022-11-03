@@ -9,10 +9,10 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
+import me.anno.utils.OS
 import org.lwjgl.opengl.GL13C.GL_MULTISAMPLE
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL32C.GL_TEXTURE_2D_MULTISAMPLE
-import org.lwjgl.opengl.GL45C.glCheckNamedFramebufferStatus
 
 class Framebuffer(
     override var name: String,
@@ -162,10 +162,12 @@ class Framebuffer(
             throw IllegalStateException("Depth attachment could not be recreated! ${da.pointer} != $depthAttachedPtr")
         }
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
-        if (withMultisampling) {
-            glEnable(GL_MULTISAMPLE)
-        } else {
-            glDisable(GL_MULTISAMPLE)
+        if (!OS.isWeb) {// not defined in WebGL
+            if (withMultisampling) {
+                glEnable(GL_MULTISAMPLE)
+            } else {
+                glDisable(GL_MULTISAMPLE)
+            }
         }
     }
 
@@ -239,7 +241,7 @@ class Framebuffer(
             }
         }
         GFX.check()
-        check(pointer)
+        check()
         this.pointer = pointer
     }
 
@@ -316,8 +318,8 @@ class Framebuffer(
 
     }
 
-    fun check(pointer: Int) {
-        val state = glCheckNamedFramebufferStatus(pointer, GL_FRAMEBUFFER)
+    fun check() {
+        val state = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
             throw RuntimeException("Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}")
         }

@@ -20,6 +20,11 @@ open class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
                 ECSRegistry.init()
             }
         }
+        fun ensureMeshClasses() {
+            if ("Entity" !in ISaveable.objectTypeRegistry) {
+                ECSRegistry.initMeshes()
+            }
+        }
     }
 
     operator fun get(ref: FileReference?) = get(ref, false)

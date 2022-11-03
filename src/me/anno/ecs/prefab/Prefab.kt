@@ -145,6 +145,11 @@ class Prefab : Saveable {
         // todo same for add...
     }
 
+    override fun set(propertyName: String, value: Any?): Boolean {
+        set(ROOT_PATH, propertyName, value)
+        return true
+    }
+
     fun setIfNotExisting(path: Path, name: String, value: Any?) {
         if (!sets.contains(path, name)) {// could be optimized to use no instantiations
             set(path, name, value)
@@ -370,7 +375,7 @@ class Prefab : Saveable {
     }
 
     override val className = "Prefab"
-    override val approxSize: Int = 1_000_000_000
+    override val approxSize: Int = 1_000_000_096
 
     override fun isDefaultValue(): Boolean =
         adds.isEmpty() && sets.isEmpty() && prefab == InvalidRef && history == null

@@ -73,5 +73,4 @@ object DrawRectangles {
         drawRect(x + w - size, y + size, size, h - 2 * size)
     }
 
-
 }

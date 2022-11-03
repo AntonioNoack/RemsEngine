@@ -16,7 +16,6 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.reflect.KClass
-import kotlin.reflect.full.superclasses
 
 interface ISaveable {
 
@@ -188,7 +187,7 @@ interface ISaveable {
         val reflections = getReflections()
         for ((name, field) in reflections.declaredProperties) {
             if (field.serialize) {
-                val value = field.getter.call(this)
+                val value = field.getter(this)
                 val type = (field.annotations.firstOrNull2 { it is Type } as? Type)?.type
                 if (type != null) {
                     writer.writeSomething(this, type, name, value, field.forceSaving ?: (value is Boolean))
@@ -248,12 +247,16 @@ interface ISaveable {
 
         fun getSample(type: String) = objectTypeRegistry[type]?.sampleInstance
 
-        fun getClass(type: String): KClass<out ISaveable>? {
+        fun getClass(type: String): Class<out ISaveable>? {
             val instance = objectTypeRegistry[type]?.sampleInstance ?: return superTypeRegistry[type]
-            return instance::class
+            return instance.javaClass
         }
 
         fun getByClass(clazz: KClass<*>): RegistryEntry? {
+            return objectTypeByClass[clazz]
+        }
+
+        fun getByClass(clazz: Class<*>): RegistryEntry? {
             return objectTypeByClass[clazz]
         }
 
@@ -263,7 +266,7 @@ interface ISaveable {
 
         val objectTypeRegistry = HashMap<String, RegistryEntry>()
         private val objectTypeByClass = HashMap<Any, RegistryEntry>()
-        private val superTypeRegistry = HashMap<String, KClass<out ISaveable>>()
+        private val superTypeRegistry = HashMap<String, Class<out ISaveable>>()
 
         fun checkInstance(instance0: ISaveable) {
             if (Build.isDebug && instance0 is PrefabSaveable) {
@@ -274,12 +277,12 @@ interface ISaveable {
             }
         }
 
-        fun registerSuperClasses(clazz0: KClass<out ISaveable>) {
+        fun registerSuperClasses(clazz0: Class<out ISaveable>) {
             var clazz = clazz0
             while (true) {
-                superTypeRegistry[clazz.simpleName!!] = clazz
+                superTypeRegistry[clazz.simpleName] = clazz
                 @Suppress("unchecked_cast")
-                clazz = clazz.superclasses.firstOrNull() as? KClass<out ISaveable> ?: break
+                clazz = (clazz.superclass ?: break) as Class<out ISaveable>
             }
         }
 
@@ -323,12 +326,16 @@ interface ISaveable {
 
         @JvmStatic
         fun <V : ISaveable> registerCustomClass(clazz: KClass<V>) {
-            val constructor = clazz.constructors.firstOrNull { it.parameters.isEmpty() }
+            val clazz2 = clazz.java
                 ?: throw IllegalArgumentException("$clazz is missing constructor without parameters")
-            val instance0 = constructor.call()
+            val instance0 = try {
+                clazz2.newInstance()
+            } catch (e: InstantiationException){
+                throw IllegalArgumentException("$clazz is missing constructor without parameters", e)
+            }
             checkInstance(instance0)
             val className = instance0.className
-            register(className, RegistryEntry(instance0) { constructor.call() })
+            register(className, RegistryEntry(instance0) { clazz2.newInstance() })
         }
 
         @JvmStatic
@@ -345,20 +352,16 @@ interface ISaveable {
             if (oldInstance != null && oldInstance::class != clazz) {
                 LOGGER.warn("Overriding registered class $className from type ${oldInstance::class} with $clazz")
             }
+            LOGGER.info("Registering {}", className)
             objectTypeRegistry[className] = entry
             objectTypeByClass[clazz] = entry
-            try {
-                registerSuperClasses(clazz)
-            } catch (e: KotlinReflectionNotSupportedError) {
-                // Kotlin reflection is broken for me in JVM2WASM :/
-                // todo support kotlin.reflect.jvm.internal.ReflectionFactoryImpl
-                var clazz1: Class<*> = entry.sampleInstance.javaClass
-                while (true) {
-                    superTypeRegistry[clazz1.simpleName] = clazz1.kotlin as KClass<out ISaveable>
-                    if (clazz1 == ISaveable::class.java) break
-                    @Suppress("unchecked_cast")
-                    clazz1 = clazz1.superclass ?: break
-                }
+            objectTypeByClass[clazz.java] = entry
+            var clazz1: Class<*> = entry.sampleInstance.javaClass
+            while (true) {
+                superTypeRegistry[clazz1.simpleName] = clazz1 as Class<out ISaveable>
+                if (clazz1 == ISaveable::class.java) break
+                @Suppress("unchecked_cast")
+                clazz1 = clazz1.superclass ?: break
             }
         }
 

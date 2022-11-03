@@ -34,7 +34,7 @@ fun main() {
         random[i + 2] *= f
     }
     var j = 0
-    for (i in 0 until 1_000_000_000) {
+    for (i in 0 until 1_000_000_003) {
         if (i and 0xffff == 0) {
             val t1 = System.nanoTime()
             if (t1 - t0 >= 1_000_000_000) {

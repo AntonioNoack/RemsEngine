@@ -10,6 +10,7 @@ import me.anno.language.translation.Dict
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.style.Style
+import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
@@ -38,11 +39,21 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         val runtime = Runtime.getRuntime()
         val memory = runtime.totalMemory() - runtime.freeMemory()
         val videoMemory = Texture2D.allocated + CubemapTexture.allocated + Texture3D.allocated + OpenGLBuffer.allocated
-        val cMemory = ByteBufferPool.getAllocated()
-        return Dict["JVM/C/VRAM: %1/%3/%2 MB", "ui.debug.ramUsage2"]
-            .replace("%1", format1(memory))
-            .replace("%2", format1(videoMemory))
-            .replace("%3", format1(cMemory))
+        return if (OS.isWeb) {
+            // can we query how much memory JS is using?
+            // https://stackoverflow.com/questions/2530228/jquery-or-javascript-to-find-memory-usage-of-page
+            // window.performance.memory ; might be Chrome-only -> edge works; doesn't work in Firefox
+            // todo query and display this somehow...
+            Dict["JVM/C/VRAM: %1/%2 MB", "ui.debug.ramUsage2"]
+                .replace("%1", format1(memory))
+                .replace("%2", format1(videoMemory))
+        } else {
+            val cMemory = ByteBufferPool.getAllocated()
+            Dict["JVM/C/VRAM: %1/%3/%2 MB", "ui.debug.ramUsage2"]
+                .replace("%1", format1(memory))
+                .replace("%2", format1(videoMemory))
+                .replace("%3", format1(cMemory))
+        }
     }
 
     private fun format1(size: Long) = (size.toFloat() / (1 shl 20)).f1()
@@ -68,7 +79,8 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
                     "  Texture3d:      ${format1(Texture3D.allocated)} MB\n" +
                     "  TextureCubemap: ${format1(CubemapTexture.allocated)} MB\n" +
                     "  Geometry:       ${format1(OpenGLBuffer.allocated)} MB\n" +
-                    "Native:   ${format1(ByteBufferPool.getAllocated())} MB")
+                    "Native:   ${format1(ByteBufferPool.getAllocated())} MB"
+        )
     }
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {

@@ -21,21 +21,29 @@ object LinearRegression {
      * @param y solution vector, f(x)
      * @return v such that Xv = y
      * */
-    fun solve(X: DoubleArray, y: DoubleArray): DoubleArray? {
+    fun solve(X: DoubleArray, y: DoubleArray, regularisation: Double = 1e-3): DoubleArray? {
         val numPts = y.size
         val degree = X.size / numPts
-        // y = (XtX)^-1 * Xt * b
-        // y = (XtX)^-1 * (Xt * b)
-        if (false) {
+        // b = (XtX)^-1 * Xt * y
+        // b = (XtX)^-1 * (Xt * y)
+        if (true) {
             val xtx = setAtB(X, X, degree, numPts, degree)
+            val t = degree + 1
+            for (i in 0 until degree) {
+                xtx[i * t] += regularisation
+            }
             val xty = setAtX(X, y, degree, numPts)
             val xtxInv = inverse(xtx, degree) ?: return null
             return setAx(xtxInv, xty, degree, degree)
         } else {
             // debug printing
             println("A:")
-            printMatrix(X, degree)
+            printMatrix(X, degree, numPts)
             val xtx = setAtB(X, X, degree, numPts, degree)
+            val t = degree + 1
+            for (i in 0 until degree) {
+                xtx[i * t] += regularisation
+            }
             println("A*A:")
             printMatrix(xtx, degree, degree)
             val xty = setAtX(X, y, degree, numPts)
@@ -49,11 +57,15 @@ object LinearRegression {
     }
 
     // not tested!
-    fun solveT(Xt: DoubleArray, y: DoubleArray): DoubleArray? {
+    fun solveT(Xt: DoubleArray, y: DoubleArray, regularisation: Double = 1e-3): DoubleArray? {
         val numPts = y.size
         val degree = Xt.size / numPts
         // beta = (XtX)^-1 * Xt * Y
         val xtx = setABt(Xt, Xt, degree, numPts, degree)
+        val t = degree + 1
+        for (i in 0 until degree) {
+            xtx[i * t] += regularisation
+        }
         val xty = setAx(Xt, y, degree, numPts)
         val xtxInv = inverse(xtx, degree) ?: return null
         return setAx(xtxInv, xty, degree, degree)
@@ -71,11 +83,19 @@ object LinearRegression {
         return result
     }
 
-    fun solve(points: List<Vector2d>, functions: List<(Double) -> Double>): DoubleArray? {
+    fun solve(
+        points: List<Vector2d>,
+        functions: List<(Double) -> Double>,
+        regularisation: Double = 1e-3
+    ): DoubleArray? {
         val xt = crossMapDoubleT(points, functions)
         val y = DoubleArray(points.size) { points[it].y }
         // beta = (XtX)^-1 * Xt * Y
         val xtx = setABt(xt, xt, functions.size, points.size, functions.size)
+        val t = functions.size + 1
+        for (i in functions.indices) {
+            xtx[i * t] += regularisation
+        }
         val xty = setAx(xt, y, functions.size, points.size)
         val xtxInv = inverse(xtx, functions.size) ?: return null
         return setAx(xtxInv, xty, functions.size, functions.size)
@@ -85,7 +105,11 @@ object LinearRegression {
      * finds the polynomial coefficients upto degree #dimensions.
      * This falls apart for large #dimensions, probably because of my bad matrix inverter
      * */
-    fun findPolynomialCoefficients(points: List<Vector2d>, dimensions: Int = points.size): DoubleArray? {
+    fun findPolynomialCoefficients(
+        points: List<Vector2d>,
+        dimensions: Int = points.size,
+        regularisation: Double = 1e-3
+    ): DoubleArray? {
         // the same as above, just more efficient
         val size = points.size
         val xt = DoubleArray(size * dimensions)
@@ -101,7 +125,7 @@ object LinearRegression {
             }
         }
         val y = DoubleArray(size) { points[it].y }
-        return solve(xt, y)
+        return solve(xt, y, regularisation)
     }
 
     @JvmStatic
@@ -143,7 +167,7 @@ object LinearRegression {
         }
     }
 
-    fun findPolynomialCoefficients(y: DoubleArray, dimensions: Int = y.size): DoubleArray? {
+    fun findPolynomialCoefficients(y: DoubleArray, dimensions: Int = y.size, regularisation: Double): DoubleArray? {
         // return solve(points, Array(points.size) { exponent -> { x: Double -> pow(x, exponent.toDouble()) } }.toList())
         // the same as above, just more efficient
         val size = y.size
@@ -160,7 +184,7 @@ object LinearRegression {
                 j = k
             }
         }
-        return solve(xt, y)
+        return solve(xt, y, regularisation)
     }
 
     fun calcXtX4(X: List<Vector3d>): Matrix4d {

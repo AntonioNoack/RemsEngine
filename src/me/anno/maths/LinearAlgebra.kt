@@ -206,7 +206,7 @@ object LinearAlgebra {
             }
 
             if (a[bestRow * size + m] == 0.0) { // matrix is not invertible
-                LOGGER.debug("$size x $size matrix is not invertible, ${a.size}, ${b.size}")
+                // LOGGER.warn("$size x $size matrix is not invertible, ${a.size}, ${b.size}")
                 return null
             }
 
@@ -271,7 +271,7 @@ object LinearAlgebra {
         }
     }
 
-    fun printMatrix(a: DoubleArray, m: Int = sqrt(a.size.toDouble()).toInt(), n: Int = m) {
+    fun printMatrix(a: DoubleArray, m: Int = sqrt(a.size.toDouble()).toInt(), n: Int = a.size / m) {
         val str = StringBuilder()
         for (mi in 0 until m) {
             val mn = mi * n

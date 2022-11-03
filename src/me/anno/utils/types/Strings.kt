@@ -289,5 +289,13 @@ object Strings {
         return false
     }
 
+    fun countLines(str: String): Int {
+        var ctr = 1
+        for (i in str.indices) {
+            if (str[i] == '\n') ctr++
+        }
+        return ctr
+    }
+
 
 }

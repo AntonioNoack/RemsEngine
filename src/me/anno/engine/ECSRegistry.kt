@@ -54,6 +54,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.graph.types.NodeLibrary
+import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
@@ -65,6 +66,15 @@ import me.anno.utils.LOGGER
 object ECSRegistry {
 
     var hasBeenInited = false
+
+    fun initMeshes() {
+        registerCustomClass(Entity())
+        registerCustomClass(Mesh())
+        registerCustomClass(Material())
+        registerCustomClass(MeshComponent())
+        registerCustomClass(AnimRenderer())
+    }
+
     fun init() {
 
         if (hasBeenInited) return
@@ -75,7 +85,8 @@ object ECSRegistry {
         registerCustomClass(StringMap())
         registerCustomClass(SaveableArray())
 
-        registerCustomClass(Entity())
+        if ("Entity" !in ISaveable.objectTypeRegistry) initMeshes()
+
         registerCustomClass(Transform())
         registerCustomClass(LocalPlayer())
         registerCustomClass(RemotePlayer())
@@ -99,9 +110,6 @@ object ECSRegistry {
         UIRegistry.init()
 
         // meshes and rendering
-        registerCustomClass(Mesh())
-        registerCustomClass(Material())
-        registerCustomClass(MeshComponent())
         registerCustomClass(LODMeshComponent())
         registerCustomClass(SplineMesh())
         registerCustomClass(SplineCrossing())
@@ -114,7 +122,6 @@ object ECSRegistry {
 
         // animated meshes
         AnimStateNode.register()
-        registerCustomClass(AnimRenderer())
         registerCustomClass(AnimationState())
         registerCustomClass(AnimController())
 

@@ -10,10 +10,12 @@ import org.joml.Vector3f
 
 object HSLuv : ColorSpace(
     NameDesc("HSLuv", "HSL/HSV with constant brightness", "colorSpace.hsluv"),
-    loadText("shader/color/HSLuv.glsl") + "\n" +
-            "vec3 spaceToRGB(vec3 hsl){\n" +
-            "   return clamp(hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0)), 0.0, 1.0);\n" +
-            "}\n", Vector3f(0f, 1f, 0.5f)
+    lazy {
+        loadText("shader/color/HSLuv.glsl") + "\n" +
+                "vec3 spaceToRGB(vec3 hsl){\n" +
+                "   return clamp(hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0)), 0.0, 1.0);\n" +
+                "}\n"
+    }, Vector3f(0f, 1f, 0.5f)
 ) {
     override fun fromRGB(rgb: Vector3f, dst: Vector3f): Vector3f {
         val v3 = JomlPools.vec3d.borrow()

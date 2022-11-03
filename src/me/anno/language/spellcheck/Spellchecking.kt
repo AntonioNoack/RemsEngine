@@ -22,6 +22,7 @@ import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.concurrent.thread
 import kotlin.streams.toList
@@ -50,6 +51,7 @@ object Spellchecking : CacheSection("Spellchecking") {
             }
             answer
         } as? CacheData<*> ?: return null
+
         @Suppress("unchecked_cast")
         val value = data.value as? List<Suggestion> ?: return null
         return if (sentence != sentence2) {
@@ -147,8 +149,8 @@ object Spellchecking : CacheSection("Spellchecking") {
      * then it will spellcheck all following lines individually.
      * \n and non-ascii symbols should be escaped with \\n or \Uxxxx
      * */
-    private fun start(language: Language): ConcurrentLinkedQueue<Any> {
-        val queue = ConcurrentLinkedQueue<Any>()
+    private fun start(language: Language): Queue<Any> {
+        val queue: Queue<Any> = if (OS.isWeb) LinkedList() else ConcurrentLinkedQueue()
         thread(name = "Spellchecking ${language.code}") {
             if (!OS.isAndroid) {
                 getExecutable(language) { executable ->
@@ -169,6 +171,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                             if (queue.isEmpty()) sleepShortly(true)
                             else {
                                 val sentence = queue.poll() as CharSequence
+
                                 @Suppress("unchecked_cast")
                                 val callback = queue.poll() as ((List<Suggestion>) -> Unit)
                                 var lines = sentence
@@ -224,7 +227,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                 // we cannot execute jar files -> have to have the library bundled
                 try {
                     val clazz = javaClass.classLoader.loadClass("me.anno.language.spellcheck.BundledSpellcheck")
-                    val method = clazz.getMethod("runInstance", Language::class.java, ConcurrentLinkedQueue::class.java)
+                    val method = clazz.getMethod("runInstance", Language::class.java, Queue::class.java)
                     method.invoke(null, language, queue)
                 } catch (e: ClassNotFoundException) {
                     LOGGER.warn(e)
@@ -234,7 +237,7 @@ object Spellchecking : CacheSection("Spellchecking") {
         return queue
     }
 
-    private val queues = HashMap<Language, ConcurrentLinkedQueue<Any>>()
+    private val queues = HashMap<Language, Queue<Any>>()
     private val LOGGER = LogManager.getLogger(Spellchecking::class)
 
     private const val timeout = 600_000L // 10 min

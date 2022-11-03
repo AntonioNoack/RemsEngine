@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
@@ -11,13 +12,11 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.io.ISaveable.Companion.registerCustomClass
-import me.anno.io.ResourceHelper
-import me.anno.io.files.InvalidRef
-import me.anno.io.zip.InnerPrefabFile
-import me.anno.mesh.obj.OBJReader
+import me.anno.io.files.FileReference
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
+import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import kotlin.math.min
@@ -25,6 +24,8 @@ import kotlin.math.min
 // can be set by the application
 var logoBackgroundColor = 0
 var logoIconColor = 0x212256
+
+val logoSrc = FileReference.getReference("res://icon.obj")
 
 val shader by lazy {
 
@@ -52,7 +53,7 @@ val frame by lazy {
     )
 }
 
-fun drawLogo(width: Int, height: Int, destroy: Boolean) {
+fun drawLogo(width: Int, height: Int, destroy: Boolean): Boolean {
 
     GFX.check()
 
@@ -79,11 +80,12 @@ fun drawLogo(width: Int, height: Int, destroy: Boolean) {
 
     val frame = if (GFX.maxSamples > 1) frame else null
 
+    var success = false
     GFXState.blendMode.use(null) {
         if (frame != null) {
             GFX.setFrameNullSize(width, height)
             useFrame(width, height, true, frame) {
-                drawLogo(shader)
+                success = drawLogo(shader)
             }
             frame.blitTo(NullFramebuffer)
         } else drawLogo(shader)
@@ -95,40 +97,33 @@ fun drawLogo(width: Int, height: Int, destroy: Boolean) {
     }
 
     GFX.check()
+    return success
 
 }
 
-fun drawLogo(shader: Shader) {
-
+fun drawLogo(shader: Shader): Boolean {
     // load icon.obj as file, and draw it
     val c = logoBackgroundColor
     GFXState.currentBuffer.clearColor(c.r01(), c.g01(), c.b01(), 1f)
-
+    var success = false
     renderPurely {
         try {
             // ensure mesh is a known class
             registerCustomClass(Mesh())
             // you can override this file, if you want to change the logo
             // but please show Rem's Engine somewhere in there!
-            val stream = ResourceHelper.loadResource("icon.obj")
-            val reader = OBJReader(stream, InvalidRef)
-            val file = reader.meshesFolder
-            for (child in file.listChildren()) {
-
-                // we could use the name as color... probably a nice idea :)
-                val prefab = (child as InnerPrefabFile).prefab
-                val mesh = prefab.getSampleInstance() as? Mesh ?: continue
-
+            val async = OS.isWeb // must be async on Web; maybe Android too later
+            val mesh = MeshCache[logoSrc, async]
+            if (mesh != null) {
                 mesh.ensureBuffer()
                 for (i in 0 until mesh.numMaterials) {
                     mesh.draw(shader, i)
                 }
-                mesh.destroy()
-
+                success = true
             }
         } catch (e: IOException) {
             e.printStackTrace()
         }
     }
-
+    return success
 }

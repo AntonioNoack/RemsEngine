@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import javafx.scene.Scene
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.PlayMode
@@ -97,10 +98,19 @@ class GameEngineProject() : NamedSaveable() {
 
     fun init() {
         StudioBase.workspace = location
+
         // if last scene is invalid, create a valid scene
         if (lastScene == InvalidRef) {
             lastScene = location.getChild("Scene.json")
+            LOGGER.debug("Set scene to $lastScene")
         }
+
+        if (!lastScene.exists) {
+            val prefab = Prefab("Entity", ScenePrefab)
+            lastScene.writeText(TextWriter.toText(prefab, InvalidRef))
+            LOGGER.debug("Wrote new scene to $lastScene")
+        }
+
         // may be changed by ECSSceneTabs otherwise
         val lastScene = lastScene
         // open all tabs

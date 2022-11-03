@@ -211,22 +211,24 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
     fun getChar(digit: Int) = ((digit % 10) + '0'.code).toChar()
 
     fun formatNumber(chars: CharArray, index: Int, space: Int, number: Float) {
-
-        if (number < 0) {
-            chars[index] = '-'
-            formatNumber(chars, index + 1, space - 1, -number)
-            return
+        if (number.isFinite()) {
+            if (number < 0) {
+                chars[index] = '-'
+                formatNumber(chars, index + 1, space - 1, -number)
+                return
+            }
+            if (number >= 999.5f) {
+                formatNumber(chars, index, space, number.roundToInt())
+            }
+            val numberX = (number * 10).roundToInt()
+            chars[index + space - 2] = '.'
+            chars[index + space - 1] = getChar(numberX)
+            formatNumber(chars, index, space - 2, numberX / 10)
+        } else {
+            chars[index] = 'N'
+            chars[index + 1] = 'a'
+            chars[index + 2] = 'N'
         }
-
-        if (number >= 999.5f) {
-            formatNumber(chars, index, space, number.roundToInt())
-        }
-
-        val numberX = (number * 10).roundToInt()
-        chars[index + space - 2] = '.'
-        chars[index + space - 1] = getChar(numberX)
-        formatNumber(chars, index, space - 2, numberX / 10)
-
     }
 
     fun formatNumber(chars: CharArray, index: Int, space: Int, number: Int) {

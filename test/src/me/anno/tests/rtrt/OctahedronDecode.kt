@@ -17,14 +17,14 @@ fun main() {
     fun decode(f: Vector2f): Vector3f {
         f.mul(2f).sub(1f, 1f)
         // https://twitter.com/Stubbesaurus/status/937994790553227264
-        val n = Vector3f(f.x, f.y, 1f - abs(f.x) - abs(f.y));
+        val n = Vector3f(f.x, f.y, 1f - abs(f.x) - abs(f.y))
         val t = clamp(-n.z)
         n.add(
             if (n.x >= 0f) -t else +t,
             if (n.y >= 0f) -t else +t,
             0f
         )
-        return n.normalize();
+        return n.normalize()
     }
 
     val entity = Entity()

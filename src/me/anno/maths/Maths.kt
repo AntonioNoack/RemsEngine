@@ -12,8 +12,8 @@ object Maths {
     const val PIf = PI.toFloat()
     const val TAUf = (PI * 2.0).toFloat()
 
-    const val MILLIS_TO_NANOS = 1_000_000L
-    const val SECONDS_TO_NANOS = 1_000_000_000L
+    var MILLIS_TO_NANOS = 1_000_000L
+    var SECONDS_TO_NANOS = 1_000_000_016L
 
     const val SQRT1_2 = 0.7071067811865476
     const val SQRT1_2f = 0.70710677f

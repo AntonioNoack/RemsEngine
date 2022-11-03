@@ -58,8 +58,7 @@ object FlatShaders {
     )
 
     val flatShaderGradient = ShaderLib.createShader(
-        "flatShaderGradient", "" +
-                "$attribute vec2 coords;\n" +
+        "flatShaderGradient", listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR)), "" +
                 "uniform vec2 pos, size;\n" +
                 "uniform mat4 transform;\n" +
                 "uniform vec4 uvs;\n" +
@@ -71,7 +70,7 @@ object FlatShaders {
                 "   color = (inXDirection ? coords.x : coords.y) < 0.5 ? lColor : rColor;\n" +
                 "   color = color * color;\n" + // srgb -> linear
                 "   uv = mix(uvs.xy, uvs.zw, coords);\n" +
-                "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V4F, "color")), "" +
+                "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V4F, "color")), listOf(), "" +
                 "uniform int code;\n" +
                 "uniform sampler2D tex0,tex1;\n" +
                 ShaderLib.yuv2rgb +
@@ -121,7 +120,7 @@ object FlatShaders {
             Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V1B, "applyToneMapping"),
-            Variable(GLSLType.V1F,"uvZ"),
+            Variable(GLSLType.V1F, "uvZ"),
             Variable(GLSLType.S3D, "tex"),
         ), "" +
                 tonemapGLSL +
@@ -148,14 +147,13 @@ object FlatShaders {
     )
 
     val flatShaderCubemap = BaseShader(
-        "flatShaderCubemap", "" +
-                "$attribute vec2 coords;\n" +
+        "flatShaderCubemap", listOf(Variable(GLSLType.V2F,"coords",VariableMode.ATTR)), "" +
                 "uniform vec2 pos, size;\n" +
                 "uniform mat4 transform;\n" +
                 "void main(){\n" +
                 "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
                 "   uv = (coords - 0.5) * vec2(${PI * 2},${PI});\n" +
-                "}", listOf(Variable(GLSLType.V2F, "uv")), "" +
+                "}", listOf(Variable(GLSLType.V2F, "uv")), listOf(), "" +
                 "uniform samplerCube tex;\n" +
                 "uniform vec4 color;\n" +
                 "uniform bool ignoreTexAlpha;\n" +
@@ -174,15 +172,14 @@ object FlatShaders {
 
 
     val flatShader3dSlice = BaseShader(
-        "flatShader3dSlice", "" +
-                "$attribute vec2 coords;\n" +
+        "flatShader3dSlice", listOf(Variable(GLSLType.V2F,"coords",VariableMode.ATTR)), "" +
                 "uniform vec2 pos, size;\n" +
                 "uniform mat4 transform;\n" +
                 "uniform float z;\n" +
                 "void main(){\n" +
                 "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
                 "   uvw = vec3(coords, z);\n" +
-                "}", listOf(Variable(GLSLType.V3F, "uvw")), "" +
+                "}", listOf(Variable(GLSLType.V3F, "uvw")), listOf(), "" +
                 "uniform sampler3D tex;\n" +
                 "uniform vec4 color;\n" +
                 "uniform bool ignoreTexAlpha;\n" +

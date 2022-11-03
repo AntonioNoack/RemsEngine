@@ -11,6 +11,7 @@ import me.anno.gpu.shader.Renderer.Companion.uvRenderer
 import me.anno.gpu.shader.RandomEffect
 
 // @Deprecated("Shall be replaced by RenderGraph")
+// todo all-metallic / all-rough/smooth render modes?
 enum class RenderMode(
     val dlt: DeferredLayerType? = null,
     val effect: CameraEffect? = null,

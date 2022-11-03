@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.engine.ui.render.ECSMeshShader.Companion.getAnimMatrix
 import me.anno.gpu.drawing.UVProjection
-import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -37,22 +36,20 @@ object ShaderLib {
             "   uv = coords;\n" +
             "}"
 
-    val simplestVertexShader = "" +
-            "$attribute vec2 coords;\n" +
+    const val simplestVertexShader = "" +
             "void main(){\n" +
             "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
             "   uv = coords;\n" +
             "}"
 
-    val simplestVertexShader2 = "" +
-            "$attribute vec2 coords;\n" +
+    const val simplestVertexShader2 = "" +
             "void main(){\n" +
             "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
             "}"
 
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
-    val simpleVertexShader = "" +
-            "$attribute vec2 coords;\n" +
+    val svsList = listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR))
+    const val simpleVertexShader = "" +
             "uniform vec2 pos, size;\n" +
             "uniform vec4 tiling;\n" +
             "uniform mat4 transform;\n" +
@@ -294,29 +291,19 @@ object ShaderLib {
             "       ($hasForceFieldUVs ? getProjectedUVs(getForceFieldUVs(uv))  : getProjectedUVs(uv));\n" +
             "}\n" +
             "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv){\n" +
-            "   switch(filtering){\n" +
-            "       case ${Filtering.NEAREST.id}:\n" +
-            "       case ${Filtering.LINEAR.id}:\n" +
-            "           return texture(tex, uv);\n" +
-            "       case ${Filtering.CUBIC.id}:\n" +
-            "           return bicubicInterpolation(tex, uv, duv);\n" +
-            "   }\n" +
+            "   if(filtering != ${Filtering.CUBIC.id}) return texture(tex, uv);\n" +
+            "   else return bicubicInterpolation(tex, uv, duv);\n" +
             "}\n" +
             "vec4 getTexture(sampler2D tex, vec2 uv){\n" +
-            "   switch(filtering){\n" +
-            "       case ${Filtering.NEAREST.id}:\n" +
-            "       case ${Filtering.LINEAR.id}:\n" +
-            "           return texture(tex, uv);\n" +
-            "       case ${Filtering.CUBIC.id}:\n" +
-            "           return bicubicInterpolation(tex, uv, textureDeltaUV);\n" +
-            "   }\n" +
+            "   if(filtering != ${Filtering.CUBIC.id}) return texture(tex, uv);\n" +
+            "   else return bicubicInterpolation(tex, uv, textureDeltaUV);\n" +
             "}\n"
 
 
     const val positionPostProcessing = "" +
             "   zDistance = gl_Position.w;\n"
 
-    // this mapping only works with well tessellated geometry
+    // this mapping only works with well tessellated geometry;
     // or we need to add it to the fragment shader instead
     //"   const float far = 1000;\n" +
     //"   const float near = 0.001;\n" +
@@ -440,17 +427,20 @@ object ShaderLib {
         // somehow becomes dark for large |steps|-values
 
         val vSVGl = listOf(
+            Variable(GLSLType.V3F, "aLocalPosition", VariableMode.ATTR),
+            Variable(GLSLType.V2F, "aLocalPos2", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "aFormula0", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "aFormula1", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "aColor0", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "aColor1", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "aColor2", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "aColor3", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "aStops", VariableMode.ATTR),
+            Variable(GLSLType.V1F, "aPadding", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform")
         )
 
         val vSVG = "" +
-                "$attribute vec3 aLocalPosition;\n" +
-                "$attribute vec2 aLocalPos2;\n" +
-                "$attribute vec4 aFormula0;\n" +
-                "$attribute float aFormula1;\n" +
-                "$attribute vec4 aColor0, aColor1, aColor2, aColor3;\n" +
-                "$attribute vec4 aStops;\n" +
-                "$attribute float aPadding;\n" +
                 "void main(){\n" +
                 "   finalPosition = aLocalPosition;\n" +
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
@@ -703,13 +693,12 @@ object ShaderLib {
     )
 
     val lineShader3D = BaseShader(
-        "3d-lines",
-        "$attribute vec3 coords;\n" +
-                "uniform mat4 transform;\n" +
+        "3d-lines", listOf(Variable(GLSLType.V3F, "coords", VariableMode.ATTR)),
+        "uniform mat4 transform;\n" +
                 "void main(){" +
                 "   gl_Position = transform * vec4(coords, 1.0);\n" +
                 positionPostProcessing +
-                "}", listOf(Variable(GLSLType.V1F, "zDistance")), "" +
+                "}", listOf(Variable(GLSLType.V1F, "zDistance")), emptyList(), "" +
                 "uniform vec4 color;\n" +
                 "void main(){" +
                 "   gl_FragColor = color;\n" +
@@ -875,9 +864,8 @@ object ShaderLib {
     )
 
     val textShader = BaseShader(
-        "textShader", listOf(),
+        "textShader", svsList,
         "" +
-                "$attribute vec2 coords;\n" +
                 "uniform vec2 pos, size;\n" +
                 "uniform mat4 transform;\n" + // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
                 "uniform vec2 windowSize;\n" +
@@ -886,7 +874,12 @@ object ShaderLib {
                 "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
                 "   position = localPos * windowSize;\n" +
                 "   uv = coords;\n" +
-                "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V2F, "position")), listOf(
+                "}",
+        listOf(
+            Variable(GLSLType.V2F, "uv"),
+            Variable(GLSLType.V2F, "position")
+        ),
+        listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
         ), "" +
@@ -911,14 +904,18 @@ object ShaderLib {
             // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V2F, "windowSize"),
-        ),
-        "" +
+        ), "" +
                 "void main(){\n" +
                 "   vec2 localPos = pos + coords * size;\n" +
                 "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
                 "   position = localPos * windowSize;\n" +
                 "   uv = coords;\n" +
-                "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V2F, "position")), listOf(
+                "}",
+        listOf(
+            Variable(GLSLType.V2F, "uv"),
+            Variable(GLSLType.V2F, "position")
+        ),
+        listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
             Variable(GLSLType.V4F, "textColor"),
@@ -928,7 +925,8 @@ object ShaderLib {
         ), "" +
                 brightness +
                 "void main(){\n" +
-                "   vec3 mixing = texture(tex, uv).rgb * textColor.a;\n" +
+                "#define IS_TINTED\n" + // todo remove
+                "vec3 mixing = texture(tex, uv).rgb * textColor.a;\n" +
                 "   float mixingAlpha = brightness(mixing);\n" +
                 // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
                 "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0)\n" +

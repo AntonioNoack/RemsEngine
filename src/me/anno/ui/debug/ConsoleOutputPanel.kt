@@ -6,6 +6,7 @@ import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.buttons.TextButton
@@ -19,6 +20,7 @@ import me.anno.ui.debug.console.ConsoleOutputLine
 import me.anno.ui.style.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Logging.lastConsoleLines
+import me.anno.utils.OS
 import me.anno.utils.files.Files.formatFileSize
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
@@ -32,7 +34,7 @@ import kotlin.math.max
 open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
     override fun onUpdate() {
-        val text = lastConsoleLines.peek() ?: ""
+        val text = lastConsoleLines.lastOrNull() ?: ""
         this.text = text
         tooltip = text.ifBlank { "Double-click to open history" }
         textColor = getTextColor(text) and 0x77ffffff
@@ -60,7 +62,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                 windowStack.pop().destroy()
             }
             val lcl = lastConsoleLines.toList()
-            for (i in lcl.indices.reversed()) {
+            for (i in lcl.indices) {
                 val msg = lcl.getOrNull(i) ?: continue
                 val panel = ConsoleOutputLine(list, msg, style)
                 val color = getTextColor(msg)
@@ -92,6 +94,10 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             return console
         }
 
+        private fun evalGC(runtime: Runtime, oldMemory: Long) {
+
+        }
+
         fun createConsoleWithStats(bottom: Boolean = true, style: Style): Panel {
 
             val group = PanelStack(style)
@@ -114,8 +120,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                 val oldMemory = runtime.totalMemory() - runtime.freeMemory()
                 Texture2D.gc()
                 System.gc()
-                thread {// System.gc() is just a hint, so we wait a short moment, and then see whether sth changed
-                    Thread.sleep(10)
+                addEvent {// System.gc() is just a hint, so we wait a short moment, and then see whether sth changed
                     val newMemory = runtime.totalMemory() - runtime.freeMemory()
                     LOGGER.info(
                         "" +
@@ -130,9 +135,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             right.makeBackgroundTransparent()
             if (bottom) right.add(RemsEngine.RuntimeInfoPlaceholder())
             group.add(right)
-
             return group
-
         }
 
     }

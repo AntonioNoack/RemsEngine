@@ -89,7 +89,10 @@ object GFX {
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
     var maxSamples = 1
-    var supportsClipControl = !OS.isAndroid
+    var supportsClipControl = !OS.isAndroid && !OS.isWeb
+
+    var supportsF32Targets = true
+    var supportsF16Targets = true
 
     var maxFragmentUniformComponents = 0
     var maxVertexUniformComponents = 0
@@ -99,8 +102,8 @@ object GFX {
     var maxTextureSize = 512 // assumption before loading anything
 
     val nextGPUTasks = ArrayList<Task>()
-    val gpuTasks = ConcurrentLinkedQueue<Task>()
-    val lowPriorityGPUTasks = ConcurrentLinkedQueue<Task>()
+    val gpuTasks: Queue<Task> = if (OS.isWeb) LinkedList() else ConcurrentLinkedQueue()
+    val lowPriorityGPUTasks: Queue<Task> = if (OS.isWeb) LinkedList() else ConcurrentLinkedQueue()
 
     val loadTexturesSync = Stack<Boolean>()
         .apply { push(false) }
@@ -285,6 +288,7 @@ object GFX {
         LOGGER.info("Max Color Attachments: $maxColorAttachments")
         LOGGER.info("Max Samples: $maxSamples")
         LOGGER.info("Max Texture Size: $maxTextureSize")
+        LOGGER.info("Max Bound Textures: $maxBoundTextures")
         tick?.stop("Checking OpenGL properties")
     }
 
@@ -297,7 +301,7 @@ object GFX {
      * time limit in seconds
      * returns whether time is left
      * */
-    fun workQueue(queue: ConcurrentLinkedQueue<Task>, timeLimit: Float, all: Boolean): Boolean {
+    fun workQueue(queue: Queue<Task>, timeLimit: Float, all: Boolean): Boolean {
         return workQueue(queue, if (all) Float.POSITIVE_INFINITY else timeLimit)
     }
 
@@ -305,7 +309,7 @@ object GFX {
      * time limit in seconds
      * returns whether time is left
      * */
-    fun workQueue(queue: ConcurrentLinkedQueue<Task>, timeLimit: Float): Boolean {
+    fun workQueue(queue: Queue<Task>, timeLimit: Float): Boolean {
 
         // async work section
         val startTime = Engine.nanoTime
@@ -460,6 +464,7 @@ object GFX {
         }
     }
 
+    @JvmStatic
     fun check() {
         // assumes that the first access is indeed from the OpenGL thread
         if (isDebug) {

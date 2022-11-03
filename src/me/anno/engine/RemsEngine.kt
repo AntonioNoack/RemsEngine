@@ -14,7 +14,6 @@ import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
@@ -122,7 +121,7 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         startClock.stop("Disable some loggers")
 
         // to avoid race conditions
-        ScenePrefab.prefab.getSampleInstance()
+        ScenePrefab.prefab.value.getSampleInstance()
 
         PluginRegistry.init()
 

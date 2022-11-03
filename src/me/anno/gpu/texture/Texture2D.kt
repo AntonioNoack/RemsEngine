@@ -9,6 +9,7 @@ import me.anno.gpu.GFX.check
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.maxBoundTextures
+import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
@@ -991,12 +992,7 @@ open class Texture2D(
     }
 
     fun createDepth(lowQuality: Boolean = false) {
-        beforeUpload()
-        texImage2D(
-            if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F,
-            GL_DEPTH_COMPONENT, GL_FLOAT, null
-        )
-        afterUpload(!lowQuality, if (lowQuality) 2 else 4)
+        create(if (lowQuality) TargetType.DEPTH16 else TargetType.DEPTH32F)
     }
 
     /**
@@ -1035,8 +1031,9 @@ open class Texture2D(
                 glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
             // whenever the base mipmap is changed, the mipmaps will be updated :)
+            // todo it seems like this needs to be called manually in WebGL
             glTexParameteri(target, GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
-            // is called afterwards anyways
+            // is called afterwards anyway
             // glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
@@ -1205,6 +1202,8 @@ open class Texture2D(
         }
 
         fun activeSlot(index: Int) {
+            if (index < 0 || index >= maxBoundTextures)
+                throw IllegalArgumentException("Texture index $index out of allowed bounds")
             if (alwaysBindTexture || index != boundTextureSlot) {
                 glActiveTexture(GL_TEXTURE0 + index)
                 boundTextureSlot = index
@@ -1284,7 +1283,7 @@ open class Texture2D(
                     // unbind old textures
                     boundTextureSlot = -1
                     boundTextures.fill(-1)
-                    for (slot in boundTextures.indices) {
+                    for (slot in 0 until maxBoundTextures) {
                         activeSlot(slot)
                         bindTexture(GL_TEXTURE_2D, 0)
                     }

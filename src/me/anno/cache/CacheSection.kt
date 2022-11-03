@@ -30,7 +30,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun clear() {
-        LOGGER.warn("Clearing cache $name")
+        LOGGER.warn("Clearing cache {}", name)
         GFX.checkIsGFXThread()
         synchronized(cache) {
             for (it in cache.values) it.destroy()
@@ -178,7 +178,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             data = generator(key)
         } catch (_: ShutdownException) { // shutting down anyway
         } catch (e: FileNotFoundException) {
-            LOGGER.warn("FileNotFoundException: ${e.message}")
+            LOGGER.warn("FileNotFoundException: {}", e.message)
         } catch (e: Exception) {
             return e
         }
@@ -191,7 +191,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             data = generator(key0, key1)
         } catch (_: ShutdownException) { // shutting down anyway
         } catch (e: FileNotFoundException) {
-            LOGGER.warn("FileNotFoundException: ${e.message}")
+            LOGGER.warn("FileNotFoundException: {}", e.message)
         } catch (e: ShutdownException) {
             throw e
         } catch (e: Exception) {

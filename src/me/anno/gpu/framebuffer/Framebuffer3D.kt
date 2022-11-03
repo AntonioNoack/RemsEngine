@@ -8,7 +8,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture3D
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30C
-import org.lwjgl.opengl.GL45C
 
 class Framebuffer3D(
     override var name: String,
@@ -103,12 +102,12 @@ class Framebuffer3D(
             }
         }
         GFX.check()
-        check(pointer)
+        check()
         this.pointer = pointer
     }
 
-    fun check(pointer: Int) {
-        val state = GL45C.glCheckNamedFramebufferStatus(pointer, GL30C.GL_FRAMEBUFFER)
+    fun check() {
+        val state = GL30C.glCheckFramebufferStatus(GL30C.GL_FRAMEBUFFER)
         if (state != GL30C.GL_FRAMEBUFFER_COMPLETE) {
             throw RuntimeException("Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}")
         }

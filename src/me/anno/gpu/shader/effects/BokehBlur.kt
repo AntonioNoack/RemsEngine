@@ -12,7 +12,9 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.createShader
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.svsList
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
@@ -136,8 +138,6 @@ object BokehBlur {
                 "   float f11 = float(i)/float(radius);\n" + // -1 .. +1
                 "   float f01 = f11*0.5-0.5;\n" // 0 .. 1
 
-        val vertexShader = simplestVertexShader
-
         val getFilters = "" +
                 "vec4 getFilters(float x){\n" +
                 "   return texture(filterTexture, vec2(x, 0));\n" +
@@ -146,7 +146,7 @@ object BokehBlur {
         val varyingShader = listOf(Variable(GLSLType.V2F, "uv"))
 
         perChannelShader = createShader(
-            "bokeh-perChannel", vertexShader, varyingShader, "" +
+            "bokeh-perChannel", svsList, simplestVertexShader, varyingShader, listOf(), "" +
 
                     "uniform vec2 stepVal;\n" + // 1/resolution
                     "uniform sampler2D image, filterTexture;\n" +
@@ -168,7 +168,7 @@ object BokehBlur {
         )
 
         compositionShader = createShader(
-            "bokeh-composition", vertexShader, varyingShader, "" +
+            "bokeh-composition", svsList, simplestVertexShader, varyingShader, listOf(), "" +
 
                     "uniform vec2 stepVal;\n" + // 1/resolution
                     "uniform sampler2D inputRed, inputGreen, inputBlue, inputAlpha, filterTexture;\n" +

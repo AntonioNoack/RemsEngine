@@ -1,11 +1,11 @@
 package me.anno.ui.custom
 
 import me.anno.config.DefaultConfig
-import me.anno.utils.Color.white
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.image.ImageGPUCache.getInternalTexture
+import me.anno.image.ImageGPUCache
 import me.anno.input.MouseButton
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
@@ -13,6 +13,7 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.style.Style
+import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
 
@@ -54,7 +55,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val icon = getInternalTexture("cross.png", true) ?: whiteTexture
+        val icon = ImageGPUCache[crossPath, true] ?: whiteTexture
         val crossSize = getCrossSize(style).roundToInt()
         drawTexture(x + w - (crossSize + 2), y + 2, crossSize, crossSize, icon, white, null)
     }
@@ -159,6 +160,8 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     override val className = "CustomContainer"
 
     companion object {
+
+        val crossPath = getReference("res://cross.png")
 
         private val LOGGER = LogManager.getLogger(CustomContainer::class)
 

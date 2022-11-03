@@ -161,7 +161,9 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
         values: Array<V>?,
         force: Boolean
     ) {
-        values?.forEach { it?.save(this) }
+        if (values != null) for (it in values) {
+            it?.save(this)
+        }
     }
 
     override fun <V : ISaveable?> writeHomogenousObjectArray(
@@ -170,7 +172,9 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
         values: Array<V>,
         force: Boolean
     ) {
-        values.forEach { it?.save(this) }
+        for (it in values) {
+            it?.save(this)
+        }
     }
 
     override fun writeListStart() {}

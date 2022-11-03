@@ -106,6 +106,7 @@ object PDFCache : CacheSection("PDFCache") {
         }
     }
 
+    @Suppress("unused")
     fun getTexture(src: FileReference, doc: PDDocument, quality: Float, pageNumber: Int): Texture2D? {
         val qualityInt = max(1, (quality * 2f).roundToInt())
         val qualityFloat = qualityInt * 0.5f

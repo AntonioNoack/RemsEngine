@@ -27,6 +27,7 @@ import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.OutputStreamWriter
@@ -126,11 +127,13 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
 
         /** keep the value loaded and check if it has changed maybe (internal files, like zip files) */
+        @JvmStatic
         fun getReference(ref: FileReference, timeoutMillis: Long = fileTimeout): FileReference {
             fileCache.getEntryWithoutGenerator(ref.absolutePath, timeoutMillis)
             return ref.validate()
         }
 
+        @JvmStatic
         fun getReference(str: String?): FileReference {
             // invalid
             if (str == null || str.isBlank2()) return InvalidRef
@@ -145,6 +148,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             return data ?: createReference(str)
         }
 
+        @JvmStatic
         fun getReferenceOrTimeout(str: String?, timeout: Long = 10_000): FileReference {
             if (str == null || str.isBlank2()) return InvalidRef
             val t1 = System.nanoTime() + timeout * MILLIS_TO_NANOS
@@ -155,6 +159,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             return createReference(str)
         }
 
+        @JvmStatic
         fun getReferenceAsync(str: String?): FileReference? {
             // invalid
             if (str == null || str.isBlank2()) return InvalidRef
@@ -339,6 +344,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
      * give access to an output stream;
      * should be buffered for better performance
      * */
+    @kotlin.jvm.Throws(IOException::class)
     abstract fun outputStream(append: Boolean = false): OutputStream
 
     open fun readText(callback: (String?, Exception?) -> Unit) {
@@ -365,6 +371,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun inputStreamSync(): InputStream {
         var e: Exception? = null
         var d: InputStream? = null
@@ -376,6 +383,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun readBytesSync(): ByteArray {
         var e: Exception? = null
         var d: ByteArray? = null
@@ -387,6 +395,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun readTextSync(): String {
         var e: Exception? = null
         var d: String? = null
@@ -398,6 +407,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun readByteBufferSync(native: Boolean): ByteBuffer {
         var e: Exception? = null
         var d: ByteBuffer? = null
@@ -434,6 +444,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun readLinesSync(): ReadLineIterator {
         var e: Exception? = null
         var d: ReadLineIterator? = null
@@ -445,6 +456,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit, callback: (Exception?) -> Unit) {
         outputStream().use { output ->
             file.inputStream { input, exc ->
@@ -462,10 +474,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     fun writeFile(file: FileReference, callback: (Exception?) -> Unit) {
         writeFile(file, {}, callback)
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun writeText(text: String) {
         val os = outputStream()
         val wr = OutputStreamWriter(os)
@@ -474,6 +488,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         os.close()
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun writeText(text: String, charset: Charset) {
         val os = outputStream()
         val wr = OutputStreamWriter(os, charset)
@@ -482,12 +497,14 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         os.close()
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun writeBytes(bytes: ByteArray) {
         val os = outputStream()
         os.write(bytes)
         os.close()
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun writeBytes(bytes: ByteBuffer) {
         val byte2 = ByteArray(bytes.remaining())
         bytes.get(byte2)
@@ -497,6 +514,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     abstract fun length(): Long
 
     open fun toFile() = File(absolutePath.replace("!!", "/"))
@@ -560,7 +578,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     abstract fun delete(): Boolean
+
+    @kotlin.jvm.Throws(IOException::class)
     abstract fun mkdirs(): Boolean
 
     fun tryMkdirs(): Boolean {
@@ -572,10 +593,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun deleteOnExit() {
         deleteRecursively()
     }
 
+    @kotlin.jvm.Throws(IOException::class)
     open fun deleteRecursively(): Boolean {
         return delete()
     }
@@ -598,6 +621,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     fun renameTo(newName: File) = renameTo(getReference(newName))
+
+    @kotlin.jvm.Throws(IOException::class)
     abstract fun renameTo(newName: FileReference): Boolean
 
     abstract val isDirectory: Boolean

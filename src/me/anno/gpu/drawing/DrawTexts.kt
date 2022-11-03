@@ -18,6 +18,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
@@ -340,7 +341,7 @@ object DrawTexts {
         val charByChar = (tex0 == null || tex0 !is Texture2D || !tex0.isCreated || tex0.isDestroyed) && text.length > 1
         return if (charByChar) {
             drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, heightLimit, alignX, alignY, false)
-        } else drawText(x, y, color, backgroundColor, tex0!!, alignX, alignY)
+        } else drawText(x, y, color, backgroundColor, tex0 ?: whiteTexture, alignX, alignY)
 
     }
 
@@ -355,32 +356,32 @@ object DrawTexts {
         val h = texture.h
         // done if pixel is on the border of the drawn rectangle, make it grayscale, so we see no color seams
         if (texture !is Texture2D || texture.isCreated) {
-            GFX.check()
-            GFX.check()
-            texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            val x2 = x + getOffset(w, alignX)
-            val y2 = y + getOffset(h, alignY)
-            val windowWidth = GFX.viewportWidth.toFloat()
-            val windowHeight = GFX.viewportHeight.toFloat()
-            val cuc = canUseComputeShader() && min(textColor.a(), backgroundColor.a()) < 255
-            if (cuc) {
-                val shader = ShaderLib.subpixelCorrectTextShader2
-                shader.use()
-                shader.bindTexture(1, GFXState.currentBuffer.getTexture0() as Texture2D, ComputeTextureMode.READ_WRITE)
-                shader.v4f("textColor", textColor)
-                shader.v4f("backgroundColor", backgroundColor)
-                posSizeDraw(shader, x2, y2, w, h, 1)
-                GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-            } else {
-                val shader = ShaderLib.subpixelCorrectTextShader.value
-                shader.use()
-                posSize(shader, x2, y2, w, h)
-                shader.v2f("windowSize", windowWidth, windowHeight)
-                shader.v4f("textColor", textColor)
-                shader.v4f("backgroundColor", backgroundColor)
-                GFX.flat01.draw(shader)
-            }
-            GFX.check()
+             GFX.check()
+             GFX.check()
+             texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+             val x2 = x + getOffset(w, alignX)
+             val y2 = y + getOffset(h, alignY)
+             val windowWidth = GFX.viewportWidth.toFloat()
+             val windowHeight = GFX.viewportHeight.toFloat()
+             val cuc = canUseComputeShader() && min(textColor.a(), backgroundColor.a()) < 255
+             if (cuc) {
+                 val shader = ShaderLib.subpixelCorrectTextShader2
+                 shader.use()
+                 shader.bindTexture(1, GFXState.currentBuffer.getTexture0() as Texture2D, ComputeTextureMode.READ_WRITE)
+                 shader.v4f("textColor", textColor)
+                 shader.v4f("backgroundColor", backgroundColor)
+                 posSizeDraw(shader, x2, y2, w, h, 1)
+                 GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+             } else {
+                 val shader = ShaderLib.subpixelCorrectTextShader.value
+                 shader.use()
+                 posSize(shader, x2, y2, w, h)
+                 shader.v2f("windowSize", windowWidth, windowHeight)
+                 shader.v4f("textColor", textColor)
+                 shader.v4f("backgroundColor", backgroundColor)
+                 GFX.flat01.draw(shader)
+             }
+             GFX.check()
         }
         return GFXx2D.getSize(w, h)
     }

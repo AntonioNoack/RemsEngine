@@ -6,8 +6,9 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.image.ImageGPUCache.getInternalTexture
+import me.anno.image.ImageGPUCache
 import me.anno.input.MouseButton
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
 import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
@@ -18,8 +19,10 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     Panel(style.getChild("checkbox")), InputPanel<Boolean> {
 
     companion object {
-        fun getImage(checked: Boolean): Texture2D? =
-            getInternalTexture(if (checked) "checked.png" else "unchecked.png", true)
+        val checked = getReference("res://checked.png")
+        val unchecked = getReference("res://unchecked.png")
+        fun getImage(isChecked: Boolean): Texture2D? =
+            ImageGPUCache[if (isChecked) checked else unchecked, true]
     }
 
     var isChecked = startValue

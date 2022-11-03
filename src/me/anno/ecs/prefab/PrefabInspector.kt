@@ -300,7 +300,7 @@ class PrefabInspector(val reference: FileReference) {
                 }) {
 
                 val property = allProperties[name]!!
-                if (property.hideInInspector.any { it(instance) } || !property.serialize) continue
+                if (property.hideInInspector.any { it(instance) }) continue
 
                 val group = property.group ?: ""
                 if (group != lastGroup) {

@@ -24,10 +24,12 @@ object NodePositionOptimization {
                 val dz = 0.0
                 pos.set(v[j], v[j + 1], pos.z)
                 // place all connectors
-                node.inputs?.forEach {
+                val inputs = node.inputs
+                if (inputs != null) for (it in inputs) {
                     it.position.add(dx, dy, dz)
                 }
-                node.outputs?.forEach {
+                val outputs = node.outputs
+                if (outputs != null) for (it in outputs) {
                     it.position.add(dx, dy, dz)
                 }
             }

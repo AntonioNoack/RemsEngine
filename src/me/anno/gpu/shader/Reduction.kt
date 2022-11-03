@@ -8,6 +8,9 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader2
+import me.anno.gpu.shader.ShaderLib.svsList
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -167,7 +170,7 @@ object Reduction {
         return shaderByType.getOrPut(op) {
             val v0 = "vec4(${op.startValue.x}, ${op.startValue.y}, ${op.startValue.z}, ${op.startValue.w})"
             Shader(
-                "reduce-${op.name}", simplestVertexShader2, emptyList(), "" +
+                "reduce-${op.name}", svsList, simplestVertexShader2, emptyList(), emptyList(), "" +
                         "uniform sampler2D src;\n" +
                         "uniform float scale;\n" +
                         "#define reduce(a,b) ${op.function}\n" +

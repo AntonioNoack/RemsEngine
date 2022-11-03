@@ -5,7 +5,9 @@ import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.image.ImageGPUCache.getInternalTexture
+import me.anno.image.ImageGPUCache
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
@@ -13,18 +15,18 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 class ImageButton(
-    var path: String,
+    var path: FileReference,
     var size: Int,
     var padding: Padding,
     isSquare: Boolean = true,
     style: Style
 ) : Button(isSquare, style) {
 
-    constructor(style: Style) : this("", 16, Padding(5), true, style)
+    constructor(style: Style) : this(InvalidRef, 16, Padding(5), true, style)
 
     var guiScale = 1f
 
-    private val icon get() = getInternalTexture(path, true, 10_000)
+    private val icon get() = ImageGPUCache[path, 10_000, true]
 
     init {
         add(WrapAlign.LeftTop)

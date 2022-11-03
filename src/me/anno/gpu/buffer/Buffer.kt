@@ -51,15 +51,17 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
 
         var hasAttr = false
         val attributes = attributes
-        for (index in attributes.indices) {
-            hasAttr = bindAttribute(shader, attributes[index], false) || hasAttr
+        for (i in attributes.indices) {
+            hasAttr = bindAttribute(shader, attributes[i], false) || hasAttr
         }
         if (!hasAttr && !hasWarned) {
             hasWarned = true
             LOGGER.warn("VAO does not have attribute!, $attributes, ${shader.vertexSource}")
         }
 
-        for (attr in shader.attributes) {
+        val attributes2 = shader.attributes
+        for (i in attributes2.indices) {
+            val attr = attributes2[i]
             // check if name is bound in attributes
             val attrName = attr.name
             if (attributes.none2 { it.name == attrName }) {
@@ -149,8 +151,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
         if (!useVAOs) {
             for (index in attributes.indices) {
                 val attr = attributes[index]
-                val loc = shader.getAttributeLocation(attr.name)
-                if (loc >= 0) glDisableVertexAttribArray(loc)
+                unbindAttribute(shader, attr.name)
             }
         }
         bindVAO(0)
@@ -234,18 +235,11 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
             val instanceDivisor = if (instanced) 1 else 0
             val index = shader.getAttributeLocation(attr.name)
             return if (index > -1) {
-                val type = attr.type
+                val t = attr.type
                 if (attr.isNativeInt) {
-                    glVertexAttribIPointer(index, attr.components, type.glType, attr.stride, attr.offset)
+                    glVertexAttribIPointer(index, attr.components, t.glType, attr.stride, attr.offset)
                 } else {
-                    glVertexAttribPointer(
-                        index,
-                        attr.components,
-                        type.glType,
-                        type.normalized,
-                        attr.stride,
-                        attr.offset
-                    )
+                    glVertexAttribPointer(index, attr.components, t.glType, t.normalized, attr.stride, attr.offset)
                 }
                 glVertexAttribDivisor(index, instanceDivisor)
                 glEnableVertexAttribArray(index)
@@ -257,8 +251,5 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
             val index = shader.getAttributeLocation(attr)
             if (index > -1) glDisableVertexAttribArray(index)
         }
-
-
     }
-
 }

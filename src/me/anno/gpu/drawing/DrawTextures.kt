@@ -136,7 +136,7 @@ object DrawTextures {
 
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int, texture: ITexture2D,
-        color: Int, tiling: Vector4f?, applyToneMapping: Boolean = false
+        color: Int = -1, tiling: Vector4f? = null, applyToneMapping: Boolean = false
     ) = drawTexture(x, y, w, h, texture, false, color, tiling, applyToneMapping)
 
     private val tiling = Vector4f()
@@ -153,7 +153,7 @@ object DrawTextures {
         )
     }
 
-    fun drawTexture(w: Int, h: Int, texture: GPUFrame, color: Int, tiling: Vector4f?) {
+    fun drawTexture(w: Int, h: Int, texture: GPUFrame, color: Int = -1, tiling: Vector4f? = null) {
         val matrix = Matrix4fArrayList()
         matrix.scale(w.toFloat() / GFX.viewportWidth, h.toFloat() / GFX.viewportHeight, 1f)
         GFXx3D.draw3D(

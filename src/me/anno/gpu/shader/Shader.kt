@@ -1,9 +1,11 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.builder.Varying
+import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL20.*
@@ -123,7 +125,9 @@ open class Shader(
         var outCtr = 0
         for (v in fragmentVariables) {
             val prefix = when (v.inOutMode) {
-                VariableMode.IN, VariableMode.INOUT -> { "uniform" }
+                VariableMode.IN, VariableMode.INOUT -> {
+                    "uniform"
+                }
                 VariableMode.ATTR -> throw IllegalArgumentException("Fragment variable must not have type ATTR")
                 VariableMode.OUT -> {
                     builder.append("layout(location=")
@@ -135,7 +139,7 @@ open class Shader(
         }
 
         val base = if ((outCtr == 0 && "out " !in fragmentShader) && glslVersion == DefaultGLSLVersion &&
-            "gl_FragColor" in fragmentShader && fragmentVariables.none { it.isOutput }
+            "gl_FragColor" in fragmentShader && fragmentVariables.none { it.isOutput }// && !OS.isWeb // in WebGL, it is ok; only if version is low enough...
         ) "out vec4 glFragColor;\n" + fragmentShader.replace("gl_FragColor", "glFragColor")
         else fragmentShader
 
@@ -148,6 +152,11 @@ open class Shader(
         compile(name, program, GL_FRAGMENT_SHADER, fragmentSource)
 
         GFX.check()
+
+        val attributes = attributes
+        for (i in attributes.indices) {
+            glBindAttribLocation(program, i, attributes[i].name)
+        }
 
         glLinkProgram(program)
         // these could be reused...
@@ -169,6 +178,23 @@ open class Shader(
             GFX.check()
         }
 
+    }
+
+    fun getAttributeLocation(name: String): Int {
+        val attr = attributes
+        for (idx in attr.indices) {
+            if (attr[idx].name == name) {
+                return idx
+            }
+        }
+        return -1
+    }
+
+    override fun printLocationsAndValues() {
+        super.printLocationsAndValues()
+        for ((key, value) in attributes.withIndex()) {
+            LOGGER.info("Attribute $key = $value")
+        }
     }
 
 }

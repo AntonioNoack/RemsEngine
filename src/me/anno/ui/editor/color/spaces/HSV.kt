@@ -7,7 +7,7 @@ import org.joml.Vector3f
 
 object HSV : ColorSpace(
     NameDesc("HSV"),
-    HSVColorSpace.GLSL, Vector3f(0f, 0.7f, 1f)
+    lazy { HSVColorSpace.GLSL }, Vector3f(0f, 0.7f, 1f)
 ) {
     override fun fromRGB(rgb: Vector3f, dst: Vector3f): Vector3f {
         return HSVColorSpace.rgbToHSV(rgb.x, rgb.y, rgb.z, dst)

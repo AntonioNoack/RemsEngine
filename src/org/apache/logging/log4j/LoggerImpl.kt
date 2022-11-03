@@ -11,12 +11,25 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     private val lastWarned = HashMap<String, Long>()
     private val warningTimeoutNanos = 10e9.toLong()
 
-    private fun interleave(msg: String, args: Array<out Any>): String {
+    private fun interleave(msg: String, args: Array<out Any?>): String {
         if (args.isEmpty()) return msg
         return if (msg.contains("{}")) {
-            val parts = msg.split("{}")
-            parts.take(parts.size - 1).mapIndexed { index, s -> "$s${args.getOrNull(index)}" }
-                .joinToString("") + parts.last()
+            val builder = StringBuilder(msg.length)
+            var i = 0
+            var j = 0
+            while (i < msg.length) {
+                val li = i
+                i = msg.indexOf("{}", i)
+                if (i < 0 || j >= args.size) {
+                    builder.append(msg, li, msg.length)
+                    break
+                } else {
+                    builder.append(msg, li, i)
+                    builder.append(args[j++])
+                    i += 2 // skip over {}
+                }
+            }
+            builder.toString()
         } else {
             msg.format(Locale.ENGLISH, *args)
             /*val funFormat = String::class.java.getMethod("format", Locale::class.java, Array<Object>(0){ throw RuntimeException() }::class.java)
@@ -63,8 +76,9 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         print("INFO", msg)
     }
 
-    override fun info(msg: String, vararg obj: Any) {
-        info(interleave(msg, obj))
+    override fun info(msg: String, vararg obj: Any?) {
+        if (LogManager.isEnabled(this))
+            info(interleave(msg, obj))
     }
 
     override fun info(marker: Marker, msg: String) {
@@ -89,8 +103,9 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         print("ERR!", msg)
     }
 
-    override fun error(msg: String, vararg obj: Any) {
-        error(interleave(msg, obj))
+    override fun error(msg: String, vararg obj: Any?) {
+        if (LogManager.isEnabled(this))
+            error(interleave(msg, obj))
     }
 
     override fun error(msg: String, thrown: Throwable) {
@@ -102,8 +117,9 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         print("SEVERE", msg)
     }
 
-    override fun severe(msg: String, vararg obj: Any) {
-        error(interleave(msg, obj))
+    override fun severe(msg: String, vararg obj: Any?) {
+        if (LogManager.isEnabled(this))
+            error(interleave(msg, obj))
     }
 
     override fun severe(msg: String, thrown: Throwable) {
@@ -115,8 +131,9 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         print("FATAL", msg)
     }
 
-    override fun fatal(msg: String, vararg obj: Any) {
-        fatal(interleave(msg, obj))
+    override fun fatal(msg: String, vararg obj: Any?) {
+        if (LogManager.isEnabled(this))
+            fatal(interleave(msg, obj))
     }
 
     override fun fatal(msg: String, thrown: Throwable) {
@@ -134,8 +151,9 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         }
     }
 
-    override fun warn(msg: String, vararg obj: Any) {
-        warn(interleave(msg, obj))
+    override fun warn(msg: String, vararg obj: Any?) {
+        if (LogManager.isEnabled(this))
+            warn(interleave(msg, obj))
     }
 
     override fun warn(msg: String, thrown: Throwable) {

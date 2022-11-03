@@ -252,6 +252,7 @@ class BoneByBoneAnimation() : Animation() {
         val skel = SkeletonCache[skeleton]!!
         boneCount = skel.bones.size
         frameCount = anim.frames.size
+        println("$boneCount x $frameCount")
         val boneCount = skel.bones.size
         translations = FloatArray(boneCount * frameCount * 3)
         rotations = FloatArray(boneCount * frameCount * 4)

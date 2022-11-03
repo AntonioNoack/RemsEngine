@@ -2,10 +2,9 @@ package me.anno.language.translation
 
 import me.anno.config.DefaultConfig
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.io.ResourceHelper
-import me.anno.io.Streams.readText
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -59,19 +58,19 @@ object Dict {
     fun getOptions(): List<LanguageOption> {
         val options = ArrayList<LanguageOption>()
         val internalFiles = listOf("en.lang", "de.lang")
-        internalFiles.forEach {
+        for (it in internalFiles) {
             try {
-                val data = ResourceHelper.loadResource("lang/$it").readText()
+                val data = getReference("res://lang/$it").readTextSync()
                 val name = getLanguageName(data)
                 if (name?.isNotEmpty() == true) {
                     options += LanguageOption(data, "internal/$it", name)
                 }
-            } catch (e: FileNotFoundException) {
+            } catch (e: IOException) {
                 LOGGER.warn("Skipped $it, didn't find it")
             }
         }
         val externalFiles = ConfigBasics.configFolder.getChild("lang").listChildren()
-        externalFiles?.forEach { file ->
+        if (externalFiles != null) for (file in externalFiles) {
             if (!file.isDirectory && file.name.endsWith(".lang")) {
                 try {
                     val data = file.readTextSync()

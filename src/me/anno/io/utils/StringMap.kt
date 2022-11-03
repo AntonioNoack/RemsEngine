@@ -8,6 +8,7 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
@@ -335,7 +336,7 @@ open class StringMap(
         return this
     }
 
-    private val saveDelay = 1_000_000_000L
+    private val saveDelay = SECONDS_TO_NANOS
     private var lastSaveTime = gameTime - saveDelay - 1
     fun saveMaybe(name: String) {
         if (wasChanged) {

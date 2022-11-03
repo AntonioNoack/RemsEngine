@@ -319,7 +319,7 @@ open class Material : PrefabSaveable(), Renderable {
                 (tex ?: default).bind(index)
                 tex
             } else {
-                LOGGER.warn("Didn't find texture $name in ${shader.name}")
+                LOGGER.warn("Didn't find texture {} in {}", name, shader.name)
                 null
             }
         }
@@ -338,7 +338,7 @@ open class Material : PrefabSaveable(), Renderable {
                 (tex ?: default).bind(index, filtering, clamping)
                 tex
             } else {
-                LOGGER.warn("Didn't find texture $name in ${shader.name}")
+                LOGGER.warn("Didn't find texture {} in {}", name, shader.name)
                 null
             }
         }

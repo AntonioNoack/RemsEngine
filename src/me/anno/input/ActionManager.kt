@@ -6,6 +6,7 @@ import me.anno.gpu.OSWindow
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel
+import me.anno.utils.OS
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import java.util.function.BiConsumer
@@ -157,14 +158,28 @@ object ActionManager : StringMap() {
         targetSearch@ while (panel != null) {
             if (processActions(panel, x, y, dx, dy, isContinuous, la[panel.className, combination], print)) return
             // also check parent classes
-            var clazz: KClass<*> = panel::class
-            while (true) {
-                val entry = ISaveable.getByClass(clazz)
-                if (entry != null) {
-                    val cnI = entry.sampleInstance.className
-                    if (processActions(panel, x, y, dx, dy, isContinuous, la[cnI, combination], print)) return
+            if(OS.isWeb){ // Kotlin's reflection is not yet supported
+                var clazz: Class<*> = panel.javaClass
+                while (true) {
+                    val entry = ISaveable.getByClass(clazz)
+                    if (entry != null) {
+                        val cnI = entry.sampleInstance.className
+                        if (processActions(panel, x, y, dx, dy, isContinuous, la[cnI, combination], print)) return
+                    }
+                    if(clazz == Panel::javaClass) break
+                    clazz = clazz.superclass ?: break
                 }
-                clazz = clazz.superclasses.getOrNull(0) ?: break
+            } else {
+                var clazz: KClass<*> = panel::class
+                while (true) {
+                    val entry = ISaveable.getByClass(clazz)
+                    if (entry != null) {
+                        val cnI = entry.sampleInstance.className
+                        if (processActions(panel, x, y, dx, dy, isContinuous, la[cnI, combination], print)) return
+                    }
+                    if(clazz == Panel::class) break
+                    clazz = clazz.superclasses.getOrNull(0) ?: break
+                }
             }
             // and if nothing is found at all, check the universal list
             if (processActions(panel, x, y, dx, dy, isContinuous, universally, print)) return

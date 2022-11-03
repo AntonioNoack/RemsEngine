@@ -8,28 +8,30 @@ import kotlin.math.PI
 import kotlin.math.cos
 
 object LinearHSI : ColorSpace(
-    NameDesc("HSI"), "HSI-Linear", "" +
-            "vec3 hueToRGB(float h){" +
-            "   vec3 hsv = vec3(h, 1.0, 1.0);\n" +
-            "   float x = (1.0 - abs(mod(h*6.0, 2.0) - 1.0));\n" +
-            "   vec3 rgb = h < 0.5 ? (\n" +
-            "       h < ${1.0 / 6.0} ? vec3(1.0,x,0.0) : h < ${2.0 / 6.0} ? vec3(x,1.0,0.0) : vec3(0.0,1.0,x) \n" +
-            "   ) : (\n" +
-            "       h < ${4.0 / 6.0} ? vec3(0.0,x,1.0) : h < ${5.0 / 6.0} ? vec3(x,0.0,1.0) : vec3(1.0,0.0,x)\n" +
-            "   );\n" +
-            "   return rgb;\n" +
-            "}" +
-            "vec3 spaceToRGB(vec3 hsv){" +
-            "   float h = hsv.x, s = hsv.y, v = hsv.z;\n" +
-            // just interpolate between black, white, and the most vibrant color at that hue
-            "   vec3 color = hueToRGB(h);\n" +
-            "   vec3 center = mix(vec3(0.5), color, s);\n" +
-            "   if(v > 0.5){\n" +
-            "       return mix(center, vec3(1.0), 2*v-1);\n" +
-            "   } else {\n" +
-            "       return center*(2*v);\n" +
-            "   }\n" +
-            "}", Vector3f(0f, 0.69f, 0.63f)
+    NameDesc("HSI"), "HSI-Linear", lazy {
+        "" +
+                "vec3 hueToRGB(float h){" +
+                "   vec3 hsv = vec3(h, 1.0, 1.0);\n" +
+                "   float x = (1.0 - abs(mod(h*6.0, 2.0) - 1.0));\n" +
+                "   vec3 rgb = h < 0.5 ? (\n" +
+                "       h < ${1.0 / 6.0} ? vec3(1.0,x,0.0) : h < ${2.0 / 6.0} ? vec3(x,1.0,0.0) : vec3(0.0,1.0,x) \n" +
+                "   ) : (\n" +
+                "       h < ${4.0 / 6.0} ? vec3(0.0,x,1.0) : h < ${5.0 / 6.0} ? vec3(x,0.0,1.0) : vec3(1.0,0.0,x)\n" +
+                "   );\n" +
+                "   return rgb;\n" +
+                "}" +
+                "vec3 spaceToRGB(vec3 hsv){" +
+                "   float h = hsv.x, s = hsv.y, v = hsv.z;\n" +
+                // just interpolate between black, white, and the most vibrant color at that hue
+                "   vec3 color = hueToRGB(h);\n" +
+                "   vec3 center = mix(vec3(0.5), color, s);\n" +
+                "   if(v > 0.5){\n" +
+                "       return mix(center, vec3(1.0), 2*v-1);\n" +
+                "   } else {\n" +
+                "       return center*(2*v);\n" +
+                "   }\n" +
+                "}"
+    }, Vector3f(0f, 0.69f, 0.63f)
 ) {
 
     // https://www.vocal.com/video/rgb-and-hsvhsihsl-color-space-conversion/

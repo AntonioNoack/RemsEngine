@@ -150,7 +150,7 @@ class ImageData(file: FileReference) : ICacheData {
             texture.create(file.toString(), image, checkRedundancy = true)
             texture.rotation = getRotation(file)
         } else {
-            LOGGER.warn("Could not load $file")
+            LOGGER.warn("Could not load {}", file)
             hasFailed = true
         }
     }

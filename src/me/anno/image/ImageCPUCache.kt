@@ -8,12 +8,14 @@ import me.anno.image.gimp.GimpImage
 import me.anno.image.hdr.HDRImage
 import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAImage
+import me.anno.io.files.BundledRef
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.io.zip.SignatureFile
 import me.anno.maths.Maths.min
+import me.anno.utils.OS
 import me.anno.utils.Sleep
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
@@ -84,6 +86,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
     }
 
     fun shouldUseFFMPEG(signature: String?, file: FileReference): Boolean {
+        if (OS.isWeb) return false // uncomment, when we support FFMPEG in the browser XD
         return signature == "dds" || signature == "media" || file.lcExtension == "webp"
     }
 
@@ -91,7 +94,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         if (file0 is ImageReadable) return file0.readImage()
         val data = getFileEntry(file0, false, timeout, async) { file, _ ->
             val data = AsyncCacheData<Image?>()
-            if (file !is SignatureFile && file.length() < 10_000_000L) { // < 10MB -> read directly
+            if (file is BundledRef || (file !is SignatureFile && file.length() < 10_000_000L)) { // < 10MB -> read directly
                 file.readBytes { bytes, exc ->
                     exc?.printStackTrace()
                     if (bytes != null) {

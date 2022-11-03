@@ -100,8 +100,8 @@ class BundledRef(
         fun parse(str: String): FileReference {
             if (!str.startsWith(prefix, true)) throw IllegalArgumentException()
             val mainName = str.substring(prefix.length)
-            if (mainName.indexOf('/') >= 0 && jarAsZip.isNotEmpty()) {
-
+            // surprisingly, this caused issues with language files
+            /*if (mainName.indexOf('/') >= 0 && jarAsZip.isNotEmpty()) {
                 // find whether any prefix is good enough, like the search for the files
                 val index = jarAsZip
                 val parts = str.lowercase().split('/', '\\')
@@ -115,7 +115,7 @@ class BundledRef(
                         return appendPath(baseFile, i, parts)
                     }
                 }
-            }
+            }*/
             // is directory may be false...
             return BundledRef(mainName, str, false)
         }

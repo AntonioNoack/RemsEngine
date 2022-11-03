@@ -2,6 +2,7 @@ package me.anno.gpu.hidden
 
 import me.anno.Engine.projectName
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase.capabilities
 import me.anno.gpu.OSWindow
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
@@ -24,8 +25,6 @@ object HiddenOpenGLContext {
     private var errorCallback: GLFWErrorCallback? = null
 
     private val LOGGER = LogManager.getLogger(HiddenOpenGLContext::class)
-
-    var capabilities: GLCapabilities? = null
 
     fun setSize(w: Int, h: Int = w) {
         window.width = w

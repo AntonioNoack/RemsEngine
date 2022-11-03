@@ -7,13 +7,11 @@ import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.extensions.ExtensionLoader
-import me.anno.gpu.Cursor
+import me.anno.gpu.*
 import me.anno.gpu.Cursor.useCursor
-import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.OSWindow
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.Renderer
@@ -39,6 +37,7 @@ import me.anno.utils.OS
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.PriorityBlockingQueue
 import kotlin.math.min
@@ -389,9 +388,10 @@ abstract class StudioBase(
             return bar
         }
 
-        private val eventTasks = ConcurrentLinkedQueue<() -> Unit>()
-        private val scheduledTasks =
-            PriorityBlockingQueue<Pair<Long, () -> Unit>>(16) { a, b -> a.first.compareTo(b.first) }
+        private val eventTasks: Queue<() -> Unit> = if (OS.isWeb) LinkedList() else ConcurrentLinkedQueue()
+        private val scheduledTasks: Queue<Pair<Long, () -> Unit>> =
+            if (OS.isWeb) PriorityQueue(16) { a, b -> a.first.compareTo(b.first) }
+            else PriorityBlockingQueue(16) { a, b -> a.first.compareTo(b.first) }
 
         val shiftSlowdown get() = if (Input.isAltDown) 5f else if (Input.isShiftDown) 0.2f else 1f
 

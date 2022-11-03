@@ -3,20 +3,17 @@ package me.anno.image
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.cache.data.ImageData
-import me.anno.gpu.texture.LateinitTexture
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.LateinitTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
-import me.anno.gpu.texture.TextureLib
 import me.anno.image.raw.GPUImage
-import me.anno.io.ResourceHelper
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerFile
+import me.anno.utils.OS
 import me.anno.utils.Sleep.waitForGFXThread
 import org.apache.logging.log4j.LogManager
-import java.io.FileNotFoundException
-import javax.imageio.ImageIO
 import kotlin.math.sqrt
 
 object ImageGPUCache : CacheSection("Images") {
@@ -62,7 +59,7 @@ object ImageGPUCache : CacheSection("Images") {
             ImageGPUCache::generateImageData
         ) as? ImageData ?: return null
         val texture = imageData.texture
-        if (!imageData.hasFailed && !texture.isCreated && !asyncGenerator) {
+        if (!imageData.hasFailed && !texture.isCreated && !asyncGenerator && !OS.isWeb) {
             // the texture was forced to be loaded -> wait for it
             waitForGFXThread(true) { texture.isCreated || texture.isDestroyed || imageData.hasFailed }
         }
@@ -75,25 +72,6 @@ object ImageGPUCache : CacheSection("Images") {
     }*/
 
     private fun generateImageData(file: FileReference) = ImageData(file)
-
-    fun getInternalTexture(name: String, asyncGenerator: Boolean, timeout: Long = 60_000): Texture2D? {
-        val texture = getEntry(name, timeout, asyncGenerator) { name1 ->
-            try {
-                val img = ImageIO.read(ResourceHelper.loadResource(name1).buffered())
-                val texture = Texture2D("internal-'$name1'", img.width, img.height, 1)
-                texture.create(img, sync = false, checkRedundancy = true)
-                texture
-            } catch (e: FileNotFoundException) {
-                LOGGER.warn("Internal texture $name1 not found!")
-                TextureLib.nullTexture
-            } catch (e: Exception) {
-                LOGGER.warn("Internal texture $name1 is invalid!")
-                e.printStackTrace()
-                TextureLib.nullTexture
-            }
-        } as? Texture2D
-        return if (texture?.isCreated == true) texture else null
-    }
 
     fun getLateinitTexture(
         key: Any,

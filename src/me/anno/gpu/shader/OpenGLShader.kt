@@ -7,6 +7,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
+import me.anno.utils.types.Strings.countLines
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -23,8 +24,8 @@ abstract class OpenGLShader(val name: String) : ICacheData {
 
         private val LOGGER = LogManager.getLogger(OpenGLShader::class)
 
-        /** how attributes are called; might be "attribute" in WebGL */
-        var attribute = "in"
+        /** how attributes are called; is attribute in WebGL */
+        val attribute get() = "in" // if(OS.isWeb) "attribute" else "in"
 
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
         private val identity2 = Matrix2f()
@@ -32,8 +33,8 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         private val identity4 = Matrix4f()
         private val identity4x3 = Matrix4x3f()
         const val DefaultGLSLVersion = 150
-        const val UniformCacheSize = 256
-        const val UniformCacheSizeX4 = UniformCacheSize * 4
+        var UniformCacheSize = if (OS.isWeb) 0 else 256 // todo remove when everything works
+        val UniformCacheSizeX4 get() = UniformCacheSize * 4
         var safeShaderBinding = false
         var lastProgram = -1
 
@@ -42,7 +43,13 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
 
         fun formatVersion(version: Int): String {
-            return if (OS.isAndroid) "#version $version es\n" else "#version $version\n"
+            return when {
+                // ERROR: 0:1: '150' : client/version number not supported
+                // todo how do we find out which version is supported in WebGL?
+                OS.isWeb -> "#version 300 es\n"
+                OS.isAndroid -> "#version $version es\n"
+                else -> "#version $version\n"
+            }
         }
 
         // needs to be cleared when the opengl session changes
@@ -75,6 +82,23 @@ abstract class OpenGLShader(val name: String) : ICacheData {
             return shader
         }*/
 
+        private fun addText(warning: StringBuilder, s0: String, idx0: Int): Int {
+            var idx = idx0
+            var i = 0
+            while (i < s0.length) {
+                val i0 = i
+                i = s0.indexOf('\n', i)
+                if (i < 0) i = s0.length
+                if (idx < 100) warning.append(' ')
+                if (idx < 10) warning.append(' ')
+                warning.append(idx).append(": ")
+                warning.append(s0, i0, i).append('\n')
+                idx++
+                i++
+            }
+            return idx
+        }
+
         fun postPossibleError(shaderName: String, shader: Int, isShader: Boolean, s0: String, s1: String = "") {
             val log = if (isShader) {
                 glGetShaderInfoLog(shader)
@@ -82,7 +106,16 @@ abstract class OpenGLShader(val name: String) : ICacheData {
                 glGetProgramInfoLog(shader)
             }
             if (!log.isBlank2()) {
-                LOGGER.warn(
+                val warning = StringBuilder( // estimate size to prevent unnecessary allocations
+                    shaderName.length + log.length + 6 + // intro line
+                            s0.length + s1.length +
+                            (countLines(s0) + countLines(s1)) * 6 // 4 for number, 2 for :+space
+                )
+                warning.append(log).append(" by ").append(shaderName).append("\n\n")
+                val idx = addText(warning, s0, 1)
+                addText(warning, s1, idx)
+                LOGGER.warn(warning)
+                /*LOGGER.warn( // more compact, but also needs .format(), which is costly in WASM
                     "$log by $shaderName\n\n${
                         (s0 + s1)
                             .split('\n')
@@ -90,7 +123,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
                                 "${"%1\$3s".format(index + 1)}: $line"
                             }.joinToString("\n")
                     }"
-                )
+                )*/
                 /*if(!log.contains("deprecated", true)){
                     throw RuntimeException()
                 }*/
@@ -148,7 +181,6 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     }
 
     private val uniformLocations = HashMap<String, Int>()
-    private val attributeLocations = HashMap<String, Int>()
     private val uniformCache = FloatArray(UniformCacheSizeX4) { Float.NaN }
     var textureNames: List<String> = emptyList()
 
@@ -173,24 +205,19 @@ abstract class OpenGLShader(val name: String) : ICacheData {
 
     fun updateSession() {
         session = GFXState.session
-        attributeLocations.clear()
         uniformLocations.clear()
         uniformCache.fill(Float.NaN)
     }
 
     @Suppress("unused")
-    fun printLocationsAndValues() {
-        for ((key, value) in attributeLocations.entries.sortedBy { it.value }) {
-            LOGGER.info("Attribute $key = $value")
-        }
+    open fun printLocationsAndValues() {
         for ((key, value) in uniformLocations.entries.sortedBy { it.value }) {
             LOGGER.info("Uniform $key[$value] = (${uniformCache[value * 4]},${uniformCache[value * 4 + 1]},${uniformCache[value * 4 + 2]},${uniformCache[value * 4 + 3]})")
         }
     }
 
     @Suppress("unused")
-    fun invalidateCacheForTests() {
-        attributeLocations.clear()
+   fun invalidateCacheForTests() {
         uniformLocations.clear()
         uniformCache.fill(Float.NaN)
     }
@@ -234,17 +261,6 @@ abstract class OpenGLShader(val name: String) : ICacheData {
             val loc = glGetUniformLocation(program, name)
             if (loc < 0 && name !in ignoredNames && !sourceContainsWord(name)) {
                 LOGGER.warn("Uniform location \"$name\" not found in shader ${this.name}")
-            }
-            loc
-        }
-    }
-
-    fun getAttributeLocation(name: String): Int {
-        return attributeLocations.getOrPut(name) {
-            if (safeShaderBinding) use()
-            val loc = glGetAttribLocation(program, name)
-            if (loc < 0 && name !in ignoredNames) {
-                LOGGER.warn("Attribute location \"$name\" not found in shader ${this.name}")
             }
             loc
         }
@@ -443,10 +459,13 @@ abstract class OpenGLShader(val name: String) : ICacheData {
 
     @Suppress("unused")
     fun v3X(loc: Int, x: Float, y: Float, z: Float, w: Float) = v3f(loc, x / w, y / w, z / w)
+
     @Suppress("unused")
     fun v3X(name: String, x: Float, y: Float, z: Float, w: Float) = v3f(name, x / w, y / w, z / w)
+
     @Suppress("unused")
     fun v3X(loc: Int, v: Vector4f) = v3f(loc, v.x / v.w, v.y / v.w, v.z / v.w)
+
     @Suppress("unused")
     fun v3X(name: String, v: Vector4f) = v3f(name, v.x / v.w, v.y / v.w, v.z / v.w)
 

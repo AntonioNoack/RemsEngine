@@ -148,17 +148,7 @@ class CubemapTexture(
     private fun getTarget(side: Int) = GL_TEXTURE_CUBE_MAP_POSITIVE_X + side
 
     fun createDepth(lowQuality: Boolean = false) {
-        ensurePointer()
-        bindBeforeUpload()
-        val size = size
-        val format = if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F
-        for (side in 0 until 6) {
-            glTexImage2D(
-                getTarget(side), 0, format, size, size,
-                0, GL_DEPTH_COMPONENT, GL_FLOAT, 0
-            )
-        }
-        afterUpload(format, if (lowQuality) 2 * 6 else 4 * 6)
+        create(if (lowQuality) TargetType.DEPTH16 else TargetType.DEPTH32F)
     }
 
     private fun afterUpload(internalFormat: Int, bytesPerPixel: Int) {

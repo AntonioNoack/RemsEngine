@@ -7,11 +7,13 @@ import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.svsList
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.ResourceHelper
+import me.anno.utils.OS
 
 object FSR {
 
@@ -29,7 +31,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", vertex, uvList, "" +
+            "upscale", svsList, vertex, uvList, emptyList(), "" +
                     "uniform vec2 dstWH;\n" +
                     "uniform vec4 background;\n" +
                     "uniform sampler2D source;\n" +
@@ -38,10 +40,16 @@ object FSR {
                     "#define ANNO 1\n" + // we use our custom version
                     defines +
                     "#define FSR_EASU_F 1\n" +
-                    "vec4 FsrEasuAF(vec2 p){ return textureGather(source,p,3); }\n" +
-                    "vec4 FsrEasuRF(vec2 p, vec4 alpha){ return mix(background.rrrr, textureGather(source,p,0), alpha); }\n" +
-                    "vec4 FsrEasuGF(vec2 p, vec4 alpha){ return mix(background.gggg, textureGather(source,p,1), alpha); }\n" +
-                    "vec4 FsrEasuBF(vec2 p, vec4 alpha){ return mix(background.bbbb, textureGather(source,p,2), alpha); }\n" +
+                    if (OS.isWeb) {
+                        "#define NO_GATHER\n" +
+                                "vec3 FsrEasuRGBF(vec2 p){ vec4 c = texture(source,p); return mix(background.rgb, c.rgb, c.a); }\n"
+                    } else {
+                        "" +
+                                "vec4 FsrEasuAF(vec2 p){ return textureGather(source,p,3); }\n" +
+                                "vec4 FsrEasuRF(vec2 p, vec4 alpha){ return mix(background.rrrr, textureGather(source,p,0), alpha); }\n" +
+                                "vec4 FsrEasuGF(vec2 p, vec4 alpha){ return mix(background.gggg, textureGather(source,p,1), alpha); }\n" +
+                                "vec4 FsrEasuBF(vec2 p, vec4 alpha){ return mix(background.bbbb, textureGather(source,p,2), alpha); }\n"
+                    } +
                     functions +
                     "layout(location=0) out vec4 glFragColor;\n" +
                     "uniform vec4 con0,con1,con2,con3;\n" +
@@ -67,7 +75,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", vertex, uvList, "" +
+            "upscale", svsList, vertex, uvList, emptyList(), "" +
                     "out vec4 glFragColor;\n" +
                     "uniform vec2 dstWH;\n" +
                     "uniform float sharpness;\n" +

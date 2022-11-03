@@ -2,7 +2,6 @@ package me.anno.ui.editor
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
-import me.anno.utils.Color.black
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -35,6 +34,8 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
+import me.anno.utils.OS
 import me.anno.utils.types.Strings.isBlank2
 import java.io.IOException
 import kotlin.concurrent.thread
@@ -224,14 +225,22 @@ abstract class WelcomeUI {
     abstract fun createProjectUI()
 
     open fun openProject(studio: StudioBase, name: String, folder: FileReference) {
-        thread(name = "UILayouts::openProject()") {
-            val p = loadProject(name.trim(), folder)
-            StudioBase.addEvent {
-                GFX.someWindow.windowStack.clear()
-                createProjectUI()
+        if (OS.isWeb) { // threading not yet supported in web
+            openProject2(name, folder)
+        } else {
+            thread(name = "UILayouts::openProject()") {
+                openProject2(name, folder)
             }
-            Projects.addToRecentProjects(p.first, p.second)
         }
+    }
+
+    private fun openProject2(name: String, folder: FileReference) {
+        val p = loadProject(name.trim(), folder)
+        StudioBase.addEvent {
+            GFX.someWindow.windowStack.clear()
+            createProjectUI()
+        }
+        Projects.addToRecentProjects(p.first, p.second)
     }
 
     fun loadLastProject(

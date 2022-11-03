@@ -21,7 +21,6 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
 import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -332,54 +331,51 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
             }
         }
 
-        val visualizeLightCountShader = lazy {
-            Shader(
-                "visualize-light-count", "" +
-                        "$attribute vec3 coords;\n" +
-                        "uniform mat4 transform;\n" +
-                        "uniform mat4x3 localTransform;\n" +
-                        "uniform bool fullscreen;\n" +
-                        "void main(){\n" +
-                        // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                        "   if(fullscreen){\n" +
-                        "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
-                        "   } else {\n" +
-                        "      gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
-                        "   }\n" +
-                        "}\n", listOf(), "" +
-                        "out vec4 glFragColor;\n" +
-                        "uniform float countPerPixel;\n" +
-                        "void main(){ glFragColor = vec4(countPerPixel); }"
-            )
+        val visualizeLightCountShader = Shader(
+            "visualize-light-count", listOf(Variable(GLSLType.V3F, "coords", VariableMode.ATTR)), "" +
+                    "uniform mat4 transform;\n" +
+                    "uniform mat4x3 localTransform;\n" +
+                    "uniform bool fullscreen;\n" +
+                    "void main(){\n" +
+                    // cutoff = 0 -> scale onto the whole screen, has effect everywhere
+                    "   if(fullscreen){\n" +
+                    "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                    "   } else {\n" +
+                    "      gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                    "   }\n" +
+                    "}\n", listOf(), listOf(), "" +
+                    "out vec4 glFragColor;\n" +
+                    "uniform float countPerPixel;\n" +
+                    "void main(){ glFragColor = vec4(countPerPixel); }"
+        )
+
+        val visualizeLightCountShaderInstanced = Shader(
+            "visualize-light-count-instanced", listOf(
+                Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR),
+                Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR),
+                Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR),
+                Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR),
+                Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
+            ), "" +
+                    "uniform mat4 transform;\n" +
+                    "uniform bool isDirectional;\n" +
+                    "void main(){\n" +
+                    // cutoff = 0 -> scale onto the whole screen, has effect everywhere
+                    "   if(isDirectional && shadowData.a <= 0.0){\n" +
+                    "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                    "   } else {\n" +
+                    "       mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
+                    "      gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                    "   }\n" +
+                    "}", listOf(), listOf(), "" +
+                    "out vec4 glFragColor;\n" +
+                    "uniform float countPerPixel;\n" +
+                    "void main(){ glFragColor = vec4(countPerPixel); }"
+        ).apply {
+            ignoreNameWarnings("normals", "uvs", "tangents", "colors", "receiveShadows")
         }
 
-        val visualizeLightCountShaderInstanced = lazy {
-            Shader(
-                "visualize-light-count-instanced", "" +
-                        "$attribute vec3 coords;\n" +
-                        "$attribute vec3 instanceTrans0;\n" +
-                        "$attribute vec3 instanceTrans1;\n" +
-                        "$attribute vec3 instanceTrans2;\n" +
-                        "$attribute vec3 instanceTrans3;\n" +
-                        "$attribute vec4 shadowData;\n" +
-                        "uniform mat4 transform;\n" +
-                        "uniform bool isDirectional;\n" +
-                        "void main(){\n" +
-                        // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                        "   if(isDirectional && shadowData.a <= 0.0){\n" +
-                        "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
-                        "   } else {\n" +
-                        "       mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
-                        "      gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
-                        "   }\n" +
-                        "}", listOf(), "" +
-                        "out vec4 glFragColor;\n" +
-                        "uniform float countPerPixel;\n" +
-                        "void main(){ glFragColor = vec4(countPerPixel); }"
-            ).apply {
-                ignoreNameWarnings("normals", "uvs", "tangents", "colors", "receiveShadows")
-            }
-        }
     }
 
     var visualizeLightCount = false
@@ -487,8 +483,8 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
 
     fun getShader(type: LightType, isInstanced: Boolean): Shader {
         return if (visualizeLightCount) {
-            if (isInstanced) visualizeLightCountShaderInstanced.value
-            else visualizeLightCountShader.value
+            if (isInstanced) visualizeLightCountShaderInstanced
+            else visualizeLightCountShader
         } else {
             if (deferred == null) throw IllegalStateException("Cannot draw lights directly without deferred buffers")
             Companion.getShader(deferred, type)

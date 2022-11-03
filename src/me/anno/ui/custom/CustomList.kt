@@ -9,6 +9,8 @@ import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.bugs.SumOf
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
@@ -202,7 +204,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         }
     }
 
-    private val hoverColor = style.getColor("customList.color", Maths.mixARGB(0x77ffb783, originalBGColor, 0.8f))
+    private val hoverColor = style.getColor("customList.hoverColor", Maths.mixARGB(0x77ffb783, originalBGColor, 0.8f))
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         backgroundColor = hoverColor

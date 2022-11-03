@@ -106,10 +106,12 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
         return builder
     }
 
-    fun removeAt(index: Int) {
-        val array = array ?: return
+    fun removeAt(index: Int): Int {
+        val array = array!!
+        val value = array[index]
         System.arraycopy(array, index + 1, array, index, size - index - 1)
         size--
+        return value
     }
 
     fun removeBetween(index0: Int, index1: Int) {

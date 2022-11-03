@@ -76,7 +76,8 @@ object PrefabCache : CacheSection("Prefab") {
         // Thread.sleep(10)
         val instance = createSuperInstance(superPrefab, depth, clazz)
         instance.changePaths(prefab, Path.ROOT_PATH)
-        adds?.forEachIndexed { index, add ->
+        if (adds != null) for (index in adds.indices) {
+            val add = adds[index]
             try {
                 add.apply(instance, depth - 1)
             } catch (e: InvalidClassException) {

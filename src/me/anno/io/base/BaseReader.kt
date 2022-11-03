@@ -103,10 +103,14 @@ abstract class BaseReader {
         fun error(msg: String): Nothing = throw InvalidFormatException("[BaseReader] $msg")
         fun error(msg: String, appended: Any?): Nothing = throw InvalidFormatException("[BaseReader] $msg $appended")
 
-        fun getNewClassInstance(clazz: String): ISaveable {
+        fun getNewClassInstance(className: String): ISaveable {
             // from old Rem's Studio times
-            if (clazz.startsWith("AnimatedProperty<")) return getNewClassInstance("AnimatedProperty")
-            return ISaveable.objectTypeRegistry[clazz]?.generate() ?: throw UnknownClassException(clazz)
+            if (className.startsWith("AnimatedProperty<")) return getNewClassInstance("AnimatedProperty")
+            val type = ISaveable.objectTypeRegistry[className]
+            if (type == null) println("Looking for $className:${className.hashCode()}, " +
+                    "available: ${ISaveable.objectTypeRegistry.keys.joinToString { "${it}:${it.hashCode()}:${if(it == className) 1 else 0}" }}"
+            )
+            return type?.generate() ?: throw UnknownClassException(className)
         }
 
     }

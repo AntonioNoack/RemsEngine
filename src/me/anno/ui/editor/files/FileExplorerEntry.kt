@@ -6,7 +6,6 @@ import me.anno.audio.openal.AudioTasks
 import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
-import me.anno.utils.Color.black
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.ecs.prefab.PrefabCache
@@ -22,15 +21,19 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageCPUCache
-import me.anno.image.ImageGPUCache.getInternalTexture
+import me.anno.image.ImageGPUCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileReference.Companion.getReferenceAsync
 import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.InvalidRef
@@ -52,6 +55,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.pooling.JomlPools
@@ -124,26 +128,26 @@ open class FileExplorerEntry(
     private val importType = file.extension.getImportType()
     private var iconPath = if (isParent || file.isDirectory) {
         if (isParent) {
-            "file/folder.png"
+            folderPath
         } else {
             when (file.name.lowercase()) {
-                "music", "musik", "videos", "movies" -> "file/music.png"
-                "documents", "dokumente", "downloads" -> "file/text.png"
-                "images", "pictures", "bilder" -> "file/image.png"
+                "music", "musik", "videos", "movies" -> musicPath
+                "documents", "dokumente", "downloads" -> textPath
+                "images", "pictures", "bilder" -> imagePath
                 else -> if (file.hasChildren())
-                    "file/folder.png" else "file/empty_folder.png"
+                    folderPath else emptyFolderPath
             }
         }
     } else {
         // actually checking the type would need to be done async, because it's slow to ready many, many files
         when (importType) {
-            "Container" -> "file/compressed.png"
-            "Image", "Cubemap", "Cubemap-Equ" -> "file/image.png"
-            "Text" -> "file/text.png"
-            "Audio", "Video" -> "file/music.png"
-            "Executable" -> "file/executable.png"
+            "Container" -> zipPath
+            "Image", "Cubemap", "Cubemap-Equ" -> imagePath
+            "Text" -> textPath
+            "Audio", "Video" -> musicPath
+            "Executable" -> exePath
             // todo link icon for .lnk and .url, and maybe .desktop
-            else -> "file/document.png"
+            else -> docsPath
         }
     }
 
@@ -275,7 +279,7 @@ open class FileExplorerEntry(
     }
 
     private fun drawDefaultIcon(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val image = getInternalTexture(iconPath, true) ?: whiteTexture
+        val image = ImageGPUCache[iconPath, true] ?: whiteTexture
         drawTexture(x0, y0, x1, y1, image)
     }
 
@@ -298,7 +302,7 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun getDefaultIcon() = getInternalTexture(iconPath, true)
+    private fun getDefaultIcon() = ImageGPUCache[iconPath, true]
 
     private fun getImage(): Any? {
         val ref1 = ref1 ?: return null
@@ -786,6 +790,15 @@ open class FileExplorerEntry(
 
         private val charHHMMSS = "hh:mm:ss/hh:mm:ss".toCharArray()
         private val charMMSS = "mm:ss/mm:ss".toCharArray()
+
+        val folderPath = getReference("res://file/folder.png")
+        val musicPath = getReference("res://file/music.png")
+        val textPath = getReference("res://file/text.png")
+        val imagePath = getReference("res://file/image.png")
+        val emptyFolderPath = getReference("res://file/empty_folder.png")
+        val exePath = getReference("res://file/executable.png")
+        val docsPath = getReference("res://file/document.png")
+        val zipPath = getReference("res://file/compressed.png")
 
         val dontDelete
             get() = MenuOption(

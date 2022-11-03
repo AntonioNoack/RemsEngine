@@ -33,12 +33,12 @@ import kotlin.streams.toList
 
 class AWTFont(val font: Font) {
 
-    private val fontMetrics: FontMetrics
-
-    init {
+    private val fontMetrics = if (OS.isWeb) {
+        WebFonts.getFontMetrics(font)
+    } else {
         val unused = BufferedImage(1, 1, 1).graphics as Graphics2D
         unused.prepareGraphics(font, false)
-        fontMetrics = unused.fontMetrics
+        unused.fontMetrics
     }
 
     private fun CharSequence.containsSpecialChar(): Boolean {

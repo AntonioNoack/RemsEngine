@@ -2,6 +2,7 @@ package me.anno.installer
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.OS
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd
@@ -70,7 +71,7 @@ object Installer {
                     output.write(buffer, 0, length)
                     val time1 = System.nanoTime()
                     val dt = time1 - time0
-                    if (dt > 1_000_000_000) {
+                    if (dt > SECONDS_TO_NANOS) {
                         LOGGER.info(formatDownload(fileName, dt, length0, downloadedLength, totalLength))
                         time0 = time1
                         length0 = 0

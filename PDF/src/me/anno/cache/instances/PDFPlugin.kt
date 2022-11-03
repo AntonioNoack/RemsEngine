@@ -25,7 +25,7 @@ class PDFPlugin : Plugin() {
                         ref.returnInstance()
                         if (image != null) {
                             Thumbs.saveNUpload(srcFile, false, dstFile, image, callback)
-                        } else LOGGER.warn("Couldn't generate image for pdf $srcFile")
+                        } else LOGGER.warn("Couldn't generate image for pdf {}", srcFile)
                     }
                 } else exc?.printStackTrace()
             }

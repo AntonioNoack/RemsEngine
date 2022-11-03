@@ -294,6 +294,7 @@ object GFXBase {
     fun runRenderLoop() {
         lastTime = System.nanoTime()
         while (!destroyed && !shutdown) {
+            Engine.updateTime()
             renderFrame()
         }
         StudioBase.instance?.onShutdown()
@@ -317,8 +318,6 @@ object GFXBase {
 
     var lastTime = System.nanoTime()
     fun renderFrame() {
-
-        Engine.updateTime()
 
         val time = Engine.nanoTime
 
@@ -356,7 +355,8 @@ object GFXBase {
         }
 
         if (windows.isNotEmpty() &&
-            windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() }
+            windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() } &&
+            !OS.isWeb // Browser must not wait, because it is slow anyway ^^, and we probably can't detect in-focus
         ) {
             // enforce 30 fps, because we don't need more
             // and don't want to waste energy

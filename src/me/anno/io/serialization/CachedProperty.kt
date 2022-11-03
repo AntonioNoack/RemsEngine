@@ -17,8 +17,8 @@ class CachedProperty(
     val serialize: Boolean,
     val forceSaving: Boolean?,
     val annotations: List<Annotation>,
-    val getter: KProperty1.Getter<*, *>,
-    val setter: KMutableProperty1.Setter<*, *>
+    val getter: (Any) -> Any?,
+    val setter: (Any, Any?) -> Unit
 ) {
 
     val range = annotations.firstInstanceOrNull<Range>()
@@ -29,7 +29,7 @@ class CachedProperty(
 
     operator fun set(instance: Any, value: Any?): Boolean {
         return try {
-            val oldValue = getter.call(instance)
+            val oldValue = getter(instance)
             if (oldValue is Enum<*> && value !is Enum<*>) {
                 // an enum, let's try our best to find the correct value
                 val values = EnumInput.getEnumConstants(oldValue.javaClass)
@@ -83,8 +83,8 @@ class CachedProperty(
                     }
                     else -> throw RuntimeException("Value $value cannot be converted to enum, type is incorrect")
                 }
-                setter.call(instance, newValue)
-            } else setter.call(instance, value)
+                setter(instance, newValue)
+            } else setter(instance, value)
             true
         } catch (e: Exception) {
             LOGGER.error("Error setting property '$name' with value of class '${value?.javaClass?.name}' to instance of class '${instance::class.jvmName}', properties class: '$clazz'")
@@ -95,7 +95,7 @@ class CachedProperty(
 
     operator fun get(instance: Any): Any? {
         return try {
-            getter.call(instance)
+            getter(instance)
         } catch (e: Exception) {
             LOGGER.error("Setting property '$name' of ${instance::class.jvmName}, but the properties class is '$clazz'")
             e.printStackTrace()

@@ -118,7 +118,9 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 shadowCascades.size != targetSize ||
                 shadowCascades.first().samples != samples
             ) {
-                shadowCascades?.forEach { it.destroy() }
+                if (shadowCascades != null) for (it in shadowCascades) {
+                    it.destroy()
+                }
                 // we currently use a depth bias of 0.005,
                 // which is equal to ~ 1/255
                 // so a 8 bit depth buffer would be enough
@@ -138,8 +140,13 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 }
             }
         } else {
-            shadowTextures?.forEach { it.destroy() }
-            shadowTextures = null
+            val st = shadowTextures
+            if (st != null) {
+                for (it in st) {
+                    it.destroy()
+                }
+                shadowTextures = null
+            }
         }
     }
 
@@ -235,8 +242,13 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     override fun destroy() {
         super.destroy()
-        shadowTextures?.forEach { it.destroy() }
-        shadowTextures = null
+        val st = shadowTextures
+        if (st != null) {
+            for (it in st) {
+                it.destroy()
+            }
+            shadowTextures = null
+        }
     }
 
     companion object {

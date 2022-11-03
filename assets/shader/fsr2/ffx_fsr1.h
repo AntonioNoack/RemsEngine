@@ -1,8 +1,4 @@
 #ifdef FSR_EASU_F
-// Input callback prototypes, need to be implemented by calling shader
- AF4 FsrEasuRF(AF2 p);
- AF4 FsrEasuGF(AF2 p);
- AF4 FsrEasuBF(AF2 p);
 //------------------------------------------------------------------------------------------------------------------------------
  // Filtering for a given tap for the scalar.
  void FsrEasuTapF(
@@ -116,6 +112,35 @@
   AF2 p1=p0+(con2.xy);
   AF2 p2=p0+(con2.zw);
   AF2 p3=p0+(con3.xy);
+  #ifdef NO_GATHER
+  float2 dx = vec2(con1.x,0.0);
+  float2 dy = vec2(0.0,con1.y);
+  float2 dxy = con1.xy;
+  AF3 b0 = FsrEasuRGBF(p0);
+  AF3 b1 = FsrEasuRGBF(p0+dx);
+  AF4 bczzR=vec4(b0.r,b1.r,0.0,0.0);
+  AF4 bczzG=vec4(b0.g,b1.g,0.0,0.0);
+  AF4 bczzB=vec4(b0.b,b1.b,0.0,0.0);
+  AF3 i0 = FsrEasuRGBF(p1);
+  AF3 i1 = FsrEasuRGBF(p1+dx);
+  AF3 i2 = FsrEasuRGBF(p1+dy);
+  AF3 i3 = FsrEasuRGBF(p1+dxy);
+  AF4 ijfeR=vec4(i0.r,i1.r,i2.r,i3.r);
+  AF4 ijfeG=vec4(i0.g,i1.g,i2.g,i3.g);
+  AF4 ijfeB=vec4(i0.b,i1.b,i2.b,i3.b);
+  AF3 k0 = FsrEasuRGBF(p2);
+  AF3 k1 = FsrEasuRGBF(p2+dx);
+  AF3 k2 = FsrEasuRGBF(p2+dy);
+  AF3 k3 = FsrEasuRGBF(p2+dxy);
+  AF4 klhgR=vec4(k0.r,k1.r,k2.r,k3.r);
+  AF4 klhgG=vec4(k0.g,k1.g,k2.g,k3.g);
+  AF4 klhgB=vec4(k0.b,k1.b,k2.b,k3.b);
+  AF3 z2 = FsrEasuRGBF(p3+dy);
+  AF3 z3 = FsrEasuRGBF(p3+dxy);
+  AF4 zzonR=vec4(0.0,0.0,z2.r,z3.r);
+  AF4 zzonG=vec4(0.0,0.0,z2.g,z3.g);
+  AF4 zzonB=vec4(0.0,0.0,z2.b,z3.b);
+  #else
   AF4 alpha0 = FsrEasuAF(p0);
   AF4 bczzR=FsrEasuRF(p0,alpha0);
   AF4 bczzG=FsrEasuGF(p0,alpha0);
@@ -132,6 +157,7 @@
   AF4 zzonR=FsrEasuRF(p3,alpha3);
   AF4 zzonG=FsrEasuGF(p3,alpha3);
   AF4 zzonB=FsrEasuBF(p3,alpha3);
+  #endif
 //------------------------------------------------------------------------------------------------------------------------------
   // Simplest multi-channel approximate luma possible (luma times 2, in 2 FMA/MAD).
   AF4 bczzL=bczzB*AF4_(0.5)+(bczzR*AF4_(0.5)+bczzG);

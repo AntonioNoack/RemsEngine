@@ -16,7 +16,7 @@ import kotlin.reflect.KClass
 /**
  * input panel for drag-dropping references to instances in the same scene
  * */
-class PrefabSaveableInput<Type : PrefabSaveable>(val title: String, val clazz: KClass<*>, value0: Type?, style: Style) :
+class PrefabSaveableInput<Type : PrefabSaveable>(val title: String, val clazz: Class<*>, value0: Type?, style: Style) :
     TextPanel("$title: ${getName(value0)}", style) {
 
     var value = value0
