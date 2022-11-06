@@ -245,12 +245,14 @@ object FontManager {
     private fun loadFont(ref: FileReference, callback: (Font?) -> Unit) {
         ref.inputStream { it, _ ->
             if (it != null) {
-                // what is type1_font?
-                val font = Font.createFont(Font.TRUETYPE_FONT, it)
-                GraphicsEnvironment
-                    .getLocalGraphicsEnvironment()
-                    .registerFont(font)
-                callback(font)
+                it.use {
+                    // what is type1_font?
+                    val font = Font.createFont(Font.TRUETYPE_FONT, it)
+                    GraphicsEnvironment
+                        .getLocalGraphicsEnvironment()
+                        .registerFont(font)
+                    callback(font)
+                }
             } else callback(null)
         }
     }

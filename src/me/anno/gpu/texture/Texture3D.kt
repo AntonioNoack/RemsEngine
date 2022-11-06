@@ -13,19 +13,15 @@ import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
-import me.anno.gpu.texture.Texture2D.Companion.textureBudgetTotal
-import me.anno.gpu.texture.Texture2D.Companion.textureBudgetUsed
 import me.anno.gpu.texture.Texture2D.Companion.writeAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL45C
-import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-import kotlin.concurrent.thread
 
 open class Texture3D(
     var name: String,
@@ -33,12 +29,6 @@ open class Texture3D(
     override var h: Int,
     var d: Int
 ) : ICacheData, ITexture2D {
-
-    constructor(name: String, img: BufferedImage, depth: Int) : this(name, img.width / depth, img.height, depth) {
-        create(img, true)
-        filtering(filtering)
-        clamping(clamping)
-    }
 
     var pointer = -1
     var session = -1
@@ -109,22 +99,9 @@ open class Texture3D(
         afterUpload(GL_RGBA32F, 16, true)
     }
 
-    fun create(createImage: () -> BufferedImage) {
-        val requiredBudget = textureBudgetUsed + w * h * d
-        if (requiredBudget > textureBudgetTotal) {
-            thread(name = "Create Image") { create(createImage(), false) }
-        } else {
-            textureBudgetUsed = requiredBudget
-            create(createImage(), true)
-        }
-    }
-
     fun create(img: Image, sync: Boolean) {
-        create(img.createBufferedImage(), sync)
-    }
-
-    fun create(img: BufferedImage, sync: Boolean) {
-        val intData = img.getRGB(0, 0, img.width, img.height, null, 0, img.width)
+        // todo we could detect monochrome and such :)
+        val intData = img.createIntImage().data
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
             // todo check whether this inversion is really needed
             for (i in intData.indices) {// argb -> abgr
@@ -337,11 +314,6 @@ open class Texture3D(
         locallyAllocated = allocate(locallyAllocated, 0L)
         isDestroyed = true
     }
-
-    override fun createBufferedImage(flipY: Boolean, withAlpha: Boolean) =
-        VRAMToRAM.createBufferedImage(w * d, h, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->
-            drawSlice(x2, y2, w2, withAlpha)
-        }
 
     override fun createImage(flipY: Boolean, withAlpha: Boolean) =
         VRAMToRAM.createImage(w * d, h, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->

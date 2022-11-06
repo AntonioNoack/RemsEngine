@@ -19,7 +19,6 @@ import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import java.awt.Color
 import java.awt.Font
-import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout

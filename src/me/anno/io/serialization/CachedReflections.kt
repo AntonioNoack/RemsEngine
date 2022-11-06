@@ -3,33 +3,31 @@ package me.anno.io.serialization
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
-import me.anno.ecs.annotations.ExecuteInEditMode
 import me.anno.utils.OS
-import org.apache.logging.log4j.LogManager
+import me.anno.utils.strings.StringHelper.titlecase
 import java.lang.reflect.Field
+import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import kotlin.reflect.*
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.isAccessible
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.KProperty
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.superclasses
 
-
-// todo fix: get<Name>() is missing in Java, e.g. position, scale
 class CachedReflections(
     val clazz: KClass<*>,
     val allProperties: Map<String, CachedProperty>,
-    val declaredProperties: Map<String, CachedProperty>,
     val debugActions: List<KFunction<*>>,
     val debugProperties: List<KProperty<*>>,
     val debugWarnings: List<KProperty<*>>
 ) {
 
-    @Suppress("unused")
-    constructor(instance: Any) : this(instance, instance::class)
-
-    constructor(instance: Any, clazz: KClass<*>) : this(
+    constructor(clazz: KClass<*>) : this(
         clazz,
-        getMemberProperties(instance, clazz),
-        getDeclaredMemberProperties(instance, clazz),
+        getMemberProperties(clazz),
         getDebugActions(clazz),
         getDebugProperties(clazz),
         getDebugWarnings(clazz)
@@ -44,7 +42,7 @@ class CachedReflections(
     }
 
     // todo use this
-    val executeInEditMode = annotations.any { it is ExecuteInEditMode }
+    // val executeInEditMode = annotations.any { it is ExecuteInEditMode }
 
     /**
      * updates the property in the instance
@@ -103,12 +101,12 @@ class CachedReflections(
             return list
         }
 
-        fun getMemberProperties(instance: Any, clazz: KClass<*>): Map<String, CachedProperty> {
+        fun getMemberProperties(clazz: KClass<*>): Map<String, CachedProperty> {
             /* return try {
                  findProperties(instance, clazz, clazz.memberProperties.filterIsInstance<KMutableProperty1<*, *>>())
              } catch (e: ClassCastException) {*/
             val jc = clazz.java
-            return findProperties(instance, allFields(jc, ArrayList()))
+            return findProperties(allFields(jc, ArrayList()), allMethods(jc, ArrayList()))
             // }
         }
 
@@ -119,13 +117,11 @@ class CachedReflections(
             return list
         }
 
-        fun getDeclaredMemberProperties(instance: Any, clazz: KClass<*>): Map<String, CachedProperty> {
-            return if (OS.isWeb) {
-                emptyMap()
-            } else {
-                val properties = clazz.declaredMemberProperties.filterIsInstance<KMutableProperty1<*, *>>()
-                findProperties(instance, clazz, properties)
-            }
+        fun allMethods(clazz: Class<*>, list: ArrayList<Method>): List<Method> {
+            list.addAll(clazz.declaredMethods)
+            val superClass = clazz.superclass
+            if (superClass != null) allMethods(superClass, list)
+            return list
         }
 
         fun getPropertiesByDeclaringClass(
@@ -165,51 +161,17 @@ class CachedReflections(
         }
 
         fun findProperties(
-            instance: Any,
-            clazz: KClass<*>,
-            properties: List<KMutableProperty1<*, *>>
+            properties: List<Field>,
+            methods: List<Method>,
         ): Map<String, CachedProperty> {
             // this is great: declaredMemberProperties in only what was changes, so we can really create listener lists :)
             val map = HashMap<String, CachedProperty>()
             for (index in properties.indices) {
                 val field = properties[index]
-                val isPublic = field.visibility == KVisibility.PUBLIC
-                val serial = field.findAnnotation<SerializedProperty>()
-                val notSerial = field.findAnnotation<NotSerializedProperty>()
-                val serialize = serial != null || (isPublic && notSerial == null)
-                try {
-                    // save the field
-                    var name = serial?.name
-                    if (name == null || name.isEmpty()) name = field.name
-                    if (name in map) continue
-                    // make sure we can access it
-                    val setter = field.setter
-                    setter.isAccessible = true
-                    val getter = field.getter
-                    getter.isAccessible = true
-                    val value = getter.call(instance)
-                    val forceSaving = serial?.forceSaving ?: (value is Boolean)
-                    val property = CachedProperty(
-                        name, clazz, serialize, forceSaving,
-                        field.annotations, { getter.call(it) }, { i, v -> setter.call(i, v) }
-                    )
-                    map[name] = property
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-            return map
-        }
-
-        fun findProperties(
-            instance: Any,
-            properties: List<Field>
-        ): Map<String, CachedProperty> {
-            // this is great: declaredMemberProperties in only what was changes, so we can really create listener lists :)
-            val map = HashMap<String, CachedProperty>()
-            for (index in properties.indices) {
-                val field = properties[index]
-                val annotations = field.annotations
+                val annotations = field.annotations.toMutableList()
+                val kotlinAnnotationName = "get${field.name.titlecase()}\$annotations"
+                val m = methods.firstOrNull { it.name == kotlinAnnotationName }
+                if (m != null) annotations += m.annotations.toList()
                 val serial = annotations.firstOrNull { it is SerializedProperty } as? SerializedProperty
                 val notSerial = annotations.firstOrNull { it is NotSerializedProperty }
                 val isPublic = Modifier.isPublic(field.modifiers)
@@ -218,36 +180,88 @@ class CachedReflections(
                 if (name == null || name.isEmpty()) name = field.name
                 if (name in map) continue
                 try {
-                    saveField(instance, field, name!!, serial, serialize, annotations.toList(), map)
+                    map[name!!] = saveField(field, name, serial, serialize, annotations.toList())
                 } catch (e: Exception) {
                     e.printStackTrace()
+                }
+            }
+            for (index in methods.indices) {
+                val getterMethod = methods[index]
+                val name = getterMethod.name
+                if (name.startsWith("get") &&
+                    '$' !in name &&
+                    name.length > 3 &&
+                    name[3] in 'A'..'Z'
+                ) {
+                    val subName = name.substring(3)
+                    val setterName = "s" + name.substring(1)
+                    val betterName = subName[0].lowercase() + subName.substring(1)
+                    if (betterName !in map &&
+                        map.none { it.key.equals(subName, true) } // might have an upper case start letter...
+                    ) {
+                        val setterMethod = methods.firstOrNull { it.name == setterName } ?: continue
+                        val annotations = getterMethod.annotations.toMutableList()
+                        val kotlinAnnotationName = "$name\$annotations"
+                        val m = methods.firstOrNull { it.name == kotlinAnnotationName }
+                        if (m != null) annotations += m.annotations.toList()
+                        val serial = annotations.firstOrNull { it is SerializedProperty } as? SerializedProperty
+                        val notSerial = annotations.firstOrNull { it is NotSerializedProperty }
+                        val isPublic = Modifier.isPublic(getterMethod.modifiers)
+                        val serialize = serial != null || (isPublic && notSerial == null)
+                        map[betterName] = saveField(
+                            getterMethod.returnType.kotlin, betterName, serial, serialize,
+                            annotations, getterMethod::invoke, setterMethod::invoke
+                        )
+                    }
                 }
             }
             return map
         }
 
         private fun saveField(
-            instance: Any, field: Field, name: String,
-            serial: SerializedProperty?,
+            field: Field, name: String, serial: SerializedProperty?,
             serialize: Boolean,
-            annotations: List<Annotation>,
-            map: MutableMap<String, CachedProperty>
-        ) {
+            annotations: List<Annotation>
+        ): CachedProperty {
             // save the field
             field.isAccessible = true
-            val value = field.get(instance)
-            val forceSaving = serial?.forceSaving ?: (value is Boolean)
-            val property = CachedProperty(
-                name, field::class, serialize, forceSaving,
-                annotations, {
-                    field.get(it)
+            val setterMethod = try {
+                field.declaringClass.getMethod("set${name.titlecase()}", field.type)
+            } catch (e: NoSuchMethodException) {
+                null
+            }
+            val getterMethod = try {
+                field.declaringClass.getMethod("get${name.titlecase()}")
+            } catch (e: NoSuchMethodException) {
+                null
+            }
+            return saveField(
+                field.type.kotlin, name, serial,
+                serialize, annotations,
+                {
+                    if (getterMethod != null) getterMethod.invoke(it)
+                    else field.get(it)
                 }, { i, v ->
-                    field.set(i, v)
+                    if (setterMethod != null) setterMethod.invoke(i, v)
+                    else field.set(i, v)
                 }
             )
-            map[name] = property
+        }
+
+        private fun saveField(
+            valueClass: KClass<*>, name: String, serial: SerializedProperty?,
+            serialize: Boolean,
+            annotations: List<Annotation>,
+            getter: (Any?) -> Any?,
+            setter: (Any?, Any?) -> Unit
+        ): CachedProperty {
+            // save the field
+            val forceSaving = serial?.forceSaving ?: (valueClass == Boolean::class)
+            return CachedProperty(
+                name, valueClass, serialize, forceSaving,
+                annotations, getter, setter
+            )
         }
     }
-
 
 }

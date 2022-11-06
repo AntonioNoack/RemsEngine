@@ -6,10 +6,8 @@ import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.roundDiv
-import java.awt.Point
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
-import java.awt.image.Raster
 import java.io.OutputStream
 import javax.imageio.ImageIO
 import kotlin.math.floor
@@ -104,14 +102,14 @@ abstract class Image(
     }
 
     open fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
-        texture.create(createBufferedImage(), sync = sync, checkRedundancy = true)
+        texture.create(createIntImage(), sync = sync, checkRedundancy = true)
     }
 
     open fun createBufferedImage(dstWidth: Int, dstHeight: Int): BufferedImage {
-        return resize(dstWidth, dstHeight).createBufferedImage()
+        return resized(dstWidth, dstHeight).createBufferedImage()
     }
 
-    open fun resize(dstWidth: Int, dstHeight: Int): Image {
+    open fun resized(dstWidth: Int, dstHeight: Int): Image {
 
         var dstWidth1 = dstWidth
         var dstHeight1 = dstHeight

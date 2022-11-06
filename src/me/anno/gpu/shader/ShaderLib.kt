@@ -430,7 +430,7 @@ object ShaderLib {
             Variable(GLSLType.V3F, "aLocalPosition", VariableMode.ATTR),
             Variable(GLSLType.V2F, "aLocalPos2", VariableMode.ATTR),
             Variable(GLSLType.V4F, "aFormula0", VariableMode.ATTR),
-            Variable(GLSLType.V4F, "aFormula1", VariableMode.ATTR),
+            Variable(GLSLType.V1F, "aFormula1", VariableMode.ATTR),
             Variable(GLSLType.V4F, "aColor0", VariableMode.ATTR),
             Variable(GLSLType.V4F, "aColor1", VariableMode.ATTR),
             Variable(GLSLType.V4F, "aColor2", VariableMode.ATTR),

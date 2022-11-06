@@ -44,7 +44,7 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
             // https://stackoverflow.com/questions/2530228/jquery-or-javascript-to-find-memory-usage-of-page
             // window.performance.memory ; might be Chrome-only -> edge works; doesn't work in Firefox
             // todo query and display this somehow...
-            Dict["JVM/C/VRAM: %1/%2 MB", "ui.debug.ramUsage2"]
+            Dict["JVM/VRAM: %1/%2 MB", "ui.debug.ramUsage2"]
                 .replace("%1", format1(memory))
                 .replace("%2", format1(videoMemory))
         } else {

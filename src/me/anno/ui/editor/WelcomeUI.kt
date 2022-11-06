@@ -97,7 +97,7 @@ abstract class WelcomeUI {
             studio.gfxSettings = value
         }
 
-        quickSettings += BooleanInput(
+        if (!OS.isWeb && !OS.isAndroid) quickSettings += BooleanInput(
             "Enable Vsync",
             "Recommended; false for debugging", "ui.settings.vSync",
             window.enableVsync, true, style

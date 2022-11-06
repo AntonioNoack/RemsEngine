@@ -234,7 +234,8 @@ object PrefabCache : CacheSection("Prefab") {
                 "json" -> {
                     file.inputStream { it, e ->
                         if (it != null) {
-                            val prefab = TextReader.read(file, StudioBase.workspace, false).firstOrNull()
+                            val prefab = TextReader.read(it, StudioBase.workspace, false).firstOrNull()
+                            it.close()
                             if (prefab is Prefab) prefab.source = file
                             if (prefab != null) {
                                 callback(prefab, null)

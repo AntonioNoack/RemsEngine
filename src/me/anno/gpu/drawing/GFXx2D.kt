@@ -104,7 +104,7 @@ object GFXx2D {
         noTiling(shader)
         shader.v4f("circleColor", color)
         shader.v4f("backgroundColor", 0f, 0f, 0f, 0f)
-        shader.v2f("degrees", startDegrees.toRadians(), endDegrees.toRadians())
+        shader.v2f("angleLimits", startDegrees.toRadians(), endDegrees.toRadians())
         shader.v1f("smoothness", 1.5f)
 
         GFX.flat01.draw(shader)
@@ -114,6 +114,40 @@ object GFXx2D {
     fun drawCircle(
         x: Int, y: Int,
         radiusX: Float, radiusY: Float, innerRadius: Float,
+        startDegrees: Float, endDegrees: Float,
+        color: Int
+    ) {
+
+        val shader = flatShaderCircle.value
+        shader.use()
+
+        posSize(shader, x - radiusX, y - radiusY, radiusX * 2f, radiusY * 2f)
+
+        val factor = radiusX / (radiusX + 2f)
+        shader.v1f("outerRadius", factor)
+        shader.v1f("innerRadius", innerRadius * factor)
+
+        // shader.v1f("innerRadius", innerRadius)
+        if (innerRadius > 0f) {
+            shader.v4f("innerColor", 0f, 0f, 0f, 0f)
+        } else {
+            shader.v4f("innerColor", color)
+        }
+
+        noTiling(shader)
+        shader.v4f("circleColor", color)
+        shader.v4f("backgroundColor", 0f, 0f, 0f, 0f)
+        shader.v2f("angleLimits", startDegrees.toRadians(), endDegrees.toRadians())
+        shader.v1f("smoothness", 1.5f)
+
+        GFX.flat01.draw(shader)
+
+    }
+
+    fun drawCircle(
+        x: Int, y: Int,
+        radiusX: Float, radiusY: Float,
+        innerRadius: Float,
         innerColor: Int,
         circleColor: Int,
         backgroundColor: Int,
@@ -134,7 +168,7 @@ object GFXx2D {
         noTiling(shader)
         shader.v4f("circleColor", circleColor)
         shader.v4f("backgroundColor", backgroundColor)
-        shader.v2f("degrees", 0f, 0f)
+        shader.v2f("angleLimits", 0f, 0f)
         shader.v1f("smoothness", smoothness)
 
         GFX.flat01.draw(shader)

@@ -65,8 +65,8 @@ object DepthBasedAntiAliasing {
                     "float smoothstep1(float x){\n" +
                     "   return pow(x,2.0)*(3.0-2.0*x);\n" +
                     "}\n" +
-                    "float max2(vec2 m){ return max(m.x,m.y); }\n" +
-                    "float min2(vec2 m){ return min(m.x,m.y); }\n" +
+                    "int max2(ivec2 m){ return max(m.x,m.y); }\n" +
+                    "int min2(ivec2 m){ return min(m.x,m.y); }\n" +
                     "void main(){\n" +
                     "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
                     "   ivec2 ts = textureSize(color, 0);\n" +

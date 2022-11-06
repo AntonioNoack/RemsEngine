@@ -19,28 +19,30 @@ object JPGThumbnails {
         // 65k is the max size for an exif section; plus 4k, where we hopefully find the marker
         file.inputStream(65536 + 4096) { it, _ ->
             if (it != null) {
-                val array = it.readNBytes2(65536 + 4096, false)
-                var start = 0
-                var i = 2
-                val li = array.size - 1
-                while (i < li) {
-                    if (array[i] == 0xff.toByte() && array[i + 1] == 0xd8.toByte()) {
-                        start = i
-                        break
+                it.use {
+                    val array = it.readNBytes2(65536 + 4096, false)
+                    var start = 0
+                    var i = 2
+                    val li = array.size - 1
+                    while (i < li) {
+                        if (array[i] == 0xff.toByte() && array[i + 1] == 0xd8.toByte()) {
+                            start = i
+                            break
+                        }
+                        i++
                     }
-                    i++
-                }
-                while (i < li) {
-                    if (array[i] == 0xff.toByte() && array[i + 1] == 0xd9.toByte()) {
-                        val end = i + 2
-                        val bytes = ByteArray(end - start)
-                        System.arraycopy(array, start, bytes, 0, end - start)
-                        callback(bytes)
-                        return@inputStream
+                    while (i < li) {
+                        if (array[i] == 0xff.toByte() && array[i + 1] == 0xd9.toByte()) {
+                            val end = i + 2
+                            val bytes = ByteArray(end - start)
+                            System.arraycopy(array, start, bytes, 0, end - start)
+                            callback(bytes)
+                            return@inputStream
+                        }
+                        i++
                     }
-                    i++
+                    callback(null)
                 }
-                callback(null)
             } else callback(null)
         }
     }

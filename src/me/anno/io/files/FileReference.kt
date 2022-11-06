@@ -366,8 +366,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                 callback(null, e)
             } finally {
                 it.close()
-            }
-            else callback(null, exc)
+            } else callback(null, exc)
         }
     }
 

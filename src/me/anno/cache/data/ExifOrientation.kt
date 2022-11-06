@@ -10,18 +10,20 @@ import javax.imageio.ImageReader
 import javax.imageio.metadata.IIOMetadataNode
 
 fun findRotation(src: FileReference): ImageTransform? {
-    val input = ImageIO.createImageInputStream(src.inputStreamSync())
-    for (reader in ImageIO.getImageReaders(input)) {
-        try {
-            reader.input = input
-            val rot = getExifOrientation(reader, 0)
-            if (rot != null) return rot
-        } catch (_: Exception) {
-        } finally {
-            reader.dispose()
+    src.inputStreamSync().use {
+        val input = ImageIO.createImageInputStream(it)
+        for (reader in ImageIO.getImageReaders(input)) {
+            try {
+                reader.input = input
+                val rot = getExifOrientation(reader, 0)
+                if (rot != null) return rot
+            } catch (_: Exception) {
+            } finally {
+                reader.dispose()
+            }
         }
+        return null
     }
-    return null
 }
 
 val orientations = arrayOf(

@@ -41,8 +41,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.*
-import org.lwjgl.opengl.GL11C.glEnable
-import org.lwjgl.opengl.GL11C.glGetError
+import org.lwjgl.opengl.GL11C.*
 import org.lwjgl.opengl.GL43C.glDebugMessageCallback
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil
@@ -342,6 +341,9 @@ object GFXBase {
                         if (!destroyed) {
                             GLFW.glfwWaitEventsTimeout(0.0)
                             GLFW.glfwSwapBuffers(window.pointer)
+                            // works in reducing input latency by 1 frame 😊
+                            // https://www.reddit.com/r/GraphicsProgramming/comments/tkpdhd/minimising_input_latency_in_opengl/
+                            if (OS.isWindows) glFinish()
                             window.updateVsync()
                         }
                     }

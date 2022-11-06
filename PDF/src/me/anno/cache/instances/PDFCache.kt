@@ -4,7 +4,9 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.Image
 import me.anno.image.ImageGPUCache
+import me.anno.image.raw.toImage
 import me.anno.io.files.FileReference
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCallback
@@ -15,7 +17,6 @@ import org.apache.pdfbox.pdfwriter.COSWriter
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
-import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
@@ -127,29 +128,29 @@ object PDFCache : CacheSection("PDFCache") {
     }
 
     @Suppress("unused")
-    fun getImageCached(doc: PDDocument, dpi: Float, pageNumber: Int): BufferedImage? {
+    fun getImageCached(doc: PDDocument, dpi: Float, pageNumber: Int): Image? {
         val data = getEntry(Triple(doc, dpi, pageNumber), 10_000, false) {
             CacheData(getImage(doc, dpi, pageNumber))
         } as? CacheData<*>
-        return data?.value as? BufferedImage
+        return data?.value as? Image
     }
 
-    fun getImageCachedBySize(doc: PDDocument, size: Int, pageNumber: Int): BufferedImage? {
+    fun getImageCachedBySize(doc: PDDocument, size: Int, pageNumber: Int): Image? {
         val data = getEntry(Quad(doc, size, pageNumber, ""), 10_000, false) { (doc, size, pageNumber) ->
             CacheData(getImageBySize(doc, size, pageNumber))
         } as? CacheData<*>
-        return data?.value as? BufferedImage
+        return data?.value as? Image
     }
 
     @Suppress("unused")
-    fun getImageCachedByHeight(doc: PDDocument, height: Int, pageNumber: Int): BufferedImage? {
+    fun getImageCachedByHeight(doc: PDDocument, height: Int, pageNumber: Int): Image? {
         val data = getEntry(Triple(doc, height, pageNumber), 10_000, false) { (doc, height, pageNumber) ->
             CacheData(getImageByHeight(doc, height, pageNumber))
         } as? CacheData<*>
-        return data?.value as? BufferedImage
+        return data?.value as? Image
     }
 
-    fun getImageBySize(doc: PDDocument, size: Int, pageNumber: Int): BufferedImage {
+    fun getImageBySize(doc: PDDocument, size: Int, pageNumber: Int): Image {
         val numberOfPages = doc.numberOfPages
         return synchronized(doc) {// has to be synchronous
             val renderer = PDFRenderer(doc)
@@ -157,11 +158,11 @@ object PDFCache : CacheSection("PDFCache") {
             val mediaBox = doc.getPage(clampedPage).mediaBox
             val scale = size.toFloat() / max(1f, max(mediaBox.width, mediaBox.height))
             val image = renderer.renderImage(clampedPage, scale, ImageType.RGB)
-            image
+            image.toImage()
         }
     }
 
-    fun getImageByHeight(doc: PDDocument, height: Int, pageNumber: Int): BufferedImage {
+    fun getImageByHeight(doc: PDDocument, height: Int, pageNumber: Int): Image {
         val numberOfPages = doc.numberOfPages
         return synchronized(doc) {// has to be synchronous
             val renderer = PDFRenderer(doc)
@@ -169,15 +170,14 @@ object PDFCache : CacheSection("PDFCache") {
             val mediaBox = doc.getPage(clampedPage).mediaBox
             val scale = height.toFloat() / mediaBox.height
             val image = renderer.renderImage(clampedPage, scale, ImageType.RGB)
-            image
+            image.toImage()
         }
     }
 
-    fun getImage(doc: PDDocument, dpi: Float, pageNumber: Int): BufferedImage {
+    fun getImage(doc: PDDocument, dpi: Float, pageNumber: Int): Image {
         val numberOfPages = doc.numberOfPages
         val renderer = PDFRenderer(doc)
-        // LOGGER.info("${image.getRGB(0, 0)}, should be -1")
-        return renderer.renderImage(Maths.clamp(pageNumber, 0, numberOfPages - 1), dpi, ImageType.RGB)
+        return renderer.renderImage(Maths.clamp(pageNumber, 0, numberOfPages - 1), dpi, ImageType.RGB).toImage()
     }
 
     private const val timeout = 20_000L

@@ -46,16 +46,6 @@ open class Texture2D(
     samples: Int
 ) : ICacheData, ITexture2D {
 
-    constructor(name: String, img: BufferedImage, checkRedundancy: Boolean) : this(name, img.width, img.height, 1) {
-        create(img, true, checkRedundancy)
-        filtering(GPUFiltering.NEAREST)
-    }
-
-    constructor(img: BufferedImage, checkRedundancy: Boolean) : this("img", img.width, img.height, 1) {
-        create(img, true, checkRedundancy)
-        filtering(GPUFiltering.NEAREST)
-    }
-
     constructor(name: String, img: Image, checkRedundancy: Boolean) : this(name, img.width, img.height, 1) {
         create(img, true, checkRedundancy)
         filtering(GPUFiltering.NEAREST)
@@ -277,30 +267,6 @@ open class Texture2D(
         beforeUpload(0, 0)
         texImage2D(creationType.internalFormat, uploadType.uploadFormat, uploadType.fillType, data)
         afterUpload(creationType.isHDR, creationType.bytesPerPixel)
-    }
-
-    /**
-     * force sync should be always enabled, when the image is directly available
-     * */
-    fun create2(name: String, createImage: () -> BufferedImage, forceSync: Boolean, checkRedundancy: Boolean) {
-        if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
-        val requiredBudget = textureBudgetUsed + w * h
-        if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || !isGFXThread()) {
-            if (forceSync) {
-                GFX.addGPUTask("Texture2D.create0($name)", w, h) {
-                    if (!isDestroyed) {
-                        create(createImage(), true, checkRedundancy)
-                    }
-                }
-            } else {
-                thread(name = "Create Image") {
-                    create(createImage(), false, checkRedundancy)
-                }
-            }
-        } else {
-            textureBudgetUsed += requiredBudget
-            create(createImage(), true, checkRedundancy)
-        }
     }
 
     fun create(name: String, image: Image, checkRedundancy: Boolean) {

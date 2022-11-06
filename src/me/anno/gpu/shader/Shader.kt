@@ -25,6 +25,7 @@ open class Shader(
 
     companion object {
         private val LOGGER = LogManager.getLogger(Shader::class)
+        val builder = StringBuilder(4096) // we only need one, because we compile serially anyway
     }
 
     constructor(
@@ -68,7 +69,7 @@ open class Shader(
         val versionString = formatVersion(glslVersion) + "\n// $name\n"
 
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
-        val builder = StringBuilder()
+        builder.clear()
         builder.append(versionString)
 
         for (line in vertexShader.split('\n')
@@ -96,10 +97,10 @@ open class Shader(
             builder.append(v.vShaderName)
             builder.append(";\n")
         }
-        builder.append(
-            vertexShader
-                .replace("#extension ", "// #extension ")
-        )
+
+        if ("#extension" in vertexShader) builder.append(vertexShader.replace("#extension ", "// #extension "))
+        else builder.append(vertexShader)
+
         vertexSource = builder.toString()
         builder.clear()
 
@@ -143,7 +144,8 @@ open class Shader(
         ) "out vec4 glFragColor;\n" + fragmentShader.replace("gl_FragColor", "glFragColor")
         else fragmentShader
 
-        builder.append(base.replace("#extension ", "// #extension "))
+        if ("#extension" in base) builder.append(base.replace("#extension ", "// #extension "))
+        else builder.append(base)
 
         fragmentSource = builder.toString()
         builder.clear()

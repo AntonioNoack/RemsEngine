@@ -16,7 +16,6 @@ import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11C.*
 import org.lwjgl.opengl.GL30C
-import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -52,46 +51,6 @@ object VRAMToRAM {
     }
 
     val zero = Vector4f(0f)
-
-    /**
-     * copies a framebuffer into a buffered image;
-     * no matter the size of the framebuffer (which is otherwise limited)
-     * */
-    fun createBufferedImage(
-        width: Int, height: Int,
-        clearColor: Vector4f?,
-        flipY: Boolean,
-        withAlpha: Boolean,
-        renderSection: (x: Int, y: Int, w: Int, h: Int) -> Unit
-    ) = createBufferedImage(BufferedImage(width, height, if (withAlpha) 2 else 1), clearColor, flipY, renderSection)
-
-    /**
-     * copies a framebuffer into a buffered image;
-     * no matter the size of the framebuffer (which is otherwise limited)
-     * */
-    fun createBufferedImage(
-        image: BufferedImage,
-        clearColor: Vector4f?,
-        flipY: Boolean,
-        renderSection: (x: Int, y: Int, w: Int, h: Int) -> Unit
-    ): BufferedImage {
-        val dataBuffer = image.raster.dataBuffer
-        cloneFromFramebuffer(
-            image.width,
-            image.height,
-            clearColor,
-            flipY,
-            renderSection
-        ) { length, sourceIndex, buffer, bufferIndex ->
-            for (x in 0 until length) {
-                val si = (x + sourceIndex) * 4
-                val di = x + bufferIndex
-                val argb = Color.rgba(buffer[si], buffer[si + 1], buffer[si + 2], buffer[si + 3])
-                dataBuffer.setElem(di, argb)
-            }
-        }
-        return image
-    }
 
     /**
      * copies a framebuffer into an int image;

@@ -159,7 +159,7 @@ open class ColorInput(
                 val imageData = fb.createImage(true, withAlpha = false)
                 ColorPicker(fb, fb.getTexture0() as Texture2D, imageData, true, style)
             } else {
-                val texture = Texture2D("screenshot", screenshot.createBufferedImage(), false)
+                val texture = Texture2D("screenshot", screenshot, false)
                 ColorPicker(null, texture, screenshot, true, style)
             }
             var wasFullscreen = false

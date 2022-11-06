@@ -3,14 +3,13 @@ package me.anno.tests
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.raw.toImage
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.OS.desktop
-import org.lwjgl.opengl.GL11C.*
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 
@@ -47,7 +46,7 @@ fun main() {
                 }
             }
             // upload image to gpu
-            val texture = Texture2D(img, false)
+            val texture = Texture2D(img.toImage(), false)
             val x = testImage.width * index * magnification
             // render image
             drawTexture(

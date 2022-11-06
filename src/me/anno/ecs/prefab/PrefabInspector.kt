@@ -300,6 +300,7 @@ class PrefabInspector(val reference: FileReference) {
                 }) {
 
                 val property = allProperties[name]!!
+                if (!property.serialize) continue
                 if (property.hideInInspector.any { it(instance) }) continue
 
                 val group = property.group ?: ""

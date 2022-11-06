@@ -103,6 +103,16 @@ class CachedProperty(
         }
     }
 
+    override fun toString(): String {
+        return "$name: ${clazz.jvmName}" +
+                (if (serialize) ", serialize" else "") +
+                (if (forceSaving == true) ", force-saving" else "") +
+                (if (range != null) ", $range" else "") +
+                ", order: $order" +
+                (if (group != null) ", $group" else "") +
+                ", $annotations"
+    }
+
     companion object {
         private val LOGGER = LogManager.getLogger(CachedProperty::class)
         private fun hide(it: HideInInspector, name: String, clazz: KClass<*>): (Any) -> Boolean {

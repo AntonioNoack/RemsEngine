@@ -8,11 +8,11 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.raw.ByteImage
 import me.anno.video.BlankFrameDetector
 import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.files.Files.findNextFile
-import java.awt.image.BufferedImage
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
@@ -102,13 +102,12 @@ abstract class GPUFrame(
 
     fun writeMonochromeDebugImage(w: Int, h: Int, buffer: ByteBuffer) {
         val file = findNextFile(desktop, "mono", "png", 1, '-')
-        val img = BufferedImage(w, h, 1)
-        for (y in 0 until h) {
-            for (x in 0 until w) {
-                img.setRGB(x, y, buffer[x + y * w].toInt().and(255) * 0x10101)
-            }
+        val image = ByteImage(w, h, ByteImage.Format.R)
+        val data = image.data
+        for (i in 0 until w * h) {
+            data[i] = buffer[i]
         }
-        file.outputStream().use { ImageIO.write(img, "png", it) }
+        image.write(file)
     }
 
     companion object {

@@ -15,13 +15,11 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.readAlignment
+import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileReference
-import me.anno.utils.Color.rgba
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11C.*
-import java.awt.image.BufferedImage
-import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 import kotlin.math.abs
 
@@ -90,22 +88,13 @@ abstract class FrameTask(
 
         thread(name = "FrameTask::writeFrame") {// offload to other thread
             // val c1 = Clock()
-            val image = BufferedImage(width, height, 1)
-            val buffer2 = image.raster.dataBuffer
-            for (i in 0 until width * height) {
-                val j = i * 3
-                buffer2.setElem(i, rgba(pixels[j], pixels[j + 1], pixels[j + 2], -1))
-            }
+            val image = ByteImage(width, height, ByteImage.Format.RGB)
+            pixels.get(image.data, 0, image.data.size)
             // c1.stop("wrote to buffered image"), 0.025s on R5 2600, 1080p
             if (dst.exists) dst.delete()
-            val out = dst.outputStream()
-            if (!ImageIO.write(image, dst.extension, out)) {
-                LOGGER.warn("Could not find writer for image format ${dst.extension}!")
-            } else {
-                // c1.stop("saved to file"), 0.07s on NVME SSD
-                LOGGER.info("Wrote frame to $dst")
-            }
-            out.close()
+            image.write(dst)
+            // c1.stop("saved to file"), 0.07s on NVME SSD
+            LOGGER.info("Wrote frame to $dst")
         }
 
     }

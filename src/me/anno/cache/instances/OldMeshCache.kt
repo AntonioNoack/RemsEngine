@@ -14,12 +14,14 @@ object OldMeshCache : CacheSection("Meshes") {
     fun getSVG(file: FileReference, timeout: Long, asyncGenerator: Boolean): StaticBuffer? {
         return OldMeshCache.getEntry(file to "svg", timeout, asyncGenerator) {
             val svg = SVGMesh()
-            svg.parse(XMLReader.parse(file.inputStreamSync()) as XMLNode)
-            val buffer = svg.buffer // may be null if the parsing failed / the svg is blank
-            if (buffer != null) {
-                buffer.setBounds(svg)
-                buffer
-            } else CacheData(0)
+            file.inputStreamSync().use {
+                svg.parse(XMLReader.parse(it) as XMLNode)
+                val buffer = svg.buffer // may be null if the parsing failed / the svg is blank
+                if (buffer != null) {
+                    buffer.setBounds(svg)
+                    buffer
+                } else CacheData(0)
+            }
         } as? StaticBuffer
     }
 

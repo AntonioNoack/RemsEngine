@@ -1,7 +1,3 @@
-/*
- * Decodes a BMP image from an <tt>InputStream</tt> to a <tt>BufferedImage</tt>
- * @author Ian McDonagh
- */
 package net.sf.image4j.codec.bmp
 
 import me.anno.image.Image
@@ -307,7 +303,7 @@ class BMPDecoder(input: InputStream) {
     /**
      * The decoded image read from the source input.
      *
-     * @return the <tt>BufferedImage</tt> representing the BMP image.
+     * @return the <tt>Image</tt> representing the BMP image.
      */
     val image: Image
 

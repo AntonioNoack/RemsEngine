@@ -120,7 +120,6 @@ class ImageData(file: FileReference) : ICacheData {
     fun loadTGA(file: FileReference) {
         val img = file.inputStreamSync().use { stream ->
             TGAImage.read(stream, false)
-                .createBufferedImage()
         }
         texture.create(img, sync = false, checkRedundancy = true)
     }
@@ -161,7 +160,7 @@ class ImageData(file: FileReference) : ICacheData {
     }
 
     private fun tryGetImage(file: FileReference, stream: InputStream): Image? {
-        if (stream is ImageReadable) return stream.readImage()
+        if (file is ImageReadable) return file.readImage()
         // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
         val image = try {
             ImageIO.read(stream)

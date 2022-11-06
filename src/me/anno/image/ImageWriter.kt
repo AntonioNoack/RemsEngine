@@ -283,13 +283,13 @@ object ImageWriter {
         minPerThread: Int,
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Int
     ) {
-        val img = BufferedImage(w, h, if (alpha) 2 else 1)
-        val buffer = img.raster.dataBuffer
+        val img = IntImage(w, h, alpha)
+        val buffer = img.data
         processBalanced2d(0, 0, w, h, tileSize, max(minPerThread / (tileSize * tileSize), 1)) { x0, y0, x1, y1 ->
             for (y in y0 until y1) {
                 var i = y * w + x0
                 for (x in x0 until x1) {
-                    buffer.setElem(i, getRGB(x, y, i))
+                    buffer[i] = getRGB(x, y, i)
                     i++
                 }
             }
@@ -302,12 +302,7 @@ object ImageWriter {
         name: String,
         pixels: IntArray
     ) {
-        val img = BufferedImage(w, h, if (alpha) 2 else 1)
-        val buffer = img.raster.dataBuffer
-        for (i in 0 until w * h) {
-            buffer.setElem(i, pixels[i])
-        }
-        writeImage(name, img)
+        writeImage(name, IntImage(w, h, pixels, alpha))
     }
 
     private fun addPoint(image: FloatArray, w: Int, x: Int, y: Int, v: Float) {

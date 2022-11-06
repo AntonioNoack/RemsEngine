@@ -189,38 +189,21 @@ fun main() {
                 }
             }
 
+            fun tryMove(dx: Int, dy: Int) {
+                // check whether the movement would be valid
+                if (!isSnake((headX + dx + sx) % sx, (headY + dy + sy) % sy)) {
+                    this.dx = dx
+                    this.dy = dy
+                    invalidateDrawing()
+                }
+            }
+
             override fun onKeyTyped(x: Float, y: Float, key: Int) {
                 when (key) {
-                    GLFW.GLFW_KEY_W, GLFW.GLFW_KEY_UP -> {
-                        // check whether the movement would be valid
-                        if (!isSnake(headX, (headY - 1 + sy) % sy)) {
-                            dx = 0
-                            dy = -1
-                            invalidateDrawing()
-                        }
-                    }
-                    GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT -> {
-                        // check whether the movement would be valid
-                        if (!isSnake((headX - 1 + sx) % sx, headY)) {
-                            dx = -1
-                            dy = 0
-                            invalidateDrawing()
-                        }
-                    }
-                    GLFW.GLFW_KEY_S, GLFW.GLFW_KEY_DOWN -> {
-                        if (!isSnake(headX, (headY + 1) % sy)) {
-                            dx = 0
-                            dy = 1
-                            invalidateDrawing()
-                        }
-                    }
-                    GLFW.GLFW_KEY_D, GLFW.GLFW_KEY_RIGHT -> {
-                        if (!isSnake((headX + 1) % sx, headY)) {
-                            dx = 1
-                            dy = 0
-                            invalidateDrawing()
-                        }
-                    }
+                    GLFW.GLFW_KEY_W, GLFW.GLFW_KEY_UP -> tryMove(0, -1)
+                    GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT -> tryMove(-1, 0)
+                    GLFW.GLFW_KEY_S, GLFW.GLFW_KEY_DOWN -> tryMove(0, 1)
+                    GLFW.GLFW_KEY_D, GLFW.GLFW_KEY_RIGHT -> tryMove(1, 0)
                     GLFW.GLFW_KEY_SPACE, GLFW.GLFW_KEY_ESCAPE -> {
                         if (gameOver) {
                             startGame()

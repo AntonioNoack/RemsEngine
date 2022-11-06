@@ -15,10 +15,8 @@ import me.anno.io.Streams.readLE16
 import me.anno.io.xml.XMLReader.skipN
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
-import java.awt.image.BufferedImage
 import java.io.IOException
 import java.io.InputStream
-import java.nio.IntBuffer
 import kotlin.math.min
 
 /**
@@ -100,50 +98,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             }
             else -> throw RuntimeException("$numChannels is not supported for TGA images")
         }
-    }
-
-    override fun createBufferedImage(): BufferedImage {
-        val width = width
-        val height = height
-        val channels = numChannels
-        if (channels == 2) return super.createBufferedImage()
-        val image = BufferedImage(
-            width, height,
-            if (channels > 3) BufferedImage.TYPE_INT_ARGB
-            else BufferedImage.TYPE_INT_RGB
-        )
-        val buffer = image.raster.dataBuffer
-        val size = width * height
-        val data = data
-        when (channels) {
-            1 -> {
-                var i = 0
-                var j = 0
-                while (i < size) {
-                    buffer.setElem(i++, 0x10101 * (data[j].toInt() and 255))
-                    j++
-                }
-            }
-            3 -> {
-                var i = 0
-                var j = 0
-                while (i < size) {
-                    buffer.setElem(i++, bgra(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), 255))
-                    j += 3
-                }
-            }
-            4 -> {
-                var i = 0
-                var j = 0
-                while (i < size) {
-                    val color = bgra(data[j].toInt(), data[j + 1].toInt(), data[j + 2].toInt(), data[j + 3].toInt())
-                    buffer.setElem(i++, color)
-                    j += 4
-                }
-            }
-            else -> throw RuntimeException("$channels channels is not supported for TGA images")
-        }
-        return image
     }
 
     override fun createIntImage(): IntImage {

@@ -63,6 +63,7 @@ import me.anno.image.*
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.hdr.HDRImage
 import me.anno.image.jpg.JPGThumbnails
+import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.ISaveable
 import me.anno.io.base.InvalidClassException
@@ -278,26 +279,7 @@ object Thumbs {
         callback(texture, null)
     }
 
-    private fun upload(
-        srcFile: FileReference,
-        checkRotation: Boolean,
-        dst: BufferedImage,
-        callback: (ITexture2D?, Exception?) -> Unit
-    ) {
-        val rotation = if (checkRotation) ImageData.getRotation(srcFile) else null
-        if (isGFXThread()) {
-            val texture = Texture2D(srcFile.name, dst, true)
-            texture.rotation = rotation
-            callback(texture, null)
-        } else {
-            val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
-            texture.create(dst, sync = false, checkRedundancy = false)
-            texture.rotation = rotation
-            callback(texture, null)
-        }
-    }
-
-    private fun saveNUpload(
+    fun saveNUpload(
         srcFile: FileReference,
         checkRotation: Boolean,
         dstFile: FileReference,
@@ -306,59 +288,9 @@ object Thumbs {
     ) {
         if (useCacheFolder) {
             dstFile.getParent()?.tryMkdirs()
-            dstFile.outputStream().use { ImageIO.write(dst.createBufferedImage(), destinationFormat, it) }
+            dst.write(dstFile)
         }
         upload(srcFile, checkRotation, dst, callback)
-    }
-
-    fun saveNUpload(
-        srcFile: FileReference,
-        checkRotation: Boolean,
-        dstFile: FileReference,
-        dst: BufferedImage,
-        callback: (ITexture2D?, Exception?) -> Unit
-    ) {
-        if (useCacheFolder) {
-            // don't wait to upload the image
-            thread(name = "Writing ${dstFile.name} for cached thumbs") {
-                dstFile.getParent()?.tryMkdirs()
-                dstFile.outputStream().use { ImageIO.write(dst, destinationFormat, it) }
-            }
-        }
-        upload(srcFile, checkRotation, dst, callback)
-    }
-
-    private fun transformNSaveNUpload(
-        srcFile: FileReference,
-        checkRotation: Boolean,
-        src: BufferedImage,
-        dstFile: FileReference,
-        size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
-    ) {
-        val sw = src.width
-        val sh = src.height
-        if (min(sw, sh) < 1) return
-
-        // if it matches the size, just upload it
-        // we have loaded it anyway already
-        if (max(sw, sh) < size) {
-            saveNUpload(srcFile, checkRotation, dstFile, src, callback)
-            return
-            // return generate(srcFile, size / 2, callback)
-        }
-
-        val (w, h) = scaleMax(sw, sh, size)
-        if (min(w, h) < 1) return
-        if (w == sw && h == sh) {
-            saveNUpload(srcFile, checkRotation, dstFile, src, callback)
-        } else {
-            val dst = BufferedImage(w, h, src.type)
-            val gfx = dst.createGraphics()
-            gfx.drawImage(src, 0, 0, w, h, null)
-            gfx.dispose()
-            saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
-        }
     }
 
     private fun transformNSaveNUpload(
@@ -385,7 +317,7 @@ object Thumbs {
         if (w == sw && h == sh) {
             saveNUpload(srcFile, checkRotation, dstFile, src, callback)
         } else {
-            val dst = src.createBufferedImage(w, h)
+            val dst = src.resized(w, h)
             saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
         }
     }
@@ -1011,7 +943,7 @@ object Thumbs {
                     } else {
                         val rotation = ImageData.getRotation(srcFile)
                         GFX.addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
-                            val texture = Texture2D(srcFile.name, image, true)
+                            val texture = Texture2D(srcFile.name, image.toImage(), true)
                             texture.rotation = rotation
                             callback(texture, null)
                         }
@@ -1031,7 +963,7 @@ object Thumbs {
         srcFile: FileReference,
         size0: Int,
         callback: (ITexture2D?, Exception?) -> Unit,
-        callback1: (BufferedImage) -> Unit
+        callback1: (Image) -> Unit
     ) {
         var size = size0
         val sw = src.width
@@ -1045,7 +977,7 @@ object Thumbs {
         } else {
             val (w, h) = scaleMax(sw, sh, size)
             if (w < 2 || h < 2) return
-            callback1(src.createBufferedImage(w, h))
+            callback1(src.resized(w, h))
         }
     }
 
@@ -1055,7 +987,7 @@ object Thumbs {
         size0: Int,
         hash: Long,
         callback: (ITexture2D?, Exception?) -> Unit,
-        callback1: (BufferedImage) -> Unit
+        callback1: (Image) -> Unit
     ) {
         var size = size0
         val sw = src.width
@@ -1072,7 +1004,7 @@ object Thumbs {
         } else {
             val (w, h) = scaleMax(sw, sh, size)
             if (w < 2 || h < 2) return
-            callback1(src.createBufferedImage(w, h))
+            callback1(src.resized(w, h))
         }
     }
 
@@ -1120,7 +1052,7 @@ object Thumbs {
                 if (data2 != null) {
                     try {
                         val image = ImageIO.read(data2.inputStream())
-                        transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
+                        transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
                     } catch (e: Exception) {
                         generateImage(srcFile, dstFile, size, callback)
                     }
@@ -1461,7 +1393,7 @@ object Thumbs {
                 icon.paintIcon(null, gfx, 1, 1)
                 gfx.dispose()
                 // respect the size
-                transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
+                transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
             } else exc?.printStackTrace()
         })
     }

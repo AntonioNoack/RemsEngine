@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage
 class CachedImage(val src: FileReference, w: Int, h: Int, numChannels: Int, hasAlpha: Boolean) :
     Image(w, h, numChannels, hasAlpha) {
 
+    @Suppress("unused")
     constructor(src: FileReference, image: Image) :
             this(src, image.width, image.height, image.numChannels, image.hasAlphaChannel)
 

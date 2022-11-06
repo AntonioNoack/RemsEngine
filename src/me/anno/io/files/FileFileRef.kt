@@ -8,10 +8,14 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
 import java.nio.charset.Charset
+import kotlin.concurrent.thread
 
 class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath)) {
 
     companion object {
+
+        // <= 0 = disabled, > 0 -> tracks all open files for debugging
+        var trackOpenStreamsMillis = 0L
 
         fun createTempFile(name: String, extension: String): FileReference {
             return getReference(File.createTempFile(name, extension))
@@ -52,9 +56,33 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun inputStream(lengthLimit: Long, callback: (InputStream?, Exception?) -> Unit) {
         try {
-            callback(file.inputStream().buffered(), null)
+            callback(inputStreamSync(), null)
         } catch (e: Exception) {
             callback(null, e)
+        }
+    }
+
+    override fun inputStreamSync(): InputStream {
+        val base = file.inputStream().buffered()
+        if (trackOpenStreamsMillis < 1) return base
+        var closed = false
+        val stack = Throwable("$this was not closed!")
+        thread {
+            Thread.sleep(trackOpenStreamsMillis)
+            if (!closed) {
+                stack.printStackTrace()
+            }
+        }
+        return object : InputStream() {
+            override fun read() = base.read()
+            override fun mark(p0: Int) = base.mark(p0)
+            override fun markSupported() = base.markSupported()
+            override fun read(p0: ByteArray, p1: Int, p2: Int) = base.read(p0, p1, p2)
+            override fun read(p0: ByteArray) = base.read(p0)
+            override fun close() {
+                base.close()
+                closed = true
+            }
         }
     }
 

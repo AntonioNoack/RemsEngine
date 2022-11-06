@@ -74,7 +74,11 @@ open class BlendData(
     fun mat4x4(name: String): Matrix4f = mat4x4(getOffset(name))
 
     fun getField(name: String) = dnaStruct.byName[name]
-    fun getOffset(name: String) = dnaStruct.byName[name]?.offset ?: throw IOException("field $name is unknown")
+    fun getOffset(name: String) =
+        dnaStruct.byName[name]?.offset
+            ?: dnaStruct.byName[name.split('[')[0]]?.offset
+            ?: throw IOException("field $name is unknown")
+
     fun getOffsetOrNull(name: String) = dnaStruct.byName[name]?.offset
 
     fun short(name: String): Short = short(getOffset(name))
@@ -189,7 +193,9 @@ open class BlendData(
     }
 
 
-    fun <V : BlendData> getQuickStructArray(name: String): BInstantList<V>? = getQuickStructArray(dnaStruct.byName[name])
+    fun <V : BlendData> getQuickStructArray(name: String): BInstantList<V>? =
+        getQuickStructArray(dnaStruct.byName[name])
+
     fun <V : BlendData> getQuickStructArray(field: DNAField?): BInstantList<V>? {
         field ?: return null
         if (field.decoratedName.startsWith("*")) {
@@ -210,6 +216,7 @@ open class BlendData(
             val addressInBlock = address - block.header.address
             val remainingSize = block.header.size - addressInBlock
             val length = (remainingSize / typeSize).toInt()
+
             @Suppress("unchecked_cast")
             val instance = file.getOrCreate(struct, className, block, address) as? V ?: return null
             return BInstantList(length, instance)

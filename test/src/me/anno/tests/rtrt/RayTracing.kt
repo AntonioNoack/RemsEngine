@@ -4,12 +4,7 @@ import me.anno.Engine
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.discoverOpenGLNames
-import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
-import me.anno.gpu.shader.ShaderLib.uvList
-import org.lwjgl.opengl.GL11C.glGetIntegerv
+import org.lwjgl.opengl.GL11C.glGetInteger
 import org.lwjgl.opengl.NVMeshShader
 
 fun main() {
@@ -104,10 +99,8 @@ fun main() {
     // find property names
     discoverOpenGLNames(NVMeshShader::class)
 
-    val tmp = IntArray(1)
     for (property in properties) {
-        glGetIntegerv(property, tmp)
-        println("${GFX.getName(property)}: ${tmp[0]}")
+        println("${GFX.getName(property)}: ${glGetInteger(property)}")
     }
 
     /*

@@ -102,8 +102,7 @@ object ICOReader {
                     // ignore and continue processing...
 
                     // // read AND bitmap
-                    // BufferedImage and = BMPDecoder.read(andHeader, in,
-                    // andColorTable);
+                    // Image and = BMPDecoder.read(andHeader, in, andColorTable);
                     // this.img.add(and);
 
                 } else {

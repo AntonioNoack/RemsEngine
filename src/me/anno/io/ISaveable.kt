@@ -185,7 +185,7 @@ interface ISaveable {
 
     fun saveSerializableProperties(writer: BaseWriter) {
         val reflections = getReflections()
-        for ((name, field) in reflections.declaredProperties) {
+        for ((name, field) in reflections.allProperties) {
             if (field.serialize) {
                 val value = field.getter(this)
                 val type = (field.annotations.firstOrNull2 { it is Type } as? Type)?.type
@@ -200,7 +200,7 @@ interface ISaveable {
 
     fun getReflections(): CachedReflections {
         val clazz = this::class
-        return reflectionCache.getOrPut(clazz) { CachedReflections(this, clazz) }
+        return reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
     }
 
     operator fun get(propertyName: String): Any? {
@@ -221,7 +221,7 @@ interface ISaveable {
 
         fun getReflections(instance: Any): CachedReflections {
             val clazz = instance::class
-            return reflectionCache.getOrPut(clazz) { CachedReflections(this, clazz) }
+            return reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
         }
 
         fun get(instance: Any, name: String): Any? {

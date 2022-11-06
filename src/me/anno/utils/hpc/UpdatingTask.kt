@@ -1,5 +1,6 @@
 package me.anno.utils.hpc
 
+import me.anno.utils.OS
 import me.anno.utils.Sleep
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -10,24 +11,28 @@ class UpdatingTask(val threadName: String, val cleaning: () -> Unit) {
     var runningThread: Thread? = null
 
     fun compute(computation: () -> Unit) {
-        runningThread?.interrupt()
-        Sleep.waitUntil(true) { runningThread == null }
-        runningThread = thread(start = false, name = threadName) {
-            try {
-                computation()
-            } catch (e: InterruptedException) {
-                // kill successful
-            } catch (e: IOException) {
-                // e.g. IOException, because a channel was closed while waiting for the stream
-                LOGGER.warn("Catched ${e.message}")
-            } catch (e: Exception) {
-                // e.g. IOException, because a channel was closed while waiting for the stream
-                LOGGER.warn("Catched ${e.message}")
+        if (OS.isWeb) {// multithreading isn't available yet
+            computation()
+        } else {
+            runningThread?.interrupt()
+            Sleep.waitUntil(true) { runningThread == null }
+            runningThread = thread(start = false, name = threadName) {
+                try {
+                    computation()
+                } catch (e: InterruptedException) {
+                    // kill successful
+                } catch (e: IOException) {
+                    // e.g. IOException, because a channel was closed while waiting for the stream
+                    LOGGER.warn("Catched ${e.message}")
+                } catch (e: Exception) {
+                    // e.g. IOException, because a channel was closed while waiting for the stream
+                    LOGGER.warn("Catched ${e.message}")
+                }
+                runningThread = null
             }
-            runningThread = null
+            cleaning()
+            runningThread!!.start()
         }
-        cleaning()
-        runningThread!!.start()
     }
 
     fun destroy() {

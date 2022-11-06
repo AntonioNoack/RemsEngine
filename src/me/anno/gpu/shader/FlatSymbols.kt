@@ -38,7 +38,7 @@ object FlatSymbols {
             Variable(GLSLType.V1F, "innerRadius"),
             Variable(GLSLType.V1F, "outerRadius"),
             Variable(GLSLType.V1F, "smoothness"),
-            Variable(GLSLType.V2F, "degrees"),
+            Variable(GLSLType.V2F, "angleLimits"),
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
         ), "" +
@@ -47,11 +47,11 @@ object FlatSymbols {
                 "   float radius = length(uv2), safeRadius = max(radius, 1e-16);\n" +
                 "   float delta = smoothness * 2.0 * mix(dFdx(uv.x), -dFdy(uv.y), clamp(abs(uv2.y)/safeRadius, 0.0, 1.0));\n" +
                 "   vec4 fragColor;\n" +
-                "   if(degrees.x != degrees.y){\n" +
+                "   if(angleLimits.x != angleLimits.y){\n" +
                 "       float angle = atan(uv2.y, uv2.x);\n" +
                 // todo this angle logic is not good enough... somehow employ the same logic as in 3d
-                "       float alpha0 = clamp((angle - degrees.x)/delta + .5, 0.0, 1.0);\n" +
-                "       float alpha1 = clamp((degrees.y - angle)/delta + .5, 0.0, 1.0);\n" +
+                "       float alpha0 = clamp((angle - angleLimits.x)/delta + .5, 0.0, 1.0);\n" +
+                "       float alpha1 = clamp((angleLimits.y - angle)/delta + .5, 0.0, 1.0);\n" +
                 "       vec4 baseColor = mix(innerColor, circleColor, clamp((radius-innerRadius)/delta+0.5, 0.0, 1.0));\n" +
                 "       fragColor = mix(backgroundColor, baseColor, (1.0 - clamp((radius-outerRadius)/delta+0.5, 0.0, 1.0)) * max(alpha0, alpha1));\n" +
                 "   } else {\n" +

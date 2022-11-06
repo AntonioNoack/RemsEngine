@@ -418,6 +418,11 @@ open class StaticMeshesLoader {
         return ByteArray(limit()) { get(it) }
     }
 
+    fun ByteBuffer.toByteArray(dst: ByteArray): ByteArray {
+        get(dst, 0, dst.size)
+        return dst
+    }
+
     private fun bufferToBytes(buffer: AITexel.Buffer, size: Int): ByteArray {
         val bytes = ByteArray(size)
         var j = 0
