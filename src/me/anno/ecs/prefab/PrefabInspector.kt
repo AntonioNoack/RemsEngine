@@ -323,7 +323,7 @@ class PrefabInspector(val reference: FileReference) {
                     val property2 = PIProperty(this, instance, name, property)
                     val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: continue
                     panel.tooltip = property.description
-                    for (panel2 in panel.listOfAll) {
+                    panel.forAllPanels { panel2 ->
                         if (panel2 is InputPanel<*>) {
                             panel2.isInputAllowed = isWritable
                         }

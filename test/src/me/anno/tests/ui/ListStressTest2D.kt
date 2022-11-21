@@ -22,6 +22,6 @@ fun main() {
             p.alignmentY = AxisAlignment.CENTER
             list.add(p)
         }
-        list.setWeight(1f)
+        list.setWeight2(1f)
     }
 }

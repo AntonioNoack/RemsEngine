@@ -13,9 +13,7 @@ object Logging {
     private val originalErr = System.err!!
 
     // Web isn't supporting multithreading yet
-    val lastConsoleLines: Queue<String> =
-        if (OS.isWeb) LinkedList()
-        else LinkedBlockingQueue()
+    val lastConsoleLines: Queue<String> = LinkedBlockingQueue()
 
     var lastConsoleLineCount = 500
     var maxConsoleLineLength = 500

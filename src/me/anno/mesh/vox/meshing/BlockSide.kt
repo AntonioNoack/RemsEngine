@@ -13,6 +13,7 @@ enum class BlockSide(
     PZ(5, 0, 0, +1);
 
     companion object {
+        @JvmStatic
         val values = values()
     }
 }

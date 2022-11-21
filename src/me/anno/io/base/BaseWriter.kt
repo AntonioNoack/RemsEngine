@@ -574,15 +574,13 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 LOGGER.warn("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")
                 // todo write lists and maps with our tools
                 // todo write default serializables...
-                val bytes0 = ByteArrayOutputStream()
+                /*val bytes0 = ByteArrayOutputStream()
                 val bytes = ObjectOutputStream(bytes0)
                 bytes.writeObject(value)
                 bytes.close()
-                writeByteArray(name, bytes0.toByteArray())
+                writeByteArray(name, bytes0.toByteArray())*/
             }
-            else -> {
-                throw RuntimeException("todo implement saving an $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?")
-            }
+            else -> throw RuntimeException("todo implement saving an $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?")
         }
     }
 

@@ -26,7 +26,7 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
     }
 
     init {
-        setWeight(1f)
+        setWeight2(1f)
     }
 
     override val canDrawOverBorders = true

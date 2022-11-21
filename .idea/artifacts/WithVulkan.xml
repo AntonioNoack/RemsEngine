@@ -2,7 +2,7 @@
   <artifact type="jar" name="WithVulkan">
     <output-path>$PROJECT_DIR$/out/artifacts/WithVulkan</output-path>
     <root id="archive" name="VideoStudio.jar">
-      <element id="module-output" name="VideoStudio" />
+      <element id="module-output" name="Engine" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/bullet/JBullet2x64.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/maven/annotations-13.0.jar" path-in-jar="/" />

@@ -2,7 +2,7 @@
   <artifact type="jar" name="Android">
     <output-path>$PROJECT_DIR$/out/artifacts/Android</output-path>
     <root id="archive" name="VideoStudio.jar">
-      <element id="module-output" name="VideoStudio" />
+      <element id="module-output" name="Engine" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/unrar/jUnRAR.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-vfs2-2.8.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/compress/commons-compress-1.20.jar" path-in-jar="/" />

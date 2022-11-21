@@ -71,10 +71,11 @@ fun main() {
     // gaussian-blur image
     // reconstruct original image: blurred + Integral(dx,dy), where Integral is just accumulated differences
 
-    val src = pictures.getChild("bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg")
+    // val src = pictures.getChild("bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg")
+    val src = desktop.getChild("uni_jena_logo.jpg")
     val ext = ".png"
     val original = ImageCPUCache[src, false]!!.floats()
-    val dst = desktop.getChild("poisson")
+    val dst = desktop.getChild("poissonFsu")
     dst.tryMkdirs()
 
     // PoissonFloatImage()
@@ -87,7 +88,7 @@ fun main() {
         GFX.copy(ImageGPUCache[src, false]!!)
     }
     PoissonFramebuffer()
-        .execute(originalFB, dst, ext)
+        .execute(originalFB, 20f, 100, dst, ext)
 
     Engine.requestShutdown()
 

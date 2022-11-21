@@ -11,7 +11,7 @@ class WrapAlign(
     var alignY: AxisAlignment?
 ) : Constraint(10) {
 
-    constructor(): this(null,null)
+    constructor() : this(null, null)
 
     override fun apply(panel: Panel) {
         alignX?.apply {
@@ -48,21 +48,33 @@ class WrapAlign(
 
     override val className = "WrapAlign"
 
+    override fun clone() = WrapAlign(alignX, alignY)
+
     companion object {
 
+        @JvmStatic
         val CenterX = WrapAlign(AxisAlignment.CENTER, null)
+        @JvmStatic
         val CenterY = WrapAlign(null, AxisAlignment.CENTER)
 
+        @JvmStatic
         val Center = WrapAlign(AxisAlignment.CENTER, AxisAlignment.CENTER)
 
+        @JvmStatic
         val LeftTop = WrapAlign(AxisAlignment.MIN, AxisAlignment.MIN)
+        @JvmStatic
         val Left = WrapAlign(AxisAlignment.MIN, null)
+        @JvmStatic
         val LeftCenter = WrapAlign(AxisAlignment.MIN, AxisAlignment.CENTER)
+        @JvmStatic
         val LeftBottom = WrapAlign(AxisAlignment.MIN, AxisAlignment.MAX)
 
+        @JvmStatic
         val RightBottom = WrapAlign(AxisAlignment.MAX, AxisAlignment.MAX)
 
+        @JvmStatic
         val TopFill = WrapAlign(null, AxisAlignment.MIN)
+        @JvmStatic
         val BottomFill = WrapAlign(null, AxisAlignment.MAX)
 
     }

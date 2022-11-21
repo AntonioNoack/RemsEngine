@@ -163,10 +163,15 @@ abstract class InnerTmpFile private constructor(
     }
 
     companion object { // only works if extension does not contain dots
+        @JvmStatic
         var printTmpFiles = false
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(InnerTmpFile::class)
+        @JvmStatic
         private val files = ArrayList<WeakReference<InnerTmpFile>>()
+        @JvmStatic
         private val id = AtomicInteger()
+        @JvmStatic
         fun find(str: String): InnerTmpFile? {
             // prefix.uuid.ext or prefix.ext
             LOGGER.debug("Parsing $str")

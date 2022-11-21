@@ -72,6 +72,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
 
     // eps: like svg, we could implement it, but we don't really need it that dearly...
 
+    @JvmStatic
     operator fun get(file: FileReference, async: Boolean): Image? {
         return get(file, 50, async)
     }

@@ -8261,6 +8261,7 @@ open class Matrix4d {
                 JomlMath.isFinite(m30) && JomlMath.isFinite(m31) && JomlMath.isFinite(m32) && JomlMath.isFinite(m33)
 
     companion object {
+        @JvmStatic
         fun projViewFromRectangle(
             eye: Vector3d,
             p: Vector3d,

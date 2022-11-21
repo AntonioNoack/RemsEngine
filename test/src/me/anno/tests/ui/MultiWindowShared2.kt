@@ -25,7 +25,7 @@ fun main() {
                     AnimTextPanel.rotate(sin(s) * 0.1f, cx, cy)
                     AnimTextPanel.hsluv(time * 2f - index / 2f)
                 })
-                ui.setWeight(1f)
+                ui.setWeight2(1f)
                 GFXBase.createWindow(title, ui)
             }
         }

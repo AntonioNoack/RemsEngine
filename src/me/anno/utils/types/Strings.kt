@@ -266,6 +266,13 @@ object Strings {
         return true
     }
 
+    /**
+     * allocation free ifBlank()
+     * */
+    fun <V : CharSequence> V.ifBlank2(other: V): V {
+        return if (isBlank2()) other else this
+    }
+
     fun isNumber(s: String): Boolean = s.toDoubleOrNull() != null
 
     fun isName(s: String): Boolean {

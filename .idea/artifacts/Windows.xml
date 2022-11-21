@@ -2,7 +2,7 @@
   <artifact type="jar" name="Windows">
     <output-path>$PROJECT_DIR$/out/artifacts/Windows</output-path>
     <root id="archive" name="VideoStudio.jar">
-      <element id="module-output" name="VideoStudio" />
+      <element id="module-output" name="Engine" />
       <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-stdlib.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-reflect.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-test.jar" path-in-jar="/" />

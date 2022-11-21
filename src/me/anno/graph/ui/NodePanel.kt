@@ -447,7 +447,7 @@ class NodePanel(
                     invalidateLayout()
                 })
         } else {
-            gp.target.set(node.position)
+            gp.target.set(node.position.x, node.position.y)
             invalidateLayout()
         }
     }

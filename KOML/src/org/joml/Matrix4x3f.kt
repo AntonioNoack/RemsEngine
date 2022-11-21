@@ -4899,6 +4899,7 @@ open class Matrix4x3f {
                 JomlMath.isFinite(m22) && JomlMath.isFinite(m30) && JomlMath.isFinite(m31) && JomlMath.isFinite(m32)
 
     companion object {
+        @JvmStatic
         const val PROPERTY_IDENTITY = 4
     }
 }

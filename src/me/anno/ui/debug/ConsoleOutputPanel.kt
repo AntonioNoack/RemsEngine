@@ -20,10 +20,9 @@ import me.anno.ui.debug.console.ConsoleOutputLine
 import me.anno.ui.style.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Logging.lastConsoleLines
-import me.anno.utils.OS
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
-import kotlin.concurrent.thread
 import kotlin.math.max
 
 // todo second console output panel, which has the default font?
@@ -36,7 +35,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
     override fun onUpdate() {
         val text = lastConsoleLines.lastOrNull() ?: ""
         this.text = text
-        tooltip = text.ifBlank { "Double-click to open history" }
+        tooltip = text.ifBlank2("Double-click to open history")
         textColor = getTextColor(text) and 0x77ffffff
         super.onUpdate()
     }
@@ -113,7 +112,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             val rip = RuntimeInfoPanel(style)
             rip.alignmentX = AxisAlignment.MAX
             rip.makeBackgroundOpaque()
-            rip.setWeight(1f)
+            rip.setWeight2(1f)
             rip.tooltip = "Click to invoke garbage collector"
             rip.addLeftClickListener {
                 val runtime = Runtime.getRuntime()

@@ -275,19 +275,16 @@ open class Vector2f {
 
     companion object {
 
+        @JvmStatic
         fun lengthSquared(x: Float, y: Float) = x * x + y * y
+
+        @JvmStatic
         fun length(x: Float, y: Float) = hypot(x, y)
 
-        fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
-            val dx = x1 - x2
-            val dy = y1 - y2
-            return hypot(dx, dy)
-        }
+        @JvmStatic
+        fun distance(x1: Float, y1: Float, x2: Float, y2: Float) = hypot(x1 - x2, y1 - y2)
 
-        fun distanceSquared(x1: Float, y1: Float, x2: Float, y2: Float): Float {
-            val dx = x1 - x2
-            val dy = y1 - y2
-            return dx * dx + dy * dy
-        }
+        @JvmStatic
+        fun distanceSquared(x1: Float, y1: Float, x2: Float, y2: Float) = lengthSquared(x1 - x2, y1 - y2)
     }
 }

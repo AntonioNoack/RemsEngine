@@ -301,9 +301,13 @@ open class Vector2d {
     }
 
     companion object {
+        @JvmStatic
         fun lengthSquared(x: Double, y: Double) = x * x + y * y
+        @JvmStatic
         fun length(x: Double, y: Double) = hypot(x, y)
+        @JvmStatic
         fun distance(x1: Double, y1: Double, x2: Double, y2: Double) = hypot(x1 - x2, y1 - y2)
+        @JvmStatic
         fun distanceSquared(x1: Double, y1: Double, x2: Double, y2: Double) = lengthSquared(x1 - x2, y1 - y2)
     }
 }

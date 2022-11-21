@@ -126,7 +126,8 @@ object EngineActions {
                 true
             },
             "ResetOpenGLSession" to {
-                StudioBase.addEvent { GFXState.newSession() }
+                if (GFX.canLooseContext)
+                    StudioBase.addEvent { GFXState.newSession() }
                 true
             }
         )

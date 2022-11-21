@@ -19,14 +19,13 @@ import me.anno.graph.ui.NodePositionOptimization.calculateNodePositions
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
-import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.debug.TestStudio
@@ -39,11 +38,10 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.structures.maps.Maps.removeIf
-import org.joml.Vector3d
 import kotlin.math.*
 
 open class GraphPanel(var graph: Graph? = null, style: Style) :
-    PanelList(null, style) {
+    MapPanel(style) {
 
     // todo copy-paste nodes
     // todo control+d to duplicate selected node
@@ -51,13 +49,10 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
 
     // todo add scroll bars, when the content goes over the borders
 
-    var center = Vector3d()
-    var target = Vector3d()
-
     var dragged: NodeConnector? = null
 
     // large scale = fast movement
-    var scale = 1.0
+    override var scale = 1.0
         set(value) {
             if (field != value) {
                 field = value
@@ -72,12 +67,6 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
     var font = monospaceFont
 
     private val nodeToPanel = HashMap<Node, NodePanel>()
-
-    val centerX get() = x + w / 2
-    val centerY get() = y + h / 2
-
-    var minScale = 0.001
-    var maxScale = 2.0
 
     var gridColor = 0x10ffffff
 
@@ -172,18 +161,6 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         }
     }
 
-    fun windowToCoordsDirX(wx: Double) = wx / scale
-    fun windowToCoordsDirY(wy: Double) = wy / scale
-
-    fun coordsToWindowDirX(cx: Double) = cx * scale
-    fun coordsToWindowDirY(cy: Double) = cy * scale
-
-    fun windowToCoordsX(wx: Double) = (wx - centerX) / scale + center.x
-    fun windowToCoordsY(wy: Double) = (wy - centerY) / scale + center.y
-
-    fun coordsToWindowX(cx: Double) = (cx - center.x) * scale + centerX
-    fun coordsToWindowY(cy: Double) = (cy - center.y) * scale + centerY
-
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         // if we start dragging from a node, and it isn't yet in focus,
         // quickly solve that by making bringing it into focus
@@ -197,17 +174,20 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         } else super.onMouseDown(x, y, button)
     }
 
+    override fun moveMap(): Boolean {
+        return Input.isLeftDown && dragged == null
+    }
+
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (Input.isLeftDown) {
-            if (dragged == null) {
-                // moving around
-                center.sub(dx / scale, dy / scale, 0.0)
-                target.set(center)
-                invalidateLayout()
-            } else {
+            if (dragged != null) {
                 // if on side, move towards there
                 moveIfOnEdge(x, y)
+            } else {
+                super.onMouseMoved(x, y, dx, dy)
             }
+        } else {
+            super.onMouseMoved(x, y, dx, dy)
         }
     }
 
@@ -226,7 +206,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         if (multiplier > 0f) {
             dx2 *= multiplier
             dy2 *= multiplier
-            center.add(dx2 / scale, dy2 / scale, 0.0)
+            center.add(dx2 / scale, dy2 / scale)
             target.set(center)
             invalidateLayout()
         } else {
@@ -239,19 +219,6 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
             dragged = null
             invalidateDrawing()
         }
-    }
-
-    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
-        val oldX = windowToCoordsX(x.toDouble())
-        val oldY = windowToCoordsY(y.toDouble())
-        val multiplier = pow(1.05, dy.toDouble())
-        scale = clamp(scale * multiplier, minScale, maxScale)
-        val newX = windowToCoordsX(x.toDouble())
-        val newY = windowToCoordsY(y.toDouble())
-        // zoom in on the mouse pointer
-        center.add(oldX - newX, oldY - newY, 0.0)
-        target.add(oldX - newX, oldY - newY, 0.0)
-        invalidateLayout()
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

@@ -414,8 +414,8 @@ object TRealtimeTest {
             }
 
             main.add(list)
-            list.setWeight(100f)
-            main.setWeight(100f)
+            list.setWeight2(100f)
+            main.setWeight2(100f)
             main
 
         }

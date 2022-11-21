@@ -15,7 +15,7 @@ open class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
     companion object {
         private val LOGGER = LogManager.getLogger(PrefabByFileCache::class)
         fun ensureClasses() {
-            if ("Entity" !in ISaveable.objectTypeRegistry) {
+            if ("Panel" !in ISaveable.objectTypeRegistry) {
                 LOGGER.warn("Please call ECSRegistry.init() yourself!")
                 ECSRegistry.init()
             }

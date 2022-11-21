@@ -189,4 +189,44 @@ object Triangulation {
         } else return emptyList()
     }
 
+
+
+    @Suppress("unused")
+    fun ringToTrianglesPoint2(points: Array<Vector3f>): List<Vector3f> {
+        if (points.size > 2) {
+            val normal = JomlPools.vec3f.create().set(0f)
+            val tmp1 = JomlPools.vec3f.create()
+            val tmp2 = JomlPools.vec3f.create()
+            for (i in points.indices) {
+                val a = points[i]
+                val b = points[(i + 1) % points.size]
+                val c = points[(i + 2) % points.size]
+                tmp1.set(a).sub(b)
+                tmp2.set(b).sub(c)
+                normal.add(tmp1.cross(tmp2))
+            }
+            normal.normalize()
+            if (normal.length() < 0.5f) {
+                JomlPools.vec3f.sub(3)
+                return emptyList()
+            }
+            // find 2d coordinate system
+            val xAxis = normal.findSecondAxis(JomlPools.vec3f.create())
+            val yAxis = normal.cross(xAxis)
+            val projected = points.map {
+                JomlPools.vec2f.create()
+                    .set(it.dot(xAxis), it.dot(yAxis))
+            }
+            val reverseMap = HashMap<Vector2f, Vector3f>()
+            points.forEachIndexed { index, vector3d ->
+                reverseMap[projected[index]] = vector3d
+            }
+            val triangles2f = ringToTrianglesVec2f(projected)
+            val result = triangles2f.map { reverseMap[it]!! }
+            JomlPools.vec2f.sub(projected.size)
+            JomlPools.vec3f.sub(4)
+            return result
+        } else return emptyList()
+    }
+
 }

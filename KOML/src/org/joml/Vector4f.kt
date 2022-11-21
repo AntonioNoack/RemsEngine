@@ -682,14 +682,17 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
 
     companion object {
 
+        @JvmStatic
         fun lengthSquared(x: Float, y: Float, z: Float, w: Float): Float {
             return x * x + y * y + z * z + w * w
         }
 
+        @JvmStatic
         fun length(x: Float, y: Float, z: Float, w: Float): Float {
             return sqrt(x * x + y * y + z * z + w * w)
         }
 
+        @JvmStatic
         fun distance(x1: Float, y1: Float, z1: Float, w1: Float, x2: Float, y2: Float, z2: Float, w2: Float): Float {
             val dx = x1 - x2
             val dy = y1 - y2
@@ -698,6 +701,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
             return sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
         }
 
+        @JvmStatic
         fun distanceSquared(
             x1: Float, y1: Float, z1: Float, w1: Float,
             x2: Float, y2: Float, z2: Float, w2: Float

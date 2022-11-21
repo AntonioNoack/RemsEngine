@@ -2,7 +2,7 @@
   <artifact type="jar" name="Light">
     <output-path>$PROJECT_DIR$/out/artifacts/Light</output-path>
     <root id="archive" name="VideoStudio.jar">
-      <element id="module-output" name="VideoStudio" />
+      <element id="module-output" name="Engine" />
       <element id="module-output" name="KOML" />
     </root>
   </artifact>

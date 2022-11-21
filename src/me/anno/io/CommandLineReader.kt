@@ -12,6 +12,7 @@ import kotlin.concurrent.thread
 open class CommandLineReader {
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(CommandLineReader::class)
     }
 

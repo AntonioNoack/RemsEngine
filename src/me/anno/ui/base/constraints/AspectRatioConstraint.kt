@@ -36,9 +36,7 @@ private constructor(var ratio: Float?, val getRatio: (() -> Float)?) : Constrain
         if (ratio != null) writer.writeFloat("ratio", ratio)
     }
 
-    override fun clone(): Constraint {
-        return AspectRatioConstraint(ratio, getRatio)
-    }
+    override fun clone() = AspectRatioConstraint(ratio, getRatio)
 
     override val className = "AspectRatioConstraint"
 

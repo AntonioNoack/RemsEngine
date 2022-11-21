@@ -1,5 +1,6 @@
 package me.anno.tests.poisson
 
+import me.anno.image.Image
 import me.anno.image.raw.FloatImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
@@ -12,7 +13,7 @@ import kotlin.math.roundToInt
  * CPU implementation of poisson reconstruction
  * */
 @Suppress("unused")
-class PoissonFloatImage : Poisson<FloatImage> {
+class PoissonFloatImage : PoissonReconstruction<FloatImage> {
 
     private val tileSize = 32
 
@@ -62,20 +63,20 @@ class PoissonFloatImage : Poisson<FloatImage> {
         return dst
     }
 
-    override fun FloatImage.blurX(sigma: Float, dst: FloatImage): FloatImage {
-        return convolveX(gaussianBlur(sigma), dst)
+    override fun FloatImage.blurX(sizeOf1Sigma: Float, dst: FloatImage): FloatImage {
+        return convolveX(gaussianBlur(sizeOf1Sigma), dst)
     }
 
-    override fun FloatImage.blurY(sigma: Float, dst: FloatImage): FloatImage {
-        return convolveY(gaussianBlur(sigma), dst)
+    override fun FloatImage.blurY(sizeOf1Sigma: Float, dst: FloatImage): FloatImage {
+        return convolveY(gaussianBlur(sizeOf1Sigma), dst)
     }
 
-    override fun FloatImage.blurXSigned(sigma: Float, dst: FloatImage): FloatImage {
-        return convolveX(sign(gaussianBlur(sigma)), dst)
+    override fun FloatImage.blurXSigned(sizeOf1Sigma: Float, dst: FloatImage): FloatImage {
+        return convolveX(sign(gaussianBlur(sizeOf1Sigma)), dst)
     }
 
-    override fun FloatImage.blurYSigned(sigma: Float, dst: FloatImage): FloatImage {
-        return convolveY(sign(gaussianBlur(sigma)), dst)
+    override fun FloatImage.blurYSigned(sizeOf1Sigma: Float, dst: FloatImage): FloatImage {
+        return convolveY(sign(gaussianBlur(sizeOf1Sigma)), dst)
     }
 
     private fun sign(mask: FloatArray): FloatArray {
@@ -84,13 +85,17 @@ class PoissonFloatImage : Poisson<FloatImage> {
         for (i in center + 1 until mask.size) {
             mask[i] = -mask[i]
         }
+        // was better in the FSU example
+        for (i in mask.indices) {
+            mask[i] *= 2f
+        }
         return mask
     }
 
-    private fun gaussianBlur(sigma: Float): FloatArray {
-        val n = (sigma * 3f).roundToInt()
+    private fun gaussianBlur(sizeOf1Sigma: Float): FloatArray {
+        val n = (sizeOf1Sigma * 3f).roundToInt()
         val weights = FloatArray(n * 2 + 1) {
-            val i = (it - n) / sigma
+            val i = (it - n) / sizeOf1Sigma
             exp(-i * i)
         }
         val factor = 1f / weights.sum()
@@ -196,7 +201,8 @@ class PoissonFloatImage : Poisson<FloatImage> {
                         val dxp = dx.getValue(x + 1, y, c)
                         val dym = dy.getValue(x, y - 1, c)
                         val dyp = dy.getValue(x, y + 1, c)
-                        val t0 = ((a1 + a2 + a3 + a4) + (dxm - dxp) + (dym - dyp)) * 0.25f
+                        // why is the optimal factor 1.25?
+                        val t0 = ((a1 + a2 + a3 + a4) + ((dxm - dxp) + (dym - dyp)) * 1.25f) * 0.25f
                         val t1 = blurred.getValue(x, y, c) // stabilize iteration
                         dst.setValue(x, y, c, Maths.mix(a0, Maths.mix(t0, t1, 0.05f), 0.75f))
                     }
@@ -213,8 +219,8 @@ class PoissonFloatImage : Poisson<FloatImage> {
         )
     }
 
-    override fun FloatImage.writeInto(dst: FileReference) {
-        write(dst)
+    override fun FloatImage.toImage(): Image {
+        return this
     }
 
 }

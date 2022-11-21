@@ -43,7 +43,7 @@ object Engine {
 
     fun updateTime() {
         val thisTime = System.nanoTime()
-        rawDeltaTime = (thisTime - lastTime) * 1e-9f
+        val rawDeltaTime = (thisTime - lastTime) * 1e-9f
         updateTime(rawDeltaTime, thisTime)
     }
 
@@ -57,7 +57,7 @@ object Engine {
         currentFPS = min(currentFPS + (newFPS - currentFPS) * 0.05f, newFPS)
         lastTime = thisTime
 
-        gameTime = lastTime - startTime
+        gameTime = thisTime - startTime
         gameTimeF = gameTime * 1e-9f
         gameTimeD = gameTime * 1e-9
 

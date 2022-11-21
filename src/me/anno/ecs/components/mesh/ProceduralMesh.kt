@@ -9,11 +9,8 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.debug.TestStudio
-import me.anno.utils.types.Vectors.print
-import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import org.joml.Vector3f
 
 /**
  * class for generating procedural meshes
@@ -100,7 +97,7 @@ abstract class ProceduralMesh : MeshComponentBase() {
             TestStudio.testUI {
                 EditorState.prefabSource = createProceduralMesh(generate).ref
                 SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
-                    .setWeight(1f)
+                    .setWeight2(1f)
             }
         }
 

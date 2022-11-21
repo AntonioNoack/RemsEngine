@@ -351,6 +351,7 @@ class AnimGameItem(
     companion object {
 
         const val matrixSize = 12
+        @JvmStatic
         val maxBones = if (useAnimTextures) 256 // limited by indices that can be packed into a byte
         else {
             // limited by number of assignable uniform matrices
@@ -360,19 +361,24 @@ class AnimGameItem(
             Maths.clamp(min(maxBonesByComponents, maxBonesByUniforms), 4, 128)
         }
 
+        @JvmStatic
         val matrixBuffer: FloatBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
+        @JvmStatic
         val tmpMatrices = Array(maxBones) { Matrix4x3f() }
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(AnimGameItem::class)
 
         init {
             LOGGER.info("Max Bones: $maxBones (by uniforms)")
         }
 
+        @JvmStatic
         fun get(src: Matrix4x3f, dst: FloatBuffer) {
             src.putInto(dst)
         }
 
+        @JvmStatic
         fun get(src: Matrix4f, dst: FloatBuffer) {
 
             dst.put(src.m00)
@@ -393,18 +399,21 @@ class AnimGameItem(
 
         }
 
+        @JvmStatic
         fun getScaleFromAABB(aabb: AABBf): Float {
             // calculate the scale, such that everything can be visible
             val delta = max(aabb.maxX - aabb.minX, max(aabb.maxY - aabb.minY, aabb.maxZ - aabb.minZ))
             return 1f / max(delta, 1e-38f)
         }
 
+        @JvmStatic
         fun getScaleFromAABB(aabb: AABBd): Float {
             // calculate the scale, such that everything can be visible
             val delta = max(aabb.maxX - aabb.minX, max(aabb.maxY - aabb.minY, aabb.maxZ - aabb.minZ))
             return 1f / max(delta.toFloat(), 1e-38f)
         }
 
+        @JvmStatic
         fun centerStackFromAABB(stack: Matrix4x3f, aabb: AABBd) {
             stack.translate(
                 -(aabb.minX + aabb.maxX).toFloat() / 2,
@@ -413,12 +422,14 @@ class AnimGameItem(
             )
         }
 
+        @JvmStatic
         private fun updateTransforms(entity: Entity) {
             entity.validateTransform()
             entity.transform.teleportUpdate(0)
             for (child in entity.children) updateTransforms(child)
         }
 
+        @JvmStatic
         private fun calculateAABB(root: Entity): AABBd {
             val joint = AABBd()
             val local = AABBd()

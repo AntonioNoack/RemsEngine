@@ -1,11 +1,10 @@
 package me.anno.gpu.shader
 
+import me.anno.Build
 import me.anno.gpu.GFX
-import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.builder.Varying
-import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL20.*
@@ -16,11 +15,11 @@ import org.lwjgl.opengl.GL20.*
 
 open class Shader(
     shaderName: String,
-    private val vertexVariables: List<Variable>,
-    private val vertexShader: String,
-    private val varyings: List<Variable>,
-    private val fragmentVariables: List<Variable>,
-    private val fragmentShader: String
+    private var vertexVariables: List<Variable>,
+    private var vertexShader: String,
+    private var varyings: List<Variable>,
+    private var fragmentVariables: List<Variable>,
+    private var fragmentShader: String
 ) : OpenGLShader(shaderName) {
 
     companion object {
@@ -178,6 +177,17 @@ open class Shader(
             glUseProgram(program)
             setTextureIndicesIfExisting()
             GFX.check()
+        }
+
+        // deleting sources to free up RAM
+        if (!GFX.canLooseContext && Build.isShipped) {
+            vertexShader = ""
+            fragmentSource = ""
+            vertexVariables = emptyList()
+            fragmentVariables = emptyList()
+            this.varyings = emptyList()
+            vertexSource = ""
+            fragmentSource = ""
         }
 
     }

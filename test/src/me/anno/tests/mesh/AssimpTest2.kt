@@ -73,7 +73,7 @@ fun main() {
 
 @Suppress("unused", "SpellCheckingInspection")
 fun walkingTest() {
-    val loader = AnimatedMeshesLoader
+    // val loader = AnimatedMeshesLoader
     val (_, prefab) = AnimatedMeshesLoader.readAsFolder2(getReference(downloads, "fbx/simple pack anims/Walking.fbx"))
     for (change in prefab.adds) {
         println(change)

@@ -183,15 +183,18 @@ class WindowsShortcut {
          * @return true if it may be a link, false otherwise
          * @throws IOException if an IOException is thrown while reading from the file
          */
+        @JvmStatic
         fun isPotentialValidLink(file: FileReference): Boolean {
             if (file.lcExtension != "lnk" || file.isDirectory || file.length() < 0x64) return false
             file.inputStreamSync().use { fis -> return isMagicPresent(fis.readNBytes2(32, false)) }
         }
 
+        @JvmStatic
         private fun isMagicPresent(link: ByteArray): Boolean {
             return link.size >= 32 && readLE32(link, 0) == 0x4C
         }
 
+        @JvmStatic
         private fun getNullDelimitedString(bytes: ByteArray, start: Int): String {
             // count bytes until the null character (0)
             var index = start
@@ -201,15 +204,18 @@ class WindowsShortcut {
             return String(bytes, start, index - start)
         }
 
+        @JvmStatic
         private fun readUTF16LE(bytes: ByteArray, off: Int, len: Int) =
             String(bytes, off, len, StandardCharsets.UTF_16LE)
 
         /**
          * convert two bytes into a short note, this is little endian because it's for an Intel only OS.
          */
+        @JvmStatic
         private fun readLE16(bytes: ByteArray, off: Int) =
             ((bytes[off + 1].toInt() and 0xff) shl 8) or (bytes[off].toInt() and 0xff)
 
+        @JvmStatic
         private fun readLE32(bytes: ByteArray, off: Int) =
             readLE16(bytes, off + 2) shl 16 or readLE16(bytes, off)
 

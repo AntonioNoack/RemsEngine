@@ -172,7 +172,7 @@ fun main() {
             }
             EditorState.prefabSource = proceduralMesh.ref
             SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
-                .setWeight(1f)
+                .setWeight2(1f)
         }
     }
 

@@ -345,7 +345,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     /**
      * weight used in layouts, that work with weights
      * */
-    fun setWeight(w: Float): Panel {
+    fun setWeight2(w: Float): Panel {
         weight = w
         return this
     }
@@ -723,6 +723,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
             }
         }
         return null
+    }
+
+    fun any(predicate: (Panel) -> Boolean): Boolean {
+        return firstOfAll(predicate) != null
     }
 
     override val listOfAll: Sequence<Panel>

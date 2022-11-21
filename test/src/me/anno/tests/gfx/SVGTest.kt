@@ -83,6 +83,6 @@ fun main() {
                 GFX.copy(msaaBuffer)
             }
         }
-        panel.setWeight(1f)
+        panel.setWeight2(1f)
     }
 }

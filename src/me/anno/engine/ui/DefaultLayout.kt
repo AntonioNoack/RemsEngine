@@ -21,7 +21,7 @@ object DefaultLayout {
         // project = pseudoProject
 
         val customUI = CustomList(true, style)
-        customUI.setWeight(10f)
+        customUI.setWeight2(10f)
 
         val animationWindow = CustomList(false, style)
 
@@ -31,10 +31,10 @@ object DefaultLayout {
         animationWindow.add(CustomContainer(ECSTreeView(libraryBase, style), library, style), 1f)
         animationWindow.add(CustomContainer(SceneView(libraryBase, PlayMode.EDITING, style), library, style), 3f)
         animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
-        animationWindow.setWeight(1f)
+        animationWindow.setWeight2(1f)
         customUI.add(animationWindow, 2f)
 
-        val explorers = CustomList(false, style).apply { setWeight(0.3f) }
+        val explorers = CustomList(false, style).apply { setWeight2(0.3f) }
         explorers.add(CustomContainer(ECSFileExplorer(projectFile, style), library, style))
         explorers.add(CustomContainer(ECSFileExplorer(documents, style), library, style))
 

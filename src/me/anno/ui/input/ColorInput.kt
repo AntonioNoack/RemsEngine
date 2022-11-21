@@ -223,7 +223,7 @@ open class ColorInput(
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val focused1 = titleView.isInFocus || contentView.listOfAll.any { it.isInFocus }
+        val focused1 = titleView.isInFocus || contentView.any { it.isInFocus }
         if (focused1) isSelectedListener?.invoke()
         super.onDraw(x0, y0, x1, y1)
     }

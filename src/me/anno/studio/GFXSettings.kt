@@ -24,7 +24,9 @@ enum class GFXSettings(
     fun getDouble(key: String) = data[key] as Double
 
     companion object {
+        @JvmStatic
         fun get(id: Int, alternative: GFXSettings) = values().firstOrNull { it.id == id } ?: alternative
+        @JvmStatic
         fun <V> put(key: String, low: V, medium: V, high: V){
             LOW.data[key] = low
             MEDIUM.data[key] = medium

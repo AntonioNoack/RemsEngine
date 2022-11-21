@@ -96,7 +96,7 @@ open class IntVectorInput(
         component.setChangeListener {
             onChange()
         }
-        valueList += component.setWeight(1f)
+        valueList += component.setWeight2(1f)
         valueFields += component
         return component
     }

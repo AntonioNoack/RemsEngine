@@ -5,7 +5,7 @@
       <element id="directory" name="META-INF">
         <element id="file-copy" path="$PROJECT_DIR$/tmp/manifest/META-INF/MANIFEST.MF" />
       </element>
-      <element id="module-output" name="VideoStudio" />
+      <element id="module-output" name="Engine" />
       <element id="extracted-dir" path="$PROJECT_DIR$/maven/kotlinx-coroutines-core-1.6.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/maven/kotlinx-coroutines-core-jvm-1.6.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/maven/kotlin-stdlib-jdk8-1.6.0.jar" path-in-jar="/" />

@@ -9,6 +9,7 @@ import me.anno.gpu.texture.Texture3D
 import me.anno.language.translation.Dict
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.SimpleTextPanel
+import me.anno.ui.debug.JSMemory.jsUsedMemory
 import me.anno.ui.style.Style
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
@@ -37,20 +38,24 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
 
     private fun getDebugText(): String {
         val runtime = Runtime.getRuntime()
-        val memory = runtime.totalMemory() - runtime.freeMemory()
+        val jvmMemory = runtime.totalMemory() - runtime.freeMemory()
         val videoMemory = Texture2D.allocated + CubemapTexture.allocated + Texture3D.allocated + OpenGLBuffer.allocated
         return if (OS.isWeb) {
-            // can we query how much memory JS is using?
-            // https://stackoverflow.com/questions/2530228/jquery-or-javascript-to-find-memory-usage-of-page
-            // window.performance.memory ; might be Chrome-only -> edge works; doesn't work in Firefox
-            // todo query and display this somehow...
-            Dict["JVM/VRAM: %1/%2 MB", "ui.debug.ramUsage2"]
-                .replace("%1", format1(memory))
-                .replace("%2", format1(videoMemory))
+            val jsMemory = jsUsedMemory() - jvmMemory
+            if (jsMemory >= 0) {
+                Dict["JVM/JS/VRAM: %1/%3/%2 MB", "ui.debug.ramUsage4"]
+                    .replace("%1", format1(jvmMemory))
+                    .replace("%2", format1(videoMemory))
+                    .replace("%3", format1(jsMemory))
+            } else {
+                Dict["JVM/VRAM: %1/%2 MB", "ui.debug.ramUsage3"]
+                    .replace("%1", format1(jvmMemory))
+                    .replace("%2", format1(videoMemory))
+            }
         } else {
             val cMemory = ByteBufferPool.getAllocated()
             Dict["JVM/C/VRAM: %1/%3/%2 MB", "ui.debug.ramUsage2"]
-                .replace("%1", format1(memory))
+                .replace("%1", format1(jvmMemory))
                 .replace("%2", format1(videoMemory))
                 .replace("%3", format1(cMemory))
         }

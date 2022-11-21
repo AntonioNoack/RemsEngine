@@ -9,7 +9,6 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.minWeight
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.style.Style
@@ -28,7 +27,7 @@ open class ScrollPanelX(
 
     init {
         child += WrapAlign(AxisAlignment.MIN, alignY)
-        setWeight(minWeight)
+        setWeight2(minWeight)
     }
 
     @NotSerializedProperty

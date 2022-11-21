@@ -36,7 +36,7 @@ open class ScrollPanelY(
 
     init {
         child += WrapAlign(alignX, AxisAlignment.MIN)
-        setWeight(minWeight)
+        setWeight2(minWeight)
     }
 
     @NotSerializedProperty

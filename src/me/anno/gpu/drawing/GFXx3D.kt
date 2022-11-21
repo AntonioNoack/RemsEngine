@@ -8,9 +8,13 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01CubeX10
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx2D.disableAdvancedGraphicalFeatures
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderFuncLib
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.maxOutlineColors
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.*
 import me.anno.utils.Color.toARGB
 import me.anno.utils.types.Floats.toRadians
@@ -26,6 +30,106 @@ object GFXx3D {
     // used in Rem's Studio
     fun getScale(w: Int, h: Int) = 1f / h
     fun getScale(w: Float, h: Float) = 1f / h
+
+    val shader3DText = ShaderLib.createShader(
+        "3d-text", ShaderLib.v3Dl,
+        "uniform vec3 offset;\n" +
+                ShaderLib.getUVForceFieldLib +
+                "void main(){\n" +
+                "   vec3 localPos0 = coords + offset;\n" +
+                "   vec2 pseudoUV2 = getForceFieldUVs(localPos0.xy*.5+.5);\n" +
+                "   finalPosition = ${ShaderLib.hasForceFieldUVs} ? vec3(pseudoUV2*2.0-1.0, coords.z + offset.z) : localPos0;\n" +
+                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                ShaderLib.flatNormal +
+                ShaderLib.positionPostProcessing +
+                "   vertexId = gl_VertexID;\n" +
+                "}", ShaderLib.y3D + listOf(Variable(GLSLType.V1I, "vertexId").flat()), listOf(
+            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
+        ), "" +
+                ShaderFuncLib.noiseFunc +
+                ShaderLib.getTextureLib +
+                ShaderLib.getColorForceFieldLib +
+                "void main(){\n" +
+                "   vec4 finalColor2 = (${ShaderLib.hasForceFieldColor}) ? getForceFieldColor(finalPosition) : vec4(1.0);\n" +
+                "   finalColor = finalColor2.rgb;\n" +
+                "   finalAlpha = finalColor2.a;\n" +
+                "}", listOf(), "tiling", "forceFieldUVCount"
+    )
+
+    val shader3DCircle = ShaderLib.createShader(
+        "3dCircle", listOf(
+            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),// angle, inner/outer
+            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.V3F, "circleParams"), // 1 - inner r, start, end
+        ), "" +
+                "void main(){\n" +
+                "   float angle = mix(circleParams.y, circleParams.z, coords.x);\n" +
+                "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * coords.y);\n" +
+                "   finalPosition = vec3(betterUV, 0.0);\n" +
+                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                ShaderLib.flatNormal +
+                ShaderLib.positionPostProcessing +
+                "}", ShaderLib.y3D, listOf(), ShaderLib.getColorForceFieldLib +
+                "void main(){\n" +
+                "   gl_FragColor = (${ShaderLib.hasForceFieldColor}) ? getForceFieldColor(finalPosition) : vec4(1);\n" +
+                "}", listOf(),
+        "filtering", "textureDeltaUV", "tiling", "uvProjection", "forceFieldUVCount",
+        "cgOffset", "cgSlope", "cgPower", "cgSaturation"
+    )
+
+    val shader3DBoxBlur = Shader(
+        "3d-blur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(), "" +
+                "precision highp float;\n" + // why?
+                "uniform sampler2D tex;\n" +
+                "uniform vec2 stepSize;\n" +
+                "uniform int steps;\n" +
+                "void main(){\n" +
+                "   vec4 color;\n" +
+                "   if(steps < 2){\n" +
+                "       color = texture(tex, uv);\n" +
+                "   } else {\n" +
+                "       color = vec4(0.0);\n" +
+                "       for(int i=-steps/2;i<(steps+1)/2;i++){\n" +
+                "           color += texture(tex, uv + float(i) * stepSize);\n" +
+                "       }\n" +
+                "       color /= float(steps);\n" +
+                "   }\n" +
+                "   gl_FragColor = color;\n" +
+                "}"
+    )
+
+    val shader3DGaussianBlur = Shader(
+        "3d-blur", ShaderLib.v3DlMasked, ShaderLib.v3DMasked, ShaderLib.y3DMasked, listOf(
+            Variable(GLSLType.S2D, "tex"),
+            Variable(GLSLType.V2F, "stepSize"),
+            Variable(GLSLType.V1F, "steps"),
+            Variable(GLSLType.V1F, "threshold")
+        ), "" +
+                ShaderLib.brightness +
+                "void main(){\n" +
+                "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
+                "   vec4 color;\n" +
+                "   float sum = 0.0;\n" +
+                // test all steps for -pixelating*2 .. pixelating*2, then average
+                "   int iSteps = max(0, int(2.7 * steps));\n" +
+                "   if(iSteps == 0){\n" +
+                "       color = texture(tex, uv2);\n" +
+                "   } else {\n" +
+                "       color = vec4(0.0);\n" +
+                "       for(int i=-iSteps;i<=iSteps;i++){\n" +
+                "           float fi = float(i);\n" +
+                "           float relativeX = fi/steps;\n" +
+                "           vec4 colorHere = texture(tex, uv2 + fi * stepSize);\n" +
+                "           float weight = exp(-relativeX*relativeX);\n" +
+                "           sum += weight;\n" +
+                "           color += vec4(max(vec3(0.0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
+                "       }\n" +
+                "       color /= sum;\n" +
+                "   }\n" +
+                "   gl_FragColor = color;\n" +
+                "}"
+    )
 
     fun shader3DUniforms(
         shader: Shader, stack: Matrix4fArrayList,
@@ -112,7 +216,7 @@ object GFXx3D {
         offset: Vector3f,
         stack: Matrix4fArrayList, buffer: StaticBuffer, color: Int
     ) {
-        val shader = ShaderLib.shader3DText.value
+        val shader = shader3DText.value
         shader.use()
         shader3DUniforms(shader, stack, color)
         shader.v3f("offset", offset)
@@ -125,7 +229,7 @@ object GFXx3D {
         buffer: StaticBuffer,
         offset: Vector3f
     ) {
-        val shader = ShaderLib.shader3DText.value
+        val shader = shader3DText.value
         shader.use()
         shader.v3f("offset", offset)
         buffer.draw(shader)
@@ -284,7 +388,7 @@ object GFXx3D {
         threshold: Float, isFirst: Boolean,
         isFullscreen: Boolean
     ) {
-        val shader = ShaderLib.shader3DGaussianBlur
+        val shader = shader3DGaussianBlur
         shader.use()
         transformUniform(shader, stack)
         if (isFirst) shader.v2f("stepSize", 0f, 1f / h)
@@ -301,7 +405,7 @@ object GFXx3D {
         steps: Int, w: Int, h: Int,
         isFirst: Boolean
     ) {
-        val shader = ShaderLib.shader3DBoxBlur
+        val shader = shader3DBoxBlur
         shader.use()
         transformUniform(shader, stack)
         if (isFirst) {
@@ -322,7 +426,7 @@ object GFXx3D {
         endDegrees: Float,
         color: Vector4f
     ) {
-        val shader = ShaderLib.shader3DCircle.value
+        val shader = shader3DCircle.value
         shader.use()
         defineAdvancedGraphicalFeatures(shader)
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)

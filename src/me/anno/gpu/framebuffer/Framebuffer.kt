@@ -213,7 +213,7 @@ class Framebuffer(
         when (targets.size) {
             0 -> glDrawBuffer(GL_NONE)
             1 -> glDrawBuffer(GL_COLOR_ATTACHMENT0)
-            else -> glDrawBuffers(textures.indices.map { GL_COLOR_ATTACHMENT0 + it }.toIntArray())
+            else -> glDrawBuffers(attachments[targets.size - 2])
         }
         GFX.check()
         when (depthBufferType) {
@@ -417,6 +417,12 @@ class Framebuffer(
     }
 
     companion object {
+
+        // more than 16 attachments would be pretty insane, and probably not supported
+        private val attachments = Array(14) { size ->
+            IntArray(size + 2) { GL_COLOR_ATTACHMENT0 + it }
+        }
+
         // private val LOGGER = LogManager.getLogger(Framebuffer::class)
         fun bindFramebuffer(target: Int, pointer: Int) {
             glBindFramebuffer(target, pointer)

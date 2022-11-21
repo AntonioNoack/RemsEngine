@@ -10,7 +10,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.StudioBase.Companion.warn
-import me.anno.ui.Panel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.TitledListY
@@ -182,7 +181,7 @@ open class FloatVectorInput(
         val component = createComponent()
         component.inputPanel.tooltip = title
         component.setChangeListener { onChange() }
-        valueList += component.setWeight(1f)
+        valueList += component.setWeight2(1f)
         valueFields += component
         return component
     }

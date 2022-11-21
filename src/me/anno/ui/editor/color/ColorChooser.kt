@@ -106,7 +106,7 @@ open class ColorChooser(
     init {
         val spaceBox = PanelListX(style)
         this += spaceBox
-        spaceBox += colorSpaceInput.setWeight(1f)
+        spaceBox += colorSpaceInput.setWeight2(1f)
         spaceBox += styleInput
         this += SpacerPanel(0, 2, style)
         this += hslBox

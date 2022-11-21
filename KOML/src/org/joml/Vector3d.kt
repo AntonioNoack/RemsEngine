@@ -1026,18 +1026,18 @@ open class Vector3d {
         get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z)
 
     companion object {
-        fun lengthSquared(x: Double, y: Double, z: Double): Double {
-            return JomlMath.fma(x, x, JomlMath.fma(y, y, z * z))
-        }
+        @JvmStatic
+        fun lengthSquared(x: Double, y: Double, z: Double) = x * x + y * y + z * z
 
-        fun length(x: Double, y: Double, z: Double): Double {
-            return sqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, z * z)))
-        }
+        @JvmStatic
+        fun length(x: Double, y: Double, z: Double) = sqrt(x * x + y * y + z * z)
 
+        @JvmStatic
         fun distance(x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double): Double {
             return sqrt(distanceSquared(x1, y1, z1, x2, y2, z2))
         }
 
+        @JvmStatic
         fun distanceSquared(x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double): Double {
             val dx = x1 - x2
             val dy = y1 - y2

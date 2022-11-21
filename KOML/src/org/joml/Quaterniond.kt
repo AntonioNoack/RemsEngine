@@ -2126,6 +2126,7 @@ open class Quaterniond {
     }
 
     companion object {
+        @JvmStatic
         fun slerp(qs: Array<Quaterniond>, weights: DoubleArray, dst: Quaterniond): Quaterniond {
             dst.set(qs[0])
             var w = weights[0]
@@ -2138,6 +2139,7 @@ open class Quaterniond {
             return dst
         }
 
+        @JvmStatic
         fun nlerp(qs: Array<Quaterniond>, weights: DoubleArray, dst: Quaterniond): Quaterniond {
             dst.set(qs[0])
             var w = weights[0]
@@ -2150,6 +2152,7 @@ open class Quaterniond {
             return dst
         }
 
+        @JvmStatic
         fun nlerpIterative(
             qs: Array<Quaterniond>,
             weights: DoubleArray,

@@ -184,6 +184,6 @@ fun main() {
                 drawTexture(x, y, w, h, texture, true)
             }
             // todo controls
-        }.setWeight(1f)
+        }.setWeight2(1f)
     }
 }

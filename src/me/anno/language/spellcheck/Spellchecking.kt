@@ -150,7 +150,7 @@ object Spellchecking : CacheSection("Spellchecking") {
      * \n and non-ascii symbols should be escaped with \\n or \Uxxxx
      * */
     private fun start(language: Language): Queue<Any> {
-        val queue: Queue<Any> = if (OS.isWeb) LinkedList() else ConcurrentLinkedQueue()
+        val queue: Queue<Any> = ConcurrentLinkedQueue()
         thread(name = "Spellchecking ${language.code}") {
             if (!OS.isAndroid) {
                 getExecutable(language) { executable ->

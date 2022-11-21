@@ -26,7 +26,7 @@ open class StringMap(
     val sortKeysWhenSaving: Boolean = true
 ) : ConfigEntry(), MutableMap<String, Any?> {
 
-    constructor(): this(16)
+    constructor() : this(16)
 
     constructor(data: Map<String, Any?>) : this(data.size + 16) {
         map.putAll(data)
@@ -342,11 +342,16 @@ open class StringMap(
         if (wasChanged) {
             synchronized(this) {
                 if (gameTime - lastSaveTime >= saveDelay || Engine.shutdown) {// only save every 1s
-                    // delay in case it needs longer
-                    lastSaveTime = gameTime + 60_000_000_000L
-                    thread(name = "Saving $name") {
+                    if (OS.isWeb) {
                         save(name)
                         lastSaveTime = gameTime
+                    } else {
+                        // delay in case it needs longer
+                        lastSaveTime = gameTime + 60_000_000_000L
+                        thread(name = "Saving $name") {
+                            save(name)
+                            lastSaveTime = gameTime
+                        }
                     }
                 } else {
                     addEvent(10) {

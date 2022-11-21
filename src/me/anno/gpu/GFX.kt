@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.Build
 import me.anno.Build.isDebug
 import me.anno.Engine
 import me.anno.audio.streams.AudioStream
@@ -60,6 +61,10 @@ object GFX {
 
     private val LOGGER = LogManager.getLogger(GFX::class)
 
+    init {
+        LOGGER.info("Initializing GFX")
+    }
+
     // for final rendering we need to use the GPU anyway;
     // so just use a static variable
     var isFinalRendering = false
@@ -101,9 +106,11 @@ object GFX {
     var maxColorAttachments = 1
     var maxTextureSize = 512 // assumption before loading anything
 
+    var canLooseContext = OS.isAndroid
+
     val nextGPUTasks = ArrayList<Task>()
-    val gpuTasks: Queue<Task> = if (OS.isWeb) LinkedList() else ConcurrentLinkedQueue()
-    val lowPriorityGPUTasks: Queue<Task> = if (OS.isWeb) LinkedList() else ConcurrentLinkedQueue()
+    val gpuTasks: Queue<Task> = ConcurrentLinkedQueue()
+    val lowPriorityGPUTasks: Queue<Task> = ConcurrentLinkedQueue()
 
     val loadTexturesSync = Stack<Boolean>()
         .apply { push(false) }
@@ -495,25 +502,27 @@ object GFX {
             GL_FRAMEBUFFER_UNSUPPORTED -> "framebuffer unsupported"
             GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "incomplete multisample"
             GL_FRAMEBUFFER_UNDEFINED -> "framebuffer undefined"
-            else -> glConstants[error]?.lowercase() ?: "$error"
+            else -> getName(error)
         }
     }
 
     fun getName(i: Int): String {
-        if (glConstants.isEmpty()) {
+        val constants = glConstants ?: return "$i"
+        if (constants.isEmpty()) {
             discoverOpenGLNames()
         }
-        return glConstants[i] ?: "$i"
+        return constants[i] ?: "$i"
     }
 
     // 1696 values in my testing
-    private val glConstants = HashMap<Int, String>(2048)
+    private val glConstants = if (Build.isShipped) null else HashMap<Int, String>(2048)
 
     fun discoverOpenGLNames() {
         discoverOpenGLNames(GL46::class)
     }
 
     fun discoverOpenGLNames(clazz: KClass<*>) {
+        val glConstants = glConstants ?: return
         // literally 300 times faster than the Kotlin code... what is Kotlin doing???
         // 3.5 ms instead of 1000 ms
         val t2 = Engine.nanoTime
@@ -536,6 +545,7 @@ object GFX {
     }
 
     fun discoverOpenGLNames(clazz: Class<*>) {
+        val glConstants = glConstants ?: return
         val properties2 = clazz.declaredFields
         for (property in properties2) {
             val name = property.name

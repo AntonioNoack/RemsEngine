@@ -1,5 +1,6 @@
 package me.anno.mesh.obj
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
@@ -34,6 +35,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
     val meshesFolder by lazy { InnerFolder(folder, "meshes") }
 
     val scenePrefab = Prefab("Entity")
+    val meshes = ArrayList<Mesh>()
 
     init {
         folder.createPrefabChild("Scene.json", scenePrefab)
@@ -151,12 +153,22 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
         if (facePositions.size > 0) {
             if (lastObjectPath.isEmpty()) newObject()
             val mesh = Prefab("Mesh")
+            val meshI = Mesh()
+            mesh._sampleInstance = meshI
             val name = lastObjectPath.nameId
             var fileName = "$name.json"
             mesh.setUnsafe("material", lastMaterial)
-            mesh.setUnsafe("positions", facePositions.toFloatArray())
-            mesh.setUnsafe("normals", faceNormals.toFloatArray())
-            mesh.setUnsafe("uvs", faceUVs.toFloatArray())
+            val pos = facePositions.toFloatArray()
+            val nor = faceNormals.toFloatArray()
+            val uvs = faceUVs.toFloatArray()
+            mesh.setUnsafe("positions", pos)
+            mesh.setUnsafe("normals", nor)
+            mesh.setUnsafe("uvs", uvs)
+            meshI.material = lastMaterial
+            meshI.positions = pos
+            meshI.normals = nor
+            meshI.uvs = uvs
+            meshes.add(meshI)
             val meshesFolder = meshesFolder
             // find good new name for mesh
             if (meshesFolder.getChild(fileName) != InvalidRef) {

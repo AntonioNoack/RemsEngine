@@ -243,7 +243,7 @@ fun main() {
         updateCubes()
 
         val view = SceneView(EditorState, PlayMode.EDITING, style)
-        view.setWeight(1f)
+        view.setWeight2(1f)
 
         fun raycastPoint(): Node? {
             val maxDistance = 1e3
@@ -322,7 +322,7 @@ fun main() {
             }
         })*/
 
-        view.setWeight(1f)
+        view.setWeight2(1f)
 
     }
 

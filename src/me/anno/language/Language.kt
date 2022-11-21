@@ -64,6 +64,7 @@ enum class Language(val prettyName: String, val code: String) {
     override fun toString() = naming.name
 
     companion object {
+        @JvmStatic
         fun get(code: String) = values()
             .firstOrNull { it.code.equals(code, true) }
             ?: AmericanEnglish

@@ -9,8 +9,6 @@ import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
 import me.anno.ui.style.Style
-import me.anno.utils.Color.black
-import me.anno.utils.Color.toHexColor
 import me.anno.utils.bugs.SumOf
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
@@ -22,7 +20,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     init {
         spacing = style.getSize("customList.spacing", 4)
-        setWeight(1f)
+        weight = 1f
     }
 
     override fun invalidateLayout() {

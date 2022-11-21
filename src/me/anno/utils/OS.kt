@@ -3,6 +3,8 @@ package me.anno.utils
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.process.BetterProcessBuilder
 import java.lang.management.ManagementFactory
+import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.concurrent.thread
 
 /**
@@ -25,16 +27,16 @@ object OS {
 
     val supportsNetworkUDP get() = !isWeb
 
-    val home = getReference(System.getProperty("user.home"))
-    val downloads = getReference(home, "Downloads")
-    val desktop = getReference(home, "Desktop")
-    val documents = getReference(home, "Documents")
-    val pictures = getReference(home, "Pictures")
-    val videos = getReference(home, "Videos")
-    val music = getReference(home, "Music")
-    // val res = getReference(BundledRef.prefix) // getChild() is not supported on all platforms, so I'd rather not provide this
+    val home by lazy { getReference(System.getProperty("user.home")) }
+    val downloads by lazy { getReference(home, "Downloads") }
+    val desktop by lazy { getReference(home, "Desktop") }
+    val documents by lazy { getReference(home, "Documents") }
+    val pictures by lazy { getReference(home, "Pictures") }
+    val videos by lazy { getReference(home, "Videos") }
+    val music by lazy { getReference(home, "Music") }
 
-    val screenshots = getReference(pictures, "Screenshots")
+    // val res = getReference(BundledRef.prefix) // getChild() is not supported on all platforms, so I'd rather not provide this
+    val screenshots by lazy { getReference(pictures, "Screenshots") }
 
     fun startProcess(vararg args: String) {
         thread(name = "Process $args") {

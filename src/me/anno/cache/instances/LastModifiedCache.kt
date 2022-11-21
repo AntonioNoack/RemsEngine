@@ -41,9 +41,7 @@ object LastModifiedCache {
 
     }
 
-    val values: MutableMap<String, Result> =
-        if (OS.isWeb) HashMap()
-        else ConcurrentHashMap()
+    val values: MutableMap<String, Result> = ConcurrentHashMap()
 
     fun invalidate(absolutePath: String) {
         // we store both variants

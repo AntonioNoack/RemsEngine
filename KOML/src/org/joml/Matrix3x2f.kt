@@ -353,12 +353,8 @@ open class Matrix3x2f {
         return dest
     }
 
-    fun scaleAround(factor: Float, ox: Float, oy: Float, dest: Matrix3x2f?): Matrix3x2f {
-        return this.scaleAround(factor, factor, ox, oy, this)
-    }
-
-    fun scaleAround(factor: Float, ox: Float, oy: Float): Matrix3x2f {
-        return this.scaleAround(factor, factor, ox, oy, this)
+    fun scaleAround(factor: Float, ox: Float, oy: Float, dest: Matrix3x2f = this): Matrix3x2f {
+        return this.scaleAround(factor, factor, ox, oy, dest)
     }
 
     fun scaleAroundLocal(sx: Float, sy: Float, ox: Float, oy: Float, dest: Matrix3x2f): Matrix3x2f {

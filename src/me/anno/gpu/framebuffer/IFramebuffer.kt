@@ -78,6 +78,9 @@ interface IFramebuffer {
     fun clearColor(color: Int, depth: Boolean = false) =
         clearColor(color.r01(), color.g01(), color.b01(), color.a01(), depth)
 
+    fun clearColor(color: Int, alpha: Float, depth: Boolean = false) =
+        clearColor(color.r01(), color.g01(), color.b01(), alpha, depth)
+
     fun clearColor(color: Vector3f, alpha: Float, depth: Boolean = false) =
         clearColor(color.x, color.y, color.z, alpha, depth)
 

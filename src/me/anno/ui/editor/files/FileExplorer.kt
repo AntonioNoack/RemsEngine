@@ -115,7 +115,7 @@ open class FileExplorer(
             searchTerm = it
             invalidate()
         }
-        .setWeight(1f)
+        .setWeight2(1f)
 
     val history = History(initialLocation ?: documents)
     val folder get() = history.value
@@ -227,7 +227,7 @@ open class FileExplorer(
             style,
             AxisAlignment.MIN
         )// .child.setWeight(1f)
-        uContent += content.setWeight(3f)
+        uContent += content.setWeight2(3f)
 
     }
 

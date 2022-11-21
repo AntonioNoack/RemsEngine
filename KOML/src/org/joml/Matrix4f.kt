@@ -7329,7 +7329,9 @@ open class Matrix4f {
         )
 
     companion object {
+        @JvmStatic
         const val PROPERTY_IDENTITY = 4
+        @JvmStatic
         fun projViewFromRectangle(
             eye: Vector3f,
             p: Vector3f,

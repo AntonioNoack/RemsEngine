@@ -4,6 +4,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
 
 class MainStage {
@@ -204,7 +205,8 @@ class MainStage {
                         "f.y), mix(\n" +
                         "   float(d2>depth),\n" +
                         "   float(d3>depth),\n" +
-                        "f.y), f.x);\n}\n")
+                        "f.y), f.x);\n}\n"
+            )
         }
     }
 
@@ -400,7 +402,7 @@ class MainStage {
     val functions = HashMap<String, String>()
 
     private fun defineFunction(function: Function) {
-        val key = function.header.ifBlank { function.body }
+        val key = function.header.ifBlank2(function.body)
         val value = function.body
         val previous = functions[key]
         if (previous != null && previous != value) {

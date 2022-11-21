@@ -268,7 +268,7 @@ object Menu {
                 val children = list.children
                 for (child in children.subList(startIndex, children.size)) {
                     // check all text elements inside this panel for matches
-                    child.isVisible = child.listOfAll.any {
+                    child.isVisible = child.any {
                         it is TextPanel && (search.matches(it.text))
                     }
                 }

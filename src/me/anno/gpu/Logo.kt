@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
@@ -11,12 +10,15 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
+import me.anno.mesh.obj.SimpleOBJReader
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
 import me.anno.utils.OS
+import me.anno.utils.Sleep.waitUntilDefined
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import kotlin.math.min
@@ -57,8 +59,8 @@ fun drawLogo(width: Int, height: Int, destroy: Boolean): Boolean {
 
     GFX.check()
 
-    val logger = LogManager.getLogger("Logo")
-    logger.info("Showing Engine Logo")
+    // val logger = LogManager.getLogger("Logo")
+    // logger.info("Showing Engine Logo")
 
     // extend space left+right/top+bottom (zooming out a little)
     val sw: Float
@@ -101,19 +103,40 @@ fun drawLogo(width: Int, height: Int, destroy: Boolean): Boolean {
 
 }
 
+var mesh: Mesh? = null
+var requested = false
+var hasMesh = false
+
+fun getLogoMeshes(async: Boolean): Mesh? {
+    if (requested) {
+        if (!async) waitUntilDefined(true) { mesh }
+    } else {
+        requested = true
+        if (async) {
+            logoSrc.inputStream { i, e ->
+                e?.printStackTrace()
+                mesh = if (i != null) SimpleOBJReader(i, logoSrc).mesh else null
+                hasMesh = true
+            }
+        } else {
+            mesh = SimpleOBJReader(logoSrc.inputStreamSync(), logoSrc).mesh
+            hasMesh = true
+        }
+    }
+    return mesh
+}
+
 fun drawLogo(shader: Shader): Boolean {
     // load icon.obj as file, and draw it
     val c = logoBackgroundColor
-    GFXState.currentBuffer.clearColor(c.r01(), c.g01(), c.b01(), 1f)
+    GFXState.currentBuffer.clearColor(c, 1f)
     var success = false
     renderPurely {
         try {
-            // ensure mesh is a known class
-            registerCustomClass(Mesh())
             // you can override this file, if you want to change the logo
             // but please show Rem's Engine somewhere in there!
             val async = OS.isWeb // must be async on Web; maybe Android too later
-            val mesh = MeshCache[logoSrc, async]
+            val mesh = getLogoMeshes(async)
             if (mesh != null) {
                 mesh.ensureBuffer()
                 for (i in 0 until mesh.numMaterials) {

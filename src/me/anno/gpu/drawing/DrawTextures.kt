@@ -8,6 +8,7 @@ import me.anno.gpu.shader.FlatShaders.flatShader3dSlice
 import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
 import me.anno.gpu.shader.FlatShaders.flatShaderTexture
 import me.anno.gpu.texture.*
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.toInt
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Matrix4fArrayList
@@ -95,7 +96,7 @@ object DrawTextures {
         GFX.check()
         val shader = depthShader.value
         shader.use()
-        posSize(shader, x, y+h-1, w, -h)
+        posSize(shader, x, y + h - 1, w, -h)
         defineAdvancedGraphicalFeatures(shader)
         GFXx2D.noTiling(shader)
         val tex = texture as? Texture2D
@@ -139,8 +140,8 @@ object DrawTextures {
         color: Int = -1, tiling: Vector4f? = null, applyToneMapping: Boolean = false
     ) = drawTexture(x, y, w, h, texture, false, color, tiling, applyToneMapping)
 
-    private val tiling = Vector4f()
     fun drawTransparentBackground(x: Int, y: Int, w: Int, h: Int, numVerticalStripes: Float = 5f) {
+        val tiling = JomlPools.vec4f.borrow()
         tiling.set(numVerticalStripes * w.toFloat() / h.toFloat(), numVerticalStripes, 0f, 0f)
         drawTexture(x, y, w, h, TextureLib.colorShowTexture, -1, tiling, false)
     }
@@ -194,7 +195,7 @@ object DrawTextures {
         GFX.check()
         val shader = flatShader3dSlice.value
         shader.use()
-        posSize(shader, x, y+h-1, w, -h)
+        posSize(shader, x, y + h - 1, w, -h)
         defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)

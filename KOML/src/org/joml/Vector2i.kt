@@ -181,9 +181,13 @@ open class Vector2i(var x: Int, var y: Int) {
     override fun toString() = "($x,$y)"
 
     companion object {
+        @JvmStatic
         fun lengthSquared(x: Int, y: Int) = x.toLong() * x + y.toLong() * y
+        @JvmStatic
         fun length(x: Int, y: Int) = sqrt(lengthSquared(x, y).toDouble())
+        @JvmStatic
         fun distance(x1: Int, y1: Int, x2: Int, y2: Int) = length(x1 - x2, y1 - y2)
+        @JvmStatic
         fun distanceSquared(x1: Int, y1: Int, x2: Int, y2: Int) = lengthSquared(x1 - x2, y1 - y2)
     }
 }

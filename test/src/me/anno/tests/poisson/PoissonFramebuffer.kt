@@ -7,11 +7,13 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderFuncLib
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep
 import me.anno.video.VideoCreator
@@ -22,7 +24,7 @@ import kotlin.math.roundToInt
  * todo some clamping seems to be incorrect...
  * */
 @Suppress("unused")
-class PoissonFramebuffer : Poisson<Framebuffer> {
+class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
 
     companion object {
         val dxShader = Shader(
@@ -72,7 +74,9 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
                 Variable(GLSLType.V2F, "dy1"),
                 Variable(GLSLType.V2F, "dx2"),
                 Variable(GLSLType.V2F, "dy2")
-            ), "void main(){\n" +
+            ), "" +
+                    ShaderFuncLib.noiseFunc +
+                    "void main(){\n" +
                     "   vec4 a0  = texture(src, uv);\n" +
                     "   vec3 a1  = texture(src, uv-dx2).rgb;\n" +
                     "   vec3 a2  = texture(src, uv-dy2).rgb;\n" +
@@ -82,9 +86,12 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
                     "   vec3 dyp = texture(dy,  uv+dy1).rgb;\n" +
                     "   vec3 dxm = texture(dx,  uv-dx1).rgb;\n" +
                     "   vec3 dym = texture(dy,  uv-dy1).rgb;\n" +
-                    "   vec3 t0  = ((a1 + a2 + a3 + a4) + (dxm - dxp) + (dym - dyp)) * 0.25;\n" +
-                    "   vec3 t1  = texture(blurred, uv).rgb;\n" +
-                    "   gl_FragColor = vec4(mix(a0.rgb,mix(t0,t1,0.05),0.75),a0.a);\n" +
+                    "   vec3 t0  = ((a1 + a2 + a3 + a4) + ((dxm - dxp) + (dym - dyp))) * 0.25;\n" +
+                    // with the slow path, ((dxm - dxp) + (dym - dyp)) should be multiplied by about 1.25 to keep the true dx/dy, or it will be washed out
+                    // "   vec3 t1  = texture(blurred, uv).rgb;\n" +
+                    // "   gl_FragColor = vec4(mix(a0.rgb,t0,0.75),a0.a);\n" +
+                    // "   gl_FragColor = vec4(mix(a0.rgb,mix(t0,t1,0.05),0.75),a0.a);\n" +
+                    "   gl_FragColor = vec4(clamp(t0,0.0,1.0),a0.a);\n" +
                     "}"
         ).apply { setTextureIndices("src", "dx", "dy", "blurred") }
         val unsignedBlur = Shader(
@@ -129,7 +136,6 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
                     "       color += (texture(src, uv - duv).rgb - texture(src, uv + duv).rgb) * weight;\n" +
                     "       sum += weight;\n" +
                     "   }\n" +
-                    "   sum *= 2.0;\n" +
                     "   color /= sum;\n" + // could be precomputed
                     "   gl_FragColor = vec4(color, 1.0);\n" +
                     "}"
@@ -172,20 +178,20 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
         return dst
     }
 
-    override fun Framebuffer.blurX(sigma: Float, dst: Framebuffer): Framebuffer {
-        return blur(sigma, 1, 0, dst, unsignedBlur)
+    override fun Framebuffer.blurX(sizeOf1Sigma: Float, dst: Framebuffer): Framebuffer {
+        return blur(sizeOf1Sigma, 1, 0, dst, unsignedBlur)
     }
 
-    override fun Framebuffer.blurY(sigma: Float, dst: Framebuffer): Framebuffer {
-        return blur(sigma, 0, 1, dst, unsignedBlur)
+    override fun Framebuffer.blurY(sizeOf1Sigma: Float, dst: Framebuffer): Framebuffer {
+        return blur(sizeOf1Sigma, 0, 1, dst, unsignedBlur)
     }
 
-    override fun Framebuffer.blurXSigned(sigma: Float, dst: Framebuffer): Framebuffer {
-        return blur(sigma, 1, 0, dst, signedBlur)
+    override fun Framebuffer.blurXSigned(sizeOf1Sigma: Float, dst: Framebuffer): Framebuffer {
+        return blur(sizeOf1Sigma, 1, 0, dst, signedBlur)
     }
 
-    override fun Framebuffer.blurYSigned(sigma: Float, dst: Framebuffer): Framebuffer {
-        return blur(sigma, 0, 1, dst, signedBlur)
+    override fun Framebuffer.blurYSigned(sizeOf1Sigma: Float, dst: Framebuffer): Framebuffer {
+        return blur(sizeOf1Sigma, 0, 1, dst, signedBlur)
     }
 
     override fun Framebuffer.added(b: Framebuffer, c: Framebuffer, dst: Framebuffer): Framebuffer {
@@ -244,9 +250,8 @@ class PoissonFramebuffer : Poisson<Framebuffer> {
         return dst
     }
 
-    override fun Framebuffer.writeInto(dst: FileReference) {
-        createImage(flipY = false, withAlpha = false)
-            .write(dst)
+    override fun Framebuffer.toImage(): Image {
+        return createImage(flipY = false, withAlpha = false)
     }
 
     override fun Framebuffer.copyInto(dst: Framebuffer): Framebuffer {
