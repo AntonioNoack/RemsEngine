@@ -156,13 +156,15 @@ Some feature tests:
 - [Debug: JsonFormatter.kt](test/src/me/anno/tests/files/JsonFormatter.kt)
 - [UI: DrawCurves.kt](test/src/me/anno/tests/shader/DrawCurves.kt)
 - [UI: AnimTest.kt](test/src/me/anno/tests/ui/AnimTest.kt)
-- [Snake Game](test/src/me/anno/tests/game/Snake.kt)
+- [Snake Game](test/src/me/anno/tests/game/Snake.kt), [Running Demo](https://remsengine.phychi.com/jvm2wasm/snake/)
 
 You can find most examples in the "tests" folder. In total, there are more than 200 handwritten tests for you to see how the engine works :).
 
 ## Ports
+- Linux, Windows by default
+- MacOS should be simple as long as Java is running
 - [Android](https://github.com/AntonioNoack/RemsEngine-Android)
-- Web (WASM) WIP, not published yet
+- Web (WASM) WIP, not published yet; 
 
 ## Build It
 
@@ -176,11 +178,23 @@ If you want PDF support, compile the PDF module, and add it to your project, or 
 
 ## Ship It
 
+### Linux, Windows
+
 Shipping is easy on Windows and Linux: just export your projects will all dependencies into a .jar file, or download  dependencies on the first start (as I do with FFMPEG and spellchecking).
 To load plugins from your built jar, because your jar won't be scanned at runtime, register them from your main class as internal :).
 
-Shipping to Android is a bit more complicated: download the Android fork as an Android Studio project, and modify it to your needs.
-Libraries can be added just like in IntelliJ IDEA.
+### Android
+
+Shipping to Android is a bit more complicated:
+- download the [Android fork](https://github.com/AntonioNoack/RemsEngine-Android) as an Android Studio project
+- modify it to your needs
+- libraries can be added just like in IntelliJ IDEA
+
+### Web (HTML5, WASM, WebGL)
+
+Shipping to Web hasn't been published yet.<br>
+Contact me to get pre-release access 😊.<br>
+First demo: [Snake Game](https://remsengine.phychi.com/jvm2wasm/snake/) from [tests](test/src/me/anno/tests/game/Snake.kt).
 
 ## Just Try/Use It
 

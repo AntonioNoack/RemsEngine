@@ -250,18 +250,23 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(FFMPEGMetadata::class)
+        @JvmStatic
         private val metadataCache = CacheSection("Metadata")
 
+        @JvmStatic
         private fun createMetadata(file: FileReference, i: Long): FFMPEGMetadata {
             unused(i)
             return FFMPEGMetadata(file)
         }
 
+        @JvmStatic
         fun getMeta(path: String, async: Boolean): FFMPEGMetadata? {
             return getMeta(getReference(path), async)
         }
 
+        @JvmStatic
         fun getMeta(file: FileReference, async: Boolean): FFMPEGMetadata? {
             return metadataCache.getFileEntry(file, false, 300_000, async, Companion::createMetadata) as? FFMPEGMetadata
         }

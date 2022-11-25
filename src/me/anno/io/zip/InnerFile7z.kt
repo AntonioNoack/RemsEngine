@@ -51,6 +51,7 @@ class InnerFile7z(
 
     companion object {
 
+        @JvmStatic
         fun fileFromStream7z(file: FileReference): SevenZFile {
             return if (file is FileFileRef) {
                 SevenZFile(file.file)
@@ -59,6 +60,7 @@ class InnerFile7z(
             }
         }
 
+        @JvmStatic
         fun createZipRegistry7z(
             zipFileLocation: FileReference,
             getStream: () -> SevenZFile
@@ -84,6 +86,7 @@ class InnerFile7z(
             return if (hasReadEntry) file else throw e ?: IOException("Zip was empty")
         }
 
+        @JvmStatic
         fun createEntry7z(
             zis: SevenZFile,
             zipFile: FileReference,

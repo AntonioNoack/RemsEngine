@@ -351,7 +351,7 @@ class AnimGameItem(
     companion object {
 
         const val matrixSize = 12
-        @JvmStatic
+        @JvmField
         val maxBones = if (useAnimTextures) 256 // limited by indices that can be packed into a byte
         else {
             // limited by number of assignable uniform matrices
@@ -361,9 +361,9 @@ class AnimGameItem(
             Maths.clamp(min(maxBonesByComponents, maxBonesByUniforms), 4, 128)
         }
 
-        @JvmStatic
+        @JvmField
         val matrixBuffer: FloatBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
-        @JvmStatic
+        @JvmField
         val tmpMatrices = Array(maxBones) { Matrix4x3f() }
 
         @JvmStatic

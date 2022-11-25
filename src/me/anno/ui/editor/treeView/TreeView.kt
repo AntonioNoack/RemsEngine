@@ -247,6 +247,7 @@ abstract class TreeView<V>(
     }
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(TreeView::class)
     }
 

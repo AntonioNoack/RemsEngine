@@ -163,7 +163,8 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             }
 
             val iLutRes = 16
-            val lutData = ByteArray(iLutRes * 2) { -1 }
+            val lutData = ByteArray(iLutRes * 2)
+            lutData.fill(-1)
 
             // how complex is this LUT? can it be packed into a formula maybe? (needing 1 texture less)
             // no, it can be pretty complex, and we'd need its inverse as well

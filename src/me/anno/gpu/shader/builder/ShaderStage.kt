@@ -50,6 +50,7 @@ class ShaderStage(
     }
 
     companion object {
+        @JvmStatic
         fun extractMain(str: String): String {
             if (str.length < 13) return str
             val idx = str.indexOf("void main()")

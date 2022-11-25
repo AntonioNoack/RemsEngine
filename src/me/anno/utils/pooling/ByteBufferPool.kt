@@ -61,10 +61,13 @@ open class ByteBufferPool(size: Int, timeoutMillis: Long = 5000L) :
         /**
          * memory that was allocated on the c side; is not counted by the JVM
          * */
+        @JvmStatic
         fun getAllocated(): Long = allocated.get()
 
+        @JvmStatic
         private val allocated = AtomicLong(0L)
 
+        @JvmStatic
         fun allocateDirect(size: Int): ByteBuffer {
             val bytes = MemoryUtil.memAlloc(size)
                 .order(ByteOrder.nativeOrder())
@@ -72,24 +75,28 @@ open class ByteBufferPool(size: Int, timeoutMillis: Long = 5000L) :
             return bytes
         }
 
+        @JvmStatic
         fun free(buffer: ByteBuffer?) {
             buffer ?: return
             MemoryUtil.memFree(buffer)
             allocated.addAndGet(-buffer.capacity().toLong())
         }
 
+        @JvmStatic
         fun free(buffer: ShortBuffer?) {
             buffer ?: return
             MemoryUtil.memFree(buffer)
             allocated.addAndGet(-buffer.capacity().toLong() * 2L)
         }
 
+        @JvmStatic
         fun free(buffer: IntBuffer?) {
             buffer ?: return
             MemoryUtil.memFree(buffer)
             allocated.addAndGet(-buffer.capacity().toLong() * 4L)
         }
 
+        @JvmStatic
         fun free(buffer: FloatBuffer?) {
             buffer ?: return
             MemoryUtil.memFree(buffer)

@@ -18,6 +18,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
 
     companion object {
 
+        @JvmStatic
         fun createArray(vertices: Array<Vector2f>, indices: IntArray): Array<Vector2f> {
             return Array(indices.size) {
                 vertices[indices[it]]
@@ -27,6 +28,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
         // to do "move" towards the viewer for large distance, so it stays fullscreen?
         // like a sphere?
         // or add a sphere additionally? (then without our effects)
+        @JvmStatic
         private fun createFlatLarge(): StaticBuffer {
             val step = 10f
             val iList = -10..10
@@ -71,6 +73,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             return buffer
         }
 
+        @JvmField
         val flat01 = SimpleBuffer(
             arrayOf(
                 Vector2f(0f, 0f),
@@ -80,6 +83,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             ), intArrayOf(0, 1, 2, 0, 2, 3), "coords"
         )
 
+        @JvmStatic
         fun splitIndices(numSegments: Int): IntArray {
             val size = (numSegments - 1) * 6
             val idx = IntArray(size)
@@ -96,6 +100,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             return idx
         }
 
+        @JvmStatic
         fun splitVertices(numSegments: Int, y0: Float, y1: Float): FloatArray {
             val size = numSegments * 4
             val idx = FloatArray(size)
@@ -110,38 +115,45 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             return idx
         }
 
+        @JvmField
         val flat11x3 = StaticBuffer(
             splitVertices(3, -1f, +1f),
             splitIndices(3),
             listOf(Attribute("coords", 2))
         )
 
+        @JvmField
         val flat11x6 = StaticBuffer(
             splitVertices(6, -1f, +1f),
             splitIndices(6),
             listOf(Attribute("coords", 2))
         )
 
+        @JvmField
         val flat11x12 = StaticBuffer(
             splitVertices(12, -1f, +1f),
             splitIndices(12),
             listOf(Attribute("coords", 2))
         )
 
+        @JvmField
         val flat11x25 = StaticBuffer(
             splitVertices(25, -1f, +1f),
             splitIndices(25),
             listOf(Attribute("coords", 2))
         )
 
+        @JvmField
         val flat11x50 = StaticBuffer(
             splitVertices(50, -1f, +1f),
             splitIndices(50),
             listOf(Attribute("coords", 2))
         )
 
+        @JvmField
         val flatLarge = createFlatLarge()
 
+        @JvmField
         val flat01Cube = StaticBuffer(
             listOf(
                 listOf(-1f, -1f, 0f, 0f, 0f),
@@ -156,6 +168,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             intArrayOf(0, 1, 2, 0, 2, 3)
         )
 
+        @JvmStatic
         val flat01CubeX10 by lazy {
 
             // create a fine grid
@@ -218,6 +231,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
 
         }
 
+        @JvmField
         val flat11 = SimpleBuffer(
             arrayOf(
                 Vector2f(-1f, -1f),
@@ -227,6 +241,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             ), intArrayOf(0, 1, 2, 0, 2, 3), "coords"
         )
 
+        @JvmStatic
         val circleBuffer by lazy {
             val n = 36 * 4
             // angle, scaling
@@ -246,7 +261,8 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             buffer
         }
 
-        fun destroy() {
+        @JvmStatic
+        fun destroy1() {
             flat01.destroy()
             flat11.destroy()
             flatLarge.destroy()

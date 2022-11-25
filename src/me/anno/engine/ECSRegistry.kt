@@ -65,8 +65,10 @@ import me.anno.utils.LOGGER
 
 object ECSRegistry {
 
+    @JvmField
     var hasBeenInited = false
 
+    @JvmStatic
     fun initMeshes() {
         registerCustomClass(Entity())
         registerCustomClass(Mesh())
@@ -75,6 +77,7 @@ object ECSRegistry {
         registerCustomClass(AnimRenderer())
     }
 
+    @JvmStatic
     fun init() {
 
         if (hasBeenInited) return
@@ -212,6 +215,7 @@ object ECSRegistry {
         }
     }
 
+    @JvmStatic
     fun initWithGFX(w: Int = 512, h: Int = w) {
         HiddenOpenGLContext.createOpenGL(w, h)
         ShaderLib.init()

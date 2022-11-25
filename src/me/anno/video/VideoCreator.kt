@@ -200,12 +200,15 @@ open class VideoCreator(
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(VideoCreator::class)
+        @JvmField
         val defaultQuality = 23
 
         /**
          * render a video from a framebuffer
          * */
+        @JvmStatic
         fun renderVideo(
             w: Int,
             h: Int,
@@ -240,6 +243,7 @@ open class VideoCreator(
         /**
          * render a video from a set of textures
          * */
+        @JvmStatic
         fun renderVideo(
             w: Int,
             h: Int,
@@ -289,6 +293,7 @@ open class VideoCreator(
         /**
          * render a video from a set of textures
          * */
+        @JvmStatic
         fun renderVideo2(
             w: Int,
             h: Int,

@@ -81,7 +81,9 @@ abstract class FrameReader<FrameType>(
     var isDestroyed = false
 
     companion object {
+        @JvmStatic
         private val foundCodecs = HashSet<String>()
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(FrameReader::class.java)
     }
 

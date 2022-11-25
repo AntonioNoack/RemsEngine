@@ -163,7 +163,7 @@ abstract class InnerTmpFile private constructor(
     }
 
     companion object { // only works if extension does not contain dots
-        @JvmStatic
+        @JvmField
         var printTmpFiles = false
         @JvmStatic
         private val LOGGER = LogManager.getLogger(InnerTmpFile::class)

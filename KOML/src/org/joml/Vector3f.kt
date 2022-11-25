@@ -805,23 +805,27 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z)
 
     companion object {
+        @JvmStatic
         fun lengthSquared(x: Float, y: Float, z: Float): Float {
-            return JomlMath.fma(x, x, JomlMath.fma(y, y, z * z))
+            return x * x + y * y + z * z
         }
 
+        @JvmStatic
         fun length(x: Float, y: Float, z: Float): Float {
-            return sqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, z * z)))
+            return sqrt(x * x + y * y + z * z)
         }
 
+        @JvmStatic
         fun distance(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float): Float {
             return sqrt(distanceSquared(x1, y1, z1, x2, y2, z2))
         }
 
+        @JvmStatic
         fun distanceSquared(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float): Float {
             val dx = x1 - x2
             val dy = y1 - y2
             val dz = z1 - z2
-            return JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, dz * dz))
+            return dx * dx + dy * dy + dz * dz
         }
     }
 }

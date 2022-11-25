@@ -333,23 +333,26 @@ open class Vector4i(var x: Int, var y: Int, var z: Int, var w: Int) {
 
     companion object {
 
+        @JvmStatic
         fun lengthSquared(x: Int, y: Int, z: Int, w: Int): Long {
             return x.toLong() * x + y.toLong() * y + z.toLong() * z + w.toLong() * w
         }
 
+        @JvmStatic
         fun length(x: Int, y: Int, z: Int, w: Int): Double {
-            return sqrt((x.toLong() * x + y.toLong() * y + z.toLong() * z + w.toLong() * w).toFloat())
-                .toDouble()
+            return sqrt((x.toLong() * x + y.toLong() * y + z.toLong() * z + w.toLong() * w).toDouble())
         }
 
+        @JvmStatic
         fun distance(x1: Int, y1: Int, z1: Int, w1: Int, x2: Int, y2: Int, z2: Int, w2: Int): Double {
             val dx = x1 - x2
             val dy = y1 - y2
             val dz = z1 - z2
             val dw = w1 - w2
-            return sqrt(lengthSquared(dx, dy, dz, dw).toFloat()).toDouble()
+            return sqrt(lengthSquared(dx, dy, dz, dw).toDouble())
         }
 
+        @JvmStatic
         fun distanceSquared(x1: Int, y1: Int, z1: Int, w1: Int, x2: Int, y2: Int, z2: Int, w2: Int): Long {
             val dx = x1 - x2
             val dy = y1 - y2

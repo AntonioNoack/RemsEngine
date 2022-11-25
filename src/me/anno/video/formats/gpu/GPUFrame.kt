@@ -111,6 +111,7 @@ abstract class GPUFrame(
     }
 
     companion object {
+        @JvmField
         val creationLimiter = Semaphore(32)
     }
 

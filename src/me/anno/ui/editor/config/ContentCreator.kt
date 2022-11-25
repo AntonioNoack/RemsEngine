@@ -25,6 +25,7 @@ class ContentCreator(
 ) {
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(ContentCreator::class)
     }
 

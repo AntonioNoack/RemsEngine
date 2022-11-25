@@ -13,24 +13,28 @@ import java.util.concurrent.TimeUnit
  * */
 object Sleep {
 
+    @JvmStatic
     @Throws(ShutdownException::class)
     fun sleepShortly(canBeKilled: Boolean) {
         if (canBeKilled && shutdown) throw ShutdownException()
         Thread.sleep(0, 100_000)
     }
 
+    @JvmStatic
     @Throws(ShutdownException::class)
     fun sleepABit(canBeKilled: Boolean) {
         if (canBeKilled && shutdown) throw ShutdownException()
         Thread.sleep(1)
     }
 
+    @JvmStatic
     @Throws(ShutdownException::class)
     fun sleepABit10(canBeKilled: Boolean) {
         if (canBeKilled && shutdown) throw ShutdownException()
         Thread.sleep(10)
     }
 
+    @JvmStatic
     @Throws(ShutdownException::class)
     inline fun waitUntil(canBeKilled: Boolean, condition: () -> Boolean) {
         while (!condition()) {
@@ -39,6 +43,7 @@ object Sleep {
         }
     }
 
+    @JvmStatic
     @Throws(ShutdownException::class)
     inline fun waitUntil(canBeKilled: Boolean, limit: Long, key: Any?, condition: () -> Boolean) {
         if (limit < 0) return waitUntil(canBeKilled, condition)
@@ -54,6 +59,7 @@ object Sleep {
     /**
      * returns if you need to keep waiting
      * */
+    @JvmStatic
     @Throws(ShutdownException::class)
     inline fun waitUntil2(canBeKilled: Boolean, limit: Long, condition: () -> Boolean): Boolean {
         val startTime = System.nanoTime()
@@ -66,10 +72,12 @@ object Sleep {
         return false
     }
 
+    @JvmStatic
     fun acquire(canBeKilled: Boolean, semaphore: Semaphore, permits: Int = 1) {
         waitUntil(canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
     }
 
+    @JvmStatic
     @Throws(ShutdownException::class)
     fun waitOnGFXThread(canBeKilled: Boolean, condition: () -> Boolean) {
         // the texture was forced to be loaded -> wait for it
@@ -79,6 +87,7 @@ object Sleep {
         }
     }
 
+    @JvmStatic
     @Throws(ShutdownException::class)
     fun waitForGFXThread(canBeKilled: Boolean, condition: () -> Boolean) {
         // if we are the gfx thread ourselves, we have to fulfil our processing duties
@@ -90,6 +99,7 @@ object Sleep {
         }
     }
 
+    @JvmStatic
     @Throws(ShutdownException::class)
     fun <V> waitForGFXThreadUntilDefined(canBeKilled: Boolean, condition: () -> V?): V {
         // the texture was forced to be loaded -> wait for it
@@ -104,6 +114,7 @@ object Sleep {
         }
     }
 
+    @JvmStatic
     @Throws(ShutdownException::class)
     inline fun <V> waitUntilDefined(canBeKilled: Boolean, getValue: () -> V?): V {
         while (true) {

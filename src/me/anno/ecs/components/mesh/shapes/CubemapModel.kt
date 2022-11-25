@@ -6,10 +6,14 @@ import org.joml.Vector3f
 
 object CubemapModel {
 
+    @JvmStatic
     private val xAxis = Vector3f(1f, 0f, 0f)
+    @JvmStatic
     private val yAxis = Vector3f(0f, 1f, 0f)
+    @JvmStatic
     private val zAxis = Vector3f(0f, 0f, 1f)
 
+    @JvmStatic
     fun StaticBuffer.put(v0: Vector3f, dx: Vector3f, dy: Vector3f, x: Float, y: Float, u: Int, v: Int) {
         put(
             v0.x + dx.x * x + dy.x * y,
@@ -18,6 +22,7 @@ object CubemapModel {
         )
     }
 
+    @JvmStatic
     val cubemapModel = StaticBuffer(
         listOf(
             Attribute("coords", 3),
@@ -53,6 +58,7 @@ object CubemapModel {
 
     }
 
+    @JvmStatic
     val cubemapLineModel = StaticBuffer(
         listOf(
             Attribute("coords", 3),
@@ -95,6 +101,7 @@ object CubemapModel {
 
     }
 
+    @JvmStatic
     fun destroy() {
         cubemapLineModel.destroy()
         cubemapModel.destroy()

@@ -11,6 +11,7 @@ class FFMPEGMetaParser(): StringMap(){
     var debug = false
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(FFMPEGMetaParser::class)
     }
 

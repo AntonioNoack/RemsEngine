@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager
 class PDFPlugin : Plugin() {
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(PDFPlugin::class)
     }
 

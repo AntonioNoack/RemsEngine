@@ -57,27 +57,34 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(FileReference::class)
 
+        @JvmStatic
         private val staticReferences = HashMap<String, FileReference>()
 
+        @JvmStatic
         private val fileCache = CacheSection("Files")
+        @JvmField
         var fileTimeout = 20_000L
 
         /**
          * removes old references
          * needs to be called regularly
          * */
+        @JvmStatic
         fun updateCache() {
             //allReferences.values.removeIf { it.get() == null }
         }
 
+        @JvmStatic
         fun register(ref: FileReference): FileReference {
             if (ref is FileFileRef) return ref
             fileCache.override(ref.absolutePath, CacheData(ref), fileTimeout)
             return ref
         }
 
+        @JvmStatic
         fun registerStatic(ref: FileReference): FileReference {
             staticReferences[ref.absolutePath] = ref
             return ref
@@ -87,6 +94,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
          * this happens rarely, and can be disabled in the shipping game
          * therefore it can be a little expensive
          * */
+        @JvmStatic
         fun invalidate(absolutePath: String) {
             LOGGER.info("Invalidating $absolutePath")
             val path = absolutePath.replace('\\', '/')
@@ -173,6 +181,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             } as? FileReference
         }
 
+        @JvmStatic
         private fun createReference(str: String): FileReference {
 
             // internal resource
@@ -213,11 +222,13 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             return FileFileRef(File(str))
         }
 
+        @JvmStatic
         fun appendPath(parent: String, name: String): String {
             return if (parent.isBlank2()) name
             else "$parent/$name"
         }
 
+        @JvmStatic
         fun appendPath(ref0: FileReference, i: Int, parts: List<String>): FileReference {
             var ref = ref0
             for (j in i until parts.size) {
@@ -227,17 +238,21 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             return ref
         }
 
+        @JvmStatic
         fun appendPath(fileI: File, i: Int, parts: List<String>) =
             appendPath(FileFileRef(fileI), i, parts)
 
+        @JvmStatic
         fun getReference(file: File?): FileReference {
             return getReference(file?.absolutePath?.replace('\\', '/'))
         }
 
+        @JvmStatic
         fun getReference(parent: File, name: String): FileReference {
             return getReference(getReference(parent), name)
         }
 
+        @JvmStatic
         fun getReference(parent: FileReference?, name: String): FileReference {
             var result = parent ?: return InvalidRef
             if ('/' !in name && '\\' !in name) {
@@ -257,6 +272,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             }
         }
 
+        @JvmStatic
         fun createZipFile(file: FileReference, callback: (ZipFile?, Exception?) -> Unit) {
             return if (file is FileFileRef) callback(ZipFile(file.file), null) else {
                 file.readBytes { it, exc ->

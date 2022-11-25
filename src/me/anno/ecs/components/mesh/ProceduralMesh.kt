@@ -80,6 +80,7 @@ abstract class ProceduralMesh : MeshComponentBase() {
          * creates an instance of ProceduralMesh, that uses generate() to generate its mesh;
          * this is meant for testing only
          * */
+        @JvmStatic
         fun createProceduralMesh(generate: (mesh: Mesh) -> Unit): ProceduralMesh {
             return object : ProceduralMesh() {
                 override fun clone() = throw NotImplementedError()
@@ -93,6 +94,7 @@ abstract class ProceduralMesh : MeshComponentBase() {
          * opens a new window, in which the mesh, which is being generated once, will be shown
          * this is meant for testing only
          * */
+        @JvmStatic
         fun testProceduralMesh(generate: (mesh: Mesh) -> Unit) {
             TestStudio.testUI {
                 EditorState.prefabSource = createProceduralMesh(generate).ref

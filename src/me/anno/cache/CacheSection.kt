@@ -458,6 +458,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     companion object {
 
+        @JvmStatic
         private val remover = object : Maps.Remover<Any, CacheEntry>() {
             override fun filter(key: Any, value: CacheEntry): Boolean {
                 return if (gameTime > value.timeoutNanoTime) {
@@ -467,8 +468,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         }
 
+        @JvmStatic
         private val caches = ConcurrentSkipListSet<CacheSection>()
 
+        @JvmStatic
         fun updateAll() {
             for (cache in caches) cache.update()
             LastModifiedCache.update()
@@ -478,11 +481,13 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             SkeletonCache.update()
         }
 
+        @JvmStatic
         fun clearAll() {
             for (cache in caches) cache.clear()
             LastModifiedCache.clear()
         }
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(CacheSection::class)
 
     }

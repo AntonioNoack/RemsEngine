@@ -125,7 +125,7 @@ class Skeleton : PrefabSaveable(), Renderable {
          * a bone mesh like in Blender;
          * each line represents a face
          * */
-        @JvmStatic
+        @JvmField
         val boneMeshVertices = floatArrayOf(
             +s, t, +s, +s, t, -s, 0f, 1f, 0f,
             +s, t, -s, -s, t, -s, 0f, 1f, 0f,

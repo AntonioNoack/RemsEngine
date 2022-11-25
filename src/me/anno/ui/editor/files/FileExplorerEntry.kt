@@ -784,22 +784,35 @@ open class FileExplorerEntry(
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(FileExplorerEntry::class)
 
+        @JvmField
         var videoBufferLength = 64
 
+        @JvmStatic
         private val charHHMMSS = "hh:mm:ss/hh:mm:ss".toCharArray()
+        @JvmStatic
         private val charMMSS = "mm:ss/mm:ss".toCharArray()
 
+        @JvmField
         val folderPath = getReference("res://file/folder.png")
+        @JvmField
         val musicPath = getReference("res://file/music.png")
+        @JvmField
         val textPath = getReference("res://file/text.png")
+        @JvmField
         val imagePath = getReference("res://file/image.png")
+        @JvmField
         val emptyFolderPath = getReference("res://file/empty_folder.png")
+        @JvmField
         val exePath = getReference("res://file/executable.png")
+        @JvmField
         val docsPath = getReference("res://file/document.png")
+        @JvmField
         val zipPath = getReference("res://file/compressed.png")
 
+        @JvmStatic
         val dontDelete
             get() = MenuOption(
                 NameDesc(
@@ -809,6 +822,7 @@ open class FileExplorerEntry(
                 )
             ) {}
 
+        @JvmStatic
         fun deleteFileMaybe(panel: Panel, file: FileReference) {
             val title = NameDesc(
                 "Delete this file? (${file.length().formatFileSize()})",
@@ -847,6 +861,7 @@ open class FileExplorerEntry(
             )
         }
 
+        @JvmStatic
         fun drawLoadingCircle(relativeTime: Float, x0: Int, x1: Int, y0: Int, y1: Int) {
             val r = 1f - sq(relativeTime * 2 - 1)
             val radius = min(y1 - y0, x1 - x0) / 2f
@@ -859,6 +874,7 @@ open class FileExplorerEntry(
             )
         }
 
+        @JvmStatic
         @Suppress("unused")
         fun drawLoadingCircle(stack: Matrix4fArrayList, relativeTime: Float) {
             GFXx3D.draw3DCircle(

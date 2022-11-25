@@ -11,6 +11,7 @@ class SceneNode : CalculationNode("Scene", emptyList(), outputs) {
     }
 
     companion object {
+        @JvmStatic
         private val outputs = listOf("PrefabSaveable", "Scene")
     }
 

@@ -191,7 +191,7 @@ fun createShape(): SDFComponent {
             // dynamicDestination = true
         })*/
         // obj1.dynamicSmoothness = true
-        val obj2 = SDFSphere()
+        // val obj2 = SDFSphere()
         val obj3 = SDFTorus()
         val obj4 = SDFCylinder()
         obj4.smoothness = 0.1f

@@ -20,6 +20,7 @@ abstract class JsonNode {
     open fun getBool(key: String, default: Boolean = false) = getInt(key, if (default) 1 else 0) != 0
 
     companion object {
+        @JvmStatic
         @Suppress("unused")
         fun Any?.toJsonNode(): JsonNode {
             val value = this

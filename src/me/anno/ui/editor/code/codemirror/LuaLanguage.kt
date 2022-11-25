@@ -6,14 +6,17 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : Language {
 
     companion object {
 
+        @JvmStatic
         private fun fullMatch(vararg list: String): Collection<String> {
             return if (list.size < 16) list.toList() else list.toHashSet()
         }
 
+        @JvmStatic
         private fun partialMatch(vararg list: String): (CharSequence) -> Boolean {
             return { tested -> list.any { pattern -> pattern.startsWith(tested) } }
         }
 
+        @JvmStatic
         private val builtIns = fullMatch(
             "_G", "_VERSION",
             "assert", "collectgarbage", "dofile",
@@ -62,16 +65,20 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : Language {
             "table.remove", "table.sort"
         )
 
+        @JvmStatic
         private val keywords = fullMatch(
             "and", "break", "elseif", "false", "nil", "not", "or", "return",
             "true", "function", "end", "if", "then", "else", "do",
             "while", "repeat", "until", "for", "in", "local"
         )
 
+        @JvmStatic
         private val indentTokens = fullMatch("function", "if", "repeat", "do", "\\(", "{")
 
+        @JvmStatic
         private val dedentTokens = fullMatch("end", "until", "\\)", "}")
 
+        @JvmStatic
         private val dedentPartial = partialMatch("end", "until", "\\)", "}", "else", "elseif")
 
     }

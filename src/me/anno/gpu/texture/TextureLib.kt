@@ -89,8 +89,8 @@ object TextureLib {
 
     val invisibleTexture = IndestructibleTexture2D("invisible", 1, 1, ByteArray(4))
     val invisibleTex3d = IndestructibleTexture3D("invisible", 1, 1, 1, ByteArray(4))
-    val whiteTexture = IndestructibleTexture2D("white", 1, 1, IntArray(1) { -1 })
-    val whiteTex3d = IndestructibleTexture3D("white3d", 1, 1, 1, ByteArray(4) { -1 })
+    val whiteTexture = IndestructibleTexture2D("white", 1, 1, intArrayOf(-1))
+    val whiteTex3d = IndestructibleTexture3D("white3d", 1, 1, 1, byteArrayOf(-1, -1, -1, -1))
     val stripeTexture = IndestructibleTexture2D("stripes", 5, 1, IntArray(5) { if (it == 2) -1 else 0xffffff })
     val colorShowTexture =
         IndestructibleTexture2D("color-show", 2, 2, intArrayOf(0xccffffff.toInt(), -1, -1, 0xccffffff.toInt()))

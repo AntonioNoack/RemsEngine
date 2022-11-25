@@ -79,13 +79,17 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(ConsoleOutputPanel::class)
 
+        @JvmStatic
         fun formatFilePath(file: FileReference) = formatFilePath(file.absolutePath)
+        @JvmStatic
         fun formatFilePath(file: String): String {
             return "file://${file.replace(" ", "%20")}"
         }
 
+        @JvmStatic
         fun createConsole(style: Style): ConsoleOutputPanel {
             val console = ConsoleOutputPanel(style.getChild("small"))
             // console.fontName = "Segoe UI"
@@ -93,10 +97,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             return console
         }
 
-        private fun evalGC(runtime: Runtime, oldMemory: Long) {
-
-        }
-
+        @JvmStatic
         fun createConsoleWithStats(bottom: Boolean = true, style: Style): Panel {
 
             val group = PanelStack(style)

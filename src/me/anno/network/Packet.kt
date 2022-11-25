@@ -111,11 +111,13 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
     override val className = "Packet"
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(Packet::class)
 
         /**
          * to debug, which packets are sent, set this value to true
          * */
+        @JvmField
         var debugPackets = false
     }
 

@@ -131,18 +131,24 @@ object Thumbs {
     // todo right click option in file explorer to invalidate a thumbs image
     // todo right click option for images: open large image viewer panel
 
+    @JvmStatic
     private val LOGGER = LogManager.getLogger(Thumbs::class)
 
+    @JvmStatic
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
+    @JvmStatic
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
+    @JvmStatic
     private val neededSizes = IntArray(sizes.last() + 1)
     private const val timeout = 5000L
 
     // todo disable this, when everything works
+    @JvmField
     var useCacheFolder = !Build.isDebug
 
     // png/bmp/jpg?
     private const val destinationFormat = "png"
+    @JvmField
     val sphereMesh = Icosahedron.createUVSphere(30, 30)
 
     init {
@@ -159,6 +165,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun invalidate(file: FileReference?, neededSize: Int) {
         file ?: return
         val size = getSize(neededSize)
@@ -167,6 +174,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun invalidate(file: FileReference?) {
         file ?: return
         ImageGPUCache.remove { key, _ ->
@@ -174,6 +182,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun getThumbnail(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
 
         if (file == InvalidRef) return null
@@ -220,6 +229,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     private fun FileReference.getFileHash(callback: (Long) -> Unit) {
         val hashReadLimit = 4096
         val length = this.length()
@@ -236,12 +246,14 @@ object Thumbs {
         } else callback(baseHash)
     }
 
+    @JvmStatic
     private fun FileReference.getCacheFile(size: Int, callback: (FileReference) -> Unit) {
         getFileHash { hash ->
             callback(createCacheFile(hash, size))
         }
     }
 
+    @JvmStatic
     private fun createCacheFile(hash: Long, size: Int): FileReference {
         val dstFormat = destinationFormat
         val str1 = CharArray(16 + 1 + dstFormat.length) { '0' }
@@ -259,6 +271,7 @@ object Thumbs {
             .getChild(String(str1, 2, str1.size - 2))
     }
 
+    @JvmStatic
     private fun getSize(neededSize: Int): Int {
         if (neededSize < 1) return 0
         return if (neededSize < neededSizes.size) {
@@ -266,6 +279,7 @@ object Thumbs {
         } else sizes.last()
     }
 
+    @JvmStatic
     private fun upload(
         srcFile: FileReference,
         checkRotation: Boolean,
@@ -279,6 +293,7 @@ object Thumbs {
         callback(texture, null)
     }
 
+    @JvmStatic
     fun saveNUpload(
         srcFile: FileReference,
         checkRotation: Boolean,
@@ -293,6 +308,7 @@ object Thumbs {
         upload(srcFile, checkRotation, dst, callback)
     }
 
+    @JvmStatic
     private fun transformNSaveNUpload(
         srcFile: FileReference,
         checkRotation: Boolean,
@@ -322,6 +338,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun renderToImage(
         src: FileReference,
         checkRotation: Boolean,
@@ -347,6 +364,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     private fun renderToImagePart2(
         srcFile: FileReference,
         checkRotation: Boolean,
@@ -408,8 +426,10 @@ object Thumbs {
         }
     }
 
+    @JvmField
     val flipYRot = ImageTransform(mirrorHorizontal = false, mirrorVertical = true, 0)
 
+    @JvmStatic
     fun generateVideoFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -445,6 +465,7 @@ object Thumbs {
 
     }
 
+    @JvmStatic
     fun generateSVGFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -480,6 +501,7 @@ object Thumbs {
     }
 
     // just render it using the simplest shader
+    @JvmStatic
     fun generateAssimpMeshFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -495,6 +517,7 @@ object Thumbs {
         generateSomething(data, srcFile, dstFile, size, callback)
     }
 
+    @JvmStatic
     fun generateVOXMeshFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -509,6 +532,7 @@ object Thumbs {
         generateEntityFrame(srcFile, dstFile, size, data, callback)
     }
 
+    @JvmStatic
     fun generateEntityFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -535,6 +559,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun generateColliderFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -551,6 +576,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun generateMeshFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -573,6 +599,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun generateMeshFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -597,6 +624,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun generateMeshFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -657,10 +685,13 @@ object Thumbs {
         }
     }
 
+    @JvmField
     val matCameraMatrix = createCameraMatrix(1f)
+    @JvmField
     val matModelMatrix = createModelMatrix().scale(0.62f)
 
     // todo if we have preview images, we could use them as cheaper textures
+    @JvmStatic
     fun generateMaterialFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -671,6 +702,7 @@ object Thumbs {
         generateMaterialFrame(srcFile, dstFile, material, size, callback)
     }
 
+    @JvmStatic
     fun generateMaterialFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -698,6 +730,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun split(total: Int): Int {
         // smartly split space
         val maxRatio = 3
@@ -716,6 +749,7 @@ object Thumbs {
         return split(total + 1)
     }
 
+    @JvmStatic
     fun generateMaterialFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -743,6 +777,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun renderMultiWindowImage(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -780,6 +815,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun generateSkeletonFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -807,6 +843,7 @@ object Thumbs {
         generateMeshFrame(srcFile, dstFile, size, mesh, callback)
     }
 
+    @JvmStatic
     fun generateAnimationFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -849,6 +886,7 @@ object Thumbs {
         mesh.destroy()
     }
 
+    @JvmField
     val threadLocalBoneMatrices = ThreadLocal2 {
         val boneCount = 256
         val skinningMatrices = Array(boneCount) { Matrix4x3f() }
@@ -856,6 +894,7 @@ object Thumbs {
         skinningMatrices to animPositions
     }
 
+    @JvmStatic
     fun drawAnimatedSkeleton(
         animation: Animation,
         time: Float,
@@ -890,6 +929,7 @@ object Thumbs {
         mesh.destroy()
     }
 
+    @JvmStatic
     fun generateSomething(
         asset: ISaveable?,
         srcFile: FileReference,
@@ -926,6 +966,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     fun shallReturnIfExists(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -958,6 +999,7 @@ object Thumbs {
         } else callback1(false)
     }
 
+    @JvmStatic
     private fun findScale(
         src: Image,
         srcFile: FileReference,
@@ -981,6 +1023,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     private fun findScale(
         src: Image,
         srcFile: FileReference,
@@ -1008,6 +1051,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     private fun generate(srcFile: FileReference, size: Int, callback: (ITexture2D?, Exception?) -> Unit) {
         if (size < 3) return
         if (useCacheFolder) {
@@ -1023,9 +1067,11 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     private val readerBySignature =
         HashMap<String, (FileReference, Int, FileReference, (ITexture2D?, Exception?) -> Unit) -> Unit>()
 
+    @JvmStatic
     fun register(
         signature: String,
         reader: (srcFile: FileReference, size: Int, dstFile: FileReference, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
@@ -1033,6 +1079,7 @@ object Thumbs {
         readerBySignature[signature] = reader
     }
 
+    @JvmStatic
     fun unregister(signature: String) {
         readerBySignature.remove(signature)
     }
@@ -1070,6 +1117,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     private fun generate(
         srcFile: FileReference,
         size: Int,
@@ -1285,6 +1333,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     private fun generateTextImage(
         srcFile: FileReference,
         size: Int,
@@ -1334,6 +1383,7 @@ object Thumbs {
         }
     }
 
+    @JvmStatic
     private fun generateImage(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -1367,6 +1417,7 @@ object Thumbs {
         } else transformNSaveNUpload(srcFile, true, image!!, dstFile, size, callback)
     }
 
+    @JvmStatic
     private fun generateSystemIcon(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -1398,6 +1449,7 @@ object Thumbs {
         })
     }
 
+    @JvmStatic
     fun testGeneration(
         src: FileReference,
         readAsFolder: InnerFolderReader,

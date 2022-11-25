@@ -19,7 +19,7 @@ import java.util.*
 class Snake : Panel(style) {
 
     // create a simple snake game
-    // personal high score: 16, then it just is way too fast currently xD
+    // personal high score: 22, then it just is way too fast currently xD
 
     // this was coded in ~ 45 minutes currently ^^
 

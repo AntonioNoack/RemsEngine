@@ -7,7 +7,7 @@ import me.anno.language.spellcheck.Suggestion
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.editor.code.CodeEditor.Companion.drawSquiggles
+import me.anno.ui.editor.code.CodeEditor.Companion.drawSquiggles1
 import me.anno.ui.style.Style
 import me.anno.utils.Color.black
 import me.anno.utils.types.Strings.joinChars
@@ -47,7 +47,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
                 val theY = this.y + this.h - padding.bottom - 1
                 // wavy line
                 val color = 0xffff00 or black
-                drawSquiggles(startX, endX, theY, 3, color)
+                drawSquiggles1(startX, endX, theY, 3, color)
                 // DrawRectangles.drawRect(startX, theY, endX - startX, 1, color)
             }
             val window = window

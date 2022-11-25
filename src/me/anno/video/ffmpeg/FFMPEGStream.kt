@@ -30,17 +30,24 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         // could be limited by memory as well...
         // to help to keep the memory and cpu-usage below 100%
         // 5 GB = 50 processes, at 6 cores / 12 threads = 4 ratio
+        @JvmField
         val processLimiter = Semaphore(max(2, numThreads), true)
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
+        @JvmField
         val frameCountByFile = HashMap<FileReference, Int>()
+        @JvmField
         val waitingQueue = ProcessingQueue("WaitingQueue")
 
+        @JvmStatic
         fun getInfo(input: FileReference) = (FFMPEGMeta(null)
             .run(listOf("-i", input.absolutePath)) as FFMPEGMeta).stringData
 
+        @JvmStatic
         fun getSupportedFormats() = (FFMPEGMeta(null)
             .run(listOf("-formats")) as FFMPEGMeta).stringData
 
+        @JvmStatic
         fun getImageSequence(
             input: FileReference, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double
         ): GPUFrameReader {
@@ -49,6 +56,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
         // if we use hardware decoding, we need to use it on the gpu...
+        @JvmStatic
         fun getImageSequence(
             input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double
         ): GPUFrameReader {
@@ -57,6 +65,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             return video
         }
 
+        @JvmStatic
         fun getImageSequenceCPU(
             input: FileReference, w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double
         ): CPUFrameReader {
@@ -65,6 +74,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             return video
         }
 
+        @JvmStatic
         fun getImageSequenceArguments(
             input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double
         ): List<String> {
@@ -88,6 +98,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             return args
         }
 
+        @JvmStatic
         fun getAudioSequence(input: FileReference, startTime: Double, duration: Double, sampleRate: Int) =
             FFMPEGAudio(input, sampleRate, duration).run(
                 listOf(
@@ -108,6 +119,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 )
             ) as FFMPEGAudio
 
+        @JvmStatic
         fun logOutput(prefix: String?, stream: InputStream, warn: Boolean) {
             val reader = stream.bufferedReader()
             thread(name = "LogOutput") {

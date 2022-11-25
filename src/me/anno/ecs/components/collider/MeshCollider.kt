@@ -362,7 +362,9 @@ open class MeshCollider() : Collider() {
     override val className get() = "MeshCollider"
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(MeshCollider::class)
+        @JvmField
         val defaultShape = BoxShape(javax.vecmath.Vector3d(1.0, 1.0, 1.0))
     }
 

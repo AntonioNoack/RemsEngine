@@ -62,11 +62,11 @@ class ComputeShader(
     }
 
     fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
-        Companion.bindTexture(slot, texture, mode)
+        bindTexture1(slot, texture, mode)
     }
 
     fun bindBuffer(slot: Int, buffer: ComputeBuffer) {
-        Companion.bindBuffer(slot, buffer)
+        bindBuffer1(slot, buffer)
     }
 
     /**
@@ -77,13 +77,15 @@ class ComputeShader(
     }
 
     fun bindTexture(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {
-        Companion.bindTexture(slot, texture, mode)
+        bindTexture1(slot, texture, mode)
     }
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(ComputeShader::class)
 
+        @JvmStatic
         val stats by lazy {
             val tmp = IntArray(1)
             glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, tmp)
@@ -101,10 +103,12 @@ class ComputeShader(
 
         // texture type could be derived from the shader and texture -> verify it?
         // todo can we dynamically create shaders for the cases that we need? probably best :)
-        fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
+        @JvmStatic
+        fun bindTexture1(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
             glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
         }
 
+        @JvmStatic
         fun findFormat(format: Int) = when (format) {
             GL_RGBA32F, GL_RGBA16F, GL_RG32F, GL_RG16F,
             GL_R11F_G11F_B10F, GL_R32F, GL_R16F,
@@ -121,7 +125,8 @@ class ComputeShader(
             else -> throw IllegalArgumentException("Format ${GFX.getName(format)} is not supported in Compute shaders (glBindImageTexture), use a sampler!")
         }
 
-        fun bindBuffer(slot: Int, buffer: ComputeBuffer) {
+        @JvmStatic
+        fun bindBuffer1(slot: Int, buffer: ComputeBuffer) {
             buffer.ensureBuffer()
             glBindBufferBase(buffer.type, slot, buffer.pointer)
         }
@@ -129,11 +134,13 @@ class ComputeShader(
         /**
          * for array textures to bind a single layer
          * */
-        fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, layer: Int) {
+        @JvmStatic
+        fun bindTexture1(slot: Int, texture: Texture2D, mode: ComputeTextureMode, layer: Int) {
             glBindImageTexture(slot, texture.pointer, 0, false, layer, mode.code, findFormat(texture.internalFormat))
         }
 
-        fun bindTexture(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {
+        @JvmStatic
+        fun bindTexture1(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {
             glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
         }
 

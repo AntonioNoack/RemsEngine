@@ -139,6 +139,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(TGAImage::class)
 
         private const val NO_IMAGE = 0
@@ -149,6 +150,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
         private const val TRUE_COLOR_RLE = 10
         private const val GRAYSCALE_RLE = 11
 
+        @JvmStatic
         fun findSize(input: InputStream): Pair<Int, Int> {
             input.skipN(12)
             val width = input.readLE16()
@@ -166,6 +168,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
          * image, either as a R8, a RGB888 or RGBA8888
          * @throws IOException if an I/O error occurs
          */
+        @JvmStatic
         fun read(input: InputStream, flip: Boolean): TGAImage {
 
             var flipY = flip
@@ -284,6 +287,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             return image
         }
 
+        @JvmStatic
         private fun readColorMapped(
             pixelDepth: Int,
             width: Int,
@@ -343,6 +347,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             return if (dl == 4) 4 else 3
         }
 
+        @JvmStatic
         private fun readTrueColor(
             pixelDepth: Int,
             width: Int,
@@ -388,6 +393,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             }
         }
 
+        @JvmStatic
         private fun readGrayscale(
             pixelDepth: Int,
             width: Int,
@@ -410,6 +416,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             return pixelDepth / 8
         }
 
+        @JvmStatic
         private fun readTrueColorRLE(
             pixelDepth: Int,
             width: Int,
@@ -546,6 +553,7 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             return format
         }
 
+        @JvmStatic
         private fun bitsToByte(data: ByteArray, offset: Int, length: Int): Int {
             var offsetBytes = offset shr 3
             var indexBits = offset and 7
@@ -570,10 +578,12 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             return rVal
         }
 
+        @JvmStatic
         private fun bgra(b: Int, g: Int, r: Int, a: Int): Int {
             return (r and 255 shl 16) or (g and 255 shl 8) or (b and 255) or (a and 255 shl 24)
         }
 
+        @JvmStatic
         private fun bgr(b: Int, g: Int, r: Int): Int {
             return (r and 255) shl 16 or (g and 255 shl 8) or (b and 255) or (255 shl 24)
         }

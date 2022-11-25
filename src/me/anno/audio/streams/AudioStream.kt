@@ -17,15 +17,19 @@ abstract class AudioStream(
 
     companion object {
 
+        @JvmField
         val taskQueue = ProcessingGroup("AudioStream", 0.5f)
 
+        @JvmField
         val bufferPool = ByteBufferPool(32)
 
+        @JvmStatic
         fun getIndex(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
             val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
             return progressedSamples.floorDiv(bufferSize.toLong())
         }
 
+        @JvmStatic
         fun getFraction(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
             val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
             val bs = bufferSize.toLong()

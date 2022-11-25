@@ -72,6 +72,7 @@ class InnerRarFile(
 
     companion object {
 
+        @JvmStatic
         fun fileFromStreamRar(file: FileReference): Archive {
             return if (file is FileFileRef) {
                 Archive(file.file)
@@ -87,6 +88,7 @@ class InnerRarFile(
             }
         }
 
+        @JvmStatic
         fun createZipRegistryRar(
             zipFileLocation: FileReference,
             getStream: () -> Archive
@@ -116,6 +118,7 @@ class InnerRarFile(
             return if (hasReadEntry) file else throw e ?: IOException("Zip was empty")
         }
 
+        @JvmStatic
         private fun createEntryRar(
             zipFileLocation: String,
             archive: Archive,
@@ -152,6 +155,7 @@ class InnerRarFile(
             return file
         }
 
+        @JvmStatic
         private fun createFolderEntryRar(
             zipFileLocation: String,
             entry: String,

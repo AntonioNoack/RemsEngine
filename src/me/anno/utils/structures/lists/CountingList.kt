@@ -81,12 +81,18 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
     override fun toString() = internal.toString()
 
     companion object {
+        @JvmStatic
         private val notSupported get() = RuntimeException("Operation not supported, because of laziness ;)")
         private const val countedCharacters = "+-/*^!()[]"
+        @JvmStatic
         private val minCounted = countedCharacters.minOrNull()!!.code
+        @JvmStatic
         private val maxCountedChar = countedCharacters.maxOrNull()!!
+        @JvmStatic
         private val maxCounted = countedCharacters.maxOrNull()!!.code
+        @JvmStatic
         private val isCounted = BooleanArray(maxCounted + 1 - minCounted)
+        @JvmStatic
         fun Any.isCounted() = this is Char && this.code < maxCountedChar.code
         init {
             countedCharacters.forEach {

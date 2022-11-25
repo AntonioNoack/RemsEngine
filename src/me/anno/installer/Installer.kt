@@ -18,6 +18,7 @@ import kotlin.concurrent.thread
 
 object Installer {
 
+    @JvmStatic
     private val LOGGER = LogManager.getLogger(Installer::class)
 
     // on startup check if ffmpeg can be found
@@ -30,6 +31,7 @@ object Installer {
     // put it into ~/.AntonioNoack/RemsStudio?
 
     // all files need to be checked every time
+    @JvmStatic
     fun checkInstall() {
         if (!FFMPEG.isInstalled && OS.isWindows) {
             downloadMaybe("ffmpeg/bin/ffmpeg.exe", ffmpegPath)
@@ -37,14 +39,17 @@ object Installer {
         }
     }
 
+    @JvmStatic
     fun downloadMaybe(src: String, dst: FileReference) {
         if (!dst.exists) download(src, dst) {}
         else LOGGER.info("$src already is downloaded :)")
     }
 
+    @JvmStatic
     fun download(fileName: String, dstFile: FileReference, callback: () -> Unit) =
         download(fileName, dstFile, true, callback)
 
+    @JvmStatic
     fun download(fileName: String, dstFile: FileReference, withHttps: Boolean = true, callback: () -> Unit) {
         // change "files" to "files.phychi.com"?
         // create a temporary file, and rename, so we know that we finished the download :)
@@ -95,6 +100,7 @@ object Installer {
         }
     }
 
+    @JvmStatic
     fun uninstall() {
 
         // to do show a window

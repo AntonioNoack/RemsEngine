@@ -8,11 +8,13 @@ import kotlin.concurrent.thread
 
 object FileExplorerSelectWrapper {
 
+    @JvmStatic
     private fun notAvailable(e: Throwable): Nothing? {
         LOGGER.info("JavaFX is not available, ${e.message}")
         return null
     }
 
+    @JvmStatic
     private fun getMethod(name: String): Method? {
         return try {
             val clazz = javaClass.classLoader.loadClass("me.anno.utils.FileExplorerSelect")
@@ -31,18 +33,23 @@ object FileExplorerSelectWrapper {
     }
 
     // private val fileOrFolder by lazy { getMethod("selectFileOrFolder") }
+    @JvmStatic
     private val file by lazy { getMethod("selectFile") }
+    @JvmStatic
     private val folder by lazy { getMethod("selectFolder") }
 
+    @JvmStatic
     fun selectFile(lastFile: File?, callback: (File?) -> Unit) {
         selectFileOrFolder(lastFile, false, callback)
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun selectFolder(lastFile: File?, callback: (File?) -> Unit) {
         selectFileOrFolder(lastFile, true, callback)
     }
 
+    @JvmStatic
     fun selectFileOrFolder(lastFile: File?, isDirectory: Boolean, callback: (File?) -> Unit) {
         thread(name = "Select File/Folder") {
             val method = if (isDirectory) folder else file
@@ -65,6 +72,7 @@ object FileExplorerSelectWrapper {
         }
     }
 
+    @JvmStatic
     private val LOGGER = LogManager.getLogger(FileExplorerSelectWrapper::class)
 
 }

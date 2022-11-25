@@ -196,6 +196,7 @@ class Style(val prefix: String?, val suffix: String?) {
     }
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(Style::class.java)
     }
 

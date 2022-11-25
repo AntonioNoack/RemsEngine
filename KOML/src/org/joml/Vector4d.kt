@@ -1096,14 +1096,17 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
 
     companion object {
 
+        @JvmStatic
         fun lengthSquared(x: Double, y: Double, z: Double, w: Double): Double {
             return x * x + y * y + z * z + w * w
         }
 
+        @JvmStatic
         fun length(x: Double, y: Double, z: Double, w: Double): Double {
             return sqrt(x * x + y * y + z * z + w * w)
         }
 
+        @JvmStatic
         fun distance(
             x1: Double, y1: Double, z1: Double, w1: Double,
             x2: Double, y2: Double, z2: Double, w2: Double
@@ -1115,6 +1118,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
             return length(dx, dy, dz, dw)
         }
 
+        @JvmStatic
         fun distanceSquared(
             x1: Double, y1: Double, z1: Double, w1: Double,
             x2: Double, y2: Double, z2: Double, w2: Double

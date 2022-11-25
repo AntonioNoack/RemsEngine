@@ -5,9 +5,12 @@ import kotlin.concurrent.thread
 
 object HeavyIterator {
 
+    @JvmStatic
     private val lockedFiles = HashSet<FileReference>()
+    @JvmStatic
     private val waitingRequests = HashMap<FileReference, ArrayList<IHeavyIterable<*, *, *>>>()
 
+    @JvmStatic
     fun <Item, Stream : Iterator<Item>, Processable> iterate(
         source: FileReference,
         iterable: IHeavyIterable<Item, Stream, Processable>
@@ -46,6 +49,7 @@ object HeavyIterator {
         }
     }
 
+    @JvmStatic
     private fun <Item, Stream : Iterator<Item>, Processable> process(
         source: FileReference, listOfAll: List<IHeavyIterable<Item, Stream, Processable>>
     ) {

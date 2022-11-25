@@ -16,7 +16,9 @@ class ConfigGetIntNode(val config: StringMap = DefaultConfig) :
     override val className = "ConfigGetIntNode"
 
     companion object {
+        @JvmStatic
         private val input = listOf("String", "Name", "Int", "Default")
+        @JvmStatic
         private val output = listOf("Int", "Value")
     }
 }

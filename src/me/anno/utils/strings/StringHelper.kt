@@ -5,6 +5,7 @@ import kotlin.math.abs
 
 object StringHelper {
 
+    @JvmStatic
     fun String.titlecase(): String {
         if (isEmpty()) return this
         return if (first().isLowerCase()) {
@@ -12,16 +13,19 @@ object StringHelper {
         } else this
     }
 
+    @JvmStatic
     fun String.indexOf2(query: Char, index: Int = 0): Int {
         val i = indexOf(query, index)
         return if (i < 0) length else i
     }
 
+    @JvmStatic
     fun String.indexOf2(query: String, index: Int = 0): Int {
         val i = indexOf(query, index)
         return if (i < 0) length else i
     }
 
+    @JvmStatic
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
     fun String.splitCamelCase(titlecase: Boolean = false): String {
         return replace('_', ' ') // snake case replacements
@@ -32,6 +36,7 @@ object StringHelper {
             .replace("  ", " ")
     }
 
+    @JvmStatic
     private fun String.splitCamelCaseI(titlecase: Boolean): String {
         if (isEmpty()) return this
         val builder = StringBuilder(length + 4)
@@ -46,12 +51,15 @@ object StringHelper {
         return builder.toString()
     }
 
+    @JvmStatic
     fun String.camelCaseToTitle() =
         splitCamelCase(true)
 
+    @JvmStatic
     fun String.upperSnakeCaseToTitle() =
         lowercase().split('_').joinToString(" ") { it.titlecase() }
 
+    @JvmStatic
     fun setNumber(pos: Int, num: Int, dst: CharArray) {
         if (num in 0..99) {
             dst[pos] = (num / 10 + 48).toChar()
@@ -62,12 +70,14 @@ object StringHelper {
         }
     }
 
+    @JvmStatic
     fun CharSequence.shorten(maxLength: Int, cutLines: Boolean = true): CharSequence {
         val str = if (length > maxLength) substring(0, maxLength - 3) + "..." else this
         if (cutLines && '\n' in this) return str.toString().replace("\n", "\\n")
         return str
     }
 
+    @JvmStatic
     fun String.shorten2Way(maxLength: Int, cutLines: Boolean = true): String {
         val halfLength = maxLength / 2
         var str = if (length > maxLength) substring(0, halfLength - 2) + "..." + substring(1 + length - halfLength)
@@ -76,6 +86,7 @@ object StringHelper {
         return str
     }
 
+    @JvmStatic
     fun String.levenshtein(other: String, ignoreCase: Boolean) =
         distance(other, ignoreCase)
 
@@ -86,6 +97,7 @@ object StringHelper {
      * operations: change character, add character, remove character
      * distance >= abs(|this|-|other|)
      * */
+    @JvmStatic
     fun String.distance(other: String, ignoreCase: Boolean = false): Int {
         if (this == other) return 0
         val m = this.length

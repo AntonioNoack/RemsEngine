@@ -37,18 +37,22 @@ object Renderers {
     // reinhard tonemapping works often, but not always: {0,1}³ does not work, add spilling somehow
     // also maybe it should be customizable...
 
+    @JvmField
     var tonemapGLSL = "" +
             "vec3 tonemap(vec3 color){ return color / (1.0 + max(max(color.r, color.g), max(color.b, 0.0))); }\n" +
             "vec4 tonemap(vec4 color){ return vec4(tonemap(color.rgb), color.a); }\n"
 
+    @JvmField
     var tonemapKt = { color: Vector3f ->
         color.div(1f + max(max(color.x, color.y), max(color.z, 0f)))
     }
 
+    @JvmField
     var tonemapInvKt = { color: Vector3f ->
         color.div(1f - max(max(color.x, color.y), max(color.z, 0f)))
     }
 
+    @JvmStatic
     fun tonemapKt(color: Vector4f): Vector4f {
         val tmp = JomlPools.vec3f.create()
         tmp.set(color.x, color.y, color.z)
@@ -58,6 +62,7 @@ object Renderers {
         return color
     }
 
+    @JvmStatic
     fun tonemapInvKt(color: Vector4f): Vector4f {
         val tmp = JomlPools.vec3f.create()
         tmp.set(color.x, color.y, color.z)
@@ -66,7 +71,7 @@ object Renderers {
         JomlPools.vec3f.sub(1)
         return color
     }
-
+    @JvmField
     val overdrawRenderer = SimpleRenderer(
         "overdraw", ShaderStage(
             "overdraw", listOf(Variable(GLSLType.V4F, "finalOverdraw", VariableMode.OUT)),
@@ -75,8 +80,10 @@ object Renderers {
     )
 
     // same functionality :D
+    @JvmField
     val cheapRenderer = overdrawRenderer
 
+    @JvmField
     val pbrRenderer = object : Renderer("pbr") {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage("pbr", listOf(
@@ -189,6 +196,7 @@ object Renderers {
         }
     }
 
+    @JvmField
     val frontBackRenderer = SimpleRenderer(
         "front-back", ShaderStage(
             "front-back", listOf(
@@ -201,6 +209,7 @@ object Renderers {
     )
 
     // pbr rendering with a few fake lights (which have no falloff)
+    @JvmField
     val previewRenderer = object : Renderer("preview") {
 
         val previewLights = listOf(
@@ -288,6 +297,7 @@ object Renderers {
         }
     }
 
+    @JvmField
     val simpleNormalRenderer = object : Renderer("simple-color") {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
@@ -304,6 +314,7 @@ object Renderers {
         }
     }
 
+    @JvmField
     val attributeRenderers = LazyMap({ type: DeferredLayerType ->
         val variables = listOf(
             Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, VariableMode.IN),
@@ -333,6 +344,7 @@ object Renderers {
         SimpleRenderer(name, stage)
     }, DeferredLayerType.values.size)
 
+    @JvmField
     val rawAttributeRenderers = LazyMap({ type: DeferredLayerType ->
         val variables = listOf(
             Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, VariableMode.IN),
@@ -353,6 +365,7 @@ object Renderers {
         SimpleRenderer(name, stage)
     }, DeferredLayerType.values.size)
 
+    @JvmField
     val attributeEffects: Map<Pair<DeferredLayerType, DeferredSettingsV2>, CameraEffect?> =
         LazyMap({ (type, settings) ->
             val layer = settings.findLayer(type)
@@ -398,7 +411,9 @@ object Renderers {
             } else null
         }, DeferredLayerType.values.size)
 
-    val MAX_PLANAR_LIGHTS = 8
-    val MAX_CUBEMAP_LIGHTS = 8
+    @JvmField
+    var MAX_PLANAR_LIGHTS = 8
+    @JvmField
+    var MAX_CUBEMAP_LIGHTS = 8
 
 }

@@ -41,6 +41,7 @@ open class StaticMeshesLoader {
                 // aiProcess_FixInfacingNormals or // is recommended, may be incorrect... is incorrect for the Sponza sample from Intel
                 aiProcess_GlobalScale
 
+        @JvmStatic
         fun shininessToRoughness(shininessExponent: Float): Float {
             // an approximation, which maps the exponent to roughness;
             // just roughly...
@@ -325,7 +326,11 @@ open class StaticMeshesLoader {
         return prefab
     }
 
-    private val pMax = IntArray(1) { 1 }
+    private val pMax = IntArray(1)
+    init {
+        pMax[0] = 1
+    }
+
     fun getFloat(aiMaterial: AIMaterial, key: String): Float {
         val a = FloatArray(1)
         aiGetMaterialFloatArray(aiMaterial, key, aiTextureType_NONE, 0, a, pMax)

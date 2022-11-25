@@ -217,7 +217,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     }
 
     @Suppress("unused")
-   fun invalidateCacheForTests() {
+    fun invalidateCacheForTests() {
         uniformLocations.clear()
         uniformCache.fill(Float.NaN)
     }
@@ -692,7 +692,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     }
 
     fun m4x3(name: String, value: Matrix4x3f?) = m4x3(getUniformLocation(name), value)
-    fun m4x3(loc: Int, value: Matrix4x3f? = identity4x3) {
+    fun m4x3(loc: Int, value: Matrix4x3f? = null) {
         if (loc > -1) {
             potentiallyUse()
             matrixBuffer.position(0).limit(12)
@@ -709,8 +709,8 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
     }
 
-    fun m4x4(name: String, value: Matrix4f? = identity4) = m4x4(getUniformLocation(name), value)
-    fun m4x4(loc: Int, value: Matrix4f? = identity4) {
+    fun m4x4(name: String, value: Matrix4f? = null) = m4x4(getUniformLocation(name), value)
+    fun m4x4(loc: Int, value: Matrix4f? = null) {
         if (loc > -1) {
             potentiallyUse()
             matrixBuffer.position(0).limit(16)

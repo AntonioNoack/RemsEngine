@@ -13,6 +13,7 @@ enum class AxisAlignment(val id: Int, val xName: String, val yName: String){
     };
     abstract fun getOffset(parentW: Int, minW: Int): Int
     companion object {
+        @JvmStatic
         fun find(id: Int) = values().firstOrNull { it.id == id }
     }
 }

@@ -265,7 +265,7 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
 
         // element buffer is stored in VAO -> cannot cache it here
         // (at least https://www.khronos.org/opengl/wiki/Vertex_Specification says so)
-        var boundBuffers = IntArray(1) { 0 }
+        var boundBuffers = IntArray(1)
         fun bindBuffer(slot: Int, buffer: Int, force: Boolean = false) {
             val index = slot - GL_ARRAY_BUFFER
             if (alwaysBindBuffer || index !in boundBuffers.indices) {

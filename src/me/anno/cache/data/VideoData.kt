@@ -39,6 +39,7 @@ class VideoData(
     }
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(VideoData::class)
 
         // crashes once were common
@@ -52,6 +53,7 @@ class VideoData(
         // * 128 = 200 MB
         // this is less efficient for large amounts of videos,
         // but it's better for fast loading of video, because the encoder is already loaded etc...
+        @JvmStatic
         val framesPerContainer get() = StudioBase.instance!!.gfxSettings.getInt("video.frames.perContainer")
     }
 

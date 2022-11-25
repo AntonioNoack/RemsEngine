@@ -632,9 +632,12 @@ open class FileExplorer(
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(FileExplorer::class)
+        @JvmStatic
         private val forbiddenConfig =
             DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32) { it.toChar() })
+        @JvmField
         val forbiddenCharacters = forbiddenConfig.toHashSet()
 
         @JvmStatic
@@ -650,6 +653,7 @@ open class FileExplorer(
             }
         }
 
+        @JvmStatic
         fun invalidateFileExplorers(panel: Panel) {
             for (window in panel.windowStack) {
                 window.panel.forAll {
@@ -660,24 +664,28 @@ open class FileExplorer(
             }
         }
 
+        @JvmField
         val openInExplorerDesc = NameDesc(
             "Open In Explorer",
             "Show the file in your default file explorer",
             "ui.file.openInExplorer"
         )
 
+        @JvmField
         val openInStandardProgramDesc = NameDesc(
             "Show In Standard Program",
             "Open the file using your default viewer",
             "ui.file.openInStandardProgram"
         )
 
+        @JvmField
         val editInStandardProgramDesc = NameDesc(
             "Edit In Standard Program",
             "Edit the file using your default editor",
             "ui.file.editInStandardProgram"
         )
 
+        @JvmField
         val copyPathDesc = NameDesc(
             "Copy Path",
             "Copy the path of the file to clipboard",

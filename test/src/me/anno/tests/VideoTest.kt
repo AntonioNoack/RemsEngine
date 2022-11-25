@@ -53,7 +53,7 @@ fun main() {
         return stack
     }
 
-    val fb = Framebuffer("test", w, h, 8, 1, false, DepthBufferType.NONE)
+    // val fb = Framebuffer("test", w, h, 8, 1, false, DepthBufferType.NONE)
     val vc = VideoCreator(w, h, fps, numFrames, FFMPEGEncodingBalance.M0, FFMPEGEncodingType.DEFAULT, 25, dst)
     val vbt = object : VideoBackgroundTask(vc) {
         override fun getMotionBlurSteps(time: Double): Int = 10

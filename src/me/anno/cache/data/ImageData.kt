@@ -35,10 +35,13 @@ class ImageData(file: FileReference) : ICacheData {
 
     companion object {
 
+        @JvmStatic
         val imageTimeout get() = DefaultConfig["ui.image.frameTimeout", 5000L]
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(ImageData::class)
 
+        @JvmStatic
         fun getRotation(src: FileReference): ImageTransform? {
             if (src == InvalidRef || src.isDirectory) return null
             // which files can contain exif metadata?
@@ -47,6 +50,7 @@ class ImageData(file: FileReference) : ICacheData {
             return findRotation(src)
         }
 
+        @JvmStatic
         fun frameToFramebuffer(frame: GPUFrame, w: Int, h: Int, result: ImageData?): Framebuffer {
             val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, DepthBufferType.NONE)
             result?.framebuffer = framebuffer

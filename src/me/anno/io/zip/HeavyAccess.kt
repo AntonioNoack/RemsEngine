@@ -5,9 +5,12 @@ import kotlin.concurrent.thread
 
 object HeavyAccess {
 
+    @JvmStatic
     private val lockedFiles = HashSet<FileReference>()
+    @JvmStatic
     private val waitingRequests = HashMap<FileReference, ArrayList<IHeavyAccess<*>>>()
 
+    @JvmStatic
     fun <Stream> access(
         source: FileReference,
         access: IHeavyAccess<Stream>,
@@ -43,6 +46,7 @@ object HeavyAccess {
         }
     }
 
+    @JvmStatic
     private fun <Stream> process(
         source: FileReference,
         listOfAll: List<IHeavyAccess<Stream>>,

@@ -42,12 +42,15 @@ class NameDesc(
 
     companion object {
 
+        @JvmStatic
         fun translate(name: String, dictPath: String) = translateName(name, dictPath)
 
+        @JvmStatic
         fun translateName(name: String, dictPath: String): String {
             return Dict[name, dictPath]
         }
 
+        @JvmStatic
         @Suppress("unused")
         fun translateDescription(desc: String, dictPath: String): String {
             return Dict[desc, "$dictPath.desc"]

@@ -67,17 +67,26 @@ import kotlin.math.max
  */
 object GFXBase {
 
+    @JvmStatic
     private val LOGGER = getLogger(GFXBase::class)
+    @JvmStatic
     private val windows get() = GFX.windows
 
+    @JvmStatic
     private var debugMsgCallback: Callback? = null
+    @JvmStatic
     private var errorCallback: GLFWErrorCallback? = null
 
+    @JvmField
     val glfwLock = Any()
+    @JvmField
     val openglLock = Any()
+    @JvmField
     var destroyed = false
 
+    @JvmField
     var capabilities: GLCapabilities? = null
+    @JvmField
     val robot = try {
         Robot()
     } catch (e: AWTException) {
@@ -87,11 +96,14 @@ object GFXBase {
 
     /** must be executed before OpenGL-init;
      * must be disabled for Nvidia Nsight */
+    @JvmStatic
     private var disableRenderDoc = false
+    @JvmStatic
     fun disableRenderDoc() {
         disableRenderDoc = true
     }
 
+    @JvmStatic
     fun loadRenderDoc() {
         val enabled = DefaultConfig["debug.renderdoc.enabled", isDebug]
         if (enabled && !disableRenderDoc) {
@@ -99,6 +111,7 @@ object GFXBase {
         }
     }
 
+    @JvmStatic
     fun forceLoadRenderDoc(renderDocPath: String? = null) {
         if (OS.isWeb) return // not supported
         val path = renderDocPath ?: DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
@@ -115,6 +128,7 @@ object GFXBase {
         }
     }
 
+    @JvmStatic
     fun run() {
         try {
 
@@ -151,6 +165,7 @@ object GFXBase {
         }
     }
 
+    @JvmStatic
     fun initLWJGL(): Clock {
         if (!OS.isWeb) LOGGER.info("Using LWJGL Version " + Version.getVersion())
         val tick = Clock()
@@ -170,11 +185,13 @@ object GFXBase {
         return tick
     }
 
+    @JvmStatic
     fun addCallbacks(window: OSWindow) {
         window.addCallbacks()
         Input.initForGLFW(window)
     }
 
+    @JvmStatic
     fun createWindow(title: String, panel: Panel): OSWindow {
         val window = OSWindow(title)
         createWindow(window, null)
@@ -182,6 +199,7 @@ object GFXBase {
         return window
     }
 
+    @JvmStatic
     fun createWindow(instance: OSWindow, tick: Clock?): OSWindow {
         synchronized(glfwLock) {
             val width = instance.width
@@ -230,8 +248,10 @@ object GFXBase {
         return instance
     }
 
+    @JvmStatic
     private var neverStarveWindows = DefaultConfig["ux.neverStarveWindows", false]
 
+    @JvmStatic
     fun prepareForRendering(tick: Clock?) {
         capabilities = GL.createCapabilities()
         tick?.stop("OpenGL initialization")
@@ -246,7 +266,9 @@ object GFXBase {
         checkIsGFXThread()
     }
 
+    @JvmField
     var lastCurrent = 0L
+    @JvmStatic
     fun runRenderLoop0(window0: OSWindow) {
         LOGGER.info("Running RenderLoop")
         val tick = Clock()
@@ -282,6 +304,7 @@ object GFXBase {
         init2(tick)
     }
 
+    @JvmStatic
     fun init2(tick: Clock?) {
         GFX.setup(tick)
         GFX.check()
@@ -290,6 +313,7 @@ object GFXBase {
         tick?.stop("Game Init")
     }
 
+    @JvmStatic
     fun runRenderLoop() {
         lastTime = System.nanoTime()
         while (!destroyed && !shutdown) {
@@ -299,6 +323,7 @@ object GFXBase {
         StudioBase.instance?.onShutdown()
     }
 
+    @JvmStatic
     fun runLoops(window0: OSWindow) {
 
         Thread.currentThread().name = "GLFW"
@@ -315,7 +340,9 @@ object GFXBase {
 
     }
 
+    @JvmField
     var lastTime = System.nanoTime()
+    @JvmStatic
     fun renderFrame() {
 
         val time = Engine.nanoTime
@@ -373,7 +400,9 @@ object GFXBase {
         }
     }
 
+    @JvmField
     var lastTrapWindow: OSWindow? = null
+    @JvmStatic
     fun updateWindows() {
         for (index in 0 until windows.size) {
             val window = windows[index]
@@ -457,6 +486,7 @@ object GFXBase {
 
     }
 
+    @JvmStatic
     fun setIcon(window: Long) {
         val src = getReference(BundledRef.prefix + "icon.png")
         val srcImage = ImageCPUCache[src, false]
@@ -465,6 +495,7 @@ object GFXBase {
         }
     }
 
+    @JvmStatic
     fun setIcon(window: Long, srcImage: Image) {
 
         val image = GLFWImage.malloc()
@@ -490,6 +521,7 @@ object GFXBase {
 
     }
 
+    @JvmStatic
     fun close(window: OSWindow) {
         synchronized(glfwLock) {
             if (window.pointer != 0L) {
@@ -502,5 +534,4 @@ object GFXBase {
             }
         }
     }
-
 }

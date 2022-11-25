@@ -27,6 +27,7 @@ import kotlin.math.roundToInt
 class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
 
     companion object {
+        @JvmField
         val dxShader = Shader(
             "dx", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
@@ -37,6 +38,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
                     "   gl_FragColor = texture(src, uv+delta) - texture(src, uv-delta);\n" +
                     "}"
         )
+        @JvmField
         val absDiffShader = Shader(
             "abs", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
@@ -44,6 +46,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
                 Variable(GLSLType.S2D, "b")
             ), "void main(){ gl_FragColor = abs(texture(a,uv)-texture(b,uv)); }"
         ).apply { setTextureIndices("a", "b") }
+        @JvmField
         val linearShader = Shader(
             "m*x+n", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
@@ -55,6 +58,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
                     "   gl_FragColor = vec4(mn.x*col.xyz+mn.y, col.w);\n" +
                     "}"
         )
+        @JvmField
         val sumShader = Shader(
             "abs", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
@@ -63,6 +67,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
                 Variable(GLSLType.S2D, "c")
             ), "void main(){ gl_FragColor = texture(a,uv)+texture(b,uv)+texture(c,uv); }"
         ).apply { setTextureIndices("a", "b", "c") }
+        @JvmField
         val iterationShader = Shader(
             "abs", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
@@ -94,6 +99,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
                     "   gl_FragColor = vec4(clamp(t0,0.0,1.0),a0.a);\n" +
                     "}"
         ).apply { setTextureIndices("src", "dx", "dy", "blurred") }
+        @JvmField
         val unsignedBlur = Shader(
             "signed-blur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
@@ -117,6 +123,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
                     "   gl_FragColor = vec4(color, 1.0);\n" +
                     "}"
         )
+        @JvmField
         val signedBlur = Shader(
             "signed-blur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(

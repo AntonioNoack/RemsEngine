@@ -63,7 +63,9 @@ class DeferredSettingsV2(
     init {
 
         val maxTextures = layerTypes.size
-        val spaceInLayers = IntArray(maxTextures) { 4 }
+        val spaceInLayers = IntArray(maxTextures)
+        spaceInLayers.fill(4)
+
         val needsHighPrecision = Array(maxTextures) { BufferQuality.LOW_8 }
         var usedTextures0 = -1
 

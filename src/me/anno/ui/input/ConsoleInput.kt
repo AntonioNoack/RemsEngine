@@ -58,6 +58,7 @@ class ConsoleInput(title: String, enableSuggestions: Boolean, style: Style) :
     }
 
     companion object {
+        @JvmField
         val history = ArrayList<String>()
         // todo save the history, maybe per instance...
         // todo also load it ;)

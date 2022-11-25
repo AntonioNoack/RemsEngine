@@ -52,29 +52,29 @@ class WrapAlign(
 
     companion object {
 
-        @JvmStatic
+        @JvmField
         val CenterX = WrapAlign(AxisAlignment.CENTER, null)
-        @JvmStatic
+        @JvmField
         val CenterY = WrapAlign(null, AxisAlignment.CENTER)
 
-        @JvmStatic
+        @JvmField
         val Center = WrapAlign(AxisAlignment.CENTER, AxisAlignment.CENTER)
 
-        @JvmStatic
+        @JvmField
         val LeftTop = WrapAlign(AxisAlignment.MIN, AxisAlignment.MIN)
-        @JvmStatic
+        @JvmField
         val Left = WrapAlign(AxisAlignment.MIN, null)
-        @JvmStatic
+        @JvmField
         val LeftCenter = WrapAlign(AxisAlignment.MIN, AxisAlignment.CENTER)
-        @JvmStatic
+        @JvmField
         val LeftBottom = WrapAlign(AxisAlignment.MIN, AxisAlignment.MAX)
 
-        @JvmStatic
+        @JvmField
         val RightBottom = WrapAlign(AxisAlignment.MAX, AxisAlignment.MAX)
 
-        @JvmStatic
+        @JvmField
         val TopFill = WrapAlign(null, AxisAlignment.MIN)
-        @JvmStatic
+        @JvmField
         val BottomFill = WrapAlign(null, AxisAlignment.MAX)
 
     }

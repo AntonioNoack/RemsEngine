@@ -9,6 +9,7 @@ interface SignatureFile {
     var signature: Signature?
 
     companion object {
+        @JvmStatic
         fun setDataAndSignature(file: InnerFile, getInputStream: () -> InputStream) {
             if (!file.isDirectory) {
                 file as SignatureFile

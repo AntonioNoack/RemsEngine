@@ -61,6 +61,7 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
     }
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(ProcessingQueue::class)
     }
 

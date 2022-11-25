@@ -143,7 +143,9 @@ class ColorField(
     }
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(ColorField::class)
+        @JvmField
         val tiling = Vector4f(2f, 2f, 0f, 0f)
     }
 

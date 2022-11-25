@@ -67,7 +67,7 @@ fun main() {
                 // draw tile onto result
                 val cell = (grid[i++].result as? WaveFunctionCollapse.ImageCellType) ?: continue
                 val tile = cell.image
-                DrawTextures.drawTexture(x * tileW, y * tileH, tileW, tileH, texToImage[tile]!!, false, -1)
+                DrawTextures.drawTexture(x * tileW, y * tileH, tileW, tileH, texToImage[tile], false, -1)
             }
         }
     }

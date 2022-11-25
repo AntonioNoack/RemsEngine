@@ -142,7 +142,9 @@ class Clock(
     }
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(Clock::class)
+        @JvmStatic
         fun print(t0: Long, times: List<Pair<Long, String>>) {
             for ((time, title) in times) {
                 val dt = (time - t0) * 1e-9
@@ -150,6 +152,7 @@ class Clock(
             }
         }
 
+        @JvmStatic
         fun <V> measure(name: String, func: () -> V): V {
             val c = Clock()
             val value = func()

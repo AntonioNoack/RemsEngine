@@ -67,6 +67,7 @@ class ImportedAnimation : Animation() {
 
     companion object {
 
+        @JvmStatic
         fun matrix4x3f(m: Matrix4f): Matrix4x3f {
             return Matrix4x3f(
                 m.m00, m.m01, m.m02,
@@ -76,6 +77,7 @@ class ImportedAnimation : Animation() {
             )
         }
 
+        @JvmStatic
         fun joinValues(list: Array<Matrix4x3f>): FloatArray {
             val result = FloatArray(list.size * 12)
             var j = 0
@@ -97,6 +99,7 @@ class ImportedAnimation : Animation() {
             return result
         }
 
+        @JvmStatic
         fun splitValues(values: FloatArray): Array<Matrix4x3f> {
             val size = values.size / 12
             val result = Array(size) { Matrix4x3f() }

@@ -19,6 +19,7 @@ open class ReturnNode(returnValues: List<String> = emptyList()) :
     class ReturnException(val node: ReturnNode): RuntimeException()
 
     companion object {
+        @JvmStatic
         private val flow = listOf("Flow", "Return")
     }
 

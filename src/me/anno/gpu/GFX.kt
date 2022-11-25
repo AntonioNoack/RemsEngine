@@ -59,6 +59,7 @@ object GFX {
     // (Weighted Blended Order-Independent Transparency by Morgan McGuire Louis Bavoil)
     // glBlendFunci()
 
+    @JvmStatic
     private val LOGGER = LogManager.getLogger(GFX::class)
 
     init {
@@ -67,91 +68,127 @@ object GFX {
 
     // for final rendering we need to use the GPU anyway;
     // so just use a static variable
+    @JvmField
     var isFinalRendering = false
 
+    @JvmField
     val windows = ArrayList<OSWindow>()
 
     /**
      * current window, which is being rendered to by OpenGL
      * */
+    @JvmField
     var activeWindow: OSWindow? = null
 
     /**
      * window, that is in focus; may be null
      * */
+    @JvmStatic
     val focusedWindow get() = windows.firstOrNull2 { it.isInFocus }
 
     /**
      * window, that is in focus, or arbitrary window, if undefined
      * */
+    @JvmStatic
     val someWindow get() = focusedWindow ?: windows[0] // we also could choose the one closest to the mouse :)
 
+    @JvmStatic
     val idleFPS get() = DefaultConfig["ui.window.idleFPS", 10]
 
-    @Suppress("unused")
-    fun getWindow(window: Long) = windows.first { it.pointer == window }
-
+    @JvmField
     var supportsAnisotropicFiltering = false
+    @JvmField
     var anisotropy = 1f
+    @JvmField
     var maxSamples = 1
+    @JvmField
     var supportsClipControl = !OS.isAndroid && !OS.isWeb
 
+    @JvmField
     var supportsF32Targets = true
+    @JvmField
     var supportsF16Targets = true
 
+    @JvmField
     var maxFragmentUniformComponents = 0
+    @JvmField
     var maxVertexUniformComponents = 0
+    @JvmField
     var maxBoundTextures = 0
+    @JvmField
     var maxUniforms = 0
+    @JvmField
     var maxColorAttachments = 1
+    @JvmField
     var maxTextureSize = 512 // assumption before loading anything
 
+    @JvmField
     var canLooseContext = OS.isAndroid
 
+    @JvmField
     val nextGPUTasks = ArrayList<Task>()
+    @JvmField
     val gpuTasks: Queue<Task> = ConcurrentLinkedQueue()
+    @JvmField
     val lowPriorityGPUTasks: Queue<Task> = ConcurrentLinkedQueue()
 
+    @JvmField
     val loadTexturesSync = Stack<Boolean>()
         .apply { push(false) }
 
     /**
      * location of the current default framebuffer
      * */
+    @JvmField
     var offsetX = 0
+    @JvmField
     var offsetY = 0
 
     /**
      * location & size of the current panel
      * */
+    @JvmField
     var viewportX = 0
+    @JvmField
     var viewportY = 0
+    @JvmField
     var viewportWidth = 0
+    @JvmField
     var viewportHeight = 0
 
+    @JvmField
     val flat01 = SimpleBuffer.flat01
 
+    @JvmField
     var drawnId = 0
 
+    @JvmField
     var glThread: Thread? = null
 
+    @JvmStatic
     fun addGPUTask(name: String, w: Int, h: Int, task: () -> Unit) = addGPUTask(name, w, h, false, task)
+    @JvmStatic
     fun addGPUTask(name: String, w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
         addGPUTask(name, max(1, ((w * h.toLong()) / 10_000).toInt()), lowPriority, task)
     }
 
+    @JvmStatic
     fun addGPUTask(name: String, weight: Int, task: () -> Unit) = addGPUTask(name, weight, false, task)
+    @JvmStatic
     fun addGPUTask(name: String, weight: Int, lowPriority: Boolean, task: () -> Unit) {
         (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += Task(name, weight, task)
     }
 
+    @JvmStatic
     fun addNextGPUTask(name: String, w: Int, h: Int, task: () -> Unit) =
         addNextGPUTask(name, max(1, ((w * h.toLong()) / 10_000).toInt()), task)
 
+    @JvmStatic
     fun addNextGPUTask(name: String, weight: Int, task: () -> Unit) {
         nextGPUTasks += Task(name, weight, task)
     }
 
+    @JvmStatic
     inline fun useWindowXY(x: Int, y: Int, buffer: Framebuffer?, process: () -> Unit) {
         if (buffer == null) {
             val ox = offsetX
@@ -178,6 +215,7 @@ object GFX {
         }
     }
 
+    @JvmStatic
     fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
         // from the bottom to the top
         check()
@@ -189,7 +227,9 @@ object GFX {
         }
     }
 
+    @JvmStatic
     fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) = clip(x0, y0, x1 - x0, y1 - y0, render)
+    @JvmStatic
     fun clip2Save(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
         val w = x1 - x0
         val h = y1 - y0
@@ -198,6 +238,7 @@ object GFX {
         }
     }
 
+    @JvmStatic
     fun clip2Dual(
         x0: Int, y0: Int, x1: Int, y1: Int,
         x2: Int, y2: Int, x3: Int, y3: Int,
@@ -213,25 +254,32 @@ object GFX {
         }
     }
 
+    @JvmStatic
     fun shaderColor(shader: Shader, name: String, color: Int) =
         currentRenderer.shaderColor(shader, name, color)
 
+    @JvmStatic
     fun shaderColor(shader: Shader, name: String, color: Vector4f?) =
         currentRenderer.shaderColor(shader, name, color)
 
+    @JvmStatic
     fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) =
         currentRenderer.shaderColor(shader, name, r, g, b, a)
 
+    @JvmStatic
     fun shaderColor(shader: Shader, name: String, color: Vector3f?) =
         currentRenderer.shaderColor(shader, name, color)
 
+    @JvmStatic
     fun copy(buffer: IFramebuffer) = copy(buffer.getTexture0())
+    @JvmStatic
     fun copy(buffer: ITexture2D) {
         Frame.bind()
         buffer.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
         copy()
     }
 
+    @JvmStatic
     fun copy(alpha: Float) {
         check()
         val shader = copyShader
@@ -241,6 +289,7 @@ object GFX {
         check()
     }
 
+    @JvmStatic
     fun copy() {
         check()
         val shader = copyShader
@@ -250,13 +299,16 @@ object GFX {
         check()
     }
 
+    @JvmStatic
     fun copyNoAlpha(buffer: IFramebuffer) = copyNoAlpha(buffer.getTexture0())
+    @JvmStatic
     fun copyNoAlpha(buffer: ITexture2D) {
         Frame.bind()
         buffer.bindTrulyNearest(0)
         copyNoAlpha()
     }
 
+    @JvmStatic
     fun copyNoAlpha() {
         check()
         blendMode.use(BlendMode.DST_ALPHA) {
@@ -270,6 +322,7 @@ object GFX {
         check()
     }
 
+    @JvmStatic
     fun setupBasics(tick: Clock?) {
         glThread = Thread.currentThread()
         LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
@@ -299,6 +352,7 @@ object GFX {
         tick?.stop("Checking OpenGL properties")
     }
 
+    @JvmStatic
     fun setup(tick: Clock?) {
         setupBasics(tick)
         ShaderLib.init()
@@ -308,6 +362,7 @@ object GFX {
      * time limit in seconds
      * returns whether time is left
      * */
+    @JvmStatic
     fun workQueue(queue: Queue<Task>, timeLimit: Float, all: Boolean): Boolean {
         return workQueue(queue, if (all) Float.POSITIVE_INFINITY else timeLimit)
     }
@@ -316,6 +371,7 @@ object GFX {
      * time limit in seconds
      * returns whether time is left
      * */
+    @JvmStatic
     fun workQueue(queue: Queue<Task>, timeLimit: Float): Boolean {
 
         // async work section
@@ -351,12 +407,15 @@ object GFX {
 
     }
 
+    @JvmStatic
     fun resetFBStack() {
         FBStack.reset()
     }
 
+    @JvmField
     var gpuTaskBudget = 1f / 90f
 
+    @JvmStatic
     fun workGPUTasks(all: Boolean) {
         val t0 = Engine.nanoTime
         synchronized(nextGPUTasks) {
@@ -373,16 +432,19 @@ object GFX {
         }*/
     }
 
+    @JvmStatic
     fun workGPUTasksUntilShutdown() {
         while (!Engine.shutdown) {
             workGPUTasks(true)
         }
     }
 
+    @JvmStatic
     fun setFrameNullSize(window: OSWindow) {
         setFrameNullSize(window.width, window.height)
     }
 
+    @JvmStatic
     fun setFrameNullSize(width: Int, height: Int) {
         GFXState.apply {
             // this should be the state for the default framebuffer
@@ -399,6 +461,7 @@ object GFX {
         }
     }
 
+    @JvmStatic
     fun renderStep(window: OSWindow) {
 
         OpenGLShader.invalidateBinding()
@@ -455,12 +518,14 @@ object GFX {
 
     }
 
+    @JvmStatic
     fun isGFXThread(): Boolean {
         if (glThread == null) return false
         val currentThread = Thread.currentThread()
         return currentThread == glThread
     }
 
+    @JvmStatic
     fun checkIsGFXThread() {
         val currentThread = Thread.currentThread()
         if (currentThread != glThread) {
@@ -484,6 +549,7 @@ object GFX {
         }
     }
 
+    @JvmStatic
     fun getErrorTypeName(error: Int): String {
         return when (error) {
             GL_INVALID_ENUM -> "invalid enum"
@@ -506,6 +572,7 @@ object GFX {
         }
     }
 
+    @JvmStatic
     fun getName(i: Int): String {
         val constants = glConstants ?: return "$i"
         if (constants.isEmpty()) {
@@ -515,12 +582,15 @@ object GFX {
     }
 
     // 1696 values in my testing
+    @JvmStatic
     private val glConstants = if (Build.isShipped) null else HashMap<Int, String>(2048)
 
+    @JvmStatic
     fun discoverOpenGLNames() {
         discoverOpenGLNames(GL46::class)
     }
 
+    @JvmStatic
     fun discoverOpenGLNames(clazz: KClass<*>) {
         val glConstants = glConstants ?: return
         // literally 300 times faster than the Kotlin code... what is Kotlin doing???
@@ -544,6 +614,7 @@ object GFX {
         }*/
     }
 
+    @JvmStatic
     fun discoverOpenGLNames(clazz: Class<*>) {
         val glConstants = glConstants ?: return
         val properties2 = clazz.declaredFields

@@ -82,7 +82,9 @@ class ProgressBar(val unit: String, var total: Double) {
     }
 
     companion object {
+        @JvmStatic
         private var endShowDuration = 3_000_000_000
+        @JvmStatic
         private var timeout = 10_000_000_000
     }
 

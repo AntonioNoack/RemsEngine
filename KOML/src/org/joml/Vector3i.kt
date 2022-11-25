@@ -275,18 +275,22 @@ open class Vector3i(var x: Int, var y: Int, var z: Int) {
 
     companion object {
 
+        @JvmStatic
         fun lengthSquared(x: Int, y: Int, z: Int): Long {
             return x.toLong() * x + y.toLong() * y + z.toLong() * z
         }
 
+        @JvmStatic
         fun length(x: Int, y: Int, z: Int): Double {
             return sqrt(lengthSquared(x, y, z).toFloat()).toDouble()
         }
 
+        @JvmStatic
         fun distance(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int): Double {
             return sqrt(lengthSquared(x1 - x2, y1 - y2, z1 - z2).toFloat()).toDouble()
         }
 
+        @JvmStatic
         fun distanceSquared(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int): Long {
             val dx = x1 - x2
             val dy = y1 - y2

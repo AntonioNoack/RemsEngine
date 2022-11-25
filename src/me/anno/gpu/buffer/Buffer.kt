@@ -229,8 +229,10 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(Buffer::class)
 
+        @JvmStatic
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
             val index = shader.getAttributeLocation(attr.name)
@@ -247,6 +249,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
             } else false
         }
 
+        @JvmStatic
         fun unbindAttribute(shader: Shader, attr: String) {
             val index = shader.getAttributeLocation(attr)
             if (index > -1) glDisableVertexAttribArray(index)

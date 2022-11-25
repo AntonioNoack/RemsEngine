@@ -7,12 +7,14 @@ import kotlin.math.sqrt
 
 object TangentCalculator {
 
+    @JvmStatic
     fun add(v: FloatArray, i: Int, x: Float, y: Float, z: Float) {
         v[i] += x
         v[i + 1] += y
         v[i + 2] += z
     }
 
+    @JvmStatic
     private fun computeTangentsIndexed(
         positions: FloatArray,
         normals: FloatArray,
@@ -124,6 +126,7 @@ object TangentCalculator {
         JomlPools.vec3f.sub(2)
     }
 
+    @JvmStatic
     private fun computeTangentsNonIndexed(
         positions: FloatArray,
         normals: FloatArray,
@@ -239,6 +242,7 @@ object TangentCalculator {
         JomlPools.vec3f.sub(2)
     }
 
+    @JvmStatic
     fun checkTangents(
         positions: FloatArray,
         normals: FloatArray,

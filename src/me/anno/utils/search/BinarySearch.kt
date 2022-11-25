@@ -12,6 +12,7 @@ object BinarySearch {
      * @param comparator compare element at this index with the searched element; return 0 if found
      * @return index of element or -1-insertIndex if not found
      * */
+    @JvmStatic
     fun binarySearch(length: Int, comparator: IndexComparator) =
         binarySearch(0, length - 1, comparator)
 
@@ -20,6 +21,7 @@ object BinarySearch {
      * @param comparator compare element at this index with the searched element; return 0 if found
      * @return index of element or -1-insertIndex if not found
      * */
+    @JvmStatic
     fun binarySearch(minIndex: Int, maxIndex: Int, comparator: IndexComparator): Int {
 
         var min = minIndex

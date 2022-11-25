@@ -90,7 +90,9 @@ class MathD2Node() : ValueNode("FP Math 2", inputs, outputs), EnumNode {
     override val className = "MathD2Node"
 
     companion object {
+        @JvmField
         val inputs = listOf("Double", "A", "Double", "B")
+        @JvmField
         val outputs = listOf("Double", "Result")
     }
 

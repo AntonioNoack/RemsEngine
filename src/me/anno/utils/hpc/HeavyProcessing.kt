@@ -7,8 +7,10 @@ import kotlin.math.max
 // reservedThreadCount = 1 + 1 /* ui + audio?/file-loading/network? */
 object HeavyProcessing : WorkSplitter(max(1, Runtime.getRuntime().availableProcessors() - 2)) {
 
+    @JvmStatic
     private val queues = HashMap<String, ProcessingQueue>()
 
+    @JvmStatic
     @Suppress("unused")
     fun addTask(queueGroup: String, task: () -> Unit) {
         val queue = queues.getOrPut(queueGroup) { ProcessingQueue(queueGroup) }
@@ -19,6 +21,7 @@ object HeavyProcessing : WorkSplitter(max(1, Runtime.getRuntime().availableProce
         thread(name = "HeavyProcessing[${counter.getAndIncrement()}]") { task() }
     }
 
+    @JvmStatic
     private val counter = AtomicInteger()
 
 }

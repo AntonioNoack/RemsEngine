@@ -74,13 +74,18 @@ open class ScriptComponent : Component() {
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(ScriptComponent::class)
 
+        @JvmField
         val global = ThreadLocal2 { defineVM() }
 
+        @JvmField
         val luaCache = CacheSection("Lua")
+        @JvmField
         val timeout = 20_000L
 
+        @JvmStatic
         fun getFunction(name: String, source: FileReference, instructionLimit: Int = 10_000): LuaValue? {
             val value = luaCache.getFileEntry(source, false, timeout, false) { file, _ ->
                 val vm = defineVM()
@@ -97,19 +102,23 @@ open class ScriptComponent : Component() {
             return func.get(name)
         }
 
+        @JvmStatic
         fun Any?.toLua(): LuaValue = CoerceJavaToLua.coerce(this)
 
+        @JvmStatic
         fun callIntFunction(name: String, source: FileReference, instance: Component, default: Int): Int {
             val ret = callFunction(name, source, instance)
             return if (ret.isint()) ret.toint() else default
         }
 
+        @JvmStatic
         fun callFunction(name: String, source: FileReference, instance: Component): LuaValue {
             val func = getFunction(name, source) ?: return LuaValue.NIL
             return if (func.isfunction()) func.call(instance.entity!!.toLua(), instance.toLua())
             else LuaValue.NIL
         }
 
+        @JvmStatic
         fun defineVM(): Globals {
             val g = JsePlatform.standardGlobals()
             g.set("getTime", object : ZeroArgFunction() {
@@ -134,6 +143,7 @@ open class ScriptComponent : Component() {
         // data types:
         // nil, boolean, number, string, userdata, function, thread, and table
 
+        @JvmStatic
         fun callLua(entity: Entity, source: FileReference) {
             if (source == InvalidRef) return
 
@@ -154,11 +164,13 @@ open class ScriptComponent : Component() {
 
         }
 
+        @JvmStatic
         @Suppress("unchecked_cast")
         fun getRawFunction(code: String): Any {
             return getRawScopeAndFunction(code)?.second ?: LuaValue.NIL
         }
 
+        @JvmStatic
         @Suppress("unchecked_cast")
         fun getRawScopeAndFunction(code: String): Pair<Globals, Any>? {
             val funcObj = luaCache.getEntry(code, timeout, false) { code1 ->
@@ -175,6 +187,7 @@ open class ScriptComponent : Component() {
             return funcObj.value as Pair<Globals, LuaValue>
         }
 
+        @JvmStatic
         @Suppress("unchecked_cast")
         inline fun getFunction(code: String, init: (scope: LuaValue) -> Unit): LuaValue {
             if (code.isBlank2()) return LuaValue.NIL
@@ -191,6 +204,7 @@ open class ScriptComponent : Component() {
             return LuaValue.NIL
         }
 
+        @JvmStatic
         @Suppress("unchecked_cast")
         fun getFunction(code: String, key: Any?, init: (scope: LuaValue) -> Unit): Pair<Globals, LuaValue>? {
             if (code.isBlank2()) return null
@@ -220,7 +234,9 @@ open class ScriptComponent : Component() {
             }
         }
 
+        @JvmStatic
         private val lDebug = LuaString.valueOf("debug")
+        @JvmStatic
         private val lSetHook = LuaString.valueOf("set" + "hook")
 
         class WhileTrueYield(
@@ -249,6 +265,7 @@ open class ScriptComponent : Component() {
             }
         }
 
+        @JvmStatic
         fun wrapIntoLimited(
             function: LuaValue,
             globals: Globals,
@@ -266,6 +283,7 @@ open class ScriptComponent : Component() {
 
         }
 
+        @JvmStatic
         fun varargs(vararg v: LuaValue): Varargs {
             return LuaValue.varargsOf(v)
         }

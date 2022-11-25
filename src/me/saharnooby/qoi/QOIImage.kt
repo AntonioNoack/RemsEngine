@@ -20,6 +20,7 @@ class QOIImage(width: Int, height: Int, channels: Int, val linear: Boolean, data
 
         private const val MAGIC = ('q'.code shl 24) or ('o'.code shl 16) or ('i'.code shl 8) or 'f'.code
 
+        @JvmStatic
         fun findSize(input: InputStream): Pair<Int, Int> {
             val headerMagic = input.readBE32()
             if (headerMagic != MAGIC) throw IOException("Invalid magic value, probably not a QOI image")
@@ -30,8 +31,10 @@ class QOIImage(width: Int, height: Int, channels: Int, val linear: Boolean, data
             return Pair(width, height)
         }
 
+        @JvmStatic
         fun rgb(r: Int, g: Int, b: Int) = r.shl(16) or g.shl(8) or b
 
+        @JvmStatic
         fun read(input: InputStream): QOIImage {
 
             val (width, height) = findSize(input)

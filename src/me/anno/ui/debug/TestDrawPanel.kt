@@ -56,10 +56,12 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
     }
 
     companion object {
+        @JvmStatic
         fun testDrawing(draw: (p: TestDrawPanel) -> Unit) {
             testUI { TestDrawPanel(draw) }
         }
 
+        @JvmStatic
         fun testDrawing(init: (p: TestDrawPanel) -> Unit, draw: (p: TestDrawPanel) -> Unit) {
             testUI {
                 val panel = TestDrawPanel(draw)

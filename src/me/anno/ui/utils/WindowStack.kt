@@ -199,11 +199,13 @@ class WindowStack : Stack<Window>() {
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(WindowStack::class)
 
         /**
          * prints the layout for UI debugging
          * */
+        @JvmStatic
         fun printLayout() {
             LOGGER.info("Layout:")
             for (window1 in GFX.focusedWindow?.windowStack ?: return) {
@@ -211,6 +213,7 @@ class WindowStack : Stack<Window>() {
             }
         }
 
+        @JvmStatic
         fun createReloadWindow(panel: Panel, fullscreen: Boolean, reload: () -> Unit): Window {
             val window = GFX.someWindow
             return object : Window(
@@ -223,8 +226,5 @@ class WindowStack : Stack<Window>() {
                 }
             }
         }
-
     }
-
-
 }

@@ -149,7 +149,7 @@ class SoundBuffer() : ICacheData {
     }
 
     companion object {
-        @JvmStatic
+        @JvmField
         val buffer = ThreadLocal2 {
             ByteBuffer.allocateDirect(4)
                 .order(ByteOrder.nativeOrder())

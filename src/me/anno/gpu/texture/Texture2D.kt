@@ -1119,16 +1119,24 @@ open class Texture2D(
 
     companion object {
 
+        @JvmField
         var alwaysBindTexture = false
+        @JvmField
         var wasModifiedInComputePipeline = false
 
+        @JvmStatic
         fun BufferedImage.hasAlphaChannel() = colorModel.hasAlpha()
 
+        @JvmField
         val bufferPool = ByteBufferPool(64)
+        @JvmField
         val byteArrayPool = ByteArrayPool(64)
+        @JvmField
         val intArrayPool = IntArrayPool(64)
+        @JvmField
         val floatArrayPool = FloatArrayPool(64)
 
+        @JvmStatic
         fun freeUnusedEntries() {
             bufferPool.freeUnusedEntries()
             byteArrayPool.freeUnusedEntries()
@@ -1136,6 +1144,7 @@ open class Texture2D(
             floatArrayPool.freeUnusedEntries()
         }
 
+        @JvmStatic
         @Docs("Method for debugging by unloading all textures")
         fun unbindAllTextures() {
             for (i in maxBoundTextures - 1 downTo 0) {
@@ -1143,6 +1152,7 @@ open class Texture2D(
             }
         }
 
+        @JvmStatic
         @Docs("Remove all pooled entries")
         fun gc() {
             bufferPool.gc()
@@ -1151,22 +1161,33 @@ open class Texture2D(
             floatArrayPool.gc()
         }
 
+        @JvmField
         var allocated = 0L
+        @JvmStatic
         fun allocate(oldValue: Long, newValue: Long): Long {
             allocated += newValue - oldValue
             return newValue
         }
 
+        @JvmField
         var boundTextureSlot = 0
-        val boundTextures = IntArray(64) { -1 }
+        @JvmField
+        val boundTextures = IntArray(64)
+        init {
+            boundTextures.fill(-1)
+        }
+
+        @JvmField
         val tmp4i = IntArray(4)
 
+        @JvmStatic
         fun invalidateBinding() {
             boundTextureSlot = -1
             activeSlot(0)
             boundTextures.fill(-1)
         }
 
+        @JvmStatic
         fun activeSlot(index: Int) {
             if (index < 0 || index >= maxBoundTextures)
                 throw IllegalArgumentException("Texture index $index out of allowed bounds")
@@ -1180,6 +1201,7 @@ open class Texture2D(
          * bind the texture, the slot doesn't matter
          * @return whether the texture was actively bound
          * */
+        @JvmStatic
         fun bindTexture(mode: Int, pointer: Int): Boolean {
             if (pointer < 0) throw IllegalArgumentException("Pointer must be valid")
             if (wasModifiedInComputePipeline) {
@@ -1193,21 +1215,30 @@ open class Texture2D(
             } else false
         }
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(Texture2D::class)
+        @JvmField
         val textureBudgetTotal = DefaultConfig["gpu.textureBudget", 1_000_000L]
+        @JvmField
         var textureBudgetUsed = 0L
+        @JvmField
         val texturesToDelete = ArrayList<Int>()
 
+        @JvmStatic
         fun resetBudget() {
             textureBudgetUsed = 0L
         }
 
         // val isLittleEndian = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
 
+        @JvmStatic
         private var creationSession = -1
+        @JvmStatic
         private var creationIndex = 0
+        @JvmStatic
         private val creationIndices = IntArray(16)
 
+        @JvmStatic
         fun createTexture(): Int {
             GFX.checkIsGFXThread()
             if (creationSession != GFXState.session || creationIndex == creationIndices.size) {
@@ -1219,6 +1250,7 @@ open class Texture2D(
             return creationIndices[creationIndex++]
         }
 
+        @JvmStatic
         fun switchRGB2BGR(values: IntArray) {
             // convert argb to abgr
             val agMask = 0xff00ff00.toInt()
@@ -1231,6 +1263,7 @@ open class Texture2D(
             }
         }
 
+        @JvmStatic
         fun switchRGB2BGR(values: IntBuffer) {
             // convert argb to abgr
             val agMask = 0xff00ff00.toInt()
@@ -1243,6 +1276,7 @@ open class Texture2D(
             }
         }
 
+        @JvmStatic
         fun destroyTextures() {
             synchronized(texturesToDelete) {
                 if (texturesToDelete.isNotEmpty()) {
@@ -1259,6 +1293,7 @@ open class Texture2D(
             }
         }
 
+        @JvmStatic
         private fun getAlignment(w: Int): Int {
             return when {
                 w and 7 == 0 -> 8
@@ -1268,10 +1303,12 @@ open class Texture2D(
             }
         }
 
+        @JvmStatic
         fun readAlignment(w: Int) {
             glPixelStorei(GL_PACK_ALIGNMENT, getAlignment(w))
         }
 
+        @JvmStatic
         fun writeAlignment(w: Int) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, getAlignment(w))
         }

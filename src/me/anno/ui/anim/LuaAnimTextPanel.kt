@@ -20,9 +20,12 @@ class LuaAnimTextPanel(text: String, var animation: String, style: Style) : Anim
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(LuaAnimTextPanel::class)
 
+        @JvmStatic
         var cx = 0f
+        @JvmStatic
         var cy = 0f
 
         object Translate : TwoArgFunction() {
@@ -58,9 +61,13 @@ class LuaAnimTextPanel(text: String, var animation: String, style: Style) : Anim
         }
 
         // cached, because LuaJ copies all string content every time otherwise
+        @JvmStatic
         private val lTime = LuaString.valueOf("time")
+        @JvmStatic
         private val lIndex = LuaString.valueOf("index")
+        @JvmStatic
         private val lcx = LuaString.valueOf("cx")
+        @JvmStatic
         private val lcy = LuaString.valueOf("cy")
 
     }

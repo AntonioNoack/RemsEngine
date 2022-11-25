@@ -48,7 +48,9 @@ class MathD3Node() : ValueNode("FP Math 3", inputs, outputs), EnumNode {
         ;
 
         companion object {
+            @JvmStatic
             val values = values()
+            @JvmStatic
             val byId = values.associateBy { it.id }
         }
 

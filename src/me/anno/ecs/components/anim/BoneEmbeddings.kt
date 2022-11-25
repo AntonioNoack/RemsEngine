@@ -6,7 +6,9 @@ import me.anno.language.embeddings.WordEmbedding
 
 object BoneEmbeddings {
 
+    @JvmStatic
     val helperWE = WordEmbedding()
+    @JvmStatic
     private val helperWECache = CacheSection("RetargetingWordEmbeddings")
 
     init {
@@ -113,6 +115,7 @@ object BoneEmbeddings {
 
     }
 
+    @JvmStatic
     fun getWEs(skeleton: Skeleton): List<FloatArray?> {
         val data = helperWECache.getEntry(skeleton, 10_000L, false) {
             CacheData(skeleton.bones.map { calcWE(it.name) })
@@ -122,6 +125,7 @@ object BoneEmbeddings {
         return value as List<FloatArray?>
     }
 
+    @JvmStatic
     fun calcWE(name: String): FloatArray? {
         // extract base names like "leg", "pelvis", ...
         val lcName = "/${name.lowercase()}/" // slashes as end markers

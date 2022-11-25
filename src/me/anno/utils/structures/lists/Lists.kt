@@ -1,6 +1,5 @@
 package me.anno.utils.structures.lists
 
-import me.anno.io.zip.NextEntryIterator
 import me.anno.utils.structures.heap.Heap
 import kotlin.math.max
 import kotlin.math.min
@@ -11,6 +10,7 @@ object Lists {
     /**
      * allocation-free any()
      * */
+    @JvmStatic
     inline fun <V> List<V>.any2(test: (V) -> Boolean): Boolean {
         for (index in indices) {
             if (test(this[index])) return true
@@ -21,6 +21,7 @@ object Lists {
     /**
      * allocation-free any()
      * */
+    @JvmStatic
     inline fun <V> List<V>.all2(test: (V) -> Boolean): Boolean {
         for (index in indices) {
             if (!test(this[index])) return false
@@ -31,6 +32,7 @@ object Lists {
     /**
      * allocation-free any()
      * */
+    @JvmStatic
     inline fun <V> List<V>.none2(test: (V) -> Boolean): Boolean {
         for (index in indices) {
             if (test(this[index])) return false
@@ -41,6 +43,7 @@ object Lists {
     /**
      * allocation-free count()
      * */
+    @JvmStatic
     inline fun <V> List<V>.count2(test: (V) -> Boolean): Int {
         var sum = 0
         for (index in indices) {
@@ -52,6 +55,7 @@ object Lists {
     /**
      * allocation-free firstOrNull()
      * */
+    @JvmStatic
     inline fun <V> List<V>.firstOrNull2(test: (V) -> Boolean): V? {
         for (index in indices) {
             val element = this[index]
@@ -63,6 +67,7 @@ object Lists {
     /**
      * allocation-free firstOrNull()
      * */
+    @JvmStatic
     inline fun <V> List<V>.first2(test: (V) -> Boolean): V {
         for (index in indices) {
             val element = this[index]
@@ -74,10 +79,12 @@ object Lists {
     /**
      * allocation-free firstOrNull()
      * */
+    @JvmStatic
     fun <V> List<V>.firstOrNull2(): V? {
         return if (isEmpty()) null else this[0]
     }
 
+    @JvmStatic
     inline fun <A, B> List<A>.mapFirstNotNull(run: (A) -> B): B? {
         for (index in indices) {
             val mapped = run(this[index])
@@ -86,6 +93,7 @@ object Lists {
         return null
     }
 
+    @JvmStatic
     fun List<Double>.median(default: Double): Double {
         return run {
             if (isEmpty()) default
@@ -93,6 +101,7 @@ object Lists {
         }
     }
 
+    @JvmStatic
     fun Iterable<Double>.median(default: Double): Double {
         return toList().run {
             if (isEmpty()) default
@@ -100,6 +109,7 @@ object Lists {
         }
     }
 
+    @JvmStatic
     fun List<Float>.median(default: Float): Float {
         return run {
             if (isEmpty()) default
@@ -107,6 +117,7 @@ object Lists {
         }
     }
 
+    @JvmStatic
     fun Iterable<Float>.median(default: Float): Float {
         return toList().run {
             if (isEmpty()) default
@@ -140,6 +151,7 @@ object Lists {
         return sum
     }*/
 
+    @JvmStatic
     fun <V> MutableList<V>.pop(): V? {
         if (isEmpty()) return null
         val last = last()
@@ -147,6 +159,7 @@ object Lists {
         return last
     }
 
+    @JvmStatic
     fun List<Double>.accumulate(): List<Double> {
         val accumulator = ArrayList<Double>()
         var sum = 0.0
@@ -157,8 +170,10 @@ object Lists {
         return accumulator
     }
 
+    @JvmStatic
     val <V> Sequence<V>.size get() = count { true }
 
+    @JvmStatic
     fun <V> List<V>.getOrPrevious(index: Int) = if (index > 0) this[index - 1] else this.getOrNull(0)
 
     // before I knew there was any()
@@ -190,6 +205,7 @@ object Lists {
          return false
      }*/
 
+    @JvmStatic
     fun <V> ArrayList<V>.partition1(
         start: Int, end: Int, condition: (V) -> Boolean
     ): Int {
@@ -214,10 +230,12 @@ object Lists {
 
     }
 
+    @JvmStatic
     fun <V> List<V>.binarySearch(compare: (V) -> Int): Int {
         return binarySearch(0, size, compare)
     }
 
+    @JvmStatic
     fun <V> List<V>.binarySearch(fromIndex: Int = 0, toIndex: Int = size, compare: (V) -> Int): Int {
 
         // if the list is reversed, this will still work
@@ -239,6 +257,7 @@ object Lists {
         return -(low + 1)  // key not found
     }
 
+    @JvmStatic
     fun <V> List<V>.indexOf2(v: V, i0: Int, minus1: Boolean): Int {
         for (i in i0 until size) {
             if (this[i] == v) return i
@@ -246,12 +265,14 @@ object Lists {
         return if (minus1) -1 else size
     }
 
+    @JvmStatic
     fun <V> List<List<V>>.join(): ArrayList<V> {
         val result = ArrayList<V>(sumOf { it.size })
         for (entries in this) result += entries
         return result
     }
 
+    @JvmStatic
     fun <A, B> List<A>.cross(other: List<B>): List<Pair<A, B>> {
         val result = ArrayList<Pair<A, B>>(size * other.size)
         for (a in this) {
@@ -262,6 +283,7 @@ object Lists {
         return result
     }
 
+    @JvmStatic
     fun <A, B, C> List<A>.crossMap(other: List<B>, map: (a: A, b: B) -> C): List<C> {
         val result = ArrayList<C>(size * other.size)
         for (a in this) {
@@ -272,6 +294,7 @@ object Lists {
         return result
     }
 
+    @JvmStatic
     fun <A, B, C> List<A>.cross(other: List<B>, other2: List<C>): List<Triple<A, B, C>> {
         val result = ArrayList<Triple<A, B, C>>(size * other.size * other2.size)
         for (a in this) {
@@ -284,6 +307,7 @@ object Lists {
         return result
     }
 
+    @JvmStatic
     fun <V> List<List<V>?>.flatten(): ArrayList<V> {
         val list = ArrayList<V>(sumOf { it?.size ?: 0 })
         for (partialList in this) {
@@ -294,6 +318,7 @@ object Lists {
         return list
     }
 
+    @JvmStatic
     fun <X, Y : Comparable<Y>> List<X>.smallestKElementsBy(k: Int, getValue: (X) -> Y): List<X> {
         return if (size <= k) {
             this
@@ -303,11 +328,13 @@ object Lists {
         }
     }
 
+    @JvmStatic
     fun <X, Y : Comparable<Y>> Iterator<X>.smallestKElementsBy(k: Int, getValue: (X) -> Y): List<X> {
         val comp2 = { a: X, b: X -> getValue(a).compareTo(getValue(b)) }
         return this.smallestKElements(k, comp2)
     }
 
+    @JvmStatic
     fun <X> Iterator<X>.smallestKElements(k: Int, comparator: Comparator<X>): List<X> {
         val topK = ArrayList<X>(k)
         for (j in 0 until k) {
@@ -332,7 +359,7 @@ object Lists {
         return topK
     }
 
-
+    @JvmStatic
     fun <X> List<X>.smallestKElements(k: Int, comparator: Comparator<X>): List<X> {
         return if (size <= k) {
             this
@@ -357,6 +384,7 @@ object Lists {
         }
     }
 
+    @JvmStatic
     fun <X, Y : Comparable<Y>> List<X>.largestKElementsBy(k: Int, comparator: (X) -> Y): List<X> {
         return if (size <= k) {
             this
@@ -366,6 +394,7 @@ object Lists {
         }
     }
 
+    @JvmStatic
     fun <X> List<X>.largestKElements(k: Int, comparator: Comparator<X>): List<X> {
         return if (size <= k) {
             this
@@ -374,12 +403,14 @@ object Lists {
         }
     }
 
+    @JvmStatic
     fun <X> List<X>.buildMaxHeap(comparator: Comparator<X>): ArrayList<X> {
         val list = ArrayList(this)
         Heap.buildMaxHeap(list, comparator)
         return list
     }
 
+    @JvmStatic
     fun <X> ArrayList<X>.extractMax(k: Int, comparator: Comparator<X>): List<X> {
         val list = ArrayList<X>(k)
         for (i in 0 until k) {
@@ -388,12 +419,14 @@ object Lists {
         return list
     }
 
+    @JvmStatic
     fun <X> List<X>.buildMinHeap(comparator: Comparator<X>): ArrayList<X> {
         val list = ArrayList(this)
         Heap.buildMinHeap(list, comparator)
         return list
     }
 
+    @JvmStatic
     fun <X> ArrayList<X>.extractMin(k: Int, comparator: Comparator<X>): List<X> {
         val list = ArrayList<X>(k)
         for (i in 0 until k) {
@@ -402,12 +435,14 @@ object Lists {
         return list
     }
 
+    @JvmStatic
     fun <V> createArrayList(size: Int, createElement: (index: Int) -> V): ArrayList<V> {
         val result = ArrayList<V>(size)
         for (i in 0 until size) result.add(createElement(i))
         return result
     }
 
+    @JvmStatic
     @Suppress("unchecked_cast")
     fun <V> List<List<V>>.transposed(): List<List<V>> {
         if (isEmpty()) return emptyList()
@@ -421,6 +456,7 @@ object Lists {
         }
     }
 
+    @JvmStatic
     fun <V> MutableList<ArrayList<V>>.transpose(): MutableList<ArrayList<V>> {
         // to do function, which is in-place-transpose?
         if (isEmpty()) return this
@@ -465,12 +501,15 @@ object Lists {
         return this
     }
 
+    @JvmStatic
     inline fun <reified Type> Iterable<*>.firstInstanceOrNull() =
         firstOrNull { it is Type } as? Type
 
+    @JvmStatic
     inline fun <reified Type> Sequence<*>.firstInstanceOrNull() =
         firstOrNull { it is Type } as? Type
 
+    @JvmStatic
     fun <V> Collection<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V> =
         ArrayList(this).sortByTopology(getDependencies)
 
@@ -481,6 +520,7 @@ object Lists {
      *
      * @throws IllegalArgumentException if there is cyclic dependencies
      * */
+    @JvmStatic
     fun <V> MutableList<V>.sortByTopology(getDependencies: (V) -> Collection<V>?): List<V> {
 
         val noPermanentMark = toHashSet()

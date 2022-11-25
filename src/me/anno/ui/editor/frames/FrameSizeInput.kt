@@ -85,6 +85,7 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
 
     companion object {
 
+        @JvmStatic
         fun String.parseResolution(): Resolution? {
             val wh = lowercase(Locale.getDefault())
                 .replace('×', 'x') // utf8 x -> ascii x
@@ -95,8 +96,10 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
         }
 
         const val configNamespace = "rendering.resolutions"
+        @JvmField
         var defaultResolution =
             DefaultConfig["$configNamespace.default", ""].parseResolution() ?: Resolution(1920, 1080)
+        @JvmField
         val defaultResolutions =
             DefaultConfig["$configNamespace.defaultValues", ""]
                 .split(',').mapNotNull { it.parseResolution() }.toMutableList()

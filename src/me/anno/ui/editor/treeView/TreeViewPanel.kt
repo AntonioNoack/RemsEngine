@@ -43,6 +43,7 @@ class TreeViewPanel<V>(
 ) : PanelListX(style) {
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(TreeViewPanel::class)
     }
 

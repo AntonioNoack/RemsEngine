@@ -93,8 +93,10 @@ open class FlowGraph : Graph() {
 
     companion object {
 
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(FlowGraph::class)
 
+        @JvmStatic
         fun testCalculation(): FlowGraph {
             val g = FlowGraph()
             val n0 = MathD2Node(MathD2Node.FloatMathsBinary.ADD)
@@ -106,6 +108,7 @@ open class FlowGraph : Graph() {
             return g
         }
 
+        @JvmStatic
         fun testLoopPrint(): FlowGraph {
             val g = FlowGraph()
             val forNode = ForNode()
@@ -120,6 +123,7 @@ open class FlowGraph : Graph() {
             return g
         }
 
+        @JvmStatic
         fun testLocalVariables(): FlowGraph {
             // calculate factorial
             val g = FlowGraph()

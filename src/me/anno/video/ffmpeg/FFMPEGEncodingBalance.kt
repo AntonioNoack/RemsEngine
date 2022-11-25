@@ -19,6 +19,7 @@ enum class FFMPEGEncodingBalance(val nameDesc: NameDesc, val internalName: Strin
     S3(NameDesc("Smallest", "Best", "encoding.speed.s3"), "veryslow", 1f);
 
     companion object {
+        @JvmStatic
         operator fun get(value: Float) = values().minByOrNull { abs(value - it.value) }!!
     }
 }

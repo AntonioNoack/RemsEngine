@@ -24,15 +24,20 @@ object ExtensionLoader {
     // q: do linux soft links work in mods/plugins folder?
     // a: they should, they will just appear as File.canonicalFile != File.absoluteFile
 
+    @JvmStatic
     lateinit var pluginsFolder: FileReference
+    @JvmStatic
     lateinit var modsFolder: FileReference
 
+    @JvmField
     val managers = listOf(
         ModManager, PluginManager
     )
 
+    @JvmField
     val internally = ArrayList<ExtensionInfo>()
 
+    @JvmStatic
     fun load() {
 
         unload()
@@ -61,12 +66,14 @@ object ExtensionLoader {
 
     }
 
+    @JvmStatic
     fun unload() {
         // plugins may depend on mods -> first disable them
         PluginManager.disable()
         ModManager.disable()
     }
 
+    @JvmStatic
     private fun addAllFromFolder(
         folder: FileReference,
         threads: MutableList<Thread>,
@@ -105,6 +112,7 @@ object ExtensionLoader {
         }
     }
 
+    @JvmStatic
     private fun getInfos(): List<ExtensionInfo> {
         val result = ArrayList<ExtensionInfo>()
         val threads = ArrayList<Thread>()
@@ -119,6 +127,7 @@ object ExtensionLoader {
         return result
     }
 
+    @JvmStatic
     private fun checkExtensionRequirements(info: ExtensionInfo): Boolean {
         val instance = StudioBase.instance
         val instanceVersion = instance?.versionNumber ?: 0
@@ -138,6 +147,7 @@ object ExtensionLoader {
         return false
     }
 
+    @JvmStatic
     private fun warnOfMissingDependencies(extInfos: Collection<ExtensionInfo>, extInfos0: Collection<ExtensionInfo>) {
         if (extInfos.size != extInfos0.size) {
             val ids = extInfos.map { it.uuid }.toHashSet()
@@ -147,6 +157,7 @@ object ExtensionLoader {
         }
     }
 
+    @JvmStatic
     private fun loadExtensions(extInfos: Collection<ExtensionInfo>): List<Extension> {
         val extensions = ArrayList<Extension>()
         processStage(extInfos.toList(), true) { ex ->
@@ -160,6 +171,7 @@ object ExtensionLoader {
         return extensions
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun reloadPlugins() {
         PluginManager.disable()
@@ -171,6 +183,7 @@ object ExtensionLoader {
         PluginManager.enable(plugins)
     }
 
+    @JvmStatic
     fun load(ex: ExtensionInfo): Extension? {
         // create the main extension instance
         val clazz = ex.clazz
@@ -215,6 +228,7 @@ object ExtensionLoader {
     /**
      * removes all extensions, which have missing dependencies
      * */
+    @JvmStatic
     private fun checkDependencies(extensions: Collection<ExtensionInfo>): HashSet<ExtensionInfo> {
         val remaining = HashSet(extensions)
         val remainingUUIDs = HashSet(extensions.map { it.uuid })
@@ -236,6 +250,7 @@ object ExtensionLoader {
         return remaining
     }
 
+    @JvmStatic
     fun loadInfoFromZip(file: FileReference): ExtensionInfo? {
         LOGGER.info("Loading info about $file")
         ZipInputStream(file.inputStreamSync()).use { zis ->
@@ -254,6 +269,7 @@ object ExtensionLoader {
      * loads the extension within the current mod project;
      * very useful for setting up a quick project
      * */
+    @JvmStatic
     fun loadMainInfo(fileName: String = "res://extension.info") {
         val extensionSource = getReference(fileName)
         loadInternally(loadInfoFromTxt(InvalidRef, extensionSource)!!)
@@ -265,6 +281,7 @@ object ExtensionLoader {
      *
      * fails without exception
      * */
+    @JvmStatic
     fun tryLoadMainInfo(fileName: String = "res://extension.info") {
         try {
             loadMainInfo(fileName)
@@ -273,19 +290,23 @@ object ExtensionLoader {
         }
     }
 
+    @JvmStatic
     fun loadInternally(info: ExtensionInfo) {
         internally.add(info)
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun loadInternally(clazz: KClass<*>) {
         loadInternally(ExtensionInfo(clazz))
     }
 
+    @JvmStatic
     fun loadInfoFromTxt(modFile: FileReference, infoFile: FileReference = modFile): ExtensionInfo? {
         return infoFile.inputStreamSync().use { loadInfoFromTxt(modFile, it) }
     }
 
+    @JvmStatic
     fun loadInfoFromTxt(file: FileReference, input: InputStream): ExtensionInfo? {
         val reader = input.bufferedReader()
         var name = ""
@@ -359,6 +380,7 @@ object ExtensionLoader {
         return null
     }
 
+    @JvmStatic
     private val LOGGER = LogManager.getLogger(ExtensionLoader::class)
 
 }

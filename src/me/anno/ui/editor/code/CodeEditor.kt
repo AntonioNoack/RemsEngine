@@ -101,7 +101,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     open fun drawSquiggles(x0: Int, x1: Int, y: Int, h: Int, color: Int) {
-        Companion.drawSquiggles(x0, x1, y, h, color)
+        drawSquiggles1(x0, x1, y, h, color)
     }
 
     fun getText(): String {
@@ -678,7 +678,8 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     companion object {
 
-        fun drawSquiggles(x0: Int, x1: Int, y: Int, h: Int, color: Int) {
+        @JvmStatic
+        fun drawSquiggles1(x0: Int, x1: Int, y: Int, h: Int, color: Int) {
             when (h) {
                 1 -> drawRect(x0, y, x1 - x0, h, color)
                 2 -> {
@@ -699,12 +700,14 @@ open class CodeEditor(style: Style) : Panel(style) {
             }
         }
 
+        @JvmStatic
         fun wave(x: Int, h: Int): Int {
             val period = 2 * h - 2
             val p = x % period
             return if (p < h) p else period - h
         }
 
+        @JvmStatic
         fun registerActions() {
             ActionManager.register("CodeEditor.upArrow.t", "Up")
             ActionManager.register("CodeEditor.downArrow.t", "Down")

@@ -12,6 +12,7 @@ import kotlin.math.min
 object Accumulation {
 
     // for the first ~10 rounds, we use shared memory for fewer invocations and synchronizations
+    @JvmField
     val smallStepShader = ComputeShader(
         "accumulate", Vector3i(1024, 1, 1), "" +
                 "layout(std430, binding = 0) buffer dataLayout { uint data[]; };\n" +
@@ -31,6 +32,7 @@ object Accumulation {
                 "}\n"
     )
 
+    @JvmField
     val generalShader = ComputeShader(
         "accumulate", Vector3i(1024, 1, 1), "" +
                 "layout(std430, binding = 0) buffer srcLayout { uint src[]; };\n" +
@@ -47,6 +49,7 @@ object Accumulation {
                 "}\n"
     )
 
+    @JvmStatic
     fun accumulateI32(buffer: ComputeBuffer, tmp: ComputeBuffer): ComputeBuffer {
         GFX.check()
         val size = min(buffer.elementCount, tmp.elementCount)

@@ -88,6 +88,7 @@ class JPGReader {
             out2.close()
         }
 
+        @JvmStatic
         private val zigzag = byteArrayOf(
             0, 1, 8, 16, 9, 2, 3, 10,
             17, 24, 32, 25, 18, 11, 4, 5,
@@ -101,10 +102,14 @@ class JPGReader {
             63, 63, 63, 63, 63, 63, 63
         )
 
+        @JvmStatic
         fun bMask(i: Int) = (1 shl i) - 1
+        @JvmStatic
         private fun jBias(i: Int) = ((-1) shl i) + 1
 
+        @JvmStatic
         private fun f2f(f: Float) = (f * 4096 + 0.5f).toInt()
+        @JvmStatic
         private fun fsh(i: Int) = i * 4096
 
         private val k0 = f2f(0.5411961f)
@@ -120,6 +125,7 @@ class JPGReader {
         private val k10 = f2f(-1.9615705f)
         private val k11 = f2f(-0.39018065f)
 
+        @JvmStatic
         private fun f2f2(x: Float) = ((x * 4096 * 256) + 0.5f).toInt()
 
         private val k20 = +f2f2(1.40200f)
@@ -127,24 +133,29 @@ class JPGReader {
         private val k22 = -f2f2(0.34414f)
         private val k23 = +f2f2(1.77200f)
 
+        @JvmStatic
         private fun clamp(x: Int): Byte {
             return if (x < 0) 0
             else if (x < 255) x.toByte()
             else -1
         }
 
+        @JvmStatic
         fun Byte.u() = toInt().and(255)
 
+        @JvmStatic
         private fun fast8x8(x: Int, m: Byte): Byte {
             val t = x * m.u() + 128
             return ((t + t.shr(8)) shr 8).toByte()
         }
 
+        @JvmStatic
         private fun fast8x8(x: Byte, m: Byte): Byte {
             val t = x.u() * m.u() + 128
             return ((t + t.shr(8)) shr 8).toByte()
         }
 
+        @JvmStatic
         private fun mad3SizesValid(a: Int, b: Int, c: Int) =
             a.toLong() * b.toLong() * c.toLong() <= Int.MAX_VALUE
 

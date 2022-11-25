@@ -128,11 +128,13 @@ abstract class InnerFile(
 
         // private val LOGGER = LogManager.getLogger(InnerFile::class)
 
+        @JvmStatic
         fun createMainFolder(zipFileLocation: FileReference): Pair<InnerFolder, HashMap<String, InnerFile>> {
             val file = InnerFolder(zipFileLocation)
             return file to createRegistry(file)
         }
 
+        @JvmStatic
         fun createRegistry(file: InnerFile): HashMap<String, InnerFile> {
             val registry = HashMap<String, InnerFile>()
             registry[""] = file

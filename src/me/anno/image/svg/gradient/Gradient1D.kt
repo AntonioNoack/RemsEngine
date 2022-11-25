@@ -23,6 +23,7 @@ import kotlin.math.min
 open class Gradient1D {
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(Gradient1D::class)
     }
 

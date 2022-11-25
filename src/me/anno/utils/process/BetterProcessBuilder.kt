@@ -108,6 +108,7 @@ class BetterProcessBuilder(
     }
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(BetterProcessBuilder::class)
     }
 

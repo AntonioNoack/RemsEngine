@@ -36,6 +36,7 @@ class BMPDecoder(input: InputStream) {
          * @param index the index of the bit to retrieve, which must be in the range <tt>0..7</tt>.
          * @return the bit at the specified index, which will be either <tt>0</tt> or <tt>1</tt>.
          */
+        @JvmStatic
         private fun getBit(bits: Int, index: Int): Int {
             return (bits shr (7 - index)) and 1
         }
@@ -47,13 +48,16 @@ class BMPDecoder(input: InputStream) {
          * @param index   the index of the nibble to retrieve, which must be in the range <tt>0..1</tt>.
          * @return the nibble at the specified index, as an unsigned byte.
          */
+        @JvmStatic
         private fun getNibble(nibbles: Int, index: Int): Int {
             return nibbles shr 4 * (1 - index) and 0xf
         }
 
+        @JvmStatic
         fun readInfoHeader(lis: CountingInputStream) =
             InfoHeader(lis)
 
+        @JvmStatic
         fun readInfoHeader(lis: CountingInputStream, infoSize: Int) =
             InfoHeader(lis, infoSize)
 
@@ -67,6 +71,7 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source input
          * @throws java.io.IOException if an error occurs
          */
+        @JvmStatic
         fun read(infoHeader: InfoHeader, lis: CountingInputStream): IntImage {
             // Color table (palette)
             var colorTable: IntArray? = null
@@ -88,6 +93,7 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source input
          * @throws java.io.IOException if any error occurs
          */
+        @JvmStatic
         fun read(infoHeader: InfoHeader, lis: CountingInputStream, colorTable: IntArray?): IntImage {
             val image = if (infoHeader.compression == BI_RGB) {
                 when (infoHeader.bitCount) {
@@ -103,6 +109,7 @@ class BMPDecoder(input: InputStream) {
                 ?: throw IOException("Unrecognized bitmap format: bit count=${infoHeader.bitCount}, compression=${infoHeader.compression}")
         }
 
+        @JvmStatic
         fun readColorTable(infoHeader: InfoHeader, lis: CountingInputStream) =
             IntArray(infoHeader.numColors) { lis.readLE32() }
 
@@ -110,6 +117,7 @@ class BMPDecoder(input: InputStream) {
          * Reads 1-bit uncompressed bitmap raster data, which may be monochrome depending on the
          * palette entries in <tt>colorTable</tt>.
          */
+        @JvmStatic
         fun read1(infoHeader: InfoHeader, lis: CountingInputStream, colors: IntArray): IntImage {
             //1 bit per pixel or 8 pixels per byte
             //each pixel specifies the palette index
@@ -152,6 +160,7 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source input
          * @throws IOException if an error occurs
          */
+        @JvmStatic
         fun read4(infoHeader: InfoHeader, lis: CountingInputStream, colors: IntArray): IntImage {
 
             // 2 pixels per byte or 4 bits per pixel.
@@ -198,6 +207,7 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source input
          * @throws IOException if an error occurs
          */
+        @JvmStatic
         fun read8(infoHeader: InfoHeader, lis: CountingInputStream, colors: IntArray): IntImage {
 
             // 1 byte per pixel
@@ -233,6 +243,7 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source input
          * @throws IOException if an error occurs
          */
+        @JvmStatic
         fun read24(infoHeader: InfoHeader, lis: CountingInputStream): IntImage {
 
             // 3 bytes per pixel
@@ -273,6 +284,7 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source input
          * @throws IOException if an error occurs
          */
+        @JvmStatic
         fun read32(infoHeader: InfoHeader, lis: CountingInputStream): IntImage {
             // 4 bytes per pixel
             // blue 1
@@ -297,6 +309,7 @@ class BMPDecoder(input: InputStream) {
          * @return the decoded image read from the source file
          * @throws IOException if an error occurs
          */
+        @JvmStatic
         fun read(input: InputStream) = BMPDecoder(input).image
     }
 

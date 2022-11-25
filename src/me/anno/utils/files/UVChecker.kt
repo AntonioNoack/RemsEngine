@@ -8,6 +8,7 @@ import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths
 import me.anno.utils.Color.r
 
+@JvmField
 val UVChecker = lazy {
 
     // generate uv checker texture to save 500kB of storage space

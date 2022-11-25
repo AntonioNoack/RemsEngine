@@ -170,8 +170,6 @@ class SDFTwist : PositionMapper() {
 
     companion object {
 
-        fun Vector4f.length3() = Maths.length(x, y, z)
-
         private fun absEqualsOne(r: Float): Boolean {
             return r.toRawBits().and(0x7fffffff) == 0x3f800000
         }

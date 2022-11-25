@@ -13,13 +13,16 @@ import java.nio.FloatBuffer
 
 object M4x3Delta {
 
+    @JvmField
     val buffer16: FloatBuffer = MemoryUtil.memAllocFloat(16)
+    @JvmField
     val buffer16x256: FloatBuffer = MemoryUtil.memAllocFloat(16 * 256)
 
     /**
      * uploads the transform, minus some offset, to the GPU uniform <location>
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
+    @JvmStatic
     fun Shader.m4x3delta(
         location: String,
         a: Matrix4x3d,
@@ -62,6 +65,7 @@ object M4x3Delta {
      * uploads the transform, minus some offset, to the GPU uniform <location>
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
+    @JvmStatic
     fun Shader.m4x3delta(
         location: String, m: Matrix4x3d?,
         pos: Vector3d = RenderState.cameraPosition,
@@ -71,6 +75,7 @@ object M4x3Delta {
         if (uniformIndex >= 0) m4x3delta(uniformIndex, m, pos, worldScale)
     }
 
+    @JvmStatic
     fun Shader.m4x3delta(
         uniformIndex: Int, m: Matrix4x3d?,
         pos: Vector3d = RenderState.cameraPosition,
@@ -132,6 +137,7 @@ object M4x3Delta {
      * uploads the transform, minus some offset, to the GPU uniform <location>
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
+    @JvmStatic
     fun m4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double, buffer16: ByteBuffer) {
 
         buffer16.putFloat((m.m00 * worldScale).toFloat())
@@ -156,6 +162,7 @@ object M4x3Delta {
      * uploads the transform, minus some offset, to the GPU uniform <location>
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
+    @JvmStatic
     fun m4x3delta(m: Matrix4x3d, pos: Vector3d, buffer16: ByteBuffer) {
 
         buffer16.putFloat(m.m00.toFloat())
@@ -180,6 +187,7 @@ object M4x3Delta {
      * uploads the transform, minus some offset, to the GPU uniform <location>
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
+    @JvmStatic
     fun m4x3x(m: Matrix4x3f, buffer16: ByteBuffer) {
 
         buffer16.putFloat(m.m00)
@@ -205,6 +213,7 @@ object M4x3Delta {
      * uploads the transform, minus some offset, to the GPU uniform <location>
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
+    @JvmStatic
     fun Shader.m4x3delta(location: String, m: Matrix4x3d, b: Vector3d, worldScale: Double, localScale: Float) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) {
@@ -237,6 +246,7 @@ object M4x3Delta {
 
     }
 
+    @JvmStatic
     fun Matrix4f.mul4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double): Matrix4f {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
@@ -265,6 +275,7 @@ object M4x3Delta {
         )
     }
 
+    @JvmStatic
     fun Matrix4x3f.set4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double): Matrix4x3f {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
@@ -288,6 +299,4 @@ object M4x3Delta {
 
         )
     }
-
-
 }

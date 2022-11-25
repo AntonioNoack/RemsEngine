@@ -31,6 +31,7 @@ class AudioFileStreamOpenAL(
 ) : AudioFileStream(file, repeat, getIndex(startTime, speed, playbackSampleRate), meta, speed) {
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(AudioFileStreamOpenAL::class)
     }
 

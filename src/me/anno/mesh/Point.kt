@@ -6,7 +6,7 @@ import org.joml.Vector3f
 
 data class Point(val position: Vector3f, val normal: Vector3f, val uv: Vector2f?) {
     companion object {
-        @JvmStatic
+        @JvmField
         val stack = Stack { Point(Vector3f(), Vector3f(), Vector2f()) }
     }
 }

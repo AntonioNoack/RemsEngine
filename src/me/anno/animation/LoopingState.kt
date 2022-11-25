@@ -100,6 +100,7 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
     abstract operator fun get(time: Long, duration: Long): Long
 
     companion object {
+        @JvmStatic
         fun getState(id: Int) = values().firstOrNull { it.id == id } ?: PLAY_ONCE
     }
 

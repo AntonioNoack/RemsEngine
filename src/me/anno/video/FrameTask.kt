@@ -175,8 +175,11 @@ abstract class FrameTask(
     }
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(FrameTask::class)
+        @JvmField
         var lastPrinted = 0L
+        @JvmStatic
         var missingResource = ""
             set(value) {
                 if (value.isNotEmpty() && abs(Engine.gameTime - lastPrinted) > 1000_000_000L) {

@@ -6,6 +6,7 @@ import java.nio.BufferUnderflowException
 class Stack<V : Any>(private val createInstance: () -> V) {
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(Stack::class)
     }
 
