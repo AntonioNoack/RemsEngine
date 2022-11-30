@@ -17,6 +17,7 @@ class StickPanel(
 ) : CalibrationPanel(controller, axis0, axis1, -1, style) {
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(StickPanel::class)
     }
 

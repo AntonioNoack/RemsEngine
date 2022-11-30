@@ -91,6 +91,16 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         return signature == "dds" || signature == "media" || file.lcExtension == "webp"
     }
 
+    fun shouldIgnore(signature: String?): Boolean {
+        return when (signature) {
+            "rar", "bz2", "zip", "tar", "gzip", "xz", "lz4", "7z", "xar", "oar", "java", "text",
+            "wasm", "ttf", "woff1", "woff2", "shell", "xml", "svg", "exe",
+            "vox", "fbx", "gltf", "obj", "blend", "mesh-draco", "md2", "md5mesh", "dae",
+            "yaml" -> true
+            else -> false
+        }
+    }
+
     operator fun get(file0: FileReference, timeout: Long, async: Boolean): Image? {
         if (file0 is ImageReadable) return file0.readImage()
         val data = getFileEntry(file0, false, timeout, async) { file, _ ->
@@ -100,7 +110,9 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                     exc?.printStackTrace()
                     if (bytes != null) {
                         val signature = Signature.findName(bytes)
-                        if (shouldUseFFMPEG(signature, file)) {
+                        if (shouldIgnore(signature)) {
+                            data.value = null
+                        } else if (shouldUseFFMPEG(signature, file)) {
                             tryFFMPEG(file) { it, e ->
                                 data.value = it
                                 e?.printStackTrace()
@@ -113,7 +125,9 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                 }
             } else {
                 Signature.findName(file) { signature ->
-                    if (shouldUseFFMPEG(signature, file)) {
+                    if (shouldIgnore(signature)) {
+                        data.value = null
+                    } else if (shouldUseFFMPEG(signature, file)) {
                         tryFFMPEG(file) { it, e ->
                             data.value = it
                             e?.printStackTrace()

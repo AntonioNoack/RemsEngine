@@ -269,10 +269,6 @@ object UnityReader {
                 val path = beautify(change["PropertyPath"]!!.value.toString())
                 val value = change["Value"]?.value // e.g. 1.723
 
-                // a reference to a local object, when dragging sth onto another thing
-                // value is then empty
-                val objectReference = decodePath(guid, change["ObjectReference"], project)
-
                 when (path) {
                     "Name" -> prefab.setProperty("name", value ?: continue)
                     // position
@@ -297,7 +293,12 @@ object UnityReader {
                         LOGGER.debug("todo set material ... $value")
                         // todo set the material somehow... is it a material?
                     }
-                    else -> LOGGER.info("$target, Change: $path, value: $value, ref: $objectReference")
+                    else -> {
+                        // a reference to a local object, when dragging sth onto another thing
+                        // value is then empty
+                        val objectReference = decodePath(guid, change["ObjectReference"], project)
+                        LOGGER.info("$target, Change: $path, value: $value, ref: $objectReference")
+                    }
                 }
 
             }
@@ -314,7 +315,7 @@ object UnityReader {
                 prefab.setProperty("rotation", Quaterniond(rotation))
             }
 
-            LOGGER.debug("pos rot sca: $position, $rotation, $scale by $changes")
+            // LOGGER.debug("pos rot sca: $position, $rotation, $scale by $changes")
 
             JomlPools.vec3d.sub(2)
             JomlPools.quat4d.sub(1)
@@ -503,6 +504,7 @@ object UnityReader {
         val meshesByGameObject = HashMap<FileReference, ArrayList<Prefab>>()
         val transformToGameObject = BiMap<FileReference, FileReference>()
         val knownChildren = HashSet<FileReference>()
+        val fileToPrefab = HashMap<FileReference, YAMLNode>()
 
         // todo use Transforms instead of GameObjects for everything?
         // parse all instances roughly, except relations
@@ -662,6 +664,11 @@ object UnityReader {
                     val gameObjectKey = defineMeshFilter(prefab, node, guid, project)
                     meshesByGameObject.getOrPut(gameObjectKey) { ArrayList() }.add(prefab)
                 }
+                "SkinnedMeshRenderer" -> {
+                    file.hide()
+                    val gameObjectKey = defineMeshFilter(prefab, node, guid, project)
+                    meshesByGameObject.getOrPut(gameObjectKey) { ArrayList() }.add(prefab)
+                }
                 "MonoBehaviour" -> {
                     // an unknown script plus properties
                     // in the original without _ and without m_
@@ -686,6 +693,7 @@ object UnityReader {
                         }
                     }*/
                 }
+                "Prefab" -> fileToPrefab[file] = node
             }
         }
 
@@ -777,6 +785,15 @@ object UnityReader {
                             addPrefabChild(prefab, path1)
                             knownChildren.add(path1)
                         }
+                    }
+                    val prefab3 = node["PrefabInternal"]
+                    val prefabPath2 = decodePath(guid, prefab3, project)
+                    val prefabNode = fileToPrefab[prefabPath2]
+                    if (prefabNode != null) {
+                        // hopefully correct...
+                        // todo this is not quite correct...
+                        // E:/Assets/humbleLowPoly/polygonwestern_syntystudios_windows.zip/POLYGON_Western_SyntyStudios/POLYGON_Western_Unity_Package_2017_1.unitypackage/Assets/PolygonWestern/Demo/Demo.unity
+                        applyTransformOnPrefab(prefab, file, prefabNode, guid, project, knownChildren)
                     }
                 }
                 "GameObject" -> {
@@ -936,30 +953,42 @@ object UnityReader {
         }
     }
 
-    fun readAsAsset(file: FileReference): FileReference {
+    fun readAsAsset(file: FileReference, callback: (FileReference?, Exception?) -> Unit) {
         val project = findUnityProject(file)
         if (project == null) {
             LOGGER.warn("No project found in $file")
             // try to read without project
-            val node = parseYAML(file.readTextSync(), true)
-            val tmpFolder = InnerFolder(file)
-            val objects = readUnityObjects(node, "0", invalidProject, tmpFolder)
-            if (objects !== tmpFolder) return InvalidRef
-            return objects.listChildren().firstOrNull() ?: InvalidRef
-        }
-        val objects = project.getGuidFolder(file)
-        val scene = objects.getChild("Scene.json")
-        if (scene != InvalidRef) return scene
-        val children = objects.listChildren() ?: return InvalidRef
-        if (children.size <= 1) return children.firstOrNull() ?: InvalidRef
-        val meta = project.getMeta(file)
-        // find the main id
-        val mainFileId = project.getMainId(meta)
-        return if (mainFileId != null) {
-            objects.getChild(mainFileId)
+            file.readText { s, e ->
+                if (s != null) {
+                    val node = parseYAML(s, true)
+                    val tmpFolder = InnerFolder(file)
+                    val objects = readUnityObjects(node, "0", invalidProject, tmpFolder)
+                    if (objects !== tmpFolder) callback(null, null)
+                    else callback(objects.listChildren().firstOrNull(), null)
+                } else callback(null, e)
+            }
         } else {
-            // get the object with the lowest id
-            children.minByOrNull { it.nameWithoutExtension.toLongOrNull() ?: Long.MAX_VALUE }!!
+            val objects = project.getGuidFolder(file)
+            val scene = objects.getChild("Scene.json")
+            if (scene != InvalidRef) {
+                callback(scene, null)
+                return
+            }
+            val children = objects.listChildren()
+            if (children == null || children.size <= 1) {
+                callback(children?.firstOrNull(), null)
+                return
+            }
+            val meta = project.getMeta(file)
+            // find the main id
+            val mainFileId = project.getMainId(meta)
+            val file2 = if (mainFileId != null) {
+                objects.getChild(mainFileId)
+            } else {
+                // get the object with the lowest id
+                children.minByOrNull { it.nameWithoutExtension.toLongOrNull() ?: Long.MAX_VALUE }
+            }
+            callback(file2, null)
         }
     }
 
@@ -969,7 +998,7 @@ object UnityReader {
         // LOGGER.info(tree)
 
         // if it is only one thing, and has no references, we don't need the project...
-        // but these materials would be boring anyways ;)
+        // but these materials would be boring anyway ;)
 
         val project = findUnityProject(file)
         if (project == null) {
@@ -1215,7 +1244,7 @@ Transform:
         testUI {
             object : FileExplorer(testScene, style) {
 
-                override fun getRightClickOptions(): List<FileExplorerOption> = emptyList()
+                override fun getFolderOptions(): List<FileExplorerOption> = emptyList()
 
                 override fun onDoubleClick(file: FileReference) {
                     switchTo(file)

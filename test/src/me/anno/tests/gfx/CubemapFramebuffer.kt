@@ -20,7 +20,7 @@ fun main() {
     // LOGGER.info("w: $w, h: $h, samples: $samples, targets: $targetCount x fp32? $fpTargets")
     GFX.check()
     val pointer = GL30.glGenFramebuffers()
-    if (pointer < 0) throw RuntimeException()
+    if (pointer == 0) throw RuntimeException()
     GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, pointer)
     Frame.lastPtr = pointer
     //stack.push(this)

@@ -199,7 +199,7 @@ open class StaticMeshesLoader {
     private fun processIndices(aiMesh: AIMesh, indices: IntArray) {
         val numFaces = aiMesh.mNumFaces()
         val aiFaces = aiMesh.mFaces()
-        val aiFace = AIFace.mallocStack()
+        val aiFace = AIFace.malloc()
         for (j in 0 until numFaces) {
             aiFaces.get(j, aiFace)
             val buffer = aiFace.mIndices()
@@ -226,6 +226,7 @@ open class StaticMeshesLoader {
                 }
             }
         }
+        aiFace.free()
     }
 
     private fun processMaterialPrefab(
@@ -523,13 +524,14 @@ open class StaticMeshesLoader {
         val src = aiMesh.mTextureCoords(0)
         return if (src != null) {
             var j = 0
-            val vec = AIVector3D.mallocStack()
+            val vec = AIVector3D.malloc()
             val dst = FloatArray(vertexCount * 2)
             while (src.remaining() > 0) {
                 src.get(vec)
                 dst[j++] = vec.x()
                 dst[j++] = vec.y()
             }
+            vec.free()
             dst
         } else null
     }
@@ -542,13 +544,14 @@ open class StaticMeshesLoader {
 
     private fun processVec3(src: AIVector3D.Buffer, dst: FloatArray): FloatArray {
         var j = 0
-        val vec = AIVector3D.mallocStack()
+        val vec = AIVector3D.malloc()
         while (src.hasRemaining() && j < dst.size) {
             src.get(vec)
             dst[j++] = vec.x()
             dst[j++] = vec.y()
             dst[j++] = vec.z()
         }
+        vec.free()
         return dst
     }
 
@@ -560,7 +563,7 @@ open class StaticMeshesLoader {
     ): FloatArray {
         var i = 0
         var j = 0
-        val vec = AIVector3D.mallocStack()
+        val vec = AIVector3D.malloc()
         while (tangents.hasRemaining() && bitangents.hasRemaining() && j < dst.size) {
             tangents.get(vec)
             val tx = vec.x()
@@ -575,6 +578,7 @@ open class StaticMeshesLoader {
             bitangents.get(vec)
             dst[j++] = sign(crossDot(nx, ny, nz, tx, ty, tz, vec.x(), vec.y(), vec.z()))
         }
+        vec.free()
         return dst
     }
 
@@ -590,7 +594,7 @@ open class StaticMeshesLoader {
         val src = aiMesh.mColors(index)
         return if (src != null) {
             var j = 0
-            val vec = AIColor4D.mallocStack()
+            val vec = AIColor4D.malloc()
             val dst = IntArray(vertexCount)
             while (src.remaining() > 0 && j < vertexCount) {
                 src.get(vec)
@@ -600,6 +604,7 @@ open class StaticMeshesLoader {
                 val a = f2i(vec.a())
                 dst[j++] = rgba(r, g, b, a)
             }
+            vec.free()
             // when every pixel is black or white, it doesn't actually have data
             if (dst.all { it == -1 } || dst.all { it == 0 }) return null
             dst

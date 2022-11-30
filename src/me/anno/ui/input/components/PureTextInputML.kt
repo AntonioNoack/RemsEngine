@@ -189,6 +189,11 @@ open class PureTextInputML(style: Style) :
                     lines[indexInParent] = text.codePoints().toList().toMutableList()
                     this@PureTextInputML.update(true)
                 }
+
+                override fun onCopyRequested(x: Float, y: Float): Any? {
+                    return this@PureTextInputML.onCopyRequested(x, y)
+                }
+
             }
             content.add(panel)
         }
@@ -577,8 +582,9 @@ open class PureTextInputML(style: Style) :
         if (cursor1 == cursor2) return text
         val min = min(cursor1, cursor2)
         val max = max(cursor1, cursor2)
-        if (cursor1.y == cursor2.y) {
-            return lines[cursor1.y].joinChars(min.x, max.x).toString()
+        println("copying $min..$max")
+        if (min.y == max.y) {
+            return lines[min.y].joinChars(min.x, max.x).toString()
         }
         val answer = StringBuilder((max.y - min.y + 1))
         val line0 = lines[min.y]

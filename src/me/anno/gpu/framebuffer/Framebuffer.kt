@@ -109,19 +109,19 @@ class Framebuffer(
     var ssBuffer = if (withMultisampling)
         Framebuffer("$name.ms", w, h, 1, targets, depthBufferType) else null
 
-    override var pointer = -1
+    override var pointer = 0
     var session = 0
 
-    var internalDepthTexture = -1
+    var internalDepthTexture = 0
     override var depthTexture: Texture2D? = null
 
     lateinit var textures: Array<Texture2D>
 
     override fun checkSession() {
-        if (pointer > 0 && session != GFXState.session) {
+        if (pointer != 0 && session != GFXState.session) {
             GFX.check()
             session = GFXState.session
-            pointer = -1
+            pointer = 0
             needsBlit = true
             ssBuffer?.checkSession()
             depthTexture?.checkSession()
@@ -136,7 +136,7 @@ class Framebuffer(
 
     override fun ensure() {
         checkSession()
-        if (pointer <= 0) create()
+        if (pointer == 0) create()
     }
 
     override fun bindDirectly() = bind()
@@ -146,21 +146,26 @@ class Framebuffer(
     }
 
     fun bind() {
+
         needsBlit = true
+
         // if the depth-attachment base changed, we need to recreate this texture
         val da = depthAttachment
-        if (da != null && da.depthTexture!!.pointer != depthAttachedPtr) {
-            destroy()
-        }
-
-        if (da != null && (w != da.w || h != da.h)) {
-            throw IllegalStateException("Depth is not matching dimensions, $w x $h vs ${da.w} x ${da.h}")
+        if (da != null) {
+            if (da.depthTexture!!.pointer != depthAttachedPtr) {
+                destroy()
+            }
+            if ((w != da.w || h != da.h)) {
+                throw IllegalStateException("Depth is not matching dimensions, $w x $h vs ${da.w} x ${da.h}")
+            }
         }
 
         ensure()
+
         if (da != null && da.depthTexture!!.pointer != depthAttachedPtr) {
-            throw IllegalStateException("Depth attachment could not be recreated! ${da.pointer} != $depthAttachedPtr")
+            throw IllegalStateException("Depth attachment could not be recreated! ${da.pointer}, ${da.depthTexture!!.pointer} != $depthAttachedPtr")
         }
+
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         if (!OS.isWeb) {// not defined in WebGL
             if (withMultisampling) {
@@ -183,11 +188,13 @@ class Framebuffer(
         }
     }
 
+    val usesCRBs = samples > 1 // if you need multi-sampled textures, write me :)
+
     fun create() {
         Frame.invalidate()
         GFX.check()
         val pointer = glGenFramebuffers()
-        if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
+        if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
         session = GFXState.session
         if (Build.isDebug) DebugGPUStorage.fbs.add(this)
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
@@ -196,18 +203,18 @@ class Framebuffer(
         val h = h
         if (w * h < 1) throw RuntimeException("Invalid framebuffer size $w x $h")
         GFX.check()
-        textures = Array(targets.size) { index ->
+        if (usesCRBs) {
+            colorRenderBuffers = IntArray(targets.size) {
+                val target = targets[it]
+                createColorBuffer(GL_COLOR_ATTACHMENT0 + it, target.internalFormat, target.bytesPerPixel)
+            }
+        } else textures = Array(targets.size) { index ->
             val texture = Texture2D("$name-tex[$index]", w, h, samples)
             texture.autoUpdateMipmaps = autoUpdateMipmaps
             texture.create(targets[index])
             GFX.check()
-            texture
-        }
-        GFX.check()
-        val textures = textures
-        for (index in targets.indices) {
-            val texture = textures[index]
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
+            texture
         }
         GFX.check()
         when (targets.size) {
@@ -216,6 +223,9 @@ class Framebuffer(
             else -> glDrawBuffers(attachments[targets.size - 2])
         }
         GFX.check()
+        // cannot use depth-texture with color render buffers... why ever...
+        val depthBufferType = if (usesCRBs && depthBufferType == DepthBufferType.TEXTURE)
+            DepthBufferType.INTERNAL else depthBufferType
         when (depthBufferType) {
             DepthBufferType.NONE -> {
             }
@@ -245,30 +255,42 @@ class Framebuffer(
         this.pointer = pointer
     }
 
-    /*fun createColorBuffer(){
-        if(!withMultisampling) throw RuntimeException()
+    // could be used in the future :)
+    // we don't read multisampled textures currently anyway
+    var colorRenderBuffers: IntArray? = null
+    fun createColorBuffer(
+        attachment: Int = GL_COLOR_ATTACHMENT0,
+        format: Int = GL_RGBA8,
+        bytesPerPixel: Int,
+    ): Int {
         val renderBuffer = glGenRenderbuffers()
-        colorRenderBuffer = renderBuffer
-        if(renderBuffer < 0) throw RuntimeException()
         glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGBA8, w, h)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer)
-    }*/
-
-    fun createDepthBuffer() {
-        val renderBuffer = glGenRenderbuffers()
-        if (renderBuffer < 0) throw RuntimeException("Failed to create renderbuffer")
-        internalDepthTexture = renderBuffer
-        glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        val format = GL_DEPTH_COMPONENT // application chooses bytes/pixel
-        if (withMultisampling) {
+        if (samples > 1) {
             glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, format, w, h)
         } else {
             glRenderbufferStorage(GL_RENDERBUFFER, format, w, h)
         }
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer)
-        val bytesPerPixel = 4 // a guess for the internal format; worst case
-        depthAllocated = Texture2D.allocate(depthAllocated, w * h * bytesPerPixel.toLong())
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, renderBuffer)
+        GFX.check()
+        renderBufferAllocated = Texture2D.allocate(
+            renderBufferAllocated,
+            renderBufferAllocated + w * h * bytesPerPixel.toLong() * samples
+        )
+        return renderBuffer
+    }
+
+    fun createColorBuffer(
+        attachment: Int = GL_COLOR_ATTACHMENT0,
+        targetType: TargetType,
+    ): Int = createColorBuffer(attachment, targetType.internalFormat, targetType.bytesPerPixel)
+
+    fun createDepthBuffer() {
+        internalDepthTexture = when (depthBufferType) {
+            // these texture types MUST be the same as for the texture creation process
+            DepthBufferType.TEXTURE -> createColorBuffer(GL_DEPTH_ATTACHMENT, TargetType.DEPTH32F)
+            DepthBufferType.TEXTURE_16 -> createColorBuffer(GL_DEPTH_ATTACHMENT, TargetType.DEPTH16)
+            else -> createColorBuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT, 4) // 4 is worst-case assumed
+        }
     }
 
     fun blitTo(target: IFramebuffer) {
@@ -290,7 +312,9 @@ class Framebuffer(
 
         GFX.check()
 
-        if (pointer < 0 || target.pointer < 0) throw RuntimeException("Something went wrong $this -> $target")
+        if (pointer == 0 || (target.pointer == 0 && target != NullFramebuffer))
+            throw RuntimeException("Something went wrong $this -> $target")
+
         // LOGGER.info("Blit: $pointer -> ${target.pointer}")
         bindFramebuffer(GL_DRAW_FRAMEBUFFER, target.pointer)
         bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
@@ -302,10 +326,11 @@ class Framebuffer(
         var bits = 0
         if (targets.isNotEmpty()) bits = bits or GL_COLOR_BUFFER_BIT
         if (depthBufferType != DepthBufferType.NONE) bits = bits or GL_DEPTH_BUFFER_BIT
+
         glBlitFramebuffer(
             0, 0, w, h,
             0, 0, w, h,
-            // we may want to GL_STENCIL_BUFFER_BIT, if present
+            // we may want to add GL_STENCIL_BUFFER_BIT, if present
             bits,
             GL_NEAREST
         )
@@ -371,26 +396,30 @@ class Framebuffer(
     }
 
     fun destroyFramebuffer() {
-        if (pointer > -1) {
+        if (pointer != 0) {
             glDeleteFramebuffers(pointer)
             Frame.invalidate()
             if (Build.isDebug) DebugGPUStorage.fbs.remove(this)
-            pointer = -1
+            pointer = 0
+            val buffers = colorRenderBuffers
+            if (buffers != null) {
+                glDeleteRenderbuffers(buffers)
+            }
         }
     }
 
     fun destroyInternalDepth() {
-        if (internalDepthTexture > -1) {
+        if (internalDepthTexture > 0) {
             glDeleteRenderbuffers(internalDepthTexture)
-            depthAllocated = Texture2D.allocate(depthAllocated, 0L)
-            internalDepthTexture = -1
+            renderBufferAllocated = Texture2D.allocate(renderBufferAllocated, 0L)
+            internalDepthTexture = 0
         }
     }
 
-    var depthAllocated = 0L
+    var renderBufferAllocated = 0L
 
     fun destroyTextures(deleteDepth: Boolean) {
-        for (tex in textures) tex.destroy()
+        if (!usesCRBs) for (tex in textures) tex.destroy()
         if (deleteDepth) destroyDepthTexture()
     }
 
@@ -399,7 +428,7 @@ class Framebuffer(
     }
 
     override fun destroy() {
-        if (pointer > 0) {
+        if (pointer != 0) {
             GFX.checkIsGFXThread()
             ssBuffer?.destroy()
             destroyFramebuffer()

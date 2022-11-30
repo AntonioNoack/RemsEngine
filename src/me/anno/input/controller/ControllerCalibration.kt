@@ -66,6 +66,7 @@ class ControllerCalibration() : Saveable() {
     override val className = "ControllerCalibration"
 
     companion object {
+        // this probably is never called, right?
         init {
             ISaveable.registerCustomClass(ControllerCalibration())
         }

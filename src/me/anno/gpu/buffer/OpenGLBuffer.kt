@@ -27,7 +27,7 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
 
     var nioBuffer: ByteBuffer? = null
 
-    var pointer = -1
+    var pointer = 0
     var session = 0
 
     var isUpToDate = false
@@ -46,7 +46,7 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
     }
 
     open fun onSessionChange() {
-        pointer = -1
+        pointer = 0
         isUpToDate = false
         locallyAllocated = allocate(locallyAllocated, 0L)
     }
@@ -61,8 +61,8 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
             createNioBuffer()
         }
 
-        if (pointer <= 0) pointer = glGenBuffers()
-        if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
+        if (pointer == 0) pointer = glGenBuffers()
+        if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
 
         bindBuffer(type, pointer)
 
@@ -230,7 +230,7 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
                 locallyAllocated = allocate(locallyAllocated, 0L)
             }
         }
-        this.pointer = -1
+        this.pointer = 0
         if (this is Buffer) this.vao = -1
         if (nioBuffer != null) {
             ByteBufferPool.free(nioBuffer)

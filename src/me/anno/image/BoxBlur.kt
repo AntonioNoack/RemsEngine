@@ -2,6 +2,7 @@ package me.anno.image
 
 object BoxBlur {
 
+    @JvmStatic
     fun gaussianBlur(image: FloatArray, w: Int, h: Int, thickness: Int): Boolean {
         // box blur 3x with a third of the thickness is a nice gaussian blur approximation :),
         // which in turn is a bokeh-blur approximation
@@ -25,6 +26,7 @@ object BoxBlur {
         return true
     }
 
+    @JvmStatic
     fun boxBlurX(image: FloatArray, w: Int, h: Int, thickness: Int) {
         if (thickness <= 1) return
         for (y in 0 until h) {
@@ -52,36 +54,6 @@ object BoxBlur {
         }
     }
 
-    /*fun boxBlurY(image: FloatArray, w: Int, h: Int, thickness: Int) {
-        if (thickness <= 1) return
-        for (x in 0 until h) {
-            var i0 = x
-            var j0 = x
-            var sum = 0f
-            // start of sum
-            for (y in 0 until thickness) {
-                sum += image[j0]
-                j0 += w
-            }
-            // updated sum
-            for (y in 0 until h - thickness) {
-                val v = image[j0]
-                val old = image[i0]
-                image[i0] = sum
-                sum += v - old
-                j0 += w
-                i0 += w
-            }
-            // end of sum
-            for (y in h - thickness until h) {
-                val old = image[i0]
-                image[i0] = sum
-                sum -= old
-                i0 += w
-            }
-        }
-    }*/
-
     /**
      * box blur for large images:
      * allocates an array, however for large images, this is faster,
@@ -89,6 +61,7 @@ object BoxBlur {
      *
      * reduces runtime for w=h=2048, thickness=25 from 24-25ns/px to 13-15ns/px
      * */
+    @JvmStatic
     fun boxBlurY(image: FloatArray, w: Int, h: Int, thickness: Int, sum: FloatArray) {
         if (thickness <= 1) return
         sum.fill(0f, 0, w)

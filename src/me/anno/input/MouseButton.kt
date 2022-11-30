@@ -23,6 +23,7 @@ enum class MouseButton(val id: Int) {
 
     companion object {
 
+        @JvmStatic
         fun Int.toMouseButton() = when (this) {
             0 -> LEFT
             1 -> RIGHT

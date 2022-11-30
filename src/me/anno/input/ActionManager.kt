@@ -13,19 +13,27 @@ import java.util.function.BiConsumer
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
 
-object ActionManager : StringMap() {
+object ActionManager {
 
+    @JvmStatic
     private val LOGGER = LogManager.getLogger(ActionManager::class)
 
+    @JvmStatic
     private val keyDragDelay = DefaultConfig["ui.keyDragDelay", 0.5f]
 
+    @JvmStatic
     private val localActions = KeyPairMap<String, KeyCombination, List<String>>(512)
 
+    @JvmStatic
     private val globalKeyCombinations = HashMap<KeyCombination, List<String>>()
+
+    @JvmStatic
     private val globalActions = HashMap<String, () -> Boolean>()
 
+    @JvmStatic
     private lateinit var keyMap: StringMap
 
+    @JvmStatic
     fun init() {
 
         keyMap = DefaultConfig["ui.keyMap", { StringMap() }]
@@ -36,10 +44,12 @@ object ActionManager : StringMap() {
 
     }
 
+    @JvmField
     var createDefaultKeymap: (StringMap) -> Unit = {
         LOGGER.warn("Using default keymap... this should not happen!")
     }
 
+    @JvmStatic
     fun parseConfig(config: StringMap) {
         for ((key, value) in config) {
             value as? String ?: continue
@@ -50,6 +60,7 @@ object ActionManager : StringMap() {
     /**
      * @param direction 0 = override, -1 = prepend, +1 = append
      * */
+    @JvmStatic
     fun register(key: String, value: String, direction: Int = 0) {
         if (value == "") return
         val keys = key.split('.')
@@ -77,6 +88,7 @@ object ActionManager : StringMap() {
     /**
      * @param direction 0 = override, -1 = prepend, +1 = append
      * */
+    @JvmStatic
     fun register(namespace: String, keyCombination: KeyCombination, actions: List<String>, direction: Int = 0) {
         if (namespace.equals("global", true)) {
             globalKeyCombinations[keyCombination] =
@@ -90,10 +102,12 @@ object ActionManager : StringMap() {
     /**
      * @param direction 0 = override, -1 = prepend, +1 = append
      * */
+    @JvmStatic
     fun register(namespace: String, keyCombination: KeyCombination, action: String, direction: Int = 0) {
         register(namespace, keyCombination, listOf(action), direction)
     }
 
+    @JvmStatic
     fun combine(oldValues: List<String>?, actions: List<String>, direction: Int): List<String> {
         return when {
             direction == 0 || oldValues == null -> actions
@@ -102,29 +116,36 @@ object ActionManager : StringMap() {
         }
     }
 
+    @JvmStatic
     fun onKeyTyped(window: OSWindow, key: Int) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.TYPED), false)
     }
 
+    @JvmStatic
     fun onKeyUp(window: OSWindow, key: Int) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.UP), false)
     }
 
+    @JvmStatic
     fun onKeyDown(window: OSWindow, key: Int) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOWN), false)
     }
 
+    @JvmStatic
     fun onKeyDoubleClick(window: OSWindow, key: Int) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOUBLE), false)
     }
 
+    @JvmStatic
     fun onKeyHoldDown(window: OSWindow, dx: Float, dy: Float, key: Int, isSafe: Boolean) {
         val type = if (isSafe) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE
         onEvent(window, dx, dy, KeyCombination(key, Input.keyModState, type), true)
     }
 
+    @JvmStatic
     fun onMouseIdle(window: OSWindow) = onMouseMoved(window, 0f, 0f)
 
+    @JvmStatic
     fun onMouseMoved(window: OSWindow, dx: Float, dy: Float) {
         if (Input.keysDown.isEmpty()) return
         val mouseMoveConsumer = BiConsumer<Int, Long> { key, downTime ->
@@ -138,6 +159,7 @@ object ActionManager : StringMap() {
         Input.keysDown.forEach(mouseMoveConsumer)
     }
 
+    @JvmStatic
     fun onEvent(window: OSWindow, dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
         val stack = window.windowStack
         var panel = stack.inFocus0
@@ -158,7 +180,7 @@ object ActionManager : StringMap() {
         targetSearch@ while (panel != null) {
             if (processActions(panel, x, y, dx, dy, isContinuous, la[panel.className, combination], print)) return
             // also check parent classes
-            if(OS.isWeb){ // Kotlin's reflection is not yet supported
+            if (OS.isWeb) { // Kotlin's reflection is not yet supported
                 var clazz: Class<*> = panel.javaClass
                 while (true) {
                     val entry = ISaveable.getByClass(clazz)
@@ -166,7 +188,7 @@ object ActionManager : StringMap() {
                         val cnI = entry.sampleInstance.className
                         if (processActions(panel, x, y, dx, dy, isContinuous, la[cnI, combination], print)) return
                     }
-                    if(clazz == Panel::javaClass) break
+                    if (clazz == Panel::javaClass) break
                     clazz = clazz.superclass ?: break
                 }
             } else {
@@ -177,7 +199,7 @@ object ActionManager : StringMap() {
                         val cnI = entry.sampleInstance.className
                         if (processActions(panel, x, y, dx, dy, isContinuous, la[cnI, combination], print)) return
                     }
-                    if(clazz == Panel::class) break
+                    if (clazz == Panel::class) break
                     clazz = clazz.superclasses.getOrNull(0) ?: break
                 }
             }
@@ -187,8 +209,10 @@ object ActionManager : StringMap() {
         }
     }
 
+    @JvmField
     var lastComb: KeyCombination? = null
 
+    @JvmStatic
     fun processActions(
         panel: Panel,
         x: Float, y: Float, dx: Float, dy: Float,
@@ -208,6 +232,7 @@ object ActionManager : StringMap() {
         return false
     }
 
+    @JvmStatic
     fun executeLocally(
         window: OSWindow,
         dx: Float, dy: Float, isContinuous: Boolean,
@@ -225,6 +250,7 @@ object ActionManager : StringMap() {
         return false
     }
 
+    @JvmStatic
     fun executeGlobally(window: OSWindow, dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?) {
         if (actions == null) return
         for (index in actions.indices) {
@@ -243,6 +269,7 @@ object ActionManager : StringMap() {
         }
     }
 
+    @JvmStatic
     fun registerGlobalAction(name: String, action: () -> Boolean) {
         globalActions[name] = action
     }

@@ -88,15 +88,15 @@ interface IFramebuffer {
         clearColor(color.x, color.y, color.z, color.w, depth)
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float, depth: Boolean = false) {
-        if (GFXState.currentBuffer != this) {
-            useFrame(this) {
-                clearColor(r, g, b, a, depth)
-            }
-        } else {
+        if (isBound()) {
             Frame.bind()
             glClearColor(r, g, b, a)
             glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
             glClear(GL_COLOR_BUFFER_BIT or depth.toInt(GL_DEPTH_BUFFER_BIT))
+        } else {
+            useFrame(this) {
+                clearColor(r, g, b, a, depth)
+            }
         }
     }
 
@@ -111,29 +111,34 @@ interface IFramebuffer {
         clearColor(color.x, color.y, color.z, color.w, stencil, depth)
 
     fun clearColor(r: Float, g: Float, b: Float, a: Float, stencil: Int, depth: Boolean = false) {
-        if (GFXState.currentBuffer != this) {
-            useFrame(this) {
-                clearColor(r, g, b, a, stencil, depth)
-            }
-        } else {
+        if (isBound()) {
             Frame.bind()
             glClearStencil(stencil)
             glClearColor(r, g, b, a)
             glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
             glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or depth.toInt(GL_DEPTH_BUFFER_BIT))
+        } else {
+            useFrame(this) {
+                clearColor(r, g, b, a, stencil, depth)
+            }
         }
     }
 
     fun clearDepth() {
-        if (GFXState.currentBuffer != this) {
-            useFrame(this) {
-                clearDepth()
-            }
-        } else {
+        if (isBound()) {
             Frame.bind()
             glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
             glClear(GL_DEPTH_BUFFER_BIT)
+        } else {
+            useFrame(this) {
+                clearDepth()
+            }
         }
+    }
+
+    fun isBound(): Boolean {
+        val curr = GFXState.currentBuffer
+        return curr == this
     }
 
     fun use(index: Int, renderer: Renderer, render: () -> Unit) {

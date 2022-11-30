@@ -334,7 +334,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
                     val r = Touch.getZoomFactor()
                     view.radius *= r * r * sign(r) // power 1 is too slow
 
-                    Touch.update()
+                    Touch.updateAll()
 
                 }
                 else -> {
@@ -353,7 +353,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
                     val r = Touch.getZoomFactor()
                     view.radius *= r * r * sign(r) // power 1 is too slow
 
-                    Touch.update()
+                    Touch.updateAll()
 
                 }
             }

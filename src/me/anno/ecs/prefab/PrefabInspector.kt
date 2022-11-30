@@ -1,6 +1,5 @@
 package me.anno.ecs.prefab
 
-import me.anno.utils.Color.black
 import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
@@ -31,6 +30,7 @@ import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
@@ -50,7 +50,7 @@ class PrefabInspector(val reference: FileReference) {
 
     val prefab: Prefab
         get() {
-            val prefab = PrefabCache[reference]!!
+            val prefab = PrefabCache[reference] ?: throw NullPointerException("Missing prefab of $reference")
             prefab.ensureMutableLists()
             return prefab
         }

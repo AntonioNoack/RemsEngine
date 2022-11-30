@@ -26,7 +26,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.sorting.MergeSort.mergeSort
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.SmallestKList
 import me.anno.utils.types.Matrices.distanceSquared
@@ -35,6 +34,7 @@ import org.joml.AABBd
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4d
+import java.util.*
 
 /**
  * collects meshes for sorting (transparency, overdraw), and for instanced rendering
@@ -244,7 +244,7 @@ class Pipeline(val deferred: DeferredSettingsV2?) : Saveable() {
                     lights[i] = lightStage[i]
                 }
                 // sort by type, and whether they have a shadow
-                mergeSort(lights, 0, size) { a, b ->
+                Arrays.sort(lights, 0, size) { a, b ->
                     val va = a!!.light
                     val vb = b!!.light
                     va.hasShadow.compareTo(vb.hasShadow).ifSame {
@@ -263,7 +263,7 @@ class Pipeline(val deferred: DeferredSettingsV2?) : Saveable() {
                 lights[i] = smallest[i]
             }
             // sort by type, and whether they have a shadow
-            mergeSort(lights, 0, smallest.size) { a, b ->
+            Arrays.sort(lights, 0, smallest.size) { a, b ->
                 val va = a!!.light
                 val vb = b!!.light
                 va.hasShadow.compareTo(vb.hasShadow).ifSame {

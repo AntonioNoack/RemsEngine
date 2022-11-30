@@ -8,6 +8,7 @@ object ImageScale {
     /**
      * cuts off excess of the image
      * */
+    @JvmStatic
     @Suppress("unused")
     fun scaleMin(imageWidth: Int, imageHeight: Int, minSize: Int): Pair<Int, Int> {
         return if (imageWidth < imageHeight) {
@@ -20,6 +21,7 @@ object ImageScale {
     /**
      * cuts off excess of the image
      * */
+    @JvmStatic
     fun scaleMin(imageWidth: Int, imageHeight: Int, minWidth: Int, minHeight: Int): Pair<Int, Int> {
         return if (imageWidth * minHeight < imageHeight * minWidth) {
             // width is the limit
@@ -33,6 +35,7 @@ object ImageScale {
     /**
      * adds bars on left+right/top+bottom
      * */
+    @JvmStatic
     fun scaleMax(imageWidth: Int, imageHeight: Int, maxSize: Int): Pair<Int, Int> {
         return if (imageWidth > imageHeight) {
             Pair(maxSize, max(1, (imageHeight * maxSize + imageWidth / 2) / imageWidth))
@@ -44,6 +47,7 @@ object ImageScale {
     /**
      * adds bars on left+right/top+bottom
      * */
+    @JvmStatic
     fun scaleMax(imageWidth: Int, imageHeight: Int, maxWidth: Int, maxHeight: Int): Pair<Int, Int> {
         return if (imageWidth * maxHeight > imageHeight * maxWidth) {
             // width is the limit
@@ -54,6 +58,7 @@ object ImageScale {
         }
     }
 
+    @JvmStatic
     fun scaleMaxPreview(imageWidth: Int, imageHeight: Int, w: Int, h: Int, maxAspectRatio: Int = 5): Pair<Int, Int> {
         return when {
             // not too tall or too wide

@@ -57,6 +57,8 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
     var calcChildHeight = 0
     var minH2 = 0
 
+    var maxColumns = Int.MAX_VALUE
+
     override var scrollPositionY = 0.0
     var isDownOnScrollbar = false
 
@@ -184,7 +186,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
     }
 
     private fun updateCount() {
-        columns = max(1, (w + spacing) / (childWidth + spacing))
+        columns = min(max(1, (w + spacing) / (childWidth + spacing)), maxColumns)
         rows = max(1, (children.size + columns - 1) / columns)
     }
 
@@ -301,6 +303,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
         clone.rows = rows
         clone.columns = columns
         clone.spacing = spacing
+        clone.maxColumns = maxColumns
         clone.scrollPositionY = scrollPositionY
         clone.isDownOnScrollbar = isDownOnScrollbar
         clone.scrollbarWidth = scrollbarWidth

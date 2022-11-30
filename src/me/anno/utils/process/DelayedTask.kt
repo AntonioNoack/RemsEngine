@@ -1,5 +1,9 @@
 package me.anno.utils.process
 
+import me.anno.Engine
+import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.utils.OS
 import kotlin.concurrent.thread
 
 class DelayedTask(
@@ -10,25 +14,41 @@ class DelayedTask(
     constructor(function: () -> Unit) : this(function, 500)
 
     var isWorking = false
+    var endTime = 0L
+
     fun update() {
         synchronized(this) {
             if (isWorking) return
             isWorking = true
         }
-        thread(name = "DelayedTask") {
-            try {
-                Thread.sleep(delayMillis)
-            } catch (e: InterruptedException) {
-                // mmh...
+        if (OS.isWeb) {// no threading supported rn
+            endTime = Engine.nanoTime + delayMillis * MILLIS_TO_NANOS
+            webUpdate()
+        } else {
+            thread(name = "DelayedTask") {
+                try {
+                    Thread.sleep(delayMillis)
+                } catch (e: InterruptedException) {
+                    // mmh...
+                }
+                try {
+                    function()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    // something went wrong;
+                    // we need to unlock it anyway
+                }
+                isWorking = false
             }
-            try {
-                function()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                // something went wrong;
-                // we need to unlock it anyway
-            }
+        }
+    }
+
+    private fun webUpdate() {
+        if (Engine.nanoTime >= endTime) {
+            function()
             isWorking = false
+        } else {
+            addEvent(this::webUpdate)
         }
     }
 

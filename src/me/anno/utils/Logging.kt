@@ -9,13 +9,20 @@ import kotlin.math.max
 // todo also print stuff to a file for debugging errors on users computers? :)
 object Logging {
 
+    @JvmStatic
     private val originalOut = System.out!!
+
+    @JvmStatic
     private val originalErr = System.err!!
 
     // Web isn't supporting multithreading yet
+    @JvmField
     val lastConsoleLines: Queue<String> = LinkedBlockingQueue()
 
+    @JvmField
     var lastConsoleLineCount = 500
+
+    @JvmField
     var maxConsoleLineLength = 500
 
     open class OutputPipe(val output: OutputStream) : OutputStream() {
@@ -48,6 +55,7 @@ object Logging {
         }
     }
 
+    @JvmStatic
     fun setup() {
         System.setOut(PrintStream(OutputPipe(originalOut)))
         System.setErr(PrintStream(object : OutputPipe(originalErr) {

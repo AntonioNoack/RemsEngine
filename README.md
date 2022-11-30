@@ -156,7 +156,7 @@ Some feature tests:
 - [Debug: JsonFormatter.kt](test/src/me/anno/tests/files/JsonFormatter.kt)
 - [UI: DrawCurves.kt](test/src/me/anno/tests/shader/DrawCurves.kt)
 - [UI: AnimTest.kt](test/src/me/anno/tests/ui/AnimTest.kt)
-- [Snake Game](test/src/me/anno/tests/game/Snake.kt), [Running Demo](https://remsengine.phychi.com/jvm2wasm/snake/)
+- [Snake Game](test/src/me/anno/tests/game/Snake.kt), [Running Web Demo](https://remsengine.phychi.com/jvm2wasm/snake/)
 
 You can find most examples in the "tests" folder. In total, there are more than 200 handwritten tests for you to see how the engine works :).
 

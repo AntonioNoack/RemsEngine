@@ -18,7 +18,6 @@ import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
-import me.anno.utils.Color.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
@@ -31,14 +30,15 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderState.cameraMatrix
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import javax.vecmath.Quat4d
@@ -379,14 +379,22 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     private fun drawContactPoints() {
         val dispatcher = world?.dispatcher ?: return
         val numManifolds = dispatcher.numManifolds
+        val worldScale = RenderState.worldScale
+        val cam = cameraPosition
         for (i in 0 until numManifolds) {
             val contactManifold = dispatcher.getManifoldByIndexInternal(i) ?: break
             for (j in 0 until contactManifold.numContacts) {
                 val cp = contactManifold.getContactPoint(j)
-                DrawAABB.drawLine(
-                    cp.positionWorldOnB,
-                    Vector3d(cp.positionWorldOnB).apply { add(cp.normalWorldOnB) },
-                    RenderState.worldScale, 0x777777
+                val a = cp.positionWorldOnB
+                val n = cp.normalWorldOnB
+                addLine(
+                    (a.x - cam.x) * worldScale,
+                    (a.y - cam.y) * worldScale,
+                    (a.z - cam.z) * worldScale,
+                    (a.x + n.x - cam.x) * worldScale,
+                    (a.y + n.y - cam.y) * worldScale,
+                    (a.z + n.z - cam.z) * worldScale,
+                    0x777777
                 )
             }
         }
@@ -414,11 +422,12 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     private fun drawAABBs() {
 
         val tmpTrans = Stack.newTrans()
-        val minAabb = Vector3d()
-        val maxAabb = Vector3d()
+        val minAabb = Stack.newVec()
+        val maxAabb = Stack.newVec()
 
         val collisionObjects = world?.collisionObjectArray ?: return
 
+        val bounds = JomlPools.aabbd.create()
         for (i in 0 until collisionObjects.size) {
 
             val colObj = collisionObjects[i] ?: break
@@ -437,7 +446,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             colObj.collisionShape.getAabb(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
 
             DrawAABB.drawAABB(
-                AABBd()
+                bounds
                     .setMin(minAabb.x, minAabb.y, minAabb.z)
                     .setMax(maxAabb.x, maxAabb.y, maxAabb.z),
                 RenderState.worldScale,
@@ -445,17 +454,22 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             )
         }
 
+        JomlPools.aabbd.sub(1)
+        Stack.subTrans(1)
+        Stack.subVec(2)
+
     }
 
     private fun drawVehicles() {
 
-        val wheelPosWS = Vector3d()
-        val axle = Vector3d()
-        val tmp = Stack.newVec()
-
         val worldScale = RenderState.worldScale
         val world = world ?: return
         val vehicles = world.vehicles ?: return
+
+        val wheelPosWS = Stack.newVec()
+        val axle = Stack.newVec()
+        val tmp = Stack.newVec()
+
         for (i in 0 until vehicles.size) {
             val vehicle = vehicles[i] ?: break
             for (v in 0 until vehicle.numWheels) {
@@ -478,6 +492,8 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
             }
         }
+
+        Stack.subVec(3)
 
         val actions = world.actions
         for (i in 0 until actions.size) {

@@ -207,6 +207,7 @@ abstract class Image(
 
     companion object {
 
+        @JvmStatic
         fun argb(a: Byte, r: Byte, g: Byte, b: Byte): Int {
             return argb(
                 a.toUInt().toInt(), r.toUInt().toInt(),
@@ -214,6 +215,7 @@ abstract class Image(
             )
         }
 
+        @JvmStatic
         fun argb(a: Int, r: Int, g: Int, b: Int): Int {
             return (a shl 24) + (r shl 16) + (g shl 8) + b
         }

@@ -123,8 +123,8 @@ class IndexBuffer(
 
         val target = GL_ELEMENT_ARRAY_BUFFER
 
-        if (pointer <= 0) pointer = glGenBuffers()
-        if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL buffer")
+        if (pointer == 0) pointer = glGenBuffers()
+        if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL buffer")
         bindBuffer(target, pointer)
 
         if (isUpToDate) return
@@ -276,7 +276,7 @@ class IndexBuffer(
                 onDestroyBuffer(buffer)
                 glDeleteBuffers(buffer)
             }
-            pointer = -1
+            pointer = 0
             locallyAllocated = allocate(locallyAllocated, 0)
         }
     }

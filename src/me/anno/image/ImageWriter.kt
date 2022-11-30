@@ -3,7 +3,6 @@ package me.anno.image
 import me.anno.image.BoxBlur.gaussianBlur
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
-import me.anno.image.raw.toImage
 import me.anno.image.raw.IntImage
 import me.anno.image.raw.write
 import me.anno.io.files.FileReference
@@ -35,10 +34,12 @@ import kotlin.math.*
 @Suppress("unused")
 object ImageWriter {
 
+    @JvmStatic
     private val LOGGER = LogManager.getLogger(ImageWriter::class)
 
-    val tileSize = 8
+    const val tileSize = 8
 
+    @JvmStatic
     fun getFile(name: String): FileReference {
         val name2 = if (name.endsWith("png") || name.endsWith("jpg")) name else "$name.png"
         val file = desktop.getChild(name2)
@@ -46,6 +47,7 @@ object ImageWriter {
         return file
     }
 
+    @JvmStatic
     fun writeImage(name: String, img: BufferedImage) {
         val file = getFile(name)
         file.outputStream().use {
@@ -53,6 +55,7 @@ object ImageWriter {
         }
     }
 
+    @JvmStatic
     fun writeImage(name: String, img: Image) {
         val file = getFile(name)
         file.outputStream().use {
@@ -60,57 +63,56 @@ object ImageWriter {
         }
     }
 
+    @JvmStatic
     inline fun writeRGBImageByte3(
         w: Int,
         h: Int,
         name: String,
         minPerThread: Int,
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Triple<Byte, Byte, Byte>
-    ) {
-        writeRGBImageInt(w, h, name, minPerThread) { x, y, i ->
-            val (r, g, b) = getRGB(x, y, i)
-            rgba(r, g, b, -1)
-        }
+    ) = writeRGBImageInt(w, h, name, minPerThread) { x, y, i ->
+        val (r, g, b) = getRGB(x, y, i)
+        rgba(r, g, b, -1)
     }
 
+    @JvmStatic
     inline fun writeRGBImageInt3(
         w: Int,
         h: Int,
         name: String,
         minPerThread: Int,
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Triple<Int, Int, Int>
-    ) {
-        writeRGBImageInt(w, h, name, minPerThread) { x, y, i ->
-            val (r, g, b) = getRGB(x, y, i)
-            rgba(r, g, b, 255)
-        }
+    ) = writeRGBImageInt(w, h, name, minPerThread) { x, y, i ->
+        val (r, g, b) = getRGB(x, y, i)
+        rgba(r, g, b, 255)
     }
 
+    @JvmStatic
     inline fun writeRGBImageInt(
         w: Int,
         h: Int,
         name: String,
         minPerThread: Int,
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Int
-    ) {
-        writeImageInt(w, h, false, name, minPerThread, getRGB)
-    }
+    ) = writeImageInt(w, h, false, name, minPerThread, getRGB)
 
+
+    @JvmStatic
     inline fun writeRGBAImageInt(
         w: Int,
         h: Int,
         name: String,
         minPerThread: Int,
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Int
-    ) {
-        writeImageInt(w, h, true, name, minPerThread, getRGB)
-    }
+    ) = writeImageInt(w, h, true, name, minPerThread, getRGB)
 
+    @JvmStatic
     fun writeImageFloat(
         w: Int, h: Int, name: String,
         normalize: Boolean, values: FloatArray
     ) = writeImageFloat(w, h, name, normalize, LinearColorMap.default, values)
 
+    @JvmStatic
     fun writeImageFloat(
         w: Int, h: Int, name: String,
         normalize: Boolean,
@@ -125,6 +127,7 @@ object ImageWriter {
         writeImage(name, IntImage(w, h, imgData, false))
     }
 
+    @JvmStatic
     fun writeImageFloatWithOffsetAndStride(
         w: Int, h: Int,
         offset: Int, stride: Int,
@@ -147,6 +150,7 @@ object ImageWriter {
         writeImage(name, IntImage(w, h, imgData, false))
     }
 
+    @JvmStatic
     fun writeImageFloatMSAA(
         w: Int, h: Int, name: String,
         normalize: Boolean,
@@ -183,6 +187,7 @@ object ImageWriter {
         writeImage(name, img)
     }
 
+    @JvmStatic
     inline fun writeImageFloat(
         w: Int, h: Int, name: String,
         minPerThread: Int,
@@ -192,6 +197,7 @@ object ImageWriter {
         return writeImageFloat(w, h, name, minPerThread, normalize, LinearColorMap.default, getRGB)
     }
 
+    @JvmStatic
     inline fun writeImageFloat(
         w: Int, h: Int, name: String,
         minPerThread: Int,
@@ -212,6 +218,7 @@ object ImageWriter {
         return writeImageFloat(w, h, name, normalize, colorMap, values)
     }
 
+    @JvmField
     val MSAAx8 = floatArrayOf(
         0.058824f, 0.419608f,
         0.298039f, 0.180392f,
@@ -223,6 +230,7 @@ object ImageWriter {
         0.819608f, 0.580392f
     )
 
+    @JvmStatic
     inline fun writeImageFloatMSAA(
         w: Int, h: Int, name: String,
         minPerThread: Int,
@@ -230,6 +238,7 @@ object ImageWriter {
         crossinline getValue: (x: Float, y: Float) -> Float
     ) = writeImageFloatMSAA(w, h, name, minPerThread, normalize, LinearColorMap.default, getValue)
 
+    @JvmStatic
     inline fun writeImageFloatMSAA(
         w: Int, h: Int, name: String,
         minPerThread: Int,
@@ -259,6 +268,7 @@ object ImageWriter {
         return writeImageFloatMSAA(w, h, name, normalize, colorMap, samples, values)
     }
 
+    @JvmStatic
     fun getColor(x: Float): Int {
         if (x.isNaN()) return 0x0000ff
         val v = min((abs(x) * 255).toInt(), 255)
@@ -269,6 +279,7 @@ object ImageWriter {
         } * v
     }
 
+    @JvmStatic
     fun getColor(v: Float, minColor: Int, zeroColor: Int, maxColor: Int, nanColor: Int): Int {
         return when {
             v.isFinite() -> mixARGB(zeroColor, if (v < 0) minColor else maxColor, abs(v))
@@ -278,6 +289,7 @@ object ImageWriter {
         }
     }
 
+    @JvmStatic
     inline fun writeImageInt(
         w: Int, h: Int, alpha: Boolean, name: String,
         minPerThread: Int,
@@ -297,14 +309,14 @@ object ImageWriter {
         writeImage(name, img)
     }
 
+    @JvmStatic
     fun writeImageInt(
         w: Int, h: Int, alpha: Boolean,
         name: String,
         pixels: IntArray
-    ) {
-        writeImage(name, IntImage(w, h, pixels, alpha))
-    }
+    ) = writeImage(name, IntImage(w, h, pixels, alpha))
 
+    @JvmStatic
     private fun addPoint(image: FloatArray, w: Int, x: Int, y: Int, v: Float) {
         if (x in 0 until w && y >= 0) {
             val index = x + y * w
@@ -314,6 +326,7 @@ object ImageWriter {
         }
     }
 
+    @JvmStatic
     fun writeImageCurve(
         wr: Int, hr: Int,
         autoScale: Boolean,
@@ -385,6 +398,7 @@ object ImageWriter {
         writeImageFloatWithOffsetAndStride(wr, hr, thickness * (w + 1), w, name, false, cm, image)
     }
 
+    @JvmStatic
     fun writeImageProfile(
         values: FloatArray, h: Int,
         name: String,
@@ -399,6 +413,7 @@ object ImageWriter {
         writeImageProfile(values, h, name, map2, background, foreground, alpha, padding)
     }
 
+    @JvmStatic
     fun writeImageProfile(
         values: FloatArray, h: Int,
         name: String,
@@ -441,6 +456,7 @@ object ImageWriter {
         writeImageInt(w2, h2, alpha, name, pixels)
     }
 
+    @JvmStatic
     fun writeTriangles(size: Int, name: String, points: List<Vector2f>, indices: IntArray) {
 
         val bounds = AABBf()

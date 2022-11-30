@@ -74,7 +74,9 @@ open class MeshCollider() : Collider() {
     @DebugAction
     fun validate() {
         if (!isValid) {
-            createBulletShape(Vector3d())
+            val tmp = JomlPools.vec3d.create()
+            createBulletShape(tmp.set(1.0))
+            JomlPools.vec3d.sub(1)
         }
     }
 
@@ -226,6 +228,8 @@ open class MeshCollider() : Collider() {
 
         val indices = mesh.indices
 
+        cz.advel.stack.Stack.reset(false)
+
         if (isConvex) {
 
             // calculate convex hull
@@ -364,6 +368,7 @@ open class MeshCollider() : Collider() {
     companion object {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(MeshCollider::class)
+
         @JvmField
         val defaultShape = BoxShape(javax.vecmath.Vector3d(1.0, 1.0, 1.0))
     }

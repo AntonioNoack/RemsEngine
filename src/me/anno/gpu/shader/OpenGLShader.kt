@@ -227,7 +227,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
 
     fun setTextureIndices(textures: List<String>?): OpenGLShader {
         if (textures == null) return this
-        if (pointer > 0) {
+        if (pointer != 0) {
             use()
             textureNames = textures
             for ((index, name) in textures.withIndex()) {

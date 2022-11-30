@@ -37,7 +37,10 @@ object Tabs {
 
     }
 
+    @JvmStatic
     fun spaces(ctr: Int) = ConstantCharSequence(' ', ctr, "")
+
+    @JvmStatic
     fun tabs(ctr: Int) = ConstantCharSequence('\t', ctr, "")
 
 }

@@ -131,6 +131,10 @@ open class TextInput(
 
     override fun isKeyInput() = true
 
+    override fun onCopyRequested(x: Float, y: Float): Any? {
+        return base.onCopyRequested(x, y)
+    }
+
     override fun clone(): TextInput {
         val clone = TextInput(style)
         copy(clone)

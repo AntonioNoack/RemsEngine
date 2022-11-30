@@ -219,7 +219,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
                 locallyAllocated = allocate(locallyAllocated, 0L)
             }
         }
-        this.pointer = -1
+        this.pointer = 0
         this.vao = -1
         if (nioBuffer != null) {
             ByteBufferPool.free(nioBuffer)

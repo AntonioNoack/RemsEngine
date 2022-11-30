@@ -1,6 +1,5 @@
 package me.anno.image.svg
 
-import me.anno.gpu.GFX
 import me.anno.image.svg.tokenizer.SVGTokenizer
 import me.anno.utils.structures.lists.Lists.indexOf2
 import me.anno.utils.types.Floats.toRadians
@@ -10,6 +9,7 @@ import java.util.*
 
 object SVGTransform {
 
+    @JvmStatic
     fun applyTransform(transform: Matrix4d, actions: String) {
         val tokens = SVGTokenizer(actions).tokens
         var i = 0
@@ -80,6 +80,5 @@ object SVGTransform {
             i++
         }
     }
-
 
 }

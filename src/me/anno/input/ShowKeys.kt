@@ -20,11 +20,19 @@ import java.util.function.BiConsumer
  * */
 object ShowKeys {
 
+    @JvmField
     val activeKeys = ArrayList<Key>()
+
+    @JvmField
     val activeKeysMap = HashMap<Int, Key>()
+
+    @JvmField
     var decaySpeed = 1f
 
+    @JvmField
     val font = style.getFont("tutorialText")
+
+    @JvmField
     val template = TextPanel("", style)
 
     class Key(
@@ -46,6 +54,8 @@ object ShowKeys {
     }
 
     private const val lower = 0.8f // full strength while hold
+
+    @JvmStatic
     private fun addKey(keyCode: Int, isSuperKey: Boolean) {
         var key = activeKeysMap[keyCode]
         if (key == null) {
@@ -59,6 +69,7 @@ object ShowKeys {
         }
     }
 
+    @JvmStatic
     private fun drawKey(text: String, alpha: Float, x0: Int, hmy: Int): Int {
 
         val bgColor = template.backgroundColor
@@ -85,6 +96,7 @@ object ShowKeys {
 
     }
 
+    @JvmStatic
     private val addKeyConsumer = BiConsumer<Int, Long> { keyCode, _ ->
         when (keyCode) {
             GLFW.GLFW_KEY_LEFT_CONTROL,
@@ -99,6 +111,7 @@ object ShowKeys {
         }
     }
 
+    @JvmStatic
     fun draw(x: Int, y: Int, h: Int): Boolean {
 
         // draw the current keys for a tutorial...
@@ -135,7 +148,5 @@ object ShowKeys {
                 true
             } else false
         } else false
-
     }
-
 }

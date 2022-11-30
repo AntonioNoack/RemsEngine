@@ -345,7 +345,7 @@ open class Rigidbody : Component() {
      * must be called onPhysicsUpdate()
      * */
     fun applyTorqueImpulse(x: Double, y: Double, z: Double) {
-        val impulse = Stack.newVec()
+        val impulse = Stack.borrowVec() // is reused by method
         impulse.set(x, y, z)
         bulletInstance?.applyTorqueImpulse(impulse)
         Stack.subVec(1)

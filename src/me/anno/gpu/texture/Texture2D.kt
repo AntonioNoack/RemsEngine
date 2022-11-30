@@ -67,13 +67,13 @@ open class Texture2D(
     val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
     val state get(): Int = pointer * 4 + isDestroyed.toInt(2) + isCreated.toInt(1)
 
-    var pointer = -1
+    var pointer = 0
     var session = 0
 
     fun checkSession() {
         if (session != GFXState.session) {
             session = GFXState.session
-            pointer = -1
+            pointer = 0
             isCreated = false
             isDestroyed = false
             locallyAllocated = allocate(locallyAllocated, 0L)
@@ -132,17 +132,17 @@ open class Texture2D(
     fun ensurePointer() {
         checkSession()
         if (isDestroyed) throw RuntimeException("Texture was destroyed")
-        if (pointer <= 0) {
+        if (pointer == 0) {
             check()
             pointer = createTexture()
-            if (pointer != -1 && Build.isDebug) synchronized(DebugGPUStorage.tex2d) {
+            if (pointer != 0 && Build.isDebug) synchronized(DebugGPUStorage.tex2d) {
                 DebugGPUStorage.tex2d.add(this)
             }
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
             check()
         }
-        if (pointer <= 0) throw RuntimeException("Could not allocate texture pointer")
+        if (pointer == 0) throw RuntimeException("Could not allocate texture pointer")
     }
 
     private fun unbindUnpackBuffer() {
@@ -1010,13 +1010,13 @@ open class Texture2D(
     var hasMipmap = false
 
     private fun bindBeforeUpload() {
-        if (pointer <= -1) throw RuntimeException("Pointer must be defined")
+        if (pointer == 0) throw RuntimeException("Pointer must be defined")
         bindTexture(target, pointer)
     }
 
     override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
         checkSession()
-        if (pointer > 0 && isCreated) {
+        if (pointer != 0 && isCreated) {
             if (isBoundToSlot(index)) {
                 if (filtering != this.filtering || clamping != this.clamping) {
                     activeSlot(index) // force this to be bound
@@ -1040,7 +1040,7 @@ open class Texture2D(
         isCreated = false
         isDestroyed = true
         val pointer = pointer
-        if (pointer > -1) {
+        if (pointer != 0) {
             if (Build.isDebug) synchronized(DebugGPUStorage.tex2d) {
                 DebugGPUStorage.tex2d.remove(this)
             }
@@ -1050,7 +1050,7 @@ open class Texture2D(
                 texturesToDelete.add(pointer)
             }
         }
-        this.pointer = -1
+        this.pointer = 0
     }
 
     private fun checkSize(channels: Int, size: Int) {
@@ -1067,7 +1067,7 @@ open class Texture2D(
     }
 
     fun copyFrom(src: Texture2D) {
-        if (src.pointer <= 0 || pointer <= 0) throw IllegalArgumentException("Both textures need to be created for copyFrom()")
+        if (src.pointer == 0 || pointer == 0) throw IllegalArgumentException("Both textures need to be created for copyFrom()")
         check()
         invalidateBinding()
         check()
@@ -1203,7 +1203,6 @@ open class Texture2D(
          * */
         @JvmStatic
         fun bindTexture(mode: Int, pointer: Int): Boolean {
-            if (pointer < 0) throw IllegalArgumentException("Pointer must be valid")
             if (wasModifiedInComputePipeline) {
                 glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
                 wasModifiedInComputePipeline = false

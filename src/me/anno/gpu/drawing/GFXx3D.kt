@@ -80,7 +80,6 @@ object GFXx3D {
 
     val shader3DBoxBlur = Shader(
         "3d-blur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(), "" +
-                "precision highp float;\n" + // why?
                 "uniform sampler2D tex;\n" +
                 "uniform vec2 stepSize;\n" +
                 "uniform int steps;\n" +

@@ -37,7 +37,7 @@ class FileInput(
 
     // done file preview, if available
     // todo property inspector, if is mutable prefab
-    // (e.g. would be really nice for quick changes to materials)
+    // (e.g., would be really nice for quick changes to materials)
 
     val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
     val base = TextInput(title, "", false, f0.toString2(), style)

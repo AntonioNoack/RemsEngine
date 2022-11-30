@@ -55,6 +55,7 @@ object JomlPools {
     @JvmField
     val aabbd = Stack { AABBd() }
 
+    @JvmStatic
     fun reset() {
 
         vec2i.reset()

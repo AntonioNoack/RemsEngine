@@ -79,6 +79,7 @@ open class Shader(
         // todo only set them, if not already specified
         builder.append("precision mediump float;\n")
         builder.append("precision mediump int;\n")
+        builder.append("precision highp sampler3D;\n")
 
         for (v in vertexVariables) {
             val prefix = when (v.inOutMode) {
@@ -111,8 +112,11 @@ open class Shader(
             .filter { it.trim().startsWith("#extension ") }) {
             builder.append(extension).append('\n')
         }
+
         builder.append("precision mediump float;\n")
         builder.append("precision mediump int;\n")
+        builder.append("precision highp sampler3D;\n")
+
         for (v in varyings) {
             builder.append(v.modifiers)
             builder.append(" in ")

@@ -15,6 +15,7 @@ import java.io.IOException
  * */
 object ImageReader {
 
+    @JvmStatic
     fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
 
         // todo white with transparency, black with transparency
@@ -76,10 +77,12 @@ object ImageReader {
 
     }
 
+    @JvmStatic
     private fun createComponent(folder: InnerFolder, name: String, image: Image) {
         folder.createImageChild(name, image)
     }
 
+    @JvmStatic
     private fun createComponent(
         image: Image, folder: InnerFolder, name: String,
         swizzle: String, inverse: Boolean = false

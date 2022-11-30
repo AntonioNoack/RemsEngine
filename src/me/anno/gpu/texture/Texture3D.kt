@@ -30,7 +30,7 @@ open class Texture3D(
     var d: Int
 ) : ICacheData, ITexture2D {
 
-    var pointer = -1
+    var pointer = 0
     var session = -1
 
     var isCreated = false
@@ -49,7 +49,7 @@ open class Texture3D(
     fun checkSession() {
         if (session != GFXState.session) {
             session = GFXState.session
-            pointer = -1
+            pointer = 0
             isCreated = false
             isDestroyed = false
         }
@@ -57,8 +57,8 @@ open class Texture3D(
 
     private fun ensurePointer() {
         checkSession()
-        if (pointer < 0) pointer = Texture2D.createTexture()
-        if (pointer < 0) throw RuntimeException("Could not generate texture")
+        if (pointer == 0) pointer = Texture2D.createTexture()
+        if (pointer == 0) throw RuntimeException("Could not generate texture")
         if (Build.isDebug) synchronized(DebugGPUStorage.tex3d) {
             DebugGPUStorage.tex3d.add(this)
         }
@@ -272,7 +272,7 @@ open class Texture3D(
     }
 
     private fun forceBind() {
-        if (pointer == -1) throw RuntimeException()
+        if (pointer == 0) throw RuntimeException()
         bindTexture(GL_TEXTURE_3D, pointer)
     }
 
@@ -282,7 +282,7 @@ open class Texture3D(
 
     override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
         activeSlot(index)
-        if (pointer > -1 && isCreated) {
+        if (pointer != 0 && isCreated) {
             bindTexture(GL_TEXTURE_3D, pointer)
             ensureFiltering(filtering, clamping)
         } else {
@@ -297,11 +297,11 @@ open class Texture3D(
 
     override fun destroy() {
         val pointer = pointer
-        if (pointer > -1) {
+        if (pointer != 0) {
             if (GFX.isGFXThread()) destroy(pointer)
             else GFX.addGPUTask("Texture3D.destroy()", 1) { destroy(pointer) }
         }
-        this.pointer = -1
+        this.pointer = 0
     }
 
     private fun destroy(pointer: Int) {

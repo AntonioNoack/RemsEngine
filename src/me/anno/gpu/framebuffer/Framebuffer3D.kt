@@ -34,7 +34,7 @@ class Framebuffer3D(
         Frame.invalidate()
         GFX.check()
         val pointer = GL30C.glGenFramebuffers()
-        if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
+        if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
         session = GFXState.session
         // if (Build.isDebug) DebugGPUStorage.fbs.add(this)
         Framebuffer.bindFramebuffer(GL30C.GL_FRAMEBUFFER, pointer)
@@ -115,14 +115,14 @@ class Framebuffer3D(
 
     override fun ensure() {
         checkSession()
-        if (pointer <= 0) create()
+        if (pointer == 0) create()
     }
 
     override fun checkSession() {
-        if (pointer > 0 && session != GFXState.session) {
+        if (pointer != 0 && session != GFXState.session) {
             GFX.check()
             session = GFXState.session
-            pointer = -1
+            pointer = 0
             // needsBlit = true
             // ssBuffer?.checkSession()
             // depthTexture?.checkSession()
@@ -144,7 +144,7 @@ class Framebuffer3D(
     }
 
     override fun destroy() {
-        if (pointer > 0) {
+        if (pointer != 0) {
             GFX.checkIsGFXThread()
             // ssBuffer?.destroy()
             destroyFramebuffer()
@@ -154,11 +154,11 @@ class Framebuffer3D(
     }
 
     fun destroyFramebuffer() {
-        if (pointer > -1) {
+        if (pointer != 0) {
             GL30C.glDeleteFramebuffers(pointer)
             Frame.invalidate()
             // if (Build.isDebug) DebugGPUStorage.fbs.remove(this)
-            pointer = -1
+            pointer = 0
         }
     }
 

@@ -34,6 +34,7 @@ object ColorParsing {
     * */
 
     // private val separationRegex = Regex("[,()\\[\\]]") // split by ,()[]
+    @JvmStatic
     private fun parseFloats(data: String, limit: Int = 4): List<Float> {
         val result = ArrayList<Float>(min(limit, data.length ushr 1))
         var si = 0
@@ -61,6 +62,7 @@ object ColorParsing {
         return result
     }
 
+    @JvmStatic
     fun parseColorComplex(name: String): Any? {
         // check for HSVuv(h,s,v,a), HSV(h,s,v,a), or #... or RGB(r,g,b,a) or [1,1,0,1]
         fun List<Float>.toVec() = Vector3f(this[0], this[1], this[2])
@@ -93,6 +95,7 @@ object ColorParsing {
      * @return argb color code
      * @throws RuntimeException if term could not be parsed
      * */
+    @JvmStatic
     fun parseHex(name: String): Int {
         return when (name.length) {
             3 -> (parseHex(name[0]) * 0x110000 + parseHex(name[1]) * 0x1100 + parseHex(name[2]) * 0x11) or black
@@ -105,21 +108,26 @@ object ColorParsing {
         }
     }
 
+    @JvmStatic
     fun parseHex(c0: Char): Int {
         return hex[c0.code - 48].toInt()
     }
 
+    @JvmStatic
     fun parseHex(c0: Char, c1: Char): Int {
         return hex[c0.code - 48].toInt().shl(4) or hex[c1.code - 48].toInt()
     }
 
+    @JvmStatic
     fun String.is255Int() = toIntOrNull() != null && toInt() in 0..255
+    @JvmStatic
     fun String.is01Float() = toFloatOrNull() != null && toFloat() in 0f..1f
 
     /**
      * @return null for "none", else argb color code
      * @throws RuntimeException if term could not be parsed
      * */
+    @JvmStatic
     fun parseColor(name: String): Int? {
         return when {
             name.startsWith('#') -> parseHex(name.substring(1))
@@ -173,11 +181,12 @@ object ColorParsing {
                     rgba(rgba[0], rgba[1], rgba[2], rgba[3])
                 } else throw InvalidFormatException("Unknown color $name")
             }
-            else -> colorMap[name.trim().lowercase(Locale.getDefault())]?.or(black)
+            else -> colorMap[name.trim().lowercase()]?.or(black)
                 ?: throw InvalidFormatException("Unknown color $name")
         }
     }
 
+    @JvmStatic
     private val hex by lazy {
         val array = ByteArray('f'.code + 1 - '0'.code)
         for (i in 0 until 10) {
@@ -190,12 +199,15 @@ object ColorParsing {
         array
     }
 
+    @JvmStatic
     fun Int.toHexColorOrName(): String {
         return colorMap.reverse[this] ?: toHexColor()
     }
 
+    @JvmStatic
     fun Int.rgbDistanceSq(other: Int) = sq(r() - other.r()) + sq(g() - other.g()) + sq(b() - other.b())
 
+    @JvmStatic
     fun Int.getClosestColorName(): String {
         // hsv or rgb? hsv is more important, I think...
         val r = this.r()
@@ -210,6 +222,7 @@ object ColorParsing {
     /**
      * officially supported colors from the web (CSS/HTML)
      * */
+    @JvmStatic
     private val colorMap by lazy {
         val map = BiMap<String, Int>(256)
         map["aliceblue"] = 0xf0f8ff

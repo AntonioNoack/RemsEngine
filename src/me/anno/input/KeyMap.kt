@@ -22,10 +22,16 @@ object KeyMap {
         )
     }
 
+    @JvmField
     val inputMap = HashMap<InputState, Int>()
+
+    @JvmField
     var maxKeys = 3
 
+    @JvmField
     var stateId = 0
+
+    @JvmStatic
     fun onCharTyped(codepoint: Int) {
         if (Input.keysDown.size <= maxKeys) {
             val state = InputState()

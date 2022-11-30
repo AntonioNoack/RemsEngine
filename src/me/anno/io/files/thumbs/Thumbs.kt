@@ -91,6 +91,7 @@ import me.anno.ui.base.Font
 import me.anno.utils.Clock
 import me.anno.utils.Color.hex4
 import me.anno.utils.Color.white4
+import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitForGFXThread
@@ -101,7 +102,6 @@ import me.anno.utils.Warning.unused
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.Iterators.firstOrNull
 import me.anno.utils.structures.Iterators.subList
 import me.anno.utils.types.Floats.toRadians
@@ -136,8 +136,10 @@ object Thumbs {
 
     @JvmStatic
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
+
     @JvmStatic
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
+
     @JvmStatic
     private val neededSizes = IntArray(sizes.last() + 1)
     private const val timeout = 5000L
@@ -148,6 +150,7 @@ object Thumbs {
 
     // png/bmp/jpg?
     private const val destinationFormat = "png"
+
     @JvmField
     val sphereMesh = Icosahedron.createUVSphere(30, 30)
 
@@ -687,6 +690,7 @@ object Thumbs {
 
     @JvmField
     val matCameraMatrix = createCameraMatrix(1f)
+
     @JvmField
     val matModelMatrix = createModelMatrix().scale(0.62f)
 
@@ -1143,6 +1147,12 @@ object Thumbs {
         // upload the result to the gpu
         // save the file
 
+        if (OS.isWindows) when (srcFile.absolutePath) {
+            "C:/pagefile.sys", "C:/hiberfil.sys",
+            "C:/DumpStack.log", "C:/DumpStack.log.tmp",
+            "C:/swapfile.sys" -> return
+        }
+
         when (srcFile) {
             is ImageReadable -> {
                 val image = srcFile.readImage()
@@ -1226,26 +1236,24 @@ object Thumbs {
                             // preview for mtl file? idk...
                             generateAssimpMeshFrame(srcFile, dstFile, size, callback)
                         }
-                        in UnityReader.unityExtensions -> {
-                            try {
-                                // parse unity files
-                                val decoded = UnityReader.readAsAsset(srcFile)
-                                if (decoded != InvalidRef) {
-                                    when {
-                                        decoded is PrefabReadable ->
-                                            generateSomething(decoded.readPrefab(), srcFile, dstFile, size, callback)
-                                        decoded.length() > 0 -> {
-                                            // try to read the file as an asset
-                                            // not sure about using the workspace here...
-                                            val sth = TextReader.read(decoded, StudioBase.workspace, true).firstOrNull()
-                                            generateSomething(sth, srcFile, dstFile, size, callback)
-                                        }
-                                        else -> LOGGER.warn("File $decoded is empty")
+                        // parse unity files
+                        in UnityReader.unityExtensions -> UnityReader.readAsAsset(srcFile) { decoded, e ->
+                            if (decoded != InvalidRef && decoded != null) {
+                                when {
+                                    decoded is PrefabReadable ->
+                                        generateSomething(decoded.readPrefab(), srcFile, dstFile, size, callback)
+                                    decoded.length() > 0 -> {
+                                        // try to read the file as an asset
+                                        // not sure about using the workspace here...
+                                        val sth = TextReader.read(decoded, StudioBase.workspace, true).firstOrNull()
+                                        generateSomething(sth, srcFile, dstFile, size, callback)
                                     }
-                                } else LOGGER.warn("Could not understand unity asset $srcFile, result is InvalidRef")
-                            } catch (e: Throwable) {
-                                LOGGER.warn("${e.message}; by $srcFile")
-                                e.printStackTrace()
+                                    else -> LOGGER.warn("File $decoded is empty")
+                                }
+                            } else {
+                                LOGGER.warn("Could not understand unity asset $srcFile, result is InvalidRef")
+                                LOGGER.warn("${e?.message}; by $srcFile")
+                                e?.printStackTrace()
                             }
                         }
                         "json" -> {
@@ -1291,7 +1299,8 @@ object Thumbs {
                         }
                         "url" -> {
                             // try to read the url, and redirect to the icon
-                            srcFile.readLines { lines, exc ->
+                            val lineLengthLimit = 1024
+                            srcFile.readLines(lineLengthLimit) { lines, exc ->
                                 if (lines != null) {
                                     val iconFileLine = lines.firstOrNull { it.startsWith("IconFile=", true) }
                                     if (iconFileLine != null) {
@@ -1346,12 +1355,11 @@ object Thumbs {
         // scale text with size?
         val maxLineCount = clamp(size / 24, 3, 40)
         val maxLineLength = maxLineCount * 5 / 2
-        srcFile.readLines { itr, exc ->
+        srcFile.readLines(maxLineLength) { itr, exc ->
             exc?.printStackTrace()
             if (itr != null) {
                 var lines = itr
                     .subList(0, maxLineCount)
-                    .map { it.shorten(maxLineLength) }
                     .toMutableList()
                 if (itr.hasNext()/*lines.size > maxLineCount*/) {
                     lines = lines.subList(0, maxLineCount)

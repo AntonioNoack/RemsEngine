@@ -59,7 +59,7 @@ fun convert() {
             val y0 = (name[2].toInt() - 5644) * 1000
             val i0 = x0 + y0 * tw
             val data = zip.listChildren()!!.first { it.lcExtension == "xyz" }
-            val lines = data.readLinesSync()
+            val lines = data.readLinesSync(Int.MAX_VALUE)
                 .filter { it.isNotEmpty() }
                 .toList()
             val uniqueX = HashSet<Float>()

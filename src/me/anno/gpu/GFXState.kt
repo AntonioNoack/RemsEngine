@@ -213,6 +213,9 @@ object GFXState {
         buffer: IFramebuffer, renderer: Renderer, render: () -> Unit
     ) {
         val index = framebuffer.size
+        if (index >= xs.size) {
+            throw StackOverflowError("Reached recursion limit for useFrame()")
+        }
         xs[index] = x
         ys[index] = y
         ws[index] = w

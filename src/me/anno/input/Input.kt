@@ -615,6 +615,7 @@ object Input {
         val dws = window.windowStack
         val inFocus = dws.inFocus
         val inFocus0 = dws.inFocus0 ?: return
+        println("focus: $inFocus0")
         when (inFocus.size) {
             0 -> return // should not happen
             1 -> setClipboardContent(inFocus0.onCopyRequested(mouseX, mouseY)?.toString())

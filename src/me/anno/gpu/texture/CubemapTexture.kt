@@ -30,7 +30,7 @@ class CubemapTexture(
 
     var isCreated = false
     var isDestroyed = false
-    var pointer = -1
+    var pointer = 0
     var session = 0
     var createdSize = 0
 
@@ -53,13 +53,13 @@ class CubemapTexture(
 
     private fun ensurePointer() {
         if (isDestroyed) throw RuntimeException("Texture was destroyed")
-        if (pointer < 0) {
+        if (pointer == 0) {
             GFX.check()
             pointer = Texture2D.createTexture()
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
             GFX.check()
-            if (pointer < 0) throw RuntimeException("Could not allocate texture pointer")
+            if (pointer == 0) throw RuntimeException("Could not allocate texture pointer")
             if (Build.isDebug) synchronized(DebugGPUStorage.tex3dCs) {
                 DebugGPUStorage.tex3dCs.add(this)
             }
@@ -69,7 +69,7 @@ class CubemapTexture(
     fun checkSession() {
         if (session != GFXState.session) {
             session = GFXState.session
-            pointer = -1
+            pointer = 0
             isCreated = false
             isDestroyed = false
             locallyAllocated = Texture2D.allocate(locallyAllocated, 0L)
@@ -78,7 +78,7 @@ class CubemapTexture(
     }
 
     private fun bindBeforeUpload() {
-        if (pointer == -1) throw RuntimeException("Pointer must be defined")
+        if (pointer == 0) throw RuntimeException("Pointer must be defined")
         Texture2D.bindTexture(target, pointer)
     }
 
@@ -168,7 +168,7 @@ class CubemapTexture(
     }
 
     fun bind(index: Int, nearest: GPUFiltering): Boolean {
-        if (pointer > 0 && isCreated) {
+        if (pointer != 0 && isCreated) {
             if (isBoundToSlot(index)) return false
             Texture2D.activeSlot(index)
             val result = Texture2D.bindTexture(target, pointer)
@@ -223,11 +223,11 @@ class CubemapTexture(
         isCreated = false
         isDestroyed = true
         val pointer = pointer
-        if (pointer > -1) {
+        if (pointer != 0) {
             if (GFX.isGFXThread()) destroy(pointer)
             else GFX.addGPUTask("CubemapTexture.destroy()", 1) { destroy(pointer) }
         }
-        this.pointer = -1
+        this.pointer = 0
     }
 
     private fun destroy(pointer: Int) {

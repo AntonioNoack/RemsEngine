@@ -12,6 +12,7 @@ class TriggerPanel(
 ) : CalibrationPanel(controller, axis, -1, -1, style) {
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(TriggerPanel::class)
     }
 

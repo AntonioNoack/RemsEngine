@@ -10,6 +10,7 @@ import me.anno.input.Input
 import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
@@ -80,7 +81,7 @@ open class FileExplorer(
     style: Style
 ) : PanelListY(style.getChild("fileExplorer")) {
 
-    open fun getRightClickOptions(): List<FileExplorerOption> = emptyList()
+    open fun getFolderOptions(): List<FileExplorerOption> = emptyList()
 
     open fun openOptions(file: FileReference) {
         if (file.exists) {
@@ -93,7 +94,7 @@ open class FileExplorer(
     }
 
     open fun getFileOptions(): List<FileExplorerOption> {
-        // todo additional options for the game engine, e.g. create prefab, open as scene
+        // todo additional options for the game engine, e.g. create prefab
         // todo add option to open json in specialized json editor...
         val rename = FileExplorerOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) { _, _ ->
             onGotAction(0f, 0f, 0f, 0f, "Rename", false)
@@ -111,11 +112,23 @@ open class FileExplorer(
     open fun onDoubleClick(file: FileReference) {}
 
     val searchBar = TextInput("Search Term", "", false, style)
-        .addChangeListener {
+
+    init {
+        searchBar.addChangeListener {
             searchTerm = it
             invalidate()
         }
-        .setWeight2(1f)
+        searchBar.setEnterListener {
+            if (it.length > 3) {
+                val ref = getReference(it)
+                if (ref.exists) {
+                    switchTo(ref)
+                    searchBar.setValue("", true)
+                }
+            }
+        }
+        searchBar.setWeight2(1f)
+    }
 
     val history = History(initialLocation ?: documents)
     val folder get() = history.value
@@ -127,7 +140,7 @@ open class FileExplorer(
     val minEntrySize = 32f
 
     val uContent = PanelListX(style)
-    val content = PanelList2D(null, style)
+    val content2d = PanelList2D(null, style)
 
     var lastFiles = emptyList<String>()
     var lastSearch = true
@@ -162,6 +175,12 @@ open class FileExplorer(
 
     val title = PathPanel(folder, style)
 
+    override fun calculateSize(w: Int, h: Int) {
+        // a try...
+        if (listMode) content2d.childWidth = w
+        super.calculateSize(w, h)
+    }
+
     fun getShortcutFolders(): List<FileReference> {
         val raw = DefaultConfig["files.shortcuts",
                 listOf(
@@ -194,8 +213,8 @@ open class FileExplorer(
     init {
 
         val esi = entrySize.toInt()
-        content.childWidth = esi
-        content.childHeight = esi * 4 / 3
+        content2d.childWidth = esi
+        content2d.childHeight = esi * 4 / 3
         val topBar = PanelListX(style)
         this += topBar
         topBar += title
@@ -227,7 +246,7 @@ open class FileExplorer(
             style,
             AxisAlignment.MIN
         )// .child.setWeight(1f)
-        uContent += content.setWeight2(3f)
+        uContent += content2d.setWeight2(3f)
 
     }
 
@@ -238,8 +257,8 @@ open class FileExplorer(
     }
 
     fun removeOldFiles() {
-        content.children.forEach { (it as? FileExplorerEntry)?.stopPlayback() }
-        content.clear()
+        content2d.children.forEach { (it as? FileExplorerEntry)?.stopPlayback() }
+        content2d.clear()
     }
 
     val searchTask = UpdatingTask("FileExplorer-Query") {}
@@ -308,7 +327,9 @@ open class FileExplorer(
                 if (parent != null) {
                     if (filterShownFiles(parent)) addEvent {
                         // option to go up a folder
-                        content += FileExplorerEntry(this, true, parent, style)
+                        val entry = FileExplorerEntry(this, true, parent, style)
+                        entry.listMode = listMode
+                        content2d += entry
                     }
                 }
 
@@ -325,7 +346,9 @@ open class FileExplorer(
                                 for (idx in list.indices) {
                                     val file = list[idx]
                                     if (filterShownFiles(file)) {
-                                        content += FileExplorerEntry(this, false, file, style)
+                                        val entry = FileExplorerEntry(this, false, file, style)
+                                        entry.listMode = listMode
+                                        content2d += entry
                                     }
                                 }
                                 // force layout update
@@ -356,7 +379,7 @@ open class FileExplorer(
                 Thread.sleep(0)
 
             } else {
-                val fe = content.children.filterIsInstance<FileExplorerEntry>()
+                val fe = content2d.children.filterIsInstance<FileExplorerEntry>()
                 for (it in fe) {
                     it.isVisible = search.matches(getReferenceOrTimeout(it.path).name)
                 }
@@ -516,7 +539,7 @@ open class FileExplorer(
                     MenuOption(openInStandardProgramDesc) { folder.openInStandardProgram() },
                     MenuOption(editInStandardProgramDesc) { folder.editInStandardProgram() },
                     MenuOption(copyPathDesc) { setClipboardContent(folder.absolutePath) }
-                ) + getRightClickOptions().map {
+                ) + getFolderOptions().map {
                     MenuOption(it.nameDesc) {
                         it.onClick(this, folder)
                     }
@@ -558,7 +581,7 @@ open class FileExplorer(
                     switchTo(folder.getParent())
                 }
             }
-            GFX.isGFXThread() -> {
+            GFX.isGFXThread() && !OS.isWeb -> {
                 loading = Engine.gameTime
                 invalidateDrawing()
                 thread(name = "switchTo($folder)") {
@@ -600,28 +623,34 @@ open class FileExplorer(
         super.onMouseMoved(x, y, dx, dy)
         if (!Input.isControlDown) {
             // find, which item is being hovered
-            hoveredItemIndex = content.getItemIndexAt(x.toInt(), y.toInt())
-            hoverFractionY = clamp(content.getItemFractionY(y).toFloat(), 0.25f, 0.75f)
+            hoveredItemIndex = content2d.getItemIndexAt(x.toInt(), y.toInt())
+            hoverFractionY = clamp(content2d.getItemFractionY(y).toFloat(), 0.25f, 0.75f)
         }
     }
 
+    var listMode = false
+
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         if (Input.isControlDown) {
+            val newEntrySize = entrySize * pow(1.05f, dy - dx)
             entrySize = clamp(
-                entrySize * pow(1.05f, dy - dx),
+                newEntrySize,
                 minEntrySize,
-                max(w - content.spacing * 2f - 1f, 20f)
+                max(w - content2d.spacing * 2f - 1f, 20f)
             )
+            listMode = newEntrySize < minEntrySize
             val esi = entrySize.toInt()
-            content.childWidth = esi
+            content2d.maxColumns = if (listMode) 1 else Int.MAX_VALUE
+            content2d.childWidth = if (listMode) max(w, 65536) else esi
             favourites.invalidateLayout()
             // define the aspect ratio by 2 lines of space for the name
-            val sample = content.firstOfAll { it is TextPanel } as? TextPanel
+            val sample = content2d.firstOfAll { it is TextPanel } as? TextPanel
             val sampleFont = sample?.font ?: style.getFont("text")
             val textSize = sampleFont.sizeInt
-            content.childHeight = esi + (textSize * 2.5f).roundToInt()
+            content2d.childHeight = if (listMode) (textSize * 1.5f).roundToInt()
+            else esi + (textSize * 2.5f).roundToInt()
             // scroll to hoverItemIndex, hoverFractionY
-            content.scrollTo(hoveredItemIndex, hoverFractionY)
+            content2d.scrollTo(hoveredItemIndex, hoverFractionY)
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
 
@@ -634,9 +663,11 @@ open class FileExplorer(
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FileExplorer::class)
+
         @JvmStatic
         private val forbiddenConfig =
             DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32) { it.toChar() })
+
         @JvmField
         val forbiddenCharacters = forbiddenConfig.toHashSet()
 
@@ -646,7 +677,7 @@ open class FileExplorer(
             testUI {
                 ECSRegistry.init()
                 object : FileExplorer(null, style) {
-                    override fun getRightClickOptions() = emptyList<FileExplorerOption>()
+                    override fun getFolderOptions() = emptyList<FileExplorerOption>()
                     override fun onDoubleClick(file: FileReference) {}
                     override fun onPaste(x: Float, y: Float, data: String, type: String) {}
                 }

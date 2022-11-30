@@ -5,9 +5,14 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.texture.*
-import org.lwjgl.opengl.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.CubemapTexture
+import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.ITexture2D
+import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL30C
 
 class CubemapFramebuffer(
     override var name: String, var size: Int,
@@ -31,9 +36,9 @@ class CubemapFramebuffer(
     // multiple targets, layout=x require shader version 330+
     // use glBindFragDataLocation instead
 
-    override var pointer = -1
+    override var pointer = 0
     var session = 0
-    var depthRenderBuffer = -1
+    var depthRenderBuffer = 0
     override var depthTexture: CubemapTexture? = null
     var depthAttachment: CubemapFramebuffer? = null
 
@@ -44,14 +49,14 @@ class CubemapFramebuffer(
     lateinit var textures: Array<CubemapTexture>
 
     override fun ensure() {
-        if (pointer < 0) create()
+        if (pointer == 0) create()
     }
 
     override fun checkSession() {
-        if (pointer > 0 && session != GFXState.session) {
+        if (pointer != 0 && session != GFXState.session) {
             GFX.check()
             session = GFXState.session
-            pointer = -1
+            pointer = 0
             // needsBlit = true
             // msBuffer?.checkSession()
             depthTexture?.checkSession()
@@ -77,7 +82,7 @@ class CubemapFramebuffer(
     }
 
     private fun bind() {
-        if (pointer < 0) create()
+        if (pointer == 0) create()
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         GL11C.glDisable(GL13C.GL_MULTISAMPLE)
@@ -99,7 +104,7 @@ class CubemapFramebuffer(
         // LOGGER.info("w: $w, h: $h, samples: $samples, targets: $targetCount x fp32? $fpTargets")
         GFX.check()
         pointer = glGenFramebuffers()
-        if (pointer < 0) throw RuntimeException()
+        if (pointer == 0) throw RuntimeException()
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         //stack.push(this)
@@ -210,18 +215,18 @@ class CubemapFramebuffer(
     }
 
     override fun destroy() {
-        if (pointer > -1) {
+        if (pointer != 0) {
             glDeleteFramebuffers(pointer)
             Frame.invalidate()
-            pointer = -1
+            pointer = 0
             for (it in textures) {
                 it.destroy()
             }
             depthTexture?.destroy()
         }
-        if (depthRenderBuffer > -1) {
+        if (depthRenderBuffer != 0) {
             glDeleteRenderbuffers(depthRenderBuffer)
-            depthRenderBuffer = -1
+            depthRenderBuffer = 0
         }
     }
 

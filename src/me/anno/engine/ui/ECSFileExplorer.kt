@@ -47,7 +47,11 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         }
     }
 
-    override fun getRightClickOptions(): List<FileExplorerOption> {
+    override fun getFileOptions(): List<FileExplorerOption> {
+        return fileOptions + super.getFileOptions()
+    }
+
+    override fun getFolderOptions(): List<FileExplorerOption> {
         return folderOptions
     }
 
@@ -75,7 +79,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         // if current folder is inside project, then import all these assets
 
         // when dragging over a current folder, do that operation on that folder
-        val entry = content.children.firstOrNull { it.contains(x, y) } as? FileExplorerEntry
+        val entry = content2d.children.firstOrNull { it.contains(x, y) } as? FileExplorerEntry
         val current = if (entry == null) folder else getReference(entry.path)
 
         val projectFolder = RemsEngine.instance2!!.currentProject.location
@@ -86,7 +90,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
                     import(current, files)
                 },
                 MenuOption(NameDesc("Copy-Import")) {
-                   // todo implement this: all resources must be copied, no trace shall remain
+                    // todo implement this: all resources must be copied, no trace shall remain
                     // import(current, files)
                 },
                 MenuOption(NameDesc(if (files.size > 1) "Raw-Copy" else "Other")) {
@@ -269,7 +273,15 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
 
         private val LOGGER = LogManager.getLogger(ECSFileExplorer::class)
 
+        val fileOptions = ArrayList<FileExplorerOption>()
         val folderOptions = ArrayList<FileExplorerOption>()
+
+        @JvmField
+        val openAsSceneDesc = NameDesc(
+            "Open As Scene",
+            "Show the file in a new scene tab",
+            "ui.file.openInSceneTab"
+        )
 
         @Suppress("MemberVisibilityCanBePrivate")
         fun addOptionToCreateFile(name: String, fileContent: String) {
@@ -293,6 +305,12 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         }
 
         init {
+            val openAsScene = FileExplorerOption(openAsSceneDesc) { p, file ->
+                ECSSceneTabs.open(file, PlayMode.EDITING)
+                invalidateFileExplorers(p)
+            }
+            fileOptions.add(openAsScene)
+            folderOptions.add(openAsScene)
             // create camera, material, shader, prefab, mesh, script, etc
             addOptionToCreateComponent("Entity")
             addOptionToCreateComponent("Scene", "Entity", ScenePrefab)

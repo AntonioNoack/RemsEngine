@@ -65,6 +65,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
         @JvmStatic
         private val fileCache = CacheSection("Files")
+
         @JvmField
         var fileTimeout = 20_000L
 
@@ -149,7 +150,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             if (str == "root") return FileRootRef
             val str2 = if ('\\' in str) str.replace('\\', '/') else str
             // the cache can be a large issue -> avoid if possible
-            if (LastModifiedCache.exists(str2)) return createReference(str2)
+            if (LastModifiedCache.exists(str2)) {
+                return createReference(str2)
+            }
             val data = fileCache.getEntry(str2, fileTimeout, false) {
                 createReference(it)
             } as? FileReference // result may be null for unknown reasons; when this happens, use plan B
@@ -201,9 +204,15 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             // static references
             val static = staticReferences[str]
             if (static != null) return static
+
             // real or compressed files
             // check whether it exists -> easy then :)
-            if (LastModifiedCache.exists(str)) return FileFileRef(File(str))
+            if (LastModifiedCache.exists(str)) {
+                val str2 = if (str.length == 2 && str[1] == ':' &&
+                    (str[0] in 'A'..'Z' || str[0] in 'a'..'z')
+                ) "$str/" else str
+                return FileFileRef(File(str2))
+            }
 
             // split by /, and check when we need to enter a zip file
             val parts = str.trim().split('/', '\\')
@@ -450,20 +459,20 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    open fun readLines(callback: (itr: ReadLineIterator?, exc: Exception?) -> Unit) {
+    open fun readLines(lineLengthLimit: Int, callback: (itr: ReadLineIterator?, exc: Exception?) -> Unit) {
         inputStream { it, exc ->
             if (it != null) {
                 val reader = it.bufferedReader()
-                callback(ReadLineIterator(reader), null)
+                callback(ReadLineIterator(reader, lineLengthLimit), null)
             } else callback(null, exc)
         }
     }
 
     @kotlin.jvm.Throws(IOException::class)
-    open fun readLinesSync(): ReadLineIterator {
+    open fun readLinesSync(lineLengthLimit: Int): ReadLineIterator {
         var e: Exception? = null
         var d: ReadLineIterator? = null
-        readLines { it, exc ->
+        readLines(lineLengthLimit) { it, exc ->
             e = exc
             d = it
         }

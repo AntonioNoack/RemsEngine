@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -10,6 +11,8 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.types.Booleans.toInt
+import org.lwjgl.opengl.GL11C
 
 /**
  * there is a target limit, so
@@ -129,6 +132,11 @@ class MultiFramebuffer(
             GFXState.renderers[index] = renderer.split(targetIndex, div)
             GFXState.framebuffer.use(target, render)
         }
+    }
+
+    override fun isBound(): Boolean {
+        val curr = GFXState.currentBuffer
+        return curr == this || targetsI.any { it.isBound() }
     }
 
     override val depthTexture get() = targetsI[0].depthTexture

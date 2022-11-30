@@ -2,6 +2,7 @@ package me.anno.video.ffmpeg
 
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
+import me.anno.image.ImageReadable
 import me.anno.image.gimp.GimpImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileFileRef
@@ -49,8 +50,11 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
     }
 
     init {
-
-        when (val signature = Signature.findNameSync(file)) {
+        if (file is ImageReadable) {
+            val image = file.readImage()
+            videoWidth = image.width
+            videoHeight = image.height
+        } else when (val signature = Signature.findNameSync(file)) {
             "gimp" -> {
                 // Gimp files are a special case, which is not covered by FFMPEG
                 setImage(file.inputStreamSync().use { GimpImage.findSize(it) })
@@ -87,7 +91,6 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                 }
             }
         }
-
     }
 
     fun setImage(wh: Pair<Int, Int>) {
@@ -252,6 +255,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FFMPEGMetadata::class)
+
         @JvmStatic
         private val metadataCache = CacheSection("Metadata")
 

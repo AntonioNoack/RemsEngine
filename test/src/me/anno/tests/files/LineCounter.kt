@@ -16,7 +16,7 @@ fun countLines(file: FileReference): Int {
         file.listChildren()?.sumOf { countLines(it) } ?: 0
     } else when (file.lcExtension) {
         "kt", "java" -> {
-            file.readLinesSync().count {
+            file.readLinesSync(64).count {
                 !it.isBlank2() && !it.trim().startsWith("//")
             }
         }

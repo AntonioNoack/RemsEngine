@@ -213,7 +213,7 @@ class PipelineStage(
         val pr = pipeline.planarReflections
         val bestPr = pr.filter {
             val lb = it.lastBuffer as Texture2D?
-            lb != null && lb.pointer >= 0
+            lb != null && lb.pointer != 0
         }.minByOrNull {
             // todo find the by-angle-and-position best matching planar reflection
             // todo don't choose a planar reflection, that is invisible from the camera

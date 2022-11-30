@@ -47,6 +47,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
                 prefab.source = InnerTmpFile.InnerTmpPrefabFile(prefab)
                 prefab._sampleInstance = this
                 this.prefab = prefab
+                this.prefabPath = Path.ROOT_PATH
             }
             return prefab.source
         }

@@ -27,7 +27,7 @@ fun main() {
             } else {
                 when (file.lcExtension) {
                     "java", "kt" -> {
-                        val lines = file.readLinesSync()
+                        val lines = file.readLinesSync(Int.MAX_VALUE)
                             .filter { line ->
                                 val startIndex = line.indexOfFirst { c -> c != ' ' && c != '\t' }
                                 startIndex >= 0 && (line.startsWith("import ", startIndex) || line.startsWith(

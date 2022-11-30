@@ -16,7 +16,7 @@ import java.nio.ShortBuffer
 
 class SoundBuffer() : ICacheData {
 
-    var pointer = -1
+    var pointer = 0
     var session = -1
 
     var data0: ByteBuffer? = null
@@ -25,11 +25,11 @@ class SoundBuffer() : ICacheData {
     var sampleRate = 0
 
     fun ensurePointer() {
-        if (pointer < 0 || session != openALSession) {
+        if (pointer == 0 || session != openALSession) {
             pointer = alGenBuffers()
             session = openALSession
         }
-        if (pointer < 0) throw OutOfMemoryError("Failed to create OpenAL buffer")
+        if (pointer == 0) throw OutOfMemoryError("Failed to create OpenAL buffer")
     }
 
     fun ensureData() {
@@ -137,9 +137,9 @@ class SoundBuffer() : ICacheData {
     }
 
     override fun destroy() {
-        if (pointer > -1 && session == openALSession) {
+        if (pointer != 0 && session == openALSession) {
             alDeleteBuffers(pointer)
-            pointer = -1
+            pointer = 0
         }
         if (data != null) {
             bufferPool.returnBuffer(data0)

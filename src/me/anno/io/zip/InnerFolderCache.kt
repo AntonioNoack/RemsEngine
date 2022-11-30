@@ -69,6 +69,8 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         return lcExtension != null && (lcExtension in readerByFileExtension || lcExtension in readerBySignature)
     }
 
+    val imageFormats = listOf("png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds", "gif", "exr", "qoi")
+
     init {
 
         // compressed folders
@@ -96,7 +98,6 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         // registerFileExtension("max", AnimatedMeshesLoader::readAsFolder) // 3ds max file, idk about its file signature
         // images
         // to do all image formats
-        val imageFormats = listOf("png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds", "gif", "exr", "qoi")
         register(imageFormats, ImageReader::readAsFolder)
         register("gimp", GimpImage::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos

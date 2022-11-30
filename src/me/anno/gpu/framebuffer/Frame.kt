@@ -40,7 +40,7 @@ object Frame {
 
         GFX.check()
 
-        if (framebuffer != NullFramebuffer && framebuffer.pointer <= 0 && (!changeSize || w0 < 0 || h0 < 0)) {
+        if (framebuffer != NullFramebuffer && framebuffer.pointer == 0 && (!changeSize || w0 < 0 || h0 < 0)) {
             framebuffer.ensure()
         }
 

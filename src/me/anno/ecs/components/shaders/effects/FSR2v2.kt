@@ -219,7 +219,7 @@ class FSR2v2: ICacheData {
             val rh = color.h
             lastScaleX = pw.toFloat() / rw
             lastScaleY = ph.toFloat() / rh
-            if (previousDepth.pointer <= 0) {
+            if (previousDepth.pointer == 0) {
                 previousDepth.w = rw
                 previousDepth.h = rh
             }

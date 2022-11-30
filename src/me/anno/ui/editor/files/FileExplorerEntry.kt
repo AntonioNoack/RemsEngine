@@ -112,6 +112,7 @@ open class FileExplorerEntry(
     var scale = 1
     var previewFPS = 1.0
     var meta: FFMPEGMetadata? = null
+    var listMode = false
 
     var showTitle = true
         set(value) {
@@ -155,7 +156,7 @@ open class FileExplorerEntry(
         when {
             isParent -> ".."
             file.nameWithoutExtension.isBlank2() && file.name.isBlank2() -> file.toString()
-            file.nameWithoutExtension.isBlank2() -> file.name
+            showFileExtensions || file.nameWithoutExtension.isBlank2() -> file.name
             else -> file.nameWithoutExtension
         }, style
     )
@@ -181,12 +182,14 @@ open class FileExplorerEntry(
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
-        val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
-        val size = min(minW, minH - titleSize)
-        minW = size
-        minH = size + titleSize
-        this.w = minW
-        this.h = minH
+        if (!listMode) {
+            val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
+            val size = min(minW, minH - titleSize)
+            minW = size
+            minH = size + titleSize
+            this.w = minW
+            this.h = minH
+        } // else use default behaviour :)
     }
 
     // is null
@@ -197,16 +200,22 @@ open class FileExplorerEntry(
     override fun onUpdate() {
         super.onUpdate()
 
-        val meta = meta
-        val tex = if (canBeSeen) when (val tex = getTexKey()) {
-            is GPUFrame -> if (tex.isCreated) tex else null
-            is Texture2D -> tex.state
-            else -> tex
-        } else null
-        if (lastMeta !== meta || lastTex !== tex) {
-            lastTex = tex
-            lastMeta = meta
-            invalidateDrawing()
+        if (explorer != null && parent == explorer.content2d) {
+            listMode = explorer.listMode
+        }
+
+        if (!listMode) {
+            val meta = meta
+            val tex = if (canBeSeen) when (val tex = getTexKey()) {
+                is GPUFrame -> if (tex.isCreated) tex else null
+                is Texture2D -> tex.state
+                else -> tex
+            } else null
+            if (lastMeta !== meta || lastTex !== tex) {
+                lastTex = tex
+                lastMeta = meta
+                invalidateDrawing()
+            }
         }
 
         titlePanel.canBeSeen = canBeSeen
@@ -605,36 +614,58 @@ open class FileExplorerEntry(
         val w = w
         val h = h
 
-        val extraHeight = h - w
-        lines = if (showTitle) max(ceil(extraHeight / fontSize).toInt(), 1) else 0
-
-        padding = w / 20
+        padding = h / 16
 
         // why not twice the padding?????
         // only once centers it...
         val remainingW = w - padding// * 2
         val remainingH = h - padding// * 2
 
-        val textH = (lines * fontSize).toInt()
-        val imageH = remainingH - textH
+        if (listMode) {
 
-        clip2Dual(
-            x0, y0, x1, y1,
-            x + padding,
-            y + padding,
-            x + remainingW,
-            y + padding + imageH,
-            ::drawThumb
-        )
+            // todo draw small icon :)
+            // todo multiple columns
+            // todo -> file size, file type, signature, last changed, ...
 
-        if (showTitle) clip2Dual(
-            x0, y0, x1, y1,
-            x + padding,
-            y + h - padding - textH,
-            x + remainingW,
-            y + h/* - padding*/, // only apply the padding, when not playing video?
-            ::drawText
-        )
+            lines = 1
+
+            titlePanel.w = w
+            titlePanel.minW = w
+            titlePanel.calculateSize(w, h)
+            titlePanel.backgroundColor = backgroundColor and 0xffffff
+            titlePanel.x = x + padding
+            titlePanel.y = max(y0, (h - titlePanel.minH) / 2)
+            titlePanel.w = w
+            titlePanel.h = titlePanel.minH
+            titlePanel.drawText()
+
+        } else {
+
+            val extraHeight = h - w
+            lines = if (showTitle) max(ceil(extraHeight / fontSize).toInt(), 1) else 0
+
+            val textH = (lines * fontSize).toInt()
+            val imageH = remainingH - textH
+
+            clip2Dual(
+                x0, y0, x1, y1,
+                x + padding,
+                y + padding,
+                x + remainingW,
+                y + padding + imageH,
+                ::drawThumb
+            )
+
+            if (showTitle) clip2Dual(
+                x0, y0, x1, y1,
+                x + padding,
+                y + h - padding - textH,
+                x + remainingW,
+                y + h/* - padding*/, // only apply the padding, when not playing video?
+                ::drawText
+            )
+
+        }
     }
 
     /**
@@ -784,6 +815,9 @@ open class FileExplorerEntry(
 
     companion object {
 
+        @JvmField
+        var showFileExtensions = false
+
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FileExplorerEntry::class)
 
@@ -792,23 +826,31 @@ open class FileExplorerEntry(
 
         @JvmStatic
         private val charHHMMSS = "hh:mm:ss/hh:mm:ss".toCharArray()
+
         @JvmStatic
         private val charMMSS = "mm:ss/mm:ss".toCharArray()
 
         @JvmField
         val folderPath = getReference("res://file/folder.png")
+
         @JvmField
         val musicPath = getReference("res://file/music.png")
+
         @JvmField
         val textPath = getReference("res://file/text.png")
+
         @JvmField
         val imagePath = getReference("res://file/image.png")
+
         @JvmField
         val emptyFolderPath = getReference("res://file/empty_folder.png")
+
         @JvmField
         val exePath = getReference("res://file/executable.png")
+
         @JvmField
         val docsPath = getReference("res://file/document.png")
+
         @JvmField
         val zipPath = getReference("res://file/compressed.png")
 
@@ -886,6 +928,5 @@ open class FileExplorerEntry(
         }
 
     }
-
 
 }

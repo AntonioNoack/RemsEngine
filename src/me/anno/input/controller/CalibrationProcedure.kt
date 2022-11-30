@@ -15,6 +15,7 @@ import me.anno.ui.style.Style
 
 object CalibrationProcedure {
 
+    @JvmStatic
     fun start(window: OSWindow, style: Style) {
         val oldValue = Controller.enableControllerInputs
         Controller.enableControllerInputs = false // disable temporarily
@@ -42,6 +43,7 @@ object CalibrationProcedure {
         ws.push(window1)
     }
 
+    @JvmStatic
     private fun createWindow(controller: Controller, style: Style): Panel {
         val panel = PanelListY(style)
         // hide non-connected controllers

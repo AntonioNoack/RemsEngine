@@ -41,14 +41,17 @@ class Touch(var x: Float, var y: Float) {
 
     companion object {
 
+        @JvmField
         val touches = HashMap<Int, Touch>()
 
-        fun update() {
+        @JvmStatic
+        fun updateAll() {
             for (touch in touches.values) {
                 touch.update()
             }
         }
 
+        @JvmStatic
         fun getZoomFactor(): Float {
             return when (val size = touches.size) {
                 0, 1 -> 1f
@@ -66,24 +69,33 @@ class Touch(var x: Float, var y: Float) {
             }
         }
 
+        @JvmStatic
         fun sumDeltaX(): Float = SumOf.sumOf(touches.values) { it.x - it.lastX }
+
+        @JvmStatic
         fun sumDeltaY(): Float = SumOf.sumOf(touches.values) { it.y - it.lastY }
 
+        @JvmStatic
         fun avgDeltaX(): Float = SumOf.sumOf(touches.values) { it.x - it.lastX } / max(1, touches.size)
+
+        @JvmStatic
         fun avgDeltaY(): Float = SumOf.sumOf(touches.values) { it.y - it.lastY } / max(1, touches.size)
 
+        @JvmStatic
         fun getTouchPosition(ws: WindowStack, touchId: Int, dst: Vector3f = Vector3f()): Vector3f {
             val touch = touches[touchId] ?: return dst
             ws.viewTransform.transformProject(dst.set(touch.x, touch.y, 0f), dst)
             return dst
         }
 
+        @JvmStatic
         fun getLastTouchPosition(ws: WindowStack, touchId: Int, dst: Vector3f = Vector3f()): Vector3f {
             val touch = touches[touchId] ?: return dst
             ws.viewTransform.transformProject(dst.set(touch.lastX, touch.lastY, 0f), dst)
             return dst
         }
 
+        @JvmStatic
         fun getTouchDelta(ws: WindowStack, touchId: Int, dst: Vector3f = Vector3f()): Vector3f {
             val touch = touches[touchId] ?: return dst
             // transform delta properly?
@@ -91,16 +103,20 @@ class Touch(var x: Float, var y: Float) {
             return dst
         }
 
+        @JvmStatic
         private val listeners = ArrayList<TouchListener>()
 
+        @JvmStatic
         fun registerListener(listener: TouchListener) {
             listeners.add(listener)
         }
 
+        @JvmStatic
         fun unregisterListener(listener: TouchListener) {
             listeners.remove(listener)
         }
 
+        @JvmStatic
         fun onTouchDown(touchId: Int, x: Float, y: Float) {
             val touch = Touch(x, y)
             touches[touchId] = touch
@@ -109,6 +125,7 @@ class Touch(var x: Float, var y: Float) {
             }
         }
 
+        @JvmStatic
         fun onTouchMove(touchId: Int, x: Float, y: Float) {
             val touch = touches[touchId] ?: return
             touch.update(x, y)
@@ -117,6 +134,7 @@ class Touch(var x: Float, var y: Float) {
             }
         }
 
+        @JvmStatic
         fun onTouchUp(touchId: Int, x: Float, y: Float) {
             val touch = touches.remove(touchId) ?: return
             touch.update(x, y)
