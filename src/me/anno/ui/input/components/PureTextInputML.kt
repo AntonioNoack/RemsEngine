@@ -764,6 +764,6 @@ open class PureTextInputML(style: Style) :
         clone.focusTextColor = focusTextColor
     }
 
-    override val className = "PureTextInputML"
+    override val className get() = "PureTextInputML"
 
 }

@@ -9,6 +9,6 @@ open class ControlFlowGraph : FlowGraph() {
 
     var inputNode: Node? = null
 
-    override val className = "ControlFlowGraph"
+    override val className get() = "ControlFlowGraph"
 
 }

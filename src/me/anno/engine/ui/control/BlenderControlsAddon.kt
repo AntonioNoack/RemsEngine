@@ -4,10 +4,8 @@ import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.engine.ui.EditorState
-import me.anno.input.Input
 import me.anno.input.Input.isShiftDown
 import me.anno.parser.SimpleExpressionParser
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager

@@ -103,7 +103,7 @@ class SDFDoor : SDF2DShape() {
         clone.params.set(params)
     }
 
-    override val className = "SDFDoor"
+    override val className get() = "SDFDoor"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

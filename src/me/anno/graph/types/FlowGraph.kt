@@ -89,7 +89,7 @@ open class FlowGraph : Graph() {
         return input.castGetValue(this, validId)
     }
 
-    override val className = "FlowGraph"
+    override val className get() = "FlowGraph"
 
     companion object {
 

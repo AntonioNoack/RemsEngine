@@ -56,7 +56,7 @@ class SDFHeart : SDF2DShape() {
         return clone
     }
 
-    override val className = "SDFHeart"
+    override val className get() = "SDFHeart"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

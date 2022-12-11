@@ -438,8 +438,8 @@ class Transform() : Saveable() {
         writer.writeMatrix4x3d("local", localTransform)
     }
 
-    override val className = "ECSTransform"
-    override val approxSize: Int = 1
+    override val className get() = "ECSTransform"
+    override val approxSize get() = 1
 
     override fun isDefaultValue() = false
 

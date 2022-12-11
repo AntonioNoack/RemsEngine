@@ -46,6 +46,6 @@ class TriplanarMaterial : Material() {
         clone.primaryTiling.set(primaryTiling)
     }
 
-    override val className = "TriplanarMaterial"
+    override val className get() = "TriplanarMaterial"
 
 }

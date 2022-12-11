@@ -128,8 +128,8 @@ class CAdd() : Change() {
 
     }
 
-    override val className = "CAdd"
-    override val approxSize: Int = 10
+    override val className get() = "CAdd"
+    override val approxSize get() = 10
     override fun isDefaultValue(): Boolean = false
 
 }

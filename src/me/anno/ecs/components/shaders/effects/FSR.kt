@@ -20,8 +20,8 @@ object FSR {
     private val vertex = ShaderLib.simpleVertexShader
 
     val code = lazy {
-        val defines = ResourceHelper.loadText("shader/fsr2/ffx_a.h")
-        val functions = ResourceHelper.loadText("shader/fsr2/ffx_fsr1.h")
+        val defines = ResourceHelper.loadText("shader/fsr1/ffx_a.h")
+        val functions = ResourceHelper.loadText("shader/fsr1/ffx_fsr1.h")
         defines to functions
     }
 
@@ -33,28 +33,44 @@ object FSR {
         val shader = Shader(
             "upscale", svsList, vertex, uvList, emptyList(), "" +
                     "uniform vec2 dstWH;\n" +
-                    "uniform vec4 background;\n" +
+                    "uniform vec3 background;\n" +
                     "uniform sampler2D source;\n" +
                     "#define A_GPU 1\n" +
                     "#define A_GLSL 1\n" +
                     "#define ANNO 1\n" + // we use our custom version
                     defines +
-                    "#define FSR_EASU_F 1\n" +
-                    if (OS.isWeb) {
-                        "#define NO_GATHER\n" +
-                                "vec3 FsrEasuRGBF(vec2 p){ vec4 c = texture(source,p); return mix(background.rgb, c.rgb, c.a); }\n"
-                    } else {
-                        "" +
-                                "vec4 FsrEasuAF(vec2 p){ return textureGather(source,p,3); }\n" +
-                                "vec4 FsrEasuRF(vec2 p, vec4 alpha){ return mix(background.rrrr, textureGather(source,p,0), alpha); }\n" +
-                                "vec4 FsrEasuGF(vec2 p, vec4 alpha){ return mix(background.gggg, textureGather(source,p,1), alpha); }\n" +
-                                "vec4 FsrEasuBF(vec2 p, vec4 alpha){ return mix(background.bbbb, textureGather(source,p,2), alpha); }\n"
-                    } +
-                    functions +
                     "layout(location=0) out vec4 glFragColor;\n" +
                     "uniform vec4 con0,con1,con2,con3;\n" +
                     "uniform vec2 texelOffset;\n" +
                     "uniform bool applyToneMapping;\n" +
+                    "#define FSR_EASU_F 1\n" +
+                    if (OS.isWeb) {
+                        "void FsrEasuLoad(vec2 p, out vec4 r, out vec4 g, out vec4 b){\n" +
+                                "   vec2 dx = vec2(con1.x,0.0);\n" +
+                                "   vec2 dy = vec2(0.0,con1.y);\n" +
+                                "   vec2 dxy = con1.xy;\n" +
+                                "   vec4 x00 = texture(source,p);\n" +
+                                "   vec3 y00 = mix(background, x00.rgb, x00.aaa);\n" +
+                                "   vec4 x01 = texture(source,p+dy);\n" +
+                                "   vec3 y01 = mix(background, x01.rgb, x01.aaa);\n" +
+                                "   vec4 x10 = texture(source,p+dx);\n" +
+                                "   vec3 y10 = mix(background, x10.rgb, x10.aaa);\n" +
+                                "   vec4 x11 = texture(source,p+dxy);\n" +
+                                "   vec3 y11 = mix(background, x11.rgb, x11.aaa);\n" +
+                                // this is the order of textureGather: https://registry.khronos.org/OpenGL-Refpages/gl4/html/textureGather.xhtml
+                                "   r = vec4(y01.r,y11.r,y10.r,y00.r);\n" +
+                                "   g = vec4(y01.g,y11.g,y10.g,y00.g);\n" +
+                                "   b = vec4(y01.b,y11.b,y10.b,y00.b);\n" +
+                                "}\n"
+                    } else {
+                        "void FsrEasuLoad(vec2 p, out vec4 r, out vec4 g, out vec4 b){\n" +
+                                "   vec4 alpha = textureGather(source,p,3);\n" +
+                                "   r = mix(background.rrrr, textureGather(source,p,0), alpha);\n" +
+                                "   g = mix(background.gggg, textureGather(source,p,1), alpha);\n" +
+                                "   b = mix(background.bbbb, textureGather(source,p,2), alpha);\n" +
+                                "}\n"
+                    } +
+                    functions +
                     noiseFunc + // needed for tone mapping
                     tonemapGLSL +
                     "void main(){\n" +
@@ -88,7 +104,7 @@ object FSR {
                     "#define FSR_RCAS_F 1\n" +
                     "vec4 FsrRcasLoadF(ivec2 p){ return texelFetch(source,p,0); }\n" +
                     // optional input transform
-                    "void FsrRcasInputF(inout AF1 r,inout AF1 g,inout AF1 b){}\n" +
+                    "void FsrRcasInputF(inout float r,inout float g,inout float b){}\n" +
                     functions +
                     "void main(){\n" +
                     "   vec4 color;\n" +
@@ -114,7 +130,7 @@ object FSR {
         tiling(shader, flipY)
         texelOffset(shader, w, h)
         posSize(shader, x, y, w, h)
-        shader.v4f("background", 0)
+        shader.v3f("background", 0)
         shader.v1b("applyToneMapping", applyToneMapping)
         flat01.draw(shader)
     }
@@ -130,7 +146,7 @@ object FSR {
         tiling(shader, flipY)
         texelOffset(shader, w, h)
         posSize(shader, x, y, w, h)
-        shader.v4f("background", backgroundColor or (255 shl 24))
+        shader.v3f("background", backgroundColor)
         shader.v1b("applyToneMapping", applyToneMapping)
         flat01.draw(shader)
     }

@@ -109,7 +109,7 @@ class ImagePlane(var source: FileReference = InvalidRef) : ProceduralMesh() {
         clone.alignmentY = alignmentY
     }
 
-    override val className = "ImagePlane"
+    override val className get() = "ImagePlane"
 
     companion object {
         val indices = intArrayOf(0, 2, 1, 0, 3, 2)

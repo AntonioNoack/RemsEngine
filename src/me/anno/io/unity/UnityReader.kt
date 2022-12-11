@@ -35,6 +35,7 @@ import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.BiMap
+import me.anno.utils.types.Ints.toLongOrDefault
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
@@ -986,7 +987,7 @@ object UnityReader {
                 objects.getChild(mainFileId)
             } else {
                 // get the object with the lowest id
-                children.minByOrNull { it.nameWithoutExtension.toLongOrNull() ?: Long.MAX_VALUE }
+                children.minByOrNull { it.nameWithoutExtension.toLongOrDefault(Long.MAX_VALUE) }
             }
             callback(file2, null)
         }

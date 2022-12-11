@@ -83,7 +83,7 @@ class SDFRegular : SDFSmoothShape() {
         return clone
     }
 
-    override val className = "SDFRegular"
+    override val className get() = "SDFRegular"
 
     companion object {
 

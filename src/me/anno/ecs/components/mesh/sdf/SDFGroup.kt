@@ -570,7 +570,7 @@ class SDFGroup : SDFComponent() {
         })
     }
 
-    override val className = "SDFGroup"
+    override val className get() = "SDFGroup"
 
     companion object {
 

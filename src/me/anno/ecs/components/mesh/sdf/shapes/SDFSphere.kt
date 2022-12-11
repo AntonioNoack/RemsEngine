@@ -34,7 +34,7 @@ class SDFSphere : SDFShape() {
         return clone
     }
 
-    override val className = "SDFSphere"
+    override val className get() = "SDFSphere"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

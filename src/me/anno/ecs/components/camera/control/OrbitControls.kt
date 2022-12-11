@@ -37,6 +37,6 @@ open class OrbitControls : CameraController() {
         return clone
     }
 
-    override val className = "OrbitControls"
+    override val className get() = "OrbitControls"
 
 }

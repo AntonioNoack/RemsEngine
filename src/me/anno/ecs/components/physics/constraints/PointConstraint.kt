@@ -68,6 +68,6 @@ class PointConstraint : Constraint<Point2PointConstraint>() {
         clone.tau = tau
     }
 
-    override val className = "PointConstraint"
+    override val className get() = "PointConstraint"
 
 }

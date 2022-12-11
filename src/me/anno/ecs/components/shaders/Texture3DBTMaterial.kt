@@ -75,6 +75,6 @@ class Texture3DBTMaterial : Material() {
         // texture cannot be simply copied
     }
 
-    override val className = "Texture3DBTMaterial"
+    override val className get() = "Texture3DBTMaterial"
 
 }

@@ -88,8 +88,8 @@ class BundledRef(
 
     override fun getParent() = cachedParent
 
-    override val lastModified: Long = 0L
-    override val lastAccessed: Long = 0L
+    override val lastModified get(): Long = 0L
+    override val lastAccessed get(): Long = 0L
 
     override fun toUri(): URI {// mmh...
         return URI(absolutePath)
@@ -122,6 +122,8 @@ class BundledRef(
 
         const val prefix = "res://"
 
+        // todo when we ship the game, we can just pack this data into some kind of txt file
+        // todo required data: HashSet<FileNameLowerCase>
         private val jarAsZip3 by lazy {
             try {
                 File(
@@ -139,35 +141,6 @@ class BundledRef(
 
         private val jarAsZip2 by lazy { getReference(jarAsZip3) }
 
-        private val jarAsZip by lazy {
-
-            // we would just need the file structure:
-            // what folders are actually folders, and which are not;
-
-            // todo when we ship the game, we can just pack this data into some kind of txt file
-            // todo required data: HashSet<FileNameLowerCase>
-
-            // find this jar file as zip
-            try {
-                // we only look at the file names, so it should be relatively quick
-                // ... needs a whole second, unfortunately :/
-                val t0 = System.nanoTime()
-                val zos = ZipInputStream(jarAsZip3!!.inputStream().buffered())
-                val index = HashSet<String>(4096)
-                while (true) {
-                    val entry = zos.nextEntry ?: break
-                    if (entry.isDirectory) continue
-                    index.add(entry.name.lowercase())
-                }
-                zos.close()
-                val t1 = System.nanoTime()
-                LOGGER.info("Used ${(t1 - t0) * 1e-9f}s for indexing internal assets")
-                index
-            } catch (e: NullPointerException) {
-                e.printStackTrace()
-                emptySet()
-            }
-        }
     }
 
 }

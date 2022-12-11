@@ -3,6 +3,8 @@ package me.anno.io.files
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.utils.Color.hex4
+import me.anno.utils.types.Ints.toIntOrDefault
+import me.anno.utils.types.Ints.toLongOrDefault
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -37,15 +39,18 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
     override val lastModified: Long
         get() = getHeaders(toURL(), valueTimeout, false)
             ?.get("Last-Modified")
-            ?.first()?.toLongOrNull() ?: 0L
+            ?.first().toLongOrDefault(0L)
 
     val responseCode: Int // HTTP/1.1 200 OK
         get() = getHeaders(toURL(), valueTimeout, false)
-            ?.get(null)?.first()?.run {
-                val i0 = indexOf(' ') + 1
-                val i1 = indexOf(' ', i0 + 1)
-                substring(i0, i1).toIntOrNull()
-            } ?: 404
+            ?.get(null)?.first().run {
+                if (this == null) 404
+                else {
+                    val i0 = indexOf(' ') + 1
+                    val i1 = indexOf(' ', i0 + 1)
+                    substring(i0, i1).toIntOrDefault(400)
+                }
+            }
 
     override val lastAccessed: Long = 0L
 
@@ -84,7 +89,7 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
 
     override fun length(): Long {
         val headers = getHeaders(toURL(), valueTimeout, false) ?: return -1
-        return headers["content-length"]?.first()?.toLongOrNull() ?: -1L
+        return headers["content-length"]?.first().toLongOrDefault(-1L)
     }
 
     override fun delete(): Boolean {

@@ -101,7 +101,7 @@ open class SDFDeathStar : SDFShape() {
         clone.params.set(params)
     }
 
-    override val className = "SDFDeathStar"
+    override val className get() = "SDFDeathStar"
 
     companion object {
         // from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm, Inigo Quilez

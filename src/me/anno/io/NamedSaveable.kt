@@ -8,7 +8,7 @@ abstract class NamedSaveable : Saveable() {
     open var description = ""
 
     override fun isDefaultValue(): Boolean = false
-    override val approxSize: Int = 10
+    override val approxSize get() = 10
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

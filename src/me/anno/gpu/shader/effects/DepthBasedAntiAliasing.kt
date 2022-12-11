@@ -2,13 +2,10 @@ package me.anno.gpu.shader.effects
 
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.monitor.SubpixelLayout
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.shader.ShaderLib.svsList
 import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown

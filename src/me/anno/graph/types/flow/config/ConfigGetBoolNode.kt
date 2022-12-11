@@ -13,7 +13,7 @@ class ConfigGetBoolNode(val config: StringMap = DefaultConfig) :
             getInput(graph, 1) as Boolean
     ]
 
-    override val className = "ConfigGetBoolNode"
+    override val className get() = "ConfigGetBoolNode"
 
     companion object {
         private val input = listOf("String", "Name", "Bool", "Default")

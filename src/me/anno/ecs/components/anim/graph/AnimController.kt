@@ -86,6 +86,6 @@ class AnimController : Component() {
         clone.graphSource = graphSource
     }
 
-    override val className = "AnimController"
+    override val className get() = "AnimController"
 
 }

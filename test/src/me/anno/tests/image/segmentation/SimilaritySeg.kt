@@ -1,5 +1,9 @@
 package me.anno.tests.image.segmentation
 
+import me.anno.gpu.shader.ShaderLib.m
+import me.anno.gpu.shader.ShaderLib.u
+import me.anno.gpu.shader.ShaderLib.v
+import me.anno.gpu.shader.ShaderLib.y
 import me.anno.image.ImageCPUCache
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.IntImage
@@ -18,6 +22,7 @@ import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Floats.formatPercent
 import org.joml.Matrix3f
 import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.*
 
 val matrix = Array(4) { ExpandingDoubleArray(100) }
@@ -217,18 +222,14 @@ fun check(x: Int, y: Int, call: (x: Int, y: Int, callback: (Int, Int) -> Unit) -
     }
 }
 
-val y = Vector3f(0.299f, 0.587f, 0.114f)
-val u = Vector3f(-0.169f, -0.331f, 0.500f)
-val v = Vector3f(0.500f, -0.419f, -0.081f)
-val m = Matrix3f(y, u, v).transpose().invert()
-val t = Vector3f()
+val t = Vector4f()
 
 fun rgb2yuv(rgb: Int): Int {
     val r = rgb.r01()
     val g = rgb.g01()
     val b = rgb.b01()
     val a = rgb.a01()
-    return rgba(y.dot(r, g, b), u.dot(r, g, b) + 0.5f, v.dot(r, g, b) + 0.5f, a)
+    return rgba(y.dot(r, g, b, 1f), u.dot(r, g, b, 1f), v.dot(r, g, b, 1f), a)
 }
 
 fun yuv2rgb(yuv: Int): Int {
@@ -236,7 +237,7 @@ fun yuv2rgb(yuv: Int): Int {
     val ui = yuv.g01() - 0.5f
     val vi = yuv.b01() - 0.5f
     val a = yuv.a01()
-    t.set(yi, ui, vi)
+    t.set(yi, ui, vi, 1f)
     m.transform(t)
     return rgba(t.x, t.y, t.z, a)
 }

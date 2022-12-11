@@ -84,6 +84,6 @@ open class SDFPlane : SDFShape() {
         clone.axis = axis
     }
 
-    override val className = "SDFPlane"
+    override val className get() = "SDFPlane"
 
 }

@@ -102,7 +102,7 @@ class MathL2Node() : ValueNode("Integer Math 2", inputs, outputs), EnumNode {
         else super.readInt(name, value)
     }
 
-    override val className = "MathL2Node"
+    override val className get() = "MathL2Node"
 
     companion object {
         val inputs = listOf("Long", "A", "Long", "B")

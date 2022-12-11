@@ -118,6 +118,6 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
         // ...
     }
 
-    override val className = "TextInputML"
+    override val className get() = "TextInputML"
 
 }

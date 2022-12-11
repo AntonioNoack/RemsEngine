@@ -101,6 +101,6 @@ class AutoTileableMaterial : Material() {
         clone.tileDir.set(tileDir)
     }
 
-    override val className = "AutoTileableMaterial"
+    override val className get() = "AutoTileableMaterial"
 
 }

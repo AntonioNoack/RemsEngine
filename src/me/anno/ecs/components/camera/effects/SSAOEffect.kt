@@ -61,7 +61,7 @@ class SSAOEffect : CameraEffect() {
         clone.enable2x2Blur = enable2x2Blur
     }
 
-    override val className = "SSAOEffect"
+    override val className get() = "SSAOEffect"
 
     companion object {
         private val inputList = listOf(DeferredLayerType.POSITION, DeferredLayerType.NORMAL)

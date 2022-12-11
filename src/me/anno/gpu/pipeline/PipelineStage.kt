@@ -728,8 +728,8 @@ class PipelineStage(
     fun clone() =
         PipelineStage(name, sorting, maxNumberOfLights, blendMode, depthMode, writeDepth, cullMode, defaultShader)
 
-    override val className = "PipelineStage"
-    override val approxSize: Int = 5
+    override val className get() = "PipelineStage"
+    override val approxSize get() = 5
     override fun isDefaultValue(): Boolean = false
 
 }

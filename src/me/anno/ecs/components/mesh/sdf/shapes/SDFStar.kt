@@ -105,7 +105,7 @@ class SDFStar : SDF2DShape() {
         clone.params.set(params)
     }
 
-    override val className = "SDFStar"
+    override val className get() = "SDFStar"
 
     companion object {
 

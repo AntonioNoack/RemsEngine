@@ -14,18 +14,17 @@ import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-fun main() {
-    // inspired by https://www.youtube.com/watch?v=3QXGM84ZfSw
-    GFXBase.disableRenderDoc()
-    TestStudio.testUI {
-        val list = PanelListY(DefaultConfig.style)
+class AnimTextPanelTest(useLua: Boolean) : PanelListY(DefaultConfig.style) {
+    init {
         val green = 0x8fbc8f or Color.black
         val blue = 0x7777ff or Color.black
         val fontSize = 50f
+
         val font = AnimTextPanel("", DefaultConfig.style).font
             .withSize(fontSize)
             .withBold(true)
-        list.add(AnimTextPanel.SimpleAnimTextPanel("Rainbow Text", DefaultConfig.style) { p, time, index, cx, cy ->
+
+        add(AnimTextPanel.SimpleAnimTextPanel("Rainbow Text", DefaultConfig.style) { p, time, index, cx, cy ->
             p.font = font
             val s = time * 5f + index / 3f
             AnimTextPanel.translate(0f, sin(s) * 5f)
@@ -34,14 +33,14 @@ fun main() {
         })
         // test of a panel with a lua script :3
         // excellent for fast and quick development; bad for allocations and GC
-        if (false) list.add(LuaAnimTextPanel(
+        if (useLua) add(LuaAnimTextPanel(
             "Lua Rainbow Text", "" +
                     "s = time*5+index/3\n" +
                     "translate(0,math.sin(s)*5)\n" +
                     "rotate(math.sin(s)*0.1)\n" +
                     "return hsluv(time*2-index/2)", DefaultConfig.style
         ).apply { this.font = font })
-        list.add(AnimTextPanel.SimpleAnimTextPanel("Growing Text", DefaultConfig.style) { p, time, index, _, _ ->
+        add(AnimTextPanel.SimpleAnimTextPanel("Growing Text", DefaultConfig.style) { p, time, index, _, _ ->
             p.font = font
             val growTime = 0.4f
             val dissolveTime = 1.0f
@@ -51,7 +50,7 @@ fun main() {
             AnimTextPanel.scale(1f, s)
             green.withAlpha(min(1f, 20f * (dissolveTime - phase)))
         }.apply { periodMillis = 1500 }) // total time
-        list.add(AnimTextPanel.SimpleAnimTextPanel("Special Department", DefaultConfig.style) { p, time, index, _, _ ->
+        add(AnimTextPanel.SimpleAnimTextPanel("Special Department", DefaultConfig.style) { p, time, index, _, _ ->
             p.font = font
             val phase = time * 4f - index * 0.15f
             val s = Maths.clamp(sin(phase) * 2f + 1f, -1f, +1f)
@@ -66,7 +65,7 @@ fun main() {
             0xf6b24c or Color.black,
             0xfffab3 or Color.black, 0
         )
-        list.add(AnimTextPanel.SimpleAnimTextPanel("Burning", DefaultConfig.style) { p, time, index, cx, cy ->
+        add(AnimTextPanel.SimpleAnimTextPanel("Burning", DefaultConfig.style) { p, time, index, cx, cy ->
             p.font = font
             val phase = time * 10f - index * 0.75f
             val index1 = Maths.clamp(burnPalette.lastIndex - phase, 0f, burnPalette.size - 0.001f)
@@ -84,7 +83,7 @@ fun main() {
             0xbecbd2 or Color.black,
             0x7c99a9 or Color.black
         )
-        list.add(AnimTextPanel.SimpleAnimTextPanel("Sketchy", DefaultConfig.style) { p, time, index, cx, cy ->
+        add(AnimTextPanel.SimpleAnimTextPanel("Sketchy", DefaultConfig.style) { p, time, index, cx, cy ->
             p.font = font
             val seed = AnimTextPanel.limitFps(time, 3f) * 3f
             val pos = index * 5f + seed
@@ -97,7 +96,7 @@ fun main() {
             AnimTextPanel.rotate(noise[pos, y + 3f] - 0.5f, cx, cy)
             sketchPalette[(noise[pos] * 1e5).toInt() % sketchPalette.size] // choose a random color
         })
-        list.add(AnimTextPanel.SimpleAnimTextPanel("Sketchy²", DefaultConfig.style) { p, time, index, cx, cy ->
+        add(AnimTextPanel.SimpleAnimTextPanel("Sketchy²", DefaultConfig.style) { p, time, index, cx, cy ->
             p.font = font
             val seed = AnimTextPanel.limitFps(time, 3f) * 3f
             val pos = index * 5f + seed
@@ -116,6 +115,13 @@ fun main() {
             )
             sketchPalette[(noise[pos] * 1e5).toInt() % sketchPalette.size] // choose a random color
         })
-        list
+    }
+}
+
+fun main() {
+    // inspired by https://www.youtube.com/watch?v=3QXGM84ZfSw
+    GFXBase.disableRenderDoc()
+    TestStudio.testUI {
+        AnimTextPanelTest(true)
     }
 }

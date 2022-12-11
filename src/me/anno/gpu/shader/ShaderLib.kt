@@ -10,7 +10,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.pooling.ByteBufferPool
-import org.joml.Vector3i
+import org.joml.*
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
@@ -19,6 +19,16 @@ import kotlin.math.sqrt
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 object ShaderLib {
+
+    val y = Vector4f(0.299f, 0.587f, 0.114f, 0f)
+    val u = Vector4f(-0.169f, -0.331f, 0.500f, 0.5f)
+    val v = Vector4f(0.500f, -0.419f, -0.081f, 0.5f)
+    val m = Matrix4x3f(
+        y.x, u.x, v.x,
+        y.y, u.y, v.y,
+        y.z, u.z, v.z,
+        y.w, u.w, v.w,
+    ).invert()
 
     lateinit var shader3DSVG: BaseShader
     lateinit var shaderAssimp: BaseShader
@@ -72,15 +82,15 @@ object ShaderLib {
             "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "}"
 
-    const val brightness = "" +
+    val brightness = "" +
             "float brightness(vec3 color){\n" +
-            "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
+            "   return sqrt(${y.x}*color.r*color.r + ${y.y}*color.g*color.g + ${y.z}*color.b*color.b);\n" +
             "}\n" +
             "float brightness(vec4 color){\n" +
-            "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
+            "   return sqrt(${y.x}*color.r*color.r + ${y.y}*color.g*color.g + ${y.z}*color.b*color.b);\n" +
             "}\n"
 
-    fun brightness(r: Float, g: Float, b: Float) = sqrt(0.299f * r * r + 0.587f * g * g + 0.114f * b * b)
+    fun brightness(r: Float, g: Float, b: Float) = sqrt(y.dot(r * r, g * g, b * b, 1f))
 
     // https://community.khronos.org/t/quaternion-functions-for-glsl/50140/3
     const val quaternionTransform = "" +
@@ -147,32 +157,37 @@ object ShaderLib {
             "   return mix(vec3(gray), color, cgSaturation);\n" +
             "}\n"
 
-    const val rgb2yuv = "" +
+    val rgb2yuv = "" +
             "vec3 rgb2yuv(vec3 rgb){\n" +
             "   vec4 rgba = vec4(rgb,1);\n" +
             "   return vec3(\n" +
-            "       dot(rgb,  vec3( 0.299,  0.587,  0.114)),\n" +
-            "       dot(rgba, vec4(-0.169, -0.331,  0.500, 0.5)),\n" +
-            "       dot(rgba, vec4( 0.500, -0.419, -0.081, 0.5)) \n" +
+            "       dot(rgb,  vec3(${y.x}, ${y.y}, ${y.z})),\n" +
+            "       dot(rgba, vec4(${u.x}, ${u.y}, ${u.z}, 0.5)),\n" +
+            "       dot(rgba, vec4(${v.x}, ${v.y}, ${v.z}, 0.5))\n" +
             "   );\n" +
             "}\n"
 
-    const val rgb2uv = "" +
+    val rgb2uv = "" +
             "vec2 RGBtoUV(vec3 rgb){\n" +
-            "   vec4 rgba = vec4(rgb,1);\n" +
+            "   vec4 rgba = vec4(rgb,1.0);\n" +
             "   return vec2(\n" +
-            "       dot(rgba, vec4(-0.169, -0.331,  0.500, 0.5)),\n" +
-            "       dot(rgba, vec4( 0.500, -0.419, -0.081, 0.5)) \n" +
+            "       dot(rgba, vec4(${u.x}, ${u.y}, ${u.z}, 0.5)),\n" +
+            "       dot(rgba, vec4(${v.x}, ${v.y}, ${v.z}, 0.5))\n" +
             "   );\n" +
             "}\n"
 
-    const val yuv2rgb = "" +
+    val yuv2rgb = "" +
             "vec3 yuv2rgb(vec3 yuv){" +
-            "   yuv -= vec3(${16f / 255f}, 0.5, 0.5);\n" +
+            /*"   yuv -= vec3(${16f / 255f}, 0.5, 0.5);\n" +
             "   return vec3(" +
             "       dot(yuv, vec3( 1.164,  0.000,  1.596))," +
             "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
-            "       dot(yuv, vec3( 1.164,  2.017,  0.000)));\n" +
+            "       dot(yuv, vec3( 1.164,  2.017,  0.000)));\n" +*/
+            "   return vec3(" +
+            "       dot(yuv, vec3(${m.m00}, ${m.m10}, ${m.m20}))+${m.m30},\n" +
+            "       dot(yuv, vec3(${m.m01}, ${m.m11}, ${m.m21}))+${m.m31},\n" +
+            "       dot(yuv, vec3(${m.m02}, ${m.m12}, ${m.m22}))+${m.m32}\n" +
+            "   );\n" +
             "}\n"
 
     const val anisotropic16 = "" +
@@ -548,7 +563,7 @@ object ShaderLib {
                         "") +
                 "void main(){\n" +
                 (if (useAnimTextures) "" +
-                        "   if(hasAnimation && textureSize(animTexture,0).x > 1.0){\n" +
+                        "   if(hasAnimation && textureSize(animTexture,0).x > 1){\n" +
                         "       mat4x3 jointMat;\n" +
                         "jointMat  = getAnimMatrix(indices.x) * weights.x;\n" +
                         "jointMat += getAnimMatrix(indices.y) * weights.y;\n" +

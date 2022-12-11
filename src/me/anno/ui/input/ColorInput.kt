@@ -261,7 +261,7 @@ open class ColorInput(
         clone.setResetListener(contentView.resetListener)
     }
 
-    override val className = "ColorInput"
+    override val className get() = "ColorInput"
 
     companion object {
         // test the UI

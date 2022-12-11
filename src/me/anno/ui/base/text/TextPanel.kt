@@ -365,7 +365,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         }
     }
 
-    override val className = "TextPanel"
+    override val className get() = "TextPanel"
 
     companion object {
         @JvmField

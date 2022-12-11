@@ -2,6 +2,7 @@ package me.anno.tests
 
 import me.anno.Engine
 import me.anno.utils.hpc.ProcessingGroup
+import me.anno.utils.types.Ints.toIntOrDefault
 
 fun main() {
     val threads = BooleanArray(16)
@@ -10,7 +11,7 @@ fun main() {
     group.processBalanced(0, data.size, true) { i0, i1 ->
         // it is important, that all threads work
         val threadName = Thread.currentThread().name
-        val threadId = threadName.split('-').last().toIntOrNull() ?: -1
+        val threadId = threadName.split('-').last().toIntOrDefault(-1)
         threads[threadId + 1] = true
         for (i in i0 until i1) {
             data[i] += i + 1

@@ -113,6 +113,6 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
         writer.writeBoolean("isItalic", isItalic)
     }
 
-    override val className = "Font"
+    override val className get() = "Font"
 
 }

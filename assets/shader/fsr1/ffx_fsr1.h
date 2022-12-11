@@ -112,52 +112,17 @@
   vec2 p1=p0+(con2.xy);
   vec2 p2=p0+(con2.zw);
   vec2 p3=p0+(con3.xy);
-  #ifdef NO_GATHER
-  vec2 dx = vec2(con1.x,0.0);
-  vec2 dy = vec2(0.0,con1.y);
-  vec2 dxy = con1.xy;
-  vec3 b0 = FsrEasuRGBF(p0);
-  vec3 b1 = FsrEasuRGBF(p0+dx);
-  vec4 bczzR=vec4(b0.r,b1.r,0.0,0.0);
-  vec4 bczzG=vec4(b0.g,b1.g,0.0,0.0);
-  vec4 bczzB=vec4(b0.b,b1.b,0.0,0.0);
-  vec3 i0 = FsrEasuRGBF(p1);
-  vec3 i1 = FsrEasuRGBF(p1+dx);
-  vec3 i2 = FsrEasuRGBF(p1+dy);
-  vec3 i3 = FsrEasuRGBF(p1+dxy);
-  vec4 ijfeR=vec4(i0.r,i1.r,i2.r,i3.r);
-  vec4 ijfeG=vec4(i0.g,i1.g,i2.g,i3.g);
-  vec4 ijfeB=vec4(i0.b,i1.b,i2.b,i3.b);
-  vec3 k0 = FsrEasuRGBF(p2);
-  vec3 k1 = FsrEasuRGBF(p2+dx);
-  vec3 k2 = FsrEasuRGBF(p2+dy);
-  vec3 k3 = FsrEasuRGBF(p2+dxy);
-  vec4 klhgR=vec4(k0.r,k1.r,k2.r,k3.r);
-  vec4 klhgG=vec4(k0.g,k1.g,k2.g,k3.g);
-  vec4 klhgB=vec4(k0.b,k1.b,k2.b,k3.b);
-  vec3 z2 = FsrEasuRGBF(p3+dy);
-  vec3 z3 = FsrEasuRGBF(p3+dxy);
-  vec4 zzonR=vec4(0.0,0.0,z2.r,z3.r);
-  vec4 zzonG=vec4(0.0,0.0,z2.g,z3.g);
-  vec4 zzonB=vec4(0.0,0.0,z2.b,z3.b);
-  #else
-  vec4 alpha0 = FsrEasuAF(p0);
-  vec4 bczzR=FsrEasuRF(p0,alpha0);
-  vec4 bczzG=FsrEasuGF(p0,alpha0);
-  vec4 bczzB=FsrEasuBF(p0,alpha0);
-  vec4 alpha1 = FsrEasuAF(p1);
-  vec4 ijfeR=FsrEasuRF(p1,alpha1);
-  vec4 ijfeG=FsrEasuGF(p1,alpha1);
-  vec4 ijfeB=FsrEasuBF(p1,alpha1);
-  vec4 alpha2 = FsrEasuAF(p2);
-  vec4 klhgR=FsrEasuRF(p2,alpha2);
-  vec4 klhgG=FsrEasuGF(p2,alpha2);
-  vec4 klhgB=FsrEasuBF(p2,alpha2);
-  vec4 alpha3 = FsrEasuAF(p3);
-  vec4 zzonR=FsrEasuRF(p3,alpha3);
-  vec4 zzonG=FsrEasuGF(p3,alpha3);
-  vec4 zzonB=FsrEasuBF(p3,alpha3);
-  #endif
+
+  vec4 bczzR,bczzG,bczzB;
+  vec4 ijfeR,ijfeG,ijfeB;
+  vec4 klhgR,klhgG,klhgB;
+  vec4 zzonR,zzonG,zzonB;
+
+  FsrEasuLoad(p0,bczzR,bczzG,bczzB);
+  FsrEasuLoad(p1,ijfeR,ijfeG,ijfeB);
+  FsrEasuLoad(p2,klhgR,klhgG,klhgB);
+  FsrEasuLoad(p3,zzonR,zzonG,zzonB);
+
 //------------------------------------------------------------------------------------------------------------------------------
   // Simplest multi-channel approximate luma possible (luma times 2, in 2 FMA/MAD).
   vec4 bczzL=bczzB*0.5+(bczzR*0.5+bczzG);

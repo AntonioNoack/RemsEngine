@@ -106,6 +106,6 @@ class DecalMaterial : Material() {
 
     // theoretically, this also could support applying clear-coat
 
-    override val className = "DecalMaterial"
+    override val className get() = "DecalMaterial"
 
 }

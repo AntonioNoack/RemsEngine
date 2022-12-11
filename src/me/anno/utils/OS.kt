@@ -2,6 +2,7 @@ package me.anno.utils
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.process.BetterProcessBuilder
+import me.anno.utils.types.Ints.toIntOrDefault
 import java.lang.management.ManagementFactory
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -64,7 +65,7 @@ object OS {
 
     @JvmStatic
     fun getProcessID(): Int {
-        return ManagementFactory.getRuntimeMXBean().name.split("@")[0].toIntOrNull() ?: -1
+        return ManagementFactory.getRuntimeMXBean().name.split("@")[0].toIntOrDefault(-1)
     }
 
 }

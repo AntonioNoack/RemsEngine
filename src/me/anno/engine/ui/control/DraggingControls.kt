@@ -681,7 +681,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     override fun isKeyInput() = true
     override fun acceptsChar(char: Int) = true
 
-    override val className = "SceneView"
+    override val className get() = "SceneView"
 
     companion object {
         private val LOGGER = LogManager.getLogger(DraggingControls::class)

@@ -84,7 +84,7 @@ object InputStreams {
             val numReadChars = read(tmp, 0, min(n - i, tmp.size))
             if (numReadChars < 0) {
                 pool.returnBuffer(bytes)
-                throw EOFException()
+                throw EOFException("Only found $i/$n bytes")
             }
             bytes.put(tmp, 0, numReadChars)
             i += numReadChars

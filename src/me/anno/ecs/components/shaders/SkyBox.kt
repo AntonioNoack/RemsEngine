@@ -171,7 +171,7 @@ class SkyBox : MeshComponentBase() {
         clone.sunSpeed.set(sunSpeed)
     }
 
-    override val className = "SkyBox"
+    override val className get() = "SkyBox"
 
     companion object {
 

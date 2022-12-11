@@ -190,7 +190,7 @@ class FileInput(
         return entry
     }
 
-    override val className = "FileInput"
+    override val className get() = "FileInput"
 
     companion object {
         private val LOGGER = LogManager.getLogger(FileInput::class)

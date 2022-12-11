@@ -533,7 +533,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     override fun clone() = BulletPhysics(this)
 
-    override val className = "BulletPhysics"
+    override val className get() = "BulletPhysics"
 
     companion object {
 

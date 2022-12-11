@@ -14,6 +14,6 @@ class RemotePlayer : Player() {
         return clone
     }
 
-    override val className = "RemotePlayer"
+    override val className get() = "RemotePlayer"
 
 }

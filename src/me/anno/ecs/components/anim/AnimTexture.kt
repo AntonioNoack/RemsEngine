@@ -173,11 +173,10 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     }
 
     companion object {
-
         // will become default, when everything works
         // then we can remove the old code
+        @JvmField
         var useAnimTextures = true
-
     }
 
 }

@@ -34,6 +34,6 @@ class BloomEffect : ToneMappedEffect() {
         clone.offset = offset
     }
 
-    override val className = "BloomEffect"
+    override val className get() = "BloomEffect"
 
 }

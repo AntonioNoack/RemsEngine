@@ -16,6 +16,7 @@ import me.anno.io.json.JsonReader
 import me.anno.utils.OS
 import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder
+import me.anno.utils.structures.Iterators.toList
 import me.anno.utils.types.Strings.parseTime
 import me.saharnooby.qoi.QOIImage
 import net.sf.image4j.codec.ico.ICOReader
@@ -69,6 +70,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                 }
             }
             "png", "jpg", "psd", "dds", "exr" -> {
+                println("$signature -> ${ImageIO.getImageReadersBySuffix(signature).toList().size}")
                 for (reader in ImageIO.getImageReadersBySuffix(signature)) {
                     try {
                         file.inputStreamSync().use {

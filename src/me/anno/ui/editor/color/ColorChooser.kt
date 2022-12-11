@@ -261,7 +261,7 @@ open class ColorChooser(
         clone.rgba.set(rgba)
     }
 
-    override val className = "ColorChooser"
+    override val className get() = "ColorChooser"
 
     companion object {
         private val LOGGER = LogManager.getLogger(ColorChooser::class)

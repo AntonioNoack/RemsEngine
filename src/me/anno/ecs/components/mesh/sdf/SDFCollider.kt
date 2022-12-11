@@ -142,6 +142,6 @@ class SDFCollider : Collider() {
         clone.margin = margin
     }
 
-    override val className = "SDFCollider"
+    override val className get() = "SDFCollider"
 
 }

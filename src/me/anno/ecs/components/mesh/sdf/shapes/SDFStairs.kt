@@ -95,7 +95,7 @@ class SDFStairs : SDF2DShape() {
         clone.stepSizeCount.set(stepSizeCount)
     }
 
-    override val className = "SDFStairs"
+    override val className get() = "SDFStairs"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

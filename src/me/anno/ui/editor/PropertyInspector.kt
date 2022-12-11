@@ -147,7 +147,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         invalidate()
     }
 
-    override val className = "PropertyInspector"
+    override val className get() = "PropertyInspector"
 
     companion object {
 

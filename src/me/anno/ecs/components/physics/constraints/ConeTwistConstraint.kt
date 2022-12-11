@@ -86,6 +86,6 @@ class ConeTwistConstraint : Constraint<com.bulletphysics.dynamics.constraintsolv
         clone.biasFactor = biasFactor
     }
 
-    override val className = "ConeTwistConstraint"
+    override val className get() = "ConeTwistConstraint"
 
 }

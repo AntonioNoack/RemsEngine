@@ -1,5 +1,8 @@
 package me.anno.io.json
 
+import me.anno.utils.types.Ints.toIntOrDefault
+import me.anno.utils.types.Ints.toLongOrDefault
+
 class JsonValue(val value: Any?) : JsonNode() {
 
     override fun get(key: String): JsonNode? = null
@@ -22,7 +25,7 @@ class JsonValue(val value: Any?) : JsonNode() {
                 is Long -> value.toInt()
                 is Float -> value.toInt()
                 is Double -> value.toInt()
-                else -> value.toString().toIntOrNull() ?: default
+                else -> value.toString().toIntOrDefault(default)
             }
         }
 
@@ -35,7 +38,7 @@ class JsonValue(val value: Any?) : JsonNode() {
                 is Long -> value
                 is Float -> value.toLong()
                 is Double -> value.toLong()
-                else -> value.toString().toLongOrNull() ?: default
+                else -> value.toString().toLongOrDefault(default)
             }
         }
 

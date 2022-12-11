@@ -101,7 +101,7 @@ class LinearColorMap(
         }
     }
 
-    override val className = "LinearColorMap"
+    override val className get() = "LinearColorMap"
 
     companion object {
         const val zeroColor = 255 shl 24

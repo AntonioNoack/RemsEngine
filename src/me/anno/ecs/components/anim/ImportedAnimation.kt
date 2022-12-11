@@ -63,7 +63,7 @@ class ImportedAnimation : Animation() {
         }
     }
 
-    override val className = "ImportedAnimation"
+    override val className get() = "ImportedAnimation"
 
     companion object {
 

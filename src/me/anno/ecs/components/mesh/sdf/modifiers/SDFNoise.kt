@@ -154,7 +154,7 @@ class SDFNoise : DistanceMapper() {
         clone.frequency = frequency
     }
 
-    override val className = "SDFNoise"
+    override val className get() = "SDFNoise"
 
     private fun sdfHash(n: Float) = fract(sin(n) * 753.5453123f)
 

@@ -203,7 +203,7 @@ class SDFHexGrid : PositionMapper() {
         clone.dynamicSize = dynamicSize
     }
 
-    override val className = "SDFHexGrid"
+    override val className get() = "SDFHexGrid"
 
     companion object {
         val hexScale = Vector2f(1.7320508f, 1f)

@@ -112,7 +112,7 @@ open class SDFHexPrism : SDFSmoothShape() {
         clone.params.set(params)
     }
 
-    override val className = "SDFHexPrism"
+    override val className get() = "SDFHexPrism"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

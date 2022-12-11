@@ -34,12 +34,11 @@ class GPUFrameReader(
             }
             frame.load(input)
             return frame
-        } catch (_: LastFrame) {
-
-        } catch (_: IOException) {
-
+        } catch (e: LastFrame) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
         } catch (_: ShutdownException) {
-
         } catch (e: Exception) {
             e.printStackTrace()
         }

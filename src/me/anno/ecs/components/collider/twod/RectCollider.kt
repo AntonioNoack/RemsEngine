@@ -79,6 +79,6 @@ class RectCollider : Collider2d() {
         clone.halfExtends.set(halfExtends)
     }
 
-    override val className = "RectCollider"
+    override val className get() = "RectCollider"
 
 }

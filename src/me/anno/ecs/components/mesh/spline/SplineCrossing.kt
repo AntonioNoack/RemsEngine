@@ -266,6 +266,6 @@ class SplineCrossing : ProceduralMesh() {
         return clone
     }
 
-    override val className = "SplineCrossing"
+    override val className get() = "SplineCrossing"
 
 }

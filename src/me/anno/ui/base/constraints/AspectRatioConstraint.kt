@@ -38,6 +38,6 @@ private constructor(var ratio: Float?, val getRatio: (() -> Float)?) : Constrain
 
     override fun clone() = AspectRatioConstraint(ratio, getRatio)
 
-    override val className = "AspectRatioConstraint"
+    override val className get() = "AspectRatioConstraint"
 
 }

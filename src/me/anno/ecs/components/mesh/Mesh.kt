@@ -279,8 +279,8 @@ class Mesh : PrefabSaveable(), Renderable {
         }
     }
 
-    override val className = "Mesh"
-    override val approxSize: Int = 1
+    override val className get() = "Mesh"
+    override val approxSize get() = 1
 
     fun calculateAABB() {
         aabb.clear()

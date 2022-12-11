@@ -58,6 +58,6 @@ class CircleCollider : Collider2d() {
         clone.radius = radius
     }
 
-    override val className = "CircleCollider"
+    override val className get() = "CircleCollider"
 
 }

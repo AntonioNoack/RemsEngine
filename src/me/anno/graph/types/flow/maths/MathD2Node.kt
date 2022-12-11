@@ -87,7 +87,7 @@ class MathD2Node() : ValueNode("FP Math 2", inputs, outputs), EnumNode {
         else super.readInt(name, value)
     }
 
-    override val className = "MathD2Node"
+    override val className get() = "MathD2Node"
 
     companion object {
         @JvmField

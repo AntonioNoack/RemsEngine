@@ -136,7 +136,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
             if (uv != null) {
                 // pad existing
                 uvs.skip(prevNumVertices * 2 - uvs.size)
-                uvs.add(uv, 0, min(uv.size, numVertices * 2))
+                uvs.addAll(uv, 0, min(uv.size, numVertices * 2))
             }
 
             val tan = mesh.tangents
@@ -182,8 +182,8 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                 boneWeights.skip(prevNumVertices * 4 - boneWeights.size)
                 boneIndices.skip(prevNumVertices * 4 - boneIndices.size)
                 // append bone weights & indices
-                boneWeights.add(weiW, 0, min(weiW.size, numVertices * 4))
-                boneIndices.add(weiI, 0, min(weiI.size, numVertices * 4))
+                boneWeights.addAll(weiW, 0, min(weiW.size, numVertices * 4))
+                boneIndices.addAll(weiI, 0, min(weiI.size, numVertices * 4))
             }
 
             if (idx != null) {

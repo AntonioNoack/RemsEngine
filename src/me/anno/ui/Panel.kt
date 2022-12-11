@@ -887,7 +887,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         writer.writeObject(this, "tooltipPanel", tooltipPanel)
     }
 
-    override val className = "Panel"
+    override val className get() = "Panel"
 
     companion object {
 

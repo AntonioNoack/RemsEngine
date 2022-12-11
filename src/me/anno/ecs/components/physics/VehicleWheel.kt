@@ -182,6 +182,6 @@ class VehicleWheel : Component() {
         clone.frictionSlip = frictionSlip
     }
 
-    override val className = "VehicleWheel"
+    override val className get() = "VehicleWheel"
 
 }

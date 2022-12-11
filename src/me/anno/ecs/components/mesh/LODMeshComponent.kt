@@ -90,7 +90,7 @@ class LODMeshComponent() : MeshComponentBase() {
         clone.meshes = meshes // clone the list?
     }
 
-    override val className = "LODMeshComponent"
+    override val className get() = "LODMeshComponent"
 
     companion object {
         var lodBias = 0f

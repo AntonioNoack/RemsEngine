@@ -299,6 +299,6 @@ open class IntVectorInput(
         clone.setValue(vx, vy, vz, vw, false)
     }
 
-    override val className = "IntVectorInput"
+    override val className get() = "IntVectorInput"
 
 }

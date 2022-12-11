@@ -40,7 +40,7 @@ class ShaderBuilder(val name: String) {
         for (uniform in uniforms) {
             when (uniform.type) {
                 GLSLType.S2D, GLSLType.S3D, GLSLType.SCube -> {
-                    if (uniform.arraySize > 0) {
+                    if (uniform.arraySize >= 0) {
                         if ("${uniform.name}0" !in textureIndices) {
                             for (i in 0 until uniform.arraySize) {
                                 // todo with brackets or without?

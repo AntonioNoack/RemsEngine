@@ -35,15 +35,15 @@ open class ExpandingByteArray(private val initCapacity: Int) {
         size += length
     }
 
-    fun add(v: ByteArray, srcStartIndex: Int = 0, length: Int = v.size) {
+    fun addAll(src: ByteArray, srcStartIndex: Int = 0, length: Int = src.size) {
         ensureExtra(length)
-        addUnsafe(v, srcStartIndex, length)
+        addUnsafe(src, srcStartIndex, length)
     }
 
-    fun add(v: ExpandingByteArray, startIndex: Int, length: Int) {
+    fun addAll(src: ExpandingByteArray, startIndex: Int, length: Int) {
         if (length == 0) return
         ensureExtra(length)
-        addUnsafe(v, startIndex, length)
+        addUnsafe(src, startIndex, length)
     }
 
     operator fun get(index: Int) = array!![index]

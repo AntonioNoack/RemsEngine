@@ -32,10 +32,13 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         // 5 GB = 50 processes, at 6 cores / 12 threads = 4 ratio
         @JvmField
         val processLimiter = Semaphore(max(2, numThreads), true)
+
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
+
         @JvmField
         val frameCountByFile = HashMap<FileReference, Int>()
+
         @JvmField
         val waitingQueue = ProcessingQueue("WaitingQueue")
 
@@ -49,52 +52,74 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         @JvmStatic
         fun getImageSequence(
-            input: FileReference, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double
+            input: FileReference, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double,
+            totalFrameCount: Int
         ): GPUFrameReader {
-            return getImageSequence(input, w, h, startFrame / fps, frameCount, fps)
+            return getImageSequence(input, w, h, startFrame / fps, frameCount, fps, totalFrameCount)
         }
 
         // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
         // if we use hardware decoding, we need to use it on the gpu...
         @JvmStatic
         fun getImageSequence(
-            input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double
+            input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double,
+            totalFrameCount: Int
         ): GPUFrameReader {
             val video = GPUFrameReader(input, (startTime * fps).roundToInt(), frameCount)
-            video.run(getImageSequenceArguments(input, w, h, startTime, frameCount, fps))
+            video.run(getImageSequenceArguments(input, w, h, startTime, frameCount, fps, totalFrameCount))
             return video
         }
 
         @JvmStatic
         fun getImageSequenceCPU(
-            input: FileReference, w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double
+            input: FileReference, w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double,
+            totalFrameCount: Int
         ): CPUFrameReader {
             val video = CPUFrameReader(input, frameIndex, frameCount)
-            video.run(getImageSequenceArguments(input, w, h, frameIndex / max(fps, 1e-3), frameCount, fps))
+            video.run(
+                getImageSequenceArguments(
+                    input, w, h,
+                    frameIndex / max(fps, 1e-3), frameCount, fps, totalFrameCount
+                )
+            )
             return video
         }
 
         @JvmStatic
         fun getImageSequenceArguments(
-            input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double
+            input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double,
+            totalFrameCount: Int
         ): List<String> {
             val meta = getMeta(input, false)
-            val args = arrayListOf(
-                "-ss", "$startTime", // must be placed here!!!
-                "-i", input.absolutePath
-            )
+            val args = ArrayList<String>()
+            if (totalFrameCount > 1 && startTime > 0) {
+                args.add("-ss")
+                args.add(startTime.toString())
+            }
+            args.add("-i")
+            args.add(input.absolutePath)
             if (abs(fps - (meta?.videoFPS ?: 0.0001)) > 0.01) {
                 // 2x slower
-                args += listOf("-r", "$fps")
+                args.add("-r")
+                args.add(fps.toString())
             }
             if (meta?.videoWidth != w) {
-                args += listOf("-vf", "scale=$w:$h")
+                args.add("-vf")
+                args.add("scale=$w:$h")
             }
-            args += listOf(
-                "-vframes", "$frameCount",
-                // "-movflags", "faststart", // didn't have noticeable effect, maybe it does now (??...)
-                "-f", "rawvideo", "-" // format
-            )
+
+            // todo support 10bit color?
+            args.add("-pix_fmt")
+            args.add("bgr24")
+
+            args.add("-vframes")
+            args.add(frameCount.toString())
+            // didn't have noticeable effect, maybe it does now (??...)
+            // args.add("-movflags")
+            // args.add("faststart")
+            args.add("-f") // format
+            args.add("rawvideo")
+            args.add("-")
             return args
         }
 
@@ -163,7 +188,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         builder += arguments
 
         val process = builder.start()
-        LOGGER.debug("started process")
         process(process, arguments)
         if (isProcessCountLimited) {
             waitForRelease(process)

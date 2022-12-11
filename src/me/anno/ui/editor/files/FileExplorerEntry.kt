@@ -211,7 +211,7 @@ open class FileExplorerEntry(
                 is Texture2D -> tex.state
                 else -> tex
             } else null
-            if (lastMeta !== meta || lastTex !== tex) {
+            if (lastMeta != meta || lastTex != tex) {
                 lastTex = tex
                 lastMeta = meta
                 invalidateDrawing()
@@ -446,9 +446,10 @@ open class FileExplorerEntry(
         val image = getFrame(0)
         if (frameIndex > 0) getFrame(videoBufferLength)
         if (image != null && image.isCreated) {
+            // todo check that this is correct
             drawTexture(
-                GFX.viewportWidth, GFX.viewportHeight,
-                image, -1, null
+                image, -1,
+                null
             )
             drawCircle(x0, y0, x1, y1)
         } else drawDefaultIcon(x0, y0, x1, y1)

@@ -32,7 +32,7 @@ class MorphTarget(name: String, var positions: FloatArray, var weight: Float = 0
         }
     }
 
-    override val className = "MorphTarget"
-    override val approxSize: Int = 5
+    override val className get() = "MorphTarget"
+    override val approxSize get() = 5
 
 }

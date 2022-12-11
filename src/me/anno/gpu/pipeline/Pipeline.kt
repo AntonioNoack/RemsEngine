@@ -433,8 +433,8 @@ class Pipeline(val deferred: DeferredSettingsV2?) : Saveable() {
         }
     }
 
-    override val className = "Pipeline"
-    override val approxSize = 10
+    override val className get() = "Pipeline"
+    override val approxSize get() = 10
     override fun isDefaultValue() = false
 
     companion object {

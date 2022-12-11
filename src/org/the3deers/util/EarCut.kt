@@ -8,10 +8,11 @@ import kotlin.math.min
 /**
  * from the3deers.org, a derivative work from https://github.com/mapbox/earcut
  * converted to Kotlin by Antonio Noack
- * (copyright removed, because it's like spam for programmers)
+ * (copyright (https://github.com/mapbox/earcut/blob/main/LICENSE) removed, because it's like spam for programmers)
  */
 object EarCut {
 
+    @JvmStatic
     fun earcut(data: FloatArray, dim: Int): IntArrayList? {
 
         val outerLen = data.size
@@ -51,6 +52,7 @@ object EarCut {
         return triangles
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun earcut(data: FloatArray, holeIndices: IntArray?, dim: Int): IntArrayList? {
         val hasHoles = holeIndices != null && holeIndices.isNotEmpty()
@@ -95,6 +97,7 @@ object EarCut {
     /**
      * create a circular doubly linked list from polygon points in the specified winding order
      * */
+    @JvmStatic
     private fun linkedList(data: FloatArray, start: Int, end: Int, dim: Int, clockwise: Boolean): Node? {
         var i: Int
         var last: Node? = null
@@ -121,6 +124,7 @@ object EarCut {
     /**
      * eliminate collinear or duplicate points
      * */
+    @JvmStatic
     private fun filterPoints(start: Node?, end0: Node?): Node? {
         var end = end0
         if (start == null) return null
@@ -145,6 +149,7 @@ object EarCut {
     /**
      * main ear slicing loop, which triangulates a polygon (given as a list)
      * */
+    @JvmStatic
     private fun earcutLinked(
         ear0: Node?,
         triangles: IntArrayList,
@@ -201,6 +206,7 @@ object EarCut {
     /**
      * check whether a polygon node forms a valid ear with adjacent nodes
      * */
+    @JvmStatic
     private fun isEar(ear: Node): Boolean {
         val a = ear.prev!!
         val c = ear.next!!
@@ -216,6 +222,7 @@ object EarCut {
         return true
     }
 
+    @JvmStatic
     private fun isEarHashed(ear: Node, minX: Float, minY: Float, invSize: Float): Boolean {
 
         val a = ear.prev!!
@@ -271,6 +278,7 @@ object EarCut {
     /**
      * go through all polygon nodes and cure small local self-intersections
      * */
+    @JvmStatic
     private fun cureLocalIntersections(start0: Node?, triangles: IntArrayList, dim: Int): Node? {
         var start = start0
         var p = start
@@ -296,6 +304,7 @@ object EarCut {
     /**
      * try splitting polygon into two and triangulate them independently
      * */
+    @JvmStatic
     private fun splitEarcut(
         start: Node,
         triangles: IntArrayList,
@@ -332,6 +341,7 @@ object EarCut {
     /**
      * link every hole into the outer loop, producing a single-ring polygon without holes
      * */
+    @JvmStatic
     private fun eliminateHoles(data: FloatArray, holeIndices: IntArray?, outerNode0: Node, dim: Int): Node {
         var outerNode: Node? = outerNode0
         val queue: MutableList<Node> = ArrayList()
@@ -363,6 +373,7 @@ object EarCut {
     /**
      * find a bridge between vertices that connects hole with an outer ring and link it
      * */
+    @JvmStatic
     private fun eliminateHole(hole: Node, outerNode0: Node) {
         val outerNode = findHoleBridge(hole, outerNode0)
         if (outerNode != null) {
@@ -376,6 +387,7 @@ object EarCut {
     /**
      * David Eberly's algorithm for finding a bridge between hole and outer polygon
      * */
+    @JvmStatic
     private fun findHoleBridge(hole: Node, outerNode: Node): Node? {
         var p = outerNode
         val hx = hole.x
@@ -431,6 +443,7 @@ object EarCut {
     /**
      * whether sector in vertex m contains sector in vertex p in the same coordinates
      * */
+    @JvmStatic
     private fun sectorContainsSector(m: Node, p: Node): Boolean {
         return signedTriangleArea(m.prev!!, m, p.prev!!) < 0 && signedTriangleArea(p.next!!, m, m.next!!) < 0
     }
@@ -438,6 +451,7 @@ object EarCut {
     /**
      * interlink polygon nodes in z-order
      * */
+    @JvmStatic
     private fun indexCurve(start: Node, minX: Float, minY: Float, invSize: Float) {
         var p: Node? = start
         do {
@@ -455,6 +469,7 @@ object EarCut {
      * Simon Tatham's linked list merge sort algorithm;
      * http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
      * */
+    @JvmStatic
     private fun sortLinked(list0: Node?) {
         var list = list0
         var i: Int
@@ -507,6 +522,7 @@ object EarCut {
     /**
      * z-order of a point given coords and inverse of the longer side of data bounding box
      * */
+    @JvmStatic
     fun zOrder(x0: Float, y0: Float, minX: Float, minY: Float, invSize: Float): Float {
         // coords are transformed into non-negative 15-bit integer range
         var x = (32767 * (x0 - minX) * invSize).toInt()
@@ -525,6 +541,7 @@ object EarCut {
     /**
      * find the leftmost node of a polygon ring
      * */
+    @JvmStatic
     private fun getLeftmost(start: Node): Node {
         var p = start
         var leftmost = start
@@ -538,6 +555,7 @@ object EarCut {
     /**
      * check if a point lies within a triangle
      * */
+    @JvmStatic
     fun pointInTriangle(
         ax: Float, ay: Float,
         bx: Float, by: Float,
@@ -552,6 +570,7 @@ object EarCut {
     /**
      * check if a diagonal between two polygon nodes is valid (lies in polygon interior)
      * */
+    @JvmStatic
     private fun isValidDiagonal(a: Node, b: Node): Boolean {
         return a.next!!.i != b.i && a.prev!!.i != b.i &&
                 !intersectsPolygon(a, b) && // doesn't intersect other edges
@@ -562,6 +581,7 @@ object EarCut {
                         signedTriangleArea(b.prev!!, b, b.next!!) > 0) // special zero-length case
     }
 
+    @JvmStatic
     private fun signedTriangleArea(p: Node, q: Node, r: Node): Float {
         return (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y)
     }
@@ -569,6 +589,7 @@ object EarCut {
     /**
      * check if two segments intersect
      * */
+    @JvmStatic
     private fun intersects(p1: Node, q1: Node, p2: Node, q2: Node): Boolean {
         val o1 = sign(signedTriangleArea(p1, q1, p2))
         val o2 = sign(signedTriangleArea(p1, q1, q2))
@@ -584,6 +605,7 @@ object EarCut {
     /**
      * for collinear points p, q, r, check if point q lies on segment pr
      * */
+    @JvmStatic
     private fun onSegment(p: Node, q: Node, r: Node): Boolean {
         return q.x <= max(p.x, r.x) &&
                 q.x >= min(p.x, r.x) &&
@@ -591,6 +613,7 @@ object EarCut {
                 q.y >= min(p.y, r.y)
     }
 
+    @JvmStatic
     private fun sign(num: Float): Int {
         return if (num > 0) 1 else if (num < 0) -1 else 0
     }
@@ -598,6 +621,7 @@ object EarCut {
     /**
      * check if a polygon diagonal intersects any polygon segments
      * */
+    @JvmStatic
     private fun intersectsPolygon(a: Node, b: Node): Boolean {
         var p = a
         do {
@@ -612,6 +636,7 @@ object EarCut {
     /**
      * check if a polygon diagonal is locally inside the polygon
      * */
+    @JvmStatic
     private fun locallyInside(a: Node, b: Node): Boolean {
         return if (signedTriangleArea(a.prev!!, a, a.next!!) < 0)
             signedTriangleArea(a, b, a.next!!) >= 0f && signedTriangleArea(a, a.prev!!, b) >= 0f
@@ -622,6 +647,7 @@ object EarCut {
     /**
      * check if the middle point of a polygon diagonal is inside the polygon
      * */
+    @JvmStatic
     private fun middleInside(a: Node, b: Node): Boolean {
         var p = a
         var inside = false
@@ -638,6 +664,7 @@ object EarCut {
 
     // link two polygon vertices with a bridge; if the vertices belong to the same ring, it splits polygon into two;
     // if one belongs to the outer ring and another to a hole, it merges it into a single ring
+    @JvmStatic
     private fun splitPolygon(a: Node, b: Node): Node {
         val a2 = Node(a.i, a.x, a.y)
         val b2 = Node(b.i, b.x, b.y)
@@ -657,6 +684,7 @@ object EarCut {
     /**
      * create a node and optionally link it with previous one (in a circular doubly linked list)
      * */
+    @JvmStatic
     private fun insertNode(i: Int, x: Float, y: Float, last: Node?): Node {
         val p = Node(i, x, y)
         if (last == null) {
@@ -671,6 +699,7 @@ object EarCut {
         return p
     }
 
+    @JvmStatic
     private fun removeNode(p: Node) {
         p.next!!.prev = p.prev
         p.prev!!.next = p.next
@@ -678,6 +707,7 @@ object EarCut {
         if (p.nextZ != null) p.nextZ!!.prevZ = p.prevZ
     }
 
+    @JvmStatic
     private fun signedArea(data: FloatArray, start: Int, end: Int, dim: Int): Float {
         var sum = 0f
         var i = start
@@ -690,7 +720,7 @@ object EarCut {
         return sum
     }
 
-    internal class Node(
+    class Node(
         // vertex index in coordinates array
         var i: Int,
         // vertex coordinates

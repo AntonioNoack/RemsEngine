@@ -68,7 +68,7 @@ class SSREffect : ToneMappedEffect() {
         clone.fineSteps = fineSteps
     }
 
-    override val className = "SSREffect"
+    override val className get() = "SSREffect"
 
     companion object {
         val inputs = listOf(

@@ -93,32 +93,45 @@ object GFX {
     val someWindow get() = focusedWindow ?: windows[0] // we also could choose the one closest to the mouse :)
 
     @JvmStatic
-    val idleFPS get() = DefaultConfig["ui.window.idleFPS", 10]
+    var idleFPS
+        get() = DefaultConfig["ui.window.idleFPS", 10]
+        set(value) {
+            DefaultConfig["ui.window.idleFPS"] = value
+        }
 
     @JvmField
     var supportsAnisotropicFiltering = false
+
     @JvmField
     var anisotropy = 1f
+
     @JvmField
     var maxSamples = 1
+
     @JvmField
     var supportsClipControl = !OS.isAndroid && !OS.isWeb
 
     @JvmField
     var supportsF32Targets = true
+
     @JvmField
     var supportsF16Targets = true
 
     @JvmField
     var maxFragmentUniformComponents = 0
+
     @JvmField
     var maxVertexUniformComponents = 0
+
     @JvmField
     var maxBoundTextures = 0
+
     @JvmField
     var maxUniforms = 0
+
     @JvmField
     var maxColorAttachments = 1
+
     @JvmField
     var maxTextureSize = 512 // assumption before loading anything
 
@@ -127,8 +140,10 @@ object GFX {
 
     @JvmField
     val nextGPUTasks = ArrayList<Task>()
+
     @JvmField
     val gpuTasks: Queue<Task> = ConcurrentLinkedQueue()
+
     @JvmField
     val lowPriorityGPUTasks: Queue<Task> = ConcurrentLinkedQueue()
 
@@ -141,6 +156,7 @@ object GFX {
      * */
     @JvmField
     var offsetX = 0
+
     @JvmField
     var offsetY = 0
 
@@ -149,10 +165,13 @@ object GFX {
      * */
     @JvmField
     var viewportX = 0
+
     @JvmField
     var viewportY = 0
+
     @JvmField
     var viewportWidth = 0
+
     @JvmField
     var viewportHeight = 0
 
@@ -167,6 +186,7 @@ object GFX {
 
     @JvmStatic
     fun addGPUTask(name: String, w: Int, h: Int, task: () -> Unit) = addGPUTask(name, w, h, false, task)
+
     @JvmStatic
     fun addGPUTask(name: String, w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
         addGPUTask(name, max(1, ((w * h.toLong()) / 10_000).toInt()), lowPriority, task)
@@ -174,6 +194,7 @@ object GFX {
 
     @JvmStatic
     fun addGPUTask(name: String, weight: Int, task: () -> Unit) = addGPUTask(name, weight, false, task)
+
     @JvmStatic
     fun addGPUTask(name: String, weight: Int, lowPriority: Boolean, task: () -> Unit) {
         (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += Task(name, weight, task)
@@ -229,6 +250,7 @@ object GFX {
 
     @JvmStatic
     fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) = clip(x0, y0, x1 - x0, y1 - y0, render)
+
     @JvmStatic
     fun clip2Save(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
         val w = x1 - x0
@@ -272,6 +294,7 @@ object GFX {
 
     @JvmStatic
     fun copy(buffer: IFramebuffer) = copy(buffer.getTexture0())
+
     @JvmStatic
     fun copy(buffer: ITexture2D) {
         Frame.bind()
@@ -301,6 +324,7 @@ object GFX {
 
     @JvmStatic
     fun copyNoAlpha(buffer: IFramebuffer) = copyNoAlpha(buffer.getTexture0())
+
     @JvmStatic
     fun copyNoAlpha(buffer: ITexture2D) {
         Frame.bind()

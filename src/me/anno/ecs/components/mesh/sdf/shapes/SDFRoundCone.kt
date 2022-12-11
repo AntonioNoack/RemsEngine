@@ -122,7 +122,7 @@ open class SDFRoundCone : SDFShape() {
         clone.helpers.set(helpers)
     }
 
-    override val className = "SDFRoundCone"
+    override val className get() = "SDFRoundCone"
 
     companion object {
         // from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm, Inigo Quilez

@@ -55,6 +55,6 @@ open class POS1Packet : POS0Packet {
         }
     }
 
-    override val className = "POS1Packet"
+    override val className get() = "POS1Packet"
 
 }

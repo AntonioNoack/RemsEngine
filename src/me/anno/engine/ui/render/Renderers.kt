@@ -71,6 +71,7 @@ object Renderers {
         JomlPools.vec3f.sub(1)
         return color
     }
+
     @JvmField
     val overdrawRenderer = SimpleRenderer(
         "overdraw", ShaderStage(
@@ -86,112 +87,104 @@ object Renderers {
     @JvmField
     val pbrRenderer = object : Renderer("pbr") {
         override fun getPostProcessing(): ShaderStage {
-            return ShaderStage("pbr", listOf(
-                // rendering
-                Variable(GLSLType.V1B, "applyToneMapping"),
-                // light data
-                Variable(GLSLType.V3F, "ambientLight"),
-                Variable(GLSLType.V1I, "numberOfLights"),
-                Variable(GLSLType.V1B, "receiveShadows"),
-                Variable(GLSLType.M4x3, "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
-                Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
-                Variable(GLSLType.V4F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
-                Variable(GLSLType.V4F, "shadowData", RenderView.MAX_FORWARD_LIGHTS),
-                // light maps for shadows
-                // - spot lights, directional lights
-                Variable(GLSLType.S2D, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
-                // - point lights
-                Variable(GLSLType.SCube, "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
-                // reflection plane for rivers or perfect mirrors
-                Variable(GLSLType.V1B, "hasReflectionPlane"),
-                Variable(GLSLType.S2D, "reflectionPlane"),
-                // reflection cubemap or irradiance map
-                Variable(GLSLType.SCube, "reflectionMap"),
-                // material properties
-                Variable(GLSLType.V3F, "finalEmissive"),
-                Variable(GLSLType.V1F, "finalMetallic"),
-                Variable(GLSLType.V1F, "finalRoughness"),
-                Variable(GLSLType.V1F, "finalOcclusion"),
-                Variable(GLSLType.V1F, "finalSheen"),
-                // Variable(GLSLType.V3F, "finalSheenNormal"),
-                // Variable(GLSLType.V4F, "finalClearCoat"),
-                // Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
-                // if the translucency > 0, the normal map probably should be turned into occlusion ->
-                // no, or at max slightly, because the surrounding area will illuminate it
-                Variable(GLSLType.V1F, "finalTranslucency"),
-                Variable(GLSLType.V1F, "finalAlpha"),
-                Variable(GLSLType.V3F, "finalPosition"),
-                Variable(GLSLType.V3F, "finalNormal"),
-                Variable(GLSLType.V3F, "finalColor"),
-                Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
-            ), "" +
-                    // define all light positions, radii, types and colors
-                    // use the lights to illuminate the model
+            return ShaderStage(
+                "pbr", listOf(
+                    // rendering
+                    Variable(GLSLType.V1B, "applyToneMapping"),
                     // light data
-                    // a try of depth dithering, which can be used for plants, but is really expensive...
-                    // "   gl_FragDepth = 1.0/(1.0+zDistance) * (1.0 + 0.001 * random(finalPosition.xy));\n" +
-                    // shared pbr data
-                    "#ifndef SKIP_LIGHTS\n" +
-                    "   vec3 V = normalize(-finalPosition);\n" +
-                    // light calculations
-                    "   float NdotV = abs(dot(finalNormal,V));\n" +
-                    "   vec3 diffuseColor = finalColor * (1.0 - finalMetallic);\n" +
-                    "   vec3 specularColor = finalColor * finalMetallic;\n" +
-                    "   vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
-                    "   bool hasSpecular = dot(specularColor,vec3(1.0)) > 0.001;\n" +
-                    "   bool hasDiffuse = dot(diffuseColor,vec3(1.0)) > 0.001;\n" +
-                    "   if(hasDiffuse || hasSpecular){\n" +
-                    specularBRDFv2NoDivInlined2Start +
-                    "       for(int i=0;i<numberOfLights;i++){\n" +
-                    "           mat4x3 WStoLightSpace = invLightMatrices[i];\n" +
-                    "           vec3 dir = invLightMatrices[i] * vec4(finalPosition,1.0);\n" + // local coordinates for falloff
-                    // "       if(!hasSpecular && dot(dir,dir) >= 1.0) continue;\n" +
-                    "           vec4 data0 = lightData0[i];\n" + // color, type
-                    "           vec4 data1 = lightData1[i];\n" + // point: position, radius, spot: position, angle
-                    "           vec4 data2 = shadowData[i];\n" +
-                    "           vec3 lightColor = data0.rgb;\n" +
-                    "           int lightType = int(data0.a);\n" +
-                    "           vec3 lightPosition, lightDirWS, localNormal, effectiveSpecular, effectiveDiffuse;\n" +
-                    "           lightDirWS = effectiveDiffuse = effectiveSpecular = vec3(0.0);\n" + // making Nvidia GPUs happy
-                    "           localNormal = normalize(mat3x3(WStoLightSpace) * finalNormal);\n" +
-                    "           float NdotL = 0.0;\n" + // normal dot light
-                    "           int shadowMapIdx0 = int(data2.r);\n" +
-                    "           int shadowMapIdx1 = int(data2.g);\n" +
-                    // local coordinates of the point in the light "cone"
-                    "           switch(lightType){\n" +
-                    LightType.values().joinToString("") {
-                        val core = when (it) {
-                            LightType.DIRECTIONAL -> DirectionalLight
-                                .getShaderCode("continue", true)
-                            LightType.POINT -> PointLight
-                                .getShaderCode("continue", true, hasLightRadius = true)
-                            LightType.SPOT -> SpotLight
-                                .getShaderCode("continue", true)
-                        }
-                        if (it != LightType.values().last()) {
-                            "case ${it.id}:\n${core}break;\n"
-                        } else {
-                            "default:\n${core}break;\n"
-                        }
-                    } +
-                    "           }\n" +
-                    "           if(hasSpecular && dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
-                    "               vec3 H = normalize(V + lightDirWS);\n" +
-                    specularBRDFv2NoDivInlined2 +
-                    "               specularLight += effectiveSpecular * computeSpecularBRDF;\n" +
-                    "           }\n" +
-                    // translucency; looks good and approximately correct
-                    // sheen is a fresnel effect, which adds light
-                    "           NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
-                    "           diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
-                    "       }\n" +
-                    specularBRDFv2NoDivInlined2End +
-                    "   }\n" +
-                    "   finalColor = diffuseColor * diffuseLight + specularLight;\n" +
-                    "   finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
-                    "#endif\n" +
-                    "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
-                    "   finalResult = vec4(finalColor, finalAlpha);\n"
+                    Variable(GLSLType.V3F, "ambientLight"),
+                    Variable(GLSLType.V1I, "numberOfLights"),
+                    Variable(GLSLType.V1B, "receiveShadows"),
+                    Variable(GLSLType.M4x3, "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
+                    Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
+                    Variable(GLSLType.V4F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
+                    Variable(GLSLType.V4F, "shadowData", RenderView.MAX_FORWARD_LIGHTS),
+                    // light maps for shadows
+                    // - spot lights, directional lights
+                    Variable(GLSLType.S2D, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
+                    // - point lights
+                    Variable(GLSLType.SCube, "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
+                    // reflection plane for rivers or perfect mirrors
+                    Variable(GLSLType.V1B, "hasReflectionPlane"),
+                    Variable(GLSLType.S2D, "reflectionPlane"),
+                    // reflection cubemap or irradiance map
+                    Variable(GLSLType.SCube, "reflectionMap"),
+                    // material properties
+                    Variable(GLSLType.V3F, "finalEmissive"),
+                    Variable(GLSLType.V1F, "finalMetallic"),
+                    Variable(GLSLType.V1F, "finalRoughness"),
+                    Variable(GLSLType.V1F, "finalOcclusion"),
+                    Variable(GLSLType.V1F, "finalSheen"),
+                    // Variable(GLSLType.V3F, "finalSheenNormal"),
+                    // Variable(GLSLType.V4F, "finalClearCoat"),
+                    // Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
+                    // if the translucency > 0, the normal map probably should be turned into occlusion ->
+                    // no, or at max slightly, because the surrounding area will illuminate it
+                    Variable(GLSLType.V1F, "finalTranslucency"),
+                    Variable(GLSLType.V1F, "finalAlpha"),
+                    Variable(GLSLType.V3F, "finalPosition"),
+                    Variable(GLSLType.V3F, "finalNormal"),
+                    Variable(GLSLType.V3F, "finalColor"),
+                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                ), "" +
+                        // define all light positions, radii, types and colors
+                        // use the lights to illuminate the model
+                        // light data
+                        // a try of depth dithering, which can be used for plants, but is really expensive...
+                        // "   gl_FragDepth = 1.0/(1.0+zDistance) * (1.0 + 0.001 * random(finalPosition.xy));\n" +
+                        // shared pbr data
+                        "#ifndef SKIP_LIGHTS\n" +
+                        "   vec3 V = normalize(-finalPosition);\n" +
+                        // light calculations
+                        "   float NdotV = abs(dot(finalNormal,V));\n" +
+                        "   vec3 diffuseColor = finalColor * (1.0 - finalMetallic);\n" +
+                        "   vec3 specularColor = finalColor * finalMetallic;\n" +
+                        "   vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
+                        "   bool hasSpecular = dot(specularColor,vec3(1.0)) > 0.001;\n" +
+                        "   bool hasDiffuse = dot(diffuseColor,vec3(1.0)) > 0.001;\n" +
+                        "   if(hasDiffuse || hasSpecular){\n" +
+                        specularBRDFv2NoDivInlined2Start +
+                        "       for(int i=0;i<numberOfLights;i++){\n" +
+                        "           mat4x3 WStoLightSpace = invLightMatrices[i];\n" +
+                        "           vec3 dir = invLightMatrices[i] * vec4(finalPosition,1.0);\n" + // local coordinates for falloff
+                        // "       if(!hasSpecular && dot(dir,dir) >= 1.0) continue;\n" +
+                        "           vec4 data0 = lightData0[i];\n" + // color, type
+                        "           vec4 data1 = lightData1[i];\n" + // point: position, radius, spot: position, angle
+                        "           vec4 data2 = shadowData[i];\n" +
+                        "           vec3 lightColor = data0.rgb;\n" +
+                        "           int lightType = int(data0.a);\n" +
+                        "           vec3 lightPosition, lightDirWS, localNormal, effectiveSpecular, effectiveDiffuse;\n" +
+                        "           lightDirWS = effectiveDiffuse = effectiveSpecular = vec3(0.0);\n" + // making Nvidia GPUs happy
+                        "           localNormal = normalize(mat3x3(WStoLightSpace) * finalNormal);\n" +
+                        "           float NdotL = 0.0;\n" + // normal dot light
+                        "           int shadowMapIdx0 = int(data2.r);\n" +
+                        "           int shadowMapIdx1 = int(data2.g);\n" +
+                        // local coordinates of the point in the light "cone"
+                        // removed switch(), because WebGL had issues with continue inside it...
+                        "           if(lightType == ${LightType.DIRECTIONAL.id}){\n" +
+                        DirectionalLight.getShaderCode("continue", true) +
+                        "           } else if(lightType == ${LightType.POINT.id}){\n" +
+                        PointLight.getShaderCode("continue", true, hasLightRadius = true) +
+                        "           } else {\n" +
+                        SpotLight.getShaderCode("continue", true) +
+                        "           }\n" +
+                        "           if(hasSpecular && dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
+                        "               vec3 H = normalize(V + lightDirWS);\n" +
+                        specularBRDFv2NoDivInlined2 +
+                        "               specularLight += effectiveSpecular * computeSpecularBRDF;\n" +
+                        "           }\n" +
+                        // translucency; looks good and approximately correct
+                        // sheen is a fresnel effect, which adds light
+                        "           NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
+                        "           diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
+                        "       }\n" +
+                        specularBRDFv2NoDivInlined2End +
+                        "   }\n" +
+                        "   finalColor = diffuseColor * diffuseLight + specularLight;\n" +
+                        "   finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
+                        "#endif\n" +
+                        "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
+                        "   finalResult = vec4(finalColor, finalAlpha);\n"
             ).add(noiseFunc).add(tonemapGLSL)
         }
     }
@@ -412,8 +405,9 @@ object Renderers {
         }, DeferredLayerType.values.size)
 
     @JvmField
-    var MAX_PLANAR_LIGHTS = 8
+    var MAX_PLANAR_LIGHTS = max(GFX.maxBoundTextures / 4, 1)
+
     @JvmField
-    var MAX_CUBEMAP_LIGHTS = 8
+    var MAX_CUBEMAP_LIGHTS = max(GFX.maxBoundTextures / 4, 1)
 
 }

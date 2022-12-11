@@ -3,14 +3,15 @@ package me.anno.cache.instances
 import me.anno.cache.CacheSection
 import me.anno.cache.data.VideoData
 import me.anno.cache.keys.VideoFramesKey
-import me.anno.utils.Color.black
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
+import me.anno.utils.Color.black
+import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.video.BlankFrameDetector
+import me.anno.video.VideoProxyCreator
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
-import me.anno.video.VideoProxyCreator
 import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min
@@ -139,7 +140,8 @@ object VideoCache : CacheSection("Videos") {
         val meta = getMeta(file, false) ?: throw RuntimeException("Meta was not found for $key!")
         return VideoData(
             file, meta.videoWidth / scale, meta.videoHeight / scale, scale,
-            bufferIndex, bufferLength, fps
+            bufferIndex, bufferLength, fps,
+            meta.videoFrameCount
         )
     }
 
@@ -159,8 +161,13 @@ object VideoCache : CacheSection("Videos") {
     ): GPUFrame? {
         val localIndex = frameIndex % bufferLength
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
-        val frame = videoData.frames.getOrNull(localIndex)
-        return if (!needsToBeCreated || frame?.isCreated == true) frame else null
+        return if (frameIndex < videoData.numTotalFramesInSrc && !async) {
+            waitForGFXThreadUntilDefined(true) {
+                videoData.getFrame(localIndex, needsToBeCreated)
+            }
+        } else {
+            videoData.getFrame(localIndex, needsToBeCreated)
+        }
     }
 
     fun getFrameWithoutGenerator(

@@ -108,7 +108,7 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
         else super.readInt(name, value)
     }
 
-    override val className = "Packet"
+    override val className get() = "Packet"
 
     companion object {
         @JvmStatic

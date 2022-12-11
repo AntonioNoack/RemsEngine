@@ -93,7 +93,7 @@ open class SDFCone : SDFShape() {
         clone.params.set(params)
     }
 
-    override val className = "SDFCone"
+    override val className get() = "SDFCone"
 
     companion object {
         // from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm, Inigo Quilez

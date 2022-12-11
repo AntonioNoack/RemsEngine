@@ -69,23 +69,28 @@ object GFXBase {
 
     @JvmStatic
     private val LOGGER = getLogger(GFXBase::class)
+
     @JvmStatic
     private val windows get() = GFX.windows
 
     @JvmStatic
     private var debugMsgCallback: Callback? = null
+
     @JvmStatic
     private var errorCallback: GLFWErrorCallback? = null
 
     @JvmField
     val glfwLock = Any()
+
     @JvmField
     val openglLock = Any()
+
     @JvmField
     var destroyed = false
 
     @JvmField
     var capabilities: GLCapabilities? = null
+
     @JvmField
     val robot = try {
         Robot()
@@ -98,6 +103,7 @@ object GFXBase {
      * must be disabled for Nvidia Nsight */
     @JvmStatic
     private var disableRenderDoc = false
+
     @JvmStatic
     fun disableRenderDoc() {
         disableRenderDoc = true
@@ -268,6 +274,7 @@ object GFXBase {
 
     @JvmField
     var lastCurrent = 0L
+
     @JvmStatic
     fun runRenderLoop0(window0: OSWindow) {
         LOGGER.info("Running RenderLoop")
@@ -342,6 +349,7 @@ object GFXBase {
 
     @JvmField
     var lastTime = System.nanoTime()
+
     @JvmStatic
     fun renderFrame() {
 
@@ -385,12 +393,12 @@ object GFXBase {
 
         if (windows.isNotEmpty() &&
             windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() } &&
-            !OS.isWeb // Browser must not wait, because it is slow anyway ^^, and we probably can't detect in-focus
+            mayIdle && !OS.isWeb // Browser must not wait, because it is slow anyway ^^, and we probably can't detect in-focus
         ) {
             // enforce 30 fps, because we don't need more
             // and don't want to waste energy
             val currentTime = System.nanoTime()
-            val waitingTime = GFX.idleFPS - (currentTime - lastTime) / 1000000
+            val waitingTime = 1000 / max(1, GFX.idleFPS) - (currentTime - lastTime) / 1000000
             lastTime = currentTime
             if (waitingTime > 0) try {
                 // wait does not work, causes IllegalMonitorState exception
@@ -401,34 +409,44 @@ object GFXBase {
     }
 
     @JvmField
+    var mayIdle = true
+
+    @JvmField
     var lastTrapWindow: OSWindow? = null
+
+    @JvmStatic
+    private fun handleClose(window: OSWindow) {
+        val ws = window.windowStack
+        if (ws.isEmpty() ||
+            DefaultConfig["window.close.directly", false] ||
+            ws.peek().isClosingQuestion
+        ) {
+            window.shouldClose = true
+            GLFW.glfwSetWindowShouldClose(window.pointer, true)
+        } else {
+            GLFW.glfwSetWindowShouldClose(window.pointer, false)
+            addGPUTask("close-request", 1) {
+                ask(
+                    ws, NameDesc("Close %1?", "", "ui.closeProgram")
+                        .with("%1", projectName)
+                ) {
+                    window.shouldClose = true
+                    GLFW.glfwSetWindowShouldClose(window.pointer, true)
+                }?.isClosingQuestion = true
+                window.framesSinceLastInteraction = 0
+                ws.peek().setAcceptsClickAway(false)
+            }
+        }
+    }
+
     @JvmStatic
     fun updateWindows() {
+
         for (index in 0 until windows.size) {
             val window = windows[index]
             if (!window.shouldClose) {
                 if (GLFW.glfwWindowShouldClose(window.pointer)) {
-                    val ws = window.windowStack
-                    if (ws.isEmpty() ||
-                        DefaultConfig["window.close.directly", false] ||
-                        ws.peek().isClosingQuestion
-                    ) {
-                        window.shouldClose = true
-                        GLFW.glfwSetWindowShouldClose(window.pointer, true)
-                    } else {
-                        GLFW.glfwSetWindowShouldClose(window.pointer, false)
-                        addGPUTask("close-request", 1) {
-                            ask(
-                                ws, NameDesc("Close %1?", "", "ui.closeProgram")
-                                    .with("%1", projectName)
-                            ) {
-                                window.shouldClose = true
-                                GLFW.glfwSetWindowShouldClose(window.pointer, true)
-                            }?.isClosingQuestion = true
-                            window.framesSinceLastInteraction = 0
-                            ws.peek().setAcceptsClickAway(false)
-                        }
-                    }
+                    handleClose(window)
                 } else {
                     // update small stuff, that may need to be updated;
                     // currently only the title

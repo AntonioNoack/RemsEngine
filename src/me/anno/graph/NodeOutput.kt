@@ -7,6 +7,6 @@ class NodeOutput : NodeConnector {
     constructor(type: String, node: Node) : super(type, node)
     constructor(type: String, name: String, node: Node) : super(type, name, node)
 
-    override val className = "NodeOutput"
+    override val className get() = "NodeOutput"
 
 }

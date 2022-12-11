@@ -59,5 +59,5 @@ class AnimationState(
         writer.writeEnum("repeat", repeat)
     }
 
-    override val className = "AnimationState"
+    override val className get() = "AnimationState"
 }

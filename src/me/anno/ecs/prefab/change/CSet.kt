@@ -50,10 +50,10 @@ class CSet() : Change() {
         path = instance.prefabPath ?: path // remove a few superfluous instances
     }
 
-    override val approxSize: Int = 10
+    override val approxSize get() = 10
     override fun isDefaultValue(): Boolean = false
 
-    override val className = "CSet"
+    override val className get() = "CSet"
 
     override fun toString(): String {
         val str = value.toString().shorten2Way(100)

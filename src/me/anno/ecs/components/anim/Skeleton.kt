@@ -114,7 +114,7 @@ class Skeleton : PrefabSaveable(), Renderable {
         clone.bones = ArrayList(bones)
     }
 
-    override val className = "Skeleton"
+    override val className get() = "Skeleton"
 
     companion object {
 

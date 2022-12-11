@@ -13,7 +13,7 @@ class ConfigGetFloatNode(val config: StringMap = DefaultConfig) :
             getInput(graph, 1) as Float
     ]
 
-    override val className = "ConfigGetFloatNode"
+    override val className get() = "ConfigGetFloatNode"
 
     companion object {
         private val input = listOf("String", "Name", "Float", "Default")

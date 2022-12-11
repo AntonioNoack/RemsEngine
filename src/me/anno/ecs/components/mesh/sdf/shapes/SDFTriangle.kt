@@ -144,7 +144,7 @@ open class SDFTriangle : SDFShape() {
         clone.c.set(c)
     }
 
-    override val className = "SDFTriangle"
+    override val className get() = "SDFTriangle"
 
     companion object {
         // https://iquilezles.org/www/articles/distfunctions/distfunctions.htm

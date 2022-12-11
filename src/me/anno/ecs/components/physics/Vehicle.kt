@@ -47,6 +47,6 @@ class Vehicle : Rigidbody() {
         clone.frictionSlip = frictionSlip
     }
 
-    override val className = "Vehicle"
+    override val className get() = "Vehicle"
 
 }

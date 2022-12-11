@@ -70,6 +70,6 @@ open class ColorPalette(
         clone.onColorSelected = onColorSelected
     }
 
-    override val className = "ColorPalette"
+    override val className get() = "ColorPalette"
 
 }

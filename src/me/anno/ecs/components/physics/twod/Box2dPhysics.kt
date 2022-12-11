@@ -207,7 +207,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         return clone
     }
 
-    override val className = "Box2dPhysics"
+    override val className get() = "Box2dPhysics"
 
     companion object {
         private val LOGGER = LogManager.getLogger(Box2dPhysics::class)

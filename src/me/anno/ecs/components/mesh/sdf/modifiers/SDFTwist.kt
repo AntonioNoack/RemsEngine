@@ -166,7 +166,7 @@ class SDFTwist : PositionMapper() {
         clone.dynamicDestination = dynamicDestination
     }
 
-    override val className = "SDFTwist"
+    override val className get() = "SDFTwist"
 
     companion object {
 

@@ -374,8 +374,8 @@ class Prefab : Saveable {
         return clone
     }
 
-    override val className = "Prefab"
-    override val approxSize: Int = 1_000_000_096
+    override val className get() = "Prefab"
+    override val approxSize get() = 1_000_000_096
 
     override fun isDefaultValue(): Boolean =
         adds.isEmpty() && sets.isEmpty() && prefab == InvalidRef && history == null

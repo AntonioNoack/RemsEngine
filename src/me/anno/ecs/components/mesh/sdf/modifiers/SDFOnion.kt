@@ -111,7 +111,7 @@ class SDFOnion() : DistanceMapper() {
         clone.dynamicThickness = dynamicThickness
     }
 
-    override val className = "SDFOnion"
+    override val className get() = "SDFOnion"
 
     companion object {
         const val sdRings = "" +

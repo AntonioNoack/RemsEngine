@@ -778,7 +778,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         clone.relativeMeshMargin = relativeMeshMargin
     }
 
-    override val className = "SDFComponent"
+    override val className get() = "SDFComponent"
 
     companion object {
 

@@ -42,6 +42,6 @@ class AmbientLight : LightComponentBase() {
         clone.color = color
     }
 
-    override val className = "AmbientLight"
+    override val className get() = "AmbientLight"
 
 }

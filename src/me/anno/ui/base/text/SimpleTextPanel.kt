@@ -62,6 +62,6 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
         clone.focusTextColor = focusTextColor
     }
 
-    override val className = "SimpleTextPanel"
+    override val className get() = "SimpleTextPanel"
 
 }

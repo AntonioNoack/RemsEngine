@@ -176,12 +176,12 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
         addUnsafe(z)
     }
 
-    fun add(v: FloatArray, srcStartIndex: Int = 0, length: Int = v.size - srcStartIndex) {
+    fun addAll(v: FloatArray, srcStartIndex: Int = 0, length: Int = v.size - srcStartIndex) {
         ensureExtra(length)
         addUnsafe(v, srcStartIndex, length)
     }
 
-    fun add(v: ExpandingFloatArray, startIndex: Int, length: Int) {
+    fun addAll(v: ExpandingFloatArray, startIndex: Int, length: Int) {
         ensureExtra(length)
         addUnsafe(v, startIndex, length)
     }

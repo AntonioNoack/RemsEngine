@@ -12,6 +12,8 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
+import me.anno.utils.types.Ints.toIntOrDefault
+import me.anno.utils.types.Ints.toLongOrDefault
 import org.joml.Vector3f
 import java.io.File
 import java.util.*
@@ -259,12 +261,12 @@ open class StringMap(
             is Long -> value.toInt()
             is Float -> value.toInt()
             is Double -> value.toInt()
-            is String -> value.toIntOrNull() ?: default
+            is String -> value.toIntOrDefault(default)
             null -> {
                 set(key, default)
                 default
             }
-            else -> value.toString().toIntOrNull() ?: default
+            else -> value.toString().toIntOrDefault(default)
         }
     }
 
@@ -274,12 +276,12 @@ open class StringMap(
             is Long -> value
             is Float -> value.toLong()
             is Double -> value.toLong()
-            is String -> value.toLongOrNull() ?: default
+            is String -> value.toLongOrDefault(default)
             null -> {
                 set(key, default)
                 default
             }
-            else -> value.toString().toLongOrNull() ?: default
+            else -> value.toString().toLongOrDefault(default)
         }
     }
 

@@ -277,7 +277,7 @@ class MainStage {
 
         // for all uniforms, which are sampler arrays, define the appropriate access function
         for (uniform in uniforms) {
-            if (uniform.arraySize > 0 && uniform.type.glslName.startsWith("sampler")) {
+            if (uniform.arraySize >= 0 && uniform.type.glslName.startsWith("sampler")) {
                 defineUniformSamplerArrayFunctions(code, uniform)
             }
         }

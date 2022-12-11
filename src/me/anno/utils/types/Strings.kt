@@ -12,6 +12,7 @@ import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Floats.f1
+import me.anno.utils.types.Ints.toIntOrDefault
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.floor
@@ -20,10 +21,12 @@ import kotlin.math.min
 @Suppress("unused")
 object Strings {
 
+    @JvmStatic
     fun Int.joinChars(): CharSequence {
         return String(Character.toChars(this))
     }
 
+    @JvmStatic
     fun List<Int>.joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
         val builder = StringBuilder(endIndex - startIndex)
         for (i in startIndex until endIndex) {
@@ -32,9 +35,11 @@ object Strings {
         return builder
     }
 
+    @JvmStatic
     fun getLineWidth(line: List<Int>, endIndex: Int, tp: TextPanel) =
         getLineWidth(line, endIndex, tp.font)
 
+    @JvmStatic
     fun getLineWidth(line: List<Int>, endIndex: Int, font: Font): Float {
         return if (endIndex == 0) 0f
         else {
@@ -46,9 +51,11 @@ object Strings {
         }
     }
 
+    @JvmStatic
     fun getIndexFromText(characters: IntArrayList, localX: Float, tp: TextPanel) =
         getIndexFromText(characters, localX, tp.font)
 
+    @JvmStatic
     fun getIndexFromText(characters: IntArrayList, localX: Float, font: Font): Int {
         val list = ExpensiveList(characters.size + 1) {
             getLineWidth(characters, it, font)
@@ -62,9 +69,11 @@ object Strings {
         return index
     }
 
+    @JvmStatic
     fun getIndexFromText(characters: List<Int>, localX: Float, tp: TextPanel) =
         getIndexFromText(characters, localX, tp.font)
 
+    @JvmStatic
     fun getIndexFromText(characters: List<Int>, localX: Float, font: Font): Int {
         val list = ExpensiveList(characters.size + 1) {
             getLineWidth(characters, it, font)
@@ -80,30 +89,52 @@ object Strings {
 
     const val defaultImportType = "Text"
 
+    @JvmStatic
     fun String.getImportType(): String =
         DefaultConfig["import.mapping.$this"]?.toString()
             ?: DefaultConfig["import.mapping.${lowercase()}"]?.toString()
             ?: DefaultConfig["import.mapping.*"]?.toString() ?: defaultImportType
 
     // 00:57:28.87 -> 57 * 60 + 28.87
+    @JvmStatic
     fun String.parseTime(): Double {
         val parts = split(":").reversed()
         var seconds = parts[0].toDoubleOrNull() ?: 0.0
-        if (parts.size > 1) seconds += 60.0 * (parts[1].toIntOrNull() ?: 0)
-        if (parts.size > 2) seconds += 3600.0 * (parts[2].toIntOrNull() ?: 0)
-        if (parts.size > 3) seconds += 24.0 * 3600.0 * (parts[3].toIntOrNull() ?: 0)
+        if (parts.size > 1) seconds += 60.0 * (parts[1].toIntOrDefault(0))
+        if (parts.size > 2) seconds += 3600.0 * (parts[2].toIntOrDefault(0))
+        if (parts.size > 3) seconds += 24.0 * 3600.0 * (parts[3].toIntOrDefault(0))
         return seconds
     }
 
+    // 00:57:28.87 -> 57 * 60 + 28.87
+    @JvmStatic
     fun String.parseTimeOrNull(): Double? {
-        val parts = split(":").reversed()
-        var seconds = parts[0].toDoubleOrNull() ?: return null
-        if (parts.size > 1) seconds += 60.0 * (parts[1].toIntOrNull() ?: return null)
-        if (parts.size > 2) seconds += 3600.0 * (parts[2].toIntOrNull() ?: return null)
-        if (parts.size > 3) seconds += 24.0 * 3600.0 * (parts[3].toIntOrNull() ?: return null)
+
+        val parts = split(":")
+        val l = parts.size
+        if (l > 4) return null
+
+        var seconds = parts[l - 1].toDoubleOrNull() ?: return null
+        if (parts.size < 2) return seconds
+
+        val minutes = parts[l - 2].toIntOrDefault(-1)
+        if (minutes < 0) return null
+        seconds += 60.0 * minutes
+        if (parts.size < 3) return seconds
+
+        val hours = parts[l - 3].toIntOrDefault(-1)
+        if (hours < 0) return null
+        seconds += 3600.0 * hours
+        if (parts.size < 4) return seconds
+
+        val days = parts[0].toIntOrDefault(-1)
+        if (days < 0) return null
+        seconds += 24.0 * 3600.0 * days
+
         return seconds
     }
 
+    @JvmStatic
     fun Double.formatTime(fractions: Int = 0): String {
         val fractionString = if (fractions > 0) {
             "%.${fractions}f".format(Locale.ENGLISH, fract(this)).substring(1)
@@ -114,6 +145,7 @@ object Strings {
         return "${seconds / 3600}h ${(seconds / 60) % 60}m ${seconds % 60}${fractionString}s"
     }
 
+    @JvmStatic
     fun Double?.formatTime2(fractions: Int): String {
         if (this == null || this.isNaN()) return "Unknown"
         if (fractions > 0) {
@@ -124,9 +156,12 @@ object Strings {
         return "${format2(seconds / 3600)}:${format2((seconds / 60) % 60)}:${format2(seconds % 60)}"
     }
 
+    @JvmStatic
     fun format2(i: Long) = if (i < 10) "0$i" else i.toString()
+    @JvmStatic
     fun format2(i: Int) = if (i < 10) "0$i" else i.toString()
 
+    @JvmStatic
     fun String.withLength(length: Int, atTheStart: Boolean = true): String {
         val spaces = length - this.length
         if (spaces <= 0) return this
@@ -137,6 +172,7 @@ object Strings {
         return builder.toString()
     }
 
+    @JvmStatic
     fun formatDownload(fileName: String, dt: Long, dl: Long, length1: Long, contentLength: Long): String {
         val speed = dl * 1e9 / dt
         val remaining = contentLength - length1
@@ -148,8 +184,10 @@ object Strings {
                 "${remainingTime.formatTime(0)} remaining"
     }
 
+    @JvmStatic
     fun formatDownloadEnd(fileName: String, dst: FileReference) = "Downloaded $fileName ($dst)"
 
+    @JvmStatic
     fun incrementTab(x0: Float, tabSize: Float, relativeTabSize: Float): Float {
         var x = x0
         val r = x / tabSize
@@ -160,37 +198,44 @@ object Strings {
         return x
     }
 
+    @JvmStatic
     fun addPrefix(prefix: String?, suffix: String): String {
         return if (prefix == null) suffix
         else "$prefix$suffix"
     }
 
+    @JvmStatic
     fun addSuffix(prefix: String, suffix: String?): String {
         return if (suffix == null) prefix
         else "$prefix$suffix"
     }
 
+    @JvmStatic
     fun addPrefix(prefix: String?, mid: String, suffix: String): String {
         return if (prefix == null) suffix
         else "$prefix$mid$suffix"
     }
 
+    @JvmStatic
     fun addSuffix(prefix: String, mid: String, suffix: String?): String {
         return if (suffix == null) prefix
         else "$prefix$mid$suffix"
     }
 
+    @JvmStatic
     fun filterAlphaNumeric(str: String): String {
         return str.filter { it in 'A'..'Z' || it in 'a'..'z' || it in '0'..'9' }
     }
 
     // made external, so it avoids useless allocations
+    @JvmStatic
     private fun append(i: Int, lastI: Int, value: String, data: StringBuilder, str: String): Int {
         if (i > lastI) data.append(value, lastI, i)
         data.append(str)
         return i + 1
     }
 
+    @JvmStatic
     fun writeEscaped(value: String, data: StringBuilder) {
         var i = 0
         var lastI = 0
@@ -211,6 +256,7 @@ object Strings {
         if (i > lastI) data.append(value, lastI, i)
     }
 
+    @JvmStatic
     fun writeEscaped(value: String, data: TextWriterBase) {
         for (index in value.indices) {
             when (val char = value[index]) {
@@ -250,6 +296,7 @@ object Strings {
     /**
      * allocation free isBlank()
      * */
+    @JvmStatic
     fun CharSequence.isBlank2(): Boolean {
         for (index in 0 until length + 0) {
             when (this[index]) {
@@ -269,12 +316,15 @@ object Strings {
     /**
      * allocation free ifBlank()
      * */
+    @JvmStatic
     fun <V : CharSequence> V.ifBlank2(other: V): V {
         return if (isBlank2()) other else this
     }
 
+    @JvmStatic
     fun isNumber(s: String): Boolean = s.toDoubleOrNull() != null
 
+    @JvmStatic
     fun isName(s: String): Boolean {
         if (s.isEmpty()) return false
         val s0 = s[0]
@@ -290,12 +340,14 @@ object Strings {
         } else false
     }
 
+    @JvmStatic
     fun isArray(s: String): Boolean {
         // todo only names and such are allowed, only commas, and only valid numbers...
         // very complex -> currently just say no
         return false
     }
 
+    @JvmStatic
     fun countLines(str: String): Int {
         var ctr = 1
         for (i in str.indices) {
@@ -303,6 +355,5 @@ object Strings {
         }
         return ctr
     }
-
 
 }

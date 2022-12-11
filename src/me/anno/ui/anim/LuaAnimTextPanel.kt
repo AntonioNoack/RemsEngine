@@ -115,6 +115,6 @@ class LuaAnimTextPanel(text: String, var animation: String, style: Style) : Anim
         clone.animation = animation
     }
 
-    override val className = "LuaAnimTextPanel"
+    override val className get() = "LuaAnimTextPanel"
 
 }

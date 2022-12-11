@@ -303,7 +303,7 @@ open class Material : PrefabSaveable(), Renderable {
         clone.clamping = clamping
     }
 
-    override val className = "Material"
+    override val className get() = "Material"
 
     companion object {
 

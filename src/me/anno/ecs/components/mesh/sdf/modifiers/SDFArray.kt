@@ -220,7 +220,7 @@ class SDFArray : PositionMapper() {
         clone.cellSize = cellSize
     }
 
-    override val className = "SDFArray"
+    override val className get() = "SDFArray"
 
     companion object {
 

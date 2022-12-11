@@ -1,6 +1,7 @@
 package me.anno.utils.pooling
 
 import org.apache.logging.log4j.LogManager
+import java.lang.reflect.Constructor
 import java.nio.BufferUnderflowException
 
 class Stack<V : Any>(private val createInstance: () -> V) {
@@ -9,6 +10,9 @@ class Stack<V : Any>(private val createInstance: () -> V) {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(Stack::class)
     }
+
+    constructor(clazz: Class<V>) : this(clazz.getConstructor())
+    constructor(constructor: Constructor<V>) : this({ constructor.newInstance() })
 
     private class LocalStack<V : Any>(
         private val createInstance: () -> V

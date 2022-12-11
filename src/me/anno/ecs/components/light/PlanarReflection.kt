@@ -236,7 +236,7 @@ class PlanarReflection : LightComponentBase() {
         clone.usesFP = usesFP
     }
 
-    override val className = "PlanarReflection"
+    override val className get() = "PlanarReflection"
 
     companion object {
 

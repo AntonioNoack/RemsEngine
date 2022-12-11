@@ -154,9 +154,10 @@ object DrawTextures {
         )
     }
 
-    fun drawTexture(w: Int, h: Int, texture: GPUFrame, color: Int = -1, tiling: Vector4f? = null) {
-        val matrix = Matrix4fArrayList()
-        matrix.scale(w.toFloat() / GFX.viewportWidth, h.toFloat() / GFX.viewportHeight, 1f)
+    private val matrix = Matrix4fArrayList()
+    fun drawTexture(texture: GPUFrame, color: Int = -1, tiling: Vector4f? = null) {
+        matrix.identity()
+        matrix.scale(GFX.viewportHeight.toFloat() / GFX.viewportWidth, 1f, 1f)
         GFXx3D.draw3D(
             matrix, texture, color,
             Filtering.LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar

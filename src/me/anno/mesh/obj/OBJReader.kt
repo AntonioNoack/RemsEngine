@@ -75,10 +75,10 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
         val normal = points[index + 1]
         val uv = points[index + 2]
         val positions = positions
-        facePositions.add(positions, vertex, 3)
+        facePositions.addAll(positions, vertex, 3)
         val faceNormals = faceNormals
         if (normal in 0 until normals.size - 2) {
-            faceNormals.add(normals, normal, 3)
+            faceNormals.addAll(normals, normal, 3)
         } else {
             faceNormals.ensureExtra(3)
             faceNormals.addUnsafe(0f, 0f, 0f)
@@ -96,7 +96,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
     private fun putLinePoint(index: Int) {
         val vertex = index * 3
         try {
-            facePositions.add(positions, vertex, 3)
+            facePositions.addAll(positions, vertex, 3)
             faceNormals.add(0f, 0f, 0f)
             faceUVs.add(0f, 0f)
         } catch (e: ArrayIndexOutOfBoundsException) {

@@ -126,6 +126,6 @@ class Rigidbody2d : Component() {
         clone.alwaysActive = alwaysActive
     }
 
-    override val className = "Rigidbody2d"
+    override val className get() = "Rigidbody2d"
 
 }

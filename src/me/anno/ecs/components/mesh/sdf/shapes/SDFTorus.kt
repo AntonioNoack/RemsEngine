@@ -80,7 +80,7 @@ class SDFTorus : SDFShape() {
         clone.params.set(params)
     }
 
-    override val className = "SDFTorus"
+    override val className get() = "SDFTorus"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

@@ -71,6 +71,6 @@ class ImageButton(
         clone.isSquare = isSquare
     }
 
-    override val className = "ImageButton"
+    override val className get() = "ImageButton"
 
 }

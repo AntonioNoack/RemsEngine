@@ -22,11 +22,11 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
     private val points = ExpandingIntArray(256)
 
     private fun putPoint(index: Int) {
-        facePositions.add(positions, points[index], 3)
+        facePositions.addAll(positions, points[index], 3)
     }
 
     private fun putLinePoint(index: Int) {
-        facePositions.add(positions, index * 3, 3)
+        facePositions.addAll(positions, index * 3, 3)
     }
 
     private fun readPosition() {
@@ -188,6 +188,7 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
     }
 
     companion object {
+        @JvmStatic
         private val LOGGER = LogManager.getLogger(SimpleOBJReader::class)
     }
 

@@ -399,7 +399,7 @@ open class Rigidbody : Component() {
         clone.gravity.set(gravity)
     }
 
-    override val className = "Rigidbody"
+    override val className get() = "Rigidbody"
 
     companion object {
         val gravity0 = Vector3d(0.0, -9.81, 0.0)

@@ -32,7 +32,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL(meta.videoWidth, meta.videoHeight)
     ShaderLib.init()
     val fb = Framebuffer("tmp", meta.videoWidth, meta.videoHeight, 1, 1, false, DepthBufferType.NONE)
-    VideoCreator.renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb) { _, callback ->
+    VideoCreator.renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb, { _, callback ->
         thread(name = "frame$frameIndex") {
             val frame = BlankFrameDetector.getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!
             GFX.addGPUTask("bfd", 1) {
@@ -48,5 +48,5 @@ fun main() {
                 callback()
             }
         }
-    }
+    }, null)
 }

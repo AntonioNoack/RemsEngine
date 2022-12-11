@@ -116,7 +116,7 @@ class SDFTriangleArray : PositionMapper() {
         clone.cellSize = cellSize
     }
 
-    override val className = "SDFTriangleArray"
+    override val className get() = "SDFTriangleArray"
 
     companion object {
         // extracted from https://www.shadertoy.com/view/WtfGDX

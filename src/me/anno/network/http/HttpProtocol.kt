@@ -7,6 +7,7 @@ import me.anno.network.TCPClient
 import me.anno.utils.Warning.unused
 import me.anno.utils.strings.StringHelper.indexOf2
 import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.utils.types.Ints.toIntOrDefault
 import java.io.IOException
 import kotlin.math.min
 
@@ -67,7 +68,7 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
             }
         }
         // read the rest as binary
-        val capacity = meta["Content-Length"]?.toIntOrNull() ?: 0
+        val capacity = meta["Content-Length"].toIntOrDefault(0)
         if (capacity in 0..maxCapacity) {
             val data = client.dis.readNBytes2(capacity, false)
             try {

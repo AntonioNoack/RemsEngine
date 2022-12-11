@@ -67,7 +67,7 @@ open class SDFMesh : SDFSmoothShape() {
         clone.mesh = mesh
     }
 
-    override val className = "SDFMesh"
+    override val className get() = "SDFMesh"
 
     companion object {
         const val sdMesh = "" +

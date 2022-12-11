@@ -13,7 +13,6 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode

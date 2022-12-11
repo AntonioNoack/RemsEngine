@@ -5,13 +5,15 @@ import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
+import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 class VideoData(
     val file: FileReference, val w: Int, val h: Int,
     val scale: Int, val bufferIndex: Int,
-    bufferLength: Int, val fps: Double
+    bufferLength: Int, val fps: Double,
+    val numTotalFramesInSrc: Int,
 ) : ICacheData {
 
     init {
@@ -24,7 +26,8 @@ class VideoData(
     // what about video webp? I think it's pretty rare...
     val stream = FFMPEGStream.getImageSequence(
         file, w, h, bufferIndex * bufferLength,
-        if (file.name.endsWith(".webp", true)) 1 else bufferLength, fps
+        if (file.name.endsWith(".webp", true)) 1 else bufferLength, fps,
+        numTotalFramesInSrc
     )
 
     val frames = stream.frames
@@ -32,6 +35,11 @@ class VideoData(
     /*init {// LayerView was not keeping its resources loaded
         if("128 per second" in file.name) LOGGER.debug("get video frames $file $w $h $index $bufferLength $fps")
     }*/
+
+    fun getFrame(localIndex: Int, needsToBeCreated: Boolean): GPUFrame? {
+        val frame = frames.getOrNull(localIndex)
+        return if (!needsToBeCreated || frame?.isCreated == true) frame else null
+    }
 
     override fun destroy() {
         //if("128 per second" in file.name) LOGGER.debug("destroy v frames $file $w $h $index $bufferLength $fps")

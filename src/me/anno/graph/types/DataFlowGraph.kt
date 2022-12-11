@@ -19,6 +19,6 @@ class DataFlowGraph : FlowGraph() {
         }
     }
 
-    override val className = "DataFlowGraph"
+    override val className get() = "DataFlowGraph"
 
 }

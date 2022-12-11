@@ -206,7 +206,7 @@ class EnvironmentMap : LightComponentBase() {
         return EnvironmentMap()
     }
 
-    override val className = "EnvironmentMap"
+    override val className get() = "EnvironmentMap"
 
     companion object {
 

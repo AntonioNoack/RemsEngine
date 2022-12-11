@@ -50,6 +50,6 @@ open class Player : Component() {
         clone.persistentInfo.putAll(persistentInfo)
     }
 
-    override val className = "Player"
+    override val className get() = "Player"
 
 }

@@ -96,7 +96,7 @@ open class SDFHyperCube : SDFSmoothShape() {
         clone.w = w
     }
 
-    override val className = "SDFHyperCube"
+    override val className get() = "SDFHyperCube"
 
     companion object {
 

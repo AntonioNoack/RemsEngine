@@ -517,6 +517,6 @@ open class FloatVectorInput(
         clone.setValue(Vector4d(vxd, vyd, vzd, vwd), false)
     }
 
-    override val className = "FloatVectorInput"
+    override val className get() = "FloatVectorInput"
 
 }

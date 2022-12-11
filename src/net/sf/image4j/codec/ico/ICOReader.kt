@@ -24,12 +24,14 @@ import kotlin.math.abs
  */
 object ICOReader {
 
+    @JvmStatic
     private val LOGGER = LogManager.getLogger(ICOReader::class)
     private const val PNG_MAGIC = -0x76afb1b9
     private const val PNG_MAGIC_LE = 0x474E5089
     private const val PNG_MAGIC2 = 0x0D0A1A0A
     private const val PNG_MAGIC2_LE = 0x0A1A0A0D
 
+    @JvmStatic
     private fun ensureOffset(input1: CountingInputStream, entry: IconEntry, i: Int) {
         // Make sure we're at the right file offset!
         val targetOffset = entry.fileOffset
@@ -44,6 +46,7 @@ object ICOReader {
         }
     }
 
+    @JvmStatic
     private fun readLayer(input1: CountingInputStream, entry: IconEntry, i: Int): Image {
 
         ensureOffset(input1, entry, i)
@@ -141,6 +144,7 @@ object ICOReader {
      * Reads and decodes ICO data from the given source. The returned list of
      * images is in the order in which they appear in the source ICO data.
      */
+    @JvmStatic
     fun readAllLayers(input0: InputStream): List<Image> {
 
         // long t = System.currentTimeMillis()
@@ -180,6 +184,7 @@ object ICOReader {
 
     }
 
+    @JvmStatic
     private fun findBestLayer(input1: CountingInputStream, targetSize: Int): IconEntry {
 
         // Reserved 2 byte =0
@@ -213,12 +218,14 @@ object ICOReader {
      * Reads and decodes ICO data from the given source.
      * Finds the best image with size closest to parameter "size"
      */
+    @JvmStatic
     fun read(input0: InputStream, targetSize: Int = MAX_SIZE): Image {
         val input1 = CountingInputStream(input0)
         val bestLayer = findBestLayer(input1, targetSize)
         return readLayer(input1, bestLayer, bestLayer.index)
     }
 
+    @JvmStatic
     private fun ByteArray.set2(i: Int, v: Int) {
         this[i] = (v shr 24).toByte()
         this[i + 1] = (v shr 16).toByte()
@@ -226,6 +233,7 @@ object ICOReader {
         this[i + 3] = v.toByte()
     }
 
+    @JvmStatic
     private fun packPNGBytes(input1: CountingInputStream, sizeInBytes: Int): ByteArray {
         // we could encapsulate this smarter, directly as an InputStream, without intermediate buffer...
         val bytes = ByteArray(sizeInBytes)
@@ -240,6 +248,7 @@ object ICOReader {
         return bytes
     }
 
+    @JvmStatic
     fun findSize(input0: InputStream): Pair<Int, Int> {
         val input1 = CountingInputStream(input0)
         val bestLayer = findBestLayer(input1, MAX_SIZE)

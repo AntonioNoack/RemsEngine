@@ -137,7 +137,7 @@ open class QuickInputScriptComponent : QuickScriptComponent(), ControlReceiver {
         clone.mouseWheelScript = mouseWheelScript
     }
 
-    override val className = "QuickInputScriptComponent"
+    override val className get() = "QuickInputScriptComponent"
 
     inline fun callBoolFunction(code: String, defines: (scope: LuaValue) -> Unit): Boolean {
         val func = getFunction1(code, defines)

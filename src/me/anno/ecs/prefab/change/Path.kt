@@ -279,8 +279,8 @@ class Path(
         }
     }
 
-    override val className = "Path"
-    override val approxSize: Int = 1
+    override val className get() = "Path"
+    override val approxSize get() = 1
     override fun isDefaultValue(): Boolean = this === ROOT_PATH
 
     companion object {

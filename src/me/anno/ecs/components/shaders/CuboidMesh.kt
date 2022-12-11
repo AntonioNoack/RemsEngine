@@ -41,6 +41,6 @@ class CuboidMesh : ProceduralMesh() {
         clone.invalidateMesh()
     }
 
-    override val className = "CuboidMesh"
+    override val className get() = "CuboidMesh"
 
 }

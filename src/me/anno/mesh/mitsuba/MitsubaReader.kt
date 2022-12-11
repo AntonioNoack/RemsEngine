@@ -32,6 +32,7 @@ import me.anno.utils.ColorParsing
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
+import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.ByteArrayInputStream
@@ -549,7 +550,7 @@ object MitsubaReader {
                                     if (v is XMLNode) {
                                         when (v["name"]) {
                                             "filename" -> file = v["value"] ?: file
-                                            "shapeIndex", "shape_index" -> index = v["value"]?.toIntOrNull() ?: index
+                                            "shapeIndex", "shape_index" -> index = v["value"].toIntOrDefault(index)
                                         }
                                     }
                                 }

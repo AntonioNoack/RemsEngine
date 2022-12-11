@@ -11,6 +11,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.studio.StudioBase
 import me.anno.utils.hpc.HeavyProcessing.processStage
+import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
@@ -356,8 +357,8 @@ object ExtensionLoader {
                     "plugindependencies", "plugin-dependencies",
                     "dependencies" -> dependencies += "$value, "
                     "plugin-uuid", "mod-uuid", "plugin-id", "mod-id", "uuid" -> uuid = value
-                    "minversion", "min-version" -> minVersion = value.toIntOrNull() ?: minVersion
-                    "maxversion", "max-version" -> maxVersion = value.toIntOrNull() ?: maxVersion
+                    "minversion", "min-version" -> minVersion = value.toIntOrDefault(minVersion)
+                    "maxversion", "max-version" -> maxVersion = value.toIntOrDefault(maxVersion)
                     "priority" -> priority = value.toDoubleOrNull() ?: priority
                 }
             }

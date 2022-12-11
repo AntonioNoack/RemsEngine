@@ -78,7 +78,7 @@ class SDFPolygon : SDF2DShape() {
         clone.points = points
     }
 
-    override val className = "SDFPolygon"
+    override val className get() = "SDFPolygon"
 
     companion object {
         private const val sdPolygon = "" +

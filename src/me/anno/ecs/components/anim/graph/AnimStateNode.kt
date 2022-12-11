@@ -135,6 +135,6 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         else super.readFloat(name, value)
     }
 
-    override val className = "AnimStateNode"
+    override val className get() = "AnimStateNode"
 
 }

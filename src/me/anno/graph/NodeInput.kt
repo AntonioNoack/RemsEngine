@@ -76,6 +76,6 @@ class NodeInput : NodeConnector {
         return value
     }
 
-    override val className = "NodeInput"
+    override val className get() = "NodeInput"
 
 }

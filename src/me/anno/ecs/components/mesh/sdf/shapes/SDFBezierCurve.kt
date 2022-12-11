@@ -160,7 +160,7 @@ class SDFBezierCurve : SDFShape() {
         clone.points = Array(points.size) { Vector4f(points[it]) }.toMutableList() as ArrayList<Vector4f>
     }
 
-    override val className = "SDFBezierCurve"
+    override val className get() = "SDFBezierCurve"
 
     companion object {
 

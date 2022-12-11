@@ -66,7 +66,7 @@ class SDFBlob : SDFShape() {
         return clone
     }
 
-    override val className = "SDFBlob"
+    override val className get() = "SDFBlob"
 
     companion object {
 

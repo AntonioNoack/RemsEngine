@@ -8,14 +8,17 @@ import kotlin.math.sqrt
 
 object Matrices {
 
+    @JvmStatic
     fun Matrix4f.isIdentity(): Boolean {
         return properties().and(Matrix4f.PROPERTY_IDENTITY) != 0
     }
 
+    @JvmStatic
     fun Matrix4x3f.isIdentity(): Boolean {
         return properties().and(Matrix4x3f.PROPERTY_IDENTITY) != 0
     }
 
+    @JvmStatic
     fun Matrix4f.skew(v: Vector2f) {
         mul3x3(// works
             1f, v.y, 0f,
@@ -24,6 +27,7 @@ object Matrices {
         )
     }
 
+    @JvmStatic
     fun Matrix4f.skew(x: Float, y: Float) {
         mul3x3(// works
             1f, y, 0f,
@@ -32,6 +36,7 @@ object Matrices {
         )
     }
 
+    @JvmStatic
     fun Matrix4d.skew(x: Double, y: Double) {
         mul3x3(// works
             1.0, y, 0.0,
@@ -40,7 +45,7 @@ object Matrices {
         )
     }
 
-
+    @JvmStatic
     fun Matrix4f.unprojectInvRay2(
         mouseX: Float,
         mouseY: Float,
@@ -73,6 +78,7 @@ object Matrices {
         return dst
     }
 
+    @JvmStatic
     fun Matrix4x3d.distanceSquared(center: Vector3d): Double {
         val dx = center.x - m30
         val dy = center.y - m31
@@ -80,18 +86,22 @@ object Matrices {
         return dx * dx + dy * dy + dz * dz
     }
 
+    @JvmStatic
     fun Matrix4f.rotate2(q: Quaterniond): Matrix4f {
         return rotate(JomlPools.quat4f.borrow().set(q))
     }
 
+    @JvmStatic
     fun Matrix4x3d.getScaleLengthSquared(): Double {
         return getScale(JomlPools.vec3d.borrow()).lengthSquared()
     }
 
+    @JvmStatic
     fun Matrix4x3f.getScaleLength(): Float {
         return getScale(JomlPools.vec3f.borrow()).length()
     }
 
+    @JvmStatic
     fun Matrix4x3d.getScaleLength(): Double {
         return getScale(JomlPools.vec3d.borrow()).length()
     }
@@ -99,6 +109,7 @@ object Matrices {
     /**
      * replace missing setter/constructor
      * */
+    @JvmStatic
     fun Matrix4x3f.set2(src: Matrix4x3d): Matrix4x3f {
         set(
             src.m00.toFloat(), src.m01.toFloat(), src.m02.toFloat(),
@@ -109,6 +120,7 @@ object Matrices {
         return this
     }
 
+    @JvmStatic
     fun Matrix4x3f.mul2(src: Matrix4x3d): Matrix4x3f {
         val tmp = JomlPools.mat4x3f.borrow()
         tmp.set2(src)
@@ -116,18 +128,22 @@ object Matrices {
         return this
     }
 
+    @JvmStatic
     fun Matrix4x3f.getScale2(dst: Vector3d): Vector3d {
         return dst.set(getScale(JomlPools.vec3f.borrow()))
     }
 
+    @JvmStatic
     fun Matrix4f.getScale2(dst: Vector3d = Vector3d()): Vector3d {
         return dst.set(getScale(JomlPools.vec3f.borrow()))
     }
 
+    @JvmStatic
     fun Matrix4f.getTranslation2(dst: Vector3d = Vector3d()): Vector3d {
         return dst.set(m30.toDouble(), m31.toDouble(), m32.toDouble())
     }
 
+    @JvmStatic
     fun Matrix4f.set2(other: Matrix4x3d): Matrix4f {
         return set(
             other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), 0f,
@@ -137,6 +153,7 @@ object Matrices {
         )
     }
 
+    @JvmStatic
     fun Matrix4f.mul2(other: Matrix4x3d): Matrix4f {
         return mul(
             other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), 0f,
@@ -146,6 +163,7 @@ object Matrices {
         )
     }
 
+    @JvmStatic
     fun Matrix4f.mul2(other: Matrix4d): Matrix4f {
         return mul(
             other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), other.m03.toFloat(),
@@ -155,6 +173,7 @@ object Matrices {
         )
     }
 
+    @JvmStatic
     fun Matrix4d.mirror(p: Vector3d, normal: Vector3d): Matrix4d {
         val nx = normal.x
         val ny = normal.y
@@ -176,6 +195,7 @@ object Matrices {
         return this
     }
 
+    @JvmStatic
     fun Matrix3d.mul2(other: Matrix4d): Matrix3d {
         mul(
             Matrix3d(
@@ -187,22 +207,27 @@ object Matrices {
         return this
     }
 
+    @JvmStatic
     fun Matrix4x3d.distanceSquared(other: Matrix4x3d): Double {
         return sq(m30 - other.m30, m31 - other.m31, m32 - other.m32)
     }
 
+    @JvmStatic
     fun Matrix4x3d.distanceSquared(other: Matrix4x3f): Double {
         return sq(m30 - other.m30, m31 - other.m31, m32 - other.m32)
     }
 
+    @JvmStatic
     fun Matrix4x3d.distance(other: Matrix4x3d): Double {
         return sqrt(distanceSquared(other))
     }
 
+    @JvmStatic
     fun Matrix4x3d.distance(other: Matrix4x3f): Double {
         return sqrt(distanceSquared(other))
     }
 
+    @JvmStatic
     fun Matrix4x3f.sampleDistanceSquared(other: Matrix4x3f): Float {
         // compare a few sample points in every direction to also detect rotation issues
         // in my case, the matrices were identical
@@ -212,6 +237,7 @@ object Matrices {
                 transformPosition(Vector3f(0f, 0f, 1f)).distanceSquared(other.transformPosition(Vector3f(0f, 0f, 1f)))
     }
 
+    @JvmStatic
     fun Matrix4f.sampleDistanceSquared(other: Matrix4f): Float {
         // compare a few sample points in every direction to also detect rotation issues
         // in my case, the matrices were identical
@@ -221,6 +247,7 @@ object Matrices {
                 transformPosition(Vector3f(0f, 0f, 1f)).distanceSquared(other.transformPosition(Vector3f(0f, 0f, 1f)))
     }
 
+    @JvmStatic
     fun Matrix4x3d.transformPosition2(v: Vector3f, dst: Vector3f = v): Vector3f {
         return dst.set(
             m00 * v.x + m10 * v.y + m20 * v.z + m30,
@@ -229,10 +256,12 @@ object Matrices {
         )
     }
 
+    @JvmStatic
     fun Matrix4x3d.f3() = "${m00.f3s()} ${m10.f3s()} ${m20.f3s()} ${m30.f3s()}\n" +
             "${m01.f3s()} ${m11.f3s()} ${m21.f3s()} ${m31.f3s()}\n" +
             "${m02.f3s()} ${m12.f3s()} ${m22.f3s()} ${m32.f3s()}\n"
 
+    @JvmStatic
     fun Vector2f.makePerpendicular(other: Vector2f): Vector2f {
         val f = dot(other)
         x -= other.x * f
@@ -240,6 +269,7 @@ object Matrices {
         return this
     }
 
+    @JvmStatic
     fun Vector2d.makePerpendicular(other: Vector2d): Vector2d {
         val f = dot(other)
         x -= other.x * f
@@ -247,9 +277,11 @@ object Matrices {
         return this
     }
 
+    @JvmStatic
     fun Vector3f.makePerpendicular(other: Vector3f): Vector3f =
         other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other
 
+    @JvmStatic
     fun Vector3d.makePerpendicular(other: Vector3d): Vector3d =
         other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other
 

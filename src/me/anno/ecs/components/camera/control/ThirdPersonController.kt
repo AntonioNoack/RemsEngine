@@ -16,6 +16,6 @@ open class ThirdPersonController : CameraController() {
         return clone
     }
 
-    override val className = "ThirdPersonControls"
+    override val className get() = "ThirdPersonControls"
 
 }

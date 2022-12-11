@@ -131,7 +131,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
     override fun getLightPrimitive(): Mesh = Shapes.cube11Smooth
 
-    override val className = "PointLight"
+    override val className get() = "PointLight"
 
     companion object {
 

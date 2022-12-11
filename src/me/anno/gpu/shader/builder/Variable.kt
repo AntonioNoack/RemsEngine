@@ -64,7 +64,7 @@ class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inO
             // define normal variable
             if (prefix != null) code.append(prefix).append(' ')
             code.append(type.glslName)
-            if (arraySize > 0) {
+            if (arraySize >= 0) {
                 code.append('[').append(arraySize).append(']')
             }
             code.append(' ').append(name).append(";\n")

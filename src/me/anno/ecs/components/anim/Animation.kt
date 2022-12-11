@@ -203,6 +203,6 @@ abstract class Animation : PrefabSaveable, Renderable {
         clone.duration = duration
     }
 
-    override val approxSize: Int = 100
+    override val approxSize get() = 100
 
 }

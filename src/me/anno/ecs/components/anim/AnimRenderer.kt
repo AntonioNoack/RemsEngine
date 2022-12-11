@@ -295,7 +295,7 @@ open class AnimRenderer : MeshComponent() {
         }
     }
 
-    override val className = "AnimRenderer"
+    override val className get() = "AnimRenderer"
 
     companion object {
 

@@ -80,6 +80,6 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
         clone.children.addAll(children.map { it.clone() })
     }
 
-    override val className = "NineTilePanel"
+    override val className get() = "NineTilePanel"
 
 }

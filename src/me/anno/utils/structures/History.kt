@@ -78,6 +78,6 @@ class History<V> : Saveable {
         }
     }
 
-    override val className = "History"
+    override val className get() = "History"
 
 }

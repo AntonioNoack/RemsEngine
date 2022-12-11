@@ -17,6 +17,6 @@ class Padding(l: Int, t: Int, r: Int, b: Int) : LTRB(l, t, r, b) {
         bottom += s.bottom
     }
 
-    override val className = "Padding"
+    override val className get() = "Padding"
 
 }

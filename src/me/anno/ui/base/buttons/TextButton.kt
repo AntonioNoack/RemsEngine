@@ -138,6 +138,6 @@ open class TextButton(
         clone.isSquare = isSquare
     }
 
-    override val className = "TextButton"
+    override val className get() = "TextButton"
 
 }

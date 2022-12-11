@@ -12,6 +12,7 @@ import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.utils.OS
 import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
@@ -321,7 +322,7 @@ class VOXReader {
             node.pz = -translation[1]
             node.py = +translation[2]
         }
-        node.rotation = frame["_r"]?.toIntOrNull() ?: node.rotation
+        node.rotation = frame["_r"].toIntOrDefault(node.rotation)
     }
 
     /**

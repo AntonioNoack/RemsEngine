@@ -153,6 +153,6 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         }
     }
 
-    override val className = "PanelListX"
+    override val className get() = "PanelListX"
 
 }

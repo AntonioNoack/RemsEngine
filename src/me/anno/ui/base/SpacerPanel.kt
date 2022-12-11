@@ -38,6 +38,6 @@ open class SpacerPanel(
         clone.sizeY = sizeY
     }
 
-    override val className = "SpacerPanel"
+    override val className get() = "SpacerPanel"
 
 }

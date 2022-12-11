@@ -101,7 +101,7 @@ open class SDFPyramid : SDFShape() {
         clone.params.set(params)
     }
 
-    override val className = "SDFPyramid"
+    override val className get() = "SDFPyramid"
 
     companion object {
         const val sdPyramid = "" +

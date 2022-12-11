@@ -39,7 +39,7 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
         clone.mode = mode
     }
 
-    override val className = "ColorBlindnessEffect"
+    override val className get() = "ColorBlindnessEffect"
 
     companion object {
 

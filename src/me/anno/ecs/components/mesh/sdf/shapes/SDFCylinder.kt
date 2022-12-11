@@ -90,7 +90,7 @@ open class SDFCylinder : SDFSmoothShape() {
         clone.params.set(params)
     }
 
-    override val className = "SDFCylinder"
+    override val className get() = "SDFCylinder"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

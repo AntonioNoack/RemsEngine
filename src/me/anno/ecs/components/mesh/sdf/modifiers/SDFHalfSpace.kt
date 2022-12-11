@@ -133,7 +133,7 @@ class SDFHalfSpace() : DistanceMapper() {
         clone.plane = plane
     }
 
-    override val className = "SDFHalfSpace"
+    override val className get() = "SDFHalfSpace"
 
     companion object {
 

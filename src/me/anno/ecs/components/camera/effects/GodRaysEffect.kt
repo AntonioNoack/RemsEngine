@@ -80,7 +80,7 @@ class GodRaysEffect : ToneMappedEffect() {
         clone.lightPosition
     }
 
-    override val className = "GodRaysEffect"
+    override val className get() = "GodRaysEffect"
 
     companion object {
         val shader = Shader(

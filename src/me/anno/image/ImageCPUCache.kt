@@ -154,7 +154,8 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         return if (file is FileFileRef) {
             val meta = FFMPEGMetadata.getMeta(file, false)!!
             val sequence = FFMPEGStream.getImageSequenceCPU(
-                file, meta.videoWidth, meta.videoHeight, min(20, (meta.videoFrameCount - 1) / 3), 1, meta.videoFPS
+                file, meta.videoWidth, meta.videoHeight, min(20, (meta.videoFrameCount - 1) / 3), 1, meta.videoFPS,
+                meta.videoFrameCount
             )
             Sleep.waitUntil(true) { sequence.frames.size > 0 || sequence.isFinished }
             callback(sequence.frames.first(), null)
