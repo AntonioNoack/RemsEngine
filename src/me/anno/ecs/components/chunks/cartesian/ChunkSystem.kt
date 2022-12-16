@@ -1,6 +1,7 @@
 package me.anno.ecs.components.chunks.cartesian
 
 import me.anno.ecs.components.chunks.PlayerLocation
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import org.joml.Vector3d.Companion.lengthSquared
 import org.joml.Vector3i
 import kotlin.math.max
@@ -152,18 +153,20 @@ abstract class ChunkSystem<Chunk, Element>(
                         val baseX = cx shl bitsX
                         val baseY = cy shl bitsY
                         val baseZ = cz shl bitsZ
-                        val minX2 = max(min.x, baseX)
-                        val maxX2 = min(max.x, baseX + sizeX)
-                        val minY2 = max(min.y, baseY)
-                        val maxY2 = min(max.y, baseY + sizeY)
-                        val minZ2 = max(min.z, baseZ)
-                        val maxZ2 = min(max.z, baseZ + sizeZ)
-                        for (y in minY2 until maxY2) {
-                            for (z in minZ2 until maxZ2) {
-                                var yzxIndex = getIndex(minX2, y, z)
-                                for (x in minX2 until maxX2) {
-                                    val element = getElement(chunk, x, y, z, yzxIndex++)
-                                    processor(x, y, z, element)
+                        val minX2 = max(min.x - baseX, 0)
+                        val maxX2 = min(max.x - baseX, sizeX)
+                        val minY2 = max(min.y - baseY, 0)
+                        val maxY2 = min(max.y - baseY, sizeY)
+                        val minZ2 = max(min.z - baseZ, 0)
+                        val maxZ2 = min(max.z - baseZ, sizeZ)
+                        for (ly in minY2 until maxY2) {
+                            val gy = ly + baseY
+                            for (lz in minZ2 until maxZ2) {
+                                val gz = lz + baseZ
+                                var yzxIndex = getIndex(minX2, ly, lz)
+                                for (lx in minX2 until maxX2) {
+                                    val element = getElement(chunk, lx, ly, lz, yzxIndex++)
+                                    processor(lx + baseX, gy, gz, element)
                                 }
                             }
                         }

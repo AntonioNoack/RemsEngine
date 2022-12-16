@@ -18,6 +18,10 @@ class TLASLeaf(
     //                              // total: 31/32 floats = 124/128 bytes
 ) : TLASNode(bounds) {
 
+    override fun collectMeshes(result: MutableCollection<BLASNode>) {
+        result.add(mesh)
+    }
+
     override fun print(depth: Int) {
         println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $worldToLocal, ${mesh.nodeId}")
     }

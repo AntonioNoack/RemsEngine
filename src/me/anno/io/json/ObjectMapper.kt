@@ -257,7 +257,7 @@ object ObjectMapper {
                     value as JsonArray
                     val val2 = ArrayList<Any>()
                     val contentType = type.generics[0]
-                    value.content.forEach {
+                    for (it in value.content) {
                         val2.add(getValue(contentType, it.toJsonNode()))
                     }
                     val2

@@ -301,11 +301,13 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     var debugLoading = false
+    var disablePrefabs = false
     private fun getPrefabPair(
         resource: FileReference?,
         depth: Int = maxPrefabDepth,
         async: Boolean = false
     ): FileReadPrefabData? {
+        if (disablePrefabs) return null
         // LOGGER.info("get prefab from $resource, ${resource?.exists}, ${resource?.isDirectory}")
         return when {
             resource == null -> null

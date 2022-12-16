@@ -58,7 +58,7 @@ abstract class Extension {
     fun registerListener(listener: Any): Int {
         if (!isRunning) return 0
         var ctr = 0
-        listener::class.memberFunctions.forEach { method ->
+        for (method in listener::class.memberFunctions) {
             if (method.visibility == KVisibility.PUBLIC &&
                 !method.isAbstract
             ) {

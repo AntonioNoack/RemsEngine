@@ -181,8 +181,9 @@ interface Hierarchical<V : Hierarchical<V>> {
         get() = sequence {
             @Suppress("unchecked_cast")
             yield(this@Hierarchical as V)
-            children.forEach { child ->
-                yieldAll(child.listOfAll)
+            val children = children
+            for (i in children.indices) {
+                yieldAll(children[i].listOfAll)
             }
         }
 
@@ -190,8 +191,8 @@ interface Hierarchical<V : Hierarchical<V>> {
         @Suppress("unchecked_cast")
         if (callback(this as V)) return this
         val children = children
-        for (index in children.indices) {
-            val v = children[index].findFirstInAll(callback)
+        for (i in children.indices) {
+            val v = children[i].findFirstInAll(callback)
             if (v != null) return v
         }
         return null

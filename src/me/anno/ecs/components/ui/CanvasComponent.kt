@@ -132,7 +132,9 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
         set(value) {
             if (field != value) {
                 field = value
-                windowStack.forEach { it.isTransparent = value }
+                for (it in windowStack) {
+                    it.isTransparent = value
+                }
             }
         }
 

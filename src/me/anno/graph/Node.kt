@@ -57,7 +57,9 @@ abstract class Node() : PrefabSaveable() {
     fun setOutput(value: Any?, index: Int) {
         val node = outputs!![index]
         node.value = value
-        node.others.forEach { it.invalidate() }
+        for (it in node.others) {
+            it.invalidate()
+        }
     }
 
     fun delete(graph: Graph?) {
@@ -89,12 +91,14 @@ abstract class Node() : PrefabSaveable() {
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
             "inputs" -> {
-                inputs = values.filterIsInstance<NodeInput>().toTypedArray()
-                inputs?.forEach { it.node = this }
+                val inputs = values.filterIsInstance<NodeInput>().toTypedArray()
+                for (i in inputs.indices) inputs[i].node = this
+                this.inputs = inputs
             }
             "outputs" -> {
-                outputs = values.filterIsInstance<NodeOutput>().toTypedArray()
-                outputs?.forEach { it.node = this }
+                val outputs = values.filterIsInstance<NodeOutput>().toTypedArray()
+                for (i in outputs.indices) outputs[i].node = this
+                this.outputs = outputs
             }
             else -> super.readObjectArray(name, values)
         }

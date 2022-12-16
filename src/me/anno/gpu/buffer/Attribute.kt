@@ -44,7 +44,7 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
         fun computeOffsets(attributes: List<Attribute>): Int {
             var offset = 0L
             val stride = attributes.sumOf { it.byteSize }
-            attributes.forEach {
+            for (it in attributes) {
                 it.offset = offset
                 it.stride = stride
                 offset += it.byteSize

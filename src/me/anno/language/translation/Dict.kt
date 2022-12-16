@@ -6,7 +6,6 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import org.apache.logging.log4j.LogManager
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 
@@ -21,11 +20,11 @@ object Dict {
 
     fun load(text: String, clear: Boolean) {
         if (clear) values.clear()
-        text.split('\n').forEach {
-            val startIndex = it.indexOf(':')
+        for (line in text.split('\n')) {
+            val startIndex = line.indexOf(':')
             if (startIndex >= 0) {
-                val key = it.substring(0, startIndex).trim()
-                val value = it.substring(startIndex + 1).trim()
+                val key = line.substring(0, startIndex).trim()
+                val value = line.substring(startIndex + 1).trim()
                 if (value.isNotEmpty()) {
                     values[key] = value
                 }
@@ -40,12 +39,12 @@ object Dict {
     }
 
     fun getLanguageName(text: String): String? {
-        text.split('\n').forEach {
-            val startIndex = it.indexOf(':')
+        for (line in text.split('\n')) {
+            val startIndex = line.indexOf(':')
             if (startIndex >= 0) {
-                val key = it.substring(0, startIndex).trim()
+                val key = line.substring(0, startIndex).trim()
                 if ("lang.name".equals(key, true)) {
-                    val value = it.substring(startIndex + 1).trim()
+                    val value = line.substring(startIndex + 1).trim()
                     if (value.isNotEmpty()) {
                         return value
                     }

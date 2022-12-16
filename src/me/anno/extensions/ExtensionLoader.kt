@@ -27,6 +27,7 @@ object ExtensionLoader {
 
     @JvmStatic
     lateinit var pluginsFolder: FileReference
+
     @JvmStatic
     lateinit var modsFolder: FileReference
 
@@ -119,9 +120,11 @@ object ExtensionLoader {
         val threads = ArrayList<Thread>()
         addAllFromFolder(pluginsFolder, threads, result)
         addAllFromFolder(modsFolder, threads, result)
-        threads.forEach { it.join() }
+        for (it in threads) {
+            it.join()
+        }
         for (internal in internally) {
-            println("removing $internal")
+            LOGGER.info("Removing $internal")
             result.removeIf { it.uuid == internal.uuid }
             result.add(internal)
         }
@@ -151,9 +154,11 @@ object ExtensionLoader {
     @JvmStatic
     private fun warnOfMissingDependencies(extInfos: Collection<ExtensionInfo>, extInfos0: Collection<ExtensionInfo>) {
         if (extInfos.size != extInfos0.size) {
-            val ids = extInfos.map { it.uuid }.toHashSet()
-            extInfos0.filter { it !in extInfos }.forEach { ex ->
-                LOGGER.warn("Discarded extension ${ex.name}, because of missing dependencies ${ex.dependencies.filter { it !in ids }}")
+            val ids = HashSet(extInfos.map { it.uuid })
+            for (ex in extInfos0) {
+                if (ex !in extInfos) {
+                    LOGGER.warn("Discarded extension ${ex.name}, because of missing dependencies ${ex.dependencies.filter { it !in ids }}")
+                }
             }
         }
     }

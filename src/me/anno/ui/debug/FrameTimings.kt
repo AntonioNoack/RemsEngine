@@ -135,6 +135,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 var lastBarHeight = 0
                 val scale = height / maxValue
 
+                DrawRectangles.startBatch()
                 for (x in x0 until x1) {
                     val i = x - this.x
                     val v = values[(indexOffset + i) % width]
@@ -147,9 +148,11 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 }
 
                 drawLine(lastX, x1, lastBarHeight, barColor)
+                DrawRectangles.finishBatch()
 
             } else {
 
+                // todo it might be faster to draw this with batching 😄
                 val scale = 1f / maxValue
                 for (x in x0 until x1) {
                     val i = x - this.x

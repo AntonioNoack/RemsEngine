@@ -330,7 +330,7 @@ interface ISaveable {
                 ?: throw IllegalArgumentException("$clazz is missing constructor without parameters")
             val instance0 = try {
                 clazz2.newInstance()
-            } catch (e: InstantiationException){
+            } catch (e: InstantiationException) {
                 throw IllegalArgumentException("$clazz is missing constructor without parameters", e)
             }
             checkInstance(instance0)

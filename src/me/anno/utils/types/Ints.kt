@@ -1,5 +1,7 @@
 package me.anno.utils.types
 
+import me.anno.utils.Color
+
 object Ints {
 
     @JvmStatic

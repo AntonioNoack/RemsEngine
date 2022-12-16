@@ -61,7 +61,7 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
 
     fun print(prefix: String, msg: String) {
         if (LogManager.isEnabled(this)) {
-            msg.split('\n').forEach { line ->
+            for (line in msg.split('\n')) {
                 val line2 = "[${getTimeStamp()},$prefix$suffix] $line"
                 if (prefix == "ERR!") {
                     System.err.println(line2)

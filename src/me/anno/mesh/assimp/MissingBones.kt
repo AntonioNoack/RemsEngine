@@ -47,11 +47,11 @@ object MissingBones {
 
         if (bonesWithIssue.isNotEmpty()) {
             LOGGER.warn("Bone-Node-Mapping incomplete! Bones[${bones.size}]:")
-            bones.entries.forEach { (key, value) ->
+            for ((key, value) in bones.entries) {
                 LOGGER.warn("  $key: ${value.offsetVector}")
             }
             LOGGER.warn("Nodes[${sceneNodeList.size}]:")
-            sceneNodeList.forEach { (key, value) ->
+            for ((key, value) in sceneNodeList) {
                 val transform = value.mTransformation()
                 val position = Vector3f(transform.a4(), transform.b4(), transform.c4())
                 LOGGER.warn("  $key: $position")
@@ -67,7 +67,7 @@ object MissingBones {
                     // from parent bone to this bone
                     AssimpTree.convert(value.mTransformation())
                 }
-                bonesWithIssue.forEach { boneNameWithIssue ->
+                for (boneNameWithIssue in bonesWithIssue) {
                     val bone = bones[boneNameWithIssue]!!
                     val boneMatrix = bone.originalTransform
                     var bestNode = 0

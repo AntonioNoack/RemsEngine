@@ -2,19 +2,18 @@ package me.anno.ui.editor.config
 
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
-import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.Panel
-import me.anno.ui.base.text.TextPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomList
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.max
 
 // todo allow fields to be added
@@ -75,7 +74,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
                 .map { it.lowercase(Locale.getDefault()) }
 
             if (lastTopic.isNotEmpty()) createContent("")
-            contentList.forEach { (name, ui) ->
+            for ((name, ui) in contentList) {
                 ui.isVisible = queryTerms.all { it in name }
             }
 

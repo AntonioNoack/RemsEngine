@@ -1,10 +1,10 @@
 package me.anno.utils.structures.lists
 
-class CountingList(capacity: Int = 16): MutableList<Any> {
+class CountingList(capacity: Int = 16) : MutableList<Any> {
 
-    constructor(src: CountingList): this(src.size){
+    constructor(src: CountingList) : this(src.size) {
         internal.addAll(src.internal)
-        for(i in counters.indices){
+        for (i in counters.indices) {
             counters[i] = src.counters[i]
         }
     }
@@ -20,18 +20,18 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
     }
 
     override fun add(element: Any): Boolean {
-        if(element is Char) update(element, 1)
+        if (element is Char) update(element, 1)
         return internal.add(element)
     }
 
     override fun removeAt(index: Int): Any {
         val oldElement = internal.removeAt(index)
-        if(oldElement is Char) update(oldElement, -1)
+        if (oldElement is Char) update(oldElement, -1)
         return oldElement
     }
 
     override fun contains(element: Any): Boolean {
-        if(element is Char) {
+        if (element is Char) {
             val ci = element.code - minCounted
             if (ci < isCounted.size && isCounted[ci]) {
                 return counters[ci] > 0
@@ -50,9 +50,9 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
 
     override fun set(index: Int, element: Any): Any {
         val old = internal.set(index, element)
-        if(old != element){
-            if(old is Char) update(old, -1)
-            if(element is Char) update(element, 1)
+        if (old != element) {
+            if (old is Char) update(old, -1)
+            if (element is Char) update(element, 1)
         }
         return old
     }
@@ -73,7 +73,7 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
 
     override fun clear() {
         internal.clear()
-        for(i in counters.indices){
+        for (i in counters.indices) {
             counters[i] = 0
         }
     }
@@ -84,19 +84,26 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
         @JvmStatic
         private val notSupported get() = RuntimeException("Operation not supported, because of laziness ;)")
         private const val countedCharacters = "+-/*^!()[]"
+
         @JvmStatic
         private val minCounted = countedCharacters.minOrNull()!!.code
+
         @JvmStatic
         private val maxCountedChar = countedCharacters.maxOrNull()!!
+
         @JvmStatic
         private val maxCounted = countedCharacters.maxOrNull()!!.code
+
         @JvmStatic
         private val isCounted = BooleanArray(maxCounted + 1 - minCounted)
+
         @JvmStatic
         fun Any.isCounted() = this is Char && this.code < maxCountedChar.code
+
         init {
-            countedCharacters.forEach {
-                isCounted[it.code - minCounted] = true
+            val chars = countedCharacters
+            for (i in chars.indices) {
+                isCounted[chars[i].code - minCounted] = true
             }
         }
     }

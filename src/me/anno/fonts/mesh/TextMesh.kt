@@ -10,7 +10,6 @@ import me.anno.utils.OS
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Vectors.avg
 import me.anno.utils.types.Vectors.minus
-import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import java.awt.Color
 import java.awt.Font
@@ -265,7 +264,7 @@ class TextMesh(
 
         buffer = StaticBuffer(attributes, triangles.size)
 
-        outerFragments.forEach {
+        for (it in outerFragments) {
             minX = min(minX, it.minX)
             minY = min(minY, it.minY)
             maxX = max(maxX, it.maxX)

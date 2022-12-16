@@ -105,8 +105,17 @@ abstract class StudioBase(
         startClock.stop(name)
     }
 
-    val showTutorialKeys get() = DefaultConfig["ui.tutorial.showKeys", true]
-    val showFPS get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
+    var showTutorialKeys
+        get() = DefaultConfig["ui.tutorial.showKeys", true]
+        set(value) {
+            DefaultConfig["ui.tutorial.showKeys"] = value
+        }
+
+    var showFPS
+        get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
+        set(value) {
+            DefaultConfig["debug.ui.showFPS"] = value
+        }
 
     var gfxSettings = GFXSettings.LOW
         set(value) {
@@ -391,7 +400,8 @@ abstract class StudioBase(
         }
 
         private val eventTasks: Queue<() -> Unit> = ConcurrentLinkedQueue()
-        private val scheduledTasks: Queue<Pair<Long, () -> Unit>> = PriorityBlockingQueue(16) { a, b -> a.first.compareTo(b.first) }
+        private val scheduledTasks: Queue<Pair<Long, () -> Unit>> =
+            PriorityBlockingQueue(16) { a, b -> a.first.compareTo(b.first) }
 
         val shiftSlowdown get() = if (Input.isAltDown) 5f else if (Input.isShiftDown) 0.2f else 1f
 

@@ -257,7 +257,9 @@ open class FileExplorer(
     }
 
     fun removeOldFiles() {
-        content2d.children.forEach { (it as? FileExplorerEntry)?.stopPlayback() }
+        for (it in content2d.children) {
+            (it as? FileExplorerEntry)?.stopPlayback()
+        }
         content2d.clear()
     }
 
@@ -352,25 +354,32 @@ open class FileExplorer(
                                     }
                                 }
                                 // force layout update
-                                GFX.windows.forEach { it.framesSinceLastInteraction = 0 }
+                                val windows = GFX.windows
+                                for (i in windows.indices) {
+                                    windows[i].framesSinceLastInteraction = 0
+                                }
                             }
                         }
                     }
                 }
 
-                for (file in level0.filter { it.isDirectory }) {
-                    tmpList.add(file)
-                    if (tmpList.size >= tmpCount) {
-                        put()
-                        Thread.sleep(0)
+                for (file in level0) {
+                    if (file.isDirectory) {
+                        tmpList.add(file)
+                        if (tmpList.size >= tmpCount) {
+                            put()
+                            Thread.sleep(0)
+                        }
                     }
                 }
 
-                for (file in level0.filter { !it.isDirectory }) {
-                    tmpList.add(file)
-                    if (tmpList.size >= tmpCount) {
-                        put()
-                        Thread.sleep(0)
+                for (file in level0) {
+                    if (file.isDirectory) {
+                        tmpList.add(file)
+                        if (tmpList.size >= tmpCount) {
+                            put()
+                            Thread.sleep(0)
+                        }
                     }
                 }
 

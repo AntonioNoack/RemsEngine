@@ -94,21 +94,25 @@ class AWTFont(val font: Font) {
     fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
 
     fun calculateSize(text: CharSequence, fontSize: Float, widthLimit: Int, heightLimit: Int): Int {
-
         if (text.isEmpty()) return GFXx2D.getSize(0, fontSize.toInt())
         if (text.containsSpecialChar() || (widthLimit in 0 until GFX.maxTextureSize)) {
             return generateSizeV3(text, fontSize, widthLimit.toFloat(), heightLimit.toFloat())
         }
-
-        val lines = text.split('\n')
-        val lineCount = lines.size
         val spaceBetweenLines = spaceBetweenLines(fontSize)
         val fontHeight = fontMetrics.height
+        val lineCount: Int
+        val baseWidth: Double
+        if ('\n' in text) {
+            val lines = text.split('\n')
+            baseWidth = lines.maxOf { getStringWidth(getGroup(it)) }
+            lineCount = lines.size
+        } else {
+            baseWidth = getStringWidth(getGroup(text))
+            lineCount = 1
+        }
+        val width = min(max(0, baseWidth.roundToInt() + 1), GFX.maxTextureSize)
         val height = calcTextHeight(fontHeight, lineCount, spaceBetweenLines)
-
-        val width = min(max(0, lines.maxOf { getStringWidth(getGroup(it)) }.roundToInt() + 1), GFX.maxTextureSize)
         return GFXx2D.getSize(width, height)
-
     }
 
     fun calcTextHeight(fontHeight: Int, lineCount: Int, spaceBetweenLines: Int) =
@@ -362,10 +366,12 @@ class AWTFont(val font: Font) {
 
         fun display() {
             if (index1 > index0) {
-                val substring = chars.joinChars(index0, index1)
                 val font = fonts[lastSupportLevel]
-                val layout = TextLayout(substring.toString(), font, renderContext)
-                val advance = layout.advance
+                val filtered = chars.joinChars(index0, index1) {
+                    it !in 0xfe00..0xfe0f // Emoji variations; having no width, even if Java thinks so
+                }
+                val advance = if (filtered.isNotEmpty())
+                    TextLayout(filtered.toString(), font, renderContext).advance else 0f
                 // if multiple chars and advance > lineWidth, then break line
                 val nextX = currentX + advance + (index1 - index0) * charSpacing
                 if (hasAutomaticLineBreak && index0 + 1 < index1 && currentX == 0f && nextX > lineBreakWidth) {
@@ -384,7 +390,7 @@ class AWTFont(val font: Font) {
                     index1 = tmp1
                     display()
                 } else {
-                    result += StringPart(currentX, currentY, substring, font, 0f)
+                    result += StringPart(currentX, currentY, chars.joinChars(index0, index1), font, 0f)
                     currentX = nextX
                     widthF = max(widthF, currentX)
                     index0 = index1

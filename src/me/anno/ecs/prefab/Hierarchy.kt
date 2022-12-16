@@ -65,7 +65,7 @@ object Hierarchy {
         if (isRoot) {
             // simple copy-paste
             dstPrefab.prefab = srcPrefab.prefab
-            srcPrefab.adds.forEach {
+            for (it in srcPrefab.adds) {
                 dstPrefab.add(it.clone(), -1)
             }
             srcPrefab.sets.forEach { k1, k2, v ->
@@ -80,7 +80,7 @@ object Hierarchy {
         LOGGER.info("For copy path: $srcSetPath")
 
         fun processPrefab(prefab: Prefab, prefabRootPath: Path) {
-            prefab.adds.forEach { add ->
+            for (add in prefab.adds) {
                 val herePath = prefabRootPath + add.getSetterPath(0)
                 val startsWithPath = herePath.startsWith1(srcSetPath)
                 if (startsWithPath != null) {

@@ -576,7 +576,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         val tooltip = tooltip
         println(
             "${Tabs.spaces(tabDepth * 2)}${this::class.simpleName}(${(weight * 10).roundToInt()}, " +
-                    "${if (isVisible) "v" else "_"})) " +
+                    "${if (isVisible) "v" else "_"}${if (isHovered) "h" else ""}${if (isInFocus) "F" else ""})) " +
                     "$x-${x + w}, $y-${y + h} ($minW $minH) ${
                         if (tooltip == null) "" else "'${tooltip.shorten(20)}' "
                     }${getPrintSuffix()}"
@@ -682,7 +682,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
             if (canBeSeen) {
                 yield(this@Panel)
                 if (this@Panel is PanelGroup) {
-                    this@Panel.children.forEach { child ->
+                    for (child in this@Panel.children) {
                         yieldAll(child.listOfVisible)
                     }
                 }
@@ -733,7 +733,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         get() = sequence {
             yield(this@Panel)
             if (this@Panel is PanelGroup) {
-                this@Panel.children.forEach { child ->
+                for (child in this@Panel.children) {
                     yieldAll(child.listOfAll)
                 }
             }

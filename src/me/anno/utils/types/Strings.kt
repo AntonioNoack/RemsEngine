@@ -36,6 +36,18 @@ object Strings {
     }
 
     @JvmStatic
+    fun List<Int>.joinChars(startIndex: Int = 0, endIndex: Int = size, filter: (Int) -> Boolean): CharSequence {
+        val builder = StringBuilder(endIndex - startIndex)
+        for (i in startIndex until endIndex) {
+            val c = get(i)
+            if (filter(c)){
+                builder.append(Character.toChars(c))
+            }
+        }
+        return builder
+    }
+
+    @JvmStatic
     fun getLineWidth(line: List<Int>, endIndex: Int, tp: TextPanel) =
         getLineWidth(line, endIndex, tp.font)
 
@@ -158,6 +170,7 @@ object Strings {
 
     @JvmStatic
     fun format2(i: Long) = if (i < 10) "0$i" else i.toString()
+
     @JvmStatic
     fun format2(i: Int) = if (i < 10) "0$i" else i.toString()
 

@@ -25,7 +25,9 @@ object FBStack : CacheSection("FBStack") {
 
         override fun destroy() {
             if (data.isNotEmpty()) {
-                data.forEach { it.destroy() }
+                for (it in data) {
+                    it.destroy()
+                }
                 printDestroyed(data.size)
                 data.clear()
             }

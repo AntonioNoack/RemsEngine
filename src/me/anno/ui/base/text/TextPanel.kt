@@ -186,6 +186,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     open fun drawText(color: Int = effectiveTextColor) {
+        val textAlignment = textAlignment
         val offset = if (textAlignment == AxisAlignment.MIN) 0
         else textAlignment.getOffset(w, getMaxWidth())
         drawText(offset, 0, color)

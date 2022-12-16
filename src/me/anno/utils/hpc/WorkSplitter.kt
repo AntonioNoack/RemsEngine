@@ -153,7 +153,7 @@ abstract class WorkSplitter(val numThreads: Int) {
 
     inline fun <V> processStage(entries: List<V>, doIO: Boolean, crossinline stage: (V) -> Unit) {
         if (doIO) {// for IO, just process everything in parallel
-            entries.map {
+            val threads = entries.map {
                 thread(name = "Stage[$it]") {
                     try {
                         stage(it)
@@ -161,7 +161,10 @@ abstract class WorkSplitter(val numThreads: Int) {
                         e.printStackTrace()
                     }
                 }
-            }.forEach { it.join() }
+            }
+            for (i in threads.indices) {
+                threads[i].join()
+            }
         } else processUnbalanced(0, entries.size, true) { i0, i1 ->
             for (i in i0 until i1) {
                 try {

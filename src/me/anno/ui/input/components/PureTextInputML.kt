@@ -582,7 +582,6 @@ open class PureTextInputML(style: Style) :
         if (cursor1 == cursor2) return text
         val min = min(cursor1, cursor2)
         val max = max(cursor1, cursor2)
-        println("copying $min..$max")
         if (min.y == max.y) {
             return lines[min.y].joinChars(min.x, max.x).toString()
         }

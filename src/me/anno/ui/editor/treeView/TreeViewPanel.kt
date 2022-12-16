@@ -244,7 +244,9 @@ class TreeViewPanel<V>(
         get() {
             return sequence {
                 yield(this@listOfAll)
-                treeView.getChildren(this@listOfAll).forEach { yieldAll(it.listOfAll) }
+                for (it in treeView.getChildren(this@listOfAll)) {
+                    yieldAll(it.listOfAll)
+                }
             }
         }
 

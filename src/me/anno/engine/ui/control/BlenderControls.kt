@@ -299,14 +299,9 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             }
             'h' -> {
                 // todo these properties need to be propagated to the prefab as well
-                if (isShiftDown) {
-                    selectedEntities.forEach {
-                        it.isEnabled = true
-                    }
-                } else {
-                    selectedEntities.forEach {
-                        it.isEnabled = false
-                    }
+                val isShiftDown = isShiftDown
+                for (it in selectedEntities) {
+                    it.isEnabled = isShiftDown
                 }
                 showChange()
             }

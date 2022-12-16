@@ -93,7 +93,8 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
      * invalidate all proxy nodes within the chunk
      * */
     fun invalidate(chunk: Chunk) {
-        proxyCache.remove(chunk)?.keys?.forEach {
+        val keys = proxyCache.remove(chunk)?.keys
+        if (keys != null) for (it in keys) {
             // chunk must be removed from neighbors as well,
             val chunk2 = getChunk(it)
             if (chunk2 != null) proxyCache.remove(chunk2)

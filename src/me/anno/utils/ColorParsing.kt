@@ -12,7 +12,6 @@ import me.anno.utils.Color.toHexColor
 import me.anno.utils.structures.maps.BiMap
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.util.*
 
 object ColorParsing {
 
@@ -66,7 +65,9 @@ object ColorParsing {
     fun parseColorComplex(name: String): Any? {
         // check for HSVuv(h,s,v,a), HSV(h,s,v,a), or #... or RGB(r,g,b,a) or [1,1,0,1]
         fun List<Float>.toVec() = Vector3f(this[0], this[1], this[2])
-        ColorSpace.list.value.forEach { space ->
+        val spaces = ColorSpace.list.value
+        for (i in spaces.indices) {
+            val space = spaces[i]
             if (name.startsWith(space.serializationName, true)) {
                 val floats = parseFloats(name)
                 val rgb = space.toRGB(floats.toVec())
@@ -120,6 +121,7 @@ object ColorParsing {
 
     @JvmStatic
     fun String.is255Int() = toIntOrNull() != null && toInt() in 0..255
+
     @JvmStatic
     fun String.is01Float() = toFloatOrNull() != null && toFloat() in 0f..1f
 

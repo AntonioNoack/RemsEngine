@@ -10,6 +10,11 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
 
     val mask = 1 shl axis
 
+    override fun collectMeshes(result: MutableCollection<BLASNode>) {
+        n0.collectMeshes(result)
+        n1.collectMeshes(result)
+    }
+
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit) {
         if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
             // put far bvh node on the stack, advance to near

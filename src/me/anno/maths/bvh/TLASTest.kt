@@ -161,11 +161,7 @@ const val shading = "" +
 fun createGraphicsShader(tlas: TLASNode): Quad<Shader, Texture2D, Texture2D, Texture2D> {
 
     val uniqueMeshes = HashSet<BLASNode>(tlas.countTLASLeaves())
-    tlas.forEach {
-        if (it is TLASLeaf) {
-            uniqueMeshes.add(it.mesh)
-        }
-    }
+    tlas.collectMeshes(uniqueMeshes)
 
     val meshes = uniqueMeshes
         .sortedByDescending { it.countNodes() } // complex meshes first for testing and consistency
@@ -228,11 +224,7 @@ fun createGraphicsShader(tlas: TLASNode): Quad<Shader, Texture2D, Texture2D, Tex
 fun createComputeShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2D, Texture2D> {
 
     val uniqueMeshes = HashSet<BLASNode>(tlas.countTLASLeaves())
-    tlas.forEach {
-        if (it is TLASLeaf) {
-            uniqueMeshes.add(it.mesh)
-        }
-    }
+    tlas.collectMeshes(uniqueMeshes)
 
     val meshes = uniqueMeshes
         .sortedByDescending { it.countNodes() } // complex meshes first for testing and consistency
@@ -299,11 +291,7 @@ fun createComputeShader(tlas: TLASNode): Quad<ComputeShader, Texture2D, Texture2
 fun createComputeShaderV2(tlas: TLASNode): Quad<ComputeShader, ComputeBuffer, ComputeBuffer, ComputeBuffer> {
 
     val uniqueMeshes = HashSet<BLASNode>(tlas.countTLASLeaves())
-    tlas.forEach {
-        if (it is TLASLeaf) {
-            uniqueMeshes.add(it.mesh)
-        }
-    }
+    tlas.collectMeshes(uniqueMeshes)
 
     val meshes = uniqueMeshes
         .sortedByDescending { it.countNodes() } // complex meshes first for testing and consistency

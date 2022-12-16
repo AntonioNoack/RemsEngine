@@ -793,7 +793,8 @@ class Mesh : PrefabSaveable(), Renderable {
     }
 
     private fun destroyHelperMeshes() {
-        helperMeshes?.forEach { it?.destroy() }
+        val hm = helperMeshes
+        if (hm != null) for (it in hm) it?.destroy()
         helperMeshes = null
     }
 

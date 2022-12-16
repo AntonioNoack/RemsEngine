@@ -148,7 +148,8 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         var deleted = 0
         var kept = 0
         var freed = 0L
-        proxyFolder.listChildren()?.forEach { file ->
+        val children = proxyFolder.listChildren()
+        if (children != null) for (file in children) {
             if (!file.isDirectory && abs(info[file.name, file.lastModified] - startDateTime) > proxyValidityTimeout) {
                 freed += file.length()
                 file.delete()
