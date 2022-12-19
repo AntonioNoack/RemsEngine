@@ -5,10 +5,10 @@ import me.anno.studio.StudioBase
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 
 fun main() {
-    testUI {
+    testUI3 {
         StudioBase.instance?.enableVSync = true
         val main = ScrollPanelY(style)
         val list = main.child as PanelList

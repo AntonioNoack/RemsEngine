@@ -56,5 +56,16 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Tes
             TestStudio(createMainPanel).run()
         }
 
+        /**
+         * like testUI, just with automatic weight of 1
+         * */
+        fun testUI3(createMainPanel: () -> Panel) {
+            TestStudio {
+                val p = createMainPanel()
+                p.weight = 1f
+                listOf(p)
+            }.run()
+        }
+
     }
 }

@@ -6,12 +6,12 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.MouseButton
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.toARGB
 import org.joml.Vector4f
 
 fun main() {
-    testUI {
+    testUI3 {
         StudioBase.instance?.apply {
             enableVSync = false
             showFPS = true
@@ -19,10 +19,6 @@ fun main() {
         object : Panel(style) {
 
             var batch = false
-
-            init {
-                weight = 1f
-            }
 
             override fun onUpdate() {
                 super.onUpdate()

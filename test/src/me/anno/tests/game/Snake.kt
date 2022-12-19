@@ -2,7 +2,6 @@ package me.anno.tests.game
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
-import me.anno.utils.Color.black
 import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
@@ -12,7 +11,8 @@ import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.utils.Color.black
 import org.lwjgl.glfw.GLFW
 import java.util.*
 
@@ -217,8 +217,5 @@ class Snake : Panel(style) {
 
 fun main() {
     GFXBase.disableRenderDoc()
-    testUI {
-        val game = Snake()
-        game.setWeight2(1f)
-    }
+    testUI3 { Snake() }
 }

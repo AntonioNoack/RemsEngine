@@ -1141,7 +1141,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             scaledNear = max(scaledNear, worldScale * 0.001)
             scaledFar = min(scaledFar, worldScale * 1000.0)
             fovYRadians = fov // not really defined
-            val sceneScaleXY = 2f / fov // 2, because OpenGL goes from -1 to +1
+            val sceneScaleXY = 1f / fov
             val n: Float
             val f: Float
             // todo some devices may not support 01-range, so make this optional

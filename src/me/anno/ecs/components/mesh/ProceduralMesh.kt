@@ -96,10 +96,9 @@ abstract class ProceduralMesh : MeshComponentBase() {
          * */
         @JvmStatic
         fun testProceduralMesh(generate: (mesh: Mesh) -> Unit) {
-            TestStudio.testUI {
+            TestStudio.testUI3 {
                 EditorState.prefabSource = createProceduralMesh(generate).ref
                 SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
-                    .setWeight2(1f)
             }
         }
 

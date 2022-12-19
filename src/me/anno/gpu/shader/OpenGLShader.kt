@@ -161,17 +161,17 @@ abstract class OpenGLShader(val name: String) : ICacheData {
 
     var glslVersion = DefaultGLSLVersion
 
-    var program = -1
+    var program = 0
     var session = 0
 
     fun use(): Boolean {
         GFX.check()
         // Frame.bindMaybe()
         GFX.check()
-        if (program <= 0 || session != GFXState.session) {
+        if (program == 0 || session != GFXState.session) {
             compile()
         }
-        if (program <= 0) throw IllegalStateException()
+        if (program == 0) throw IllegalStateException()
         return if (program != lastProgram) {
             glUseProgram(program)
             GFX.check()
@@ -759,7 +759,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     operator fun get(name: String) = getUniformLocation(name)
 
     override fun destroy() {
-        if (program > -1) glDeleteProgram(program)
+        if (program != 0) glDeleteProgram(program)
     }
 
 }

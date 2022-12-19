@@ -8,9 +8,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
@@ -20,8 +18,6 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineStage
-import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.Renderer
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -252,16 +248,10 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     }
 
     companion object {
-
+        @JvmStatic
         val pipeline by lazy {
-            val pl = Pipeline(DeferredSettingsV2(listOf(), false))
-            pl.defaultStage = PipelineStage(
-                "", Sorting.NO_SORTING, 0, null, DepthMode.CLOSER,
-                true, CullMode.BOTH, pbrModelShader
-            )
-            pl
+            Pipeline(DeferredSettingsV2(listOf(), false))
         }
-
     }
 
 }

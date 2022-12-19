@@ -14,7 +14,7 @@ import me.anno.utils.OS
 
 fun main() {
     // test this shader, maybe with the brick texture :)
-    TestStudio.testUI {
+    TestStudio.testUI3 {
         val mat = TriplanarMaterial()
         mat.diffuseMap = OS.pictures.getChild("uv-checker.jpg")
         mat.normalMap = OS.pictures.getChild("BricksNormal.png")

@@ -5,12 +5,16 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import kotlin.math.roundToInt
 
 class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Saveable() {
 
     constructor() : this("Verdana", 24, false, false)
-    constructor(name: String, size: Int): this(name, size, isBold = false, isItalic = false)
+    constructor(name: String, size: Int) : this(name, size, isBold = false, isItalic = false)
+    constructor(name: String, size: Float) : this(name, size, isBold = false, isItalic = false)
+    constructor(source: FileReference, size: Int) : this(source.absolutePath, size)
+    constructor(source: FileReference, size: Float) : this(source.absolutePath, size)
 
     constructor(name: String, size: Int, isBold: Boolean, isItalic: Boolean) :
             this(name, size.toFloat(), isBold, isItalic)
@@ -59,6 +63,7 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
     var sample = lazy { SampleSize(this) }
     val sampleWidth get() = sample.value.width
     val sampleHeight get() = sample.value.height
+
     @Suppress("unused")
     val sampleSize get() = sample.value.size
 

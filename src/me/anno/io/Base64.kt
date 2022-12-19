@@ -11,9 +11,7 @@ object Base64 {
 
     private const val invalidCode: Byte = -1
     private val base64ToCode = ByteArray(256) { invalidCode }
-    private val codeToBase64 = (('A'..'Z') + ('a'..'z') + ('0'..'9') + listOf('+', '/'))
-        .map { it.code.toByte() }
-        .toByteArray()
+    private val codeToBase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toByteArray()
 
     init {
 
@@ -23,13 +21,13 @@ object Base64 {
         }
 
         // 62
-        base64ToCode['+'.code] = 62
+        // base64ToCode['+'.code] = 62
         base64ToCode['-'.code] = 62
 
         // 63
-        base64ToCode['/'.code] = 62
-        base64ToCode[','.code] = 62
-        base64ToCode['_'.code] = 62
+        // base64ToCode['/'.code] = 63
+        base64ToCode[','.code] = 63
+        base64ToCode['_'.code] = 63
 
         // padding
         base64ToCode['='.code] = 0
@@ -37,8 +35,8 @@ object Base64 {
     }
 
     fun encodeBase64(v: Long, writePadding: Boolean = false): String {
-        val input = ByteArray(64 / 8) { v.shr(it * 8).toInt().toByte() }
-        val output = ByteArrayOutputStream(ceilDiv(64, 6))
+        val input = ByteArray(8) { v.shr(it shl 3).toInt().toByte() }
+        val output = ByteArrayOutputStream(11) // ceil(64/6)
         encodeBase64(input.inputStream(), output, writePadding)
         return String(output.toByteArray())
     }

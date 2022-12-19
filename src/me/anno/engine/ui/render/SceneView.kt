@@ -62,9 +62,7 @@ class SceneView(
         }
 
         fun testSceneWithUI(scene: PrefabSaveable, init: (SceneView) -> Unit = {}) {
-            testUI {
-                testScene(scene, init)
-            }
+            testUI { testScene(scene, init) }
         }
 
         @Suppress("unused")

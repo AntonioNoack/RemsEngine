@@ -7,6 +7,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
@@ -149,7 +150,7 @@ val sections = arrayOf(
 )
 
 fun main() {
-    testUI {
+    testUI3 {
         val texture = Texture2D("doom", 1, 1, 1)
         object : Panel(style) {
             val camera = Matrix4f()
@@ -184,6 +185,6 @@ fun main() {
                 drawTexture(x, y, w, h, texture, true)
             }
             // todo controls
-        }.setWeight2(1f)
+        }
     }
 }

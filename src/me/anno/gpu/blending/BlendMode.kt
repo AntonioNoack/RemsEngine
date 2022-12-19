@@ -55,7 +55,7 @@ class BlendMode(
         glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
     }
 
-    fun copy(displayName: NameDesc, id: String): BlendMode {
+    fun cloneWithName(displayName: NameDesc, id: String): BlendMode {
         val mode = BlendMode(displayName, id)
         mode.set(src, dst, srcAlpha, dstAlpha)
         mode.set(func, funcAlpha)
@@ -99,7 +99,7 @@ class BlendMode(
             .set(BlendFunc.ADD)
 
         @Suppress("unused")
-        val SUB = ADD.copy(NameDesc("Sub", "", "gpu.blendMode.sub"), "Subtract")
+        val SUB = ADD.cloneWithName(NameDesc("Sub", "", "gpu.blendMode.sub"), "Subtract")
             .set(BlendFunc.REV_SUB)
 
         // a way to remove alpha from an image
@@ -109,7 +109,7 @@ class BlendMode(
             .set(BlendFunc.ADD)
 
         @Suppress("unused")
-        val SUB_COLOR = ADD.copy(NameDesc("Sub Color", "", "gpu.blendMode.subColor"), "Subtract Color")
+        val SUB_COLOR = ADD.cloneWithName(NameDesc("Sub Color", "", "gpu.blendMode.subColor"), "Subtract Color")
             .set(GL_ONE, GL_ONE)
             .set(BlendFunc.REV_SUB, BlendFunc.ADD)
 

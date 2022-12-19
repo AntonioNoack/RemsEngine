@@ -18,7 +18,6 @@ import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.Window
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
@@ -268,13 +267,7 @@ open class ColorInput(
         @JvmStatic
         fun main(args: Array<String>) {
             GFXBase.disableRenderDoc()
-            testUI {
-                ColorInput(style)
-                    .apply {
-                        alignmentX = AxisAlignment.CENTER
-                        alignmentY = AxisAlignment.CENTER
-                    }
-            }
+            testUI { ColorInput(style) }
         }
     }
 

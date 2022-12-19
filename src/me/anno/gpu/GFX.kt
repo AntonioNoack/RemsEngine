@@ -498,8 +498,7 @@ object GFX {
 
         setFrameNullSize(window)
 
-        JomlPools.reset()
-        Point.stack.reset()
+        me.anno.utils.pooling.Stack.resetAll()
 
         resetFBStack()
 

@@ -37,38 +37,4 @@ public class JomlPools {
     public static final Stack<AABBf> aabbf = new Stack<>(AABBf.class);
     public static final Stack<AABBd> aabbd = new Stack<>(AABBd.class);
 
-    public static void reset() {
-
-        vec2i.reset();
-        vec2f.reset();
-        vec2d.reset();
-
-        vec3i.reset();
-        vec3f.reset();
-        vec3d.reset();
-
-        vec4i.reset();
-        vec4f.reset();
-        vec4d.reset();
-
-        quat4f.reset();
-        quat4d.reset();
-
-        mat2f.reset();
-        mat2d.reset();
-
-        mat3f.reset();
-        mat3d.reset();
-
-        mat4f.reset();
-        mat4d.reset();
-
-        mat4x3f.reset();
-        mat4x3d.reset();
-
-        aabbf.reset();
-        aabbd.reset();
-
-    }
-
 }

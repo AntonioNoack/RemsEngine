@@ -1,6 +1,7 @@
 package me.anno.utils.pooling
 
 import org.apache.logging.log4j.LogManager
+import java.lang.ref.WeakReference
 import java.lang.reflect.Constructor
 import java.nio.BufferUnderflowException
 
@@ -9,10 +10,21 @@ class Stack<V : Any>(private val createInstance: () -> V) {
     companion object {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(Stack::class)
+        val stacks = ArrayList<WeakReference<Stack<*>>>()
+        fun resetAll() {
+            stacks.removeIf { it.get() == null }
+            for (stack in stacks) {
+                stack.get()?.reset()
+            }
+        }
     }
 
     constructor(clazz: Class<V>) : this(clazz.getConstructor())
     constructor(constructor: Constructor<V>) : this({ constructor.newInstance() })
+
+    init {
+        stacks.add(WeakReference(this))
+    }
 
     private class LocalStack<V : Any>(
         private val createInstance: () -> V

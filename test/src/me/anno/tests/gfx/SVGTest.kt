@@ -17,7 +17,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.input.Input
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.white4
 import me.anno.utils.OS.downloads
 import org.joml.Matrix4fArrayList
@@ -25,14 +25,14 @@ import org.joml.Matrix4fArrayList
 fun main() {
 
     GFXBase.forceLoadRenderDoc()
-    testUI {
+    testUI3 {
 
         // val srcFile = downloads.getChild("2d/tiger.svg")
         val srcFile = downloads.getChild("2d/gradientSample2.svg")
         // val srcFile = downloads.getChild("2d/spreadSample.svg")
         // val srcFile = downloads.getChild("2d/recruitment.svg")
         // val srcFile = downloads.getChild("2d/polyline2.svg")
-        val panel = object : Panel(DefaultConfig.style) {
+        object : Panel(DefaultConfig.style) {
             override val canDrawOverBorders = true
             override fun onUpdate() {
                 invalidateDrawing()
@@ -83,6 +83,5 @@ fun main() {
                 GFX.copy(msaaBuffer)
             }
         }
-        panel.setWeight2(1f)
     }
 }

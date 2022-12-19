@@ -159,7 +159,6 @@ object TRealtimeTest {
                         val maxDistanceF = maxDistance.toFloat()
                         val rayGroups = ThreadLocal2 { RayGroup(tileSize, tileSize, RayGroup(tileSize, tileSize)) }
                         pipeline.processBalanced2d(0, 0, w, h, tileSize, 1) { x0, y0, x1, y1 ->
-                            JomlPools.reset()
                             if (x0 + x1 < w) {
                                 val group = rayGroups.get()
                                 val dir = JomlPools.vec3f.create()

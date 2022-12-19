@@ -21,7 +21,7 @@ import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.toRGB
 import me.anno.utils.OS.documents
 import me.anno.utils.hpc.ProcessingGroup
@@ -182,7 +182,7 @@ fun main2(
 
     LogManager.disableLogger("WorkSplitter")
 
-    testUI {
+    testUI3 {
 
         val cpuTex0 = Texture2D("cpu", 1, 1, 1)
         val cpuTex1 = Texture2D("cpu", 1, 1, 1)
@@ -278,7 +278,6 @@ fun main2(
 
         main.add(list)
         list.setWeight2(100f)
-        main.setWeight2(100f)
         main
 
     }

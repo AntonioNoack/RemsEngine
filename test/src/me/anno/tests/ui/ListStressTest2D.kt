@@ -5,10 +5,10 @@ import me.anno.studio.StudioBase
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 
 fun main() {
-    testUI {
+    testUI3 {
         StudioBase.instance?.enableVSync = false
         val n = 100_000
         val list = PanelList2D(style)
@@ -22,6 +22,6 @@ fun main() {
             p.alignmentY = AxisAlignment.CENTER
             list.add(p)
         }
-        list.setWeight2(1f)
+        list
     }
 }

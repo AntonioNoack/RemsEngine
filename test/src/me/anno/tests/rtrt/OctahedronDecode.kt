@@ -12,7 +12,6 @@ import org.joml.Vector3f
 import kotlin.math.abs
 
 fun main() {
-
     // https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
     fun decode(f: Vector2f): Vector3f {
         f.mul(2f).sub(1f, 1f)
@@ -43,6 +42,4 @@ fun main() {
         }
     }
     testSceneWithUI(entity)
-
-    Matrix3f().getUnnormalizedRotation(Quaternionf())
 }

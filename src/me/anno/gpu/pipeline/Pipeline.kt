@@ -14,9 +14,12 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Frustum
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.CullMode
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.deferred.DeferredSettingsV2
@@ -58,7 +61,10 @@ class Pipeline(val deferred: DeferredSettingsV2?) : Saveable() {
 
     val lightPseudoStage = LightPipelineStage(deferred)
 
-    lateinit var defaultStage: PipelineStage
+    var defaultStage: PipelineStage = PipelineStage(
+        "default", Sorting.NO_SORTING, 0, null, DepthMode.CLOSER,
+        true, CullMode.BOTH, pbrModelShader
+    )
 
     var lastClickId = 0
 
