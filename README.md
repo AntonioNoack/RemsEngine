@@ -238,7 +238,7 @@ Using it, you can easily look up how and where pieces of engine code are being u
 
 You can also take a look at the Wiki. There, I describe the serialization system, how to create a mod, and supported file formats.
 
-In the future, I might create a website for it :).
+In the future, [the website will help you :)](https://remsengine.phychi.com/?s=learn).
 
 ## Wiki
 
