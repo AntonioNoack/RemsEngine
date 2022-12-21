@@ -50,12 +50,13 @@ class TestVehicleController : Component(), ControlReceiver {
         val factor = dtTo01(dt)
         lastForce = mix(lastForce, forceSum, factor)
         lastSteering = mix(lastSteering, steeringSum, factor)
-        lastBrake = mix(lastBrake, brakeForcePerWheel, factor)
+        lastBrake = brakeForcePerWheel
 
         entity?.anyComponentInChildren(VehicleWheel::class) {
             it.steering = lastSteering * it.steeringMultiplier
             it.brakeForce = lastBrake * it.brakeForceMultiplier
-            it.engineForce = lastForce * it.engineForceMultiplier
+            // bullet engine refused to brake, if the motor is running
+            it.engineForce = if (it.brakeForce > 0.0) 0.0 else lastForce * it.engineForceMultiplier
             false
         }
         return true

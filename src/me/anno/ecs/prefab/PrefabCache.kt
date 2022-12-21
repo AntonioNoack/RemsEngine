@@ -311,7 +311,10 @@ object PrefabCache : CacheSection("Prefab") {
         // LOGGER.info("get prefab from $resource, ${resource?.exists}, ${resource?.isDirectory}")
         return when {
             resource == null -> null
-            resource is InnerLinkFile -> getPrefabPair(resource.link, depth, async)
+            resource is InnerLinkFile -> {
+                println("[link] $resource -> ${resource.link}")
+                getPrefabPair(resource.link, depth, async)
+            }
             resource.exists && !resource.isDirectory -> {
                 val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
                     if (debugLoading) LOGGER.info("loading $file")
@@ -320,7 +323,13 @@ object PrefabCache : CacheSection("Prefab") {
                     loadPrefab4(file) { loaded, e ->
                         data.value = loaded
                         if (loaded != null) FileWatch.addWatchDog(file)
-                        if (debugLoading) LOGGER.info("loaded $file, got ${loaded?.className}")
+                        if (debugLoading) LOGGER.info(
+                            "loaded $file, got ${loaded?.className}@${
+                                System.identityHashCode(
+                                    loaded
+                                )
+                            }"
+                        )
                         e?.printStackTrace()
                     }
                     data

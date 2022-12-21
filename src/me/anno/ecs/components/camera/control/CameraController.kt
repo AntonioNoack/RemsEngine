@@ -93,10 +93,6 @@ abstract class CameraController : Component(), ControlReceiver {
         rotation.x = clamp(rotation.x, -PIf * 0.5f, PIf * 0.5f)
     }
 
-    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String): Boolean {
-        return super.onGotAction(x, y, dx, dy, action)
-    }
-
     /**
      * define the acceleration in [-1 .. +1] range. Larger values will be clamped.
      * */

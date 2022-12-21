@@ -443,7 +443,11 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             // todo draw the local coordinate arrows
             // debugDrawObject(colObj.getWorldTransform(tmpTrans), colObj.collisionShape, color)
 
-            colObj.collisionShape.getAabb(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
+            try {
+                colObj.collisionShape.getAabb(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
 
             DrawAABB.drawAABB(
                 bounds

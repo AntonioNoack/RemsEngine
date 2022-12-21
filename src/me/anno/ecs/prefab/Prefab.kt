@@ -29,10 +29,7 @@ class Prefab : Saveable {
         this.prefab = prefab
     }
 
-    constructor(prefab: Prefab) {
-        this.clazzName = prefab.clazzName
-        this.prefab = prefab.source
-    }
+    constructor(prefab: Prefab): this(prefab.clazzName, prefab.source)
 
     var clazzName = ""
 

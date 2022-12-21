@@ -351,7 +351,7 @@ class AnimGameItem(
     companion object {
 
         const val matrixSize = 12
-        @JvmField
+
         val maxBones = if (useAnimTextures) 256 // limited by indices that can be packed into a byte
         else {
             // limited by number of assignable uniform matrices

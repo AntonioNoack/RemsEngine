@@ -9,7 +9,6 @@ import me.anno.ecs.annotations.*
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
 import me.anno.ecs.components.physics.constraints.Constraint
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.NotSerializedProperty
@@ -166,6 +165,7 @@ open class Rigidbody : Component() {
             bulletInstance?.deactivationTime = value
         }
 
+    @Docs("velocity in global space")
     @DebugProperty
     var velocity = Vector3d()
         get() {
@@ -187,6 +187,62 @@ open class Rigidbody : Component() {
             }
         }
 
+    // todo setter for local velocity :)
+    @DebugProperty
+    val localVelocity = Vector3d()
+        get() {
+            val bi = bulletInstance
+            val tr = transform
+            if (bi != null && tr != null) {
+                val t = tr.globalTransform
+                val tmp = Stack.borrowVec()
+                bulletInstance?.getLinearVelocity(tmp)
+                field.set(
+                    t.m00 * tmp.x + t.m01 * tmp.y + t.m02 * tmp.z,
+                    t.m10 * tmp.x + t.m11 * tmp.y + t.m12 * tmp.z,
+                    t.m20 * tmp.x + t.m21 * tmp.y + t.m22 * tmp.z
+                )
+            }
+            return field
+        }
+
+    val localVelocityX: Double
+        get() {
+            val tr = transform
+            val bi = bulletInstance
+            return if (tr != null && bi != null) {
+                val t = tr.globalTransform
+                val tmp = Stack.borrowVec()
+                bulletInstance?.getLinearVelocity(tmp)
+                t.m00 * tmp.x + t.m01 * tmp.y + t.m02 * tmp.z
+            } else 0.0
+        }
+
+    val localVelocityY: Double
+        get() {
+            val tr = transform
+            val bi = bulletInstance
+            return if (tr != null && bi != null) {
+                val t = tr.globalTransform
+                val tmp = Stack.borrowVec()
+                bulletInstance?.getLinearVelocity(tmp)
+                t.m10 * tmp.x + t.m11 * tmp.y + t.m12 * tmp.z
+            } else 0.0
+        }
+
+    val localVelocityZ: Double
+        get() {
+            val tr = transform
+            val bi = bulletInstance
+            return if (tr != null && bi != null) {
+                val t = tr.globalTransform
+                val tmp = Stack.borrowVec()
+                bulletInstance?.getLinearVelocity(tmp)
+                t.m20 * tmp.x + t.m21 * tmp.y + t.m22 * tmp.z
+            } else 0.0
+        }
+
+    @Docs("angular velocity in global space")
     @DebugProperty
     var angularVelocity = Vector3d()
         get() {

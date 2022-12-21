@@ -17,7 +17,7 @@ fun main() {
         list.childHeight = 24
         for (i in 0 until n) {
             val p = TextPanel("Test-$i", style)
-            // todo alignment is not working
+            p.textAlignment = AxisAlignment.CENTER
             p.alignmentX = AxisAlignment.CENTER
             p.alignmentY = AxisAlignment.CENTER
             list.add(p)

@@ -374,7 +374,7 @@ open class FileExplorer(
                 }
 
                 for (file in level0) {
-                    if (file.isDirectory) {
+                    if (!file.isDirectory) {
                         tmpList.add(file)
                         if (tmpList.size >= tmpCount) {
                             put()

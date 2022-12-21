@@ -1414,12 +1414,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         (0L).takeLowestOneBit()
     }
 
-    fun drawGizmos(drawGridLines: Boolean, drawDebug: Boolean = true) {
+    var drawGridWhenPlaying = false
 
-        if (playMode != PlayMode.EDITING) {
-            DebugShapes.clear()
-            return
-        }
+    fun drawGizmos(drawGridLines: Boolean, drawDebug: Boolean = true) {
 
         val world = getWorld()
         // draw UI
@@ -1495,7 +1492,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                 // JomlPools.vec3d.sub(1)
 
-                if (drawGridLines) {
+                if (drawGridLines && (drawGridWhenPlaying || playMode == PlayMode.EDITING)) {
                     drawGrid(radius)
                 }
 

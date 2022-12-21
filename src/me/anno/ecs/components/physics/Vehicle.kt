@@ -22,8 +22,7 @@ class Vehicle : Rigidbody() {
     var frictionSlip = 10.5
 
     @DebugProperty
-    val wheelCount
-        get() = wheels.size
+    val wheelCount get() = wheels.size
 
     val wheels get() = entity!!.getComponentsInChildren(VehicleWheel::class)
 

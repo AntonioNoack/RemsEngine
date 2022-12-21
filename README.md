@@ -15,6 +15,10 @@ but they always had much in common, so I decided to write my own engine.
 This engine does not have the target to offer the best graphics, or be the best performant. Its goal is to be nice and
 quick to develop in, like a tool box.
 
+## [Official Website](https://remsengine.phychi.com/) (WIP)
+
+Once finished, the website will contain everything from this readme, plus tutorials on how to get started, and maybe/probably a link
+to a custom discord as well :). (I'm not sure yet whether I'll create one discord server for all projects, or seperate ones)
 
 ## Project Plan
 
@@ -105,24 +109,23 @@ graph TB
 - usable Multiplayer, local and tcp/udp
 - environment maps as lights
 - compute environment maps from the scene for reflections
-- animation trees
-- shader graphs
-- transparent meshes
-- export to Windows/Linux
+- animation trees (animations can be played and mixed, just not in tree form yet)
+- shader graphs (currently shaders are only writable in GLSL)
+- transparent meshes (possible right now, just needs a bit more logic)
+- export to Windows/Linux (currently manual)
 - usable Gizmos 😅
 - fully supported Lua scripting
-- surfel based global illumination
+  - [LuaAnimTextPanel](src/me/anno/ui/anim/LuaAnimTextPanel.kt)
+  - [QuickScriptComponent](src/me/anno/ecs/components/script/QuickScriptComponent.kt)
 
 ## Maybe Later Features
-- export to Web
-- export to Android <!--
-videos on Android using https://stackoverflow.com/questions/9375598/android-how-play-video-on-surfaceopengl?
--->
+- automatic export to Web
+- automatic export to Android
 - light baking for realistic graphics
 - trees for much stuff: animations, shaders
-- visual coding?
+- visual coding? in work already :)
 - support separate mice / keyboards for local multiplayer?
-- when we have no videos, we could ship without ffmpeg
+- Vulkan backend to support hardware raytracing
 
 ## Projects using Rem's Engine
 - [Rem's Studio](https://github.com/AntonioNoack/RemsStudio)
@@ -133,7 +136,7 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 - a few more, non-published (yet?)
 
 ## Getting Started
-- Download an IDE of your choice. I prefer Intellij Idea, but have worked with Eclipse in the past.
+- Download an IDE of your choice. I prefer IntelliJ IDEA, but have worked with Eclipse in the past.
 - Download either the engine source code, and compile it yourself, or download a pre-compiled jar.
   - If there is no release available yet, just ask for a build, and I'll create one :)
 - Add the engine jar as a dependency to your project.
@@ -162,9 +165,9 @@ You can find most examples in the "tests" folder. In total, there are more than 
 
 ## Ports
 - Linux, Windows by default
-- MacOS should be simple as long as Java is running
+- MacOS should be simple as long as Java is working there
 - [Android](https://github.com/AntonioNoack/RemsEngine-Android)
-- Web (WASM) WIP, not published yet; 
+- Web (WASM) WIP, not published yet;
 
 ## Build It
 

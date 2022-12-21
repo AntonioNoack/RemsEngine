@@ -1,6 +1,5 @@
 package me.anno.ui.editor.sceneView
 
-import me.anno.config.DefaultStyle
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
@@ -13,8 +12,8 @@ import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.M4x3Delta.m4x3delta
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.black
@@ -91,7 +90,7 @@ object Gizmos {
         shader.use()
         shader.m4x4("transform", cameraTransform)
         shader.m4x3delta("localTransform", localTransform, cameraPosition, worldScale)
-        if(shader["invLocalTransform"] >= 0){
+        if (shader["invLocalTransform"] >= 0) {
             val tmp = JomlPools.mat4x3d.borrow()
             tmp.set(localTransform).invert()
             val tmp2 = JomlPools.mat4x3f.borrow().set2(tmp)

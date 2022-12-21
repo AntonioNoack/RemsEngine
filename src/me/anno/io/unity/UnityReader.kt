@@ -484,9 +484,13 @@ object UnityReader {
         if (!isValidUUID(guid)) return InvalidRef
         root.children ?: return InvalidRef
 
+        var nodeCount = 0
+        var firstNode: FileReference? = null
+
         // first the members all need to be registered as files
         forAllUnityObjects(root) { fileId, node ->
-            folder.getOrPut(fileId) {
+            nodeCount++
+            firstNode = folder.getOrPut(fileId) {
                 val prefab = Prefab("Entity")
                 val file = InnerPrefabFile(folder.absolutePath + "/" + fileId, fileId, folder, prefab)
                 prefab.source = file
@@ -496,10 +500,15 @@ object UnityReader {
         }
 
         val sceneFile = folder.getOrPut("Scene.json") {
-            val prefab = Prefab("Entity")
-            val file = InnerPrefabFile(folder.absolutePath + "/Scene.json", "Scene.json", folder, prefab)
-            prefab.source = file
-            file
+            val absolutePath = folder.absolutePath + "/Scene.json"
+            if (nodeCount == 1) {
+                InnerLinkFile(absolutePath, "Scene.json", folder, firstNode!!)
+            } else {
+                val prefab = Prefab("Entity")
+                val file = InnerPrefabFile(absolutePath, "Scene.json", folder, prefab)
+                prefab.source = file
+                file
+            }
         }
 
         val meshesByGameObject = HashMap<FileReference, ArrayList<Prefab>>()
@@ -853,14 +862,16 @@ object UnityReader {
             }
         }*/
 
-        val scenePrefab = (sceneFile as PrefabReadable).readPrefab()
-        forAllUnityObjects(root) { fileId, node ->
-            val file = folder.get(fileId) as InnerPrefabFile
-            when (node.key) {
-                "Transform" -> {
-                    if (file !in knownChildren) {
-                        LOGGER.debug("Adding $fileId to Scene.json, because it hasn't been added yet")
-                        addPrefabChild(scenePrefab, file)
+        if (nodeCount > 1) {
+            val scenePrefab = (sceneFile as PrefabReadable).readPrefab()
+            forAllUnityObjects(root) { fileId, node ->
+                val file = folder.get(fileId) as InnerPrefabFile
+                when (node.key) {
+                    "Transform" -> {
+                        if (file !in knownChildren) {
+                            LOGGER.debug("Adding $fileId to Scene.json, because it hasn't been added yet")
+                            addPrefabChild(scenePrefab, file)
+                        }
                     }
                 }
             }

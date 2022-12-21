@@ -19,6 +19,7 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Matrices.isIdentity
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.thirdF
 import org.apache.logging.log4j.LogManager
@@ -31,6 +32,10 @@ open class MeshCollider() : Collider() {
 
     constructor(src: MeshCollider) : this() {
         src.copy(this)
+    }
+
+    constructor(src: FileReference) : this() {
+        meshFile = src
     }
 
     @SerializedProperty
@@ -46,6 +51,8 @@ open class MeshCollider() : Collider() {
             if (field == null) field = entity?.getComponentInChildren(MeshComponentBase::class, false)?.getMesh()
             return field
         }
+
+    val meshTransform = Matrix4x3f()
 
     @DebugProperty
     val meshTriangles get() = mesh?.numTriangles
@@ -107,8 +114,12 @@ open class MeshCollider() : Collider() {
         val mid = JomlPools.vec3f.create()
         val scaleUp = -0.001f // against small inaccuracies
         var neg = false
+        val meshTransform = meshTransform
         mesh.forEachTriangle(ai, bi, ci) { a, b, c ->
             // make the triangle slightly larger than it is
+            meshTransform.transformPosition(a)
+            meshTransform.transformPosition(b)
+            meshTransform.transformPosition(c)
             mid.set(a).add(b).add(c).mul(thirdF)
             a.lerp(mid, scaleUp)
             b.lerp(mid, scaleUp)
@@ -187,7 +198,11 @@ open class MeshCollider() : Collider() {
         val pa = JomlPools.vec3f.create()
         var best = Float.POSITIVE_INFINITY
         var neg = false // only works for convex shapes with center at zero
+        val meshTransform = meshTransform
         mesh.forEachTriangle { a, b, c ->
+            meshTransform.transformPosition(a)
+            meshTransform.transformPosition(b)
+            meshTransform.transformPosition(c)
             ac.set(a).sub(c)
             ba.set(b).sub(a)
             nor.set(ba).cross(ac)
@@ -228,24 +243,29 @@ open class MeshCollider() : Collider() {
 
         val indices = mesh.indices
 
+        val meshTransform = meshTransform
         cz.advel.stack.Stack.reset(false)
 
         if (isConvex) {
 
             // calculate convex hull
             // simplify it maybe
-            val convex = if (scale.x in 0.99..1.01 && scale.y in 0.99..1.01 && scale.z in 0.99..1.01) {
-                ConvexHullShape3(positions)
-            } else {
-                val points = ArrayList<javax.vecmath.Vector3d>(positions.size / 3)
-                for (i in positions.indices step 3) {
-                    val x = positions[i + 0] * scale.x
-                    val y = positions[i + 1] * scale.y
-                    val z = positions[i + 2] * scale.z
-                    points.add(javax.vecmath.Vector3d(x, y, z))
+            val convex =
+                if (scale.x in 0.99..1.01 && scale.y in 0.99..1.01 && scale.z in 0.99..1.01 && meshTransform.isIdentity()) {
+                    ConvexHullShape3(positions)
+                } else {
+                    val tmp = Vector3f()
+                    val points = ArrayList<javax.vecmath.Vector3d>(positions.size / 3)
+                    for (i in positions.indices step 3) {
+                        tmp.set(positions[i], positions[i + 1], positions[i + 2])
+                        meshTransform.transformPosition(tmp)
+                        val x = tmp.x * scale.x
+                        val y = tmp.y * scale.y
+                        val z = tmp.z * scale.z
+                        points.add(javax.vecmath.Vector3d(x, y, z))
+                    }
+                    ConvexHullShape(points)
                 }
-                ConvexHullShape(points)
-            }
             if (positions.size < 30 || !enableSimplifications) return convex
 
             val hull = ShapeHull(convex)
@@ -287,21 +307,24 @@ open class MeshCollider() : Collider() {
                 .allocate(4 * positions.size)
                 .order(ByteOrder.nativeOrder())
 
-            vertexBase.asFloatBuffer().apply {
-                if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
-                    put(positions)
-                } else {
-                    val sx = scale.x.toFloat()
-                    val sy = scale.y.toFloat()
-                    val sz = scale.z.toFloat()
-                    for (i in positions.indices step 3) {
-                        put(positions[i + 0] * sx)
-                        put(positions[i + 1] * sy)
-                        put(positions[i + 2] * sz)
-                    }
+            val fb = vertexBase.asFloatBuffer()
+            if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0 && meshTransform.isIdentity()) {
+                fb.put(positions)
+            } else {
+                val sx = scale.x.toFloat()
+                val sy = scale.y.toFloat()
+                val sz = scale.z.toFloat()
+                val tmp = Vector3f()
+                for (i in positions.indices step 3) {
+                    tmp.set(positions[i], positions[i + 1], positions[i + 2])
+                    meshTransform.transformPosition(tmp)
+                    fb.put(tmp.x * sx)
+                    fb.put(tmp.y * sy)
+                    fb.put(tmp.z * sz)
                 }
-                flip()
             }
+            fb.flip()
+
 
             val triangleCount = indexCount / 3
             // int numTriangles, ByteBuffer triangleIndexBase, int triangleIndexStride, int numVertices, ByteBuffer vertexBase, int vertexStride
@@ -342,8 +365,13 @@ open class MeshCollider() : Collider() {
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val mesh = mesh
         if (mesh != null) {
+            val mat = JomlPools.mat4x3d.borrow()
+            mat.set(globalTransform)
+            mat.mul(meshTransform)
             mesh.forEachPoint(preferExact) { x, y, z ->
-                aabb.union(globalTransform.transformPosition(tmp.set(x.toDouble(), y.toDouble(), z.toDouble())))
+                tmp.set(x.toDouble(), y.toDouble(), z.toDouble())
+                mat.transformPosition(tmp)
+                aabb.union(tmp)
             }
         } else super.union(globalTransform, aabb, tmp, preferExact)
     }
@@ -361,6 +389,7 @@ open class MeshCollider() : Collider() {
         clone.meshFile = meshFile
         clone.isConvex = isConvex
         clone.hull = hull
+        clone.meshTransform.set(meshTransform)
     }
 
     override val className get() = "MeshCollider"

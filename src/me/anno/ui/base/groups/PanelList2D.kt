@@ -6,6 +6,7 @@ import me.anno.input.MouseButton
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.sq
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.scrolling.ScrollPanelXY
@@ -158,7 +159,6 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
         invalidateDrawing()
     }
 
-    // todo make it work
     override fun getChildPanelAt(x: Int, y: Int): Panel? {
         val children = children
         if (children.isEmpty()) return null
@@ -169,14 +169,20 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
 
     fun getItemIndexAt(cx: Int, cy: Int): Int {
         val scroll = scrollPositionY.toInt()
-        // cx-x- spacing       = ix * (calcChildWidth + spacing)
-        // cy-y-spacing+scroll = iy * (calcChildHeight + spacing)
         val lw = (calcChildWidth + spacing)
         val lh = (calcChildHeight + spacing)
-        if (lw < 1 || lh < 1) return 0
+        if (lw < 1 || lh < 1 || children.size < 2) return children.size - 1
+        // cx = x + ix * (calcChildWidth + spacing) + spacing
         val itemX = (cx - x - spacing) / lw
         val itemY = (cy - y - spacing + scroll) / lh
-        return clamp(itemX + itemY * columns, 0, children.lastIndex)
+        val ci = min(max(itemX + itemY * columns, 0), children.lastIndex)
+        return if (ci > 0 && itemX > 0) {
+            val p0 = children[ci]
+            val p1 = children[ci - 1]
+            val d1 = sq(cx - (p1.x + p1.w / 2f), cy - (p1.y + p1.h / 2f))
+            val d0 = sq(cx - (p0.x + p0.w / 2f), cy - (p0.y + p0.h / 2f))
+            if (d1 < d0) ci - 1 else ci
+        } else ci
     }
 
     fun getItemFractionY(y: Float): Double {

@@ -154,6 +154,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         // todo we can't have constraints between two static rigidbodies
 
         val entity = rigidBody.entity!!
+        entity.validateTransform()
+
         var newlyCreated = false
         val bodyWithScale = rigidBodies.getOrPut(entity) {
             newlyCreated = true
@@ -194,8 +196,9 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     @NotSerializedProperty
     private var workerThread: Thread? = null
 
+    // todo transforms are not 100% stable with async physics
     @SerializedProperty
-    var synchronousPhysics = false
+    var synchronousPhysics = true
         set(value) {
             if (field != value) {
                 stopWorker()
