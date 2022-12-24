@@ -1,14 +1,12 @@
 package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.VariableCounter
-import me.anno.ecs.prefab.PrefabSaveable
-import org.joml.AABBf
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector4f
 
 /**
- * transforms positions, e.g. by sine waves
+ * transforms positions, e.g., by sine waves
  * */
 abstract class PositionMapper : SDFMapper() {
 
@@ -20,13 +18,14 @@ abstract class PositionMapper : SDFMapper() {
         posIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ): String?
 
     /**
-     * applies the transform to a vector, e.g. rotation or such
+     * applies the transform to a vector, e.g., rotation or such
      * @param pos position plus depth offset
      * */
-    abstract fun calcTransform(pos: Vector4f)
+    abstract fun calcTransform(pos: Vector4f, seeds: IntArrayList)
 
 }

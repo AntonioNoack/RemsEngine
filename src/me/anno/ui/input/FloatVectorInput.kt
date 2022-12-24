@@ -14,6 +14,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
+import me.anno.ui.input.components.VectorInputList
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
@@ -109,38 +110,19 @@ open class FloatVectorInput(
 
     private var resetListener: (() -> Any?)? = null
 
-    val valueList = object : PanelListX(style) {
-        override var isVisible: Boolean
-            get() = InputVisibility[visibilityKey]
-            set(_) {}
-
-        override fun onEnterKey(x: Float, y: Float) {
-            this@FloatVectorInput.onEnterKey(x, y)
-        }
-
-        override fun onEmpty(x: Float, y: Float) {
-            this@FloatVectorInput.onEmpty(x, y)
-        }
-    }
+    val valueList = VectorInputList(visibilityKey, style)
 
     init {
-
-        valueList.disableConstantSpaceForWeightedChildren = true
-
         if (type == Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
-
-        valueList += WrapAlign.TopFill
-
         this += valueList
         if (titleView != null) valueList.hide()
-
     }
 
     override var isInputAllowed: Boolean
         get() = valueFields.first().isInputAllowed
         set(value) {
-            titleView?.setTextAlpha(if(value) 1f else 0.5f)
-            for(child in valueFields){
+            titleView?.setTextAlpha(if (value) 1f else 0.5f)
+            for (child in valueFields) {
                 child.isInputAllowed = value
             }
         }
@@ -190,8 +172,7 @@ open class FloatVectorInput(
         resetListener = listener
     }
 
-    override fun onCopyRequested(x: Float, y: Float) =
-        "[${compX.lastValue}, ${compY?.lastValue ?: 0f}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
+    override fun onCopyRequested(x: Float, y: Float) = "[$vxd, $vyd, $vzd, $vwd]"
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         pasteVector(data)
@@ -251,10 +232,10 @@ open class FloatVectorInput(
         compW?.updateValueMaybe()
     }
 
-    val compX: FloatInput = addComponent("x")
-    val compY: FloatInput? = if (components > 1) addComponent("y") else null
-    val compZ: FloatInput? = if (components > 2) addComponent("z") else null
-    val compW: FloatInput? = if (components > 3) addComponent("w") else null
+    val compX = addComponent("x")
+    val compY = if (components > 1) addComponent("y") else null
+    val compZ = if (components > 2) addComponent("z") else null
+    val compW = if (components > 3) addComponent("w") else null
 
     val vx get() = compX.lastValue.toFloat()
     val vy get() = compY?.lastValue?.toFloat() ?: 0f
@@ -309,7 +290,7 @@ open class FloatVectorInput(
         compZ?.setValue(v.z, notify)
     }
 
-    override fun setValue(value: Vector4d, notify: Boolean): FloatVectorInput {
+    final override fun setValue(value: Vector4d, notify: Boolean): FloatVectorInput {
         compX.setValue(value.x, notify)
         compY?.setValue(value.y, notify)
         compZ?.setValue(value.z, notify)
@@ -338,20 +319,20 @@ open class FloatVectorInput(
         compW?.setValue(vi.vw, notify)
     }
 
-    var changeListener: (x: Double, y: Double, z: Double, w: Double) -> Unit = { _, _, _, _ ->
-    }
+    val changeListeners = ArrayList<(x: Double, y: Double, z: Double, w: Double) -> Unit>()
 
     fun onChange() {
-        changeListener(
-            compX.lastValue,
-            compY?.lastValue ?: 0.0,
-            compZ?.lastValue ?: 0.0,
-            compW?.lastValue ?: 0.0
-        )
+        for (changeListener in changeListeners)
+            changeListener(
+                compX.lastValue,
+                compY?.lastValue ?: 0.0,
+                compZ?.lastValue ?: 0.0,
+                compW?.lastValue ?: 0.0
+            )
     }
 
-    fun setChangeListener(listener: (x: Double, y: Double, z: Double, w: Double) -> Unit): FloatVectorInput {
-        changeListener = listener
+    fun addChangeListener(listener: (x: Double, y: Double, z: Double, w: Double) -> Unit): FloatVectorInput {
+        changeListeners.add(listener)
         return this
     }
 
@@ -489,9 +470,8 @@ open class FloatVectorInput(
     }
 
     fun onEmpty2(defaultValue: Any) {
-        valueFields.forEachIndexed { index, pureTextInput ->
-            val double = getDouble(defaultValue, index)
-            pureTextInput.setValue(double, false)// = double.toString()
+        for (index in valueFields.indices) {
+            valueFields[index].setValue(getDouble(defaultValue, index), false)
         }
         if (resetListener == null) {
             onChange()
@@ -512,7 +492,8 @@ open class FloatVectorInput(
         super.copy(clone)
         clone as FloatVectorInput
         // only works if there are no hard references
-        clone.changeListener = changeListener
+        clone.changeListeners.clear()
+        clone.changeListeners.addAll(changeListeners)
         clone.resetListener = resetListener
         clone.setValue(Vector4d(vxd, vyd, vzd, vwd), false)
     }

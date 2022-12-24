@@ -7,6 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.min
@@ -29,9 +30,10 @@ class SDFStairs : SDF2DShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(dot2)
         functions.add(stairsSDF)
         smartMinBegin(builder, dstIndex)
@@ -42,10 +44,10 @@ class SDFStairs : SDF2DShape() {
         if (dynamicSize) builder.appendUniform(uniforms, stepSizeCount)
         else builder.appendVec(stepSizeCount)
         builder.append(')')
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val whn = stepSizeCount
         val w = whn.x
         val h = whn.y

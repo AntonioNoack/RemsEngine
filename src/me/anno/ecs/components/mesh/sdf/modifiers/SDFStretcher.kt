@@ -10,6 +10,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -56,7 +57,8 @@ class SDFStretcher() : PositionMapper() {
         posIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ): String? {
         // p=p-clamp(p,-h,h)
         builder.append("pos").append(posIndex)
@@ -97,7 +99,7 @@ class SDFStretcher() : PositionMapper() {
         }
     }
 
-    override fun calcTransform(pos: Vector4f) {
+    override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
         val e = halfExtends
         val ex = e.x
         val ey = e.y

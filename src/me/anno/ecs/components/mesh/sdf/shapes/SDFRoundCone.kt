@@ -8,6 +8,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -71,9 +72,10 @@ open class SDFRoundCone : SDFShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdRoundCone)
         smartMinBegin(builder, dstIndex)
         builder.append("sdRoundCone(pos").append(trans.posIndex).append(',')
@@ -90,10 +92,10 @@ open class SDFRoundCone : SDFShape() {
             builder.appendVec(params)
         }
         builder.append(')')
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         // correct? should be
         val r1 = innerRadius
         val r2 = outerRadius

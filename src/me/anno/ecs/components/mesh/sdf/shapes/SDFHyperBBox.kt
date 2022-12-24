@@ -11,6 +11,7 @@ import me.anno.io.ISaveable
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.ui.debug.TestStudio
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
@@ -41,9 +42,10 @@ class SDFHyperBBox : SDFHyperCube() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(hyperProjection)
         functions.add(boundingBoxSDF)
         smartMinBegin(builder, dstIndex)
@@ -68,14 +70,14 @@ class SDFHyperBBox : SDFHyperCube() {
             else builder.append(smoothness)
         }
         builder.append(')')
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
     private fun lineSDF(x: Float, y: Float, z: Float): Float {
         return length(max(x, 0f), max(y, 0f), max(z, 0f)) + min(max(x, max(y, z)), 0f)
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         // todo not correct, just 3d
         val thickness = thickness
         val b = halfExtends

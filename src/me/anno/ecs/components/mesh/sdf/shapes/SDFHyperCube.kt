@@ -12,6 +12,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -47,9 +48,10 @@ open class SDFHyperCube : SDFSmoothShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(hyperProjection)
         functions.add(sdBox4)
         smartMinBegin(builder, dstIndex)
@@ -67,10 +69,10 @@ open class SDFHyperCube : SDFSmoothShape() {
             builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
         }
         builder.append(')')
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         // todo not correct, just 3d
         val r = smoothness
         val b = halfExtends

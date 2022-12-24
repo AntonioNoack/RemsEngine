@@ -12,6 +12,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import org.joml.AABBf
 import org.joml.Vector2f
@@ -254,17 +255,18 @@ class SDFGroup : SDFComponent() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
         val children = children
         if (children.any2 { it.isEnabled }) {
             val type = type
-            val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+            val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
             val posIndex = trans.posIndex
             if (numActiveChildren == 1) {
                 // done ^^
                 children.first { it.isEnabled }
-                    .buildShader(builder, posIndex, nextVariableId, dstIndex, uniforms, functions)
+                    .buildShader(builder, posIndex, nextVariableId, dstIndex, uniforms, functions, seeds)
             } else {
                 val style = style
                 val tmpIndex = nextVariableId.next()
@@ -284,7 +286,7 @@ class SDFGroup : SDFComponent() {
                         builder.append('w').append(weightIndex)
                         builder.append("=1.0-abs(").append(param1).append('-').append(activeIndex).append(".0);\n")
                         //builder.append("if(w").append(weightIndex).append(" > 0.0){\n")
-                        child.buildShader(builder, posIndex, nextVariableId, tmpIndex, uniforms, functions)
+                        child.buildShader(builder, posIndex, nextVariableId, tmpIndex, uniforms, functions, seeds)
                         builder.append("if(w").append(weightIndex)
                             .append(" >= 0.5){\n") // assign material if this is the most dominant
                         builder.append("res").append(dstIndex).append(".y=res").append(tmpIndex).append(".y;\n")
@@ -353,7 +355,7 @@ class SDFGroup : SDFComponent() {
                         if (!child.isEnabled) continue
                         activeIndex++
                         val vi = if (activeIndex == 0) dstIndex else tmpIndex
-                        child.buildShader(builder, posIndex, nextVariableId, vi, uniforms, functions)
+                        child.buildShader(builder, posIndex, nextVariableId, vi, uniforms, functions, seeds)
                         if (activeIndex > 0) {
                             // we need to merge two values
                             builder.append("res").append(dstIndex)
@@ -388,20 +390,20 @@ class SDFGroup : SDFComponent() {
             if (scaleName != null) builder.append("res").append(dstIndex).append(".x*=").append(scaleName).append(";\n")
             if (localReliability != 1f) builder.append("res").append(dstIndex).append(".x*=")
                 .appendUniform(uniforms, GLSLType.V1F) { localReliability }.append(";\n")
-            buildDMShader(builder, posIndex, dstIndex, nextVariableId, uniforms, functions)
+            buildDMShader(builder, posIndex, dstIndex, nextVariableId, uniforms, functions, seeds)
         } else {
             builder.append("res").append(dstIndex).append("=vec2(Infinity,-1.0);\n")
-            buildDMShader(builder, posIndex0, dstIndex, nextVariableId, uniforms, functions)
+            buildDMShader(builder, posIndex0, dstIndex, nextVariableId, uniforms, functions, seeds)
         }
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         return when (numActiveChildren) {
             0 -> Float.POSITIVE_INFINITY
             1 -> {
                 val pw = pos.w
                 pos.w = 0f
-                return (children.first { it.isEnabled }.computeSDF(pos) + pw) * scale
+                return (children.first { it.isEnabled }.computeSDF(pos, seeds) + pw) * scale
             }
             else -> {
                 val pw = pos.w
@@ -426,14 +428,14 @@ class SDFGroup : SDFComponent() {
                         val weight = 1f - abs(progress - activeIndex)
                         if (weight > 0f) {
                             pos.set(px, py, pz, 0f)
-                            val d1 = child.computeSDF(pos)
+                            val d1 = child.computeSDF(pos, seeds)
                             d0 += d1 * weight
                         }// we could maybe exit early...
 
                     } else {
 
                         pos.set(px, py, pz, 0f)
-                        val d1 = child.computeSDF(pos)
+                        val d1 = child.computeSDF(pos, seeds)
                         d0 = if (activeIndex == 0) d1
                         else when (type) {
                             CombinationMode.UNION -> sMinCubic(d0, d1, k)
@@ -465,16 +467,16 @@ class SDFGroup : SDFComponent() {
         }
     }
 
-    override fun findClosestComponent(pos: Vector4f): SDFComponent {
+    override fun findClosestComponent(pos: Vector4f, seeds: IntArrayList): SDFComponent {
         val children = children
         return when (numActiveChildren) {
             0 -> this
             1 -> {
-                applyTransform(pos)
-                children.first { it.isEnabled }.findClosestComponent(pos)
+                applyTransform(pos, seeds)
+                children.first { it.isEnabled }.findClosestComponent(pos, seeds)
             }
             else -> {
-                applyTransform(pos)
+                applyTransform(pos, seeds)
                 val px = pos.x
                 val py = pos.y
                 val pz = pos.z
@@ -492,17 +494,17 @@ class SDFGroup : SDFComponent() {
                             .filter { it.isEnabled }
                             .minByOrNull {
                                 pos.set(px, py, pz, 0f)
-                                abs(it.computeSDF(pos))
+                                abs(it.computeSDF(pos, seeds))
                             }!!
                         pos.set(px, py, pz, 0f)
-                        return bestChild.findClosestComponent(pos)
+                        return bestChild.findClosestComponent(pos, seeds)
                     }
                     CombinationMode.INTERPOLATION -> {
                         // child with the largest weight
                         pos.set(px, py, pz, 0f)
                         val enabled = children.filter { it.isEnabled }
                         return enabled[clamp(progress.roundToInt(), 0, enabled.lastIndex)]
-                            .findClosestComponent(pos)
+                            .findClosestComponent(pos, seeds)
                     }
                     CombinationMode.ENGRAVE,
                     CombinationMode.GROOVE,
@@ -513,10 +515,10 @@ class SDFGroup : SDFComponent() {
                             val child = children[index]
                             if (child.isEnabled) {
                                 pos.set(px, py, pz, 0f)
-                                val distance = child.computeSDF(pos)
+                                val distance = child.computeSDF(pos, seeds)
                                 if (bestComp == null || abs(distance) < k) {
                                     pos.set(px, py, pz, 0f)
-                                    bestComp = child.findClosestComponent(pos)
+                                    bestComp = child.findClosestComponent(pos, seeds)
                                 }
                             }
                         }

@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.sdf
 
 import me.anno.ecs.components.mesh.sdf.modifiers.*
+import me.anno.ecs.components.mesh.sdf.modifiers.random.SDFUVSeed
 import me.anno.ecs.components.mesh.sdf.shapes.*
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
@@ -51,6 +52,8 @@ object SDFRegistry {
         registerCustomClass(SDFVoronoiArray())
         // physics
         registerCustomClass(SDFCollider())
+        // random
+        registerCustomClass(SDFUVSeed())
     }
 
 }

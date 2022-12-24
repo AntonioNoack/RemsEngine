@@ -9,6 +9,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sign
 
 abstract class PanelGroup(style: Style) : Panel(style) {
 
@@ -80,7 +81,12 @@ abstract class PanelGroup(style: Style) : Panel(style) {
             for (child in children) {
                 child.printLayout(tabDepth + 1)
             }
-        } else println("${Tabs.spaces((tabDepth + 1) * 2)}...")
+        } else {
+            val cs = children.size
+            print(Tabs.spaces((tabDepth + 1) * 2))
+            if(cs == 1) println("... (1 child)")
+            else println("... (${children.size} children)")
+        }
     }
 
     override fun onSelectAll(x: Float, y: Float) {

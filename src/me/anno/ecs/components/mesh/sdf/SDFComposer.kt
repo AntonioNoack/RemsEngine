@@ -7,7 +7,9 @@ import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
+import me.anno.ecs.components.mesh.sdf.modifiers.random.SDFUVSeed
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox.Companion.sdBox
+import me.anno.ecs.components.mesh.sdf.shapes.SDFShape
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
@@ -20,6 +22,7 @@ import me.anno.maths.Maths.length
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector2f
 import org.joml.Vector3f
+import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -40,13 +43,13 @@ object SDFComposer {
     const val raycasting = "" +
             // input: vec3 ray origin, vec3 ray direction
             // output: vec2(distance, materialId)
-            "vec2 raycast(vec3 ro, vec3 rd, out int i){\n" +
+            "vec2 raycast(vec3 ro, vec3 rd, out int i, inout vec2 uv){\n" +
             // ray marching
             "   vec2 res = vec2(-1.0);\n" +
             "   float tMin = distanceBounds.x, tMax = distanceBounds.y;\n" +
             "   float t = tMin;\n" +
             "   for(i=0; i<maxSteps && t<tMax; i++){\n" +
-            "     vec2 h = map(ro,rd,ro+rd*t);\n" +
+            "     vec2 h = map(ro,rd,ro+rd*t,uv);\n" +
             "     if(abs(h.x)<(sdfMaxRelativeError*t)){\n" + // allowed error grows with distance
             "       res = vec2(t,h.y);\n" +
             "       break;\n" +
@@ -61,11 +64,11 @@ object SDFComposer {
     const val normal = "" +
             "vec3 calcNormal(vec3 ro, vec3 rd, vec3 pos, float epsilon) {\n" +
             // inspired by tdhooper and klems - a way to prevent the compiler from inlining map() 4 times
-            "  vec3 n = vec3(0.0);\n" +
+            "  vec3 n = vec3(0.0);vec2 uv;\n" +
             "  for(int i=ZERO;i<4;i++) {\n" +
             // 0.5773 is just a scalar factor
             "      vec3 e = vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))*2.0-1.0;\n" +
-            "      n += e*map(ro,rd,pos+e*epsilon).x;\n" +
+            "      n += e*map(ro,rd,pos+e*epsilon,uv).x;\n" +
             "  }\n" +
             "  return normalize(n);\n" +
             "}\n"
@@ -77,7 +80,8 @@ object SDFComposer {
         val functions = LinkedHashSet<String>()
         val uniforms = HashMap<String, TypeValue>()
         val shapeDependentShader = StringBuilder()
-        tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions)
+        val seeds = ArrayList<String>()
+        tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions, seeds)
         uniforms["localCamPos"] = TypeValueV3(GLSLType.V3F, Vector3f()) { dst ->
             val dt = tree.transform?.getDrawMatrix()
             if (dt != null) {
@@ -156,14 +160,41 @@ object SDFComposer {
             .append("switch(clamp(int(ray.y),0,")
             .append(materials.lastIndex)
             .append(")){\n")
+
+        // register all materials that use textures
+        val materialsUsingTextures = BitSet(materials.size)
+        tree.simpleTraversal(false) {
+            if (it is SDFComponent && it.positionMappers.any { pm -> pm is SDFUVSeed }) {
+                it.simpleTraversal(false) { c ->
+                    if (c is SDFShape) {
+                        if (c.materialId < materialsUsingTextures.size())
+                            materialsUsingTextures.set(c.materialId)
+                    }
+                    false
+                }
+            }
+            false
+        }
+
         for (index in 0 until max(materials.size, 1)) {
             if (needsSwitch) builder.append("case ").append(index).append(":\n")
             val material = materials.getOrNull(index) ?: defaultMaterial
             // todo support shading functions, textures and material interpolation
             // define all properties as uniforms, so they can be changed without recompilation
+
+            // todo this is pretty limited by the total number of textures :/
+            val canUseTextures = materialsUsingTextures[index]
             val color = defineUniform(uniforms, material.diffuseBase)
-            builder.append("finalColor = ").append(color).append(".xyz;\n")
-            builder.append("finalAlpha = ").append(color).append(".w;\n")
+            if (canUseTextures && material.diffuseMap.exists) {
+                builder.append("vec4 color = texture(")
+                    .append(defineUniform(uniforms, GLSLType.S2D) { material.diffuseMap })
+                    .append(",uv) * ").append(color).append(";\n")
+            } else {
+                builder.append("vec4 color = ").append(color).append(";\n")
+            }
+            builder.append("finalColor = color.rgb;\n")
+            builder.append("finalAlpha = color.w;\n")
+            // todo create textures for these
             builder.append("finalMetallic = ").appendUniform(uniforms, material.metallicMinMax).append(".y;\n")
             builder.append("finalRoughness = ").appendUniform(uniforms, material.roughnessMinMax).append(".y;\n")
             builder.append("finalEmissive = ").appendUniform(uniforms, material.emissiveBase).append(";\n")
@@ -255,11 +286,12 @@ object SDFComposer {
                             "   vec3 localHit = invLocalTransform * vec4(finalPosition, 1.0);\n" +
                             "   localPos = localHit - localDir * dot(localDir, localHit - localCamPos);\n" +
                             "}\n" +
-                            "vec2 ray = map(localPos,localDir,localPos);\n" +
+                            "vec2 uv = vec2(0.0);\n" +
+                            "vec2 ray = map(localPos,localDir,localPos,uv);\n" +
                             "int steps;\n" +
                             "finalAlpha = 0.0;\n" +
                             "if(ray.x >= 0.0){\n" + // not inside an object
-                            "   ray = raycast(localPos, localDir, steps);\n" +
+                            "   ray = raycast(localPos, localDir, steps, uv);\n" +
                             "   if(debugMode != ${DebugMode.NUM_STEPS.id}){\n" +
                             "       if(ray.y < 0.0 || (debugMode == ${DebugMode.SDF_ON_Y.id} && (localPos.y+ray.x*localDir.y)*sign(localDir.y) > 0.0)){\n" + // hit nothing -> sky or similar
                             "           if(debugMode == ${DebugMode.SDF_ON_Y.id}){\n" +
@@ -275,7 +307,7 @@ object SDFComposer {
                             "                       finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
                             "                       vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
                             "                       gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                            "                       distance = map(localPos,localDir,localHit).x;\n" + // < 0.0 removed, because we show the shape there
+                            "                       distance = map(localPos,localDir,localHit,uv).x;\n" + // < 0.0 removed, because we show the shape there
                             // waves like in Inigo Quilez demos, e.g. https://www.shadertoy.com/view/tt3yz7
                             // show the inside as well? mmh...
                             "                       vec3 col = vec3(0.9,0.6,0.3) * (1.0 - exp(-2.0*distance));\n" +
@@ -365,7 +397,7 @@ object SDFComposer {
                             "#define PHI 1.618033988749895\n"
                 )
                 for (func in functions) builder2.append(func)
-                builder2.append("vec2 map(vec3 ro, vec3 rd, vec3 pos0){\n")
+                builder2.append("vec2 map(vec3 ro, vec3 rd, vec3 pos0, inout vec2 uv){\n")
                 builder2.append("   vec2 res0;\n")
                 builder2.append(shapeDependentShader)
                 builder2.append("   return res0;\n}\n")

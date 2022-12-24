@@ -7,6 +7,8 @@ import me.anno.studio.StudioBase.Companion.warn
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.TitledListY
+import me.anno.ui.base.text.TextStyleable
+import me.anno.ui.input.components.VectorInputList
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -21,52 +23,44 @@ import org.joml.Vector4i
 import kotlin.math.roundToInt
 
 open class IntVectorInput(
-    style: Style, title: String,
+    title: String,
     visibilityKey: String,
     val type: Type,
+    style: Style,
     val createComponent: () -> IntInput
-) : TitledListY(title, visibilityKey, style), InputPanel<Vector4i> {
+) : TitledListY(title, visibilityKey, style), InputPanel<Vector4i>, TextStyleable {
 
-    constructor(style: Style, title: String, visibilityKey: String, type: Type) :
-            this(style, title, visibilityKey, type, { IntInput(style, "", visibilityKey, type) })
+    constructor(title: String, visibilityKey: String, type: Type, style: Style) :
+            this(title, visibilityKey, type, style, { IntInput(style, "", visibilityKey, type) })
 
-    constructor(style: Style) : this(style, "", "", Type.INT)
+    constructor(style: Style) : this("", "", Type.INT, style)
 
-    constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector2i, type: Type
-    ) : this(style, title, visibilityKey, type) {
+    constructor(title: String, visibilityKey: String, value: Vector2i, type: Type, style: Style) :
+            this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
-    constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector3i, type: Type
-    ) : this(style, title, visibilityKey, type) {
+    constructor(title: String, visibilityKey: String, value: Vector3i, type: Type, style: Style) :
+            this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
-    constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector4i, type: Type
-    ) : this(style, title, visibilityKey, type) {
+    constructor(title: String, visibilityKey: String, value: Vector4i, type: Type, style: Style) :
+            this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
-    private val components: Int = type.components
+    private val components: Int get() = type.components
     private val valueFields = ArrayList<IntInput>(components)
 
     private var resetListener: (() -> Any?)? = null
 
-    val valueList = PanelListX(style)
+    val valueList = VectorInputList(visibilityKey, style)
 
     init {
-
-        valueList.disableConstantSpaceForWeightedChildren = true
-
         if (type == Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
-
-        valueList += WrapAlign.TopFill
         this += valueList
         if (titleView != null) valueList.hide()
-
     }
 
     override var isInputAllowed: Boolean
@@ -79,12 +73,31 @@ open class IntVectorInput(
         }
 
     override val lastValue: Vector4i
-        get() = Vector4i(
-            compX.lastValue.toInt(),
-            compY?.lastValue?.toInt() ?: 0,
-            compZ?.lastValue?.toInt() ?: 0,
-            compW?.lastValue?.toInt() ?: 0
-        )
+        get() = Vector4i(vx.toInt(), vy.toInt(), vz.toInt(), vw.toInt())
+
+    override var textColor: Int
+        get() = titleView?.textColor ?: 0
+        set(value) {
+            titleView?.textColor = value
+        }
+
+    override var textSize: Float
+        get() = titleView?.textSize ?: 0f
+        set(value) {
+            titleView?.textSize = value
+        }
+
+    override var isBold: Boolean
+        get() = titleView?.isBold == true
+        set(value) {
+            titleView?.isBold = value
+        }
+
+    override var isItalic: Boolean
+        get() = titleView?.isItalic == true
+        set(value) {
+            titleView?.isItalic = value
+        }
 
     fun setResetListener(listener: (() -> Any?)?) {
         resetListener = listener
@@ -93,9 +106,7 @@ open class IntVectorInput(
     private fun addComponent(title: String): IntInput {
         val component = createComponent()
         component.inputPanel.tooltip = title
-        component.setChangeListener {
-            onChange()
-        }
+        component.setChangeListener { onChange() }
         valueList += component.setWeight2(1f)
         valueFields += component
         return component
@@ -187,7 +198,7 @@ open class IntVectorInput(
         compZ?.setValue(v.z, notify)
     }
 
-    override fun setValue(value: Vector4i, notify: Boolean): IntVectorInput {
+    final override fun setValue(value: Vector4i, notify: Boolean): IntVectorInput {
         compX.setValue(value.x, notify)
         compY?.setValue(value.y, notify)
         compZ?.setValue(value.z, notify)
@@ -229,34 +240,6 @@ open class IntVectorInput(
         return this
     }
 
-    /*override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-       super.onMouseDown(x, y, button)
-       mouseIsDown = true
-   }
-
-   var mouseIsDown = false
-   override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-       super.onMouseMoved(x, y, dx, dy)
-       if (mouseIsDown) {
-          // to do scale like the int input does it
-         val size = 20f * shiftSlowdown * (if (selectedTransform is Camera) -1f else 1f) / max(GFX.width, GFX.height)
-          val dx0 = dx * size
-          val dy0 = dy * size
-          val delta = dx0 - dy0
-          when (type) {
-              else -> {// universal version, just scaling
-                  val scale = pow(1.1f, delta)
-                  setValue(Vector4i(vx * scale, vy * scale, vz * scale, vw * scale), true)
-              }
-          }
-       }
-   }
-
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        super.onMouseUp(x, y, button)
-        mouseIsDown = false
-    }*/
-
     override fun onEmpty(x: Float, y: Float) {
         val resetListener = resetListener
         if (resetListener == null) {
@@ -273,18 +256,18 @@ open class IntVectorInput(
     }
 
     fun onEmpty2(defaultValue: Any) {
-        valueFields.forEachIndexed { index, pureTextInput ->
-            pureTextInput.setValue(getInt(defaultValue, index), false)
+        for (index in valueFields.indices) {
+            valueFields[index].setValue(getInt(defaultValue, index), false)
         }
         if (resetListener == null) {
             onChange()
         }
     }
 
-    override fun getCursor(): Long = Cursor.drag
+    override fun getCursor() = Cursor.drag
 
     override fun clone(): IntVectorInput {
-        val clone = IntVectorInput(style, title, visibilityKey, type, createComponent)
+        val clone = IntVectorInput(title, visibilityKey, type, style, createComponent)
         copy(clone)
         return clone
     }

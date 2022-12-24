@@ -11,6 +11,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.length
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector4f
 import kotlin.math.*
 
@@ -31,9 +32,10 @@ class SDFPolygon : SDF2DShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdPolygon)
         smartMinBegin(builder, dstIndex)
         builder.append("sdPolygon(")
@@ -48,10 +50,10 @@ class SDFPolygon : SDF2DShape() {
             builder.append("vec2(").append(cos(an)).append(',').append(sin(an)).append(')')
         }
         builder.append(')')
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val an = (PI / points).toFloat()
         val can = cos(an)
         val san = sin(an)

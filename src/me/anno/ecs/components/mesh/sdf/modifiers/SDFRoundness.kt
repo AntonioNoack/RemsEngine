@@ -42,7 +42,8 @@ class SDFRoundness : DistanceMapper() {
         dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
         builder.append("res").append(dstIndex).append(".x-=")
         val dynamic = dynamic || globalDynamic

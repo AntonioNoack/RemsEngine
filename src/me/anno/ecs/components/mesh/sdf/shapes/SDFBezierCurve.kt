@@ -9,6 +9,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector4f
 import kotlin.math.min
@@ -34,9 +35,10 @@ class SDFBezierCurve : SDFShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         val points = points
         functions.add(sdBezier)
         functions.add(getFunction(points.size))
@@ -54,7 +56,7 @@ class SDFBezierCurve : SDFShape() {
             }
         }
         builder.append(")")
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
     override fun calculateBaseBounds(dst: AABBf) {
@@ -69,7 +71,7 @@ class SDFBezierCurve : SDFShape() {
         }
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val points = points
         return when (points.size) {
             0 -> Float.POSITIVE_INFINITY

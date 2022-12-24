@@ -82,7 +82,8 @@ class SDFColumn : DistanceMapper() {
         dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
         functions.add(sdColumn)
         builder.append("res").append(dstIndex).append(".x-=")

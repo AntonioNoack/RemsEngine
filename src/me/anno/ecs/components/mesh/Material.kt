@@ -60,6 +60,9 @@ open class Material : PrefabSaveable(), Renderable {
     @Range(0.0, 1.0)
     @Type("Color4HDR")
     var diffuseBase = Vector4f(1f)
+        set(value) {
+            field.set(value)
+        }
     var diffuseMap: FileReference = InvalidRef
 
     @Range(-100.0, 100.0)
@@ -78,6 +81,9 @@ open class Material : PrefabSaveable(), Renderable {
     @Range(0.0, 100.0)
     @Type("Color3HDR")
     var emissiveBase = Vector3f(0f)
+        set(value) {
+            field.set(value)
+        }
 
     @Type("Texture/Reference")
     var emissiveMap: FileReference = InvalidRef
@@ -114,6 +120,9 @@ open class Material : PrefabSaveable(), Renderable {
     // if you don't like the monotonicity, you can add your own fresnel effect in the shader
     @Type("Color4")
     var clearCoatColor = Vector4f(1f, 1f, 1f, 0f)
+        set(value) {
+            field.set(value)
+        }
 
     @Range(0.0, 1.0)
     var clearCoatMetallic = 1f

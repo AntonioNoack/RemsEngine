@@ -7,6 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Triangles.crossDot
 import org.joml.AABBf
 import org.joml.Vector3f
@@ -54,11 +55,12 @@ open class SDFTriangle : SDFShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
         functions.add(dot2)
         functions.add(udTriangle)
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         smartMinBegin(builder, dstIndex)
         builder.append("udTriangle(pos")
         builder.append(trans.posIndex)
@@ -78,7 +80,7 @@ open class SDFTriangle : SDFShape() {
             builder.appendVec(c)
         }
         builder.append(')')
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
     // dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa)
@@ -90,7 +92,7 @@ open class SDFTriangle : SDFShape() {
         return fx * fx + fy * fy + fz * fz
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
 
         val cb = JomlPools.vec3f.create()
         val ba = JomlPools.vec3f.create()

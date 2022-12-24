@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
@@ -54,9 +55,10 @@ open class SDFPyramid : SDFShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdPyramid)
         smartMinBegin(builder, dstIndex)
         builder.append("sdPyramid(pos")
@@ -66,10 +68,10 @@ open class SDFPyramid : SDFShape() {
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else builder.appendVec(params)
         builder.append(')')
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val px = max(abs(pos.x), abs(pos.z))
         val params = params
         val qx = params.x

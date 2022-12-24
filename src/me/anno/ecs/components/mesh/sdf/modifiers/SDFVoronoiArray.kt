@@ -12,6 +12,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.AABBf
 import org.joml.Vector2f
@@ -88,7 +89,8 @@ class SDFVoronoiArray : PositionMapper() {
         posIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ): String? {
 
         val x = enableX
@@ -128,7 +130,7 @@ class SDFVoronoiArray : PositionMapper() {
         return null
     }
 
-    override fun calcTransform(pos: Vector4f) {
+    override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
 
         // horribly complicated function, but whatever, we can't fix that...
 

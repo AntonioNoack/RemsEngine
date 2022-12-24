@@ -7,6 +7,8 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.image.ImageGPUCache
+import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 
@@ -67,12 +69,25 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
             GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3f)
             GLSLType.M4x4 -> shader.m4x4(location, value as Matrix4f)
             GLSLType.S2D -> {
-                value as Texture2D
-                if (value.isCreated) {
-                    value.bind(location)
-                } else {
-                    whiteTexture.bind(location)
-                    LOGGER.warn("Texture ${value.name} has not been created")
+                when (value) {
+                    is Texture2D -> {
+                        if (value.isCreated) {
+                            value.bind(location)
+                        } else {
+                            whiteTexture.bind(location)
+                            LOGGER.warn("Texture ${value.name} has not been created")
+                        }
+                    }
+                    is FileReference -> {
+                        val value1 = ImageGPUCache[value, true]
+                        if (value1 != null && value1.isCreated) {
+                            value1.bind(location)
+                        } else {
+                            whiteTexture.bind(location)
+                            if (value1 != null) LOGGER.warn("Texture ${value1.name} has not been created")
+                        }
+                    }
+                    else -> LOGGER.warn("Unsupported type for S2D: ${value.javaClass}")
                 }
             }
             GLSLType.S3D -> {

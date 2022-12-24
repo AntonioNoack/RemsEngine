@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace.Companion.dot
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.sq
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Planef
 import org.joml.Vector3f
@@ -87,7 +88,8 @@ class SDFMirror() : PositionMapper() {
         posIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ): String? {
         // reflect(I,N): I - 2.0 * dot(N, I) * N
         val tmpIndex = nextVariableId.next()
@@ -115,7 +117,7 @@ class SDFMirror() : PositionMapper() {
         return null
     }
 
-    override fun calcTransform(pos: Vector4f) {
+    override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
         val normal = plane
         val dot = 2f * normal.dot(pos)
         if (dot < 0f) pos.sub(dot * normal.a, dot * normal.b, dot * normal.c, 0f)

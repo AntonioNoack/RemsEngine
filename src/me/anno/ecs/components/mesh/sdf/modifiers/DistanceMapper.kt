@@ -8,7 +8,7 @@ import org.joml.AABBf
 import org.joml.Vector4f
 
 /**
- * transforms signed distances, e.g. by sine waves
+ * transforms signed distances, e.g., by sine waves
  * */
 abstract class DistanceMapper : SDFMapper() {
 
@@ -18,7 +18,8 @@ abstract class DistanceMapper : SDFMapper() {
         dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     )
 
     /**

@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.maths.Maths.PHIf
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.length
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -19,15 +20,16 @@ class SDFBlob : SDFShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdBlob)
         smartMinBegin(builder, dstIndex)
         builder.append("sdBlob(pos")
         builder.append(trans.posIndex)
         builder.append(")")
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
     override fun calculateBaseBounds(dst: AABBf) {
@@ -36,7 +38,7 @@ class SDFBlob : SDFShape() {
         dst.setMax(+s, +s, +s)
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         var px = abs(pos.x)
         var py = abs(pos.y)
         var pz = abs(pos.z)

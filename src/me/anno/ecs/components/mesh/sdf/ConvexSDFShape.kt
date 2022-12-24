@@ -4,6 +4,7 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import kotlin.math.abs
 
 class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexShape() {
@@ -17,6 +18,7 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
         return BroadphaseNativeType.CONVEX_SHAPE_PROXYTYPE
     }
 
+    var maxSteps = 10
     val localScaling = javax.vecmath.Vector3d(1.0, 1.0, 1.0)
 
     override fun setLocalScaling(scaling: javax.vecmath.Vector3d) {
@@ -44,6 +46,7 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
         out: javax.vecmath.Vector3d // = margin * normal
     ) = localGetSupportingVertex(dir, out, margin)
 
+    private val seeds = IntArrayList(8)
     fun localGetSupportingVertex(
         dir: javax.vecmath.Vector3d,
         out: javax.vecmath.Vector3d,
@@ -62,6 +65,7 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
         val distance = sdf.raycast(
             start, dir2, 0f,
             maxDistance * 2f,
+            maxSteps, seeds,
         ) - margin.toFloat()
 
         start.add(dir2.x * distance, dir2.y * distance, dir2.z * distance)

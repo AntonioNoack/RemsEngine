@@ -17,6 +17,7 @@ import me.anno.input.Input
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.utils.Color.rgba
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix3f
 import org.joml.Quaternionf
@@ -34,13 +35,14 @@ fun testCPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
     val h = 64 * 6
     val bgc = deepDark
     val camScaleX = fovFactor * w.toFloat() / h
+    val seeds = IntArrayList(8)
     ImageWriter.writeRGBImageInt(w, h, "sdf.png", 32) { x, y, _ ->
         val dir = JomlPools.vec3f.create()
         dir.set(
             +(x.toFloat() / w * 2f - 1f) * camScaleX,
             -(y.toFloat() / h * 2f - 1f) * fovFactor, -1f
         )
-        val distance = finalShape.raycast(camPosition, dir, 0.1f, 100f, 200, 0.5f)
+        val distance = finalShape.raycast(camPosition, dir, 0.1f, 100f, 200, seeds)
         dir.mul(distance).add(camPosition)
         if (distance.isFinite()) {
             val normal = finalShape.calcNormal(dir, dir).mul(0.5f).add(0.5f, 0.5f, 0.5f)
@@ -61,7 +63,8 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
     val functions = LinkedHashSet<String>()
     val uniforms = HashMap<String, TypeValue>()
     val shapeDependentShader = StringBuilder()
-    tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions)
+    val seeds = ArrayList<String>()
+    tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions, seeds)
     return uniforms to BaseShader("raycasting",
         ShaderLib.coordsList,
         ShaderLib.coordsVShader,
@@ -128,7 +131,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
             shader.v3f("camPosition", camPosition)
             shader.v2f("distanceBounds", 0.01f, 1e3f)
             shader.v1i("maxSteps", 100)
-            shader.v1f("sdfMaxRelativeError", 0.001f)
+            shader.v1f("sdfMaxRelativeError", fovFactor / it.h) // is this correct???
             shader.v1f("sdfReliability", 0.7f)
             shader.v1f("sdfNormalEpsilon", 0.005f)
             shader.v3f("sunDir", 0.7f, 0f, 0.5f)

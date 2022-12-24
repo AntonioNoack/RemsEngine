@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.length
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -29,9 +30,10 @@ open class SDFEllipsoid : SDFShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdEllipsoid)
         smartMinBegin(builder, dstIndex)
         builder.append("sdEllipsoid(pos").append(trans.posIndex).append(',')
@@ -39,10 +41,10 @@ open class SDFEllipsoid : SDFShape() {
         if (dynamicSize) builder.appendUniform(uniforms, halfAxes)
         else builder.appendVec(halfAxes)
         builder.append(')')
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val r = halfAxes
         val k0 = length(pos.x / r.x, pos.y / r.y, pos.z / r.z)
         val k1 = length(pos.x / (r.x * r.x), pos.y / (r.y * r.y), pos.z / (r.z * r.z))

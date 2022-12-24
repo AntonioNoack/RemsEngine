@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.TwoDims
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
@@ -47,7 +48,8 @@ class SDFTriangleArray : PositionMapper() {
         posIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ): String? {
         functions.add(sdTriangleArray)
         val cellSize = cellSize
@@ -71,20 +73,20 @@ class SDFTriangleArray : PositionMapper() {
         return null
     }
 
-    override fun calcTransform(pos: Vector4f) {
+    override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
         // correct?
         val size = cellSize
         var px = pos.x / size.x
         var py = pos.z / size.y
-        val sum1 = (px + py) * 0.36602540378f
+        val sum1 = (px + py) * 0.36602542f
         val sx = floor(px + sum1)
         val sy = floor(py + sum1)
-        val sum2 = (sx + sy) * 0.211324865f
+        val sum2 = (sx + sy) * 0.21132487f
         px -= sx - sum2
         py -= sy - sum2
         val ix: Float
         val iy: Float
-        val c = 0.12200846787f
+        val c = 0.122008465f
         if (px < py) {
             ix = c
             iy = c + 1f / 3f

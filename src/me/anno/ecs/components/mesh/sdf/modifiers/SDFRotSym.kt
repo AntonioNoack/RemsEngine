@@ -11,6 +11,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -46,7 +47,8 @@ class SDFRotSym : PositionMapper() {
         posIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ): String? {
         functions.add(twistFunc)
         functions.add(quatRot)
@@ -61,7 +63,7 @@ class SDFRotSym : PositionMapper() {
         return null
     }
 
-    override fun calcTransform(pos: Vector4f) {
+    override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
         val offset = offset
         pos.sub(offset)
         rotation.transform(pos)

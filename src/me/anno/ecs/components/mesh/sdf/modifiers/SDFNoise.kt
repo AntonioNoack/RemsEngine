@@ -101,7 +101,8 @@ class SDFNoise : DistanceMapper() {
         dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
         val type = type
         functions.add(generalNoise)

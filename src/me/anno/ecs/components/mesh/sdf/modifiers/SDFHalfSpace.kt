@@ -66,7 +66,8 @@ class SDFHalfSpace() : DistanceMapper() {
         dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
         val dynamicPlane = dynamicPlane || globalDynamic
         val dynamicSmoothness = dynamicSmoothness || globalDynamic

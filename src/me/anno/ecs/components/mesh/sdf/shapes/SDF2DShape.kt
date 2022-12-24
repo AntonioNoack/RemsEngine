@@ -9,6 +9,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Planef
 import org.joml.Vector3f
@@ -40,8 +41,8 @@ open class SDF2DShape : SDFShape() {
             }
         }
 
-    override fun applyTransform(pos: Vector4f) {
-        super.applyTransform(pos)
+    override fun applyTransform(pos: Vector4f, seeds: IntArrayList) {
+        super.applyTransform(pos, seeds)
         when (axes) {
             TwoDims.XY -> pos.z = 0f
             TwoDims.YX -> pos.set(pos.y, pos.x, 0f)

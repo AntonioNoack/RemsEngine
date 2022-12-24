@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
@@ -49,9 +50,10 @@ open class SDFCylinder : SDFSmoothShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdCylinder)
         smartMinBegin(builder, dstIndex)
         builder.append("sdCylinder(pos").append(trans.posIndex).append(',')
@@ -65,10 +67,10 @@ open class SDFCylinder : SDFSmoothShape() {
             else builder.append(smoothness)
         }
         builder.append(')')
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val h = params
         val k = smoothness
         val hkx = h.x - k

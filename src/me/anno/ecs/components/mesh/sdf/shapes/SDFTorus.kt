@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.length
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
@@ -46,9 +47,10 @@ class SDFTorus : SDFShape() {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
-        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(torusSDF)
         smartMinBegin(builder, dstIndex)
         builder.append("sdTorus(pos")
@@ -58,10 +60,10 @@ class SDFTorus : SDFShape() {
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else builder.appendVec(params)
         builder.append(')')
-        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
-    override fun computeSDFBase(pos: Vector4f): Float {
+    override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val t0 = params
         val tx = t0.x - t0.y
         val ty = t0.y

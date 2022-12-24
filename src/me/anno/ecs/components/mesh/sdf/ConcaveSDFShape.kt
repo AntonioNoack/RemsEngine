@@ -7,6 +7,7 @@ import com.bulletphysics.linearmath.Transform
 import me.anno.maths.Maths.mix
 import me.anno.maths.geometry.MarchingCubes
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
@@ -56,6 +57,8 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
     val min2 = javax.vecmath.Vector3d()
     val max2 = javax.vecmath.Vector3d()
 
+    private val seeds = IntArrayList(8)
+
     override fun processAllTriangles(
         callback: TriangleCallback,
         aabbMin: javax.vecmath.Vector3d, // bounds that need to be included
@@ -95,7 +98,8 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
                     for (x in 0 until fx) {
                         val xf = x * ffx
                         pos.set(mix(min2.x, max2.x, xf), mix(min2.y, max2.y, yf), mix(min2.z, max2.z, zf), 0.0)
-                        field[i++] = sdf.computeSDF(pos)
+                        field[i++] = sdf.computeSDF(pos, seeds)
+                        seeds.clear()
                     }
                 }
             }

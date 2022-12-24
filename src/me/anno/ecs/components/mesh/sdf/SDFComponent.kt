@@ -26,6 +26,7 @@ import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.ObjectPool
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Matrices.set2
 import org.joml.*
@@ -327,12 +328,13 @@ open class SDFComponent : ProceduralMesh(), Renderable {
             val maxSteps = max(maxSteps, 250)
             // todo if already inside body, return it?
             // we could use different parameters for higher accuracy...
-            val localDistance = raycast(localSrt, localDir, near, far, maxSteps)
+            val seeds = IntArrayList(8)
+            val localDistance = raycast(localSrt, localDir, near, far, maxSteps, seeds)
             val localDistance0 = localDistance + startOffset
             if (sq(localDistance0) < maxLocalDistanceSq0) {
                 val localHit = vec3f[3].set(localDir).mul(localDistance).add(localSrt)
-                val localNormal = calcNormal(localHit, vec3f[4], normalEpsilon)
-                val bestHit = findClosestComponent(vec4f[0].set(localHit, 0f))
+                val localNormal = calcNormal(localHit, vec3f[4], seeds, normalEpsilon)
+                val bestHit = findClosestComponent(vec4f[0].set(localHit, 0f), seeds)
                 result.setFromLocal(
                     globalTransform,
                     localHit, localNormal,
@@ -523,13 +525,14 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
         val mappers = distanceMappers
         for (index in mappers.indices) {
             val mapper = mappers[index]
             if (mapper.isEnabled) {
-                mapper.buildShader(builder, posIndex, dstIndex, nextVariableId, uniforms, functions)
+                mapper.buildShader(builder, posIndex, dstIndex, nextVariableId, uniforms, functions, seeds)
             }
         }
     }
@@ -540,17 +543,18 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         nextVariableId: VariableCounter,
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ) {
     }
 
-    open fun computeSDFBase(pos: Vector4f): Float {
+    open fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         throw NotImplementedError()
     }
 
-    fun computeSDF(pos: Vector4f): Float {
-        applyTransform(pos)
-        var base = computeSDFBase(pos)
+    fun computeSDF(pos: Vector4f, seeds: IntArrayList): Float {
+        applyTransform(pos, seeds)
+        var base = computeSDFBase(pos, seeds)
         for (index in distanceMappers.indices) {
             val mapper = distanceMappers[index]
             if (mapper.isEnabled) {
@@ -560,8 +564,24 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         return base * localReliability * scale
     }
 
-    open fun findClosestComponent(pos: Vector4f): SDFComponent {
+    open fun findClosestComponent(pos: Vector4f, seeds: IntArrayList): SDFComponent {
         return this
+    }
+
+    fun raycast(
+        origin: Vector3f,
+        direction: Vector3f,
+        near: Float,
+        far: Float,
+        maxSteps: Int,
+        seeds: IntArrayList
+    ): Float {
+        return raycast(
+            origin, direction, near, far, maxSteps,
+            this.globalReliability,
+            this.maxRelativeError,
+            seeds
+        )
     }
 
     open fun raycast(
@@ -571,7 +591,8 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         far: Float,
         maxSteps: Int = this.maxSteps,
         sdfReliability: Float = this.globalReliability,
-        maxRelativeError: Float = this.maxRelativeError
+        maxRelativeError: Float = this.maxRelativeError,
+        seeds: IntArrayList
     ): Float {
         var distance = near
         val pos = JomlPools.vec4f.create()
@@ -581,7 +602,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
                 origin.y + distance * direction.y,
                 origin.z + distance * direction.z, 0f
             )
-            val sd = computeSDF(pos)
+            val sd = computeSDF(pos, seeds)
             if (abs(sd) <= maxRelativeError * distance) {
                 JomlPools.vec4f.sub(1)
                 return distance
@@ -593,27 +614,36 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         return Float.POSITIVE_INFINITY
     }
 
-    open fun calcNormal(hit: Vector3f, dst: Vector3f = Vector3f(), epsilon: Float = 0.0005f): Vector3f {
+    open fun calcNormal(
+        hit: Vector3f,
+        dst: Vector3f = Vector3f(),
+        seeds: IntArrayList = IntArrayList(8),
+        epsilon: Float = 0.0005f
+    ): Vector3f {
         val x = 0.5773f * epsilon
         val y = -x
         val pos4 = JomlPools.vec4f.create()
         pos4.set(hit, 0f).add(x, y, y, 0f)
-        var sdf = computeSDF(pos4)
+        var sdf = computeSDF(pos4, seeds)
+        seeds.clear()
         var nx = +sdf
         var ny = -sdf
         var nz = -sdf
         pos4.set(hit, 0f).add(y, y, x, 0f)
-        sdf = computeSDF(pos4)
+        sdf = computeSDF(pos4, seeds)
+        seeds.clear()
         nx -= sdf
         ny -= sdf
         nz += sdf
         pos4.set(hit, 0f).add(y, x, y, 0f)
-        sdf = computeSDF(pos4)
+        sdf = computeSDF(pos4, seeds)
+        seeds.clear()
         nx -= sdf
         ny += sdf
         nz -= sdf
         pos4.set(hit, 0f).add(x, x, x, 0f)
-        sdf = computeSDF(pos4)
+        sdf = computeSDF(pos4, seeds)
+        seeds.clear()
         nx += sdf
         ny += sdf
         nz += sdf
@@ -621,7 +651,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         return dst.set(nx, ny, nz).normalize()
     }
 
-    open fun applyTransform(pos: Vector4f) {
+    open fun applyTransform(pos: Vector4f, seeds: IntArrayList) {
         // same operations as in shader
         val tmp = JomlPools.vec3f.borrow()
         tmp.set(pos.x, pos.y, pos.z)
@@ -634,7 +664,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         for (index in mappers.indices) {
             val mapper = mappers[index]
             if (mapper.isEnabled) {
-                mapper.calcTransform(pos)
+                mapper.calcTransform(pos, seeds)
             }
         }
     }
@@ -647,7 +677,8 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         posIndex0: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ): SDFTransform {
         var posIndex = posIndex0
         val position = position
@@ -728,7 +759,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         for (index in mappers.indices) {
             val mapper = mappers[index]
             if (mapper.isEnabled) {
-                val offsetName1 = mapper.buildShader(builder, posIndex, nextVariableId, uniforms, functions)
+                val offsetName1 = mapper.buildShader(builder, posIndex, nextVariableId, uniforms, functions, seeds)
                 if (offsetName1 != null) {
                     if (offsetName == null) {
                         offsetName = offsetName1

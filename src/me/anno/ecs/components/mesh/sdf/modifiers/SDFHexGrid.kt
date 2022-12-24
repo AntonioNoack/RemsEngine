@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -61,7 +62,8 @@ class SDFHexGrid : PositionMapper() {
         posIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ): String? {
         functions.add(hexFunc)
         builder.append("pos").append(posIndex).append(".xz")
@@ -110,7 +112,7 @@ class SDFHexGrid : PositionMapper() {
         } // else no limits
     }
 
-    override fun calcTransform(pos: Vector4f) {
+    override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
         val scale = cellSize
         var px = pos.x / scale
         var py = pos.z / scale

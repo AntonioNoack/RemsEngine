@@ -106,7 +106,7 @@ class CachedReflections(
                  findProperties(instance, clazz, clazz.memberProperties.filterIsInstance<KMutableProperty1<*, *>>())
              } catch (e: ClassCastException) {*/
             val jc = clazz.java
-            return findProperties(allFields(jc, ArrayList()), allMethods(jc, ArrayList()))
+            return findProperties(jc, allFields(jc, ArrayList()), allMethods(jc, ArrayList()))
             // }
         }
 
@@ -161,6 +161,7 @@ class CachedReflections(
         }
 
         fun findProperties(
+            clazz: Class<*>,
             properties: List<Field>,
             methods: List<Method>,
         ): Map<String, CachedProperty> {
@@ -169,12 +170,17 @@ class CachedReflections(
             for (index in properties.indices) {
                 val field = properties[index]
                 val annotations = field.annotations.toMutableList()
-                val kotlinAnnotationName = "get${field.name.titlecase()}\$annotations"
+                val fieldCap = field.name.titlecase()
+                val kotlinAnnotationName = "get$fieldCap\$annotations"
                 val m = methods.firstOrNull { it.name == kotlinAnnotationName }
                 if (m != null) annotations += m.annotations.toList()
                 val serial = annotations.firstOrNull { it is SerializedProperty } as? SerializedProperty
                 val notSerial = annotations.firstOrNull { it is NotSerializedProperty }
-                val isPublic = Modifier.isPublic(field.modifiers)
+                val getterName = "get$fieldCap"
+                val setterName = "set$fieldCap"
+                val isPublic = Modifier.isPublic(field.modifiers) ||
+                        (methods.any { Modifier.isPublic(it.modifiers) && it.name == getterName } &&
+                                methods.any { Modifier.isPublic(it.modifiers) && it.name == setterName })
                 val serialize = serial != null || (isPublic && notSerial == null)
                 var name = serial?.name
                 if (name == null || name.isEmpty()) name = field.name

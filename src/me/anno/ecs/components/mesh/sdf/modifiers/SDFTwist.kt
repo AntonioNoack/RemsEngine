@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 
@@ -89,7 +90,8 @@ class SDFTwist : PositionMapper() {
         posIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
-        functions: HashSet<String>
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
     ): String? {
         functions.add(twistFunc)
         val dst = destination
@@ -142,7 +144,7 @@ class SDFTwist : PositionMapper() {
         builder.append(")")
     }
 
-    override fun calcTransform(pos: Vector4f) {
+    override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
         val destination = destination
         val angle = sourceParams.dot(pos.x, pos.y, pos.z, 1f)
         pos.rotateAbout(angle, destination.x, destination.y, destination.z)
