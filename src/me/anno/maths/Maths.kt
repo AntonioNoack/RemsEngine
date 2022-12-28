@@ -20,6 +20,7 @@ object Maths {
     const val SQRT2 = 1.4142135623730951
     const val SQRT2F = 1.4142135f
     const val SQRT3 = 1.7320508075688772
+    const val SQRT3F = 1.7320508f
     const val GOLDEN_RATIO = 1.618033988749895 // phi
 
     const val SQRT_PIf = 1.7724539f

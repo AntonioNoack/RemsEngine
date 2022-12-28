@@ -53,26 +53,26 @@ object Floats {
         put(v.w)
     }
 
-    private const val piF180 = (PI / 180).toFloat()
-    private const val x180fPi = (180 / PI).toFloat()
+    private const val piF180f = (PI / 180).toFloat()
+    private const val x180fPif = (180 / PI).toFloat()
 
-    private const val piF180v2 = PI / 180.0
-    private const val x180fPiv2 = 180.0 / PI
-
-    @JvmStatic
-    fun Int.toDegrees() = this * x180fPi
-    @JvmStatic
-    fun Int.toRadians() = this * piF180
+    const val piF180d = PI / 180.0
+    private const val x180fPid = 180.0 / PI
 
     @JvmStatic
-    fun Float.toDegrees() = this * x180fPi
+    fun Int.toDegrees() = this * x180fPif
     @JvmStatic
-    fun Float.toRadians() = this * piF180
+    fun Int.toRadians() = this * piF180f
 
     @JvmStatic
-    fun Double.toDegrees() = this * x180fPiv2
+    fun Float.toDegrees() = this * x180fPif
     @JvmStatic
-    fun Double.toRadians() = this * piF180v2
+    fun Float.toRadians() = this * piF180f
+
+    @JvmStatic
+    fun Double.toDegrees() = this * x180fPid
+    @JvmStatic
+    fun Double.toRadians() = this * piF180d
 
     @JvmStatic
     fun Float.f6() = "%.6f".format(Locale.ENGLISH, this)

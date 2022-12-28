@@ -12,10 +12,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector4f
 
-// todo use it for imperfections in bricks :)
-
-// todo generally: use array index procedurally :)
-
 abstract class SDFRandom : PositionMapper() {
 
     var dynamic = false

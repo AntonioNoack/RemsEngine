@@ -384,14 +384,14 @@ open class SDFComponent : ProceduralMesh(), Renderable {
             val marginScale = 1f + rms
             transform.scale(marginScale)
         }
-        // which one first, reversed?
-        for (index in positionMappers.indices) {
+        for (index in positionMappers.indices.reversed()) {
             val mapper = positionMappers[index]
             if (mapper.isEnabled) {
                 clampBounds(dst)
                 mapper.applyTransform(dst)
             }
         }
+        // reversed as well?
         for (index in distanceMappers.indices) {
             val mapper = distanceMappers[index]
             if (mapper.isEnabled) {

@@ -8,7 +8,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
-import org.joml.Vector2f
 import org.joml.Vector4f
 import kotlin.math.floor
 
@@ -76,18 +75,19 @@ class SDFHexGrid : PositionMapper() {
         val px = pos.x / scale
         val py = pos.z / scale
         // cell dimensions
-        val s = hexScale
+        val s = hexScaleX
         // hexagon centers
-        val hc0 = floor(px / s.x) + 0.5f
-        val hc1 = floor(py / s.y) + 0.5f
-        val hc2 = floor((px - 1.0f) / s.x) + 0.5f
-        val hc3 = floor((py - 0.5f) / s.y) + 0.5f
+        val hc0 = floor(px / s) + 0.5f
+        val hc1 = floor(py) + 0.5f
+        val hc2 = floor((px - 1.0f) / s) + 0.5f
+        val hc3 = floor((py - 0.5f)) + 0.5f
         // centering the coordinates with the hexagon centers above
-        val h0 = px - hc0 * s.x
-        val h1 = py - hc1 * s.y
-        val h2 = px - (hc2 + 0.5f) * s.x
-        val h3 = py - (hc3 + 0.5f) * s.y
+        val h0 = px - hc0 * s
+        val h1 = py - hc1
+        val h2 = px - (hc2 + 0.5f) * s
+        val h3 = py - (hc3 + 0.5f)
         // local coordinates
+        // todo calculate seed for random
         if (h0 * h0 + h1 * h1 < h2 * h2 + h3 * h3) {
             pos.x = h0 * scale
             pos.z = h1 * scale
@@ -122,7 +122,7 @@ class SDFHexGrid : PositionMapper() {
 
     // todo how can we implement limits properly? distance modifier, which uses hex grid size :)
     companion object {
-        val hexScale = Vector2f(1.7320508f, 1f)
+        const val hexScaleX = 1.7320508f
         const val hexFunc = "" +
                 "vec4 hexGrid0(vec2 p){\n" +
                 // cell dimensions

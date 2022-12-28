@@ -125,9 +125,9 @@ class SDFArray : PositionMapper() {
         }
         val seed = "seed" + nextVariableId.next()
         builder.append("int ").append(seed).append("=threeInputRandom(int(tmp")
-            .append(rnd).append(".x),int(tmp")
-            .append(rnd).append(".y),int(tmp")
-            .append(rnd).append(".z));\n")
+            .append(rnd).append(".x*2.0),int(tmp")
+            .append(rnd).append(".y*2.0),int(tmp")
+            .append(rnd).append(".z*2.0));\n")
         seeds.add(seed)
         return null
     }
@@ -147,8 +147,8 @@ class SDFArray : PositionMapper() {
                 builder.append("pos").append(posIndex).append(".").append(component)
                 builder.append(if (mirror) "=mod2M(pos" else "=mod2(pos")
                 builder.append(posIndex).append(".").append(component).append(",")
-                builder.append(size).append(",tmp").append(nameIdx)
-                    .append(".").append(component).append(");\n")
+                builder.append(size).append(",tmp")
+                    .append(nameIdx).append(".").append(component).append(");\n")
             }
             else -> {
                 builder.append("pos").append(posIndex).append(".").append(component)
@@ -156,8 +156,8 @@ class SDFArray : PositionMapper() {
                 builder.append(posIndex).append(".").append(component).append(",")
                 builder.append(size).append(",")
                 builder.append((count - 1) * 0.5f).append(",")
-                builder.append(count.and(1) * 0.5f).append(",tmp").append(nameIdx)
-                    .append(".").append(component).append(");\n")
+                builder.append(count.and(1) * 0.5f).append(",tmp")
+                    .append(nameIdx).append(".").append(component).append(");\n")
             }
         }
     }
@@ -175,8 +175,8 @@ class SDFArray : PositionMapper() {
         builder.append(if (mirror) "=mod2M(pos" else "=mod2(pos")
         builder.append(posIndex).append(".").append(component).append(",")
         builder.append(size).append(".").append(component).append(",")
-        builder.append(count).append(".").append(component).append(",tmp").append(nameIdx)
-            .append(".").append(component).append(");\n")
+        builder.append(count).append(".").append(component).append(",tmp")
+            .append(nameIdx).append(".").append(component).append(");\n")
     }
 
     override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {

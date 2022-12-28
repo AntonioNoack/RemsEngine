@@ -42,6 +42,8 @@ class SDFUVSeed : SDFRandom() {
         return clone
     }
 
+    override val className get() = "SDFUVSeed"
+
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
