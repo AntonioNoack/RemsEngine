@@ -112,10 +112,6 @@ open class SDFHyperCube : SDFSmoothShape() {
         }
 
         const val hyperProjection = "" +
-                "mat2 rot(float angle){\n" +
-                "   float c = cos(angle), s = sin(angle);\n" +
-                "   return mat2(c,-s,+s,c);\n" +
-                "}\n" +
                 // rotate point from 3d into 4d
                 "vec4 invProject(vec3 p3, float w, vec3 r){\n" +
                 "   vec4 p = vec4(p3, w);\n" +

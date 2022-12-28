@@ -12,8 +12,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector4f
 
-// todo implement sth using this
-// todo test it
 // todo use it for imperfections in bricks :)
 
 // todo generally: use array index procedurally :)
@@ -75,7 +73,10 @@ abstract class SDFRandom : PositionMapper() {
         if (seeds.isNotEmpty()) {
             val seedName1 = seeds[clamp(seeds.lastIndex - randomIndex, 0, seeds.lastIndex)]
             builder.append(seedName).append("^=").append(seedName1).append(";\n")
-        }
+            if (randomIndex !in seeds.indices) {
+                lastWarning = "Missing seed index $randomIndex, using closest"
+            }
+        } else lastWarning = "Missing seeds"
 
         return if (dynamic || appliedPortion > 0f) {
             builder.append(seedName).append("=nextRandI(").append(seedName).append(");\n")
@@ -103,14 +104,6 @@ abstract class SDFRandom : PositionMapper() {
         calcTransform(pos, seed)
     }
 
-    fun nextRandI(i: Int): Int {
-        return 11 - i * 554899859
-    }
-
-    fun nextRandF(i: Int): Float {
-        return (i and 16777215) / 16777215f
-    }
-
     abstract fun calcTransform(pos: Vector4f, seed: Int)
 
     override fun copy(clone: PrefabSaveable) {
@@ -123,6 +116,39 @@ abstract class SDFRandom : PositionMapper() {
     }
 
     companion object {
+
+        fun twoInputRandom(x: Int, y: Int): Int {
+            return threeInputRandom(x, y, 0)
+        }
+
+        fun threeInputRandom(x: Int, y: Int, z: Int): Int {
+            var a = x
+            var b = y
+            var c = z
+            //
+            b = b xor (a + c).rotateLeft(7)
+            c = b xor (b + a).rotateLeft(9)
+            a = a xor (c + b).rotateLeft(18)
+            //
+            b = b xor (a + c).rotateLeft(7)
+            c = b xor (b + a).rotateLeft(9)
+            a = a xor (c + b).rotateLeft(18)
+            //
+            b = b xor (a + c).rotateLeft(7)
+            c = b xor (b + a).rotateLeft(9)
+            a = a xor (c + b).rotateLeft(18)
+            //
+            return a + b + c + x + y + z
+        }
+
+        fun nextRandI(i: Int): Int {
+            return 11 - i * 554899859
+        }
+
+        fun nextRandF(i: Int): Float {
+            return (i and 16777215) / 16777215f
+        }
+
         val randLib = "" +
                 // https://stackoverflow.com/questions/71420930/random-number-generator-with-3-inputs
                 "int rotl32(int n, int k) {\n" +
@@ -134,21 +160,28 @@ abstract class SDFRandom : PositionMapper() {
                 "  int a = x;\n" +
                 "  int b = y;\n" +
                 "  int c = z;\n" +
+                //
                 "  b ^= rotl32(a + c, 7);\n" +
                 "  c ^= rotl32(b + a, 9);\n" +
                 "  a ^= rotl32(c + b, 18);\n" +
+                //
                 "  b ^= rotl32(a + c, 7);\n" +
                 "  c ^= rotl32(b + a, 9);\n" +
                 "  a ^= rotl32(c + b, 18);\n" +
+                //
                 "  b ^= rotl32(a + c, 7);\n" +
                 "  c ^= rotl32(b + a, 9);\n" +
                 "  a ^= rotl32(c + b, 18);\n" +
+                //
                 "  return a + b + c + x + y + z;\n" +
+                "}\n" +
+                "int twoInputRandom(int x, int y) {\n" +
+                "  return threeInputRandom(x,y,0);\n" +
                 "}\n" +
                 "int   nextRandI(       int i){return 11-i*554899859;}\n" +
                 "float nextRandF( inout int i){float v = float(i&16777215)/16777215.0; i = nextRandI(i); return v; }\n" +
-                "vec2  nextRandF2(inout int i){return vec2(nextRandF(i), nextRandF(i)); }\n"  +
-                "vec3  nextRandF3(inout int i){return vec3(nextRandF(i), nextRandF(i), nextRandF(i)); }\n"  +
+                "vec2  nextRandF2(inout int i){return vec2(nextRandF(i), nextRandF(i)); }\n" +
+                "vec3  nextRandF3(inout int i){return vec3(nextRandF(i), nextRandF(i), nextRandF(i)); }\n" +
                 "vec4  nextRandF4(inout int i){return vec4(nextRandF(i), nextRandF(i), nextRandF(i), nextRandF(i)); }\n"
     }
 

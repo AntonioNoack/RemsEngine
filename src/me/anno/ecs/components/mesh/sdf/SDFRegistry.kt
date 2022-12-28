@@ -47,7 +47,7 @@ object SDFRegistry {
         registerCustomClass(SDFRotSym())
         registerCustomClass(SDFRoundness())
         registerCustomClass(SDFStretcher())
-        registerCustomClass(SDFTriangleArray())
+        registerCustomClass(SDFTriangleGrid())
         registerCustomClass(SDFTwist())
         registerCustomClass(SDFVoronoiArray())
         // physics

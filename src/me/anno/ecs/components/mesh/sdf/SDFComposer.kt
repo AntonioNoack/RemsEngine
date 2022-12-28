@@ -163,17 +163,19 @@ object SDFComposer {
 
         // register all materials that use textures
         val materialsUsingTextures = BitSet(materials.size)
-        tree.simpleTraversal(false) {
-            if (it is SDFComponent && it.positionMappers.any { pm -> pm is SDFUVSeed }) {
-                it.simpleTraversal(false) { c ->
-                    if (c is SDFShape) {
-                        if (c.materialId < materialsUsingTextures.size())
-                            materialsUsingTextures.set(c.materialId)
+        if (materials.isNotEmpty()) {
+            tree.simpleTraversal(false) {
+                if (it is SDFComponent && it.positionMappers.any { pm -> pm is SDFUVSeed }) {
+                    it.simpleTraversal(false) { c ->
+                        if (c is SDFShape) {
+                            if (c.materialId < materialsUsingTextures.size())
+                                materialsUsingTextures.set(c.materialId)
+                        }
+                        false
                     }
-                    false
                 }
+                false
             }
-            false
         }
 
         for (index in 0 until max(materials.size, 1)) {

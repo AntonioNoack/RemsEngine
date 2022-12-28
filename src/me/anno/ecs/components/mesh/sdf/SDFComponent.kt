@@ -838,7 +838,22 @@ open class SDFComponent : ProceduralMesh(), Renderable {
 
         fun StringBuilder.appendVec(v: Vector3f): StringBuilder {
             append("vec3(")
-            if (v.x != v.y || v.y != v.z || v.x != v.z) {
+            if (v.x != v.y || v.y != v.z) {
+                append(v.x)
+                append(',')
+                append(v.y)
+                append(',')
+                append(v.z)
+            } else {
+                append(v.x)
+            }
+            append(')')
+            return this
+        }
+
+        fun StringBuilder.appendVec(v: Vector3i): StringBuilder {
+            append("ivec3(")
+            if (v.x != v.y || v.y != v.z) {
                 append(v.x)
                 append(',')
                 append(v.y)
@@ -940,6 +955,10 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         }
 
         const val quatRot = "" +
+                "mat2 rot(float angle){\n" +
+                "   float c = cos(angle), s = sin(angle);\n" +
+                "   return mat2(c,-s,+s,c);\n" +
+                "}\n" +
                 "vec3 quatRot(vec3 v, vec4 q){\n" +
                 "   return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);\n" +
                 "}\n" +
