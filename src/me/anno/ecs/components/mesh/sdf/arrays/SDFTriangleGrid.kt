@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh.sdf.modifiers
+package me.anno.ecs.components.mesh.sdf.arrays
 
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
@@ -6,7 +6,8 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.TwoDims
 import me.anno.ecs.components.mesh.sdf.VariableCounter
-import me.anno.ecs.components.mesh.sdf.modifiers.random.SDFRandom.Companion.twoInputRandom
+import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
+import me.anno.ecs.components.mesh.sdf.random.SDFRandom.Companion.twoInputRandom
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max

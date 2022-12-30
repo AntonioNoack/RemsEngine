@@ -23,13 +23,18 @@ import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.LongScrollable
+import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex4
+import me.anno.utils.Color.white
+import me.anno.utils.Color.withAlpha
+import me.anno.utils.OS.desktop
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.ceil
@@ -65,6 +70,8 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     var showAddress = true
     var addressDigits = 0
 
+    val compareTo = ArrayList<FileReference>()
+
     override val sizeX get() = minW.toLong()
     override var sizeY = 0L
 
@@ -87,14 +94,19 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         if (showAddress) {
             addressDigits = max(1, ceil(log2(fileLength.toDouble()) * 0.25).toInt())
             minW += spacing + charWidth * addressDigits
-        } else addressDigits = 0
+        } else {
+            addressDigits = 0
+            minW += spacing
+        }
         this.w = minW
         this.h = minH
     }
 
     override val canDrawOverBorders: Boolean = true
 
-    var textColor = -1 and (0xa0.shl(24) or 0xffffff)
+    var textColor = white.withAlpha(0.8f)
+    var textColorDifferent = mixARGB(textColor, 0xff0000 or black, 0.8f)
+    var textColorSomeDifferent = mixARGB(textColor, 0xffff00 or black, 0.8f)
     var midLineColor = mixARGB(textColor, backgroundColor, 0.5f)
     var lineEveryN = 4
     var showText = true
@@ -106,6 +118,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     val spacing2 get() = (spacing * charWidth).toInt()
     val addressDx get() = spacing2 + charWidth * addressDigits
 
+    private val buffers = ArrayList<ByteArray?>()
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         // calculate line number
@@ -116,6 +129,8 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         val l1 = min(ceilDiv(y1 - by, lineHeight.toLong()), lineCount)
         val bc = backgroundColor
         val tc = textColor
+        val tcAD = textColorDifferent
+        val tcSD = textColorSomeDifferent
         val addressDigits = addressDigits
         val spacing2 = spacing2
         val addressDx = addressDx
@@ -141,20 +156,36 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
                 val bufferIndex = byteIndex / sectionSize
                 if (bufferIndex != lastBufferIndex) {
                     buffer = Companion.get(file, bufferIndex, false) ?: break@loop
+                    buffers.clear()
+                    for (i in compareTo.indices) {
+                        buffers.add(Companion.get(compareTo[i], bufferIndex, false))
+                    }
                     lastBufferIndex = bufferIndex
                 }
                 val localIndex = (byteIndex and (sectionSize - 1L)).toInt()
                 if (localIndex >= buffer.size) break@loop
-                val value = buffer[localIndex].toInt() and 0xff
+                val rawValue = buffer[localIndex]
+                val value = rawValue.toInt() and 0xff
+
+                val allSame = buffers.all { it == null || it.size <= localIndex || it[localIndex] == rawValue }
+                val allDifferent = buffers.all { it == null || it.size <= localIndex || it[localIndex] != rawValue }
+
+                val tc1 = when {
+                    allSame -> tc
+                    allDifferent -> tcAD
+                    else -> tcSD
+                }
+
                 val ox = lineIndex * spacing2 + addressDx
                 val isSelected = byteIndex in min(cursor0, cursor1)..max(cursor0, cursor1)
+
                 val bc1 = if (isSelected) sbc else bc
                 // draw hex
-                drawChar(lineIndex * 2, lineNumber, ox + 1, hex4(value.shr(4)), tc, bc1)
-                drawChar(lineIndex * 2 + 1, lineNumber, ox - 1, hex4(value), tc, bc1)
+                drawChar(lineIndex * 2, lineNumber, ox + 1, hex4(value.shr(4)), tc1, bc1)
+                drawChar(lineIndex * 2 + 1, lineNumber, ox - 1, hex4(value), tc1, bc1)
                 if (showText) {
                     // draw byte as char
-                    drawChar(bytesPerLine * 2 + lineIndex, lineNumber, ox2, displayedBytes[value], tc, bc1)
+                    drawChar(bytesPerLine * 2 + lineIndex, lineNumber, ox2, displayedBytes[value], tc1, bc1)
                 }
             }
         }
@@ -271,7 +302,13 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
                 val startIndex = bufferIndex * sectionSize
                 val endIndex = min(maxIndex, startIndex + sectionSize)
                 val partData = Companion.get(file, bufferIndex, false)!!
-                System.arraycopy(partData, (i - startIndex).toInt(), data, (i - minIndex).toInt(), (endIndex - i).toInt())
+                System.arraycopy(
+                    partData,
+                    (i - startIndex).toInt(),
+                    data,
+                    (i - minIndex).toInt(),
+                    (endIndex - i).toInt()
+                )
                 i = endIndex
             }
             // if was copied on right side, use string, else concat values
@@ -332,9 +369,23 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             GFXBase.disableRenderDoc()
             testUI {
                 StudioBase.instance?.enableVSync = false
-                ScrollPanelY(HexEditor(style).apply {
-                    file = FileReference.getReference("E:/MacOS/macos.qcow2") // a huge file
-                }, Padding.Zero, style, AxisAlignment.CENTER)
+                val list = PanelListX(style)
+                val files = listOf(
+                    desktop.getChild("SM_Prop_Gem_03.prefab"),
+                    desktop.getChild("SM_Env_Minetrack_Bridge_Broken_01.prefab"),
+                    desktop.getChild("Character_Ghost_01.prefab"),
+                    desktop.getChild("Character_Ghost_02.prefab"),
+                    desktop.getChild("FX_Sword_Fire.prefab")
+                )
+                for (file1 in files) {
+                    list.add(HexEditor(style).apply {
+                        file = file1
+                        compareTo.addAll(files)
+                        compareTo.remove(file1)
+                        showAddress = list.children.isEmpty()
+                    })
+                }
+                ScrollPanelXY(list, Padding.Zero, style)
             }
         }
     }

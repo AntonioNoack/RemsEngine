@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh.sdf.modifiers.random
+package me.anno.ecs.components.mesh.sdf.random
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.TypeValue
@@ -6,13 +6,12 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
-import me.anno.ecs.components.mesh.sdf.modifiers.SDFArray
+import me.anno.ecs.components.mesh.sdf.arrays.SDFArray
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFXBase
-import me.anno.utils.types.Floats.piF180d
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f

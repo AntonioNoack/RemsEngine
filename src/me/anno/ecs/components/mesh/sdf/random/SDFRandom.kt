@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh.sdf.modifiers.random
+package me.anno.ecs.components.mesh.sdf.random
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue

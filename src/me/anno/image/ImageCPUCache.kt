@@ -181,7 +181,6 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                     callback(img.toImage(), null)
                 } catch (e: Exception) {
                     it.close()
-                    e.printStackTrace()
                     file.inputStream { it2, exc2 ->
                         if (it2 != null) {
                             try {

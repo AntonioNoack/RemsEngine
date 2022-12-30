@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh.sdf.modifiers
+package me.anno.ecs.components.mesh.sdf.arrays
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
+import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.clamp
@@ -22,6 +23,7 @@ import kotlin.math.abs
 import kotlin.math.round
 import kotlin.math.sin
 
+// todo add random seed
 class SDFVoronoiArray : PositionMapper() {
 
     // we could beautify the result when the shapes are overlapping by repeatedly calling the child...
@@ -323,21 +325,21 @@ class SDFVoronoiArray : PositionMapper() {
     }
 
     private fun hash(p: Float): Float {
-        return fract(sin(p * 127.1f) * 43758.5453f)
+        return fract(sin(p * 127.1f) * 43758.547f)
     }
 
     private fun hash(p: Vector2f, dst: Vector2f): Vector2f {
         return dst.set(
-            fract(sin(p.dot2(127.1f, 311.7f)) * 43758.5453f),
-            fract(sin(p.dot2(269.5f, 183.3f)) * 43758.5453f)
+            fract(sin(p.dot2(127.1f, 311.7f)) * 43758.547f),
+            fract(sin(p.dot2(269.5f, 183.3f)) * 43758.547f)
         )
     }
 
     private fun hash(p: Vector3f, dst: Vector3f): Vector3f {
         return dst.set(
-            fract(sin(p.dot(127.1f, 311.7f, 157.2f)) * 43758.5453f),
-            fract(sin(p.dot(269.5f, 183.3f, 97.5f)) * 43758.5453f),
-            fract(sin(p.dot(175.3f, 217.9f, 278.4f)) * 43758.5453f)
+            fract(sin(p.dot(127.1f, 311.7f, 157.2f)) * 43758.547f),
+            fract(sin(p.dot(269.5f, 183.3f, 97.5f)) * 43758.547f),
+            fract(sin(p.dot(175.3f, 217.9f, 278.4f)) * 43758.547f)
         )
     }
 

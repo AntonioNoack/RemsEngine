@@ -6,7 +6,6 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.maths.Maths
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f

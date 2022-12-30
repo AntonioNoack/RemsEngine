@@ -165,8 +165,8 @@ class AWTFont(val font: Font) {
         }
 
         val texture = Texture2D("awt-" + text.shorten(24), width, height, 1)
-
-        worker.addPrioritized(text.length == 1) {
+        val prio = GFX.loadTexturesSync.peek() || text.length == 1
+        worker.addPrioritized(prio) {
 
             val image = BufferedImage(width, height, 1)
             val gfx = image.graphics as Graphics2D
@@ -203,7 +203,7 @@ class AWTFont(val font: Font) {
 
         }
 
-        wait(text, texture)
+        if (prio) wait(text, texture)
 
         return texture
 
@@ -365,36 +365,38 @@ class AWTFont(val font: Font) {
         lateinit var nextLine: () -> Unit
 
         fun display() {
-            if (index1 > index0) {
-                val font = fonts[lastSupportLevel]
-                val filtered = chars.joinChars(index0, index1) {
-                    it !in 0xfe00..0xfe0f // Emoji variations; having no width, even if Java thinks so
-                }
-                val advance = if (filtered.isNotEmpty())
-                    TextLayout(filtered.toString(), font, renderContext).advance else 0f
-                // if multiple chars and advance > lineWidth, then break line
-                val nextX = currentX + advance + (index1 - index0) * charSpacing
-                if (hasAutomaticLineBreak && index0 + 1 < index1 && currentX == 0f && nextX > lineBreakWidth) {
-                    val tmp1 = index1
-                    val splitIndex = findSplitIndex(chars, index0, index1, charSpacing, lineBreakWidth, currentX)
-                    /*LOGGER.info("split [$line $fontSize $lineBreakWidth] $substring into " +
-                            chars.subList(index0,splitIndex).joinChars() +
-                            " + " +
-                            chars.subList(splitIndex,index1).joinChars()
-                    )*/
-                    index1 = splitIndex
-                    if (index1 > index0 && chars[index1 - 1] == ' '.code && chars[index1 - 2] != ' '.code) index1-- // cut off last space
-                    nextLine()
-                    index0 = splitIndex
-                    if (index1 == splitIndex && chars[index0] == ' '.code) index0++ // cut off first space
-                    index1 = tmp1
-                    display()
-                } else {
-                    result += StringPart(currentX, currentY, chars.joinChars(index0, index1), font, 0f)
-                    currentX = nextX
-                    widthF = max(widthF, currentX)
-                    index0 = index1
-                }
+            while (true) {
+                if (index1 > index0) {
+                    val font = fonts[lastSupportLevel]
+                    val filtered = chars.joinChars(index0, index1) {
+                        it !in 0xfe00..0xfe0f // Emoji variations; having no width, even if Java thinks so
+                    }
+                    val advance = if (filtered.isNotEmpty())
+                        TextLayout(filtered.toString(), font, renderContext).advance else 0f
+                    // if multiple chars and advance > lineWidth, then break line
+                    val nextX = currentX + advance + (index1 - index0) * charSpacing
+                    if (hasAutomaticLineBreak && index0 + 1 < index1 && currentX == 0f && nextX > lineBreakWidth) {
+                        val tmp1 = index1
+                        val splitIndex = findSplitIndex(chars, index0, index1, charSpacing, lineBreakWidth, currentX)
+                        /*LOGGER.info("split [$line $fontSize $lineBreakWidth] $substring into " +
+                                chars.subList(index0,splitIndex).joinChars() +
+                                " + " +
+                                chars.subList(splitIndex,index1).joinChars()
+                        )*/
+                        index1 = splitIndex
+                        if (index1 > index0 && chars[index1 - 1] == ' '.code && chars[index1 - 2] != ' '.code) index1-- // cut off last space
+                        nextLine()
+                        index0 = splitIndex
+                        if (index1 == splitIndex && chars[index0] == ' '.code) index0++ // cut off first space
+                        index1 = tmp1
+                    } else {
+                        result += StringPart(currentX, currentY, chars.joinChars(index0, index1), font, 0f)
+                        currentX = nextX
+                        widthF = max(widthF, currentX)
+                        index0 = index1
+                        break
+                    }
+                } else break
             }
         }
 
@@ -469,7 +471,8 @@ class AWTFont(val font: Font) {
         // todo measure how long it actually takes to generate text... my node graph example lags when zooming in/out...
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
-        worker.addPrioritized(text.length == 1) {
+        val prio = GFX.loadTexturesSync.peek() || text.length == 1
+        worker.addPrioritized(prio) {
 
             val image = BufferedImage(width, height, 1)
             // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
@@ -500,20 +503,18 @@ class AWTFont(val font: Font) {
 
         }
 
-        wait(text, texture)
+        if (prio) wait(text, texture)
 
         return texture
 
     }
 
-    fun wait(text: CharSequence, texture: Texture2D) {
-        if (GFX.loadTexturesSync.peek() || text.length == 1) {
-            val timeout = (if (text.length == 1) 1000 else 30) * MILLIS_TO_NANOS
-            val t0 = Engine.nanoTime
-            waitForGFXThread(true) {
-                texture.isCreated || texture.isDestroyed ||
-                        Engine.nanoTime - t0 > timeout
-            }
+    private fun wait(text: CharSequence, texture: Texture2D) {
+        val timeout = (if (text.length == 1) 1000 else 30) * MILLIS_TO_NANOS
+        val t0 = Engine.nanoTime
+        waitForGFXThread(true) {
+            texture.isCreated || texture.isDestroyed ||
+                    Engine.nanoTime - t0 > timeout
         }
     }
 

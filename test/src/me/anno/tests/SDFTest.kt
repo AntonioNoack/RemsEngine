@@ -7,6 +7,8 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.SDFComposer
 import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.components.mesh.sdf.VariableCounter
+import me.anno.ecs.components.mesh.sdf.arrays.SDFArray
+import me.anno.ecs.components.mesh.sdf.arrays.SDFHexGrid
 import me.anno.ecs.components.mesh.sdf.modifiers.*
 import me.anno.ecs.components.mesh.sdf.shapes.*
 import me.anno.gpu.GFX

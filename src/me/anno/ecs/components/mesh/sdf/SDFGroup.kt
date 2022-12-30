@@ -14,6 +14,8 @@ import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.first2
+import me.anno.utils.structures.tuples.Quad
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector3d
@@ -28,7 +30,7 @@ import kotlin.math.roundToInt
  * joins multiple sdf components together, like a folder;
  * can also join them using special operations like subtraction, xor, and logical and (see type)
  * */
-class SDFGroup : SDFComponent() {
+open class SDFGroup : SDFComponent() {
 
     enum class CombinationMode(
         val id: Int,
@@ -265,119 +267,30 @@ class SDFGroup : SDFComponent() {
             val posIndex = trans.posIndex
             if (numActiveChildren == 1) {
                 // done ^^
-                children.first { it.isEnabled }
+                children.first2 { it.isEnabled }
                     .buildShader(builder, posIndex, nextVariableId, dstIndex, uniforms, functions, seeds)
             } else {
-                val style = style
                 val tmpIndex = nextVariableId.next()
                 builder.append("vec2 res").append(tmpIndex).append(";\n")
                 if (type == CombinationMode.INTERPOLATION) {
-                    val param1 = defineUniform(uniforms, GLSLType.V1F) { clamp(progress, 0f, children.size - 1f) }
-                    // helper functions
-                    functions.addAll(type.glslCode)
-                    val weightIndex = nextVariableId.next()
-                    builder.append("res").append(dstIndex).append("=vec2(0.0);\n")
-                    builder.append("float w").append(weightIndex).append(";\n")
-                    var activeIndex = 0
-                    for (index in children.indices) {
-                        val child = children[index]
-                        if (!child.isEnabled) continue
-                        // calculate weight and only compute child if weight > 0
-                        builder.append('w').append(weightIndex)
-                        builder.append("=1.0-abs(").append(param1).append('-').append(activeIndex).append(".0);\n")
-                        //builder.append("if(w").append(weightIndex).append(" > 0.0){\n")
-                        child.buildShader(builder, posIndex, nextVariableId, tmpIndex, uniforms, functions, seeds)
-                        builder.append("if(w").append(weightIndex)
-                            .append(" >= 0.5){\n") // assign material if this is the most dominant
-                        builder.append("res").append(dstIndex).append(".y=res").append(tmpIndex).append(".y;\n")
-                        builder.append("}\n")
-                        builder.append("res").append(dstIndex)
-                            .append(".x+=w").append(weightIndex)
-                            .append("*res").append(tmpIndex)
-                            .append(".x;\n")
-                        //builder.append("}\n")
-                        activeIndex++
-                    }
+                    appendInterpolation(
+                        builder, posIndex, tmpIndex, nextVariableId,
+                        dstIndex, uniforms, functions, seeds
+                    )
                 } else {
-                    functions.add(smoothMinCubic)
-                    val useSmoothness = dynamicSmoothness || smoothness > 0f
-                            || (style != Style.DEFAULT && type.isStyleable) ||
-                            when (type) {// types that require smoothness
-                                CombinationMode.PIPE,
-                                CombinationMode.ENGRAVE,
-                                CombinationMode.GROOVE,
-                                CombinationMode.TONGUE -> true
-                                else -> false
-                            }
-                    val smoothness = if (useSmoothness) defineUniform(uniforms, GLSLType.V1F) { smoothness } else null
-                    // helper functions
-                    functions.addAll(type.glslCode)
-                    val funcName = when (type) {
-                        // if is styleable type, apply style
-                        CombinationMode.UNION -> {
-                            if (style != Style.DEFAULT) functions.add(hgFunctions)
-                            when (style) {
-                                Style.COLUMNS -> "unionColumn"
-                                Style.CHAMFER -> "unionChamfer"
-                                Style.ROUND -> "unionRound"
-                                Style.SOFT -> "unionSoft"
-                                Style.STAIRS -> "unionStairs"
-                                else -> "sdMin"
-                            }
-                        }
-                        CombinationMode.INTERSECTION,
-                        CombinationMode.DIFFERENCE1,
-                        CombinationMode.DIFFERENCE2 -> {
-                            if (style != Style.DEFAULT) functions.add(hgFunctions)
-                            when (style) {
-                                Style.COLUMNS -> "interColumn"
-                                Style.CHAMFER -> "interChamfer"
-                                Style.ROUND -> "interRound"
-                                Style.STAIRS -> "interStairs"
-                                // no other types are supported
-                                else -> "sdMax"
-                            }
-                        }
-                        else -> type.funcName
-                    }
-                    val groove = if (type == CombinationMode.GROOVE || type == CombinationMode.TONGUE) {
-                        defineUniform(uniforms, groove)
-                    } else null
-                    val stairs = if (
-                        funcName.contains("column", true) ||
-                        funcName.contains("stairs", true)
-                    ) {
-                        defineUniform(uniforms, GLSLType.V1F) { numStairs + 1f }
-                    } else null
+                    val (funcName, smoothness, groove, stairs) = appendGroupHeader(functions, uniforms, type, style)
                     var activeIndex = -1
                     for (index in children.indices) {
                         val child = children[index]
                         if (!child.isEnabled) continue
                         activeIndex++
-                        val vi = if (activeIndex == 0) dstIndex else tmpIndex
-                        child.buildShader(builder, posIndex, nextVariableId, vi, uniforms, functions, seeds)
+                        child.buildShader(
+                            builder, posIndex, nextVariableId,
+                            if (activeIndex == 0) dstIndex else tmpIndex,
+                            uniforms, functions, seeds
+                        )
                         if (activeIndex > 0) {
-                            // we need to merge two values
-                            builder.append("res").append(dstIndex)
-                            builder.append('=')
-                            builder.append(funcName)
-                            builder.append('(')
-                            if (type == CombinationMode.DIFFERENCE2) {
-                                builder.appendMinus(dstIndex)
-                            } else {
-                                builder.append("res").append(dstIndex)
-                            }
-                            builder.append(',')
-                            if (type == CombinationMode.DIFFERENCE1) builder.appendMinus(tmpIndex)
-                            else builder.append("res").append(tmpIndex)
-                            when {
-                                groove != null -> builder.append(',').append(groove)
-                                smoothness != null -> builder.append(',').append(smoothness)
-                            }
-                            if (stairs != null) {
-                                builder.append(',').append(stairs)
-                            }
-                            builder.append(");\n")
+                            appendMerge(builder, dstIndex, tmpIndex, funcName, smoothness, groove, stairs)
                         }
                     }
                 }
@@ -395,6 +308,134 @@ class SDFGroup : SDFComponent() {
             builder.append("res").append(dstIndex).append("=vec2(Infinity,-1.0);\n")
             buildDMShader(builder, posIndex0, dstIndex, nextVariableId, uniforms, functions, seeds)
         }
+    }
+
+    fun appendInterpolation(
+        builder: StringBuilder,
+        posIndex: Int, tmpIndex: Int,
+        nextVariableId: VariableCounter,
+        dstIndex: Int,
+        uniforms: HashMap<String, TypeValue>,
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
+    ) {
+        val param1 = defineUniform(uniforms, GLSLType.V1F) { clamp(progress, 0f, children.size - 1f) }
+        // helper functions
+        functions.addAll(type.glslCode)
+        val weightIndex = nextVariableId.next()
+        builder.append("res").append(dstIndex).append("=vec2(0.0);\n")
+        builder.append("float w").append(weightIndex).append(";\n")
+        var activeIndex = 0
+        for (index in children.indices) {
+            val child = children[index]
+            if (!child.isEnabled) continue
+            // calculate weight and only compute child if weight > 0
+            builder.append('w').append(weightIndex)
+            builder.append("=1.0-abs(").append(param1).append('-').append(activeIndex).append(".0);\n")
+            //builder.append("if(w").append(weightIndex).append(" > 0.0){\n")
+            child.buildShader(builder, posIndex, nextVariableId, tmpIndex, uniforms, functions, seeds)
+            builder.append("if(w").append(weightIndex)
+                .append(" >= 0.5){\n") // assign material if this is the most dominant
+            builder.append("res").append(dstIndex).append(".y=res").append(tmpIndex).append(".y;\n")
+            builder.append("}\n")
+            builder.append("res").append(dstIndex)
+                .append(".x+=w").append(weightIndex)
+                .append("*res").append(tmpIndex)
+                .append(".x;\n")
+            //builder.append("}\n")
+            activeIndex++
+        }
+    }
+
+    fun appendGroupHeader(
+        functions: HashSet<String>,
+        uniforms: HashMap<String, TypeValue>,
+        type: CombinationMode,
+        style: Style,
+    ): Quad<String, String?, String?, String?> {
+        functions.add(smoothMinCubic)
+        val useSmoothness = dynamicSmoothness || smoothness > 0f
+                || (style != Style.DEFAULT && type.isStyleable) ||
+                when (type) {// types that require smoothness
+                    CombinationMode.PIPE,
+                    CombinationMode.ENGRAVE,
+                    CombinationMode.GROOVE,
+                    CombinationMode.TONGUE -> true
+                    else -> false
+                }
+        val smoothness = if (useSmoothness) defineUniform(uniforms, GLSLType.V1F) { smoothness } else null
+        // helper functions
+        functions.addAll(type.glslCode)
+        val funcName = when (type) {
+            // if is styleable type, apply style
+            CombinationMode.UNION -> {
+                if (style != Style.DEFAULT) functions.add(hgFunctions)
+                when (style) {
+                    Style.COLUMNS -> "unionColumn"
+                    Style.CHAMFER -> "unionChamfer"
+                    Style.ROUND -> "unionRound"
+                    Style.SOFT -> "unionSoft"
+                    Style.STAIRS -> "unionStairs"
+                    else -> "sdMin"
+                }
+            }
+            CombinationMode.INTERSECTION,
+            CombinationMode.DIFFERENCE1,
+            CombinationMode.DIFFERENCE2 -> {
+                if (style != Style.DEFAULT) functions.add(hgFunctions)
+                when (style) {
+                    Style.COLUMNS -> "interColumn"
+                    Style.CHAMFER -> "interChamfer"
+                    Style.ROUND -> "interRound"
+                    Style.STAIRS -> "interStairs"
+                    // no other types are supported
+                    else -> "sdMax"
+                }
+            }
+            else -> type.funcName
+        }
+        val groove = if (type == CombinationMode.GROOVE || type == CombinationMode.TONGUE) {
+            defineUniform(uniforms, groove)
+        } else null
+        val stairs = if (
+            funcName.contains("column", true) ||
+            funcName.contains("stairs", true)
+        ) {
+            defineUniform(uniforms, GLSLType.V1F) { numStairs + 1f }
+        } else null
+        return Quad(funcName, smoothness, groove, stairs)
+    }
+
+    fun appendMerge(
+        builder: StringBuilder,
+        dstIndex: Int,
+        tmpIndex: Int,
+        funcName: String,
+        smoothness: String?,
+        groove: String?,
+        stairs: String?
+    ) {
+        // we need to merge two values
+        builder.append("res").append(dstIndex)
+        builder.append('=')
+        builder.append(funcName)
+        builder.append('(')
+        if (type == CombinationMode.DIFFERENCE2) {
+            builder.appendMinus(dstIndex)
+        } else {
+            builder.append("res").append(dstIndex)
+        }
+        builder.append(',')
+        if (type == CombinationMode.DIFFERENCE1) builder.appendMinus(tmpIndex)
+        else builder.append("res").append(tmpIndex)
+        when {
+            groove != null -> builder.append(',').append(groove)
+            smoothness != null -> builder.append(',').append(smoothness)
+        }
+        if (stairs != null) {
+            builder.append(',').append(stairs)
+        }
+        builder.append(");\n")
     }
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {

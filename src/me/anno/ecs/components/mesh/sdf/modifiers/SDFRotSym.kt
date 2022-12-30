@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.sdf.modifiers.SDFTwist.Companion.twistFunc
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.PIf
+import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
@@ -139,7 +140,7 @@ class SDFRotSym : PositionMapper() {
 
     companion object {
 
-        const val invTau = (1.0 / (2.0 * PI)).toFloat()
+        const val invTau = (1.0 / TAU).toFloat()
 
         const val rotSymFunc = "" +
                 "vec3 rotSym(vec3 p, vec4 q, float invSlice){\n" +

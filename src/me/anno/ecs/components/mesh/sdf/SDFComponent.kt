@@ -5,6 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.*
 import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.sdf.arrays.SDFGroupArray
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.components.script.QuickScriptComponent
@@ -390,6 +391,10 @@ open class SDFComponent : ProceduralMesh(), Renderable {
                 clampBounds(dst)
                 mapper.applyTransform(dst)
             }
+        }
+        if (this is SDFGroupArray) {
+            clampBounds(dst)
+            applyArrayTransform(dst)
         }
         // reversed as well?
         for (index in distanceMappers.indices) {

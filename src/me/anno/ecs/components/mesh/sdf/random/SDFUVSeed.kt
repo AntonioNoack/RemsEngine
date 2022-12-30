@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh.sdf.modifiers.random
+package me.anno.ecs.components.mesh.sdf.random
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
@@ -6,9 +6,9 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.TwoDims
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
-import me.anno.ecs.components.mesh.sdf.modifiers.SDFArray
-import me.anno.ecs.components.mesh.sdf.modifiers.SDFHexGrid
-import me.anno.ecs.components.mesh.sdf.modifiers.SDFTriangleGrid
+import me.anno.ecs.components.mesh.sdf.arrays.SDFArray
+import me.anno.ecs.components.mesh.sdf.arrays.SDFHexGrid
+import me.anno.ecs.components.mesh.sdf.arrays.SDFTriangleGrid
 import me.anno.ecs.components.mesh.sdf.shapes.SDFSphere
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry

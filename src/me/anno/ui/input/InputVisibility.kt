@@ -11,20 +11,17 @@ object InputVisibility {
         else title in visible
 
     fun toggle(visibilityKey: String, panel: Panel?) {
-        println("toggle $visibilityKey")
         if (visibilityKey in visible) visible.remove(visibilityKey)
         else visible.add(visibilityKey)
         panel?.invalidateLayout()
     }
 
     fun show(visibilityKey: String, panel: Panel?) {
-        println("showing $visibilityKey")
         visible.add(visibilityKey)
         panel?.invalidateLayout()
     }
 
     fun hide(visibilityKey: String, panel: Panel?) {
-        println("hiding $visibilityKey")
         visible.remove(visibilityKey)
         panel?.invalidateLayout()
     }

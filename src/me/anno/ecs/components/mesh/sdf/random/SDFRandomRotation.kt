@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh.sdf.modifiers.random
+package me.anno.ecs.components.mesh.sdf.random
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.TypeValue
@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
-import me.anno.ecs.components.mesh.sdf.modifiers.SDFArray
+import me.anno.ecs.components.mesh.sdf.arrays.SDFArray
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry

@@ -1,12 +1,12 @@
-package me.anno.ecs.components.mesh.sdf.modifiers
+package me.anno.ecs.components.mesh.sdf.arrays
 
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.mod
 import me.anno.ecs.components.mesh.sdf.VariableCounter
+import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
@@ -19,13 +19,7 @@ import kotlin.math.round
 class SDFArray : PositionMapper() {
 
     // todo all arrays should have the option to evaluate the neighbors for correct sdfs without gaps
-    // todo arrays and over multipliers could be sources for randomness :3
-    // how would we implement it?
-    //   local variable in generator
-    //   randomness-source slot in consumer
-
-    // we could beautify the result when the shapes are overlapping by repeatedly calling the child...
-    // would be pretty expensive...
+    // -> for this array, use SDFArray2 :)
 
     /**
      * repetition count
@@ -124,10 +118,10 @@ class SDFArray : PositionMapper() {
             repeat(builder, posIndex, cellSize.z, count.z, 'z',rnd, mirrorZ)
         }
         val seed = "seed" + nextVariableId.next()
-        builder.append("int ").append(seed).append("=threeInputRandom(int(tmp")
-            .append(rnd).append(".x*2.0),int(tmp")
-            .append(rnd).append(".y*2.0),int(tmp")
-            .append(rnd).append(".z*2.0));\n")
+        builder.append("int ").append(seed).append("=threeInputRandom(int(floor(tmp")
+            .append(rnd).append(".x)),int(floor(tmp")
+            .append(rnd).append(".y)),int(floor(tmp")
+            .append(rnd).append(".z)));\n")
         seeds.add(seed)
         return null
     }
@@ -253,18 +247,15 @@ class SDFArray : PositionMapper() {
         }
 
         private fun mod2(p: Float, s: Float, c: Int): Float {
-            if (c == 1 || s <= 0f) return p
-            if (c <= 0) return p - s * round(p / s)
-            return mod2(p, s, (c - 1) * 0.5f, c.and(1) * 0.5f)
+            return if (c <= 0) p - s * round(p / s)
+            else mod2(p, s, (c - 1) * 0.5f, c.and(1) * 0.5f)
         }
 
         private fun mod2M(p: Float, s: Float, c: Int): Float {
-            if (c == 1 || s <= 0f) return p
-            if (c <= 0) {
+            return if (c <= 0) {
                 val c2 = round(p / s)
-                return (p - s * c2) * mirror(c2)
-            }
-            return mod2M(p, s, (c - 1) * 0.5f, c.and(1) * 0.5f)
+                (p - s * c2) * mirror(c2)
+            } else mod2M(p, s, (c - 1) * 0.5f, c.and(1) * 0.5f)
         }
 
         const val sdArray = "" +
@@ -280,21 +271,21 @@ class SDFArray : PositionMapper() {
                 "   c = round(p/s);\n" +
                 "   return p-s*c;\n" +
                 "}\n" +
+                "float mod2C(float p, float s, float l, float h){ return clamp(floor(p/s+h)+.5-h,-l,l); }\n" +
+                "vec3 mod2C(vec3 p, vec3 s, vec3 l, vec3 h){ return clamp(floor(p/s+h)+.5-h,-l,l); }\n" +
                 "float mod2M(float p, float s, float l, float h, out float c){\n" +
-                "   c = clamp(floor(p/s+h)+.5-h,-l,l);\n" +
+                "   c = mod2C(p,s,l,h);\n" +
                 "   return (p-s*c)*mirror(c);\n" +
                 "}\n" +
                 "float mod2(float p, float s, float l, float h, out float c){\n" +
-                "   c = clamp(floor(p/s+h)+.5-h,-l,l);\n" +
+                "   c = mod2C(p,s,l,h);\n" +
                 "   return p-s*c;\n" +
                 "}\n" +
                 "float mod2M(float p, float s, int c, out float c2){\n" +
-                "   if(c == 1 || s <= 0.0) {c2=0.0; return p;}\n" +
                 "   if(c <= 0) return mod2M(p,s,c2);\n" + // unlimited
                 "   return mod2M(p,s,float(c-1)*0.5,((c&1)==1)?0.5:0.0,c2);\n" +
                 "}\n" +
                 "float mod2(float p, float s, int c, out float c2){\n" +
-                "   if(c == 1 || s <= 0.0) {c2=0.0;return p;};\n" +
                 "   if(c <= 0) return mod2(p,s,c2);\n" + // unlimited
                 "   return mod2(p,s,float(c-1)*0.5,((c&1)==1)?0.5:0.0,c2);\n" +
                 "}\n"

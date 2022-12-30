@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
-import me.anno.ecs.components.mesh.sdf.modifiers.random.SDFUVSeed
+import me.anno.ecs.components.mesh.sdf.random.SDFUVSeed
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.ecs.components.mesh.sdf.shapes.SDFShape
 import me.anno.engine.ui.render.ECSMeshShader
