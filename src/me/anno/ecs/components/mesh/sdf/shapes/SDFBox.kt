@@ -89,6 +89,24 @@ open class SDFBox : SDFSmoothShape() {
         }
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
         const val sdBox = "" +
+                "float udBox(float p, float b){\n" +
+                "  return max(abs(p) - b,0.0);\n" +
+                "}\n" +
+                "float udBox(vec2 p, vec2 b){\n" +
+                "  vec2 d = abs(p) - b;\n" +
+                "  return length(max(d,0.0));\n" +
+                "}\n" +
+                "float udBox(vec3 p, vec3 b){\n" +
+                "  vec3 d = abs(p) - b;\n" +
+                "  return length(max(d,0.0));\n" +
+                "}\n" +
+                "float sdBox(float p, float b){\n" +
+                "  return abs(p) - b;\n" +
+                "}\n" +
+                "float sdBox(vec2 p, vec2 b){\n" +
+                "  vec2 d = abs(p) - b;\n" +
+                "  return min(max(d.x,d.y),0.0) + length(max(d,0.0));\n" +
+                "}\n" +
                 "float sdBox(vec3 p, vec3 b){\n" +
                 "  vec3 d = abs(p) - b;\n" +
                 "  return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));\n" +

@@ -19,8 +19,7 @@ import org.joml.Matrix2d
 import org.joml.Vector4f
 
 // notice: to disable color interpolation, disable linear filtering inside the material :)
-// todo multiple uv modifiers won't work together correctly
-class SDFUVSeed : SDFRandom() {
+class SDFRandomUV : SDFRandom() {
 
     override fun buildShader(
         builder: StringBuilder,
@@ -37,12 +36,12 @@ class SDFUVSeed : SDFRandom() {
     override fun calcTransform(pos: Vector4f, seed: Int) {}
 
     override fun clone(): PrefabSaveable {
-        val clone = SDFUVSeed()
+        val clone = SDFRandomUV()
         copy(clone)
         return clone
     }
 
-    override val className get() = "SDFUVSeed"
+    override val className get() = "SDFRandomUV"
 
     companion object {
         @JvmStatic
@@ -61,7 +60,7 @@ class SDFUVSeed : SDFRandom() {
                 val shape = SDFSphere()
                 shape.position.y = y
                 shape.addChild(array)
-                shape.addChild(SDFUVSeed())
+                shape.addChild(SDFRandomUV())
                 shape.sdfMaterials = matList
                 group.addChild(shape)
                 entity.add(group)

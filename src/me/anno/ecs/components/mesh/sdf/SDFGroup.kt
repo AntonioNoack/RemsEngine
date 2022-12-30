@@ -271,7 +271,7 @@ open class SDFGroup : SDFComponent() {
                     .buildShader(builder, posIndex, nextVariableId, dstIndex, uniforms, functions, seeds)
             } else {
                 val tmpIndex = nextVariableId.next()
-                builder.append("vec2 res").append(tmpIndex).append(";\n")
+                builder.append("vec4 res").append(tmpIndex).append(";\n")
                 if (type == CombinationMode.INTERPOLATION) {
                     appendInterpolation(
                         builder, posIndex, tmpIndex, nextVariableId,
@@ -298,14 +298,16 @@ open class SDFGroup : SDFComponent() {
             // first scale or offset? offset, because it was applied after scaling
             val offsetName = trans.offsetName
             val scaleName = trans.scaleName
-            if (offsetName != null) builder.append("res").append(dstIndex).append(".x+=").append(offsetName)
-                .append(";\n")
-            if (scaleName != null) builder.append("res").append(dstIndex).append(".x*=").append(scaleName).append(";\n")
-            if (localReliability != 1f) builder.append("res").append(dstIndex).append(".x*=")
-                .appendUniform(uniforms, GLSLType.V1F) { localReliability }.append(";\n")
+            if (offsetName != null)
+                builder.append("res").append(dstIndex).append(".x+=").append(offsetName).append(";\n")
+            if (scaleName != null)
+                builder.append("res").append(dstIndex).append(".x*=").append(scaleName).append(";\n")
+            if (localReliability != 1f)
+                builder.append("res").append(dstIndex).append(".x*=")
+                    .appendUniform(uniforms, GLSLType.V1F) { localReliability }.append(";\n")
             buildDMShader(builder, posIndex, dstIndex, nextVariableId, uniforms, functions, seeds)
         } else {
-            builder.append("res").append(dstIndex).append("=vec2(Infinity,-1.0);\n")
+            builder.append("res").append(dstIndex).append("=vec4(Infinity,-1.0,0.0,0.0);\n")
             buildDMShader(builder, posIndex0, dstIndex, nextVariableId, uniforms, functions, seeds)
         }
     }
@@ -323,7 +325,7 @@ open class SDFGroup : SDFComponent() {
         // helper functions
         functions.addAll(type.glslCode)
         val weightIndex = nextVariableId.next()
-        builder.append("res").append(dstIndex).append("=vec2(0.0);\n")
+        builder.append("res").append(dstIndex).append("=vec4(Infinity,-1.0,0.0,0.0);\n")
         builder.append("float w").append(weightIndex).append(";\n")
         var activeIndex = 0
         for (index in children.indices) {
@@ -791,49 +793,49 @@ open class SDFGroup : SDFComponent() {
                 "}\n" +
                 // inputs: sd/m1, sd/m2, k
                 // outputs: sd/m-mix
-                "vec2 sMinCubic2(vec2 a, vec2 b, float k){\n" +
+                "vec4 sMinCubic2(vec4 a, vec4 b, float k){\n" +
                 "   if(k <= 0.0) return (a.x<b.x) ? a : b;\n" +
                 "   float h = max(k-abs(a.x-b.x), 0.0)/k;\n" +
                 "   float m = h*h*h*0.5;\n" +
                 "   float s = m*k*(1.0/3.0); \n" +
-                "   return (a.x<b.x) ? vec2(a.x-s,a.y) : vec2(b.x-s,b.y);\n" +
+                "   return (a.x<b.x) ? vec4(a.x-s,a.yzw) : vec4(b.x-s,b.yzw);\n" +
                 "}\n" +
-                "vec2 sMaxCubic2(vec2 a, vec2 b, float k){\n" +
+                "vec4 sMaxCubic2(vec4 a, vec4 b, float k){\n" +
                 "   if(k <= 0.0) return (a.x>b.x) ? a : b;\n" +
                 "   float h = max(k-abs(a.x-b.x), 0.0)/k;\n" +
                 "   float m = h*h*h*0.5;\n" +
                 "   float s = m*k*(1.0/3.0); \n" +
-                "   return (a.x>b.x) ? vec2(a.x+s,a.y) : vec2(b.x+s,b.y);\n" +
+                "   return (a.x>b.x) ? vec4(a.x+s,a.yzw) : vec4(b.x+s,b.yzw);\n" +
                 "}\n"
         const val sdMin = "" +
                 "float sdMin3(float a, float b, float c){ return min(a,min(b,c)); }\n" +
                 "float sdMin3(float a, float b, float c, float k){ return sMinCubic1(a,sMinCubic1(b,c,k),k); }\n" +
                 "float sdMin(float d1, float d2){ return min(d1,d2); }\n" +
-                "vec2 sdMin(vec2 d1, vec2 d2){ return d1.x < d2.x ? d1 : d2; }\n" +
-                "vec2 sdMin(vec2 d1, vec2 d2, float k){ return sMinCubic2(d1,d2,k); }\n"
+                "vec4 sdMin(vec4 d1, vec4 d2){ return d1.x < d2.x ? d1 : d2; }\n" +
+                "vec4 sdMin(vec4 d1, vec4 d2, float k){ return sMinCubic2(d1,d2,k); }\n"
         const val sdMax = "" +
                 "float sdMax(float d1, float d2){ return max(d1,d2); }\n" +
-                "vec2 sdMax(vec2 d1, vec2 d2){ return d1.x < d2.x ? d2 : d1; }\n" +
+                "vec4 sdMax(vec4 d1, vec4 d2){ return d1.x < d2.x ? d2 : d1; }\n" +
                 "float sdMax(float d1, float d2, float k){ return sMaxCubic1(d1,d2,k); }\n" +
-                "vec2 sdMax(vec2 d1, vec2 d2, float k){ return sMaxCubic2(d1,d2,k); }\n"
+                "vec4 sdMax(vec4 d1, vec4 d2, float k){ return sMaxCubic2(d1,d2,k); }\n"
         const val sdDiff = "" +
-                "vec2 sdDiff3(vec2 d1, vec2 d2){\n" +
-                "  vec2 e1 = sdMin(d1,d2);\n" +
-                "  vec2 e2 = sdMax(d1,d2);\n" +
+                "vec4 sdDiff3(vec4 d1, vec4 d2){\n" +
+                "  vec4 e1 = sdMin(d1,d2);\n" +
+                "  vec4 e2 = sdMax(d1,d2);\n" +
                 "  return sdDiff1(e1,e2); }\n" +
-                "vec2 sdDiff3(vec2 d1, vec2 d2, float k){\n" +
-                "  vec2 e1 = sdMin(d1,d2,k);\n" +
-                "  vec2 e2 = sdMax(d1,d2,k);\n" +
+                "vec4 sdDiff3(vec4 d1, vec4 d2, float k){\n" +
+                "  vec4 e1 = sdMin(d1,d2,k);\n" +
+                "  vec4 e2 = sdMax(d1,d2,k);\n" +
                 "  return sdDiff1(e1,e2,k); }\n"
         const val sdDiff1 = "" + // max(+-)
                 "float sdDiff1(float d1, float d2){ return max(d1, -d2); }\n" +
                 "float sdDiff1(float d1, float d2, float k){ return sdMax(d1, -d2, k); }\n" +
-                "vec2 sdDiff1(vec2 d1, vec2 d2){ return sdMax(d1, vec2(-d2.x, d2.y)); }\n" +
-                "vec2 sdDiff1(vec2 d1, vec2 d2, float k){ return sdMax(d1, vec2(-d2.x, d2.y), k); }\n"
-        const val sdInt = "vec2 sdInt(vec2 sum, vec2 di, float weight){\n" +
+                "vec4 sdDiff1(vec2 d1, vec2 d2){ return sdMax(d1, vec4(-d2.x, d2.yzw)); }\n" +
+                "vec4 sdDiff1(vec2 d1, vec2 d2, float k){ return sdMax(d1, vec4(-d2.x, d2.yzw), k); }\n"
+        const val sdInt = "vec4 sdInt(vec4 sum, vec4 di, float weight){\n" +
                 "weight = 1.0-abs(weight);\n" +
                 "if(weight < 0.0) return sum;\n" +
-                "return vec2(sum.x + di.x * weight, weight >= 0.5 ? di.y : sum.y); }\n"
+                "return vec4(sum.x + di.x * weight, weight >= 0.5 ? di.yzw : sum.yzw); }\n"
     }
 
 }

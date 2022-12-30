@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
-import me.anno.ecs.components.mesh.sdf.random.SDFUVSeed
+import me.anno.ecs.components.mesh.sdf.random.SDFRandomUV
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.ecs.components.mesh.sdf.shapes.SDFShape
 import me.anno.engine.ui.render.ECSMeshShader
@@ -43,15 +43,15 @@ object SDFComposer {
     const val raycasting = "" +
             // input: vec3 ray origin, vec3 ray direction
             // output: vec2(distance, materialId)
-            "vec2 raycast(vec3 ro, vec3 rd, out int i, inout vec2 uv){\n" +
+            "vec4 raycast(vec3 ro, vec3 rd, out int i){\n" +
             // ray marching
-            "   vec2 res = vec2(-1.0);\n" +
+            "   vec4 res = vec4(-1.0);\n" +
             "   float tMin = distanceBounds.x, tMax = distanceBounds.y;\n" +
             "   float t = tMin;\n" +
             "   for(i=0; i<maxSteps && t<tMax; i++){\n" +
-            "     vec2 h = map(ro,rd,ro+rd*t,uv);\n" +
+            "     vec4 h = map(ro,rd,ro+rd*t);\n" +
             "     if(abs(h.x)<(sdfMaxRelativeError*t)){\n" + // allowed error grows with distance
-            "       res = vec2(t,h.y);\n" +
+            "       res = vec4(t,h.yzw);\n" +
             "       break;\n" +
             "     }\n" +
             // sdfReliability: sometimes, we need more steps, because the sdf is not reliable
@@ -68,7 +68,7 @@ object SDFComposer {
             "  for(int i=ZERO;i<4;i++) {\n" +
             // 0.5773 is just a scalar factor
             "      vec3 e = vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))*2.0-1.0;\n" +
-            "      n += e*map(ro,rd,pos+e*epsilon,uv).x;\n" +
+            "      n += e*map(ro,rd,pos+e*epsilon).x;\n" +
             "  }\n" +
             "  return normalize(n);\n" +
             "}\n"
@@ -165,7 +165,7 @@ object SDFComposer {
         val materialsUsingTextures = BitSet(materials.size)
         if (materials.isNotEmpty()) {
             tree.simpleTraversal(false) {
-                if (it is SDFComponent && it.positionMappers.any { pm -> pm is SDFUVSeed }) {
+                if (it is SDFComponent && it.positionMappers.any { pm -> pm is SDFRandomUV }) {
                     it.simpleTraversal(false) { c ->
                         if (c is SDFShape) {
                             if (c.materialId < materialsUsingTextures.size())
@@ -288,12 +288,11 @@ object SDFComposer {
                             "   vec3 localHit = invLocalTransform * vec4(finalPosition, 1.0);\n" +
                             "   localPos = localHit - localDir * dot(localDir, localHit - localCamPos);\n" +
                             "}\n" +
-                            "vec2 uv = vec2(0.0);\n" +
-                            "vec2 ray = map(localPos,localDir,localPos,uv);\n" +
+                            "vec4 ray = map(localPos,localDir,localPos);\n" +
                             "int steps;\n" +
                             "finalAlpha = 0.0;\n" +
-                            "if(ray.x >= 0.0){\n" + // not inside an object
-                            "   ray = raycast(localPos, localDir, steps, uv);\n" +
+                            "if(ray.x >= 0.0){\n" + // not inside an object (that's ideal)
+                            "   ray = raycast(localPos, localDir, steps);\n" +
                             "   if(debugMode != ${DebugMode.NUM_STEPS.id}){\n" +
                             "       if(ray.y < 0.0 || (debugMode == ${DebugMode.SDF_ON_Y.id} && (localPos.y+ray.x*localDir.y)*sign(localDir.y) > 0.0)){\n" + // hit nothing -> sky or similar
                             "           if(debugMode == ${DebugMode.SDF_ON_Y.id}){\n" +
@@ -309,7 +308,7 @@ object SDFComposer {
                             "                       finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
                             "                       vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
                             "                       gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                            "                       distance = map(localPos,localDir,localHit,uv).x;\n" + // < 0.0 removed, because we show the shape there
+                            "                       distance = map(localPos,localDir,localHit).x;\n" + // < 0.0 removed, because we show the shape there
                             // waves like in Inigo Quilez demos, e.g. https://www.shadertoy.com/view/tt3yz7
                             // show the inside as well? mmh...
                             "                       vec3 col = vec3(0.9,0.6,0.3) * (1.0 - exp(-2.0*distance));\n" +
@@ -336,6 +335,7 @@ object SDFComposer {
                             "               gl_FragDepth = newVertex.z/newVertex.w;\n" +
                             //"           } else discard;\n" + // to do instead of discarding, we should clamp the distance, and check the color there
                             // step by step define all material properties
+                            "           vec2 uv = ray.zw;\n" +
                             builder.toString() +
                             "       }\n" +
                             "   } else {\n" + // show number of steps
@@ -356,7 +356,6 @@ object SDFComposer {
                             "       finalEmissive *= 2.0;\n" + // only correct with current tonemapping...
                             "       finalAlpha = 1.0;\n" +
                             "   }\n" +
-
                             "} else {\n" +// inside an object
 
                             /*"   finalColor = vec3(0.5);\n" +
@@ -384,8 +383,7 @@ object SDFComposer {
                             "if(renderIds){\n" +
                             "   int intId = int(ray.y);\n" +
                             "   tint = vec4(vec3(float(intId&255), float((intId>>8)&255), float((intId>>16)&255))/255.0, 1.0);\n" +
-                            "} else tint = vec4(1.0);\n" +
-                            ""
+                            "} else tint = vec4(1.0);\n"
 
                 )
                 stage.functions.ensureCapacity(stage.functions.size + functions.size + 1)
@@ -399,8 +397,9 @@ object SDFComposer {
                             "#define PHI 1.618033988749895\n"
                 )
                 for (func in functions) builder2.append(func)
-                builder2.append("vec2 map(vec3 ro, vec3 rd, vec3 pos0, inout vec2 uv){\n")
-                builder2.append("   vec2 res0;\n")
+                builder2.append("vec4 map(vec3 ro, vec3 rd, vec3 pos0){\n")
+                builder2.append("   vec4 res0;\n")
+                builder2.append("   vec2 uv=vec2(0.0);\n")
                 builder2.append(shapeDependentShader)
                 builder2.append("   return res0;\n}\n")
                 builder2.append(raycasting)

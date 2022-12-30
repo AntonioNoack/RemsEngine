@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.sdf.arrays.*
 import me.anno.ecs.components.mesh.sdf.modifiers.*
 import me.anno.ecs.components.mesh.sdf.random.SDFRandomRotation
 import me.anno.ecs.components.mesh.sdf.random.SDFRandomTranslation
-import me.anno.ecs.components.mesh.sdf.random.SDFUVSeed
+import me.anno.ecs.components.mesh.sdf.random.SDFRandomUV
 import me.anno.ecs.components.mesh.sdf.shapes.*
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
@@ -56,7 +56,7 @@ object SDFRegistry {
         // physics
         registerCustomClass(SDFCollider())
         // random
-        registerCustomClass(SDFUVSeed())
+        registerCustomClass(SDFRandomUV())
         registerCustomClass(SDFRandomTranslation())
         registerCustomClass(SDFRandomRotation())
         // arrays version 2

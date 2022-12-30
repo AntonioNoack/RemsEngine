@@ -1,17 +1,25 @@
 package me.anno.ecs.components.mesh.sdf.arrays
 
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
+import me.anno.ecs.components.mesh.sdf.random.SDFRandom.Companion.randLib
+import me.anno.ecs.components.mesh.sdf.random.SDFRandomUV
+import me.anno.ecs.components.mesh.sdf.shapes.SDFCone
+import me.anno.ecs.components.mesh.sdf.shapes.SDFPlane
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.sq
+import me.anno.utils.OS.pictures
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Booleans.toInt
@@ -23,7 +31,7 @@ import kotlin.math.abs
 import kotlin.math.round
 import kotlin.math.sin
 
-// todo add random seed
+// todo expensive version respecting all children
 class SDFVoronoiArray : PositionMapper() {
 
     // we could beautify the result when the shapes are overlapping by repeatedly calling the child...
@@ -99,7 +107,9 @@ class SDFVoronoiArray : PositionMapper() {
         val y = enableY
         val z = enableZ
 
-        val c = when (val cell = x.toInt(1) + y.toInt(2) + z.toInt(4)) {
+        val cell = x.toInt(1) + y.toInt(2) + z.toInt(4)
+        val dims = cell.countOneBits()
+        val c = when (cell) {
             0 -> return null
             1, 2, 4 -> { // 1d
                 if (x) ".x" else if (y) ".y" else ".z"
@@ -117,7 +127,12 @@ class SDFVoronoiArray : PositionMapper() {
         val max = defineUniform(uniforms, max)
 
         functions.add(sdVoronoi)
+        functions.add(randLib)
 
+        val rnd = nextVariableId.next()
+        if (dims == 1) builder.append("float")
+        else builder.append("vec").append(dims)
+        builder.append(" tmp").append(rnd).append(";\n")
         builder.append("pos").append(posIndex).append(c)
         builder.append("=voronoi(pos").append(posIndex).append(c).append('/')
         builder.append(cellSize).append(c).append(',')
@@ -125,9 +140,28 @@ class SDFVoronoiArray : PositionMapper() {
         builder.append(min).append(c).append(',')
         builder.append(max).append(c).append(',')
         builder.appendUniform(uniforms, GLSLType.V1F) { randomness }
-        builder.append(")*")
+            .append(",tmp").append(rnd).append(")*")
         builder.append(cellSize).append(c)
         builder.append(";\n")
+
+        // calculate seed
+        val seed1 = "seed" + nextVariableId.next()
+        builder.append("int ").append(seed1)
+        when (dims) {
+            1 -> builder.append("=int(tmp").append(rnd).append(");\n")
+            2 -> {
+                builder.append("=twoInputRandom(int(tmp")
+                    .append(rnd).append(".x),int(tmp")
+                    .append(rnd).append(".y));\n")
+            }
+            else -> {
+                builder.append("=threeInputRandom(int(tmp")
+                    .append(rnd).append(".x),int(tmp")
+                    .append(rnd).append(".y),int(tmp")
+                    .append(rnd).append(".z));\n")
+            }
+        }
+        seeds.add(seed1)
 
         return null
     }
@@ -365,6 +399,33 @@ class SDFVoronoiArray : PositionMapper() {
 
     companion object {
 
+        @JvmStatic
+        fun main(args: Array<String>) {
+            // build nice, small forest :)
+            testSceneWithUI(Entity().apply {
+                // ground
+                addChild(SDFPlane().apply {
+                    sdfMaterials = listOf(Material().apply {
+                        diffuseBase.set(0.3f, 0.5f, 0.3f, 1f)
+                    }.ref)
+                })
+                // trees
+                addChild(SDFCone().apply {
+                    addChild(SDFVoronoiArray().apply {
+                        min.set(-1e3f)
+                        max.set(+1e3f)
+                    })
+                    addChild(SDFRandomUV())
+                    radius = 0.4f
+                    sdfMaterials = listOf(Material().apply {
+                        // add texture with random shades of green :)
+                        // https://www.wallpaperup.com/259563/green_landscapes_nature_trees_grass_parks.html
+                        diffuseMap = pictures.getChild("RemsStudio/8c841f59b8dedb0b63abcac91cb82392-1000.jpg")
+                    }.ref)
+                })
+            })
+        }
+
         // inspired by https://www.shadertoy.com/view/ldl3W8, Inigo Quilez
         const val sdVoronoi = "" +
                 // can we mirror cells?
@@ -382,45 +443,52 @@ class SDFVoronoiArray : PositionMapper() {
                 "       dot(p,vec3(175.3,217.9,278.4))\n" +
                 "   ))*43758.5453);\n" +
                 "}\n" +
-                "float voronoi(float p, float seed, float min, float max, float rnd){\n" +
-                "   float cellIndex = round(clamp(p, min, max));\n" +
-                "   float bestDistance = Infinity;\n" +
+                "float voronoi(float p, float seed, float min, float max, float rnd, out float c){\n" +
+                "   float clamped = clamp(p,min,max);\n" +
+                "   float cellIndex = round(clamped);\n" +
+                "   float bestDistance = 100.0;\n" +
                 "   float fractional = p - cellIndex;\n" +
                 "   for(int i=-1;i<=1;i++){\n" +
                 "       float cellOffset = float(i);\n" +
                 "       float cellPos = cellIndex + cellOffset;\n" +
                 "       float center = cellOffset + (hash1(cellPos + seed) - 0.5) * rnd;\n" +
+                "       float center2 = center + cellIndex;\n" +
                 "       float delta = fractional - center;\n" +
                 "       float dist = delta*delta;\n" + // abs or x², which is faster?
-                "       if(dist < bestDistance){\n" +
+                "       if(dist < bestDistance && center2>min && center2<max){\n" +
                 "           bestDistance = dist;\n" +
                 "           p = delta;\n" +
+                "           c = cellIndex + cellOffset;\n" +
                 "       }\n" +
                 "   }\n" +
                 "   return p;\n" +
                 "}\n" +
-                "vec2 voronoi(vec2 p, vec2 seed, vec2 min, vec2 max, float rnd){\n" +
-                "   vec2 cellIndex = round(clamp(p, min, max));\n" +
-                "   float bestDistance = Infinity;\n" +
+                "vec2 voronoi(vec2 p, vec2 seed, vec2 min, vec2 max, float rnd, out vec2 c){\n" +
+                "   vec2 clamped = clamp(p,min,max);\n" +
+                "   vec2 cellIndex = round(clamped);\n" +
+                "   float bestDistance = 100.0;\n" +
                 "   vec2 fractional = p - cellIndex;\n" +
                 "   for(int i=-1;i<=1;i++){\n" +
                 "       for(int j=-1;j<=1;j++){\n" +
                 "           vec2 cellOffset = vec2(float(i),float(j));\n" +
                 "           vec2 cellPos = cellIndex + cellOffset;\n" +
                 "           vec2 center = cellOffset + (hash2(cellPos + seed) - 0.5) * rnd;\n" +
+                "           vec2 center2 = center + cellIndex;\n" +
                 "           vec2 delta = fractional - center;\n" +
                 "           float dist = dot(delta,delta);\n" +
-                "           if(dist < bestDistance){\n" +
+                "           if(dist < bestDistance && all(greaterThan(center2,min)) && all(lessThan(center2,max))){\n" +
                 "               bestDistance = dist;\n" +
                 "               p = delta;\n" +
+                "               c = cellIndex + cellOffset;\n" +
                 "           }\n" +
                 "       }\n" +
                 "   }\n" +
                 "   return p;\n" +
                 "}\n" +
-                "vec3 voronoi(vec3 p, vec3 seed, vec3 min, vec3 max, float rnd){\n" +
-                "   vec3 cellIndex = round(clamp(p, min, max));\n" +
-                "   float bestDistance = Infinity;\n" +
+                "vec3 voronoi(vec3 p, vec3 seed, vec3 min, vec3 max, float rnd, out vec3 c){\n" +
+                "   vec3 clamped = clamp(p,min,max);\n" +
+                "   vec3 cellIndex = round(clamped);\n" +
+                "   float bestDistance = 100.0;\n" +
                 "   vec3 fractional = p - cellIndex;\n" +
                 "   for(int i=-1;i<=1;i++){\n" +
                 "       for(int j=-1;j<=1;j++){\n" +
@@ -428,11 +496,13 @@ class SDFVoronoiArray : PositionMapper() {
                 "               vec3 cellOffset = vec3(float(i),float(j),float(k));\n" +
                 "               vec3 cellPos = cellIndex + cellOffset;\n" +
                 "               vec3 center = cellOffset + (hash3(cellPos + seed) - 0.5) * rnd;\n" +
+                "               vec3 center2 = center + cellIndex;\n" +
                 "               vec3 delta = fractional - center;\n" +
                 "               float dist = dot(delta,delta);\n" +
-                "               if(dist < bestDistance){\n" +
+                "               if(dist < bestDistance && all(greaterThan(center2,min)) && all(lessThan(center2,max))){\n" +
                 "                   bestDistance = dist;\n" +
                 "                   p = delta;\n" +
+                "                   c = cellIndex + cellOffset;\n" +
                 "               }\n" +
                 "           }\n" +
                 "       }\n" +

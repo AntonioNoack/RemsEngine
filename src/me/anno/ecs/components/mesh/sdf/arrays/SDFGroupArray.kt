@@ -56,7 +56,7 @@ abstract class SDFGroupArray : SDFGroup() {
         seeds: ArrayList<String>
     ) {
         val tmp = nextVariableId.next()
-        builder.append("vec2 res").append(tmp).append(";\n")
+        builder.append("vec4 res").append(tmp).append(";\n")
         // start loops
         val posIndex = defineLoopHead(builder, posIndex0, tmp, dstIndex, nextVariableId, uniforms, functions, seeds)
         // build group contents

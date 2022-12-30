@@ -116,7 +116,7 @@ class CachedProperty(
     companion object {
         private val LOGGER = LogManager.getLogger(CachedProperty::class)
         private fun hide(it: HideInInspector, name: String, clazz: KClass<*>): (Any) -> Boolean {
-            if (it.hideIfVariableIsTrue.isBlank2()) return { _ -> true }
+            if (it.hideIfVariableIsTrue.isBlank2()) return { _ -> false }
             else {
                 @Suppress("unchecked_cast")
                 val getter1 = clazz.memberProperties
@@ -124,7 +124,7 @@ class CachedProperty(
                 if (getter1 != null) return { instance -> getter1.invoke(instance) }
                 else {
                     LOGGER.warn("Property ${it.hideIfVariableIsTrue} was not found to hide variable $name of $clazz")
-                    return { _: Any -> true }
+                    return { _: Any -> false }
                 }
             }
         }

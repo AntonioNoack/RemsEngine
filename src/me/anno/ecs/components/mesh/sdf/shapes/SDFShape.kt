@@ -35,7 +35,7 @@ open class SDFShape : SDFComponent() {
 
     fun smartMinBegin(builder: StringBuilder, dstIndex: Int) {
         builder.append("res").append(dstIndex)
-        builder.append("=vec2(((")
+        builder.append("=vec4(((")
     }
 
     fun smartMinEnd(
@@ -64,7 +64,7 @@ open class SDFShape : SDFComponent() {
             if (currentRenderer == Renderer.idRenderer) clickId.toFloat()
             else materialId.toFloat()
         }
-        builder.append(");\n")
+        builder.append(",uv);\n")
     }
 
     fun smartMinEnd(

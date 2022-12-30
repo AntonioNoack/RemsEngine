@@ -1,15 +1,18 @@
 package me.anno.ecs.components.mesh.sdf.arrays
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.arrays.SDFArray.Companion.sdArray
 import me.anno.ecs.components.mesh.sdf.random.SDFRandomRotation
+import me.anno.ecs.components.mesh.sdf.random.SDFRandomUV
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.shader.GLSLType
+import me.anno.utils.OS.pictures
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector3i
@@ -177,14 +180,32 @@ class SDFArray2 : SDFGroupArray() {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
+            // brick wall with randomly crooked bricks :)
             ECSRegistry.init()
-            val scene = Entity()
-            val array = SDFArray2()
-            array.addChild(SDFBox().apply {
-                addChild(SDFRandomRotation())
+            testSceneWithUI(Entity().apply {
+                add(SDFArray2().apply {
+                    sdfMaterials = listOf(
+                        Material().apply {
+                            diffuseMap = pictures.getChild("speckle.jpg")
+                        }.ref
+                    )
+                    maxSteps = 500
+                    cellSize.set(2f, 1f, 1f)
+                    count.set(100, 1, 25)
+                    overlap.set(0.1f)
+                    addChild(SDFBox().apply {
+                        smoothness = 0.03f
+                        halfExtends.set(1f, .2f, .5f)
+                        addChild(SDFRandomRotation().apply {
+                            minAngleDegrees.set(-5f, 0f, -5f)
+                            maxAngleDegrees.set(+5f, 0f, +5f)
+                            appliedPortion = 0.2f
+                            seedXOR = 1234
+                        })
+                        addChild(SDFRandomUV())
+                    })
+                })
             })
-            scene.add(array)
-            testSceneWithUI(scene)
         }
     }
 }

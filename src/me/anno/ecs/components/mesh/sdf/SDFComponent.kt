@@ -88,6 +88,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
             }
         }
 
+    // todo hideInInspector seems to be broken...
     @HideInInspector("isSDFChild")
     var debugMode = DebugMode.DEFAULT
 

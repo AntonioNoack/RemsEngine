@@ -84,8 +84,8 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
                 "uniform vec3 depthParams;\n" + // near, far, reversedZ
                 "#define Infinity 1e20\n" +
                 functions.joinToString("") +
-                "vec2 map(in vec3 pos0){\n" +
-                "   vec2 res0;\n" +
+                "vec4 map(in vec3 pos0){\n" +
+                "   vec4 res0;vec2 uv=vec2(0.0);\n" +
                 // here comes the shape dependant shader
                 shapeDependentShader.toString() +
                 "   return res0;\n" +
@@ -252,8 +252,8 @@ fun createShape(): SDFComponent {
     // array.count.set(4, 1, 5)
     // group2.addChild(array)
     val hexGrid = SDFHexGrid()
-    hexGrid.lim1.set(2f)
-    hexGrid.lim2.set(2f)
+    // hexGrid.lim1.set(2f)
+    // hexGrid.lim2.set(2f)
     hexGrid.cellSize = 4f
     // group2.addChild(hexGrid)
     return finalShape

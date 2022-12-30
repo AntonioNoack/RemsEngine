@@ -65,8 +65,9 @@ class SDFHexGrid : PositionMapper() {
             builder.append(",tmp").append(rnd).append(").xy;\n")
         }
         val seed = "seed" + nextVariableId.next()
-        builder.append("int ").append(seed).append("=twoInputRandom(tmp").append(rnd).append(".x,tmp").append(rnd)
-            .append(".y);\n")
+        builder.append("int ").append(seed).append("=twoInputRandom(tmp")
+            .append(rnd).append(".x,tmp")
+            .append(rnd).append(".y);\n")
         seeds.add(seed)
         return null
     }
@@ -125,14 +126,12 @@ class SDFHexGrid : PositionMapper() {
     companion object {
         const val hexScaleX = 1.7320508f
         const val hexFunc = "" +
+                // returns local coordinates and nearest hexagon center
                 "vec4 hexGrid0(vec2 p){\n" +
-                // cell dimensions
-                "   const vec2 s = vec2(1.7320508, 1.0);\n" +
-                // hexagon centers
-                "   vec4 c = floor(vec4(p, p - vec2(1, .5))/s.xyxy) + 0.5;\n" + // int + 0.5 for both cases
+                "   const vec2 s = vec2(1.7320508, 1.0);\n" + // cell dimensions
+                "   vec4 c = floor(vec4(p, p - vec2(1, .5))/s.xyxy) + 0.5;\n" + // hexagon centers; int + 0.5 for both cases
                 // centering the coordinates with the hexagon centers above
                 "   vec4 h = vec4(p - c.xy*s, p - (c.zw + .5)*s);\n" + // distance to center
-                // local coordinates and ID or nearest hexagon center
                 "   return dot(h.xy, h.xy) < dot(h.zw, h.zw) ? vec4(h.xy, c.xy) : vec4(h.zw, c.zw + 0.5);\n" +
                 "}\n" +
                 "vec2 hexGrid(vec2 p, out ivec2 id){\n" +
