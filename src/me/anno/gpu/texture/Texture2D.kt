@@ -9,7 +9,6 @@ import me.anno.gpu.GFX.check
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.maxBoundTextures
-import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
@@ -177,6 +176,13 @@ open class Texture2D(
     }
 
     fun texImage2D(internalFormat: Int, dataFormat: Int, dataType: Int, data: Any?, unbind: Boolean = true) {
+        if (data is ByteArray) { // helper
+            val tmp = bufferPool.createBuffer(data.size)
+            tmp.put(data).flip()
+            texImage2D(internalFormat, dataFormat, dataType, tmp, unbind)
+            bufferPool.returnBuffer(tmp)
+            return
+        }
         val w = w
         val h = h
         val target = target
@@ -199,7 +205,6 @@ open class Texture2D(
             } else {
                 if (data != null) setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
                 when (data) {
-                    is ByteArray -> throw IllegalArgumentException("ByteArray is not supported")
                     is ByteBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is ShortBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is IntBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
@@ -247,17 +252,27 @@ open class Texture2D(
         texImage2D(type.internalFormat, type.uploadFormat, type.fillType, data)
     }
 
+    fun texImage2D(type: TargetType, data: ByteArray?) {
+        texImage2D(type.internalFormat, type.uploadFormat, type.fillType, data)
+    }
+
     fun createRGB() = create(TargetType.UByteTarget3)
     fun createRGBA() = create(TargetType.UByteTarget4)
     fun createFP32() = create(TargetType.FloatTarget4)
 
     fun create(type: TargetType) {
         beforeUpload(0, 0)
-        texImage2D(type, null)
+        texImage2D(type, null as ByteArray?)
         afterUpload(type.isHDR, type.bytesPerPixel)
     }
 
     fun create(type: TargetType, data: ByteBuffer) {
+        beforeUpload(0, 0)
+        texImage2D(type, data)
+        afterUpload(type.isHDR, type.bytesPerPixel)
+    }
+
+    fun create(type: TargetType, data: ByteArray) {
         beforeUpload(0, 0)
         texImage2D(type, data)
         afterUpload(type.isHDR, type.bytesPerPixel)
@@ -301,7 +316,7 @@ open class Texture2D(
         }
     }
 
-    fun create(image: BufferedImage, sync: Boolean, checkRedundancy: Boolean) {
+    fun create(image: BufferedImage, sync: Boolean, checkRedundancy: Boolean): (() -> Unit)? {
 
         w = image.width
         h = image.height
@@ -315,10 +330,11 @@ open class Texture2D(
                 val data = buffer.data
                 if (sync && isGFXThread()) {
                     createBGRA(data, checkRedundancy)
+                    return null
                 } else {
                     val data2 = if (checkRedundancy) checkRedundancy(data) else data
                     switchRGB2BGR(data2)
-                    GFX.addGPUTask("Texture2D-ARGB", w, h) {
+                    return {
                         createRGBA(data2, checkRedundancy)
                     }
                 }
@@ -328,10 +344,11 @@ open class Texture2D(
                 val data = buffer.data
                 if (sync && isGFXThread()) {
                     createBGR(data, checkRedundancy)
+                    return null
                 } else {
                     val data2 = if (checkRedundancy) checkRedundancy(data) else data
                     switchRGB2BGR(data2)
-                    GFX.addGPUTask("Texture2D-RGB-IntArray($w x $h)", w, h) {
+                    return {
                         createRGB(data2, false)
                     }
                 }
@@ -342,9 +359,10 @@ open class Texture2D(
                 // data is already in the correct format; no swizzling needed
                 if (sync && isGFXThread()) {
                     createRGB(data, checkRedundancy)
+                    return null
                 } else {
                     val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                    GFX.addGPUTask("Texture2D-BGR", w, h) {
+                    return {
                         createRGB(data2, false)
                     }
                 }
@@ -355,50 +373,51 @@ open class Texture2D(
                 // data is already in the correct format; no swizzling needed
                 if (sync && isGFXThread()) {
                     createMonochrome(data, checkRedundancy)
+                    return null
                 } else {
                     val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                    GFX.addGPUTask("Texture2D-Mono", w, h) {
+                    return {
                         createMonochrome(data2, false)
                     }
                 }
             }
-            else -> createRGBA(image, sync, checkRedundancy)
-        }
-    }
-
-    private fun createRGBA(img: BufferedImage, sync: Boolean, checkRedundancy: Boolean) {
-        val data = img.getRGB(0, 0, w, h, intArrayPool[w * h, false, false], 0, w)
-        val hasAlpha = img.hasAlphaChannel()
-        if (!hasAlpha) {
-            // ensure opacity
-            if (sync && isGFXThread()) {
-                createBGR(data, checkRedundancy)
-                intArrayPool.returnBuffer(data)
-            } else {
-                val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                switchRGB2BGR(data2)
-                val buffer2 = bufferPool[data2.size * 4, false, false]
-                val buffer2i = buffer2.asIntBuffer()
-                buffer2i.put(data2)
-                buffer2i.flip()
-                GFX.addGPUTask("Texture2D.createRGB($name)", w, h) {
-                    createRGB(buffer2i, checkRedundancy)
-                    intArrayPool.returnBuffer(data)
-                }
-            }
-        } else {
-            if (sync && isGFXThread()) {
-                createBGRA(data, checkRedundancy)
-                intArrayPool.returnBuffer(data)
-            } else {
-                val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                switchRGB2BGR(data2)
-                val buffer2 = bufferPool[data2.size * 4, false, false]
-                buffer2.asIntBuffer().put(data2)
-                buffer2.position(0)
-                GFX.addGPUTask("Texture2D.createRGBA($name)", w, h) {
-                    createRGBA(buffer2, false)
-                    intArrayPool.returnBuffer(data)
+            else -> {
+                val data = image.getRGB(0, 0, w, h, intArrayPool[w * h, false, false], 0, w)
+                val hasAlpha = image.hasAlphaChannel()
+                if (!hasAlpha) {
+                    // ensure opacity
+                    if (sync && isGFXThread()) {
+                        createBGR(data, checkRedundancy)
+                        intArrayPool.returnBuffer(data)
+                        return null
+                    } else {
+                        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+                        switchRGB2BGR(data2)
+                        val buffer2 = bufferPool[data2.size * 4, false, false]
+                        val buffer2i = buffer2.asIntBuffer()
+                        buffer2i.put(data2)
+                        buffer2i.flip()
+                        return {
+                            createRGB(buffer2i, checkRedundancy)
+                            intArrayPool.returnBuffer(data)
+                        }
+                    }
+                } else {
+                    if (sync && isGFXThread()) {
+                        createBGRA(data, checkRedundancy)
+                        intArrayPool.returnBuffer(data)
+                        return null
+                    } else {
+                        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+                        switchRGB2BGR(data2)
+                        val buffer2 = bufferPool[data2.size * 4, false, false]
+                        buffer2.asIntBuffer().put(data2)
+                        buffer2.position(0)
+                        return {
+                            createRGBA(buffer2, false)
+                            intArrayPool.returnBuffer(data)
+                        }
+                    }
                 }
             }
         }
@@ -1121,6 +1140,7 @@ open class Texture2D(
 
         @JvmField
         var alwaysBindTexture = false
+
         @JvmField
         var wasModifiedInComputePipeline = false
 
@@ -1129,10 +1149,13 @@ open class Texture2D(
 
         @JvmField
         val bufferPool = ByteBufferPool(64)
+
         @JvmField
         val byteArrayPool = ByteArrayPool(64)
+
         @JvmField
         val intArrayPool = IntArrayPool(64)
+
         @JvmField
         val floatArrayPool = FloatArrayPool(64)
 
@@ -1163,6 +1186,7 @@ open class Texture2D(
 
         @JvmField
         var allocated = 0L
+
         @JvmStatic
         fun allocate(oldValue: Long, newValue: Long): Long {
             allocated += newValue - oldValue
@@ -1171,8 +1195,10 @@ open class Texture2D(
 
         @JvmField
         var boundTextureSlot = 0
+
         @JvmField
         val boundTextures = IntArray(64)
+
         init {
             boundTextures.fill(-1)
         }
@@ -1216,10 +1242,13 @@ open class Texture2D(
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(Texture2D::class)
+
         @JvmField
         val textureBudgetTotal = DefaultConfig["gpu.textureBudget", 1_000_000L]
+
         @JvmField
         var textureBudgetUsed = 0L
+
         @JvmField
         val texturesToDelete = ArrayList<Int>()
 
@@ -1232,8 +1261,10 @@ open class Texture2D(
 
         @JvmStatic
         private var creationSession = -1
+
         @JvmStatic
         private var creationIndex = 0
+
         @JvmStatic
         private val creationIndices = IntArray(16)
 

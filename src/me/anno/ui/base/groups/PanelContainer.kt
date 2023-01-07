@@ -21,10 +21,12 @@ open class PanelContainer(
     var child: Panel = onlyChild
         set(value) {
             if (field != value) {
-                child.parent = null
+                field.parent = null
+                field = value
                 value.uiParent?.remove(value)
                 value.parent = this
-                field = value
+                children.clear()
+                children.add(value)
                 invalidateLayout()
             }
         }

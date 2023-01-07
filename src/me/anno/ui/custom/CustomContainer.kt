@@ -1,6 +1,8 @@
 package me.anno.ui.custom
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
+import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache
@@ -12,6 +14,8 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.style.Style
 import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
@@ -98,10 +102,10 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     }
 
     private fun changeType() {
-        fun action(action: () -> Panel): () -> Unit = { changeTo(action()) }
-        val options = library.typeList
-            .map { MenuOption(NameDesc(it.displayName, "", ""), action { it.constructor() }) }
-            .toMutableList()
+        val options = ArrayList<MenuOption>(library.typeList.size + 5)
+        for (it in library.typeList) {
+            options.add(MenuOption(NameDesc(it.displayName, "", "")) { changeTo(it.constructor()) })
+        }
         val parent = parent
         val warningForLast = "Cannot remove root of custom UI hierarchy"
         options += MenuOption(NameDesc("Remove This Element", "", "ui.customize.remove")) {
@@ -126,7 +130,6 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     private fun changeTo(panel: Panel) {
         child = panel
-        child.parent = this
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
@@ -173,6 +176,19 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         fun Panel.isCross(x: Float, y: Float): Boolean {
             val crossSize = getCrossSize(style) + 4f // +4f for 2*padding
             return x - (this.x + w - crossSize) in 0f..crossSize && y - this.y in 0f..crossSize
+        }
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+            GFXBase.disableRenderDoc()
+            testUI {
+                val options = UITypeLibrary(arrayListOf(
+                    Type("A") { TextPanel("A", style) },
+                    Type("B") { TextPanel("B", style) },
+                    Type("C") { TextPanel("C", style) }
+                ))
+                CustomContainer(options.createDefault(), options, style)
+            }
         }
     }
 

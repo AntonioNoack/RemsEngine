@@ -8,6 +8,7 @@ import me.anno.image.ImageWriter
 import me.anno.maths.Maths
 import me.anno.maths.geometry.DualContouring
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import kotlin.math.*
 
 fun main() {
@@ -26,11 +27,12 @@ fun main() {
     comp.style = SDFGroup.Style.STAIRS
     comp.smoothness = 1f
     comp.type = SDFGroup.CombinationMode.TONGUE
+    val seeds = IntArrayList(8)
     val values = DualContouring.Func2d { xi, yi ->
         val pos = JomlPools.vec4f.create()
         val x = (xi / sx - 0.5f) * s
         val y = (yi / sy - 0.5f) * s
-        val value = comp.computeSDF(pos.set(x, y, 0f, 0f))
+        val value = comp.computeSDF(pos.set(x, y, 0f, 0f), seeds)
         JomlPools.vec4f.sub(1)
         value
     }

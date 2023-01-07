@@ -16,7 +16,9 @@ class ConsoleOutputLine(val list: PanelList, msg: String, style: Style) : TextPa
     }
 
     override fun onSelectAll(x: Float, y: Float) {
-        list.children.forEachIndexed { index, panel ->
+        val children = list.children
+        for (index in children.indices) {
+            val panel = children[index]
             panel.requestFocus(index == 0)
         }
     }

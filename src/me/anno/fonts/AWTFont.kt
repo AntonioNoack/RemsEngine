@@ -1,16 +1,14 @@
 package me.anno.fonts
 
-import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
-import me.anno.utils.Sleep.waitForGFXThread
+import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.ExpensiveList
@@ -166,6 +164,7 @@ class AWTFont(val font: Font) {
 
         val texture = Texture2D("awt-" + text.shorten(24), width, height, 1)
         val prio = GFX.loadTexturesSync.peek() || text.length == 1
+        var finishingTask: (() -> Unit)? = null
         worker.addPrioritized(prio) {
 
             val image = BufferedImage(width, height, 1)
@@ -199,11 +198,16 @@ class AWTFont(val font: Font) {
             }
             gfx.dispose()
             if (debugJVMResults) debug(image)
-            texture.create(image, sync = false, checkRedundancy = false)
+            val task = texture.create(image, sync = false, checkRedundancy = false) ?: {}
+            if (prio) finishingTask = task
+            else GFX.addGPUTask("AWTFont1", width, height, task)
 
         }
 
-        if (prio) wait(text, texture)
+        if (prio) {
+            waitUntilDefined(true) { finishingTask }()
+            if (!texture.isCreated && !texture.isDestroyed) throw IllegalStateException()
+        }
 
         return texture
 
@@ -472,6 +476,7 @@ class AWTFont(val font: Font) {
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
         val prio = GFX.loadTexturesSync.peek() || text.length == 1
+        var finishingTask: (() -> Unit)? = null
         worker.addPrioritized(prio) {
 
             val image = BufferedImage(width, height, 1)
@@ -490,32 +495,28 @@ class AWTFont(val font: Font) {
 
             val y = exampleLayout.ascent
 
-            for (it in result) {
-                gfx.font = it.font
+            for (s in result) {
+                gfx.font = s.font
                 // println("drawing string ${it.text} by layout at ${it.xPos}, ${it.yPos} + $y")
-                drawString(gfx, it.text, null, it.xPos, it.yPos + y)
+                drawString(gfx, s.text, null, s.xPos, s.yPos + y)
             }
 
             gfx.dispose()
             if (debugJVMResults) debug(image)
 
-            texture.create(image, sync = false, checkRedundancy = false)
+            val task = texture.create(image, sync = false, checkRedundancy = false) ?: {}
+            if (prio) finishingTask = task
+            else GFX.addGPUTask("AWTFont2", width, height, task)
 
         }
 
-        if (prio) wait(text, texture)
+        if (prio) {
+            waitUntilDefined(true) { finishingTask }()
+            if (!texture.isCreated && !texture.isDestroyed) throw IllegalStateException()
+        }
 
         return texture
 
-    }
-
-    private fun wait(text: CharSequence, texture: Texture2D) {
-        val timeout = (if (text.length == 1) 1000 else 30) * MILLIS_TO_NANOS
-        val t0 = Engine.nanoTime
-        waitForGFXThread(true) {
-            texture.isCreated || texture.isDestroyed ||
-                    Engine.nanoTime - t0 > timeout
-        }
     }
 
     companion object {

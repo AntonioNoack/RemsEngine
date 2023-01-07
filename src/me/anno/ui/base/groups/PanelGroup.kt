@@ -9,7 +9,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sign
 
 abstract class PanelGroup(style: Style) : Panel(style) {
 
@@ -84,7 +83,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         } else {
             val cs = children.size
             print(Tabs.spaces((tabDepth + 1) * 2))
-            if(cs == 1) println("... (1 child)")
+            if (cs == 1) println("... (1 child)")
             else println("... (${children.size} children)")
         }
     }
@@ -92,11 +91,15 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     override fun onSelectAll(x: Float, y: Float) {
         if (children.any { it.isVisible && it.getMultiSelectablePanel() == it }) {
             // select all panels, which are multi-selectable
-            children
-                .filter { it.getMultiSelectablePanel() == it }
-                .forEachIndexed { index, panel ->
-                    panel.requestFocus(index == 0)
+            val children = children
+            var first = true
+            for (index in children.indices) {
+                val panel = children[index]
+                if (panel.getMultiSelectablePanel() == panel) {
+                    panel.requestFocus(first)
+                    first = false
                 }
+            }
         } else super.onSelectAll(x, y)
     }
 

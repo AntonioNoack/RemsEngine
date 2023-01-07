@@ -2,7 +2,6 @@ package me.anno.engine.ui.control
 
 import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig.style
-import me.anno.utils.Color.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -23,17 +22,21 @@ import me.anno.input.MouseButton
 import me.anno.input.Touch
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
+import me.anno.utils.Color.black
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.types.Quaternions.toQuaternionDegrees
-import me.anno.utils.types.Vectors.safeNormalize
+import me.anno.utils.types.Quaternions.fromDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.cos
 import kotlin.math.sign
+import kotlin.math.sin
 
 // todo touch controls
 
@@ -139,7 +142,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
     }
 
     // less than 90, so we always know forward when computing movement
-    val limit = 90.0 - 0.0001
+    val limit = 90.0 - 0.001
     val rotationTarget = Vector3d(view.rotation)
 
     override fun onUpdate() {
@@ -266,7 +269,9 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
             if (Input.isKeyDown('q')) velocity.y -= s
             if (Input.isKeyDown('e')) velocity.y += s
         }
-        moveCamera(velocity.x * dt, velocity.y * dt, velocity.z * dt)
+        if (velocity.lengthSquared() > 0.0001 * sq(radius)) {
+            moveCamera(velocity.x * dt, velocity.y * dt, velocity.z * dt)
+        }
         val position = view.position
         if (!position.isFinite) {
             LOGGER.warn("Invalid position $position from $velocity * mat($dirX, $dirY, $dirZ)")
@@ -277,21 +282,22 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
 
     fun moveCamera(dx: Double, dy: Double, dz: Double) {
         val normXZ = !Input.isShiftDown // todo use UI toggle instead
-        val rotQuad = view.rotation
-            .toQuaternionDegrees(rotQuad)
-            .invert()
-        val dirX = dirX.set(1.0, 0.0, 0.0)
-        val dirY = dirY.set(0.0, 1.0, 0.0)
-        val dirZ = dirZ.set(0.0, 0.0, 1.0)
-        rotQuad.transform(dirX)
-        rotQuad.transform(dirZ)
+        val r = view.rotation
+        val y = r.y * fromDegrees
         if (normXZ) {
-            dirX.y = 0.0
-            dirZ.y = 0.0
-            dirX.safeNormalize()
-            dirZ.safeNormalize()
+            val c = cos(y)
+            val s = sin(y)
+            dirX.set(+c, 0.0, +s)
+            dirZ.set(-s, 0.0, +c)
+            dirY.set(0.0, 1.0, 0.0)
         } else {
-            rotQuad.transform(dirY)
+            val x = r.x * fromDegrees
+            val z = r.z * fromDegrees
+            val m = JomlPools.mat3d.borrow()
+            m.identity().rotateYXZ(y, x, z).transpose()
+            dirX.set(1.0, 0.0, 0.0).mul(m)
+            dirY.set(0.0, 1.0, 0.0).mul(m)
+            dirZ.set(0.0, 0.0, 1.0).mul(m)
         }
         view.position.add(
             dirX.dot(dx, dy, dz),

@@ -4,6 +4,8 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
+import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.roundDiv
 import java.awt.image.BufferedImage
@@ -204,6 +206,14 @@ abstract class Image(
             }
         }
     }
+
+    var ref: FileReference = InvalidRef
+        get() {
+            if (field == InvalidRef) {
+                field = InnerTmpFile.InnerTmpImageFile(this)
+            }
+            return field
+        }
 
     companion object {
 

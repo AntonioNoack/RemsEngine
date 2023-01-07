@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
 import me.anno.ecs.components.mesh.sdf.shapes.SDFSphere
 import me.anno.maths.geometry.DualContouring3d
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3f
 
 fun main() {
@@ -27,12 +28,13 @@ fun main() {
     comp.smoothness = 1f
     comp.type = SDFGroup.CombinationMode.TONGUE
 
+    val seeds = IntArrayList(8)
     val func = DualContouring3d.Func3d { xi, yi, zi ->
         val pos = JomlPools.vec4f.create()
         val x = (xi / sx - 0.5f) * s
         val y = (yi / sy - 0.5f) * s
         val z = (zi / sz - 0.5f) * s
-        val value = comp.computeSDF(pos.set(x, y, z, 0f))
+        val value = comp.computeSDF(pos.set(x, y, z, 0f), seeds)
         JomlPools.vec4f.sub(1)
         value
     }

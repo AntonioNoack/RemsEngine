@@ -27,8 +27,9 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
                 Spellchecking.check(text, allowFirstLowercase)
             } else null
 
+    private var loadTextSync = false
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        loadTexturesSync.push(true)
+        loadTexturesSync.push(loadTextSync)
         instantTextLoading = true
         super.onDraw(x0, y0, x1, y1)
         drawSuggestionLines()

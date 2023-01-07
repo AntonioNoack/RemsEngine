@@ -221,11 +221,12 @@ object ObjectMapper {
                         }
                         else -> {
                             val clazz = getClass(clazzName)
-
                             @Suppress("unchecked_cast")
                             val array = java.lang.reflect.Array.newInstance(clazz, value.content.size) as Array<Any>
                             val childType = type.getChild()
-                            value.content.forEachIndexed { index, any ->
+                            val content = value.content
+                            for (index in content.indices) {
+                                val any = content[index]
                                 array[index] = getValue(childType, any.toJsonNode())
                             }
                             array
@@ -234,11 +235,12 @@ object ObjectMapper {
                 }
                 else -> {
                     val clazz = IntArray(0).javaClass // let's hope it doesn't matter ;)
-
                     @Suppress("unchecked_cast")
                     val array = java.lang.reflect.Array.newInstance(clazz, value.content.size) as Array<Any>
                     val childType = type.getChild()
-                    value.content.forEachIndexed { index, any ->
+                    val content = value.content
+                    for (index in content.indices) {
+                        val any = content[index]
                         array[index] = getValue(childType, any.toJsonNode())
                     }
                     array

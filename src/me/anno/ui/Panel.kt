@@ -190,8 +190,11 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     val originalBGColor = backgroundColor
 
-    val uiParent: PanelGroup?
+    var uiParent: PanelGroup?
         get() = parent as? PanelGroup
+        set(value) {
+            parent = value
+        }
 
     val layoutConstraints = ArrayList<Constraint>()
 

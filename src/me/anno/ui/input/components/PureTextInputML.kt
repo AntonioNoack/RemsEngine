@@ -222,8 +222,9 @@ open class PureTextInputML(style: Style) :
     }
 
     private var showBars = false
+    private var loadTextSync = false
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        loadTexturesSync.push(true)
+        loadTexturesSync.push(loadTextSync)
         super.onDraw(x0, y0, x1, y1)
         val children = actualChildren
         val examplePanel = children.firstOrNull2() as? TextPanel ?: return
@@ -332,7 +333,8 @@ open class PureTextInputML(style: Style) :
         for (i in lines.lastIndex downTo textLines.size - 1) {
             lines.removeAt(i)
         }
-        textLines.forEachIndexed { lineIndex, line ->
+        for (lineIndex in textLines.indices) {
+            val line = textLines[lineIndex]
             if (lines.size <= lineIndex) lines += line.codePoints().toList().toMutableList()
             else {
                 val lineList = lines[lineIndex]
