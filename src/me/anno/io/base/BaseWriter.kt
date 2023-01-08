@@ -289,14 +289,14 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     open fun writeAllInList() {
         writeListStart()
-        if (todoPointers.isNotEmpty()) {
-            for (i in 0 until Int.MAX_VALUE - 1) {
-                val value = todoPointers[i]
-                if (todoPointersSet.remove(value)) {
-                    writeObjectImpl(null, value)
-                }
-                if (i + 1 < todoPointers.size) writeListSeparator()
-                else break
+        var i = 0
+        var hadEntry = false
+        while (i < todoPointers.size) {
+            val value = todoPointers[i++]
+            if (todoPointersSet.remove(value)) {
+                if (hadEntry) writeListSeparator()
+                writeObjectImpl(null, value)
+                hadEntry = true
             }
         }
         writeListEnd()
