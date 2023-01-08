@@ -43,7 +43,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
         padding.left += buttonWidth
     }
 
-    override val canDrawOverBorders = true
+    override val canDrawOverBorders get() = true
 
     val buttonX get() = x + (padding.left - buttonWidth) / 2 + buttonPadding
     val buttonW get() = buttonWidth - 2 * buttonPadding

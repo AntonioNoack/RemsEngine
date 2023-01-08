@@ -24,6 +24,8 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
+import me.anno.utils.structures.lists.Lists.none2
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -33,19 +35,22 @@ import kotlin.math.roundToInt
 // todo can we add debug-clamps?: input and output overrides for debugging...
 class NodePanel(
     val node: Node,
-    val gp: GraphPanel,
+    val gp: GraphEditor,
     style: Style
 ) : PanelList(style) {
 
     var lineCount = 0
     val baseTextSize get() = gp.baseTextSize
 
+    var bgAlpha = 0.7f
+
     var lineSpacing = 0.5
 
     init {
         // slightly transparent, so covered connections can be seen
-        backgroundColor = mulAlpha(mixARGB(backgroundColor, black, 0.5f), 0.7f)
+        backgroundColor = mulAlpha(mixARGB(backgroundColor, black, 0.5f), bgAlpha)
         node.createUI(this, style)
+        name = node.name
     }
 
     val customLayoutEndIndex = children.size
@@ -178,17 +183,24 @@ class NodePanel(
 
     var textColor = -1
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-
+    fun drawBackground(outline: Boolean, inner: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
+        if (!outline && !inner) return
         // draw whether the node is in focus
-        if (isInFocus) {
+        if (outline) {
             backgroundOutlineThickness = focusOutlineThickness
             backgroundOutlineColor = focusOutlineColor
+            backgroundColor = backgroundColor.withAlpha(if (inner) bgAlpha else 0f)
         } else {
             backgroundOutlineThickness = 0f
+            backgroundColor = backgroundColor.withAlpha(bgAlpha)
         }
-
         drawBackground(x0, y0, x1, y1)
+    }
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+
+        val inFocus = isInFocus || gp.overlapsSelection(this)
+        drawBackground(inFocus, true, x0, y0, x1, y1)
 
         val backgroundColor = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
         val font = gp.font
@@ -329,9 +341,7 @@ class NodePanel(
                 gp.invalidateDrawing()
             }
             button.isLeft -> {
-                if (isOpaqueAt(x.toInt(), y.toInt())) {
-                    isDragged = true
-                }
+                isDragged = true
             }
             else -> super.onMouseDown(x, y, button)
         }
@@ -344,17 +354,11 @@ class NodePanel(
             gp.moveIfOnEdge(x, y)
             val dx2 = gp.windowToCoordsX(wx) - node.position.x
             val dy2 = gp.windowToCoordsY(wy) - node.position.y
-            if (isInFocus) {
-                val inFocus = windowStack.inFocus
-                for (index in inFocus.indices) {
-                    val it = inFocus[index]
-                    if (it is NodePanel) {
-                        it.node.position.add(dx2, dy2, 0.0)
-                    }
-                }
-            } else node.position.add(dx2, dy2, 0.0)
+            node.position.add(dx2, dy2, 0.0)
             gp.invalidateLayout()
-        } else super.onMouseMoved(x, y, dx, dy)
+        } else if (windowStack.inFocus.none2 { it.parent == uiParent }) {
+            super.onMouseMoved(x, y, dx, dy)
+        }
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
@@ -458,5 +462,7 @@ class NodePanel(
     }
 
     override fun getMultiSelectablePanel() = this
+
+    override val className get() = "NodePanel"
 
 }

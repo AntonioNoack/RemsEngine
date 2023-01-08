@@ -7,6 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
+import me.anno.gpu.drawing.DrawRectangles.drawBorder
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.graph.Graph
@@ -18,12 +19,15 @@ import me.anno.graph.types.NodeLibrary
 import me.anno.graph.ui.NodePositionOptimization.calculateNodePositions
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.io.SaveableArray
+import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.pow
+import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.base.menu.Menu.openMenu
@@ -37,11 +41,13 @@ import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.maps.Maps.removeIf
+import org.joml.Vector2f
+import org.joml.Vector3d
 import kotlin.math.*
 
-open class GraphPanel(var graph: Graph? = null, style: Style) :
-    MapPanel(style) {
+open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style) {
 
     // todo copy-paste nodes
     // todo control+d to duplicate selected node
@@ -161,6 +167,21 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         }
     }
 
+    var selectingStart: Vector2f? = null
+
+    fun overlapsSelection(child: NodePanel): Boolean {
+        val start = selectingStart ?: return false
+        val window = window ?: return false
+        val x0 = start.x.toInt()
+        val y0 = start.y.toInt()
+        val x1 = window.mouseXi
+        val y1 = window.mouseYi
+        return max(x0, x1) >= child.x &&
+                max(y0, y1) >= child.y &&
+                min(x0, x1) <= child.x + child.w &&
+                min(y0, y1) <= child.y + child.h
+    }
+
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         // if we start dragging from a node, and it isn't yet in focus,
         // quickly solve that by making bringing it into focus
@@ -170,6 +191,8 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
                 match.requestFocus(true)
                 match.isInFocus = true
                 match.onMouseDown(x, y, button)
+            } else if (button.isLeft && Input.isShiftDown) {
+                selectingStart = Vector2f(x, y)
             } else super.onMouseDown(x, y, button)
         } else super.onMouseDown(x, y, button)
     }
@@ -179,7 +202,9 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (Input.isLeftDown) {
+        if (selectingStart != null) {
+            invalidateDrawing()
+        } else if (Input.isLeftDown) {
             if (dragged != null) {
                 // if on side, move towards there
                 moveIfOnEdge(x, y)
@@ -215,9 +240,21 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+        val selectingStart = selectingStart
         if (dragged != null) {
             dragged = null
             invalidateDrawing()
+        } else if (selectingStart != null && button.isLeft) {
+            // select all panels within the border :)
+            var first = true
+            for (child in children) {
+                if (child is NodePanel && overlapsSelection(child)) {
+                    child.requestFocus(first)
+                    first = false
+                }
+            }
+            invalidateDrawing()
+            this.selectingStart = null
         }
     }
 
@@ -226,6 +263,23 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         drawGrid(x0, y0, x1, y1)
         drawNodeConnections(x0, y0, x1, y1)
         drawChildren(x0, y0, x1, y1)
+        drawSelection(x0, y0, x1, y1)
+    }
+
+    open fun drawSelection(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val start = selectingStart
+        val window = window
+        if (start != null && window != null) {
+            val staX = start.x.toInt()
+            val staY = start.y.toInt()
+            val endX = window.mouseXi
+            val endY = window.mouseYi
+            drawBorder(
+                min(staX, endX), min(staY, endY),
+                abs(endX - staX) + 1, abs(endY - staY) + 1,
+                gridColor.withAlpha(1f), 2
+            )
+        }
     }
 
     open fun drawGrid(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -469,6 +523,86 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         return null
     }
 
+    fun getCursorPosition(center: Vector3d = Vector3d()): Vector3d {
+        val window = window
+        if (window != null) getCursorPosition(window.mouseX, window.mouseY, center)
+        return center
+    }
+
+    fun getCursorPosition(x: Float, y: Float, center: Vector3d = Vector3d()): Vector3d {
+        center.set(0.0)
+        center.x = windowToCoordsX(x.toDouble())
+        center.y = windowToCoordsY(y.toDouble())
+        return center
+    }
+
+    override fun onCopyRequested(x: Float, y: Float): Any? {
+        val focussedNodes = children.mapNotNull { if (it is NodePanel && it.isAnyChildInFocus) it.node else null }
+        if (focussedNodes.isEmpty()) return super.onCopyRequested(x, y)
+        // center at mouse cursor
+        val center = getCursorPosition(x, y)
+        return when (focussedNodes.size) {
+            1 -> {
+                // clone, but remove all connections
+                val clone = focussedNodes.first().clone()
+                val inputs = clone.inputs
+                if (inputs != null) for (input in inputs) input.others = emptyList()
+                val outputs = clone.outputs
+                if (outputs != null) for (output in outputs) output.others = emptyList()
+                clone.position.sub(center)
+                clone
+            }
+            else -> {
+                // clone, but remove all external connections
+                val cloned = SaveableArray(focussedNodes).clone()
+                val containedNodes = HashSet(cloned)
+                for (node in cloned) {
+                    node as Node
+                    val inputs = node.inputs
+                    if (inputs != null) for (input in inputs)
+                        input.others = input.others.filter { it.node in containedNodes }
+                    val outputs = node.outputs
+                    if (outputs != null) for (output in outputs)
+                        output.others = output.others.filter { it.node in containedNodes }
+                    node.position.sub(center)
+                }
+                cloned
+            }
+        }
+    }
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        val graph = graph ?: return super.onPaste(x, y, data, type)
+        var done = false
+        try {
+            // todo String input constants are lost :/
+            val instances = TextReader.read(data, workspace, true).first()
+            // add centered at mouse cursor :3
+            val center = getCursorPosition(x, y)
+            when (instances) {
+                is Node -> {
+                    // add at mouse cursor
+                    instances.position.add(center)
+                    graph.nodes.add(instances)
+                    invalidateLayout()
+                    done = true
+                }
+                is SaveableArray -> {
+                    val nodes = instances.filterIsInstance<Node>()
+                    if (nodes.isNotEmpty()) {
+                        for (node in nodes) node.position.add(center)
+                        graph.nodes.addAll(nodes)
+                        invalidateLayout()
+                        done = true
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        if (!done) super.onPaste(x, y, data, type)
+    }
+
     override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         return true
     }
@@ -494,7 +628,8 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         } or black
     }
 
-    override val canDrawOverBorders: Boolean = true
+    override val canDrawOverBorders get() = true
+    override val className get() = "GraphEditor"
 
     companion object {
         @JvmStatic
@@ -504,7 +639,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
             TestStudio.testUI {
                 val g = FlowGraph.testLocalVariables()
                 calculateNodePositions(g.nodes)
-                GraphPanel(g, DefaultConfig.style)
+                GraphEditor(g, DefaultConfig.style)
             }
         }
     }

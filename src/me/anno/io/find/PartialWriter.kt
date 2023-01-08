@@ -11,6 +11,8 @@ import org.joml.*
  * */
 abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkipDefaultValues) {
 
+    val writtenObjects = HashSet<ISaveable>(64)
+
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {}
     override fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean) {}
     override fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean) {}
@@ -134,12 +136,16 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
     override fun writePlaned(name: String, value: Planed, force: Boolean) {}
 
     override fun writeObjectImpl(name: String?, value: ISaveable) {
-        value.save(this)
+        if (writtenObjects.add(value))
+            value.save(this)
     }
 
     override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
         values ?: return
-        for (obj in values) obj.save(this)
+        for (value in values) {
+            if (writtenObjects.add(value))
+                value.save(this)
+        }
     }
 
     override fun <V : ISaveable> writeObjectArray2D(
@@ -149,8 +155,9 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
         force: Boolean
     ) {
         for (objects in values) {
-            for (obj in objects) {
-                obj.save(this)
+            for (value in objects) {
+                if (writtenObjects.add(value))
+                    value.save(this)
             }
         }
     }
@@ -161,8 +168,11 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
         values: Array<V>?,
         force: Boolean
     ) {
-        if (values != null) for (it in values) {
-            it?.save(this)
+        if (values != null) {
+            for (value in values) {
+                if (value != null && writtenObjects.add(value))
+                    value.save(this)
+            }
         }
     }
 
@@ -172,8 +182,9 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
         values: Array<V>,
         force: Boolean
     ) {
-        for (it in values) {
-            it?.save(this)
+        for (value in values) {
+            if (value != null && writtenObjects.add(value))
+                value.save(this)
         }
     }
 

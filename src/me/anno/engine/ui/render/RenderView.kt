@@ -184,7 +184,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         pipeline.stages.add(stage0)
     }
 
-    override val canDrawOverBorders: Boolean = true
+    override val canDrawOverBorders get() = true
 
     override fun destroy() {
         super.destroy()

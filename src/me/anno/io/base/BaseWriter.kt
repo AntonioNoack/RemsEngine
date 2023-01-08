@@ -9,15 +9,14 @@ import me.anno.utils.OS
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import java.io.ByteArrayOutputStream
-import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.full.memberProperties
 
 abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
-    val sortedPointers = ArrayList<ISaveable>(256)
+    val todoPointers = ArrayList<ISaveable>(256)
+    val todoPointersSet = HashSet<ISaveable>(256)
     val pointers = BiMap<ISaveable, Int>(256)
 
     /**
@@ -172,14 +171,15 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     fun writeObject(self: ISaveable?, name: String?, value: ISaveable?, force: Boolean = false) {
         when {
-            value == null -> {
-                if (force) writeNull(name)
-            }
+            value == null -> if (force) writeNull(name)
             force || !(canSkipDefaultValues && value.isDefaultValue()) -> {
-
                 val ptr0 = pointers[value]
                 if (ptr0 != null) {
-                    writePointer(name, value.className, ptr0, value)
+                    if (todoPointersSet.remove(value)) {
+                        writeObjectImpl(name, value)
+                    } else {
+                        writePointer(name, value.className, ptr0, value)
+                    }
                 } else {
                     val canInclude = self == null || self.approxSize > value.approxSize
                     if (canInclude) {
@@ -190,7 +190,6 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         writePointer(name, value.className, ptr, value)
                     }
                 }
-
             }
         }
     }
@@ -272,7 +271,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         val ptr = pointers.size + 1
         pointers[obj] = ptr
         if (addToSorted) {
-            sortedPointers += obj
+            todoPointers += obj
+            todoPointersSet += obj
         }
         return ptr
     }
@@ -289,10 +289,15 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     open fun writeAllInList() {
         writeListStart()
-        var i = 0
-        while (i < sortedPointers.size) {
-            writeObjectImpl(null, sortedPointers[i++])
-            if (i < sortedPointers.size) writeListSeparator()
+        if (todoPointers.isNotEmpty()) {
+            for (i in 0 until Int.MAX_VALUE - 1) {
+                val value = todoPointers[i]
+                if (todoPointersSet.remove(value)) {
+                    writeObjectImpl(null, value)
+                }
+                if (i + 1 < todoPointers.size) writeListSeparator()
+                else break
+            }
         }
         writeListEnd()
         flush()

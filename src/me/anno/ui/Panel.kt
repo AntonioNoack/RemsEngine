@@ -21,8 +21,6 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.scrolling.ScrollableX
 import me.anno.ui.base.scrolling.ScrollableY
-import me.anno.ui.base.text.TextPanel
-import me.anno.ui.editor.files.Search
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
@@ -275,7 +273,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun drawBackground(x0: Int, y0: Int, x1: Int, y1: Int, dx: Int = 0, dy: Int = dx) {
         // if the children are overlapping, this is incorrect
         // this however, should rarely happen...
-        if (backgroundColor.a() > 0) {
+        if (backgroundColor.a() > 0 ||
+            hasRoundedCorners && backgroundOutlineThickness > 0f && backgroundOutlineColor.a() > 0
+        ) {
             if (hasRoundedCorners) {
                 val uip = uiParent
                 val bg = if (uip == null) 0 else uip.backgroundColor and 0xffffff

@@ -40,7 +40,7 @@ class SimpleMeshTest(
         rootEntity.add(MeshComponent(meshRef))
     }
 
-    override val canDrawOverBorders: Boolean get() = true
+    override val canDrawOverBorders get() = true
 
     override fun onUpdate() {
         rootEntity.rotation = rootEntity.rotation.rotateZ(Engine.deltaTime * 1.0)

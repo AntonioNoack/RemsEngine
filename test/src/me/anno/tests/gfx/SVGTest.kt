@@ -33,7 +33,7 @@ fun main() {
         // val srcFile = downloads.getChild("2d/recruitment.svg")
         // val srcFile = downloads.getChild("2d/polyline2.svg")
         object : Panel(DefaultConfig.style) {
-            override val canDrawOverBorders = true
+            override val canDrawOverBorders get() = true
             override fun onUpdate() {
                 invalidateDrawing()
             }

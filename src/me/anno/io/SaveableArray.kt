@@ -1,10 +1,17 @@
 package me.anno.io
 
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 
-class SaveableArray : Saveable(), MutableList<ISaveable> {
+class SaveableArray() : Saveable(), MutableList<ISaveable> {
 
     val values = ArrayList<ISaveable>()
+
+    constructor(children: Collection<ISaveable>) : this() {
+        values.addAll(children)
+    }
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         if (name == "values") {
@@ -61,5 +68,9 @@ class SaveableArray : Saveable(), MutableList<ISaveable> {
     override fun set(index: Int, element: ISaveable) = values.set(index, element)
 
     override fun subList(fromIndex: Int, toIndex: Int) = values.subList(fromIndex, toIndex)
+
+    fun clone(): SaveableArray {
+        return TextReader.readFirst(TextWriter.toText(this as ISaveable, InvalidRef), InvalidRef, false)
+    }
 
 }

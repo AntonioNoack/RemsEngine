@@ -16,7 +16,7 @@ class TriggerPanel(
         private val LOGGER = LogManager.getLogger(TriggerPanel::class)
     }
 
-    override val canDrawOverBorders = true
+    override val canDrawOverBorders get() = true
 
     init {
         tooltip = "Click to reset"

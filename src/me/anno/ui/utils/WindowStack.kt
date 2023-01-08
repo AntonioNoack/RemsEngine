@@ -60,8 +60,10 @@ class WindowStack : Stack<Window>() {
             }
             inFocus.clear()
         }
-        if (panel != null) inFocus.add(panel)
-        panel?.invalidateDrawing()
+        if (panel != null && panel !in inFocus) {
+            inFocus.add(panel)
+            panel.invalidateDrawing()
+        }
     }
 
     fun push(panel: Panel, isTransparent: Boolean = false): Window {

@@ -107,8 +107,9 @@ abstract class BaseReader {
             // from old Rem's Studio times
             if (className.startsWith("AnimatedProperty<")) return getNewClassInstance("AnimatedProperty")
             val type = ISaveable.objectTypeRegistry[className]
-            if (type == null) println("Looking for $className:${className.hashCode()}, " +
-                    "available: ${ISaveable.objectTypeRegistry.keys.joinToString { "${it}:${it.hashCode()}:${if(it == className) 1 else 0}" }}"
+            if (type == null) println(
+                "Looking for $className:${className.hashCode()}, " +
+                        "available: ${ISaveable.objectTypeRegistry.keys.joinToString { "${it}:${it.hashCode()}:${if (it == className) 1 else 0}" }}"
             )
             return type?.generate() ?: throw UnknownClassException(className)
         }

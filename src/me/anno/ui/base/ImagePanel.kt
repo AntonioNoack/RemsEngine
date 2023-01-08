@@ -42,7 +42,7 @@ abstract class ImagePanel(style: Style) : Panel(style) {
     var imageAlignmentX = AxisAlignment.CENTER
     var imageAlignmentY = AxisAlignment.CENTER
 
-    override val canDrawOverBorders: Boolean = true
+    override val canDrawOverBorders get() = true
 
     override fun getVisualState(): Any? = getTexture()
 

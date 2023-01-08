@@ -27,7 +27,7 @@ import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.types.flow.actions.ActionNode
-import me.anno.graph.ui.GraphPanel
+import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.NodePositionOptimization.calculateNodePositions
 import me.anno.image.ImageScale
 import me.anno.mesh.Shapes.flatCube
@@ -169,7 +169,7 @@ class RenderGraph {
     var scene: Entity? = null
 
     fun createUI(style: Style): Panel {
-        val panel = GraphPanel(graph, style)
+        val panel = GraphEditor(graph, style)
         panel.library = library
         return panel
     }
@@ -268,7 +268,7 @@ class RenderGraph {
 
                 val list = CustomList(false, style)
                 list.add(sv, 1f)
-                list.add(object : GraphPanel(gr, style) {
+                list.add(object : GraphEditor(gr, style) {
 
                     init {
 

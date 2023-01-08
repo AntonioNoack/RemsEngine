@@ -15,7 +15,6 @@ import kotlin.math.abs
 abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     private var hasObject = false
-    private var usedPointers: HashSet<ISaveable>? = null
 
     private val tmp16f = FloatArray(16)
     private val tmp16d = DoubleArray(16)
@@ -1251,9 +1250,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
             hasObject = true
         }
         val pointer = getPointer(value)!!
-        if (usedPointers?.contains(value) != false) {// null oder true
-            writeInt("*ptr", pointer)
-        }
+        writeInt("*ptr", pointer)
         value.save(this)
         close(false)
     }
@@ -1345,19 +1342,6 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) {
         writeAttributeStart(className, name)
         append(ptr)
-    }
-
-    private fun findReferences() {
-        val referenceFinder = FindReferencesWriter(canSkipDefaultValues)
-        for (todoItem in sortedPointers) referenceFinder.add(todoItem)
-        referenceFinder.writeAllInList()
-        usedPointers = referenceFinder.usedPointers
-        usedPointers!!.addAll(pointers.keys)
-    }
-
-    override fun writeAllInList() {
-        findReferences()
-        super.writeAllInList()
     }
 
 }

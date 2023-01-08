@@ -31,7 +31,7 @@ abstract class CalibrationPanel(
         dead.clear()
     }
 
-    override val canDrawOverBorders = true
+    override val canDrawOverBorders get() = true
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)

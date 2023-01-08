@@ -102,7 +102,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         this.h = minH
     }
 
-    override val canDrawOverBorders: Boolean = true
+    override val canDrawOverBorders get() = true
 
     var textColor = white.withAlpha(0.8f)
     var textColorDifferent = mixARGB(textColor, 0xff0000 or black, 0.8f)

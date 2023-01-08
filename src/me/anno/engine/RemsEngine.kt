@@ -180,7 +180,7 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
                 return object : Panel(style) {
                     val sky = SkyBox()
                     val cameraMatrix = Matrix4f()
-                    override val canDrawOverBorders = true
+                    override val canDrawOverBorders get() = true
                     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                         useFrame(previewRenderer) {
                             sky.nadirSharpness = 10f

@@ -357,7 +357,9 @@ object Input {
             false, UIEventType.MOUSE_MOVE
         ).call()
 
-        window.windowStack.inFocus0?.onMouseMoved(newX, newY, dx, dy)
+        for (panel in window.windowStack.inFocus) {
+            panel.onMouseMoved(newX, newY, dx, dy)
+        }
         ActionManager.onMouseMoved(window, dx, dy)
 
     }
@@ -429,65 +431,18 @@ object Input {
         }
 
         windowWasClosed = false
-        val dws = window.windowStack
-        val panelWindow = dws.getPanelAndWindowAt(mouseX, mouseY)
+        val windowStack = window.windowStack
+        val panelWindow = windowStack.getPanelAndWindowAt(mouseX, mouseY)
         onClickIntoWindow(window, button, panelWindow)
 
         // todo the selection order for multiselect not always makes sense (e.g. not for graph panels) ->
         //  - sort the list or
         //  - disable multiselect
 
-        val singleSelect = isControlDown
-        val multiSelect = isShiftDown
-        val inFocus0 = dws.inFocus0
-
-        val mouseTarget = dws.getPanelAt(mouseX, mouseY)
-        maySelectByClick = if (singleSelect || multiSelect) {
-            val selectionTarget = mouseTarget?.getMultiSelectablePanel()
-            val inFocusTarget = inFocus0?.getMultiSelectablePanel()
-            val joinedParent = inFocusTarget?.parent
-            if (selectionTarget != null && joinedParent == selectionTarget.parent) {
-                if (inFocus0 != inFocusTarget) dws.requestFocus(inFocusTarget, true)
-                if (singleSelect) {
-                    if (selectionTarget.isInFocus) dws.inFocus -= selectionTarget
-                    else selectionTarget.requestFocus(false)
-                    selectionTarget.invalidateDrawing()
-                } else {
-                    val index0 = inFocusTarget!!.indexInParent
-                    val index1 = selectionTarget.indexInParent
-                    // todo we should use the last selected as reference point...
-                    val minIndex = min(index0, index1)
-                    val maxIndex = max(index0, index1)
-                    for (index in minIndex..maxIndex) {
-                        val child = joinedParent!!.children[index]
-                        if (child is Panel) {
-                            child.requestFocus(false)
-                            child.invalidateDrawing()
-                        }
-                    }
-                }
-                false
-            } else {
-                if (mouseTarget != null && mouseTarget.isInFocus) {
-                    true
-                } else {
-                    dws.requestFocus(mouseTarget, true)
-                    false
-                }
-            }
-        } else {
-            if (mouseTarget != null && mouseTarget.isInFocus) {
-                true
-            } else {
-                dws.requestFocus(mouseTarget, true)
-                false
-            }
-        }
 
         if (!windowWasClosed) {
 
             val button2 = button.toMouseButton()
-
             if (!UIEvent(
                     window.currentWindow,
                     mouseX, mouseY, 0f, 0f,
@@ -495,13 +450,68 @@ object Input {
                     false, UIEventType.MOUSE_DOWN
                 ).call().isCancelled
             ) {
-                if (inFocus0 != null && inFocus0.isHovered) {
-                    inFocus0.onMouseDown(mouseX, mouseY, button2)
+
+                val toggleSinglePanel = isControlDown
+                val selectPanelRange = isShiftDown
+                val inFocus0 = windowStack.inFocus0
+
+                var issuedMouseDown = false
+                val mouseTarget = windowStack.getPanelAt(mouseX, mouseY)
+                maySelectByClick = if (toggleSinglePanel || selectPanelRange) {
+                    val nextSelected = mouseTarget?.getMultiSelectablePanel()
+                    val prevSelected = inFocus0?.getMultiSelectablePanel()
+                    val commonParent = prevSelected?.uiParent
+                    if (nextSelected != null && commonParent != null && commonParent === nextSelected.uiParent) {
+                        issuedMouseDown = true
+                        if (inFocus0 !== prevSelected) windowStack.requestFocus(prevSelected, true)
+                        if (toggleSinglePanel) {
+                            if (nextSelected.isInFocus) {
+                                windowStack.inFocus -= nextSelected
+                            } else {
+                                nextSelected.requestFocus(false)
+                            }
+                            nextSelected.invalidateDrawing()
+                        } else {
+                            val index0 = prevSelected.indexInParent
+                            val index1 = nextSelected.indexInParent
+                            // todo we should use the last selected as reference point...
+                            val minIndex = min(index0, index1)
+                            val maxIndex = max(index0, index1)
+                            for (index in minIndex..maxIndex) {
+                                val child = commonParent.children[index]
+                                child.requestFocus(false)
+                                child.invalidateDrawing()
+                            }
+                        }
+                        false
+                    } else {
+                        if (mouseTarget != null && mouseTarget.isInFocus) {
+                            true
+                        } else {
+                            windowStack.requestFocus(mouseTarget, true)
+                            false
+                        }
+                    }
                 } else {
+                    if (mouseTarget != null && mouseTarget.isInFocus) {
+                        true
+                    } else {
+                        windowStack.requestFocus(mouseTarget, true)
+                        false
+                    }
+                }
+
+                for (panel in windowStack.inFocus) {
+                    panel.onMouseDown(mouseX, mouseY, button2)
+                    issuedMouseDown = true
+                }
+
+                if (!issuedMouseDown) {
                     val inFocus = window.currentWindow?.panel?.getPanelAt(mouseX.toInt(), mouseY.toInt())
                     inFocus?.requestFocus()
                     inFocus?.onMouseDown(mouseX, mouseY, button2)
                 }
+
                 ActionManager.onKeyDown(window, button)
             }
 
@@ -526,7 +536,13 @@ object Input {
 
         val mouseX = window.mouseX
         val mouseY = window.mouseY
-        window.windowStack.inFocus0?.onMouseUp(mouseX, mouseY, button.toMouseButton())
+        val button2 = button.toMouseButton()
+        val inFocus0 = window.windowStack.inFocus
+        for (i in inFocus0.indices) {
+            inFocus0.getOrNull(i)
+                ?.onMouseUp(mouseX, mouseY, button2)
+                ?: break
+        }
 
         ActionManager.onKeyUp(window, button)
         ActionManager.onKeyTyped(window, button)
@@ -534,7 +550,6 @@ object Input {
         val longClickMillis = DefaultConfig["longClick", 300]
         val currentNanos = Engine.nanoTime
         val isClick = mouseMovementSinceMouseDown < maxClickDistance && !windowWasClosed
-        val button2 = button.toMouseButton()
 
         UIEvent(
             window.currentWindow,
@@ -615,11 +630,12 @@ object Input {
         val dws = window.windowStack
         val inFocus = dws.inFocus
         val inFocus0 = dws.inFocus0 ?: return
-        println("focus: $inFocus0")
         when (inFocus.size) {
             0 -> return // should not happen
             1 -> setClipboardContent(inFocus0.onCopyRequested(mouseX, mouseY)?.toString())
             else -> {
+                val parentValue = inFocus0.getMultiSelectablePanel()?.onCopyRequested(mouseX, mouseY)
+                if (parentValue != null) setClipboardContent(parentValue.toString())
                 // combine them into an array
                 when (val first = inFocus0.onCopyRequested(mouseX, mouseY)) {
                     is ISaveable -> {

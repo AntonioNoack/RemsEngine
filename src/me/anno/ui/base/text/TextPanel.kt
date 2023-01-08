@@ -110,7 +110,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     var textCacheKey: TextCacheKey = TextCacheKey(text, font)
 
     // only really, if it might...
-    override val canDrawOverBorders: Boolean = true
+    override val canDrawOverBorders get() = true
 
     open var text: String = text
         set(value) {

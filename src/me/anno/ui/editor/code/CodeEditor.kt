@@ -173,7 +173,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         minH = content.lineCount * lineHeight + padding.height
     }
 
-    override val canDrawOverBorders: Boolean = true
+    override val canDrawOverBorders get() = true
 
     fun drawLineNumber(yi: Int, i: Int, cn: Int) {
         var xi = cn - 2

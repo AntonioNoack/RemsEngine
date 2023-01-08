@@ -19,7 +19,7 @@ class PreviewField(private val refSize: Panel, val padding: Int, style: Style) :
         }
 
     // transparent background will
-    override val canDrawOverBorders = color.a() != 255
+    override val canDrawOverBorders get() = color.a() != 255
 
     override fun calculateSize(w: Int, h: Int) {
         val size = refSize.minH
