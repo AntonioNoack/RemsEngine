@@ -10,7 +10,9 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.pooling.ByteBufferPool
-import org.joml.*
+import org.joml.Matrix4x3f
+import org.joml.Vector3i
+import org.joml.Vector4f
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
@@ -744,18 +746,22 @@ object ShaderLib {
             Variable(GLSLType.V1I, "colorCount"),
             Variable(GLSLType.V4F, "tint"),
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
+            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
         ), "" +
                 noiseFunc +
                 getTextureLib +
                 getColorForceFieldLib +
+                "float smoothSign(float f){ return clamp(f,-1.0,1.0); }\n" +
                 "void main(){\n" +
                 "   float distance = texture(tex, uv).r;\n" +
-                "   float gradient = length(vec2(dFdx(distance), dFdy(distance)));\n" +
+                "   float distDx = dFdx(distance);\n" +
+                "   float distDy = dFdy(distance);\n" +
+                "   float gradient = length(vec2(distDx, distDy));\n" +
                 "#define IS_TINTED\n" +
                 "   vec4 color = tint;\n" +
                 "   for(int i=0;i<colorCount;i++){" +
                 "       vec4 colorHere = colors[i];\n" +
+                "       if(i > 0) colorHere.a *= alphaByGradient;\n" +
                 "       vec2 distSmooth = distSmoothness[i];\n" +
                 "       float offset = distSmooth.x;\n" +
                 "       float smoothness = distSmooth.y;\n" +
@@ -768,7 +774,7 @@ object ShaderLib {
                 "   if(color.a <= 0.001) discard;\n" +
                 "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
                 "   finalColor = color.rgb;\n" +
-                "   finalAlpha = 1.0;//color.a;\n" +
+                "   finalAlpha = color.a;\n" +
                 "}", listOf("tex"),
         "tiling",
         "filtering",

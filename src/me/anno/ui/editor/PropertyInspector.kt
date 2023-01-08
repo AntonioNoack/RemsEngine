@@ -14,6 +14,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.FrameTimings
 import me.anno.ui.editor.files.Search
 import me.anno.ui.input.InputPanel
@@ -42,7 +43,18 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             // todo if an element is hidden by VisibilityKey, and it contains the search term, toggle that VisibilityKey
             val search = Search(searchTerms)
             for ((index, child) in oldValues.children.withIndex()) {
-                if (index > 0) child.isVisible = child.fulfillsSearch(search)
+                if (index > 0) {
+                    // join all text (below a certain limit), and search that
+                    // could be done more efficient
+                    val joined = StringBuilder()
+                    child.forAllPanels { panel ->
+                        if (panel is TextPanel) {
+                            joined.append(panel.text)
+                            joined.append(' ')
+                        }
+                    }
+                    child.isVisible = search.matches(joined.toString())
+                }
             }
         }
     }

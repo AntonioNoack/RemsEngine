@@ -154,15 +154,25 @@ class TreeViewPanel<V>(
         val element = getElement()
         when {
             button.isLeft -> {
-
                 // collapse, if you click on the symbol
-
-                // todo edit multiple elements at the same time
-                val inFocusByParent = siblings.count { it is TreeViewPanel<*> && it.isInFocus }
-                if ((Input.isShiftDown && inFocusByParent < 2) || isMouseOnSymbol(x)) {
-                    toggleCollapsed(getElement())
+                // todo selecting multiple isn't working yet :/
+                val inFocusByParent = siblings.count { it is TreeViewPanel<*> && it.isAnyChildInFocus }
+                println(
+                    "click -> ${siblings.size}, ${siblings.count { it is TreeViewPanel<*> }}, $inFocusByParent, " +
+                            "${Input.isShiftDown}, ${isMouseOnSymbol(x)}"
+                )
+                if (Input.isShiftDown && inFocusByParent < 2) {
+                    toggleCollapsed(element)
+                } else if (isMouseOnSymbol(x)) {
+                    toggleCollapsed(element)
                 } else {
-                    treeView.selectElementMaybe(element)
+                    val elements = siblings.mapNotNull {
+                        if (it == this) element
+                        else if (it is TreeViewPanel<*> && it.isAnyChildInFocus)
+                            it.getElement() as V
+                        else null
+                    }
+                    treeView.selectElementsMaybe(elements)
                 }
             }
             button.isRight -> openAddMenu(element)
@@ -230,7 +240,7 @@ class TreeViewPanel<V>(
                         original?.removeFromParent()
                     }
                 }
-                treeView.selectElement(child)
+                treeView.selectElements(listOf(child))
             }
         } catch (e: Exception) {
             e.printStackTrace()

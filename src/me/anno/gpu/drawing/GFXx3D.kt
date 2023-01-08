@@ -23,6 +23,7 @@ import org.joml.*
 import org.lwjgl.BufferUtils
 import java.nio.FloatBuffer
 import kotlin.math.min
+import kotlin.math.round
 
 @Suppress("unused")
 object GFXx3D {
@@ -429,8 +430,20 @@ object GFXx3D {
         shader.use()
         defineAdvancedGraphicalFeatures(shader)
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
-        var a0 = startDegrees
-        var a1 = endDegrees
+        circleParams(innerRadius, startDegrees, endDegrees, shader)
+        circleBuffer.draw(shader)
+        GFX.check()
+    }
+
+    fun circleParams(
+        innerRadius: Float,
+        startDegrees: Float,
+        endDegrees: Float,
+        shader: Shader
+    ) {
+        val inv = round((startDegrees + endDegrees) / 180f) * 360f
+        var a0 = startDegrees - inv
+        var a1 = endDegrees - inv
         // if the two arrows switch sides, flip the circle
         if (a0 > a1) {// first start for checker pattern
             val tmp = a0
@@ -446,8 +459,6 @@ object GFXx3D {
         val angle0 = a0.toRadians()
         val angle1 = a1.toRadians()
         shader.v3f("circleParams", 1f - innerRadius, angle0, angle1)
-        circleBuffer.draw(shader)
-        GFX.check()
     }
 
     fun uploadAttractors0(shader: Shader) {

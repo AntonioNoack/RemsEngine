@@ -32,6 +32,8 @@ import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
+// todo edit multiple elements at the same time
+
 class ECSTreeView(val library: EditorState, style: Style) :
     TreeView<ISaveable>(
         UpdatingList {
@@ -310,13 +312,14 @@ class ECSTreeView(val library: EditorState, style: Style) :
         return parentPrefab == null || indexInParent >= parentPrefab.children.size
     }
 
-    override fun selectElement(element: ISaveable?) {
-        if (element is PrefabSaveable)
-            library.select(element)
+    override fun selectElements(elements: List<ISaveable>) {
+        val first = elements.firstOrNull()
+        if (first is PrefabSaveable)
+            library.select(first)
     }
 
     override fun focusOnElement(element: ISaveable) {
-        selectElement(element)
+        selectElements(listOf(element))
         // focus on the element by inverting the camera transform and such...
         val windowStack = window!!.windowStack
         if (element is Entity) for (window in windowStack) {

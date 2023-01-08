@@ -39,7 +39,7 @@ abstract class TreeView<V>(
     var needsTreeUpdate = true
 
     // Selection.select(element, null)
-    abstract fun selectElement(element: V?)
+    abstract fun selectElements(elements: List<V>)
 
     // zoomToObject
     abstract fun focusOnElement(element: V)
@@ -90,8 +90,8 @@ abstract class TreeView<V>(
 
     abstract fun getDragType(element: V): String
 
-    open fun selectElementMaybe(element: V?) {
-        selectElement(element)
+    open fun selectElementsMaybe(elements: List<V>) {
+        selectElements(elements)
     }
 
     open fun getLocalColor(element: V, isHovered: Boolean, isInFocus: Boolean): Int {

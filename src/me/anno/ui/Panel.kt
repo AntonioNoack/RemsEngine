@@ -530,6 +530,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
         uiParent?.onSelectAll(x, y)
     }
 
+    /**
+     * returns whether the action was handled;
+     * actions are handled by me.anno.input.ActionManager, and typically registered on startup
+     * */
     open fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean =
         false
 
@@ -788,19 +792,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     open fun onPropertiesChanged() {}
-
-    fun fulfillsSearch(search: Search): Boolean {
-        // join all text (below a certain limit), and search that
-        // could be done more efficient
-        val joined = StringBuilder()
-        forAllPanels { panel ->
-            if (panel is TextPanel) {
-                joined.append(panel.text)
-                joined.append(' ')
-            }
-        }
-        return search.matches(joined.toString())
-    }
 
     val isRootElement get() = uiParent == null
 
