@@ -6,10 +6,9 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.maths.Maths.clamp
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
-import me.anno.utils.Sleep.waitUntilDefined
-import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Strings.incrementTab
@@ -22,10 +21,7 @@ import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
+import kotlin.math.*
 import kotlin.streams.toList
 
 class AWTFont(val font: Font) {
@@ -94,28 +90,21 @@ class AWTFont(val font: Font) {
 
     fun calculateSize(text: CharSequence, fontSize: Float, widthLimit: Int, heightLimit: Int): Int {
         if (text.isEmpty()) return GFXx2D.getSize(0, fontSize.toInt())
-        if (text.containsSpecialChar() || (widthLimit in 0 until GFX.maxTextureSize)) {
-            return generateSizeV3(text, fontSize, widthLimit.toFloat(), heightLimit.toFloat())
-        }
-        val spaceBetweenLines = spaceBetweenLines(fontSize)
-        val fontHeight = fontMetrics.height
-        val lineCount: Int
-        val baseWidth: Double
-        if ('\n' in text) {
-            val lines = text.split('\n')
-            baseWidth = lines.maxOf { getStringWidth(getGroup(it)) }
-            lineCount = lines.size
+        return if (text.containsSpecialChar() || (widthLimit in 0 until GFX.maxTextureSize)) {
+            val parts = splitParts(
+                text, fontSize, 4f, 0f,
+                widthLimit.toFloat(), heightLimit.toFloat()
+            )
+            val width = min(ceil(parts.width).toInt(), widthLimit)
+            val height = min(ceil(parts.height).toInt(), heightLimit)
+            return GFXx2D.getSize(width, height)
         } else {
-            baseWidth = getStringWidth(getGroup(text))
-            lineCount = 1
+            val baseWidth = getStringWidth(getGroup(text))
+            val width = clamp(baseWidth.roundToInt() + 1, 0, GFX.maxTextureSize)
+            val height = min(fontMetrics.height, GFX.maxTextureSize)
+            GFXx2D.getSize(width, height)
         }
-        val width = min(max(0, baseWidth.roundToInt() + 1), GFX.maxTextureSize)
-        val height = calcTextHeight(fontHeight, lineCount, spaceBetweenLines)
-        return GFXx2D.getSize(width, height)
     }
-
-    fun calcTextHeight(fontHeight: Int, lineCount: Int, spaceBetweenLines: Int) =
-        min(fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines, GFX.maxTextureSize)
 
     fun generateTexture(
         text: CharSequence,
@@ -139,14 +128,13 @@ class AWTFont(val font: Font) {
         val group = getGroup(text)
         val width = min(widthLimit, getStringWidth(group).roundToInt() + 1 + 2 * extraPadding)
 
-        val lineCount = text.countLines()
-        val spaceBetweenLines = spaceBetweenLines(fontSize)
+        val lineCount = 1
         val fontHeight = fontMetrics.height
-        val height = min(heightLimit, fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines + 2 * extraPadding)
+        val height = min(heightLimit, fontHeight * lineCount + 2 * extraPadding)
 
         if (width < 1 || height < 1) return null
         if (max(width, height) > GFX.maxTextureSize) {
-            RuntimeException(
+            IllegalArgumentException(
                 "Texture for text is too large! $width x $height > ${GFX.maxTextureSize}, " +
                         "${text.length} chars, $lineCount lines, ${font.name} $fontSize px, ${
                             text.toString().shorten(200)
@@ -164,54 +152,56 @@ class AWTFont(val font: Font) {
         }
 
         val texture = Texture2D("awt-" + text.shorten(24), width, height, 1)
-        val prio = GFX.loadTexturesSync.peek() || text.length == 1
-        var finishingTask: (() -> Unit)? = null
-        worker.addPrioritized(prio) {
-
-            val image = BufferedImage(width, height, 1)
-            val gfx = image.graphics as Graphics2D
-
-            gfx.prepareGraphics(font, portableImages)
-            gfx.background = Color(backgroundColor)
-
-            if (backgroundColor.and(0xffffff) != 0) {
-                // fill background with that color
-                gfx.color = Color(backgroundColor)
-                gfx.fillRect(0, 0, width, height)
-            }
-
-            if (extraPadding != 0) {
-                gfx.translate(extraPadding, extraPadding)
-            }
-
-            gfx.color = Color(textColor)
-
-            val y = fontMetrics.ascent
-            // println("generating texture for '$text', size $fontSize with ascent $ascent")
-
-            if (lineCount == 1) {
-                drawString(gfx, text, group, y)
-            } else {
-                val lines = text.split('\n')
-                for (index in lines.indices) {
-                    drawString(gfx, lines[index], null, y + index * (fontHeight + spaceBetweenLines))
-                }
-            }
-            gfx.dispose()
-            if (debugJVMResults) debug(image)
-            val task = texture.create(image, sync = false, checkRedundancy = false) ?: {}
-            if (prio) finishingTask = task
-            else GFX.addGPUTask("AWTFont1", width, height, task)
-
-        }
-
+        val prio = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
         if (prio) {
-            waitUntilDefined(true) { finishingTask }()
-            if (!texture.isCreated && !texture.isDestroyed) throw IllegalStateException()
+            createImage(
+                texture,
+                width, height, portableImages,
+                textColor, backgroundColor, extraPadding, text, group
+            )
+        } else {
+            GFX.addGPUTask("awt-font-v5", width, height) {
+                createImage(
+                    texture,
+                    width, height, portableImages,
+                    textColor, backgroundColor, extraPadding, text, group
+                )
+            }
         }
 
         return texture
 
+    }
+
+    private fun createImage(
+        texture: Texture2D,
+        width: Int, height: Int,
+        portableImages: Boolean,
+        textColor: Int, backgroundColor: Int,
+        extraPadding: Int, text: CharSequence, group: TextGroup?
+    ) {
+        val image = BufferedImage(width, height, 1)
+        val gfx = image.graphics as Graphics2D
+        gfx.prepareGraphics(font, portableImages)
+
+        if (backgroundColor != 0) {
+            // fill background with that color
+            gfx.color = Color(backgroundColor)
+            gfx.fillRect(0, 0, width, height)
+        }
+
+        if (extraPadding != 0) {
+            gfx.translate(extraPadding, extraPadding)
+        }
+
+        gfx.color = Color(textColor)
+
+        val y = fontMetrics.ascent
+        // println("generating texture for '$text', size $fontSize with ascent $ascent")
+        drawString(gfx, text, group, y)
+        gfx.dispose()
+        if (debugJVMResults) debug(image)
+        texture.create(image, sync = true, checkRedundancy = false)?.invoke()
     }
 
     fun debug(image: BufferedImage) {
@@ -282,7 +272,7 @@ class AWTFont(val font: Font) {
             } else 1
         }
         val height = lineCount * actualFontSize
-        return PartResult(parts, width, height, lineCount, exampleLayout)
+        return PartResult(parts, width, height, lineCount)
     }
 
     fun getSupportLevel(fonts: List<AWTFont>, char: Int, lastSupportLevel: Int): Int {
@@ -436,20 +426,8 @@ class AWTFont(val font: Font) {
         nextLine()
 
         val lineCount = max((currentY / actualFontSize).roundToInt(), 1)
-        return PartResult(result, widthF, currentY, lineCount, exampleLayout)
+        return PartResult(result, widthF, currentY, lineCount)
 
-    }
-
-    private fun generateSizeV3(
-        text: CharSequence,
-        fontSize: Float,
-        widthLimit: Float,
-        heightLimit: Float
-    ): Int {
-        val parts = splitParts(text, fontSize, 4f, 0f, widthLimit, heightLimit)
-        val width = min(ceil(parts.width), widthLimit).toInt()
-        val height = min(ceil(parts.height), heightLimit).toInt()
-        return GFXx2D.getSize(width, height)
     }
 
     private fun generateTextureV3(
@@ -465,60 +443,54 @@ class AWTFont(val font: Font) {
 
         val parts = splitParts(text, fontSize, 4f, 0f, widthLimit, heightLimit)
         val result = parts.parts
-        val exampleLayout = parts.exampleLayout
 
         val width = min(ceil(parts.width + 2 * extraPadding), widthLimit).toInt()
         val height = min(ceil(parts.height + 2 * extraPadding), heightLimit).toInt()
 
         if (result.isEmpty() || width < 1 || height < 1) return FakeWhiteTexture(width, height)
 
-        // todo can we somehow increase priority, so we don't need to wait soo long?
-        // todo measure how long it actually takes to generate text... my node graph example lags when zooming in/out...
-
         val texture = Texture2D("awt-font-v3", width, height, 1)
-        val prio = GFX.loadTexturesSync.peek() || text.length == 1
-        var finishingTask: (() -> Unit)? = null
-        worker.addPrioritized(prio) {
-
-            val image = BufferedImage(width, height, 1)
-            // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
-
-            val gfx = image.graphics as Graphics2D
-            gfx.prepareGraphics(font, portableImages)
-            gfx.background = Color(backgroundColor)
-            if (backgroundColor.and(0xffffff) != 0) {
-                // fill background with that color
-                gfx.color = Color(backgroundColor)
-                gfx.fillRect(0, 0, width, height)
-            }
-            gfx.translate(extraPadding, extraPadding)
-            gfx.color = Color(textColor)
-
-            val y = exampleLayout.ascent
-
-            for (s in result) {
-                val font = s.font
-                gfx.font = font.font
-                // println("drawing string ${s.text} by layout at ${s.xPos}, ${s.yPos} + $y")
-                font.drawString(gfx, s.text, null, s.xPos, s.yPos + y)
-            }
-
-            gfx.dispose()
-            if (debugJVMResults) debug(image)
-
-            val task = texture.create(image, sync = false, checkRedundancy = false) ?: {}
-            if (prio) finishingTask = task
-            else GFX.addGPUTask("AWTFont2", width, height, task)
-
-        }
-
+        val prio = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
         if (prio) {
-            waitUntilDefined(true) { finishingTask }()
-            if (!texture.isCreated && !texture.isDestroyed) throw IllegalStateException()
+            createImage(texture, width, height, portableImages, textColor, backgroundColor, extraPadding, result)
+        } else {
+            GFX.addGPUTask("awt-font-v6", width, height) {
+                createImage(texture, width, height, portableImages, textColor, backgroundColor, extraPadding, result)
+            }
+        }
+        return texture
+    }
+
+    private fun createImage(
+        texture: Texture2D, width: Int, height: Int, portableImages: Boolean,
+        textColor: Int, backgroundColor: Int, extraPadding: Int, result: List<StringPart>
+    ) {
+        val image = BufferedImage(width, height, 1)
+        // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
+
+        val gfx = image.graphics as Graphics2D
+        gfx.prepareGraphics(font, portableImages)
+        gfx.background = Color(backgroundColor)
+        if (backgroundColor.and(0xffffff) != 0) {
+            // fill background with that color
+            gfx.color = Color(backgroundColor)
+            gfx.fillRect(0, 0, width, height)
+        }
+        gfx.translate(extraPadding, extraPadding)
+        gfx.color = Color(textColor)
+
+        val y = exampleLayout.ascent
+
+        for (s in result) {
+            val font = s.font
+            gfx.font = font.font
+            // println("drawing string ${s.text} by layout at ${s.xPos}, ${s.yPos} + $y")
+            font.drawString(gfx, s.text, null, s.xPos, s.yPos + y)
         }
 
-        return texture
-
+        gfx.dispose()
+        if (debugJVMResults) debug(image)
+        texture.create(image, sync = true, checkRedundancy = false)?.invoke()
     }
 
     companion object {
@@ -539,8 +511,6 @@ class AWTFont(val font: Font) {
         // val staticGfx = BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB).graphics as Graphics2D
         // val staticMetrics = staticGfx.fontMetrics
         // val staticFontRenderCTX = staticGfx.fontRenderContext
-
-        private val worker = ProcessingQueue("AWTFont")
 
         private val fallbackFontList = DefaultConfig[
                 "ui.font.fallbacks",

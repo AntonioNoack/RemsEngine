@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.mod
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
+import me.anno.ecs.components.mesh.sdf.random.SDFRandom.Companion.randLib
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.arrays.IntArrayList
@@ -95,6 +96,7 @@ class SDFArray : PositionMapper() {
         seeds: ArrayList<String>
     ): String? {
         functions.add(sdArray)
+        functions.add(randLib)
         val cellSize = cellSize
         val count = count
         val globalDynamic = globalDynamic

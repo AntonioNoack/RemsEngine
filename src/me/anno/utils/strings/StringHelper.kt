@@ -25,17 +25,39 @@ object StringHelper {
         return if (i < 0) length else i
     }
 
+    private const val smallCapsMagic = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ"
+    @JvmStatic
+    private val smallCapsMagicMin = smallCapsMagic.minOrNull()!!
+    @JvmStatic
+    private val smallCapsMagicMax = smallCapsMagic.maxOrNull()!!
+
+    @JvmStatic
     fun Char.smallCaps(): Char {
-        val magic = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ"
-        return when (this) {
-            in 'a'..'z' -> magic[this.code - 'a'.code]
-            else -> this
-        }
+        return if (this in 'a'..'z') smallCapsMagic[this.code - 'a'.code] else this
     }
 
+    @JvmStatic
+    fun Char.normalCaps(): Char {
+        return if (this in smallCapsMagicMin..smallCapsMagicMax) {
+            val idx = smallCapsMagic.indexOf(this)
+            if (idx >= 0) ('a' + idx) else this
+        } else this
+    }
+
+    @JvmStatic
     fun String.smallCaps(): String {
         val result = StringBuffer(length)
         for (c in this) result.append(c.smallCaps())
+        return result.toString()
+    }
+
+    /**
+     * removes/undo-s smallCaps()
+     * */
+    @JvmStatic
+    fun String.normalCaps(): String {
+        val result = StringBuffer(length)
+        for (c in this) result.append(c.normalCaps())
         return result.toString()
     }
 

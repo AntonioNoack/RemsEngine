@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.arrays.SDFArray.Companion.sdArray
+import me.anno.ecs.components.mesh.sdf.random.SDFRandom.Companion.randLib
 import me.anno.ecs.components.mesh.sdf.random.SDFRandomRotation
 import me.anno.ecs.components.mesh.sdf.random.SDFRandomUV
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
@@ -101,6 +102,7 @@ class SDFArray2 : SDFGroupArray() {
         seeds: ArrayList<String>
     ): Int {
         functions.add(sdArray)
+        functions.add(randLib)
         // for all dimensions:
         val axes = "xyz"
         val overlap = defineUniform(uniforms, GLSLType.V3F, overlap)

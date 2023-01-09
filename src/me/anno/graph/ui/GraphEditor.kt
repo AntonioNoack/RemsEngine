@@ -3,7 +3,7 @@ package me.anno.graph.ui
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.engine.ECSRegistry
-import me.anno.gpu.GFX
+import me.anno.fonts.FontManager
 import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
@@ -29,10 +29,11 @@ import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
+import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
@@ -75,8 +76,8 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
 
     var gridColor = 0x10ffffff
 
-    var lineThickness = max(1, sqrt(GFX.someWindow.height / 120f).roundToInt())
-    var lineThicknessBold = max(1, sqrt(GFX.someWindow.height / 50f).roundToInt())
+    var lineThickness = -1
+    var lineThicknessBold = -1
 
     var library = NodeLibrary.flowNodes
 
@@ -140,6 +141,13 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
 
     override fun onUpdate() {
         super.onUpdate()
+        if (lineThickness < 0 || lineThicknessBold < 0) {
+            val window = window
+            if (window != null) {
+                if (lineThickness < 0) lineThickness = max(1, sqrt(window.h / 120f).roundToInt())
+                if (lineThicknessBold < 0) lineThicknessBold = max(1, sqrt(window.h / 50f).roundToInt())
+            }
+        }
         val dtx = min(Engine.deltaTime * 10f, 1f)
         if (target.distanceSquared(center) > 1e-5) {
             invalidateLayout()
@@ -283,7 +291,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
             drawBorder(
                 min(staX, endX), min(staY, endY),
                 abs(endX - staX) + 1, abs(endY - staY) + 1,
-                gridColor.withAlpha(1f), 2
+                gridColor.withAlpha(1f), lineThickness
             )
         }
     }
@@ -644,11 +652,21 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         fun main(args: Array<String>) {
             ECSRegistry.init()
             GFXBase.forceLoadRenderDoc()
-            TestStudio.testUI {
-                val g = FlowGraph.testLocalVariables()
-                calculateNodePositions(g.nodes)
-                GraphEditor(g, DefaultConfig.style)
-            }
+            val g = FlowGraph.testLocalVariables()
+            calculateNodePositions(g.nodes)
+            val ge = GraphEditor(g, DefaultConfig.style)
+            testUI(
+                listOf(
+                    // performance test for generating lots of text
+                      SpyPanel {
+                          ge.scale *= 1.02
+                          if (ge.scale > 10.0) {
+                              ge.scale = 1.0
+                          }
+                          ge.invalidateLayout()
+                      }, ge
+                )
+            )
         }
     }
 
