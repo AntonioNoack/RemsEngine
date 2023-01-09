@@ -52,6 +52,24 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Tes
          * with a single panel; full gfx capabilities,
          * no audio
          * */
+        fun testUI(mainPanel: Panel) {
+            TestStudio { listOf(mainPanel) }.run()
+        }
+
+        /**
+         * create a very simple instance of the editor,
+         * with a single panel; full gfx capabilities,
+         * no audio
+         * */
+        fun testUI(mainPanels: List<Panel>) {
+            TestStudio { mainPanels }.run()
+        }
+
+        /**
+         * create a very simple instance of the editor,
+         * with a single panel; full gfx capabilities,
+         * no audio
+         * */
         fun testUI2(createMainPanel: () -> List<Panel>) {
             TestStudio(createMainPanel).run()
         }

@@ -7,6 +7,7 @@ import me.anno.gpu.drawing.GFXx2D.drawHalfArrow
 import me.anno.graph.Node
 import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
+import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
@@ -14,7 +15,6 @@ import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mapClamped
 import me.anno.maths.Maths.mixARGB
-import me.anno.maths.Maths.mulAlpha
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
@@ -26,10 +26,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 // todo show output value in tooltip on connector (for where it is easily computable without actions)
 // todo can we add debug-clamps?: input and output overrides for debugging...
@@ -48,7 +45,7 @@ class NodePanel(
 
     init {
         // slightly transparent, so covered connections can be seen
-        backgroundColor = mulAlpha(mixARGB(backgroundColor, black, 0.5f), bgAlpha)
+        backgroundColor = mixARGB(backgroundColor, black, 0.5f).withAlpha(bgAlpha)
         node.createUI(this, style)
         name = node.name
     }
@@ -64,19 +61,12 @@ class NodePanel(
 
     override fun calculateSize(w: Int, h: Int) {
 
-        val expectedChars = 20
-
+        val expectedChars = 16
         lineCount = 1 + // title
-                // 1 + // desc
                 max(node.inputs?.size ?: 0, node.outputs?.size ?: 0)
 
         minW = (expectedChars * baseTextSize).toInt()
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
-
-        // calculate how many lines, and space we need;
-        // base calculation on w maybe
-
-        backgroundRadius = w / 10f
 
         val inputs = node.inputs
         if (inputs != null) for (con in inputs) {
@@ -198,6 +188,8 @@ class NodePanel(
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+
+        if (node.color != 0) backgroundColor = node.color
 
         val inFocus = isInFocus || gp.overlapsSelection(this)
         drawBackground(inFocus, true, x0, y0, x1, y1)
@@ -337,8 +329,10 @@ class NodePanel(
         isDragged = false
         when {
             button.isLeft && con != null -> {
+                println("set dragged to ${con.name}")
                 gp.dragged = con
                 gp.invalidateDrawing()
+                gp.requestFocus(true)
             }
             button.isLeft -> {
                 isDragged = true
@@ -346,6 +340,9 @@ class NodePanel(
             else -> super.onMouseDown(x, y, button)
         }
     }
+
+    var snapExtraX = 0.0
+    var snapExtraY = 0.0
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (isDragged) {
@@ -355,10 +352,20 @@ class NodePanel(
             val dx2 = gp.windowToCoordsX(wx) - node.position.x
             val dy2 = gp.windowToCoordsY(wy) - node.position.y
             node.position.add(dx2, dy2, 0.0)
+            if (Input.isShiftDown) snapPosition()
             gp.invalidateLayout()
         } else if (windowStack.inFocus.none2 { it.parent == uiParent }) {
             super.onMouseMoved(x, y, dx, dy)
         }
+    }
+
+    fun snapPosition(cellSize: Double = 16.0) {
+        val sx = round((node.position.x + snapExtraX) / cellSize) * cellSize
+        val sy = round((node.position.y + snapExtraY) / cellSize) * cellSize
+        snapExtraX += node.position.x - sx
+        snapExtraY += node.position.y - sy
+        node.position.x = sx
+        node.position.y = sy
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
@@ -404,7 +411,7 @@ class NodePanel(
                     }
                 }
             }
-            else -> super.onMouseUp(x, y, button)
+            // else -> super.onMouseUp(x, y, button)
         }
         isDragged = false
         gp.dragged = null

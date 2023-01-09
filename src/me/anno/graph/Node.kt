@@ -6,6 +6,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.maths.Maths.hasFlag
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 import org.joml.Vector3d
@@ -25,8 +26,10 @@ abstract class Node() : PrefabSaveable() {
      * @param outputs [type, name], [type, name], [type, name], ...
      * */
     constructor(name: String, inputs: List<String>, outputs: List<String>) : this(name) {
-        this.inputs = Array(inputs.size / 2) { NodeInput(inputs[it * 2], inputs[it * 2 + 1], this, false) }
-        this.outputs = Array(outputs.size / 2) { NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this, false) }
+        if (inputs.size.hasFlag(1)) throw IllegalArgumentException("Each input must be defined as type + name")
+        if (outputs.size.hasFlag(1)) throw IllegalArgumentException("Each output must be defined as type + name")
+        this.inputs = Array(inputs.size shr 1) { NodeInput(inputs[it * 2], inputs[it * 2 + 1], this, false) }
+        this.outputs = Array(outputs.size shr 1) { NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this, false) }
     }
 
     // make name final
@@ -44,7 +47,6 @@ abstract class Node() : PrefabSaveable() {
     var inputs: Array<NodeInput>? = null
     var outputs: Array<NodeOutput>? = null
 
-    // todo use this color, if defined
     var color = 0
 
     open fun canAddInput(type: String) = false
@@ -191,6 +193,10 @@ abstract class Node() : PrefabSaveable() {
         setInputs(inputValues, -1)
     }
 
+    /**
+     * if you want to change this function, please be aware, that node cloning is very complex!
+     * you need to clone all connectors, their values (names, descriptions, types, ...), and potentially neighboring nodes
+     * */
     override fun clone(): Node {// not ideal, but probably good enough for now and manual graph creation
         return TextReader.readFirst(TextWriter.toText(this, InvalidRef), InvalidRef)
     }

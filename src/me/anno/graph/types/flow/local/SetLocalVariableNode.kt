@@ -17,12 +17,13 @@ class SetLocalVariableNode() : ActionNode("SetLocal", inputs, outputs) {
         val value = getInput(graph, 2)
         val previous = graph.localVariables[key]
         graph.localVariables[key] = value
-        setOutput(previous, 1)
+        setOutput(value, 1)
+        setOutput(previous, 2)
     }
 
     companion object {
-        val inputs = listOf("String", "Name", "?", "Value")
-        val outputs = listOf("?", "Previous")
+        val inputs = listOf("String", "Name", "?", "New Value")
+        val outputs = listOf("?", "Current Value", "?", "Previous Value")
     }
 
 

@@ -66,8 +66,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
             }
         }
 
-    // what should the default size of a node be?
-    var defaultNodeSize = 250.0
+    var cornerRadius = 24f
     val baseTextSize get() = 20 * scale
 
     var font = monospaceFont
@@ -111,8 +110,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
 
     init {
         addRightClickListener {
-            // todo grid snapping
-            // todo select multiple nodes using shift
+            // todo snap all selected nodes to the grid
             // todo groups for them
             // todo reset graph? idk...
             // todo button to save graph (?)
@@ -152,9 +150,10 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         ensureChildren()
-        for (child in children) {
-            val childSize = (scale * defaultNodeSize).toInt()
-            child.calculateSize(childSize, childSize)
+        val cornerRadius = (scale * cornerRadius).toFloat()
+        for (nodePanel in children) {
+            nodePanel.backgroundRadius = cornerRadius
+            nodePanel.calculateSize(w, h)
         }
         minW = w
         minH = h
@@ -246,8 +245,9 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        val selectingStart = selectingStart
         if (dragged != null) {
+            val child = getPanelAt(x.toInt(), y.toInt())
+            if (child is NodePanel) child.onMouseUp(x, y, button)
             dragged = null
             invalidateDrawing()
         } else if (selectingStart != null && button.isLeft) {
@@ -319,8 +319,8 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
     }
 
     open fun drawNodeConnections(x0: Int, y0: Int, x1: Int, y1: Int) {
-        // todo we could use different styles..
-        // todo it would make sense to implement multiple styles, so this could be used in a game in the future as well
+        // it would make sense to implement multiple styles, so this could be used in a game in the future as well
+        // -> split into multiple subroutines, so you can implement your own style :)
         val graph = graph ?: return
         for (srcNode in graph.nodes) {
             for ((outIndex, nodeOutput) in srcNode.outputs?.withIndex() ?: continue) {
@@ -476,7 +476,6 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
     fun getInputField(con: NodeConnector, old: Panel?): Panel? {
         if (!con.isEmpty()) return null
         if (con !is NodeInput) return null
-        // todo text size is not updating...
         when (con.type) {
             "Float" -> {
                 if (old is FloatInput) return old
@@ -582,7 +581,6 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         val graph = graph ?: return super.onPaste(x, y, data, type)
         var done = false
         try {
-            // todo String input constants are lost :/
             val data2 = TextReader.read(data, workspace, true).first()
             // add centered at mouse cursor :3
             val center = getCursorPosition(x, y)

@@ -25,6 +25,20 @@ object StringHelper {
         return if (i < 0) length else i
     }
 
+    fun Char.smallCaps(): Char {
+        val magic = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ"
+        return when (this) {
+            in 'a'..'z' -> magic[this.code - 'a'.code]
+            else -> this
+        }
+    }
+
+    fun String.smallCaps(): String {
+        val result = StringBuffer(length)
+        for (c in this) result.append(c.smallCaps())
+        return result.toString()
+    }
+
     @JvmStatic
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
     fun String.splitCamelCase(titlecase: Boolean = false): String {

@@ -3,15 +3,6 @@ package me.anno.ui.editor.code.codemirror
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
-import me.anno.io.utils.StringMap
-import me.anno.maths.Maths.mixARGB
-import me.anno.utils.Color.a
-import me.anno.utils.ColorParsing
-import me.anno.utils.OS
-import me.anno.utils.strings.StringHelper.titlecase
-import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.full.memberProperties
 
 object LanguageThemeLib {
 

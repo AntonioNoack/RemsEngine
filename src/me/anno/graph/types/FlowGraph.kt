@@ -11,6 +11,7 @@ import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
 import me.anno.graph.types.flow.maths.MathD2Node
 import me.anno.graph.types.flow.maths.MathL2Node
+import me.anno.utils.Color.black
 import org.apache.logging.log4j.LogManager
 
 // visual coding language
@@ -128,6 +129,7 @@ open class FlowGraph : Graph() {
             // calculate factorial
             val g = FlowGraph()
             val initNode = SetLocalVariableNode("var", 1)
+            initNode.color = black or 0x112233
             val forNode = ForNode()
             forNode.setInputs(listOf(null, 1L, 5L, 1L))
             initNode.connectTo(forNode)

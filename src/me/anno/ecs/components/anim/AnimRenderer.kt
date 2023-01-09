@@ -41,6 +41,25 @@ open class AnimRenderer : MeshComponent() {
     @SerializedProperty
     var animations: List<AnimationState> = emptyList()
 
+    @Docs("If no animation is set, use default?")
+    var useDefaultAnimation = true
+
+    // animation state for motion vectors
+    @NotSerializedProperty
+    var prevTime = 0L
+
+    @NotSerializedProperty
+    val prevWeights = Vector4f()
+
+    @NotSerializedProperty
+    val prevIndices = Vector4f()
+
+    @NotSerializedProperty
+    val currWeights = Vector4f()
+
+    @NotSerializedProperty
+    val currIndices = Vector4f()
+
     open fun onAnimFinished(anim: AnimationState) {
         val instance = AnimationCache[anim.source]
         if (instance != null) {
@@ -73,9 +92,6 @@ open class AnimRenderer : MeshComponent() {
             return skeleton != null && (useDefaultAnimation || animations.isNotEmpty())
         }
 
-    @Docs("If no animation is set, use default?")
-    var useDefaultAnimation = true
-
     fun addState(state: AnimationState) {
         synchronized(this) {
             val animations = animations
@@ -89,22 +105,6 @@ open class AnimRenderer : MeshComponent() {
             }
         }
     }
-
-    // animation state for motion vectors
-    @NotSerializedProperty
-    var prevTime = 0L
-
-    @NotSerializedProperty
-    val prevWeights = Vector4f()
-
-    @NotSerializedProperty
-    val prevIndices = Vector4f()
-
-    @NotSerializedProperty
-    val currWeights = Vector4f()
-
-    @NotSerializedProperty
-    val currIndices = Vector4f()
 
     override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh): Boolean {
 
@@ -285,6 +285,12 @@ open class AnimRenderer : MeshComponent() {
         clone as AnimRenderer
         clone.skeleton = skeleton
         clone.animations = animations
+        clone.useDefaultAnimation = useDefaultAnimation
+        clone.prevIndices.set(prevIndices)
+        clone.prevTime = prevTime
+        clone.prevWeights.set(prevWeights)
+        clone.currIndices.set(currIndices)
+        clone.currWeights.set(currWeights)
     }
 
     override fun onDrawGUI(all: Boolean) {

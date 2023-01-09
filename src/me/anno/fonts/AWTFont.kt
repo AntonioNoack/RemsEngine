@@ -72,6 +72,7 @@ class AWTFont(val font: Font) {
         if (text.containsSpecialChar()) {
             var index = 0
             for (codepoint in text.codePoints()) {
+                // println("  drawing $codepoint = '${String(Character.toChars(codepoint))}' at ${x + group2.offsets[index].toFloat()}, $y")
                 gfx.drawString(
                     String(Character.toChars(codepoint)),
                     x + group2.offsets[index].toFloat(), y
@@ -248,9 +249,9 @@ class AWTFont(val font: Font) {
     ): PartResult {
 
         val fallback = getFallback(fontSize)
-        val fonts = ArrayList<Font>(fallback.size + 1)
+        val fonts = ArrayList<AWTFont>(fallback.size + 1)
 
-        fonts += font
+        fonts += AWTFont(font)
         fonts += fallback
 
         val lineCountLimit = if (textBreakHeight < 0f) Int.MAX_VALUE
@@ -284,10 +285,10 @@ class AWTFont(val font: Font) {
         return PartResult(parts, width, height, lineCount, exampleLayout)
     }
 
-    fun getSupportLevel(fonts: List<Font>, char: Int, lastSupportLevel: Int): Int {
+    fun getSupportLevel(fonts: List<AWTFont>, char: Int, lastSupportLevel: Int): Int {
         for (index in fonts.indices) {
             val font = fonts[index]
-            if (font.canDisplay(char)) return index
+            if (font.font.canDisplay(char)) return index
         }
         return lastSupportLevel
     }
@@ -343,7 +344,7 @@ class AWTFont(val font: Font) {
     }
 
     private fun splitLine(
-        fonts: List<Font>,
+        fonts: List<AWTFont>,
         line: String,
         fontSize: Float,
         relativeTabSize: Float,
@@ -376,7 +377,7 @@ class AWTFont(val font: Font) {
                         it !in 0xfe00..0xfe0f // Emoji variations; having no width, even if Java thinks so
                     }
                     val advance = if (filtered.isNotEmpty())
-                        TextLayout(filtered.toString(), font, renderContext).advance else 0f
+                        TextLayout(filtered.toString(), font.font, renderContext).advance else 0f
                     // if multiple chars and advance > lineWidth, then break line
                     val nextX = currentX + advance + (index1 - index0) * charSpacing
                     if (hasAutomaticLineBreak && index0 + 1 < index1 && currentX == 0f && nextX > lineBreakWidth) {
@@ -496,9 +497,10 @@ class AWTFont(val font: Font) {
             val y = exampleLayout.ascent
 
             for (s in result) {
-                gfx.font = s.font
-                // println("drawing string ${it.text} by layout at ${it.xPos}, ${it.yPos} + $y")
-                drawString(gfx, s.text, null, s.xPos, s.yPos + y)
+                val font = s.font
+                gfx.font = font.font
+                // println("drawing string ${s.text} by layout at ${s.xPos}, ${s.yPos} + $y")
+                font.drawString(gfx, s.text, null, s.xPos, s.yPos + y)
             }
 
             gfx.dispose()
@@ -547,12 +549,11 @@ class AWTFont(val font: Font) {
 
         // val fallbacks = FontManager.getFont("", size, 0f, 0f)
         // var fallbackFont0 = Font("Segoe UI Emoji", Font.PLAIN, 25)
-        private val fallbackFonts = HashMap<Float, List<Font>>()
-        fun getFallback(size: Float): List<Font> {
+        private val fallbackFonts = HashMap<Float, List<AWTFont>>()
+        fun getFallback(size: Float): List<AWTFont> {
             val cached = fallbackFonts[size]
             if (cached != null) return cached
-            val fonts = fallbackFontList
-                .map { FontManager.getFont(it, size, bold = false, italic = false).font }
+            val fonts = fallbackFontList.map { FontManager.getFont(it, size, bold = false, italic = false) }
             fallbackFonts[size] = fonts
             return fonts
         }
