@@ -49,6 +49,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         val clazz = readString()
         val nc0 = skipSpace()
         val obj = getNewClassInstance(clazz)
+        allInstances.add(obj)
         if (nc0 == ',') {
             assert(skipSpace(), '"')
             val secondProperty = readString()
@@ -785,7 +786,11 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             val clazz = readString()
             // could be different in lists
             return if (clazz == obj.className) obj
-            else getNewClassInstance(clazz)
+            else {
+                val obj2 = getNewClassInstance(clazz)
+                allInstances.add(obj2)
+                obj2
+            }
         }
         var (type, name) = splitTypeName(typeName)
         @Suppress("unchecked_cast")

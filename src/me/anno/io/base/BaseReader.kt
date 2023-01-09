@@ -11,6 +11,8 @@ abstract class BaseReader {
     private val withPtr = ArrayList<ISaveable>()
     private val withoutPtr = ArrayList<ISaveable>()
 
+    val allInstances = ArrayList<ISaveable>()
+
     val sortedContent: List<ISaveable> get() = (withPtr + withoutPtr).filter { it !== UnitSaveable }
 
     var sourceName = ""
@@ -91,6 +93,13 @@ abstract class BaseReader {
         }
     }
 
+    fun start(): Int = allInstances.size
+    fun finish(start: Int = 0) {
+        for (i in start until allInstances.size) {
+            allInstances[i].onReadingEnded()
+        }
+    }
+
     abstract fun readObject(): ISaveable
     abstract fun readAllInList()
 
@@ -111,7 +120,9 @@ abstract class BaseReader {
                 "Looking for $className:${className.hashCode()}, " +
                         "available: ${ISaveable.objectTypeRegistry.keys.joinToString { "${it}:${it.hashCode()}:${if (it == className) 1 else 0}" }}"
             )
-            return type?.generate() ?: throw UnknownClassException(className)
+            val instance = type?.generate() ?: throw UnknownClassException(className)
+            instance.onReadingStarted()
+            return instance
         }
 
     }

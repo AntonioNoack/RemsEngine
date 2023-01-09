@@ -5,18 +5,17 @@ import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import org.joml.Vector3d
 
-abstract class NodeConnector : NamedSaveable {
+abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
 
-    constructor() : super()
-    constructor(type: String) : super() {
+    constructor(type: String, isCustom: Boolean) : this(isCustom) {
         this.type = type
     }
 
-    constructor(type: String, node: Node) : this(type) {
+    constructor(type: String, node: Node, isCustom: Boolean) : this(type, isCustom) {
         this.node = node
     }
 
-    constructor(type: String, name: String, node: Node) : this(type, node) {
+    constructor(type: String, name: String, node: Node, isCustom: Boolean) : this(type, node, isCustom) {
         this.name = name
     }
 
@@ -57,7 +56,9 @@ abstract class NodeConnector : NamedSaveable {
     }
 
     fun disconnectAll() {
-        others.forEach { o -> o.others = o.others.filter { it != this } }
+        for (o in others) {
+            o.others = o.others.filter { it != this }
+        }
         others = emptyList()
     }
 
@@ -70,32 +71,37 @@ abstract class NodeConnector : NamedSaveable {
     }
 
     override fun save(writer: BaseWriter) {
-        super.save(writer)
-        writer.writeObject(this, "node", node)
+        // super.save(writer) ; writes name + description, but often we don't want to save them for connectors
+        // node is not necessarily needed
+        // writer.writeObject(this, "node", node)
+        if (isCustom) {
+            writer.writeString("name", name)
+            writer.writeString("desc", description)
+            writer.writeString("type", type)
+            writer.writeBoolean("custom", true)
+        }
         writer.writeObjectList(this, "others", others)
-        writer.writeString("type", type)
-        writer.writeSomething(this, "value", value, true)
+        if (value != null) writer.writeSomething(this, "value", value, true)
+    }
+
+    override fun readBoolean(name: String, value: Boolean) {
+        if (name == "custom") isCustom = value
+        else super.readBoolean(name, value)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when (name) {
-            "node" -> node = value as? Node
-            else -> super.readObject(name, value)
-        }
+        if (name == "node") node = value as? Node
+        else super.readObject(name, value)
     }
 
     override fun readSomething(name: String, value: Any?) {
-        when (name) {
-            "value" -> this.value = value
-            else -> super.readSomething(name, value)
-        }
+        if (name == "value") this.value = value
+        else super.readSomething(name, value)
     }
 
     override fun readString(name: String, value: String?) {
-        when (name) {
-            "type" -> type = value ?: type
-            else -> super.readString(name, value)
-        }
+        if (name == "type") type = value ?: type
+        else super.readString(name, value)
     }
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {

@@ -84,6 +84,7 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
             } else {
                 reader.readAllInList()
             }
+            reader.finish()
             // sorting is very important
             return reader.sortedContent
         }
@@ -107,6 +108,7 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
                     e.printStackTrace()
                 }
             } else reader.readAllInList()
+            reader.finish()
             // sorting is very important
             return reader.sortedContent
         }

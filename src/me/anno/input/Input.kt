@@ -635,7 +635,7 @@ object Input {
             1 -> setClipboardContent(inFocus0.onCopyRequested(mouseX, mouseY)?.toString())
             else -> {
                 val parentValue = inFocus0.getMultiSelectablePanel()?.onCopyRequested(mouseX, mouseY)
-                if (parentValue != null) setClipboardContent(parentValue.toString())
+                if (parentValue != null) return setClipboardContent(parentValue.toString())
                 // combine them into an array
                 when (val first = inFocus0.onCopyRequested(mouseX, mouseY)) {
                     is ISaveable -> {

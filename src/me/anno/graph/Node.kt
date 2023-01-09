@@ -25,8 +25,8 @@ abstract class Node() : PrefabSaveable() {
      * @param outputs [type, name], [type, name], [type, name], ...
      * */
     constructor(name: String, inputs: List<String>, outputs: List<String>) : this(name) {
-        this.inputs = Array(inputs.size / 2) { NodeInput(inputs[it * 2], inputs[it * 2 + 1], this) }
-        this.outputs = Array(outputs.size / 2) { NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this) }
+        this.inputs = Array(inputs.size / 2) { NodeInput(inputs[it * 2], inputs[it * 2 + 1], this, false) }
+        this.outputs = Array(outputs.size / 2) { NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this, false) }
     }
 
     // make name final
@@ -81,9 +81,17 @@ abstract class Node() : PrefabSaveable() {
 
     // the node ofc needs to save its custom content and behaviour as well
     override fun save(writer: BaseWriter) {
-        super.save(writer)
-        writer.writeObjectArray(this, "inputs", inputs)
-        writer.writeObjectArray(this, "outputs", outputs)
+        // super.save(writer) // just name + desc;
+        // and those are defined by the type
+        // if you need them yourself, just create your own node type;
+
+        // if valid, just save connections and values (should be much slimmer :))
+        val inputs = inputs
+        val outputs = outputs
+        if (inputs == null || inputs.any { it.isCustom || it.value != null || it.others.isNotEmpty() })
+            writer.writeObjectArray(this, "inputs", inputs)
+        if (outputs == null || outputs.any { it.isCustom || it.value != null || it.others.isNotEmpty() })
+            writer.writeObjectArray(this, "outputs", outputs)
         writer.writeInt("layer", layer)
         writer.writeVector3d("position", position)
     }
@@ -91,14 +99,34 @@ abstract class Node() : PrefabSaveable() {
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
             "inputs" -> {
-                val inputs = values.filterIsInstance<NodeInput>().toTypedArray()
-                for (i in inputs.indices) inputs[i].node = this
-                this.inputs = inputs
+                val newbies = values.filterIsInstance<NodeInput>().toTypedArray()
+                val originals = this.inputs
+                for (i in newbies.indices) {
+                    val newbie = newbies[i]
+                    newbie.node = this
+                    val original = originals?.getOrNull(i)
+                    if (original?.isCustom == false) {
+                        newbie.name = original.name
+                        newbie.type = original.type
+                        newbie.description = original.description
+                    }
+                }
+                this.inputs = newbies
             }
             "outputs" -> {
-                val outputs = values.filterIsInstance<NodeOutput>().toTypedArray()
-                for (i in outputs.indices) outputs[i].node = this
-                this.outputs = outputs
+                val newbies = values.filterIsInstance<NodeOutput>().toTypedArray()
+                val originals = this.outputs
+                for (i in newbies.indices) {
+                    val newbie = newbies[i]
+                    newbie.node = this
+                    val original = originals?.getOrNull(i)
+                    if (original?.isCustom == false) {
+                        newbie.name = original.name
+                        newbie.type = original.type
+                        newbie.description = original.description
+                    }
+                }
+                this.outputs = newbies
             }
             else -> super.readObjectArray(name, values)
         }

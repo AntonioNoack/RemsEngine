@@ -57,8 +57,8 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
         )
 
         fun init() {
-            registerCustomClass { NodeInput() }
-            registerCustomClass { NodeOutput() }
+            registerCustomClass { NodeInput(false) }
+            registerCustomClass { NodeOutput(false) }
             flowNodes.register()
         }
 

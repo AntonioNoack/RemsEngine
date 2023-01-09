@@ -12,10 +12,10 @@ import org.joml.Vector4f
 
 class NodeInput : NodeConnector {
 
-    constructor() : super()
-    constructor(type: String) : super(type)
-    constructor(type: String, node: Node) : super(type, node)
-    constructor(type: String, name: String, node: Node) : super(type, name, node)
+    constructor(isCustom: Boolean) : super(isCustom)
+    constructor(type: String, isCustom: Boolean) : super(type, isCustom)
+    constructor(type: String, node: Node, isCustom: Boolean) : super(type, node, isCustom)
+    constructor(type: String, name: String, node: Node, isCustom: Boolean) : super(type, name, node, isCustom)
 
     // ofc not thread-safe
     // for multi-thread-operation, copy the graphs

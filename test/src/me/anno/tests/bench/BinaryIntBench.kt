@@ -57,6 +57,7 @@ fun main() {
 
         val asInts = reader.run {
             readAllInList()
+            finish()
             sortedContent.firstOrNull() as TestClass
         }.x!!
 

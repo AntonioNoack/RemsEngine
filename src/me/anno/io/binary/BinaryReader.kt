@@ -209,6 +209,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
 
     fun readObject(clazz: String): ISaveable {
         val obj = getNewClassInstance(clazz)
+        allInstances.add(obj)
         usingType(clazz) {
             val ptr = input.readInt()
             // real all properties

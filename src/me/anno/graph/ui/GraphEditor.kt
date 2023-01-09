@@ -81,14 +81,20 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
 
     var library = NodeLibrary.flowNodes
 
+    fun getNodePanel(node: Node): NodePanel {
+        return nodeToPanel.getOrPut(node) {
+            val panel = NodePanel(node, this, style)
+            children.add(panel)
+            panel.window = window
+            invalidateLayout()
+            panel
+        }
+    }
+
     private fun ensureChildren() {
         val graph = graph ?: return
         for (node in graph.nodes) {
-            nodeToPanel.getOrPut(node) {
-                val panel = NodePanel(node, this, style)
-                children.add(panel)
-                panel
-            }
+            getNodePanel(node)
         }
         if (nodeToPanel.size > graph.nodes.size) {
             val set = graph.nodes.toSet()
@@ -544,7 +550,8 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         return when (focussedNodes.size) {
             1 -> {
                 // clone, but remove all connections
-                val clone = focussedNodes.first().clone()
+                val original = focussedNodes.first()
+                val clone = original.clone()
                 val inputs = clone.inputs
                 if (inputs != null) for (input in inputs) input.others = emptyList()
                 val outputs = clone.outputs
@@ -576,23 +583,26 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         var done = false
         try {
             // todo String input constants are lost :/
-            val instances = TextReader.read(data, workspace, true).first()
+            val data2 = TextReader.read(data, workspace, true).first()
             // add centered at mouse cursor :3
             val center = getCursorPosition(x, y)
-            when (instances) {
+            when (data2) {
                 is Node -> {
                     // add at mouse cursor
-                    instances.position.add(center)
-                    graph.nodes.add(instances)
-                    invalidateLayout()
+                    data2.position.add(center)
+                    graph.nodes.add(data2)
+                    getNodePanel(data2).requestFocus()
                     done = true
                 }
                 is SaveableArray -> {
-                    val nodes = instances.filterIsInstance<Node>()
+                    val nodes = data2.filterIsInstance<Node>()
                     if (nodes.isNotEmpty()) {
-                        for (node in nodes) node.position.add(center)
                         graph.nodes.addAll(nodes)
-                        invalidateLayout()
+                        for (index in nodes.indices) {
+                            val node = nodes[index]
+                            node.position.add(center)
+                            getNodePanel(node).requestFocus(index == 0)
+                        }
                         done = true
                     }
                 }
