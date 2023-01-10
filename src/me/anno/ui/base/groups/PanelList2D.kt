@@ -26,8 +26,9 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
     }
 
     override val children = ArrayList<Panel>(256)
-    override val child: Panel
-        get() = this
+
+    override val childSizeY: Long
+        get() = minH.toLong()
 
     val defaultSize = 100
     var scaleChildren = false

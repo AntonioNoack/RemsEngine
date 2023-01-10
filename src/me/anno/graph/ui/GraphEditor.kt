@@ -3,7 +3,6 @@ package me.anno.graph.ui
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.engine.ECSRegistry
-import me.anno.fonts.FontManager
 import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
@@ -42,19 +41,15 @@ import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
+import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.Warning.unused
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.joml.Vector2f
 import org.joml.Vector3d
 import kotlin.math.*
 
 open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style) {
-
-    // todo copy-paste nodes
-    // todo control+d to duplicate selected node
-    // todo bug: cannot multi-select nodes
-
-    // todo add scroll bars, when the content goes over the borders
 
     var dragged: NodeConnector? = null
 
@@ -69,6 +64,28 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
 
     var cornerRadius = 24f
     val baseTextSize get() = 20 * scale
+
+    var scrollLeft = 0
+    var scrollTop = 0
+    var scrollRight = 0
+    var scrollBottom = 0
+
+    override var scrollPositionX: Double
+        get() = scrollLeft.toDouble()
+        set(value) {
+            unused(value)
+        }
+
+    override var scrollPositionY: Double
+        get() = scrollTop.toDouble()
+        set(value) {
+            unused(value)
+        }
+
+    override val maxScrollPositionX: Long get() = (scrollLeft + scrollRight).toLong()
+    override val maxScrollPositionY: Long get() = (scrollTop + scrollBottom).toLong()
+    override val childSizeX: Long get() = w + maxScrollPositionX
+    override val childSizeY: Long get() = h + maxScrollPositionY
 
     var font = monospaceFont
 
@@ -120,6 +137,8 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         }
     }
 
+    // todo if node is dragged on a line, connect left & right sides where types match from top to bottom
+
     fun openNewNodeMenu(callback: ((Node) -> Unit)? = null) {
         val window = window!!
         val mouseX = window.mouseX
@@ -129,7 +148,6 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                 MenuOption(NameDesc(sample.name)) {
                     // place node at mouse position
                     val node = newNode()
-                    // todo if placed on line, connect left & right sides where types match from top to bottom
                     node.position.set(windowToCoordsX(mouseX.toDouble()), windowToCoordsY(mouseY.toDouble()), 0.0)
                     graph!!.nodes.add(node)
                     if (callback != null) callback(node)
@@ -172,12 +190,26 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         ensureChildren()
         // place all children
         val graph = graph ?: return
+        var left = 0
+        var right = 0
+        var top = 0
+        var bottom = 0
+        val xe = x + w
+        val ye = y + h
         for (node in graph.nodes) {
             val panel = nodeToPanel[node] ?: continue
             val xi = coordsToWindowX(node.position.x).toInt() - panel.w / 2
             val yi = coordsToWindowY(node.position.y).toInt()// - panel.h / 2
             panel.setPosition(xi, yi)
+            left = max(left, x - xi)
+            top = max(top, y - yi)
+            right = max(right, (xi + panel.w) - xe)
+            bottom = max(bottom, (yi + panel.h) - ye)
         }
+        scrollLeft = left
+        scrollRight = right
+        scrollTop = top
+        scrollBottom = bottom
     }
 
     var selectingStart: Vector2f? = null
@@ -198,7 +230,10 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         // if we start dragging from a node, and it isn't yet in focus,
         // quickly solve that by making bringing it into focus
-        if (children.none { it.isInFocus && it.contains(x, y) }) {
+        mapMouseDown(x, y)
+        if (!isDownOnScrollbarX && !isDownOnScrollbarY &&
+            children.none { it.isInFocus && it.contains(x, y) }
+        ) {
             val match = children.firstOrNull { it is NodePanel && it.getConnectorAt(x, y) != null }
             if (match != null) {
                 match.requestFocus(true)
@@ -210,7 +245,28 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         } else super.onMouseDown(x, y, button)
     }
 
-    override fun moveMap(): Boolean {
+    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+        if (dragged != null) {
+            val child = getPanelAt(x.toInt(), y.toInt())
+            if (child is NodePanel) child.onMouseUp(x, y, button)
+            dragged = null
+            invalidateDrawing()
+        } else if (selectingStart != null && button.isLeft) {
+            // select all panels within the border :)
+            var first = true
+            for (child in children) {
+                if (child is NodePanel && overlapsSelection(child)) {
+                    child.requestFocus(first)
+                    first = false
+                }
+            }
+            invalidateDrawing()
+            this.selectingStart = null
+        } else super.onMouseUp(x, y, button)
+        mapMouseUp()
+    }
+
+    override fun shallMoveMap(): Boolean {
         return Input.isLeftDown && dragged == null
     }
 
@@ -221,12 +277,8 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
             if (dragged != null) {
                 // if on side, move towards there
                 moveIfOnEdge(x, y)
-            } else {
-                super.onMouseMoved(x, y, dx, dy)
-            }
-        } else {
-            super.onMouseMoved(x, y, dx, dy)
-        }
+            } else super.onMouseMoved(x, y, dx, dy)
+        } else super.onMouseMoved(x, y, dx, dy)
     }
 
     open fun moveIfOnEdge(x: Float, y: Float) {
@@ -252,32 +304,13 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         }
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        if (dragged != null) {
-            val child = getPanelAt(x.toInt(), y.toInt())
-            if (child is NodePanel) child.onMouseUp(x, y, button)
-            dragged = null
-            invalidateDrawing()
-        } else if (selectingStart != null && button.isLeft) {
-            // select all panels within the border :)
-            var first = true
-            for (child in children) {
-                if (child is NodePanel && overlapsSelection(child)) {
-                    child.requestFocus(first)
-                    first = false
-                }
-            }
-            invalidateDrawing()
-            this.selectingStart = null
-        }
-    }
-
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
         drawGrid(x0, y0, x1, y1)
         drawNodeConnections(x0, y0, x1, y1)
         drawChildren(x0, y0, x1, y1)
         drawSelection(x0, y0, x1, y1)
+        drawScrollbars(x0, y0, x1, y1)
     }
 
     open fun drawSelection(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -536,12 +569,6 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         return null
     }
 
-    fun getCursorPosition(center: Vector3d = Vector3d()): Vector3d {
-        val window = window
-        if (window != null) getCursorPosition(window.mouseX, window.mouseY, center)
-        return center
-    }
-
     fun getCursorPosition(x: Float, y: Float, center: Vector3d = Vector3d()): Vector3d {
         center.set(0.0)
         center.x = windowToCoordsX(x.toDouble())
@@ -628,26 +655,50 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
     }
 
     open fun getTypeColor(con: NodeConnector): Int {
-        return when (con.type) {
-            "Int", "Long" -> 0x1cdeaa // greenish
-            "Float", "Double" -> 0x9cf841 // yellow-greenish
-            "Flow" -> 0xffffff // white
-            "Bool", "Boolean" -> 0xa90505 // red
-            "Vector2f", "Vector3f", "Vector4f",
-            "Vector2d", "Vector3d", "Vector4d" -> 0xf8c522 // like in UE4, yellow
-            "Quaternion4f", "Quaternion4d" -> 0x707fb0 // like in UE4, light blueish
-            "Transform", "Matrix4x3f", "Matrix4x3d" -> 0xfc7100 // orange
-            "String" -> 0xdf199a // pink
-            "Texture" -> 0xebe496 // soft yellow
-            "?" -> 0x819ef3 // light blueish
-            else -> 0x00a7f2 // object
-        } or black
+        return typeColors.getOrDefault(con.type, blue) or black
     }
 
     override val canDrawOverBorders get() = true
     override val className get() = "GraphEditor"
 
+    @Suppress("MayBeConstant")
     companion object {
+
+        val greenish = 0x1cdeaa
+        val yellowGreenish = 0x9cf841
+        val red = 0xa90505
+        val yellow = 0xf8c522
+        val blueish = 0x707fb0
+        val orange = 0xfc7100
+        val pink = 0xdf199a
+        val softYellow = 0xebe496
+        val lightBlueish = 0x819ef3
+        val blue = 0x00a7f2
+
+        val typeColors = hashMapOf(
+            "Int" to greenish,
+            "Long" to greenish,
+            "Float" to yellowGreenish,
+            "Double" to yellowGreenish,
+            "Flow" to white,
+            "Bool" to red,
+            "Boolean" to red,
+            "Vector2f" to yellow,
+            "Vector3f" to yellow,
+            "Vector4f" to yellow,
+            "Vector2d" to yellow,
+            "Vector3d" to yellow,
+            "Vector4d" to yellow,
+            "Quaternion4f" to blueish,
+            "Quaternion4d" to blueish,
+            "Transform" to orange,
+            "Matrix4x3f" to orange,
+            "Matrix4x3d" to orange,
+            "String" to pink,
+            "Texture" to softYellow,
+            "?" to lightBlueish,
+        )
+
         @JvmStatic
         fun main(args: Array<String>) {
             ECSRegistry.init()
@@ -657,14 +708,17 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
             val ge = GraphEditor(g, DefaultConfig.style)
             testUI(
                 listOf(
-                    // performance test for generating lots of text
-                      SpyPanel {
-                          ge.scale *= 1.02
-                          if (ge.scale > 10.0) {
-                              ge.scale = 1.0
-                          }
-                          ge.invalidateLayout()
-                      }, ge
+                    SpyPanel {
+                        // performance test for generating lots of text
+                        val testTextPerformance = false
+                        if (testTextPerformance) {
+                            ge.scale *= 1.02
+                            if (ge.scale > 10.0) {
+                                ge.scale = 1.0
+                            }
+                            ge.invalidateLayout()
+                        } else ge.invalidateDrawing() // for testing normal performance
+                    }, ge
                 )
             )
         }

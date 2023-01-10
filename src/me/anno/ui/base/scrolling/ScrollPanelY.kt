@@ -1,5 +1,6 @@
 package me.anno.ui.base.scrolling
 
+import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
@@ -57,6 +58,12 @@ open class ScrollPanelY(
     val interactionWidth = scrollbarWidth + 2 * interactionPadding
 
     val hasScrollbar get() = maxScrollPositionY > 0
+
+    override val childSizeY: Long
+        get() {
+            val child = child
+            return if (child is LongScrollable) child.sizeY else child.minH.toLong()
+        }
 
     override val maxScrollPositionY: Long
         get() {
@@ -159,13 +166,9 @@ open class ScrollPanelY(
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (isDownOnScrollbar) {
-            if (dy != 0f) {
-                scrollbar.onMouseMoved(x, y, 0f, dy)
-                clampScrollPosition()
-                invalidateLayout()
-            }
-            // y was consumed
+        if (isDownOnScrollbar && Input.isLeftDown) {
+            scrollY(dy / relativeSizeY)
+            // dy was consumed
             if (dx != 0f) super.onMouseMoved(x, y, dx, 0f)
         } else super.onMouseMoved(x, y, dx, dy)
     }

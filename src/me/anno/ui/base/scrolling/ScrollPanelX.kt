@@ -1,5 +1,6 @@
 package me.anno.ui.base.scrolling
 
+import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
@@ -52,6 +53,12 @@ open class ScrollPanelX(
 
     val hasScrollbar get() = maxScrollPositionX > 0f
 
+    override val childSizeX: Long
+        get() {
+            val child = child
+            return if (child is LongScrollable) child.sizeX else child.minW.toLong()
+        }
+
     override fun onUpdate() {
         super.onUpdate()
         val window = window!!
@@ -74,8 +81,8 @@ open class ScrollPanelX(
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         val sbHeight = interactionHeight + 2 * scrollbarPadding
         return hasScrollbar && ScrollPanelXY.drawsOverX(
-            this.lx0, this.ly0, this.lx1, this.ly1, sbHeight,
-            lx0, ly0, lx1, ly1
+            this.lx0, this.ly0, this.lx1, this.ly1,
+            sbHeight, lx0, ly0, lx1, ly1
         )
     }
 
@@ -150,12 +157,8 @@ open class ScrollPanelX(
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (isDownOnScrollbar) {
-            if (dx != 0f) {
-                scrollbar.onMouseMoved(x, y, dx, 0f)
-                clampScrollPosition()
-                invalidateLayout()
-            }
+        if (isDownOnScrollbar && Input.isLeftDown) {
+            scrollX(dx / relativeSizeX)
             // dx was consumed
             if (dy != 0f) super.onMouseMoved(x, y, 0f, dy)
         } else super.onMouseMoved(x, y, dx, dy)

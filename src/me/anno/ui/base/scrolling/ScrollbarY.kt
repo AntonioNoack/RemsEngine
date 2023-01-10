@@ -24,7 +24,7 @@ open class ScrollbarY(val scrollable: ScrollableY, style: Style) : Scrollbar(sty
         super.onDraw(x0, y0, x1, y1)
 
         val relativePosition = scrollable.scrollPositionY / scrollable.maxScrollPositionY
-        val barHeight = max(minSize.toDouble(), relativeSize * h)
+        val barHeight = max(minSize.toDouble(), scrollable.relativeSizeY * h)
         val barY = y + relativePosition * (h - barHeight)
 
         val color = mulAlpha(scrollColor, scrollColorAlpha + activeAlpha * alpha)
@@ -32,16 +32,9 @@ open class ScrollbarY(val scrollable: ScrollableY, style: Style) : Scrollbar(sty
 
     }
 
-    val relativeSize
-        get(): Double {
-            val child = scrollable.child
-            val minW = if (child is LongScrollable) child.sizeY else child.minH.toLong()
-            return scrollable.h.toDouble() / minW
-        }
-
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (Input.isLeftDown) {
-            scrollable.scrollPositionY += dy / relativeSize
+            scrollable.scrollY(dy / scrollable.relativeSizeY)
         }// else super.onMouseMoved(x, y, dx, dy)
     }
 

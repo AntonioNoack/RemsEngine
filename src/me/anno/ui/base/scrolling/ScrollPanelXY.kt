@@ -81,6 +81,18 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     private val hasScrollbarX get() = maxScrollPositionX > 0
     private val hasScrollbarY get() = maxScrollPositionY > 0
 
+    override val childSizeX: Long
+        get() {
+            val child = child
+            return if (child is LongScrollable) child.sizeX else child.minW.toLong()
+        }
+
+    override val childSizeY: Long
+        get() {
+            val child = child
+            return if (child is LongScrollable) child.sizeY else child.minH.toLong()
+        }
+
     override fun scrollX(delta: Double) {
         scrollPositionX += delta
         clampScrollPosition()
@@ -222,16 +234,12 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         var rx = dx
         var ry = dy
         if (isDownOnScrollbarX && rx != 0f) {
-            scrollbarX.onMouseMoved(x, y, rx, 0f)
-            clampScrollPosition()
-            invalidateLayout()
+            scrollX(rx / relativeSizeX)
             // consume rx
             rx = 0f
         }
         if (isDownOnScrollbarY && ry != 0f) {
-            scrollbarY.onMouseMoved(x, y, 0f, ry)
-            clampScrollPosition()
-            invalidateLayout()
+            scrollY(ry / relativeSizeY)
             // consume ry
             ry = 0f
         }
