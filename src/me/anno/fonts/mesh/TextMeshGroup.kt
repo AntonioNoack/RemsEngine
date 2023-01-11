@@ -1,17 +1,17 @@
 package me.anno.fonts.mesh
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.fonts.AWTFont
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.StaticBuffer
-import java.awt.Font
 import kotlin.math.min
 
 /**
  * custom character-character alignment maps by font for faster calculation
  * */
 class TextMeshGroup(
-    font: Font,
+    font: AWTFont,
     text: CharSequence,
     charSpacing: Float,
     forceVariableBuffer: Boolean,

@@ -1,6 +1,7 @@
 package me.anno.fonts.signeddistfields
 
 import me.anno.cache.CacheData
+import me.anno.fonts.AWTFont
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.GFX.isFinalRendering
@@ -8,13 +9,12 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.ImageGPUCache
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.MissingFrameException
-import java.awt.Font
 
 /**
  * custom character-character alignment maps by font for faster calculation
  * */
 @Suppress("unused") // used in Rem's Studio, and still useful
-class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Float) :
+class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
     TextGroup(font, text, charSpacing.toDouble()) {
 
     // are draw-calls always expensive??

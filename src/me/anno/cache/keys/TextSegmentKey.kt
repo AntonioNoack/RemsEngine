@@ -1,10 +1,10 @@
 package me.anno.cache.keys
 
-import java.awt.Font
+import me.anno.fonts.AWTFont
 
 @Suppress("unused")
 data class TextSegmentKey(
-    val font: Font,
+    val font: AWTFont,
     val isBold: Boolean, val isItalic: Boolean,
     val text: CharSequence, val charSpacing: Float
 ) {
@@ -33,8 +33,9 @@ data class TextSegmentKey(
         if (other !is TextSegmentKey) return false
 
         if (hashCode != other.hashCode) return false
-        if (font.name != other.font.name) return false
-        if (font.size != other.font.size) return false
+        val font2 = other.font
+        if (font.name != font2.name) return false
+        if (font.size != font2.size) return false
         if (isBold != other.isBold) return false
         if (isItalic != other.isItalic) return false
         if (text != other.text) return false

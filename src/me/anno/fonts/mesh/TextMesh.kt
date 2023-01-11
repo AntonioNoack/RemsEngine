@@ -1,5 +1,6 @@
 package me.anno.fonts.mesh
 
+import me.anno.fonts.AWTFont
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
@@ -12,7 +13,6 @@ import me.anno.utils.types.Vectors.avg
 import me.anno.utils.types.Vectors.minus
 import org.joml.Vector2f
 import java.awt.Color
-import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
@@ -26,7 +26,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 class TextMesh(
-    val font: Font,
+    val font: AWTFont,
     val text: String,
     debugPieces: Boolean = false
 ) : TextRepBase() {
@@ -50,7 +50,7 @@ class TextMesh(
         val ctx = FontRenderContext(null, true, true)
 
         val shape = GeneralPath()
-        val layout = TextLayout(text, font, ctx)
+        val layout = TextLayout(text, font.font, ctx)
 
         val outline = layout.getOutline(null)
         shape.append(outline, true)

@@ -10,14 +10,13 @@ import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths
-import me.anno.utils.LOGGER
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import kotlin.math.*
@@ -145,9 +144,9 @@ object MovingGrid {
         factor: Int
     ) {
         val size = baseSize * factor
-        val mesh = texts2.getOrPut(size) {
+        val mesh = cachedMeshes.getOrPut(size) {
             val text = "$factor${getSuffix(baseSize)}" // format size
-            val font = FontManager.getFont(defaultFont).font
+            val font = FontManager.getFont(defaultFont)
             val meshGroup = TextMeshGroup(font, text, 0f, false, debugPieces = false)
             meshGroup.createMesh()
         }
@@ -187,8 +186,7 @@ object MovingGrid {
         }
     }
 
-    val texts = HashMap<Double, TextMeshGroup>()
-    val texts2 = HashMap<Double, Mesh>()
+    private val cachedMeshes = HashMap<Double, Mesh>()
 
     private fun drawAxes(scale: Double) {
         val length = 1e3 * scale

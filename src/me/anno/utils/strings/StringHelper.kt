@@ -20,18 +20,23 @@ object StringHelper {
     }
 
     @JvmStatic
+    @Suppress("unused")
     fun String.indexOf2(query: String, index: Int = 0): Int {
         val i = indexOf(query, index)
         return if (i < 0) length else i
     }
 
-    private const val smallCapsMagic = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ"
+    // todo S looks off -> probably incorrect (check out Courier New in Rem's Studio)
+    private const val smallCapsMagic = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
+
     @JvmStatic
     private val smallCapsMagicMin = smallCapsMagic.minOrNull()!!
+
     @JvmStatic
     private val smallCapsMagicMax = smallCapsMagic.maxOrNull()!!
 
     @JvmStatic
+    @Suppress("unused")
     fun Char.smallCaps(): Char {
         return if (this in 'a'..'z') smallCapsMagic[this.code - 'a'.code] else this
     }
@@ -55,6 +60,7 @@ object StringHelper {
      * removes/undo-s smallCaps()
      * */
     @JvmStatic
+    @Suppress("unused")
     fun String.normalCaps(): String {
         val result = StringBuffer(length)
         for (c in this) result.append(c.normalCaps())
@@ -92,6 +98,7 @@ object StringHelper {
         splitCamelCase(true)
 
     @JvmStatic
+    @Suppress("unused")
     fun String.upperSnakeCaseToTitle() =
         lowercase().split('_').joinToString(" ") { it.titlecase() }
 
@@ -123,6 +130,7 @@ object StringHelper {
     }
 
     @JvmStatic
+    @Suppress("unused")
     fun String.levenshtein(other: String, ignoreCase: Boolean) =
         distance(other, ignoreCase)
 

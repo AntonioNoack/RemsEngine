@@ -272,7 +272,7 @@ object DrawTexts {
 
         } else {
 
-            val font2 = FontManager.getFont(font).font
+            val font2 = FontManager.getFont(font)
             val group = TextGroup(font2, text, 0.0)
 
             val textWidth = group.offsets.last().toFloat()

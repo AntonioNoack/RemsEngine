@@ -6,7 +6,6 @@ import me.anno.fonts.mesh.TextRepBase
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.structures.arrays.DoubleArrays.accumulate
-import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 
@@ -14,7 +13,7 @@ import java.awt.font.TextLayout
  * custom character-character alignment maps by font for faster calculation
  * */
 open class TextGroup(
-    val font: Font,
+    val font: AWTFont,
     val text: CharSequence,
     charSpacing: Double
 ) : TextRepBase() {
@@ -42,7 +41,7 @@ open class TextGroup(
         offsets[codepoints.size] = getOffset(ctx, codepoints.last(), 32)
         offsets.accumulate()
 
-        val layout = TextLayout(".", font, ctx)
+        val layout = TextLayout(".", font.font, ctx)
         baseScale = TextMesh.DEFAULT_LINE_HEIGHT.toDouble() / (layout.ascent + layout.descent)
         minX = 0f
         maxX = 0f

@@ -1,14 +1,14 @@
 package me.anno.fonts.mesh
 
+import me.anno.fonts.AWTFont
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.maths.Maths
 import me.anno.utils.structures.maps.KeyPairMap
-import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 
 class AlignmentGroup(
-    val font: Font,
+    val font: AWTFont,
     val charDistance: KeyPairMap<Int, Int, Double>, // |a| = |ab| - |b|
     val charSize: HashMap<Int, Double>,// |a|
     val buffers: HashMap<Int, StaticBuffer> // triangles of a
@@ -27,11 +27,11 @@ class AlignmentGroup(
                 val spacesLength = str.count { it == ' ' } * Maths.clamp(
                     getLength("x"),
                     1.0,
-                    font.size.toDouble()
+                    font.font.size.toDouble()
                 ) * 0.667
                 return lengthWithoutSpaces + spacesLength
             }
-            val bounds = TextLayout(str, font, ctx).bounds
+            val bounds = TextLayout(str, font.font, ctx).bounds
             // println("[TextLayout, '$str', ${font.size2D}, ${font.size}, ${font.name}] ${bounds.minX} .. ${bounds.maxX}")
             return bounds.maxX// - bounds.minX
         }
@@ -56,8 +56,8 @@ class AlignmentGroup(
     }
 
     companion object {
-        private val alignments = HashMap<Font, AlignmentGroup>()
-        fun getAlignments(font: Font): AlignmentGroup {
+        private val alignments = HashMap<AWTFont, AlignmentGroup>()
+        fun getAlignments(font: AWTFont): AlignmentGroup {
             var alignment = alignments[font]
             if (alignment != null) return alignment
             alignment = AlignmentGroup(font, KeyPairMap(), HashMap(), HashMap())

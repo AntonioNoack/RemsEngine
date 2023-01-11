@@ -26,6 +26,10 @@ import kotlin.streams.toList
 
 class AWTFont(val font: Font) {
 
+    val name: String get() = font.name
+    val size get() = font.size
+    val style get() = font.style
+
     private val fontMetrics = if (OS.isWeb) {
         WebFonts.getFontMetrics(font)
     } else {
@@ -43,11 +47,9 @@ class AWTFont(val font: Font) {
         return false
     }
 
-    private fun CharSequence.countLines() = count { it == '\n' } + 1
-
     private fun getStringWidth(group: TextGroup) = group.offsets.last() - group.offsets.first()
 
-    private fun getGroup(text: CharSequence) = TextGroup(font, text, 0.0)
+    private fun getGroup(text: CharSequence) = TextGroup(this, text, 0.0)
 
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,
@@ -215,7 +217,7 @@ class AWTFont(val font: Font) {
         FontRenderContext(null, true, true)
     }
 
-    private val exampleLayout by lazy {
+    val exampleLayout by lazy {
         TextLayout("o", font, renderContext)
     }
 

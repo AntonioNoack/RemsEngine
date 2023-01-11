@@ -90,7 +90,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
     var textGroup: TextGroup? = null
     fun getTextGroup(text: String): TextGroup {
-        val font2 = FontManager.getFont(font).font
+        val font2 = FontManager.getFont(font)
         val group1 = textGroup
         if (group1 != null && group1.text == text && group1.font == font2)
             return group1

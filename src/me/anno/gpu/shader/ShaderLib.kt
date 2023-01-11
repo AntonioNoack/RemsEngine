@@ -761,7 +761,6 @@ object ShaderLib {
                 "   vec4 color = tint;\n" +
                 "   for(int i=0;i<colorCount;i++){" +
                 "       vec4 colorHere = colors[i];\n" +
-                "       if(i > 0) colorHere.a *= alphaByGradient;\n" +
                 "       vec2 distSmooth = distSmoothness[i];\n" +
                 "       float offset = distSmooth.x;\n" +
                 "       float smoothness = distSmooth.y;\n" +

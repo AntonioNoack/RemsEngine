@@ -1,5 +1,5 @@
 package me.anno.fonts.signeddistfields
 
-import java.awt.Font
+import me.anno.fonts.AWTFont
 
-data class SDFStringKey(val font: Font, val text: CharSequence, val roundCorners: Boolean)
+data class SDFStringKey(val font: AWTFont, val text: CharSequence, val roundCorners: Boolean)

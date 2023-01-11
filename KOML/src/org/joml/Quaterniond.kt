@@ -1852,7 +1852,7 @@ open class Quaterniond {
         val halfAngle = angle * 0.5
         val s = sin(halfAngle)
         val c = cos(halfAngle)
-        dst.set(c * x + s * w, c * y - s * z, c * z + s * y,c * w - s * x)
+        dst.set(c * x + s * w, c * y - s * z, c * z + s * y, c * w - s * x)
         return dst
     }
 
@@ -1891,10 +1891,10 @@ open class Quaterniond {
         val y = cx * sycz - sx * cysz
         val z = cx * cysz + sx * sycz
         return dst.set(
-            JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
-            JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
-            JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
-            JomlMath.fma(this.w, w, JomlMath.fma(-this.x, x, JomlMath.fma(-this.y, y, -this.z * z)))
+            this.w * x + this.x * w + this.y * z - this.z * y,
+            this.w * y - this.x * z + this.y * w + this.z * x,
+            this.w * z + this.x * y - this.y * x + this.z * w,
+            this.w * w - this.x * x - this.y * y - this.z * z
         )
     }
 
@@ -1915,10 +1915,10 @@ open class Quaterniond {
         val y = cx * sycz + sx * cysz
         val z = cx * cysz - sx * sycz
         return dst.set(
-            JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
-            JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
-            JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
-            JomlMath.fma(this.w, w, JomlMath.fma(-this.x, x, JomlMath.fma(-this.y, y, -this.z * z)))
+            this.w * x + this.x * w + this.y * z - this.z * y,
+            this.w * y - this.x * z + this.y * w + this.z * x,
+            this.w * z + this.x * y - this.y * x + this.z * w,
+            this.w * w - this.x * x - this.y * y - this.z * z
         )
     }
 
@@ -1939,10 +1939,10 @@ open class Quaterniond {
         val z = yw * sz - yz * cz
         val w = yw * cz + yz * sz
         return dst.set(
-            JomlMath.fma(this.w, x, JomlMath.fma(this.x, w, JomlMath.fma(this.y, z, -this.z * y))),
-            JomlMath.fma(this.w, y, JomlMath.fma(-this.x, z, JomlMath.fma(this.y, w, this.z * x))),
-            JomlMath.fma(this.w, z, JomlMath.fma(this.x, y, JomlMath.fma(-this.y, x, this.z * w))),
-            JomlMath.fma(this.w, w, JomlMath.fma(-this.x, x, JomlMath.fma(-this.y, y, -this.z * z)))
+            this.w * x + this.x * w + this.y * z - this.z * y,
+            this.w * y - this.x * z + this.y * w + this.z * x,
+            this.w * z + this.x * y - this.y * x + this.z * w,
+            this.w * w - this.x * x - this.y * y - this.z * z
         )
     }
 
