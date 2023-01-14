@@ -361,9 +361,7 @@ class AnimGameItem(
             Maths.clamp(min(maxBonesByComponents, maxBonesByUniforms), 4, 128)
         }
 
-        @JvmField
         val matrixBuffer: FloatBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
-        @JvmField
         val tmpMatrices = Array(maxBones) { Matrix4x3f() }
 
         @JvmStatic

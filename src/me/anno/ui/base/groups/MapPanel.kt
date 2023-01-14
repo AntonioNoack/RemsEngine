@@ -1,9 +1,13 @@
 package me.anno.ui.base.groups
 
+import me.anno.Engine.deltaTime
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
+import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.mix
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawsOverX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawsOverY
 import me.anno.ui.base.scrolling.ScrollableX
@@ -12,6 +16,9 @@ import me.anno.ui.base.scrolling.ScrollbarX
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
 import org.joml.Vector2d
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 
 /** basis for simple 2d map controls with zoom-in/out and drag to move */
 abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, ScrollableY {
@@ -19,7 +26,10 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     val target = Vector2d()
     val center = Vector2d()
 
+    var targetScale = 1.0
     open var scale = 1.0
+
+    val isZooming get() = targetScale != scale
 
     val centerX get() = x + w / 2
     val centerY get() = y + h / 2
@@ -74,6 +84,16 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         moveMap(0.0, -delta)
     }
 
+    override fun onUpdate() {
+        if (abs(1.0 - targetScale / scale) > 0.01) {
+            scale = mix(scale, targetScale, dtTo01(5.0 * deltaTime))
+            invalidateLayout()
+        } else if (scale != targetScale) {
+            scale = targetScale
+            invalidateLayout()
+        } else super.onUpdate()
+    }
+
     abstract fun shallMoveMap(): Boolean
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
@@ -105,7 +125,7 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         val oldX = windowToCoordsX(x.toDouble())
         val oldY = windowToCoordsY(y.toDouble())
         val multiplier = Maths.pow(1.05, dy.toDouble())
-        scale = Maths.clamp(scale * multiplier, minScale, maxScale)
+        targetScale = Maths.clamp(targetScale * multiplier, minScale, maxScale)
         val newX = windowToCoordsX(x.toDouble())
         val newY = windowToCoordsY(y.toDouble())
         // zoom in on the mouse pointer
@@ -119,6 +139,27 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         val yi = y.toInt()
         isDownOnScrollbarX = hasScrollbarX && drawsOverX(xi, yi)
         isDownOnScrollbarY = hasScrollbarY && drawsOverY(xi, yi)
+    }
+
+    fun draw2DLineGrid(x0: Int, y0: Int, x1: Int, y1: Int, color: Int, gridSize: Double) {
+        val gridX0 = windowToCoordsX(x0.toDouble())
+        val gridX1 = windowToCoordsX(x1.toDouble())
+        val gridY0 = windowToCoordsY(y0.toDouble())
+        val gridY1 = windowToCoordsY(y1.toDouble())
+        val i0 = floor(gridX0 / gridSize).toLong()
+        val i1 = ceil(gridX1 / gridSize).toLong()
+        val j0 = floor(gridY0 / gridSize).toLong()
+        val j1 = ceil(gridY1 / gridSize).toLong()
+        for (i in i0 until i1) {
+            val gridX = i * gridSize
+            val windowX = coordsToWindowX(gridX).toInt()
+            if (windowX in x0 until x1) DrawRectangles.drawRect(windowX, y0, 1, y1 - y0, color)
+        }
+        for (j in j0 until j1) {
+            val gridY = j * gridSize
+            val windowY = coordsToWindowY(gridY).toInt()
+            if (windowY in y0 until y1) DrawRectangles.drawRect(x0, windowY, x1 - x0, 1, color)
+        }
     }
 
     fun layoutScrollbars(x1: Int, y1: Int) {

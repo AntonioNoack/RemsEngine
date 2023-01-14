@@ -49,7 +49,9 @@ fun main() {
 
 }
 
-val file = getReference(OS.videos, "Captures\\cool cops\\Watch_Dogs 2 2019-10-14 15-26-49.mp4")
+val file by lazy {
+    getReference(OS.videos, "Captures\\cool cops\\Watch_Dogs 2 2019-10-14 15-26-49.mp4")
+}
 
 fun testStream() {
     // AudioStreamOpenAL(file, LoopingState.PLAY_LOOP, 0.0, FFMPEGMetadata(file), Camera()).start()

@@ -42,6 +42,9 @@ object Color {
     fun Int.withAlpha(alpha: Float): Int = rgba(r(), g(), b(), (255f * alpha).roundToInt())
     @JvmStatic
     fun Int.mulAlpha(alpha: Float): Int = rgba(r(), g(), b(), (a() * alpha).roundToInt())
+
+    @JvmStatic
+    fun Int.withAlpha(alpha: Int): Int = rgba(r(), g(), b(), alpha)
     @JvmStatic
     fun Int.mulARGB(other: Int): Int =
         rgba((r() * other.r()) / 255, (g() * other.g()) / 255, (b() * other.b()) / 255, (a() * other.a()) / 255)

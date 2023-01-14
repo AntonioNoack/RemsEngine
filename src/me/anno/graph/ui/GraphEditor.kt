@@ -22,6 +22,7 @@ import me.anno.io.SaveableArray
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.distance
+import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mixARGB
@@ -334,29 +335,12 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         // what grid makes sense? power of 2
         // what is a good grid? one stripe every 10-20 px maybe
         val targetStripeDistancePx = 30.0
-        val gridSize = toPowerOf2(targetStripeDistancePx / scale)
-        val gridX0 = windowToCoordsX(x0.toDouble())
-        val gridX1 = windowToCoordsX(x1.toDouble())
-        val gridY0 = windowToCoordsY(y0.toDouble())
-        val gridY1 = windowToCoordsY(y1.toDouble())
-        val i0 = floor(gridX0 / gridSize).toLong()
-        val i1 = ceil(gridX1 / gridSize).toLong()
-        val j0 = floor(gridY0 / gridSize).toLong()
-        val j1 = ceil(gridY1 / gridSize).toLong()
-        for (i in i0 until i1) {
-            val gridX = i * gridSize
-            val windowX = coordsToWindowX(gridX).toInt()
-            if (windowX in x0 until x1) drawRect(windowX, y0, 1, y1 - y0, gridColor)
-        }
-        for (j in j0 until j1) {
-            val gridY = j * gridSize
-            val windowY = coordsToWindowY(gridY).toInt()
-            if (windowY in y0 until y1) drawRect(x0, windowY, x1 - x0, 1, gridColor)
-        }
-    }
-
-    private fun toPowerOf2(x: Double): Double {
-        return pow(2.0, round(log2(x)))
+        val log = log2(targetStripeDistancePx / scale)
+        val fract = fract(log.toFloat())
+        val size = pow(2.0, floor(log))
+        // draw 2 grids, one fading, the other becoming more opaque
+        draw2DLineGrid(x0, y0, x1, y1, gridColor.withAlpha(2f * (1f - fract)), size)
+        draw2DLineGrid(x0, y0, x1, y1, gridColor.withAlpha(2f * (1f + fract)), size * 2.0)
     }
 
     open fun drawNodeConnections(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -716,6 +700,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                             if (ge.scale > 10.0) {
                                 ge.scale = 1.0
                             }
+                            ge.targetScale = ge.scale
                             ge.invalidateLayout()
                         } else ge.invalidateDrawing() // for testing normal performance
                     }, ge

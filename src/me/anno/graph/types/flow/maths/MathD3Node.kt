@@ -56,12 +56,15 @@ class MathD3Node() : ValueNode("FP Math 3", inputs, outputs), EnumNode {
 
     }
 
-    var type: FloatMathsTernary = FloatMathsTernary.ADD
-
     constructor(type: FloatMathsTernary) : this() {
         this.type = type
-        this.name = "Float " + type.name
     }
+
+    var type: FloatMathsTernary = FloatMathsTernary.ADD
+        set(value) {
+            field = value
+            name = "Float " + value.name
+        }
 
     override fun listNodes() = FloatMathsTernary.values.map { MathD3Node(it) }
 

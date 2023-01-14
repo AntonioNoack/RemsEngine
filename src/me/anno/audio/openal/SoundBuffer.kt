@@ -51,6 +51,10 @@ class SoundBuffer() : ICacheData {
         loadWAV(waveData)
     }
 
+    constructor(size: Int) : this() {
+        data = ShortBuffer.allocate(size)
+    }
+
     fun loadRawStereo16(data: ShortBuffer, data0: ByteBuffer, sampleRate: Int) {
         this.data = data
         this.data0 = data0

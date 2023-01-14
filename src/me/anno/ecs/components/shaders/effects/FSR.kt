@@ -78,7 +78,7 @@ object FSR {
                     "   float alpha = texture(source,uv).a;\n" +
                     "   vec2 coords = uv * dstWH;\n" +
                     "   FsrEasuF(color, coords, con0, con1, con2, con3);\n" +
-                    "   glFragColor = vec4(applyToneMapping ? tonemap(color) : color, alpha > .01 ? 1.0 : 0.0);\n" +
+                    "   glFragColor = vec4(applyToneMapping ? tonemap(color) : color, alpha);\n" +
                     "}"
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such

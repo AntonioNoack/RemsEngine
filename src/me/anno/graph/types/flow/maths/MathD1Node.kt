@@ -63,12 +63,15 @@ class MathD1Node() : ValueNode("FP Math 1", inputs, outputs), EnumNode {
 
     }
 
-    var type: FloatMathsUnary = FloatMathsUnary.ABS
-
     constructor(type: FloatMathsUnary) : this() {
         this.type = type
-        this.name = "Float " + type.name
     }
+
+    var type: FloatMathsUnary = FloatMathsUnary.ABS
+        set(value) {
+            field = value
+            name = "Float " + value.name
+        }
 
     override fun listNodes() = FloatMathsUnary.values.map { MathD1Node(it) }
 

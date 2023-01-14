@@ -68,12 +68,15 @@ class MathL2Node() : ValueNode("Integer Math 2", inputs, outputs), EnumNode {
 
     constructor(type: IntMathsBinary) : this() {
         this.type = type
-        this.name = "Int " + type.name
     }
 
     override fun listNodes() = IntMathsBinary.values.map { MathL2Node(it) }
 
     var type: IntMathsBinary = IntMathsBinary.ADD
+        set(value) {
+            field = value
+            name = "Int " + value.name
+        }
 
     override fun createUI(list: PanelList, style: Style) {
         super.createUI(list, style)

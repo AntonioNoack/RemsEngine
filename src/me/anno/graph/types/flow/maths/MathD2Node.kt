@@ -51,12 +51,15 @@ class MathD2Node() : ValueNode("FP Math 2", inputs, outputs), EnumNode {
 
     }
 
-    var type: FloatMathsBinary = FloatMathsBinary.ADD
-
     constructor(type: FloatMathsBinary) : this() {
         this.type = type
-        this.name = "Float " + type.name
     }
+
+    var type: FloatMathsBinary = FloatMathsBinary.ADD
+        set(value) {
+            field = value
+            name = "Float " + value.name
+        }
 
     override fun listNodes() = FloatMathsBinary.values.map { MathD2Node(it) }
 

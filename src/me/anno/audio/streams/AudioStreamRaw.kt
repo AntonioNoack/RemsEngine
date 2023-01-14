@@ -13,6 +13,7 @@ import me.anno.utils.structures.tuples.FloatPair
 import me.anno.utils.structures.tuples.ShortPair
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.getAudioSequence
+import java.nio.ShortBuffer
 import kotlin.math.max
 import kotlin.math.min
 
@@ -37,8 +38,8 @@ class AudioStreamRaw(
         val ffmpegSliceSampleDuration = 30.0 // seconds, 30s of music
 
         inline fun averageSamples(
-            mni: Double, mxi: Double, s0: ShortPair, s1: ShortPair, s2: ShortPair,
-            dst: FloatPair,
+            mni: Double, mxi: Double,
+            s0: ShortPair, s1: ShortPair, s2: ShortPair, dst: FloatPair,
             getMaxAmplitudesSync: (i: Long, s: ShortPair) -> Unit
         ) {
 
@@ -74,22 +75,20 @@ class AudioStreamRaw(
                 // average the values over the time span
                 dst.set(b0 / dt, b1 / dt)
             }
-
         }
-
     }
 
-    val ffmpegSampleRate = meta.audioSampleRate
-    val maxSampleIndex = meta.audioSampleCount
+    val sampleRate = meta.audioSampleRate
+    val sampleCount = meta.audioSampleCount
 
-    val ffmpegSliceSampleCount = (ffmpegSampleRate * ffmpegSliceSampleDuration).toInt()
+    val ffmpegSliceSampleCount = (sampleRate * ffmpegSliceSampleDuration).toInt()
 
     private var lastSliceIndex = Long.MAX_VALUE
     private var lastSoundBuffer: SoundBuffer? = null
 
     fun getAmplitudeSync(index0: Long, shortPair: ShortPair) {
 
-        val maxSampleIndex = maxSampleIndex
+        val maxSampleIndex = sampleCount
         val repeat = repeat
 
         if (index0 < 0 || (repeat === LoopingState.PLAY_ONCE && index0 >= maxSampleIndex)) {
@@ -111,8 +110,8 @@ class AudioStreamRaw(
                 val timeout = (ffmpegSliceSampleDuration * 2 * 1000).toLong()
                 val sliceTime = sliceIndex * ffmpegSliceSampleDuration
                 val soundBuffer = AudioCache.getEntry(key, timeout, false) {
-                    val sequence = getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, ffmpegSampleRate)
-                    waitUntilDefined(true) { sequence.soundBuffer }
+                    val sequence = getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, sampleRate)
+                    waitUntilDefined(true) { if(sequence.isEmpty) SoundBuffer(0) else sequence.soundBuffer }
                 } as SoundBuffer
                 lastSoundBuffer = soundBuffer
                 lastSliceIndex = sliceIndex
@@ -132,11 +131,11 @@ class AudioStreamRaw(
     override fun getBuffer(
         bufferSize: Int,
         time0: Double,
-        time1: Double
+        time1: Double,
     ): Pair<FloatArray, FloatArray> {
 
-        val index0 = ffmpegSampleRate * time0
-        val index1 = ffmpegSampleRate * time1
+        val index0 = sampleRate * time0
+        val index1 = sampleRate * time1
 
         val leftBuffer = FAPool[bufferSize, true, true]
         val rightBuffer = FAPool[bufferSize, true, true]

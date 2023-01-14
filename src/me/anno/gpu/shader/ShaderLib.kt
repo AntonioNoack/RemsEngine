@@ -846,7 +846,7 @@ object ShaderLib {
                 brightness +
                 "void main(){\n" +
                 "#define IS_TINTED\n" + // todo remove
-                "vec3 mixing = texture(tex, uv).rgb * textColor.a;\n" +
+                "   vec3 mixing = texture(tex, uv).rgb * textColor.a;\n" +
                 "   float mixingAlpha = brightness(mixing);\n" +
                 // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
                 "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0)\n" +

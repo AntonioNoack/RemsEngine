@@ -1,9 +1,17 @@
 package me.anno.graph.ui
 
+import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.fonts.FontManager.getBaselineY
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.DrawTexts.drawText
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.gpu.drawing.GFXx2D.drawHalfArrow
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.graph.Node
 import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
@@ -187,7 +195,55 @@ class NodePanel(
         drawBackground(x0, y0, x1, y1)
     }
 
+    private var cachedTexture: Framebuffer? = null
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        // if gp is zooming, take a screenshot of this panel, and redraw it as such (because that's cheaper)
+        // it allows us to render really smooth zooming :)
+        // todo we could use texture for redraw as well, if nothing changed, and just the node is moved
+        if (gp.isZooming) {
+            var cachedTexture = cachedTexture
+            if (cachedTexture == null) {
+                // generate texture
+                cachedTexture = Framebuffer("NodePanel", w, h, TargetType.UByteTarget4, DepthBufferType.NONE)
+                useFrame(cachedTexture, ::doDrawAtZero)
+                this.cachedTexture = cachedTexture
+            } else if (cachedTexture.w * 2 + 3 < w) {// improve resolution
+                useFrame(w, h, true, cachedTexture) {
+                    cachedTexture!!.clearColor(gp.backgroundColor.withAlpha(0), false)
+                    doDrawAtZero()
+                }
+                this.cachedTexture = cachedTexture
+            }
+            // draw texture
+            val texture = cachedTexture.getTexture0()
+            texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+            if (texture.w >= w) {
+                drawTexture(x, y + h, w, -h, texture)
+            } else {
+                FSR.upscale(texture, x, y, w, h, flipY = true, applyToneMapping = false)
+            }
+        } else {
+            cachedTexture?.destroy()
+            cachedTexture = null
+            doDraw(x0, y0, x1, y1)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cachedTexture?.destroy()
+    }
+
+    fun doDrawAtZero() {
+        val ox = x
+        val oy = y
+        setPosition(0, 0)
+        doDraw(0, 0, w, h)
+        setPosition(ox, oy)
+    }
+
+    fun doDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         if (node.color != 0) backgroundColor = node.color
 
@@ -231,7 +287,6 @@ class NodePanel(
         }
 
         drawChildren(x0, y0, x1, y1)
-
     }
 
     fun drawConnector(

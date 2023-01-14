@@ -90,8 +90,10 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                     "tga" -> setImage(file.inputStreamSync().use { TGAImage.findSize(it) })
                     "ico" -> setImage(file.inputStreamSync().use { ICOReader.findSize(it) })
                     // else unknown
+                    else -> LOGGER.debug("$file has unknown extension and signature")
                 }
             }
+            else -> LOGGER.debug("$file's signature wasn't registered in FFMPEGMetadata.kt")
         }
     }
 

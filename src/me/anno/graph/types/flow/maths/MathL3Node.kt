@@ -39,12 +39,15 @@ class MathL3Node() : ValueNode("Integer Math 3", inputs, outputs), EnumNode {
 
     constructor(type: IntMathsTernary) : this() {
         this.type = type
-        this.name = "Int " + type.name
     }
 
     override fun listNodes() = IntMathsTernary.values.map { MathL3Node(it) }
 
     var type: IntMathsTernary = IntMathsTernary.ADD
+        set(value) {
+            field = value
+            name = "Int " + value.name
+        }
 
     override fun createUI(list: PanelList, style: Style) {
         super.createUI(list, style)

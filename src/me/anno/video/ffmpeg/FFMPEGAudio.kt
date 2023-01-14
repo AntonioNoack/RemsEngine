@@ -1,10 +1,11 @@
 package me.anno.video.ffmpeg
 
 import me.anno.Engine
-import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.WaveReader
+import me.anno.audio.openal.SoundBuffer
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
+import java.nio.ShortBuffer
 import kotlin.concurrent.thread
 
 class FFMPEGAudio(file: FileReference?, val sampleRate: Int, val length: Double) :
@@ -22,29 +23,26 @@ class FFMPEGAudio(file: FileReference?, val sampleRate: Int, val length: Double)
                     val line = out.readLine() ?: break
                     parser.parseLine(line, this)
                 }
-            } catch (e: ShutdownException){
+            } catch (e: ShutdownException) {
                 // ...
             }
             out.close()
         }
-        thread(name = "${file?.name}:input-stream") {
-            val input = process.inputStream.buffered()
+        process.inputStream.buffered().use { input ->
             val frameCount = (sampleRate * length).toInt()
             input.mark(3)
             if (input.read() < 0) { // EOF
                 isEmpty = true
-                return@thread
+                return//@thread
             }
             input.reset()
+            val buffer = SoundBuffer()
             try {
                 val wav = WaveReader.readWAV(input, frameCount)
-                val buffer = SoundBuffer()
                 buffer.loadRawStereo16(wav.second, wav.first, sampleRate)
                 soundBuffer = buffer
-            } catch (e: ShutdownException){
-                // ...
+            } catch (ignored: ShutdownException) {
             }
-            input.close()
         }
     }
 

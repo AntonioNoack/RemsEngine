@@ -238,6 +238,8 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             Signature("media", 0, 0x00, 0x00, 0x01, 0xB3),// mpg, mpeg
             Signature("media", 4, "ftypisom"), // mp4
             Signature("media", 4, "ftypmp42"), // mp4
+            Signature("media", 4, "ftypdash"), // m4a
+            Signature("media", 4, "ftyp"), // probably media... (I am unsure)
             Signature("media", 0, 0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11), // wmv, wma, asf (Windows Media file)
             // meshes
             Signature("vox", 0, "VOX "),
