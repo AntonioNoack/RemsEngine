@@ -7,12 +7,8 @@ import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
 import me.anno.gpu.drawing.DrawRectangles.drawBorder
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
-import me.anno.graph.Graph
-import me.anno.graph.Node
-import me.anno.graph.NodeConnector
-import me.anno.graph.NodeInput
+import me.anno.graph.*
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.ui.NodePositionOptimization.calculateNodePositions
@@ -247,10 +243,12 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+        val dragged = dragged
         if (dragged != null) {
             val child = getPanelAt(x.toInt(), y.toInt())
             if (child is NodePanel) child.onMouseUp(x, y, button)
-            dragged = null
+            else getNodePanel(dragged.node!!).onMouseUp(x, y, button)
+            this.dragged = null
             invalidateDrawing()
         } else if (selectingStart != null && button.isLeft) {
             // select all panels within the border :)
@@ -380,7 +378,13 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
             val mx = ws.mouseX
             val my = ws.mouseY
             // if hovers over a socket, use its color as end color
-            val endSocket = children.firstNotNullOfOrNull { if (it is NodePanel) it.getConnectorAt(mx, my) else null }
+            val endSocket = children.firstNotNullOfOrNull {
+                if (it is NodePanel) {
+                    val con = it.getConnectorAt(mx, my)
+                    if (con != null && dragged.canConnectTo(con)) con
+                    else null
+                } else null
+            }
             val endColor = if (endSocket == null) startColor else getTypeColor(endSocket)
             val node = dragged.node
             val type = dragged.type

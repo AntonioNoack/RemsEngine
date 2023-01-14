@@ -305,11 +305,12 @@ class NodePanel(
         val pxi = px.toInt()
         val pyi = py.toInt()
         val radius = baseTextSize * 0.4f
-        val radius2 = mapClamped(
+        val canConnect = gp.dragged?.canConnectTo(con) ?: true
+        val radius2 = if (canConnect) mapClamped(
             length(px - mouseX, py - mouseY),
             0.9f * radius, 1.3f * radius,
             radius * 1.2f, radius
-        )
+        ) else radius
         val innerRadius = if (con.others.isEmpty()) min(0.8f, (radius - 2f) / radius) else 0f
         val bg = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
         if (con.type == "Flow") {
@@ -369,22 +370,11 @@ class NodePanel(
         return bestCon
     }
 
-    /*override fun getCursor(): Long? {
-        val window = window ?: return null
-        return when {
-            getConnectorAt(window.mouseX, window.mouseY) != null -> Cursor.hand
-            // todo move-cursor
-            isOpaqueAt(window.mouseXi, window.mouseYi) -> null // if (isInFocus) Cursor.vResize else null
-            else -> null
-        }
-    }*/
-
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         val con = getConnectorAt(x, y)
         isDragged = false
         when {
             button.isLeft && con != null -> {
-                println("set dragged to ${con.name}")
                 gp.dragged = con
                 gp.invalidateDrawing()
                 gp.requestFocus(true)
@@ -427,10 +417,14 @@ class NodePanel(
         val con0 = gp.dragged
         val con1 = (gp.getPanelAt(x.toInt(), y.toInt()) as? NodePanel)?.getConnectorAt(x, y)
         val window = window
+        val node = con0?.node
         // todo forbid connections, that would create infinite calculation loops
         when {
             con0 != null && con1 != null && con0 !== con1 &&
-                    con0::class != con1::class -> {
+                    con0::class != con1::class &&
+                    (node == null || // only connect if types are compatible
+                            if (con0 is NodeInput) node.canConnectTypeToOtherType(con0.type, con1.type)
+                            else node.canConnectTypeToOtherType(con1.type, con0.type)) -> {
                 // also only connect, if not already connected
                 if (con1 in con0) {
                     con0.disconnect(con1)
@@ -438,9 +432,12 @@ class NodePanel(
                     connect(con0, con1)
                 }
             }
-            con0 != null && con1 != null && con0 !== con1 /* && con0.node == con1.node */ -> {
+            con0 != null && con1 != null && con0 !== con1 /* && con0.node == con1.node */
+                    // only switch connections if types are compatible
+                    && (node == null || (
+                    node.canConnectTypeToOtherType(con0.type, con1.type) &&
+                            node.canConnectTypeToOtherType(con1.type, con0.type))) -> {
                 // switch connections on these two nodes
-                // todo only if types are compatible
                 for (oi in con0.others) {
                     oi.others = oi.others.map { if (it == con0) con1 else it }
                 }
@@ -474,7 +471,7 @@ class NodePanel(
     }
 
     fun connect(con0: NodeConnector, con1: NodeConnector) {
-        // todo only connect, if types are compatible (flow only to flow)
+        if (!con0.canConnectTo(con1)) return
         val input = if (con0 is NodeInput) con0 else con1
         val output = if (con0 === input) con1 else con0
         // only connect, if connection is supported, otherwise replace

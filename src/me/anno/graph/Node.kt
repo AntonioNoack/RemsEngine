@@ -56,6 +56,10 @@ abstract class Node() : PrefabSaveable() {
     open fun supportsMultipleInputs(con: NodeConnector) = false
     open fun supportsMultipleOutputs(con: NodeConnector) = false
 
+    open fun canConnectTypeToOtherType(srcType: String, dstType: String): Boolean {
+        return ((srcType == "Flow") == (dstType == "Flow"))
+    }
+
     fun setOutput(value: Any?, index: Int) {
         val node = outputs!![index]
         node.value = value

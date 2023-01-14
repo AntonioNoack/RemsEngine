@@ -43,6 +43,16 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
     var node: Node? = null
     var others: List<NodeConnector> = emptyList()
 
+    fun canConnectTo(other: NodeConnector): Boolean {
+        if (javaClass == other.javaClass) return false
+        val node = node ?: return true
+        return if (this is NodeInput) {
+            node.canConnectTypeToOtherType(type, other.type)
+        } else {
+            node.canConnectTypeToOtherType(other.type, type)
+        }
+    }
+
     fun isEmpty() = others.isEmpty()
 
     fun connect(other: NodeConnector) {
