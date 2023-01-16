@@ -169,8 +169,6 @@ class Mesh : PrefabSaveable(), Renderable {
 
     val hasBones get() = boneWeights != null && boneIndices != null
 
-    // todo find lines, and display them
-    // triangle (a,b,c), where (a==b||b==c||c==a) && (a!=b||b!=c||c!=a)
     @HideInInspector
     @NotSerializedProperty
     var debugLineIndices: IntArray? = null
@@ -179,7 +177,6 @@ class Mesh : PrefabSaveable(), Renderable {
     @NotSerializedProperty
     var lineIndices: IntArray? = null
 
-    // todo sort them by material/shader, and create multiple buffers (or sub-buffers) for them
     @HideInInspector
     var indices: IntArray? = null
 
@@ -320,7 +317,7 @@ class Mesh : PrefabSaveable(), Renderable {
             LOGGER.debug("Generated indices for mesh")
         }
         normals = FloatArray(positions.size)
-        NormalCalculator.checkNormals(positions, normals!!, indices, drawMode)
+        NormalCalculator.checkNormals(this, positions, normals!!, indices, drawMode)
     }
 
     /**
@@ -407,7 +404,6 @@ class Mesh : PrefabSaveable(), Renderable {
     }
 
     fun forEachTriangleIndex(callback: (a: Int, b: Int, c: Int) -> Unit) {
-        // todo support gl_triangle_strip
         val positions = positions ?: return
         val indices = indices
         if (indices == null) {
@@ -427,11 +423,29 @@ class Mesh : PrefabSaveable(), Renderable {
             }
 
         } else {
-            for (i in indices.indices step 3) {
-                val a = indices[i + 0]
-                val b = indices[i + 1]
-                val c = indices[i + 2]
-                callback(a, b, c)
+            if (indices.size < 3) return
+            when (drawMode) {
+                GL_TRIANGLES -> {
+                    for (i in indices.indices step 3) {
+                        callback(indices[i], indices[i + 1], indices[i + 2])
+                    }
+                }
+                GL_TRIANGLE_STRIP -> {
+                    var a = indices[0]
+                    var b = indices[1]
+                    for (i in 2 until indices.size) {
+                        val c = indices[i]
+                        if (a != b && b != c && c != a) {
+                            if (i.hasFlag(1)) {
+                                callback(a, c, b)
+                            } else {
+                                callback(a, b, c)
+                            }
+                        }
+                        a = b
+                        b = c
+                    }
+                }
             }
         }
     }
@@ -678,15 +692,9 @@ class Mesh : PrefabSaveable(), Renderable {
         val hasUVs = uvs != null && uvs.isNotEmpty()
         this.hasUVs = hasUVs
 
-        NormalCalculator.checkNormals(positions, normals, indices, drawMode)
-        if (hasUVs && checkTangents) TangentCalculator.checkTangents(
-            positions,
-            normals,
-            tangents,
-            uvs,
-            indices,
-            drawMode
-        )
+        NormalCalculator.checkNormals(this, positions, normals, indices, drawMode)
+        if (hasUVs && checkTangents)
+            TangentCalculator.checkTangents(this, positions, normals, tangents, uvs)
 
     }
 

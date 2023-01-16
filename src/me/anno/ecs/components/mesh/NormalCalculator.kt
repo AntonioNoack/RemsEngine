@@ -56,7 +56,7 @@ object NormalCalculator {
         // b-c: Shape.tetrahedron.front, mesh from nav mesh
     }
 
-    private fun computeNormalsIndexed(positions: FloatArray, normals: FloatArray, indices: IntArray) {
+    private fun computeNormalsIndexed(mesh: Mesh, positions: FloatArray, normals: FloatArray, indices: IntArray) {
         val a = JomlPools.vec3f.create()
         val b = JomlPools.vec3f.create()
         val c = JomlPools.vec3f.create()
@@ -73,10 +73,7 @@ object NormalCalculator {
                 normals[i + 2] = 0f
             }
         }
-        for (i in indices.indices step 3) {
-            val i0 = indices[i + 0]
-            val i1 = indices[i + 1]
-            val i2 = indices[i + 2]
+        mesh.forEachTriangleIndex { i0, i1, i2 ->
             if (weights[i0] >= 0 || weights[i1] >= 0 || weights[i2] >= 0) {
                 // we need this point
                 val normal = calculateFlatNormal(positions, i0 * 3, i1 * 3, i2 * 3, a, b, c)
@@ -111,7 +108,7 @@ object NormalCalculator {
         val c = JomlPools.vec3f.create()
         // just go through the vertices;
         // mode to calculate smooth shading by clustering points?
-        for (i in positions.indices step 9) {
+        for (i in 0 until positions.size - 8 step 9) {
             // check whether the normal update is needed
             val needsUpdate = normalIsInvalid(normals, i) ||
                     normalIsInvalid(normals, i + 3) ||
@@ -129,15 +126,31 @@ object NormalCalculator {
         JomlPools.vec3f.sub(3)
     }
 
-    fun checkNormals(positions: FloatArray, normals: FloatArray, indices: IntArray?, drawMode: Int) {
+    private fun computeNormalsNonIndexedStrip(positions: FloatArray, normals: FloatArray) {
+        // todo normal is avg from all 3 triangles containing it :)
+        return computeNormalsNonIndexed(positions, normals)
+    }
+
+    fun checkNormals(mesh: Mesh, positions: FloatArray, normals: FloatArray, indices: IntArray?, drawMode: Int) {
         // first an allocation free check
-        // todo support GL_TRIANGLE_STRIP
-        if (drawMode != GL_TRIANGLES) return
-        if (needsNormalsComputation(normals, 3)) {
-            if (indices == null) {
-                computeNormalsNonIndexed(positions, normals)
-            } else {
-                computeNormalsIndexed(positions, normals, indices)
+        when (drawMode) {
+            GL_TRIANGLES -> {
+                if (needsNormalsComputation(normals, 3)) {
+                    if (indices == null) {
+                        computeNormalsNonIndexed(positions, normals)
+                    } else {
+                        computeNormalsIndexed(mesh, positions, normals, indices)
+                    }
+                }
+            }
+            GL_TRIANGLE_STRIP -> {
+                if (needsNormalsComputation(normals, 3)) {
+                    if (indices == null) {
+                        computeNormalsNonIndexedStrip(positions, normals)
+                    } else {
+                        computeNormalsIndexed(mesh, positions, normals, indices)
+                    }
+                }
             }
         }
     }

@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.utils.pooling.JomlPools
 import org.lwjgl.opengl.GL11C.GL_TRIANGLES
+import org.lwjgl.opengl.GL11C.GL_TRIANGLE_STRIP
 import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.math.sqrt
@@ -17,22 +18,17 @@ object TangentCalculator {
 
     @JvmStatic
     private fun computeTangentsIndexed(
+        mesh: Mesh,
         positions: FloatArray,
         normals: FloatArray,
         tan1: FloatArray,
-        uvs: FloatArray,
-        indices: IntArray
+        uvs: FloatArray
     ) {
 
         tan1.fill(0f) // in the future we could keep old values, probably not worth the effort
         val tan2 = FloatArray(tan1.size)
-        for (i in indices.indices step 3) {
-
-            // https://gamedev.stackexchange.com/questions/68612/how-to-compute-tangent-and-bitangent-vectors
-
-            val i0 = indices[i + 0]
-            val i1 = indices[i + 1]
-            val i2 = indices[i + 2]
+        // https://gamedev.stackexchange.com/questions/68612/how-to-compute-tangent-and-bitangent-vectors
+        mesh.forEachTriangleIndex { i0, i1, i2 ->
 
             val i02 = i0 + i0
             val i03 = i0 + i02
@@ -245,22 +241,22 @@ object TangentCalculator {
 
     @JvmStatic
     fun checkTangents(
+        mesh: Mesh,
         positions: FloatArray,
         normals: FloatArray,
         tangents: FloatArray?,
         uvs: FloatArray?,
-        indices: IntArray?,
-        drawMode: Int
     ) {
-        // todo support GL_TRIANGLE_STRIP
         // first an allocation free check
-        if (drawMode != GL_TRIANGLES) return
+        val drawMode = mesh.drawMode
+        if (drawMode != GL_TRIANGLES && drawMode != GL_TRIANGLE_STRIP) return
         if (uvs == null || tangents == null) return
         if (NormalCalculator.needsNormalsComputation(tangents, 4)) {
-            if (indices == null) {
+            if (mesh.indices == null) {
+                // todo support GL_TRIANGLE_STRIP properly
                 computeTangentsNonIndexed(positions, normals, tangents, uvs)
             } else {
-                computeTangentsIndexed(positions, normals, tangents, uvs, indices)
+                computeTangentsIndexed(mesh, positions, normals, tangents, uvs)
             }
         }
     }
