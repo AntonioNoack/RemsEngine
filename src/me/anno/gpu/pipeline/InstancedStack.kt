@@ -90,7 +90,7 @@ open class InstancedStack {
                 GFX.shaderColor(shader, "tint", -1)
                 shader.v1b("hasAnimation", useAnimations)
                 shader.v1b("hasVertexColors", mesh.hasVertexColors)
-                shader.v2i("randomIdData", mesh.numTriangles, 0)
+                shader.v2i("randomIdData", mesh.numPrimitives, 0)
                 if (useAnimations) {
                     (instances as InstancedAnimStack).animTexture!!
                         .bind(shader, "animTexture", GPUFiltering.LINEAR, Clamping.CLAMP)
@@ -260,7 +260,7 @@ open class InstancedStack {
                                     time, values, depth
                                 )
                             }
-                            sum += mesh.numTriangles * values.size.toLong()
+                            sum += mesh.numPrimitives * values.size.toLong()
                         }
                     }
                 }
@@ -298,7 +298,7 @@ open class InstancedStack {
                                 pipeline, stage, needsLightUpdateForEveryMesh,
                                 time, values, depth
                             )
-                            sum += mesh.numTriangles * values.size.toLong()
+                            sum += mesh.numPrimitives * values.size.toLong()
                         }
                     }
                 }

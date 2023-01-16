@@ -187,7 +187,7 @@ object Raycast {
 
         val globalTransform = transform?.globalTransform
         // quick-path for easy meshes: no extra checks worth it
-        if (mesh.numTriangles <= 16) {
+        if (mesh.numPrimitives <= 16) {
             globalRaycast2(
                 result, globalTransform, mesh,
                 start, direction,

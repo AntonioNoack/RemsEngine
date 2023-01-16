@@ -253,7 +253,7 @@ class TriTerrain : Component(), CustomEditMode {
     // for debugging/initialization purposes
     fun addMesh(mesh: Mesh) {
 
-        val chunk = TriangleOctTree(this, Vector3f(), Vector3f(), max(maxTriangles, mesh.numTriangles))
+        val chunk = TriangleOctTree(this, Vector3f(), Vector3f(), max(maxTriangles, mesh.numPrimitives))
         val dstIdx = chunk.indices
 
         val dstPos = positions

@@ -18,6 +18,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.FindLines
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -30,8 +31,7 @@ import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C.GL_LINES
-import org.lwjgl.opengl.GL11C.GL_TRIANGLES
+import org.lwjgl.opengl.GL11C.*
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -52,7 +52,7 @@ class Mesh : PrefabSaveable(), Renderable {
             triBuffer = IndexBuffer(buffer, indices)
             triBuffer?.drawMode = mesh.drawMode
 
-            lineIndices = lineIndices ?: FindLines.findLines(indices, mesh.positions)
+            lineIndices = lineIndices ?: FindLines.findLines(mesh, indices, mesh.positions)
             lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
             lineBuffer?.drawMode = GL_LINES
         }
@@ -61,7 +61,7 @@ class Mesh : PrefabSaveable(), Renderable {
             val buffer = mesh.buffer
             if (invalidDebugLines && buffer != null) {
                 invalidDebugLines = false
-                debugLineIndices = FindLines.getAllLines(indices, mesh.positions, debugLineIndices)
+                debugLineIndices = FindLines.getAllLines(mesh, indices)
                 debugLineBuffer = replaceBuffer(buffer, debugLineIndices, debugLineBuffer)
                 debugLineBuffer?.drawMode = GL_LINES
             }
@@ -211,6 +211,12 @@ class Mesh : PrefabSaveable(), Renderable {
     var helperMeshes: Array<HelperMesh?>? = null
 
     // to allow for quads, and strips and such
+    /**
+     * how the positions / indices are drawn;
+     * implementations might only support GL_TRIANGLES, so be careful, and always prefer GL_TRIANGLES!
+     *
+     * quads may not even be supported by the platform (e.g., Web or Android)
+     * */
     var drawMode = GL_TRIANGLES
 
     val aabb = AABBf()
@@ -314,7 +320,7 @@ class Mesh : PrefabSaveable(), Renderable {
             LOGGER.debug("Generated indices for mesh")
         }
         normals = FloatArray(positions.size)
-        NormalCalculator.checkNormals(positions, normals!!, indices)
+        NormalCalculator.checkNormals(positions, normals!!, indices, drawMode)
     }
 
     /**
@@ -401,12 +407,25 @@ class Mesh : PrefabSaveable(), Renderable {
     }
 
     fun forEachTriangleIndex(callback: (a: Int, b: Int, c: Int) -> Unit) {
+        // todo support gl_triangle_strip
+        val positions = positions ?: return
         val indices = indices
         if (indices == null) {
-            for (i in 0 until positions!!.size / 9) {
-                val i3 = i * 3
-                callback(i3 + 0, i3 + 1, i3 + 2)
+            when (drawMode) {
+                GL_TRIANGLES -> {
+                    for (i in 0 until positions.size / 9) {
+                        val i3 = i * 3
+                        callback(i3, i3 + 1, i3 + 2)
+                    }
+                }
+                GL_TRIANGLE_STRIP -> {
+                    for (i in 2 until positions.size / 3) {
+                        val i3 = i * 3
+                        callback(i3, i3 + 1, i3 + 2)
+                    }
+                }
             }
+
         } else {
             for (i in indices.indices step 3) {
                 val a = indices[i + 0]
@@ -417,23 +436,74 @@ class Mesh : PrefabSaveable(), Renderable {
         }
     }
 
-    fun forEachSideIndex(callback: (a: Int, b: Int) -> Unit) {
+    fun forEachLineIndex(callback: (a: Int, b: Int) -> Unit) {
+        val positions = positions ?: return
         val indices = indices
         if (indices == null) {
-            for (i in 0 until positions!!.size / 3) {
-                val i3 = i * 3
-                callback(i3, i3 + 1)
-                callback(i3 + 1, i3 + 2)
-                callback(i3 + 2, i3)
+            val numPoints = positions.size / 3
+            when (drawMode) {
+                GL_TRIANGLES -> {
+                    for (i3 in 0 until numPoints - 2 step 3) {
+                        callback(i3, i3 + 1)
+                        callback(i3 + 1, i3 + 2)
+                        callback(i3 + 2, i3)
+                    }
+                }
+                GL_TRIANGLE_STRIP -> {
+                    for (c in 2 until numPoints) {
+                        callback(c - 2, c)
+                        callback(c - 1, c)
+                    }
+                }
+                GL_LINES -> {
+                    for (i in 0 until numPoints step 2) {
+                        callback(i, i + 1)
+                    }
+                }
+                GL_LINE_STRIP -> {
+                    for (i in 1 until numPoints) {
+                        callback(i - 1, i)
+                    }
+                }
             }
         } else {
-            for (i in 0 until indices.size - 2 step 3) {
-                val a = indices[i]
-                val b = indices[i + 1]
-                val c = indices[i + 2]
-                callback(a, b)
-                callback(b, c)
-                callback(c, a)
+            when (drawMode) {
+                GL_TRIANGLES -> {
+                    for (i in 0 until indices.size - 2 step 3) {
+                        val a = indices[i]
+                        val b = indices[i + 1]
+                        val c = indices[i + 2]
+                        callback(a, b)
+                        callback(b, c)
+                        callback(c, a)
+                    }
+                }
+                GL_TRIANGLE_STRIP -> {
+                    var a = indices[0]
+                    var b = indices[1]
+                    for (i in 2 until indices.size) {
+                        val c = indices[i]
+                        if (a != b && a != c && b != c) {
+                            callback(a, c)
+                            callback(b, c)
+                        }
+                        a = b
+                        b = c
+                    }
+                }
+                GL_LINES -> {
+                    for (i in 0 until indices.size - 1 step 2) {
+                        callback(indices[i], indices[i + 1])
+                    }
+                }
+                GL_LINE_STRIP -> {
+                    var a = indices[0]
+                    for (i in 1 until indices.size) {
+                        val b = indices[i]
+                        if (a != b) callback(a, b)
+                        a = b
+                    }
+                }
             }
         }
     }
@@ -447,21 +517,68 @@ class Mesh : PrefabSaveable(), Renderable {
         val positions = positions ?: return
         val indices = indices
         if (indices != null) {
-            for (i in 0 until indices.size - 2 step 3) {
-                a.set2(positions, indices[i] * 3)
-                b.set2(positions, indices[i + 1] * 3)
-                c.set2(positions, indices[i + 2] * 3)
-                callback(a, b, c)
+            if (indices.size < 3) return
+            when (drawMode) {
+                GL_TRIANGLES -> {
+                    for (i in 0 until indices.size - 2 step 3) {
+                        a.set2(positions, indices[i] * 3)
+                        b.set2(positions, indices[i + 1] * 3)
+                        c.set2(positions, indices[i + 2] * 3)
+                        callback(a, b, c)
+                    }
+                }
+                GL_TRIANGLE_STRIP -> {
+                    var ai = indices[0] * 3
+                    var bi = indices[1] * 3
+                    for (i in 2 until indices.size) {
+                        val ci = indices[i] * 3
+                        a.set2(positions, ai)
+                        // can we remove this?
+                        if (i.hasFlag(1)) {
+                            b.set2(positions, ci)
+                            c.set2(positions, bi)
+                        } else {
+                            b.set2(positions, bi)
+                            c.set2(positions, ci)
+                        }
+                        callback(a, b, c)
+                        ai = bi
+                        bi = ci
+                    }
+                }
             }
         } else {
-            var i = 0
-            val s = positions.size - 8
-            while (i < s) {
-                a.set2(positions, i)
-                b.set2(positions, i + 3)
-                c.set2(positions, i + 6)
-                callback(a, b, c)
-                i += 9
+            when (drawMode) {
+                GL_TRIANGLES -> {
+                    var i = 0
+                    val s = positions.size - 8
+                    while (i < s) {
+                        a.set2(positions, i)
+                        b.set2(positions, i + 3)
+                        c.set2(positions, i + 6)
+                        callback(a, b, c)
+                        i += 9
+                    }
+                }
+                GL_TRIANGLE_STRIP -> {
+                    var ai = 0
+                    var bi = 3
+                    for (i in 2 until positions.size / 3) {
+                        val ci = i * 3
+                        a.set2(positions, ai)
+                        // can we remove this?
+                        if (i.hasFlag(1)) {
+                            b.set2(positions, ci)
+                            c.set2(positions, bi)
+                        } else {
+                            b.set2(positions, bi)
+                            c.set2(positions, ci)
+                        }
+                        callback(a, b, c)
+                        ai = bi
+                        bi = ci
+                    }
+                }
             }
         }
     }
@@ -498,7 +615,22 @@ class Mesh : PrefabSaveable(), Renderable {
     var hasVertexColors = false
     var hasBonesInBuffer = false
 
-    val numTriangles get() = indices?.run { size / 3 } ?: positions?.run { size / 9 } ?: 0
+    val numPrimitives
+        get() =
+            indices?.run {
+                when (drawMode) {
+                    GL_TRIANGLE_STRIP -> max(0, size - 2)
+                    else -> size / 3
+                }
+            } ?: positions?.run {
+                when (drawMode) {
+                    GL_POINTS -> size / 3
+                    GL_LINES -> size / 6
+                    GL_LINE_STRIP -> max(0, size / 3 - 1)
+                    GL_TRIANGLE_STRIP -> max(0, size / 3 - 2)
+                    else -> size / 9
+                }
+            } ?: 0
 
     var hasHighPrecisionNormals = false
 
@@ -546,8 +678,15 @@ class Mesh : PrefabSaveable(), Renderable {
         val hasUVs = uvs != null && uvs.isNotEmpty()
         this.hasUVs = hasUVs
 
-        NormalCalculator.checkNormals(positions, normals, indices)
-        if (hasUVs && checkTangents) TangentCalculator.checkTangents(positions, normals, tangents, uvs, indices)
+        NormalCalculator.checkNormals(positions, normals, indices, drawMode)
+        if (hasUVs && checkTangents) TangentCalculator.checkTangents(
+            positions,
+            normals,
+            tangents,
+            uvs,
+            indices,
+            drawMode
+        )
 
     }
 
@@ -616,6 +755,7 @@ class Mesh : PrefabSaveable(), Renderable {
         }
 
         val buffer = replaceBuffer(attributes, vertexCount, buffer)
+        buffer.drawMode = drawMode
         this.buffer = buffer
 
         triBuffer = replaceBuffer(buffer, indices, triBuffer)
@@ -726,7 +866,7 @@ class Mesh : PrefabSaveable(), Renderable {
         // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
 
         // find regular lines
-        lineIndices = lineIndices ?: FindLines.findLines(indices, positions)
+        lineIndices = lineIndices ?: FindLines.findLines(this, indices, positions)
         lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
         lineBuffer?.drawMode = GL_LINES
 
@@ -738,7 +878,7 @@ class Mesh : PrefabSaveable(), Renderable {
         val buffer = buffer
         if (invalidDebugLines && buffer != null) {
             invalidDebugLines = false
-            debugLineIndices = FindLines.getAllLines(indices, positions, debugLineIndices)
+            debugLineIndices = FindLines.getAllLines(this, indices)
             debugLineBuffer = replaceBuffer(buffer, debugLineIndices, debugLineBuffer)
             debugLineBuffer?.drawMode = GL_LINES
         }

@@ -71,12 +71,12 @@ class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, Ins
                         GFX.shaderColor(shader, "tint", -1)
                         shader.v1b("hasAnimation", false)
                         shader.v1b("hasVertexColors", mesh.hasVertexColors)
-                        shader.v2i("randomIdData", mesh.numTriangles, 0)
+                        shader.v2i("randomIdData", mesh.numPrimitives, 0)
                         GFX.check()
 
                         shader.v4f("clickId", stack.clickIds[i])
                         mesh.drawInstanced(shader, 0, stack.data[i])
-                        sum += mesh.numTriangles * stack.data[i].elementCount.toLong()
+                        sum += mesh.numPrimitives * stack.data[i].elementCount.toLong()
 
                     }
                 }

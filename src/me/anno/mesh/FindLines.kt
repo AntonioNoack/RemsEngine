@@ -1,5 +1,11 @@
 package me.anno.mesh
 
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.utils.types.Arrays.resize
+import org.joml.Vector3f
+import org.lwjgl.opengl.GL11C.GL_POINTS
+import org.lwjgl.opengl.GL11C.GL_TRIANGLES
+
 object FindLines {
 
     private fun isLine(ab: Boolean, bc: Boolean, ca: Boolean): Boolean {
@@ -21,92 +27,33 @@ object FindLines {
         return isLine(ab, bc, ca)
     }
 
-    fun getAllLines(indices: IntArray?, positions: FloatArray?, old: IntArray? = null): IntArray? {
+    private fun isLine(a: Vector3f, b: Vector3f, c: Vector3f): Boolean {
+        val ab = a == b
+        val bc = b == c
+        val ca = c == a
+        return isLine(ab, bc, ca)
+    }
+
+    fun getAllLines(mesh: Mesh, old: IntArray? = null): IntArray? {
+        if (mesh.drawMode == GL_POINTS) return null
         var lineCount = 0
-        if (indices == null) {
-            // compare vertices
-            positions ?: return null
-            var i = 0
-            while (i < positions.size) {
-                lineCount += if (isLine(
-                        positions[i++], positions[i++], positions[i++],
-                        positions[i++], positions[i++], positions[i++],
-                        positions[i++], positions[i++], positions[i++]
-                    )
-                ) 1 else 3
-            }
-            return if (lineCount > 0) {
-                val indexCount = lineCount * 2
-                val lineIndices = if (old != null && old.size == indexCount) old else IntArray(indexCount)
-                var j = 0
-                i = 0
-                while (i < positions.size) {
-                    val ax = positions[i++]
-                    val ay = positions[i++]
-                    val az = positions[i++]
-                    val bx = positions[i++]
-                    val by = positions[i++]
-                    val bz = positions[i++]
-                    val cx = positions[i++]
-                    val cy = positions[i++]
-                    val cz = positions[i++]
-                    val ab = ax == bx && ay == by && az == bz
-                    val bc = bx == cx && by == cy && bz == cz
-                    val ca = cx == ax && cy == ay && cz == az
-                    val i3 = i / 3
-                    if (isLine(ab, bc, ca)) {
-                        lineIndices[j++] = i3
-                        lineIndices[j++] = i3 + if (ab) 2 else 1
-                    } else {
-                        lineIndices[j++] = i3
-                        lineIndices[j++] = i3 + 1
-                        lineIndices[j++] = i3 + 1
-                        lineIndices[j++] = i3 + 2
-                        lineIndices[j++] = i3 + 2
-                        lineIndices[j++] = i3
-                    }
-                }
-                return lineIndices
-            } else null
-        } else {
-            // compare indices
-            for (i in indices.indices step 3) {
-                val a = indices[i]
-                val b = indices[i + 1]
-                val c = indices[i + 2]
-                lineCount += if (isLine(a, b, c)) 1 else 3
-            }
-            return if (lineCount > 0) {
-                val indexCount = lineCount * 2
-                val lineIndices = if (old != null && old.size == indexCount) old else IntArray(indexCount)
-                var j = 0
-                for (i in indices.indices step 3) {
-                    val a = indices[i]
-                    val b = indices[i + 1]
-                    val c = indices[i + 2]
-                    if (isLine(a, b, c)) {
-                        lineIndices[j++] = a
-                        lineIndices[j++] = if (a == b) c else b
-                    } else {
-                        lineIndices[j++] = a
-                        lineIndices[j++] = b
-                        lineIndices[j++] = b
-                        lineIndices[j++] = c
-                        lineIndices[j++] = c
-                        lineIndices[j++] = a
-                    }
-                }
-                lineIndices
-            } else null
+        mesh.forEachLineIndex { _, _ -> lineCount++ }
+        if (lineCount == 0) return null
+        val lines = old.resize(lineCount * 2)
+        var j = 0
+        mesh.forEachLineIndex { a, b ->
+            lines[j++] = a
+            lines[j++] = b
         }
+        return lines
     }
 
     @Suppress("unused")
-    fun getAllUniqueLines(indices: IntArray?, positions: FloatArray?, old: IntArray? = null): IntArray? {
+    fun getAllUniqueLines(mesh: Mesh, indices: IntArray?, old: IntArray? = null): IntArray? {
 
         if (indices == null) {
             // we would need to actually compare positions
-            return getAllLines(null, positions, old)
+            return getAllLines(mesh, null)
         }
 
         val lines = HashSet<Long>()
@@ -165,7 +112,8 @@ object FindLines {
 
     }
 
-    fun findLines(indices: IntArray?, positions: FloatArray?): IntArray? {
+    fun findLines(mesh: Mesh, indices: IntArray?, positions: FloatArray?): IntArray? {
+        if (mesh.drawMode != GL_TRIANGLES) return null
         var lineCount = 0
         if (indices == null) {
             // compare vertices

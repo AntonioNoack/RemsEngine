@@ -35,7 +35,7 @@ class InstancedStackPSR(capacity: Int = 64) :
                 for ((material, values) in list) {
                     if (values.size > 0) {
                         draw(stage, mesh, material, pipeline, values, depth)
-                        sum += mesh.numTriangles * values.size.toLong()
+                        sum += mesh.numPrimitives * values.size.toLong()
                     }
                 }
             }
@@ -76,7 +76,7 @@ class InstancedStackPSR(capacity: Int = 64) :
         GFX.shaderColor(shader, "tint", -1)
         shader.v1b("hasAnimation", false)
         shader.v1b("hasVertexColors", mesh.hasVertexColors)
-        shader.v2i("randomIdData", mesh.numTriangles, 0)
+        shader.v2i("randomIdData", mesh.numPrimitives, 0)
         GFX.check()
 
         // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580

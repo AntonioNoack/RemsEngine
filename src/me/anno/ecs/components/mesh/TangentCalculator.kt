@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.utils.pooling.JomlPools
+import org.lwjgl.opengl.GL11C.GL_TRIANGLES
 import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.math.sqrt
@@ -248,9 +249,12 @@ object TangentCalculator {
         normals: FloatArray,
         tangents: FloatArray?,
         uvs: FloatArray?,
-        indices: IntArray?
+        indices: IntArray?,
+        drawMode: Int
     ) {
+        // todo support GL_TRIANGLE_STRIP
         // first an allocation free check
+        if (drawMode != GL_TRIANGLES) return
         if (uvs == null || tangents == null) return
         if (NormalCalculator.needsNormalsComputation(tangents, 4)) {
             if (indices == null) {

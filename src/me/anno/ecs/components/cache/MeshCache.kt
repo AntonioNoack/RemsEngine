@@ -108,7 +108,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
             // add mesh with all materials and all properties...
             // only initialize, what is necessary
 
-            val numTris = mesh.numTriangles
+            val numTris = mesh.numPrimitives
             val idx = mesh.indices
 
             // a lot here depends on correct sizes ->

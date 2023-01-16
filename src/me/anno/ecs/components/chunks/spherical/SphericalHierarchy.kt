@@ -14,7 +14,7 @@ open class SphericalHierarchy(
     var maxLevels: Int = 15, // 15 lods ~ max 32000² per mesh triangle
 ) {
 
-    val triangles = Array(shape.numTriangles) { SphereTriangle(0, it + 1) }
+    val triangles = Array(shape.numPrimitives) { SphereTriangle(0, it + 1) }
 
     open var radius = radius
         set(value) {

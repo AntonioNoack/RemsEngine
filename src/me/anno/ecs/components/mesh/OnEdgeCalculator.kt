@@ -5,7 +5,7 @@ import kotlin.math.min
 
 object OnEdgeCalculator {
 
-    fun calculateIsOnEdge(mesh: Mesh, dst: BooleanArray = BooleanArray(mesh.numTriangles * 3)): BooleanArray {
+    fun calculateIsOnEdge(mesh: Mesh, dst: BooleanArray = BooleanArray(mesh.numPrimitives * 3)): BooleanArray {
 
         dst.fill(true)
 
@@ -13,7 +13,7 @@ object OnEdgeCalculator {
         // if there is few vertices, we could use an IntArray for counting
         val sides = HashMap<Long, Int>()
         var index = 0
-        mesh.forEachSideIndex { a, b ->
+        mesh.forEachLineIndex { a, b ->
             val min = min(a, b).toLong()
             val max = max(a, b).toLong()
             val hash = min.shl(32) or max

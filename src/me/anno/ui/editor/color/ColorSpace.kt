@@ -9,6 +9,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
+import me.anno.ui.editor.color.spaces.Oklab
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.collections.set

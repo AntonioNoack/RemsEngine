@@ -55,7 +55,7 @@ open class MeshCollider() : Collider() {
     val meshTransform = Matrix4x3f()
 
     @DebugProperty
-    val meshTriangles get() = mesh?.numTriangles
+    val meshTriangles get() = mesh?.numPrimitives
 
     @DebugProperty
     val meshAABB

@@ -9,7 +9,6 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast.raycastTriangleMesh
-import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
@@ -116,7 +115,7 @@ fun createComputeShader(useBVH: Boolean, maxDepth: Int, mesh: Mesh?): ComputeSha
                 } else {
                     "" +
                             "int triTexSize = TEXTURE_SIZE(triangles).x;\n" +
-                            "for(uint triangleIndex=0;triangleIndex<${mesh!!.numTriangles};triangleIndex++){\n" + // triangle index
+                            "for(uint triangleIndex=0;triangleIndex<${mesh!!.numPrimitives};triangleIndex++){\n" + // triangle index
                             // load triangle data
                             "    uint pixelIndex = triangleIndex * 3;\n" + // 3 = pixels per triangle
                             "    uint triX = pixelIndex % triTexSize;\n" +
@@ -170,7 +169,7 @@ fun main() {
     val source = downloads.getChild("3d/bunny.obj")
     val mesh = MeshCache[source]!!
 
-    logger.info("model has ${mesh.numTriangles} triangles")
+    logger.info("model has ${mesh.numPrimitives} triangles")
 
     val meshComponent = MeshComponent()
     meshComponent.mesh = source

@@ -4,6 +4,7 @@ import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Floats.f2x
+import org.hsluv.HSLuvColorSpace
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -357,6 +358,22 @@ object Vectors {
         val cy = az * bx - ax * bz
         val cz = ax * by - ay * bx
         return sqrt(cx * cx + cy * cy + cz * cz)
+    }
+
+    fun Vector3f.toLinear(dst: Vector3f = this): Vector3f {
+        return dst.set(
+            HSLuvColorSpace.toLinear(x),
+            HSLuvColorSpace.toLinear(y),
+            HSLuvColorSpace.toLinear(z)
+        )
+    }
+
+    fun Vector3f.fromLinear(dst: Vector3f = this): Vector3f {
+        return dst.set(
+            HSLuvColorSpace.fromLinear(x),
+            HSLuvColorSpace.fromLinear(y),
+            HSLuvColorSpace.fromLinear(z)
+        )
     }
 
 }

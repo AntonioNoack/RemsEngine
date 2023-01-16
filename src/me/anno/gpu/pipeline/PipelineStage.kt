@@ -508,7 +508,7 @@ class PipelineStage(
                     mesh.draw(shader, materialIndex)
                 }
 
-                drawnTriangles += mesh.numTriangles
+                drawnTriangles += mesh.numPrimitives
 
             }
         }
@@ -622,7 +622,7 @@ class PipelineStage(
             } else {
                 mesh.drawDepth(shader)
             }
-            drawnTriangles += mesh.numTriangles
+            drawnTriangles += mesh.numPrimitives
 
         }
 

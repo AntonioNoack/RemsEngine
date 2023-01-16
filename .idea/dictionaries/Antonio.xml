@@ -167,6 +167,7 @@
       <w>inspectables</w>
       <w>interactable</w>
       <w>invalidations</w>
+      <w>invertibility</w>
       <w>iter</w>
       <w>ivec</w>
       <w>jacobian</w>
@@ -264,6 +265,7 @@
       <w>noack</w>
       <w>numpad</w>
       <w>ogldev</w>
+      <w>oklab</w>
       <w>oldlace</w>
       <w>olivedrab</w>
       <w>orangered</w>

@@ -10,6 +10,7 @@ import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Vectors.get2
 import org.joml.Vector3f
+import org.lwjgl.opengl.GL11C.*
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -128,8 +129,10 @@ object NormalCalculator {
         JomlPools.vec3f.sub(3)
     }
 
-    fun checkNormals(positions: FloatArray, normals: FloatArray, indices: IntArray?) {
+    fun checkNormals(positions: FloatArray, normals: FloatArray, indices: IntArray?, drawMode: Int) {
         // first an allocation free check
+        // todo support GL_TRIANGLE_STRIP
+        if (drawMode != GL_TRIANGLES) return
         if (needsNormalsComputation(normals, 3)) {
             if (indices == null) {
                 computeNormalsNonIndexed(positions, normals)
