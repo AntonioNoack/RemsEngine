@@ -1,14 +1,16 @@
 package me.anno.ui.base.progress
 
 import me.anno.Engine
-import me.anno.utils.Color.black
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths
+import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.black
 
-class ProgressBar(val unit: String, var total: Double) {
+open class ProgressBar(val unit: String, var total: Double) {
 
-    private var progress = 0.0
+    var progress = 0.0
 
     private var finishTime = 0L
     private var cancelTime = 0L
@@ -61,6 +63,14 @@ class ProgressBar(val unit: String, var total: Double) {
      * */
     var updateSpeed = 1.0
 
+    open val backgroundColor = black
+    open val color
+        get() = when {
+            finishTime > 0L -> 0x77ff77 or black
+            cancelTime > 0L -> 0xff7777 or black
+            else -> 0x999999 or black
+        }
+
     fun draw(x: Int, y: Int, w: Int, h: Int, time: Long) {
         val dt = Maths.dtTo01((time - lastDraw) * 1e-9 * updateSpeed)
         lastDraw = time
@@ -69,21 +79,19 @@ class ProgressBar(val unit: String, var total: Double) {
         // todo show num/total unit
         // todo if unit = "Bytes", format file size
         // todo animation with shifted stripes?
-        // todo blending the last stripe for subpixel-accuracy
-        // todo smoothing?
-        drawRect(x, y, w, h, black)
-        drawRect(
-            x, y, 5 + (percentage * (w - 5)).toInt(), h, when {
-                finishTime > 0L -> 0x77ff77 or black
-                cancelTime > 0L -> 0xff7777 or black
-                else -> 0x999999 or black
-            }
-        )
+        val wx = 5 + percentage * (w - 5)
+        val color = color
+        val backgroundColor = backgroundColor
+        val wxi = wx.toInt()
+        if (w - wxi - 1 > 0) drawRect(x + 1 + wxi, y, w - wxi - 1, h, backgroundColor)
+        drawRect(x, y, wxi, h, color)
+        drawRect(x + wxi, y, 1, h, mixARGB(backgroundColor, color, fract(wx).toFloat()))
     }
 
     companion object {
         @JvmStatic
         private var endShowDuration = 3_000_000_000
+
         @JvmStatic
         private var timeout = 10_000_000_000
     }

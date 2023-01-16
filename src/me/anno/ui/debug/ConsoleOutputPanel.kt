@@ -25,8 +25,6 @@ import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
-// todo second console output panel, which has the default font?
-
 /**
  * displays all recent logging messages, and opens an overview on double click
  * */
@@ -84,6 +82,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
         @JvmStatic
         fun formatFilePath(file: FileReference) = formatFilePath(file.absolutePath)
+
         @JvmStatic
         fun formatFilePath(file: String): String {
             return "file://${file.replace(" ", "%20")}"

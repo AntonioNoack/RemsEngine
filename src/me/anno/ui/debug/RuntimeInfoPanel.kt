@@ -67,24 +67,33 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         val runtime = Runtime.getRuntime()
         val total = runtime.totalMemory()
         // todo align numbers
-        // todo totals for groups
+        val jvmUsed = total - runtime.freeMemory()
+        val vramTotal = Texture2D.allocated + Texture3D.allocated +
+                CubemapTexture.allocated + OpenGLBuffer.allocated
+        val jvmBufferTotal =
+            Texture2D.byteArrayPool.totalSize + AudioPools.SAPool.totalSize + Texture2D.intArrayPool.totalSize +
+                    Texture2D.floatArrayPool.totalSize + AudioPools.FAPool.totalSize
+        val native = ByteBufferPool.getAllocated()
         LOGGER.debug(
             "" +
                     "JVM:\n" +
-                    "  Total:  ${format1(total)} MB\n" +
-                    "  Used:   ${format1(total - runtime.freeMemory())} MB\n" +
+                    "  Used:   ${format1(jvmUsed)} MB\n" +
                     "  Free:   ${format1(runtime.freeMemory())} MB\n" +
+                    "  Total:  ${format1(total)} MB\n" +
                     "JVM-Buffers:\n" +
                     "  Bytes:  ${format1(Texture2D.byteArrayPool.totalSize)} MB\n" +
                     "  Shorts: ${format1(AudioPools.SAPool.totalSize)} MB\n" +
                     "  Ints:   ${format1(Texture2D.intArrayPool.totalSize)} MB\n" +
                     "  Floats: ${format1(Texture2D.floatArrayPool.totalSize + AudioPools.FAPool.totalSize)} MB\n" +
+                    "  Total:  ${format1(jvmBufferTotal)} MB\n" +
                     "VRAM:\n" +
                     "  Texture2d:      ${format1(Texture2D.allocated)} MB\n" +
                     "  Texture3d:      ${format1(Texture3D.allocated)} MB\n" +
                     "  TextureCubemap: ${format1(CubemapTexture.allocated)} MB\n" +
                     "  Geometry:       ${format1(OpenGLBuffer.allocated)} MB\n" +
-                    "Native:   ${format1(ByteBufferPool.getAllocated())} MB"
+                    "  Total:          ${format1(vramTotal)} MB\n" +
+                    "Native:   ${format1(native)} MB\n" +
+                    "Total:    ${format1(native + vramTotal + jvmBufferTotal + jvmUsed)} MB"
         )
     }
 

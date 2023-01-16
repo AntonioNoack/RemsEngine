@@ -8,6 +8,9 @@ import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 
+// todo springs as well :) -> make the UI joyful
+// todo layouts could have springs as well, so the elements move to their target position with lerp(pos,target,dt*10)
+
 abstract class UIAnimation(
     var eventType: EventType,
     var inInterpolation: Interpolation,

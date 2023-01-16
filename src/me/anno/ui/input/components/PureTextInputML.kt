@@ -23,6 +23,7 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
@@ -114,7 +115,6 @@ open class PureTextInputML(style: Style) :
 
     override var isInputAllowed = true
         set(value) {
-            // todo show text less opaque if not allowed
             if (field != value) {
                 field = value
                 invalidateDrawing()
@@ -165,7 +165,7 @@ open class PureTextInputML(style: Style) :
             val panel = object : CorrectingTextInput(style) {
 
                 override val effectiveTextColor: Int
-                    get() = if (isInputAllowed) super.effectiveTextColor else
+                    get() = if (isInputAllowed && isEnabled) super.effectiveTextColor else
                         mixARGB(textColor, backgroundColor, 0.5f)
 
                 override val isShowingPlaceholder: Boolean
@@ -200,7 +200,7 @@ open class PureTextInputML(style: Style) :
         for ((index, chars) in lines.withIndex()) {
             val panel = children[index] as TextPanel
             panel.text = if (needsPlaceholder) placeholder else chars.joinChars().toString()
-            panel.textColor = (panel.textColor and 0xffffff) or (if (needsPlaceholder) 70 else 255).shl(24)
+            panel.textColor = panel.textColor.withAlpha(if (needsPlaceholder) 70 else 255)
             panel.disableFocusColors()
         }
         invalidateLayout()

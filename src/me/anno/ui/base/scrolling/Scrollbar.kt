@@ -1,18 +1,17 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.Engine
+import me.anno.Engine.deltaTime
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mulAlpha
 import me.anno.ui.Panel
 import me.anno.ui.style.Style
 import kotlin.math.abs
-import kotlin.math.min
 
 open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
-
-    // todo change color when the mouse is being pressed
 
     val activeAlpha = 0.2f
 
@@ -28,15 +27,9 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
     @NotSerializedProperty
     var isBeingHovered = false
 
-    @NotSerializedProperty
-    var lastTime = 0L
-
     fun updateAlpha(): Boolean {
         val oldAlpha = alpha
-        val time = Engine.gameTime
-        val dt = abs(time - lastTime) * 1e-9f
-        lastTime = time
-        alpha = mix(oldAlpha, if (isBeingHovered) 1f else 0f, min(1f, 5f * dt))
+        alpha = mix(oldAlpha, if (isBeingHovered) if (Input.isLeftDown) 1f else 0.8f else 0f, dtTo01(10f * deltaTime))
         return abs(alpha - oldAlpha) > 0.001f
     }
 

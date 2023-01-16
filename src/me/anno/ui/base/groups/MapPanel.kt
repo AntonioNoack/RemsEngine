@@ -58,6 +58,12 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     override var scrollPositionX = 0.0
     override var scrollPositionY = 0.0
 
+    // todo use these for smoothed movement
+    override var scrollHardnessX = 25.0
+    override var scrollHardnessY = 25.0
+    override var targetScrollPositionX = 0.0
+    override var targetScrollPositionY = 0.0
+
     private val scrollbarWidth = style.getSize("scrollbarWidth", 8)
     private val scrollbarHeight = style.getSize("scrollbarHeight", 8)
     private val scrollbarPadding = style.getSize("scrollbarPadding", 1)

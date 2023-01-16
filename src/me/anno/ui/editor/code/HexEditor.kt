@@ -15,6 +15,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.xml.XMLReader.skipN
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mixARGB
@@ -22,11 +23,9 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.LongScrollable
 import me.anno.ui.base.scrolling.ScrollPanelXY
-import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
@@ -35,21 +34,24 @@ import me.anno.utils.Color.hex4
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.desktop
+import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.types.Floats.fp16ToFP32
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
+import java.math.BigInteger
 import kotlin.math.ceil
 import kotlin.math.log2
 
 // done idea: move inFocus into WindowStack, because it really depends only on the stack
 
-// todo hex editor like HxD, but better comparison mode
-// todo maybe next to each other?, and then synchronize scroll lists? lock/unlock them? :)
+// hex editor like HxD, but better comparison mode
+// maybe next to each other?, and then synchronize scroll lists? lock/unlock them? :)
 
-// todo comparing stuff
+// comparing stuff
 // todo edit bytes
 // todo pasting
 // todo -> saving
-// todo data inspector (base 10, fp16, fp32, fp64, ... le/be)
+// data inspector by tooltip text (base 10, fp16, fp32, fp64, ... le/be)
 
 class HexEditor(style: Style) : Panel(style), LongScrollable {
 
@@ -284,6 +286,32 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         } else super.onPasteFiles(x, y, files)
     }
 
+    fun getCopiedBytes(limit: Long): ByteArray? {
+        val minIndex = max(min(cursor0, cursor1), 0)
+        val maxIndex = min(max(cursor0, cursor1) + 1, file.length())
+        if (minIndex >= maxIndex) return null
+        if (maxIndex - minIndex > limit) {
+            if (limit >= 2e9) LOGGER.warn("Cannot copy slices larger than 2 GiB")
+            return null
+        }
+        val data = ByteArray((maxIndex - minIndex).toInt())
+        var i = minIndex
+        while (i < maxIndex) {
+            val bufferIndex = i / sectionSize
+            val startIndex = bufferIndex * sectionSize
+            val endIndex = min(maxIndex, startIndex + sectionSize)
+            val partData = Companion.get(file, bufferIndex, false)!!
+            System.arraycopy(
+                partData,
+                (i - startIndex).toInt(), data,
+                (i - minIndex).toInt(),
+                (endIndex - i).toInt()
+            )
+            i = endIndex
+        }
+        return data
+    }
+
     var copiedSeparator = ' '
     override fun onCopyRequested(x: Float, y: Float): Any? {
         val minIndex = max(min(cursor0, cursor1), 0)
@@ -291,26 +319,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         if (maxIndex > minIndex) {
             val text = markedRight
             val limit = if (text) Int.MAX_VALUE.toLong() else (Int.MAX_VALUE / 3).toLong()
-            if (maxIndex - minIndex > limit) {
-                LOGGER.warn("Cannot copy slices larger than 2 GiB")
-                return null
-            }
-            val data = ByteArray((maxIndex - minIndex).toInt())
-            var i = minIndex
-            while (i < maxIndex) {
-                val bufferIndex = i / sectionSize
-                val startIndex = bufferIndex * sectionSize
-                val endIndex = min(maxIndex, startIndex + sectionSize)
-                val partData = Companion.get(file, bufferIndex, false)!!
-                System.arraycopy(
-                    partData,
-                    (i - startIndex).toInt(),
-                    data,
-                    (i - minIndex).toInt(),
-                    (endIndex - i).toInt()
-                )
-                i = endIndex
-            }
+            val data = getCopiedBytes(limit) ?: return null
             // if was copied on right side, use string, else concat values
             // todo also mark this as being copied, to we could drop it into other hex editors
             return if (text) String(data) else {
@@ -333,6 +342,35 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     private val cacheSize = 128
     private val textCacheKeyCache = arrayOfNulls<TextCacheKey>(cacheSize)
     private val textSizes = IntArray(cacheSize)
+
+    override fun getTooltipText(x: Float, y: Float): String? {
+        val minIndex = max(min(cursor0, cursor1), 0)
+        val maxIndex = min(max(cursor0, cursor1) + 1, file.length())
+        if (maxIndex == minIndex) return null
+        val limit = 16L
+        if (maxIndex > minIndex + limit) {
+            // idk what to do
+            return (maxIndex - minIndex).formatFileSize()
+        }
+        val data = getCopiedBytes(limit) ?: return null
+        val le = cursor0 > cursor1
+        var bi = BigInteger.ZERO
+        for (i in data.indices) {
+            val j = if (le) i else data.size - 1 - i
+            bi += BigInteger.valueOf(data[i].toLong().and(255)).shiftLeft(j * 8)
+        }
+        val unsigned = bi.toString()
+        val msb = data[if (le) data.size - 1 else 0].toInt().hasFlag(128)
+        val signed = if (msb) bi - BigInteger.ONE.shiftLeft(8 * data.size) else bi
+        val prefix = if (le) "Little Endian" else "Big Endian"
+        return when (data.size) {
+            1 -> "U: $unsigned\nS: $signed\nB: ${bi.toString(2)}"
+            2 -> "$prefix\nU: $unsigned\nS: $signed\nFP16: ${fp16ToFP32(bi.toInt())}"
+            4 -> "$prefix\nU: $unsigned\nS: $signed\nFP32: ${Float.fromBits(bi.toInt())}"
+            8 -> "$prefix\nU: $unsigned\nS: $signed\nFP64: ${Double.fromBits(bi.toLong())}"
+            else -> "$prefix\nU: $unsigned\nS: $signed"
+        }
+    }
 
     companion object {
 

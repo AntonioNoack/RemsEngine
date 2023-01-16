@@ -8,5 +8,9 @@ import me.anno.ui.input.FloatInput
 fun main() {
     // enter was broken, and no longer calculating value
     GFXBase.disableRenderDoc()
-    testUI(FloatInput(style))
+    val fi = FloatInput(style)
+    // fi.isInputAllowed = false
+    // todo this should change the text color as well...
+    fi.isEnabled = false
+    testUI(fi)
 }

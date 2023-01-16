@@ -1,6 +1,5 @@
 package me.anno.ui.base.buttons
 
-import me.anno.utils.Color.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
@@ -12,10 +11,13 @@ import me.anno.input.Input.keysDown
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
+import me.anno.ui.Keys.isClickKey
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
-import me.anno.ui.Keys.isClickKey
+import me.anno.utils.Color.a
+import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 import kotlin.math.max
 
 open class TextButton(
@@ -86,14 +88,16 @@ open class TextButton(
 
         drawBackground(x0, y0, x1, y1)
 
-        // todo less strength if input is disabled
-
         val widthLimit = if (breaksIntoMultiline) this.w else -1
         val size = getTextSize(font, text, widthLimit, heightLimit)
+        val textColor = textColor
         DrawTexts.drawText(
             x + (w - getSizeX(size)) / 2,
             y + (h - getSizeY(size)) / 2,
-            font, text, textColor, backgroundColor, widthLimit, heightLimit
+            font, text, textColor.withAlpha(
+                if (isEnabled && isInputAllowed) textColor.a()
+                else textColor.a() / 2
+            ), backgroundColor, widthLimit, heightLimit
         )
 
         drawRect(

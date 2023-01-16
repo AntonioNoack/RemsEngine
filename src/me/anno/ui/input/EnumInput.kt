@@ -76,7 +76,7 @@ open class EnumInput(
         }
 
     override fun onUpdate() {
-        val alpha = if (isInputAllowed) 1f else 0.5f
+        val alpha = if (isInputAllowed) 255 else 127
         val titleView = titleView
         if (titleView != null) titleView.textColor = titleView.textColor.withAlpha(alpha)
         inputPanel.textColor = inputPanel.textColor.withAlpha(alpha)

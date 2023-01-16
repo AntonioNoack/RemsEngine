@@ -152,7 +152,10 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
             } else {
 
-                // todo it might be faster to draw this with batching 😄
+                // it might be faster to draw this with batching 😄
+                // -> I compared it to withoutInterpolation, and
+                // it's the same speed on my RTX 3070
+
                 val scale = 1f / maxValue
                 for (x in x0 until x1) {
                     val i = x - this.x
@@ -199,15 +202,11 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         setPosSize(x0, y0, width, height)
         draw()
 
-        GFX.loadTexturesSync.push(true)
-
         val maxTime = timeContainer.maxValue
         formatNumber(text, 0, 6, Engine.currentFPS)
         formatNumber(text, 13, 6, 1f / maxTime)
 
         drawSimpleTextCharByChar(x0, y0, 2, text)
-
-        GFX.loadTexturesSync.pop()
 
     }
 

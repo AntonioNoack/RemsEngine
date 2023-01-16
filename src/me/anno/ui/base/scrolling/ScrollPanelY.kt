@@ -1,9 +1,12 @@
 package me.anno.ui.base.scrolling
 
+import me.anno.Engine.deltaTime
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -15,14 +18,7 @@ import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.minWeight
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.style.Style
 import kotlin.math.max
-
-// todo scroll smoothing
-// todo for x as well
-
-// todo UI animations for nice effects :)
-
-// todo springs as well :) -> make the UI joyful
-// todo layouts could have springs as well, so the elements move to their target position with lerp(pos,target,dt*10)
+import kotlin.math.round
 
 open class ScrollPanelY(
     child: Panel, padding: Padding,
@@ -46,7 +42,10 @@ open class ScrollPanelY(
     @NotSerializedProperty
     var lastMaxScrollPosY = -1L
 
+    override var scrollHardnessY = 25.0
+
     override var scrollPositionY = 0.0
+    override var targetScrollPositionY = 0.0
 
     @NotSerializedProperty
     private var isDownOnScrollbar = false
@@ -73,7 +72,7 @@ open class ScrollPanelY(
         }
 
     override fun scrollY(delta: Double) {
-        scrollPositionY += delta
+        targetScrollPositionY += delta
         clampScrollPosition()
     }
 
@@ -83,9 +82,10 @@ open class ScrollPanelY(
         val mx = window.mouseXi
         val my = window.mouseYi
         scrollbar.isBeingHovered = capturesChildEvents(mx, my)
+        scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(deltaTime * scrollHardnessY))
         if (scrollbar.updateAlpha()) invalidateDrawing()
-        if (scrollPositionY != lastScrollPosY || maxScrollPositionY != lastMaxScrollPosY) {
-            lastScrollPosY = scrollPositionY
+        if (round(scrollPositionY) != lastScrollPosY || maxScrollPositionY != lastMaxScrollPosY) {
+            lastScrollPosY = round(scrollPositionY)
             lastMaxScrollPosY = maxScrollPositionY
             window.needsLayout += this
         }
@@ -136,14 +136,12 @@ open class ScrollPanelY(
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         val delta = -dy * scrollSpeed
-        if ((delta > 0f && scrollPositionY >= maxScrollPositionY) ||
-            (delta < 0f && scrollPositionY <= 0f)
+        if ((delta > 0f && targetScrollPositionY >= maxScrollPositionY) ||
+            (delta < 0f && targetScrollPositionY <= 0f)
         ) {// if done scrolling go up the hierarchy one
             super.onMouseWheel(x, y, dx, dy, byMouse)
         } else {
-            scrollPositionY += delta
-            clampScrollPosition()
-            invalidateLayout()
+            scrollY(delta.toDouble())
             // we consumed dy
             if (dx != 0f) {
                 super.onMouseWheel(x, y, dx, 0f, byMouse)
@@ -153,6 +151,7 @@ open class ScrollPanelY(
 
     fun clampScrollPosition() {
         scrollPositionY = clamp(scrollPositionY, 0.0, maxScrollPositionY.toDouble())
+        targetScrollPositionY = clamp(targetScrollPositionY, 0.0, maxScrollPositionY.toDouble())
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

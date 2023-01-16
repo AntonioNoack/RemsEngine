@@ -1,9 +1,12 @@
 package me.anno.ui.base.scrolling
 
+import me.anno.Engine.deltaTime
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -14,6 +17,7 @@ import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.minWeight
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.style.Style
 import kotlin.math.max
+import kotlin.math.round
 
 open class ScrollPanelX(
     child: Panel, padding: Padding,
@@ -39,13 +43,15 @@ open class ScrollPanelX(
 
     override var scrollPositionX = 0.0
 
+    override var targetScrollPositionX = 0.0
+    override var scrollHardnessX = 25.0
+
     @NotSerializedProperty
     private var isDownOnScrollbar = false
 
     override val maxScrollPositionX get() = max(0, child.minW + padding.width - w).toLong()
     val scrollbar = ScrollbarX(this, style)
 
-    // todo these two properties need to be updated, when the style changes
     val scrollbarHeight = style.getSize("scrollbarHeight", 8)
     val scrollbarPadding = style.getSize("scrollbarPadding", 1)
 
@@ -65,16 +71,19 @@ open class ScrollPanelX(
         val mx = window.mouseXi
         val my = window.mouseYi
         scrollbar.isBeingHovered = capturesChildEvents(mx, my)
+        scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(deltaTime * scrollHardnessX))
         if (scrollbar.updateAlpha()) invalidateDrawing()
-        if (scrollPositionX != lastScrollPosX || maxScrollPositionX != lastMaxScrollPosX) {
-            lastScrollPosX = scrollPositionX
+        if (round(scrollPositionX) != lastScrollPosX ||
+            maxScrollPositionX != lastMaxScrollPosX
+        ) {
+            lastScrollPosX = round(scrollPositionX)
             lastMaxScrollPosX = maxScrollPositionX
             window.needsLayout += this
         }
     }
 
     override fun scrollX(delta: Double) {
-        scrollPositionX += delta
+        targetScrollPositionX += delta
         clampScrollPosition()
     }
 
@@ -132,9 +141,7 @@ open class ScrollPanelX(
         ) {// if done scrolling go up the hierarchy one
             super.onMouseWheel(x, y, dx, dy, byMouse)
         } else {
-            scrollPositionX += scale * dx
-            clampScrollPosition()
-            invalidateLayout()
+            scrollX((scale * dx).toDouble())
             // we consumed dx
             if (dy != 0f) {
                 super.onMouseWheel(x, y, 0f, dy, byMouse)

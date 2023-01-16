@@ -1,9 +1,11 @@
 package me.anno.ui.base.groups
 
 import me.anno.Engine
+import me.anno.Engine.deltaTime
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.MouseButton
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
@@ -62,12 +64,14 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
     var maxColumns = Int.MAX_VALUE
 
     override var scrollPositionY = 0.0
+    override var targetScrollPositionY = 0.0
+    override var scrollHardnessY = 25.0
     var isDownOnScrollbar = false
 
     override val maxScrollPositionY get(): Long = max(0, minH2 - h).toLong()
 
     override fun scrollY(delta: Double) {
-        scrollPositionY += delta
+        targetScrollPositionY += delta
         clampScrollPosition()
         invalidateLayout()
     }
@@ -130,13 +134,16 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
         if (autoScrollLastUpdate < autoScrollEndTime) {
             val delta = autoScrollPerNano * (Engine.gameTime - autoScrollLastUpdate)
             if (delta > 0L) {
-                scrollPositionY = if (autoScrollLastUpdate < autoScrollEndTime && delta < 1f) {
-                    mix(scrollPositionY, autoScrollTargetPosition, delta.toDouble())
+                scrollPositionY = if (autoScrollLastUpdate < autoScrollEndTime) {
+                    mix(scrollPositionY, autoScrollTargetPosition, dtTo01(delta.toDouble()))
                 } else autoScrollTargetPosition
+                targetScrollPositionY = scrollPositionY
                 clampScrollPosition()
                 invalidateLayout()
                 autoScrollLastUpdate = Engine.gameTime
             }
+        } else {
+            scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(deltaTime * scrollHardnessY))
         }
     }
 

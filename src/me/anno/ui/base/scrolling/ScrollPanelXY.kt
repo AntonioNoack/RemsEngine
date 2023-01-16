@@ -1,9 +1,12 @@
 package me.anno.ui.base.scrolling
 
+import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
@@ -11,6 +14,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.round
 
 open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     PanelContainer(child, padding, style), ScrollableX, ScrollableY {
@@ -40,16 +44,18 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         val my = window.mouseYi
         scrollbarX.isBeingHovered = drawsOverX(mx, my)
         scrollbarY.isBeingHovered = drawsOverY(mx, my)
+        scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(deltaTime * scrollHardnessX))
+        scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(deltaTime * scrollHardnessY))
         if (scrollbarX.updateAlpha()) invalidateDrawing()
         if (scrollbarY.updateAlpha()) invalidateDrawing()
         if (
-            scrollPositionX != lastScrollPosX ||
-            scrollPositionY != lastScrollPosY ||
+            round(scrollPositionX) != lastScrollPosX ||
+            round(scrollPositionY) != lastScrollPosY ||
             maxScrollPositionX != lastMaxScrollPosX ||
             maxScrollPositionY != lastMaxScrollPosY
         ) {
-            lastScrollPosX = scrollPositionX
-            lastScrollPosY = scrollPositionY
+            lastScrollPosX = round(scrollPositionX)
+            lastScrollPosY = round(scrollPositionY)
             lastMaxScrollPosX = maxScrollPositionX
             lastMaxScrollPosY = maxScrollPositionY
             window.needsLayout += this
@@ -58,6 +64,12 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
 
     override var scrollPositionX = 0.0
     override var scrollPositionY = 0.0
+
+    override var targetScrollPositionX = 0.0
+    override var targetScrollPositionY = 0.0
+
+    override var scrollHardnessX = 25.0
+    override var scrollHardnessY = 25.0
 
     override val maxScrollPositionX get() = max(0, child.minW + padding.width - w).toLong()
     override val maxScrollPositionY get() = max(0, child.minH + padding.height - h).toLong()
@@ -94,12 +106,12 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         }
 
     override fun scrollX(delta: Double) {
-        scrollPositionX += delta
+        targetScrollPositionX += delta
         clampScrollPosition()
     }
 
     override fun scrollY(delta: Double) {
-        scrollPositionY += delta
+        targetScrollPositionY += delta
         clampScrollPosition()
     }
 
@@ -183,7 +195,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         ) {// if done scrolling go up the hierarchy one
 
         } else {
-            scrollPositionX += dx0
+            scrollX(dx0.toDouble())
             clampScrollPosition()
             consumedX = true
         }
@@ -194,7 +206,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         ) {// if done scrolling go up the hierarchy one
 
         } else {
-            scrollPositionY += dy0
+            scrollY(dy0.toDouble())
             clampScrollPosition()
             consumedY = true
         }
@@ -214,6 +226,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     private fun clampScrollPosition() {
         scrollPositionX = clamp(scrollPositionX, 0.0, maxScrollPositionX.toDouble())
         scrollPositionY = clamp(scrollPositionY, 0.0, maxScrollPositionY.toDouble())
+        targetScrollPositionX = clamp(targetScrollPositionX, 0.0, maxScrollPositionX.toDouble())
+        targetScrollPositionY = clamp(targetScrollPositionY, 0.0, maxScrollPositionY.toDouble())
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

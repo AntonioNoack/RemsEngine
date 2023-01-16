@@ -71,7 +71,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         val color = (if (isHovered) 0xccffffff.toInt() else -1)
-            .withAlpha(if (isInputAllowed) 1f else 0.5f)
+            .withAlpha(if (isInputAllowed) 255 else 127)
         val texture = getImage(isChecked) ?: whiteTexture
         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         drawTexture(
