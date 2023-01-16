@@ -31,6 +31,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
+import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.TextInput
@@ -505,42 +506,38 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
     fun getInputField(con: NodeConnector, old: Panel?): Panel? {
         if (!con.isEmpty()) return null
         if (con !is NodeInput) return null
-        when (con.type) {
+        val type = con.type
+        when (type) {
             "Float" -> {
-                if (old is FloatInput) return old
-                    .apply { textSize = font.size }
+                if (old is FloatInput) return old.apply { textSize = font.size }
                 return FloatInput(style)
                     .setValue(con.value as? Float ?: 0f, false)
                     .setChangeListener { con.value = it.toFloat() }
                     .apply { textSize = font.size }
             }
             "Double" -> {
-                if (old is FloatInput) return old
-                    .apply { textSize = font.size }
+                if (old is FloatInput) return old.apply { textSize = font.size }
                 return FloatInput(style)
                     .setValue(con.value as? Double ?: 0.0, false)
                     .setChangeListener { con.value = it }
                     .apply { textSize = font.size }
             }
             "Int" -> {
-                if (old is IntInput) return old
-                    .apply { textSize = font.size }
+                if (old is IntInput) return old.apply { textSize = font.size }
                 return IntInput(style)
                     .setValue(con.value as? Int ?: 0, false)
                     .setChangeListener { con.value = it.toInt() }
                     .apply { textSize = font.size }
             }
             "Long" -> {
-                if (old is IntInput) return old
-                    .apply { textSize = font.size }
+                if (old is IntInput) return old.apply { textSize = font.size }
                 return IntInput(style)
                     .setValue(con.value as? Long ?: 0L, false)
                     .setChangeListener { con.value = it }
                     .apply { textSize = font.size }
             }
             "String" -> {
-                if (old is TextInput) return old
-                    .apply { textSize = font.size }
+                if (old is TextInput) return old.apply { textSize = font.size }
                 return TextInput("", "", con.value.toString(), style)
                     .addChangeListener { con.value = it }
                     .apply { textSize = font.size }
@@ -553,7 +550,21 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                     .apply { makeBackgroundTransparent() }
             }
         }
-        // todo enum input for enums...
+        if (type.startsWith("Enum<") && type.endsWith(">")) {
+            try {
+                // enum input for enums
+                // not tested -> please test 😄
+                if (old is EnumInput) return old.apply { textSize = font.size }
+                val clazz = javaClass.classLoader.loadClass(type.substring(5, type.length - 1))
+                val values = EnumInput.getEnumConstants(clazz)
+                return EnumInput(NameDesc(con.value.toString()), values.map { NameDesc(it.toString()) }, style)
+                    .setChangeListener { _, index, _ ->
+                        con.value = values[index]
+                    }
+            } catch (e: ClassNotFoundException) {
+                e.printStackTrace()
+            }
+        }
         return null
     }
 

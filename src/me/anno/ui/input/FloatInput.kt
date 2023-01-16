@@ -14,7 +14,7 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
-open class FloatInput(
+class FloatInput(
     style: Style, title: String,
     visibilityKey: String,
     type: Type = Type.FLOAT,
@@ -23,14 +23,14 @@ open class FloatInput(
 
     constructor(style: Style) : this(style, "", "", Type.FLOAT)
 
-    override var lastValue: Double = 0.0
+    override var lastValue: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
 
     var allowInfinity = false
 
     init {
-        // todo only override text, if the users presses enter
-        setText("0.0", false)
+        // to do only override text, if the users presses enter (??)
+        setText(lastValue.toString(), false)
         inputPanel.addChangeListener {
             val newValue = parseValue(it)
             if (newValue != null) {
@@ -154,6 +154,7 @@ open class FloatInput(
             lastValue = value
             setText(stringify(value), notify)
             if (notify) changeListener(value)
+            invalidateLayout()
         }
         return this
     }
@@ -188,6 +189,7 @@ open class FloatInput(
         clone.changeListener = changeListener
         clone.allowInfinity = allowInfinity
         clone.tooltip = tooltip
+        clone.setValue(lastValue, false)
     }
 
     override val className get() = "FloatInput"

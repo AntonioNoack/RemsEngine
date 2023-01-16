@@ -15,7 +15,7 @@ import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToLong
 
-open class IntInput(
+class IntInput(
     style: Style,
     title: String,
     visibilityKey: String,
@@ -30,6 +30,7 @@ open class IntInput(
     private var savedDelta = 0f
 
     init {
+        setText(lastValue.toString(), false)
         inputPanel.addChangeListener {
             val newValue = parseValue(it)
             if (newValue != null) {
@@ -124,7 +125,7 @@ open class IntInput(
         }
     }
 
-    open fun getValue(value: Any): Long {
+    fun getValue(value: Any): Long {
         return when (value) {
             is Boolean -> if (value) 1L else 0L
             is Byte -> value.toLong()

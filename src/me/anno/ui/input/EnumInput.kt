@@ -49,6 +49,9 @@ open class EnumInput(
         tooltip = Dict[ttt, "$dictPath.desc"]
     }
 
+    constructor(startValue: NameDesc, options: List<NameDesc>, style: Style) :
+            this("", false, startValue.name, options, style)
+
     constructor(name: NameDesc, startValue: NameDesc, options: List<NameDesc>, style: Style) :
             this(name.name, true, startValue.name, options, style) {
         tooltip = name.desc

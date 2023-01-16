@@ -737,10 +737,14 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onEnterKey(x: Float, y: Float) {
-        if (isInputAllowed && lines.size + 1 < lineLimit)
+        if (isInputAllowed && lines.size + 1 < lineLimit) {
             insert('\n'.code, true)
-        else enterListener?.invoke(text)
-        invalidateDrawing()
+            invalidateDrawing()
+        } else {
+            val listener = enterListener
+            if (listener != null) listener.invoke(text)
+            else super.onEnterKey(x, y)
+        }
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
