@@ -199,7 +199,7 @@ object Raycast {
             mesh.ensureBounds()
 
             // todo it would be great if we would/could project the start+end onto the global aabb,
-            // todo if they lay outside, so more often we can use the faster method more often
+            //  if they lay outside, so we can use the faster method more often
 
             // transform the ray into local mesh coordinates
             val inverse = result.tmpMat4x3d

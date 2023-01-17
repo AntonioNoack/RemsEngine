@@ -15,6 +15,8 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.shader.Renderer
+import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
@@ -28,7 +30,9 @@ import kotlin.math.min
  * like UIMeshTestEasy, just more in-depth and more customizable (like easy MSAA support for rendered normals)
  * */
 class SimpleMeshTest(
-    val msaa: Boolean, meshRef: FileReference = getReference("res://mesh/arrowX.obj")
+    var msaa: Boolean,
+    var renderer: Renderer = attributeRenderers[DeferredLayerType.NORMAL],
+    meshRef: FileReference = getReference("res://mesh/arrowX.obj"),
 ) : Panel(style) {
 
     val pipeline = Pipeline(null)
@@ -36,7 +40,7 @@ class SimpleMeshTest(
 
     init {
         // for loading the mesh
-        ECSRegistry.initMeshes()
+        if ("Mesh" !in ISaveable.objectTypeRegistry) ECSRegistry.initMeshes()
         rootEntity.add(MeshComponent(meshRef))
     }
 
@@ -65,7 +69,6 @@ class SimpleMeshTest(
         rootEntity.validateTransform()
         pipeline.fill(rootEntity, RenderState.cameraPosition, 1.0)
         // render
-        val renderer = attributeRenderers[DeferredLayerType.NORMAL]
         val samples = min(GFX.maxSamples, 8)
         val msaa = msaa && GFXState.currentBuffer.samples < samples
         val buffer = if (msaa) FBStack["msaa", w, h, 4, BufferQuality.LOW_8, samples, false] else GFXState.currentBuffer
@@ -83,5 +86,5 @@ class SimpleMeshTest(
 fun main() {
     // the main method is extracted, so it can be easily ported to web
     // a better method may come in the future
-    testUI3 { SimpleMeshTest(true) }
+    testUI3 { SimpleMeshTest(true, attributeRenderers[DeferredLayerType.COLOR]) }
 }

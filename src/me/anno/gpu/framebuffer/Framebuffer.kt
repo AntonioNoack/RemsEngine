@@ -427,6 +427,11 @@ class Framebuffer(
 
     fun destroyTextures(deleteDepth: Boolean) {
         if (!usesCRBs) for (tex in textures) tex.destroy()
+        else {
+            val crb = colorRenderBuffers
+            if (crb != null) glDeleteRenderbuffers(crb)
+            colorRenderBuffers = null
+        }
         if (deleteDepth) destroyDepthTexture()
     }
 
@@ -441,6 +446,7 @@ class Framebuffer(
             destroyFramebuffer()
             destroyInternalDepth()
             destroyTextures(true)
+            renderBufferAllocated = Texture2D.allocate(renderBufferAllocated, 0L)
         }
     }
 
