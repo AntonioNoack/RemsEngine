@@ -64,13 +64,13 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                 setImage(file.inputStreamSync().use { QOIImage.findSize(it) })
             }
             // only load ffmpeg for ffmpeg files
-            "gif", "media" -> {
+            "gif", "media", "dds" -> {
                 if (!OS.isAndroid && (file is FileFileRef || file is WebRef)) {
                     loadFFMPEG()
                 }
             }
-            "png", "jpg", "psd", "dds", "exr" -> {
-                println("$signature -> ${ImageIO.getImageReadersBySuffix(signature).toList().size}")
+            "png", "jpg", "psd", "exr" -> {
+                LOGGER.debug("$signature -> ${ImageIO.getImageReadersBySuffix(signature).toList().size} readers")
                 for (reader in ImageIO.getImageReadersBySuffix(signature)) {
                     try {
                         file.inputStreamSync().use {

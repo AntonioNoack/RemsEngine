@@ -165,9 +165,7 @@ object VideoCache : CacheSection("Videos") {
             waitForGFXThreadUntilDefined(true) {
                 videoData.getFrame(localIndex, needsToBeCreated)
             }
-        } else {
-            videoData.getFrame(localIndex, needsToBeCreated)
-        }
+        } else videoData.getFrame(localIndex, needsToBeCreated)
     }
 
     fun getFrameWithoutGenerator(

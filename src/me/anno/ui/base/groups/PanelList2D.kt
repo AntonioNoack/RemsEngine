@@ -73,7 +73,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
     override fun scrollY(delta: Double) {
         targetScrollPositionY += delta
         clampScrollPosition()
-        invalidateLayout()
+        window?.needsLayout?.add(this)
     }
 
     val scrollbar = ScrollbarY(this, style)
@@ -275,9 +275,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
         ) {// if done scrolling go up the hierarchy one
             super.onMouseWheel(x, y, dx, dy, byMouse)
         } else {
-            scrollPositionY += delta
-            clampScrollPosition()
-            invalidateLayout()
+            scrollY(delta.toDouble())
             // we consumed dy
             if (dx != 0f) {
                 super.onMouseWheel(x, y, dx, 0f, byMouse)
@@ -286,7 +284,9 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
     }
 
     private fun clampScrollPosition() {
-        scrollPositionY = clamp(scrollPositionY, 0.0, maxScrollPositionY.toDouble())
+        val limit = maxScrollPositionY.toDouble()
+        scrollPositionY = clamp(scrollPositionY, 0.0, limit)
+        targetScrollPositionY = clamp(targetScrollPositionY, 0.0, limit)
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

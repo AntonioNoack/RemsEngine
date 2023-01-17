@@ -24,7 +24,7 @@ class CPUFrameReader(
                 "BGRA" -> BGRAFrame
                 "RGBA" -> RGBAFrame
                 "RGB" -> RGBFrame
-                "BGR" -> BGRFrame
+                "BGR", "BGR[24]" -> BGRFrame
                 // bw
                 "Y4", "Y800" -> Y4Frame // seems correct, awkward, that it has the same name
                 else -> I420Frame // throw RuntimeException("Unsupported Codec $codec for $file")

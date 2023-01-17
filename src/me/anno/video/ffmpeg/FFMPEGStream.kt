@@ -192,7 +192,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         if (isProcessCountLimited) {
             waitForRelease(process)
         }
-
         return this
 
     }

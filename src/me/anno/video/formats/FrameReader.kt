@@ -9,11 +9,12 @@ import me.anno.video.ffmpeg.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import kotlin.concurrent.thread
+import kotlin.math.abs
 
 abstract class FrameReader<FrameType>(
     file: FileReference,
     val frame0: Int,
-    bufferLength: Int,
+    val bufferLength: Int,
 ) : FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
 
     val frames = ArrayList<FrameType>(bufferLength)
@@ -32,23 +33,27 @@ abstract class FrameReader<FrameType>(
                 // ...
             }
         }
-        thread(name = "${file?.name}:input-stream") {
-            try {
-                val frameCount = arguments[arguments.indexOf("-vframes") + 1].toInt()
-                val input = process.inputStream
-                input.use {
+
+        try {
+            val frameCount = bufferLength
+            val input = process.inputStream
+            input.use {
+                readFrame(input)
+                if (!isFinished) for (i in 1 until frameCount) {
                     readFrame(input)
-                    for (i in 1 until frameCount) {
-                        readFrame(input)
-                        if (isFinished) break
+                    if (isFinished) {
+                        break
                     }
                 }
-            } catch (e: OutOfMemoryError) {
-                LOGGER.warn("Engine has run out of memory!!")
-            } catch (e: ShutdownException) {
-                // ...
             }
+        } catch (e: OutOfMemoryError) {
+            LOGGER.warn("Engine has run out of memory!!")
+        } catch (e: ShutdownException) {
+            // ...
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
+
     }
 
     // todo what do we do, if we run out of memory?
@@ -83,6 +88,7 @@ abstract class FrameReader<FrameType>(
     companion object {
         @JvmStatic
         private val foundCodecs = HashSet<String>()
+
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FrameReader::class.java)
     }

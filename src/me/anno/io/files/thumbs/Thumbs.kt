@@ -442,7 +442,12 @@ object Thumbs {
     ) {
 
         val meta = getMeta(srcFile, false) ?: throw RuntimeException("Could not load metadata for $srcFile")
-        if (max(meta.videoWidth, meta.videoHeight) < size) return generate(srcFile, size / 2, callback)
+        val mx = max(meta.videoWidth, meta.videoHeight)
+        if (mx < size) {
+            var sizeI = size shr 1
+            while (mx < sizeI) sizeI = sizeI shr 1
+            return generate(srcFile, sizeI, callback)
+        }
 
         val scale = floor(max(meta.videoWidth, meta.videoHeight).toFloat() / size).toInt()
 
@@ -454,10 +459,10 @@ object Thumbs {
 
         val fps = min(5.0, meta.videoFPS)
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
-        val index = (time * fps).roundToInt()
+        val index = max(min((time * fps).roundToInt(), meta.videoFrameCount - 1), 0)
 
         val src = waitForGFXThreadUntilDefined(true) {
-            getVideoFrame(srcFile, scale, index, 0, fps, 1000L, true)
+            getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
         }
 
         waitForGFXThread(true) { src.isCreated }
@@ -1175,8 +1180,6 @@ object Thumbs {
 
         Signature.findName(srcFile) { signature ->
 
-            println("$srcFile -> $signature")
-
             val reader = readerBySignature[signature]
             if (reader != null) {
                 reader(srcFile, size, dstFile, callback)
@@ -1213,7 +1216,6 @@ object Thumbs {
                 }
                 "lua-bytecode" -> {
                 }
-                // todo dds files have no preview... why? they can be opened as a folder
                 // todo MIP images... are used by gradient domain samples
                 "dds" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                 "exe" -> generateSystemIcon(srcFile, dstFile, size, callback)
