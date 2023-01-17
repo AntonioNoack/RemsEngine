@@ -23,7 +23,7 @@ class BlankFrameDetector {
     fun putRGBA(data: ByteBuffer) {
         val ris = randomIndexSequence
         val size = data.remaining() / 4
-        for (i in ris.indices) {
+        if (size > 0) for (i in ris.indices) {
             val pixelIndex = (size * ris[i]).toInt()
             val rgba = data.getInt(pixelIndex * 4)
             pixels[i] = pixels[i] or rgba
@@ -34,7 +34,7 @@ class BlankFrameDetector {
         val shift = channel * 8
         val ris = randomIndexSequence
         val size = data.remaining()
-        for (i in ris.indices) {
+        if (size > 0) for (i in ris.indices) {
             val pixelIndex = (size * ris[i]).toInt()
             val byte = data[pixelIndex]
             pixels[i] = pixels[i] or byte.toInt().and(255).shl(shift)

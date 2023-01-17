@@ -9,18 +9,19 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.ByteImage
-import me.anno.video.BlankFrameDetector
 import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.files.Files.findNextFile
+import me.anno.video.BlankFrameDetector
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
-import javax.imageio.ImageIO
 
-abstract class GPUFrame(
-    var w: Int, var h: Int, val code: Int
-) : ICacheData {
+abstract class GPUFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
+
+    init {
+        if (w < 1 || h < 1) throw IllegalArgumentException("Cannot create empty frames")
+    }
 
     val isCreated: Boolean get() = getTextures().all { it.isCreated && !it.isDestroyed }
     val isDestroyed: Boolean get() = getTextures().any { it.isDestroyed }

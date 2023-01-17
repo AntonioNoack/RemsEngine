@@ -1,5 +1,6 @@
 package me.anno.video.formats
 
+import me.anno.Engine
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
@@ -18,11 +19,11 @@ abstract class FrameReader<FrameType>(
 ) : FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
 
     val frames = ArrayList<FrameType>(bufferLength)
+    val parser = FFMPEGMetaParser()
 
     override fun process(process: Process, arguments: List<String>) {
         thread(name = "${file?.name}:error-stream") {
             val out = process.errorStream.bufferedReader()
-            val parser = FFMPEGMetaParser()
             try {
                 while (true) {
                     val line = out.readLine() ?: break
@@ -36,16 +37,18 @@ abstract class FrameReader<FrameType>(
 
         try {
             val frameCount = bufferLength
-            val input = process.inputStream
-            input.use {
-                readFrame(input)
-                if (!isFinished) for (i in 1 until frameCount) {
+            waitForMetadata()
+            if (codec.isNotEmpty()) {
+                println("reading file $file with $w x $h x $codec")
+                val input = process.inputStream
+                input.use {
                     readFrame(input)
-                    if (isFinished) {
-                        break
+                    if (!isFinished) for (i in 1 until frameCount) {
+                        readFrame(input)
+                        if (isFinished) break
                     }
                 }
-            }
+            } else LOGGER.debug("$file cannot be read as image(s) by FFMPEG")
         } catch (e: OutOfMemoryError) {
             LOGGER.warn("Engine has run out of memory!!")
         } catch (e: ShutdownException) {
@@ -53,12 +56,26 @@ abstract class FrameReader<FrameType>(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
 
+    fun waitForMetadata() {
+        var lt = System.nanoTime()
+        waitUntil(true) {
+            // if the last line is too long ago, e.g., because the source is not readable as an image, return
+            if (parser.lastLineTime != 0L && Engine.nanoTime - parser.lastLineTime > 1e9) true
+            else {
+                val t = System.nanoTime()
+                if (abs(t - lt) > 1e9) {
+                    println("waiting for metadata on $file, $w x $h, $codec")
+                    lt = t
+                }
+                w != 0 && h != 0 && codec.isNotEmpty()
+            }
+        }
     }
 
     // todo what do we do, if we run out of memory?
     private fun readFrame(input: InputStream) {
-        waitUntil(true) { w != 0 && h != 0 && codec.isNotEmpty() }
         synchronized(foundCodecs) {
             if (foundCodecs.add(codec)) {
                 LOGGER.info("Found codec '$codec' in $file")

@@ -26,7 +26,7 @@ import javax.imageio.ImageIO
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
-class FFMPEGMetadata(val file: FileReference) : ICacheData {
+class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
 
     var duration = 0.0
 
@@ -55,7 +55,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             val image = file.readImage()
             videoWidth = image.width
             videoHeight = image.height
-        } else when (val signature = Signature.findNameSync(file)) {
+        } else when (val signature1 = signature ?: Signature.findNameSync(file)) {
             "gimp" -> {
                 // Gimp files are a special case, which is not covered by FFMPEG
                 setImage(file.inputStreamSync().use { GimpImage.findSize(it) })
@@ -70,8 +70,8 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                 }
             }
             "png", "jpg", "psd", "exr" -> {
-                LOGGER.debug("$signature -> ${ImageIO.getImageReadersBySuffix(signature).toList().size} readers")
-                for (reader in ImageIO.getImageReadersBySuffix(signature)) {
+                LOGGER.debug("$signature1 -> ${ImageIO.getImageReadersBySuffix(signature1).toList().size} readers")
+                for (reader in ImageIO.getImageReadersBySuffix(signature1)) {
                     try {
                         file.inputStreamSync().use {
                             reader.input = ImageIO.createImageInputStream(it)
@@ -85,7 +85,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                 }
             }
             "ico" -> setImage(file.inputStreamSync().use { ICOReader.findSize(it) })
-            null -> {
+            "", null -> {
                 when (file.lcExtension) {
                     "tga" -> setImage(file.inputStreamSync().use { TGAImage.findSize(it) })
                     "ico" -> setImage(file.inputStreamSync().use { ICOReader.findSize(it) })
@@ -266,7 +266,12 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
         @JvmStatic
         private fun createMetadata(file: FileReference, i: Long): FFMPEGMetadata {
             unused(i)
-            return FFMPEGMetadata(file)
+            return FFMPEGMetadata(file, null)
+        }
+
+        @JvmStatic
+        private fun createMetadata(file: FileReference, signature: String?): FFMPEGMetadata {
+            return FFMPEGMetadata(file, signature ?: "")
         }
 
         @JvmStatic
@@ -277,6 +282,13 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
         @JvmStatic
         fun getMeta(file: FileReference, async: Boolean): FFMPEGMetadata? {
             return metadataCache.getFileEntry(file, false, 300_000, async, Companion::createMetadata) as? FFMPEGMetadata
+        }
+
+        @JvmStatic
+        fun getMeta(file: FileReference, signature: String?, async: Boolean): FFMPEGMetadata? {
+            return metadataCache.getFileEntry(file, false, 300_000, async) { f, _ ->
+                createMetadata(f, signature)
+            } as? FFMPEGMetadata
         }
     }
 

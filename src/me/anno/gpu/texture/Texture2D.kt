@@ -186,6 +186,7 @@ open class Texture2D(
         val w = w
         val h = h
         val target = target
+        if (w * h <= 0) throw IllegalArgumentException("Cannot create empty texture")
         check()
         if (createdW == w && createdH == h && data != null && !withMultisampling) {
             setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
@@ -487,7 +488,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyMonochrome(data: ByteBuffer) {
-        if (w * h <= 1) return
+        if (data.capacity() <= 1) return
         val c0 = data[0]
         for (i in 1 until w * h) {
             if (c0 != data[i]) return
@@ -497,6 +498,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyMonochrome(data: FloatArray): FloatArray {
+        if (data.isEmpty()) return data
         val c0 = data[0]
         for (i in 1 until w * h) {
             if (c0 != data[i]) return data
@@ -506,6 +508,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyMonochrome(data: FloatBuffer) {
+        if (data.capacity() < 1) return
         val c0 = data[0]
         for (i in 1 until w * h) {
             if (c0 != data[i]) return
@@ -515,6 +518,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyMonochrome(data: ByteArray): ByteArray {
+        if (data.isEmpty()) return data
         val c0 = data[0]
         for (i in 1 until w * h) {
             if (c0 != data[i]) return data
@@ -524,6 +528,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyRGBA(data: FloatArray): FloatArray {
+        if (data.size < 4) return data
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -536,6 +541,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyRGB(data: FloatArray): FloatArray {
+        if (data.size < 3) return data
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -547,6 +553,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyRGB(data: FloatBuffer) {
+        if (data.capacity() < 3) return
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -558,6 +565,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyRGBA(data: FloatBuffer) {
+        if (data.capacity() < 4) return
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -570,6 +578,7 @@ open class Texture2D(
     }
 
     fun checkRedundancy(data: ByteArray): ByteArray {
+        if (data.size < 4) return data
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -582,6 +591,7 @@ open class Texture2D(
     }
 
     fun checkRedundancy(data: ByteBuffer) {
+        if (data.capacity() < 4) return
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -594,6 +604,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyRG(data: ByteArray): ByteArray {
+        if (data.size < 2) return data
         val c0 = data[0]
         val c1 = data[1]
         for (i in 2 until w * h * 2 step 2) {
@@ -604,6 +615,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyRG(data: FloatArray): FloatArray {
+        if (data.size < 2) return data
         val c0 = data[0]
         val c1 = data[1]
         for (i in 2 until w * h * 2 step 2) {
@@ -614,6 +626,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyRGB(data: ByteArray): ByteArray {
+        if (data.size < 3) return data
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -626,6 +639,7 @@ open class Texture2D(
     }
 
     fun checkRedundancyRGB(data: ByteBuffer) {
+        if (data.capacity() < 3) return
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -638,6 +652,7 @@ open class Texture2D(
     }
 
     fun checkRedundancy(data: ByteBuffer, rgbOnly: Boolean) {
+        if (data.capacity() < 4) return
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
@@ -657,6 +672,7 @@ open class Texture2D(
 
     fun checkRedundancyRG(data: ByteBuffer) {
         // when rgbOnly, check rgb only?
+        if (data.capacity() < 2) return
         val c0 = data[0]
         val c1 = data[1]
         for (i in 2 until w * h * 2 step 2) {

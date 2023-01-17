@@ -1,5 +1,6 @@
 package me.anno.video.ffmpeg
 
+import me.anno.Engine
 import me.anno.io.utils.StringMap
 import me.anno.utils.Warning.warn
 import me.anno.utils.structures.lists.Lists.indexOf2
@@ -8,11 +9,13 @@ import org.apache.logging.log4j.LogManager
 
 class FFMPEGMetaParser : StringMap() {
 
-    var debug = false
+    var lastLineTime = 0L
+    val list = ArrayList<String>()
 
     companion object {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FFMPEGMetaParser::class)
+        var debug = false
     }
 
     /**
@@ -48,8 +51,8 @@ class FFMPEGMetaParser : StringMap() {
         return line.length / 2
     }
 
-    fun String.specialSplit(): ArrayList<String> {
-        val list = ArrayList<String>()
+    fun String.specialSplit(list: MutableList<String>): MutableList<String> {
+        list.clear()
         var i0 = 0
         var i = 0
         fun put() {
@@ -77,29 +80,29 @@ class FFMPEGMetaParser : StringMap() {
     var level0Type = ""
     var level1Type = ""
 
-    fun removeBrackets(list: MutableList<String>) {
-        var depth = 0
-        list.removeAll {
-            when (it) {
-                "(", "[" -> {
-                    depth++
-                    true
-                }
-                ")", "]" -> {
-                    depth--
-                    true
-                }
-                else -> depth > 0
-            }
-        }
-    }
-
     fun parseLine(line: String, stream: FFMPEGStream) {
+        lastLineTime = Engine.nanoTime
         if (line.isBlank2()) return
         // if(debug) LOGGER.debug(line)
         val depth = getDepth(line)
-        val data = line.trim().specialSplit()
+        val data = line.trim().specialSplit(list)
         if (debug) LOGGER.debug("$depth $data")
+        fun parseSize() {
+            loop@ for (it in data) {
+                val idx = it.indexOf('x')
+                if (idx > 0) {
+                    val width = it.substring(0, idx).toIntOrNull() ?: continue
+                    val height = it.substring(idx + 1).toIntOrNull() ?: continue
+                    if(width > 0 && height > 0){
+                        // we got our info <3
+                        stream.w = width
+                        stream.h = height
+                        break@loop
+                    }
+                }
+            }
+        }
+
         fun parseOutput() {
             val videoTypeIndex = data.indexOf("rawvideo")
             if (debug) LOGGER.debug(data.toString())
@@ -113,19 +116,25 @@ class FFMPEGMetaParser : StringMap() {
                 }
                 stream.codec = codec
             }
-            removeBrackets(data)
-            loop@ for (it in data) {
-                val idx = it.indexOf('x')
-                if (idx > 0) {
-                    val width = it.substring(0, idx).toIntOrNull() ?: continue
-                    val height = it.substring(idx + 1).toIntOrNull() ?: continue
-                    // we got our info <3
-                    stream.w = width
-                    stream.h = height
-                    break@loop
+            parseSize()
+        }
+
+        fun analyzeIO() {
+            if (level0Type == "Output" && data[0] == "Stream") {
+                parseOutput()
+            }
+            if (level0Type == "Input" && data[0] == "Stream") {
+                try {
+                    val fpsIndex = data.indexOf("fps") - 1
+                    if (fpsIndex > -1) {
+                        stream.sourceFPS = data[fpsIndex].toDouble()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
+
         when (depth) {
             0 -> {
                 level0Type = data[0]
@@ -160,41 +169,9 @@ class FFMPEGMetaParser : StringMap() {
                         }
                     }
                 }
-                if (level0Type == "Output" && data[0] == "Stream") {
-                    parseOutput()
-                }
+                analyzeIO()
             }
-            2 -> {
-                if (level0Type == "Output" && data[0] == "Stream") {
-                    parseOutput()
-                }
-                if (level0Type == "Input" && data[0] == "Stream") {
-                    try {
-                        val fpsIndex = data.indexOf("fps") - 1
-                        if (fpsIndex > -1) {
-                            stream.sourceFPS = data[fpsIndex].toDouble()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    removeBrackets(data)
-                    val wh = data.mapNotNull {
-                        try {
-                            val widthHeight = it.split('x').map { dim -> dim.toIntOrNull() }
-                            val width = widthHeight[0] as Int
-                            val height = widthHeight[1] as Int
-                            width to height
-                        } catch (e: Exception) {
-                            null
-                        }
-                    }.firstOrNull()
-                    if (wh != null) {
-                        // we got our info <3
-                        stream.srcW = wh.first
-                        stream.srcH = wh.second
-                    }
-                }
-            }
+            else -> analyzeIO()
         }
     }
 

@@ -113,7 +113,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                         if (shouldIgnore(signature)) {
                             data.value = null
                         } else if (shouldUseFFMPEG(signature, file)) {
-                            tryFFMPEG(file) { it, e ->
+                            tryFFMPEG(file, signature) { it, e ->
                                 data.value = it
                                 e?.printStackTrace()
                             }
@@ -128,7 +128,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                     if (shouldIgnore(signature)) {
                         data.value = null
                     } else if (shouldUseFFMPEG(signature, file)) {
-                        tryFFMPEG(file) { it, e ->
+                        tryFFMPEG(file, signature) { it, e ->
                             data.value = it
                             e?.printStackTrace()
                         }
@@ -150,12 +150,13 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         return if (data is AsyncCacheData<*>) data.value as? Image else null
     }
 
-    private fun tryFFMPEG(file: FileReference, callback: ImageCallback) {
+    private fun tryFFMPEG(file: FileReference, signature: String?, callback: ImageCallback) {
         return if (file is FileFileRef) {
             val meta = FFMPEGMetadata.getMeta(file, false)!!
             val sequence = FFMPEGStream.getImageSequenceCPU(
-                file, meta.videoWidth, meta.videoHeight, min(20, (meta.videoFrameCount - 1) / 3), 1, meta.videoFPS,
-                meta.videoFrameCount
+                file, signature, meta.videoWidth, meta.videoHeight,
+                min(20, (meta.videoFrameCount - 1) / 3),
+                1, meta.videoFPS, meta.videoFrameCount
             )
             Sleep.waitUntil(true) { sequence.frames.size > 0 || sequence.isFinished }
             callback(sequence.frames.first(), null)
@@ -165,7 +166,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
             file.readBytes { bytes, e ->
                 if (bytes != null) {
                     tmp.writeBytes(bytes)
-                    tryFFMPEG(getReference(tmp), callback)
+                    tryFFMPEG(getReference(tmp), signature, callback)
                     tmp.delete()
                 } else callback(null, e)
             }

@@ -10,7 +10,7 @@ import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 class VideoData(
-    val file: FileReference, val w: Int, val h: Int,
+    val file: FileReference, signature: String?, val w: Int, val h: Int,
     val scale: Int, val bufferIndex: Int,
     bufferLength: Int, val fps: Double,
     val numTotalFramesInSrc: Int,
@@ -25,7 +25,7 @@ class VideoData(
 
     // what about video webp? I think it's pretty rare...
     val stream = FFMPEGStream.getImageSequence(
-        file, w, h, bufferIndex * bufferLength,
+        file, signature, w, h, bufferIndex * bufferLength,
         if (file.name.endsWith(".webp", true)) 1 else bufferLength, fps,
         numTotalFramesInSrc
     )

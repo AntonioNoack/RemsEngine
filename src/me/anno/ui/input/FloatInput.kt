@@ -14,7 +14,8 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
-class FloatInput(
+// must be open for Rem's Studio
+open class FloatInput(
     style: Style, title: String,
     visibilityKey: String,
     type: Type = Type.FLOAT,

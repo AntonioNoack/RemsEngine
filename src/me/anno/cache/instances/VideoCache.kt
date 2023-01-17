@@ -5,6 +5,7 @@ import me.anno.cache.data.VideoData
 import me.anno.cache.keys.VideoFramesKey
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.files.FileReference
+import me.anno.io.files.Signature
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.black
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
@@ -134,13 +135,11 @@ object VideoCache : CacheSection("Videos") {
     private fun generateVideoFrames(key: VideoFramesKey): VideoData {
         val file = key.file
         val scale = key.scale
-        val bufferIndex = key.bufferIndex
-        val bufferLength = key.frameLength
-        val fps = key.fps
-        val meta = getMeta(file, false) ?: throw RuntimeException("Meta was not found for $key!")
+        val signature = Signature.findNameSync(file)
+        val meta = getMeta(file, signature, false) ?: throw RuntimeException("Meta was not found for $key!")
         return VideoData(
-            file, meta.videoWidth / scale, meta.videoHeight / scale, scale,
-            bufferIndex, bufferLength, fps,
+            file, signature, meta.videoWidth / scale, meta.videoHeight / scale, scale,
+            key.bufferIndex, key.frameLength, key.fps,
             meta.videoFrameCount
         )
     }
@@ -149,9 +148,7 @@ object VideoCache : CacheSection("Videos") {
         file: FileReference, scale: Int,
         bufferIndex: Int, bufferLength: Int,
         fps: Double
-    ): VideoData? {
-        return getEntryWithoutGenerator(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps)) as? VideoData
-    }
+    ) = getEntryWithoutGenerator(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps)) as? VideoData
 
     fun getFrame(
         file: FileReference, scale: Int,

@@ -52,33 +52,33 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         @JvmStatic
         fun getImageSequence(
-            input: FileReference, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double,
-            totalFrameCount: Int
+            input: FileReference, signature: String?,
+            w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double, totalFrameCount: Int
         ): GPUFrameReader {
-            return getImageSequence(input, w, h, startFrame / fps, frameCount, fps, totalFrameCount)
+            return getImageSequence(input, signature, w, h, startFrame / fps, frameCount, fps, totalFrameCount)
         }
 
         // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
         // if we use hardware decoding, we need to use it on the gpu...
         @JvmStatic
         fun getImageSequence(
-            input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double,
-            totalFrameCount: Int
+            input: FileReference, signature: String?,
+            w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double, totalFrameCount: Int
         ): GPUFrameReader {
             val video = GPUFrameReader(input, (startTime * fps).roundToInt(), frameCount)
-            video.run(getImageSequenceArguments(input, w, h, startTime, frameCount, fps, totalFrameCount))
+            video.run(getImageSequenceArguments(input, signature, w, h, startTime, frameCount, fps, totalFrameCount))
             return video
         }
 
         @JvmStatic
         fun getImageSequenceCPU(
-            input: FileReference, w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double,
-            totalFrameCount: Int
+            input: FileReference, signature: String?,
+            w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double, totalFrameCount: Int
         ): CPUFrameReader {
             val video = CPUFrameReader(input, frameIndex, frameCount)
             video.run(
                 getImageSequenceArguments(
-                    input, w, h,
+                    input, signature, w, h,
                     frameIndex / max(fps, 1e-3), frameCount, fps, totalFrameCount
                 )
             )
@@ -87,7 +87,10 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         @JvmStatic
         fun getImageSequenceArguments(
-            input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double,
+            input: FileReference,
+            signature: String?,
+            w: Int, h: Int, startTime: Double,
+            frameCount: Int, fps: Double,
             totalFrameCount: Int
         ): List<String> {
             val meta = getMeta(input, false)
@@ -110,7 +113,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
             // todo support 10bit color?
             args.add("-pix_fmt")
-            args.add("bgr24")
+            args.add(if (signature == "dds") "argb" else "bgr24")
 
             args.add("-vframes")
             args.add(frameCount.toString())

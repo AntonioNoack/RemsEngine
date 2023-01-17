@@ -2,8 +2,6 @@ package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.Color.rgba
-import me.anno.utils.Color.toHexColor
 import me.anno.utils.Sleep
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream

@@ -5,6 +5,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.video.LastFrame
 import me.anno.video.formats.FrameReader
+import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 
@@ -26,7 +27,7 @@ class GPUFrameReader(
                 "BGRA" -> BGRAFrame(w, h)
                 "RGBA" -> RGBAFrame(w, h)
                 "RGB" -> RGBFrame(w, h)
-                "BGR","BGR[24]" -> BGRFrame(w, h)
+                "BGR", "BGR[24]" -> BGRFrame(w, h)
                 // bw
                 "Y4", "Y800" -> Y4Frame(w, h) // seems correct, awkward, that it has the same name
                 // todo PAL: todo decode somehow (if still needed; ico is no longer being loaded with ffmpeg); sample: pictures/fav128.ico
@@ -34,6 +35,8 @@ class GPUFrameReader(
             }
             frame.load(input)
             return frame
+        } catch (e: EOFException) {
+            e.printStackTrace()
         } catch (e: LastFrame) {
             e.printStackTrace()
         } catch (e: IOException) {
