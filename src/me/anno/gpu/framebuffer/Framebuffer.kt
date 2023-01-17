@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.Build
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.texture.Clamping
@@ -59,12 +60,22 @@ class Framebuffer(
      * */
     override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer {
         return if (targetCount <= GFX.maxColorAttachments) {
-            val buffer = Framebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            val buffer = Framebuffer(
+                "$name.sd", w, h, samples,
+                targetCount, fpTargets, DepthBufferType.ATTACHMENT
+            )
             buffer.depthAttachment = this
+            buffer.ssBuffer?.depthAttachment = ssBuffer
             buffer
         } else {
-            val buffer = MultiFramebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
-            for (it in buffer.targetsI) it.depthAttachment = this
+            val buffer = MultiFramebuffer(
+                "$name.msd", w, h, samples,
+                targetCount, fpTargets, DepthBufferType.ATTACHMENT
+            )
+            for (it in buffer.targetsI) {
+                it.depthAttachment = this
+                it.ssBuffer?.depthAttachment = ssBuffer
+            }
             buffer
         }
     }
@@ -78,12 +89,16 @@ class Framebuffer(
         if (depthBufferType != DepthBufferType.TEXTURE && depthBufferType != DepthBufferType.TEXTURE_16)
             throw IllegalStateException("Cannot attach depth to framebuffer without depth texture")
         return if (targets.size <= GFX.maxColorAttachments) {
-            val buffer = Framebuffer(name, w, h, samples, targets, DepthBufferType.ATTACHMENT)
+            val buffer = Framebuffer("$name.sd", w, h, samples, targets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this
+            buffer.ssBuffer?.depthAttachment = ssBuffer
             buffer
         } else {
-            val buffer = MultiFramebuffer(name, w, h, samples, targets, DepthBufferType.ATTACHMENT)
-            for (it in buffer.targetsI) it.depthAttachment = this
+            val buffer = MultiFramebuffer("$name.msd", w, h, samples, targets, DepthBufferType.ATTACHMENT)
+            for (it in buffer.targetsI) {
+                it.depthAttachment = this
+                it.ssBuffer?.depthAttachment = ssBuffer
+            }
             buffer
         }
     }
@@ -107,7 +122,7 @@ class Framebuffer(
 
     val withMultisampling get() = samples > 1
     var ssBuffer = if (withMultisampling)
-        Framebuffer("$name.ms", w, h, 1, targets, depthBufferType) else null
+        Framebuffer("$name.ss", w, h, 1, targets, depthBufferType) else null
 
     override var pointer = 0
     var session = 0
@@ -153,7 +168,8 @@ class Framebuffer(
         val da = if (depthBufferType == DepthBufferType.ATTACHMENT) depthAttachment else null
         var wasDestroyed = false
         if (da != null) {
-            if (da.depthTexture!!.pointer != depthAttachedPtr) {
+            val dtp = da.depthTexture?.pointer ?: da.internalDepthTexture
+            if (dtp != depthAttachedPtr) {
                 destroy()
                 wasDestroyed = true
             }
@@ -164,11 +180,14 @@ class Framebuffer(
 
         ensure()
 
-        if (da != null && da.depthTexture!!.pointer != depthAttachedPtr) {
-            throw IllegalStateException(
-                "Depth attachment could not be recreated! ${da.pointer}, ${da.depthTexture!!.pointer} != $depthAttachedPtr, " +
-                        "was destroyed? $wasDestroyed"
-            )
+        if (da != null) {
+            val dtp = da.depthTexture?.pointer ?: da.internalDepthTexture
+            if (dtp != depthAttachedPtr) {
+                throw IllegalStateException(
+                    "Depth attachment could not be recreated! ${da.pointer}, ${da.depthTexture!!.pointer} != $depthAttachedPtr, " +
+                            "was destroyed? $wasDestroyed"
+                )
+            }
         }
 
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
@@ -193,7 +212,9 @@ class Framebuffer(
         }
     }
 
-    val usesCRBs = samples > 1 // if you need multi-sampled textures, write me :)
+    val usesCRBs = false // samples > 1
+    // if you need multi-sampled textures, write me :) ->
+    // lol, I need them myself for MSAA x deferred rendering 😂
 
     fun create() {
         Frame.invalidate()
@@ -236,11 +257,19 @@ class Framebuffer(
             DepthBufferType.NONE -> {
             }
             DepthBufferType.ATTACHMENT -> {
-                val texPointer = depthAttachment?.depthTexture?.pointer
-                    ?: throw IllegalStateException("Depth Attachment was not found in $name, ${depthAttachment}.${depthAttachment?.depthTexture}")
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
-                // println("set attached depth ptr to $texPointer")
-                depthAttachedPtr = texPointer
+                val da = depthAttachment ?: throw IllegalStateException("Depth Attachment was not found in $name, null")
+                depthAttachedPtr = if (da.usesCRBs && da.internalDepthTexture != 0) {
+                    val texPointer = da.internalDepthTexture
+                    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, texPointer)
+                    // println("set attached depth ptr to $texPointer")
+                    texPointer
+                } else {
+                    val texPointer = da.depthTexture?.pointer
+                        ?: throw IllegalStateException("Depth Attachment was not found in $name, $da.${da.depthTexture}")
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
+                    // println("set attached depth ptr to $texPointer")
+                    texPointer
+                }
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {

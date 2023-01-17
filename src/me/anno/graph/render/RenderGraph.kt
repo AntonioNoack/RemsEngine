@@ -98,9 +98,11 @@ class RenderGraph {
                 return
             }
 
+            val samples = 1 // todo make this configurable
+
             // create deferred settings
             // todo keep settings if they stayed the same as last frame
-            val settings = DeferredSettingsV2(enabledLayers, true)
+            val settings = DeferredSettingsV2(enabledLayers, samples, true)
 
             val rv: RenderView = renderView
             val camera: Camera = rv.editorCamera

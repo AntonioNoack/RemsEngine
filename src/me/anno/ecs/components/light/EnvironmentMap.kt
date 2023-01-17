@@ -222,7 +222,7 @@ class EnvironmentMap : LightComponentBase() {
         val textureTimeout = 10000L
 
         val pipeline by lazy {
-            val pipeline = Pipeline(DeferredSettingsV2(listOf(), false))
+            val pipeline = Pipeline(DeferredSettingsV2(listOf(), 1, false))
             // we may need a second stage for transparent stuff
             pipeline.defaultStage = PipelineStage(
                 "", Sorting.NO_SORTING, 16, null, DepthMode.CLOSER,

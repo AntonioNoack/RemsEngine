@@ -19,57 +19,62 @@ import me.anno.gpu.shader.SimpleRenderer
 // done and deferred rendering (no mapping needed, more memory intensive, more lights supported)
 
 object DeferredRenderer : SimpleRenderer(
-    "deferred", DeferredSettingsV2(
-        // todo while these should be matches to the program running them, the game should decide what it needs where
-        when (8 + GFX.maxColorAttachments) {
-            // my Huawei H10 has 4, my RX 580 has 8
-            // we should program in such a way, that it always works
-            1 -> listOf(DeferredLayerType.COLOR_EMISSIVE)
-            2 -> listOf(
-                DeferredLayerType.COLOR_EMISSIVE, // 4
-                DeferredLayerType.NORMAL, // 3
-                DeferredLayerType.ROUGHNESS, // 1
-                // total: 8
-            )
-            3 -> listOf(
-                DeferredLayerType.COLOR_EMISSIVE, // 4
-                DeferredLayerType.NORMAL, // 3
-                DeferredLayerType.POSITION, // 3
-                DeferredLayerType.ROUGHNESS, // 1
-                DeferredLayerType.METALLIC, // 1
-                // total: 12
-            )
-            4 -> listOf(
-                DeferredLayerType.COLOR, // 3
-                DeferredLayerType.OCCLUSION, // 1
-                DeferredLayerType.NORMAL, // 3
-                DeferredLayerType.POSITION, // 3, could be replaced by depth + transform + math
-                DeferredLayerType.EMISSIVE, // 3
-                // DeferredLayerType.TANGENT,
-                DeferredLayerType.ROUGHNESS, // 1
-                DeferredLayerType.METALLIC,// 1
-                DeferredLayerType.SHEEN, // 1
-                // total: 16
-            )
-            else -> {
-                listOf(
-                    DeferredLayerType.COLOR, // 3
-                    DeferredLayerType.OCCLUSION, // 1
-                    DeferredLayerType.NORMAL, // 3
-                    DeferredLayerType.POSITION, // 3, could be replaced by depth + transform + math
-                    DeferredLayerType.EMISSIVE, // 3
-                    // DeferredLayerType.TANGENT,
-                    DeferredLayerType.ROUGHNESS, // 1
-                    DeferredLayerType.METALLIC,// 1
-                    DeferredLayerType.SHEEN, // 1
-                    DeferredLayerType.TRANSLUCENCY, // 1
-                    // applied in material shader
-                    // DeferredLayerType.CLEAR_COAT,
-                    DeferredLayerType.ANISOTROPIC, // 1
-                    // total: 18
-                )
-            }
-        }, true
-    ),
+    "deferred", DeferredSettingsV2(findLayers(), 1, true),
     colorRenderer.getPostProcessing()!!
 )
+
+object DeferredRendererMSAA : SimpleRenderer(
+    "deferredMSAA", DeferredSettingsV2(findLayers(), GFX.maxSamples, true),
+    colorRenderer.getPostProcessing()!!
+)
+
+// todo while these should be matches to the program running them, the game should decide what it needs where
+fun findLayers() = when (8 + GFX.maxColorAttachments) {
+    // my Huawei H10 has 4, my RX 580 has 8
+    // we should program in such a way, that it always works
+    1 -> listOf(DeferredLayerType.COLOR_EMISSIVE)
+    2 -> listOf(
+        DeferredLayerType.COLOR_EMISSIVE, // 4
+        DeferredLayerType.NORMAL, // 3
+        DeferredLayerType.ROUGHNESS, // 1
+        // total: 8
+    )
+    3 -> listOf(
+        DeferredLayerType.COLOR_EMISSIVE, // 4
+        DeferredLayerType.NORMAL, // 3
+        DeferredLayerType.POSITION, // 3
+        DeferredLayerType.ROUGHNESS, // 1
+        DeferredLayerType.METALLIC, // 1
+        // total: 12
+    )
+    4 -> listOf(
+        DeferredLayerType.COLOR, // 3
+        DeferredLayerType.OCCLUSION, // 1
+        DeferredLayerType.NORMAL, // 3
+        DeferredLayerType.POSITION, // 3, could be replaced by depth + transform + math
+        DeferredLayerType.EMISSIVE, // 3
+        // DeferredLayerType.TANGENT,
+        DeferredLayerType.ROUGHNESS, // 1
+        DeferredLayerType.METALLIC,// 1
+        DeferredLayerType.SHEEN, // 1
+        // total: 16
+    )
+    else -> {
+        listOf(
+            DeferredLayerType.COLOR, // 3
+            DeferredLayerType.OCCLUSION, // 1
+            DeferredLayerType.NORMAL, // 3
+            DeferredLayerType.POSITION, // 3, could be replaced by depth + transform + math
+            DeferredLayerType.EMISSIVE, // 3
+            // DeferredLayerType.TANGENT,
+            DeferredLayerType.ROUGHNESS, // 1
+            DeferredLayerType.METALLIC,// 1
+            DeferredLayerType.SHEEN, // 1
+            DeferredLayerType.TRANSLUCENCY, // 1
+            // applied in material shader
+            // DeferredLayerType.CLEAR_COAT,
+            DeferredLayerType.ANISOTROPIC, // 1
+            // total: 18
+        )
+    }
+}

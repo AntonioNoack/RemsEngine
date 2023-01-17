@@ -39,7 +39,7 @@ class ShaderBuilder(val name: String) {
     private fun collectTextureIndices(textureIndices: MutableList<String>, uniforms: Collection<Variable>) {
         for (uniform in uniforms) {
             when (uniform.type) {
-                GLSLType.S2D, GLSLType.S3D, GLSLType.SCube -> {
+                GLSLType.S2D, GLSLType.S2DMS, GLSLType.S3D, GLSLType.SCube -> {
                     if (uniform.arraySize >= 0) {
                         if ("${uniform.name}0" !in textureIndices) {
                             for (i in 0 until uniform.arraySize) {

@@ -1175,6 +1175,8 @@ object Thumbs {
 
         Signature.findName(srcFile) { signature ->
 
+            println("$srcFile -> $signature")
+
             val reader = readerBySignature[signature]
             if (reader != null) {
                 reader(srcFile, size, dstFile, callback)

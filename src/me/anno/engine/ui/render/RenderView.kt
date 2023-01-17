@@ -15,6 +15,7 @@ import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.pbr.DeferredRenderer
+import me.anno.engine.pbr.DeferredRendererMSAA
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.PlaneShapes
 import me.anno.engine.ui.control.ControlScheme
@@ -46,6 +47,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
@@ -154,15 +156,19 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     val position = Vector3d()
     val rotation = Vector3d(-20.0, 0.0, 0.0)
 
-    private val deferredRenderer = DeferredRenderer
-    private val deferred = deferredRenderer.deferredSettings!!
+    private val deferred = DeferredRenderer.deferredSettings!!
+    private val deferredMSAA = DeferredRendererMSAA.deferredSettings!!
 
-    val baseNBuffer = deferred.createBaseBuffer()
-    private val baseSameDepth = baseNBuffer.attachFramebufferToDepth(1, false)
-    val base1Buffer = Framebuffer("debug", 1, 1, 1, 4, false, DepthBufferType.TEXTURE)
+    val baseNBuffer1 = deferred.createBaseBuffer()
+    val baseNBuffer8 = deferredMSAA.createBaseBuffer()
+    private val baseSameDepth1 = baseNBuffer1.attachFramebufferToDepth(1, false)
+    private val baseSameDepth8 = baseNBuffer8.attachFramebufferToDepth(1, false)
+    val base1Buffer = Framebuffer("base1", 1, 1, 1, 4, false, DepthBufferType.TEXTURE)
+    val base8Buffer = Framebuffer("base8", 1, 1, 8, 4, false, DepthBufferType.TEXTURE)
 
     private val light1Buffer = base1Buffer.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
-    private val lightNBuffer = baseNBuffer.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
+    private val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
+    private val lightNBuffer8 = baseNBuffer8.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
 
     private val clock = Clock()
     private var entityBaseClickId = 0
@@ -190,10 +196,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         super.destroy()
         // all framebuffers that we own need to be freed
         light1Buffer.destroy()
-        lightNBuffer.destroy()
-        baseSameDepth.destroy()
+        lightNBuffer1.destroy()
+        lightNBuffer8.destroy()
+        baseSameDepth1.destroy()
+        baseSameDepth8.destroy()
         base1Buffer.destroy()
-        baseNBuffer.destroy()
+        base8Buffer.destroy()
+        baseNBuffer1.destroy()
+        baseNBuffer8.destroy()
         editorCameraNode.destroy()
         fsr22.destroy()
     }
@@ -340,6 +350,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 useDeferredRendering = true
                 DeferredRenderer
             }
+            RenderMode.MSAA_DEFERRED -> {
+                useDeferredRendering = true
+                DeferredRendererMSAA
+            }
             RenderMode.FORCE_NON_DEFERRED, RenderMode.MSAA_X8,
             RenderMode.FSR_MSAA_X4, RenderMode.LINES,
             RenderMode.LINES_MSAA -> {
@@ -360,16 +374,16 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val dlt = renderMode.dlt
         if (dlt != null) {
             useDeferredRendering = false
-            renderer = attributeRenderers[dlt]!!
+            renderer = attributeRenderers[dlt]
         }
 
         // multi-sampled buffer
         val buffer = when {
             renderMode == RenderMode.MSAA_X8 ||
                     renderMode == RenderMode.LINES_MSAA ||
-                    renderMode == RenderMode.FSR_MSAA_X4 ->
-                FBStack["", w, h, 4, false, 8, true]
-            renderer == DeferredRenderer -> baseNBuffer
+                    renderMode == RenderMode.FSR_MSAA_X4 -> base8Buffer
+            renderMode == RenderMode.MSAA_DEFERRED -> baseNBuffer8
+            renderer == DeferredRenderer -> baseNBuffer1
             else -> base1Buffer
         }
 
@@ -530,7 +544,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             motion, changeSize = false, hdr = true
                         )
 
-                        val lightBuffer = lightNBuffer
+                        val lightBuffer = lightNBuffer1
                         drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
 
                         val ssao = blackTexture
@@ -538,7 +552,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         val ph = y1 - y0
 
                         // use the existing depth buffer for the 3d ui
-                        val dstBuffer0 = baseSameDepth
+                        val dstBuffer0 = baseSameDepth1
                         useFrame(w, h, true, dstBuffer0) {
                             // don't write depth
                             GFXState.depthMask.use(false) {
@@ -597,7 +611,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             changeSize = true,
                             hdr = false
                         )
-                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
                         drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
                         drawGizmos(lightBuffer, true)
                         drawTexture(x, y + h - 1, w, -h, lightBuffer.getTexture0(), true, -1, null)
@@ -611,7 +625,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             changeSize = true,
                             hdr = false // doesn't matter
                         )
-                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
                         pipeline.lightPseudoStage.visualizeLightCount = true
                         drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
                         drawGizmos(lightBuffer, false)
@@ -665,7 +679,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             hdr = hdr
                         )
                         drawGizmos(buffer, true)
-                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
                         drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
                         val illuminated = FBStack["ill", w, h, 4, true, 1, false]
                         useFrame(illuminated, copyRenderer) {
@@ -704,7 +718,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         )
                         drawGizmos(buffer, true)
 
-                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
                         drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
 
                         val pbb = pushBetterBlending(true)
@@ -750,14 +764,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             hdr = false
                         )
                         drawGizmos(buffer, true)
-                        drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightNBuffer)
+                        drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightNBuffer1)
 
                         // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
 
                         val tw = w / cols
                         val th = h / rows
                         val tmp = FBStack["tmp-layers", tw, th, 4, false, 1, true]
-                        val settings = deferredRenderer.deferredSettings!!
+                        val settings = DeferredRenderer.deferredSettings!!
                         val layers = HashMap(settings.layerTypes.associateWith {
                             settings.findTexture(buffer, it)!!
                                 .wrapAsFramebuffer()
@@ -796,7 +810,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                                 }
                                 texture = tmp.getTexture0()
                             } else {
-                                texture = lightNBuffer.getTexture0()
+                                texture = lightNBuffer1.getTexture0()
                                 name = "Light"
                             }
 
@@ -811,7 +825,17 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         popBetterBlending(pbb)
                         return
                     }
-                    renderer != DeferredRenderer -> {
+                    renderer == DeferredRenderer -> dstBuffer = drawSceneDeferred(
+                        buffer, baseNBuffer1, lightNBuffer1, baseSameDepth1,
+                        camera0, camera1, blending, renderer, dstBuffer,
+                        deferred
+                    )
+                    renderer == DeferredRendererMSAA -> dstBuffer = drawSceneDeferred(
+                        buffer, baseNBuffer8, lightNBuffer8, baseSameDepth8,
+                        camera0, camera1, blending, renderer, dstBuffer,
+                        deferredMSAA
+                    )
+                    else -> {
                         drawScene(
                             w, h, camera0, camera1,
                             blending, renderer, buffer,
@@ -821,108 +845,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         drawGizmos(buffer, true)
                         drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
                         return
-                    }
-                    else -> {
-
-                        if (buffer != baseNBuffer)
-                            throw IllegalStateException("Expected baseBuffer, but got ${buffer.name} for $renderMode")
-
-                        drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
-                            true,
-                            hdr = true
-                        )
-
-                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
-                        drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
-
-                        val ssaoStrength = ssao.strength
-                        val ssao = if (ssaoStrength > 0f) ScreenSpaceAmbientOcclusion.compute(
-                            buffer, deferred, cameraMatrix, ssao.radius, ssaoStrength, ssao.samples,
-                            ssao.enable2x2Blur
-                        ) ?: blackTexture else blackTexture
-
-                        // use the existing depth buffer for the 3d ui
-                        val dstBuffer0 = baseSameDepth
-                        if (useBloom) {
-
-                            val illuminated = FBStack["", w, h, 4, true, 1, false]
-                            useFrame(illuminated, copyRenderer) { // apply post-processing
-
-                                val shader = LightPipelineStage.getPostShader(deferred)
-                                shader.use()
-                                shader.v1b("applyToneMapping", false)
-                                shader.v3f("ambientLight", pipeline.ambient)
-
-                                buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                                lightBuffer.bindTexture0(
-                                    shader,
-                                    "finalLight",
-                                    GPUFiltering.TRULY_NEAREST,
-                                    Clamping.CLAMP
-                                )
-
-                                flat01.draw(shader)
-
-                            }
-
-                            // screen space reflections
-                            val ssReflections = ScreenSpaceReflections.compute(
-                                buffer, illuminated.getTexture0(), deferred, cameraMatrix, false
-                            ) ?: illuminated.getTexture0()
-
-                            useFrame(w, h, true, dstBuffer0) {
-
-                                // don't write depth
-                                GFXState.depthMask.use(false) {
-                                    Bloom.bloom(ssReflections, bloomOffset, bloomStrength, true)
-                                }
-
-                                // todo use msaa for gizmos
-                                // or use anti-aliasing, that works on color edges
-                                // and supports lines
-                                drawGizmos(true)
-                                drawSelected()
-                            }
-
-                        } else {
-
-                            useFrame(w, h, true, dstBuffer0) {
-
-                                // don't write depth
-                                GFXState.depthMask.use(false) {
-
-                                    val shader = LightPipelineStage.getPostShader(deferred)
-                                    shader.use()
-                                    shader.v1b("applyToneMapping", true)
-
-                                    buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                    ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                                    lightBuffer.bindTexture0(
-                                        shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP
-                                    )
-
-                                    flat01.draw(shader)
-
-                                }
-
-                                drawGizmos(true)
-                                drawSelected()
-
-                            }
-
-                        }
-
-                        // anti-aliasing
-                        if (buffer.depthTexture != null) {
-                            dstBuffer = FBStack["RenderView-dst", w, h, 4, false, 1, false]
-                            useFrame(w, h, true, dstBuffer) {
-                                DepthBasedAntiAliasing.render(dstBuffer0.getTexture0(), buffer.depthTexture!!)
-                            }
-                        } else LOGGER.warn("Depth buffer is null! ${buffer::class}")
-
                     }
                 }
                 clock.stop("presenting deferred buffers", 0.1)
@@ -1006,6 +928,120 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             }
         }
 
+    }
+
+    fun drawSceneDeferred(
+        buffer: IFramebuffer, baseNBuffer: IFramebuffer,
+        lightNBuffer: IFramebuffer, baseSameDepth: IFramebuffer,
+        camera0: Camera, camera1: Camera, blending: Float,
+        renderer: Renderer,
+        dstBuffer1: IFramebuffer,
+        deferredSettings: DeferredSettingsV2
+    ): IFramebuffer {
+
+        if (buffer != baseNBuffer)
+            throw IllegalStateException("Expected baseBuffer, but got ${buffer.name} for $renderMode")
+
+        pipeline.deferred = deferredSettings
+
+        drawScene(
+            w, h, camera0, camera1,
+            blending, renderer, buffer,
+            true,
+            hdr = true
+        )
+
+        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
+        drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
+
+        val ssaoStrength = ssao.strength
+        val ssao = if (ssaoStrength > 0f) ScreenSpaceAmbientOcclusion.compute(
+            buffer, deferred, cameraMatrix, ssao.radius, ssaoStrength, ssao.samples,
+            ssao.enable2x2Blur
+        ) ?: blackTexture else blackTexture
+
+        // use the existing depth buffer for the 3d ui
+        if (useBloom) {
+
+            val illuminated = FBStack["", w, h, 4, true, 1, false]
+            useFrame(illuminated, copyRenderer) { // apply post-processing
+
+                val shader = LightPipelineStage.getPostShader(deferred)
+                shader.use()
+                shader.v1b("applyToneMapping", false)
+                shader.v3f("ambientLight", pipeline.ambient)
+
+                buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                ssao.bindTrulyNearest(shader, "ambientOcclusion")
+                lightBuffer.bindTexture0(
+                    shader,
+                    "finalLight",
+                    GPUFiltering.TRULY_NEAREST,
+                    Clamping.CLAMP
+                )
+
+                flat01.draw(shader)
+
+            }
+
+            // screen space reflections
+            val ssReflections = ScreenSpaceReflections.compute(
+                buffer, illuminated.getTexture0(), deferred, cameraMatrix, false
+            ) ?: illuminated.getTexture0()
+
+            useFrame(w, h, true, baseSameDepth) {
+
+                // don't write depth
+                GFXState.depthMask.use(false) {
+                    Bloom.bloom(ssReflections, bloomOffset, bloomStrength, true)
+                }
+
+                // todo use msaa for gizmos
+                // or use anti-aliasing, that works on color edges
+                // and supports lines
+                drawGizmos(true)
+                drawSelected()
+            }
+
+        } else {
+
+            useFrame(w, h, true, baseSameDepth) {
+
+                // don't write depth
+                GFXState.depthMask.use(false) {
+
+                    val shader = LightPipelineStage.getPostShader(deferred)
+                    shader.use()
+                    shader.v1b("applyToneMapping", true)
+
+                    buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    ssao.bindTrulyNearest(shader, "ambientOcclusion")
+                    lightBuffer.bindTexture0(
+                        shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP
+                    )
+
+                    flat01.draw(shader)
+
+                }
+
+                drawGizmos(true)
+                drawSelected()
+
+            }
+
+        }
+
+        // anti-aliasing
+        return if (buffer.depthTexture != null) {
+            val dstBuffer = FBStack["RenderView-dst", w, h, 4, false, 1, false]
+            useFrame(w, h, true, dstBuffer) {
+                DepthBasedAntiAliasing.render(baseSameDepth.getTexture0(), buffer.depthTexture!!)
+            }
+            dstBuffer
+        } else {
+            LOGGER.warn("Depth buffer is null! ${buffer::class}")
+            dstBuffer1
+        }
     }
 
     fun resolveClick(px: Float, py: Float, drawDebug: Boolean = false): Pair<Entity?, Component?> {

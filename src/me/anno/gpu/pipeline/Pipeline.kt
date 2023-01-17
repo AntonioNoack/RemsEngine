@@ -43,7 +43,13 @@ import java.util.*
  * collects meshes for sorting (transparency, overdraw), and for instanced rendering
  * todo instead of a pipeline, maybe the best would be a render graph...
  * */
-class Pipeline(val deferred: DeferredSettingsV2?) : Saveable() {
+class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
+
+    var deferred: DeferredSettingsV2? = deferred
+        set(value) {
+            field = value
+            lightPseudoStage.deferred = value
+        }
 
     // pipelines, that we need:
     //  - 3d world,

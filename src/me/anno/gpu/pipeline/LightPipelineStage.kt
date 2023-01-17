@@ -30,13 +30,14 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.Saveable
 import me.anno.maths.Maths.min
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.SmallestKList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW
 
-class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
+class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
     // todo add optional iridescence parameter for shading ... it looks really nice on leather and metal :)
     // https://belcour.github.io/blog/research/publication/2017/05/01/brdf-thin-film.html
@@ -121,7 +122,7 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
                         Variable(GLSLType.V4F, "color", VariableMode.OUT)
                     ), "" +
                             "   vec3 color3;\n" +
-                            "   if(length(finalPosition) < 1e34){\n" +
+                            "   if(length(finalPosition) < 1e34) {\n" +
                             "       vec3 light = texture(finalLight, uv).rgb + ambientLight;\n" +
                             "       float occlusion = (1.0 - finalOcclusion) * (1.0 - texture(ambientOcclusion, uv).r);\n" +
                             "       color3 = finalColor * light * occlusion + finalEmissive;\n" +
@@ -136,17 +137,22 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
                 val deferredInputs = ArrayList<Variable>()
                 deferredInputs += Variable(GLSLType.V2F, "uv")
                 val imported = HashSet<String>()
+                val useMSAA = settingsV2.samples > 1
+                val sampleVariableName = if (useMSAA) "gl_SampleID" else null
+                val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
                 for (layer in settingsV2.layers) {
                     // if this layer is present,
                     // then define the output,
                     // and write the mapping
-                    if (layer.type.glslName in fragment.variables.map { it.name }) {
-                        layer.appendMapping(deferredCode, "Tmp", "uv", imported)
+                    val glslName = layer.type.glslName
+                    if (fragment.variables.any2 { it.name == glslName }) {
+                        layer.appendMapping(deferredCode, "Tmp", "uv", imported, sampleVariableName)
                     }
                 }
-                deferredInputs += imported.map { Variable(GLSLType.S2D, it, VariableMode.IN) }
+                deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }
                 builder.addFragment(ShaderStage("deferred", deferredInputs, deferredCode.toString()))
                 builder.addFragment(fragment)
+                if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
                 val shader = builder.create()
                 // find all textures
                 // first the ones for the deferred data
@@ -169,6 +175,7 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
             val isInstanced = GFXState.instanced.currentValue
             val key = type.ordinal * 2 + isInstanced.toInt()
             return shaderCache.getOrPut(settingsV2 to key) {
+
                 /*
                 * vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);
                 * vec3 specularColor = finalColor * finalMetallic;
@@ -177,61 +184,60 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
                 * finalColor = tonemap(finalColor); // tone mapping
                 * */
                 val builder = ShaderBuilder("$type-$isInstanced")
-                builder.addVertex(
-                    if (isInstanced) {
-                        ShaderStage(
-                            "v", listOf(
-                                Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-                                Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR),
-                                Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR),
-                                Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR),
-                                Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR),
-                                Variable(GLSLType.V3F, "invInsTrans0", VariableMode.ATTR),
-                                Variable(GLSLType.V3F, "invInsTrans1", VariableMode.ATTR),
-                                Variable(GLSLType.V3F, "invInsTrans2", VariableMode.ATTR),
-                                Variable(GLSLType.V3F, "invInsTrans3", VariableMode.ATTR),
-                                Variable(GLSLType.V4F, "lightData0", VariableMode.ATTR),
-                                Variable(GLSLType.V4F, "lightData1", VariableMode.ATTR),
-                                Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
-                                Variable(GLSLType.M4x4, "transform", VariableMode.IN),
-                                Variable(GLSLType.V4F, "data0", VariableMode.OUT),
-                                Variable(GLSLType.V4F, "data1", VariableMode.OUT),
-                                Variable(GLSLType.V4F, "data2", VariableMode.OUT),
-                                Variable(GLSLType.M4x3, "WStoLightSpace", VariableMode.OUT),
-                                Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
-                            ), "" +
-                                    "data0 = lightData0;\n" +
-                                    "data1 = lightData1;\n" +
-                                    "data2 = shadowData;\n" +
-                                    // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                                    "if(${type == LightType.DIRECTIONAL} && data2.a <= 0.0){\n" +
-                                    "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
-                                    "} else {\n" +
-                                    "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
-                                    "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
-                                    "}\n" +
-                                    "WStoLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2,invInsTrans3);\n" +
-                                    "uvw = gl_Position.xyw;\n"
-                        )
-                    } else {
-                        ShaderStage(
-                            "v", listOf(
-                                Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-                                Variable(GLSLType.M4x4, "transform", VariableMode.IN),
-                                Variable(GLSLType.M4x3, "localTransform", VariableMode.IN),
-                                Variable(GLSLType.V1F, "cutoff", VariableMode.IN),
-                                Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
-                            ), "" +
-                                    // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                                    "if(${type == LightType.DIRECTIONAL} && cutoff <= 0.0){\n" +
-                                    "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
-                                    "} else {\n" +
-                                    "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
-                                    "}\n" +
-                                    "uvw = gl_Position.xyw;\n"
-                        )
-                    }
-                )
+                val vertexStage = if (isInstanced) {
+                    ShaderStage(
+                        "v", listOf(
+                            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                            Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR),
+                            Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR),
+                            Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR),
+                            Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR),
+                            Variable(GLSLType.V3F, "invInsTrans0", VariableMode.ATTR),
+                            Variable(GLSLType.V3F, "invInsTrans1", VariableMode.ATTR),
+                            Variable(GLSLType.V3F, "invInsTrans2", VariableMode.ATTR),
+                            Variable(GLSLType.V3F, "invInsTrans3", VariableMode.ATTR),
+                            Variable(GLSLType.V4F, "lightData0", VariableMode.ATTR),
+                            Variable(GLSLType.V4F, "lightData1", VariableMode.ATTR),
+                            Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
+                            Variable(GLSLType.M4x4, "transform", VariableMode.IN),
+                            Variable(GLSLType.V4F, "data0", VariableMode.OUT),
+                            Variable(GLSLType.V4F, "data1", VariableMode.OUT),
+                            Variable(GLSLType.V4F, "data2", VariableMode.OUT),
+                            Variable(GLSLType.M4x3, "WStoLightSpace", VariableMode.OUT),
+                            Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
+                        ), "" +
+                                "data0 = lightData0;\n" +
+                                "data1 = lightData1;\n" +
+                                "data2 = shadowData;\n" +
+                                // cutoff = 0 -> scale onto the whole screen, has effect everywhere
+                                "if(${type == LightType.DIRECTIONAL} && data2.a <= 0.0){\n" +
+                                "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                                "} else {\n" +
+                                "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
+                                "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                                "}\n" +
+                                "WStoLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2,invInsTrans3);\n" +
+                                "uvw = gl_Position.xyw;\n"
+                    )
+                } else {
+                    ShaderStage(
+                        "v", listOf(
+                            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                            Variable(GLSLType.M4x4, "transform", VariableMode.IN),
+                            Variable(GLSLType.M4x3, "localTransform", VariableMode.IN),
+                            Variable(GLSLType.V1F, "cutoff", VariableMode.IN),
+                            Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
+                        ), "" +
+                                // cutoff = 0 -> scale onto the whole screen, has effect everywhere
+                                "if(${type == LightType.DIRECTIONAL} && cutoff <= 0.0){\n" +
+                                "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                                "} else {\n" +
+                                "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                                "}\n" +
+                                "uvw = gl_Position.xyw;\n"
+                    )
+                }
+                builder.addVertex(vertexStage)
                 builder.addFragment(
                     ShaderStage(
                         "uv", listOf(
@@ -303,17 +309,22 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
                 val deferredInputs = ArrayList<Variable>()
                 deferredInputs += Variable(GLSLType.V2F, "uv")
                 val imported = HashSet<String>()
+                val useMSAA = settingsV2.samples > 1
+                val sampleVariableName = if (useMSAA) "gl_SampleID" else null
+                val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
                 for (layer in settingsV2.layers) {
                     // if this layer is present,
                     // then define the output,
                     // and write the mapping
-                    if (layer.type.glslName in fragment.variables.map { it.name }) {
-                        layer.appendMapping(deferredCode, "Tmp", "uv", imported)
+                    val glslName = layer.type.glslName
+                    if (fragment.variables.any2 { it.name == glslName }) {
+                        layer.appendMapping(deferredCode, "Tmp", "uv", imported, sampleVariableName)
                     }
                 }
-                deferredInputs += imported.map { Variable(GLSLType.S2D, it, VariableMode.IN) }
+                deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }
                 builder.addFragment(ShaderStage("deferred", deferredInputs, deferredCode.toString()))
                 builder.addFragment(fragment)
+                if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
                 val shader = builder.create()
                 // find all textures
                 // first the ones for the deferred data
@@ -486,7 +497,8 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
             if (isInstanced) visualizeLightCountShaderInstanced
             else visualizeLightCountShader
         } else {
-            if (deferred == null) throw IllegalStateException("Cannot draw lights directly without deferred buffers")
+            val deferred =
+                deferred ?: throw IllegalStateException("Cannot draw lights directly without deferred buffers")
             Companion.getShader(deferred, type)
         }
     }
@@ -494,6 +506,15 @@ class LightPipelineStage(val deferred: DeferredSettingsV2?) : Saveable() {
     fun draw(source: IFramebuffer, cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
 
         val time = Engine.gameTime
+
+        // todo if (destination is multi-sampled &&) settings is multisampled,
+        //  bind the multi-sampled textures :)
+
+        // todo detect, where MSAA is applicable
+        // todo and then only do computations with MSAA on those pixels
+        //  - render the remaining pixels on a new FB without MSAA
+        // todo we can also separate the case of 2 different fragments, just with some ratio (4x less compute/light lookups)
+        // (twice as many draw calls, but hopefully less work altogether)
 
         source.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 

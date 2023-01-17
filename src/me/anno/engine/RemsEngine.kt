@@ -55,7 +55,7 @@ import org.joml.Matrix4f
 
 // todo loading is slow: all tabs are loaded, even if only a single one is actually used
 
-// todo forward-plus rendering
+// todo forward-plus rendering (transparency / anti-aliasing)
 // which platforms support Compute Shaders? we need them for forward+
 // Windows, Android with OpenGL 3.0
 

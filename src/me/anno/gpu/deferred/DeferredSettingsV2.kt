@@ -14,21 +14,32 @@ import kotlin.math.max
 
 class DeferredSettingsV2(
     val layerTypes: List<DeferredLayerType>,
+    val samples: Int,
     fpLights: Boolean
 ) {
 
     class Layer(val type: DeferredLayerType, val textureName: String, val index: Int, val mapping: String) {
 
-        fun appendMapping(fragment: StringBuilder, suffix: String, uv: String, imported: MutableSet<String>) {
+        fun appendMapping(
+            fragment: StringBuilder,
+            suffix: String,
+            uv: String,
+            imported: MutableSet<String>,
+            sampleVariableName: String?
+        ) {
             if (imported.add(textureName)) {
-                fragment.append("vec4 ")
-                fragment.append(textureName)
-                fragment.append(suffix)
-                fragment.append(" = texture(")
-                fragment.append(textureName)
-                fragment.append(", ")
-                fragment.append(uv)
-                fragment.append(");\n")
+                if (sampleVariableName != null) {
+                    fragment.append("vec4 ").append(textureName).append(suffix)
+                    fragment.append(" = texelFetch(").append(textureName)
+                    fragment.append(", ivec2(textureSize(")
+                        .append(textureName) // texture will be sampler2DMS, so no lod is used as parameter
+                    fragment.append(")*").append(uv)
+                    fragment.append("), ").append(sampleVariableName).append(");\n")
+                } else {
+                    fragment.append("vec4 ").append(textureName).append(suffix)
+                    fragment.append(" = texture(").append(textureName)
+                    fragment.append(", ").append(uv).append(");\n")
+                }
             }
             fragment.append(glslTypes[type.dimensions - 1])
             fragment.append(' ')
@@ -100,20 +111,20 @@ class DeferredSettingsV2(
     }
 
     val settingsV1 = DeferredSettingsV1(layers2, fpLights)
+    val layers1 = Array(layers2.size) { layers2[it].type }
 
     fun createBaseBuffer(): IFramebuffer {
         val layers = layers2
         val name = "DeferredBuffers-main"
-        val layers1 = Array(layers.size) { layers[it].type }
         val depthBufferType = DepthBufferType.TEXTURE
         return if (layers.size <= GFX.maxColorAttachments) {
             Framebuffer(
-                name, 1, 1, 1,
+                name, 1, 1, samples,
                 layers1, depthBufferType
             )
         } else {
             MultiFramebuffer(
-                name, 1, 1, 1,
+                name, 1, 1, samples,
                 layers1, depthBufferType
             )
         }
@@ -231,7 +242,7 @@ class DeferredSettingsV2(
         return DeferredSettingsV2(
             layerTypes.filter { type ->
                 findLayer(type)!!.index in index0 until index1
-            },
+            }, samples,
             settingsV1.fpLights
         )
     }

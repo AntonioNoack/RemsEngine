@@ -250,7 +250,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     companion object {
         @JvmStatic
         val pipeline by lazy {
-            Pipeline(DeferredSettingsV2(listOf(), false))
+            Pipeline(DeferredSettingsV2(listOf(), 1, false))
         }
     }
 

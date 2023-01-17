@@ -20,6 +20,7 @@ enum class GLSLType(val glslName: String, val components: Int, val isFlat: Boole
     M4x4("mat4", 16, false),
     S2D("sampler2D", 1000, false),
     S3D("sampler3D", 1000, false),
+    S2DMS("sampler2DMS", 1000, false),
     SCube("samplerCube", 1000, false);
 
     override fun toString(): String = glslName

@@ -63,6 +63,11 @@ enum class RenderMode(
     GHOSTING_DEBUG,
 
     MSAA_X8,
+    // todo implement this properly:
+    //  - https://www.reddit.com/r/opengl/comments/kvuolj/deferred_rendering_and_msaa/
+    //  - https://docs.nvidia.com/gameworks/content/gameworkslibrary/graphicssamples/d3d_samples/antialiaseddeferredrendering.htm
+    //  - https://registry.khronos.org/OpenGL-Refpages/gl4/html/texelFetch.xhtml
+    MSAA_DEFERRED,
     FSR_SQRT2,
     FSR_X2,
     FSR_X4,

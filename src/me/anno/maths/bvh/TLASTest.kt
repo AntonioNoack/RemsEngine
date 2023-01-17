@@ -59,7 +59,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
     )
 
     val source = sources[3]
-    val pipeline = Pipeline(DeferredSettingsV2(listOf(DeferredLayerType.COLOR), false))
+    val pipeline = Pipeline(DeferredSettingsV2(listOf(DeferredLayerType.COLOR), 1, false))
     pipeline.defaultStage = PipelineStage(
         "default", Sorting.NO_SORTING, 0, null, DepthMode.ALWAYS, true,
         CullMode.BOTH, pbrModelShader
