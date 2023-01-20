@@ -3,6 +3,7 @@ package me.anno.graph.types.flow.maths
 import me.anno.graph.EnumNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
+import me.anno.graph.ui.GraphEditor
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
@@ -49,13 +50,14 @@ class MathL3Node() : ValueNode("Integer Math 3", inputs, outputs), EnumNode {
             name = "Int " + value.name
         }
 
-    override fun createUI(list: PanelList, style: Style) {
-        super.createUI(list, style)
+    override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
+        super.createUI(g, list, style)
         list += EnumInput(
             "Type", true, type.name,
             IntMathsTernary.values.map { NameDesc(it.name, it.glsl, "") }, style
         ).setChangeListener { _, index, _ ->
             type = IntMathsTernary.values[index]
+            g.onChange(false)
         }
     }
 

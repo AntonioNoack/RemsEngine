@@ -15,7 +15,8 @@ import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToLong
 
-class IntInput(
+// must be open for Rem's Studio
+open class IntInput(
     style: Style,
     title: String,
     visibilityKey: String,
@@ -23,7 +24,7 @@ class IntInput(
     inputPanel0: NumberInputComponent? = null
 ) : NumberInput<Long>(style, title, visibilityKey, type, inputPanel0) {
 
-    override var lastValue: Long = getValue(type.defaultValue)
+    final override var lastValue: Long = getValue(type.defaultValue)
     var changeListener: (value: Long) -> Unit = { }
 
     @NotSerializedProperty
@@ -125,7 +126,8 @@ class IntInput(
         }
     }
 
-    fun getValue(value: Any): Long {
+    // must be open for Rem's Studio
+    open fun getValue(value: Any): Long {
         return when (value) {
             is Boolean -> if (value) 1L else 0L
             is Byte -> value.toLong()

@@ -35,11 +35,11 @@ open class DeferredLayerType(
 
     fun appendDefaultValue(fragment: StringBuilder) {
         when (dimensions) {
-            1 -> fragment.append(defaultValueARGB.x)
+            1 -> fragment.append(defaultValueARGB.z)
             2 -> fragment.append("vec2(")
-                .append(defaultValueARGB.x)
-                .append(", ")
                 .append(defaultValueARGB.y)
+                .append(", ")
+                .append(defaultValueARGB.z)
                 .append(')')
             3 -> fragment.append("vec3(")
                 .append(defaultValueARGB.x)
@@ -128,7 +128,7 @@ open class DeferredLayerType(
         val SUBSURFACE = DeferredLayerType("SUBSURFACE", "finalSubsurface", 4, 0x00ffffff)
 
         // amount, rotation
-        val ANISOTROPIC = DeferredLayerType("ANISIOTROPIC", "finalAnisotropic", 2, 0)
+        val ANISOTROPIC = DeferredLayerType("ANISOTROPIC", "finalAnisotropic", 2, 0)
 
         // needs some kind of mapping...
         val INDEX_OF_REFRACTION = DeferredLayerType("IOR", "finalIndexOfRefraction", 0)

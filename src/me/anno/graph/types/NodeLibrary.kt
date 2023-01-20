@@ -14,6 +14,8 @@ import me.anno.graph.types.flow.control.WhileNode
 import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
 import me.anno.graph.types.flow.maths.*
+import me.anno.graph.types.flow.vector.CombineVector3fNode
+import me.anno.graph.types.flow.vector.SeparateVector3fNode
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
 class NodeLibrary(val nodes: Collection<() -> Node>) {
@@ -53,7 +55,15 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { MathD1Node() },
             { MathD2Node() },
             { MathD3Node() },
-            { CompareNode() }
+            { MathF1Node() },
+            { MathF2Node() },
+            { MathF3Node() },
+            { MathF1V3Node() },
+            { MathF2V3Node() },
+            { MathF3V3Node() },
+            { CompareNode() },
+            { CombineVector3fNode() },
+            { SeparateVector3fNode() },
         )
 
         fun init() {

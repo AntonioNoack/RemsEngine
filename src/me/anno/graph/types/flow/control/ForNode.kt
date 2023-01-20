@@ -14,19 +14,26 @@ class ForNode : FixedControlFlowNode("For Loop", inputs, outputs) {
         if (startIndex != endIndex) {
             val running = getOutputNodes(0).others.mapNotNull { it.node }
             if (running.isNotEmpty()) {
-                val indices = if (reversed) {
-                    (startIndex - 1) downTo endIndex step increment
+                if (reversed) {
+                    for (index in (startIndex - 1) downTo endIndex step increment) {
+                        if (increment <= 0L) throw IllegalStateException("Step size must be > 0")
+                        setOutput(index, 1)
+                        graph.requestId()
+                        // new id, because it's a new run, and we need to invalidate all previously calculated values
+                        // theoretically it would be enough to just invalidate the ones in that subgraph
+                        // we'd have to calculate that list
+                        graph.executeNodes(running)
+                    }
                 } else {
-                    startIndex until endIndex step increment
-                }
-                for (index in indices) {
-                    if (increment <= 0L) throw IllegalStateException("Step size must be > 0")
-                    setOutput(index, 1)
-                    graph.requestId()
-                    // new id, because it's a new run, and we need to invalidate all previously calculated values
-                    // theoretically it would be enough to just invalidate the ones in that subgraph
-                    // we'd have to calculate that list
-                    graph.executeNodes(running)
+                    for (index in startIndex until endIndex step increment) {
+                        if (increment <= 0L) throw IllegalStateException("Step size must be > 0")
+                        setOutput(index, 1)
+                        graph.requestId()
+                        // new id, because it's a new run, and we need to invalidate all previously calculated values
+                        // theoretically it would be enough to just invalidate the ones in that subgraph
+                        // we'd have to calculate that list
+                        graph.executeNodes(running)
+                    }
                 }
             }// else done
         }

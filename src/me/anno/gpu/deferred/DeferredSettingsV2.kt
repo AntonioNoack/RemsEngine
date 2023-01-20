@@ -249,7 +249,7 @@ class DeferredSettingsV2(
 
     companion object {
 
-        val glslTypes = listOf(GLSLType.V1F, GLSLType.V2F, GLSLType.V3F, GLSLType.V4F)
+        val glslTypes = arrayOf(GLSLType.V1F, GLSLType.V2F, GLSLType.V3F, GLSLType.V4F)
 
         val singleToVector = mapOf(
             "r" to Vector4f(1f, 0f, 0f, 0f),

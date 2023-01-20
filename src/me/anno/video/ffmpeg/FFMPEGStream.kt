@@ -9,7 +9,6 @@ import me.anno.utils.hpc.HeavyProcessing.numThreads
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Floats.f3
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrameReader
 import org.apache.logging.log4j.LogManager
@@ -53,9 +52,15 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         @JvmStatic
         fun getImageSequence(
             input: FileReference, signature: String?,
-            w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double, totalFrameCount: Int
+            w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double,
+            originalWidth: Int, // meta?.videoWidth
+            originalFPS: Double, // meta?.videoFPS ?: 0.0001
+            totalFrameCount: Int
         ): GPUFrameReader {
-            return getImageSequence(input, signature, w, h, startFrame / fps, frameCount, fps, totalFrameCount)
+            return getImageSequence(
+                input, signature, w, h, startFrame / fps, frameCount, fps,
+                originalWidth, originalFPS, totalFrameCount
+            )
         }
 
         // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
@@ -63,23 +68,36 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         @JvmStatic
         fun getImageSequence(
             input: FileReference, signature: String?,
-            w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double, totalFrameCount: Int
+            w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double,
+            originalWidth: Int, // meta?.videoWidth
+            originalFPS: Double, // meta?.videoFPS ?: 0.0001
+            totalFrameCount: Int
         ): GPUFrameReader {
             val video = GPUFrameReader(input, (startTime * fps).roundToInt(), frameCount)
-            video.run(getImageSequenceArguments(input, signature, w, h, startTime, frameCount, fps, totalFrameCount))
+            video.run(
+                getImageSequenceArguments(
+                    input, signature, w, h, startTime, frameCount, fps,
+                    originalWidth, originalFPS, totalFrameCount
+                )
+            )
             return video
         }
 
         @JvmStatic
         fun getImageSequenceCPU(
             input: FileReference, signature: String?,
-            w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double, totalFrameCount: Int
+            w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double,
+            originalWidth: Int, // meta?.videoWidth
+            originalFPS: Double, // meta?.videoFPS ?: 0.0001
+            totalFrameCount: Int
         ): CPUFrameReader {
             val video = CPUFrameReader(input, frameIndex, frameCount)
             video.run(
                 getImageSequenceArguments(
                     input, signature, w, h,
-                    frameIndex / max(fps, 1e-3), frameCount, fps, totalFrameCount
+                    frameIndex / max(fps, 1e-3), frameCount, fps,
+                    originalWidth, originalFPS,
+                    totalFrameCount
                 )
             )
             return video
@@ -91,9 +109,10 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             signature: String?,
             w: Int, h: Int, startTime: Double,
             frameCount: Int, fps: Double,
+            originalWidth: Int, // meta?.videoWidth
+            originalFPS: Double, // meta?.videoFPS ?: 0.0001
             totalFrameCount: Int
         ): List<String> {
-            val meta = getMeta(input, false)
             val args = ArrayList<String>()
             if (totalFrameCount > 1 && startTime > 0) {
                 args.add("-ss")
@@ -101,12 +120,11 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             }
             args.add("-i")
             args.add(input.absolutePath)
-            if (abs(fps - (meta?.videoFPS ?: 0.0001)) > 0.01) {
-                // 2x slower
+            if (abs(fps - originalFPS) > max(fps, originalFPS) * 0.01f) {
                 args.add("-r")
                 args.add(fps.toString())
             }
-            if (meta?.videoWidth != w) {
+            if (originalWidth > 0 && originalWidth != w) {
                 args.add("-vf")
                 args.add("scale=$w:$h")
             }

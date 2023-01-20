@@ -1,6 +1,5 @@
 package me.anno.graph.types.flow.local
 
-import me.anno.graph.Node
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.CalculationNode
 
@@ -13,12 +12,6 @@ class GetLocalVariableNode() : CalculationNode("GetLocal", inputs, outputs) {
     override fun calculate(graph: FlowGraph): Any? {
         val key = getInput(graph, 0)
         return graph.localVariables[key]
-    }
-
-    override fun clone(): Node {
-        val clone = GetLocalVariableNode()
-        copy(clone)
-        return clone
     }
 
     companion object {

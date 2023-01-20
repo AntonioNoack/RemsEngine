@@ -10,7 +10,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 
-class MathD3Node() : ValueNode("FP Math 3", inputs, outputs), EnumNode {
+class MathF3Node() : ValueNode("FP Math 3", inputs, outputs), EnumNode, GLSLExprNode {
 
     constructor(type: FloatMathsTernary) : this() {
         this.type = type
@@ -22,14 +22,17 @@ class MathD3Node() : ValueNode("FP Math 3", inputs, outputs), EnumNode {
             name = "Float " + value.name
         }
 
-    override fun listNodes() = FloatMathsTernary.values.map { MathD3Node(it) }
+    override fun getShaderFuncName(outputIndex: Int): String = "f3$type"
+    override fun defineShaderFunc(outputIndex: Int): String = "(float a, float b, float c){return ${type.glsl};}"
+
+    override fun listNodes() = FloatMathsTernary.values.map { MathF3Node(it) }
 
     override fun compute(graph: FlowGraph) {
         val inputs = inputs!!
-        val a = graph.getValue(inputs[0]) as Double
-        val b = graph.getValue(inputs[1]) as Double
-        val c = graph.getValue(inputs[2]) as Double
-        setOutput(type.double(a, b, c), 0)
+        val a = graph.getValue(inputs[0]) as Float
+        val b = graph.getValue(inputs[1]) as Float
+        val c = graph.getValue(inputs[2]) as Float
+        setOutput(type.float(a, b, c), 0)
     }
 
     override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
@@ -53,11 +56,11 @@ class MathD3Node() : ValueNode("FP Math 3", inputs, outputs), EnumNode {
         else super.readInt(name, value)
     }
 
-    override val className get() = "MathD3Node"
+    override val className get() = "MathF3Node"
 
     companion object {
-        val inputs = listOf("Double", "A", "Double", "B", "Double", "C")
-        val outputs = listOf("Double", "Result")
+        val inputs = listOf("Float", "A", "Float", "B", "Float", "C")
+        val outputs = listOf("Float", "Result")
     }
 
 }

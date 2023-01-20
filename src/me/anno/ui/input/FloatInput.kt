@@ -24,7 +24,7 @@ open class FloatInput(
 
     constructor(style: Style) : this(style, "", "", Type.FLOAT)
 
-    override var lastValue: Double = getValue(type.defaultValue)
+    final override var lastValue: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
 
     var allowInfinity = false
@@ -117,6 +117,7 @@ open class FloatInput(
         }
     }
 
+    // must be open for Rem's Studio
     open fun getValue(value: Any): Double {
         return when (value) {
             is Boolean -> value.toDouble()

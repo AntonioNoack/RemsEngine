@@ -8,6 +8,8 @@ import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.AnyToLong
+import org.joml.Vector2f
+import org.joml.Vector3f
 import org.joml.Vector4f
 
 class NodeInput : NodeConnector {
@@ -44,6 +46,9 @@ class NodeInput : NodeConnector {
             "Long" -> AnyToLong.getLong(value, 0, 0)
             "Float" -> AnyToFloat.getFloat(value, 0, 0f)
             "Double" -> AnyToDouble.getDouble(value, 0, 0.0)
+            "Vector2f" -> value as Vector2f
+            "Vector3f" -> value as Vector3f
+            "Vector4f" -> value as Vector4f
             "String" -> value.toString()
             "Any?", "", "?" -> value
             "Boolean" -> when (val v = value) {
@@ -71,7 +76,7 @@ class NodeInput : NodeConnector {
                 is Texture -> v
                 else -> null
             }
-            else -> TODO("type $type")
+            else -> throw NotImplementedError("type $type needs to be implemented")
         }
         return value
     }

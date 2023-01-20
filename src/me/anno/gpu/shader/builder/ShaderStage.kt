@@ -2,8 +2,8 @@ package me.anno.gpu.shader.builder
 
 class ShaderStage(
     val callName: String,
-    val variables: List<Variable>,
-    val body: String
+    var variables: List<Variable>,
+    var body: String
 ) {
 
     constructor(variables: List<Variable>, body: String) :
@@ -36,6 +36,14 @@ class ShaderStage(
 
     fun define(value: String): ShaderStage {
         defines += value
+        return this
+    }
+
+    fun prepend(other: ShaderStage): ShaderStage {
+        variables += other.variables
+        body = other.body + body
+        functions.addAll(other.functions)
+        defines.addAll(other.defines)
         return this
     }
 

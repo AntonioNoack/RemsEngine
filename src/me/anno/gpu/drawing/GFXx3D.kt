@@ -71,9 +71,14 @@ object GFXx3D {
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 ShaderLib.flatNormal +
                 ShaderLib.positionPostProcessing +
-                "}", ShaderLib.y3D, listOf(), ShaderLib.getColorForceFieldLib +
+                "}", ShaderLib.y3D, listOf(
+            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
+        ), ShaderLib.getColorForceFieldLib +
                 "void main(){\n" +
-                "   gl_FragColor = (${ShaderLib.hasForceFieldColor}) ? getForceFieldColor(finalPosition) : vec4(1);\n" +
+                "   vec4 finalColor2 = (${ShaderLib.hasForceFieldColor}) ? getForceFieldColor(finalPosition) : vec4(1);\n" +
+                "   finalColor = finalColor2.rgb;\n" +
+                "   finalAlpha = finalColor2.a;\n" +
                 "}", listOf(),
         "filtering", "textureDeltaUV", "tiling", "uvProjection", "forceFieldUVCount",
         "cgOffset", "cgSlope", "cgPower", "cgSaturation"

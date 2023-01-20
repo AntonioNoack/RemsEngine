@@ -3,6 +3,7 @@ package me.anno.io.files
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.utils.Color.hex4
+import me.anno.utils.strings.StringHelper.indexOf2
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
 import java.io.IOException
@@ -14,6 +15,7 @@ import java.net.URI
 import java.net.URL
 import java.net.URLConnection
 import java.util.*
+import kotlin.math.min
 
 
 /**
@@ -23,10 +25,21 @@ import java.util.*
  * todo if is redirect, automatically redirect?
  * todo watch dogs? we only can ask for changes every x seconds
  * */
-class WebRef(url: String, args: Map<Any?, Any?>) :
+open class WebRef(url: String, args: Map<Any?, Any?>) :
     FileReference(formatAccessURL(url, args)) {
 
     var valueTimeout = 30_000L
+
+    val arguments: Map<String, String>
+    val path: String
+    val hashbang: String?
+
+    init {
+        val (p, a, h) = parse(absolutePath)
+        path = p
+        arguments = a
+        hashbang = h
+    }
 
     // doesn't really exist, or does it?
     override val isDirectory: Boolean = false
@@ -148,6 +161,27 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
                 val val2 = encodeURIComponent(value.toString())
                 "$key2=$val2"
             }
+        }
+
+        fun parse(url: String): Triple<String, Map<String, String>, String?> {
+            val qi = url.indexOf2('?')
+            val hi = url.indexOf2('#')
+            if (qi == hi) return Triple(url, emptyMap(), null)
+            if (hi < qi) return Triple(url.substring(0, hi), emptyMap(), url.substring(hi + 1))
+            // extract all arguments :)
+            val args = HashMap<String, String>(url.count { it == '&' } * 3 / 2 + 2)
+            var i = qi
+            while (i < hi) {
+                val ni = min(url.indexOf2('&', i + 1), url.indexOf2('?', i + 1))
+                // i .. ni
+                val eq = min(url.indexOf2('=', i + 1), ni)
+                val key = url.substring(i + 1, eq)
+                val value = if (eq + 1 <= ni) url.substring(eq + 1, ni) else ""
+                args[key] = value
+                i = ni
+            }
+            val hashbang = if (hi < url.length) url.substring(hi + 1) else null
+            return Triple(url.substring(0, qi), args, hashbang)
         }
 
         // https://stackoverflow.com/a/10032289/4979303

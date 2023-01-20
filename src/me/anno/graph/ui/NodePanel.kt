@@ -54,7 +54,7 @@ class NodePanel(
     init {
         // slightly transparent, so covered connections can be seen
         backgroundColor = mixARGB(backgroundColor, black, 0.5f).withAlpha(bgAlpha)
-        node.createUI(this, style)
+        node.createUI(gp, this, style)
         name = node.name
     }
 
@@ -305,7 +305,8 @@ class NodePanel(
         val pxi = px.toInt()
         val pyi = py.toInt()
         val radius = baseTextSize * 0.4f
-        val canConnect = gp.dragged?.canConnectTo(con) ?: true
+        val dragged = gp.dragged
+        val canConnect = dragged == null || gp.graph?.canConnectTo(dragged, con) ?: true
         val radius2 = if (canConnect) mapClamped(
             length(px - mouseX, py - mouseY),
             0.9f * radius, 1.3f * radius,
@@ -418,25 +419,27 @@ class NodePanel(
         val con1 = (gp.getPanelAt(x.toInt(), y.toInt()) as? NodePanel)?.getConnectorAt(x, y)
         val window = window
         val node = con0?.node
+        val graph = gp.graph!!
         // todo forbid connections, that would create infinite calculation loops
         when {
             con0 != null && con1 != null && con0 !== con1 &&
                     con0::class != con1::class &&
                     (node == null || // only connect if types are compatible
-                            if (con0 is NodeInput) node.canConnectTypeToOtherType(con0.type, con1.type)
-                            else node.canConnectTypeToOtherType(con1.type, con0.type)) -> {
+                            if (con0 is NodeInput) graph.canConnectTypeToOtherType(con0.type, con1.type)
+                            else graph.canConnectTypeToOtherType(con1.type, con0.type)) -> {
                 // also only connect, if not already connected
                 if (con1 in con0) {
                     con0.disconnect(con1)
                 } else {
                     connect(con0, con1)
                 }
+                gp.onChange(false)
             }
             con0 != null && con1 != null && con0 !== con1 /* && con0.node == con1.node */
                     // only switch connections if types are compatible
                     && (node == null || (
-                    node.canConnectTypeToOtherType(con0.type, con1.type) &&
-                            node.canConnectTypeToOtherType(con1.type, con0.type))) -> {
+                    graph.canConnectTypeToOtherType(con0.type, con1.type) &&
+                            graph.canConnectTypeToOtherType(con1.type, con0.type))) -> {
                 // switch connections on these two nodes
                 for (oi in con0.others) {
                     oi.others = oi.others.map { if (it == con0) con1 else it }
@@ -447,15 +450,17 @@ class NodePanel(
                 val o = con1.others
                 con1.others = con0.others
                 con0.others = o
+                gp.onChange(false)
             }
             con0 != null && (window == null ||
                     distance(window.mouseDownX, window.mouseDownY, window.mouseX, window.mouseY) < w / 10f) -> {
                 // loosen this connection
                 con0.disconnectAll()
+                gp.onChange(false)
             }
             con0 != null -> {
                 // open new node menu, and then connect them automatically
-                gp.openNewNodeMenu {
+                gp.openNewNodeMenu(con0.type, con0 is NodeInput) {
                     val base = if (con0 is NodeInput) it.outputs else it.inputs
                     val newCon = base?.firstOrNull()
                     if (newCon != null) {
@@ -471,7 +476,8 @@ class NodePanel(
     }
 
     fun connect(con0: NodeConnector, con1: NodeConnector) {
-        if (!con0.canConnectTo(con1)) return
+        val graph = gp.graph ?: return
+        if (!graph.canConnectTo(con0, con1)) return
         val input = if (con0 is NodeInput) con0 else con1
         val output = if (con0 === input) con1 else con0
         // only connect, if connection is supported, otherwise replace
@@ -516,8 +522,8 @@ class NodePanel(
     }
 
     override fun getTooltipText(x: Float, y: Float): String? {
-        val con = getConnectorAt(x, y)
-        return con?.type
+        val con = getConnectorAt(x, y) ?: return null
+        return "${con.type}: ${con.value}"
     }
 
     override fun getMultiSelectablePanel() = this

@@ -3,6 +3,7 @@ package me.anno.video.ffmpeg
 import me.anno.Engine
 import me.anno.io.utils.StringMap
 import me.anno.utils.Warning.warn
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.indexOf2
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -16,6 +17,7 @@ class FFMPEGMetaParser : StringMap() {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FFMPEGMetaParser::class)
         var debug = false
+        val invalidCodec = "INVALID"
     }
 
     /**
@@ -81,23 +83,35 @@ class FFMPEGMetaParser : StringMap() {
     var level1Type = ""
 
     fun parseLine(line: String, stream: FFMPEGStream) {
+
         lastLineTime = Engine.nanoTime
         if (line.isBlank2()) return
+        if ("Server returned" in line) {
+            stream.codec = invalidCodec
+            stream.w = 1
+            stream.h = 1
+            LOGGER.warn(line)
+            return
+        }
+
         // if(debug) LOGGER.debug(line)
         val depth = getDepth(line)
         val data = line.trim().specialSplit(list)
         if (debug) LOGGER.debug("$depth $data")
+
         fun parseSize() {
-            loop@ for (it in data) {
+            for (i in data.indices) {
+                val it = data[i]
                 val idx = it.indexOf('x')
                 if (idx > 0) {
-                    val width = it.substring(0, idx).toIntOrNull() ?: continue
-                    val height = it.substring(idx + 1).toIntOrNull() ?: continue
-                    if(width > 0 && height > 0){
+                    val w = it.substring(0, idx).toIntOrNull() ?: continue
+                    val h = it.substring(idx + 1).toIntOrNull() ?: continue
+                    if (w > 0 && h > 0) {
                         // we got our info <3
-                        stream.w = width
-                        stream.h = height
-                        break@loop
+                        stream.w = w
+                        stream.h = h
+                        if (debug) LOGGER.debug("Found size $w x $h")
+                        return
                     }
                 }
             }
@@ -105,7 +119,7 @@ class FFMPEGMetaParser : StringMap() {
 
         fun parseOutput() {
             val videoTypeIndex = data.indexOf("rawvideo")
-            if (debug) LOGGER.debug(data.toString())
+            if (debug) LOGGER.debug("Parsing output: ${data.joinToString { it.shorten(200) }}")
             if (videoTypeIndex > -1 && videoTypeIndex + 2 < data.size && data[videoTypeIndex + 1] == "(") {
                 var codec = data[videoTypeIndex + 2]
                 if (data[videoTypeIndex + 3] == "[") {
@@ -114,6 +128,7 @@ class FFMPEGMetaParser : StringMap() {
                         codec += data.subList(videoTypeIndex + 3, eidx + 1).joinToString("")
                     }
                 }
+                if (debug) LOGGER.debug("Found codec $codec")
                 stream.codec = codec
             }
             parseSize()

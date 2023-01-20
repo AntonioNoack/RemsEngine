@@ -1,6 +1,7 @@
 package me.anno.cache.keys
 
 import me.anno.io.files.FileReference
+import me.anno.utils.strings.StringHelper.shorten
 
 data class VideoFramesKey(
     val file: FileReference,
@@ -11,7 +12,7 @@ data class VideoFramesKey(
 ) {
 
     override fun toString(): String {
-        return "$file, ${scale}x, $bufferIndex*$frameLength @${fps}fps"
+        return "${file.absolutePath.shorten(200)}, ${scale}x, $bufferIndex*$frameLength @${fps}fps"
     }
 
     val hashCode = generateHashCode()

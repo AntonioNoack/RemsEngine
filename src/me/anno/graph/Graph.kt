@@ -34,6 +34,21 @@ open class Graph : PrefabSaveable() {
         this.nodes.addAll(nodes)
     }
 
+    open fun canConnectTo(self: NodeConnector, other: NodeConnector): Boolean {
+        if (self.javaClass == other.javaClass) return false
+        // todo when connecting flows, ensure that no loops are formed between primary inputs
+        //  secondary flow inputs could be used for "break" or such
+        return if (self is NodeInput) {
+            canConnectTypeToOtherType(self.type, other.type)
+        } else {
+            canConnectTypeToOtherType(other.type, self.type)
+        }
+    }
+
+    open fun canConnectTypeToOtherType(srcType: String, dstType: String): Boolean {
+        return ((srcType == "Flow") == (dstType == "Flow"))
+    }
+
     override val className get() = "Graph"
     override val approxSize get() = 1000
     override fun isDefaultValue(): Boolean = false

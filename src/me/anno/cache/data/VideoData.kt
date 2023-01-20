@@ -3,6 +3,7 @@ package me.anno.cache.data
 import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.video.formats.gpu.GPUFrame
@@ -13,20 +14,28 @@ class VideoData(
     val file: FileReference, signature: String?, val w: Int, val h: Int,
     val scale: Int, val bufferIndex: Int,
     bufferLength: Int, val fps: Double,
+    originalWidth: Int, // meta?.videoWidth
+    originalFPS: Double, // meta?.videoFPS ?: 0.0001
     val numTotalFramesInSrc: Int,
 ) : ICacheData {
 
     init {
-        val meta = FFMPEGMetadata.getMeta(file, false)!!
         val frame0 = bufferIndex * bufferLength
-        if (frame0 <= -bufferLength || frame0 >= max(1, meta.videoFrameCount))
-            LOGGER.warn("Access of frames is out of bounds: $frame0/$bufferLength/${meta.videoFrameCount} by $file")
+        if (frame0 <= -bufferLength || frame0 >= max(1, numTotalFramesInSrc))
+            LOGGER.warn(
+                "Access of frames is out of bounds: $frame0/$bufferLength/${numTotalFramesInSrc} by ${
+                    file.absolutePath.shorten(
+                        200
+                    )
+                }"
+            )
     }
 
     // what about video webp? I think it's pretty rare...
     val stream = FFMPEGStream.getImageSequence(
         file, signature, w, h, bufferIndex * bufferLength,
         if (file.name.endsWith(".webp", true)) 1 else bufferLength, fps,
+        originalWidth, originalFPS,
         numTotalFramesInSrc
     )
 

@@ -1,6 +1,7 @@
 package me.anno.graph
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.graph.ui.GraphEditor
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
@@ -26,8 +27,8 @@ abstract class Node() : PrefabSaveable() {
      * @param outputs [type, name], [type, name], [type, name], ...
      * */
     constructor(name: String, inputs: List<String>, outputs: List<String>) : this(name) {
-        if (inputs.size.hasFlag(1)) throw IllegalArgumentException("Each input must be defined as type + name")
-        if (outputs.size.hasFlag(1)) throw IllegalArgumentException("Each output must be defined as type + name")
+        if (inputs.size.hasFlag(1)) throw IllegalArgumentException("Each input must be defined as type + name, got ${inputs.size} args")
+        if (outputs.size.hasFlag(1)) throw IllegalArgumentException("Each output must be defined as type + name, got ${outputs.size} args")
         this.inputs = Array(inputs.size shr 1) { NodeInput(inputs[it * 2], inputs[it * 2 + 1], this, false) }
         this.outputs = Array(outputs.size shr 1) { NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this, false) }
     }
@@ -35,7 +36,7 @@ abstract class Node() : PrefabSaveable() {
     // make name final
     final override var name = ""
 
-    open fun createUI(list: PanelList, style: Style) {}
+    open fun createUI(g: GraphEditor, list: PanelList, style: Style) {}
 
     val position = Vector3d()
 
@@ -56,16 +57,20 @@ abstract class Node() : PrefabSaveable() {
     open fun supportsMultipleInputs(con: NodeConnector) = false
     open fun supportsMultipleOutputs(con: NodeConnector) = false
 
-    open fun canConnectTypeToOtherType(srcType: String, dstType: String): Boolean {
-        return ((srcType == "Flow") == (dstType == "Flow"))
-    }
-
     fun setOutput(value: Any?, index: Int) {
         val node = outputs!![index]
         node.value = value
         for (it in node.others) {
             it.invalidate()
         }
+    }
+
+    fun getInputNode(i: Int, j: Int = 0): Node? {
+        return inputs?.get(i)?.others?.getOrNull(j)?.node
+    }
+
+    fun getOutputNode(i: Int, j: Int = 0): Node? {
+        return outputs?.get(i)?.others?.getOrNull(j)?.node
     }
 
     fun delete(graph: Graph?) {

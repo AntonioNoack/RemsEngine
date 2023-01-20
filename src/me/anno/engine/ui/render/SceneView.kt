@@ -57,16 +57,16 @@ class SceneView(
 
     companion object {
 
-        fun testSceneWithUI(prefab: Prefab, init: (SceneView) -> Unit = {}) {
+        fun testSceneWithUI(prefab: Prefab, init: ((SceneView) -> Unit)? = null) {
             testSceneWithUI(prefab.createInstance(), init)
         }
 
-        fun testSceneWithUI(scene: PrefabSaveable, init: (SceneView) -> Unit = {}) {
+        fun testSceneWithUI(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null) {
             testUI { testScene(scene, init) }
         }
 
         @Suppress("unused")
-        fun testScene(scene: PrefabSaveable, init: (SceneView) -> Unit = {}): Panel {
+        fun testScene(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null): Panel {
             scene.prefabPath = Path.ROOT_PATH
             EditorState.prefabSource = scene.ref
             val sceneView = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
@@ -75,8 +75,18 @@ class SceneView(
             list.add(ECSTreeView(EditorState, DefaultConfig.style), 1f)
             list.add(sceneView, 3f)
             list.add(PropertyInspector({ EditorState.selection }, DefaultConfig.style), 1f)
-            init(sceneView)
+            if (init != null) init(sceneView)
             return list
+        }
+
+        @Suppress("unused")
+        fun testScene2(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null): Panel {
+            scene.prefabPath = Path.ROOT_PATH
+            EditorState.prefabSource = scene.ref
+            val sceneView = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
+            PrefabInspector.currentInspector = PrefabInspector(scene.ref)
+            if (init != null) init(sceneView)
+            return sceneView
         }
     }
 

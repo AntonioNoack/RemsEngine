@@ -23,6 +23,7 @@ import me.anno.io.zip.InnerFolderCache
 import me.anno.io.zip.InnerFolderCache.imageFormats
 import me.anno.io.zip.InnerLinkFile
 import me.anno.studio.StudioBase
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
@@ -324,7 +325,7 @@ object PrefabCache : CacheSection("Prefab") {
                         data.value = loaded
                         if (loaded != null) FileWatch.addWatchDog(file)
                         if (debugLoading) LOGGER.info(
-                            "loaded $file, got ${loaded?.className}@${
+                            "loaded ${file.absolutePath.shorten(200)}, got ${loaded?.className}@${
                                 System.identityHashCode(
                                     loaded
                                 )

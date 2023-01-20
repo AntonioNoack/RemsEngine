@@ -22,6 +22,7 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
     var type = "Any?"
 
     var value: Any? = null
+    var defaultValue: Any? = null
 
     // todo special node ui? would help with the layouts :)
     // todo we could add input- and output panels there :)
@@ -42,16 +43,6 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
 
     var node: Node? = null
     var others: List<NodeConnector> = emptyList()
-
-    fun canConnectTo(other: NodeConnector): Boolean {
-        if (javaClass == other.javaClass) return false
-        val node = node ?: return true
-        return if (this is NodeInput) {
-            node.canConnectTypeToOtherType(type, other.type)
-        } else {
-            node.canConnectTypeToOtherType(other.type, type)
-        }
-    }
 
     fun isEmpty() = others.isEmpty()
 

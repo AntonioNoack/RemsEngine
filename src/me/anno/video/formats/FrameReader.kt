@@ -4,7 +4,9 @@ import me.anno.Engine
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.video.ffmpeg.FFMPEGMetaParser
+import me.anno.video.ffmpeg.FFMPEGMetaParser.Companion.invalidCodec
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.video.ffmpeg.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import org.apache.logging.log4j.LogManager
@@ -38,7 +40,7 @@ abstract class FrameReader<FrameType>(
         try {
             val frameCount = bufferLength
             waitForMetadata()
-            if (codec.isNotEmpty()) {
+            if (codec.isNotEmpty() && codec != invalidCodec) {
                 println("reading file $file with $w x $h x $codec")
                 val input = process.inputStream
                 input.use {
@@ -48,7 +50,7 @@ abstract class FrameReader<FrameType>(
                         if (isFinished) break
                     }
                 }
-            } else LOGGER.debug("$file cannot be read as image(s) by FFMPEG")
+            } else LOGGER.debug("${file?.absolutePath?.shorten(200)} cannot be read as image(s) by FFMPEG")
         } catch (e: OutOfMemoryError) {
             LOGGER.warn("Engine has run out of memory!!")
         } catch (e: ShutdownException) {
@@ -62,7 +64,9 @@ abstract class FrameReader<FrameType>(
         var lt = System.nanoTime()
         waitUntil(true) {
             // if the last line is too long ago, e.g., because the source is not readable as an image, return
-            if (parser.lastLineTime != 0L && Engine.nanoTime - parser.lastLineTime > 1e9) true
+            val timeLimit = 30e9
+            if (codec == invalidCodec) true
+            else if (parser.lastLineTime != 0L && Engine.nanoTime - parser.lastLineTime > timeLimit) true
             else {
                 val t = System.nanoTime()
                 if (abs(t - lt) > 1e9) {

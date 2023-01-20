@@ -9,8 +9,9 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
+import org.joml.Vector3f
 
-class MathD2Node() : ValueNode("FP Math 2", inputs, outputs), EnumNode {
+class MathF2V3Node() : ValueNode("FPV3 Math 2", inputs, outputs), EnumNode, GLSLExprNode {
 
     constructor(type: FloatMathsBinary) : this() {
         this.type = type
@@ -19,16 +20,19 @@ class MathD2Node() : ValueNode("FP Math 2", inputs, outputs), EnumNode {
     var type: FloatMathsBinary = FloatMathsBinary.ADD
         set(value) {
             field = value
-            name = "Float " + value.name
+            name = "Vector3f " + value.name
         }
 
-    override fun listNodes() = FloatMathsBinary.values.map { MathD2Node(it) }
+    override fun getShaderFuncName(outputIndex: Int): String = "f2v3$type"
+    override fun defineShaderFunc(outputIndex: Int): String = "(vec3 a, vec3 b){return ${type.glsl};}"
+
+    override fun listNodes() = FloatMathsBinary.values.map { MathF2V3Node(it) }
 
     override fun compute(graph: FlowGraph) {
         val inputs = inputs!!
-        val a = graph.getValue(inputs[0]) as Double
-        val b = graph.getValue(inputs[1]) as Double
-        setOutput(type.double(a, b), 0)
+        val a = graph.getValue(inputs[0]) as Vector3f
+        val b = graph.getValue(inputs[1]) as Vector3f
+        setOutput(Vector3f(type.float(a.x, b.x), type.float(a.y, b.y), type.float(a.z, b.z)), 0)
     }
 
     override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
@@ -52,14 +56,14 @@ class MathD2Node() : ValueNode("FP Math 2", inputs, outputs), EnumNode {
         else super.readInt(name, value)
     }
 
-    override val className get() = "MathD2Node"
+    override val className get() = "MathF2V3Node"
 
     companion object {
         @JvmField
-        val inputs = listOf("Double", "A", "Double", "B")
+        val inputs = listOf("Vector3f", "A", "Vector3f", "B")
 
         @JvmField
-        val outputs = listOf("Double", "Result")
+        val outputs = listOf("Vector3f", "Result")
     }
 
 }

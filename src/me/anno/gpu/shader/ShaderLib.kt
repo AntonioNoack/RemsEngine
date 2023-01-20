@@ -715,10 +715,15 @@ object ShaderLib {
                 "void main(){" +
                 "   gl_Position = transform * vec4(coords, 1.0);\n" +
                 positionPostProcessing +
-                "}", listOf(Variable(GLSLType.V1F, "zDistance")), emptyList(), "" +
-                "uniform vec4 color;\n" +
-                "void main(){" +
-                "   gl_FragColor = color;\n" +
+                "}", listOf(Variable(GLSLType.V1F, "zDistance")),
+        listOf(
+            Variable(GLSLType.V4F, "color"),
+            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
+        ), "" +
+                "void main(){\n" +
+                "   finalColor = color.rgb;\n" +
+                "   finalAlpha = color.a;\n" +
                 "}"
     )
 

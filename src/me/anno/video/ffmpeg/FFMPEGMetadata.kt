@@ -16,6 +16,7 @@ import me.anno.io.json.JsonReader
 import me.anno.utils.OS
 import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.Iterators.toList
 import me.anno.utils.types.Strings.parseTime
 import me.saharnooby.qoi.QOIImage
@@ -47,7 +48,7 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
     var videoFrameCount = 0
 
     override fun toString(): String {
-        return "FFMPEGMetadata(file: $file, audio: $hasAudio, video: $hasVideo, $videoWidth x $videoHeight, $videoFrameCount)"
+        return "FFMPEGMetadata(file: ${file.absolutePath.shorten(200)}, audio: $hasAudio, video: $hasVideo, $videoWidth x $videoHeight, $videoFrameCount)"
     }
 
     init {
@@ -90,10 +91,10 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
                     "tga" -> setImage(file.inputStreamSync().use { TGAImage.findSize(it) })
                     "ico" -> setImage(file.inputStreamSync().use { ICOReader.findSize(it) })
                     // else unknown
-                    else -> LOGGER.debug("$file has unknown extension and signature")
+                    else -> LOGGER.debug("${file.absolutePath.shorten(200)} has unknown extension and signature: '$signature1'")
                 }
             }
-            else -> LOGGER.debug("$file's signature wasn't registered in FFMPEGMetadata.kt")
+            else -> LOGGER.debug("${file.absolutePath.shorten(200)}'s signature wasn't registered in FFMPEGMetadata.kt: '$signature1'")
         }
     }
 

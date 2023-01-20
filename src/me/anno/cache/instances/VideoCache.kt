@@ -33,7 +33,7 @@ object VideoCache : CacheSection("Videos") {
         META_LOADING(0x442d24)
     }
 
-    private val videoGenLimit = 16
+    var videoGenLimit = 16
 
     private fun drawStatus(x: Int, y: Int, w: Int, h: Int, status: Status) {
         DrawRectangles.drawRect(x, y, w, h, status.color or black)
@@ -119,7 +119,7 @@ object VideoCache : CacheSection("Videos") {
         }
     }
 
-    private fun getVideoFrames(
+    fun getVideoFrames(
         file: FileReference, scale: Int,
         bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long, async: Boolean
@@ -132,7 +132,7 @@ object VideoCache : CacheSection("Videos") {
         return getEntryLimited(key, timeout, async, videoGenLimit, ::generateVideoFrames) as? VideoData
     }
 
-    private fun generateVideoFrames(key: VideoFramesKey): VideoData {
+    fun generateVideoFrames(key: VideoFramesKey): VideoData {
         val file = key.file
         val scale = key.scale
         val signature = Signature.findNameSync(file)
@@ -140,6 +140,7 @@ object VideoCache : CacheSection("Videos") {
         return VideoData(
             file, signature, meta.videoWidth / scale, meta.videoHeight / scale, scale,
             key.bufferIndex, key.frameLength, key.fps,
+            meta.videoWidth, meta.videoFPS,
             meta.videoFrameCount
         )
     }

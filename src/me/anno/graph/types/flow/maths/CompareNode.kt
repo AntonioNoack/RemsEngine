@@ -2,6 +2,7 @@ package me.anno.graph.types.flow.maths
 
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
+import me.anno.graph.ui.GraphEditor
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.EnumInput
@@ -64,11 +65,12 @@ class CompareNode : ValueNode("Compare", inputs, outputs) {
         setOutput(c, 0)
     }
 
-    override fun createUI(list: PanelList, style: Style) {
-        super.createUI(list, style)
+    override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
+        super.createUI(g, list, style)
         list += EnumInput("Type", true, type.name, values2.map { NameDesc(it.niceName) }, style)
             .setChangeListener { _, index, _ ->
                 type = values2[index]
+                g.onChange(false)
             }
     }
 

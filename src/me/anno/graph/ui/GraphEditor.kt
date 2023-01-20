@@ -43,6 +43,7 @@ import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.Warning.unused
 import me.anno.utils.structures.maps.Maps.removeIf
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3d
 import kotlin.math.*
@@ -131,24 +132,43 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
             // todo reset graph? idk...
             // todo button to save graph (?)
             // todo button to create new sub function (?)
-            openNewNodeMenu()
+            openNewNodeMenu(null, false)
         }
     }
 
     // todo if node is dragged on a line, connect left & right sides where types match from top to bottom
+    // todo -> detect, if a line is being hovered
 
-    fun openNewNodeMenu(callback: ((Node) -> Unit)? = null) {
-        val window = window!!
+    fun openNewNodeMenu(type: String?, typeIsInput: Boolean, callback: ((Node) -> Unit)? = null) {
+        val window = window ?: return
+        val graph = graph ?: return
         val mouseX = window.mouseX
         val mouseY = window.mouseY
+        var candidates = library.allNodes
+        if (type != null) {
+            candidates = if (typeIsInput) {
+                candidates.filter { (sample, _) ->
+                    sample.outputs?.any { graph.canConnectTypeToOtherType(type, it.type) } == true
+                }.sortedBy { (sample, _) -> // todo make double/float long/int equivalent
+                    sample.outputs?.any { type == it.type } != true
+                }
+            } else {
+                candidates.filter { (sample, _) ->
+                    sample.inputs?.any { graph.canConnectTypeToOtherType(it.type, type) } == true
+                }.sortedBy { (sample, _) ->  // todo make double/float long/int equivalent
+                    sample.inputs?.any { type == it.type } != true
+                }
+            }
+        }
         openMenu(windowStack,
-            library.allNodes.map { (sample, newNode) ->
+            candidates.map { (sample, newNodeGenerator) ->
                 MenuOption(NameDesc(sample.name)) {
                     // place node at mouse position
-                    val node = newNode()
+                    val node = newNodeGenerator()
                     node.position.set(windowToCoordsX(mouseX.toDouble()), windowToCoordsY(mouseY.toDouble()), 0.0)
-                    graph!!.nodes.add(node)
+                    graph.nodes.add(node)
                     if (callback != null) callback(node)
+                    onChange(false)
                     invalidateLayout()
                 }
             }
@@ -382,7 +402,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
             val endSocket = children.firstNotNullOfOrNull {
                 if (it is NodePanel) {
                     val con = it.getConnectorAt(mx, my)
-                    if (con != null && dragged.canConnectTo(con)) con
+                    if (con != null && graph.canConnectTo(dragged, con)) con
                     else null
                 } else null
             }
@@ -512,42 +532,85 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                 if (old is FloatInput) return old.apply { textSize = font.size }
                 return FloatInput(style)
                     .setValue(con.value as? Float ?: 0f, false)
-                    .setChangeListener { con.value = it.toFloat() }
+                    .setChangeListener {
+                        con.value = it.toFloat()
+                        onChange(false)
+                    }
+                    .setResetListener { con.value = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
             "Double" -> {
                 if (old is FloatInput) return old.apply { textSize = font.size }
                 return FloatInput(style)
                     .setValue(con.value as? Double ?: 0.0, false)
-                    .setChangeListener { con.value = it }
+                    .setChangeListener {
+                        con.value = it
+                        onChange(false)
+                    }
+                    .setResetListener { con.value = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
             "Int" -> {
                 if (old is IntInput) return old.apply { textSize = font.size }
                 return IntInput(style)
                     .setValue(con.value as? Int ?: 0, false)
-                    .setChangeListener { con.value = it.toInt() }
+                    .setChangeListener {
+                        con.value = it.toInt()
+                        onChange(false)
+                    }
+                    .setResetListener { con.value = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
             "Long" -> {
                 if (old is IntInput) return old.apply { textSize = font.size }
                 return IntInput(style)
                     .setValue(con.value as? Long ?: 0L, false)
-                    .setChangeListener { con.value = it }
+                    .setChangeListener {
+                        con.value = it
+                        onChange(false)
+                    }
+                    .setResetListener { con.value = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
             "String" -> {
                 if (old is TextInput) return old.apply { textSize = font.size }
                 return TextInput("", "", con.value.toString(), style)
-                    .addChangeListener { con.value = it }
+                    .addChangeListener {
+                        con.value = it
+                        onChange(false)
+                    }
+                    .setResetListener { con.value = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
             "Bool", "Boolean" -> {
                 if (old is Checkbox) return old
                     .apply { size = font.sizeInt }
                 return Checkbox(con.value == true, false, font.sizeInt, style)
-                    .setChangeListener { con.value = it }
+                    .setChangeListener {
+                        con.value = it
+                        onChange(false)
+                    }
+                    .setResetListener { con.value = con.defaultValue; con.defaultValue == true }
                     .apply { makeBackgroundTransparent() }
+            }
+            "Vector2f", "Vector3f", "Vector4f",
+            "Vector2d", "Vector3d", "Vector4d" -> {
+                return null // would use too much space
+                /*return ComponentUI.createUIByTypeName(null, "", object : IProperty<Any?> {
+                    override val annotations: List<Annotation> get() = emptyList()
+                    override fun get() = con.value
+                    override fun getDefault() = con.defaultValue
+                    override fun init(panel: Panel?) {}
+                    override fun reset(panel: Panel?): Any? {
+                        val value = getDefault()
+                        con.value = value
+                        return value
+                    }
+
+                    override fun set(panel: Panel?, value: Any?) {
+                        con.value = value
+                    }
+                }, type, null, style)*/
             }
         }
         if (type.startsWith("Enum<") && type.endsWith(">")) {
@@ -560,11 +623,13 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                 return EnumInput(NameDesc(con.value.toString()), values.map { NameDesc(it.toString()) }, style)
                     .setChangeListener { _, index, _ ->
                         con.value = values[index]
+                        onChange(false)
                     }
             } catch (e: ClassNotFoundException) {
                 e.printStackTrace()
             }
         }
+        LOGGER.warn("Type $type is missing input UI definition")
         return null
     }
 
@@ -624,6 +689,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                     data2.position.add(center)
                     graph.nodes.add(data2)
                     getNodePanel(data2).requestFocus()
+                    onChange(false)
                     done = true
                 }
                 is SaveableArray -> {
@@ -635,6 +701,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                             node.position.add(center)
                             getNodePanel(node).requestFocus(index == 0)
                         }
+                        onChange(false)
                         done = true
                     }
                 }
@@ -657,11 +724,27 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         return typeColors.getOrDefault(con.type, blue) or black
     }
 
+    fun onChange(isNodePositionChange: Boolean) {
+        val graph = graph ?: return
+        val listeners = changeListeners
+        for (i in listeners.indices) {
+            listeners[i](graph, isNodePositionChange)
+        }
+    }
+
+    val changeListeners = ArrayList<(Graph, Boolean) -> Unit>()
+    fun addChangeListener(listener: (graph: Graph, isNodePositionChange: Boolean) -> Unit): GraphEditor {
+        changeListeners += listener
+        return this
+    }
+
     override val canDrawOverBorders get() = true
     override val className get() = "GraphEditor"
 
     @Suppress("MayBeConstant")
     companion object {
+
+        private val LOGGER = LogManager.getLogger(GraphEditor::class.java)
 
         val greenish = 0x1cdeaa
         val yellowGreenish = 0x9cf841
