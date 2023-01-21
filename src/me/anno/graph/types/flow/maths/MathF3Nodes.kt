@@ -5,7 +5,7 @@ import me.anno.graph.types.FlowGraph
 import org.joml.Vector3f
 
 val dataF13 = MathNode.MathNodeData(
-    FloatMathsUnary.values(),
+    FloatMathsUnary.supportedUnaryVecTypes,
     listOf("Vector3f"), "Vector3f",
     { it.id }, { it.glsl }
 )

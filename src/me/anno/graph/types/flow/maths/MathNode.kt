@@ -36,16 +36,17 @@ abstract class MathNode<V : Enum<V>>(
         val names = Array(values.size) {
             inputs[0] + " " + values[it].name.upperSnakeCaseToTitle()
         }
+        val typeToIndex = values.withIndex().associate { it.value to it.index }
     }
 
     var type: V = data.defaultType
         set(value) {
             field = value
-            name = data.names[type.ordinal]
+            name = data.names[data.typeToIndex[value]!!]
         }
 
     init {
-        name = data.names[type.ordinal]
+        name = data.names[data.typeToIndex[type]!!]
     }
 
     override fun getShaderFuncName(outputIndex: Int): String = "f1$type"
