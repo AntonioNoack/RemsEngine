@@ -18,13 +18,14 @@ enum class FloatMathsUnary(
     FRACT(5, "fract(a)", { it - kotlin.math.floor(it) }, { it - kotlin.math.floor(it) }),
     TRUNC(5, "float(int(a))", { kotlin.math.truncate(it) }, { kotlin.math.truncate(it) }),
 
-    LN(10, "ln(a)", { kotlin.math.ln(it) }, { kotlin.math.ln(it) }),
-    LN1P(11, "ln(1.0+a)", { kotlin.math.ln1p(it.toDouble()).toFloat() }, { kotlin.math.ln1p(it) }),
+    LN(10, "log(a)", { kotlin.math.ln(it) }, { kotlin.math.ln(it) }),
+    LN1P(11, "log(1.0+a)", { kotlin.math.ln1p(it.toDouble()).toFloat() }, { kotlin.math.ln1p(it) }),
     LOG2(12, "log2(a)", { kotlin.math.log2(it) }, { kotlin.math.log2(it) }),
     LOG10(13, "log10(a)", { kotlin.math.log10(it) }, { kotlin.math.log10(it) }),
 
     EXP(20, "exp(a)", { kotlin.math.exp(it) }, { kotlin.math.exp(it) }),
     EXPM1(21, "exp(a)-1.0", { kotlin.math.expm1(it) }, { kotlin.math.expm1(it) }),
+    // todo unable to find compatible overloaded function "pow(float, vec3)"
     EXP2(22, "pow(2.0, a)", { 2f.pow(it) }, { 2.0.pow(it) }),
     EXP10(23, "pow(10.0, a)", { 10f.pow(it) }, { 10.0.pow(it) }),
 

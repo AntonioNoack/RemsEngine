@@ -8,6 +8,7 @@ import me.anno.graph.types.flow.actions.PrintNode
 import me.anno.graph.types.flow.config.ConfigGetBoolNode
 import me.anno.graph.types.flow.config.ConfigGetFloatNode
 import me.anno.graph.types.flow.config.ConfigGetIntNode
+import me.anno.graph.types.flow.control.DoWhileNode
 import me.anno.graph.types.flow.control.ForNode
 import me.anno.graph.types.flow.control.IfElseNode
 import me.anno.graph.types.flow.control.WhileNode
@@ -40,12 +41,14 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
 
         val flowNodes = NodeLibrary(
             { GetLocalVariableNode() },
+            { GetLocalVariableNode("Bool") },
             { GetLocalVariableNode("Float") },
             { GetLocalVariableNode("Int") },
             { GetLocalVariableNode("Vector2f") },
             { GetLocalVariableNode("Vector3f") },
             { GetLocalVariableNode("Vector4f") },
             { SetLocalVariableNode() },
+            { SetLocalVariableNode("Bool") },
             { SetLocalVariableNode("Float") },
             { SetLocalVariableNode("Int") },
             { SetLocalVariableNode("Vector2f") },
@@ -57,6 +60,7 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { ForNode() },
             { IfElseNode() },
             { WhileNode() },
+            { DoWhileNode() },
             { PrintNode() },
             { MathL1Node() },
             { MathL2Node() },
@@ -90,6 +94,9 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { CrossProductD2() },
             { CrossProductD3() },
             { CompareNode() },
+            { CompareNode("Bool") },
+            { CompareNode("Float") },
+            { CompareNode("Int") },
             { CombineVector2f() },
             { CombineVector3f() },
             { CombineVector4f() },

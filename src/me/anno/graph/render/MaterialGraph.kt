@@ -18,6 +18,7 @@ import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.types.flow.actions.PrintNode
+import me.anno.graph.types.flow.control.DoWhileNode
 import me.anno.graph.types.flow.control.ForNode
 import me.anno.graph.types.flow.control.IfElseNode
 import me.anno.graph.types.flow.control.WhileNode
@@ -52,6 +53,60 @@ class MaterialReturnNode : ReturnNode(
         listOf(MaterialGraph.types[it.dimensions - 1], it.name)
     }.flatten()
 )
+
+fun convert(srcType: String, dstType: String, expr: String): String? {
+    if (srcType == dstType) return expr
+    if (srcType == "Boolean") return convert("Bool", dstType, expr)
+    else if (dstType == "Boolean") return convert(srcType, "Bool", expr)
+    return when (srcType) {
+        "Bool" -> when (dstType) {
+            "Int" -> "$expr?1:0"
+            "Float" -> "$expr?1.0:0.0"
+            "Vector2f" -> "vec2($expr?1.0:0.0)"
+            "Vector3f" -> "vec3($expr?1.0:0.0)"
+            "Vector4f" -> "vec4($expr?1.0:0.0)"
+            else -> null
+        }
+        "Float" -> when (dstType) {
+            "Bool" -> "$expr!=0.0"
+            "Int" -> "int($expr)"
+            "Vector2f" -> "vec2($expr)"
+            "Vector3f" -> "vec3($expr)"
+            "Vector4f" -> "vec4($expr)"
+            else -> null
+        }
+        "Int" -> when (dstType) {
+            "Bool" -> "$expr!=0"
+            "Float" -> "float($expr)"
+            "Vector2f" -> "vec2($expr)"
+            "Vector3f" -> "vec3($expr)"
+            "Vector4f" -> "vec4($expr)"
+            else -> null
+        }
+        "Vector2f" -> when (dstType) {
+            "Bool" -> "$expr!=vec2(0)"
+            "Float" -> "length($expr)"
+            "Vector3f" -> "vec3($expr,0.0)"
+            "Vector4f" -> "vec4($expr,0.0,0.0)"
+            else -> null
+        }
+        "Vector3f" -> when (dstType) {
+            "Bool" -> "$expr!=vec3(0)"
+            "Float" -> "length($expr)"
+            "Vector2f" -> "($expr).xy"
+            "Vector4f" -> "vec4($expr,0.0)"
+            else -> null
+        }
+        "Vector4f" -> when (dstType) {
+            "Bool" -> "$expr!=vec4(0)"
+            "Float" -> "length($expr)"
+            "Vector2f" -> "($expr).xy"
+            "Vector3f" -> "($expr).xyz"
+            else -> null
+        }
+        else -> null
+    }
+}
 
 class DiscardNode : ReturnNode("Discard")
 
@@ -88,7 +143,7 @@ object MaterialGraph {
     fun main(args: Array<String>) {
         val g = object : FlowGraph() {
             override fun canConnectTypeToOtherType(srcType: String, dstType: String): Boolean {
-                return srcType == dstType
+                return convert(srcType, dstType, "") != null
             }
         }
         // todo create simple calculation
@@ -187,7 +242,6 @@ class MatGraphCompiler(
         return name
     }
 
-    // todo if types are not matching, convert them :)
     fun expr(out: NodeOutput, n: Node): String {
         val v = conDefines[out]
         if (v != null) return v
@@ -240,13 +294,24 @@ class MatGraphCompiler(
             }
             is GetLocalVariableNode -> getLocalVarName(n.getKey(g), n.type)
             is SetLocalVariableNode -> getLocalVarName(n.getKey(g), n.type)
+            is CompareNode -> {
+                val an = n.inputs!![0]
+                val bn = n.inputs!![1]
+                val a = expr(an)
+                val b = convert(bn.type, an.type, expr(bn))!!
+                val symbol = n.compType.glslName
+                "($a)$symbol($b)"
+            }
             else -> throw IllegalArgumentException("Unknown node ${n.javaClass.name}")
         }
     }
 
     fun expr(c: NodeInput): String {
         val n0 = c.others.firstOrNull()
-        if (n0 is NodeOutput) return expr(n0, n0.node!!)
+        if (n0 is NodeOutput) {
+            return convert(n0.type, c.type, expr(n0, n0.node!!))
+                ?: throw IllegalStateException("Cannot convert ${n0.type} to ${c.type}!")
+        }
         val v = c.value
         return (when (c.type) {
             "Float", "Double" -> AnyToFloat.getFloat(v, 0, c.defaultValue as? Float ?: 0f)
@@ -328,6 +393,18 @@ class MatGraphCompiler(
                 }
                 createTree(node.getOutputNode(1), depth)
             }
+            is DoWhileNode -> {
+                val body = node.getOutputNode(0)
+                if (body != null) {
+                    builder.append("do {")
+                    createTree(body, depth + 1)
+                    val cond = expr(node.inputs!![1])
+                    builder.append("} while(\n")
+                    builder.append(cond)
+                    builder.append(");\n")
+                }
+                createTree(node.getOutputNode(1), depth)
+            }
             is IfElseNode -> {
                 val tr = node.getOutputNode(0)
                 val fs = node.getOutputNode(1)
@@ -389,15 +466,11 @@ class MatGraphCompiler(
             }
             when (node) {
                 is StartNode -> traverse(node.getOutputNode(0))
-                is IfElseNode -> {
-                    traverse(node.getOutputNode(0))
-                    traverse(node.getOutputNode(1))
-                }
                 is ForNode -> {
                     traverse(node.getOutputNode(0))
                     traverse(node.getOutputNode(2))
                 }
-                is WhileNode -> {
+                is WhileNode, is DoWhileNode, is IfElseNode -> {
                     traverse(node.getOutputNode(0))
                     traverse(node.getOutputNode(1))
                 }
