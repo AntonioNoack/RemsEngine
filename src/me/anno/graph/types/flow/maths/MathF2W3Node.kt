@@ -12,28 +12,28 @@ import me.anno.ui.style.Style
 import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 import org.joml.Vector3f
 
-class MathF2V3Node() : ValueNode("", inputs, outputs), EnumNode, GLSLExprNode {
+class MathF2W3Node() : ValueNode("", inputs, outputs), EnumNode, GLSLExprNode {
 
-    constructor(type: FloatMathsBinary) : this() {
+    constructor(type: VectorMathsBinary) : this() {
         this.type = type
     }
 
-    var type: FloatMathsBinary = FloatMathsBinary.ADD
+    var type: VectorMathsBinary = VectorMathsBinary.CROSS
         set(value) {
             field = value
             name = "Vector3f " + value.name.upperSnakeCaseToTitle()
         }
 
-    override fun getShaderFuncName(outputIndex: Int): String = "f2v3$type"
+    override fun getShaderFuncName(outputIndex: Int): String = "f2w3$type"
     override fun defineShaderFunc(outputIndex: Int): String = "(vec3 a, vec3 b){return ${type.glsl};}"
 
-    override fun listNodes() = values.map { MathF2V3Node(it) }
+    override fun listNodes() = values.map { MathF2W3Node(it) }
 
     override fun compute(graph: FlowGraph) {
         val inputs = inputs!!
         val a = graph.getValue(inputs[0]) as Vector3f
         val b = graph.getValue(inputs[1]) as Vector3f
-        setOutput(Vector3f(type.float(a.x, b.x), type.float(a.y, b.y), type.float(a.z, b.z)), 0)
+        setOutput(type.float(a, b, Vector3f()), 0)
     }
 
     override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
@@ -53,16 +53,15 @@ class MathF2V3Node() : ValueNode("", inputs, outputs), EnumNode, GLSLExprNode {
     }
 
     override fun readInt(name: String, value: Int) {
-        if (name == "type") type = FloatMathsBinary.byId[value] ?: type
+        if (name == "type") type = VectorMathsBinary.byId[value] ?: type
         else super.readInt(name, value)
     }
 
-    override val className get() = "MathF2V3Node"
+    override val className get() = "MathF2W3Node"
 
     companion object {
 
-        val values = FloatMathsBinary.values
-            .filter { "vec2" !in it.glsl }
+        val values = VectorMathsBinary.values
 
         @JvmField
         val inputs = listOf("Vector3f", "A", "Vector3f", "B")

@@ -1,9 +1,9 @@
 package me.anno.graph.types.flow.maths
 
 import me.anno.graph.EnumNode
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
 import me.anno.graph.ui.GraphEditor
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
@@ -11,34 +11,42 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 
-class MathD2Node() : ValueNode("", inputs, outputs), EnumNode {
+abstract class MathNode<V : Enum<V>>(
+    val values: Array<V>,
+) : ValueNode("", inputs, outputs), EnumNode, GLSLExprNode {
 
-    constructor(type: FloatMathsBinary) : this() {
+    constructor(clazz: Class<Enum<V>>) : this(vCache.getOrPut(clazz) { clazz.enumConstants } as Array<V>) {
         this.type = type
     }
 
-    var type: FloatMathsBinary = FloatMathsBinary.ADD
+    constructor(type: V) : this(type.javaClass) {
+        this.type = type
+    }
+
+    var type: V = values[0]
         set(value) {
             field = value
             name = "Float " + value.name.upperSnakeCaseToTitle()
         }
 
-    override fun listNodes() = FloatMathsBinary.values.map { MathD2Node(it) }
+    abstract fun getGLSL(type: V): String
 
-    override fun compute(graph: FlowGraph) {
-        val inputs = inputs!!
-        val a = graph.getValue(inputs[0]) as Double
-        val b = graph.getValue(inputs[1]) as Double
-        setOutput(type.double(a, b), 0)
+    override fun getShaderFuncName(outputIndex: Int): String = "f1$type"
+    override fun defineShaderFunc(outputIndex: Int): String = "(float a){return ${getGLSL(type)};}"
+
+    override fun listNodes() = values.map {
+        val cl = ISaveable.create(className) as MathNode<V>
+        cl.type = type
+        cl
     }
 
     override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
         super.createUI(g, list, style)
         list += EnumInput(
             "Type", true, type.name.upperSnakeCaseToTitle(),
-            FloatMathsBinary.values.map { NameDesc(it.name.upperSnakeCaseToTitle(), it.glsl, "") }, style
+            values.map { NameDesc(it.name.upperSnakeCaseToTitle(), getGLSL(it), "") }, style
         ).setChangeListener { _, index, _ ->
-            type = FloatMathsBinary.values[index]
+            type = values[index]
             g.onChange(false)
         }
     }
@@ -49,18 +57,14 @@ class MathD2Node() : ValueNode("", inputs, outputs), EnumNode {
     }
 
     override fun readInt(name: String, value: Int) {
-        if (name == "type") type = FloatMathsBinary.byId[value] ?: type
+        if (name == "type") type = values.getOrNull(values.binarySearch(value)) ?: type
         else super.readInt(name, value)
     }
 
-    override val className get() = "MathD2Node"
-
     companion object {
-        @JvmField
-        val inputs = listOf("Double", "A", "Double", "B")
-
-        @JvmField
-        val outputs = listOf("Double", "Result")
+        val vCache = HashMap<Class<*>, Any>(64)
+        val inputs = listOf("Float", "A")
+        val outputs = listOf("Float", "Result")
     }
 
 }

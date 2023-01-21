@@ -61,6 +61,7 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { MathF1V3Node() },
             { MathF2V3Node() },
             { MathF3V3Node() },
+            { MathF1W3Node() },
             { CompareNode() },
             { CombineVector3fNode() },
             { SeparateVector3fNode() },

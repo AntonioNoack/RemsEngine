@@ -9,8 +9,9 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
+import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 
-class MathF1Node() : ValueNode("FP Math 1", inputs, outputs), EnumNode, GLSLExprNode {
+class MathF1Node() : ValueNode("", inputs, outputs), EnumNode, GLSLExprNode {
 
     constructor(type: FloatMathsUnary) : this() {
         this.type = type
@@ -19,7 +20,7 @@ class MathF1Node() : ValueNode("FP Math 1", inputs, outputs), EnumNode, GLSLExpr
     var type: FloatMathsUnary = FloatMathsUnary.ABS
         set(value) {
             field = value
-            name = "Float " + value.name
+            name = "Float " + value.name.upperSnakeCaseToTitle()
         }
 
     override fun getShaderFuncName(outputIndex: Int): String = "f1$type"
@@ -36,8 +37,8 @@ class MathF1Node() : ValueNode("FP Math 1", inputs, outputs), EnumNode, GLSLExpr
     override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
         super.createUI(g, list, style)
         list += EnumInput(
-            "Type", true, type.name,
-            FloatMathsUnary.values.map { NameDesc(it.name, it.glsl, "") }, style
+            "Type", true, type.name.upperSnakeCaseToTitle(),
+            FloatMathsUnary.values.map { NameDesc(it.name.upperSnakeCaseToTitle(), it.glsl, "") }, style
         ).setChangeListener { _, index, _ ->
             type = FloatMathsUnary.values[index]
             g.onChange(false)

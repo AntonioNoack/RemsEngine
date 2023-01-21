@@ -9,8 +9,9 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
+import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 
-class MathL1Node() : ValueNode("Integer Math 1", inputs, outputs), EnumNode {
+class MathL1Node() : ValueNode("", inputs, outputs), EnumNode {
 
     enum class IntMathsUnary(
         val id: Int,
@@ -45,12 +46,13 @@ class MathL1Node() : ValueNode("Integer Math 1", inputs, outputs), EnumNode {
     var type: IntMathsUnary = IntMathsUnary.ABS
         set(value) {
             field = value
-            name = "Int " + value.name
+            name = "Int " + value.name.upperSnakeCaseToTitle()
         }
 
     override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
         super.createUI(g, list, style)
-        list += EnumInput("Type", true, type.name, IntMathsUnary.values.map { NameDesc(it.name, it.glsl, "") }, style)
+        list += EnumInput("Type", true, type.name.upperSnakeCaseToTitle(),
+            IntMathsUnary.values.map { NameDesc(it.name.upperSnakeCaseToTitle(), it.glsl, "") }, style)
             .setChangeListener { _, index, _ ->
                 type = IntMathsUnary.values[index]
                 g.onChange(false)

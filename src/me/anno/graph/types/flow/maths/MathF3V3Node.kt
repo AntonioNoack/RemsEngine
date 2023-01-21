@@ -9,9 +9,10 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
+import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 import org.joml.Vector3f
 
-class MathF3V3Node() : ValueNode("FPV3 Math 3", inputs, outputs), EnumNode, GLSLExprNode {
+class MathF3V3Node() : ValueNode("", inputs, outputs), EnumNode, GLSLExprNode {
 
     constructor(type: FloatMathsTernary) : this() {
         this.type = type
@@ -20,7 +21,7 @@ class MathF3V3Node() : ValueNode("FPV3 Math 3", inputs, outputs), EnumNode, GLSL
     var type: FloatMathsTernary = FloatMathsTernary.ADD
         set(value) {
             field = value
-            name = "Vector3f " + value.name
+            name = "Vector3f " + value.name.upperSnakeCaseToTitle()
         }
 
     override fun getShaderFuncName(outputIndex: Int): String = "f3v3$type"
@@ -39,8 +40,8 @@ class MathF3V3Node() : ValueNode("FPV3 Math 3", inputs, outputs), EnumNode, GLSL
     override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
         super.createUI(g, list, style)
         list += EnumInput(
-            "Type", true, type.name,
-            FloatMathsTernary.values.map { NameDesc(it.name, it.glsl, "") }, style
+            "Type", true, type.name.upperSnakeCaseToTitle(),
+            FloatMathsTernary.values.map { NameDesc(it.name.upperSnakeCaseToTitle(), it.glsl, "") }, style
         ).setChangeListener { _, index, _ ->
             type = FloatMathsTernary.values[index]
             g.onChange(false)

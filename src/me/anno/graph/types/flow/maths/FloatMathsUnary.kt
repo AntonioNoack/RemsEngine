@@ -15,7 +15,7 @@ enum class FloatMathsUnary(
     FLOOR(2, "floor(a)", { kotlin.math.floor(it) }, { kotlin.math.floor(it) }),
     ROUND(3, "round(a)", { kotlin.math.round(it) }, { kotlin.math.round(it) }),
     CEIL(4, "ceil(a)", { kotlin.math.ceil(it) }, { kotlin.math.ceil(it) }),
-    FRACT(5, "fract(a)", { kotlin.math.floor(it) }, { kotlin.math.floor(it) }),
+    FRACT(5, "fract(a)", { it - kotlin.math.floor(it) }, { it - kotlin.math.floor(it) }),
     TRUNC(5, "float(int(a))", { kotlin.math.truncate(it) }, { kotlin.math.truncate(it) }),
 
     LN(10, "ln(a)", { kotlin.math.ln(it) }, { kotlin.math.ln(it) }),
