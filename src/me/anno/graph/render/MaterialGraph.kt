@@ -10,19 +10,21 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.graph.Graph
 import me.anno.graph.Node
 import me.anno.graph.NodeInput
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
+import me.anno.graph.types.flow.actions.PrintNode
 import me.anno.graph.types.flow.control.ForNode
 import me.anno.graph.types.flow.control.IfElseNode
 import me.anno.graph.types.flow.control.WhileNode
+import me.anno.graph.types.flow.local.GetLocalVariableNode
+import me.anno.graph.types.flow.local.SetLocalVariableNode
 import me.anno.graph.types.flow.maths.*
-import me.anno.graph.types.flow.vector.CombineVector3fNode
-import me.anno.graph.types.flow.vector.SeparateVector3fNode
+import me.anno.graph.types.flow.vector.*
 import me.anno.graph.ui.GraphEditor
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI
@@ -32,6 +34,26 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.util.*
+
+// todo bug: <tab> in vector input not switching to next one
+
+fun kotlinToGLSL(type: String): String {
+    return when (type) {
+        "Float" -> "float"
+        "Vector2f" -> "vec2"
+        "Vector3f" -> "vec3"
+        "Vector4f" -> "vec4"
+        else -> throw NotImplementedError(type)
+    }
+}
+
+class MaterialReturnNode : ReturnNode(
+    MaterialGraph.layers.map {
+        listOf(MaterialGraph.types[it.dimensions - 1], it.name)
+    }.flatten()
+)
+
+class DiscardNode : ReturnNode("Discard")
 
 object MaterialGraph {
 
@@ -61,15 +83,6 @@ object MaterialGraph {
         "Vector3f",
         "Vector4f"
     )
-
-    class MaterialReturnNode : ReturnNode(
-        layers.map {
-            listOf(types[it.dimensions - 1], it.name)
-        }.flatten()
-    )
-
-    // todo add discard node to library
-    class DiscardNode : ReturnNode()
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -119,7 +132,11 @@ object MaterialGraph {
         testUI {
             val ui = CustomList(false, style)
             val ge = GraphEditor(g, style)
-            ge.library
+            ge.library = NodeLibrary(
+                ge.library.nodes + listOf(
+                    { DiscardNode() },
+                    { MaterialReturnNode() })
+            )
             ge.addChangeListener { _, isNodePositionChange ->
                 if (!isNodePositionChange) {
                     compile()
@@ -133,7 +150,7 @@ object MaterialGraph {
 
 class MatGraphCompiler(
     start: StartNode,
-    g: Graph,
+    val g: FlowGraph,
 ) {
 
     // todo uniform input block? maybe :)
@@ -151,6 +168,13 @@ class MatGraphCompiler(
     val shader: ECSMeshShader
 
     var k = 0
+
+    val localVars = HashMap<String, Pair<String, String>>() // name -> newName,type
+    fun getLocalVarName(name: String, type: String?): String {
+        return localVars.getOrPut("$name/$type") {
+            Pair("l${localVars.size}", type!!)
+        }.first
+    }
 
     fun shallExport(l: DeferredLayerType, c: NodeInput): Boolean {
         return l == DeferredLayerType.COLOR || c.others.isNotEmpty() || c.value != c.defaultValue
@@ -181,17 +205,41 @@ class MatGraphCompiler(
                     else -> throw NotImplementedError()
                 }
             }
-            is CombineVector3fNode -> {
+            is DotProductF2, is DotProductF3, is DotProductF4 -> {
+                val a = expr(n.inputs!![0])
+                val b = expr(n.inputs!![1])
+                "dot($a,$b)"
+            }
+            is CrossProductF3 -> {
+                val a = expr(n.inputs!![0])
+                val b = expr(n.inputs!![1])
+                "cross($a,$b)"
+            }
+            is CombineVector2f -> {
+                val a = expr(n.inputs!![0])
+                val b = expr(n.inputs!![1])
+                "vec2($a,$b)"
+            }
+            is CombineVector3f -> {
                 val a = expr(n.inputs!![0])
                 val b = expr(n.inputs!![1])
                 val c = expr(n.inputs!![2])
                 "vec3($a,$b,$c)"
             }
-            is SeparateVector3fNode -> {
+            is CombineVector4f -> {
+                val a = expr(n.inputs!![0])
+                val b = expr(n.inputs!![1])
+                val c = expr(n.inputs!![2])
+                val d = expr(n.inputs!![3])
+                "vec4($a,$b,$c,$d)"
+            }
+            is SeparateVector2f, is SeparateVector3f, is SeparateVector4f -> {
                 val c = n.outputs!!.indexOf(out)
                 val a = expr(n.inputs!![0])
-                "($a).${"xyz"[c]}"
+                "($a).${"xyzw"[c]}"
             }
+            is GetLocalVariableNode -> getLocalVarName(n.getKey(g), n.type)
+            is SetLocalVariableNode -> getLocalVarName(n.getKey(g), n.type)
             else -> throw IllegalArgumentException("Unknown node ${n.javaClass.name}")
         }
     }
@@ -215,6 +263,10 @@ class MatGraphCompiler(
                 if (v !is Vector4f) return "vec4(0)"
                 "vec4(${v.x},${v.y},${v.z},${v.w})"
             }
+            "Boolean" -> {
+                if (v !is Boolean) return "false"
+                v.toString()
+            }
             else -> throw IllegalArgumentException("Unknown type ${c.type}")
         }).toString()
     }
@@ -224,8 +276,6 @@ class MatGraphCompiler(
         if (!processedNodes.add(node)) {
             throw IllegalStateException("Illegal loop for ${node.javaClass.name}")
         }
-        // todo define all local variables
-        // todo define all outputs with their default values
         when (node) {
             is StartNode -> createTree(node.getOutputNode(0), depth)
             is ForNode -> {
@@ -247,7 +297,7 @@ class MatGraphCompiler(
                 }
                 createTree(node.getOutputNode(2), depth)
             }
-            is MaterialGraph.MaterialReturnNode -> {
+            is MaterialReturnNode -> {
                 // define all values :)
                 for (i in MaterialGraph.layers.indices) {
                     val l = MaterialGraph.layers[i]
@@ -263,7 +313,7 @@ class MatGraphCompiler(
                 // jump to return
                 builder.append("return false;\n")
             }
-            is MaterialGraph.DiscardNode -> {
+            is DiscardNode -> {
                 builder.append("return true;\n")
             }
             is WhileNode -> {
@@ -298,6 +348,18 @@ class MatGraphCompiler(
                     builder.append("}\n")
                 }// else nothing
             }
+            // we could use it later for debugging :)
+            is PrintNode -> createTree(node.getOutputNode(0), depth)
+            is SetLocalVariableNode -> {
+                if (node.type != "?") {
+                    val value = expr(node.inputs!![2])
+                    builder.append(getLocalVarName(node.getKey(g), node.type))
+                        .append("=").append(value).append(";\n")
+                }
+                // continue
+                createTree(node.getOutputNode(0), depth)
+            }
+            else -> throw NotImplementedError("Unsupported node type ${node.javaClass.name}")
         }
     }
 
@@ -339,12 +401,20 @@ class MatGraphCompiler(
                     traverse(node.getOutputNode(0))
                     traverse(node.getOutputNode(1))
                 }
-                is MaterialGraph.MaterialReturnNode -> {
+                is MaterialReturnNode -> {
                     for (i in MaterialGraph.layers.indices) {
                         if (!exportedLayers[i] && shallExport(MaterialGraph.layers[i], node.inputs!![i + 1])) {
                             exportedLayers[i] = true
                         }
                     }
+                }
+                is PrintNode -> traverse(node.getOutputNode(0))
+                is GetLocalVariableNode -> {
+                    if (node.type != "?") getLocalVarName(node.getInput(g, 0).toString(), node.type)
+                }
+                is SetLocalVariableNode -> {
+                    if (node.type != "?") getLocalVarName(node.getInput(g, 1).toString(), node.type)
+                    traverse(node.getOutputNode(0))
                 }
             }
         }
@@ -363,13 +433,25 @@ class MatGraphCompiler(
             }
         }
         builder.append("){\n")
-
+        val funcHeader = builder.toString()
+        builder.clear()
         createTree(start, 1)
+        builder.append("return false;\n")
         builder.append("}\n")
 
-        val functions = funcBuilder.toString() + builder.toString()
-
+        val funcBody = builder.toString()
         builder.clear()
+
+        for ((k, v) in localVars) {
+            val type = kotlinToGLSL(v.second)
+            builder.append(type).append(' ').append(v.first)
+                .append('=').append(type).append("(0);//").append(k).append("\n")
+        }
+        val funcVars = builder.toString()
+        builder.clear()
+
+        val functions = funcBuilder.toString() + funcHeader + funcVars + funcBody
+
         // call method with all required parameters
         builder.append("if(calc(")
         first = true
@@ -437,6 +519,7 @@ class MatGraphCompiler(
                 return ShaderStage(
                     "calc", vars,
                     discardByCullingPlane +
+                            normalTanBitanCalculation +
                             funcCall +
                             // todo only if clear coat is defined
                             // v0 + clearCoatCalculation +
@@ -444,16 +527,6 @@ class MatGraphCompiler(
                             (if (motionVectors) finalMotionCalculation else "")
                 ).add(functions)
             }
-        }
-    }
-
-    fun kotlinToGLSL(type: String): String {
-        return when (type) {
-            "Float" -> "float"
-            "Vector2f" -> "vec2"
-            "Vector3f" -> "vec3"
-            "Vector4f" -> "vec4"
-            else -> throw NotImplementedError()
         }
     }
 

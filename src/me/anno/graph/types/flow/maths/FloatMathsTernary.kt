@@ -36,11 +36,4 @@ enum class FloatMathsTernary(
 
     ;
 
-    companion object {
-        @JvmStatic
-        val values = values()
-        @JvmStatic
-        val byId = values.associateBy { it.id }
-    }
-
 }

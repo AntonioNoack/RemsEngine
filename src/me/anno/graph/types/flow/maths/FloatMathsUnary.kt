@@ -46,9 +46,4 @@ enum class FloatMathsUnary(
 
     ;
 
-    companion object {
-        val values = values()
-        val byId = values.associateBy { it.id }
-    }
-
 }

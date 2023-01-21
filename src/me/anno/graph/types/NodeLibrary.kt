@@ -14,8 +14,7 @@ import me.anno.graph.types.flow.control.WhileNode
 import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
 import me.anno.graph.types.flow.maths.*
-import me.anno.graph.types.flow.vector.CombineVector3fNode
-import me.anno.graph.types.flow.vector.SeparateVector3fNode
+import me.anno.graph.types.flow.vector.*
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
 class NodeLibrary(val nodes: Collection<() -> Node>) {
@@ -41,7 +40,17 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
 
         val flowNodes = NodeLibrary(
             { GetLocalVariableNode() },
+            { GetLocalVariableNode("Float") },
+            { GetLocalVariableNode("Int") },
+            { GetLocalVariableNode("Vector2f") },
+            { GetLocalVariableNode("Vector3f") },
+            { GetLocalVariableNode("Vector4f") },
             { SetLocalVariableNode() },
+            { SetLocalVariableNode("Float") },
+            { SetLocalVariableNode("Int") },
+            { SetLocalVariableNode("Vector2f") },
+            { SetLocalVariableNode("Vector3f") },
+            { SetLocalVariableNode("Vector4f") },
             { ConfigGetBoolNode() },
             { ConfigGetIntNode() },
             { ConfigGetFloatNode() },
@@ -52,19 +61,41 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { MathL1Node() },
             { MathL2Node() },
             { MathL3Node() },
+            { MathI1Node() },
+            { MathI2Node() },
+            { MathI3Node() },
             { MathD1Node() },
             { MathD2Node() },
             { MathD3Node() },
             { MathF1Node() },
             { MathF2Node() },
             { MathF3Node() },
-            { MathF1V3Node() },
-            { MathF2V3Node() },
-            { MathF3V3Node() },
-            { MathF1W3Node() },
+            { MathF12Node() },
+            { MathF22Node() },
+            { MathF32Node() },
+            { MathF13Node() },
+            { MathF23Node() },
+            { MathF33Node() },
+            { MathF14Node() },
+            { MathF24Node() },
+            { MathF34Node() },
+            { DotProductF2() },
+            { DotProductF3() },
+            { DotProductF4() },
+            { DotProductD2() },
+            { DotProductD3() },
+            { DotProductD4() },
+            { CrossProductF2() },
+            { CrossProductF3() },
+            { CrossProductD2() },
+            { CrossProductD3() },
             { CompareNode() },
-            { CombineVector3fNode() },
-            { SeparateVector3fNode() },
+            { CombineVector2f() },
+            { CombineVector3f() },
+            { CombineVector4f() },
+            { SeparateVector2f() },
+            { SeparateVector3f() },
+            { SeparateVector4f() },
         )
 
         fun init() {

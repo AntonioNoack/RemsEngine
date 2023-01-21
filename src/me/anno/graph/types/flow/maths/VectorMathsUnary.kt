@@ -12,9 +12,4 @@ enum class VectorMathsUnary(
     NORMALIZE(70, "normalize(a)", { a, r -> a.normalize(r) }, { a, r -> a.normalize(r) }),
     ;
 
-    companion object {
-        val values = values()
-        val byId = values.associateBy { it.id }
-    }
-
 }

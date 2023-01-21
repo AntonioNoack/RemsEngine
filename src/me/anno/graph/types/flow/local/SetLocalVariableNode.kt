@@ -2,8 +2,27 @@ package me.anno.graph.types.flow.local
 
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.actions.ActionNode
+import me.anno.io.base.BaseWriter
 
-class SetLocalVariableNode() : ActionNode("SetLocal", inputs, outputs) {
+class SetLocalVariableNode(type: String = "?") :
+    ActionNode(
+        "SetLocal",
+        listOf("String", "Name", type, "New Value"),
+        listOf(type, "Current Value")
+    ) {
+
+    var type: String = type
+        set(value) {
+            field = value
+            inputs!![2].type = value
+            outputs!![1].type = value
+            name = if (value == "?") "SetLocal"
+            else "SetLocal $value"
+        }
+
+    init {
+        if (type != "?") name = "SetLocal $type"
+    }
 
     constructor(key: String, value: Any?) : this() {
         setInputs(listOf(null, key, value))
@@ -17,6 +36,16 @@ class SetLocalVariableNode() : ActionNode("SetLocal", inputs, outputs) {
         val value = getInput(graph, 2)
         graph.localVariables[key] = value
         setOutput(value, 1)
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeString("type", type)
+    }
+
+    override fun readString(name: String, value: String?) {
+        if (name == "type") type = value ?: return
+        else super.readString(name, value)
     }
 
     companion object {

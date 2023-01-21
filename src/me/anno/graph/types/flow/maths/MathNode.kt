@@ -1,52 +1,71 @@
 package me.anno.graph.types.flow.maths
 
 import me.anno.graph.EnumNode
+import me.anno.graph.render.kotlinToGLSL
 import me.anno.graph.types.flow.ValueNode
 import me.anno.graph.ui.GraphEditor
-import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.hasFlag
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 
 abstract class MathNode<V : Enum<V>>(
-    val values: Array<V>,
-) : ValueNode("", inputs, outputs), EnumNode, GLSLExprNode {
+    val data: MathNodeData<V>,
+) : ValueNode("", data.inputs, data.outputs), EnumNode, GLSLExprNode {
 
-    constructor(clazz: Class<Enum<V>>) : this(vCache.getOrPut(clazz) { clazz.enumConstants } as Array<V>) {
-        this.type = type
+    class MathNodeData<V : Enum<V>>(
+        val values: Array<V>,
+        inputTypes: List<String>,
+        outputType: String,
+        getId: (V) -> Int,
+        val getGLSL: (V) -> String,
+    ) {
+        val inputs = (0 until inputTypes.size * 2)
+            .map { if (it.hasFlag(1)) ('A' + it.shr(1)).toString() else inputTypes[it shr 1] }
+        val defaultType = values[0]
+        val outputs = listOf(outputType, "Result")
+        val byId = values.associateBy { getId(it) }
+        val shaderFuncPrefix by lazy {
+            (0 until inputs.size / 2).joinToString(",") {
+                kotlinToGLSL(inputs[it * 2]) + " " + ('a' + it)
+            }
+        }
+        val names = Array(values.size) {
+            inputs[0] + " " + values[it].name.upperSnakeCaseToTitle()
+        }
     }
 
-    constructor(type: V) : this(type.javaClass) {
-        this.type = type
-    }
-
-    var type: V = values[0]
+    var type: V = data.defaultType
         set(value) {
             field = value
-            name = "Float " + value.name.upperSnakeCaseToTitle()
+            name = data.names[type.ordinal]
         }
 
-    abstract fun getGLSL(type: V): String
+    init {
+        name = data.names[type.ordinal]
+    }
 
     override fun getShaderFuncName(outputIndex: Int): String = "f1$type"
-    override fun defineShaderFunc(outputIndex: Int): String = "(float a){return ${getGLSL(type)};}"
+    override fun defineShaderFunc(outputIndex: Int): String =
+        "(${data.shaderFuncPrefix}){return ${data.getGLSL(type)};}"
 
-    override fun listNodes() = values.map {
-        val cl = ISaveable.create(className) as MathNode<V>
-        cl.type = type
-        cl
+    override fun listNodes(): List<MathNode<V>> {
+        val clazz = javaClass
+        return data.values.map {
+            clazz.newInstance().apply { type = it }
+        }
     }
 
     override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
         super.createUI(g, list, style)
         list += EnumInput(
             "Type", true, type.name.upperSnakeCaseToTitle(),
-            values.map { NameDesc(it.name.upperSnakeCaseToTitle(), getGLSL(it), "") }, style
+            data.values.map { NameDesc(it.name.upperSnakeCaseToTitle(), data.getGLSL(it), "") }, style
         ).setChangeListener { _, index, _ ->
-            type = values[index]
+            type = data.values[index]
             g.onChange(false)
         }
     }
@@ -57,14 +76,8 @@ abstract class MathNode<V : Enum<V>>(
     }
 
     override fun readInt(name: String, value: Int) {
-        if (name == "type") type = values.getOrNull(values.binarySearch(value)) ?: type
+        if (name == "type") type = data.byId[value] ?: type
         else super.readInt(name, value)
-    }
-
-    companion object {
-        val vCache = HashMap<Class<*>, Any>(64)
-        val inputs = listOf("Float", "A")
-        val outputs = listOf("Float", "Result")
     }
 
 }

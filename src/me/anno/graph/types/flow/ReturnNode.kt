@@ -4,8 +4,10 @@ import me.anno.graph.NodeOutput
 import me.anno.graph.types.FlowGraph
 import kotlin.math.max
 
-open class ReturnNode(returnValues: List<String> = emptyList()) :
-    FlowGraphNode("Return", flow + returnValues, emptyList()) {
+open class ReturnNode(returnValues: List<String> = emptyList(), name: String = "Return") :
+    FlowGraphNode(name, flow + returnValues, emptyList()) {
+
+    constructor(name: String) : this(emptyList(), name)
 
     val values = ArrayList<Any?>(max(4, returnValues.size ushr 1))
     override fun execute(graph: FlowGraph): NodeOutput? {
@@ -16,7 +18,7 @@ open class ReturnNode(returnValues: List<String> = emptyList()) :
         throw ReturnException(this) // escape from loops and such
     }
 
-    class ReturnException(val node: ReturnNode): RuntimeException()
+    class ReturnException(val node: ReturnNode) : RuntimeException()
 
     companion object {
         @JvmStatic

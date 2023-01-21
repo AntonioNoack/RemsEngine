@@ -51,8 +51,8 @@ fun test5() {
 }
 
 fun test4() {
-    val a = GetLocalVariableNode("a")
-    val b = GetLocalVariableNode("b")
+    val a = GetLocalVariableNode("a","?")
+    val b = GetLocalVariableNode("b","?")
     a.connectTo(b)
     val list = SaveableArray(listOf(a, b))
     val listStr = list.toString()

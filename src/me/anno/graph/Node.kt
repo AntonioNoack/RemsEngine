@@ -57,7 +57,7 @@ abstract class Node() : PrefabSaveable() {
     open fun supportsMultipleInputs(con: NodeConnector) = false
     open fun supportsMultipleOutputs(con: NodeConnector) = false
 
-    fun setOutput(value: Any?, index: Int) {
+    fun setOutput(value: Any?, index: Int = 0) {
         val node = outputs!![index]
         node.value = value
         for (it in node.others) {

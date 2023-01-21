@@ -528,6 +528,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         if (con !is NodeInput) return null
         val type = con.type
         when (type) {
+            "Flow" -> return null
             "Float" -> {
                 if (old is FloatInput) return old.apply { textSize = font.size }
                 return FloatInput(style)
