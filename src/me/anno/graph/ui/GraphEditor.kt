@@ -149,13 +149,13 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
             candidates = if (typeIsInput) {
                 candidates.filter { (sample, _) ->
                     sample.outputs?.any { graph.canConnectTypeToOtherType(type, it.type) } == true
-                }.sortedBy { (sample, _) -> // todo make double/float long/int equivalent
+                }.sortedBy { (sample, _) ->
                     sample.outputs?.any { type == it.type } != true
                 }
             } else {
                 candidates.filter { (sample, _) ->
                     sample.inputs?.any { graph.canConnectTypeToOtherType(it.type, type) } == true
-                }.sortedBy { (sample, _) ->  // todo make double/float long/int equivalent
+                }.sortedBy { (sample, _) ->
                     sample.inputs?.any { type == it.type } != true
                 }
             }

@@ -5,7 +5,7 @@ import me.anno.graph.types.flow.CalculationNode
 import me.anno.io.base.BaseWriter
 
 class GetLocalVariableNode(type: String = "?") :
-    CalculationNode("GetLocal", inputs, listOf(type, "Value")) {
+    CalculationNode("", inputs, listOf(type, "Value")) {
 
     constructor(key: String, type: String) : this(type) {
         setInput(0, key)
@@ -43,7 +43,6 @@ class GetLocalVariableNode(type: String = "?") :
 
     companion object {
         val inputs = listOf("String", "Name")
-        val outputs = listOf("?", "Value")
     }
 
 }

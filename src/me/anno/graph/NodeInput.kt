@@ -4,6 +4,12 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
+import me.anno.utils.Color.black2
+import me.anno.utils.Color.black3
+import me.anno.utils.Color.black4
+import me.anno.utils.Color.white2
+import me.anno.utils.Color.white3
+import me.anno.utils.Color.white4
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToInt
@@ -40,15 +46,43 @@ class NodeInput : NodeConnector {
         // todo cast if required
         // todo warn if failed
         lastValidId = validId
-        value = when (type) {
+        val value = value
+        this.value = when (type) {
             // ensures that the function gets the correct type
             "Int", "Integer" -> AnyToInt.getInt(value, 0, 0)
             "Long" -> AnyToLong.getLong(value, 0, 0)
             "Float" -> AnyToFloat.getFloat(value, 0, 0f)
             "Double" -> AnyToDouble.getDouble(value, 0, 0.0)
-            "Vector2f" -> value as Vector2f
-            "Vector3f" -> value as Vector3f
-            "Vector4f" -> value as Vector4f
+            "Vector2f" -> when (value) {
+                true -> white2
+                false -> black2
+                is Int -> Vector2f(value.toFloat())
+                is Float -> Vector2f(value)
+                is Vector2f -> value
+                is Vector3f -> Vector2f(value.x, value.y)
+                is Vector4f -> Vector2f(value.x, value.y)
+                else -> Vector2f(0f)
+            }
+            "Vector3f" -> when (value) {
+                true -> white3
+                false -> black3
+                is Int -> Vector3f(value.toFloat())
+                is Float -> Vector3f(value)
+                is Vector2f -> Vector3f(value.x, value.y, 0f)
+                is Vector3f -> value
+                is Vector4f -> Vector3f(value.x, value.y, value.z)
+                else -> Vector3f(0f)
+            }
+            "Vector4f" -> when (value) {
+                true -> white4
+                false -> black4
+                is Int -> Vector4f(value.toFloat())
+                is Float -> Vector4f(value)
+                is Vector2f -> Vector4f(value.x, value.y, 0f, 0f)
+                is Vector3f -> Vector4f(value.x, value.y, value.z, 0f)
+                is Vector4f -> value
+                else -> Vector4f(0f)
+            }
             "String" -> value.toString()
             "Any?", "", "?" -> value
             "Boolean" -> when (val v = value) {

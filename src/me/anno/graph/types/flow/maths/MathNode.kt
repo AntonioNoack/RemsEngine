@@ -1,7 +1,7 @@
 package me.anno.graph.types.flow.maths
 
 import me.anno.graph.EnumNode
-import me.anno.graph.render.kotlinToGLSL
+import me.anno.graph.render.MaterialGraph.kotlinToGLSL
 import me.anno.graph.types.flow.ValueNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.io.base.BaseWriter

@@ -16,9 +16,13 @@ object Color {
     @JvmField
     val black3 = Vector3f(0f)
     @JvmField
+    val black2 = Vector2f(0f)
+    @JvmField
     val white4 = Vector4f(1f)
     @JvmField
     val white3 = Vector3f(1f)
+    @JvmField
+    val white2 = Vector2f(1f)
 
     @JvmStatic
     fun Int.r() = shr(16) and 255

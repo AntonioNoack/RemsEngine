@@ -462,9 +462,11 @@ class NodePanel(
                 // open new node menu, and then connect them automatically
                 gp.openNewNodeMenu(con0.type, con0 is NodeInput) {
                     val base = if (con0 is NodeInput) it.outputs else it.inputs
-                    val newCon = base?.firstOrNull()
-                    if (newCon != null) {
-                        connect(con0, newCon)
+                    if (base != null) {
+                        for (newCon in base) {
+                            if (connect(con0, newCon))
+                                break
+                        }
                     }
                 }
             }
@@ -475,9 +477,9 @@ class NodePanel(
         gp.invalidateDrawing()
     }
 
-    fun connect(con0: NodeConnector, con1: NodeConnector) {
-        val graph = gp.graph ?: return
-        if (!graph.canConnectTo(con0, con1)) return
+    fun connect(con0: NodeConnector, con1: NodeConnector): Boolean {
+        val graph = gp.graph ?: return false
+        if (!graph.canConnectTo(con0, con1)) return false
         val input = if (con0 is NodeInput) con0 else con1
         val output = if (con0 === input) con1 else con0
         // only connect, if connection is supported, otherwise replace
@@ -488,6 +490,7 @@ class NodePanel(
             output.disconnectAll()
         }
         con0.connect(con1)
+        return true
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
@@ -499,8 +502,8 @@ class NodePanel(
                 if (panel is NodePanel) panel.node.delete(graph)
             }
         } else node.delete(graph)
+        gp.onChange(false)
         gp.remove(this)
-        gp.invalidateLayout()
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {

@@ -103,10 +103,15 @@ open class ColorInput(
     init {
         // switched order for consistent alignment
         this += previewField
-        this += titleView
+        if (title.isNotEmpty()) this += titleView
         titleView.enableHoverColor = true
         titleView.disableFocusColors()
         contentView.setRGBA(oldValue, false)
+    }
+
+    override fun calculateSize(w: Int, h: Int) {
+        super.calculateSize(w, h)
+        if (title.isEmpty()) titleView.calculateSize(w, h)
     }
 
     fun openColorChooser() {
