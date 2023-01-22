@@ -1,9 +1,13 @@
-package me.anno.graph.types.flow.maths
+package me.anno.graph.types.flow.vector
 
 import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.maths.FloatMathsBinary
+import me.anno.graph.types.flow.maths.FloatMathsTernary
+import me.anno.graph.types.flow.maths.FloatMathsUnary
+import me.anno.graph.types.flow.maths.MathNode
 import org.joml.Vector2f
 
-val dataF12 = MathNode.MathNodeData(
+private val dataF12 = MathNode.MathNodeData(
     FloatMathsUnary.supportedUnaryVecTypes,
     listOf("Vector2f"), "Vector2f",
     { it.id }, { it.glsl }
@@ -16,7 +20,7 @@ class MathF12Node : MathNode<FloatMathsUnary>(dataF12) {
     }
 }
 
-val dataF22 = MathNode.MathNodeData(
+private val dataF22 = MathNode.MathNodeData(
     FloatMathsBinary.values(),
     listOf("Vector2f", "Vector2f"), "Vector2f",
     { it.id }, { it.glsl }
@@ -30,7 +34,7 @@ class MathF22Node : MathNode<FloatMathsBinary>(dataF22) {
     }
 }
 
-val dataF32 = MathNode.MathNodeData(
+private val dataF32 = MathNode.MathNodeData(
     FloatMathsTernary.values(),
     listOf("Vector2f", "Vector2f", "Vector2f"), "Vector2f",
     { it.id }, { it.glsl }

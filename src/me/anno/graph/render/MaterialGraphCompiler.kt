@@ -16,6 +16,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.graph.Node
 import me.anno.graph.NodeInput
@@ -60,7 +61,7 @@ class MaterialGraphCompiler(
     val prefix = "tmp_"
     val conDefines = HashMap<NodeOutput, String>()
 
-    val shader: ECSMeshShader
+    lateinit var shader: ECSMeshShader
 
     var k = 0
 
@@ -96,11 +97,7 @@ class MaterialGraphCompiler(
                 val inputs = n.inputs
                 when (inputs?.size ?: 0) {
                     0 -> "$name()"
-                    1 -> "$name(${expr(inputs!![0])})"
-                    2 -> "$name(${expr(inputs!![0])},${expr(inputs[1])})"
-                    3 -> "$name(${expr(inputs!![0])},${expr(inputs[1])},${expr(inputs[2])})"
-                    4 -> "$name(${expr(inputs!![0])},${expr(inputs[1])},${expr(inputs[2])},${expr(inputs[3])})"
-                    else -> throw NotImplementedError()
+                    else -> "$name(${inputs!!.joinToString(","){ expr(it) }})"
                 }
             }
             is DotProductF2, is DotProductF3, is DotProductF4 -> {
@@ -257,7 +254,13 @@ class MaterialGraphCompiler(
                         // set value :)
                         val x = expr(c)
                         builder.append(l.glslName).append("=")
-                        builder.append(x)
+                        // clamping could be skipped, if we were sure that the value is within bounds
+                        when (if (l.highDynamicRange) null else l.map01) {
+                            "*0.5+0.5" -> builder.append("clamp(").append(x).append(",-1.0,1.0)")
+                            "" -> builder.append("clamp(").append(x).append(",0.0,1.0)")
+                            null -> builder.append(x)
+                            else -> builder.append(x)
+                        }
                         builder.append(";\n")
                     } // else skip this
                 }
@@ -341,6 +344,18 @@ class MaterialGraphCompiler(
 
     val typeValues = HashMap<String, TypeValue>()
 
+    fun filter(shader: Shader, name: String, tex: Texture2D, linear: Boolean): Texture2D {
+        val filter = if (linear) GPUFiltering.LINEAR else GPUFiltering.NEAREST
+        if (tex.filtering != filter || tex.clamping != Clamping.REPEAT) {
+            val idx = shader.getTextureIndex(name)
+            if (idx >= 0) {
+                tex.bind(idx)
+                tex.ensureFilterAndClamping(filter, Clamping.REPEAT)
+            }
+        }
+        return tex
+    }
+
     init {
 
         builder.append("bool calc(")
@@ -420,20 +435,18 @@ class MaterialGraphCompiler(
 
         val usedVars = ArrayList<Variable>()
         for ((file, data) in textures) {
-            typeValues[data.first] =
+            val (name, linear) = data
+            typeValues[name] =
                 TypeValueV2(GLSLType.S2D) {
-                    // todo linear is not working :/ .. why?
                     val tex = ImageGPUCache[file, true]
-                    tex?.ensureFilterAndClamping(
-                        if (data.second) GPUFiltering.LINEAR else GPUFiltering.NEAREST,
-                        Clamping.REPEAT
-                    )
-                    tex ?: TextureLib.missingTexture
+                    if (tex != null) filter(shader.value, name, tex, linear)
+                    else TextureLib.missingTexture
                 }
         }
         var lastGraphInvalidation = 0L
         for ((node, data) in movies) {
-            typeValues[data.first] =
+            val (name, linear) = data
+            typeValues[name] =
                 TypeValueV2(GLSLType.S2D) {
                     val file = node.file
                     val meta = getMeta(file, true)
@@ -463,11 +476,7 @@ class MaterialGraphCompiler(
                         )
                         if (tex != null && tex.get2DShader() == ShaderLib.shader2DRGBA) {
                             val tex2 = tex.getTextures()[0]
-                            tex2.ensureFilterAndClamping(
-                                if (data.second) GPUFiltering.LINEAR else GPUFiltering.NEAREST,
-                                Clamping.REPEAT
-                            )
-                            tex2
+                            filter(shader.value, name, tex2, linear)
                         } else TextureLib.blackTexture
 
                     } else TextureLib.blackTexture
@@ -513,7 +522,8 @@ class MaterialGraphCompiler(
                             usedVars += Variable(GLSLType.V4F, "tangent")
                             "tangent"
                         }
-                        6 -> {
+                        6 -> "finalBitangent"
+                        7 -> {
                             usedVars += Variable(GLSLType.V4F, "vertexColor")
                             "vertexColor"
                         }

@@ -6,6 +6,7 @@ abstract class CalculationNode : ValueNode {
 
     @Suppress("unused")
     constructor(name: String) : super(name)
+    constructor(name: String, inputs: List<String>, outputType: String) : super(name, inputs, listOf(outputType,"Result"))
     constructor(name: String, inputs: List<String>, outputs: List<String>) : super(name, inputs, outputs)
 
     abstract fun calculate(graph: FlowGraph): Any?

@@ -1,0 +1,41 @@
+package me.anno.graph.render
+
+import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.CalculationNode
+import me.anno.graph.types.flow.maths.GLSLExprNode
+import org.joml.Matrix3f
+import org.joml.Vector3f
+
+class NormalMap : CalculationNode(
+    "Normal Map", listOf(
+        "Vector3f", "Normal",
+        "Vector3f", "Tangent",
+        "Vector3f", "Bitangent",
+        "Float", "Strength",
+        "Vector3f", "Texture RGB"
+    ), "Vector3f"
+), GLSLExprNode {
+
+    override fun calculate(graph: FlowGraph): Vector3f {
+        val normal = getInput(graph, 0) as Vector3f
+        val tangent = getInput(graph, 1) as Vector3f
+        val bitangent = getInput(graph, 2) as Vector3f
+        val strength = getInput(graph, 3) as Float
+        val rgb = getInput(graph, 4) as Vector3f
+        val m = Matrix3f(tangent, bitangent, normal)
+        val normalFromTex = Vector3f(rgb).mul(2f).sub(1f, 1f, 1f).mul(m) // transpose??
+        return normal.lerp(normalFromTex, strength, normalFromTex)
+    }
+
+    override fun getShaderFuncName(outputIndex: Int) = "normalMapNode"
+    override fun defineShaderFunc(outputIndex: Int): String {
+        return "(vec3 finalNormal, vec3 finalTangent, vec3 finalBitangent, float strength, vec3 normalMapRGB){\n" +
+                "   if(strength == 0.0) return finalNormal;\n" +
+                "   mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
+                "   vec3 normalFromTex = normalMapRGB * 2.0 - 1.0;\n" + // normalize?
+                "        normalFromTex = tbn * normalFromTex;\n" +
+                "   return mix(finalNormal, normalFromTex, strength);\n" +
+                "}"
+    }
+
+}

@@ -98,6 +98,10 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { CrossProductF3() },
             { CrossProductD2() },
             { CrossProductD3() },
+            { RotateF2Node() },
+            { RotateF3XNode() },
+            { RotateF3YNode() },
+            { RotateF3ZNode() },
             { CompareNode() },
             { CompareNode("Bool") },
             { CompareNode("Float") },
@@ -111,8 +115,8 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
         )
 
         fun init() {
-            registerCustomClass { NodeInput(false) }
-            registerCustomClass { NodeOutput(false) }
+            registerCustomClass(NodeInput())
+            registerCustomClass(NodeOutput())
             flowNodes.register()
         }
 

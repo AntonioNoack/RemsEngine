@@ -739,6 +739,8 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         return this
     }
 
+    open fun canDeleteNode(node: Node): Boolean = true
+
     override val canDrawOverBorders get() = true
     override val className get() = "GraphEditor"
 

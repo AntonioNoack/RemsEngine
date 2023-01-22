@@ -494,16 +494,18 @@ class NodePanel(
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        val graph = gp.graph
-        if (isInFocus) {
-            val inFocus = windowStack.inFocus
-            for (index in inFocus.indices) {
-                val panel = inFocus[index]
-                if (panel is NodePanel) panel.node.delete(graph)
-            }
-        } else node.delete(graph)
-        gp.onChange(false)
-        gp.remove(this)
+        if (gp.canDeleteNode(node)) {
+            val graph = gp.graph
+            if (isInFocus) {
+                val inFocus = windowStack.inFocus
+                for (index in inFocus.indices) {
+                    val panel = inFocus[index]
+                    if (panel is NodePanel) panel.node.delete(graph)
+                }
+            } else node.delete(graph)
+            gp.onChange(false)
+            gp.remove(this)
+        } else super.onDeleteKey(x, y)
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {

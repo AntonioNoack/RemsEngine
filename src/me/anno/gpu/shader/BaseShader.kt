@@ -138,8 +138,8 @@ open class BaseShader(
                 else -> get(deferred, stateId)
             }
             GFX.check()
-            shader.use()
-            bind(shader, renderer, instanced)
+            if (shader.use())
+                bind(shader, renderer, instanced)
             GFX.check()
             return shader
         }

@@ -4,11 +4,13 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.Material
 import me.anno.engine.ui.render.SceneView.Companion.testScene2
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.graph.Node
 import me.anno.graph.NodeInput
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.StartNode
+import me.anno.graph.types.flow.vector.RotateF2Node
 import me.anno.graph.ui.GraphEditor
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.ui.custom.CustomList
@@ -16,10 +18,15 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toARGB
 
+// to do convert flow-graph into shader graph as far as possible
+// todo compute static stuff on CPU, and uv dependent on GPU
+
 // todo bug: <tab> in vector input not switching to next one
 
-// todo rotation nodes
 // todo quat to vec?
+
+// todo create post-process graph with stages...
+// todo use that for general rendering instead of our pre-defined attempts :)
 
 object MaterialGraph {
 
@@ -135,19 +142,14 @@ object MaterialGraph {
                 "Vector2f", "UVs",
                 "Vector3f", "Normal",
                 "Vector4f", "Tangent",
+                "Vector3f", "Bitangent",
                 "Vector4f", "Vertex Color",
             )
         )
         g.nodes.add(start)
         start.position.set(-200.0, 0.0, 0.0)
-        // define return node
-        val ret = MaterialReturnNode()
 
-        g.nodes.add(ret)
-        ret.position.set(200.0, 0.0, 0.0)
-        start.connectTo(ret)
         val m = Material()
-
         fun compile() {
             m.shader = MaterialGraphCompiler(start, g, 1000).shader
         }
@@ -156,7 +158,11 @@ object MaterialGraph {
         // show resulting material as preview
         testUI {
             val ui = CustomList(false, style)
-            val ge = GraphEditor(g, style)
+            val ge = object : GraphEditor(g, style) {
+                override fun canDeleteNode(node: Node): Boolean {
+                    return node !== start
+                }
+            }
             ge.library = NodeLibrary(
                 ge.library.nodes + listOf(
                     { DiscardNode() },
@@ -166,8 +172,11 @@ object MaterialGraph {
                     { RandomNode() },
                     { ColorNode() },
                     { GameTime() },
+                    { RotateF2Node() },
+                    { NormalMap() },
                 )
             )
+            // register everything for copying
             registerCustomClass(NodeInput())
             registerCustomClass(NodeOutput())
             for (element in ge.library.nodes) {
