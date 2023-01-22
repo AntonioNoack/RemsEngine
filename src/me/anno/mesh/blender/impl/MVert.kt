@@ -10,7 +10,7 @@ class MVert(file: BlenderFile, dnaStruct: DNAStruct, buffer: ByteBuffer, positio
 
     // they stay the same inside a file
     private val coOffset = getOffset("co[3]")
-    private val noOffset = getOffset("no[3]")
+    val noOffset = getOffset("no[3]") // no longer available with Blender 3.0+ :/
 
     val x get() = float(coOffset)
     val y get() = float(coOffset + 4)

@@ -7,7 +7,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector3f
-import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -77,7 +76,10 @@ open class BlendData(
     fun getOffset(name: String) =
         dnaStruct.byName[name]?.offset
             ?: dnaStruct.byName[name.split('[')[0]]?.offset
-            ?: throw IOException("field $name is unknown")
+            ?: kotlin.run {
+                LOGGER.warn("field $name is unknown, available: ${dnaStruct.byName}")
+                -1
+            }
 
     fun getOffsetOrNull(name: String) = dnaStruct.byName[name]?.offset
 
@@ -128,6 +130,7 @@ open class BlendData(
     }
 
     fun vec3sNorm(offset: Int): Vector3f {
+        if (offset < 0f) return Vector3f()
         val x = buffer.getShort(position + offset)
         val y = buffer.getShort(position + offset + 2)
         val z = buffer.getShort(position + offset + 4)

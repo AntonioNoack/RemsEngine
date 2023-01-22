@@ -585,7 +585,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 bytes.close()
                 writeByteArray(name, bytes0.toByteArray())*/
             }
-            else -> throw RuntimeException("todo implement saving an $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?")
+            else -> throw RuntimeException("todo implement saving $name: $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?")
         }
     }
 

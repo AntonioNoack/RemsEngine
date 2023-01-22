@@ -1,5 +1,6 @@
 package me.anno.mesh.blender
 
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.fonts.mesh.Triangulation
@@ -9,6 +10,7 @@ import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCallback
 import me.anno.mesh.blender.impl.*
 import me.anno.utils.Clock
+import me.anno.utils.OS.documents
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Matrices.getScale2
@@ -27,6 +29,12 @@ import java.nio.ByteBuffer
  * create a test scene with different layouts, and check that everything is in the right place
  * */
 object BlenderReader {
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val file = documents.getChild("Blender/VolumetricHair.blend")
+        MeshCache[file, false]!!
+    }
 
     private val LOGGER = LogManager.getLogger(BlenderReader::class)
 
@@ -398,22 +406,25 @@ object BlenderReader {
                 // val uvLayers = layers.firstOrNull { it as BCustomDataLayer; it.type == 16 } as? BCustomDataLayer
                 // val weights = layers.firstOrNull { it as BCustomDataLayer; it.type == 17 } as? BCustomDataLayer
                 @Suppress("SpellCheckingInspection")
-                /*
-                * var layers = data.getLdata().getLayers();
-                var uvs = layers.filter(map => map.getType() == 16)[0];
-                if(uvs) uvs = uvs.getData();
-                var wei = layers.filter(map => map.getType() == 17)[0];
-                if(wei) wei = wei.getData();
-                * */
+                        /*
+                        * var layers = data.getLdata().getLayers();
+                        var uvs = layers.filter(map => map.getType() == 16)[0];
+                        if(uvs) uvs = uvs.getData();
+                        var wei = layers.filter(map => map.getType() == 17)[0];
+                        if(wei) wei = wei.getData();
+                        * */
+                val hasNormals = vertices.size > 0 && vertices[0].noOffset >= 0
                 for (i in 0 until vertices.size) {
                     val v = vertices[i]
                     val i3 = i * 3
                     positions[i3] = v.x
                     positions[i3 + 1] = +v.z
                     positions[i3 + 2] = -v.y
-                    normals[i3] = v.nx
-                    normals[i3 + 1] = +v.nz
-                    normals[i3 + 2] = -v.ny
+                    if (hasNormals) {
+                        normals[i3] = v.nx
+                        normals[i3 + 1] = +v.nz
+                        normals[i3 + 2] = -v.ny
+                    }
                 }
                 prefab.setProperty("positions", positions)
                 prefab.setProperty("normals", normals)

@@ -198,6 +198,7 @@ class SVGMesh {
             val c3 = Vector4f()
             val stops = Vector4f()
             for (curve in curves) {
+                if (curve.triangles.isEmpty()) continue
                 val minX = curve.triangles.minOf { it.x }
                 val maxX = curve.triangles.maxOf { it.x }
                 val minY = curve.triangles.minOf { it.y }
