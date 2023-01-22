@@ -201,7 +201,7 @@ open class Matrix2d {
 
     fun set(m: DoubleArray) = set(m[0], m[1], m[2], m[3])
 
-    operator fun set(col0: Vector2d, col1: Vector2d): Matrix2d {
+    fun set(col0: Vector2d, col1: Vector2d): Matrix2d {
         m00 = col0.x
         m01 = col0.y
         m10 = col1.x

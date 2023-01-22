@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.shapes
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths.PHIf
 import me.anno.maths.Maths.PIf
+import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -197,16 +198,18 @@ object Icosahedron {
         val triangleCount = faceCount * 2
         val indexCount = triangleCount * 3
 
-        val vertexCount = us * (vs + 1)
+        val vertexCount = (us + 1) * (vs + 1)
 
-        mesh.positions = FloatArray(3 * vertexCount)
-        mesh.uvs = FloatArray(2 * vertexCount)
+        val positions = mesh.positions.resize(3 * vertexCount)
+        mesh.positions = positions
+        val uvs = mesh.uvs.resize(2 * vertexCount)
+        mesh.uvs = uvs
 
         // precalculate the angles? mmh...
-        val cu = FloatArray(us)
-        val su = FloatArray(us)
-        for (i in 0 until us) {
-            val angle = (2.0 * PI * i / us).toFloat()
+        val cu = FloatArray(us + 1)
+        val su = FloatArray(us + 1)
+        for (i in 0..us) {
+            val angle = (TAU * i / us).toFloat()
             cu[i] = cos(angle)
             su[i] = sin(angle)
         }
@@ -221,10 +224,8 @@ object Icosahedron {
 
         var k = 0
         var l = 0
-        val positions = mesh.positions!!
-        val uvs = mesh.uvs!!
         for (v in 0..vs) {
-            for (u in 0 until us) {
+            for (u in 0..us) {
                 // calculate position
                 positions[k++] = cv[v] * cu[u]
                 positions[k++] = sv[v]
@@ -237,17 +238,19 @@ object Icosahedron {
 
         // ok? to just copy the values
         mesh.normals = mesh.positions
-        val indices = IntArray(indexCount)
+        val indices = mesh.indices.resize(indexCount)
         mesh.indices = indices
 
         k = 0
+        val ms = us + 1
         for (v in 0 until vs) {
+            val w = v + 1
             for (u in 0 until us) {
                 // create quad face
-                val v0 = getIndex(u, v + 1, us)
-                val v1 = getIndex(u + 1, v + 1, us)
-                val v2 = getIndex(u + 1, v, us)
-                val v3 = getIndex(u, v, us)
+                val v0 = u + w * ms
+                val v1 = u + 1 + w * ms
+                val v2 = u + 1 + v * ms
+                val v3 = u + v * ms
                 indices[k++] = v0
                 indices[k++] = v1
                 indices[k++] = v2
@@ -259,10 +262,4 @@ object Icosahedron {
 
         return mesh
     }
-
-    private fun getIndex(u: Int, v: Int, us: Int): Int {
-        val u2 = if (u >= us) 0 else u
-        return u2 + v * us
-    }
-
 }

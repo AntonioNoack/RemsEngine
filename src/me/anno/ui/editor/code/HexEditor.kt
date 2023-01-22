@@ -8,6 +8,7 @@ import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
+import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
@@ -38,6 +39,7 @@ import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.fp16ToFP32
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
+import java.io.RandomAccessFile
 import java.math.BigInteger
 import kotlin.math.ceil
 import kotlin.math.log2
@@ -49,8 +51,11 @@ import kotlin.math.log2
 
 // comparing stuff
 // todo edit bytes
-// todo pasting
-// todo -> saving
+//  - mark changed byte sequences with different color
+// todo undo/redo
+// todo delete change sequences
+// todo paste byte sequence
+// -> saving
 // data inspector by tooltip text (base 10, fp16, fp32, fp64, ... le/be)
 
 class HexEditor(style: Style) : Panel(style), LongScrollable {
@@ -72,7 +77,38 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     var showAddress = true
     var addressDigits = 0
 
+    // should be sorted, non-overlapping
+    class ByteSequence(val offset: Long, val bytes: ByteArray)
+
+    val changes = ArrayList<ByteSequence>()
+
     val compareTo = ArrayList<FileReference>()
+
+    fun saveChanges(clear: Boolean) {
+        if (changes.isEmpty()) return
+        RandomAccessFile(file.absolutePath, "w").use { raf ->
+            for (sequence in changes) {
+                raf.seek(sequence.offset) // Go to byte at offset position 5.
+                raf.write(sequence.bytes) // Write byte 70 (overwrites original byte at this offset).
+            }
+        }
+        file.invalidate()
+        if (clear) changes.clear()
+    }
+
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        return if (action == "Save") {
+            saveChanges(true)
+            true
+        } else super.onGotAction(x, y, dx, dy, action, isContinuous)
+    }
+
+    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+        super.onDoubleClick(x, y, button)
+        // todo find which byte is clicked,
+        // todo collect input in hex or chars
+        // todo then add to changed sequences
+    }
 
     override val sizeX get() = minW.toLong()
     override var sizeY = 0L
@@ -407,6 +443,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             GFXBase.disableRenderDoc()
             testUI {
                 StudioBase.instance?.enableVSync = false
+                registerActions()
                 val list = PanelListX(style)
                 val files = listOf(
                     desktop.getChild("SM_Prop_Gem_03.prefab"),
@@ -426,6 +463,12 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
                 ScrollPanelXY(list, Padding.Zero, style)
             }
         }
+
+        @JvmStatic
+        fun registerActions() {
+            ActionManager.register("HexEditor.s.t.c", "Save")
+        }
+
     }
 
 }

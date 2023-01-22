@@ -70,7 +70,7 @@ open class Matrix4f {
     }
 
     constructor(col0: Vector4f, col1: Vector4f, col2: Vector4f, col3: Vector4f) {
-        this[col0, col1, col2] = col3
+        set(col0, col1, col2, col3)
     }
 
     fun _properties(properties: Int): Matrix4f {
@@ -1131,7 +1131,7 @@ open class Matrix4f {
         return this.setTransposed(m, 0)
     }*/
 
-    operator fun set(col0: Vector4f, col1: Vector4f, col2: Vector4f, col3: Vector4f): Matrix4f {
+    fun set(col0: Vector4f, col1: Vector4f, col2: Vector4f, col3: Vector4f): Matrix4f {
         return _m00(col0.x)._m01(col0.y)._m02(col0.z)._m03(col0.w)._m10(col1.x)._m11(col1.y)._m12(col1.z)._m13(col1.w)
             ._m20(col2.x)._m21(col2.y)._m22(col2.z)._m23(col2.w)._m30(col3.x)._m31(col3.y)._m32(col3.z)._m33(col3.w)
             .determineProperties()
@@ -1534,21 +1534,21 @@ open class Matrix4f {
     @JvmOverloads
     fun get(arr: FloatArray, offset: Int = 0): FloatArray {
         arr[offset] = m00
-        arr[offset+1] = m01
-        arr[offset+2] = m02
-        arr[offset+3] = m03
-        arr[offset+4] = m10
-        arr[offset+5] = m11
-        arr[offset+6] = m12
-        arr[offset+7] = m13
-        arr[offset+8] = m20
-        arr[offset+9] = m21
-        arr[offset+10] = m22
-        arr[offset+11] = m23
-        arr[offset+12] = m30
-        arr[offset+13] = m31
-        arr[offset+14] = m32
-        arr[offset+15] = m33
+        arr[offset + 1] = m01
+        arr[offset + 2] = m02
+        arr[offset + 3] = m03
+        arr[offset + 4] = m10
+        arr[offset + 5] = m11
+        arr[offset + 6] = m12
+        arr[offset + 7] = m13
+        arr[offset + 8] = m20
+        arr[offset + 9] = m21
+        arr[offset + 10] = m22
+        arr[offset + 11] = m23
+        arr[offset + 12] = m30
+        arr[offset + 13] = m31
+        arr[offset + 14] = m32
+        arr[offset + 15] = m33
         return arr
     }
 
@@ -7330,6 +7330,7 @@ open class Matrix4f {
 
     companion object {
         const val PROPERTY_IDENTITY = 4
+
         @JvmStatic
         fun projViewFromRectangle(
             eye: Vector3f,

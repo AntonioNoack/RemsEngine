@@ -1,12 +1,12 @@
 package me.anno.ecs.components.anim
 
 import me.anno.Engine
+import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.base.BaseWriter
@@ -18,7 +18,6 @@ import me.anno.maths.Maths.min
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 
-// done blend animations...
 // todo allow procedural animations; for that we'd need more knowledge about the model
 abstract class Animation : PrefabSaveable, Renderable {
 
@@ -134,6 +133,38 @@ abstract class Animation : PrefabSaveable, Renderable {
         } else base
     }
 
+    class PreviewData(skeleton: Skeleton, self: Animation) {
+
+        val bones = skeleton.bones
+        val mesh = Mesh()
+        val renderer = AnimRenderer()
+
+        init {
+            val (skinningMatrices, animPositions) = Thumbs.threadLocalBoneMatrices.get()
+            val size = (bones.size - 1) * Skeleton.boneMeshVertices.size
+            mesh.positions = Texture2D.floatArrayPool[size, false, true]
+            mesh.normals = Texture2D.floatArrayPool[size, true, true]
+            val time = Engine.gameTimeF % self.duration
+            // generate the matrices
+            self.getMatrices(null, time, skinningMatrices)
+            // apply the matrices to the bone positions
+            for (i in 0 until kotlin.math.min(animPositions.size, bones.size)) {
+                val position = animPositions[i].set(bones[i].bindPosition)
+                skinningMatrices[i].transformPosition(position)
+            }
+            Skeleton.generateSkeleton(bones, animPositions, mesh.positions!!, null)
+            renderer.mesh = mesh.ref
+            renderer.animations = listOf(AnimationState(self.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
+        }
+
+        fun destroy() {
+            Texture2D.floatArrayPool.returnBuffer(mesh.positions)
+            Texture2D.floatArrayPool.returnBuffer(mesh.normals)
+            mesh.destroy()
+        }
+    }
+
+    private var previewData: PreviewData? = null
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
@@ -141,32 +172,9 @@ abstract class Animation : PrefabSaveable, Renderable {
         cameraPosition: Vector3d,
         worldScale: Double
     ): Int {
-        // todo optimize this (avoid allocations)
-        // todo use AnimRenderer for motion vectors
         val skeleton = SkeletonCache[skeleton] ?: return clickId
-        val bones = skeleton.bones
-        val mesh = Mesh()
-        val (skinningMatrices, animPositions) = Thumbs.threadLocalBoneMatrices.get()
-        val size = (bones.size - 1) * Skeleton.boneMeshVertices.size
-        mesh.positions = Texture2D.floatArrayPool[size, false, true]
-        mesh.normals = Texture2D.floatArrayPool[size, true, true]
-        val time = Engine.gameTimeF % duration
-        // generate the matrices
-        getMatrices(null, time, skinningMatrices)
-        // apply the matrices to the bone positions
-        for (i in 0 until kotlin.math.min(animPositions.size, bones.size)) {
-            val position = animPositions[i].set(bones[i].bindPosition)
-            skinningMatrices[i].transformPosition(position)
-        }
-        Skeleton.generateSkeleton(bones, animPositions, mesh.positions!!, null)
-        mesh.invalidateGeometry()
-        pipeline.fill(mesh, cameraPosition, worldScale)
-        GFX.addGPUTask("free", 1) {
-            Texture2D.floatArrayPool.returnBuffer(mesh.positions)
-            Texture2D.floatArrayPool.returnBuffer(mesh.normals)
-            mesh.destroy()
-        }
-        return clickId
+        if (previewData == null) previewData = PreviewData(skeleton, this)
+        return previewData!!.renderer.fill(pipeline, entity, clickId, cameraPosition, worldScale)
     }
 
     override fun save(writer: BaseWriter) {
@@ -201,6 +209,12 @@ abstract class Animation : PrefabSaveable, Renderable {
         clone as Animation
         clone.skeleton = skeleton
         clone.duration = duration
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        previewData?.destroy()
+        previewData = null
     }
 
     override val approxSize get() = 100

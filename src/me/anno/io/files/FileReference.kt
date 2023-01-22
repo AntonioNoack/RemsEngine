@@ -193,7 +193,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
             if (str.startsWith("http://", true) ||
                 str.startsWith("https://", true)
-            ) return WebRef(str, emptyMap()) // todo string may contain parameters
+            ) return WebRef(str, emptyMap())
 
             if (str.startsWith("tmp://")) {
                 val tmp = InnerTmpFile.find(str)

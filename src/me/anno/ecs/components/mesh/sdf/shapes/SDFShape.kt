@@ -11,9 +11,6 @@ import me.anno.gpu.shader.Renderer
 
 open class SDFShape : SDFComponent() {
 
-    // todo use raycast for physics & ray tests
-
-    // todo special sdf materials? ...
     var dynamicSize = false
         set(value) {
             if (field != value) {
@@ -22,7 +19,6 @@ open class SDFShape : SDFComponent() {
             }
         }
 
-    // todo mix materials somehow...
     var materialId = 0
 
     override fun copy(clone: PrefabSaveable) {

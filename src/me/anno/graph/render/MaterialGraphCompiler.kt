@@ -1,6 +1,7 @@
 package me.anno.graph.render
 
 import me.anno.Engine
+import me.anno.cache.instances.VideoCache
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.engine.ui.render.ECSMeshShader
@@ -9,6 +10,7 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -34,12 +36,15 @@ import me.anno.graph.types.flow.maths.*
 import me.anno.graph.types.flow.vector.*
 import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
+import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
+import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.util.*
+import kotlin.math.max
 
 class MaterialGraphCompiler(
     start: StartNode,
@@ -73,6 +78,7 @@ class MaterialGraphCompiler(
     val funcBuilder = StringBuilder()
     val typeToFunc = HashMap<String, String>() // key -> name
     val textureVars = HashMap<TextureNode, String>() // node -> name
+    val movies = HashMap<MovieNode, Pair<String, Boolean>>() // file -> name, linear
     val textures = HashMap<FileReference, Pair<String, Boolean>>() // file -> name, linear
     fun defineFunc(name: String, prefix: String, suffix: String): String {
         funcBuilder.append(prefix).append(' ').append(name).append(suffix).append('\n')
@@ -147,12 +153,19 @@ class MaterialGraphCompiler(
                 "($a)$symbol($b)"
             }
             is ValueNode -> expr(n.inputs!![0])
-            is TextureNode -> textureVars.getOrPut(n) { "tex${textureVars.size}" }
-            is TextureNode2 -> {
+            is TextureNode -> {
                 val uv = expr(n.inputs!![0])
                 val texName = textures.getOrPut(n.file) {
                     val linear = constEval(n.inputs!![1]) == true
                     Pair("texI${textures.size}", linear)
+                }.first
+                "texture($texName,$uv)"
+            }
+            is MovieNode -> {
+                val uv = expr(n.inputs!![0])
+                val texName = movies.getOrPut(n) {
+                    val linear = constEval(n.inputs!![1]) == true
+                    Pair("movI${movies.size}", linear)
                 }.first
                 "texture($texName,$uv)"
             }
@@ -163,7 +176,6 @@ class MaterialGraphCompiler(
             is GameTime -> {
                 val key = "uGameTime"
                 typeValues.getOrPut(key) {
-
                     TypeValueV2(GLSLType.V1F) { Engine.gameTimeF }
                 }
                 key
@@ -203,7 +215,7 @@ class MaterialGraphCompiler(
     }
 
     fun constEval(c: NodeInput): Any? {
-        return if (c.others.isEmpty()) c.value
+        return if (c.others.isEmpty()) c.value ?: c.defaultValue
         else null
     }
 
@@ -312,16 +324,6 @@ class MaterialGraphCompiler(
                     }
                 }
             }
-            is TextureNode -> {
-                val uv = expr(n.inputs!![1])
-                val texName = textures.getOrPut(n.file) {
-                    val linear = constEval(n.inputs!![2]) == true
-                    Pair("texI${textures.size}", linear)
-                }.first
-                builder.append(textureVars.getOrPut(n) { "tex${textureVars.size}" })
-                    .append("=texture(").append(texName).append(",").append(uv).append(");\n")
-                createTree(n.getOutputNode(0), depth)
-            }
             is SetLocalVariableNode -> {
                 if (n.type != "?") {
                     val value = expr(n.inputs!![2])
@@ -422,8 +424,53 @@ class MaterialGraphCompiler(
                 TypeValueV2(GLSLType.S2D) {
                     // todo linear is not working :/ .. why?
                     val tex = ImageGPUCache[file, true]
-                    tex?.ensureFilterAndClamping(if (data.second) GPUFiltering.LINEAR else GPUFiltering.NEAREST, Clamping.REPEAT)
+                    tex?.ensureFilterAndClamping(
+                        if (data.second) GPUFiltering.LINEAR else GPUFiltering.NEAREST,
+                        Clamping.REPEAT
+                    )
                     tex ?: TextureLib.missingTexture
+                }
+        }
+        var lastGraphInvalidation = 0L
+        for ((node, data) in movies) {
+            typeValues[data.first] =
+                TypeValueV2(GLSLType.S2D) {
+                    val file = node.file
+                    val meta = getMeta(file, true)
+                    if (meta != null && meta.hasVideo) {
+                        val time1 = Engine.gameTime
+                        if (time1 != lastGraphInvalidation) {
+                            g.invalidate()
+                            lastGraphInvalidation = time1
+                        }
+                        val time = node.getInput(g, 2) as Float
+                        val frameCount = max(1, meta.videoFrameCount)
+                        var frameIndex = (time * meta.videoFPS).toInt() % frameCount
+                        if (frameIndex < 0) frameIndex += frameCount
+                        val bufferLength = FileExplorerEntry.videoBufferLength
+                        val timeout = 1000L
+                        val fps = meta.videoFPS
+                        // load future and previous frames
+                        for (di in -2..2) {
+                            if (di != 0) VideoCache.getVideoFrame(
+                                file, 1, (frameIndex + bufferLength * di) % frameCount,
+                                bufferLength, fps, timeout, meta, true
+                            )
+                        }
+                        val tex = VideoCache.getVideoFrame(
+                            file, 1, frameIndex,
+                            bufferLength, fps, timeout, meta, true
+                        )
+                        if (tex != null && tex.get2DShader() == ShaderLib.shader2DRGBA) {
+                            val tex2 = tex.getTextures()[0]
+                            tex2.ensureFilterAndClamping(
+                                if (data.second) GPUFiltering.LINEAR else GPUFiltering.NEAREST,
+                                Clamping.REPEAT
+                            )
+                            tex2
+                        } else TextureLib.blackTexture
+
+                    } else TextureLib.blackTexture
                 }
         }
         val funcVars = builder.toString()

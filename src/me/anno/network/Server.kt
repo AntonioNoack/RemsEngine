@@ -20,7 +20,7 @@ import kotlin.random.Random
 
 // todo there should be lobbies, where players are assigned to other servers, with seamless transfers...
 // todo ssl encryption
-// todo be safe against malicious attacks
+// to do be safe against malicious attacks
 // done: e.g. players might block data transfer by not reading
 
 /**

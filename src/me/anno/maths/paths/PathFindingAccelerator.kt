@@ -204,6 +204,7 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
     /**
      * define the maximum allowed search distance from n0 over n1 to n2
      * */
+    @Suppress("unused")
     open fun defineMaxDistance(n0: Node, n1: Node, n2: Node): Double {
         val distanceGuess = distance(n0, n1) + distance(n1, n2)
         return distanceGuess * 5.0 + 5.0
@@ -221,6 +222,7 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
         }
     }
 
+    @Suppress("unused")
     fun findShortest(
         start: Node, end: Node, maxDistance: Double,
         capacityGuess: Int, includeStart: Boolean, includeEnd: Boolean

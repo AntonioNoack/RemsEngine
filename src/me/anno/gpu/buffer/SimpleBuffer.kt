@@ -261,14 +261,6 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             buffer
         }
 
-        @JvmStatic
-        fun destroy1() {
-            flat01.destroy()
-            flat11.destroy()
-            flatLarge.destroy()
-            flat01Cube.destroy()
-        }
-
     }
 
 }

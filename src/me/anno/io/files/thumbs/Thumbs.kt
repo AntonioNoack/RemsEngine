@@ -966,6 +966,7 @@ object Thumbs {
                 val instance = asset.getSampleInstance()
                 generateSomething(instance, srcFile, dstFile, size, callback)
             }
+            // todo thumbnails for graphs
             null -> {}
             else -> {
                 // todo can we create a json preview or sth like that?
@@ -1233,7 +1234,6 @@ object Thumbs {
                         // done thumbnails and import for .vox files (MagicaVoxel voxel meshes)
 
                         // done thumbnails for meshes, and components
-                        // todo thumbnails for visual scripts, when they exist?
                         // todo thumbnails for Rem's Studio transforms
                         "obj", "fbx", "gltf", "glb", "dae", "md2", "md5mesh" -> {
                             // todo list all mesh extensions, which are supported by assimp

@@ -50,7 +50,7 @@ class CachedProperty(
                     LOGGER.warn("Index $index out of bounds! 0 until ${values.size} for ${oldValue.javaClass}")
                 val newValue = when {
                     index != Int.MIN_VALUE -> {
-                        // todo use hashmap or array or sth like that for lookup
+                        // todo use hashmap or array or sth like that for ~O(1) lookup
                         @Suppress("unchecked_cast")
                         val idProperty = (oldValue::class as KClass<Any>)
                             .memberProperties

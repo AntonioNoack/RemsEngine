@@ -10,6 +10,7 @@ import me.anno.video.ffmpeg.FFMPEGMetaParser.Companion.invalidCodec
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.video.ffmpeg.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import org.apache.logging.log4j.LogManager
+import java.io.EOFException
 import java.io.InputStream
 import kotlin.concurrent.thread
 import kotlin.math.abs
@@ -52,6 +53,8 @@ abstract class FrameReader<FrameType>(
             } else LOGGER.debug("${file?.absolutePath?.shorten(200)} cannot be read as image(s) by FFMPEG")
         } catch (e: OutOfMemoryError) {
             LOGGER.warn("Engine has run out of memory!!")
+        } catch (e: EOFException) {
+            isFinished = true
         } catch (e: ShutdownException) {
             // ...
         } catch (e: Exception) {

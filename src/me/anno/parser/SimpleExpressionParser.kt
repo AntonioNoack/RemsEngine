@@ -262,7 +262,7 @@ object SimpleExpressionParser {
             if (i >= 3 && this[i - 3].isOperator()) continue
             if (i + 1 < size && this[i + 1].isOperator()) continue
             // check if they are values, doubles
-            // todo compare two arrays, lol
+            // to do compare two arrays, lol -> no
             val a = this[i - 2] as? Double ?: continue
             val b = this[i] as? Double ?: continue
             removeAt(i)
@@ -367,7 +367,7 @@ object SimpleExpressionParser {
         else -> false
     }
 
-    // todo pairs? true vectors? (x,y,z)
+    // to do pairs? true vectors? (x,y,z) -> nah...
     private fun MutableList<Any>.findVectors(): Boolean {
         var wasChanged = false
         // searched: [ to open a vector

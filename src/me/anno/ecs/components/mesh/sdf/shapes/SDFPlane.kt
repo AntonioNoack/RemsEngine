@@ -1,6 +1,5 @@
 package me.anno.ecs.components.mesh.sdf.shapes
 
-import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
@@ -13,11 +12,13 @@ import org.joml.Vector4f
  * */
 open class SDFPlane : SDFShape() {
 
-    // todo should be an enum
-    @Docs("Allowed values: x/y/z")
-    var axis = 'y'
+    enum class Axis(val id: Int) {
+        X(0), Y(1), Z(2)
+    }
+
+    var axis = Axis.Y
         set(value) {
-            if (field != value && value in "xyz") {
+            if (field != value) {
                 invalidateShader()
                 field = value
             }
@@ -25,7 +26,7 @@ open class SDFPlane : SDFShape() {
 
     override fun calculateBaseBounds(dst: AABBf) {
         when (axis) {// I hope this infinity causes no issues...
-            'x' -> {
+            Axis.X -> {
                 dst.minX = Float.NEGATIVE_INFINITY
                 dst.maxX = 0f
                 dst.minY = Float.NEGATIVE_INFINITY
@@ -33,7 +34,7 @@ open class SDFPlane : SDFShape() {
                 dst.minZ = Float.NEGATIVE_INFINITY
                 dst.maxZ = Float.POSITIVE_INFINITY
             }
-            'y' -> {
+            Axis.Y -> {
                 dst.minX = Float.NEGATIVE_INFINITY
                 dst.maxX = Float.POSITIVE_INFINITY
                 dst.minY = Float.NEGATIVE_INFINITY
@@ -41,7 +42,7 @@ open class SDFPlane : SDFShape() {
                 dst.minZ = Float.NEGATIVE_INFINITY
                 dst.maxZ = Float.POSITIVE_INFINITY
             }
-            'z' -> {
+            Axis.Z -> {
                 dst.minX = Float.NEGATIVE_INFINITY
                 dst.maxX = Float.POSITIVE_INFINITY
                 dst.minY = Float.NEGATIVE_INFINITY

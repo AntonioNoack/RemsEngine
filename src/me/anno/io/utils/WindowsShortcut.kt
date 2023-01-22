@@ -86,8 +86,6 @@ class WindowsShortcut {
         }
     }
 
-    // todo make this use InputStreams instead of buffers
-
     /**
      * Gobbles up link data by parsing it and storing info in member fields
      *

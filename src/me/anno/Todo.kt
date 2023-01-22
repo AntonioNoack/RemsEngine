@@ -2,7 +2,7 @@ package me.anno
 
 // hot topics:
 
-// todo convert all programmer-visible IO into async structures, so the engine could run single-threaded
+// to do convert all programmer-visible IO into async structures, so the engine could run single-threaded
 
 
 
@@ -16,7 +16,6 @@ package me.anno
 // todo pack large modules like Zip/Rar/PDF/EXR into mods
 // todo SDF Physics
 // todo animated raycast collisions
-// todo get Anim -> rotation + translate only working (as a step towards bone-controllable meshes for inverse kinematics)
 
 // done Unity Raytracing
 // to do Unity Raytracing Reflections Asset for Store
@@ -41,7 +40,7 @@ package me.anno
 // done e.g. invert multiple polygons with it
 
 
-// todo filters:
+// filters:
 // done gaussian blur
 // todo depth of field
 // done motion blur (kind of)

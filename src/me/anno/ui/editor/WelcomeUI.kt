@@ -389,7 +389,7 @@ abstract class WelcomeUI {
 
     companion object {
 
-        const val dirNameEn = "directory" // vs folder ^^
+        const val dirNameEn = "directory" // vs folder
 
         lateinit var nameInput: TextInput
         var usableFile: FileReference? = null

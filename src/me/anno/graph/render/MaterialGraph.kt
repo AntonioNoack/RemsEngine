@@ -21,8 +21,6 @@ import me.anno.utils.Color.toARGB
 // todo rotation nodes
 // todo quat to vec?
 
-// todo movie nodes? :D
-
 object MaterialGraph {
 
     fun kotlinToGLSL(type: String): String {
@@ -164,7 +162,7 @@ object MaterialGraph {
                     { DiscardNode() },
                     { MaterialReturnNode() },
                     { TextureNode() },
-                    { TextureNode2() },
+                    { MovieNode() },
                     { RandomNode() },
                     { ColorNode() },
                     { GameTime() },

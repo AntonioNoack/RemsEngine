@@ -95,7 +95,7 @@ open class Matrix4d {
     }
 
     constructor(col0: Vector4d, col1: Vector4d, col2: Vector4d, col3: Vector4d) {
-        this[col0, col1, col2] = col3
+        set(col0, col1, col2, col3)
     }
 
     fun assume(properties: Int): Matrix4d {
@@ -1306,7 +1306,7 @@ open class Matrix4d {
         )._m31(m[off + 13].toDouble())._m32(m[off + 14].toDouble())._m33(m[off + 15].toDouble()).determineProperties()
     }
 
-    operator fun set(col0: Vector4d, col1: Vector4d, col2: Vector4d, col3: Vector4d): Matrix4d {
+    fun set(col0: Vector4d, col1: Vector4d, col2: Vector4d, col3: Vector4d): Matrix4d {
         return _m00(col0.x)._m01(col0.y)._m02(col0.z)._m03(col0.w)._m10(col1.x)._m11(col1.y)._m12(col1.z)._m13(col1.w)
             ._m20(col2.x)._m21(col2.y)._m22(col2.z)._m23(col2.w)._m30(col3.x)._m31(col3.y)._m32(col3.z)._m33(col3.w)
             .determineProperties()

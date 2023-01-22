@@ -1,6 +1,5 @@
 package me.anno.maths.geometry
 
-import me.anno.utils.types.Vectors.print
 import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.cos
@@ -34,7 +33,7 @@ object FibonacciSphere {
 
         // https://stackoverflow.com/a/26127012/4979303
 
-        // todo alternative, which also creates the faces
+        // to do alternative, which also creates the faces?
         // http://extremelearning.com.au/evenly-distributing-points-on-a-sphere/
 
         val points = FloatArray(3 * n)

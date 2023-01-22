@@ -16,7 +16,7 @@ import me.anno.video.ffmpeg.FFMPEGMetadata
 // idk or restart playing...
 
 /**
- * todo audio effects:
+ * audio effects:
  * done better echoing ;)
  * todo velocity frequency change
  * done pitch

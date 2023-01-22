@@ -432,7 +432,7 @@ open class Matrix4x3f {
         return this
     }
 
-    operator fun set(col0: Vector3f, col1: Vector3f, col2: Vector3f, col3: Vector3f): Matrix4x3f {
+    fun set(col0: Vector3f, col1: Vector3f, col2: Vector3f, col3: Vector3f): Matrix4x3f {
         m00 = col0.x
         m01 = col0.y
         m02 = col0.z

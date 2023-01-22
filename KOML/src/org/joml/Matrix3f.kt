@@ -61,7 +61,7 @@ open class Matrix3f {
     }
 
     constructor(col0: Vector3f, col1: Vector3f, col2: Vector3f) {
-        this[col0, col1] = col2
+        set(col0, col1, col2)
     }
 
     fun m00(m00: Float): Matrix3f {
@@ -374,7 +374,7 @@ open class Matrix3f {
         return this
     }*/
 
-    operator fun set(col0: Vector3f, col1: Vector3f, col2: Vector3f): Matrix3f {
+    fun set(col0: Vector3f, col1: Vector3f, col2: Vector3f): Matrix3f {
         m00 = col0.x
         m01 = col0.y
         m02 = col0.z

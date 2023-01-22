@@ -7,7 +7,6 @@ import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState.worldScale
-import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
@@ -75,6 +74,7 @@ class Skeleton : PrefabSaveable(), Renderable {
         mesh.draw(shader, 0)
     }
 
+    var previewData: Mesh? = null
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
@@ -82,23 +82,27 @@ class Skeleton : PrefabSaveable(), Renderable {
         cameraPosition: Vector3d,
         worldScale: Double
     ): Int {
-        // todo optimize this (avoid allocations)
         val bones = bones
         if (bones.isEmpty()) return clickId
-        val mesh = Mesh()
-        // in a tree with N nodes, there is N-1 lines
-        val size = (bones.size - 1) * boneMeshVertices.size
-        mesh.positions = Texture2D.floatArrayPool[size, false, true]
-        mesh.normals = Texture2D.floatArrayPool[size, true, true]
-        val bonePositions = Array(bones.size) { bones[it].bindPosition }
-        generateSkeleton(bones, bonePositions, mesh.positions!!, null)
-        pipeline.fill(mesh, cameraPosition, worldScale)
-        GFX.addGPUTask("free", 1) {
-            Texture2D.floatArrayPool.returnBuffer(mesh.positions)
-            Texture2D.floatArrayPool.returnBuffer(mesh.normals)
-            mesh.destroy()
+        if (previewData == null) {
+            val mesh = Mesh()
+            // in a tree with N nodes, there is N-1 lines
+            val size = (bones.size - 1) * boneMeshVertices.size
+            mesh.positions = Texture2D.floatArrayPool[size, false, true]
+            mesh.normals = Texture2D.floatArrayPool[size, true, true]
+            val bonePositions = Array(bones.size) { bones[it].bindPosition }
+            generateSkeleton(bones, bonePositions, mesh.positions!!, null)
+            previewData = mesh
         }
+        val mesh = previewData!!
+        pipeline.fill(mesh, cameraPosition, worldScale)
         return clickId
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        previewData?.destroy()
+        previewData = null
     }
 
     override fun clone(): PrefabSaveable {
