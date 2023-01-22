@@ -4,17 +4,24 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.Material
 import me.anno.engine.ui.render.SceneView.Companion.testScene2
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.graph.NodeInput
+import me.anno.graph.NodeOutput
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.ui.GraphEditor
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.utils.Color.black
+import me.anno.utils.Color.toARGB
 
 // todo bug: <tab> in vector input not switching to next one
 
-// todo const color node
+// todo rotation nodes
 // todo quat to vec?
+
+// todo movie nodes? :D
 
 object MaterialGraph {
 
@@ -84,8 +91,12 @@ object MaterialGraph {
         }
     }
 
+    val colorWithAlpha = DeferredLayerType(
+        "Color", "finalColorA", 4,
+        DeferredLayerType.COLOR.defaultValueARGB.toARGB() or black
+    )
     val layers = arrayOf(
-        DeferredLayerType.COLOR,
+        colorWithAlpha,
         DeferredLayerType.EMISSIVE,
         DeferredLayerType.NORMAL,
         DeferredLayerType.TANGENT,
@@ -153,10 +164,17 @@ object MaterialGraph {
                     { DiscardNode() },
                     { MaterialReturnNode() },
                     { TextureNode() },
+                    { TextureNode2() },
                     { RandomNode() },
                     { ColorNode() },
+                    { GameTime() },
                 )
             )
+            registerCustomClass(NodeInput())
+            registerCustomClass(NodeOutput())
+            for (element in ge.library.nodes) {
+                registerCustomClass(element)
+            }
             ge.addChangeListener { _, isNodePositionChange ->
                 if (!isNodePositionChange) {
                     compile()

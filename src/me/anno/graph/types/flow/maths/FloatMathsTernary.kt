@@ -30,8 +30,8 @@ enum class FloatMathsTernary(
         { a, b, c -> me.anno.maths.Maths.clamp(me.anno.maths.Maths.unmix(a, b, c)) }),
 
 
-    ADD(10, "a+b+c", { a, b, c -> a + b + c }, { a, b, c -> a + b + c }),
-    MUL(12, "a*b*c", { a, b, c -> a * b * c }, { a, b, c -> a * b * c }),
+    ADD3(10, "a+b+c", { a, b, c -> a + b + c }, { a, b, c -> a + b + c }),
+    MUL3(12, "a*b*c", { a, b, c -> a * b * c }, { a, b, c -> a * b * c }),
     MUL_ADD(13, "a*b+c", { a, b, c -> a * b + c }, { a, b, c -> a * b * c }),
 
     ;

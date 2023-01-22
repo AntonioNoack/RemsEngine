@@ -1,5 +1,6 @@
 package me.anno.graph.render
 
+import me.anno.Engine
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.engine.ui.render.ECSMeshShader
@@ -11,6 +12,8 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib
 import me.anno.graph.Node
 import me.anno.graph.NodeInput
@@ -68,7 +71,7 @@ class MaterialGraphCompiler(
     }
 
     val funcBuilder = StringBuilder()
-    val typeToFunc = HashMap<Any, String>() // key -> name
+    val typeToFunc = HashMap<String, String>() // key -> name
     val textureVars = HashMap<TextureNode, String>() // node -> name
     val textures = HashMap<FileReference, Pair<String, Boolean>>() // file -> name, linear
     fun defineFunc(name: String, prefix: String, suffix: String): String {
@@ -83,7 +86,7 @@ class MaterialGraphCompiler(
             is GLSLExprNode -> {
                 val c = n.outputs!!.indexOf(out)
                 val name = n.getShaderFuncName(c)
-                typeToFunc.getOrPut(n) { defineFunc(name, kotlinToGLSL(out.type), n.defineShaderFunc(c)) }
+                typeToFunc.getOrPut(name) { defineFunc(name, kotlinToGLSL(out.type), n.defineShaderFunc(c)) }
                 val inputs = n.inputs
                 when (inputs?.size ?: 0) {
                     0 -> "$name()"
@@ -145,9 +148,25 @@ class MaterialGraphCompiler(
             }
             is ValueNode -> expr(n.inputs!![0])
             is TextureNode -> textureVars.getOrPut(n) { "tex${textureVars.size}" }
+            is TextureNode2 -> {
+                val uv = expr(n.inputs!![0])
+                val texName = textures.getOrPut(n.file) {
+                    val linear = constEval(n.inputs!![1]) == true
+                    Pair("texI${textures.size}", linear)
+                }.first
+                "texture($texName,$uv)"
+            }
             is ColorNode -> {
                 val c = n.value
                 "vec4(${c.x},${c.y},${c.z},${c.w})"
+            }
+            is GameTime -> {
+                val key = "uGameTime"
+                typeValues.getOrPut(key) {
+
+                    TypeValueV2(GLSLType.V1F) { Engine.gameTimeF }
+                }
+                key
             }
             else -> throw IllegalArgumentException("Unknown node ${n.javaClass.name}")
         }
@@ -318,6 +337,8 @@ class MaterialGraphCompiler(
         }
     }
 
+    val typeValues = HashMap<String, TypeValue>()
+
     init {
 
         builder.append("bool calc(")
@@ -336,7 +357,6 @@ class MaterialGraphCompiler(
         }
 
         // traverse graph to find, which layers were exported
-        val usedVars = ArrayList<Variable>()
         val exportedLayers = BitSet(MaterialGraph.layers.size)
         fun traverse(node: Node?) {
             node ?: return
@@ -395,10 +415,16 @@ class MaterialGraphCompiler(
         for ((_, v) in textureVars) {
             builder.append("vec4 ").append(v).append("=vec4(0);").append("\n")
         }
-        val typeValues = HashMap<String, TypeValue>()
+
+        val usedVars = ArrayList<Variable>()
         for ((file, data) in textures) {
-            usedVars += Variable(GLSLType.S2D, data.first)
-            typeValues[data.first] = TypeValueV2(GLSLType.S2D) { ImageGPUCache[file, true] ?: TextureLib.whiteTexture }
+            typeValues[data.first] =
+                TypeValueV2(GLSLType.S2D) {
+                    // todo linear is not working :/ .. why?
+                    val tex = ImageGPUCache[file, true]
+                    tex?.ensureFilterAndClamping(if (data.second) GPUFiltering.LINEAR else GPUFiltering.NEAREST, Clamping.REPEAT)
+                    tex ?: TextureLib.missingTexture
+                }
         }
         val funcVars = builder.toString()
         builder.clear()
@@ -406,6 +432,12 @@ class MaterialGraphCompiler(
         val functions = funcBuilder.toString() + funcHeader + funcVars + funcBody
 
         // call method with all required parameters
+        val layers = MaterialGraph.layers
+        val layer0Name = layers[0].glslName
+        if (exportedLayers[0]) {
+            val v = DeferredLayerType.COLOR.defaultValueARGB
+            builder.append("vec4 ").append(layer0Name).append("=vec4(${v.x},${v.y},${v.z},1.0);\n")
+        }
         builder.append("if(calc(")
         first = true
         // all inputs
@@ -446,18 +478,26 @@ class MaterialGraphCompiler(
         }
 
         // all outputs
-        for (i in MaterialGraph.layers.indices) {
+        for (i in layers.indices) {
             if (exportedLayers[i]) {
                 if (!first) builder.append(", ")
-                builder.append(MaterialGraph.layers[i].glslName)
+                builder.append(layers[i].glslName)
                 first = false
             }
         }
         builder.append(")) discard;\n")
+        if (exportedLayers[0]) {
+            builder.append("finalColor=").append(layer0Name).append(".rgb;\n")
+            builder.append("finalAlpha=").append(layer0Name).append(".a;\n")
+        }
 
         val funcCall = builder.toString()
         println(functions)
         println(funcCall)
+
+        for ((k, v) in typeValues) {
+            usedVars += Variable(v.type, k)
+        }
 
         shader = object : ECSMeshShader(g.name) {
 

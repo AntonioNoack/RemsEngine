@@ -37,6 +37,7 @@ abstract class GPUFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
     }
 
     abstract fun get3DShader(): BaseShader
+    abstract fun get2DShader(): Shader
 
     abstract fun getTextures(): List<Texture2D>
 

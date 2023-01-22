@@ -1,6 +1,7 @@
 package me.anno.gpu.texture
 
 import me.anno.cache.ICacheData
+import me.anno.utils.Color.black
 
 /**
  * library of standard textures like white, black, transparent, striped
@@ -97,6 +98,8 @@ object TextureLib {
     val normalTexture = IndestructibleTexture2D("normal", 1, 1, byteArrayOf(127, 127, -1, -1))
     val gradientXTex = IndestructibleTexture2D("gradientX", 5, 1, byteArrayOf(0, 63, 127, -64, -1))
     val blackTexture = IndestructibleTexture2D("black", 1, 1, byteArrayOf(0, 0, 0, -1))
+    val missingTexture = IndestructibleTexture2D("missing", 2, 2,
+        IntArray(4) { (if (it in 1..2) 0 else 0xff00ff) or black })
 
     @Suppress("ClassName")
     object nullTexture : ICacheData {
@@ -114,6 +117,7 @@ object TextureLib {
         colorShowTexture.doDestroy()
         normalTexture.doDestroy()
         blackTexture.doDestroy()
+        missingTexture.doDestroy()
     }
 
 }

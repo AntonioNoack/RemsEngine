@@ -41,7 +41,6 @@ abstract class FrameReader<FrameType>(
             val frameCount = bufferLength
             waitForMetadata()
             if (codec.isNotEmpty() && codec != invalidCodec) {
-                println("reading file $file with $w x $h x $codec")
                 val input = process.inputStream
                 input.use {
                     readFrame(input)

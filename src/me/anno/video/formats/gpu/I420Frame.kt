@@ -1,6 +1,7 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
+import me.anno.gpu.shader.ShaderLib.shader2DYUV
 import me.anno.gpu.shader.ShaderLib.shader3DYUV
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -45,6 +46,7 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
         }
     }
 
+    override fun get2DShader() = shader2DYUV
     override fun get3DShader() = shader3DYUV
 
     override fun getTextures(): List<Texture2D> = listOf(y, uv)

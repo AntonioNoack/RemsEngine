@@ -49,7 +49,7 @@ abstract class MathNode<V : Enum<V>>(
         name = data.names[data.typeToIndex[type]!!]
     }
 
-    override fun getShaderFuncName(outputIndex: Int): String = "f1$type"
+    override fun getShaderFuncName(outputIndex: Int): String = "${data.outputs.first()}$type"
     override fun defineShaderFunc(outputIndex: Int): String =
         "(${data.shaderFuncPrefix}){return ${data.getGLSL(type)};}"
 

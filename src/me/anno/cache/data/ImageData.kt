@@ -6,10 +6,9 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
@@ -23,7 +22,7 @@ import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.utils.Sleep.waitUntilDefined
+import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.commons.imaging.Imaging
@@ -51,50 +50,51 @@ class ImageData(file: FileReference) : ICacheData {
         }
 
         @JvmStatic
-        fun frameToFramebuffer(frame: GPUFrame, w: Int, h: Int, result: ImageData?): Framebuffer {
-            val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, DepthBufferType.NONE)
-            result?.framebuffer = framebuffer
-            useFrame(framebuffer, Renderer.copyRenderer) {
+        fun frameToFramebuffer(frame: GPUFrame, w: Int, h: Int, result: ImageData) {
+            val tmp = Framebuffer("webp-temp", w, h, 1, 1, false, DepthBufferType.NONE)
+            useFrame(tmp, copyRenderer) {
                 renderPurely {
-                    val shader = frame.get3DShader().value
+                    val shader = frame.get2DShader()
                     shader.use()
-                    shader3DUniforms(shader, null, -1)
                     frame.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
                     frame.bindUVCorrection(shader)
                     GFX.flat01.draw(shader)
                     GFX.check()
-                    result?.texture = framebuffer.textures[0]
+                    result.texture = tmp.textures[0]
                 }
             }
             GFX.check()
-            return framebuffer
+            tmp.destroyExceptTextures(false)
         }
-
     }
 
-    var texture = Texture2D("image-data", 1024, 1024, 1)
+    var texture: Texture2D? = null
     var framebuffer: Framebuffer? = null
     var hasFailed = false
 
     init {
-        if (texture.isCreated) texture.reset() // shouldn't really happen, I think
         if (file is ImageReadable) {
+            val texture = Texture2D("image-data", 1024, 1024, 1)
             texture.create(file.toString(), file.readImage(), true)
+            this.texture = texture
         } else {
             when (Signature.findNameSync(file)) {
                 "hdr" -> {
                     val img = HDRImage(file)
                     val w = img.width
                     val h = img.height
-                    texture.setSize(w, h)
+                    val texture = Texture2D("image-data", w, h, 1)
                     img.createTexture(texture, sync = false, checkRedundancy = true)
+                    this.texture = texture
                 }
-                "dds", "media" -> useFFMPEG(file)
+                "dds", "media", "webp" -> useFFMPEG(file)
                 else -> {
                     val image = ImageCPUCache[file, 50, false]
                     if (image != null) {
+                        val texture = Texture2D("image-data", image.width, image.height, 1)
                         texture.create(file.toString(), image, true)
                         texture.rotation = getRotation(file)
+                        this.texture = texture
                     } else {
                         when (val fileExtension = file.lcExtension) {
                             // "hdr" -> loadHDR(file)
@@ -112,7 +112,7 @@ class ImageData(file: FileReference) : ICacheData {
 
     fun useFFMPEG(file: FileReference) {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
-        val frame = waitUntilDefined(true) {
+        val frame = waitForGFXThreadUntilDefined(true) {
             getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
         }
         frame.waitToLoad()
@@ -125,7 +125,9 @@ class ImageData(file: FileReference) : ICacheData {
         val img = file.inputStreamSync().use { stream ->
             TGAImage.read(stream, false)
         }
+        val texture = Texture2D("image-data", img.width, img.height, 1)
         texture.create(img, sync = false, checkRedundancy = true)
+        this.texture = texture
     }
 
     // find jpeg rotation by checking exif tags...
@@ -150,8 +152,10 @@ class ImageData(file: FileReference) : ICacheData {
     private fun tryGetImage1(file: FileReference) {
         val image = tryGetImage(file)
         if (image != null) {
+            val texture = Texture2D("image-data", 1024, 1024, 1)
             texture.create(file.toString(), image, checkRedundancy = true)
             texture.rotation = getRotation(file)
+            this.texture = texture
         } else {
             LOGGER.warn("Could not load {}", file)
             hasFailed = true
@@ -181,7 +185,7 @@ class ImageData(file: FileReference) : ICacheData {
 
     override fun destroy() {
         // framebuffer destroys the texture, too
-        framebuffer?.destroy() ?: texture.destroy()
+        framebuffer?.destroy() ?: texture?.destroy()
     }
 
 }

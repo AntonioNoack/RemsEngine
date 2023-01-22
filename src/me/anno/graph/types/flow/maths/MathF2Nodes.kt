@@ -1,6 +1,5 @@
 package me.anno.graph.types.flow.maths
 
-import me.anno.graph.EnumNode
 import me.anno.graph.types.FlowGraph
 import org.joml.Vector2f
 
@@ -10,7 +9,7 @@ val dataF12 = MathNode.MathNodeData(
     { it.id }, { it.glsl }
 )
 
-class MathF12Node : MathNode<FloatMathsUnary>(dataF12), EnumNode, GLSLExprNode {
+class MathF12Node : MathNode<FloatMathsUnary>(dataF12) {
     override fun compute(graph: FlowGraph) {
         val a = getInput(graph, 0) as Vector2f
         setOutput(Vector2f(type.float(a.x), type.float(a.y)))
@@ -23,7 +22,7 @@ val dataF22 = MathNode.MathNodeData(
     { it.id }, { it.glsl }
 )
 
-class MathF22Node : MathNode<FloatMathsBinary>(dataF22), EnumNode, GLSLExprNode {
+class MathF22Node : MathNode<FloatMathsBinary>(dataF22) {
     override fun compute(graph: FlowGraph) {
         val a = getInput(graph, 0) as Vector2f
         val b = getInput(graph, 1) as Vector2f
@@ -37,7 +36,7 @@ val dataF32 = MathNode.MathNodeData(
     { it.id }, { it.glsl }
 )
 
-class MathF32Node : MathNode<FloatMathsTernary>(dataF32), EnumNode, GLSLExprNode {
+class MathF32Node : MathNode<FloatMathsTernary>(dataF32) {
     override fun compute(graph: FlowGraph) {
         val a = getInput(graph, 0) as Vector2f
         val b = getInput(graph, 1) as Vector2f

@@ -1,6 +1,7 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
+import me.anno.gpu.shader.ShaderLib.shader2DARGB
 import me.anno.gpu.shader.ShaderLib.shader3DARGB
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -26,6 +27,7 @@ class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 0) {
         }
     }
 
+    override fun get2DShader() = shader2DARGB
     override fun get3DShader() = shader3DARGB
     override fun getTextures(): List<Texture2D> = listOf(argb)
 

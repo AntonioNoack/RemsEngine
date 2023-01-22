@@ -1,14 +1,12 @@
 package me.anno.graph.render
 
 import me.anno.graph.types.flow.ReturnNode
+import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 import org.joml.Vector2f
 import org.joml.Vector3f
 
-class MaterialReturnNode : ReturnNode(
-    MaterialGraph.layers.map {
-        listOf(MaterialGraph.types[it.dimensions - 1], it.name)
-    }.flatten()
-) {
+class MaterialReturnNode : ReturnNode(outputs) {
+
     init {
         val inputs = inputs!!
         val layers = MaterialGraph.layers
@@ -25,5 +23,14 @@ class MaterialReturnNode : ReturnNode(
             con.value = defaultValue
             con.defaultValue = defaultValue
         }
+    }
+
+    companion object {
+        val outputs = MaterialGraph.layers.map {
+            listOf(
+                MaterialGraph.types[it.dimensions - 1],
+                it.name.upperSnakeCaseToTitle()
+            )
+        }.flatten()
     }
 }

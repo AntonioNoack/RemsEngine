@@ -340,6 +340,16 @@ object ShaderLib {
         Variable(GLSLType.V4F, "tiling")
     )
 
+    val v2Dl = listOf(
+        Variable(GLSLType.V2F, "coords", VariableMode.ATTR)
+    )
+
+    const val v2D = "" +
+            "void main(){\n" +
+            "   gl_Position = vec4(coords*2.0-1.0, 0.0, 1.0);\n" +
+            "   uv = coords;\n" +
+            "}"
+
     const val v3D = "" +
             "void main(){\n" +
             "   finalPosition = coords;\n" +
@@ -349,6 +359,10 @@ object ShaderLib {
             "   uvw = coords;\n" +
             flatNormal +
             "}"
+
+    val y2D = listOf(
+        Variable(GLSLType.V2F, "uv"),
+    )
 
     val y3D = listOf(
         Variable(GLSLType.V2F, "uv"),
@@ -419,7 +433,7 @@ object ShaderLib {
 
     fun createSwizzleShader(swizzle: String): BaseShader {
         return createShader(
-            "3d-${swizzle.ifEmpty { "rgba" }}", v3Dl, v3D, y3D, listOf(
+            "3d${swizzle.ifEmpty { ".rgba" }}", v3Dl, v3D, y3D, listOf(
                 Variable(GLSLType.S2D, "tex"),
                 Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
                 Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
@@ -435,6 +449,21 @@ object ShaderLib {
                     "   finalColor = color.rgb;\n" +
                     "   finalAlpha = color.a;\n" +
                     "}", listOf("tex")
+        )
+    }
+
+    fun createSwizzleShader2D(swizzle: String): Shader {
+        return Shader(
+            "2d${swizzle.ifEmpty { ".rgba" }}", v2Dl, v2D, y2D, listOf(
+                Variable(GLSLType.S2D, "tex"),
+                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+            ), "" +
+                    "void main(){\n" +
+                    "   vec4 color = texture(tex, uv)$swizzle;\n" +
+                    "   finalColor = color.rgb;\n" +
+                    "   finalAlpha = color.a;\n" +
+                    "}"
         )
     }
 
@@ -676,9 +705,13 @@ object ShaderLib {
             "tiling",
             "forceFieldUVCount"
         )
-    val shader3DRGBA = createSwizzleShader(".rgba")
+    val shader3DRGBA = createSwizzleShader("")
     val shader3DARGB = createSwizzleShader(".gbar")
     val shader3DBGRA = createSwizzleShader(".bgra")
+
+    val shader2DRGBA = createSwizzleShader2D("")
+    val shader2DARGB = createSwizzleShader2D(".gbar")
+    val shader2DBGRA = createSwizzleShader2D(".bgra")
 
     val shader3DYUV = createShader(
         "3d-yuv",
@@ -700,7 +733,7 @@ object ShaderLib {
                 "   vec2 correctedDUV = textureDeltaUV*uvCorrection;\n" +
                 "   vec3 yuv = vec3(" +
                 "       getTexture(texY, uv2).r, " +
-                "       getTexture(texUV, correctedUV, correctedDUV).rg);\n" + //
+                "       getTexture(texUV, correctedUV, correctedDUV).rg);\n" +
                 "   vec4 color = vec4(yuv2rgb(yuv), 1.0);\n" +
                 "   color.rgb = colorGrading(color.rgb);\n" +
                 "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
@@ -708,6 +741,27 @@ object ShaderLib {
                 "   finalAlpha = color.a;\n" +
                 "}", listOf("texY", "texUV")
     )
+
+    val shader2DYUV = Shader(
+        "2d-yuv",
+        v2Dl, v2D, y2D, listOf(
+            Variable(GLSLType.V2F, "uvCorrection"),
+            Variable(GLSLType.S2D, "texY"),
+            Variable(GLSLType.S2D, "texUV"),
+            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
+        ), "" +
+                yuv2rgb +
+                "void main(){\n" +
+                "   vec2 correctedUV = uv*uvCorrection;\n" +
+                "   vec2 correctedDUV = textureDeltaUV*uvCorrection;\n" +
+                "   vec3 yuv = vec3(" +
+                "       texture(texY, uv).r, " +
+                "       texture(texUV, correctedUV, correctedDUV).rg);\n" +
+                "   finalColor = yuv2rgb(yuv);\n" +
+                "   finalAlpha = 1.0;\n" +
+                "}"
+    ).apply { setTextureIndices("texY", "texUV") }
 
     val lineShader3D = BaseShader(
         "3d-lines", listOf(Variable(GLSLType.V3F, "coords", VariableMode.ATTR)),

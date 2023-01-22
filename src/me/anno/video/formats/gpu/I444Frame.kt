@@ -3,6 +3,7 @@ package me.anno.video.formats.gpu
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.ShaderLib.shader3DYUV
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.shader2DYUV
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
@@ -55,6 +56,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
         shader.v2f("uvCorrection", 1f, 1f)
     }
 
+    override fun get2DShader() = shader2DYUV
     override fun get3DShader() = shader3DYUV
 
     // 319x yuv = 2,400 MB

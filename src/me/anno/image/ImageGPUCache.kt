@@ -29,7 +29,7 @@ object ImageGPUCache : CacheSection("Images") {
             entry == null -> false
             entry !is ImageData -> true
             entry.hasFailed -> true
-            entry.texture.isCreated -> true
+            entry.texture?.isCreated == true -> true
             else -> false
         }
     }
@@ -58,12 +58,15 @@ object ImageGPUCache : CacheSection("Images") {
             file, timeout, asyncGenerator,
             ImageGPUCache::generateImageData
         ) as? ImageData ?: return null
-        val texture = imageData.texture
-        if (!imageData.hasFailed && !texture.isCreated && !asyncGenerator && !OS.isWeb) {
+        if (!imageData.hasFailed && imageData.texture?.isCreated != true && !asyncGenerator && !OS.isWeb) {
             // the texture was forced to be loaded -> wait for it
-            waitForGFXThread(true) { texture.isCreated || texture.isDestroyed || imageData.hasFailed }
+            waitForGFXThread(true) {
+                val texture = imageData.texture
+                (texture != null && (texture.isCreated || texture.isDestroyed)) || imageData.hasFailed
+            }
         }
-        return if (texture.isCreated) texture else null
+        val texture = imageData.texture
+        return if (texture != null && texture.isCreated) texture else null
     }
 
     /*fun getImage(file: File, timeout: Long, asyncGenerator: Boolean): Texture2D? {

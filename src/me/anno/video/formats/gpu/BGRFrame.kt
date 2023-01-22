@@ -10,7 +10,6 @@ class BGRFrame(w: Int, h: Int) : RGBFrame(w, h) {
     override fun load(input: InputStream) {
         val s0 = w * h
         val data = input.readNBytes2(s0 * 3, Texture2D.bufferPool)
-        // println("in:  " + rgba(data[2], data[1], data[0], -1).toHexColor())
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("BGR", w, h) {
             rgb.createBGR(data, true)
