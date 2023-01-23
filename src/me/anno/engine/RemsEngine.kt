@@ -209,14 +209,14 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
                 val configTitle = Dict["Config", "ui.top.config"]
                 options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
                     val panel = ConfigPanel(DefaultConfig, false, style)
-                    val window = createReloadWindow(panel, true) { createUI() }
+                    val window = createReloadWindow(panel, transparent = false, fullscreen = true) { createUI() }
                     panel.create()
                     windowStack.push(window)
                 }
 
                 options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
                     val panel = ConfigPanel(DefaultConfig.style.values, true, style)
-                    val window = createReloadWindow(panel, true) { createUI() }
+                    val window = createReloadWindow(panel, transparent = false, fullscreen = true) { createUI() }
                     panel.create()
                     windowStack.push(window)
                 }

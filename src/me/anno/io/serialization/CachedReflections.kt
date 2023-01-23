@@ -106,8 +106,7 @@ class CachedReflections(
                  findProperties(instance, clazz, clazz.memberProperties.filterIsInstance<KMutableProperty1<*, *>>())
              } catch (e: ClassCastException) {*/
             val jc = clazz.java
-            return findProperties(jc,
-                allFields(jc, ArrayList()).filter { !Modifier.isStatic(it.modifiers) },
+            return findProperties(allFields(jc, ArrayList()).filter { !Modifier.isStatic(it.modifiers) },
                 allMethods(jc, ArrayList()).filter { !Modifier.isStatic(it.modifiers) })
             // }
         }
@@ -163,7 +162,6 @@ class CachedReflections(
         }
 
         fun findProperties(
-            clazz: Class<*>,
             properties: List<Field>,
             methods: List<Method>,
         ): Map<String, CachedProperty> {

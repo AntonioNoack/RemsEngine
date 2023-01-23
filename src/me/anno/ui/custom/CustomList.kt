@@ -95,27 +95,20 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         super.calculateSize(w, h)
         minH = 10
         minW = 10
+        placeChildren(x, y, w, h, false)
     }
 
-    override fun setPosition(x: Int, y: Int) {
-
-        this.x = x
-        this.y = y
-
+    fun placeChildren(x: Int, y: Int, w: Int, h: Int, place: Boolean) {
         if (children.isEmpty()) return
         if (children.size == 1) {
-
             val child = children.first()
-            child.setPosition(x, y)
-            child.setSize(w, h)
-
+            if (place) child.setPosition(x, y)
+            child.calculateSize(w, h)
         } else {
-
             val minWeight = 0.0001f
             val available = (if (isY) h else w) - (children.size - 1) * spacing
             val sumWeight = SumOf.sumOf(children) { max(minWeight, it.weight) }
             val weightScale = 1f / sumWeight
-
             var childPos = if (isY) y else x
             val children = children
             for (index in children.indices) {
@@ -124,20 +117,31 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
                 val betterWeight = max(weight * weightScale, minSize)
                 if (betterWeight != weight) child.weight = betterWeight
                 val childSize = (betterWeight * weightScale * available).roundToInt()
-                childPos += min(
-                    childSize, if (isY) {
-                        child.calculateSize(w, childSize)
-                        child.setPosSize(x, childPos, w, childSize)
-                        child.h
-                    } else {
-                        child.calculateSize(childSize, h)
-                        child.setPosSize(childPos, y, childSize, h)
-                        child.w
-                    }
-                )
-                childPos += spacing
+                if (place) {
+                    childPos += min(
+                        childSize, if (isY) {
+                            child.calculateSize(w, childSize)
+                            child.setPosSize(x, childPos, w, childSize)
+                            child.h
+                        } else {
+                            child.calculateSize(childSize, h)
+                            child.setPosSize(childPos, y, childSize, h)
+                            child.w
+                        }
+                    )
+                    childPos += spacing
+                } else {
+                    if (isY) child.calculateSize(w, childSize)
+                    else child.calculateSize(childSize, h)
+                }
             }
         }
+    }
+
+    override fun setPosition(x: Int, y: Int) {
+        this.x = x
+        this.y = y
+        placeChildren(x, y, w, h, true)
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
