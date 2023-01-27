@@ -19,7 +19,6 @@ import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Matrices.set2
 import me.anno.utils.types.Vectors.safeNormalize
-import me.anno.utils.types.Vectors.set2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
@@ -119,7 +118,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
             positions.ensureExtra(numVertices * 3)
             for (i in 0 until numVertices) {
                 val i3 = i * 3
-                tmp.set2(pos, i3)
+                tmp.set(pos, i3)
                 positions.add(trans.transformPosition(tmp))
             }
 
@@ -127,7 +126,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
             val nor = mesh.normals!!
             for (i in 0 until numVertices) {
                 val i3 = i * 3
-                tmp.set2(nor, i3)
+                tmp.set(nor, i3)
                 trans.transformDirection(tmp).safeNormalize()
                 normals.add(tmp)
             }
@@ -146,7 +145,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                 tangents.ensureExtra(min(tan.size, numVertices * 4))
                 for (i in 0 until min(tan.size / 4, numVertices)) {
                     val i4 = i * 4
-                    tmp.set2(tan, i4)
+                    tmp.set(tan, i4)
                     trans.transformDirection(tmp).safeNormalize()
                     tangents.add(tmp)
                     tangents.add(tan[i4 + 3])

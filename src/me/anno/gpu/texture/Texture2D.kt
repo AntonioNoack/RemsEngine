@@ -171,7 +171,7 @@ open class Texture2D(
                 1
             }
         }
-        writeAlignment(w * typeSize * numChannels)
+        setWriteAlignment(w * typeSize * numChannels)
         if (unbind) unbindUnpackBuffer()
     }
 
@@ -685,7 +685,7 @@ open class Texture2D(
     fun createBGRA(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        writeAlignment(4 * w)
+        setWriteAlignment(4 * w)
         // uses bgra instead of rgba to save the swizzle
         texImage2D(GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4)
@@ -696,7 +696,7 @@ open class Texture2D(
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
         // would work without swizzle, but I am not sure, that this is legal,
         // because the number of channels from the input and internal format differ
-        writeAlignment(4 * w)
+        setWriteAlignment(4 * w)
         texImage2D(GL_RGB8, GL_BGRA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 3)
     }
@@ -704,7 +704,7 @@ open class Texture2D(
     fun createRGB(data: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(3, data.size)
         val floats2 = if (checkRedundancy) checkRedundancyRGB(data) else data
-        writeAlignment(12 * w)
+        setWriteAlignment(12 * w)
         texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, floats2)
         afterUpload(true, 12)
     }
@@ -712,7 +712,7 @@ open class Texture2D(
     fun createRGB(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(3, data.capacity())
         if (checkRedundancy) checkRedundancyRGB(data)
-        writeAlignment(12 * w)
+        setWriteAlignment(12 * w)
         texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, data)
         afterUpload(true, 12)
     }
@@ -722,7 +722,7 @@ open class Texture2D(
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
         val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
-        writeAlignment(3 * w)
+        setWriteAlignment(3 * w)
         texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 3)
@@ -732,7 +732,7 @@ open class Texture2D(
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancy(data)
         if (data.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
-        writeAlignment(4 * w)
+        setWriteAlignment(4 * w)
         texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4)
     }
@@ -743,7 +743,7 @@ open class Texture2D(
     fun createRGBA(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         if (checkRedundancy) checkRedundancy(data)
-        writeAlignment(4 * w)
+        setWriteAlignment(4 * w)
         texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4)
     }
@@ -752,7 +752,7 @@ open class Texture2D(
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancy(data)
         if (data.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
-        writeAlignment(4 * w)
+        setWriteAlignment(4 * w)
         texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4)
     }
@@ -763,7 +763,7 @@ open class Texture2D(
     fun createRGB(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        writeAlignment(4 * w)
+        setWriteAlignment(4 * w)
         texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4)
     }
@@ -853,7 +853,7 @@ open class Texture2D(
     fun createMonochrome(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyMonochrome(data)
-        writeAlignment(4 * w)
+        setWriteAlignment(4 * w)
         texImage2D(GL_R32F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4)
     }
@@ -865,7 +865,7 @@ open class Texture2D(
     fun createMonochrome(data: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
-        writeAlignment(4 * w)
+        setWriteAlignment(4 * w)
         texImage2D(GL_R32F, GL_RED, GL_FLOAT, data2)
         afterUpload(true, 4)
     }
@@ -876,7 +876,7 @@ open class Texture2D(
     fun createMonochromeFP16(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyMonochrome(data)
-        writeAlignment(4 * w)
+        setWriteAlignment(4 * w)
         texImage2D(GL_R16F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4)
     }
@@ -913,7 +913,7 @@ open class Texture2D(
         beforeUpload(4, data.size)
         val data2 = if (checkRedundancy && w * h > 1) checkRedundancyRGBA(data) else data
         val byteBuffer = bufferPool[data2.size * 4, false, false]
-        byteBuffer.asFloatBuffer().put(data2).flip()
+        byteBuffer.asFloatBuffer().put(data2)
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         texImage2D(TargetType.FloatTarget4, byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
@@ -986,7 +986,7 @@ open class Texture2D(
         beforeUpload(3, data.remaining())
         if (checkRedundancy) checkRedundancy(data, true)
         // texImage2D(TargetType.UByteTarget3, buffer)
-        writeAlignment(3 * w)
+        setWriteAlignment(3 * w)
         texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, data)
         bufferPool.returnBuffer(data)
         afterUpload(false, 3)
@@ -1350,12 +1350,12 @@ open class Texture2D(
         }
 
         @JvmStatic
-        fun readAlignment(w: Int) {
+        fun setReadAlignment(w: Int) {
             glPixelStorei(GL_PACK_ALIGNMENT, getAlignment(w))
         }
 
         @JvmStatic
-        fun writeAlignment(w: Int) {
+        fun setWriteAlignment(w: Int) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, getAlignment(w))
         }
 

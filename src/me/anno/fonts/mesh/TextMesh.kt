@@ -10,7 +10,6 @@ import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.OS
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Vectors.avg
-import me.anno.utils.types.Vectors.minus
 import org.joml.Vector2f
 import java.awt.Color
 import java.awt.Graphics2D
@@ -407,9 +406,11 @@ class TextMesh(
                 val a = triangles[i]
                 val b = triangles[i + 1]
                 val c = triangles[i + 2]
-                val v1 = a - c
-                val v2 = b - c
-                val area = (v1.x * v2.y) - (v1.y * v2.x)
+                val v1x = a.x - c.x
+                val v1y = a.y - c.y
+                val v2x = b.x - c.x
+                val v2y = b.y - c.y
+                val area = (v1x * v2y) - (v1y * v2x)
                 areaSum += area
             }
             return abs(areaSum * 0.5f)

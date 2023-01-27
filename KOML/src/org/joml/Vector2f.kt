@@ -37,6 +37,7 @@ open class Vector2f {
     fun set(v: Vector2i) = set(v.x.toFloat(), v.y.toFloat())
     fun set(v: Vector2d) = set(v.x.toFloat(), v.y.toFloat())
     fun set(xy: FloatArray) = set(xy[0], xy[1])
+    fun set(xy: FloatArray, i: Int) = set(xy[i], xy[i + 1])
 
     operator fun get(component: Int): Float {
         return when (component) {
@@ -48,6 +49,10 @@ open class Vector2f {
 
     fun get(dst: Vector2f) = dst.set(x, y)
     fun get(dst: Vector2d): Vector2d = dst.set(x.toDouble(), y.toDouble())
+    fun get(dst: FloatArray, i: Int) {
+        dst[i] = x
+        dst[i + 1] = y
+    }
 
     operator fun set(component: Int, value: Float) = setComponent(component, value)
     fun setComponent(component: Int, value: Float): Vector2f {
@@ -272,6 +277,11 @@ open class Vector2f {
     fun mulAdd(f: Float, b: Vector2f, dst: Vector2f): Vector2f {
         return dst.set(x * f + b.x, y * f + b.y)
     }
+
+    operator fun plus(s: Vector2f) = Vector2f(x + s.x, y + s.y)
+    operator fun minus(s: Vector2f) = Vector2f(x - s.x, y - s.y)
+    operator fun times(f: Float) = Vector2f(x * f, y * f)
+    operator fun times(s: Vector2f) = Vector2f(x * s.x, y * s.y)
 
     companion object {
 

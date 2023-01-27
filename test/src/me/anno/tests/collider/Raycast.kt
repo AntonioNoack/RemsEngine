@@ -1,7 +1,6 @@
 package me.anno.tests.collider
 
 import me.anno.maths.Maths
-import me.anno.utils.types.Vectors.print
 import org.joml.AABBd
 import org.joml.Vector3d
 
@@ -32,7 +31,7 @@ fun simpleTest() {
         aabb.union(x * (1 + f), y * (1 + f), z * (1 + f))
 
         val result = aabb.testLine(start, dir, 2e3)
-        if (!result) throw RuntimeException("${start.print()} + t * ${dir.print()} does not intersect ${aabb.print()}")
+        if (!result) throw RuntimeException("$start + t * $dir does not intersect ${aabb.print()}")
 
     }
 
@@ -61,7 +60,7 @@ fun precisionTest() {
         aabb.union(x * (1 + f), y * (1 + f), z * (1 + f))
 
         val result = aabb.testLine(start, dir, 2e20)
-        if (!result) throw RuntimeException("${start.print()} + t * ${dir.print()} does not intersect ${aabb.print()}")
+        if (!result) throw RuntimeException("$start + t * $dir does not intersect ${aabb.print()}")
 
     }
 

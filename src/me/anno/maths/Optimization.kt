@@ -1,6 +1,8 @@
 package me.anno.maths
 
+import java.util.*
 import kotlin.math.abs
+import kotlin.math.sqrt
 
 object Optimization {
 
@@ -95,6 +97,54 @@ object Optimization {
         val expansion = 1.3
         val contraction = -0.5
         return simplexAlgorithm(v0, firstStepSize, goodEnoughError, maxSteps, expansion, contraction, err)
+    }
+
+    // https://en.wikipedia.org/wiki/Random_search
+    fun randomSearch(
+        v0: DoubleArray,
+        firstStepSize: Double,
+        goodEnoughError: Double,
+        maxSteps: Int,
+        maxTrials: Int,
+        err: (v1: DoubleArray) -> Double
+    ): Pair<Double, DoubleArray> {
+        var bestValue = v0
+        val dims = bestValue.size
+        var bestError = err(bestValue)
+        val dv = DoubleArray(dims)
+        var testValue = DoubleArray(dims)
+        val rnd = Random()
+        var radius = firstStepSize
+        var trials = maxTrials
+        for (i in 0 until maxSteps) {
+            var w = 0.0
+            for (j in 0 until dims) {
+                val rj = rnd.nextDouble() * 2.0 - 1.0
+                dv[j] = rj
+                w += rj * rj
+            }
+            w = radius / sqrt(w)
+            System.arraycopy(bestValue, 0, testValue, 0, dims)
+            for (j in 0 until dims) {
+                testValue[j] += w * dv[j]
+            }
+            val e1 = err(testValue)
+            if (e1 < bestError) {
+                // good :)
+                bestError = e1
+                val tmp = bestValue
+                bestValue = testValue
+                testValue = tmp
+                if (bestError <= goodEnoughError) break
+                radius *= 1.05
+                trials = maxTrials
+            } else {
+                // bad :/
+                radius *= 0.98
+                if (radius < 1e-308 || trials-- <= 0) break
+            }
+        }
+        return bestError to bestValue
     }
 
     fun simplexAlgorithm(

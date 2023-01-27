@@ -10,7 +10,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.types.Arrays.resize
-import me.anno.utils.types.Vectors.set2
 import org.joml.Vector3f
 import org.recast4j.detour.MeshData
 import org.recast4j.detour.NavMeshBuilder
@@ -108,7 +107,7 @@ class NavMesh : Component() {
         p.maxVerticesPerPolygon = mesh.maxVerticesPerPolygon
         val meshDetail = built.meshDetail
         if (meshDetail != null) {// can happen, if there is no valid surface
-            p.detailMeshes = meshDetail.meshes
+            p.detailMeshes = meshDetail.subMeshes
             p.detailVertices = meshDetail.vertices
             p.detailVerticesCount = meshDetail.numVertices
             p.detailTris = meshDetail.triangles
@@ -188,16 +187,16 @@ class NavMesh : Component() {
                         val t = (detailMesh.triBase + j) * 4
 
                         val v0 = data.detailTriangles[t]
-                        if (v0 < p.vertCount) a.set2(dv, pv[v0] * 3)
-                        else a.set2(ddv, (detailMesh.vertBase + v0 - p.vertCount) * 3)
+                        if (v0 < p.vertCount) a.set(dv, pv[v0] * 3)
+                        else a.set(ddv, (detailMesh.vertBase + v0 - p.vertCount) * 3)
 
                         val v1 = data.detailTriangles[t + 1]
-                        if (v1 < p.vertCount) b.set2(dv, pv[v1] * 3)
-                        else b.set2(ddv, (detailMesh.vertBase + v1 - p.vertCount) * 3)
+                        if (v1 < p.vertCount) b.set(dv, pv[v1] * 3)
+                        else b.set(ddv, (detailMesh.vertBase + v1 - p.vertCount) * 3)
 
                         val v2 = data.detailTriangles[t + 2]
-                        if (v2 < p.vertCount) c.set2(dv, pv[v2] * 3)
-                        else c.set2(ddv, (detailMesh.vertBase + v2 - p.vertCount) * 3)
+                        if (v2 < p.vertCount) c.set(dv, pv[v2] * 3)
+                        else c.set(ddv, (detailMesh.vertBase + v2 - p.vertCount) * 3)
 
                         LineShapes.drawLine(entity, a, b)
                         LineShapes.drawLine(entity, b, c)

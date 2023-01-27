@@ -1,7 +1,5 @@
 package me.anno.image.svg.gradient
 
-import me.anno.utils.types.Vectors.print
-import org.joml.Vector2d
 import org.joml.Vector2f
 
 class Formula(
@@ -18,6 +16,6 @@ class Formula(
         isCircle = false
     }
 
-    override fun toString(): String = "(${position.print()} ${directionOrRadius.print()} $isCircle)"
+    override fun toString(): String = "($position, $directionOrRadius, $isCircle)"
 
 }

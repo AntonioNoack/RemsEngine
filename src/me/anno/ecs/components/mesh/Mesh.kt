@@ -25,7 +25,6 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.set2
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4f
@@ -535,9 +534,9 @@ class Mesh : PrefabSaveable(), Renderable {
             when (drawMode) {
                 GL_TRIANGLES -> {
                     for (i in 0 until indices.size - 2 step 3) {
-                        a.set2(positions, indices[i] * 3)
-                        b.set2(positions, indices[i + 1] * 3)
-                        c.set2(positions, indices[i + 2] * 3)
+                        a.set(positions, indices[i] * 3)
+                        b.set(positions, indices[i + 1] * 3)
+                        c.set(positions, indices[i + 2] * 3)
                         callback(a, b, c)
                     }
                 }
@@ -546,14 +545,14 @@ class Mesh : PrefabSaveable(), Renderable {
                     var bi = indices[1] * 3
                     for (i in 2 until indices.size) {
                         val ci = indices[i] * 3
-                        a.set2(positions, ai)
+                        a.set(positions, ai)
                         // can we remove this?
                         if (i.hasFlag(1)) {
-                            b.set2(positions, ci)
-                            c.set2(positions, bi)
+                            b.set(positions, ci)
+                            c.set(positions, bi)
                         } else {
-                            b.set2(positions, bi)
-                            c.set2(positions, ci)
+                            b.set(positions, bi)
+                            c.set(positions, ci)
                         }
                         callback(a, b, c)
                         ai = bi
@@ -567,9 +566,9 @@ class Mesh : PrefabSaveable(), Renderable {
                     var i = 0
                     val s = positions.size - 8
                     while (i < s) {
-                        a.set2(positions, i)
-                        b.set2(positions, i + 3)
-                        c.set2(positions, i + 6)
+                        a.set(positions, i)
+                        b.set(positions, i + 3)
+                        c.set(positions, i + 6)
                         callback(a, b, c)
                         i += 9
                     }
@@ -579,14 +578,14 @@ class Mesh : PrefabSaveable(), Renderable {
                     var bi = 3
                     for (i in 2 until positions.size / 3) {
                         val ci = i * 3
-                        a.set2(positions, ai)
+                        a.set(positions, ai)
                         // can we remove this?
                         if (i.hasFlag(1)) {
-                            b.set2(positions, ci)
-                            c.set2(positions, bi)
+                            b.set(positions, ci)
+                            c.set(positions, bi)
                         } else {
-                            b.set2(positions, bi)
-                            c.set2(positions, ci)
+                            b.set(positions, bi)
+                            c.set(positions, ci)
                         }
                         callback(a, b, c)
                         ai = bi
@@ -607,18 +606,18 @@ class Mesh : PrefabSaveable(), Renderable {
         val indices = indices
         if (indices != null) {
             for (i in 0 until indices.size - 2 step 3) {
-                a.set2(positions, indices[i] * 3)
-                b.set2(positions, indices[i + 1] * 3)
-                c.set2(positions, indices[i + 2] * 3)
+                a.set(positions, indices[i] * 3)
+                b.set(positions, indices[i + 1] * 3)
+                c.set(positions, indices[i + 2] * 3)
                 callback(a, b, c)
             }
         } else {
             var i = 0
             val s = positions.size - 8
             while (i < s) {
-                a.set2(positions, i)
-                b.set2(positions, i + 3)
-                c.set2(positions, i + 6)
+                a.set(positions, i)
+                b.set(positions, i + 3)
+                c.set(positions, i + 6)
                 callback(a, b, c)
                 i += 9
             }

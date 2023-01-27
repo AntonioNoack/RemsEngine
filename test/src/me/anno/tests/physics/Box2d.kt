@@ -6,7 +6,6 @@ import me.anno.ecs.components.physics.twod.Box2dPhysics
 import me.anno.ecs.components.physics.twod.Rigidbody2d
 import me.anno.maths.Maths
 import me.anno.utils.types.Floats.toDegrees
-import me.anno.utils.types.Vectors.print
 import org.jbox2d.collision.shapes.PolygonShape
 import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.BodyDef
@@ -83,7 +82,7 @@ private fun test2() {
     for (i in 0 until 10) {
         box.validateTransform()
         ground.validateTransform()
-        println(box.position.print() + ", " + (box.rotation.getEulerAnglesYXZ(Vector3d()).z.toDegrees()) + "°")
+        println(box.position.toString() + ", " + (box.rotation.getEulerAnglesYXZ(Vector3d()).z.toDegrees()) + "°")
         physics.step(Maths.MILLIS_TO_NANOS * 1000, false)
     }
 }

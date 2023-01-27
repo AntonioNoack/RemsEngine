@@ -13,7 +13,7 @@ import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
-import me.anno.gpu.texture.Texture2D.Companion.writeAlignment
+import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
 import me.anno.utils.types.Booleans.toInt
@@ -68,7 +68,7 @@ open class Texture3D(
     private fun beforeUpload(alignment: Int) {
         ensurePointer()
         forceBind()
-        writeAlignment(alignment)
+        setWriteAlignment(alignment)
     }
 
     private fun afterUpload(internalFormat: Int, bpp: Int, hdr: Boolean) {

@@ -45,24 +45,16 @@ class GeoProvider(world: Entity) : InputGeomProvider {
     }
 
     override fun meshes() = meshes
-
     // those are extra
     override fun convexVolumes() = emptyList<ConvexVolume>()
 
-    val boundsMin: Vector3f
-    val boundsMax: Vector3f
+    override val meshBoundsMin: Vector3f
+    override val meshBoundsMax: Vector3f
 
     init {
         val aabb = world.aabb
-        boundsMin = Vector3f(aabb.minX.toFloat(), aabb.minY.toFloat(), aabb.minZ.toFloat())
-        boundsMax = Vector3f(aabb.maxX.toFloat(), aabb.maxY.toFloat(), aabb.maxZ.toFloat())
+        meshBoundsMin = Vector3f(aabb.minX.toFloat(), aabb.minY.toFloat(), aabb.minZ.toFloat())
+        meshBoundsMax = Vector3f(aabb.maxX.toFloat(), aabb.maxY.toFloat(), aabb.maxZ.toFloat())
     }
-
-    // new version, that is broken, because Intellij's Kotlin->Java is too imperfect -.-
-    // override val meshBoundsMin = boundsMin
-    // override val meshBoundsMax = boundsMax
-
-    override fun getMeshBoundsMin()=boundsMin
-    override fun getMeshBoundsMax()=boundsMax
 
 }

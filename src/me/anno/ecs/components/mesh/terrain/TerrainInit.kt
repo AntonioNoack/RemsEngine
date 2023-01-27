@@ -1,6 +1,5 @@
 package me.anno.ecs.components.mesh.terrain
 
-import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix2f
 import org.joml.Vector2f
@@ -49,7 +48,7 @@ abstract class TerrainInit {
 
             logger.info(m)
 
-            logger.info(m.transform(Vector2f(x, y)).print())
+            logger.info(m.transform(Vector2f(x, y)))
 
             m.invert()
 

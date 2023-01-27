@@ -182,8 +182,8 @@ object GFXState {
     private const val maxSize = 512
     val renderers = Array<Renderer>(maxSize) { colorRenderer }
 
-    val currentRenderer get() = renderers[framebuffer.size - 1]
-    val currentBuffer get() = framebuffer.values[framebuffer.size - 1]
+    val currentRenderer get() = renderers[framebuffer.index]
+    val currentBuffer get() = framebuffer.values[framebuffer.index]
 
     val xs = IntArray(maxSize)
     val ys = IntArray(maxSize)

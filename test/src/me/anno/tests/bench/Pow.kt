@@ -12,7 +12,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.texture.Texture2D.Companion.readAlignment
+import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.f2
 import org.lwjgl.opengl.GL11C.*
@@ -121,7 +121,7 @@ fun main() {
                             flat01.draw(shader)
                         }
                         // synchronize
-                        readAlignment(4)
+                        setReadAlignment(4)
                         glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
                         GFX.check()
                         val t1 = System.nanoTime()

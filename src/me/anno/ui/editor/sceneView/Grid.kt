@@ -18,7 +18,6 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Vectors.avg
-import me.anno.utils.types.Vectors.minus
 import org.joml.*
 import org.lwjgl.opengl.GL20.GL_LINES
 import kotlin.math.*

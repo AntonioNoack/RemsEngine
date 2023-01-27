@@ -2,7 +2,6 @@ package me.anno.mesh.blender.impl
 
 import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
-import me.anno.utils.types.Vectors.print
 import java.nio.ByteBuffer
 
 class MVert(file: BlenderFile, dnaStruct: DNAStruct, buffer: ByteBuffer, position: Int) :
@@ -26,7 +25,7 @@ class MVert(file: BlenderFile, dnaStruct: DNAStruct, buffer: ByteBuffer, positio
     // then there is a flag, and a weights-indicator
 
     override fun toString(): String {
-        return "[${pos.print()} ${normal.print()}]"
+        return "[$pos, $normal]"
     }
 
 }

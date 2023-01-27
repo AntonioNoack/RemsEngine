@@ -4,7 +4,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.navigation.NavMesh
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
@@ -12,17 +11,10 @@ import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
 import me.anno.utils.structures.arrays.FloatArrayList
-import me.anno.utils.types.Matrices.set2
-import me.anno.utils.types.Vectors.print
-import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.recast4j.LongArrayList
 import org.recast4j.detour.*
-import org.recast4j.recast.*
-import org.recast4j.recast.RecastConstants.PartitionType
-import org.recast4j.recast.geom.InputGeomProvider
-import org.recast4j.recast.geom.TriMesh
 import java.util.*
 
 val sampleFile = documents.getChild("NavMeshTest.obj")
@@ -92,7 +84,7 @@ fun main() {
                 pos.add(vs[i3], vs[i3 + 1], vs[i3 + 2])
             }
             pos.div(poly.vertices.size.toFloat())
-            println(pos.print())
+            println(pos)
         }
 
         testScene(entity)

@@ -300,6 +300,10 @@ open class Vector2d {
         return dst.set(x * f + b.x, y * f + b.y)
     }
 
+    operator fun plus(s: Vector2d) = Vector2d(x + s.x, y + s.y)
+    operator fun minus(s: Vector2d) = Vector2d(x - s.x, y - s.y)
+    operator fun times(f: Double) = Vector2d(x * f, y * f)
+
     companion object {
         @JvmStatic
         fun lengthSquared(x: Double, y: Double) = x * x + y * y

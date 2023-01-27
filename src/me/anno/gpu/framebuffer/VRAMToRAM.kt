@@ -9,7 +9,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.readAlignment
+import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.raw.IntImage
 import me.anno.utils.Color
 import me.anno.utils.types.Booleans.toInt
@@ -109,7 +109,7 @@ object VRAMToRAM {
 
         useFrame(0, 0, wi, hi, NullFramebuffer, Renderer.copyRenderer) {
 
-            readAlignment(width)
+            setReadAlignment(width)
 
             val hm1 = height - 1
 

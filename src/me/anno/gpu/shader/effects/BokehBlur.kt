@@ -1,27 +1,34 @@
 package me.anno.gpu.shader.effects
 
+import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.createShader
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.shader.ShaderLib.svsList
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.ImageGPUCache
+import me.anno.image.ImageWriter
+import me.anno.input.Input
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.min
+import me.anno.ui.Panel
+import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.utils.OS.desktop
+import me.anno.utils.OS.pictures
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11C.*
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /**
  * shader by Kleber Garcia, 'Kecho', 2017, MIT license (https://github.com/kecho/CircularDofFilterGenerator)
@@ -33,15 +40,17 @@ object BokehBlur {
     private const val KERNEL_RADIUS = 8
     private const val KERNEL_COUNT = KERNEL_RADIUS * 2 + 1
 
-    private var compositionShader: BaseShader? = null
-    private var perChannelShader: BaseShader? = null
+    private var compositionShader: Shader? = null
+    private var perChannelShader: Shader? = null
 
     private val filterTexture = Texture2D("bokeh", KERNEL_COUNT, 1, 1)
 
     fun draw(srcTexture: Texture2D, target: Framebuffer, relativeToH: Float, fp: Boolean) {
 
-        val w = srcTexture.w
-        val h = srcTexture.h
+        val w = min(srcTexture.w, target.w)
+        val h = min(srcTexture.h, target.h)
+
+        println("$w x $h")
 
         if (compositionShader == null) init()
 
@@ -55,30 +64,41 @@ object BokehBlur {
             val pixelRadius = relativeToH * h
             val normRadius = pixelRadius / KERNEL_RADIUS
 
-            //val stepsRadius = max(KERNEL_RADIUS, pixelRadius.roundToInt())
-            //val step = pixelRadius/stepsRadius
-
             filterTexture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
             srcTexture.bind(1, GPUFiltering.LINEAR, Clamping.CLAMP)
 
-            drawX(normRadius, w, h, r, g, b, a)
-            drawY(normRadius, w, h, r, g, b, a, target)
+            val shader = perChannelShader!!
+            shader.use()
+            uniforms(shader, w, h, normRadius)
+            drawChannel(shader, r, w, h, xAxis)
+            drawChannel(shader, g, w, h, yAxis)
+            drawChannel(shader, b, w, h, zAxis)
+            drawChannel(shader, a, w, h, wAxis)
 
+            useFrame(w, h, false, target) {
+
+                val shader2 = compositionShader!!
+                shader2.use()
+                uniforms(shader2, w, h, normRadius)
+
+                // filter texture is bound correctly
+                r.bindTexture0(1, GPUFiltering.LINEAR, Clamping.CLAMP)
+                g.bindTexture0(2, GPUFiltering.LINEAR, Clamping.CLAMP)
+                b.bindTexture0(3, GPUFiltering.LINEAR, Clamping.CLAMP)
+                a.bindTexture0(4, GPUFiltering.LINEAR, Clamping.CLAMP)
+                flat01.draw(shader2)
+
+            }
         }
 
     }
 
-    fun drawX(
-        normRadius: Float, w: Int, h: Int,
-        r: Framebuffer, g: Framebuffer, b: Framebuffer, a: Framebuffer
-    ) {
-        val shader = perChannelShader!!.value
-        shader.use()
-        uniforms(shader, w, h, normRadius)
-        drawChannel(shader, r, w, h, xAxis)
-        drawChannel(shader, g, w, h, yAxis)
-        drawChannel(shader, b, w, h, zAxis)
-        drawChannel(shader, a, w, h, wAxis)
+    fun drawChannel(shader: Shader, target: Framebuffer, w: Int, h: Int, channel: Vector4f) {
+        useFrame(w, h, false, target) {
+            Frame.bind()
+            shader.v4f("channelSelection", channel)
+            flat01.draw(shader)
+        }
     }
 
     private val xAxis = Vector4f(1f, 0f, 0f, 0f)
@@ -91,69 +111,34 @@ object BokehBlur {
         shader.v2f("stepVal", radius / w, radius / h)
         val radiusI = clamp(radius.roundToInt(), KERNEL_RADIUS, 64)
         shader.v1i("radius", radiusI)
-        shader.v1f("multiplier", KERNEL_RADIUS.toFloat() / radiusI)
-    }
-
-    fun drawY(
-        normRadius: Float, w: Int, h: Int,
-        r: Framebuffer, g: Framebuffer, b: Framebuffer, a: Framebuffer,
-        target: Framebuffer
-    ) {
-
-        useFrame(w, h, true, target, Renderer.copyRenderer) {
-
-            val shader = compositionShader!!.value
-            shader.use()
-            uniforms(shader, w, h, normRadius)
-
-            target.clearColor(0)
-
-            // filter texture is bound correctly
-            r.bindTexture0(1, GPUFiltering.LINEAR, Clamping.CLAMP)
-            g.bindTexture0(2, GPUFiltering.LINEAR, Clamping.CLAMP)
-            b.bindTexture0(3, GPUFiltering.LINEAR, Clamping.CLAMP)
-            a.bindTexture0(4, GPUFiltering.LINEAR, Clamping.CLAMP)
-            flat01.draw(shader)
-
-        }
-
-    }
-
-    fun drawChannel(shader: Shader, target: Framebuffer, w: Int, h: Int, channel: Vector4f) {
-        useFrame(w, h, true, target, Renderer.copyRenderer) {
-            Frame.bind()
-            shader.v4f("channelSelection", channel)
-            flat01.draw(shader)
-        }
+        shader.v1f("multiplier", sqrt(255f) * KERNEL_RADIUS.toFloat() / radiusI)
     }
 
     fun init() {
 
-        val loopUniforms = "" +
-                "uniform int radius;\n" +
-                "uniform float multiplier;\n"
-
         val loop = "" +
+                "float ifr = 1.0/float(radius);\n" +
                 "for (int i=-radius;i<=radius;i++){\n" +
-                "   float f11 = float(i)/float(radius);\n" + // -1 .. +1
+                "   float f11 = float(i)*ifr;\n" + // -1 .. +1
                 "   float f01 = f11*0.5-0.5;\n" // 0 .. 1
 
         val getFilters = "" +
-                "vec4 getFilters(float x){\n" +
-                "   return texture(filterTexture, vec2(x, 0));\n" +
-                "}\n"
+                "#define getFilters(x) texture(filterTexture, vec2(x,0.0))\n"
 
         val varyingShader = listOf(Variable(GLSLType.V2F, "uv"))
 
-        perChannelShader = createShader(
-            "bokeh-perChannel", svsList, simplestVertexShader, varyingShader, listOf(), "" +
-
-                    "uniform vec2 stepVal;\n" + // 1/resolution
-                    "uniform sampler2D image, filterTexture;\n" +
-                    "uniform vec4 channelSelection;\n" +
+        perChannelShader = Shader(
+            "bokeh-perChannel", svsList, simplestVertexShader, varyingShader,
+            listOf(
+                Variable(GLSLType.V2F, "stepVal"),// 1/resolution
+                Variable(GLSLType.S2D, "image"),
+                Variable(GLSLType.S2D, "filterTexture"),
+                Variable(GLSLType.V4F, "channelSelection"),
+                Variable(GLSLType.V1I, "radius"),
+                Variable(GLSLType.V1F, "multiplier"),
+            ), "" +
 
                     getFilters +
-                    loopUniforms +
 
                     "void main(){\n" +
                     "   vec4 sum = vec4(0);\n" +
@@ -164,14 +149,22 @@ object BokehBlur {
                     "       sum += imageTexelR * c0_c1;\n" +
                     "    }\n" +
                     "    gl_FragColor = sum * multiplier;\n" +
-                    "}", listOf("filterTexture", "image")
-        )
+                    "}"
+        ).apply { setTextureIndices("filterTexture", "image") }
 
-        compositionShader = createShader(
-            "bokeh-composition", svsList, simplestVertexShader, varyingShader, listOf(), "" +
+        compositionShader = Shader(
+            "bokeh-composition", svsList, simplestVertexShader,
+            varyingShader, listOf(
+                Variable(GLSLType.V2F, "stepVal"),// 1/resolution
+                Variable(GLSLType.V1I, "radius"),
+                Variable(GLSLType.V1F, "multiplier"),
+                Variable(GLSLType.S2D, "inputRed"),
+                Variable(GLSLType.S2D, "inputGreen"),
+                Variable(GLSLType.S2D, "inputBlue"),
+                Variable(GLSLType.S2D, "inputAlpha"),
+                Variable(GLSLType.S2D, "filterTexture"),
+            ), "" +
 
-                    "uniform vec2 stepVal;\n" + // 1/resolution
-                    "uniform sampler2D inputRed, inputGreen, inputBlue, inputAlpha, filterTexture;\n" +
                     "const vec2 Kernel0Weights_RealX_ImY = vec2(0.411259,-0.548794);\n" +
                     "const vec2 Kernel1Weights_RealX_ImY = vec2(0.513282, 4.561110);\n" +
 
@@ -180,7 +173,6 @@ object BokehBlur {
                     "}\n" +
 
                     getFilters +
-                    loopUniforms +
 
                     "void main(){\n" +
 
@@ -213,19 +205,14 @@ object BokehBlur {
 
                     "   }\n" +
 
-                    "   valR *= multiplier;\n" +
-                    "   valG *= multiplier;\n" +
-                    "   valB *= multiplier;\n" +
-                    "   valA *= multiplier;\n" +
-
                     "   float rChannel = dot(valR, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
                     "   float gChannel = dot(valG, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
                     "   float bChannel = dot(valB, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
                     "   float aChannel = dot(valA, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
-                    "   gl_FragColor = vec4(rChannel, gChannel, bChannel, aChannel);\n" +
+                    "   gl_FragColor = multiplier * vec4(rChannel, gChannel, bChannel, aChannel);\n" +
 
-                    "}", listOf("filterTexture", "inputRed", "inputGreen", "inputBlue", "inputAlpha")
-        )
+                    "}"
+        ).apply { setTextureIndices("filterTexture", "inputRed", "inputGreen", "inputBlue", "inputAlpha") }
 
         val kernel0 = floatArrayOf(
             0.014096f, -0.022658f, 0.055991f, 0.004413f,
@@ -275,6 +262,9 @@ object BokehBlur {
         }
 
         filterTexture.createRGBA(kernelTexture, false)
+        ImageWriter.writeImageFloat(4, KERNEL_COUNT, "kernel0", true, kernel0)
+        ImageWriter.writeImageFloat(4, KERNEL_COUNT, "kernel1", true, kernel1)
+        filterTexture.write(desktop.getChild("filter.png"))
 
     }
 
@@ -282,6 +272,31 @@ object BokehBlur {
         filterTexture.destroy()
         compositionShader?.destroy()
         perChannelShader?.destroy()
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        testUI3 {
+            val dst = Framebuffer("tmp", 512, 512, 1, 1, false, DepthBufferType.NONE)
+            object : Panel(style) {
+                override fun onUpdate() {
+                    invalidateDrawing()
+                }
+                override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                    super.onDraw(x0, y0, x1, y1)
+                    if (Input.isShiftDown) return
+                    val src = ImageGPUCache[pictures.getChild("BricksColor.png"), false]!!
+                    if (Input.isShiftDown) {
+                        println("yes")
+                        //draw(src, dst, 0.05f, true)
+                        //drawTexture(x, y, w, h, dst.getTexture0())
+                    } else {
+                        println("no")
+                        drawTexture(x, y, w, h, src)
+                    }
+                }
+            }
+        }
     }
 
 }

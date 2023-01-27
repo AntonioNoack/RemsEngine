@@ -5,7 +5,6 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
-import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3i
@@ -78,7 +77,7 @@ object SubpixelLayout {
                 r.sub(mean)
                 g.sub(mean)
                 b.sub(mean)
-                LOGGER.info("Subpixel arrangement: ${r.print()}, ${g.print()}, ${b.print()}")
+                LOGGER.info("Subpixel arrangement: $r, $g, $b")
             }
         }// else todo implement for web
     }

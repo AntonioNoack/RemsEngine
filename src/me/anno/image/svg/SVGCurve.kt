@@ -2,7 +2,6 @@ package me.anno.image.svg
 
 import me.anno.fonts.mesh.Triangulation
 import me.anno.image.svg.gradient.Gradient1D
-import me.anno.utils.types.Vectors.plus
 import org.joml.Vector2f
 
 class SVGCurve(points: List<Vector2f>, closed: Boolean, val depth: Float, val gradient: Gradient1D, width: Float) {

@@ -11,7 +11,6 @@ import me.anno.utils.Clock
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.partition1
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Vectors.set2
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
@@ -405,13 +404,13 @@ abstract class BVHBuilder(val bounds: AABBf) {
             val b1 = JomlPools.vec3f.create()
             val c1 = JomlPools.vec3f.create()
             val i3 = i * 3
-            a0.set2(positions, indices[i3] * 3)
-            b0.set2(positions, indices[i3 + 1] * 3)
-            c0.set2(positions, indices[i3 + 2] * 3)
+            a0.set(positions, indices[i3] * 3)
+            b0.set(positions, indices[i3 + 1] * 3)
+            c0.set(positions, indices[i3 + 2] * 3)
             val j3 = j * 3
-            a1.set2(positions, indices[j3] * 3)
-            b1.set2(positions, indices[j3 + 1] * 3)
-            c1.set2(positions, indices[j3 + 2] * 3)
+            a1.set(positions, indices[j3] * 3)
+            b1.set(positions, indices[j3 + 1] * 3)
+            c1.set(positions, indices[j3 + 2] * 3)
             val r = condition(a0, b0, c0, a1, b1, c1)
             JomlPools.vec3f.sub(6)
             return r
@@ -459,9 +458,9 @@ abstract class BVHBuilder(val bounds: AABBf) {
             val b = JomlPools.vec3f.create()
             val c = JomlPools.vec3f.create()
             val i3 = i * 3
-            a.set2(positions, indices[i3] * 3)
-            b.set2(positions, indices[i3 + 1] * 3)
-            c.set2(positions, indices[i3 + 2] * 3)
+            a.set(positions, indices[i3] * 3)
+            b.set(positions, indices[i3 + 1] * 3)
+            c.set(positions, indices[i3 + 2] * 3)
             val r = condition(a, b, c)
             JomlPools.vec3f.sub(3)
             return r

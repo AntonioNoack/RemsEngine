@@ -8,9 +8,9 @@ import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles
-import me.anno.utils.types.Vectors.get2
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL11C.GL_TRIANGLES
+import org.lwjgl.opengl.GL11C.GL_TRIANGLE_STRIP
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -341,15 +341,15 @@ object NormalCalculator {
                 val maxD = maxC * normalScale
                 normal.normalize(normalScale)
                 // query normal at each point
-                get(map, min, max, a.add(normal), maxD, tmp).get2(normals, i - 9)
-                get(map, min, max, b.add(normal), maxD, tmp).get2(normals, i - 6)
-                get(map, min, max, c.add(normal), maxD, tmp).get2(normals, i - 3)
+                get(map, min, max, a.add(normal), maxD, tmp).get(normals, i - 9)
+                get(map, min, max, b.add(normal), maxD, tmp).get(normals, i - 6)
+                get(map, min, max, c.add(normal), maxD, tmp).get(normals, i - 3)
             } else {
                 // disable smoothing on large triangles
                 normal.normalize()
-                normal.get2(normals, i - 9)
-                normal.get2(normals, i - 6)
-                normal.get2(normals, i - 3)
+                normal.get(normals, i - 9)
+                normal.get(normals, i - 6)
+                normal.get(normals, i - 3)
             }
         }
     }

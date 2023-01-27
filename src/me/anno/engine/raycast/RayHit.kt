@@ -3,7 +3,6 @@ package me.anno.engine.raycast
 import me.anno.ecs.Component
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.utils.types.Vectors.print
 import org.joml.*
 
 class RayHit {
@@ -36,7 +35,7 @@ class RayHit {
     var ctr = 0
 
     override fun toString(): String {
-        return "RayHit(pos: ${positionWS.print()}, nor: ${normalWS.print()}, dist: $distance)"
+        return "RayHit(pos: $positionWS, nor: $normalWS, dist: $distance)"
     }
 
     fun setFromLocal(

@@ -2,16 +2,12 @@ package me.anno.ecs.components.physics.twod
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.twod.Collider2d
-import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.Stack
-import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Matrices.getScaleLength
-import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
 import org.jbox2d.collision.shapes.CircleShape
 import org.jbox2d.collision.shapes.MassData

@@ -4,8 +4,6 @@ import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
 import me.anno.utils.pooling.ByteBufferPool
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
 class FloatImage(
@@ -79,10 +77,14 @@ class FloatImage(
             if (v > max) max = v
         }
         if (min < 0f || max > 0f) {
-            val div = 1f / Maths.max(-min, max)
-            for (i in data.indices) {
-                data[i] *= div
-            }
+            mul(1f / Maths.max(-min, max))
+        }
+        return this
+    }
+
+    fun mul(s: Float): FloatImage {
+        if (s != 1f) for (i in data.indices) {
+            data[i] *= s
         }
         return this
     }

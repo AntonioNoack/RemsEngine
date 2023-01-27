@@ -8,6 +8,8 @@ import kotlin.math.sqrt
 
 object Matrices {
 
+    // todo move this stuff into KOML
+
     @JvmStatic
     fun Matrix4f.isIdentity(): Boolean {
         return properties().and(Matrix4f.PROPERTY_IDENTITY) != 0

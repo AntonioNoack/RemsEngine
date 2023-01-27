@@ -20,41 +20,6 @@ object Vectors {
      * they shouldn't be used in production to keep allocations at a minimum
      * */
 
-    operator fun Vector2f.plus(s: Vector2f) = Vector2f(x + s.x, y + s.y)
-    operator fun Vector2f.minus(s: Vector2f) = Vector2f(x - s.x, y - s.y)
-    operator fun Vector2f.times(f: Float) = Vector2f(x * f, y * f)
-    operator fun Vector2f.times(s: Vector2f) = Vector2f(x * s.x, y * s.y)
-
-    operator fun Vector2d.plus(s: Vector2d) = Vector2d(x + s.x, y + s.y)
-    operator fun Vector2d.minus(s: Vector2d) = Vector2d(x - s.x, y - s.y)
-    operator fun Vector2d.times(f: Double) = Vector2d(x * f, y * f)
-
-    operator fun Vector3f.plus(s: Vector3f) = Vector3f(x + s.x, y + s.y, z + s.z)
-    operator fun Vector3f.minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
-    operator fun Vector3f.times(s: Float) = Vector3f(x * s, y * s, z * s)
-    operator fun Vector3f.times(s: Vector3f) = Vector3f(x * s.x, y * s.y, z * s.z)
-
-    operator fun Vector3i.plus(s: Vector3i) = Vector3i(x + s.x, y + s.y, z + s.z)
-    operator fun Vector3i.minus(s: Vector3i) = Vector3i(x - s.x, y - s.y, z - s.z)
-    operator fun Vector3i.times(s: Float) = Vector3f(x * s, y * s, z * s)
-
-    operator fun Vector3d.plus(s: Vector3d) = Vector3d(x + s.x, y + s.y, z + s.z)
-    operator fun Vector3d.minus(s: Vector3d) = Vector3d(x - s.x, y - s.y, z - s.z)
-    operator fun Vector3d.times(s: Double) = Vector3d(x * s, y * s, z * s)
-
-    operator fun Vector3f.plus(s: Vector3i) = Vector3f(x + s.x, y + s.y, z + s.z)
-    operator fun Vector3i.plus(s: Vector3f) = Vector3f(x + s.x, y + s.y, z + s.z)
-    operator fun Vector3f.minus(s: Vector3i) = Vector3f(x - s.x, y - s.y, z - s.z)
-    operator fun Vector3i.minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
-
-    operator fun Vector4f.minus(s: Vector4f) = Vector4f(x - s.x, y - s.y, z - s.z, w - s.w)
-    operator fun Vector4f.plus(s: Vector4f) = Vector4f(x + s.x, y + s.y, z + s.z, w + s.w)
-    operator fun Vector4f.plus(s: Float) = if (s == 0f) this else Vector4f(x + s, y + s, z + s, w + s)
-    operator fun Vector4f.times(s: Float) = Vector4f(x * s, y * s, z * s, w * s)
-    operator fun Vector4f.times(s: Vector4f) = Vector4f(x * s.x, y * s.y, z * s.z, w * s.w)
-
-    fun Vector4f.mulAlpha(m: Float, dst: Vector4f = Vector4f()): Vector4f = dst.set(x, y, z, w * m)
-
     fun avg(a: Vector2f, b: Vector2f): Vector2f = Vector2f(a).add(b).mul(0.5f)
     fun avg(a: Vector2d, b: Vector2d): Vector2d = Vector2d(a).add(b).mul(0.5)
     fun avg(a: Vector3f, b: Vector3f): Vector3f = Vector3f(a).add(b).mul(0.5f)
@@ -70,21 +35,6 @@ object Vectors {
 
     fun avg(a: Vector3d, b: Vector3d, c: Vector3d) =
         Vector3d((a.x + b.x + c.x) / 3.0, (a.y + b.y + c.y) / 3.0, (a.z + b.z + c.z) / 3.0)
-
-    fun Vector2f.print(pts: List<Vector2f>) = "${pts.indexOf(this)}"
-    fun Vector2d.print(pts: List<Vector2d>) = "${pts.indexOf(this)}"
-
-    fun Vector2f.print() = "($x $y)"
-    fun Vector2d.print() = "($x $y)"
-    fun Vector2i.print() = "($x $y)"
-    fun Vector3f.print() = "($x $y $z)"
-    fun Vector3d.print() = "($x $y $z)"
-    fun Vector3i.print() = "($x $y $z)"
-    fun Vector4f.print() = "($x $y $z $w)"
-    fun Vector4d.print() = "($x $y $z $w)"
-    fun Vector4i.print() = "($x $y $z $w)"
-    fun Quaternionf.print() = "($x $y $z $w)"
-    fun Quaterniond.print() = "($x $y $z $w)"
 
     fun Vector2f.toVector3d() = Vector2d(this)
     fun Vector2d.toVector3f() = Vector2f(x.toFloat(), y.toFloat())
@@ -116,60 +66,6 @@ object Vectors {
             " (${m01.f2x()} ${m11.f2x()} ${m21.f2x()} ${m31.f2x()})\n" +
             " (${m02.f2x()} ${m12.f2x()} ${m22.f2x()} ${m32.f2x()})]"
 
-    fun Vector4f.toVec3f(): Vector3f {
-        val w = w
-        return Vector3f(x / w, y / w, z / w)
-    }
-
-    fun Vector3f.is000() = x == 0f && y == 0f && z == 0f
-    fun Vector3f.is111() = x == 1f && y == 1f && z == 1f
-    fun Vector4f.is1111() = x == 1f && y == 1f && z == 1f && w == 1f
-
-    val Vector3f.yzx get() = Vector3f(y, z, x)
-    val Vector3f.zxy get() = Vector3f(z, x, y)
-
-    fun Vector3f.get2(dst: FloatArray, i: Int) {
-        dst[i] = x
-        dst[i + 1] = y
-        dst[i + 2] = z
-    }
-
-    fun Vector3d.get2(dst: DoubleArray, i: Int) {
-        dst[i] = x
-        dst[i + 1] = y
-        dst[i + 2] = z
-    }
-
-    fun Vector3f.set2(src: FloatArray, ai: Int) {
-        set(src[ai], src[ai + 1], src[ai + 2])
-    }
-
-    fun Vector3d.set2(src: DoubleArray, ai: Int) {
-        set(src[ai], src[ai + 1], src[ai + 2])
-    }
-
-    fun Vector3d.set2(src: FloatArray, ai: Int) {
-        set(src[ai].toDouble(), src[ai + 1].toDouble(), src[ai + 2].toDouble())
-    }
-
-    fun DoubleArray.toVec3f(offset: Int = 0) =
-        Vector3f(this[offset].toFloat(), this[offset + 1].toFloat(), this[offset + 2].toFloat())
-
-    fun Vector3i.cross(v: Vector3i): Vector3i {
-        val rx = y * v.z - z * v.y
-        val ry = z * v.x - x * v.z
-        val rz = x * v.y - y * v.x
-        this.x = rx
-        this.y = ry
-        this.z = rz
-        return this
-    }
-
-    fun Vector3i.normalize(): Vector3i {
-        val length = length()
-        return Vector3i((x / length).roundToInt(), (y / length).roundToInt(), (z / length).roundToInt())
-    }
-
     fun findTangent(normal: Vector3f, dst: Vector3f = Vector3f()): Vector3f {
         return normal.findSecondAxis(dst)
     }
@@ -177,41 +73,6 @@ object Vectors {
     fun findTangent(normal: Vector3d, dst: Vector3d = Vector3d()): Vector3d {
         return normal.findSecondAxis(dst)
     }
-
-    fun Vector3f.roundToInt() = Vector3i(x.roundToInt(), y.roundToInt(), z.roundToInt())
-    fun Vector3d.roundToInt() = Vector3i(x.roundToInt(), y.roundToInt(), z.roundToInt())
-    fun Vector3d.floorToInt() =
-        Vector3i(kotlin.math.floor(x).toInt(), kotlin.math.floor(y).toInt(), kotlin.math.floor(z).toInt())
-
-    fun Vector3f.safeNormalize(length: Float = 1f): Vector3f {
-        val f = length / length()
-        if (!f.isFinite() || f == 0f) {
-            set(0.0)
-        } else {
-            mul(f)
-        }
-        return this
-    }
-
-    fun Vector3d.safeNormalize(length: Double = 1.0): Vector3d {
-        normalize(length)
-        if (!isFinite) set(0.0)
-        return this
-    }
-
-    fun Vector3f.setAxis(axis: Int, value: Float) {
-        when (axis) {
-            0 -> x = value
-            1 -> y = value
-            2 -> z = value
-        }
-    }
-
-    fun Vector3d.setAxis(axis: Int, value: Double): Vector3d {
-        setComponent(axis, value)
-        return this
-    }
-
 
     /**
      * approximate line intersection
@@ -247,35 +108,7 @@ object Vectors {
 
     }
 
-    fun Vector3f.findSecondAxis(dst: Vector3f = Vector3f()): Vector3f {
-        val thirdAxis = if (abs(x) > abs(y)) dst.set(0f, 1f, 0f)
-        else dst.set(1f, 0f, 0f)
-        return cross(thirdAxis, dst).normalize()
-    }
-
-    fun Vector3d.findSecondAxis(dst: Vector3d = Vector3d()): Vector3d {
-        val thirdAxis = if (abs(x) > abs(y)) dst.set(0.0, 1.0, 0.0)
-        else dst.set(1.0, 0.0, 0.0)
-        return cross(thirdAxis, dst).normalize()
-    }
-
-    fun Vector3f.findSystem(dstY: Vector3f = Vector3f(), dstZ: Vector3f = Vector3f()) {
-        findSecondAxis(dstY)
-        cross(dstY, dstZ).normalize()
-    }
-
-    fun Vector3d.findSystem(dstY: Vector3d = Vector3d(), dstZ: Vector3d = Vector3d()) {
-        findSecondAxis(dstY)
-        cross(dstY, dstZ).normalize()
-    }
-
     fun Vector3f.addScaled(other: Vector3f, scale: Float): Vector3f {
-        other.mulAdd(scale, this, this)
-        return this
-    }
-
-    fun Vector3f.addSmoothly(other: Vector3f, scale: Float): Vector3f {
-        mul(1f - scale)
         other.mulAdd(scale, this, this)
         return this
     }

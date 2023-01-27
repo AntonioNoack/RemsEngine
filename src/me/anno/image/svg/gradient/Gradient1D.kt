@@ -9,7 +9,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.mulAlpha
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing.parseColor
-import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -172,7 +171,7 @@ open class Gradient1D {
                 stops.set(colors[i0].percentage, colors[i1].percentage, colors[i2].percentage, colors[i3].percentage)
             }
         }
-        if (colors.size > 1) LOGGER.info("${colors.size} / ${stops.print()} / ${c0.print()} ${c1.print()} ${c2.print()} ${c3.print()}")
+        if (colors.size > 1) LOGGER.info("${colors.size} / $stops / $c0 $c1 $c2 $c3")
     }
 
     fun parseStops(mesh: SVGMesh, stops: List<Any>, clear: Boolean = false) {

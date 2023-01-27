@@ -16,7 +16,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
-import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -156,7 +155,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
             LOGGER.debug("Positions: " + Array(pos.size / 3) {
                 val i = it * 3
                 Vector3f(pos[i], pos[i + 1], pos[i + 2])
-            }.joinToString { it.print() })
+            }.joinToString())
             LOGGER.debug("Indices: ${mesh.indices?.joinToString()}")
         } else {
             LOGGER.warn("Mesh is null")

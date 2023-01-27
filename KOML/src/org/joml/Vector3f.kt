@@ -22,40 +22,11 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return this
     }
 
-    fun set(v: Vector3d): Vector3f {
-        x = v.x.toFloat()
-        y = v.y.toFloat()
-        z = v.z.toFloat()
-        return this
-    }
-
-    fun set(v: Vector3i): Vector3f {
-        x = v.x.toFloat()
-        y = v.y.toFloat()
-        z = v.z.toFloat()
-        return this
-    }
-
-    fun set(v: Vector2f, z: Float): Vector3f {
-        x = v.x
-        y = v.y
-        this.z = z
-        return this
-    }
-
-    fun set(v: Vector2d, z: Float): Vector3f {
-        x = v.x.toFloat()
-        y = v.y.toFloat()
-        this.z = z
-        return this
-    }
-
-    fun set(v: Vector2i, z: Float): Vector3f {
-        x = v.x.toFloat()
-        y = v.y.toFloat()
-        this.z = z
-        return this
-    }
+    fun set(v: Vector3d) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+    fun set(v: Vector3i) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+    fun set(v: Vector2f, z: Float) = set(v.x, v.y, z)
+    fun set(v: Vector2d, z: Float) = set(v.x.toFloat(), v.y.toFloat(), z)
+    fun set(v: Vector2i, z: Float) = set(v.x.toFloat(), v.y.toFloat(), z)
 
     fun set(d: Float): Vector3f {
         x = d
@@ -85,12 +56,8 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return this
     }
 
-    fun set(xyz: FloatArray): Vector3f {
-        x = xyz[0]
-        y = xyz[1]
-        z = xyz[2]
-        return this
-    }
+    fun set(v: FloatArray) = set(v[0], v[1], v[2])
+    fun set(v: FloatArray, i: Int) = set(v[i], v[i + 1], v[i + 2])
 
     operator fun set(component: Int, value: Float) = setComponent(component, value)
     fun setComponent(component: Int, value: Float): Vector3f {
@@ -729,6 +696,12 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return dst
     }
 
+    fun get(dst: FloatArray, i: Int) {
+        dst[i] = x
+        dst[i + 1] = y
+        dst[i + 2] = z
+    }
+
     fun maxComponent(): Int {
         val absX = abs(x)
         val absY = abs(y)
@@ -803,6 +776,41 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
 
     val isFinite: Boolean
         get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z)
+
+    operator fun plus(s: Vector3f) = Vector3f(x + s.x, y + s.y, z + s.z)
+    operator fun minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
+    operator fun times(s: Float) = Vector3f(x * s, y * s, z * s)
+    operator fun times(s: Vector3f) = Vector3f(x * s.x, y * s.y, z * s.z)
+
+    operator fun plus(s: Vector3i) = Vector3f(x + s.x, y + s.y, z + s.z)
+    operator fun minus(s: Vector3i) = Vector3f(x - s.x, y - s.y, z - s.z)
+
+    fun safeNormalize(length: Float = 1f): Vector3f {
+        normalize(length)
+        if (!isFinite) set(0f)
+        return this
+    }
+
+    fun roundToInt(dst: Vector3i = Vector3i()) = dst.set(x.roundToInt(), y.roundToInt(), z.roundToInt())
+    fun is000() = x == 0f && y == 0f && z == 0f
+    fun is111() = x == 1f && y == 1f && z == 1f
+
+    fun addSmoothly(other: Vector3f, scale: Float): Vector3f {
+        mul(1f - scale)
+        other.mulAdd(scale, this, this)
+        return this
+    }
+
+    fun findSecondAxis(dst: Vector3f = Vector3f()): Vector3f {
+        val thirdAxis = if (abs(x) > abs(y)) dst.set(0f, 1f, 0f)
+        else dst.set(1f, 0f, 0f)
+        return cross(thirdAxis, dst).normalize()
+    }
+
+    fun findSystem(dstY: Vector3f = Vector3f(), dstZ: Vector3f = Vector3f()) {
+        findSecondAxis(dstY)
+        cross(dstY, dstZ).normalize()
+    }
 
     companion object {
         @JvmStatic

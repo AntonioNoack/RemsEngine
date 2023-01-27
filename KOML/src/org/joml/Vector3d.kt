@@ -125,17 +125,19 @@ open class Vector3d {
         return this
     }
 
-    fun set(xyz: DoubleArray): Vector3d {
-        x = xyz[0]
-        y = xyz[1]
-        z = xyz[2]
+    fun set(xyz: DoubleArray) = set(xyz, 0)
+    fun set(xyz: DoubleArray, i: Int): Vector3d {
+        x = xyz[i]
+        y = xyz[i + 1]
+        z = xyz[i + 2]
         return this
     }
 
-    fun set(xyz: FloatArray): Vector3d {
-        x = xyz[0].toDouble()
-        y = xyz[1].toDouble()
-        z = xyz[2].toDouble()
+    fun set(xyz: FloatArray) = set(xyz, 0)
+    fun set(xyz: FloatArray, i: Int): Vector3d {
+        x = xyz[i].toDouble()
+        y = xyz[i + 1].toDouble()
+        z = xyz[i + 2].toDouble()
         return this
     }
 
@@ -945,6 +947,30 @@ open class Vector3d {
 
     val isFinite: Boolean
         get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z)
+
+    operator fun plus(s: Vector3d) = Vector3d(x + s.x, y + s.y, z + s.z)
+    operator fun minus(s: Vector3d) = Vector3d(x - s.x, y - s.y, z - s.z)
+    operator fun times(s: Double) = Vector3d(x * s, y * s, z * s)
+
+    fun safeNormalize(length: Double = 1.0): Vector3d {
+        normalize(length)
+        if (!isFinite) set(0.0)
+        return this
+    }
+
+    fun roundToInt(dst: Vector3i = Vector3i()) = dst.set(x.roundToInt(), y.roundToInt(), z.roundToInt())
+    fun floorToInt(dst: Vector3i = Vector3i()) = dst.set(kotlin.math.floor(x).toInt(), kotlin.math.floor(y).toInt(), kotlin.math.floor(z).toInt())
+
+    fun findSecondAxis(dst: Vector3d = Vector3d()): Vector3d {
+        val thirdAxis = if (abs(x) > abs(y)) dst.set(0.0, 1.0, 0.0)
+        else dst.set(1.0, 0.0, 0.0)
+        return cross(thirdAxis, dst).normalize()
+    }
+
+    fun findSystem(dstY: Vector3d = Vector3d(), dstZ: Vector3d = Vector3d()) {
+        findSecondAxis(dstY)
+        cross(dstY, dstZ).normalize()
+    }
 
     companion object {
         @JvmStatic

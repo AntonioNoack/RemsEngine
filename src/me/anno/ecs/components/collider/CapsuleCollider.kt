@@ -6,7 +6,6 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.types.Vectors.setAxis
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -41,7 +40,7 @@ class CapsuleCollider : Collider() {
         // roundness is ignored, because a capsule is already perfectly round
         val halfExtends = halfHeight.toFloat()
         deltaPos.absolute()
-        deltaPos.setAxis(axis, max(deltaPos[axis] - halfExtends, 0f))
+        deltaPos.setComponent(axis, max(deltaPos[axis] - halfExtends, 0f))
         return deltaPos.length() - radius.toFloat()
     }
 

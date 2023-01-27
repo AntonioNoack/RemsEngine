@@ -8,7 +8,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderLib.m
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.readAlignment
+import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.Image
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
@@ -149,7 +149,7 @@ open class VideoCreator(
         val buffer = if (frameIndex % 2 == 0L) buffer1 else buffer2
 
         buffer.position(0)
-        readAlignment(w * 3)
+        setReadAlignment(w * 3)
         glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         buffer.position(0)
 

@@ -14,7 +14,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D.Companion.readAlignment
+import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
@@ -79,7 +79,7 @@ abstract class FrameTask(
 
         // val t0 = Clock()
         pixels.position(0)
-        readAlignment(width)
+        setReadAlignment(width)
         glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels)
         pixels.position(0)
         // t0.stop("read pixels"), 0.03s on RX 580, 1080p

@@ -10,7 +10,6 @@ import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.maths.Maths
-import me.anno.utils.types.Vectors.print
 import javax.vecmath.Vector3d
 
 fun main() {
@@ -95,7 +94,7 @@ private fun test2() {
         box.validateTransform()
         ground.validateTransform()
         println(
-            box.position.print() + ", " +
+            box.position.toString() + ", " +
                     boxRB.bulletInstance?.getWorldTransform(Transform())?.origin + ", " +
                     groundRB.bulletInstance?.getWorldTransform(Transform())?.origin
         )

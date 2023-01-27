@@ -307,14 +307,26 @@ object ShaderLib {
             "       ($hasForceFieldUVs ? getProjectedUVs(getForceFieldUVs(uvw)) : getProjectedUVs(uvw)) :\n" +
             "       ($hasForceFieldUVs ? getProjectedUVs(getForceFieldUVs(uv))  : getProjectedUVs(uv));\n" +
             "}\n" +
+            "#define dot2(a) dot(a,a)\n" +
             "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv){\n" +
-            "   if(filtering != ${Filtering.CUBIC.id}) return texture(tex, uv);\n" +
-            "   else return bicubicInterpolation(tex, uv, duv);\n" +
+            "   if(filtering == ${Filtering.LINEAR.id}) return texture(tex, uv);\n" +
+            "   if(filtering == ${Filtering.NEAREST.id}) {\n" +
+            // edge smoothing, when zooming in far; not perfect, but quite good :)
+            // todo if is axis-aligned, and zoom is integer, don't interpolate
+            // (to prevent smoothed edges, where they are not necessary)
+            // zoom-round(zoom)>0.02 && dFdx(uv).isSingleAxis && dFdy(uv).isSingleAxis
+            "       float zoom = dot2(duv) / dot2(vec4(dFdx(uv),dFdy(uv)));\n" + // guess on zoom level
+            "       if(zoom > 4.0) {\n" +
+            "           zoom = 0.5 * sqrt(zoom);\n" +
+            "           vec2 uvi = uv/duv, uvf = fract(uvi), uvf2 = uvf-0.5;\n" +
+            "           float d = -zoom+1.0, a = zoom*2.0-1.0;\n" +
+            "           float m = clamp(d+max(abs(uvf2.x),abs(uvf2.y))*a, 0.0, 0.5);\n" +
+            "           return mix(texture(tex,uv), texture(tex,uv+(uvf2)*duv/zoom), m);\n" +
+            "       }\n" +
+            "       return texture(tex, uv);\n" +
+            "   } else return bicubicInterpolation(tex, uv, duv);\n" +
             "}\n" +
-            "vec4 getTexture(sampler2D tex, vec2 uv){\n" +
-            "   if(filtering != ${Filtering.CUBIC.id}) return texture(tex, uv);\n" +
-            "   else return bicubicInterpolation(tex, uv, textureDeltaUV);\n" +
-            "}\n"
+            "vec4 getTexture(sampler2D tex, vec2 uv){ return getTexture(tex, uv, textureDeltaUV); }\n"
 
 
     const val positionPostProcessing = "" +

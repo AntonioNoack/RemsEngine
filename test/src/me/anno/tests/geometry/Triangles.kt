@@ -3,7 +3,6 @@ package me.anno.tests.geometry
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths
 import me.anno.utils.types.Triangles
-import me.anno.utils.types.Vectors.minus
 import org.joml.Vector3d
 import org.joml.Vector3f
 

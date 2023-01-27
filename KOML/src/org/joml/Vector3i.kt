@@ -248,6 +248,22 @@ open class Vector3i(var x: Int, var y: Int, var z: Int) {
         return dst
     }
 
+    fun cross(v: Vector3i, dst: Vector3i = this): Vector3i {
+        val rx = y * v.z - z * v.y
+        val ry = z * v.x - x * v.z
+        val rz = x * v.y - y * v.x
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        return dst
+    }
+
+    operator fun plus(s: Vector3i) = Vector3i(x + s.x, y + s.y, z + s.z)
+    operator fun minus(s: Vector3i) = Vector3i(x - s.x, y - s.y, z - s.z)
+    operator fun times(s: Float) = Vector3f(x * s, y * s, z * s)
+    operator fun minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
+    operator fun plus(s: Vector3f) = Vector3f(x + s.x, y + s.y, z + s.z)
+
     override fun hashCode(): Int {
         var result = 1
         result = 31 * result + x

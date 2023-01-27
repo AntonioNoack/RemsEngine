@@ -3,7 +3,6 @@ package me.anno.image.svg.gradient
 import me.anno.image.svg.SVGMesh
 import me.anno.io.xml.XMLNode
 import me.anno.maths.Maths.length
-import me.anno.utils.types.Vectors.print
 import org.joml.Vector2f
 
 /**
@@ -38,6 +37,6 @@ class RadialGradient(mesh: SVGMesh, xmlNode: XMLNode) : Gradient1D(xmlNode) {
         return length(x - (0.5f - position.x), y - (0.5f - position.y)) / r
     }
 
-    override fun toString(): String = "RadialGradient(${position.print()} $r)"
+    override fun toString(): String = "RadialGradient($position, $r)"
 
 }

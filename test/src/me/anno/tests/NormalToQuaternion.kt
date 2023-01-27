@@ -3,7 +3,6 @@ package me.anno.tests
 import me.anno.maths.Maths.length
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Vectors.normalToQuaternion
-import me.anno.utils.types.Vectors.print
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
@@ -60,7 +59,7 @@ fun main() {
         if (testCorrectness) {
             dir2.set(0f, 1f, 0f).rotate(rot)
             if (dir2.dot(dir1) < 0.99f) {
-                throw RuntimeException("Error[$i]: ${dir1.print()} -> ${rot.print()} -> ${dir2.print()}")
+                throw RuntimeException("Error[$i]: $dir1 -> $rot -> $dir2")
             }// else println(" ok ")
         }
     }

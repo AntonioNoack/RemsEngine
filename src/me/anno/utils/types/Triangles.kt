@@ -1,12 +1,7 @@
 package me.anno.utils.types
 
-import me.anno.image.ImageWriter
-import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.minus
-import me.anno.utils.types.Vectors.plus
-import me.anno.utils.types.Vectors.times
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -299,7 +294,7 @@ object Triangles {
         val cx = a.y * b.z - a.z * b.y
         val cy = a.z * b.x - a.x * b.z
         val cz = a.x * b.y - a.y * b.x
-        return d.dot(cx,cy,cz)
+        return d.dot(cx, cy, cz)
     }
 
     fun crossDot(
@@ -415,12 +410,10 @@ object Triangles {
         maxDistance: Float,
         allowBackside: Boolean
     ): Boolean {
-        val ba = b - a
-        val ca = c - a
-        val n = ba.cross(ca, JomlPools.vec3f.borrow())
+        val n = subCross(a, b, c, JomlPools.vec3f.borrow())
         val d = n.dot(a)
         val t = (d - n.dot(origin)) / n.dot(direction)
-        if (t < 0f || t >= maxDistance) return false
+        if (t < 0.0 || t >= maxDistance) return false
         val q = origin + direction * t
         var sum = 0
         if (subCrossDot(a, b, q, n) < 0.0) sum++

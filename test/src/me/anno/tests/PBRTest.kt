@@ -18,7 +18,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.OS.desktop
-import me.anno.utils.types.Vectors.print
 import java.util.*
 
 // the BRDF model is sometimes awkward -> implementation test
@@ -99,5 +98,5 @@ fun main() {
     }
     target.createImage(flipY = false, withAlpha = true)
         .write(desktop.getChild("brdf.png"))
-    println(Reduction.reduce(target.getTexture0(), Reduction.AVG).print())
+    println(Reduction.reduce(target.getTexture0(), Reduction.AVG))
 }

@@ -21,7 +21,6 @@ import me.anno.utils.Color.r01
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
-import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import org.lwjgl.assimp.*
@@ -167,13 +166,13 @@ fun processMaterial(material: AIMaterial) {
     val result = aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, aiTextureType_NONE, 0, color)
     if (result == 0) {
         ambient.set(0f, 0f, 0f, 1f)
-        logger.info("ambient: ${ambient.print()}")
+        logger.info("ambient: $ambient")
     }
 
     val diffuse = Vector4f()
     if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, color) != 0) {
         diffuse.set(result.r01(), result.g01(), result.b01(), result.a01())
-        logger.info("diffuse: ${diffuse.print()}")
+        logger.info("diffuse: $diffuse")
     }
 
     // ...

@@ -7,7 +7,6 @@ import me.anno.maths.Maths.cbrt
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.Color.toRGB
 import me.anno.utils.types.Vectors.fromLinear
-import me.anno.utils.types.Vectors.get2
 import me.anno.utils.types.Vectors.toLinear
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11C.GL_POINTS
@@ -87,7 +86,7 @@ fun main() {
         Oklab.toRGB(lab, dst)
         if (rgb.distanceSquared(dst) > 1e-7f)
             throw IllegalStateException("[$i] $rgb -> $lab -> $dst")
-        lab.get2(positions, 3 * i)
+        lab.get(positions, 3 * i)
         colors[i] = rgb.toRGB()
     }
     val mesh = Mesh()

@@ -9,13 +9,11 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader2
 import me.anno.gpu.shader.ShaderLib.svsList
-import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.readAlignment
+import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -134,7 +132,7 @@ object Reduction {
 
         // read pixel
         glFlush(); glFinish() // wait for everything to be drawn
-        readAlignment(4)
+        setReadAlignment(4)
         srcTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
         val target = when (srcTexture) {

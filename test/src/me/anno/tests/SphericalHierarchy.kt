@@ -1,7 +1,6 @@
 package me.anno.tests
 
 import me.anno.ecs.components.chunks.spherical.SphereTriangle
-import me.anno.utils.types.Vectors.print
 import org.joml.Vector3d
 
 fun main() {
@@ -9,18 +8,18 @@ fun main() {
     val b = Vector3d(-1.0, +1.0, 1.0)
     val c = Vector3d(+2.0, +0.0, 1.0)
     val tri = SphereTriangle(null, 0, 0, a, b, c)
-    println(tri.baseAB.print())
-    println(tri.baseUp.print())
-    println(tri.baseAC.print())
+    println(tri.baseAB)
+    println(tri.baseUp)
+    println(tri.baseAC)
     println(tri.globalToLocal)
     println(tri.localToGlobal)
     println(
-        tri.globalToLocal.transformPosition(Vector3d(0.0, 0.0, 1.1)).print()
+        tri.globalToLocal.transformPosition(Vector3d(0.0, 0.0, 1.1))
     ) // shall become (0,0.1,0)
     println(
-        tri.globalToLocal.transformPosition(Vector3d(0.0, 1.0, 1.1)).print()
+        tri.globalToLocal.transformPosition(Vector3d(0.0, 1.0, 1.1))
     ) // shall become (1,0.1,0)
-    println(tri.localA.print())
-    println(tri.localB.print())
-    println(tri.localC.print())
+    println(tri.localA)
+    println(tri.localB)
+    println(tri.localC)
 }

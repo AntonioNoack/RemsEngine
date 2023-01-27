@@ -6,7 +6,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D.Companion.readAlignment
+import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.Image
 import me.anno.image.raw.toImage
 import me.anno.image.raw.IntImage
@@ -54,7 +54,7 @@ object Screenshots {
                     glScissor(x0, y0, x1 - x0, y1 - y0)
                     drawScene()
                     glFlush(); glFinish() // wait for everything to be drawn
-                    readAlignment(4 * (x1 - x0))
+                    setReadAlignment(4 * (x1 - x0))
                     when (buffer) {
                         is IntArray -> glReadPixels(x0, y0, x1 - x0, y1 - y0, format, type, buffer)
                         is FloatArray -> glReadPixels(x0, y0, x1 - x0, y1 - y0, format, type, buffer)

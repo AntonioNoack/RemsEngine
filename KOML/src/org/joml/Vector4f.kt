@@ -680,6 +680,14 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return dst
     }
 
+    operator fun minus(s: Vector4f) = Vector4f(x - s.x, y - s.y, z - s.z, w - s.w)
+    operator fun plus(s: Vector4f) = Vector4f(x + s.x, y + s.y, z + s.z, w + s.w)
+    operator fun plus(s: Float) = if (s == 0f) this else Vector4f(x + s, y + s, z + s, w + s)
+    operator fun times(s: Float) = Vector4f(x * s, y * s, z * s, w * s)
+    operator fun times(s: Vector4f) = Vector4f(x * s.x, y * s.y, z * s.z, w * s.w)
+    fun mulAlpha(m: Float, dst: Vector4f = Vector4f()): Vector4f = dst.set(x, y, z, w * m)
+    fun is1111() = x == 1f && y == 1f && z == 1f && w == 1f
+
     companion object {
 
         @JvmStatic
