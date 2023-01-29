@@ -18,7 +18,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Vectors.addSmoothly
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 

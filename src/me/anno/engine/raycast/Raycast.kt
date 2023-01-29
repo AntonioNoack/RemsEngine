@@ -12,7 +12,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Triangles.computeConeInterpolation
 import me.anno.utils.types.Triangles.rayTriangleIntersection
-import me.anno.utils.types.Vectors.toVector3f
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -144,10 +143,10 @@ object Raycast {
         val globalStart = tmp3d[0].set(start)
         val globalDir = tmp3d[1].set(direction)
 
-        val localStart = inverse.transformPosition(globalStart).toVector3f(tmp3f[0])
+        val localStart = tmp3f[0].set(inverse.transformPosition(globalStart))
         if (interpolation < 1f) localStart.mul(interpolation)
 
-        val localDir = inverse.transformDirection(globalDir).toVector3f(tmp3f[1])
+        val localDir = tmp3f[1].set(inverse.transformDirection(globalDir))
 
         JomlPools.mat4x3d.sub(1)
 

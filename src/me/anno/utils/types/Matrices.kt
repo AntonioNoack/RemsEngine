@@ -6,6 +6,7 @@ import me.anno.utils.types.Floats.f3s
 import org.joml.*
 import kotlin.math.sqrt
 
+@Suppress("unused")
 object Matrices {
 
     // todo move this stuff into KOML
@@ -262,29 +263,5 @@ object Matrices {
     fun Matrix4x3d.f3() = "${m00.f3s()} ${m10.f3s()} ${m20.f3s()} ${m30.f3s()}\n" +
             "${m01.f3s()} ${m11.f3s()} ${m21.f3s()} ${m31.f3s()}\n" +
             "${m02.f3s()} ${m12.f3s()} ${m22.f3s()} ${m32.f3s()}\n"
-
-    @JvmStatic
-    fun Vector2f.makePerpendicular(other: Vector2f): Vector2f {
-        val f = dot(other)
-        x -= other.x * f
-        y -= other.y * f
-        return this
-    }
-
-    @JvmStatic
-    fun Vector2d.makePerpendicular(other: Vector2d): Vector2d {
-        val f = dot(other)
-        x -= other.x * f
-        y -= other.y * f
-        return this
-    }
-
-    @JvmStatic
-    fun Vector3f.makePerpendicular(other: Vector3f): Vector3f =
-        other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other
-
-    @JvmStatic
-    fun Vector3d.makePerpendicular(other: Vector3d): Vector3d =
-        other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other
 
 }

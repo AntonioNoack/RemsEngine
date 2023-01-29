@@ -22,7 +22,6 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Vectors.safeNormalize
 import org.joml.*
 
 class SkyBox : MeshComponentBase() {

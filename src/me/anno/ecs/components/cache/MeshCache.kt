@@ -18,7 +18,6 @@ import me.anno.utils.structures.arrays.ExpandingByteArray
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Matrices.set2
-import me.anno.utils.types.Vectors.safeNormalize
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Vector3f

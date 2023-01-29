@@ -2,7 +2,6 @@ package me.anno.fonts.mesh
 
 import me.anno.mesh.Point
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.findSecondAxis
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d

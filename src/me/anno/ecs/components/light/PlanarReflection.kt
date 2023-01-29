@@ -18,7 +18,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.mesh.Shapes
 import me.anno.utils.types.Matrices.mirror
 import me.anno.utils.types.Matrices.mul2
-import me.anno.utils.types.Vectors.toVector3f
 import org.joml.*
 import org.lwjgl.opengl.GL11C.glScissor
 import kotlin.math.max
@@ -193,7 +192,7 @@ class PlanarReflection : LightComponentBase() {
                 val localSpace = vec3d.set(x.toDouble(), y.toDouble(), 0.0)
                 val worldSpace = drawTransform.transformPosition(localSpace)
                 worldSpace.sub(camPosition)
-                val openglSpace = cameraMatrix.transformProject(worldSpace.toVector3f(vec3f))
+                val openglSpace = cameraMatrix.transformProject(vec3f.set(worldSpace))
                 aabb.union(openglSpace)
             }
         }

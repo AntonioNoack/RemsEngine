@@ -812,6 +812,30 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         cross(dstY, dstZ).normalize()
     }
 
+    fun rotateInv(q: Quaternionf, dst: Vector3f = this): Vector3f {
+        synchronized(q) {
+            q.conjugate()
+            q.transform(this, dst)
+            q.conjugate()
+        }
+        return dst
+    }
+
+    fun rotateInv(q: Quaterniond, dst: Vector3f = this): Vector3f {
+        synchronized(q) {
+            q.conjugate()
+            q.transform(this, dst)
+            q.conjugate()
+        }
+        return dst
+    }
+
+    fun fract(dst: Vector3f = this): Vector3f =
+        dst.set(org.joml.Runtime.fract(x), org.joml.Runtime.fract(y), org.joml.Runtime.fract(z))
+
+    fun makePerpendicular(other: Vector3f): Vector3f =
+        other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other
+
     companion object {
         @JvmStatic
         fun lengthSquared(x: Float, y: Float, z: Float): Float {

@@ -959,7 +959,8 @@ open class Vector3d {
     }
 
     fun roundToInt(dst: Vector3i = Vector3i()) = dst.set(x.roundToInt(), y.roundToInt(), z.roundToInt())
-    fun floorToInt(dst: Vector3i = Vector3i()) = dst.set(kotlin.math.floor(x).toInt(), kotlin.math.floor(y).toInt(), kotlin.math.floor(z).toInt())
+    fun floorToInt(dst: Vector3i = Vector3i()) =
+        dst.set(kotlin.math.floor(x).toInt(), kotlin.math.floor(y).toInt(), kotlin.math.floor(z).toInt())
 
     fun findSecondAxis(dst: Vector3d = Vector3d()): Vector3d {
         val thirdAxis = if (abs(x) > abs(y)) dst.set(0.0, 1.0, 0.0)
@@ -971,6 +972,30 @@ open class Vector3d {
         findSecondAxis(dstY)
         cross(dstY, dstZ).normalize()
     }
+
+    fun rotateInv(q: Quaternionf, dst: Vector3d = this): Vector3d {
+        synchronized(q) {
+            q.conjugate()
+            q.transform(this, dst)
+            q.conjugate()
+        }
+        return dst
+    }
+
+    fun rotateInv(q: Quaterniond, dst: Vector3d = this): Vector3d {
+        synchronized(q) {
+            q.conjugate()
+            q.transform(this, dst)
+            q.conjugate()
+        }
+        return dst
+    }
+
+    fun fract(dst: Vector3d = this): Vector3d =
+        dst.set(org.joml.Runtime.fract(x), org.joml.Runtime.fract(y), org.joml.Runtime.fract(z))
+
+    fun makePerpendicular(other: Vector3d): Vector3d =
+        other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other
 
     companion object {
         @JvmStatic

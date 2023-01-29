@@ -9,7 +9,6 @@ import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.merge
 import me.anno.fonts.mesh.Triangulation
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Vectors.findSystem
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI

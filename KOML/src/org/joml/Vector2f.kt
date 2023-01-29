@@ -283,6 +283,13 @@ open class Vector2f {
     operator fun times(f: Float) = Vector2f(x * f, y * f)
     operator fun times(s: Vector2f) = Vector2f(x * s.x, y * s.y)
 
+    fun makePerpendicular(other: Vector2f): Vector2f {
+        val f = dot(other)
+        x -= other.x * f
+        y -= other.y * f
+        return this
+    }
+
     companion object {
 
         @JvmStatic

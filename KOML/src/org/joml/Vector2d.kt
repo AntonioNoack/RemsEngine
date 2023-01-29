@@ -303,6 +303,14 @@ open class Vector2d {
     operator fun plus(s: Vector2d) = Vector2d(x + s.x, y + s.y)
     operator fun minus(s: Vector2d) = Vector2d(x - s.x, y - s.y)
     operator fun times(f: Double) = Vector2d(x * f, y * f)
+    operator fun times(s: Vector2d) = Vector2d(x * s.x, y * s.y)
+
+    fun makePerpendicular(other: Vector2d): Vector2d {
+        val f = dot(other)
+        x -= other.x * f
+        y -= other.y * f
+        return this
+    }
 
     companion object {
         @JvmStatic

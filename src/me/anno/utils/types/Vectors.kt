@@ -1,24 +1,15 @@
 package me.anno.utils.types
 
-import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Floats.f2x
 import org.hsluv.HSLuvColorSpace
 import org.joml.*
 import kotlin.math.abs
-import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 @Suppress("unused")
 object Vectors {
-
-    // todo move them into their respective files in KOML
-
-    /**
-     * the following functions allow for comfortable debugging with vectors;
-     * they shouldn't be used in production to keep allocations at a minimum
-     * */
 
     fun avg(a: Vector2f, b: Vector2f): Vector2f = Vector2f(a).add(b).mul(0.5f)
     fun avg(a: Vector2d, b: Vector2d): Vector2d = Vector2d(a).add(b).mul(0.5)
@@ -36,15 +27,7 @@ object Vectors {
     fun avg(a: Vector3d, b: Vector3d, c: Vector3d) =
         Vector3d((a.x + b.x + c.x) / 3.0, (a.y + b.y + c.y) / 3.0, (a.z + b.z + c.z) / 3.0)
 
-    fun Vector2f.toVector3d() = Vector2d(this)
-    fun Vector2d.toVector3f() = Vector2f(x.toFloat(), y.toFloat())
-    fun Vector3f.toVector3d() = Vector3d(this)
-    fun Vector3d.toVector3f(dst: Vector3f = Vector3f()): Vector3f =
-        dst.set(x.toFloat(), y.toFloat(), z.toFloat())
-
-    fun Vector4f.toVector3d() = Vector4d(this)
-    fun Vector4d.toVector3f() = Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
-
+    // todo move them into their respective files in KOML
     fun Matrix4f.print() = "" +
             "[($m00 $m10 $m20 $m30)\n" +
             " ($m01 $m11 $m21 $m31)\n" +
@@ -113,24 +96,9 @@ object Vectors {
         return this
     }
 
-    fun Vector3f.fract(dst: Vector3f = this): Vector3f = dst.set(Maths.fract(x), Maths.fract(y), Maths.fract(z))
-    fun Vector3d.fract(dst: Vector3d = this): Vector3d = dst.set(Maths.fract(x), Maths.fract(y), Maths.fract(z))
-
     // missing from Joml :/
     fun Vector3d.rotate2(q: Quaternionf): Vector3d =
         rotate(JomlPools.quat4d.borrow().set(q))
-
-    fun Vector3f.rotateInv(q: Quaternionf): Vector3f =
-        rotate(JomlPools.quat4f.borrow().set(q).conjugate())
-
-    fun Vector3f.rotateInv(q: Quaterniond): Vector3f =
-        rotate(JomlPools.quat4f.borrow().set(q).conjugate())
-
-    fun Vector3d.rotateInv(q: Quaternionf): Vector3d =
-        rotate(JomlPools.quat4d.borrow().set(q).conjugate())
-
-    fun Vector3d.rotateInv(q: Quaterniond): Vector3d =
-        rotate(JomlPools.quat4d.borrow().set(q).conjugate())
 
     /**
      * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
@@ -187,10 +155,14 @@ object Vectors {
     }
 
     fun crossLength(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Float {
+        return sqrt(crossLengthSq(ax, ay, az, bx, by, bz))
+    }
+
+    fun crossLengthSq(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Float {
         val cx = ay * bz - az * by
         val cy = az * bx - ax * bz
         val cz = ax * by - ay * bx
-        return sqrt(cx * cx + cy * cy + cz * cz)
+        return cx * cx + cy * cy + cz * cz
     }
 
     fun Vector3f.toLinear(dst: Vector3f = this): Vector3f {
