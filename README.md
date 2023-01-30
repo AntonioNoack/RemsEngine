@@ -229,7 +229,7 @@ Until I create a release, they might be a bit out of date 😅.
 * [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
 * [LuaJ](https://github.com/luaj/luaj) (Lua scripting)
 * [QOI-Java](https://github.com/saharNooby/qoi-java) (QOI image format)
-* [Recast4j](https://github.com/AntonioNoack/recast4j/) (NavMesh generation; adjusted for JOML; not yet integrated)
+* [Recast4j](https://github.com/AntonioNoack/recast4j/) (NavMesh generation; converted to Kotlin and adjusted for JOML; partially integrated)
 
 ## Documentation
 

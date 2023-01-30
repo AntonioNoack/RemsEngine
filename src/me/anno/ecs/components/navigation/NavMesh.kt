@@ -1,14 +1,13 @@
 package me.anno.ecs.components.navigation
 
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
-import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
-import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.io.serialization.NotSerializedProperty
+import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
 import org.recast4j.detour.MeshData
@@ -46,7 +45,7 @@ class NavMesh : Component() {
     }
 
 
-    // todo draw mesh for debugging
+    // done draw mesh for debugging
 
     // todo dynamic nav mesh
     // todo crowd navigation
@@ -68,21 +67,28 @@ class NavMesh : Component() {
 
     var partitionType = RecastConstants.PartitionType.WATERSHED
 
-    private var data: MeshData? = null
+    @NotSerializedProperty
+    var data: MeshData? = null
+
+    @NotSerializedProperty
     private var mesh: org.recast4j.detour.NavMesh? = null
-    var sampleFile: FileReference = InvalidRef
+
+    @Docs("Only meshes with this collision flag will be considered")
+    @SerializedProperty
+    var collisionMask: Int = 1
 
     fun build2() {
-        data = data ?: build() ?: return
-        mesh = mesh ?: org.recast4j.detour.NavMesh(data!!, maxVerticesPerPoly, 0)
+        val data = data ?: build() ?: return
+        this.data = data
+        mesh = mesh ?: org.recast4j.detour.NavMesh(data, maxVerticesPerPoly, 0)
     }
 
     fun build(): MeshData? {
 
         // todo for the geometry, collect all colliders from the scene
 
-        val world = PrefabCache[sampleFile]?.createInstance() as? Entity ?: return null
-        val geometry = GeoProvider(world)
+        val world = entity ?: return null
+        val geometry = GeoProvider(world, collisionMask)
 
         val config = RecastConfig(
             partitionType, cellSize, cellHeight, agentHeight, agentRadius,
@@ -97,37 +103,64 @@ class NavMesh : Component() {
         for (i in 0 until mesh.numPolygons) {
             mesh.flags[i] = 1
         }
+        // val i0 = IntArray(0)
+        // val f0 = FloatArray(0)
+        val md = built.meshDetail
+        /*val p = NavMeshDataCreateParams(
+            mesh.vertices,
+            mesh.numVertices,
+            mesh.polygons,
+            mesh.flags,
+            mesh.areaIds,
+            mesh.numPolygons,
+            mesh.maxVerticesPerPolygon,
+            md?.subMeshes ?: i0,
+            md?.vertices ?: f0,
+            md?.numVertices ?: 0,
+            md?.triangles ?: i0,
+            md?.numTriangles ?: 0,
+            floatArrayOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f),
+            floatArrayOf(0.1f),
+            intArrayOf(12),
+            intArrayOf(2),
+            intArrayOf(1),
+            intArrayOf(0x4567), 1,
+            0, 0, 0, 0,
+            mesh.bmin, mesh.bmax,
+            agentHeight, agentRadius, agentMaxClimb,
+            cellSize, cellHeight, true
+        ) // */
         val p = NavMeshDataCreateParams()
         p.vertices = mesh.vertices
         p.vertCount = mesh.numVertices
         p.polys = mesh.polygons
-        p.polyAreas = mesh.areaIds
         p.polyFlags = mesh.flags
+        p.polyAreas = mesh.areaIds
         p.polyCount = mesh.numPolygons
         p.maxVerticesPerPolygon = mesh.maxVerticesPerPolygon
-        val meshDetail = built.meshDetail
-        if (meshDetail != null) {// can happen, if there is no valid surface
-            p.detailMeshes = meshDetail.subMeshes
-            p.detailVertices = meshDetail.vertices
-            p.detailVerticesCount = meshDetail.numVertices
-            p.detailTris = meshDetail.triangles
-            p.detailTriCount = meshDetail.numTriangles
-        } else println("warn: mesh detail is null")
+        if (md != null) {
+            p.detailVertices = md.vertices
+            p.detailTris = md.subMeshes
+            p.detailVerticesCount = md.numVertices
+            p.detailTris = md.triangles
+            p.detailTriCount = md.numTriangles
+        }
+        p.offMeshConVertices = floatArrayOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f)
+        p.offMeshConRad = floatArrayOf(0.1f)
+        p.offMeshConFlags = intArrayOf(12)
+        p.offMeshConAreas = intArrayOf(2)
+        p.offMeshConDir = intArrayOf(1)
+        p.offMeshConUserID = intArrayOf(0x4567)
+        p.offMeshConCount = 1
+        // 0, 0, 0, 0,
+        p.bmin = mesh.bmin
+        p.bmax = mesh.bmax
         p.walkableHeight = agentHeight
         p.walkableRadius = agentRadius
         p.walkableClimb = agentMaxClimb
-        p.bmin = mesh.bmin
-        p.bmax = mesh.bmax
         p.cellSize = cellSize
         p.cellHeight = cellHeight
-        p.buildBvTree = true
-        p.offMeshConVertices = floatArrayOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f)
-        p.offMeshConRad = floatArrayOf(0.1f)
-        p.offMeshConDir = intArrayOf(1)
-        p.offMeshConAreas = intArrayOf(2)
-        p.offMeshConFlags = intArrayOf(12)
-        p.offMeshConUserID = intArrayOf(0x4567)
-        p.offMeshConCount = 1
+        p.buildBvTree = true // */
 
         return NavMeshBuilder.createNavMeshData(p)
 
@@ -138,10 +171,21 @@ class NavMesh : Component() {
      * */
     fun toMesh(mesh: Mesh = Mesh()): Mesh? {
         val data = data ?: return null
-        val fal = FloatArrayList(256)
         val dv = data.vertices
         val ddv = data.detailVertices
         val header = data.header!!
+        var triCount = 0
+        for (i in 0 until header.polyCount) {
+            val p = data.polygons[i]
+            if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
+            val detailMesh = data.detailMeshes?.get(i)
+            if (detailMesh != null) {
+                triCount += detailMesh.triCount
+            } else {
+                // todo Use Poly if PolyDetail is unavailable
+            }
+        }
+        val fal = ExpandingFloatArray(triCount * 3)
         for (i in 0 until header.polyCount) {
             val p = data.polygons[i]
             if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue

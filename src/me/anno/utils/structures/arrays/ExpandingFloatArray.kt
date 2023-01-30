@@ -176,6 +176,12 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
         addUnsafe(z)
     }
 
+    fun add(l: FloatArray, srcStartIndex: Int, srcLength: Int) {
+        ensureExtra(srcLength)
+        System.arraycopy(l, srcStartIndex, array!!, size, srcLength)
+        size += srcLength
+    }
+
     fun addAll(v: FloatArray, srcStartIndex: Int = 0, length: Int = v.size - srcStartIndex) {
         ensureExtra(length)
         addUnsafe(v, srcStartIndex, length)

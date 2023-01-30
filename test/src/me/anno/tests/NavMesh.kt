@@ -1,132 +1,154 @@
 package me.anno.tests
 
+import me.anno.Engine
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.navigation.NavMesh
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.io.ISaveable
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
-import me.anno.utils.structures.arrays.FloatArrayList
 import org.joml.Vector3d
 import org.joml.Vector3f
-import org.recast4j.LongArrayList
 import org.recast4j.detour.*
+import org.recast4j.detour.crowd.Crowd
+import org.recast4j.detour.crowd.CrowdAgent
+import org.recast4j.detour.crowd.CrowdAgentParams
+import org.recast4j.detour.crowd.CrowdConfig
 import java.util.*
+import kotlin.math.atan2
+import kotlin.math.max
 
-val sampleFile = documents.getChild("NavMeshTest.obj")
-
-// test recast navmesh generation
+/**
+ * test recast navmesh generation and usage
+ * */
 fun main() {
-
-    // done generate nav mesh
-    // done display nav mesh
-
-    // todo in the engine, mark recast-pathfinding-regions with bounding boxes
-    // todo and then just have agent helpers or similar to do path finding in those areas :3
-
     testUI {
 
-        // todo spawn active agent, and make it path-find to mouse position / click
-
         ECSRegistry.init()
-        val base = PrefabCache[sampleFile]!!.createInstance()
-        val entity = Entity()
-        entity.add(base as Entity)
-        val nmm = NavMesh()
-        nmm.sampleFile = sampleFile
-        val data = nmm.build()!!
 
-        val navMeshEntity = Entity("NavMesh")
-        val mesh = Mesh()
-        val material = Material()
-        material.diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)
-        mesh.material = material.ref
-        mesh.positions = dataToMesh(data)
-        val mc = MeshComponent()
-        mc.mesh = mesh.ref
-        navMeshEntity.add(mc)
-        navMeshEntity.position = Vector3d(0.0, nmm.agentHeight * 0.3, 0.0) // offset for better visibility
-        entity.add(navMeshEntity)
+        val mask = 1 shl 16
+        val world = Entity("World")
+        val agentMeshRef = documents.getChild("CuteGhost.fbx")
+        val agentMesh = MeshCache[agentMeshRef, false]!!
+        val agentBounds = agentMesh.ensureBounds()
 
-        // todo spawn agent somewhere...
-        // todo click to set target point
+        val navMesh1 = NavMesh()
+        navMesh1.agentHeight = agentBounds.deltaY()
+        navMesh1.agentRadius = max(agentBounds.deltaX(), agentBounds.deltaZ()) * 0.5f
+        navMesh1.agentMaxClimb = navMesh1.agentHeight * 0.7f
+        navMesh1.collisionMask = mask
+        world.add(navMesh1)
+        world.add(Entity().apply {
+            add(MeshComponent(documents.getChild("NavMeshTest2.obj")).apply {
+                collisionMask = mask
+            })
+            scale = scale.set(2.0)
+        })
 
-        val navMesh = NavMesh(data, nmm.maxVerticesPerPoly, 0)
-        val header = data.header!!
-        val tileRef = navMesh.getTileRefAt(header.x, header.y, header.layer)
+        val meshData = navMesh1.build()!!
+        navMesh1.data = meshData
+
+        // visualize navmesh
+        world.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
+            material = Material().apply {
+                isDoubleSided = true
+                diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)
+            }.ref
+            positions!!.apply {
+                for (i in indices step 3) {
+                    this[i + 1] += 0.03f
+                }
+            }
+        }.ref))
+
+        val agent = Entity("Agent")
+        agent.add(MeshComponent(agentMeshRef))
+        world.add(agent)
+
+        val navMesh = NavMesh(meshData, navMesh1.maxVerticesPerPoly, 0)
 
         val query = NavMeshQuery(navMesh)
         val filter = DefaultQueryFilter()
-        val random = Random()
-        val p0 = Vector3f()
-        val p1 = Vector3f()
+        val random = Random(System.nanoTime())
 
-        val ref0 = query.findRandomPointWithinCircle(tileRef, p0, 200f, filter, random)
-        val ref1 = query.findRandomPointWithinCircle(tileRef, p1, 200f, filter, random)
+        val config = CrowdConfig(navMesh1.agentRadius)
+        val crowd = Crowd(config, navMesh)
 
-        println("refs: $ref0, $ref1")
 
-        val path = query.findPath(ref0.result!!.randomRef, ref1.result!!.randomRef, p0, p1, filter)
-        println("path: ${path.status}, ${path.message}, ${path.result}")
-        for (v in path.result ?: LongArrayList.empty) {
-            // convert ref to position
-            val r = navMesh.getTileAndPolyByRef(v).result ?: continue
-            val tile = r.first!!
-            val poly = r.second
-            val pos = Vector3f()
-            val vs = tile.data!!.vertices
-            for (idx in poly.vertices) {
-                val i3 = idx * 3
-                pos.add(vs[i3], vs[i3 + 1], vs[i3 + 2])
+        val flag = Entity("Flag")
+        flag.add(MeshComponent(documents.getChild("Flag.fbx")))
+        world.add(flag)
+
+        // walk along path
+        class AgentController : Component() {
+
+            var currRef: FindRandomPointResult
+
+            val agent1: CrowdAgent
+
+            val speed = 10f
+
+            init {
+
+                val header = meshData.header!!
+                val tileRef = navMesh.getTileRefAt(header.x, header.y, header.layer)
+                currRef = query.findRandomPointWithinCircle(tileRef, Vector3f(), 200f, filter, random).result!!
+
+                val params = CrowdAgentParams()
+                params.radius = navMesh1.agentRadius
+                params.height = navMesh1.agentHeight
+                params.maxSpeed = speed
+                params.maxAcceleration = 10f
+                // other params?
+                agent1 = crowd.addAgent(currRef.randomPt, params)
+
             }
-            pos.div(poly.vertices.size.toFloat())
-            println(pos)
-        }
 
-        testScene(entity)
+            fun findNextTarget() {
+                val nextRef = query.findRandomPointWithinCircle(
+                    currRef.randomRef, agent1.targetPos,
+                    200f, filter, random
+                ).result!!
+                agent1.setTarget(nextRef.randomRef, nextRef.randomPt)
+                flag.teleportToGlobal(Vector3d(nextRef.randomPt))
+            }
 
-    }
-
-}
-
-private operator fun LongArrayList.iterator(): Iterator<Long> {
-    return object : Iterator<Long> {
-        var index = 0
-        override fun hasNext() = index < size
-        override fun next() = get(index++)
-    }
-}
-
-fun Vector3f.f() = floatArrayOf(x, y, z)
-
-fun dataToMesh(data: MeshData): FloatArray {
-    val fal = FloatArrayList(256)
-    val dv = data.vertices
-    val ddv = data.detailVertices
-    for (i in 0 until data.header!!.polyCount) {
-        val p = data.polygons[i]
-        if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
-        val pv = p.vertices
-        val detailMesh = data.detailMeshes?.getOrNull(i)
-        if (detailMesh != null) {
-            for (j in 0 until detailMesh.triCount) {
-                val t = (detailMesh.triBase + j) * 4
-                for (k in 0 until 3) {
-                    val v = data.detailTriangles[t + k]
-                    if (v < p.vertCount) {
-                        fal.add(dv, pv[v] * 3, 3)
-                    } else {
-                        fal.add(ddv, (detailMesh.vertBase + v - p.vertCount) * 3, 3)
-                    }
+            override fun onUpdate(): Int {
+                // move agent from src to dst
+                val dt = Engine.deltaTime
+                crowd.update(dt, null)
+                val entity = entity!!
+                val lastPos = entity.position
+                val lastX = lastPos.x
+                val lastZ = lastPos.z
+                val nextPos = agent1.currentPosition
+                val distSq = lastPos.distanceSquared(nextPos.x.toDouble(), nextPos.y.toDouble(), nextPos.z.toDouble())
+                if (distSq > 0f && agent1.targetPos.distanceSquared(nextPos) >= 1f) {
+                    entity.rotation = entity.rotation
+                        .identity()
+                        .rotateY(atan2(nextPos.x - lastX, nextPos.z - lastZ))
+                } else {
+                    findNextTarget()
                 }
+                entity.position = entity.position.set(nextPos)
+                return 1
             }
-        } else {
-            // FIXME: Use Poly if PolyDetail is unavailable
+
+            override fun clone() = this
+            override val className = "AgentController"
         }
+
+        ISaveable.registerCustomClass(AgentController())
+        agent.add(AgentController())
+
+        testScene(world)
+
     }
-    return fal.toFloatArray()
+
 }
