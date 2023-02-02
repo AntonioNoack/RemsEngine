@@ -4,7 +4,9 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
+import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache
@@ -20,7 +22,8 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
 
     fun bind(shader: Shader, uniformName: String) {
         val location = when (type) {
-            GLSLType.S2D, GLSLType.S2DMS, GLSLType.S3D, GLSLType.SCube -> shader.getTextureIndex(uniformName)
+            GLSLType.S2D, GLSLType.S2DMS, GLSLType.S3D, GLSLType.SCube,
+            GLSLType.S2DA -> shader.getTextureIndex(uniformName)
             else -> shader[uniformName]
         }
         if (location >= 0) bind(shader, location)
@@ -88,6 +91,15 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
                         }
                     }
                     else -> LOGGER.warn("Unsupported type for S2D: ${value.javaClass}")
+                }
+            }
+            GLSLType.S2DA -> {
+                value as Texture2DArray
+                if (value.isCreated) {
+                    value.bind(location, value.filtering, value.clamping)
+                } else {
+                    whiteTex2da.bind(location)
+                    LOGGER.warn("Texture ${value.name} has not been created")
                 }
             }
             GLSLType.S3D -> {

@@ -28,6 +28,8 @@ open class IntImage(
 
     override fun getRGB(index: Int): Int = data[index]
 
+    override fun createIntImage() = this
+
     override fun createBufferedImage(): BufferedImage {
         val width = width
         val height = height

@@ -103,7 +103,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                     "vec3 colorPos = finalPosition - tileOffset;\n" +
                     "vec4 texDiffuseMap = getTexture(diffuseMap, vec2(dot(colorPos, tileDirU), dot(colorPos, tileDirV)));\n" +
                     // "vec4 texDiffuseMap = getTexture(diffuseMap, uv);\n" +
-                    "vec4 color = vec4(vertexColor.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
+                    "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
                     "if(color.a < ${1f / 255f}) discard;\n" +
                     "finalColor = color.rgb;\n" +
                     "finalAlpha = color.a;\n" +

@@ -636,14 +636,14 @@ object ShaderLib {
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 "   uv = uvs;\n" +
                 // "   weight = weights;\n" +
-                "   vertexColor = colors;\n" +
+                "   vertexColor0 = colors;\n" +
                 positionPostProcessing +
                 "}"
 
         val assimpVarying = y3D + listOf(
             Variable(GLSLType.V4F, "tangent"),
             // Variable(GLSLType.V4F, "weight"),
-            Variable(GLSLType.V4F, "vertexColor"),
+            Variable(GLSLType.V4F, "vertexColor0"),
         )
 
         shaderAssimp = createShader(
@@ -660,7 +660,7 @@ object ShaderLib {
                     getTextureLib +
                     getColorForceFieldLib +
                     "void main(){\n" +
-                    "   vec4 color = vec4(vertexColor.rgb,1) * diffuseBase * getTexture(albedoTex, uv);\n" +
+                    "   vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * getTexture(albedoTex, uv);\n" +
                     "   color.rgb *= 0.6 + 0.4 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
                     "   finalColor = color.rgb;\n" +

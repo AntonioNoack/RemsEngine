@@ -197,6 +197,8 @@ open class Texture2D(
                 is FloatBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
                 is DoubleBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
                 is IntArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+                is FloatArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+                is DoubleArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
                 else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
             }
         } else {
@@ -213,6 +215,7 @@ open class Texture2D(
                     is DoubleBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is IntArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is FloatArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+                    is DoubleArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     null -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, null as ByteBuffer?)
                     else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
                 }
@@ -237,6 +240,8 @@ open class Texture2D(
         data: Any,
         unbind: Boolean = true
     ) {
+        ensurePointer()
+        bindBeforeUpload()
         setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
         when (data) {
             is ByteBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
@@ -245,7 +250,9 @@ open class Texture2D(
             is FloatBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
             is DoubleBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
             is IntArray -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
-            else -> throw RuntimeException(data::class.simpleName)
+            is FloatArray -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
+            is DoubleArray -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
+            else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
         }
     }
 
@@ -425,8 +432,6 @@ open class Texture2D(
     }
 
     fun overridePartially(data: Any, level: Int, x: Int, y: Int, w: Int, h: Int, type: TargetType) {
-        ensurePointer()
-        bindBeforeUpload()
         texSubImage2D(level, x, y, w, h, type.uploadFormat, type.fillType, data)
         check()
     }

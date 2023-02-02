@@ -25,6 +25,8 @@ object Raycast {
     val COLLIDERS = 4
     val SDFS = 8
 
+    // todo option for smoothed collision surfaces by their normal
+
     /**
      * returns whether something was hit,
      * more information is saved in the result

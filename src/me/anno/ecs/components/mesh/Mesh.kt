@@ -25,6 +25,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4f
@@ -34,7 +35,8 @@ import org.lwjgl.opengl.GL11C.*
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class Mesh : PrefabSaveable(), Renderable {
+// open, so you can define your own attributes
+open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
     // a single helper mesh could be used to represent the default indices...
     class HelperMesh(val indices: IntArray) : ICacheData {
@@ -625,7 +627,7 @@ class Mesh : PrefabSaveable(), Renderable {
     }
 
     var hasUVs = false
-    var hasVertexColors = false
+    var hasVertexColors = 0
     var hasBonesInBuffer = false
 
     val numPrimitives
@@ -716,7 +718,10 @@ class Mesh : PrefabSaveable(), Renderable {
         val uvs = uvs
         val hasUVs = hasUVs
 
-        val colors = color0
+        val color0 = color0
+        val color1 = color1
+        val color2 = color2
+        val color3 = color3
         val boneWeights = boneWeights
         val boneIndices = boneIndices
 
@@ -732,8 +737,11 @@ class Mesh : PrefabSaveable(), Renderable {
         // but that would cause all shaders to require to know about the mesh,
         // and currently that makes things messy...
         // todo instead, we could allocate large buffers with default values for those... might be better...
-        val hasColors = colors != null && colors.isNotEmpty()
-        hasVertexColors = hasColors
+        val hasColor0 = color0 != null && color0.isNotEmpty()
+        val hasColor1 = color1 != null && color1.isNotEmpty()
+        val hasColor2 = color2 != null && color2.isNotEmpty()
+        val hasColor3 = color3 != null && color3.isNotEmpty()
+        hasVertexColors = hasColor0.toInt() + hasColor1.toInt(2) + hasColor2.toInt(4) + hasColor3.toInt(8)
 
         val hasHighPrecisionNormals = hasHighPrecisionNormals
 
@@ -752,9 +760,10 @@ class Mesh : PrefabSaveable(), Renderable {
             attributes += Attribute("tangents", AttributeType.SINT8_NORM, 4)
         }
 
-        if (hasColors) {
-            attributes += Attribute("colors", AttributeType.UINT8_NORM, 4)
-        }
+        if (hasColor0) attributes += Attribute("colors0", AttributeType.UINT8_NORM, 4)
+        if (hasColor1) attributes += Attribute("colors1", AttributeType.UINT8_NORM, 4)
+        if (hasColor2) attributes += Attribute("colors2", AttributeType.UINT8_NORM, 4)
+        if (hasColor3) attributes += Attribute("colors3", AttributeType.UINT8_NORM, 4)
 
         if (hasBones) {
             attributes += Attribute("weights", AttributeType.UINT8_NORM, MAX_WEIGHTS)
@@ -812,8 +821,8 @@ class Mesh : PrefabSaveable(), Renderable {
 
             }
 
-            if (hasColors) {
-                if (colors != null && i < colors.size) {
+            fun putColor(colors: IntArray?) {
+                if (i < colors!!.size) {
                     val color = colors[i]
                     buffer.putByte(color.r().toByte())
                     buffer.putByte(color.g().toByte())
@@ -821,6 +830,11 @@ class Mesh : PrefabSaveable(), Renderable {
                     buffer.putByte(color.a().toByte())
                 } else buffer.putInt(-1)
             }
+
+            if (hasColor0) putColor(color0)
+            if (hasColor1) putColor(color1)
+            if (hasColor2) putColor(color2)
+            if (hasColor3) putColor(color3)
 
             // only works if MAX_WEIGHTS is four
             if (hasBones) {

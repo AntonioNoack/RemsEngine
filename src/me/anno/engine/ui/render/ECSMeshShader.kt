@@ -104,7 +104,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val baseColorCalculation = "" +
                 "vec4 texDiffuseMap = texture(diffuseMap, uv);\n" +
-                "vec4 color = vec4(vertexColor.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
+                "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
                 "if(color.a < ${1f / 255f}) discard;\n" +
                 "finalColor = color.rgb;\n" +
                 "finalAlpha = color.a;\n"
@@ -171,17 +171,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val variables = ArrayList<Variable>(32)
         variables += Variable(GLSLType.V3F, "coords", VariableMode.ATTR)
 
-        if (colors) {
-            variables += Variable(GLSLType.V2F, "uvs", VariableMode.ATTR)
-            variables += Variable(GLSLType.V3F, "normals", VariableMode.ATTR)
-            variables += Variable(GLSLType.V4F, "tangents", VariableMode.ATTR)
-            variables += Variable(GLSLType.V4F, "colors", VariableMode.ATTR)
-        }
-
         // uniforms
         variables += Variable(GLSLType.M4x4, "transform")
         if (colors) {
-            variables += Variable(GLSLType.V1B, "hasVertexColors")
+            variables += Variable(GLSLType.V1I, "hasVertexColors")
         }
 
         // outputs
@@ -190,10 +183,23 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         variables += Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
 
         if (colors) {
+            variables += Variable(GLSLType.V2F, "uvs", VariableMode.ATTR)
             variables += Variable(GLSLType.V2F, "uv", VariableMode.OUT)
+
+            variables += Variable(GLSLType.V3F, "normals", VariableMode.ATTR)
             variables += Variable(GLSLType.V3F, "normal", VariableMode.OUT)
+
+            variables += Variable(GLSLType.V4F, "tangents", VariableMode.ATTR)
             variables += Variable(GLSLType.V4F, "tangent", VariableMode.OUT)
-            variables += Variable(GLSLType.V4F, "vertexColor", VariableMode.OUT)
+
+            variables += Variable(GLSLType.V4F, "colors0", VariableMode.ATTR)
+            variables += Variable(GLSLType.V4F, "colors1", VariableMode.ATTR)
+            variables += Variable(GLSLType.V4F, "colors2", VariableMode.ATTR)
+            variables += Variable(GLSLType.V4F, "colors3", VariableMode.ATTR)
+            variables += Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT)
+            variables += Variable(GLSLType.V4F, "vertexColor1", VariableMode.OUT)
+            variables += Variable(GLSLType.V4F, "vertexColor2", VariableMode.OUT)
+            variables += Variable(GLSLType.V4F, "vertexColor3", VariableMode.OUT)
         }
 
         if (limitedTransform) {
@@ -373,7 +379,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "#endif\n" +
 
                     "#ifdef COLORS\n" +
-                    "   vertexColor = hasVertexColors ? colors : vec4(1.0);\n" +
+                    "   vertexColor0 = (hasVertexColors & 1) != 0 ? colors0 : vec4(1.0);\n" +
+                    "   vertexColor1 = (hasVertexColors & 2) != 0 ? colors1 : vec4(1.0);\n" +
+                    "   vertexColor2 = (hasVertexColors & 4) != 0 ? colors2 : vec4(1.0);\n" +
+                    "   vertexColor3 = (hasVertexColors & 8) != 0 ? colors3 : vec4(1.0);\n" +
                     "   uv = uvs;\n" +
                     "#endif\n" +
 
@@ -411,7 +420,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V2F, "uv"),
             Variable(GLSLType.V3F, "normal"),
             Variable(GLSLType.V4F, "tangent"),
-            Variable(GLSLType.V4F, "vertexColor"),
+            Variable(GLSLType.V4F, "vertexColor0"),
             Variable(GLSLType.V3F, "finalPosition"),
             Variable(GLSLType.V2F, "normalStrength"),
             Variable(GLSLType.V2F, "roughnessMinMax"),

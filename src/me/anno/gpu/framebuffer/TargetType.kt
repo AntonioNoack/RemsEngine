@@ -31,11 +31,11 @@ class TargetType(
         val UByteTarget4 = TargetType("u4", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, false)
 
         val FloatTarget1 = if (!supportsF32Targets) UByteTarget1
-        else TargetType("f1", GL_R32F, GL_RGBA, GL_FLOAT, 1 * 4, 1, true)
+        else TargetType("f1", GL_R32F, GL_RED, GL_FLOAT, 1 * 4, 1, true)
         val FloatTarget2 = if (!supportsF32Targets) UByteTarget2
-        else TargetType("f2", GL_RG32F, GL_RGBA, GL_FLOAT, 2 * 4, 2, true)
+        else TargetType("f2", GL_RG32F, GL_RG, GL_FLOAT, 2 * 4, 2, true)
         val FloatTarget3 = if (!supportsF32Targets) UByteTarget3
-        else TargetType("f3", GL_RGB32F, GL_RGBA, GL_FLOAT, 3 * 4, 3, true)
+        else TargetType("f3", GL_RGB32F, GL_RGB, GL_FLOAT, 3 * 4, 3, true)
         val FloatTarget4 = if (!supportsF32Targets) UByteTarget4
         else TargetType("f4", GL_RGBA32F, GL_RGBA, GL_FLOAT, 4 * 4, 4, true)
 

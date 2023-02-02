@@ -225,7 +225,7 @@ class AnimGameItem(
                     if (mesh?.positions != null) {
                         mesh.checkCompleteness()
                         mesh.ensureBuffer()
-                        shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                        shader.v1i("hasVertexColors", mesh.hasVertexColors)
                         val materialOverrides = comp.materials
                         val materials = mesh.materials
                         // LOGGER.info("drawing mesh with material $materialOverrides x $materials")
@@ -247,7 +247,7 @@ class AnimGameItem(
                     if (mesh?.positions != null) {
                         mesh.checkCompleteness()
                         mesh.ensureBuffer()
-                        shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                        shader.v1i("hasVertexColors", mesh.hasVertexColors)
                         for (i in 0 until mesh.numMaterials) {
                             mesh.draw(shader, i)
                         }
@@ -280,7 +280,7 @@ class AnimGameItem(
                                 tmp.set(localTransform).invert()
                                 shader.m4x3("invLocalTransform", tmp)
                             }
-                            shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                            shader.v1i("hasVertexColors", mesh.hasVertexColors)
                             val materials = mesh.materials
                             for (index in 0 until mesh.numMaterials) {
                                 val material1 =
@@ -310,7 +310,7 @@ class AnimGameItem(
                                 tmp.set(localTransform).invert()
                                 shader.m4x3("invLocalTransform", tmp)
                             }
-                            shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                            shader.v1i("hasVertexColors", mesh.hasVertexColors)
                             for (i in 0 until mesh.numMaterials) {
                                 mesh.draw(shader, i)
                             }

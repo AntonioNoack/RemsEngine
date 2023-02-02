@@ -10,6 +10,7 @@ import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.language.translation.NameDesc
@@ -37,6 +38,7 @@ object DebugGPUStorage {
 
     val tex2d = HashSet<Texture2D>(512)
     val tex3d = HashSet<Texture3D>(64)
+    val tex2da = HashSet<Texture2DArray>(64)
     val tex3dCs = HashSet<CubemapTexture>(64)
 
     val fbs = HashSet<Framebuffer>(256)

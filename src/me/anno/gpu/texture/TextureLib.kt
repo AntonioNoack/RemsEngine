@@ -56,11 +56,40 @@ object TextureLib {
         }
     }
 
-
     class IndestructibleTexture3D(
         name: String, w: Int, h: Int, d: Int,
         private val creationData: Any
     ) : Texture3D(name, w, h, d) {
+
+        override fun destroy() {}
+
+        @Suppress("unused")
+        fun doDestroy() {
+            super.destroy()
+        }
+
+        private fun checkExistence() {
+            checkSession()
+            if (!isCreated || isDestroyed) {
+                isDestroyed = false
+                when (creationData) {
+                    is ByteArray -> createRGBA(creationData)
+                    else -> throw IllegalArgumentException()
+                }
+            }
+        }
+
+        override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
+            checkExistence()
+            return super.bind(index, filtering, clamping)
+        }
+
+    }
+
+    class IndestructibleTexture2DArray(
+        name: String, w: Int, h: Int, d: Int,
+        private val creationData: Any
+    ) : Texture2DArray(name, w, h, d) {
 
         override fun destroy() {}
 
@@ -92,6 +121,7 @@ object TextureLib {
     val invisibleTex3d = IndestructibleTexture3D("invisible", 1, 1, 1, ByteArray(4))
     val whiteTexture = IndestructibleTexture2D("white", 1, 1, intArrayOf(-1))
     val whiteTex3d = IndestructibleTexture3D("white3d", 1, 1, 1, byteArrayOf(-1, -1, -1, -1))
+    val whiteTex2da = IndestructibleTexture2DArray("white2da", 1, 1, 1, byteArrayOf(-1, -1, -1, -1))
     val stripeTexture = IndestructibleTexture2D("stripes", 5, 1, IntArray(5) { if (it == 2) -1 else 0xffffff })
     val colorShowTexture =
         IndestructibleTexture2D("color-show", 2, 2, intArrayOf(0xccffffff.toInt(), -1, -1, 0xccffffff.toInt()))

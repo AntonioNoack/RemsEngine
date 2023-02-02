@@ -1,7 +1,7 @@
 package me.anno.gpu.shader
 
 enum class GLSLType(val glslName: String, val components: Int, val isFlat: Boolean) {
-    // the names could be improved
+
     V1B("bool", 1, true),
     V2B("bvec2", 2, true),
     V3B("bvec3", 3, true),
@@ -21,7 +21,10 @@ enum class GLSLType(val glslName: String, val components: Int, val isFlat: Boole
     S2D("sampler2D", 1000, false),
     S3D("sampler3D", 1000, false),
     S2DMS("sampler2DMS", 1000, false),
-    SCube("samplerCube", 1000, false);
+    SCube("samplerCube", 1000, false),
+    S2DA("sampler2DArray", 1000, false),
+    // S3DA("sampler3DArray", 1000, false),// not necessarily supported
+    ;
 
     override fun toString(): String = glslName
 

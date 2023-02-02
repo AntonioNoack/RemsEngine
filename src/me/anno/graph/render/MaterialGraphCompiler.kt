@@ -524,8 +524,8 @@ class MaterialGraphCompiler(
                         }
                         6 -> "finalBitangent"
                         7 -> {
-                            usedVars += Variable(GLSLType.V4F, "vertexColor")
-                            "vertexColor"
+                            usedVars += Variable(GLSLType.V4F, "vertexColor0")
+                            "vertexColor0"
                         }
                         else -> throw NotImplementedError()
                     }

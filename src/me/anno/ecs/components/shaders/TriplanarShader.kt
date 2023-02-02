@@ -49,7 +49,7 @@ object TriplanarShader : ECSMeshShader("triplanar") {
 
                     // baseColorCalculation +
                     "vec4 texDiffuseMap = LOAD_TRIPLANAR_TEXTURE(diffuseMap,uvx,uvy,uvz);\n" +
-                    "vec4 color = vec4(vertexColor.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
+                    "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
                     "if(color.a < ${1f / 255f}) discard;\n" +
                     // "finalColor = blend;\n" + // for debugging
                     // "finalColor = vec3(fract(uvx*blend.x+uvy*blend.y+uvz*blend.z), 0.0);\n" + // for debugging

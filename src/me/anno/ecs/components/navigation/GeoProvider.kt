@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.set2
+import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
 import org.recast4j.recast.ConvexVolume
@@ -20,6 +21,7 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
     }
 
     val meshes = ArrayList<TriMesh>()
+    val bounds = AABBf()
 
     init {
         for (it in world.getComponentsInChildren(MeshComponentBase::class)) {
@@ -45,6 +47,7 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
                 dst[i] = vec.x
                 dst[i + 1] = vec.y
                 dst[i + 2] = vec.z
+                bounds.union(vec)
             }
             src = dst
         }
@@ -56,13 +59,7 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
     // those are extra
     override fun convexVolumes() = emptyList<ConvexVolume>()
 
-    override val meshBoundsMin: Vector3f
-    override val meshBoundsMax: Vector3f
-
-    init {
-        val aabb = world.aabb
-        meshBoundsMin = Vector3f(aabb.minX.toFloat(), aabb.minY.toFloat(), aabb.minZ.toFloat())
-        meshBoundsMax = Vector3f(aabb.maxX.toFloat(), aabb.maxY.toFloat(), aabb.maxZ.toFloat())
-    }
+    override val meshBoundsMin = Vector3f(bounds.minX, bounds.minY, bounds.minZ)
+    override val meshBoundsMax = Vector3f(bounds.maxX, bounds.maxY, bounds.maxZ)
 
 }

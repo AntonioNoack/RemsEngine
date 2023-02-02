@@ -70,7 +70,7 @@ class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, Ins
 
                         GFX.shaderColor(shader, "tint", -1)
                         shader.v1b("hasAnimation", false)
-                        shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                        shader.v1i("hasVertexColors", mesh.hasVertexColors)
                         shader.v2i("randomIdData", mesh.numPrimitives, 0)
                         GFX.check()
 

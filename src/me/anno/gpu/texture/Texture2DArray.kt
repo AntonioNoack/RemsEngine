@@ -17,13 +17,16 @@ import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
 import me.anno.utils.types.Booleans.toInt
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic
+import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL45C
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
-open class Texture3D(
+// is this correct?
+open class Texture2DArray(
     var name: String,
     override var w: Int,
     override var h: Int,
@@ -42,7 +45,7 @@ open class Texture3D(
 
     var internalFormat = 0
 
-    val target get() = GL_TEXTURE_3D
+    val target get() = GL_TEXTURE_2D_ARRAY
 
     override var isHDR = false
 
@@ -59,8 +62,8 @@ open class Texture3D(
         checkSession()
         if (pointer == 0) pointer = Texture2D.createTexture()
         if (pointer == 0) throw RuntimeException("Could not generate texture")
-        if (Build.isDebug) synchronized(DebugGPUStorage.tex3d) {
-            DebugGPUStorage.tex3d.add(this)
+        if (Build.isDebug) synchronized(DebugGPUStorage.tex2da) {
+            DebugGPUStorage.tex2da.add(this)
         }
         isDestroyed = false
     }
@@ -88,14 +91,14 @@ open class Texture3D(
     @Suppress("unused")
     fun createRGBA8() {
         beforeUpload(w * 4)
-        glTexImage3D(target, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
         afterUpload(GL_RGBA8, 4, false)
     }
 
     @Suppress("unused")
     fun createRGBAFP32() {
         beforeUpload(w * 16)
-        glTexImage3D(target, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
         afterUpload(GL_RGBA32F, 16, true)
     }
 
@@ -265,15 +268,27 @@ open class Texture3D(
         if (clamping != this.clamping) clamping(clamping)
     }
 
-    fun filtering(nearest: GPUFiltering) {
-        if (nearest != GPUFiltering.LINEAR) {
-            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        } else {
-            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+    var hasMipmap = false
+    var autoUpdateMipmaps = true
+
+    fun filtering(filtering: GPUFiltering) {
+        if (!hasMipmap && filtering.needsMipmap && (w > 1 || h > 1)) {
+            glGenerateMipmap(target)
+            hasMipmap = true
+            if (GFX.supportsAnisotropicFiltering) {
+                val anisotropy = GFX.anisotropy
+                glTexParameteri(target, GL_TEXTURE_LOD_BIAS, 0)
+                glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
+            }
+            // whenever the base mipmap is changed, the mipmaps will be updated :)
+            // todo it seems like this needs to be called manually in WebGL
+            glTexParameteri(target, GL14.GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
+            // is called afterwards anyway
+            // glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
-        filtering = nearest
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering.mag)
+        this.filtering = filtering
     }
 
     fun clamping(clamping: Clamping) {
@@ -318,8 +333,8 @@ open class Texture3D(
     }
 
     private fun destroy(pointer: Int) {
-        if (Build.isDebug) synchronized(DebugGPUStorage.tex3d) {
-            DebugGPUStorage.tex3d.remove(this)
+        if (Build.isDebug) synchronized(DebugGPUStorage.tex2da) {
+            DebugGPUStorage.tex2da.remove(this)
         }
         GFX.checkIsGFXThread()
         glDeleteTextures(pointer)

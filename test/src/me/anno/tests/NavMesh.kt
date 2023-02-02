@@ -8,7 +8,11 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.navigation.NavMesh
+import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ECSRegistry
+import me.anno.engine.debug.DebugLine
+import me.anno.engine.debug.DebugShapes
+import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.io.ISaveable
 import me.anno.ui.debug.TestStudio.Companion.testUI
@@ -21,6 +25,7 @@ import org.recast4j.detour.crowd.CrowdAgent
 import org.recast4j.detour.crowd.CrowdAgentParams
 import org.recast4j.detour.crowd.CrowdConfig
 import java.util.*
+import kotlin.math.atan
 import kotlin.math.atan2
 import kotlin.math.max
 
@@ -34,6 +39,8 @@ fun main() {
 
         val mask = 1 shl 16
         val world = Entity("World")
+        world.add(SkyBox())
+
         val agentMeshRef = documents.getChild("CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!
         val agentBounds = agentMesh.ensureBounds()
@@ -48,14 +55,14 @@ fun main() {
             add(MeshComponent(documents.getChild("NavMeshTest2.obj")).apply {
                 collisionMask = mask
             })
-            scale = scale.set(2.0)
+            scale = scale.set(1.5)
         })
 
         val meshData = navMesh1.build()!!
         navMesh1.data = meshData
 
         // visualize navmesh
-        world.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
+        if (false) world.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
             material = Material().apply {
                 isDoubleSided = true
                 diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)
@@ -84,6 +91,8 @@ fun main() {
         val flag = Entity("Flag")
         flag.add(MeshComponent(documents.getChild("Flag.fbx")))
         world.add(flag)
+
+        world.validateMasks()
 
         // walk along path
         class AgentController : Component() {
@@ -119,24 +128,33 @@ fun main() {
                 flag.teleportToGlobal(Vector3d(nextRef.randomPt))
             }
 
+            private val raycastDir = Vector3d(0.0, -1.0, 0.0)
             override fun onUpdate(): Int {
                 // move agent from src to dst
                 val dt = Engine.deltaTime
                 crowd.update(dt, null)
                 val entity = entity!!
-                val lastPos = entity.position
-                val lastX = lastPos.x
-                val lastZ = lastPos.z
                 val nextPos = agent1.currentPosition
-                val distSq = lastPos.distanceSquared(nextPos.x.toDouble(), nextPos.y.toDouble(), nextPos.z.toDouble())
-                if (distSq > 0f && agent1.targetPos.distanceSquared(nextPos) >= 1f) {
-                    entity.rotation = entity.rotation
-                        .identity()
-                        .rotateY(atan2(nextPos.x - lastX, nextPos.z - lastZ))
-                } else {
+                val distSq = agent1.actualVelocity.lengthSquared()
+                if (!(distSq > 0f && agent1.targetPos.distanceSquared(nextPos) >= 1f)) {
                     findNextTarget()
                 }
-                entity.position = entity.position.set(nextPos)
+                // project agent onto surface
+                val lp = entity.position
+                val start = Vector3d(nextPos)
+                start.y = lp.y + navMesh1.agentHeight * 0.5
+                val dist = navMesh1.agentHeight.toDouble()
+                val hr = Raycast.raycast(
+                    world, start, raycastDir, 0.0, 0.0,
+                    dist, Raycast.TRIANGLE_FRONT, mask
+                )
+                DebugShapes.debugLines.add(DebugLine(start, Vector3d(raycastDir).mul(dist).add(start), -1))
+                val np = hr?.positionWS ?: Vector3d(nextPos)
+                entity.rotation = entity.rotation
+                    .identity()
+                    .rotateY(atan2(np.x - lp.x, np.z - lp.z))
+                    .rotateX(atan((lp.y - np.y) / np.distance(lp))) // could use a bit of smoothing...
+                entity.position = np
                 return 1
             }
 
@@ -150,5 +168,4 @@ fun main() {
         testScene(world)
 
     }
-
 }

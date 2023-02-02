@@ -492,7 +492,7 @@ class PipelineStage(
                 }
 
                 shaderColor(shader, "tint", -1)
-                shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                shader.v1i("hasVertexColors", mesh.hasVertexColors)
                 val component = request.component
                 shader.v2i(
                     "randomIdData",
@@ -613,7 +613,7 @@ class PipelineStage(
             }
 
             shaderColor(shader, "tint", -1)
-            shader.v1b("hasVertexColors", mesh.hasVertexColors)
+            shader.v1i("hasVertexColors", mesh.hasVertexColors)
 
             if (material.isDoubleSided) {
                 GFXState.cullMode.use(CullMode.BOTH) {
