@@ -65,7 +65,7 @@ fun main() {
                         shader.m4x4("transform", transform)
                         val mesh = MeshCache[srcFile, false]!!
                         defaultMaterial.bind(shader)
-                        shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                        shader.v1i("hasVertexColors", mesh.hasVertexColors)
                         mesh.draw(shader, 0)
 
                     } else {

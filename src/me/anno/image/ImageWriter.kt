@@ -1,6 +1,6 @@
 package me.anno.image
 
-import me.anno.image.BoxBlur.gaussianBlur
+import me.anno.gpu.shader.effects.GaussianBlur.gaussianBlur
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.image.raw.IntImage
@@ -385,10 +385,7 @@ object ImageWriter {
         }
         // bokeh-blur would be nicer, and correcter,
         // but this is a pretty good trade-off between visuals and performance :)
-        if (gaussianBlur(image, w, h, thickness)) {
-            val scale = 1f / max(image.maxOrNull()!!, 1e-7f)
-            for (i in 0 until w * h) image[i] *= scale
-        }
+        gaussianBlur(image, w, h, 0, w, thickness, true)
         val t1 = System.nanoTime()
         // nanoseconds per pixel
         // ~ 24ns/px for everything, including copy;

@@ -8,21 +8,28 @@ import kotlin.reflect.KClass
  */
 object LogManager {
 
+    @JvmStatic
     private val disabled = HashSet<String?>()
+
+    @JvmStatic
     fun isEnabled(logger: LoggerImpl): Boolean {
         return !disabled.contains(logger.prefix)
     }
 
+    @JvmStatic
     fun disableLogger(logger: String?) {
         disabled.add(logger)
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun enableLogger(logger: String?) {
         disabled.remove(logger)
     }
 
+    @JvmStatic
     private val logger = LoggerImpl(null)
+    @JvmStatic
     private val loggers = HashMap<String, LoggerImpl>()
 
     @JvmStatic

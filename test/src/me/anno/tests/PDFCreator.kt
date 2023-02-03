@@ -1,5 +1,6 @@
 package me.anno.tests
 
+import me.anno.cache.instances.PDFCache
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.ui.base.constraints.AxisAlignment
@@ -19,8 +20,8 @@ import java.io.File
 
 fun main() {
 
-    // todo create master thesis pdf from markdown like file
-    // todo what we need:
+    // to do create master thesis pdf from markdown like file
+    // to do what we need:
     //  - text
     //  - images
     //  - boxes: images and text in one, non-splittable
@@ -28,10 +29,7 @@ fun main() {
     //  - sections
     //  - numbers
 
-    LogManager.disableLogger("FontFileFinder")
-    LogManager.disableLogger("FileSystemFontProvider")
-    LogManager.disableLogger("FontMapperImpl")
-    LogManager.disableLogger("GlyphSubstitutionTable")
+    PDFCache.disableLoggers()
     HiddenOpenGLContext.createOpenGL()
 
     val doc = PDDocument()

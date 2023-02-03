@@ -16,6 +16,7 @@ class PDFPlugin : Plugin() {
     override fun onEnable() {
         super.onEnable()
         // pdf documents
+        PDFCache.disableLoggers()
         InnerFolderCache.register("pdf", PDFCache::readAsFolder)
         Thumbs.register("pdf") { srcFile, size, dstFile, callback ->
             srcFile.inputStream { it, exc ->

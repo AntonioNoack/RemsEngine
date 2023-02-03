@@ -9,14 +9,54 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.image.BoxBlur
+import me.anno.image.BoxBlur.multiply
 import me.anno.input.Input
+import me.anno.maths.Maths.sq
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import kotlin.math.max
+import kotlin.math.min
 
 object GaussianBlur {
 
     private val LOGGER = LogManager.getLogger(GaussianBlur::class)
+
+    @JvmStatic
+    fun gaussianBlur(
+        image: FloatArray,
+        w: Int, h: Int, i0: Int,
+        stride: Int, thickness: Int,
+        normalize: Boolean
+    ): Boolean {
+        // box blur 3x with a third of the thickness is a nice gaussian blur approximation :),
+        // which in turn is a bokeh-blur approximation
+        val f0 = thickness / 3
+        val f1 = thickness - 2 * f0
+        if (f0 < 2 && f1 < 2) return false
+        val tmp = FloatArray(w)
+        val tmp2 = FloatArray(w * (h - (thickness + 1).shr(1)))
+        var x = 1
+        // if the first row in the result is guaranteed to be zero,
+        // we could use the image itself as buffer; (but only we waste space in the first place ->
+        // don't optimize that case)
+        if (f0 > 1) {
+            BoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp)
+            BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp, tmp2)
+            BoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp)
+            BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp, tmp2)
+            x *= sq(min(w, f0) * min(h, f0))
+        }
+        if (f1 > 1) {
+            BoxBlur.boxBlurX(image, w, h, i0, stride, f1, false, tmp)
+            BoxBlur.boxBlurY(image, w, h, i0, stride, f1, false, tmp, tmp2)
+            x *= min(w, f1) * min(h, f1)
+        }
+        if (normalize) {
+            multiply(image, w, h, i0, stride, 1f / x)
+        }
+        return true
+    }
 
     private fun drawBlur(
         target: IFramebuffer, w: Int, h: Int, resultIndex: Int,

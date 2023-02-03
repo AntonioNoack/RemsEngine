@@ -106,20 +106,6 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         Dict.loadDefault()
         startClock.stop("Dictionary")
 
-        // pdf stuff
-        LogManager.disableLogger("PDICCBased")
-        LogManager.disableLogger("PostScriptTable")
-        LogManager.disableLogger("GlyphSubstitutionTable")
-        LogManager.disableLogger("GouraudShadingContext")
-        LogManager.disableLogger("FontMapperImpl")
-        LogManager.disableLogger("FileSystemFontProvider")
-        LogManager.disableLogger("ScratchFileBuffer")
-        LogManager.disableLogger("FontFileFinder")
-        LogManager.disableLogger("PDFObjectStreamParser")
-        LogManager.disableLogger("TriangleBasedShadingContext")
-        LogManager.disableLogger("Type4ShadingContext")
-        startClock.stop("Disable some loggers")
-
         // to avoid race conditions
         ScenePrefab.prefab.value.getSampleInstance()
 

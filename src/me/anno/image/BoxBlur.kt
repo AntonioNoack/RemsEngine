@@ -3,55 +3,45 @@ package me.anno.image
 object BoxBlur {
 
     @JvmStatic
-    fun gaussianBlur(image: FloatArray, w: Int, h: Int, thickness: Int): Boolean {
-        // box blur 3x with a third of the thickness is a nice gaussian blur approximation :),
-        // which in turn is a bokeh-blur approximation
-        val f0 = thickness / 3
-        val f1 = thickness - 2 * f0
-        if (f0 < 2 && f1 < 2) return false
-        val tmp = FloatArray(w)
-        // if the first row in the result is guaranteed to be zero,
-        // we could use the image itself as buffer; (but only we waste space in the first place ->
-        // don't optimize that case)
-        if (f0 > 1) {
-            boxBlurX(image, w, h, f0)
-            boxBlurY(image, w, h, f0, tmp)
-            boxBlurX(image, w, h, f0)
-            boxBlurY(image, w, h, f0, tmp)
-        }
-        if (f1 > 1) {
-            boxBlurX(image, w, h, f1)
-            boxBlurY(image, w, h, f1, tmp)
-        }
-        return true
-    }
-
-    @JvmStatic
-    fun boxBlurX(image: FloatArray, w: Int, h: Int, thickness: Int) {
+    fun boxBlurX(
+        image: FloatArray, w: Int, h: Int, i0: Int, stride: Int, thickness: Int, normalize: Boolean,
+        old: FloatArray = FloatArray(w)
+    ) {
         if (thickness <= 1) return
+        if (thickness > w) return boxBlurX(image, w, h, i0, stride, w, normalize, old)
+        val th2 = thickness shr 1
+        val th1 = thickness - th2
         for (y in 0 until h) {
-            val i0 = y * w
-            var sum = 0f
-            // start of sum
-            for (x in 0 until thickness) {
-                sum += image[i0 + x]
+            val i1 = i0 + y * stride
+            val old0 = image[i1]
+            // make border not appear black by duplicating first pixel
+            var sum = old0 * th1
+            // start of sum 1
+            for (x in 0 until th2) {
+                sum += image[i1 + x]
+            }
+            System.arraycopy(image, i1, old, 0, w - th1)
+            // start of sum 2
+            for (x in 0 until th1) {
+                val i = i1 + x
+                sum += image[i + th2] - old0
+                image[i] = sum
             }
             // updated sum
-            for (x in 0 until w - thickness) {
-                val i = i0 + x
-                val v = image[i + thickness]
-                val old = image[i]
+            for (x in th1 until w - th2) {
+                val i = i1 + x
+                sum += image[i + th2] - old[x - th1]
                 image[i] = sum
-                sum += v - old
             }
             // end of sum
-            for (x in w - thickness until w) {
-                val i = i0 + x
-                val old = image[i]
+            val new0 = image[i1 + w - 1]
+            for (x in w - th2 until w) {
+                val i = i1 + x
+                sum += new0 - old[x - th1]
                 image[i] = sum
-                sum -= old
             }
         }
+        if (normalize) multiply(image, w, h, i0, stride, 1f / thickness)
     }
 
     /**
@@ -62,35 +52,82 @@ object BoxBlur {
      * reduces runtime for w=h=2048, thickness=25 from 24-25ns/px to 13-15ns/px
      * */
     @JvmStatic
-    fun boxBlurY(image: FloatArray, w: Int, h: Int, thickness: Int, sum: FloatArray) {
+    fun boxBlurY(
+        image: FloatArray,
+        w: Int,
+        h: Int,
+        i0: Int,
+        stride: Int,
+        thickness: Int,
+        normalize: Boolean,
+        sum: FloatArray = FloatArray(w),
+        old: FloatArray = FloatArray(w * (h - (thickness + 1).shr(1)))
+    ) {
         if (thickness <= 1) return
+        if (thickness > h) return boxBlurY(image, w, h, i0, stride, h, normalize, sum)
         sum.fill(0f, 0, w)
-        // start of sum
-        var i = 0
-        for (y in 0 until thickness) {
+
+        val th2 = thickness shr 1
+        val th1 = thickness - th2
+
+        for (y in 0 until h - th1) {
+            System.arraycopy(image, y * stride + i0, old, y * w, w)
+        }
+
+        val th2y = th2 * stride
+        val th1y = th1 * w
+
+        // make border not appear black by duplicating first pixel
+        val th1f = th1.toFloat()
+        for (x in 0 until w) {
+            sum[x] = image[i0 + x] * th1f
+        }
+        // start of sum 1
+        for (y in 0 until th2) {
+            val i1 = i0 + y * stride
             for (x in 0 until w) {
-                sum[x] += image[i++]
+                sum[x] += image[i1 + x]
+            }
+        }
+        // start of sum 2
+        for (y in 0 until th1) {
+            val i1 = i0 + y * stride
+            val ni = i1 + th2y
+            for (x in 0 until w) {
+                sum[x] += image[ni + x] - old[x]
+                image[i1 + x] = sum[x]
             }
         }
         // updated sum
-        var j = i
-        i = 0
-        for (y in 0 until h - thickness) {
+        for (y in th1 until h - th2) {
+            val i1 = i0 + y * stride
+            val oi = y * w - th1y
+            val ni = i1 + th2y
             for (x in 0 until w) {
-                val v = image[j++]
-                val old = image[i]
-                val oldSum = sum[x]
-                image[i++] = oldSum
-                sum[x] = oldSum + v - old
+                sum[x] += image[ni + x] - old[oi + x]
+                image[i1 + x] = sum[x]
             }
         }
         // end of sum
-        for (y in h - thickness until h) {
+        val ni = i0 + (h - 1) * stride // last row
+        for (y in h - th2 until h) {
+            val i1 = i0 + y * stride
+            val oi = y * w - th1y
             for (x in 0 until w) {
-                val old = image[i]
-                val oldSum = sum[x]
-                image[i++] = oldSum
-                sum[x] = oldSum - old
+                sum[x] += image[ni + x] - old[oi + x]
+                image[i1 + x] = sum[x]
+            }
+        }
+        if (normalize) multiply(image, w, h, i0, stride, 1f / thickness)
+    }
+
+    @JvmStatic
+    fun multiply(image: FloatArray, w: Int, h: Int, i0: Int, stride: Int, f: Float) {
+        for (y in 0 until h) {
+            val i1 = y * stride + i0
+            val i2 = i1 + w
+            for (i in i1 until i2) {
+                image[i] *= f
             }
         }
     }

@@ -155,8 +155,6 @@ object Thumbs {
     val sphereMesh = Icosahedron.createUVSphere(30, 30)
 
     init {
-        LogManager.disableLogger("GlyphRenderer")
-        LogManager.disableLogger("PDSimpleFont")
         if (!useCacheFolder) {
             folder.listChildren()?.forEach { it.deleteRecursively() }
         }

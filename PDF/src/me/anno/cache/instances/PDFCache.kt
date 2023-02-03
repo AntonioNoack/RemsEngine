@@ -180,6 +180,23 @@ object PDFCache : CacheSection("PDFCache") {
         return renderer.renderImage(Maths.clamp(pageNumber, 0, numberOfPages - 1), dpi, ImageType.RGB).toImage()
     }
 
+    fun disableLoggers() {
+        val lm = LogManager
+        lm.disableLogger("GlyphRenderer")
+        lm.disableLogger("PDSimpleFont")
+        lm.disableLogger("PDICCBased")
+        lm.disableLogger("PostScriptTable")
+        lm.disableLogger("GlyphSubstitutionTable")
+        lm.disableLogger("GouraudShadingContext")
+        lm.disableLogger("FontMapperImpl")
+        lm.disableLogger("FileSystemFontProvider")
+        lm.disableLogger("ScratchFileBuffer")
+        lm.disableLogger("FontFileFinder")
+        lm.disableLogger("PDFObjectStreamParser")
+        lm.disableLogger("TriangleBasedShadingContext")
+        lm.disableLogger("Type4ShadingContext")
+    }
+
     private const val timeout = 20_000L
     private val LOGGER = LogManager.getLogger(PDFCache::class)
 
