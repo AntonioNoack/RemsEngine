@@ -37,9 +37,15 @@ class CachedReflections(
         if (OS.isWeb) clazz.java.annotations.toList()
         else clazz.annotations
 
-    val propertiesByClass = lazy {
+    val propertiesByClass by lazy {
         getPropertiesByDeclaringClass(clazz, allProperties)
     }
+
+    val propertiesByClassList by lazy {
+        propertiesByClass.map { it.second }.flatten()
+    }
+
+    val serializedProperties = allProperties.filter { it.value.serialize }
 
     // todo use this
     // val executeInEditMode = annotations.any { it is ExecuteInEditMode }

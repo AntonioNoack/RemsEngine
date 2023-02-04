@@ -2,7 +2,7 @@ package me.anno.io
 
 import me.anno.io.base.BaseWriter
 
-abstract class NamedSaveable : Saveable() {
+open class NamedSaveable : Saveable() {
 
     open var name = ""
     open var description = ""

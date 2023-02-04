@@ -308,14 +308,12 @@ object Hierarchy {
         )
         if (dstPath2 != dstPath) throw IllegalStateException("Could not add child at index, $dstPath vs $dstPath2")
         val sample = ISaveable.getSample(child.className)!!
-        for ((pName, field) in child.getReflections().allProperties) {
-            if (field.serialize) {
-                val value = child[pName]
-                if (value != sample[pName]) {
-                    // we can do it unsafe, because we just added the path,
-                    // and know that there is nothing inside it
-                    dstPrefab.setUnsafe(dstPath, pName, value)
-                }
+        for (pName in child.getReflections().serializedProperties.keys) {
+            val value = child[pName]
+            if (value != sample[pName]) {
+                // we can do it unsafe, because we just added the path,
+                // and know that there is nothing inside it
+                dstPrefab.setUnsafe(dstPath, pName, value)
             }
         }
         // hopefully correct...

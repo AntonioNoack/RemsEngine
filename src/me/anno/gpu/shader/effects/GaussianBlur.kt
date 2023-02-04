@@ -45,7 +45,7 @@ object GaussianBlur {
             BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp, tmp2)
             BoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp)
             BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp, tmp2)
-            x *= sq(min(w, f0) * min(h, f0))
+            x = sq(min(w, f0) * min(h, f0))
         }
         if (f1 > 1) {
             BoxBlur.boxBlurX(image, w, h, i0, stride, f1, false, tmp)

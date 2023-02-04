@@ -414,14 +414,18 @@ open class Panel(val style: Style) : PrefabSaveable() {
                 minX = 0
                 minW = w
             }
-            else -> x + alignmentX.getOffset(w, this.minW)
+            else -> {
+                minX = x + alignmentX.getOffset(w, this.minW)
+            }
         }
         when (alignmentY) {
             AxisAlignment.FILL -> {
                 minY = 0
                 minH = h
             }
-            else -> y + alignmentY.getOffset(h, this.minH)
+            else -> {
+                minY = y + alignmentY.getOffset(h, this.minH)
+            }
         }
     }
 

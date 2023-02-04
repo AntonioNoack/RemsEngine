@@ -283,7 +283,9 @@ class PrefabInspector(val reference: FileReference) {
         // todo place actions into these groups
 
         // bold/plain for other properties
-        for ((clazz, propertyNames) in reflections.propertiesByClass.value.reversed()) {
+        val properties = reflections.propertiesByClass
+        for (i in properties.size - 1 downTo 0) {
+            val (clazz, propertyNames) = properties[i]
 
             var hadIntro = false
             val defaultGroup = ""
