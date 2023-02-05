@@ -14,18 +14,16 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
 
     var size = 0
 
-    var array: FloatArray? = null
+    var array = FloatArray(initCapacity)
 
-    val capacity get() = array?.size ?: 0
+    val capacity get() = array.size
 
     fun clear() {
         size = 0
     }
 
     fun ensure() {
-        if (array == null) {
-            array = FloatArray(initCapacity)
-        }
+        array = FloatArray(initCapacity)
     }
 
     override fun save(writer: BaseWriter) {
@@ -33,13 +31,11 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
         writer.writeInt("initCapacity", initCapacity)
         writer.writeInt("size", size)
         val array = array
-        if (array != null) {
-            // clear the end, so we can save it with less space wasted
-            for (i in size until array.size) {
-                array[i] = 0f
-            }
-            writer.writeFloatArray("values", array)
+        // clear the end, so we can save it with less space wasted
+        for (i in size until array.size) {
+            array[i] = 0f
         }
+        writer.writeFloatArray("values", array)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -63,8 +59,8 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
 
     fun ensureCapacity(requestedSize: Int) {
         val array = array
-        if (array == null || requestedSize >= array.size) {
-            val suggestedSize = if (array == null) initCapacity else max(array.size * 2, 16)
+        if (requestedSize >= array.size) {
+            val suggestedSize = max(array.size * 2, 16)
             val newSize = max(suggestedSize, requestedSize)
             val newArray = try {
                 FloatArray(newSize)
@@ -72,14 +68,14 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
                 LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingFloatArray")
                 throw e
             }
-            if (array != null) System.arraycopy(array, 0, newArray, 0, this.size)
+            System.arraycopy(array, 0, newArray, 0, this.size)
             this.array = newArray
         }
     }
 
     fun add(value: Float) {
         ensureExtra(1)
-        array!![size++] = value
+        array[size++] = value
     }
 
     fun skip(delta: Int) {
@@ -88,11 +84,11 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
     }
 
     fun addUnsafe(x: Float) {
-        array!![size++] = x
+        array[size++] = x
     }
 
     fun addUnsafe(x: Float, y: Float) {
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = x
         array[size++] = y
@@ -100,7 +96,7 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
     }
 
     fun addUnsafe(x: Float, y: Float, z: Float) {
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = x
         array[size++] = y
@@ -109,7 +105,7 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
     }
 
     fun addUnsafe(x: Float, y: Float, z: Float, w: Float) {
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = x
         array[size++] = y
@@ -119,12 +115,12 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
     }
 
     operator fun set(index: Int, value: Float) {
-        array!![index] = value
+        array[index] = value
     }
 
     fun add(v: Vector2f) {
         ensureExtra(2)
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = v.x
         array[size++] = v.y
@@ -133,7 +129,7 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
 
     fun add(v: Vector3f) {
         ensureExtra(3)
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = v.x
         array[size++] = v.y
@@ -143,7 +139,7 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
 
     fun add(v: Vector4f) {
         ensureExtra(4)
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = v.x
         array[size++] = v.y
@@ -154,7 +150,7 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
 
     fun add(v: Quaternionf) {
         ensureExtra(4)
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = v.x
         array[size++] = v.y
@@ -198,11 +194,11 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
     }
 
     fun addUnsafe(src: ExpandingFloatArray, startIndex: Int, length: Int) {
-        System.arraycopy(src.array!!, startIndex, array!!, size, length)
+        System.arraycopy(src.array, startIndex, array, size, length)
         size += length
     }
 
-    operator fun get(index: Int) = array!![index]
+    operator fun get(index: Int) = array[index]
     operator fun plusAssign(value: Float) {
         add(value)
     }
@@ -210,24 +206,24 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
     fun toFloatArray(size1: Int): FloatArray {
         val array = array
         val size = size
-        if (array != null && size == array.size) return array
+        if (size == array.size) return array
         val tmp = FloatArray(size1)
-        if (size > 0) System.arraycopy(array!!, 0, tmp, 0, min(size, size1))
+        if (size > 0) System.arraycopy(array, 0, tmp, 0, min(size, size1))
         return tmp
     }
 
     fun toFloatArray(): FloatArray {
         val array = array
         val size = size
-        if (array != null && size == array.size) return array
+        if (size == array.size) return array
         val tmp = FloatArray(size)
-        if (size > 0) System.arraycopy(array!!, 0, tmp, 0, size)
+        if (size > 0) System.arraycopy(array, 0, tmp, 0, size)
         return tmp
     }
 
     operator fun plusAssign(v: Vector2f) {
         ensureExtra(2)
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = v.x
         array[size++] = v.y
@@ -236,6 +232,27 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
 
     operator fun plusAssign(v: Vector3f) {
         add(v)
+    }
+
+    fun sum(): Float {
+        val array = array
+        var sum = 0.0
+        for (i in 0 until size) {
+            sum += array[i]
+        }
+        return sum.toFloat()
+    }
+
+    fun scale(s: Float) {
+        val array = array
+        for (i in 0 until size) {
+            array[i] *= s
+        }
+    }
+
+    fun fill(s: Float) {
+        val array = array
+        array.fill(s, 0, size)
     }
 
 }

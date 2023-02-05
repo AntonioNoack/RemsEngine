@@ -26,7 +26,9 @@ class DatasetView(values: List<ISaveable>, reflections: CachedReflections, first
         var x0 = 0
         if (firstIndex < Int.MAX_VALUE) {
             // define all ids :)
-            this[x0, 0] = TextPanel("ID", style)
+            val title = TextPanel("ID", style)
+            title.alignmentX = AxisAlignment.CENTER
+            this[x0, 0] = title
             for (y in values.indices) {
                 val idPanel = TextPanel((firstIndex + y).toString(), style)
                 idPanel.alignmentX = AxisAlignment.MAX
@@ -82,8 +84,10 @@ class DatasetView(values: List<ISaveable>, reflections: CachedReflections, first
                 }
                 DatasetView(v, 0, style).apply {
                     // checking resizing
-                    sizeX += 3
-                    sizeX--
+                    // sizeX += 3
+                    // sizeX--
+                    // checking alignment
+                    alignmentX = AxisAlignment.FILL
                 }
             }
         }

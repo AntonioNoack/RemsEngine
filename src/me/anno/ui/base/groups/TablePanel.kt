@@ -1,7 +1,9 @@
 package me.anno.ui.base.groups
 
 import me.anno.ui.Panel
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
+import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import kotlin.math.max
 import kotlin.math.min
@@ -90,10 +92,12 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
         return h
     }
 
-    // todo alignment and weight options
-
     val xs = ExpandingIntArray(sizeX)
     val ys = ExpandingIntArray(sizeY)
+
+    // weights along x/y-axis
+    val wxs = ExpandingFloatArray(sizeX)
+    val wys = ExpandingFloatArray(sizeY)
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
@@ -134,8 +138,44 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
             sumH += maxH
             ys[y] = sumH
         }
+
+        if (alignmentX == AxisAlignment.FILL && sumW < w) {
+            wxs.ensureCapacity(sizeX)
+            wxs.size = sizeX
+
+            val s = wxs.sum()
+            if (s <= 0f) wxs.fill(1f / sizeX)
+            else wxs.scale(1f / s)
+
+            val total = w - sumW + 0.5f
+            var sum = 0f
+            for (x in 0 until sizeX) {
+                sum += wxs[x]
+                xs[x] +=  (total * sum).toInt()
+            }
+            minW = w
+        }
+
+        if (alignmentY == AxisAlignment.FILL && sumH < h) {
+            wys.ensureCapacity(sizeY)
+            wys.size = sizeY
+
+            val s = wys.sum()
+            if (s <= 0f) wys.fill(1f / sizeY)
+            else wys.scale(s)
+
+            val total = h - sumH + 0.5f
+            var sum = 0f
+            for (y in 0 until sizeY) {
+                sum += wys[y]
+                ys[y] += (total * sum).toInt()
+            }
+            minH = h
+        }
+
         minW = sumW
         minH = sumH
+
     }
 
     override fun setPosition(x: Int, y: Int) {
