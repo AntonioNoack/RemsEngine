@@ -9,8 +9,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader2
 import me.anno.gpu.shader.ShaderLib.svsList
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
@@ -119,7 +117,7 @@ object Reduction {
             val dstFramebuffer = FBStack["reduction", w, h, TargetType.FloatTarget4, 1, false]
             useFrame(dstFramebuffer, Renderer.copyRenderer) {
                 renderPurely {
-                    srcTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    srcTexture.bindTrulyNearest(0)
                     flat01.draw(shader)
                 }
             }
@@ -133,7 +131,7 @@ object Reduction {
         // read pixel
         glFlush(); glFinish() // wait for everything to be drawn
         setReadAlignment(4)
-        srcTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        srcTexture.bindTrulyNearest(0)
 
         val target = when (srcTexture) {
             is Texture2D -> srcTexture.target
@@ -219,7 +217,7 @@ object Reduction {
 
             useFrame(dstFramebuffer, Renderer.copyRenderer) {
                 renderPurely {
-                    srcTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    srcTexture.bindTrulyNearest(0)
                     shader.v1f("scale", scale)
                     flat01.draw(shader)
                 }

@@ -10,8 +10,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.io.files.FileReference
@@ -164,7 +162,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
             val shader = dxShader
             shader.use()
             shader.v2f("delta", dx / (w - 1f), dy / (h - 1f))
-            bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            bindTrulyNearest(0)
             flat01.draw(shader)
         }
         return dst
@@ -184,7 +182,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
             shader.v2f("delta", dx.toFloat() / w, dy.toFloat() / h)
             shader.v1f("sigma", sigma)
             shader.v1i("steps", (sigma * 3f).roundToInt())
-            bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            bindTrulyNearest(0)
             flat01.draw(shader)
             GFX.check()
         }
@@ -211,9 +209,9 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
         useFrame(dst) {
             val shader = sumShader
             shader.use()
-            bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            b.bindTexture0(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            c.bindTexture0(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            bindTrulyNearest(0)
+            b.bindTrulyNearest(1)
+            c.bindTrulyNearest(2)
             flat01.draw(shader)
         }
         return dst
@@ -224,7 +222,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
             val shader = linearShader
             shader.use()
             shader.v2f("mn", m, n)
-            bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            bindTrulyNearest(0)
             flat01.draw(shader)
         }
         return dst
@@ -244,10 +242,10 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
             shader.v2f("dy1", 0f, 1f / src.h)
             shader.v2f("dx2", 2f / src.w, 0f)
             shader.v2f("dy2", 0f, 2f / src.h)
-            src.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            dx.bindTexture0(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            dy.bindTexture0(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            blurred.bindTexture0(3, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            src.bindTrulyNearest(0)
+            dx.bindTrulyNearest(1)
+            dy.bindTrulyNearest(2)
+            blurred.bindTrulyNearest(3)
             flat01.draw(shader)
         }
         return dst
@@ -257,7 +255,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
         useFrame(dst) {
             val shader = absDiffShader
             shader.use()
-            bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            bindTrulyNearest(0)
             flat01.draw(shader)
         }
         return dst

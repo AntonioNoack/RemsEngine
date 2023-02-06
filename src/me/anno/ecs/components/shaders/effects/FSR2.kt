@@ -639,7 +639,7 @@ class FSR2 {
             val shader = exposureShader
             shader.use()
             prevExposure.bindTrulyNearest(1)
-            currExposure.getTexture0().bindTrulyNearest(0)
+            currExposure.bindTrulyNearest(0)
             shader.v1f("mixFactor", 1f - exp(-Engine.deltaTime))
             flat01.draw(shader)
         }

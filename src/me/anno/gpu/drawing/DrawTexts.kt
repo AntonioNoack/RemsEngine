@@ -12,8 +12,6 @@ import me.anno.gpu.drawing.GFXx2D.posSizeDraw
 import me.anno.gpu.drawing.GFXx2D.transform
 import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.*
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -361,7 +359,7 @@ object DrawTexts {
 
     private fun draw(shader: OpenGLShader, texture: ITexture2D?, x2: Int, y2: Int, txt: CharSequence) {
         if (texture != null && (texture !is Texture2D || texture.isCreated)) {
-            texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            texture.bindTrulyNearest(0)
             shader.use()
             if (shader is Shader) {
                 posSize(shader, x2, y2, texture.w, texture.h)
@@ -418,7 +416,7 @@ object DrawTexts {
         if (texture !is Texture2D || texture.isCreated) {
             GFX.check()
             GFX.check()
-            texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            texture.bindTrulyNearest(0)
             val x2 = x + getOffset(w, alignX)
             val y2 = y + getOffset(h, alignY)
             val shader = chooseShader(textColor, backgroundColor)

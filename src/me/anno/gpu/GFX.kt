@@ -20,17 +20,13 @@ import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
-import me.anno.mesh.Point
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.workEventTasks
 import me.anno.utils.Clock
 import me.anno.utils.OS
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Task
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
@@ -298,7 +294,7 @@ object GFX {
     @JvmStatic
     fun copy(buffer: ITexture2D) {
         Frame.bind()
-        buffer.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        buffer.bindTrulyNearest(0)
         copy()
     }
 

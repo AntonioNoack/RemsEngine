@@ -119,7 +119,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun invalidateLayout() {
         val parent = uiParent
         if (parent == null) {
-            val window = window
             window?.needsLayout?.add(this)
         } else parent.invalidateLayout()
     }
@@ -132,8 +131,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun onUpdate() {
         if (wasInFocus != isInFocus) {
             invalidateDrawing()
+            wasInFocus = isInFocus
         }
-        wasInFocus = isInFocus
     }
 
     // the following is the last drawn size, clipped stuff clipped

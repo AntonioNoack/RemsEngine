@@ -10,8 +10,6 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.video.FrameTask.Companion.missingResource
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
@@ -132,7 +130,7 @@ abstract class VideoBackgroundTask(val video: VideoCreator) {
                         }
                     }
                     if (!needsMoreSources) {
-                        partialFrame.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                        partialFrame.bindTrulyNearest(0)
                         blendMode.use(BlendMode.PURE_ADD) {
                             depthMode.use(DepthMode.ALWAYS) {
                                 // write with alpha 1/motionBlurSteps

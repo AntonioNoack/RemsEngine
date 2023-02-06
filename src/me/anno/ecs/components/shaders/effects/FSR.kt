@@ -9,8 +9,6 @@ import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.svsList
 import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.ResourceHelper
 import me.anno.utils.OS
@@ -159,7 +157,7 @@ object FSR {
     }
 
     fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int, flipY: Boolean, applyToneMapping: Boolean) {
-        source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        source.bindTrulyNearest(0)
         upscale(source.w, source.h, x, y, w, h, flipY, applyToneMapping)
     }
 
@@ -167,7 +165,7 @@ object FSR {
         source: ITexture2D, x: Int, y: Int, w: Int, h: Int,
         flipY: Boolean, backgroundColor: Int, applyToneMapping: Boolean
     ) {
-        source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        source.bindTrulyNearest(0)
         upscale(source.w, source.h, x, y, w, h, flipY, backgroundColor, applyToneMapping)
     }
 
@@ -200,12 +198,12 @@ object FSR {
     }
 
     fun sharpen(source: ITexture2D, sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
-        source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        source.bindTrulyNearest(0)
         sharpen(sharpness, x, y, w, h, flipY)
     }
 
     fun sharpen(source: ITexture2D, sharpness: Float, flipY: Boolean) {
-        source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        source.bindTrulyNearest(0)
         sharpen(sharpness, flipY)
     }
 

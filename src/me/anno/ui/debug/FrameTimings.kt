@@ -11,8 +11,6 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.maths.Maths
@@ -180,7 +178,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 shader.v4f("color", barColor)
                 shader.v4f("background", background)
                 GFXx2D.noTiling(shader)
-                texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                texture.bindTrulyNearest(0)
                 GFX.flat01.draw(shader)
                 GFX.check()
 

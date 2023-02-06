@@ -168,7 +168,7 @@ object Bloom {
         shader.use()
         shader.v1b("applyToneMapping", applyToneMapping)
         shader.v1f("strength", strength)
-        source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        source.bindTrulyNearest(0)
         bloom.bind(1, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         flat01.draw(shader)
     }

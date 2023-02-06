@@ -18,8 +18,6 @@ import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -271,7 +269,7 @@ object ScreenSpaceAmbientOcclusion {
             GFX.check()
             val shader = blurShader
             shader.use()
-            data.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            data.bindTrulyNearest(0)
             shader.v2f("delta", 1f / w, 1f / h)
             GFX.flat01.draw(shader)
             GFX.check()

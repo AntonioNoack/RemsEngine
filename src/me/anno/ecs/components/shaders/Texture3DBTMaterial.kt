@@ -3,8 +3,6 @@ package me.anno.ecs.components.shaders
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.maths.Maths.max
@@ -48,10 +46,7 @@ class Texture3DBTMaterial : Material() {
         super.bind(shader)
         val ti = shader.getTextureIndex("blocksTexture")
         val blocks = blocks
-        if (ti >= 0) {
-            if (blocks != null) blocks.bind(ti, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            else whiteTex3d.bind(ti, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-        }
+        if (ti >= 0) (blocks ?: whiteTex3d).bindTrulyNearest(ti)
         shader.v3i("bounds", size)
         // max amount of blocks that can be traversed
         val maxSteps = max(1, size.x + size.y + size.z)

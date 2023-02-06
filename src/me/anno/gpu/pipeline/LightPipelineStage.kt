@@ -26,8 +26,6 @@ import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.Saveable
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.Lists.any2
@@ -516,7 +514,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         // todo we can also separate the case of 2 different fragments, just with some ratio (4x less compute/light lookups)
         // (twice as many draw calls, but hopefully less work altogether)
 
-        source.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        source.bindTrulyNearest(0)
 
         nonInstanced.forEachType { lights, type, size ->
 
@@ -579,7 +577,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                             val texture = cascades[0].depthTexture!!
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
-                            texture.bind(cubicIndex0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                            texture.bindTrulyNearest(cubicIndex0)
                             shadowIdx1 = 1 // end index
                         }
                     }
@@ -593,7 +591,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                             val texture = cascades[j].depthTexture!!
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
-                            texture.bind(slot, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                            texture.bindTrulyNearest(slot)
                             if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
                         }
                         shadowIdx1 = planarSlot // end index

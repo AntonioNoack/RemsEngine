@@ -43,7 +43,7 @@ object BoxBlur {
         localTransform: Matrix4fArrayList
     ) {
 
-        src.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        src.bindTrulyNearest(0)
 
         renderPurely {
 

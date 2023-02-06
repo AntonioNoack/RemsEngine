@@ -83,7 +83,7 @@ object GaussianBlur {
         localTransform: Matrix4fArrayList
     ) {
 
-        src.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        src.bindTrulyNearest(0)
 
         var size = pixelSize
 
@@ -113,7 +113,7 @@ object GaussianBlur {
                     // draw texture 0 (masked) onto temp2
                     // todo sample multiple times...
                     GFX.copy()
-                    temp2.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    temp2.bindTrulyNearest(0)
                 }
             }
 

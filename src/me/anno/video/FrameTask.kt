@@ -12,8 +12,6 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileReference
@@ -144,7 +142,7 @@ abstract class FrameTask(
                         }
                     }
                     if (!needsMoreSources) {
-                        partialFrame.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                        partialFrame.bindTrulyNearest(0)
                         blendMode.use(BlendMode.PURE_ADD) {
                             depthMode.use(DepthMode.ALWAYS) {
                                 // write with alpha 1/motionBlurSteps
@@ -177,8 +175,10 @@ abstract class FrameTask(
     companion object {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FrameTask::class)
+
         @JvmField
         var lastPrinted = 0L
+
         @JvmStatic
         var missingResource = ""
             set(value) {

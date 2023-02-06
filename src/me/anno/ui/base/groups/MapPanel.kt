@@ -109,6 +109,10 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         } else super.onUpdate()
     }
 
+    override fun invalidateLayout() {
+        window?.needsLayout?.add(this)
+    }
+
     open fun shallMoveMap(): Boolean = Input.isLeftDown
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
@@ -124,7 +128,7 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
                 ry = 0f
             }
         }
-        if (shallMoveMap()) moveMap(rx.toDouble(), ry.toDouble())
+        if (shallMoveMap() && (rx != 0f || ry != 0f)) moveMap(rx.toDouble(), ry.toDouble())
         else super.onMouseMoved(x, y, rx, ry)
     }
 
@@ -133,7 +137,7 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         // moving around
         center.sub(dx / scale, dy / scale)
         target.set(center)
-        window?.needsLayout?.add(this)
+        invalidateLayout()
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {

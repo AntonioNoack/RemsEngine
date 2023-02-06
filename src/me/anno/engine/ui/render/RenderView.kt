@@ -559,7 +559,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                                 val shader = LightPipelineStage.getPostShader(deferred)
                                 shader.use()
                                 shader.v1b("applyToneMapping", true)
-                                buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                buffer.bindTrulyNearest(2)
                                 ssao.bindTrulyNearest(shader, "ambientOcclusion")
                                 lightBuffer.bindTexture0(
                                     shader,
@@ -688,9 +688,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                                 val shader = LightPipelineStage.getPostShader(deferred)
                                 shader.use()
                                 shader.v1b("applyToneMapping", hdr)
-                                buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                whiteTexture.bind(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP) // ssao
-                                lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                buffer.bindTrulyNearest(2)
+                                whiteTexture.bindTrulyNearest(1) // ssao
+                                lightBuffer.bindTrulyNearest(0)
                                 flat01.draw(shader)
                             }
                         }
@@ -971,7 +971,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 shader.v1b("applyToneMapping", false)
                 shader.v3f("ambientLight", pipeline.ambient)
 
-                buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                buffer.bindTrulyNearest(2)
                 ssao.bindTrulyNearest(shader, "ambientOcclusion")
                 lightBuffer.bindTexture0(
                     shader,
@@ -1014,7 +1014,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     shader.use()
                     shader.v1b("applyToneMapping", true)
 
-                    buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    buffer.bindTrulyNearest(2)
                     ssao.bindTrulyNearest(shader, "ambientOcclusion")
                     lightBuffer.bindTexture0(
                         shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP

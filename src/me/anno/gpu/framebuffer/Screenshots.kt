@@ -4,12 +4,10 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.Image
-import me.anno.image.raw.toImage
 import me.anno.image.raw.IntImage
+import me.anno.image.raw.toImage
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
@@ -159,7 +157,7 @@ object Screenshots {
 
             GFX.check()
 
-            val fb: Framebuffer = FBStack["Screenshot", w, h, 4, false, 8, true]
+            val fb = FBStack["Screenshot", w, h, 4, false, 8, true]
 
             GFX.check()
 
@@ -169,7 +167,7 @@ object Screenshots {
                     GFX.check()
                     drawScene()
                     // Scene.draw(camera, RemsStudio.root, 0, 0, w, h, RemsStudio.editorTime, true, renderer, this)
-                    fb.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    fb.bindTrulyNearest(0)
                 }
                 return fb.createImage(flipY = false, withAlpha = false)
             }
