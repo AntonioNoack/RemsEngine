@@ -39,6 +39,7 @@ import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.utils.TrashManager.moveToTrash
+import me.anno.io.xml.ComparableStringBuilder
 import me.anno.io.zip.InnerLinkFile
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.mixARGB
@@ -464,18 +465,19 @@ open class FileExplorerEntry(
                 val seconds = max((frameIndex / previewFPS).toInt(), 0) % max(totalSeconds, 1)
 
                 val format = if (needsHours) charHHMMSS else charMMSS
+                val data = format.value
                 if (needsHours) {
-                    setNumber(15, totalSeconds % 60, format)
-                    setNumber(12, (totalSeconds / 60) % 60, format)
-                    setNumber(9, totalSeconds / 3600, format)
-                    setNumber(6, seconds % 60, format)
-                    setNumber(3, (seconds / 60) % 60, format)
-                    setNumber(0, seconds / 3600, format)
+                    setNumber(15, totalSeconds % 60, data)
+                    setNumber(12, (totalSeconds / 60) % 60, data)
+                    setNumber(9, totalSeconds / 3600, data)
+                    setNumber(6, seconds % 60, data)
+                    setNumber(3, (seconds / 60) % 60, data)
+                    setNumber(0, seconds / 3600, data)
                 } else {
-                    setNumber(9, totalSeconds % 60, format)
-                    setNumber(6, (totalSeconds / 60) % 60, format)
-                    setNumber(3, seconds % 60, format)
-                    setNumber(0, seconds / 60, format)
+                    setNumber(9, totalSeconds % 60, data)
+                    setNumber(6, (totalSeconds / 60) % 60, data)
+                    setNumber(3, seconds % 60, data)
+                    setNumber(0, seconds / 60, data)
                 }
 
                 // more clip space, and draw it a little more left and at the top
@@ -826,10 +828,10 @@ open class FileExplorerEntry(
         var videoBufferLength = 64
 
         @JvmStatic
-        private val charHHMMSS = "hh:mm:ss/hh:mm:ss".toCharArray()
+        private val charHHMMSS = ComparableStringBuilder("hh:mm:ss/hh:mm:ss")
 
         @JvmStatic
-        private val charMMSS = "mm:ss/mm:ss".toCharArray()
+        private val charMMSS = ComparableStringBuilder("mm:ss/mm:ss")
 
         @JvmField
         val folderPath = getReference("res://file/folder.png")

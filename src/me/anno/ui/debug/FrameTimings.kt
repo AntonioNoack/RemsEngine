@@ -14,9 +14,11 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.io.xml.ComparableStringBuilder
 import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
 import java.nio.ByteOrder
 import kotlin.math.max
@@ -70,9 +72,9 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
             Variable(GLSLType.V1F, "height")
         ), "" +
                 "void main(){\n" +
-                "   float v = min((texture(tex, uv).x + uv.y - 1.0) * height + 0.5, 1.0);\n" +
-                "   if(v <= 0.0) discard;\n" +
+                "   float v = clamp((texture(tex, uv).x + uv.y - 1.0) * height + 0.5, 0.0, 1.0);\n" +
                 "   gl_FragColor = mix(background, color, v);\n" +
+                "   if(gl_FragColor.a <= 0.0) discard;\n" +
                 "}"
     )
 
@@ -113,14 +115,17 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
     val withoutInterpolation get() = OS.isAndroid
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawBackground(x0, y0, x1, y1)
 
         val containers = containers
-        if (containers.isEmpty()) return
+        if (containers.isEmpty()) {
+            drawBackground(x0, y0, x1, y1)
+            return
+        }
 
         containers.sortDescending()
         val maxValue = containers[0].maxValue
 
+        var background = backgroundColor
         for (j in containers.indices) {
             val container = containers[j]
             val nextIndex = container.nextIndex
@@ -130,6 +135,8 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
             val indexOffset = nextIndex - 1 + width
 
             if (withoutInterpolation) {
+
+                if (j == 0) drawBackground(x0, y0, x1, y1)
 
                 var lastX = x0
                 var lastBarHeight = 0
@@ -171,11 +178,13 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 shader.v1f("height", height.toFloat())
                 GFXx2D.posSize(shader, x, y, w, h)
                 shader.v4f("color", barColor)
-                shader.v4f("background", backgroundColor)
+                shader.v4f("background", background)
                 GFXx2D.noTiling(shader)
                 texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 GFX.flat01.draw(shader)
                 GFX.check()
+
+                background = background.withAlpha(0)
 
             }
         }
@@ -188,7 +197,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         }
     }
 
-    val text = "theFPS, min: theFPS".toCharArray()
+    val text = ComparableStringBuilder("theFPS, min: theFPS")
 
     fun add(nanos: Long, color: Int) {
         putValue(nanos * 1e-9f, color)
@@ -203,8 +212,8 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         draw()
 
         val maxTime = timeContainer.maxValue
-        formatNumber(text, 0, 6, Engine.currentFPS)
-        formatNumber(text, 13, 6, 1f / maxTime)
+        formatNumber(text.value, 0, 6, Engine.currentFPS)
+        formatNumber(text.value, 13, 6, 1f / maxTime)
 
         drawSimpleTextCharByChar(x0, y0, 2, text)
 

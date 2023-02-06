@@ -142,9 +142,9 @@ open class XMLReader {
         }
     }
 
-    fun parse(input: InputStream) = parse(null, input)
-    fun parse(firstChar: Int?, input: InputStream): Any? {
-        val first = firstChar ?: input.skipSpaces()
+    fun parse(input: InputStream) = parse(-1, input)
+    fun parse(firstChar: Int, input: InputStream): Any? {
+        val first = if(firstChar < 0) input.skipSpaces() else firstChar
         if (first == '<'.code) {
             val type = input.readTypeUntilSpaceOrEnd(type0).toString()
             val end = last
@@ -156,12 +156,12 @@ open class XMLReader {
                     // read until ?>
                     // or <?xpacket end="w"?>
                     input.readUntil("?>")
-                    return parse(null, input)
+                    return parse(-1, input)
                 }
                 type.startsWith("!--") -> {
                     // search until -->
                     input.readUntil("-->")
-                    return parse(null, input)
+                    return parse(-1, input)
                 }
                 type.startsWith("!doctype", true) -> {
                     var ctr = 1
@@ -171,7 +171,7 @@ open class XMLReader {
                             '>'.code -> ctr--
                         }
                     }
-                    return parse(null, input)
+                    return parse(-1, input)
                 }
                 type.startsWith("![cdata[", true) -> {
                     val value = input.getStringUntil("]]>")
@@ -214,10 +214,10 @@ open class XMLReader {
                 }
                 '>'.code -> {
                     // read the body (all children)
-                    var next: Int? = null
+                    var next: Int = -1
                     children@ while (true) {
                         val child = parse(next, input)
-                        next = null
+                        next = -1
                         when (child) {
                             endElement -> return xmlNode
                             is String -> {
@@ -235,7 +235,8 @@ open class XMLReader {
     }
 
     fun readString(first: Int, input: InputStream): String {
-        val str = ComparableStringBuilder(20)
+        val str = valueBuilder
+        str.clear()
         if (first != 0) str.append(first.toChar())
         while (true) {
             when (val char = input.read()) {

@@ -6,6 +6,7 @@ import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.drawing.GFXx2D.posSizeDraw
 import me.anno.gpu.drawing.GFXx2D.transform
@@ -34,7 +35,7 @@ object DrawTexts {
 
     private val LOGGER = LogManager.getLogger(DrawTexts::class)
 
-    val simpleChars = Array('z'.code + 1 - 33) { (it + 33).toChar().toString() }
+    val simpleChars = Array(126 + 1 - 33) { (it + 33).toChar().toString() }
 
     val monospaceFont by lazy {
         val size = DefaultConfig.style.getSize("fontSize", 12)
@@ -49,56 +50,14 @@ object DrawTexts {
         Font(fontName, size, bold, italic)
     }
 
-    val monospaceKeys by lazy {
-        Array(simpleChars.size) {
-            FontManager.getTextCacheKey(monospaceFont, simpleChars[it], -1, -1)
-        }
+    private val simpleBatch = object : Batch(GFX.flat01, listOf(Attribute("instData", 2))) {
+        override fun bindShader() = ShaderLib.subpixelCorrectTextShader[1].value
     }
 
     fun drawSimpleTextCharByChar(
         x: Int, y: Int,
         padding: Int,
-        text: CharArray,
-        textColor: Int = FrameTimings.textColor,
-        backgroundColor: Int = FrameTimings.backgroundColor,
-        alignX: AxisAlignment = AxisAlignment.MIN,
-        alignY: AxisAlignment = AxisAlignment.MIN
-    ) {
-        val font = monospaceFont
-        val keys = monospaceKeys
-        val charWidth = font.sampleWidth
-        val size = text.size
-        val width = charWidth * size
-        val height = font.sampleHeight
-        val dx = getOffset(width, alignX)
-        val dy = getOffset(height, alignY)
-        DrawRectangles.drawRect(
-            x + dx, y + dy,
-            charWidth * text.size + 2 * padding, font.sizeInt + 2 * padding,
-            backgroundColor
-        )
-        var x1 = x + dx + padding
-        val y1 = y + dy + padding
-        for (i in text.indices) {
-            val char = text[i]
-            val charInt = char.code - 33
-            if (charInt in simpleChars.indices) {
-                val key = keys[charInt] ?: continue
-                drawTextChar(
-                    x1, y1,
-                    font, key, textColor, backgroundColor.and(0xffffff),
-                    AxisAlignment.MIN, AxisAlignment.MIN,
-                    true
-                )
-            }
-            x1 += charWidth
-        }
-    }
-
-    fun drawSimpleTextCharByChar(
-        x: Int, y: Int,
-        padding: Int,
-        text: String,
+        text: CharSequence,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN,
     ): Int = drawSimpleTextCharByChar(
@@ -110,7 +69,7 @@ object DrawTexts {
     fun drawSimpleTextCharByChar(
         x: Int, y: Int,
         padding: Int,
-        text: String,
+        text: CharSequence,
         textColor: Int = FrameTimings.textColor,
         backgroundColor: Int = FrameTimings.backgroundColor or black,
         alignX: AxisAlignment = AxisAlignment.MIN,
@@ -118,31 +77,55 @@ object DrawTexts {
     ): Int {
         GFX.check()
         val font = monospaceFont
-        val keys = monospaceKeys
         val charWidth = font.sampleWidth
         val size = text.length
         val width = charWidth * size
         val height = font.sampleHeight
-        val dx = getOffset(width, alignX) - padding
-        val dy = getOffset(height, alignY) - padding
+
+        val dx0 = getOffset(width, alignX) - padding
+        val dy0 = getOffset(height, alignY) - padding
+
         DrawRectangles.drawRect(
-            x + dx, y + dy,
+            x + dx0, y + dy0,
             charWidth * text.length + 2 * padding, font.sizeInt + 2 * padding,
             backgroundColor
         )
+
+        val shader = chooseShader(textColor, backgroundColor, 1)
+
+        val texture = FontManager.getASCIITexture(font)
+
+        val y2 = y + dy0 + padding - 1
+        var x2 = x + dx0 + padding + (charWidth - texture.w) / 2
+
+        texture.bindTrulyNearest(0)
+        if (shader is Shader) {
+            simpleBatch.start()
+            posSize(shader, 0f, y2.toFloat(), texture.w.toFloat(), texture.h.toFloat())
+        }
+
         for (i in text.indices) {
             val char = text[i]
-            val charInt = char.code - 33
-            if (charInt in simpleChars.indices) {
-                val key = keys[charInt] ?: continue
-                drawTextChar(
-                    x + dx + padding + i * charWidth, y + dy + padding,
-                    font, key, textColor, backgroundColor.and(0xffffff),
-                    AxisAlignment.MIN, AxisAlignment.MIN,
-                    true
-                )
+            val code = char.code - 33
+            if (code in simpleChars.indices) {
+                if (shader is Shader) {
+                    val posX = (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth
+                    simpleBatch.data.putFloat(posX).putFloat(code.toFloat())
+                    simpleBatch.next()
+                } else {
+                    shader as ComputeShader
+                    shader.v1f("uvZ", code.toFloat())
+                    posSizeDraw(shader, x2, y2, texture.w, texture.h, 1)
+                    GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+                }
             }
+            x2 += charWidth
         }
+
+        if (shader is Shader) {
+            simpleBatch.finish()
+        }
+
         return width
     }
 
@@ -199,13 +182,6 @@ object DrawTexts {
             return GFXx2D.getSize(0, font.sizeInt)
 
         val shader = chooseShader(textColor, backgroundColor)
-
-        if (shader is ComputeShader) {
-            shader.bindTexture(1, GFXState.currentBuffer.getTexture0() as Texture2D, ComputeTextureMode.READ_WRITE)
-        }
-
-        shader.v4f("textColor", textColor)
-        shader.v4f("backgroundColor", backgroundColor)
         GFX.check()
 
         if (equalSpaced) {
@@ -288,12 +264,24 @@ object DrawTexts {
         }
     }
 
-    private fun chooseShader(textColor: Int, backgroundColor: Int): OpenGLShader {
+    private fun chooseShader(textColor: Int, backgroundColor: Int, instanced: Int = 0): OpenGLShader {
         GFX.check()
         val cuc = canUseComputeShader() && min(textColor.a(), backgroundColor.a()) < 255
-        val shader = if (cuc) ShaderLib.subpixelCorrectTextShader2
-        else ShaderLib.subpixelCorrectTextShader.value
+        val shader = if (cuc) {
+            val shader = ShaderLib.subpixelCorrectTextShader2[instanced]
+            shader.use()
+            shader.bindTexture(
+                1, GFXState.currentBuffer.getTexture0() as Texture2D,
+                ComputeTextureMode.READ_WRITE
+            )
+            shader
+        } else ShaderLib.subpixelCorrectTextShader[instanced].value
         shader.use()
+        shader.v4f("textColor", textColor)
+        shader.v4f("backgroundColor", backgroundColor)
+        val windowWidth = GFX.viewportWidth.toFloat()
+        val windowHeight = GFX.viewportHeight.toFloat()
+        shader.v2f("windowSize", windowWidth, windowHeight)
         return shader
     }
 
@@ -316,12 +304,6 @@ object DrawTexts {
         GFX.check()
 
         val shader = chooseShader(textColor, backgroundColor)
-        if (shader is ComputeShader) {
-            shader.bindTexture(1, GFXState.currentBuffer.getTexture0() as Texture2D, ComputeTextureMode.READ_WRITE)
-        }
-
-        shader.v4f("textColor", textColor)
-        shader.v4f("backgroundColor", backgroundColor)
         GFX.check()
 
         GFX.loadTexturesSync.push(true)
@@ -439,21 +421,13 @@ object DrawTexts {
             texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             val x2 = x + getOffset(w, alignX)
             val y2 = y + getOffset(h, alignY)
-            val windowWidth = GFX.viewportWidth.toFloat()
-            val windowHeight = GFX.viewportHeight.toFloat()
             val shader = chooseShader(textColor, backgroundColor)
             if (shader is ComputeShader) {
-                shader.bindTexture(1, GFXState.currentBuffer.getTexture0() as Texture2D, ComputeTextureMode.READ_WRITE)
-                shader.v4f("textColor", textColor)
-                shader.v4f("backgroundColor", backgroundColor)
                 posSizeDraw(shader, x2, y2, w, h, 1)
                 GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             } else {
                 shader as Shader
                 posSize(shader, x2, y2, w, h)
-                shader.v2f("windowSize", windowWidth, windowHeight)
-                shader.v4f("textColor", textColor)
-                shader.v4f("backgroundColor", backgroundColor)
                 GFX.flat01.draw(shader)
             }
             GFX.check()

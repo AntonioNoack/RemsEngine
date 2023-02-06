@@ -887,93 +887,114 @@ object ShaderLib {
                 "}"
     )
 
-    val subpixelCorrectTextShader = BaseShader(
-        "subpixelCorrectTextShader", listOf(
-            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
-            Variable(GLSLType.V2F, "pos"),
-            Variable(GLSLType.V2F, "size"),
-            // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
-            Variable(GLSLType.M4x4, "transform"),
-            Variable(GLSLType.V2F, "windowSize"),
-        ), "" +
-                "void main(){\n" +
-                "   vec2 localPos = pos + coords * size;\n" +
-                "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
-                "   position = localPos * windowSize;\n" +
-                "   uv = coords;\n" +
-                "}",
-        listOf(
-            Variable(GLSLType.V2F, "uv"),
-            Variable(GLSLType.V2F, "position")
-        ),
-        listOf(
-            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-            Variable(GLSLType.V4F, "textColor"),
-            Variable(GLSLType.V4F, "backgroundColor"),
-            Variable(GLSLType.V2F, "windowSize"),
-            Variable(GLSLType.S2D, "tex"),
-        ), "" +
-                brightness +
-                "void main(){\n" +
-                "#define IS_TINTED\n" + // todo remove
-                "   vec3 mixing = texture(tex, uv).rgb * textColor.a;\n" +
-                "   float mixingAlpha = brightness(mixing);\n" +
-                // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
-                "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0)\n" +
-                "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
-                "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, mixingAlpha));\n" +
-                "   if(color.a < 0.001) discard;\n" +
-                "   finalColor = color.rgb;\n" +
-                "   finalAlpha = 1.0;\n" +
-                "}"
-    )
-    val subpixelCorrectTextShader2 = ComputeShader(
-        "subpixelCorrectTextShader", Vector3i(16, 16, 1), "" +
-                brightness +
-                "uniform sampler2D tex;\n" +
-                "layout(rgba8, binding = 1) restrict uniform image2D dst;\n" +
-                "uniform vec4 textColor, backgroundColor;\n" +
-                "uniform ivec2 srcOffset, dstOffset, invokeSize;\n" +
-                // the border isn't the most beautiful, but it ensures readability in front of bad backgrounds :)
-                "float read(vec2 uv){\n" +
-                "   vec3 col = texture(tex, uv, 0).rgb;\n" +
-                "   return uv.x >= 0.0 && uv.y >= 0.0 && uv.x <= 1.0 && uv.y <= 1.0 ? (col.x + col.y + col.z) : 0.0;\n" +
-                "}\n" +
-                "float findBorder(ivec2 uv, vec2 invSizeM1){\n" +
-                "   float sum = 0.16 * (\n" +
-                "       read(vec2(uv.x,uv.y-1)*invSizeM1) +\n" +
-                "       read(vec2(uv.x,uv.y+1)*invSizeM1) +\n" +
-                "       read(vec2(uv.x+1,uv.y)*invSizeM1) +\n" +
-                "       read(vec2(uv.x-1,uv.y)*invSizeM1)) + 0.08 * (\n" +
-                "       read(vec2(uv.x-1,uv.y-1)*invSizeM1) +\n" +
-                "       read(vec2(uv.x-1,uv.y+1)*invSizeM1) +\n" +
-                "       read(vec2(uv.x+1,uv.y-1)*invSizeM1) +\n" +
-                "       read(vec2(uv.x+1,uv.y+1)*invSizeM1));\n" +
-                "   return min(sum, 1.0);\n" +
-                "}\n" +
-                "void main(){\n" +
-                "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy), uv0 = uv;\n" +
-                "   if(uv.x >= invokeSize.x || uv.y >= invokeSize.y) return;\n" +
-                "   ivec2 size = textureSize(tex, 0);\n" +
-                "   vec2 invSizeM1 = 1.0/vec2(size-1);\n" +
-                "   vec3 mixingSrc = texture(tex, vec2(uv + srcOffset)*invSizeM1, 0).rgb;\n" +
-                "   vec3 mixing = mixingSrc * textColor.a;\n" +
-                "   float mixingAlpha = brightness(mixing);\n" +
-                "   size = imageSize(dst);\n" +
-                // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
-                "   if(uv.x <= 0 || uv.y <= 0 || uv.x >= invokeSize.x-1 || uv.y >= invokeSize.y - 1)\n" +
-                "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
-                "   uv += dstOffset;\n" +
-                "   uv.y = size.y - 1 - uv.y;\n" +
-                "   vec4 backgroundColorI = imageLoad(dst, uv);\n" +
-                // todo there is awkward gray pieces around the text...
-                // "   if(mixingSrc.y < 1.0 && brightness(abs(textColor - backgroundColorI)) < 0.7)\n" +
-                "       backgroundColorI.rgb = mix(backgroundColorI.rgb, backgroundColor.rgb, findBorder(uv0+srcOffset, invSizeM1));\n" +
-                "   vec4 color = mix(backgroundColorI, textColor, vec4(mixing, mixingAlpha));\n" +
-                "   imageStore(dst, uv, color);\n" +
-                "}"
-    )
+    val subpixelCorrectTextShader = Array(2) {
+        val instanced = it > 0
+        val type = if (instanced) VariableMode.ATTR else VariableMode.IN
+        BaseShader(
+            "subpixelCorrectTextShader", listOf(
+                Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+                Variable(GLSLType.V2F, "instData", type),
+                Variable(GLSLType.V2F, "pos"),
+                Variable(GLSLType.V2F, "size"),
+                // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
+                Variable(GLSLType.M4x4, "transform"),
+                Variable(GLSLType.V2F, "windowSize"),
+            ), "" +
+                    "void main(){\n" +
+                    (if (instanced)
+                        "   vec2 localPos = coords * size + vec2(instData.x, pos.y);\n" else
+                        "   vec2 localPos = coords * size + pos;\n") +
+                    "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
+                    "   position = localPos * windowSize;\n" +
+                    (if (instanced)
+                        "   uv = vec3(coords,instData.y);\n" else
+                        "   uv = coords;\n") +
+                    "}",
+            listOf(
+                Variable(if (instanced) GLSLType.V3F else GLSLType.V2F, "uv"),
+                Variable(GLSLType.V2F, "position")
+            ),
+            listOf(
+                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+                Variable(GLSLType.V4F, "textColor"),
+                Variable(GLSLType.V4F, "backgroundColor"),
+                Variable(GLSLType.V2F, "windowSize"),
+                Variable(if (instanced) GLSLType.S2DA else GLSLType.S2D, "tex"),
+            ), "" +
+                    brightness +
+                    "void main(){\n" +
+                    "#define IS_TINTED\n" + // todo remove
+                    "   vec3 mixing = texture(tex, uv).rgb * textColor.a;\n" +
+                    "   float mixingAlpha = brightness(mixing);\n" +
+                    // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
+                    "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0)\n" +
+                    "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
+                    "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, mixingAlpha));\n" +
+                    "   if(color.a < 0.001) discard;\n" +
+                    "   finalColor = color.rgb;\n" +
+                    "   finalAlpha = 1.0;\n" +
+                    "}"
+        )
+    }
+
+    val subpixelCorrectTextShader2 = Array(2) {
+        val instanced = it > 0
+        ComputeShader(
+            "subpixelCorrectTextShader", Vector3i(16, 16, 1), "" +
+                    brightness +
+                    (if (instanced)
+                        "uniform sampler2DArray tex;\n" else
+                        "uniform sampler2D tex;\n") +
+                    "layout(rgba8, binding = 1) restrict uniform image2D dst;\n" +
+                    "uniform vec4 textColor, backgroundColor;\n" +
+                    "uniform ivec2 srcOffset, dstOffset, invokeSize;\n" +
+                    "uniform float uvZ;\n" +
+                    // the border isn't the most beautiful, but it ensures readability in front of bad backgrounds :)
+                    "float read(vec2 uv){\n" +
+                    (if (instanced)
+                        "   vec3 col = texture(tex, vec3(uv,uvZ), 0).rgb;\n" else
+                        "   vec3 col = texture(tex, uv, 0).rgb;\n") +
+                    "   return uv.x >= 0.0 && uv.y >= 0.0 && uv.x <= 1.0 && uv.y <= 1.0 ? (col.x + col.y + col.z) : 0.0;\n" +
+                    "}\n" +
+                    "float findBorder(ivec2 uv, vec2 invSizeM1){\n" +
+                    "   float sum = 0.16 * (\n" +
+                    "       read(vec2(uv.x,uv.y-1)*invSizeM1) +\n" +
+                    "       read(vec2(uv.x,uv.y+1)*invSizeM1) +\n" +
+                    "       read(vec2(uv.x+1,uv.y)*invSizeM1) +\n" +
+                    "       read(vec2(uv.x-1,uv.y)*invSizeM1)) + 0.08 * (\n" +
+                    "       read(vec2(uv.x-1,uv.y-1)*invSizeM1) +\n" +
+                    "       read(vec2(uv.x-1,uv.y+1)*invSizeM1) +\n" +
+                    "       read(vec2(uv.x+1,uv.y-1)*invSizeM1) +\n" +
+                    "       read(vec2(uv.x+1,uv.y+1)*invSizeM1));\n" +
+                    "   return min(sum, 1.0);\n" +
+                    "}\n" +
+                    "void main(){\n" +
+                    "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy), uv0 = uv;\n" +
+                    "   if(uv.x >= invokeSize.x || uv.y >= invokeSize.y) return;\n" +
+                    "   ivec2 size = textureSize(tex, 0).xy;\n" +
+                    "   vec2 invSizeM1 = 1.0/vec2(size-1);\n" +
+                    "   vec2 uv1 = vec2(uv + srcOffset)*invSizeM1;\n" +
+                    (if (instanced)
+                        "   vec3 mixingSrc = texture(tex, vec3(uv1,uvZ), 0).rgb;\n" else
+                        "   vec3 mixingSrc = texture(tex, uv1, 0).rgb;\n") +
+                    "   vec3 mixing = mixingSrc * textColor.a;\n" +
+                    "   float mixingAlpha = brightness(mixing);\n" +
+                    "   size = imageSize(dst);\n" +
+                    // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
+                    "   if(uv.x <= 0 || uv.y <= 0 || uv.x >= invokeSize.x-1 || uv.y >= invokeSize.y - 1)\n" +
+                    "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
+                    "   uv += dstOffset;\n" +
+                    "   uv.y = size.y - 1 - uv.y;\n" +
+                    "   vec4 backgroundColorI = imageLoad(dst, uv);\n" +
+                    // todo there is awkward gray pieces around the text...
+                    // "   if(mixingSrc.y < 1.0 && brightness(abs(textColor - backgroundColorI)) < 0.7)\n" +
+                    "       backgroundColorI.rgb = mix(backgroundColorI.rgb, backgroundColor.rgb, findBorder(uv0+srcOffset, invSizeM1));\n" +
+                    "   vec4 color = mix(backgroundColorI, textColor, vec4(mixing, mixingAlpha));\n" +
+                    "   imageStore(dst, uv, color);\n" +
+                    "}"
+        )
+    }
 
     fun createShader(
         shaderName: String,

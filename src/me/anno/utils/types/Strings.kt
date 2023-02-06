@@ -17,6 +17,7 @@ import java.util.*
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.min
+import kotlin.math.pow
 
 @Suppress("unused")
 object Strings {
@@ -40,7 +41,7 @@ object Strings {
         val builder = StringBuilder(endIndex - startIndex)
         for (i in startIndex until endIndex) {
             val c = get(i)
-            if (filter(c)){
+            if (filter(c)) {
                 builder.append(Character.toChars(c))
             }
         }
@@ -367,6 +368,62 @@ object Strings {
             if (str[i] == '\n') ctr++
         }
         return ctr
+    }
+
+    @JvmStatic
+    fun CharSequence.toInt(i0: Int = 0, i1: Int = length) = toLong(i0, i1).toInt()
+
+    @JvmStatic
+    fun CharSequence.toLong(i0: Int = 0, i1: Int = length): Long {
+        val c0 = this[0]
+        if (c0 == '-') return -toLong(i0 + 1, i1)
+        var number = c0.code - 48L
+        for (i in i0 + 1 until i1) {
+            number = 10 * number + this[i].code - 48
+        }
+        return number
+    }
+
+    @JvmStatic
+    fun CharSequence.toFloat(i0: Int = 0, i1: Int = length) = toDouble(i0, i1).toFloat()
+
+    @JvmStatic
+    fun CharSequence.toDouble(i0: Int = 0, i1: Int = length): Double {
+        // todo support NaN, +/-Infinity
+        var sign = 1.0
+        var number = 0L
+        when (val char = this[i0]) {
+            '-' -> sign = -1.0
+            in '0'..'9' -> number = char.code - 48L
+            '.' -> return readAfterDot(i0, i0 + 1, i1, sign, 0.0)
+            // else should not happen
+        }
+        for (i in i0 + 1 until i1) {
+            when (val char = this[i]) {
+                in '0'..'9' -> number = number * 10 + char.code - 48
+                '.' -> return readAfterDot(i0, i + 1, i1, sign, number.toDouble())
+                'e', 'E' -> return sign * number * 10.0.pow(toInt())
+                else -> throw NumberFormatException(subSequence(i0, i1).toString())
+            }
+        }
+        return sign * number.toFloat()
+    }
+
+    @JvmStatic
+    private fun CharSequence.readAfterDot(ix: Int, i0: Int, i1: Int, sign: Double, number: Double): Double {
+        var exponent = 0.1
+        var fraction = 0.0
+        for (i in i0 until i1) {
+            when (val char2 = this[i]) {
+                in '0'..'9' -> {
+                    fraction += exponent * (char2.code - 48)
+                    exponent *= 0.1f
+                }
+                'e', 'E' -> return sign * (number + fraction) * 10.0.pow(toLong(i).toInt())
+                else -> throw NumberFormatException(subSequence(ix, i1).toString())
+            }
+        }
+        return sign * (number + fraction)
     }
 
 }

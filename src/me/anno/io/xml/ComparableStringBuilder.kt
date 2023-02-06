@@ -1,9 +1,12 @@
 package me.anno.io.xml
 
-import java.util.*
 import kotlin.math.max
 
 class ComparableStringBuilder(init: Int = 16) : CharSequence {
+
+    constructor(str: String) : this(str.length) {
+        append(str)
+    }
 
     var value = CharArray(init)
 

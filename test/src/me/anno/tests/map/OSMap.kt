@@ -12,11 +12,12 @@ import me.anno.io.xml.XMLReader
 import me.anno.io.xml.XMLScanner
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
-import me.anno.utils.Clock
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Floats.toRadians
+import me.anno.utils.types.Strings.toDouble
+import me.anno.utils.types.Strings.toLong
 import java.io.InputStream
 import kotlin.math.cos
 
@@ -207,6 +208,18 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
         } else null
     }
 
+    val types = hashMapOf(
+        "way" to "way",
+        "node" to "node",
+        "relation" to "relation"
+    )
+
+    val roles = listOf(
+        "forward", "inner", "outer", "stop", "platform", "backward", "",
+        "main_stream", "side_stream", "route_marker", "guidepost",
+        "from", "to", "via", "part"
+    ).associateWith { it }
+
     XMLScanner().parse(file, { type ->
         shallReadTags || type != "tag"
     }, { type ->
@@ -262,19 +275,19 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
     }, { type, k, v ->
         when (type) {
             "bounds" -> when (k) {
-                "minlon" -> map.minX = v.toString().toDouble()
-                "minlat" -> map.minY = v.toString().toDouble()
-                "maxlon" -> map.maxX = v.toString().toDouble()
-                "maxlat" -> map.maxY = v.toString().toDouble()
+                "minlon" -> map.minX = v.toDouble()
+                "minlat" -> map.minY = v.toDouble()
+                "maxlon" -> map.maxX = v.toDouble()
+                "maxlat" -> map.maxY = v.toDouble()
             }
             "node" -> when (k) {
-                "id" -> id = v.toString().toLong()
-                "lat" -> lat = ((v.toString().toDouble() - minY) * facY - 1.0).toFloat()
-                "lon" -> lon = ((v.toString().toDouble() - minX) * facX - 1.0).toFloat()
+                "id" -> id = v.toLong()
+                "lat" -> lat = ((v.toDouble() - minY) * facY - 1.0).toFloat()
+                "lon" -> lon = ((v.toDouble() - minX) * facX - 1.0).toFloat()
             }
-            "way", "relation" -> if (k == "id") id = v.toString().toLong()
+            "way", "relation" -> if (k == "id") id = v.toLong()
             "nd" -> if (k == "ref") {
-                val node = map.nodes[v.toString().toLong()]!!
+                val node = map.nodes[v.toLong()]!!
                 node.used = true
                 mapNodes.add(node)
             }
@@ -283,9 +296,9 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
                 "value" -> tagValue = v.toString()
             }
             "member" -> when (k) {
-                "ref" -> memRef = v.toString().toLong()
-                "type" -> memType = v.toString()
-                "role" -> memRole = v.toString()
+                "ref" -> memRef = v.toLong()
+                "type" -> memType = types[v] ?: ""
+                "role" -> memRole = roles[v] ?: v.toString()
             }
         }
     })
@@ -300,21 +313,22 @@ fun main() {
     // https://www.openstreetmap.org/export
     // might be useful to somebody...
 
-    // todo street names, and all extra information :)
+    // todo draw street names, and all extra information :)
 
     val file = downloads.getChild("map2.osm")
     val data = file.readBytesSync()
-    val clock = Clock()
 
     val tags = false
+    /*val clock = Clock()
 
     clock.benchmark(5, 20, "map0") {
         readOSM0(data.inputStream(), tags)
     }
 
-    clock.benchmark(5, 2000, "map1") {
+    // 2.3x faster :)
+    clock.benchmark(5, 20, "map1") {
         readOSM1(data.inputStream(), tags)
-    }
+    }*/
 
     testUI3 {
         object : MapPanel(style) {
@@ -343,7 +357,7 @@ fun main() {
                     drawNode(node, minLon, minLat, maxLon, maxLat, -1)
                 }
                 for (relation in map.relations.values) {
-                    for ((type, nodes2) in relation.nodesByType) {
+                    for (nodes2 in relation.nodesByType.values) {
                         // to do color by type
                         for (node in nodes2) {
                             drawNode(node, minLon, minLat, maxLon, maxLat, -1)
@@ -358,7 +372,7 @@ fun main() {
                     drawWay(way, minLon, minLat, maxLon, maxLat, -1)
                 }
                 for (relation in map.relations.values) {
-                    for ((type, ways2) in relation.waysByType) {
+                    for (ways2 in relation.waysByType.values) {
                         // to do color by type
                         for (way in ways2) {
                             drawWay(way, minLon, minLat, maxLon, maxLat, -1)

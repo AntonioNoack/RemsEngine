@@ -8,6 +8,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.ceilDiv
@@ -19,9 +20,6 @@ import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.GraphicsEnvironment
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.concurrent.thread
 import kotlin.math.*
 
 object FontManager {
@@ -183,6 +181,12 @@ object FontManager {
         val hl = if (heightLimit < 0) GFX.maxTextureSize else min(heightLimit, GFX.maxTextureSize)
         val key = getTextCacheKey(font, text, wl, hl) ?: return null
         return getTexture(key)
+    }
+
+    fun getASCIITexture(font: me.anno.ui.base.Font): Texture2DArray {
+        return TextCache.getEntry(font, textureTimeout, false) { key ->
+            getFont(key).generateASCIITexture(false)
+        } as Texture2DArray
     }
 
     fun getTexture(cacheKey: TextCacheKey): ITexture2D? {

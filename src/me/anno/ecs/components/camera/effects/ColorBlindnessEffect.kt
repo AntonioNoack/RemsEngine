@@ -50,7 +50,7 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
                 shader.use()
                 shader.v1i("mode", mode.id)
                 shader.v1f("strength", strength)
-                input.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                input.bindTrulyNearest(0)
                 SimpleBuffer.flat01.draw(shader)
             }
             return buffer

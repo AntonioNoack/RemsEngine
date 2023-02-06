@@ -1,11 +1,12 @@
 package me.anno.fonts
 
 import me.anno.config.DefaultConfig
+import me.anno.fonts.mesh.AlignmentGroup
 import me.anno.gpu.GFX
+import me.anno.gpu.drawing.DrawTexts.simpleChars
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.texture.FakeWhiteTexture
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.*
+import me.anno.image.raw.toImage
 import me.anno.maths.Maths.clamp
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
@@ -168,6 +169,36 @@ class AWTFont(val font: Font) {
                     width, height, portableImages,
                     textColor, backgroundColor, extraPadding, text, group
                 )
+            }
+        }
+
+        return texture
+
+    }
+
+    fun generateASCIITexture(
+        portableImages: Boolean,
+        textColor: Int = -1,
+        backgroundColor: Int = 255 shl 24,
+        extraPadding: Int = 0
+    ): Texture2DArray {
+
+        val widthLimit = GFX.maxTextureSize
+        val heightLimit = GFX.maxTextureSize
+
+        val ctx = FontRenderContext(null, true, true)
+        val alignment = AlignmentGroup.getAlignments(this)
+        val size = alignment.getOffset(ctx, 'w'.code, 'w'.code)
+        val width = min(widthLimit, size.roundToInt() + 1 + 2 * extraPadding)
+        val height = min(heightLimit, fontMetrics.height + 2 * extraPadding)
+
+        val texture = Texture2DArray("awtAtlas", width, height, simpleChars.size)
+        val prio = GFX.isGFXThread()
+        if (prio) {
+            createImage(texture, portableImages, textColor, backgroundColor, extraPadding)
+        } else {
+            GFX.addGPUTask("awtAtlas", width, height) {
+                createImage(texture, portableImages, textColor, backgroundColor, extraPadding)
             }
         }
 
@@ -454,20 +485,20 @@ class AWTFont(val font: Font) {
         val texture = Texture2D("awt-font-v3", width, height, 1)
         val prio = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
         if (prio) {
-            createImage(texture, width, height, portableImages, textColor, backgroundColor, extraPadding, result)
+            createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
         } else {
             GFX.addGPUTask("awt-font-v6", width, height) {
-                createImage(texture, width, height, portableImages, textColor, backgroundColor, extraPadding, result)
+                createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
             }
         }
         return texture
     }
 
     private fun createImage(
-        texture: Texture2D, width: Int, height: Int, portableImages: Boolean,
-        textColor: Int, backgroundColor: Int, extraPadding: Int, result: List<StringPart>
+        texture: Texture2D, portableImages: Boolean, textColor: Int, backgroundColor: Int,
+        extraPadding: Int, result: List<StringPart>
     ) {
-        val image = BufferedImage(width, height, 1)
+        val image = BufferedImage(texture.w, texture.h, 1)
         // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
 
         val gfx = image.graphics as Graphics2D
@@ -476,7 +507,7 @@ class AWTFont(val font: Font) {
         if (backgroundColor.and(0xffffff) != 0) {
             // fill background with that color
             gfx.color = Color(backgroundColor)
-            gfx.fillRect(0, 0, width, height)
+            gfx.fillRect(0, 0, image.width, image.height)
         }
         gfx.translate(extraPadding, extraPadding)
         gfx.color = Color(textColor)
@@ -493,6 +524,36 @@ class AWTFont(val font: Font) {
         gfx.dispose()
         if (debugJVMResults) debug(image)
         texture.create(image, sync = true, checkRedundancy = false)?.invoke()
+    }
+
+    private fun createImage(
+        texture: Texture2DArray,
+        portableImages: Boolean,
+        textColor: Int,
+        backgroundColor: Int,
+        extraPadding: Int
+    ) {
+        val image = BufferedImage(texture.w, texture.h * texture.d, 1)
+        val gfx = image.graphics as Graphics2D
+        gfx.prepareGraphics(font, portableImages)
+        if (backgroundColor != 0) {
+            // fill background with that color
+            gfx.color = Color(backgroundColor)
+            gfx.fillRect(0, 0, image.width, image.height)
+        }
+        if (extraPadding != 0) {
+            gfx.translate(extraPadding, extraPadding)
+        }
+        gfx.color = Color(textColor)
+        var y = fontMetrics.ascent.toFloat()
+        val dy = texture.h.toFloat()
+        for (yi in simpleChars.indices) {
+            gfx.drawString(simpleChars[yi], 0f, y)
+            y += dy
+        }
+        gfx.dispose()
+        if (debugJVMResults) debug(image)
+        texture.create(image.toImage(), sync = true)
     }
 
     companion object {

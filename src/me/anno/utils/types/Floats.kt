@@ -5,6 +5,8 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.nio.FloatBuffer
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.util.*
 import kotlin.math.PI
 
@@ -61,79 +63,113 @@ object Floats {
 
     @JvmStatic
     fun Int.toDegrees() = this * x180fPif
+
     @JvmStatic
     fun Int.toRadians() = this * piF180f
 
     @JvmStatic
     fun Float.toDegrees() = this * x180fPif
+
     @JvmStatic
     fun Float.toRadians() = this * piF180f
 
     @JvmStatic
     fun Double.toDegrees() = this * x180fPid
+
     @JvmStatic
     fun Double.toRadians() = this * piF180d
 
     @JvmStatic
     fun Float.f6() = "%.6f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Float.f5() = "%.5f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Float.f4() = "%.4f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Float.f3() = "%.3f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Float.f2() = "%.2f".format(Locale.ENGLISH, this)
+
     @JvmStatic
-    fun Float.f1() = "%.1f".format(Locale.ENGLISH, this)
+    fun Float.f1(): String = f1.format(this.toDouble())
 
     @JvmStatic
     fun Double.f6() = "%.6f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Double.f5() = "%.5f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Double.f4() = "%.4f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Double.f3() = "%.3f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Double.f2() = "%.2f".format(Locale.ENGLISH, this)
+
     @JvmStatic
-    fun Double.f1() = "%.1f".format(Locale.ENGLISH, this)
+    fun Double.f1(): String = f1.format(this)
 
     @JvmStatic
     fun Float.f6s() = "% .6f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Float.f5s() = "% .5f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Float.f4s() = "% .4f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Float.f3s() = "% .3f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Float.f2s() = "% .2f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Float.f2x() = "% .2f".format(Locale.ENGLISH, this).replace("-0.00", " 0.00")
+
     @JvmStatic
-    fun Float.f1s() = "% .1f".format(Locale.ENGLISH, this)
+    fun Float.f1s(): String = f1s.format(toDouble())
 
     @JvmStatic
     fun Double.f6s() = "% .6f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Double.f5s() = "% .5f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Double.f4s() = "% .4f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Double.f3s() = "% .3f".format(Locale.ENGLISH, this)
+
     @JvmStatic
     fun Double.f2s() = "% .2f".format(Locale.ENGLISH, this)
+
     @JvmStatic
-    fun Double.f1s() = "% .1f".format(Locale.ENGLISH, this)
+    fun Double.f1s(): String = f1s.format(this)
+
+    @JvmStatic
+    private val f1Symbols = DecimalFormatSymbols(Locale.ENGLISH)
+    @JvmStatic
+    private val f1 = DecimalFormat("#.0", f1Symbols).apply { maximumFractionDigits = 1 }
+    @JvmStatic
+    private val f1s = DecimalFormat(" #.0;-#.0", f1Symbols).apply { maximumFractionDigits = 1 }
 
     @JvmStatic
     fun formatPercent(progress: Int, total: Int) = (progress.toDouble() / total.toDouble()).formatPercent()
+
     @JvmStatic
     fun formatPercent(progress: Long, total: Long) = (progress.toDouble() / total.toDouble()).formatPercent()
+
     @JvmStatic
     fun Float.formatPercent() = toDouble().formatPercent()
+
     @JvmStatic
     fun Double.formatPercent() = Maths.clamp(this * 100.0, 0.0, 100.0).f1()
 
