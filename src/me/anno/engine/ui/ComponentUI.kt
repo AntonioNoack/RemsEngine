@@ -1156,6 +1156,7 @@ object ComponentUI {
             is UInt -> toLong()
             is Long -> this
             is ULong -> toLong()
+            is String -> toLong(10)
             else -> throw RuntimeException()
         }
     }
@@ -1170,6 +1171,7 @@ object ComponentUI {
             is UInt -> toULong()
             is Long -> toULong()
             is ULong -> this
+            is String -> toULong(10)
             else -> throw RuntimeException()
         }
     }

@@ -148,7 +148,7 @@ object YAMLReader {
         if (key.startsWith("_")) {
             key = key.substring(1)
         }
-        return key.titlecase()
+        return key.titlecase().toString()
     }
 
 }

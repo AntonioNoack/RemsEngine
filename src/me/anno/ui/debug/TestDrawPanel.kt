@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.input.Input
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 import org.lwjgl.glfw.GLFW.GLFW_KEY_V
 
 /**
@@ -23,10 +23,6 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
 
     fun clear() {
         drawBackground(x, y, x + w, y + h)
-    }
-
-    init {
-        setWeight2(1f)
     }
 
     override val canDrawOverBorders get() = true
@@ -58,12 +54,12 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
     companion object {
         @JvmStatic
         fun testDrawing(draw: (p: TestDrawPanel) -> Unit) {
-            testUI { TestDrawPanel(draw) }
+            testUI3 { TestDrawPanel(draw) }
         }
 
         @JvmStatic
         fun testDrawing(init: (p: TestDrawPanel) -> Unit, draw: (p: TestDrawPanel) -> Unit) {
-            testUI {
+            testUI3 {
                 val panel = TestDrawPanel(draw)
                 init(panel)
                 panel

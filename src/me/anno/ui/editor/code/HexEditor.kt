@@ -13,7 +13,6 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.xml.XMLReader.skipN
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
@@ -38,6 +37,7 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.fp16ToFP32
 import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.utils.types.InputStreams.skipN
 import org.apache.logging.log4j.LogManager
 import java.io.RandomAccessFile
 import java.math.BigInteger

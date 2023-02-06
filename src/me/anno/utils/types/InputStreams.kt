@@ -93,4 +93,14 @@ object InputStreams {
         return bytes
     }
 
+    fun InputStream.skipN(v: Long): InputStream {
+        var read = 0L
+        while (read < v) {
+            val r = skip(v)
+            if (r <= 0) return this
+            read += r
+        }
+        return this
+    }
+
 }

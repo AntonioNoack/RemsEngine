@@ -12,8 +12,8 @@ import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readBE16
 import me.anno.io.Streams.readLE16
-import me.anno.io.xml.XMLReader.skipN
 import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.utils.types.InputStreams.skipN
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream

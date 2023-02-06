@@ -37,6 +37,9 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     var minScale = 0.001
     var maxScale = 2.0
 
+    // most implementations will do so
+    override val canDrawOverBorders: Boolean get() = true
+
     fun windowToCoordsDirX(wx: Double) = wx / scale
     fun windowToCoordsDirY(wy: Double) = wy / scale
 
@@ -46,8 +49,14 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     fun windowToCoordsX(wx: Double) = (wx - centerX) / scale + center.x
     fun windowToCoordsY(wy: Double) = (wy - centerY) / scale + center.y
 
+    fun windowToCoordsX(wx: Float) = windowToCoordsX(wx.toDouble()).toFloat()
+    fun windowToCoordsY(wy: Float) = windowToCoordsY(wy.toDouble()).toFloat()
+
     fun coordsToWindowX(cx: Double) = (cx - center.x) * scale + centerX
     fun coordsToWindowY(cy: Double) = (cy - center.y) * scale + centerY
+
+    fun coordsToWindowX(cx: Float) = coordsToWindowX(cx.toDouble()).toFloat()
+    fun coordsToWindowY(cy: Float) = coordsToWindowY(cy.toDouble()).toFloat()
 
     override val childSizeX: Long get() = w.toLong()
     override val childSizeY: Long get() = h.toLong()
@@ -100,7 +109,7 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         } else super.onUpdate()
     }
 
-    abstract fun shallMoveMap(): Boolean
+    open fun shallMoveMap(): Boolean = Input.isLeftDown
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         var rx = dx

@@ -3,11 +3,8 @@ package me.anno.mesh.mitsuba
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.io.Streams.read0String
 import me.anno.io.Streams.readDoubleLE
 import me.anno.io.Streams.readFloatLE
@@ -19,19 +16,17 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.xml.XMLNode
 import me.anno.io.xml.XMLReader
-import me.anno.io.xml.XMLReader.skipN
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCallback
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.assimp.StaticMeshesLoader.Companion.shininessToRoughness
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
-import me.anno.utils.OS.downloads
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
+import me.anno.utils.types.InputStreams.skipN
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -193,7 +188,7 @@ object MitsubaReader {
 
         val folder = sceneMain.getParent() ?: InvalidRef
 
-        val scene = XMLReader.parse(inputStream) as XMLNode
+        val scene = XMLReader().parse(inputStream) as XMLNode
         if (scene.type != "scene") throw IOException("Wrong type: ${scene.type}")
 
         val byId = HashMap<String, XMLNode>()

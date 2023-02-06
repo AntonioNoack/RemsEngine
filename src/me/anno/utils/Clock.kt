@@ -41,18 +41,19 @@ class Clock(
             val nanosPerElement = dt0.toDouble() / elementCount
             LOGGER.info(
                 "Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s" +
-                        " for ${wasUsedFor()}, ${format(nanosPerElement)}ns/e"
+                        " for ${wasUsedFor()}, ${format(nanosPerElement)}"
             )
         }
     }
 
     fun format(nanos: Double): String {
         return when {
-            nanos < 1.0 -> nanos.f4()
-            nanos < 10.0 -> nanos.f3()
-            nanos < 100.0 -> nanos.f2()
-            nanos < 1e3 -> nanos.f1()
-            else -> nanos.roundToInt().toString()
+            nanos < 1.0 -> nanos.f4() + " ns/e"
+            nanos < 10.0 -> nanos.f3() + " ns/e"
+            nanos < 100.0 -> nanos.f2() + " ns/e"
+            nanos < 1e3 -> nanos.f1() + " ns/e"
+            nanos < 1e6 -> nanos.roundToInt().toString() + " ns/e"
+            else -> ((nanos * 1e-9).toFloat()).toString() + " s/e"
         }
     }
 
@@ -72,7 +73,7 @@ class Clock(
             val nanosPerElement = dt0.toDouble() / elementCount
             LOGGER.info(
                 "Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s " +
-                        "for $wasUsedFor, ${format(nanosPerElement)}ns/e"
+                        "for $wasUsedFor, ${format(nanosPerElement)}"
             )
         }
     }
@@ -144,6 +145,7 @@ class Clock(
     companion object {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(Clock::class)
+
         @JvmStatic
         fun print(t0: Long, times: List<Pair<Long, String>>) {
             for ((time, title) in times) {

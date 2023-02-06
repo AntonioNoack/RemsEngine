@@ -286,9 +286,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         mapMouseUp()
     }
 
-    override fun shallMoveMap(): Boolean {
-        return Input.isLeftDown && dragged == null
-    }
+    override fun shallMoveMap(): Boolean = Input.isLeftDown && dragged == null
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (selectingStart != null) {
@@ -741,7 +739,6 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
 
     open fun canDeleteNode(node: Node): Boolean = true
 
-    override val canDrawOverBorders get() = true
     override val className get() = "GraphEditor"
 
     @Suppress("MayBeConstant")

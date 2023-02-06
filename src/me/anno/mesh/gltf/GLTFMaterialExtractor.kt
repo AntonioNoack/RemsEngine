@@ -4,8 +4,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
-import me.anno.io.xml.XMLReader.skipN
-import me.anno.utils.OS.downloads
+import me.anno.utils.types.InputStreams.skipN
 
 object GLTFMaterialExtractor {
 

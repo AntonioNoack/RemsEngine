@@ -116,6 +116,13 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
         }
 
         @JvmField
+        val flat11x2 = StaticBuffer(
+            splitVertices(2, -1f, +1f),
+            splitIndices(2),
+            listOf(Attribute("coords", 2))
+        )
+
+        @JvmField
         val flat11x3 = StaticBuffer(
             splitVertices(3, -1f, +1f),
             splitIndices(3),

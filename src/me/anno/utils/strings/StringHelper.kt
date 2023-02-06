@@ -6,7 +6,7 @@ import kotlin.math.abs
 object StringHelper {
 
     @JvmStatic
-    fun String.titlecase(): String {
+    fun CharSequence.titlecase(): CharSequence {
         if (isEmpty()) return this
         return if (first().isLowerCase()) {
             first().uppercase() + substring(1)
@@ -14,14 +14,14 @@ object StringHelper {
     }
 
     @JvmStatic
-    fun String.indexOf2(query: Char, index: Int = 0): Int {
+    fun CharSequence.indexOf2(query: Char, index: Int = 0): Int {
         val i = indexOf(query, index)
         return if (i < 0) length else i
     }
 
     @JvmStatic
     @Suppress("unused")
-    fun String.indexOf2(query: String, index: Int = 0): Int {
+    fun CharSequence.indexOf2(query: String, index: Int = 0): Int {
         val i = indexOf(query, index)
         return if (i < 0) length else i
     }
@@ -50,7 +50,7 @@ object StringHelper {
     }
 
     @JvmStatic
-    fun String.smallCaps(): String {
+    fun CharSequence.smallCaps(): String {
         val result = StringBuffer(length)
         for (c in this) result.append(c.smallCaps())
         return result.toString()
@@ -61,7 +61,7 @@ object StringHelper {
      * */
     @JvmStatic
     @Suppress("unused")
-    fun String.normalCaps(): String {
+    fun CharSequence.normalCaps(): String {
         val result = StringBuffer(length)
         for (c in this) result.append(c.normalCaps())
         return result.toString()
@@ -131,7 +131,7 @@ object StringHelper {
 
     @JvmStatic
     @Suppress("unused")
-    fun String.levenshtein(other: String, ignoreCase: Boolean) =
+    fun CharSequence.levenshtein(other: CharSequence, ignoreCase: Boolean) =
         distance(other, ignoreCase)
 
     /**
@@ -142,7 +142,7 @@ object StringHelper {
      * distance >= abs(|this|-|other|)
      * */
     @JvmStatic
-    fun String.distance(other: String, ignoreCase: Boolean = false): Int {
+    fun CharSequence.distance(other: CharSequence, ignoreCase: Boolean = false): Int {
         if (this == other) return 0
         val m = this.length
         val n = other.length

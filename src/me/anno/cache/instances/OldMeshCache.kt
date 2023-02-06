@@ -15,7 +15,7 @@ object OldMeshCache : CacheSection("Meshes") {
         return OldMeshCache.getEntry(file to "svg", timeout, asyncGenerator) {
             val svg = SVGMesh()
             file.inputStreamSync().use {
-                svg.parse(XMLReader.parse(it) as XMLNode)
+                svg.parse(XMLReader().parse(it) as XMLNode)
                 val buffer = svg.buffer // may be null if the parsing failed / the svg is blank
                 if (buffer != null) {
                     buffer.setBounds(svg)

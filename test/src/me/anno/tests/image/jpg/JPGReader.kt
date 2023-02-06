@@ -4,18 +4,13 @@ import me.anno.image.raw.ByteImage
 import me.anno.io.Streams.readBE16
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
-import me.anno.io.xml.XMLReader.skipN
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.InputStreams.readNBytes2
-import java.io.EOFException
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.io.PrintStream
+import me.anno.utils.types.InputStreams.skipN
+import java.io.*
 import kotlin.math.max
 
 // https://github.com/ImageMagick/ImageMagick/blob/80bd592dd20d4a1287842459ca3801c3ae3866cd/coders/jpeg.c
@@ -104,11 +99,13 @@ class JPGReader {
 
         @JvmStatic
         fun bMask(i: Int) = (1 shl i) - 1
+
         @JvmStatic
         private fun jBias(i: Int) = ((-1) shl i) + 1
 
         @JvmStatic
         private fun f2f(f: Float) = (f * 4096 + 0.5f).toInt()
+
         @JvmStatic
         private fun fsh(i: Int) = i * 4096
 
@@ -806,7 +803,7 @@ class JPGReader {
         codeBuffer = codeBuffer shl 1
         codeBits--
         // println("got bit $k -> ${(k ushr 31) != 0}")
-        println("b${if((k ushr 31) != 0) 1 else 0}")
+        println("b${if ((k ushr 31) != 0) 1 else 0}")
         return (k ushr 31) != 0
     }
 
