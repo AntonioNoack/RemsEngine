@@ -893,35 +893,50 @@ object ShaderLib {
         BaseShader(
             "subpixelCorrectTextShader", listOf(
                 Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
-                Variable(GLSLType.V2F, "instData", type),
+                Variable(GLSLType.V3F, "instData", type),
+                Variable(GLSLType.V4F, "color0", type),
+                Variable(GLSLType.V4F, "color1", type),
                 Variable(GLSLType.V2F, "pos"),
                 Variable(GLSLType.V2F, "size"),
                 // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
                 Variable(GLSLType.M4x4, "transform"),
                 Variable(GLSLType.V2F, "windowSize"),
-            ), "" +
-                    "void main(){\n" +
-                    (if (instanced)
-                        "   vec2 localPos = coords * size + vec2(instData.x, pos.y);\n" else
-                        "   vec2 localPos = coords * size + pos;\n") +
-                    "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
-                    "   position = localPos * windowSize;\n" +
-                    (if (instanced)
-                        "   uv = vec3(coords,instData.y);\n" else
-                        "   uv = coords;\n") +
-                    "}",
-            listOf(
-                Variable(if (instanced) GLSLType.V3F else GLSLType.V2F, "uv"),
-                Variable(GLSLType.V2F, "position")
-            ),
-            listOf(
-                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+            ), if (instanced) {
+                "" +
+                        "void main(){\n" +
+                        "   vec2 localPos = coords * size + instData.xy;\n" +
+                        "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
+                        "   position = localPos * windowSize;\n" +
+                        "   textColor = color0;\n" +
+                        "   backgroundColor = color1;\n" +
+                        "   uv = vec3(coords,instData.z);\n" +
+                        "}"
+            } else {
+                "" +
+                        "void main(){\n" +
+                        "   vec2 localPos = coords * size + pos;\n" +
+                        "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
+                        "   position = localPos * windowSize;\n" +
+                        "   uv = coords;\n" +
+                        "}"
+            },
+            if (instanced) listOf(
+                Variable(GLSLType.V3F, "uv"),
+                Variable(GLSLType.V2F, "position"),
                 Variable(GLSLType.V4F, "textColor"),
                 Variable(GLSLType.V4F, "backgroundColor"),
+            ) else listOf(
+                Variable(GLSLType.V2F, "uv"),
+                Variable(GLSLType.V2F, "position")
+            ), listOf(
+                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
                 Variable(GLSLType.V2F, "windowSize"),
                 Variable(if (instanced) GLSLType.S2DA else GLSLType.S2D, "tex"),
-            ), "" +
+            ) + (if (instanced) emptyList() else listOf(
+                Variable(GLSLType.V4F, "textColor"),
+                Variable(GLSLType.V4F, "backgroundColor"),
+            )), "" +
                     brightness +
                     "void main(){\n" +
                     "#define IS_TINTED\n" + // todo remove

@@ -213,7 +213,10 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         formatNumber(text.value, 0, 6, Engine.currentFPS)
         formatNumber(text.value, 13, 6, 1f / maxTime)
 
-        drawSimpleTextCharByChar(x0, y0, 2, text)
+        drawSimpleTextCharByChar(
+            x0, y0, 2, text,
+            textColor, backgroundColor.withAlpha(0)
+        )
 
     }
 

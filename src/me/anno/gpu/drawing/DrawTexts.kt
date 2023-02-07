@@ -7,6 +7,8 @@ import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.drawing.DrawCurves.putRGBA
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.drawing.GFXx2D.posSizeDraw
 import me.anno.gpu.drawing.GFXx2D.transform
@@ -48,7 +50,13 @@ object DrawTexts {
         Font(fontName, size, bold, italic)
     }
 
-    private val simpleBatch = object : Batch(GFX.flat01, listOf(Attribute("instData", 2))) {
+    val simpleBatch = object : Batch(
+        GFX.flat01, listOf(
+            Attribute("instData", 3),
+            Attribute("color0", AttributeType.UINT8_NORM, 4),
+            Attribute("color1", AttributeType.UINT8_NORM, 4),
+        ), 4096
+    ) {
         override fun bindShader() = ShaderLib.subpixelCorrectTextShader[1].value
     }
 
@@ -64,6 +72,21 @@ object DrawTexts {
         alignX, alignY
     )
 
+    fun startSimpleBatch() {
+        val font = monospaceFont
+        val shader = chooseShader(-1, -1, 1)
+        val texture = FontManager.getASCIITexture(font)
+        texture.bindTrulyNearest(0)
+        if (shader is Shader) {
+            simpleBatch.start()
+            posSize(shader, 0f, 0f, texture.w.toFloat(), texture.h.toFloat())
+        }
+    }
+
+    fun finishSimpleBatch() {
+        simpleBatch.finish()
+    }
+
     fun drawSimpleTextCharByChar(
         x: Int, y: Int,
         padding: Int,
@@ -72,6 +95,7 @@ object DrawTexts {
         backgroundColor: Int = FrameTimings.backgroundColor or black,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN,
+        start: Boolean = true, end: Boolean = true
     ): Int {
         GFX.check()
         val font = monospaceFont
@@ -83,7 +107,7 @@ object DrawTexts {
         val dx0 = getOffset(width, alignX) - padding
         val dy0 = getOffset(height, alignY) - padding
 
-        DrawRectangles.drawRect(
+        if (backgroundColor.a() != 0) DrawRectangles.drawRect(
             x + dx0, y + dy0,
             charWidth * text.length + 2 * padding, font.sizeInt + 2 * padding,
             backgroundColor
@@ -92,35 +116,45 @@ object DrawTexts {
         val shader = chooseShader(textColor, backgroundColor, 1)
 
         val texture = FontManager.getASCIITexture(font)
+        texture.bindTrulyNearest(0)
 
         val y2 = y + dy0 + padding - 1
         var x2 = x + dx0 + padding + (charWidth - texture.w) / 2
 
-        texture.bindTrulyNearest(0)
-        if (shader is Shader) {
+        if (start && shader is Shader) {
             simpleBatch.start()
-            posSize(shader, 0f, y2.toFloat(), texture.w.toFloat(), texture.h.toFloat())
+            posSize(shader, 0f, 0f, texture.w.toFloat(), texture.h.toFloat())
         }
 
-        for (i in text.indices) {
-            val char = text[i]
-            val code = char.code - 33
-            if (code in simpleChars.indices) {
-                if (shader is Shader) {
-                    val posX = (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth
-                    simpleBatch.data.putFloat(posX).putFloat(code.toFloat())
+        if (shader is Shader) {
+            val posY = 1f - (y2 - GFX.viewportY).toFloat() / GFX.viewportHeight
+            var x2f = (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth
+            val dxf = charWidth.toFloat() / GFX.viewportWidth
+            for (i in text.indices) {
+                val char = text[i]
+                val code = char.code - 33
+                if (code in simpleChars.indices) {
+                    simpleBatch.data.putFloat(x2f).putFloat(posY).putFloat(code.toFloat())
+                        .putRGBA(textColor).putRGBA(backgroundColor)
                     simpleBatch.next()
-                } else {
-                    shader as ComputeShader
+                }
+                x2f += dxf
+            }
+        } else {
+            shader as ComputeShader
+            for (i in text.indices) {
+                val char = text[i]
+                val code = char.code - 33
+                if (code in simpleChars.indices) {
                     shader.v1f("uvZ", code.toFloat())
                     posSizeDraw(shader, x2, y2, texture.w, texture.h, 1)
                     GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
                 }
+                x2 += charWidth
             }
-            x2 += charWidth
         }
 
-        if (shader is Shader) {
+        if (end && shader is Shader) {
             simpleBatch.finish()
         }
 

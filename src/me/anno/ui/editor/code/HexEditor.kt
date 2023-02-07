@@ -4,10 +4,10 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig.style
 import me.anno.fonts.keys.TextCacheKey
-import me.anno.gpu.GFXBase
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.drawing.DrawTexts.drawText
-import me.anno.gpu.drawing.DrawTexts.getTextSizeX
+import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -23,6 +23,7 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.LongScrollable
 import me.anno.ui.base.scrolling.ScrollPanelXY
@@ -158,8 +159,17 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
     private val buffers = ArrayList<ByteArray?>()
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
         // calculate line number
+        DrawRectangles.startBatch()
+        drawBackground(x0, y0, x1, y1)
+        draw(y0, y1, false)
+        DrawRectangles.finishBatch()
+        DrawTexts.startSimpleBatch()
+        draw(y0, y1, true)
+        DrawTexts.finishSimpleBatch()
+    }
+
+    fun draw(y0: Int, y1: Int, text: Boolean) {
         val bx = x + padding.left
         val by = y + padding.top - extraScrolling
         val l0 = max(0, (y0 - by) / lineHeight)
@@ -174,13 +184,13 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         val addressDx = addressDx
         // draw addresses
         val bytesPerLine = bytesPerLine
-        for (lineNumber in l0 until l1) {
+        if (text) for (lineNumber in l0 until l1) {
             val address = lineNumber * bytesPerLine
             for (digitIndex in 0 until addressDigits) {
                 val digit = address.shr((addressDigits - 1 - digitIndex) * 4)
                 // group these in pairs as well
                 val pairOffset = if ((digitIndex + addressDigits).and(1) > 0) -1 else +1
-                drawChar(digitIndex, lineNumber, pairOffset, hex4(digit), tc, bc)
+                drawChar(digitIndex, lineNumber, pairOffset, hex4(digit), tc, bc, true)
             }
         }
         lateinit var buffer: ByteArray
@@ -219,68 +229,46 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
                 val bc1 = if (isSelected) sbc else bc
                 // draw hex
-                drawChar(lineIndex * 2, lineNumber, ox + 1, hex4(value.shr(4)), tc1, bc1)
-                drawChar(lineIndex * 2 + 1, lineNumber, ox - 1, hex4(value), tc1, bc1)
+                drawChar(lineIndex * 2, lineNumber, ox + 1, hex4(value.shr(4)), tc1, bc1, text)
+                drawChar(lineIndex * 2 + 1, lineNumber, ox - 1, hex4(value), tc1, bc1, text)
                 if (showText) {
                     // draw byte as char
-                    drawChar(bytesPerLine * 2 + lineIndex, lineNumber, ox2, displayedBytes[value], tc1, bc1)
+                    drawChar(bytesPerLine * 2 + lineIndex, lineNumber, ox2, displayedBytes[value], tc1, bc1, text)
                 }
             }
         }
         // separation lines
-        val yl0 = max(y0.toLong(), by)
-        val yl1 = (min(y1.toLong(), by + lineCount * lineHeight) - yl0).toInt()
-        val yl0i = yl0.toInt()
-        val lineColor = mixARGB(backgroundColor, midLineColor, midLineColor.a() / 255f)
-        for (i in 0 until bytesPerLine step lineEveryN) {
-            val x2 = bx + addressDx + i * (spacing2 + 2 * charWidth) - (spacing2 + 1) / 2
-            val lineColor2 = if (i > 0) mixARGB(backgroundColor, lineColor, 0.3f) else lineColor
-            drawRect(x2, yl0i, 1, yl1, lineColor2)
+        if (!text) {
+            val yl0 = max(y0.toLong(), by)
+            val yl1 = (min(y1.toLong(), by + lineCount * lineHeight) - yl0).toInt()
+            val yl0i = yl0.toInt()
+            val lineColor = mixARGB(backgroundColor, midLineColor, midLineColor.a() / 255f)
+            for (i in 0 until bytesPerLine step lineEveryN) {
+                val x2 = bx + addressDx + i * (spacing2 + 2 * charWidth) - (spacing2 + 1) / 2
+                val lineColor2 = if (i > 0) mixARGB(backgroundColor, lineColor, 0.3f) else lineColor
+                drawRect(x2, yl0i, 1, yl1, lineColor2)
+            }
+            val x2 = bx + addressDx + bytesPerLine * (spacing2 + 2 * charWidth) - (spacing2 + 1) / 2
+            drawRect(x2, yl0i, 1, yl1, lineColor)
         }
-        val x2 = bx + addressDx + bytesPerLine * (spacing2 + 2 * charWidth) - (spacing2 + 1) / 2
-        drawRect(x2, yl0i, 1, yl1, lineColor)
     }
 
     fun drawChar(
         xi: Int, yi: Long, dx: Int, char: Char,
         textColor: Int, backgroundColor: Int,
+        text1: Boolean
     ) {
-        val code = char.code
-        if (code in 0 until cacheSize) {
-            var tw = textSizes[code]
-            var key = textCacheKeyCache[code]
-            if (tw <= 0) {
-                val text = char.toString()
-                tw = getTextSizeX(font, text, -1, -1)
-                textSizes[code] = tw
-                key = TextCacheKey(text, font)
-                textCacheKeyCache[code] = key
-            }
-            key!!
-            val background = backgroundColor
-            val x = this.x + padding.left + xi * charWidth + dx
-            val y = this.y + padding.top + yi * lineHeight - extraScrolling
-            if (backgroundColor != this.backgroundColor) {
-                drawRect(x, y.toInt(), charWidth, lineHeight, background or black)
-            }
-            drawText(x - (charWidth - tw) / 2, y.toInt(), font, key, textColor, background and 0xffffff)
-        } else drawChar2(xi, yi, dx, char, textColor, backgroundColor)
-    }
-
-    private fun drawChar2(
-        xi: Int, yi: Long, ox: Int, char: Char,
-        textColor: Int, backgroundColor: Int
-    ) {
-        val text = char.toString()
-        val key = TextCacheKey(text, font)
-        val background = backgroundColor
-        val x = this.x + padding.left + xi * charWidth + ox
-        val y = this.y + padding.top + yi * lineHeight - extraScrolling
-        val tw = getTextSizeX(font, text, -1, -1)
-        if (backgroundColor != this.backgroundColor) {
-            drawRect(x, y.toInt(), charWidth, lineHeight, background or black)
+        if (char == ' ') return
+        val x = this.x + padding.left + xi * charWidth + dx
+        val y = (this.y + padding.top + yi * lineHeight - extraScrolling).toInt()
+        if (text1) {
+            drawSimpleTextCharByChar(
+                x, y, 0, char.toString(), textColor, backgroundColor.withAlpha(0),
+                AxisAlignment.MIN, AxisAlignment.MIN, start = false, end = false
+            )
+        } else if (backgroundColor != this.backgroundColor) {
+            drawRect(x, y, charWidth, lineHeight, backgroundColor)
         }
-        drawText(x - (charWidth - tw) / 2, y.toInt(), font, key, textColor, background and 0xffffff)
     }
 
     fun getCursorAt(x: Float, y: Float): Long {
@@ -350,6 +338,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
     var copiedSeparator = ' '
     override fun onCopyRequested(x: Float, y: Float): Any? {
+        // todo only if mouse hovers selection, else use current byte
         val minIndex = max(min(cursor0, cursor1), 0)
         val maxIndex = min(max(cursor0, cursor1) + 1, file.length())
         if (maxIndex > minIndex) {
@@ -375,9 +364,10 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         } else return null
     }
 
-    private val cacheSize = 128
-    private val textCacheKeyCache = arrayOfNulls<TextCacheKey>(cacheSize)
-    private val textSizes = IntArray(cacheSize)
+    private val cache1 = 126
+    private val cache0 = 33
+    private val textCacheKeyCache = arrayOfNulls<TextCacheKey>(cache1 - cache0 + 1)
+    private val textSizes = IntArray(textCacheKeyCache.size)
 
     override fun getTooltipText(x: Float, y: Float): String? {
         val minIndex = max(min(cursor0, cursor1), 0)
@@ -440,7 +430,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            GFXBase.disableRenderDoc()
+            // GFXBase.disableRenderDoc()
             testUI {
                 StudioBase.instance?.enableVSync = false
                 registerActions()

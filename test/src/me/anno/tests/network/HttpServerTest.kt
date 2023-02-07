@@ -6,7 +6,6 @@ import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.network.http.HttpProtocol
 import org.apache.logging.log4j.LogManager
-import java.util.TreeSet
 
 /**
  * a sample web server, implemented on top of the server class;
@@ -14,14 +13,11 @@ import java.util.TreeSet
  * */
 fun main() {
 
-    val s = TreeSet<Int>()
-    s.add(0)
-
-    // WARNING: do not copy this 1:1, as this has a lot of security flaws, e.g. you can access all files on the computer this is hosted on
+    // WARNING: do not copy this 1:1, as this has a lot of security flaws, e.g., you can access all files on the computer this is hosted on
     val logger = LogManager.getLogger("HttpServerTest")
     val server = Server()
     val folder = getReference("C:/XAMPP/htdocs")
-    val privateExtensions = setOf("php")
+    val publicExtensions = setOf("html", "htm", "js", "json", "png", "webp", "jpg", "jpeg", "ico")
     fun extractPathFromURL(url: String): String {
         return url.substring(url.indexOf('/', "https://".length))
     }
@@ -41,7 +37,7 @@ fun main() {
                 file = getReference(getReference(folder, extractPathFromURL(meta["Referer"]!!)), path)
                 logger.info("Extended path from $path")
             }
-            if (file.exists && !file.name.startsWith('.') && !file.isDirectory && file.lcExtension !in privateExtensions) {
+            if (file.lcExtension in publicExtensions && file.exists && !file.name.startsWith('.') && !file.isDirectory) {
                 LastModifiedCache.invalidate(file)
                 sendResponse(
                     client, 200, "OK", mapOf(
