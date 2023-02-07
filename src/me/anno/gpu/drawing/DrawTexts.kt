@@ -72,8 +72,9 @@ object DrawTexts {
         alignX, alignY
     )
 
-    fun startSimpleBatch() {
+    fun startSimpleBatch(): Boolean {
         val font = monospaceFont
+        val x = pushBetterBlending(false)
         val shader = chooseShader(-1, -1, 1)
         val texture = FontManager.getASCIITexture(font)
         texture.bindTrulyNearest(0)
@@ -81,10 +82,12 @@ object DrawTexts {
             simpleBatch.start()
             posSize(shader, 0f, 0f, texture.w.toFloat(), texture.h.toFloat())
         }
+        return x
     }
 
-    fun finishSimpleBatch() {
+    fun finishSimpleBatch(x: Boolean) {
         simpleBatch.finish()
+        popBetterBlending(x)
     }
 
     fun drawSimpleTextCharByChar(
@@ -95,9 +98,9 @@ object DrawTexts {
         backgroundColor: Int = FrameTimings.backgroundColor or black,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN,
-        start: Boolean = true, end: Boolean = true
+        batched: Boolean = false
     ): Int {
-        GFX.check()
+
         val font = monospaceFont
         val charWidth = font.sampleWidth
         val size = text.length
@@ -113,20 +116,21 @@ object DrawTexts {
             backgroundColor
         )
 
-        val shader = chooseShader(textColor, backgroundColor, 1)
-
         val texture = FontManager.getASCIITexture(font)
-        texture.bindTrulyNearest(0)
+        val shader = if (!batched) {
+            val shader = chooseShader(textColor, backgroundColor, 1)
+            texture.bindTrulyNearest(0)
+            if (shader is Shader) {
+                simpleBatch.start()
+                posSize(shader, 0f, 0f, texture.w.toFloat(), texture.h.toFloat())
+            }
+            shader
+        } else null
 
         val y2 = y + dy0 + padding - 1
         var x2 = x + dx0 + padding + (charWidth - texture.w) / 2
 
-        if (start && shader is Shader) {
-            simpleBatch.start()
-            posSize(shader, 0f, 0f, texture.w.toFloat(), texture.h.toFloat())
-        }
-
-        if (shader is Shader) {
+        if (shader !is ComputeShader) {
             val posY = 1f - (y2 - GFX.viewportY).toFloat() / GFX.viewportHeight
             var x2f = (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth
             val dxf = charWidth.toFloat() / GFX.viewportWidth
@@ -141,7 +145,6 @@ object DrawTexts {
                 x2f += dxf
             }
         } else {
-            shader as ComputeShader
             for (i in text.indices) {
                 val char = text[i]
                 val code = char.code - 33
@@ -154,7 +157,7 @@ object DrawTexts {
             }
         }
 
-        if (end && shader is Shader) {
+        if (!batched && shader is Shader) {
             simpleBatch.finish()
         }
 
