@@ -198,13 +198,11 @@ object ScreenSpaceReflections {
         transform: Matrix4f,
         applyToneMapping: Boolean,
         dst: Framebuffer = FBStack["ss-reflections", buffer.w, buffer.h, 4, true, 1, false]
-    ): ITexture2D? {
-        return compute(
-            buffer, illuminated, deferred, transform,
-            1f, 2f, 0.2f, 10, 8f,
-            applyToneMapping, dst
-        )
-    }
+    ) = compute(
+        buffer, illuminated, deferred, transform,
+        1f, 2f, 0.2f, 10, 8f,
+        applyToneMapping, dst
+    )
 
     /**
      * computes screen space reflections from metallic, roughness, normal, position and color buffers

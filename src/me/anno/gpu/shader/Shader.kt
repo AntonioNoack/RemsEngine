@@ -163,12 +163,20 @@ open class Shader(
             glBindAttribLocation(program, i, attributes[i].name)
         }
 
+        GFX.check()
+
         glLinkProgram(program)
+
+        GFX.check()
+
         // these could be reused...
         // glDeleteShader(vertexShader)
         // glDeleteShader(fragmentShader)
         // if (geometryShader >= 0) glDeleteShader(geometryShader)
+
         logShader(name, vertexSource, fragmentSource)
+
+        GFX.check()
 
         postPossibleError(name, program, false, vertexSource, fragmentSource)
 

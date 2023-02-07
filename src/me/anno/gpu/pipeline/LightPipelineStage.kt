@@ -8,6 +8,7 @@ import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.engine.ui.render.Renderers
+import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
@@ -125,9 +126,10 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                             "       float occlusion = (1.0 - finalOcclusion) * (1.0 - texture(ambientOcclusion, uv).r);\n" +
                             "       color3 = finalColor * light * occlusion + finalEmissive;\n" +
                             "   } else color3 = finalColor + finalEmissive;\n" + // sky
-                            "   if(applyToneMapping) color3 = color3/(1.0+color3);\n" +
+                            "   if(applyToneMapping) color3 = tonemap(color3);\n" +
                             "   color = vec4(color3, 1.0);\n"
                 )
+                fragment.add(tonemapGLSL)
 
                 // deferred inputs
                 // find deferred layers, which exist, and appear in the shader

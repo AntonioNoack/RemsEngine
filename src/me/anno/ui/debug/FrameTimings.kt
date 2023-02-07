@@ -6,6 +6,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.popBetterBlending
+import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -213,10 +215,13 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         formatNumber(text.value, 0, 6, Engine.currentFPS)
         formatNumber(text.value, 13, 6, 1f / maxTime)
 
+        val pad = 2
+        val x = pushBetterBlending(true)
         drawSimpleTextCharByChar(
-            x0, y0, 2, text,
-            textColor, backgroundColor.withAlpha(0)
+            x0 + pad, y0 + pad, pad, text,
+            textColor, backgroundColor.withAlpha(180)
         )
+        popBetterBlending(x)
 
     }
 

@@ -163,8 +163,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     val baseNBuffer8 = deferredMSAA.createBaseBuffer()
     private val baseSameDepth1 = baseNBuffer1.attachFramebufferToDepth(1, false)
     private val baseSameDepth8 = baseNBuffer8.attachFramebufferToDepth(1, false)
-    val base1Buffer = Framebuffer("base1", 1, 1, 1, 4, false, DepthBufferType.TEXTURE)
-    val base8Buffer = Framebuffer("base8", 1, 1, 8, 4, false, DepthBufferType.TEXTURE)
+    val base1Buffer = Framebuffer("base1", 1, 1, 1, 1, false, DepthBufferType.TEXTURE)
+    val base8Buffer = Framebuffer("base8", 1, 1, 8, 1, false, DepthBufferType.TEXTURE)
 
     private val light1Buffer = base1Buffer.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
     private val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
@@ -540,7 +540,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         )
                         val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, true]
                         drawScene(
-                            w, h, camera0, camera1, blending, rawAttributeRenderers[DeferredLayerType.MOTION]!!,
+                            w, h, camera0, camera1, blending, rawAttributeRenderers[DeferredLayerType.MOTION],
                             motion, changeSize = false, hdr = true
                         )
 
@@ -825,16 +825,20 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         popBetterBlending(pbb)
                         return
                     }
-                    renderer == DeferredRenderer -> dstBuffer = drawSceneDeferred(
-                        buffer, baseNBuffer1, lightNBuffer1, baseSameDepth1,
-                        camera0, camera1, blending, renderer, dstBuffer,
-                        deferred
-                    )
-                    renderer == DeferredRendererMSAA -> dstBuffer = drawSceneDeferred(
-                        buffer, baseNBuffer8, lightNBuffer8, baseSameDepth8,
-                        camera0, camera1, blending, renderer, dstBuffer,
-                        deferredMSAA
-                    )
+                    renderer == DeferredRenderer -> {
+                        dstBuffer = drawSceneDeferred(
+                            buffer, baseNBuffer1, lightNBuffer1, baseSameDepth1,
+                            camera0, camera1, blending, renderer, dstBuffer,
+                            deferred
+                        )
+                    }
+                    renderer == DeferredRendererMSAA -> {
+                        dstBuffer = drawSceneDeferred(
+                            buffer, baseNBuffer8, lightNBuffer8, baseSameDepth8,
+                            camera0, camera1, blending, renderer, dstBuffer,
+                            deferredMSAA
+                        )
+                    }
                     else -> {
                         drawScene(
                             w, h, camera0, camera1,
@@ -973,12 +977,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                 buffer.bindTrulyNearest(2)
                 ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                lightBuffer.bindTexture0(
-                    shader,
-                    "finalLight",
-                    GPUFiltering.TRULY_NEAREST,
-                    Clamping.CLAMP
-                )
+                lightBuffer.getTexture0().bindTrulyNearest(shader, "finalLight")
 
                 flat01.draw(shader)
 

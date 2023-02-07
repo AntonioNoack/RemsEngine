@@ -65,8 +65,7 @@ interface IFramebuffer {
 
     fun getTexture0() = getTextureI(0)
 
-    fun bindTrulyNearest(index: Int = 0) =
-        getTexture0().bindTrulyNearest(index)
+    fun bindTrulyNearest(offset: Int = 0) = bindTextures(offset, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
     fun getTextureI(index: Int): ITexture2D
 

@@ -116,9 +116,11 @@ object DrawTexts {
             backgroundColor
         )
 
+        val background = backgroundColor and 0xffffff
+
         val texture = FontManager.getASCIITexture(font)
         val shader = if (!batched) {
-            val shader = chooseShader(textColor, backgroundColor, 1)
+            val shader = chooseShader(textColor, background, 1)
             texture.bindTrulyNearest(0)
             if (shader is Shader) {
                 simpleBatch.start()
@@ -139,7 +141,7 @@ object DrawTexts {
                 val code = char.code - 33
                 if (code in simpleChars.indices) {
                     simpleBatch.data.putFloat(x2f).putFloat(posY).putFloat(code.toFloat())
-                        .putRGBA(textColor).putRGBA(backgroundColor)
+                        .putRGBA(textColor).putRGBA(background)
                     simpleBatch.next()
                 }
                 x2f += dxf
