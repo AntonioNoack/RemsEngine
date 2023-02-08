@@ -162,7 +162,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
         }
         openMenu(windowStack,
             candidates.map { (sample, newNodeGenerator) ->
-                MenuOption(NameDesc(sample.name)) {
+                MenuOption(NameDesc(sample.name, sample.description, "")) {
                     // place node at mouse position
                     val node = newNodeGenerator()
                     node.position.set(windowToCoordsX(mouseX.toDouble()), windowToCoordsY(mouseY.toDouble()), 0.0)

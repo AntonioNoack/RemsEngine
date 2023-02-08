@@ -21,6 +21,8 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.utils.WindowStack
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -123,9 +125,7 @@ object Menu {
 
     fun openMenuComplex(
         windowStack: WindowStack,
-        x: Int,
-        y: Int,
-        title: NameDesc,
+        x: Int, y: Int, title: NameDesc,
         options: List<ComplexMenuOption>
     ): Window? {
 
@@ -258,6 +258,7 @@ object Menu {
         }
 
         // search panel
+        // todo when searching, sort results by relevance
         var searchPanel: TextInput? = null
         if (panels.size >= DefaultConfig["ui.search.minItems", 5]) {
             val startIndex = list.children.size + 1
@@ -266,10 +267,11 @@ object Menu {
             searchPanel.addChangeListener { searchTerm ->
                 val search = Search(searchTerm)
                 val children = list.children
-                for (child in children.subList(startIndex, children.size)) {
+                for (i in startIndex until children.size) {
+                    val child = children[i]
                     // check all text elements inside this panel for matches
                     child.isVisible = child.any {
-                        it is TextPanel && (search.matches(it.text))
+                        it is TextPanel && (search.matches(it.text) || search.matches(it.tooltip))
                     }
                 }
             }

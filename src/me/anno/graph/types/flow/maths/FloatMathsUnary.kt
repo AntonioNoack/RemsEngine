@@ -1,5 +1,6 @@
 package me.anno.graph.types.flow.maths
 
+import me.anno.maths.Maths.cbrt
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
 import kotlin.math.pow
@@ -25,9 +26,16 @@ enum class FloatMathsUnary(
 
     EXP(20, "exp(a)", { kotlin.math.exp(it) }, { kotlin.math.exp(it) }),
     EXPM1(21, "exp(a)-1.0", { kotlin.math.expm1(it) }, { kotlin.math.expm1(it) }),
+
     // todo unable to find compatible overloaded function "pow(float, vec3)"
     EXP2(22, "pow(2.0, a)", { 2f.pow(it) }, { 2.0.pow(it) }),
     EXP10(23, "pow(10.0, a)", { 10f.pow(it) }, { 10.0.pow(it) }),
+    SQRT(26, "sqrt(a)", { kotlin.math.sqrt(it) }, { kotlin.math.sqrt(it) }),
+    CBRT(27, "pow(a,1.0/3.0)", { cbrt(it) }, { cbrt(it) }), // cbrt is not available in glsl
+    INV_SQRT(28, "inversesqrt(a)", { 1f / kotlin.math.sqrt(it) }, { 1.0 / kotlin.math.sqrt(it) }),
+
+    ONE_MINUS(30, "1.0-a", { 1f - it }, { 1.0 - it }),
+    INVERT(31, "1.0/a", { 1f / it }, { 1.0 / it }),
 
     SIN(40, "sin(a)", { kotlin.math.sin(it) }, { kotlin.math.sin(it) }),
     COS(41, "cos(a)", { kotlin.math.cos(it) }, { kotlin.math.cos(it) }),
@@ -48,7 +56,7 @@ enum class FloatMathsUnary(
     ;
 
     companion object {
-        val supportedUnaryVecTypes = FloatMathsUnary.values().filter {  it != EXP2 && it != EXP10 }.toTypedArray()
+        val supportedUnaryVecTypes = FloatMathsUnary.values().filter { it != EXP2 && it != EXP10 }.toTypedArray()
     }
 
 }

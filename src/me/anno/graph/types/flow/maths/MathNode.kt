@@ -42,11 +42,14 @@ abstract class MathNode<V : Enum<V>>(
     var type: V = data.defaultType
         set(value) {
             field = value
-            name = data.names[data.typeToIndex[value]!!]
+            val idx = data.typeToIndex[value]!!
+            name = data.names[idx]
+            description = data.getGLSL(data.values[idx])
         }
 
     init {
-        name = data.names[data.typeToIndex[type]!!]
+        // init name and description
+        type = type
     }
 
     override fun getShaderFuncName(outputIndex: Int): String = "${data.outputs.first()}$type"
