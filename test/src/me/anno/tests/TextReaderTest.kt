@@ -22,9 +22,9 @@ fun main() {
             "[2,{\"i:*ptr\":7},{\"i:*ptr\":8,\"l:value\":6}],\"v3d:position\":[1,2,3]}]\n"
     val g = FlowGraph()
     val node = TextReader.readFirst<SetLocalVariableNode>(source, InvalidRef, false)
-    if (node.getKey(g) != "var") throw IllegalStateException()
-    if (node.getValue(g) != 24L) throw IllegalStateException("Value is ${node.getValue(g)}")
-    if ((node.clone() as SetLocalVariableNode).getKey(g) != "var") throw IllegalStateException()
+    if (node.key != "var") throw IllegalStateException()
+    if (node.value != 24L) throw IllegalStateException("Value is ${node.value}")
+    if ((node.clone() as SetLocalVariableNode).key != "var") throw IllegalStateException()
     test5()
     test3()
     test4()
@@ -38,21 +38,21 @@ fun test5() {
     val listStr = a.toString()
     val clone = TextReader.readFirst<SetLocalVariableNode>(listStr, InvalidRef, false)
     val cloneStr = clone.toString()
-    if (listStr == cloneStr && clone.getKey(g) == "a" && clone.getValue(g) == "var") {
+    if (listStr == cloneStr && clone.key == "a" && clone.value == "var") {
         println("Same contents :)")
         println(listStr)
     } else {
         println(listStr)
         println(cloneStr)
-        if (clone.getKey(g) != "a") throw IllegalStateException("Incorrect Key: ${clone.getValue(g)} != 'a'")
-        if (clone.getValue(g) != "var") throw IllegalStateException("Incorrect Value: ${clone.getValue(g)} != 'var'")
+        if (clone.key != "a") throw IllegalStateException("Incorrect Key: ${clone.key} != 'a'")
+        if (clone.value != "var") throw IllegalStateException("Incorrect Value: ${clone.value} != 'var'")
         throw IllegalStateException("Content mismatch!")
     }
 }
 
 fun test4() {
-    val a = GetLocalVariableNode("a","?")
-    val b = GetLocalVariableNode("b","?")
+    val a = GetLocalVariableNode("a", "?")
+    val b = GetLocalVariableNode("b", "?")
     a.connectTo(b)
     val list = SaveableArray(listOf(a, b))
     val listStr = list.toString()

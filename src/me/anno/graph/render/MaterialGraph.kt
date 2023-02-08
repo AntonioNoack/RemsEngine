@@ -7,6 +7,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.graph.Node
 import me.anno.graph.NodeInput
 import me.anno.graph.NodeOutput
+import me.anno.graph.render.compiler.MaterialGraphCompiler
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.StartNode
@@ -17,9 +18,6 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toARGB
-
-// to do convert flow-graph into shader graph as far as possible
-// todo compute static stuff on CPU, and uv dependent on GPU
 
 // todo bug: <tab> in vector input not switching to next one
 
@@ -92,6 +90,14 @@ object MaterialGraph {
                 "Vector3f" -> "($expr).xyz"
                 else -> null
             }
+            "Texture" -> when (dstType) {
+                "Bool" -> "texture($expr,uv).x!=0.0"
+                "Float" -> "texture($expr,uv).x"
+                "Vector2f" -> "texture($expr,uv).xy"
+                "Vector3f" -> "texture($expr,uv).xyz"
+                "Vector4f" -> "texture($expr,uv)"
+                else -> null
+            }
             else -> null
         }
     }
@@ -127,6 +133,20 @@ object MaterialGraph {
         "Vector4f"
     )
 
+    val library = NodeLibrary(
+        NodeLibrary.flowNodes.nodes + listOf(
+            { DiscardNode() },
+            { MaterialReturnNode() },
+            { TextureNode() },
+            { MovieNode() },
+            { RandomNode() },
+            { ColorNode() },
+            { GameTime() },
+            { RotateF2Node() },
+            { NormalMap() },
+        )
+    )
+
     @JvmStatic
     fun main(args: Array<String>) {
         val g = object : FlowGraph() {
@@ -134,7 +154,7 @@ object MaterialGraph {
                 return convert(srcType, dstType, "") != null
             }
         }
-        // todo create simple calculation
+
         val start = StartNode(
             listOf(
                 "Vector3f", "Local Position",
@@ -146,8 +166,12 @@ object MaterialGraph {
                 "Vector4f", "Vertex Color",
             )
         )
-        g.nodes.add(start)
+        g.add(start)
         start.position.set(-200.0, 0.0, 0.0)
+        val end = g.add(MaterialReturnNode())
+        end.position.set(200.0, 0.0, 0.0)
+        start.connectTo(end)
+        start.connectTo(3, end, 1)
 
         val m = Material()
         fun compile() {
@@ -163,19 +187,7 @@ object MaterialGraph {
                     return node !== start
                 }
             }
-            ge.library = NodeLibrary(
-                ge.library.nodes + listOf(
-                    { DiscardNode() },
-                    { MaterialReturnNode() },
-                    { TextureNode() },
-                    { MovieNode() },
-                    { RandomNode() },
-                    { ColorNode() },
-                    { GameTime() },
-                    { RotateF2Node() },
-                    { NormalMap() },
-                )
-            )
+            ge.library = library
             // register everything for copying
             registerCustomClass(NodeInput())
             registerCustomClass(NodeOutput())

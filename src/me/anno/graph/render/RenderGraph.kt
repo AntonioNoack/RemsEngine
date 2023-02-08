@@ -2,31 +2,22 @@ package me.anno.graph.render
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
-import me.anno.gpu.DepthMode
-import me.anno.gpu.GFX
-import me.anno.gpu.GFXState
-import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
+import me.anno.graph.render.compiler.ShaderExprNode
+import me.anno.graph.render.compiler.ShaderGraphNode
+import me.anno.graph.render.scene.SceneNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
-import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.NodePositionOptimization.calculateNodePositions
 import me.anno.image.ImageScale
@@ -62,106 +53,6 @@ class RenderGraph {
     //  - camera override / camera index
     //  - relative size (or maybe even more flexible by width x height)
 
-    class SceneNode : ActionNode(
-        "Scene",
-        listOf(
-            "Int", "Stage Id",
-            "Int", "Sorting", // todo enum (?)
-            "Int", "Camera Index",
-        ) + DeferredLayerType.values.map { listOf("Texture", it.name) }.flatten(),
-        // list all available deferred layers
-        DeferredLayerType.values.map { listOf("Texture", it.name) }.flatten()
-    ) {
-
-        lateinit var renderView: RenderView
-        lateinit var pipeline: Pipeline
-
-        val enabledLayers = ArrayList<DeferredLayerType>()
-        var framebuffer: IFramebuffer? = null
-        override fun executeAction(graph: FlowGraph) {
-            // 0 is flow
-            val stageId = getInput(graph, 1) as Int
-            val sorting = getInput(graph, 2) as Int
-            val cameraIndex = getInput(graph, 3) as Int
-            enabledLayers.clear()
-            val outputs = outputs!!
-            for (i in 1 until outputs.size) {
-                val output = outputs[i]
-                if (output.others.isNotEmpty()) {
-                    // todo only enable it, if the value actually will be used
-                    enabledLayers.add(DeferredLayerType.values[i - 1])
-                }
-                setOutput(null, i)
-            }
-
-            if (enabledLayers.isEmpty()) {
-                return
-            }
-
-            val samples = 1 // todo make this configurable
-
-            // create deferred settings
-            // todo keep settings if they stayed the same as last frame
-            val settings = DeferredSettingsV2(enabledLayers, samples, true)
-
-            val rv: RenderView = renderView
-            val camera: Camera = rv.editorCamera
-
-            val dstBuffer = settings.createBaseBuffer()
-            framebuffer?.destroy()
-            framebuffer = dstBuffer
-
-            val renderer = Renderer("", settings)
-
-            GFX.check()
-
-            val hdr = true // todo hdr?
-            pipeline.applyToneMapping = !hdr
-
-            val depthMode = DepthMode.ALWAYS
-            val w = 500
-            val h = 500
-            val changeSize = true
-            GFXState.useFrame(w, h, changeSize, dstBuffer, renderer) {
-
-                Frame.bind()
-                GFXState.depthMode.use(depthMode) {
-                    rv.setClearDepth()
-                    dstBuffer.clearDepth()
-                }
-
-                rv.clearColor(camera, camera, 0f, hdr)
-                GFX.check()
-                pipeline.stages[stageId]
-                    .bindDraw(pipeline)
-                GFX.check()
-
-            }
-
-            for (i in 1 until outputs.size) {
-                val output = outputs[i]
-                if (output.others.isNotEmpty()) {
-                    // define output value
-                    // todo there are special types for which we might need to apply lighting or combine other types
-                    val type = DeferredLayerType.values[i - 1]
-                    val layer = settings.findLayer(type)!!
-                    val tex = dstBuffer.getTextureI(layer.index)
-                    if (tex is Texture2D && !tex.isCreated) {
-                        LOGGER.warn("$type -> ${layer.index} is missing")
-                        continue
-                    }
-                    val output1: Any = if (layer.mapping.isEmpty()) tex
-                    else {
-                        val output1 = Texture("map", listOf(layer.mapping))
-                        output1.v2d = tex
-                        output1
-                    }
-                    setOutput(output1, i)
-                }
-            }
-
-        }
-    }
 
     // todo node to apply lights on deferred rendering
     // is the same as SDR / HDR
@@ -193,7 +84,7 @@ class RenderGraph {
             return
         }
 
-        val start = graph.inputs.firstOrNull2() as? StartNode
+        val start = graph.nodes.firstOrNull2 { it is StartNode } as? StartNode
         if (start == null) {
             LOGGER.warn("Missing start")
             return
@@ -233,6 +124,8 @@ class RenderGraph {
             listOf(
                 { SceneNode() },
                 { ReturnNode() },
+                { ShaderExprNode() },
+                { ShaderGraphNode() },
             ) + NodeLibrary.flowNodes.nodes,
         )
 
@@ -245,14 +138,15 @@ class RenderGraph {
             // todo add start to library, or make non-deletable
             // todo add return to library
 
-            gr.inputs.add(StartNode())
-            gr.nodes.add(SceneNode())
-            gr.outputs.add(ReturnNode(listOf("Texture", "Result")))
-            gr.nodes.addAll(gr.inputs)
-            gr.nodes.addAll(gr.outputs)
-            gr.inputs.first().connectTo(gr.nodes.first())
-            gr.nodes.first().connectTo(0, gr.outputs.first(), 0)
-            gr.nodes.first().connectTo(2, gr.outputs.first(), 1)
+            val start = StartNode()
+            val sceneNode = SceneNode()
+            val retNode = ReturnNode(listOf("Texture", "Result"))
+            gr.add(start)
+            gr.add(sceneNode)
+            gr.add(retNode)
+            start.connectTo(sceneNode)
+            sceneNode.connectTo(retNode)
+            sceneNode.connectTo(2, retNode, 1)
 
             val scene = Entity()
             val cube = MeshComponent(flatCube.front.ref)
@@ -280,6 +174,24 @@ class RenderGraph {
                         calculateNodePositions(gr.nodes)
 
                         // todo center graph panel on nodes by calculating their mid point
+                        library = RenderGraph.library
+
+                        addChangeListener { _, isNodePositionChange ->
+                            if (!isNodePositionChange) {
+                                for (n in gr.nodes) {
+                                    when (n) {
+                                        is ShaderGraphNode -> {
+                                            n.shader?.destroy()
+                                            n.shader = null
+                                        }
+                                        is ShaderExprNode -> {
+                                            n.shader?.destroy()
+                                            n.shader = null
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                     }
 

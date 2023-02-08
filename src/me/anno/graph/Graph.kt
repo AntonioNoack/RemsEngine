@@ -3,6 +3,9 @@ package me.anno.graph
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 
 
 // todo for editing just copy them
@@ -23,12 +26,21 @@ import me.anno.io.base.BaseWriter
 
 open class Graph : PrefabSaveable() {
 
-    var inputs = ArrayList<Node>()
-    var outputs = ArrayList<Node>()
-
     // nodes without connections
     // could be all nodes as well, wouldn't really hurt space, because we save pointers anyway
-    var nodes = ArrayList<Node>()
+    val nodes = ArrayList<Node>()
+
+    fun add(node: Node): Node {
+        node.graph?.remove(node)
+        nodes.add(node)
+        node.graph = this
+        return node
+    }
+
+    fun remove(node: Node) {
+        if (nodes.remove(node))
+            node.graph = null
+    }
 
     fun addAll(nodes: List<Node>) {
         this.nodes.addAll(nodes)
@@ -55,37 +67,21 @@ open class Graph : PrefabSaveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeObjectList(this, "inputs", inputs)
-        writer.writeObjectList(this, "outputs", outputs)
         writer.writeObjectList(this, "nodes", nodes)
     }
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
-            "inputs" -> inputs = ArrayList(values.filterIsInstance<Node>())
-            "outputs" -> outputs = ArrayList(values.filterIsInstance<Node>())
-            "nodes" -> nodes = ArrayList(values.filterIsInstance<Node>())
+            "nodes" -> {
+                nodes.clear()
+                nodes.addAll(values.filterIsInstance<Node>())
+            }
             else -> super.readObjectArray(name, values)
         }
     }
 
     override fun clone(): PrefabSaveable {
-        val clone = Graph()
-        copy(clone)
-        return clone
-    }
-
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Graph
-        clone.nodes.clone()
-        val newNodes = nodes.map { it.clone() }
-        val newNodeMap = (newNodes.indices).associate { nodes[it] to newNodes[it] }
-        clone.nodes.addAll(newNodes)
-        clone.inputs.clone()
-        clone.inputs.addAll(inputs.map { newNodeMap[it] ?: it.clone() })
-        clone.outputs.clone()
-        clone.outputs.addAll(outputs.map { newNodeMap[it] ?: it.clone() })
+        return TextReader.readFirst(TextWriter.toText(this, InvalidRef), InvalidRef, false)
     }
 
 }

@@ -18,9 +18,9 @@ class NormalizeNode2 : CalculationNode(
         setInput(1, 1f)
     }
 
-    override fun calculate(graph: FlowGraph): Vector2f {
-        val v = getInput(graph, 0) as Vector2f
-        val l = getInput(graph, 1) as Float
+    override fun calculate(): Vector2f {
+        val v = getInput(0) as Vector2f
+        val l = getInput(1) as Float
         return v.normalize(l, Vector2f())
     }
 
@@ -42,9 +42,9 @@ class NormalizeNode3 : CalculationNode(
         setInput(1, 1f)
     }
 
-    override fun calculate(graph: FlowGraph): Vector3f {
-        val v = getInput(graph, 0) as Vector3f
-        val l = getInput(graph, 1) as Float
+    override fun calculate(): Vector3f {
+        val v = getInput(0) as Vector3f
+        val l = getInput(1) as Float
         return v.normalize(l, Vector3f())
     }
 
@@ -65,9 +65,9 @@ class NormalizeNode4 : CalculationNode(
         setInput(1, 1f)
     }
 
-    override fun calculate(graph: FlowGraph): Vector4f {
-        val v = getInput(graph, 0) as Vector4f
-        val l = getInput(graph, 1) as Float
+    override fun calculate(): Vector4f {
+        val v = getInput(0) as Vector4f
+        val l = getInput(1) as Float
         return v.normalize(l, Vector4f())
     }
 

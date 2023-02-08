@@ -1,12 +1,15 @@
 package me.anno.image
 
 import me.anno.cache.ICacheData
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.roundDiv
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
@@ -97,6 +100,35 @@ abstract class Image(
 
     fun getRGB(x: Int, y: Int): Int {
         return getRGB(x + y * width)
+    }
+
+    fun sampleRGB(x: Float, y: Float, filtering: GPUFiltering, clamping: Clamping): Int {
+        return when (filtering) {
+            GPUFiltering.TRULY_NEAREST,
+            GPUFiltering.NEAREST -> getRGB(
+                clamping.apply(floor(x).toInt(), width),
+                clamping.apply(floor(y).toInt(), height)
+            )
+            GPUFiltering.TRULY_LINEAR,
+            GPUFiltering.LINEAR -> {
+                val xf = floor(x)
+                val xi = xf.toInt()
+                val fx = x - xf
+                val yf = floor(y)
+                val yi = yf.toInt()
+                val fy = y - yf
+                val width = width
+                val height = height
+                val x0 = clamping.apply(xi, width)
+                val x1 = clamping.apply(xi + 1, width)
+                val y0 = clamping.apply(yi, height)
+                val y1 = clamping.apply(yi + 1, height)
+                mix(
+                    mix(getRGB(x0, y0), getRGB(x1, y0), fx),
+                    mix(getRGB(x0, y1), getRGB(x1, y1), fx), fy
+                )
+            }
+        }
     }
 
     fun getSafeRGB(x: Int, y: Int): Int {

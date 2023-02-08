@@ -5,7 +5,8 @@ import me.anno.graph.types.FlowGraph
 
 class DoWhileNode : FixedControlFlowNode("Do While Loop", WhileNode.inputs, WhileNode.outputs) {
 
-    override fun execute(graph: FlowGraph): NodeOutput {
+    override fun execute(): NodeOutput {
+        val graph = graph as FlowGraph
         val running = getOutputNodes(0).others.mapNotNull { it.node }
         val condition0 = inputs!![1]
         while (true) {
@@ -18,7 +19,7 @@ class DoWhileNode : FixedControlFlowNode("Do While Loop", WhileNode.inputs, Whil
                     graph.execute(node)
                 }
             } else Thread.sleep(1) // wait until condition does false
-            val condition = graph.getValue(condition0) != false
+            val condition = condition0.getValue() != false
             if (!condition) break
         }
         return getOutputNodes(1)

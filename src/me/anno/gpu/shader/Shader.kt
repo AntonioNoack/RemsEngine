@@ -42,8 +42,8 @@ open class Shader(
         }
     }
 
-    var vertexSource = ""
-    var fragmentSource = ""
+    var vertexSource = vertexShader
+    var fragmentSource = fragmentShader
 
     override fun sourceContainsWord(word: String): Boolean {
         return word in vertexShader || word in fragmentShader

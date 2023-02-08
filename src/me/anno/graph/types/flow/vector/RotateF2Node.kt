@@ -21,10 +21,10 @@ class RotateF2Node : CalculationNode(
         setInput(2, 0f)
     }
 
-    override fun calculate(graph: FlowGraph): Vector2f {
-        val r = getInput(graph, 0) as Vector2f
-        val q = getInput(graph, 1) as Vector2f
-        val a = getInput(graph, 2) as Float
+    override fun calculate(): Vector2f {
+        val r = getInput(0) as Vector2f
+        val q = getInput(1) as Vector2f
+        val a = getInput(2) as Float
         val c = cos(a)
         val s = sin(a)
         val vx = r.x - q.x

@@ -23,11 +23,12 @@ class GetLocalVariableNode(type: String = "?") :
         if (type != "?") name = "GetLocal $type"
     }
 
-    fun getKey(graph: FlowGraph) = getInput(graph, 0) as String
-    fun getValue(graph: FlowGraph) = graph.localVariables[getKey(graph)]
+    val key get() = getInput(0) as String
+    val value get() = (graph as FlowGraph).localVariables[key]
 
-    override fun calculate(graph: FlowGraph): Any? {
-        val key = getInput(graph, 0)
+    override fun calculate(): Any? {
+        val key = getInput(0)
+        val graph = graph as FlowGraph
         return graph.localVariables[key]
     }
 

@@ -28,12 +28,13 @@ class SetLocalVariableNode(type: String = "?") :
         setInputs(listOf(null, key, value))
     }
 
-    fun getKey(graph: FlowGraph) = getInput(graph, 1) as String
-    fun getValue(graph: FlowGraph) = getInput(graph, 2)
+    val key get() = getInput(1) as String
+    val value get() = getInput(2)
 
-    override fun executeAction(graph: FlowGraph) {
-        val key = getInput(graph, 1) as String
-        val value = getInput(graph, 2)
+    override fun executeAction() {
+        val key = getInput(1) as String
+        val value = getInput(2)
+        val graph = graph as FlowGraph
         graph.localVariables[key] = value
         setOutput(value, 1)
     }

@@ -20,7 +20,7 @@ class MaterialReturnNode : ReturnNode(outputs) {
                 else -> v
             }
             val con = inputs[i + 1]
-            con.value = defaultValue
+            con.currValue = defaultValue
             con.defaultValue = defaultValue
         }
     }

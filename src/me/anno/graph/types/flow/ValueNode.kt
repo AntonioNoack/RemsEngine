@@ -1,7 +1,6 @@
 package me.anno.graph.types.flow
 
 import me.anno.graph.NodeOutput
-import me.anno.graph.types.FlowGraph
 
 abstract class ValueNode : FlowGraphNode {
 
@@ -11,10 +10,10 @@ abstract class ValueNode : FlowGraphNode {
         name, inputs, listOf(outputType, "Result")
     )
 
-    abstract fun compute(graph: FlowGraph)
+    abstract fun compute()
 
-    override fun execute(graph: FlowGraph): NodeOutput? {
-        compute(graph)
+    override fun execute(): NodeOutput? {
+        compute()
         return null
     }
 

@@ -13,10 +13,8 @@ class DataFlowGraph : FlowGraph() {
     // todo except there are no inputs, just outputs
 
     fun compute(outputs: Set<NodeInput>): Any {
-        val validId = validId++
-        return outputs.map {
-            it.castGetValue(this, validId)
-        }
+        validId++
+        return outputs.map { it.getValue() }
     }
 
     override val className get() = "DataFlowGraph"

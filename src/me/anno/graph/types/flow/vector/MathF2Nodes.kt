@@ -14,8 +14,8 @@ private val dataF12 = MathNode.MathNodeData(
 )
 
 class MathF12Node : MathNode<FloatMathsUnary>(dataF12) {
-    override fun compute(graph: FlowGraph) {
-        val a = getInput(graph, 0) as Vector2f
+    override fun compute() {
+        val a = getInput(0) as Vector2f
         setOutput(Vector2f(type.float(a.x), type.float(a.y)))
     }
 }
@@ -27,9 +27,9 @@ private val dataF22 = MathNode.MathNodeData(
 )
 
 class MathF22Node : MathNode<FloatMathsBinary>(dataF22) {
-    override fun compute(graph: FlowGraph) {
-        val a = getInput(graph, 0) as Vector2f
-        val b = getInput(graph, 1) as Vector2f
+    override fun compute() {
+        val a = getInput(0) as Vector2f
+        val b = getInput(1) as Vector2f
         setOutput(Vector2f(type.float(a.x, b.x), type.float(a.y, b.y)))
     }
 }
@@ -41,10 +41,10 @@ private val dataF32 = MathNode.MathNodeData(
 )
 
 class MathF32Node : MathNode<FloatMathsTernary>(dataF32) {
-    override fun compute(graph: FlowGraph) {
-        val a = getInput(graph, 0) as Vector2f
-        val b = getInput(graph, 1) as Vector2f
-        val c = getInput(graph, 2) as Vector2f
+    override fun compute() {
+        val a = getInput(0) as Vector2f
+        val b = getInput(1) as Vector2f
+        val c = getInput(2) as Vector2f
         setOutput(Vector2f(type.float(a.x, b.x, c.x), type.float(a.y, b.y, c.y)))
     }
 }

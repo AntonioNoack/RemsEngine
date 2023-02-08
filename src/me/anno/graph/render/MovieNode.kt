@@ -27,7 +27,7 @@ class MovieNode : CalculationNode(
 
     var file: FileReference = InvalidRef
 
-    override fun calculate(graph: FlowGraph): Vector4f {
+    override fun calculate(): Vector4f {
         throw IllegalArgumentException("Operations is not supported")
     }
 

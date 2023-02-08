@@ -1,29 +1,24 @@
-package me.anno.graph.render
+package me.anno.graph.render.compiler
 
 import me.anno.Engine
 import me.anno.cache.instances.VideoCache
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
-import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.builder.ShaderStage
-import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib
+import me.anno.gpu.texture.*
 import me.anno.graph.Node
 import me.anno.graph.NodeInput
 import me.anno.graph.NodeOutput
+import me.anno.graph.render.*
 import me.anno.graph.render.MaterialGraph.convert
 import me.anno.graph.render.MaterialGraph.kotlinToGLSL
+import me.anno.graph.render.scene.SceneNode
+import me.anno.graph.render.scene.TextureNode2
 import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.graph.types.flow.actions.PrintNode
@@ -40,28 +35,24 @@ import me.anno.io.files.FileReference
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.FFMPEGMetadata
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.util.*
 import kotlin.math.max
 
-class MaterialGraphCompiler(
-    start: StartNode,
-    val g: FlowGraph,
-    budget: Int // prevent hangs by limiting the total number of iteration a shader is allowed to perform
-) {
+abstract class GraphCompiler(val g: FlowGraph) {
 
     // todo uniform input block? maybe :)
+
+    abstract val currentShader: Shader
 
     val builder = StringBuilder()
     val processedNodes = HashSet<Node>(g.nodes.size)
 
     val prefix = "tmp_"
     val conDefines = HashMap<NodeOutput, String>()
-
-    lateinit var shader: ECSMeshShader
 
     var k = 0
 
@@ -73,16 +64,17 @@ class MaterialGraphCompiler(
     }
 
     fun shallExport(l: DeferredLayerType, c: NodeInput): Boolean {
-        return l == DeferredLayerType.COLOR || c.others.isNotEmpty() || c.value != c.defaultValue
+        return l == DeferredLayerType.COLOR || c.others.isNotEmpty() || c.currValue != c.defaultValue
     }
 
-    val funcBuilder = StringBuilder()
-    val typeToFunc = HashMap<String, String>() // key -> name
-    val textureVars = HashMap<TextureNode, String>() // node -> name
+    val extraFunctions = StringBuilder()
+    val typeToFunc = HashMap<String, String?>() // key -> name
     val movies = HashMap<MovieNode, Pair<String, Boolean>>() // file -> name, linear
     val textures = HashMap<FileReference, Pair<String, Boolean>>() // file -> name, linear
-    fun defineFunc(name: String, prefix: String, suffix: String): String {
-        funcBuilder.append(prefix).append(' ').append(name).append(suffix).append('\n')
+    val textures2 = HashMap<NodeInput, Pair<String, Boolean>>() // file -> name, linear
+    fun defineFunc(name: String, prefix: String, suffix: String?): String? {
+        suffix ?: return null
+        extraFunctions.append(prefix).append(' ').append(name).append(suffix).append('\n')
         return name
     }
 
@@ -93,12 +85,14 @@ class MaterialGraphCompiler(
             is GLSLExprNode -> {
                 val c = n.outputs!!.indexOf(out)
                 val name = n.getShaderFuncName(c)
-                typeToFunc.getOrPut(name) { defineFunc(name, kotlinToGLSL(out.type), n.defineShaderFunc(c)) }
-                val inputs = n.inputs
-                when (inputs?.size ?: 0) {
-                    0 -> "$name()"
-                    else -> "$name(${inputs!!.joinToString(","){ expr(it) }})"
-                }
+                val func = typeToFunc.getOrPut(name) { defineFunc(name, kotlinToGLSL(out.type), n.defineShaderFunc(c)) }
+                if (func != null) {
+                    val inputs = n.inputs
+                    when (inputs?.size ?: 0) {
+                        0 -> "$name()"
+                        else -> "$name(${inputs!!.joinToString(",") { expr(it) }})"
+                    }
+                } else name
             }
             is DotProductF2, is DotProductF3, is DotProductF4 -> {
                 val inputs = n.inputs!!
@@ -138,8 +132,8 @@ class MaterialGraphCompiler(
                 val a = expr(n.inputs!![0])
                 "($a).${"xyzw"[c]}"
             }
-            is GetLocalVariableNode -> getLocalVarName(n.getKey(g), n.type)
-            is SetLocalVariableNode -> getLocalVarName(n.getKey(g), n.type)
+            is GetLocalVariableNode -> getLocalVarName(n.key, n.type)
+            is SetLocalVariableNode -> getLocalVarName(n.key, n.type)
             is CompareNode -> {
                 val inputs = n.inputs!!
                 val an = inputs[0]
@@ -154,9 +148,35 @@ class MaterialGraphCompiler(
                 val uv = expr(n.inputs!![0])
                 val texName = textures.getOrPut(n.file) {
                     val linear = constEval(n.inputs!![1]) == true
-                    Pair("texI${textures.size}", linear)
+                    // todo different color repeat modes in GLSL
+                    Pair("tex1I${textures.size}", linear)
                 }.first
                 "texture($texName,$uv)"
+            }
+            is TextureNode2 -> {
+                val uv = expr(n.inputs!![1])
+                val input = out.others.firstOrNull() as? NodeInput
+                if (input != null) {
+                    val texName = textures2.getOrPut(input) {
+                        val linear = constEval(n.inputs!![2]) == true
+                        // todo different color repeat modes in GLSL
+                        Pair("tex2I${textures2.size}", linear)
+                    }.first
+                    "texture($texName,$uv)"
+                } else "vec4(1.0,0.0,1.0,1.0)"
+            }
+            is SceneNode, is StartNode -> {
+                when (out.type) {
+                    "Texture" -> {
+                        val input = out.others.firstOrNull() as? NodeInput
+                        if (input != null) {
+                            textures2.getOrPut(input) {
+                                Pair("tex2I${textures2.size}", true)
+                            }.first
+                        } else "vec4(1.0,0.0,1.0,1.0)"
+                    }
+                    else -> throw NotImplementedError()
+                }
             }
             is MovieNode -> {
                 val uv = expr(n.inputs!![0])
@@ -182,12 +202,13 @@ class MaterialGraphCompiler(
     }
 
     fun expr(c: NodeInput): String {
+        if (c.type == "Flow") throw IllegalArgumentException("Cannot request value of flow type")
         val n0 = c.others.firstOrNull()
         if (n0 is NodeOutput) {
             return convert(n0.type, c.type, expr(n0, n0.node!!))
                 ?: throw IllegalStateException("Cannot convert ${n0.type} to ${c.type}!")
         }
-        val v = c.value
+        val v = c.currValue
         return (when (c.type) {
             "Float", "Double" -> AnyToFloat.getFloat(v, 0, c.defaultValue as? Float ?: 0f)
             "Int", "Long" -> AnyToLong.getLong(v, 0, c.defaultValue as? Long ?: 0L)
@@ -212,9 +233,11 @@ class MaterialGraphCompiler(
     }
 
     fun constEval(c: NodeInput): Any? {
-        return if (c.others.isEmpty()) c.value ?: c.defaultValue
+        return if (c.others.isEmpty()) c.currValue ?: c.defaultValue
         else null
     }
+
+    abstract fun handleReturnNode(node: ReturnNode)
 
     /**
      * creates code; returns true, if extra return is needed
@@ -245,31 +268,8 @@ class MaterialGraphCompiler(
                 }
                 createTree(n.getOutputNode(2), depth)
             }
-            is MaterialReturnNode -> {
-                // define all values :)
-                for (i in MaterialGraph.layers.indices) {
-                    val l = MaterialGraph.layers[i]
-                    val c = n.inputs!![i + 1]
-                    if (shallExport(l, c)) {
-                        // set value :)
-                        val x = expr(c)
-                        builder.append(l.glslName).append("=")
-                        // clamping could be skipped, if we were sure that the value is within bounds
-                        when (if (l.highDynamicRange) null else l.map01) {
-                            "*0.5+0.5" -> builder.append("clamp(").append(x).append(",-1.0,1.0)")
-                            "" -> builder.append("clamp(").append(x).append(",0.0,1.0)")
-                            null -> builder.append(x)
-                            else -> builder.append(x)
-                        }
-                        builder.append(";\n")
-                    } // else skip this
-                }
-                // jump to return
-                builder.append("return false;\n")
-                false
-            }
-            is DiscardNode -> {
-                builder.append("return true;\n")
+            is ReturnNode -> {
+                handleReturnNode(n)
                 false
             }
             is WhileNode -> {
@@ -330,7 +330,7 @@ class MaterialGraphCompiler(
             is SetLocalVariableNode -> {
                 if (n.type != "?") {
                     val value = expr(n.inputs!![2])
-                    builder.append(getLocalVarName(n.getKey(g), n.type))
+                    builder.append(getLocalVarName(n.key, n.type))
                         .append("=").append(value).append(";\n")
                 }
                 // continue
@@ -344,6 +344,11 @@ class MaterialGraphCompiler(
 
     val typeValues = HashMap<String, TypeValue>()
 
+    fun filter(shader: Shader, name: String, tex: ITexture2D, linear: Boolean): ITexture2D {
+        if (tex is Texture2D) filter(shader, name, tex, linear)
+        return tex
+    }
+
     fun filter(shader: Shader, name: String, tex: Texture2D, linear: Boolean): Texture2D {
         val filter = if (linear) GPUFiltering.LINEAR else GPUFiltering.NEAREST
         if (tex.filtering != filter || tex.clamping != Clamping.REPEAT) {
@@ -356,107 +361,50 @@ class MaterialGraphCompiler(
         return tex
     }
 
-    init {
-
-        builder.append("bool calc(")
-        val outs = start.outputs!!
-        var first = true
-        for (i in 1 until outs.size) {
-            val o = outs[i]
-            if (o.others.isNotEmpty()) {
-                // is used :)
-                if (!first) builder.append(", ")
-                val tmpName = conDefines.getOrPut(o) { prefix + conDefines.size }
-                builder.append(kotlinToGLSL(o.type))
-                    .append(" ").append(tmpName)
-                first = false
-            }
-        }
-
-        // traverse graph to find, which layers were exported
-        val exportedLayers = BitSet(MaterialGraph.layers.size)
-        fun traverse(node: Node?) {
-            node ?: return
-            if (!processedNodes.add(node)) {
-                throw IllegalStateException("Illegal loop for ${node.javaClass.name}")
-            }
-            when (node) {
-                is StartNode -> traverse(node.getOutputNode(0))
-                is ForNode -> {
-                    traverse(node.getOutputNode(0))
-                    traverse(node.getOutputNode(2))
-                }
-                is WhileNode, is DoWhileNode, is IfElseNode -> {
-                    traverse(node.getOutputNode(0))
-                    traverse(node.getOutputNode(1))
-                }
-                is MaterialReturnNode -> {
-                    for (i in MaterialGraph.layers.indices) {
-                        if (!exportedLayers[i] && shallExport(MaterialGraph.layers[i], node.inputs!![i + 1])) {
-                            exportedLayers[i] = true
-                        }
-                    }
-                }
-                is ActionNode -> traverse(node.getOutputNode(0))
-            }
-        }
-        traverse(start)
-        processedNodes.clear()
-
-        for (i in MaterialGraph.layers.indices) {
-            if (exportedLayers[i]) {
-                val l = MaterialGraph.layers[i]
-                if (!first) builder.append(", ")
-                builder
-                    .append("inout ")
-                    .append(DeferredSettingsV2.glslTypes[l.dimensions - 1])
-                    .append(" ").append(l.glslName)
-                first = false
-            }
-        }
-        builder.append("){\nint budget=").append(budget).append(";\n")
-        val funcHeader = builder.toString()
-        builder.clear()
-        if (createTree(start, 1))
-            builder.append("return false;\n")
-        builder.append("}\n")
-
-        val funcBody = builder.toString()
-        builder.clear()
-
+    fun defineLocalVars(builder: StringBuilder) {
         for ((k, v) in localVars) {
             val type = kotlinToGLSL(v.second)
             builder.append(type).append(' ').append(v.first)
                 .append('=').append(type).append("(0);//").append(k).append("\n")
         }
-        for ((_, v) in textureVars) {
-            builder.append("vec4 ").append(v).append("=vec4(0);").append("\n")
-        }
+        defineTextures()
+        defineMovies()
+    }
 
-        val usedVars = ArrayList<Variable>()
+    fun defineTextures() {
         for ((file, data) in textures) {
             val (name, linear) = data
             typeValues[name] =
                 TypeValueV2(GLSLType.S2D) {
                     val tex = ImageGPUCache[file, true]
-                    if (tex != null) filter(shader.value, name, tex, linear)
+                    if (tex != null) filter(currentShader, name, tex, linear)
                     else TextureLib.missingTexture
                 }
         }
-        var lastGraphInvalidation = 0L
+        for ((node, data) in textures2) {
+            val (name, linear) = data
+            typeValues[name] = TypeValueV2(GLSLType.S2D) {
+                val tex = node.getValue() as? ITexture2D
+                if (tex != null) filter(currentShader, name, tex, linear)
+                else TextureLib.missingTexture
+            }
+        }
+    }
+
+    fun defineMovies() {
         for ((node, data) in movies) {
             val (name, linear) = data
             typeValues[name] =
                 TypeValueV2(GLSLType.S2D) {
                     val file = node.file
-                    val meta = getMeta(file, true)
+                    val meta = FFMPEGMetadata.getMeta(file, true)
                     if (meta != null && meta.hasVideo) {
                         val time1 = Engine.gameTime
-                        if (time1 != lastGraphInvalidation) {
+                        if (time1 != g.lastInvalidation) {
                             g.invalidate()
-                            lastGraphInvalidation = time1
+                            g.lastInvalidation = time1
                         }
-                        val time = node.getInput(g, 2) as Float
+                        val time = node.getInput(2) as Float
                         val frameCount = max(1, meta.videoFrameCount)
                         var frameIndex = (time * meta.videoFPS).toInt() % frameCount
                         if (frameIndex < 0) frameIndex += frameCount
@@ -476,116 +424,47 @@ class MaterialGraphCompiler(
                         )
                         if (tex != null && tex.get2DShader() == ShaderLib.shader2DRGBA) {
                             val tex2 = tex.getTextures()[0]
-                            filter(shader.value, name, tex2, linear)
+                            filter(currentShader, name, tex2, linear)
                         } else TextureLib.blackTexture
 
                     } else TextureLib.blackTexture
                 }
         }
-        val funcVars = builder.toString()
-        builder.clear()
+    }
 
-        val functions = funcBuilder.toString() + funcHeader + funcVars + funcBody
+    fun defineBudget(builder: StringBuilder, budget: Int) {
+        builder.append("int budget=").append(budget).append(";\n")
+    }
 
-        // call method with all required parameters
-        val layers = MaterialGraph.layers
-        val layer0Name = layers[0].glslName
-        if (exportedLayers[0]) {
-            val v = DeferredLayerType.COLOR.defaultValueARGB
-            builder.append("vec4 ").append(layer0Name).append("=vec4(${v.x},${v.y},${v.z},1.0);\n")
-        }
-        builder.append("if(calc(")
-        first = true
-        // all inputs
-        for (i in 1 until start.outputs!!.size) {
-            if (start.getOutputNode(i) != null) {
-                if (!first) builder.append(", ")
-                builder.append(
-                    when (i) {
-                        1 -> {
-                            usedVars += Variable(GLSLType.V3F, "localPosition")
-                            "localPosition"
+    fun findExportSet(start: Node, layers: Array<DeferredLayerType>): BitSet {
+        processedNodes.clear()
+        val exportedLayers = BitSet(layers.size)
+        fun traverse(node: Node?) {
+            node ?: return
+            if (!processedNodes.add(node)) {
+                throw IllegalStateException("Illegal loop for ${node.javaClass.name}")
+            }
+            when (node) {
+                is StartNode, is ActionNode -> traverse(node.getOutputNode(0))
+                is ForNode -> {
+                    traverse(node.getOutputNode(0))
+                    traverse(node.getOutputNode(2))
+                }
+                is WhileNode, is DoWhileNode, is IfElseNode -> {
+                    traverse(node.getOutputNode(0))
+                    traverse(node.getOutputNode(1))
+                }
+                is MaterialReturnNode -> {
+                    for (i in layers.indices) {
+                        if (!exportedLayers[i] && shallExport(layers[i], node.inputs!![i + 1])) {
+                            exportedLayers[i] = true
                         }
-                        2 -> {
-                            usedVars += Variable(GLSLType.V3F, "finalPosition", VariableMode.INOUT)
-                            "finalPosition"
-                        }
-                        3 -> {
-                            usedVars += Variable(GLSLType.V2F, "uv")
-                            "uv"
-                        }
-                        4 -> {
-                            usedVars += Variable(GLSLType.V3F, "normal")
-                            "normal"
-                        }
-                        5 -> {
-                            usedVars += Variable(GLSLType.V4F, "tangent")
-                            "tangent"
-                        }
-                        6 -> "finalBitangent"
-                        7 -> {
-                            usedVars += Variable(GLSLType.V4F, "vertexColor0")
-                            "vertexColor0"
-                        }
-                        else -> throw NotImplementedError()
                     }
-                )
-                first = false
-            }
-        }
-
-        // all outputs
-        for (i in layers.indices) {
-            if (exportedLayers[i]) {
-                if (!first) builder.append(", ")
-                builder.append(layers[i].glslName)
-                first = false
-            }
-        }
-        builder.append(")) discard;\n")
-        if (exportedLayers[0]) {
-            builder.append("finalColor=").append(layer0Name).append(".rgb;\n")
-            builder.append("finalAlpha=").append(layer0Name).append(".a;\n")
-        }
-
-        val funcCall = builder.toString()
-        println(functions)
-        println(funcCall)
-
-        for ((k, v) in typeValues) {
-            usedVars += Variable(v.type, k)
-        }
-
-        shader = object : ECSMeshShader(g.name) {
-
-            override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
-                super.bind(shader, renderer, instanced)
-                for ((k, v) in typeValues) {
-                    v.bind(shader, k)
                 }
             }
-
-            override fun createFragmentStage(
-                isInstanced: Boolean,
-                isAnimated: Boolean,
-                motionVectors: Boolean
-            ): ShaderStage {
-                // super.createFragmentStage(isInstanced, isAnimated, motionVectors)
-                // todo only if not already added
-                // todo only if used
-                val vars = usedVars + super.createFragmentVariables(isInstanced, isAnimated, motionVectors)
-                return ShaderStage(
-                    "calc", vars,
-                    discardByCullingPlane +
-                            normalTanBitanCalculation +
-                            funcCall +
-                            // todo only if clear coat is defined
-                            // v0 + clearCoatCalculation +
-                            reflectionPlaneCalculation +
-                            (if (motionVectors) finalMotionCalculation else "")
-                ).add(functions)
-            }
         }
+        traverse(start)
+        return exportedLayers
     }
 
 }

@@ -19,10 +19,10 @@ class FresnelNode3 : CalculationNode(
         setInput(2, 2f)
     }
 
-    override fun calculate(graph: FlowGraph): Float {
-        val a = getInput(graph, 0) as Vector3f
-        val b = getInput(graph, 1) as Vector3f
-        val p = getInput(graph, 2) as Float
+    override fun calculate(): Float {
+        val a = getInput(0) as Vector3f
+        val b = getInput(1) as Vector3f
+        val p = getInput(2) as Float
         return pow(max(-a.dot(b) / a.length(), 0f), p)
     }
 

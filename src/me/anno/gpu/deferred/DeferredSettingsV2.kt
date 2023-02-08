@@ -12,10 +12,10 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.joml.Vector4f
 import kotlin.math.max
 
-class DeferredSettingsV2(
+data class DeferredSettingsV2(
     val layerTypes: List<DeferredLayerType>,
     val samples: Int,
-    fpLights: Boolean
+    val fpLights: Boolean
 ) {
 
     class Layer(val type: DeferredLayerType, val textureName: String, val index: Int, val mapping: String) {

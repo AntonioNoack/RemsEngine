@@ -7,7 +7,6 @@ import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.Node
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.states.StateNode
 import me.anno.io.ISaveable.Companion.registerCustomClass
@@ -38,6 +37,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
             "Flow", "Next",
             "Float", "Progress"
         )
+
         fun register() {
             NodeLibrary.init()
             registerCustomClass(AnimStateNode())
@@ -46,28 +46,27 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
     var progress = 0f
 
-    override fun executeAction(graph: FlowGraph) {
-        progress = getInput(graph, START) as Float // start time
+    override fun executeAction() {
+        progress = getInput(START) as Float // start time
         setOutput(progress, 1)
         // throws
-        super.executeAction(graph)
+        super.executeAction()
     }
 
-    fun getDuration(graph: FlowGraph): Float {
-        val source = getInput(graph, SOURCE) as FileReference
+    fun getDuration(): Float {
+        val source = getInput(SOURCE) as FileReference
         val anim = AnimationCache[source, false] ?: return 10f
         return anim.duration
     }
 
-    override fun update(graph: FlowGraph): StateNode {
-        val speed = getInput(graph, SPEED) as Float
+    override fun update(): StateNode {
+        val speed = getInput(SPEED) as Float
         progress += speed * Engine.deltaTime
         setOutput(progress, 1)
-        var end = getInput(graph, END) as Float
-        if (end == 0f) end = getDuration(graph)
-        val fade = getInput(graph, FADE) as Float
-        if (progress > end - fade)
-            return super.update(graph)
+        var end = getInput(END) as Float
+        if (end == 0f) end = getDuration()
+        val fade = getInput(FADE) as Float
+        if (progress > end - fade) return super.update()
         return this // continuing this animation
     }
 
@@ -75,7 +74,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         return ((x % y) + y) % y
     }
 
-    fun updateRenderer(graph: FlowGraph, previous: AnimStateNode?, target: AnimRenderer) {
+    fun updateRenderer(previous: AnimStateNode?, target: AnimRenderer) {
         val targetSize = if (previous == null) 1 else 2
         if (target.animations.size != targetSize) {
             target.animations = if (previous == null) {
@@ -88,13 +87,13 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
             }
         }
         val animations = target.animations
-        val loop = getInput(graph, LOOP) as Boolean
-        val start = getInput(graph, START) as Float
-        var end = getInput(graph, END) as Float
-        val duration = getDuration(graph)
+        val loop = getInput(LOOP) as Boolean
+        val start = getInput(START) as Float
+        var end = getInput(END) as Float
+        val duration = getDuration()
         if (end <= 0f) end = duration
         val progress = if (loop) posMod(progress, duration) else progress
-        val fade = getInput(graph, FADE) as Float
+        val fade = getInput(FADE) as Float
         val fadeIn = (progress - start) / fade
         val weight = clamp(min(fadeIn, (end - progress) / fade))
         val state = if (previous != null) {
@@ -104,7 +103,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
             animations[1]
         } else animations[0]
         fillState(weight, state)
-        state.speed = getInput(graph, 1) as Float
+        state.speed = getInput(1) as Float
         state.progress = progress
         state.repeat = if (loop) LoopingState.PLAY_LOOP else LoopingState.PLAY_LOOP
     }

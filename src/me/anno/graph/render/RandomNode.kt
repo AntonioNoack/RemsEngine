@@ -15,8 +15,8 @@ class RandomNode : CalculationNode("Random", listOf("Vector2f", "Seed"), listOf(
         setInput(0, Vector2f())
     }
 
-    override fun calculate(graph: FlowGraph): Float {
-        val uv = getInput(graph, 0) as Vector2f
+    override fun calculate(): Float {
+        val uv = getInput(0) as Vector2f
         return fract(sin(uv.x * 12.9898f + uv.y * 78.233f) * 43758.547f)
     }
 

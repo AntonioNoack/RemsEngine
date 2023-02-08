@@ -1,12 +1,11 @@
 package me.anno.graph.types.flow.actions
 
-import me.anno.graph.types.FlowGraph
 import org.apache.logging.log4j.LogManager
 
 class PrintNode : ActionNode("Print", listOf("Any?", "Printed"), emptyList()) {
 
-    override fun executeAction(graph: FlowGraph) {
-        LOGGER.info(graph.getValue(inputs!![1]).toString())
+    override fun executeAction() {
+        LOGGER.info(inputs!![1].getValue().toString())
     }
 
     companion object {

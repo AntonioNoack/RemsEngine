@@ -1,6 +1,5 @@
 package me.anno.graph.types.flow.maths
 
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.io.base.BaseWriter
@@ -68,10 +67,10 @@ class CompareNode(type: String = "?") :
         return ha.compareTo(hb)
     }
 
-    override fun compute(graph: FlowGraph) {
+    override fun compute() {
         val inputs = inputs!!
-        val a = graph.getValue(inputs[0])
-        val b = graph.getValue(inputs[1])
+        val a = inputs[0].getValue()
+        val b = inputs[1].getValue()
         val c = when (compType) {
             Mode.IDENTICAL -> a === b
             Mode.NOT_IDENTICAL -> a !== b

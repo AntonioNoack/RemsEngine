@@ -1,18 +1,18 @@
 package me.anno.graph.types.flow
 
-import me.anno.graph.types.FlowGraph
-
 abstract class CalculationNode : ValueNode {
 
     @Suppress("unused")
     constructor(name: String) : super(name)
-    constructor(name: String, inputs: List<String>, outputType: String) : super(name, inputs, listOf(outputType,"Result"))
+    constructor(name: String, inputs: List<String>, outputType: String) :
+            super(name, inputs, listOf(outputType, "Result"))
+
     constructor(name: String, inputs: List<String>, outputs: List<String>) : super(name, inputs, outputs)
 
-    abstract fun calculate(graph: FlowGraph): Any?
+    abstract fun calculate(): Any?
 
-    override fun compute(graph: FlowGraph) {
-        setOutput(calculate(graph), 0)
+    override fun compute() {
+        setOutput(calculate(), 0)
     }
 
 }

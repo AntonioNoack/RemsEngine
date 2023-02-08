@@ -1,7 +1,6 @@
 package me.anno.graph.types.states
 
 import me.anno.graph.NodeConnector
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.actions.ActionNode
 
 open class StateNode(
@@ -15,13 +14,12 @@ open class StateNode(
         private val outputs = listOf("Flow", "OnUpdate")
     }
 
-    open fun update(graph: FlowGraph): StateNode {
+    open fun update(): StateNode {
         return try {
             val outputs = outputs ?: return this
             for (output in outputs) {
                 for (input in output.others) {
-                    (input.node as? ActionNode)
-                        ?.execute(graph)
+                    (input.node as? ActionNode)?.execute()
                 }
             }
             this
@@ -30,11 +28,11 @@ open class StateNode(
         }
     }
 
-    override fun executeAction(graph: FlowGraph) {
+    override fun executeAction() {
         throw NewState(this)
     }
 
-    override fun canAddOutput(type: String) = (type == "Flow")
+    override fun canAddOutput(type: String, index: Int): Boolean = type == "Flow"
     override fun supportsMultipleInputs(con: NodeConnector) = true
     override fun supportsMultipleOutputs(con: NodeConnector) = true
 

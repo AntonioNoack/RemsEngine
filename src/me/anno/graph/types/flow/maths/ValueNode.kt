@@ -1,6 +1,5 @@
 package me.anno.graph.types.flow.maths
 
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.io.base.BaseWriter
 
@@ -20,7 +19,7 @@ class ValueNode private constructor(type: String, inputs: List<String>, outputs:
             name = value
         }
 
-    override fun calculate(graph: FlowGraph) = getInput(graph, 0)
+    override fun calculate() = getInput(0)
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

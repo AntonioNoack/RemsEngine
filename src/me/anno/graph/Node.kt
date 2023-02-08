@@ -1,6 +1,7 @@
 package me.anno.graph
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.graph.types.FlowGraph
 import me.anno.graph.ui.GraphEditor
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -49,19 +50,22 @@ abstract class Node() : PrefabSaveable() {
     var outputs: Array<NodeOutput>? = null
 
     var color = 0
+    var graph: Graph? = null
 
-    open fun canAddInput(type: String) = false
-    open fun canAddOutput(type: String) = false
-    open fun canRemoveInput(type: String) = false
-    open fun canRemoveOutput(type: String) = false
+    open fun canAddInput(type: String, index: Int) = false
+    open fun canAddOutput(type: String, index: Int) = false
+    open fun canRemoveInput(type: String, index: Int) = false
+    open fun canRemoveOutput(type: String, index: Int) = false
     open fun supportsMultipleInputs(con: NodeConnector) = false
     open fun supportsMultipleOutputs(con: NodeConnector) = false
 
     fun setOutput(value: Any?, index: Int = 0) {
-        val node = outputs!![index]
-        node.value = value
-        for (it in node.others) {
-            it.invalidate()
+        val output = outputs!![index]
+        output.currValue = value
+        val graph = graph
+        if (graph is FlowGraph) for (input in output.others) {
+            input as? NodeInput ?: continue
+            input.validate(value, graph)
         }
     }
 
@@ -83,11 +87,7 @@ abstract class Node() : PrefabSaveable() {
             con.disconnectAll()
         }
         // todo you might not be allowed to delete this node
-        if (graph != null) {
-            graph.inputs.remove(this)
-            graph.outputs.remove(this)
-            graph.nodes.remove(this)
-        }
+        graph?.nodes?.remove(this)
     }
 
     // the node ofc needs to save its custom content and behaviour as well
@@ -99,9 +99,9 @@ abstract class Node() : PrefabSaveable() {
         // if valid, just save connections and values (should be much slimmer :))
         val inputs = inputs
         val outputs = outputs
-        if (inputs == null || inputs.any { it.isCustom || it.value != null || it.others.isNotEmpty() })
+        if (inputs == null || inputs.any { it.isCustom || it.currValue != null || it.others.isNotEmpty() })
             writer.writeObjectArray(this, "inputs", inputs)
-        if (outputs == null || outputs.any { it.isCustom || it.value != null || it.others.isNotEmpty() })
+        if (outputs == null || outputs.any { it.isCustom || it.currValue != null || it.others.isNotEmpty() })
             writer.writeObjectArray(this, "outputs", outputs)
         writer.writeInt("layer", layer)
         writer.writeVector3d("position", position)
@@ -185,7 +185,7 @@ abstract class Node() : PrefabSaveable() {
     fun setInput(index: Int, value: Any?, validId: Int) {
         val c = inputs!![index]
         c.lastValidId = validId
-        c.value = value
+        c.currValue = value
     }
 
     fun setInput(index: Int, value: Any?) {

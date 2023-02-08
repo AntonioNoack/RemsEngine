@@ -528,7 +528,7 @@ class NodePanel(
 
     override fun getTooltipText(x: Float, y: Float): String? {
         val con = getConnectorAt(x, y) ?: return null
-        return "${con.type}: ${con.value}"
+        return "${con.type}: ${con.currValue}"
     }
 
     override fun getMultiSelectablePanel() = this

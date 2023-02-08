@@ -13,9 +13,9 @@ class CombineVector2f : CalculationNode("Combine Vector2f", inputs, outputs) {
         setInput(1, 0f)
     }
 
-    override fun calculate(graph: FlowGraph): Vector2f {
-        val x = getInput(graph, 0) as Float
-        val y = getInput(graph, 1) as Float
+    override fun calculate(): Vector2f {
+        val x = getInput(0) as Float
+        val y = getInput(1) as Float
         return Vector2f(x, y)
     }
 
@@ -34,10 +34,10 @@ class CombineVector3f : CalculationNode("Combine Vector3f", inputs, outputs) {
         setInput(2, 0f)
     }
 
-    override fun calculate(graph: FlowGraph): Vector3f {
-        val x = getInput(graph, 0) as Float
-        val y = getInput(graph, 1) as Float
-        val z = getInput(graph, 2) as Float
+    override fun calculate(): Vector3f {
+        val x = getInput(0) as Float
+        val y = getInput(1) as Float
+        val z = getInput(2) as Float
         return Vector3f(x, y, z)
     }
 
@@ -57,11 +57,11 @@ class CombineVector4f : CalculationNode("Combine Vector4f", inputs, outputs) {
         setInput(3, 0f)
     }
 
-    override fun calculate(graph: FlowGraph): Vector4f {
-        val x = getInput(graph, 0) as Float
-        val y = getInput(graph, 1) as Float
-        val z = getInput(graph, 2) as Float
-        val w = getInput(graph, 3) as Float
+    override fun calculate(): Vector4f {
+        val x = getInput(0) as Float
+        val y = getInput(1) as Float
+        val z = getInput(2) as Float
+        val w = getInput(3) as Float
         return Vector4f(x, y, z, w)
     }
 

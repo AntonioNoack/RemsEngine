@@ -21,7 +21,7 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
 
     var type = "Any?"
 
-    var value: Any? = null
+    var currValue: Any? = null
     var defaultValue: Any? = null
 
     // todo special node ui? would help with the layouts :)
@@ -82,7 +82,7 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
             writer.writeBoolean("custom", true)
         }
         writer.writeObjectList(this, "others", others)
-        if (value != null) writer.writeSomething(this, "value", value, true)
+        if (currValue != null) writer.writeSomething(this, "value", currValue, true)
     }
 
     override fun readBoolean(name: String, value: Boolean) {
@@ -96,7 +96,7 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
     }
 
     override fun readSomething(name: String, value: Any?) {
-        if (name == "value") this.value = value
+        if (name == "value") this.currValue = value
         else super.readSomething(name, value)
     }
 

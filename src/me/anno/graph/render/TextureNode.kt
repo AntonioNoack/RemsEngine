@@ -1,5 +1,7 @@
 package me.anno.graph.render
 
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.ui.GraphEditor
@@ -7,7 +9,6 @@ import me.anno.image.ImageCPUCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.FileInput
 import me.anno.ui.style.Style
@@ -18,8 +19,11 @@ import org.joml.Vector4f
 
 class TextureNode : CalculationNode(
     "Texture",
-    // todo different color repeat modes
-    listOf("Vector2f", "UV", "Boolean", "Linear"),
+    listOf(
+        "Vector2f", "UV",
+        "Boolean", "Linear",
+        "Int", "Clamp/Repeat/MRepeat"
+    ),
     listOf("Vector4f", "Color")
 ) {
 
@@ -31,21 +35,23 @@ class TextureNode : CalculationNode(
     init {
         setInput(0, Vector2f())
         setInput(1, true)
+        setInput(2, 0)
     }
 
     var file: FileReference = InvalidRef
 
-    override fun calculate(graph: FlowGraph): Vector4f {
+    override fun calculate(): Vector4f {
         val file = file
-        val uv = getInput(graph, 0) as Vector2f
+        val uv = getInput(0) as Vector2f
         val image = ImageCPUCache[file, false]
         return if (image != null) {
-            val linear = getInput(graph, 1) == true
-            // todo support linear sampling
-            val x = Maths.clamp((Maths.fract(uv.x) * image.width).toInt(), 0, image.width - 1)
-            val y = Maths.clamp((Maths.fract(uv.y) * image.height).toInt(), 0, image.height - 1)
-            val c = image.getRGB(x, y)
-            c.toVecRGBA()
+            val linear = if (getInput(1) == true) GPUFiltering.LINEAR else GPUFiltering.NEAREST
+            val clamping = when (getInput(2) as Int) {
+                1 -> Clamping.REPEAT
+                2 -> Clamping.MIRRORED_REPEAT
+                else -> Clamping.CLAMP
+            }
+            image.sampleRGB(uv.x, uv.y, linear, clamping).toVecRGBA()
         } else {
             if ((uv.x + uv.y) % 1f > 0.5f) black else violet
         }

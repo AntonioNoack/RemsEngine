@@ -21,10 +21,10 @@ class RotateF3XNode : CalculationNode(
         setInput(2, 0f)
     }
 
-    override fun calculate(graph: FlowGraph): Vector3f {
-        val r = getInput(graph, 0) as Vector3f
-        val q = getInput(graph, 1) as Vector3f
-        val a = getInput(graph, 2) as Float
+    override fun calculate(): Vector3f {
+        val r = getInput(0) as Vector3f
+        val q = getInput(1) as Vector3f
+        val a = getInput(2) as Float
         val c = cos(a)
         val s = sin(a)
         val vx = r.y - q.y
@@ -53,10 +53,10 @@ class RotateF3YNode : CalculationNode(
         setInput(2, 0f)
     }
 
-    override fun calculate(graph: FlowGraph): Vector3f {
-        val r = getInput(graph, 0) as Vector3f
-        val q = getInput(graph, 1) as Vector3f
-        val a = getInput(graph, 2) as Float
+    override fun calculate(): Vector3f {
+        val r = getInput(0) as Vector3f
+        val q = getInput(1) as Vector3f
+        val a = getInput(2) as Float
         val c = cos(a)
         val s = sin(a)
         val vx = r.z - q.z
@@ -86,10 +86,10 @@ class RotateF3ZNode : CalculationNode(
         setInput(2, 0f)
     }
 
-    override fun calculate(graph: FlowGraph): Vector3f {
-        val r = getInput(graph, 0) as Vector3f
-        val q = getInput(graph, 1) as Vector3f
-        val a = getInput(graph, 2) as Float
+    override fun calculate(): Vector3f {
+        val r = getInput(0) as Vector3f
+        val q = getInput(1) as Vector3f
+        val a = getInput(2) as Float
         val c = cos(a)
         val s = sin(a)
         val vx = r.x - q.x

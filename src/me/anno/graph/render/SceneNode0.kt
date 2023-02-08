@@ -4,9 +4,9 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.CalculationNode
 
-class SceneNode : CalculationNode("Scene", emptyList(), outputs) {
+class SceneNode0 : CalculationNode("Scene", emptyList(), outputs) {
 
-    override fun calculate(graph: FlowGraph): Any? {
+    override fun calculate(): Any? {
         return RenderView.currentInstance!!.getWorld()
     }
 

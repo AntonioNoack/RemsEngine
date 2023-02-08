@@ -1,11 +1,9 @@
 package me.anno.graph.types.flow.vector
 
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-
 
 class SeparateVector2f : ValueNode("Separate Vector2f", inputs, outputs) {
 
@@ -13,8 +11,8 @@ class SeparateVector2f : ValueNode("Separate Vector2f", inputs, outputs) {
         setInput(0, Vector2f())
     }
 
-    override fun compute(graph: FlowGraph) {
-        val v = getInput(graph, 0) as Vector2f
+    override fun compute() {
+        val v = getInput(0) as Vector2f
         setOutput(v.x, 0)
         setOutput(v.y, 1)
     }
@@ -32,8 +30,8 @@ class SeparateVector3f : ValueNode("Separate Vector3f", inputs, outputs) {
         setInput(0, Vector3f())
     }
 
-    override fun compute(graph: FlowGraph) {
-        val v = getInput(graph, 0) as Vector3f
+    override fun compute() {
+        val v = getInput(0) as Vector3f
         setOutput(v.x, 0)
         setOutput(v.y, 1)
         setOutput(v.z, 2)
@@ -52,8 +50,8 @@ class SeparateVector4f : ValueNode("Separate Vector4f", inputs, outputs) {
         setInput(0, Vector4f())
     }
 
-    override fun compute(graph: FlowGraph) {
-        val v = getInput(graph, 0) as Vector4f
+    override fun compute() {
+        val v = getInput(0) as Vector4f
         setOutput(v.x, 0)
         setOutput(v.y, 1)
         setOutput(v.z, 2)

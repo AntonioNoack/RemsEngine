@@ -5,12 +5,13 @@ import me.anno.graph.types.FlowGraph
 
 class ForNode : FixedControlFlowNode("For Loop", inputs, outputs) {
 
-    override fun execute(graph: FlowGraph): NodeOutput {
+    override fun execute(): NodeOutput {
+        val graph = graph as FlowGraph
         val inputs = inputs!!
-        val startIndex = graph.getValue(inputs[1]) as Long
-        val endIndex = graph.getValue(inputs[2]) as Long
-        val increment = graph.getValue(inputs[3]) as Long
-        val reversed = graph.getValue(inputs[4]) as Boolean
+        val startIndex = inputs[1].getValue() as Long
+        val endIndex = inputs[2].getValue() as Long
+        val increment = inputs[3].getValue() as Long
+        val reversed = inputs[4].getValue() as Boolean
         if (startIndex != endIndex) {
             val running = getOutputNodes(0).others.mapNotNull { it.node }
             if (running.isNotEmpty()) {

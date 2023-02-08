@@ -24,6 +24,7 @@ open class FlowGraph : Graph() {
     // todo maybe we need to evaluate nodes every time: internal values may have changed
 
     var validId = 0
+    var lastInvalidation = 0L
 
     // todo define them local variables...
     var localVariables = HashMap<String, Any?>()
@@ -55,7 +56,7 @@ open class FlowGraph : Graph() {
     fun execute(startNode: Node): Node {
         // LOGGER.debug("Execute ${startNode.className}")
         startNode as FlowGraphNode
-        val exec = startNode.execute(this)
+        val exec = startNode.execute()
         val nextNodes = exec?.others ?: return startNode
         // LOGGER.debug("${startNode.className} -> ${nextNodes.map { it.className }}")
         var lastNode = startNode
@@ -80,16 +81,16 @@ open class FlowGraph : Graph() {
 
     fun computeNode(input: Node): List<Any?> {
         val node = execute(input)
-        return node.outputs!!.map { it.value }
+        return node.outputs!!.map { it.currValue }
     }
 
     fun computeNode1(input: Node): Any? {
         val node = execute(input)
-        return node.outputs!!.firstOrNull()?.value
+        return node.outputs!!.firstOrNull()?.currValue
     }
 
     fun getValue(input: NodeInput): Any? {
-        return input.castGetValue(this, validId)
+        return input.getValue()
     }
 
     override val className get() = "FlowGraph"

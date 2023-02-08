@@ -48,9 +48,58 @@ import org.joml.Vector2f
 import org.joml.Vector3d
 import kotlin.math.*
 
-open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style) {
+open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
 
     var dragged: NodeConnector? = null
+
+    private val graphs = ArrayList<Graph>()
+    private val libraries = ArrayList<NodeLibrary>()
+
+    var library = NodeLibrary.flowNodes
+
+    private val nodeToPanel = HashMap<Node, NodePanel>()
+
+    var graph: Graph? = graph
+        set(value) {
+            if (field !== value) {
+                field = value
+                invalidateLayout()
+                children.removeAll { it is NodePanel }
+                nodeToPanel.clear()
+            }
+        }
+
+    init {
+        if (graph != null) {
+            graphs.add(graph)
+            libraries.add(library)
+        }
+    }
+
+    fun push(graph: Graph, library: NodeLibrary) {
+        synchronized(this) {
+            graphs.add(graph)
+            libraries.add(library)
+            this.graph = graph
+            this.library = library
+        }
+    }
+
+    fun pop(): Boolean {
+        synchronized(this) {
+            return if (graphs.size > 1) {
+                graphs.removeAt(graphs.lastIndex)
+                libraries.removeAt(libraries.lastIndex)
+                this.graph = graphs.last()
+                this.library = libraries.last()
+                true
+            } else false
+        }
+    }
+
+    override fun onEscapeKey(x: Float, y: Float) {
+        if (!pop()) super.onEscapeKey(x, y) // else consume event
+    }
 
     // large scale = fast movement
     override var scale = 1.0
@@ -88,14 +137,10 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
 
     var font = monospaceFont
 
-    private val nodeToPanel = HashMap<Node, NodePanel>()
-
     var gridColor = 0x10ffffff
 
     var lineThickness = -1
     var lineThicknessBold = -1
-
-    var library = NodeLibrary.flowNodes
 
     fun getNodePanel(node: Node): NodePanel {
         return nodeToPanel.getOrPut(node) {
@@ -166,7 +211,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                     // place node at mouse position
                     val node = newNodeGenerator()
                     node.position.set(windowToCoordsX(mouseX.toDouble()), windowToCoordsY(mouseY.toDouble()), 0.0)
-                    graph.nodes.add(node)
+                    graph.add(node)
                     if (callback != null) callback(node)
                     onChange(false)
                     invalidateLayout()
@@ -530,66 +575,66 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
             "Float" -> {
                 if (old is FloatInput) return old.apply { textSize = font.size }
                 return FloatInput(style)
-                    .setValue(con.value as? Float ?: 0f, false)
+                    .setValue(con.currValue as? Float ?: 0f, false)
                     .setChangeListener {
-                        con.value = it.toFloat()
+                        con.currValue = it.toFloat()
                         onChange(false)
                     }
-                    .setResetListener { con.value = con.defaultValue; con.defaultValue.toString() }
+                    .setResetListener { con.currValue = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
             "Double" -> {
                 if (old is FloatInput) return old.apply { textSize = font.size }
                 return FloatInput(style)
-                    .setValue(con.value as? Double ?: 0.0, false)
+                    .setValue(con.currValue as? Double ?: 0.0, false)
                     .setChangeListener {
-                        con.value = it
+                        con.currValue = it
                         onChange(false)
                     }
-                    .setResetListener { con.value = con.defaultValue; con.defaultValue.toString() }
+                    .setResetListener { con.currValue = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
             "Int" -> {
                 if (old is IntInput) return old.apply { textSize = font.size }
                 return IntInput(style)
-                    .setValue(con.value as? Int ?: 0, false)
+                    .setValue(con.currValue as? Int ?: 0, false)
                     .setChangeListener {
-                        con.value = it.toInt()
+                        con.currValue = it.toInt()
                         onChange(false)
                     }
-                    .setResetListener { con.value = con.defaultValue; con.defaultValue.toString() }
+                    .setResetListener { con.currValue = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
             "Long" -> {
                 if (old is IntInput) return old.apply { textSize = font.size }
                 return IntInput(style)
-                    .setValue(con.value as? Long ?: 0L, false)
+                    .setValue(con.currValue as? Long ?: 0L, false)
                     .setChangeListener {
-                        con.value = it
+                        con.currValue = it
                         onChange(false)
                     }
-                    .setResetListener { con.value = con.defaultValue; con.defaultValue.toString() }
+                    .setResetListener { con.currValue = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
             "String" -> {
                 if (old is TextInput) return old.apply { textSize = font.size }
-                return TextInput("", "", con.value.toString(), style)
+                return TextInput("", "", con.currValue.toString(), style)
                     .addChangeListener {
-                        con.value = it
+                        con.currValue = it
                         onChange(false)
                     }
-                    .setResetListener { con.value = con.defaultValue; con.defaultValue.toString() }
+                    .setResetListener { con.currValue = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
             "Bool", "Boolean" -> {
                 if (old is Checkbox) return old
                     .apply { size = font.sizeInt }
-                return Checkbox(con.value == true, false, font.sizeInt, style)
+                return Checkbox(con.currValue == true, false, font.sizeInt, style)
                     .setChangeListener {
-                        con.value = it
+                        con.currValue = it
                         onChange(false)
                     }
-                    .setResetListener { con.value = con.defaultValue; con.defaultValue == true }
+                    .setResetListener { con.currValue = con.defaultValue; con.defaultValue == true }
                     .apply { makeBackgroundTransparent() }
             }
             "Vector2f", "Vector3f", "Vector4f",
@@ -597,17 +642,17 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                 return null // would use too much space
                 /*return ComponentUI.createUIByTypeName(null, "", object : IProperty<Any?> {
                     override val annotations: List<Annotation> get() = emptyList()
-                    override fun get() = con.value
+                    override fun get() = con.currValue
                     override fun getDefault() = con.defaultValue
                     override fun init(panel: Panel?) {}
                     override fun reset(panel: Panel?): Any? {
                         val value = getDefault()
-                        con.value = value
+                        con.currValue = value
                         return value
                     }
 
                     override fun set(panel: Panel?, value: Any?) {
-                        con.value = value
+                        con.currValue = value
                     }
                 }, type, null, style)*/
             }
@@ -619,9 +664,9 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                 if (old is EnumInput) return old.apply { textSize = font.size }
                 val clazz = javaClass.classLoader.loadClass(type.substring(5, type.length - 1))
                 val values = EnumInput.getEnumConstants(clazz)
-                return EnumInput(NameDesc(con.value.toString()), values.map { NameDesc(it.toString()) }, style)
+                return EnumInput(NameDesc(con.currValue.toString()), values.map { NameDesc(it.toString()) }, style)
                     .setChangeListener { _, index, _ ->
-                        con.value = values[index]
+                        con.currValue = values[index]
                         onChange(false)
                     }
             } catch (e: ClassNotFoundException) {
@@ -686,7 +731,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                 is Node -> {
                     // add at mouse cursor
                     data2.position.add(center)
-                    graph.nodes.add(data2)
+                    graph.add(data2)
                     getNodePanel(data2).requestFocus()
                     onChange(false)
                     done = true
@@ -694,7 +739,7 @@ open class GraphEditor(var graph: Graph? = null, style: Style) : MapPanel(style)
                 is SaveableArray -> {
                     val nodes = data2.filterIsInstance<Node>()
                     if (nodes.isNotEmpty()) {
-                        graph.nodes.addAll(nodes)
+                        for (node in nodes) graph.add(node)
                         for (index in nodes.indices) {
                             val node = nodes[index]
                             node.position.add(center)

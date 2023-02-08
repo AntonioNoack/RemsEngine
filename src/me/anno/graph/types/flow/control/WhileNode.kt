@@ -5,11 +5,12 @@ import me.anno.graph.types.FlowGraph
 
 class WhileNode : FixedControlFlowNode("While Loop", inputs, outputs) {
 
-    override fun execute(graph: FlowGraph): NodeOutput {
+    override fun execute(): NodeOutput {
+        val graph = graph as FlowGraph
         val running = getOutputNodes(0).others.mapNotNull { it.node }
         val condition0 = inputs!![1]
         while (true) {
-            val condition = graph.getValue(condition0) != false
+            val condition = condition0.getValue() != false
             if (!condition) break
             if (running.isNotEmpty()) {
                 graph.requestId()

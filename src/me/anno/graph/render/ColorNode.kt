@@ -20,7 +20,7 @@ class ColorNode : ValueNode("Color", emptyList(), listOf("Vector4f", "Color", "I
     }
 
     // nothing to do
-    override fun compute(graph: FlowGraph) {
+    override fun compute() {
     }
 
     override fun createUI(g: GraphEditor, list: PanelList, style: Style) {

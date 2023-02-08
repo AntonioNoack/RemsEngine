@@ -20,7 +20,7 @@ import org.joml.Vector4f
 
 class NodeInput : NodeConnector {
 
-    constructor(): super(false)
+    constructor() : super(false)
     constructor(isCustom: Boolean) : super(isCustom)
     constructor(type: String, isCustom: Boolean) : super(type, isCustom)
     constructor(type: String, node: Node, isCustom: Boolean) : super(type, node, isCustom)
@@ -35,20 +35,26 @@ class NodeInput : NodeConnector {
         lastValidId = -1
     }
 
-    fun castGetValue(graph: FlowGraph, validId: Int): Any? {
-        if (validId == lastValidId) return value
+    fun validate(value: Any?, graph: FlowGraph) {
+        lastValidId = graph.validId
+        currValue = value
+    }
+
+    fun getValue(): Any? {
+        val graph = node?.graph as? FlowGraph ?: return null
+        if (graph.validId == lastValidId) return currValue
         val src = others.firstOrNull()
         val srcNode = src?.node
         if (srcNode is ValueNode) {
-            srcNode.compute(graph)
+            srcNode.compute()
         }
-        if (src != null) value = src.value
+        if (src != null) currValue = src.currValue
         // ensure the value is matching
         // todo cast if required
         // todo warn if failed
-        lastValidId = validId
-        val value = value
-        this.value = when (type) {
+        lastValidId = graph.validId
+        val value = currValue
+        currValue = when (type) {
             // ensures that the function gets the correct type
             "Int", "Integer" -> AnyToInt.getInt(value, 0, 0)
             "Long" -> AnyToLong.getLong(value, 0, 0)
@@ -103,12 +109,13 @@ class NodeInput : NodeConnector {
                 is Boolean -> v
                 else -> v != null
             }
-            "Texture" -> when (val v = value) {
-                is ITexture2D -> Texture(v)
-                is Vector4f -> Texture(v)
-                is Int -> Texture(v)
-                is Float -> Texture(Vector4f(v, v, v, 1f))
-                is Texture -> v
+            "Texture" -> when (value) {
+                is Float -> Texture(Vector4f(value, value, value, 1f))
+                is Vector2f -> Texture(Vector4f(value, 0f, 1f))
+                is Vector3f -> Texture(Vector4f(value, 1f))
+                is Vector4f -> Texture(value)
+                is Texture -> value
+                is ITexture2D -> Texture(value)
                 else -> null
             }
             else -> throw NotImplementedError("type $type needs to be implemented")

@@ -27,7 +27,7 @@ class StateMachine : ControlFlowGraph() {
                 LOGGER.warn("Missing node with name 'Default' for default state")
             }
         }
-        val newState = oldState.update(this)
+        val newState = oldState.update()
         if (oldState !== newState) {
             state = newState
             prevState = oldState
