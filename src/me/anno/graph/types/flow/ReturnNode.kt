@@ -14,10 +14,10 @@ open class ReturnNode(returnValues: List<String> = emptyList(), name: String = "
         for (i in 1 until inputs!!.size) {
             values.add(getInput(1))
         }
-        throw ReturnException(this) // escape from loops and such
+        throw ReturnThrowable(this) // escape from loops and such
     }
 
-    class ReturnException(val node: ReturnNode) : RuntimeException()
+    class ReturnThrowable(val node: ReturnNode) : Throwable()
 
     companion object {
         @JvmStatic

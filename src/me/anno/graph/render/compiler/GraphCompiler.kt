@@ -10,6 +10,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.*
 import me.anno.graph.Node
+import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
 import me.anno.graph.NodeOutput
 import me.anno.graph.render.*
@@ -33,6 +34,7 @@ import me.anno.graph.types.flow.vector.*
 import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
 import me.anno.ui.editor.files.FileExplorerEntry
+import me.anno.utils.Color.white4
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
 import me.anno.video.ffmpeg.FFMPEGMetadata
@@ -50,6 +52,8 @@ abstract class GraphCompiler(val g: FlowGraph) {
 
     val builder = StringBuilder()
     val processedNodes = HashSet<Node>(g.nodes.size)
+
+    val typeValues = HashMap<String, TypeValue>()
 
     val prefix = "tmp_"
     val conDefines = HashMap<NodeOutput, String>()
@@ -76,6 +80,25 @@ abstract class GraphCompiler(val g: FlowGraph) {
         suffix ?: return null
         extraFunctions.append(prefix).append(' ').append(name).append(suffix).append('\n')
         return name
+    }
+
+    fun aType(an: NodeConnector, bn: NodeInput): String {
+        if (an.type == "Texture") {
+            val tex = bn.getValue() as? Texture ?: return "Vector4f"
+            return if (tex.formula == "map") {
+                val params = tex.formulaParams!![0] as String
+                when (params.length) {
+                    1 -> "Float"
+                    2 -> "Vector2f"
+                    3 -> "Vector3f"
+                    else -> "Vector4f"
+                }
+            } else if (tex.v2d == null && tex.tint == white4) {
+                "Float"
+            } else if (tex.v2d == null) {
+                "Vector4f"
+            } else "Vector4f"
+        } else return an.type
     }
 
     fun expr(out: NodeOutput, n: Node): String {
@@ -139,7 +162,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 val an = inputs[0]
                 val bn = inputs[1]
                 val a = expr(an)
-                val b = convert(bn.type, an.type, expr(bn))!!
+                val b = convert(bn.type, aType(an, bn), expr(bn))!!
                 val symbol = n.compType.glslName
                 "($a)$symbol($b)"
             }
@@ -168,12 +191,25 @@ abstract class GraphCompiler(val g: FlowGraph) {
             is SceneNode, is StartNode -> {
                 when (out.type) {
                     "Texture" -> {
+                        // Texture()
                         val input = out.others.firstOrNull() as? NodeInput
-                        if (input != null) {
-                            textures2.getOrPut(input) {
-                                Pair("tex2I${textures2.size}", true)
-                            }.first
-                        } else "vec4(1.0,0.0,1.0,1.0)"
+                        val tex = input?.getValue() as? Texture
+                        if (tex != null) {
+                            val tint = tex.tint
+                            val tintStr = if (tint != white4) "vec4(${tint.x},${tint.y},${tint.z},${tint.z})" else null
+                            val tex1 = if (tex.v2d != null) {
+                                val texName = textures2.getOrPut(input) { Pair("tex2I${textures2.size}", true) }.first
+                                "texture($texName,uv)${if (tintStr != null) "*$tintStr" else ""}"
+                            } else tintStr ?: "1.0"
+                            when (val formula = tex.formula) {
+                                null -> tex1
+                                "map" -> {
+                                    val map = tex.formulaParams!![0] as String
+                                    "$tex1.$map"
+                                }
+                                else -> throw NotImplementedError(formula)
+                            }
+                        } else "(((floor(uv.x)+floor(uv.y)) & 1) != 0 ? vec4(1,0,1,1) : vec4(0,0,0,1))"
                     }
                     else -> throw NotImplementedError()
                 }
@@ -205,7 +241,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
         if (c.type == "Flow") throw IllegalArgumentException("Cannot request value of flow type")
         val n0 = c.others.firstOrNull()
         if (n0 is NodeOutput) {
-            return convert(n0.type, c.type, expr(n0, n0.node!!))
+            return convert(aType(n0, c), c.type, expr(n0, n0.node!!))
                 ?: throw IllegalStateException("Cannot convert ${n0.type} to ${c.type}!")
         }
         val v = c.currValue
@@ -342,8 +378,6 @@ abstract class GraphCompiler(val g: FlowGraph) {
         }
     }
 
-    val typeValues = HashMap<String, TypeValue>()
-
     fun filter(shader: Shader, name: String, tex: ITexture2D, linear: Boolean): ITexture2D {
         if (tex is Texture2D) filter(shader, name, tex, linear)
         return tex
@@ -384,9 +418,11 @@ abstract class GraphCompiler(val g: FlowGraph) {
         for ((node, data) in textures2) {
             val (name, linear) = data
             typeValues[name] = TypeValueV2(GLSLType.S2D) {
-                val tex = node.getValue() as? ITexture2D
-                if (tex != null) filter(currentShader, name, tex, linear)
-                else TextureLib.missingTexture
+                when (val tex = node.getValue()) {
+                    is ITexture2D -> filter(currentShader, name, tex, linear)
+                    is Texture -> tex.v2d ?: TextureLib.missingTexture
+                    else -> TextureLib.missingTexture
+                }
             }
         }
     }

@@ -76,8 +76,8 @@ class Texture {
                 val mapping = formulaParams!![0] as String
                 val r = mapping[0]
                 val g = mapping.getOrNull(1) ?: 'g'
-                val b = mapping.getOrNull(1) ?: 'b'
-                val a = mapping.getOrNull(1) ?: 'a'
+                val b = mapping.getOrNull(2) ?: 'b'
+                val a = mapping.getOrNull(3) ?: 'a'
                 SimpleTexture(
                     v2d ?: whiteTexture,
                     mappings[r]!!,
@@ -86,7 +86,7 @@ class Texture {
                     mappings[a]!!
                 )
             }
-            else -> TODO(formula)
+            else -> throw NotImplementedError(formula)
         }
     }
 
@@ -117,7 +117,7 @@ class Texture {
                     applyToneMapping = false
                 )
             }
-            else -> TODO(formula)
+            else -> throw NotImplementedError(formula)
         }
     }
 

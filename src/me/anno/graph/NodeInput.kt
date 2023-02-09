@@ -1,6 +1,8 @@
 package me.anno.graph
 
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture3D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
@@ -41,7 +43,7 @@ class NodeInput : NodeConnector {
     }
 
     fun getValue(): Any? {
-        val graph = node?.graph as? FlowGraph ?: return null
+        val graph = node?.graph as FlowGraph
         if (graph.validId == lastValidId) return currValue
         val src = others.firstOrNull()
         val srcNode = src?.node
@@ -118,9 +120,12 @@ class NodeInput : NodeConnector {
                 is ITexture2D -> Texture(value)
                 else -> null
             }
+            "ITexture2D" -> value as? ITexture2D
+            "Texture2D" -> value as? Texture2D
+            "Texture3D" -> value as? Texture3D
             else -> throw NotImplementedError("type $type needs to be implemented")
         }
-        return value
+        return currValue
     }
 
     override val className get() = "NodeInput"

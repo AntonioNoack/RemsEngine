@@ -11,7 +11,6 @@ import me.anno.graph.render.compiler.MaterialGraphCompiler
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.StartNode
-import me.anno.graph.types.flow.vector.RotateF2Node
 import me.anno.graph.ui.GraphEditor
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.ui.custom.CustomList
@@ -50,7 +49,7 @@ object MaterialGraph {
                 "Float" -> "$expr?1.0:0.0"
                 "Vector2f" -> "vec2($expr?1.0:0.0)"
                 "Vector3f" -> "vec3($expr?1.0:0.0)"
-                "Vector4f" -> "vec4($expr?1.0:0.0)"
+                "Vector4f" -> "vec4(vec3($expr?1.0:0.0),1.0)"
                 else -> null
             }
             "Float" -> when (dstType) {
@@ -58,7 +57,7 @@ object MaterialGraph {
                 "Int" -> "int($expr)"
                 "Vector2f" -> "vec2($expr)"
                 "Vector3f" -> "vec3($expr)"
-                "Vector4f" -> "vec4($expr)"
+                "Vector4f" -> "vec4(vec3($expr),1.0)"
                 else -> null
             }
             "Int" -> when (dstType) {
@@ -70,27 +69,28 @@ object MaterialGraph {
                 else -> null
             }
             "Vector2f" -> when (dstType) {
-                "Bool" -> "$expr!=vec2(0)"
-                "Float" -> "length($expr)"
+                "Bool" -> "($expr).x!=0.0"
+                "Float" -> "($expr).x"
                 "Vector3f" -> "vec3($expr,0.0)"
-                "Vector4f" -> "vec4($expr,0.0,0.0)"
+                "Vector4f" -> "vec4($expr,0.0,1.0)"
                 else -> null
             }
             "Vector3f" -> when (dstType) {
-                "Bool" -> "$expr!=vec3(0)"
-                "Float" -> "length($expr)"
+                "Bool" -> "($expr).x!=0.0"
+                "Float" -> "($expr).x"
                 "Vector2f" -> "($expr).xy"
-                "Vector4f" -> "vec4($expr,0.0)"
+                "Vector4f" -> "vec4($expr,1.0)"
                 else -> null
             }
             "Vector4f" -> when (dstType) {
-                "Bool" -> "$expr!=vec4(0)"
-                "Float" -> "length($expr)"
+                "Bool" -> "($expr).x!=0.0"
+                "Float" -> "($expr).x"
                 "Vector2f" -> "($expr).xy"
                 "Vector3f" -> "($expr).xyz"
+                "Texture" -> expr
                 else -> null
             }
-            "Texture" -> when (dstType) {
+            "ITexture2D" -> when (dstType) {
                 "Bool" -> "texture($expr,uv).x!=0.0"
                 "Float" -> "texture($expr,uv).x"
                 "Vector2f" -> "texture($expr,uv).xy"
@@ -139,10 +139,6 @@ object MaterialGraph {
             { MaterialReturnNode() },
             { TextureNode() },
             { MovieNode() },
-            { RandomNode() },
-            { ColorNode() },
-            { GameTime() },
-            { RotateF2Node() },
             { NormalMap() },
         )
     )
@@ -151,6 +147,10 @@ object MaterialGraph {
     fun main(args: Array<String>) {
         val g = object : FlowGraph() {
             override fun canConnectTypeToOtherType(srcType: String, dstType: String): Boolean {
+                if (srcType == "Texture") return when (dstType) {
+                    "Boolean", "Bool", "Int", "Float", "Vector2f", "Vector3f", "Vector4f" -> true
+                    else -> false
+                }
                 return convert(srcType, dstType, "") != null
             }
         }

@@ -13,18 +13,20 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.utils.LOGGER
 
 class SceneNode : ActionNode(
     "Scene",
     listOf(
+        "Int", "Width",
+        "Int", "Height",
+        "Int", "Samples",
         "Int", "Stage Id",
         "Int", "Sorting", // todo enum
         "Int", "Camera Index",
         "Bool", "Apply ToneMapping",
-    ) + DeferredLayerType.values.map { listOf("Texture", it.name) }.flatten(),
+    ),
     // list all available deferred layers
     DeferredLayerType.values.map { listOf("Texture", it.name) }.flatten()
 ) {
@@ -34,11 +36,23 @@ class SceneNode : ActionNode(
 
     val enabledLayers = ArrayList<DeferredLayerType>()
     var framebuffer: IFramebuffer? = null
+
+    init {
+        setInput(1, 256) // width
+        setInput(2, 256) // height
+        setInput(3, 1) // samples
+        setInput(4, 0) // stage id
+    }
+
     override fun executeAction() {
+        val width = getInput(1) as Int
+        val height = getInput(2) as Int
+        val samples = getInput(3) as Int
+        if (width < 1 || height < 1 || samples < 1) return
         // 0 is flow
-        val stageId = getInput(1) as? Int ?: 0
-        // val sorting = getInput(2) as Int
-        // val cameraIndex = getInput(3) as Int
+        val stageId = getInput(4) as Int
+        // val sorting = getInput(5) as Int
+        // val cameraIndex = getInput(6) as Int
         enabledLayers.clear()
         val outputs = outputs!!
         for (i in 1 until outputs.size) {
@@ -53,8 +67,6 @@ class SceneNode : ActionNode(
         if (enabledLayers.isEmpty()) {
             return
         }
-
-        val samples = 1 // todo make this configurable
 
         // create deferred settings
         // todo keep settings if they stayed the same as last frame
@@ -75,10 +87,7 @@ class SceneNode : ActionNode(
         pipeline.applyToneMapping = !hdr
 
         val depthMode = DepthMode.ALWAYS
-        val w = 500
-        val h = 500
-        val changeSize = true
-        GFXState.useFrame(w, h, changeSize, dstBuffer, renderer) {
+        GFXState.useFrame(width, height, true, dstBuffer, renderer) {
 
             Frame.bind()
             GFXState.depthMode.use(depthMode) {

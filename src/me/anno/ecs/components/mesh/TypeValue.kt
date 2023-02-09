@@ -1,11 +1,9 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.CubemapTexture
-import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2DArray
-import me.anno.gpu.texture.Texture3D
+import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -19,6 +17,8 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
     companion object {
         private val LOGGER = LogManager.getLogger(TypeValue::class)
     }
+
+    override fun toString() = "$type:$value"
 
     fun bind(shader: Shader, uniformName: String) {
         val location = when (type) {
@@ -81,6 +81,8 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
                             LOGGER.warn("Texture ${value.name} has not been created")
                         }
                     }
+                    is Framebuffer -> value.bindTexture0(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
+                    is ITexture2D -> value.bind(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
                         val value1 = ImageGPUCache[value, true]
                         if (value1 != null && value1.isCreated) {

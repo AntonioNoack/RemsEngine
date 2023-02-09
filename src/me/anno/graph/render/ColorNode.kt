@@ -1,6 +1,5 @@
 package me.anno.graph.render
 
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.io.base.BaseWriter

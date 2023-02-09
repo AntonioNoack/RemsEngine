@@ -1,6 +1,5 @@
 package me.anno.graph.types.flow.vector
 
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.CalculationNode
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -54,7 +53,7 @@ class CombineVector4f : CalculationNode("Combine Vector4f", inputs, outputs) {
         setInput(0, 0f)
         setInput(1, 0f)
         setInput(2, 0f)
-        setInput(3, 0f)
+        setInput(3, 1f)
     }
 
     override fun calculate(): Vector4f {

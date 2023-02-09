@@ -10,8 +10,8 @@ enum class IntMathsBinary(
     ADD(10, "a+b", { a, b -> a + b }, { a, b -> a + b }),
     SUB(11, "a-b", { a, b -> a - b }, { a, b -> a - b }),
     MUL(12, "a*b", { a, b -> a * b }, { a, b -> a * b }),
-    DIV(13, "a/b", { a, b -> a / b }, { a, b -> a / b }),
-    MOD(14, "a%b", { a, b -> a % b }, { a, b -> a % b }),
+    DIV(13, "a/b", { a, b -> if (b == 0) 0 else a / b }, { a, b -> if (b == 0L) 0 else a / b }),
+    MOD(14, "a%b", { a, b -> if (b == 0) 0 else a % b }, { a, b -> if (b == 0L) 0 else a % b }),
 
     LSL(20, "a<<b", { a, b -> a shl b }, { a, b -> a shl b.toInt() }),
     LSR(21, "a>>>b", { a, b -> a ushr b }, { a, b -> a ushr b.toInt() }),

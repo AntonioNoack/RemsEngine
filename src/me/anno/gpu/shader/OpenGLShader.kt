@@ -112,8 +112,8 @@ abstract class OpenGLShader(val name: String) : ICacheData {
                             (countLines(s0) + countLines(s1)) * 6 // 4 for number, 2 for :+space
                 )
                 warning.append(log).append(" by ").append(shaderName).append("\n\n")
-                val idx = addText(warning, s0, 1)
-                addText(warning, s1, idx)
+                addText(warning, s0, 1)
+                addText(warning, s1, 1)
                 LOGGER.warn(warning)
                 /*LOGGER.warn( // more compact, but also needs .format(), which is costly in WASM
                     "$log by $shaderName\n\n${

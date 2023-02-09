@@ -47,7 +47,7 @@ class SeparateVector3f : ValueNode("Separate Vector3f", inputs, outputs) {
 class SeparateVector4f : ValueNode("Separate Vector4f", inputs, outputs) {
 
     init {
-        setInput(0, Vector4f())
+        setInput(0, Vector4f(0f, 0f, 0f, 1f))
     }
 
     override fun compute() {

@@ -14,6 +14,8 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.graph.render.DiscardNode
+import me.anno.graph.render.scene.UVNode
+import me.anno.graph.render.scene.UViNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.ReturnNode
@@ -51,6 +53,8 @@ class ShaderGraphNode : ActionNode(
             NodeLibrary.flowNodes.nodes + listOf(
                 { SGNReturn() },
                 { DiscardNode() },
+                { UVNode() },
+                { UViNode() },
             )
         )
         val startListArgs = listOf(
@@ -92,6 +96,12 @@ class ShaderGraphNode : ActionNode(
 
     init {
         graph1.add(startNode)
+        val endNode = SGNReturn()
+        graph1.add(endNode)
+        startNode.position.set(-200.0, 0.0, 0.0)
+        endNode.position.set(200.0, 0.0, 0.0)
+        startNode.connectTo(endNode)
+        startNode.connectTo(1, endNode, 1)
     }
 
     var budget = 1000
