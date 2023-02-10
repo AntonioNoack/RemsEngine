@@ -252,16 +252,22 @@ object Maths {
 
     @JvmStatic
     fun mix(a: Int, b: Int, f: Double) = a + (b - a) * f
+
     @JvmStatic
     fun mix(a: Long, b: Long, f: Double) = a + (b - a) * f
+
     @JvmStatic
     fun mix(a: Float, b: Float, f: Float, g: Float) = a * g + b * f
+
     @JvmStatic
     fun mix(a: Double, b: Double, f: Float, g: Float) = a * g + b * f
+
     @JvmStatic
     fun mix(a: Vector2f, b: Vector2f, f: Double, dst: Vector2f): Vector2f = a.lerp(b, f.toFloat(), dst)
+
     @JvmStatic
     fun mix(a: Vector3f, b: Vector3f, f: Double, dst: Vector3f): Vector3f = a.lerp(b, f.toFloat(), dst)
+
     @JvmStatic
     fun mix(a: Vector4f, b: Vector4f, f: Double, dst: Vector4f): Vector4f = a.lerp(b, f.toFloat(), dst)
 
@@ -427,30 +433,34 @@ object Maths {
     @JvmStatic
     fun mix2d(v00: Float, v01: Float, v10: Float, v11: Float, fx: Float, fy: Float): Float {
         val gx = 1f - fx
-        val v0x = gx * v00 + fx * v01
-        val v1x = gx * v10 + fx * v11
+        val v0x = gx * v00 + fx * v10
+        val v1x = gx * v01 + fx * v11
         return (1f - fy) * v0x + fy * v1x
     }
 
     @JvmStatic
     fun mix2d(v00: Double, v01: Double, v10: Double, v11: Double, fx: Double, fy: Double): Double {
         val gx = 1.0 - fx
-        val v0x = gx * v00 + fx * v01
-        val v1x = gx * v10 + fx * v11
+        val v0x = gx * v00 + fx * v10
+        val v1x = gx * v01 + fx * v11
         return (1.0 - fy) * v0x + fy * v1x
     }
 
     @JvmStatic
     fun absMax(a: Float, b: Float) = max(abs(a), abs(b))
+
     @JvmStatic
     fun absMax(a: Float, b: Float, c: Float) = max(abs(a), abs(b), abs(c))
+
     @JvmStatic
     fun absMax(a: Float, b: Float, c: Float, d: Float) = max(max(abs(a), abs(b)), max(abs(c), abs(d)))
 
     @JvmStatic
     fun absMax(a: Double, b: Double) = max(abs(a), abs(b))
+
     @JvmStatic
     fun absMax(a: Double, b: Double, c: Double) = max(max(abs(a), abs(b)), abs(c))
+
     @JvmStatic
     fun absMax(a: Double, b: Double, c: Double, d: Double) = max(max(abs(a), abs(b)), max(abs(c), abs(d)))
 
@@ -472,6 +482,15 @@ object Maths {
     @JvmStatic
     fun mixChannel2(a: Int, b: Int, shift: Int, f: Float): Int {
         return mix2((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
+    }
+
+    @JvmStatic
+    fun mixChannel22d(v00: Int, v01: Int, v10: Int, v11: Int, shift: Int, fx: Float, fy: Float): Int {
+        val r00 = sq((v00 shr shift) and 255).toFloat()
+        val r01 = sq((v01 shr shift) and 255).toFloat()
+        val r10 = sq((v10 shr shift) and 255).toFloat()
+        val r11 = sq((v11 shr shift) and 255).toFloat()
+        return sqrt(mix2d(r00, r01, r10, r11, fx, fy)).roundToInt() shl shift
     }
 
     @JvmStatic
@@ -531,6 +550,14 @@ object Maths {
     }
 
     @JvmStatic
+    fun mixARGB22d(v00: Int, v01: Int, v10: Int, v11: Int, fx: Float, fy: Float): Int {
+        return mixChannel22d(v00, v01, v10, v11, 24, fx, fy) or
+                mixChannel22d(v00, v01, v10, v11, 16, fx, fy) or
+                mixChannel22d(v00, v01, v10, v11, 8, fx, fy) or
+                mixChannel22d(v00, v01, v10, v11, 0, fx, fy)
+    }
+
+    @JvmStatic
     fun mixARGB2(a: Int, b: Int, f: Int): Int {
         return mixChannel2(a, b, 24, f) or
                 mixChannel2(a, b, 16, f) or
@@ -575,15 +602,19 @@ object Maths {
 
     @JvmStatic
     fun sigmoid01(x: Float) = 1f / (1f + exp(-x))
+
     @JvmStatic
     fun sigmoid01(x: Double) = 1.0 / (1.0 + exp(-x))
+
     @JvmStatic
     fun sigmoid11(x: Float) = 2f / (1f + exp(-x)) - 1f
+
     @JvmStatic
     fun sigmoid11(x: Double) = 2.0 / (1.0 + exp(-x)) - 1.0
 
     @JvmStatic
     fun fract(f: Float) = f - floor(f)
+
     @JvmStatic
     fun fract(d: Double) = d - floor(d)
 
@@ -608,20 +639,25 @@ object Maths {
 
     @JvmStatic
     fun ceilDiv(a: Int, b: Int) = (a + b - 1) / b
+
     @JvmStatic
     fun roundDiv(a: Int, b: Int) = (a + b.shr(1)) / b
+
     @JvmStatic
     fun ceilDiv(a: Long, b: Long) = (a + b - 1L) / b
+
     @JvmStatic
     fun roundDiv(a: Long, b: Long) = (a + b.shr(1)) / b
 
     @JvmStatic
     fun align(size: Int, rem: Int) = ceilDiv(size, rem) * rem
+
     @JvmStatic
     fun align(size: Long, rem: Long) = ceilDiv(size, rem) * rem
 
     @JvmStatic
     fun Int.hasFlag(flag: Int) = (this and flag) == flag
+
     @JvmStatic
     fun Long.hasFlag(flag: Long) = (this and flag) == flag
 

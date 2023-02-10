@@ -22,8 +22,6 @@ import kotlin.math.min
  * if you need to store data on hexagons, just extend the hexagon class,
  * and initialize the hexagon array yourself. The size of the array can be determined using the
  * countHexagons() function.
- *
- * warning(todo): the algorithm isn't perfect yet, so the result will have small gaps
  * */
 object HexagonSphere {
 
@@ -46,8 +44,18 @@ object HexagonSphere {
     }
 
     /**
+     * if you want to split your world into chunks for culling, you can use this function
+     * it will return the ranges of indices for 21 chunks;
+     * the first chunk will be visible most times, because it contains the borders and edges
+     * */
+    fun calculateChunkEnd(i: Int, n: Int): Int {
+        val special = lineCount * (n + 1) + pentagonCount
+        return special + min(i, n) * ((n * (n + 1)) shr 1)
+    }
+
+    /**
      * creates a triangulated surface for a hexagon mesh;
-     * each line is currently duplicated... todo fix this, when all sides are perfect
+     * each line is currently duplicated...
      * */
     fun createLineMesh(mesh: Mesh, hexagons: Array<Hexagon>) {
         var pi = 0
@@ -126,10 +134,13 @@ object HexagonSphere {
             // use the vertex of the lower id
             val bc = b.center
             val distSq0 = a.center.distanceSquared(bc)
+            var candidates = 0
+            var completed = 0
             for (vai in a.corners.indices) {
                 val va = a.corners[vai]
                 val distSq = va.distanceSquared(bc)
                 if (distSq < distSq0) {
+                    candidates++
                     // it's a corner point, that is shared
                     var bestDist = distSq0
                     var bestOther: Vector3f? = null
@@ -141,11 +152,11 @@ object HexagonSphere {
                         }
                     }
                     if (bestOther != null) {
-                        // todo only truly needed, if they are not from the same triangle
-                        // average; should ideally be weighted
-                        bestOther.add(va).mul(0.5f)
+                        // should ideally be weighted
+                        bestOther.set(va)
                         a.corners[vai] = bestOther
-                    }
+                        completed++
+                    } else throw IllegalStateException("close, but not completed")
                 }
             }
         }
@@ -179,9 +190,6 @@ object HexagonSphere {
 
             val a = vertices[ai]
             val b = vertices[bi]
-
-            // todo these hexagons should use the same calculation as the neighbor triangles
-            //  to reduce calculation errors
 
             val i0 = hexagonCount
             val i1 = i0 + (n + 1)

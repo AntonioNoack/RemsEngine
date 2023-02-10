@@ -3,6 +3,8 @@ package me.anno.tests.mesh
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
+import me.anno.ecs.components.chunks.spherical.HexagonSphere
+import me.anno.ecs.components.chunks.spherical.HexagonSphere.createFaceMesh
 import me.anno.ecs.components.chunks.spherical.HexagonSphere.createHexSphere
 import me.anno.ecs.components.chunks.spherical.HexagonSphere.createLineMesh
 import me.anno.ecs.components.chunks.spherical.HexagonSphere.pentagonCount
@@ -12,11 +14,12 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.image.ImageCPUCache
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.ui.base.groups.PanelListY
@@ -25,13 +28,23 @@ import me.anno.ui.input.IntInput
 import me.anno.utils.Color.r01
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Arrays.resize
+import kotlin.concurrent.thread
 import kotlin.math.atan2
+import kotlin.math.hypot
 
 fun main() {
 
+    // todo small simulator using this
+    //  - city builder
+    //  - fluid simulation
+
     val texture = ImageCPUCache[getReference("E:/Pictures/earth_flat_map.jpg"), false]!!
-    val height = ImageCPUCache[downloads.getChild("earth-height.jfif"), false]!!
+    val height = ImageCPUCache[downloads.getChild("earth-height.png"), false]!!
     val h0 = height.getRGB(0).r01() * 1.5f
+
+    val showLineMesh = false
+    val showNiceMesh = true
+    val showSimpleMesh = false
 
     var n = 4
     val lineMesh = Mesh()
@@ -45,10 +58,9 @@ fun main() {
         roughnessMinMax.set(0.1f)
     }.ref
 
-    fun validate() {
+    val simpleMesh = Mesh()
 
-        val hexagons = createHexSphere(n, true)
-        createLineMesh(lineMesh, hexagons)
+    fun createNiceMesh(hexagons: Array<HexagonSphere.Hexagon>) {
 
         var pi = 0
         var li = 0
@@ -80,15 +92,21 @@ fun main() {
             val center = hex.center
             val size = hex.corners.size
             val lon = atan2(center.x, center.z)
-            val lat = atan2(-center.y, length(center.x, center.z))
-            val color = texture.getSafeRGB(
-                (lon * sx1 + dx1).toInt(),
-                (lat * sy1 + dy1).toInt()
+            val lat = atan2(-center.y, hypot(center.x, center.z))
+            val color = texture.sampleRGB(
+                lon * sx1 + dx1,
+                lat * sy1 + dy1,
+                GPUFiltering.LINEAR,
+                Clamping.CLAMP
             )
-            val h = 1f + max(height.getSafeRGB(
-                (lon * sx2 + dx2).toInt(),
-                (lat * sy2 + dy2).toInt()
-            ).r01() - h0, 0f) * 0.03f
+            val h = 1f + max(
+                height.sampleRGB(
+                    lon * sx2 + dx2,
+                    lat * sy2 + dy2,
+                    GPUFiltering.LINEAR,
+                    Clamping.CLAMP
+                ).r01() - h0, 0f
+            ) * 0.03f
             // raised
             val f = 0.2f
             for (c in hex.corners) {
@@ -126,15 +144,43 @@ fun main() {
 
         // faceMesh.makeFlatShaded()
         faceMesh.invalidateGeometry()
-
     }
+
+    fun validateSync() {
+        val hexagons = createHexSphere(n, true)
+        if (showLineMesh) createLineMesh(lineMesh, hexagons)
+        if (showNiceMesh) createNiceMesh(hexagons)
+        if (showSimpleMesh) createFaceMesh(simpleMesh, hexagons)
+    }
+
+    var working = false
+    fun validate() {
+        if (!working) {
+            if (n < 30) {
+                validateSync()
+            } else {
+                working = true
+                thread(name = "work") {
+                    try {
+                        validateSync()
+                    } finally {
+                        working = false
+                    }
+                }
+            }
+        }
+    }
+
     validate()
     val entity = Entity()
     entity.add(MeshComponent(faceMesh.ref))
-    /*val scaled = Entity()
-    scaled.add(MeshComponent(lineMesh.ref))
-    scaled.scale = scaled.scale.set(1.0001)
-    entity.add(scaled)*/
+    entity.add(MeshComponent(simpleMesh.ref))
+    if (showLineMesh) {
+        val scaled = Entity()
+        scaled.add(MeshComponent(lineMesh.ref))
+        scaled.scale = scaled.scale.set(1.0001)
+        entity.add(scaled)
+    }
     testUI2 {
         EditorState.prefabSource = entity.ref
         val main = SceneView(EditorState, PlayMode.EDITING, style)

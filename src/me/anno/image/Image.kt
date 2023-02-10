@@ -9,7 +9,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.mixARGB22d
 import me.anno.maths.Maths.roundDiv
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
@@ -123,9 +123,10 @@ abstract class Image(
                 val x1 = clamping.apply(xi + 1, width)
                 val y0 = clamping.apply(yi, height)
                 val y1 = clamping.apply(yi + 1, height)
-                mix(
-                    mix(getRGB(x0, y0), getRGB(x1, y0), fx),
-                    mix(getRGB(x0, y1), getRGB(x1, y1), fx), fy
+                mixARGB22d(
+                    getRGB(x0, y0), getRGB(x0, y1),
+                    getRGB(x1, y0), getRGB(x1, y1),
+                    fx, fy
                 )
             }
         }
