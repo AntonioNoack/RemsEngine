@@ -146,7 +146,9 @@ object LinearRegression {
         var sum = 0.0
         var pol = 1.0
         for (coeff in polynomial) {
-            sum += pol * coeff
+            val term = pol * coeff
+            if (term.isFinite()) sum += term
+            else sum = term // higher terms have priority
             pol *= x
         }
         return sum

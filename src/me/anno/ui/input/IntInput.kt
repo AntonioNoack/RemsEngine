@@ -20,7 +20,7 @@ open class IntInput(
     style: Style,
     title: String,
     visibilityKey: String,
-    type: Type = Type.INT,
+    type: Type = Type.LONG,
     inputPanel0: NumberInputComponent? = null
 ) : NumberInput<Long>(style, title, visibilityKey, type, inputPanel0) {
 
@@ -41,7 +41,7 @@ open class IntInput(
         }
     }
 
-    constructor(style: Style) : this(style, "", "", Type.INT)
+    constructor(style: Style) : this(style, "", "", Type.LONG)
 
     @Suppress("unused")
     constructor(title: String, visibilityKey: String, value0: Int, type: Type, style: Style) :
@@ -68,8 +68,9 @@ open class IntInput(
     fun parseValue(text: String): Long? {
         try {
             val trimmed = text.trim()
-            return if (trimmed.isEmpty()) 0L
+            val parsed = if (trimmed.isEmpty()) 0L
             else trimmed.toLongOrNull() ?: SimpleExpressionParser.parseDouble(trimmed)?.roundToLong()
+            return if (parsed == null) null else type.clamp(parsed)
         } catch (_: Exception) {
         }
         return 0L

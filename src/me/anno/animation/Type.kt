@@ -8,6 +8,7 @@ import me.anno.utils.types.Casting.castToFloat2
 import me.anno.utils.types.Casting.castToInt
 import me.anno.utils.types.Casting.castToInt2
 import me.anno.utils.types.Casting.castToLong
+import me.anno.utils.types.Casting.castToLong2
 import me.anno.utils.types.Casting.castToPlaned
 import me.anno.utils.types.Casting.castToPlanef
 import me.anno.utils.types.Casting.castToString
@@ -58,6 +59,7 @@ class Type(
         val INT = Type(0, 1, 1f, true, hasExponential = true, null, ::castToInt)
         val INT_PLUS = Type(0, 1, 1f, true, hasExponential = true, { max(castToInt2(it), 0) }, ::castToInt)
         val LONG = Type(0L, 1, 1f, true, hasExponential = true, null, ::castToLong)
+        val LONG_PLUS = Type(0, 1, 1f, true, hasExponential = true, { max(castToLong2(it), 0) }, ::castToLong)
         val FLOAT = Type(0f, 1, 1f, true, hasExponential = true, null, ::castToFloat)
         val FLOAT_01 = Type(0f, 1, 1f, true, hasExponential = true, { clamp(castToFloat2(it), 0f, 1f) }, ::castToFloat)
         val FLOAT_03 = Type(0f, 1, 1f, true, hasExponential = true, { clamp(castToFloat2(it), 0f, 3f) }, ::castToFloat)

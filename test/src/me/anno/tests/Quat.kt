@@ -22,14 +22,14 @@ fun cross(a: Vector3f, b: Vector3f) = Vector3f(a).cross(b)
 fun normalToQuaternion(v0: float3, v1: float3, v2: float3): float4 {
     val dst: float4
     val diag: Float = v0.x + v1.y + v2.z
-    if (diag >= 0f) {
-        dst = float4(v1.z - v2.y, v2.x - v0.z, v0.y - v1.x, diag + 1f)
+    dst = if (diag >= 0f) {
+        float4(v1.z - v2.y, v2.x - v0.z, v0.y - v1.x, diag + 1f)
     } else if (v0.x >= v1.y && v0.x >= v2.z) {
-        dst = float4(v0.x - (v1.y + v2.z) + 1f, v1.x + v0.y, v0.z + v2.x, v1.z - v2.y)
+        float4(v0.x - (v1.y + v2.z) + 1f, v1.x + v0.y, v0.z + v2.x, v1.z - v2.y)
     } else if (v1.y > v2.z) {
-        dst = float4(v1.x + v0.y, v1.y - (v2.z + v0.x) + 1f, v2.y + v1.z, v2.x - v0.z)
+        float4(v1.x + v0.y, v1.y - (v2.z + v0.x) + 1f, v2.y + v1.z, v2.x - v0.z)
     } else {
-        dst = float4(v0.z + v2.x, v2.y + v1.z, v2.z - (v0.x + v1.y) + 1f, v0.y - v1.x)
+        float4(v0.z + v2.x, v2.y + v1.z, v2.z - (v0.x + v1.y) + 1f, v0.y - v1.x)
     }
     return normalize(dst)
 }

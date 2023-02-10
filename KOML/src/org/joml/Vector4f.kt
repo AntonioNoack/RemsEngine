@@ -171,24 +171,24 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
     }
 
     fun fma(a: Float, b: Vector4f, dst: Vector4f = this): Vector4f {
-        dst.x = JomlMath.fma(a, b.x, x)
-        dst.y = JomlMath.fma(a, b.y, y)
-        dst.z = JomlMath.fma(a, b.z, z)
-        dst.w = JomlMath.fma(a, b.w, w)
+        dst.x = a * b.x + x
+        dst.y = a * b.y + y
+        dst.z = a * b.z + z
+        dst.w = a * b.w + w
         return dst
     }
 
     fun mulAdd(a: Vector4f, b: Vector4f, dst: Vector4f = this): Vector4f {
-        dst.x = JomlMath.fma(x, a.x, b.x)
-        dst.y = JomlMath.fma(y, a.y, b.y)
-        dst.z = JomlMath.fma(z, a.z, b.z)
+        dst.x = x * a.x + b.x
+        dst.y = y * a.y + b.y
+        dst.z = z * a.z + b.z
         return dst
     }
 
     fun mulAdd(a: Float, b: Vector4f, dst: Vector4f = this): Vector4f {
-        dst.x = JomlMath.fma(x, a, b.x)
-        dst.y = JomlMath.fma(y, a, b.y)
-        dst.z = JomlMath.fma(z, a, b.z)
+        dst.x = x * a + b.x
+        dst.y = y * a + b.y
+        dst.z = z * a + b.z
         return dst
     }
 

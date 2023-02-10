@@ -426,10 +426,8 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
     }
 
     init {
-
         try {
-
-            lines@ while (true) {
+            while (true) {
                 // read the line
                 skipSpaces()
                 when (val char0 = nextChar()) {

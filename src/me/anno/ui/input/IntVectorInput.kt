@@ -33,7 +33,7 @@ open class IntVectorInput(
     constructor(title: String, visibilityKey: String, type: Type, style: Style) :
             this(title, visibilityKey, type, style, { IntInput(style, "", visibilityKey, type) })
 
-    constructor(style: Style) : this("", "", Type.INT, style)
+    constructor(style: Style) : this("", "", Type.LONG, style)
 
     constructor(title: String, visibilityKey: String, value: Vector2i, type: Type, style: Style) :
             this(title, visibilityKey, type, style) {

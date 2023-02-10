@@ -30,7 +30,7 @@ fun main() {
     GFXBase.disableRenderDoc()
     testUI2 {
         var n = 4096
-        val input = IntInput("", "", n, Type.INT_PLUS, style)
+        val input = IntInput("", "", n, Type.LONG_PLUS, style)
             .setChangeListener { n = it.toInt() }
         val main = TestDrawPanel {
             it.clear()

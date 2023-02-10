@@ -57,11 +57,16 @@ open class TextFileReader(val reader: InputStream) {
         }
     }
 
+    var eof = false
     var putBack = -1
     fun next(): Int {
         val char = if (putBack >= 0) putBack else reader.read()
         putBack = -1
-        if (char < 0) throw EOFException()
+        if (char < 0) {
+            if (eof) throw EOFException()
+            eof = true
+            return '\n'.code // finish current line
+        }
         return char
     }
 
