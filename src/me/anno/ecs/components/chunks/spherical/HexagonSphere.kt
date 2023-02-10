@@ -22,6 +22,8 @@ import kotlin.math.min
  * if you need to store data on hexagons, just extend the hexagon class,
  * and initialize the hexagon array yourself. The size of the array can be determined using the
  * countHexagons() function.
+ *
+ * warning(todo): the algorithm isn't perfect yet, so the result will have small gaps
  * */
 object HexagonSphere {
 

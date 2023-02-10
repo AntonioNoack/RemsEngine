@@ -25,6 +25,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -1067,6 +1068,32 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             aabb.union(transform.transformProject(vf.set(x, y, z)))
         }
         return aabb
+    }
+
+    fun makeFlatShaded() {
+        val indices = indices
+        val positions = positions ?: return
+        val colors = color0
+        if (indices == null) {
+            calculateNormals(false)
+        } else {
+            val newPositions = FloatArray(indices.size * 3)
+            val newColors = if (colors != null) IntArray(indices.size) else null
+            for (i in indices.indices) {
+                val i3 = i * 3
+                val j = indices[i]
+                val j3 = j * 3
+                newPositions[i3] = positions[j3]
+                newPositions[i3 + 1] = positions[j3 + 1]
+                newPositions[i3 + 2] = positions[j3 + 2]
+                if (colors != null) newColors!![i] = colors[j]
+            }
+            this.positions = newPositions
+            this.normals = normals.resize(newPositions.size)
+            this.color0 = newColors
+            this.indices = null
+            calculateNormals(false)
+        }
     }
 
     override fun fill(
