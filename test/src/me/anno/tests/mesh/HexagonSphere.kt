@@ -28,129 +28,172 @@ import me.anno.ui.input.IntInput
 import me.anno.utils.Color.r01
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Arrays.resize
+import org.joml.Vector3f
+import org.lwjgl.opengl.GL11C.GL_LINES
 import kotlin.concurrent.thread
 import kotlin.math.atan2
 import kotlin.math.hypot
+import kotlin.math.sqrt
 
-fun main() {
+// todo small simulator using this
+//  - civilisation builder
+//  - fluid simulation
 
-    // todo small simulator using this
-    //  - city builder
-    //  - fluid simulation
+fun createNiceMesh(mesh: Mesh, hexagons: Array<HexagonSphere.Hexagon>) {
 
     val texture = ImageCPUCache[getReference("E:/Pictures/earth_flat_map.jpg"), false]!!
     val height = ImageCPUCache[downloads.getChild("earth-height.png"), false]!!
     val h0 = height.getRGB(0).r01() * 1.5f
 
+    var pi = 0
+    var li = 0
+    var ci = 0
+
+    val numPositions = 2 * (6 * hexagons.size - pentagonCount)
+    val positions = mesh.positions.resize(3 * numPositions)
+    val baseIndices = 3 * (4 * hexagons.size - pentagonCount)
+    val heightIndices = 6 * 6 * hexagons.size
+    val indices = mesh.indices.resize(baseIndices + heightIndices)
+    val colors = mesh.color0.resize(numPositions)
+
+    mesh.positions = positions
+    mesh.indices = indices
+    mesh.normals = mesh.normals.resize(3 * numPositions)
+    mesh.color0 = colors
+
+    val dx1 = texture.width * 0.5f
+    val dy1 = texture.height * 0.5f
+    val sx1 = texture.width / TAUf
+    val sy1 = texture.height / PIf
+    val dx2 = height.width * 0.5f
+    val dy2 = height.height * 0.5f
+    val sx2 = height.width / TAUf
+    val sy2 = height.height / PIf
+    for (hex in hexagons) {
+        val p0 = pi / 3
+        var p1 = p0 + 1
+        val center = hex.center
+        val size = hex.corners.size
+        val lon = atan2(center.x, center.z)
+        val lat = atan2(-center.y, hypot(center.x, center.z))
+        val color = texture.sampleRGB(
+            lon * sx1 + dx1,
+            lat * sy1 + dy1,
+            GPUFiltering.LINEAR,
+            Clamping.CLAMP
+        )
+        val h = 1f + max(
+            height.sampleRGB(
+                lon * sx2 + dx2,
+                lat * sy2 + dy2,
+                GPUFiltering.LINEAR,
+                Clamping.CLAMP
+            ).r01() - h0, 0f
+        ) * 0.03f
+        // raised
+        val f = 0.2f
+        for (c in hex.corners) {
+            positions[pi++] = mix(c.x, center.x, f) * h
+            positions[pi++] = mix(c.y, center.y, f) * h
+            positions[pi++] = mix(c.z, center.z, f) * h
+            colors[ci++] = color
+        }
+        // base
+        val hl = 0.997f
+        for (c in hex.corners) {
+            positions[pi++] = c.x * hl
+            positions[pi++] = c.y * hl
+            positions[pi++] = c.z * hl
+            colors[ci++] = color
+        }
+        for (i in 2 until size) {
+            indices[li++] = p0
+            indices[li++] = p1++
+            indices[li++] = p1
+        }
+        p1 = p0
+        var p2 = p1 + size - 1
+        for (i in 0 until size) {
+            indices[li++] = p1
+            indices[li++] = p2
+            indices[li++] = p2 + size
+            indices[li++] = p1
+            indices[li++] = p2 + size
+            indices[li++] = p1 + size
+            p2 = p1
+            p1++
+        }
+    }
+
+    // faceMesh.makeFlatShaded()
+    mesh.invalidateGeometry()
+}
+
+fun createConnectionMesh(mesh: Mesh, hexagons: Array<HexagonSphere.Hexagon>) {
+    val numConnections = hexagons.size * 6
+    val positions = mesh.positions.resize(numConnections * 6)
+    mesh.drawMode = GL_LINES
+    val dir = Vector3f()
+    val dirX = Vector3f()
+    val rx = 0.1f
+    val hx = 1.01f
+    val fx = 0.1f
+    val fy = hx * rx
+    val gy = hx * (1f - rx)
+    var pi = 0
+    for (srcId in hexagons.indices) {
+        val src = hexagons[srcId]
+        val srcPos = src.center
+        for (neighborId in src.neighborIds) {
+            val dst = hexagons.getOrNull(neighborId) ?: continue
+            val dstPos = dst.center
+            dir.set(dstPos).sub(srcPos)
+            dir.cross(srcPos, dirX)
+            positions[pi++] = srcPos.x * gy + dstPos.x * fy + dirX.x * fx
+            positions[pi++] = srcPos.y * gy + dstPos.y * fy + dirX.y * fx
+            positions[pi++] = srcPos.z * gy + dstPos.z * fy + dirX.z * fx
+            positions[pi++] = srcPos.x * fy + dstPos.x * gy + dirX.x * fx
+            positions[pi++] = srcPos.y * fy + dstPos.y * gy + dirX.y * fx
+            positions[pi++] = srcPos.z * fy + dstPos.z * gy + dirX.z * fx
+        }
+    }
+    mesh.positions = positions
+    val normals = mesh.normals.resize(positions.size)
+    normals.fill(sqrt(1f / 3f))
+    mesh.normals = normals
+    mesh.invalidateGeometry()
+}
+
+fun main() {
+
     val showLineMesh = false
-    val showNiceMesh = true
-    val showSimpleMesh = false
+    val showNiceMesh = false
+    val showSimpleMesh = true
+    val showConnections = true
 
     var n = 4
+
     val lineMesh = Mesh()
     lineMesh.material = Material().apply {
         diffuseBase.set(0f, 0f, 0f)
         emissiveBase.set(0.5f, 0.7f, 1.0f)
     }.ref
 
-    val faceMesh = Mesh()
-    faceMesh.material = Material().apply {
+    val niceMesh = Mesh()
+    niceMesh.material = Material().apply {
         roughnessMinMax.set(0.1f)
     }.ref
 
     val simpleMesh = Mesh()
-
-    fun createNiceMesh(hexagons: Array<HexagonSphere.Hexagon>) {
-
-        var pi = 0
-        var li = 0
-        var ci = 0
-
-        val numPositions = 2 * (6 * hexagons.size - pentagonCount)
-        val positions = faceMesh.positions.resize(3 * numPositions)
-        val baseIndices = 3 * (4 * hexagons.size - pentagonCount)
-        val heightIndices = 6 * 6 * hexagons.size
-        val indices = faceMesh.indices.resize(baseIndices + heightIndices)
-        val colors = faceMesh.color0.resize(numPositions)
-
-        faceMesh.positions = positions
-        faceMesh.indices = indices
-        faceMesh.normals = faceMesh.normals.resize(3 * numPositions)
-        faceMesh.color0 = colors
-
-        val dx1 = texture.width * 0.5f
-        val dy1 = texture.height * 0.5f
-        val sx1 = texture.width / TAUf
-        val sy1 = texture.height / PIf
-        val dx2 = height.width * 0.5f
-        val dy2 = height.height * 0.5f
-        val sx2 = height.width / TAUf
-        val sy2 = height.height / PIf
-        for (hex in hexagons) {
-            val p0 = pi / 3
-            var p1 = p0 + 1
-            val center = hex.center
-            val size = hex.corners.size
-            val lon = atan2(center.x, center.z)
-            val lat = atan2(-center.y, hypot(center.x, center.z))
-            val color = texture.sampleRGB(
-                lon * sx1 + dx1,
-                lat * sy1 + dy1,
-                GPUFiltering.LINEAR,
-                Clamping.CLAMP
-            )
-            val h = 1f + max(
-                height.sampleRGB(
-                    lon * sx2 + dx2,
-                    lat * sy2 + dy2,
-                    GPUFiltering.LINEAR,
-                    Clamping.CLAMP
-                ).r01() - h0, 0f
-            ) * 0.03f
-            // raised
-            val f = 0.2f
-            for (c in hex.corners) {
-                positions[pi++] = mix(c.x, center.x, f) * h
-                positions[pi++] = mix(c.y, center.y, f) * h
-                positions[pi++] = mix(c.z, center.z, f) * h
-                colors[ci++] = color
-            }
-            // base
-            val hl = 0.997f
-            for (c in hex.corners) {
-                positions[pi++] = c.x * hl
-                positions[pi++] = c.y * hl
-                positions[pi++] = c.z * hl
-                colors[ci++] = color
-            }
-            for (i in 2 until size) {
-                indices[li++] = p0
-                indices[li++] = p1++
-                indices[li++] = p1
-            }
-            p1 = p0
-            var p2 = p1 + size - 1
-            for (i in 0 until size) {
-                indices[li++] = p1
-                indices[li++] = p2
-                indices[li++] = p2 + size
-                indices[li++] = p1
-                indices[li++] = p2 + size
-                indices[li++] = p1 + size
-                p2 = p1
-                p1++
-            }
-        }
-
-        // faceMesh.makeFlatShaded()
-        faceMesh.invalidateGeometry()
-    }
+    val connMesh = Mesh()
 
     fun validateSync() {
-        val hexagons = createHexSphere(n, true)
+        // connections are not needed here
+        val hexagons = createHexSphere(n)
         if (showLineMesh) createLineMesh(lineMesh, hexagons)
-        if (showNiceMesh) createNiceMesh(hexagons)
+        if (showNiceMesh) createNiceMesh(niceMesh, hexagons)
         if (showSimpleMesh) createFaceMesh(simpleMesh, hexagons)
+        if (showConnections) createConnectionMesh(connMesh, hexagons)
     }
 
     var working = false
@@ -173,8 +216,9 @@ fun main() {
 
     validate()
     val entity = Entity()
-    entity.add(MeshComponent(faceMesh.ref))
-    entity.add(MeshComponent(simpleMesh.ref))
+    if (showNiceMesh) entity.add(MeshComponent(niceMesh.ref))
+    if (showSimpleMesh) entity.add(MeshComponent(simpleMesh.ref))
+    if (showConnections) entity.add(MeshComponent(connMesh.ref))
     if (showLineMesh) {
         val scaled = Entity()
         scaled.add(MeshComponent(lineMesh.ref))

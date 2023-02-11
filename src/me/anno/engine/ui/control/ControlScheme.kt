@@ -64,9 +64,9 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
 
     private val hit = RayHit()
 
-    private val dirX = Vector3d()
-    private val dirY = Vector3d()
-    private val dirZ = Vector3d()
+    val dirX = Vector3d()
+    val dirY = Vector3d()
+    val dirZ = Vector3d()
     private val rotQuad = Quaterniond()
     private val velocity = Vector3d()
 
@@ -280,7 +280,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         }
     }
 
-    fun moveCamera(dx: Double, dy: Double, dz: Double) {
+    open fun moveCamera(dx: Double, dy: Double, dz: Double) {
         val normXZ = !Input.isShiftDown // todo use UI toggle instead
         val r = view.rotation
         val y = r.y * fromDegrees

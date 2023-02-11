@@ -1,7 +1,9 @@
 package me.anno.ecs.components.chunks.spherical
 
+import me.anno.ecs.components.chunks.spherical.HexagonSphere.HexagonCreator
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths
+import me.anno.maths.Maths.TAUf
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Vectors.normalToQuaternion
 import org.joml.Quaternionf
@@ -9,6 +11,7 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11C
 import kotlin.math.atan2
+import kotlin.math.floor
 import kotlin.math.ln
 import kotlin.math.min
 
@@ -25,7 +28,13 @@ import kotlin.math.min
  * */
 object HexagonSphere {
 
-    open class Hexagon(val center: Vector3f, val corners: Array<Vector3f>) {
+    // todo support for sub-chunks
+
+    fun interface HexagonCreator {
+        fun create(i: Int, center: Vector3f, corners: Array<Vector3f>): Hexagon
+    }
+
+    open class Hexagon(val index: Int, val center: Vector3f, val corners: Array<Vector3f>) {
         val neighborIds = IntArray(6) // 5 or 6 entries; empty one will be the last one, and -1
 
         init {
@@ -85,16 +94,24 @@ object HexagonSphere {
     /**
      * creates a triangulated surface for a hexagon mesh
      * */
-    fun createFaceMesh(mesh: Mesh, hexagons: Array<Hexagon>, pentagonCount: Int = 12) {
+    fun createFaceMesh(
+        mesh: Mesh,
+        hexagons: Array<Hexagon>,
+        i0: Int = 0,
+        i1: Int = hexagons.size,
+        pentagonCount: Int = 12
+    ) {
         var pi = 0
         var li = 0
-        val positions = mesh.positions.resize(3 * (6 * hexagons.size - pentagonCount))
-        val indices = mesh.indices.resize(3 * (4 * hexagons.size - pentagonCount))
+        val size = i1 - i0
+        val positions = mesh.positions.resize(3 * (6 * size - pentagonCount))
+        val indices = mesh.indices.resize(3 * (4 * size - pentagonCount))
         mesh.drawMode = GL11C.GL_TRIANGLES
         mesh.positions = positions
         mesh.indices = indices
         mesh.normals = positions
-        for (hex in hexagons) {
+        for (i in i0 until i1) {
+            val hex = hexagons[i]
             val p0 = pi / 3
             var p1 = p0 + 1
             for (c in hex.corners) {
@@ -102,7 +119,7 @@ object HexagonSphere {
                 positions[pi++] = c.y
                 positions[pi++] = c.z
             }
-            for (i in 2 until hex.corners.size) {
+            for (j in 2 until hex.corners.size) {
                 indices[li++] = p0
                 indices[li++] = p1++
                 indices[li++] = p1
@@ -111,10 +128,10 @@ object HexagonSphere {
         mesh.invalidateGeometry()
     }
 
-    val nullHex = Hexagon(Vector3f(), emptyArray())
+    val nullHex = Hexagon(-1, Vector3f(), emptyArray())
 
     fun createHexSphere(
-        n: Int, connect: Boolean,
+        n: Int, creator: HexagonCreator = HexagonCreator { a, b, c -> Hexagon(a, b, c) },
         hexagons: Array<Hexagon> = Array(calculateHexagonCount(n)) { nullHex }
     ): Array<Hexagon> {
 
@@ -126,9 +143,9 @@ object HexagonSphere {
         // could probably be calculated with some sqrt
         val len = findLength(n) / (n + 1) // +1 for extra lines at the edges
 
-        fun add(a: Hexagon, ai: Int, bi: Int) {
+        fun connect(a: Hexagon, ai: Int, bi: Int) {
             val b = hexagons[bi]
-            b.neighborIds[a.neighborIds.indexOf(-1)] = ai
+            b.neighborIds[b.neighborIds.indexOf(-1)] = ai
             a.neighborIds[a.neighborIds.indexOf(-1)] = bi
             // replace the common points
             // use the vertex of the lower id
@@ -166,7 +183,8 @@ object HexagonSphere {
                 .add(ab.x * c0, ab.y * c0, ab.z * c0)
                 .add(ac.x * c1, ac.y * c1, ac.z * c1)
             val r = len * 0.5f
-            val hex = Hexagon(pos, Array(6) {
+            val hi = hexagonCount++
+            val hex = creator.create(hi, pos, Array(6) {
                 val di = d[it]
                 val d0 = di.x * r
                 val d1 = di.y * r
@@ -176,7 +194,7 @@ object HexagonSphere {
                     .normalize()
             })
             pos.normalize()
-            hexagons[hexagonCount++] = hex
+            hexagons[hi] = hex
             return hex
         }
 
@@ -203,11 +221,13 @@ object HexagonSphere {
             addHex(center, -j0 * len, 0f)
             pointsToLines[ai].add(h0i)
             for (j in 1 until n) {
-                addHex(center, (j - j0) * len, 0f)
+                val hex = addHex(center, (j - j0) * len, 0f)
+                connect(hex, hexagonCount - 1, hexagonCount - 2)
             }
             pointsToLines[bi].add(
                 if (n > 0) {
-                    addHex(center, (n - j0) * len, 0f)
+                    val hex = addHex(center, (n - j0) * len, 0f)
+                    connect(hex, hexagonCount - 1, hexagonCount - 2)
                     hexagonCount - 1
                 } else h0i
             )
@@ -232,17 +252,19 @@ object HexagonSphere {
                 atan2(ax.dot(c) - ax0, az.dot(c) - az0)
             }
             // create a pentagon
-            val pi = hexagonCount
-            val pentagon = Hexagon(point, Array(5) {
+            val pi = hexagonCount++
+            val pentagon = creator.create(pi, point, Array(5) {
                 val hex = hexagons[hexagons1[it]]
                 Vector3f(point).lerp(hex.center, -0.5f)
             })
-            hexagons[hexagonCount++] = pentagon
+            hexagons[pi] = pentagon
             // add all connections
-            var h0 = hexagons[hexagons1.last()]
+            var h0i = hexagons1.last()
+            var h0 = hexagons[h0i]
             for (h1i in hexagons1) {
-                add(pentagon, pi, h1i)
-                add(h0, pi, h1i)
+                connect(pentagon, pi, h1i)
+                connect(h0, h0i, h1i)
+                h0i = h1i
                 h0 = hexagons[h1i]
             }
         }
@@ -291,30 +313,53 @@ object HexagonSphere {
                     val c1 = (j - j0) * len
                     val hi = hexagonCount
                     val hex = addHex(center, c0, c1)
-                    if (connect) {
-                        // internal connections
-                        if (j > 0) add(hex, hi, hi - 1) // bottom left
-                        if (i > 0) {
-                            add(hex, hi, lastIdx + j) // left
-                            add(hex, hi, lastIdx + j + 1) // top left
-                        }
-                        // external connections
-                        if (j == 0) { // bottom
-                            add(hex, hi, abLine[i]) // bottom left
-                            add(hex, hi, abLine[i + 1]) // bottom right
-                        }
-                        if (i == 0) { // left
-                            add(hex, hi, acLine[j]) // left bottom
-                            add(hex, hi, acLine[j + 1]) // left top
-                        }
-                        if (j == jn - 1) { // right
-                            add(hex, hi, bcLine[j]) // right bottom
-                            add(hex, hi, bcLine[j + 1]) // right top
-                        }
+                    // internal connections
+                    if (j > 0) connect(hex, hi, hi - 1) // bottom left
+                    if (i > 0) {
+                        connect(hex, hi, lastIdx + j) // left
+                        connect(hex, hi, lastIdx + j + 1) // top left
+                    }
+                    // external connections
+                    if (j == 0) { // bottom
+                        connect(hex, hi, abLine[i]) // bottom left
+                        connect(hex, hi, abLine[i + 1]) // bottom right
+                    }
+                    if (i == 0) { // left
+                        connect(hex, hi, acLine[j]) // left bottom
+                        connect(hex, hi, acLine[j + 1]) // left top
+                    }
+                    if (j == jn - 1) { // right
+                        connect(hex, hi, bcLine[j]) // right bottom
+                        connect(hex, hi, bcLine[j + 1]) // right top
                     }
                 }
                 lastIdx += prevIS
                 prevIS = jn
+            }
+        }
+
+        // sort neighbors like corner points
+        val a = Vector3f()
+        val b = Vector3f()
+        val tmp = IntArray(6)
+        for (hex in hexagons) {
+            val center = hex.center
+            System.arraycopy(hex.neighborIds, 0, tmp, 0, 6)
+            hex.neighborIds.fill(-1)
+            a.set(hex.corners[0]).sub(center).normalize()
+            b.set(center).cross(a).normalize()
+            val ca = center.dot(a)
+            val cb = center.dot(b)
+            val size = hex.corners.size
+            val factor = size / TAUf
+            for (ni in tmp) {
+                if (ni < 0) break
+                val corner = hexagons[ni].center
+                val angle = atan2(b.dot(corner) - cb, a.dot(corner) - ca)
+                var idx0 = floor(angle * factor).toInt()
+                if (idx0 < 0) idx0 += size
+                if (hex.neighborIds[idx0] >= 0) throw IllegalStateException()
+                hex.neighborIds[idx0] = ni
             }
         }
 
@@ -340,7 +385,7 @@ object HexagonSphere {
         1.20f, 1.24f, 1.253f, 1.268f, 1.288f, 1.302f, 1.308f, 1.314f, 1.316f, 1.320f
     )
 
-    private fun findLength(n: Int): Float {
+    fun findLength(n: Int): Float {
         if (n < 0) throw IllegalArgumentException()
         val bi = lengthI.binarySearch(n)
         if (bi >= 0) return lengthF[bi]
@@ -396,5 +441,6 @@ object HexagonSphere {
 
     val pentagonCount = 12
     val lineCount = 30
+    val chunkCount = 21
 
 }

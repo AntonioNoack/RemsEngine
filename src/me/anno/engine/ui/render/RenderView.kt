@@ -208,7 +208,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         fsr22.destroy()
     }
 
-    fun updateEditorCameraTransform() {
+    open fun updateEditorCameraTransform() {
 
         val radius = radius
         val camera = editorCamera
@@ -1550,10 +1550,25 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
      * todo for other cameras: can be used for virtual mice
      * */
     fun getMouseRayDirection(
-        cx: Float = window!!.mouseX, cy: Float = window!!.mouseY, dst: Vector3d = Vector3d()
+        cx: Float = window!!.mouseX,
+        cy: Float = window!!.mouseY,
+        dst: Vector3d = Vector3d()
     ): Vector3d {
         val rx = (cx - x) / w * +2.0 - 1.0
         val ry = (cy - y) / h * -2.0 + 1.0
+        val tanHalfFoV = tan(fovYRadians * 0.5)
+        val aspectRatio = w.toFloat() / h
+        val dir = dst.set(rx * tanHalfFoV * aspectRatio, ry * tanHalfFoV, -1.0)
+        cameraRotation.transform(dir)
+        dir.normalize()
+        return dst
+    }
+
+    fun getRelativeMouseRayDirection(
+        rx: Double, // -1 .. 1
+        ry: Double, // -1 .. 1
+        dst: Vector3d = Vector3d()
+    ): Vector3d {
         val tanHalfFoV = tan(fovYRadians * 0.5)
         val aspectRatio = w.toFloat() / h
         val dir = dst.set(rx * tanHalfFoV * aspectRatio, ry * tanHalfFoV, -1.0)
