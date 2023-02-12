@@ -22,7 +22,8 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
 
     fun bind(shader: Shader, uniformName: String) {
         val location = when (type) {
-            GLSLType.S2D, GLSLType.S2DMS, GLSLType.S3D, GLSLType.SCube,
+            GLSLType.S2D, GLSLType.S2DI, GLSLType.S2DU,
+            GLSLType.S2DMS, GLSLType.S3D, GLSLType.SCube,
             GLSLType.S2DA -> shader.getTextureIndex(uniformName)
             else -> shader[uniformName]
         }
@@ -71,7 +72,7 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
             GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3f)
             GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3f)
             GLSLType.M4x4 -> shader.m4x4(location, value as Matrix4f)
-            GLSLType.S2D, GLSLType.S2DMS -> {
+            GLSLType.S2D, GLSLType.S2DU, GLSLType.S2DI, GLSLType.S2DMS -> {
                 when (value) {
                     is Texture2D -> {
                         if (value.isCreated) {

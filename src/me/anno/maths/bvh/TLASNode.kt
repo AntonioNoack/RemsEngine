@@ -47,7 +47,7 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             } else {
                 it as TLASLeaf
                 // offset is like an id
-                v0 = it.mesh.nodeId
+                v0 = it.blas.nodeId
                 v1 = 3 // = max axis + 1
             }
 
@@ -132,7 +132,7 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             } else {
                 it as TLASLeaf
                 // offset is like an ID
-                v0 = it.mesh.nodeId
+                v0 = it.blas.nodeId
                 v1 = 3 // = max axis + 1
             }
 

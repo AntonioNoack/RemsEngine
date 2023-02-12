@@ -1,6 +1,5 @@
 package me.anno.ecs.components.chunks.spherical
 
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.HexagonCreator
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths
 import me.anno.maths.Maths.TAUf
@@ -29,18 +28,7 @@ import kotlin.math.min
 object HexagonSphere {
 
     // todo support for sub-chunks
-
-    fun interface HexagonCreator {
-        fun create(i: Int, center: Vector3f, corners: Array<Vector3f>): Hexagon
-    }
-
-    open class Hexagon(val index: Int, val center: Vector3f, val corners: Array<Vector3f>) {
-        val neighborIds = IntArray(6) // 5 or 6 entries; empty one will be the last one, and -1
-
-        init {
-            neighborIds.fill(-1)
-        }
-    }
+    // (makes indexing more complicated)
 
     /**
      * calculates the number of hexagons; includes pentagons
@@ -201,6 +189,7 @@ object HexagonSphere {
         val lines = ArrayList<IntProgression>(lineIndices.size)
         val pointsToLines = Array(12) { ArrayList<Int>(5) }
 
+        // create edges
         for (i in lineIndices.indices step 2) {
 
             val ai = lineIndices[i]
@@ -269,6 +258,7 @@ object HexagonSphere {
             }
         }
 
+        // fill triangles
         for (ix in indices.indices step 3) {
 
             val ai = indices[ix]

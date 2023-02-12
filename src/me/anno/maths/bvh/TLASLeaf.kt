@@ -1,6 +1,7 @@
 package me.anno.maths.bvh
 
 import me.anno.engine.raycast.RayHit
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
@@ -13,17 +14,17 @@ class TLASLeaf(
     val centroid: Vector3f,
     val localToWorld: Matrix4x3f,   //           12
     val worldToLocal: Matrix4x3f,   //           12
-    val mesh: BLASNode,             //          1-2
+    val blas: BLASNode,             //          1-2
     bounds: AABBf,                  //            6
     //                              // total: 31/32 floats = 124/128 bytes
 ) : TLASNode(bounds) {
 
     override fun collectMeshes(result: MutableCollection<BLASNode>) {
-        result.add(mesh)
+        result.add(blas)
     }
 
     override fun print(depth: Int) {
-        println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $worldToLocal, ${mesh.nodeId}")
+        println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $worldToLocal, ${blas.nodeId}")
     }
 
     override fun countNodes() = 1
@@ -31,8 +32,8 @@ class TLASLeaf(
     override fun forEach(run: (TLASNode) -> Unit) = run(this)
     override fun countTLASLeaves() = 1
 
-    override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit) {
-        if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
+    override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+        return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
 
             // for testing only
             if (dir.x < dir.y) {
@@ -61,7 +62,7 @@ class TLASLeaf(
             }*/
 
             // here localEnd = dir * distance
-            localEnd.set(dir).mul(hit.distance.toFloat())
+            localEnd.set(dir).mul(min(hit.distance.toFloat(), 1e38f))
             // then make it local
             worldToLocal.transformDirection(localEnd, localEnd)
 
@@ -71,9 +72,9 @@ class TLASLeaf(
 
             hit.distance = localDistance
 
-            mesh.intersect(localPos, localDir, localInvDir, localDir.dirIsNeg(), hit)
+            blas.intersect(localPos, localDir, localInvDir, localDir.dirIsNeg(), hit)
 
-            if (hit.distance < localDistance) {
+            val hitSomething = if (hit.distance < localDistance) {
                 val localToWorld = localToWorld
                 // a better point was found
                 // transform distance and normal to global
@@ -84,13 +85,15 @@ class TLASLeaf(
                 localDir.set(hit.normalWS)
                 localToWorld.transformDirection(localDir) // is normalized later
                 hit.normalWS.set(localDir)
+                true
             } else {
                 hit.distance = globalDistance
+                false
             }
 
             JomlPools.vec3f.sub(4)
-
-        }
+            hitSomething
+        } else false
     }
 
     override fun intersect(group: RayGroup) {
@@ -145,7 +148,7 @@ class TLASLeaf(
 
             local.finishSetup()
 
-            mesh.intersect(local)
+            blas.intersect(local)
 
             val localToWorld = localToWorld
             val dxm = local.dxm

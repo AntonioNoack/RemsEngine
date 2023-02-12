@@ -94,7 +94,7 @@ class FSR2 {
     fun init(rw: Int, rh: Int, pw: Int, ph: Int) {
 
         prevDepth = Texture2D("prev-depth", rw, rh, 1)
-        prevDepth.create(TargetType.R32U) // special type
+        prevDepth.create(TargetType.U32x1) // special type
 
         dilatedDepth = Texture2D("dilated-depth", rw, rh, 1)
         dilatedDepth.create(TargetType.FP16Target1) // official FSR uses R16UI
@@ -235,7 +235,7 @@ class FSR2 {
     ) {
         GFX.check()
         // todo fill dstPrevDepth with farthest values (0, because of inverse depth)
-        dstPrevDepth.resize(rw, rh, TargetType.R32U)
+        dstPrevDepth.resize(rw, rh, TargetType.U32x1)
         dstDilatedDepth.resize(rw, rh, TargetType.FloatTarget1)
         dstDilatedMotion.resize(rw, rh, TargetType.FP16Target2)
         depth.ensurePointer()

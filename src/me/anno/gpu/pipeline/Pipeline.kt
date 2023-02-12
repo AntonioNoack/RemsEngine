@@ -451,7 +451,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Pipeline::class)
-        private val sampleEntity = Entity()
+        val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()
         val sampleMesh = Thumbs.sphereMesh
     }

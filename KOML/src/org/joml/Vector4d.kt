@@ -150,12 +150,12 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun sub(v: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = x - v.x
-        dest.y = y - v.y
-        dest.z = z - v.z
-        dest.w = w - v.w
-        return dest
+    fun sub(v: Vector4d, dst: Vector4d): Vector4d {
+        dst.x = x - v.x
+        dst.y = y - v.y
+        dst.z = z - v.z
+        dst.w = w - v.w
+        return dst
     }
 
     fun sub(v: Vector4f): Vector4d {
@@ -166,12 +166,12 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun sub(v: Vector4f, dest: Vector4d): Vector4d {
-        dest.x = x - v.x.toDouble()
-        dest.y = y - v.y.toDouble()
-        dest.z = z - v.z.toDouble()
-        dest.w = w - v.w.toDouble()
-        return dest
+    fun sub(v: Vector4f, dst: Vector4d): Vector4d {
+        dst.x = x - v.x.toDouble()
+        dst.y = y - v.y.toDouble()
+        dst.z = z - v.z.toDouble()
+        dst.w = w - v.w.toDouble()
+        return dst
     }
 
     fun sub(x: Double, y: Double, z: Double, w: Double): Vector4d {
@@ -182,12 +182,12 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun sub(x: Double, y: Double, z: Double, w: Double, dest: Vector4d): Vector4d {
-        dest.x = this.x - x
-        dest.y = this.y - y
-        dest.z = this.z - z
-        dest.w = this.w - w
-        return dest
+    fun sub(x: Double, y: Double, z: Double, w: Double, dst: Vector4d): Vector4d {
+        dst.x = this.x - x
+        dst.y = this.y - y
+        dst.z = this.z - z
+        dst.w = this.w - w
+        return dst
     }
 
     fun add(v: Vector4d): Vector4d {
@@ -198,20 +198,20 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun add(v: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = x + v.x
-        dest.y = y + v.y
-        dest.z = z + v.z
-        dest.w = w + v.w
-        return dest
+    fun add(v: Vector4d, dst: Vector4d): Vector4d {
+        dst.x = x + v.x
+        dst.y = y + v.y
+        dst.z = z + v.z
+        dst.w = w + v.w
+        return dst
     }
 
-    fun add(v: Vector4f, dest: Vector4d): Vector4d {
-        dest.x = x + v.x.toDouble()
-        dest.y = y + v.y.toDouble()
-        dest.z = z + v.z.toDouble()
-        dest.w = w + v.w.toDouble()
-        return dest
+    fun add(v: Vector4f, dst: Vector4d): Vector4d {
+        dst.x = x + v.x.toDouble()
+        dst.y = y + v.y.toDouble()
+        dst.z = z + v.z.toDouble()
+        dst.w = w + v.w.toDouble()
+        return dst
     }
 
     fun add(x: Double, y: Double, z: Double, w: Double): Vector4d {
@@ -222,12 +222,12 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun add(x: Double, y: Double, z: Double, w: Double, dest: Vector4d): Vector4d {
-        dest.x = this.x + x
-        dest.y = this.y + y
-        dest.z = this.z + z
-        dest.w = this.w + w
-        return dest
+    fun add(x: Double, y: Double, z: Double, w: Double, dst: Vector4d): Vector4d {
+        dst.x = this.x + x
+        dst.y = this.y + y
+        dst.z = this.z + z
+        dst.w = this.w + w
+        return dst
     }
 
     fun add(v: Vector4f): Vector4d {
@@ -254,20 +254,20 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun fma(a: Vector4d, b: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = JomlMath.fma(a.x, b.x, x)
-        dest.y = JomlMath.fma(a.y, b.y, y)
-        dest.z = JomlMath.fma(a.z, b.z, z)
-        dest.w = JomlMath.fma(a.w, b.w, w)
-        return dest
+    fun fma(a: Vector4d, b: Vector4d, dst: Vector4d): Vector4d {
+        dst.x = JomlMath.fma(a.x, b.x, x)
+        dst.y = JomlMath.fma(a.y, b.y, y)
+        dst.z = JomlMath.fma(a.z, b.z, z)
+        dst.w = JomlMath.fma(a.w, b.w, w)
+        return dst
     }
 
-    fun fma(a: Double, b: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = JomlMath.fma(a, b.x, x)
-        dest.y = JomlMath.fma(a, b.y, y)
-        dest.z = JomlMath.fma(a, b.z, z)
-        dest.w = JomlMath.fma(a, b.w, w)
-        return dest
+    fun fma(a: Double, b: Vector4d, dst: Vector4d): Vector4d {
+        dst.x = JomlMath.fma(a, b.x, x)
+        dst.y = JomlMath.fma(a, b.y, y)
+        dst.z = JomlMath.fma(a, b.z, z)
+        dst.w = JomlMath.fma(a, b.w, w)
+        return dst
     }
 
     fun mulAdd(a: Vector4d, b: Vector4d): Vector4d {
@@ -284,18 +284,18 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun mulAdd(a: Vector4d, b: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = JomlMath.fma(x, a.x, b.x)
-        dest.y = JomlMath.fma(y, a.y, b.y)
-        dest.z = JomlMath.fma(z, a.z, b.z)
-        return dest
+    fun mulAdd(a: Vector4d, b: Vector4d, dst: Vector4d): Vector4d {
+        dst.x = JomlMath.fma(x, a.x, b.x)
+        dst.y = JomlMath.fma(y, a.y, b.y)
+        dst.z = JomlMath.fma(z, a.z, b.z)
+        return dst
     }
 
-    fun mulAdd(a: Double, b: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = JomlMath.fma(x, a, b.x)
-        dest.y = JomlMath.fma(y, a, b.y)
-        dest.z = JomlMath.fma(z, a, b.z)
-        return dest
+    fun mulAdd(a: Double, b: Vector4d, dst: Vector4d): Vector4d {
+        dst.x = JomlMath.fma(x, a, b.x)
+        dst.y = JomlMath.fma(y, a, b.y)
+        dst.z = JomlMath.fma(z, a, b.z)
+        return dst
     }
 
     fun mul(v: Vector4d): Vector4d {
@@ -306,12 +306,12 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun mul(v: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = x * v.x
-        dest.y = y * v.y
-        dest.z = z * v.z
-        dest.w = w * v.w
-        return dest
+    fun mul(v: Vector4d, dst: Vector4d): Vector4d {
+        dst.x = x * v.x
+        dst.y = y * v.y
+        dst.z = z * v.z
+        dst.w = w * v.w
+        return dst
     }
 
     fun div(v: Vector4d): Vector4d {
@@ -322,12 +322,12 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun div(v: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = x / v.x
-        dest.y = y / v.y
-        dest.z = z / v.z
-        dest.w = w / v.w
-        return dest
+    fun div(v: Vector4d, dst: Vector4d): Vector4d {
+        dst.x = x / v.x
+        dst.y = y / v.y
+        dst.z = z / v.z
+        dst.w = w / v.w
+        return dst
     }
 
     fun mul(v: Vector4f): Vector4d {
@@ -338,75 +338,75 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun mul(v: Vector4f, dest: Vector4d): Vector4d {
-        dest.x = x * v.x.toDouble()
-        dest.y = y * v.y.toDouble()
-        dest.z = z * v.z.toDouble()
-        dest.w = w * v.w.toDouble()
-        return dest
+    fun mul(v: Vector4f, dst: Vector4d): Vector4d {
+        dst.x = x * v.x.toDouble()
+        dst.y = y * v.y.toDouble()
+        dst.z = z * v.z.toDouble()
+        dst.w = w * v.w.toDouble()
+        return dst
     }
 
     fun mul(mat: Matrix4d): Vector4d {
         return if (mat.properties() and 2 != 0) this.mulAffine(mat, this) else this.mulGeneric(mat, this)
     }
 
-    fun mul(mat: Matrix4d, dest: Vector4d): Vector4d {
-        return if (mat.properties() and 2 != 0) this.mulAffine(mat, dest) else this.mulGeneric(mat, dest)
+    fun mul(mat: Matrix4d, dst: Vector4d): Vector4d {
+        return if (mat.properties() and 2 != 0) this.mulAffine(mat, dst) else this.mulGeneric(mat, dst)
     }
 
     fun mulTranspose(mat: Matrix4d): Vector4d {
         return if (mat.properties() and 2 != 0) mulAffineTranspose(mat, this) else mulGenericTranspose(mat, this)
     }
 
-    fun mulTranspose(mat: Matrix4d, dest: Vector4d): Vector4d {
-        return if (mat.properties() and 2 != 0) mulAffineTranspose(mat, dest) else mulGenericTranspose(mat, dest)
+    fun mulTranspose(mat: Matrix4d, dst: Vector4d): Vector4d {
+        return if (mat.properties() and 2 != 0) mulAffineTranspose(mat, dst) else mulGenericTranspose(mat, dst)
     }
 
-    fun mulAffine(mat: Matrix4d, dest: Vector4d): Vector4d {
+    fun mulAffine(mat: Matrix4d, dst: Vector4d): Vector4d {
         val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w)))
         val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w)))
         val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w)))
-        dest.x = rx
-        dest.y = ry
-        dest.z = rz
-        dest.w = w
-        return dest
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        dst.w = w
+        return dst
     }
 
-    private fun mulGeneric(mat: Matrix4d, dest: Vector4d): Vector4d {
+    private fun mulGeneric(mat: Matrix4d, dst: Vector4d): Vector4d {
         val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w)))
         val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w)))
         val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w)))
         val rw = JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33 * w)))
-        dest.x = rx
-        dest.y = ry
-        dest.z = rz
-        dest.w = rw
-        return dest
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        dst.w = rw
+        return dst
     }
 
-    fun mulAffineTranspose(mat: Matrix4d, dest: Vector4d): Vector4d {
+    fun mulAffineTranspose(mat: Matrix4d, dst: Vector4d): Vector4d {
         val x = x
         val y = y
         val z = z
         val w = w
-        dest.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m01, y, mat.m02 * z))
-        dest.y = JomlMath.fma(mat.m10, x, JomlMath.fma(mat.m11, y, mat.m12 * z))
-        dest.z = JomlMath.fma(mat.m20, x, JomlMath.fma(mat.m21, y, mat.m22 * z))
-        dest.w = JomlMath.fma(mat.m30, x, JomlMath.fma(mat.m31, y, mat.m32 * z + w))
-        return dest
+        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m01, y, mat.m02 * z))
+        dst.y = JomlMath.fma(mat.m10, x, JomlMath.fma(mat.m11, y, mat.m12 * z))
+        dst.z = JomlMath.fma(mat.m20, x, JomlMath.fma(mat.m21, y, mat.m22 * z))
+        dst.w = JomlMath.fma(mat.m30, x, JomlMath.fma(mat.m31, y, mat.m32 * z + w))
+        return dst
     }
 
-    private fun mulGenericTranspose(mat: Matrix4d, dest: Vector4d): Vector4d {
+    private fun mulGenericTranspose(mat: Matrix4d, dst: Vector4d): Vector4d {
         val x = x
         val y = y
         val z = z
         val w = w
-        dest.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m01, y, JomlMath.fma(mat.m02, z, mat.m03 * w)))
-        dest.y = JomlMath.fma(mat.m10, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m12, z, mat.m13 * w)))
-        dest.z = JomlMath.fma(mat.m20, x, JomlMath.fma(mat.m21, y, JomlMath.fma(mat.m22, z, mat.m23 * w)))
-        dest.w = JomlMath.fma(mat.m30, x, JomlMath.fma(mat.m31, y, JomlMath.fma(mat.m32, z, mat.m33 * w)))
-        return dest
+        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m01, y, JomlMath.fma(mat.m02, z, mat.m03 * w)))
+        dst.y = JomlMath.fma(mat.m10, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m12, z, mat.m13 * w)))
+        dst.z = JomlMath.fma(mat.m20, x, JomlMath.fma(mat.m21, y, JomlMath.fma(mat.m22, z, mat.m23 * w)))
+        dst.w = JomlMath.fma(mat.m30, x, JomlMath.fma(mat.m31, y, JomlMath.fma(mat.m32, z, mat.m33 * w)))
+        return dst
     }
 
     fun mul(mat: Matrix4x3d): Vector4d {
@@ -419,15 +419,15 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun mul(mat: Matrix4x3d, dest: Vector4d): Vector4d {
+    fun mul(mat: Matrix4x3d, dst: Vector4d): Vector4d {
         val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w)))
         val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w)))
         val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w)))
-        dest.x = rx
-        dest.y = ry
-        dest.z = rz
-        dest.w = w
-        return dest
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        dst.w = w
+        return dst
     }
 
     fun mul(mat: Matrix4x3f): Vector4d {
@@ -452,7 +452,7 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun mul(mat: Matrix4x3f, dest: Vector4d): Vector4d {
+    fun mul(mat: Matrix4x3f, dst: Vector4d): Vector4d {
         val rx = JomlMath.fma(
             mat.m00.toDouble(),
             x,
@@ -468,22 +468,22 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
             x,
             JomlMath.fma(mat.m12.toDouble(), y, JomlMath.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
         )
-        dest.x = rx
-        dest.y = ry
-        dest.z = rz
-        dest.w = w
-        return dest
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        dst.w = w
+        return dst
     }
 
     fun mul(mat: Matrix4f): Vector4d {
         return if (mat.properties() and 2 != 0) this.mulAffine(mat, this) else this.mulGeneric(mat, this)
     }
 
-    fun mul(mat: Matrix4f, dest: Vector4d): Vector4d {
-        return if (mat.properties() and 2 != 0) this.mulAffine(mat, dest) else this.mulGeneric(mat, dest)
+    fun mul(mat: Matrix4f, dst: Vector4d): Vector4d {
+        return if (mat.properties() and 2 != 0) this.mulAffine(mat, dst) else this.mulGeneric(mat, dst)
     }
 
-    private fun mulAffine(mat: Matrix4f, dest: Vector4d): Vector4d {
+    private fun mulAffine(mat: Matrix4f, dst: Vector4d): Vector4d {
         val rx = JomlMath.fma(
             mat.m00.toDouble(),
             x,
@@ -499,14 +499,14 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
             x,
             JomlMath.fma(mat.m12.toDouble(), y, JomlMath.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
         )
-        dest.x = rx
-        dest.y = ry
-        dest.z = rz
-        dest.w = w
-        return dest
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        dst.w = w
+        return dst
     }
 
-    private fun mulGeneric(mat: Matrix4f, dest: Vector4d): Vector4d {
+    private fun mulGeneric(mat: Matrix4f, dst: Vector4d): Vector4d {
         val rx = JomlMath.fma(
             mat.m00.toDouble(),
             x,
@@ -527,23 +527,23 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
             x,
             JomlMath.fma(mat.m13.toDouble(), y, JomlMath.fma(mat.m23.toDouble(), z, mat.m33.toDouble() * w))
         )
-        dest.x = rx
-        dest.y = ry
-        dest.z = rz
-        dest.w = rw
-        return dest
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        dst.w = rw
+        return dst
     }
 
-    fun mulProject(mat: Matrix4d, dest: Vector4d): Vector4d {
+    fun mulProject(mat: Matrix4d, dst: Vector4d): Vector4d {
         val invW = 1.0 / JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33 * w)))
         val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w))) * invW
         val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w))) * invW
         val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w))) * invW
-        dest.x = rx
-        dest.y = ry
-        dest.z = rz
-        dest.w = 1.0
-        return dest
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        dst.w = 1.0
+        return dst
     }
 
     fun mulProject(mat: Matrix4d): Vector4d {
@@ -558,15 +558,15 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun mulProject(mat: Matrix4d, dest: Vector3d): Vector3d {
+    fun mulProject(mat: Matrix4d, dst: Vector3d): Vector3d {
         val invW = 1.0 / JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33 * w)))
         val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w))) * invW
         val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w))) * invW
         val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w))) * invW
-        dest.x = rx
-        dest.y = ry
-        dest.z = rz
-        return dest
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        return dst
     }
 
     fun mul(scalar: Double): Vector4d {
@@ -577,69 +577,35 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun mul(scalar: Double, dest: Vector4d): Vector4d {
-        dest.x = x * scalar
-        dest.y = y * scalar
-        dest.z = z * scalar
-        dest.w = w * scalar
-        return dest
+    fun mul(scalar: Double, dst: Vector4d): Vector4d {
+        dst.x = x * scalar
+        dst.y = y * scalar
+        dst.z = z * scalar
+        dst.w = w * scalar
+        return dst
     }
 
-    fun div(scalar: Double): Vector4d {
-        val inv = 1.0 / scalar
-        x *= inv
-        y *= inv
-        z *= inv
-        w *= inv
-        return this
+    fun div(scalar: Double, dst: Vector4d = this) = mul(1.0 / scalar, dst)
+
+    fun rotate(quat: Quaterniond, dst: Vector4d = this): Vector4d {
+        quat.transform(this, dst)
+        return dst
     }
 
-    fun div(scalar: Double, dest: Vector4d): Vector4d {
-        val inv = 1.0 / scalar
-        dest.x = x * inv
-        dest.y = y * inv
-        dest.z = z * inv
-        dest.w = w * inv
-        return dest
-    }
-
-    fun rotate(quat: Quaterniond): Vector4d {
-        quat.transform(this, this)
-        return this
-    }
-
-    fun rotate(quat: Quaterniond, dest: Vector4d): Vector4d {
-        quat.transform(this, dest)
-        return dest
-    }
-
-    fun rotateAxis(angle: Double, x: Double, y: Double, z: Double): Vector4d {
-        return if (y == 0.0 && z == 0.0 && JomlMath.absEqualsOne(x)) {
-            this.rotateX(x * angle, this)
-        } else if (x == 0.0 && z == 0.0 && JomlMath.absEqualsOne(y)) {
-            this.rotateY(y * angle, this)
-        } else {
-            if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) this.rotateZ(
-                z * angle,
-                this
-            ) else rotateAxisInternal(angle, x, y, z, this)
-        }
-    }
-
-    fun rotateAxis(angle: Double, aX: Double, aY: Double, aZ: Double, dest: Vector4d): Vector4d {
+    fun rotateAxis(angle: Double, aX: Double, aY: Double, aZ: Double, dst: Vector4d = this): Vector4d {
         return if (aY == 0.0 && aZ == 0.0 && JomlMath.absEqualsOne(aX)) {
-            this.rotateX(aX * angle, dest)
+            this.rotateX(aX * angle, dst)
         } else if (aX == 0.0 && aZ == 0.0 && JomlMath.absEqualsOne(aY)) {
-            this.rotateY(aY * angle, dest)
+            this.rotateY(aY * angle, dst)
         } else {
             if (aX == 0.0 && aY == 0.0 && JomlMath.absEqualsOne(aZ)) this.rotateZ(
                 aZ * angle,
-                dest
-            ) else rotateAxisInternal(angle, aX, aY, aZ, dest)
+                dst
+            ) else rotateAxisInternal(angle, aX, aY, aZ, dst)
         }
     }
 
-    private fun rotateAxisInternal(angle: Double, aX: Double, aY: Double, aZ: Double, dest: Vector4d): Vector4d {
+    private fun rotateAxisInternal(angle: Double, aX: Double, aY: Double, aZ: Double, dst: Vector4d): Vector4d {
         val halfAngle = angle * 0.5
         val sinAngle = sin(halfAngle)
         val qx = aX * sinAngle
@@ -659,178 +625,76 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         val nx = (w2 + x2 - z2 - y2) * x + (-zw + xy - zw + xy) * y + (yw + xz + xz + yw) * z
         val ny = (xy + zw + zw + xy) * x + (y2 - z2 + w2 - x2) * y + (yz + yz - xw - xw) * z
         val nz = (xz - yw + xz - yw) * x + (yz + yz + xw + xw) * y + (z2 - y2 - x2 + w2) * z
-        dest.x = nx
-        dest.y = ny
-        dest.z = nz
-        return dest
+        dst.x = nx
+        dst.y = ny
+        dst.z = nz
+        return dst
     }
 
-    fun rotateX(angle: Double): Vector4d {
+    fun rotateX(angle: Double, dst: Vector4d = this): Vector4d {
         val sin = sin(angle)
         val cos = cos(angle)
         val y = y * cos - z * sin
         val z = this.y * sin + z * cos
-        this.y = y
-        this.z = z
-        return this
+        dst.x = x
+        dst.y = y
+        dst.z = z
+        dst.w = w
+        return dst
     }
 
-    fun rotateX(angle: Double, dest: Vector4d): Vector4d {
-        val sin = sin(angle)
-        val cos = cos(angle)
-        val y = y * cos - z * sin
-        val z = this.y * sin + z * cos
-        dest.x = x
-        dest.y = y
-        dest.z = z
-        dest.w = w
-        return dest
-    }
-
-    fun rotateY(angle: Double): Vector4d {
+    fun rotateY(angle: Double, dst: Vector4d = this): Vector4d {
         val sin = sin(angle)
         val cos = cos(angle)
         val x = x * cos + z * sin
         val z = -this.x * sin + z * cos
-        this.x = x
-        this.z = z
-        return this
+        dst.x = x
+        dst.y = y
+        dst.z = z
+        dst.w = w
+        return dst
     }
 
-    fun rotateY(angle: Double, dest: Vector4d): Vector4d {
-        val sin = sin(angle)
-        val cos = cos(angle)
-        val x = x * cos + z * sin
-        val z = -this.x * sin + z * cos
-        dest.x = x
-        dest.y = y
-        dest.z = z
-        dest.w = w
-        return dest
-    }
-
-    fun rotateZ(angle: Double): Vector4d {
+    fun rotateZ(angle: Double, dst: Vector4d = this): Vector4d {
         val sin = sin(angle)
         val cos = cos(angle)
         val x = x * cos - y * sin
         val y = this.x * sin + y * cos
-        this.x = x
-        this.y = y
-        return this
+        dst.x = x
+        dst.y = y
+        dst.z = z
+        dst.w = w
+        return dst
     }
 
-    fun rotateZ(angle: Double, dest: Vector4d): Vector4d {
-        val sin = sin(angle)
-        val cos = cos(angle)
-        val x = x * cos - y * sin
-        val y = this.x * sin + y * cos
-        dest.x = x
-        dest.y = y
-        dest.z = z
-        dest.w = w
-        return dest
-    }
+    fun lengthSquared() = x * x + y * y + z * z + w * w
+    fun length() = sqrt(lengthSquared())
 
-    fun lengthSquared(): Double {
-        return JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w)))
-    }
+    fun normalize(dst: Vector4d = this) = div(length(), dst)
 
-    fun length(): Double {
-        return sqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
-    }
+    fun normalize(length: Double, dst: Vector4d = this) = mul(length / length(), dst)
 
-    fun normalize(): Vector4d {
-        val invLength = 1.0 / this.length()
-        x *= invLength
-        y *= invLength
-        z *= invLength
-        w *= invLength
-        return this
-    }
-
-    fun normalize(dest: Vector4d): Vector4d {
-        val invLength = 1.0 / this.length()
-        dest.x = x * invLength
-        dest.y = y * invLength
-        dest.z = z * invLength
-        dest.w = w * invLength
-        return dest
-    }
-
-    fun normalize(length: Double): Vector4d {
-        val invLength = 1.0 / this.length() * length
-        x *= invLength
-        y *= invLength
-        z *= invLength
-        w *= invLength
-        return this
-    }
-
-    fun normalize(length: Double, dest: Vector4d): Vector4d {
-        val invLength = 1.0 / this.length() * length
-        dest.x = x * invLength
-        dest.y = y * invLength
-        dest.z = z * invLength
-        dest.w = w * invLength
-        return dest
-    }
-
-    fun normalize3(): Vector4d {
-        val invLength = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, z * z)))
-        x *= invLength
-        y *= invLength
-        z *= invLength
-        w *= invLength
-        return this
-    }
-
-    fun normalize3(dest: Vector4d): Vector4d {
-        val invLength = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, z * z)))
-        dest.x = x * invLength
-        dest.y = y * invLength
-        dest.z = z * invLength
-        dest.w = w * invLength
-        return dest
-    }
+    fun normalize3(dst: Vector4d = this) = div(sqrt(x * x + y * y + z * z), dst)
 
     fun distance(v: Vector4d): Double {
-        val dx = x - v.x
-        val dy = y - v.y
-        val dz = z - v.z
-        val dw = w - v.w
-        return sqrt(JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, JomlMath.fma(dz, dz, dw * dw))))
+        return Companion.length(x - v.x, y - v.y, z - v.w, w - v.w)
     }
 
     fun distance(x: Double, y: Double, z: Double, w: Double): Double {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        val dw = this.w - w
-        return sqrt(JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, JomlMath.fma(dz, dz, dw * dw))))
+        return Companion.length(this.x - x, this.y - y, this.z - z, this.w - w)
     }
 
     fun distanceSquared(v: Vector4d): Double {
-        val dx = x - v.x
-        val dy = y - v.y
-        val dz = z - v.z
-        val dw = w - v.w
-        return JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, JomlMath.fma(dz, dz, dw * dw)))
+        return Companion.lengthSquared(x - v.x, y - v.y, z - v.w, w - v.w)
     }
 
     fun distanceSquared(x: Double, y: Double, z: Double, w: Double): Double {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        val dw = this.w - w
-        return JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, JomlMath.fma(dz, dz, dw * dw)))
+        return Companion.lengthSquared(this.x - x, this.y - y, this.z - z, this.w - w)
     }
 
-    fun dot(v: Vector4d): Double {
-        return JomlMath.fma(x, v.x, JomlMath.fma(y, v.y, JomlMath.fma(z, v.z, w * v.w)))
-    }
-
+    fun dot(v: Vector4d) = x * v.x + y * v.y + z * v.z + w * v.w
     fun dot(x: Double, y: Double, z: Double, w: Double): Double {
-        return JomlMath.fma(this.x, x, JomlMath.fma(this.y, y, JomlMath.fma(this.z, z, this.w * w)))
+        return this.x * x + this.y * y + this.z * z + this.w * w
     }
 
     fun angleCos(v: Vector4d): Double {
@@ -855,52 +719,28 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return this
     }
 
-    fun negate(): Vector4d {
-        x = -x
-        y = -y
-        z = -z
-        w = -w
-        return this
+    fun negate(dst: Vector4d = this): Vector4d {
+        dst.x = -x
+        dst.y = -y
+        dst.z = -z
+        dst.w = -w
+        return dst
     }
 
-    fun negate(dest: Vector4d): Vector4d {
-        dest.x = -x
-        dest.y = -y
-        dest.z = -z
-        dest.w = -w
-        return dest
+    fun min(v: Vector4d, dst: Vector4d = this): Vector4d {
+        dst.x = min(x, v.x)
+        dst.y = min(y, v.y)
+        dst.z = min(z, v.z)
+        dst.w = min(w, v.w)
+        return dst
     }
 
-    fun min(v: Vector4d): Vector4d {
-        x = min(x, v.x)
-        y = min(y, v.y)
-        z = min(z, v.z)
-        w = min(w, v.w)
-        return this
-    }
-
-    fun min(v: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = min(x, v.x)
-        dest.y = min(y, v.y)
-        dest.z = min(z, v.z)
-        dest.w = min(w, v.w)
-        return dest
-    }
-
-    fun max(v: Vector4d): Vector4d {
-        x = max(x, v.x)
-        y = max(y, v.y)
-        z = max(z, v.z)
-        w = max(w, v.w)
-        return this
-    }
-
-    fun max(v: Vector4d, dest: Vector4d): Vector4d {
-        dest.x = max(x, v.x)
-        dest.y = max(y, v.y)
-        dest.z = max(z, v.z)
-        dest.w = max(w, v.w)
-        return dest
+    fun max(v: Vector4d, dst: Vector4d = this): Vector4d {
+        dst.x = max(x, v.x)
+        dst.y = max(y, v.y)
+        dst.z = max(z, v.z)
+        dst.w = max(w, v.w)
+        return dst
     }
 
     override fun toString(): String {
@@ -937,40 +777,32 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         return x == this.x && y == this.y && z == this.z && w == this.w
     }
 
-    fun smoothStep(v: Vector4d, t: Double, dest: Vector4d): Vector4d {
+    fun smoothStep(v: Vector4d, t: Double, dst: Vector4d = this): Vector4d {
         val t2 = t * t
         val t3 = t2 * t
-        dest.x = (x + x - v.x - v.x) * t3 + (3.0 * v.x - 3.0 * x) * t2 + x * t + x
-        dest.y = (y + y - v.y - v.y) * t3 + (3.0 * v.y - 3.0 * y) * t2 + y * t + y
-        dest.z = (z + z - v.z - v.z) * t3 + (3.0 * v.z - 3.0 * z) * t2 + z * t + z
-        dest.w = (w + w - v.w - v.w) * t3 + (3.0 * v.w - 3.0 * w) * t2 + w * t + w
-        return dest
+        dst.x = (x + x - v.x - v.x) * t3 + (3.0 * v.x - 3.0 * x) * t2 + x * t + x
+        dst.y = (y + y - v.y - v.y) * t3 + (3.0 * v.y - 3.0 * y) * t2 + y * t + y
+        dst.z = (z + z - v.z - v.z) * t3 + (3.0 * v.z - 3.0 * z) * t2 + z * t + z
+        dst.w = (w + w - v.w - v.w) * t3 + (3.0 * v.w - 3.0 * w) * t2 + w * t + w
+        return dst
     }
 
-    fun hermite(t0: Vector4d, v1: Vector4d, t1: Vector4d, t: Double, dest: Vector4d): Vector4d {
+    fun hermite(t0: Vector4d, v1: Vector4d, t1: Vector4d, t: Double, dst: Vector4d = this): Vector4d {
         val t2 = t * t
         val t3 = t2 * t
-        dest.x = (x + x - v1.x - v1.x + t1.x + t0.x) * t3 + (3.0 * v1.x - 3.0 * x - t0.x - t0.x - t1.x) * t2 + x * t + x
-        dest.y = (y + y - v1.y - v1.y + t1.y + t0.y) * t3 + (3.0 * v1.y - 3.0 * y - t0.y - t0.y - t1.y) * t2 + y * t + y
-        dest.z = (z + z - v1.z - v1.z + t1.z + t0.z) * t3 + (3.0 * v1.z - 3.0 * z - t0.z - t0.z - t1.z) * t2 + z * t + z
-        dest.w = (w + w - v1.w - v1.w + t1.w + t0.w) * t3 + (3.0 * v1.w - 3.0 * w - t0.w - t0.w - t1.w) * t2 + w * t + w
-        return dest
+        dst.x = (x + x - v1.x - v1.x + t1.x + t0.x) * t3 + (3.0 * v1.x - 3.0 * x - t0.x - t0.x - t1.x) * t2 + x * t + x
+        dst.y = (y + y - v1.y - v1.y + t1.y + t0.y) * t3 + (3.0 * v1.y - 3.0 * y - t0.y - t0.y - t1.y) * t2 + y * t + y
+        dst.z = (z + z - v1.z - v1.z + t1.z + t0.z) * t3 + (3.0 * v1.z - 3.0 * z - t0.z - t0.z - t1.z) * t2 + z * t + z
+        dst.w = (w + w - v1.w - v1.w + t1.w + t0.w) * t3 + (3.0 * v1.w - 3.0 * w - t0.w - t0.w - t1.w) * t2 + w * t + w
+        return dst
     }
 
-    fun lerp(other: Vector4d, t: Double): Vector4d {
-        x = JomlMath.fma(other.x - x, t, x)
-        y = JomlMath.fma(other.y - y, t, y)
-        z = JomlMath.fma(other.z - z, t, z)
-        w = JomlMath.fma(other.w - w, t, w)
-        return this
-    }
-
-    fun lerp(other: Vector4d, t: Double, dest: Vector4d): Vector4d {
-        dest.x = JomlMath.fma(other.x - x, t, x)
-        dest.y = JomlMath.fma(other.y - y, t, y)
-        dest.z = JomlMath.fma(other.z - z, t, z)
-        dest.w = JomlMath.fma(other.w - w, t, w)
-        return dest
+    fun lerp(other: Vector4d, t: Double, dst: Vector4d = this): Vector4d {
+        dst.x = JomlMath.fma(other.x - x, t, x)
+        dst.y = JomlMath.fma(other.y - y, t, y)
+        dst.z = JomlMath.fma(other.z - z, t, z)
+        dst.w = JomlMath.fma(other.w - w, t, w)
+        return dst
     }
 
     operator fun get(component: Int): Double {
@@ -983,20 +815,20 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         }
     }
 
-    fun get(dest: Vector4f): Vector4f {
-        dest.x = x.toFloat()
-        dest.y = y.toFloat()
-        dest.z = z.toFloat()
-        dest.w = w.toFloat()
-        return dest
+    fun get(dst: Vector4f): Vector4f {
+        dst.x = x.toFloat()
+        dst.y = y.toFloat()
+        dst.z = z.toFloat()
+        dst.w = w.toFloat()
+        return dst
     }
 
-    fun get(dest: Vector4d): Vector4d {
-        dest.x = x
-        dest.y = y
-        dest.z = z
-        dest.w = w
-        return dest
+    fun get(dst: Vector4d): Vector4d {
+        dst.x = x
+        dst.y = y
+        dst.z = z
+        dst.w = w
+        return dst
     }
 
     fun maxComponent(): Int {
@@ -1027,71 +859,39 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
         }
     }
 
-    fun floor(): Vector4d {
-        x = floor(x)
-        y = floor(y)
-        z = floor(z)
-        w = floor(w)
-        return this
+    fun floor(dst: Vector4d = this): Vector4d {
+        dst.x = floor(x)
+        dst.y = floor(y)
+        dst.z = floor(z)
+        dst.w = floor(w)
+        return dst
     }
 
-    fun floor(dest: Vector4d): Vector4d {
-        dest.x = floor(x)
-        dest.y = floor(y)
-        dest.z = floor(z)
-        dest.w = floor(w)
-        return dest
+    fun ceil(dst: Vector4d = this): Vector4d {
+        dst.x = ceil(x)
+        dst.y = ceil(y)
+        dst.z = ceil(z)
+        dst.w = ceil(w)
+        return dst
     }
 
-    fun ceil(): Vector4d {
-        x = ceil(x)
-        y = ceil(y)
-        z = ceil(z)
-        w = ceil(w)
-        return this
-    }
-
-    fun ceil(dest: Vector4d): Vector4d {
-        dest.x = ceil(x)
-        dest.y = ceil(y)
-        dest.z = ceil(z)
-        dest.w = ceil(w)
-        return dest
-    }
-
-    fun round(): Vector4d {
-        x = round(x)
-        y = round(y)
-        z = round(z)
-        w = round(w)
-        return this
-    }
-
-    fun round(dest: Vector4d): Vector4d {
-        dest.x = round(x)
-        dest.y = round(y)
-        dest.z = round(z)
-        dest.w = round(w)
-        return dest
+    fun round(dst: Vector4d = this): Vector4d {
+        dst.x = round(x)
+        dst.y = round(y)
+        dst.z = round(z)
+        dst.w = round(w)
+        return dst
     }
 
     val isFinite: Boolean
         get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z) && JomlMath.isFinite(w)
 
-    fun absolute(): Vector4d {
-        x = abs(x)
-        y = abs(y)
-        z = abs(z)
-        w = abs(w)
-        return this
-    }
-
-    fun absolute(dest: Vector4d): Vector4d {
-        dest.x = abs(x)
-        dest.y = abs(y)
-        dest.z = abs(z)
-        dest.w = abs(w)
-        return dest
+    fun absolute(dst: Vector4d = this): Vector4d {
+        dst.x = abs(x)
+        dst.y = abs(y)
+        dst.z = abs(z)
+        dst.w = abs(w)
+        return dst
     }
 
     companion object {

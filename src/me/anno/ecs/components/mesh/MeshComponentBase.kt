@@ -122,10 +122,10 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         ensureBuffer()
         val mesh = getMesh()
         if (mesh != null) {
-            mesh.ensureBounds()
-            localAABB.set(mesh.aabb)
+            val aabb2 = mesh.ensureBounds()
+            localAABB.set(aabb2)
             globalAABB.clear()
-            mesh.aabb.transformUnion(globalTransform, globalAABB)
+            aabb2.transformUnion(globalTransform, globalAABB)
             aabb.union(globalAABB)
         }
         return true
@@ -133,8 +133,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
     fun fillSpace(mesh: Mesh, globalTransform: Matrix4x3d, aabb: AABBd) {
         // add aabb of that mesh with the transform
-        mesh.ensureBounds()
-        mesh.aabb.transformUnion(globalTransform, aabb)
+        mesh.ensureBounds().transformUnion(globalTransform, aabb)
     }
 
     open val hasAnimation: Boolean = false

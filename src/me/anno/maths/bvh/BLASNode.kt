@@ -66,7 +66,7 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
                         data.put(normals[k])
                         data.put(normals[k + 1])
                         data.put(normals[k + 2])
-                        data.put(Float.fromBits(colors[i]))
+                        data.put(Float.fromBits(if (colors != null) colors[i] else -1))
                     }
                     k += 3
                 }
@@ -120,7 +120,7 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
                         buffer.put(normals[k])
                         buffer.put(normals[k + 1])
                         buffer.put(normals[k + 2])
-                        buffer.put(Float.fromBits(colors[i]))
+                        buffer.put(Float.fromBits(if(colors != null) colors[i] else -1))
                     }
                     k += 3
                 }

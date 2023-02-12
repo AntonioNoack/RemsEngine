@@ -3,8 +3,8 @@ package me.anno.gpu.shader.effects
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.monitor.SubpixelLayout
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader
-import me.anno.gpu.shader.ShaderLib.svsList
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input.isControlDown
@@ -27,7 +27,7 @@ object DepthBasedAntiAliasing {
 
     val shader = lazy {
         Shader(
-            "Depth-Based FXAA", svsList, simplestVertexShader, uvList, listOf(),
+            "Depth-Based FXAA", coordsList, simplestVertexShader, uvList, emptyList(),
             "out vec4 fragColor;\n" +
                     // use color instead of depth?
                     // depth is great for false-positives, but bad for false-negatives (it blurs too few pixels)

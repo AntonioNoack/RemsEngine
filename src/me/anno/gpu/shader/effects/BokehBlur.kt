@@ -11,8 +11,8 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader
-import me.anno.gpu.shader.ShaderLib.svsList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -128,7 +128,7 @@ object BokehBlur {
         val varyingShader = listOf(Variable(GLSLType.V2F, "uv"))
 
         perChannelShader = Shader(
-            "bokeh-perChannel", svsList, simplestVertexShader, varyingShader,
+            "bokeh-perChannel", coordsList, simplestVertexShader, varyingShader,
             listOf(
                 Variable(GLSLType.V2F, "stepVal"),// 1/resolution
                 Variable(GLSLType.S2D, "image"),
@@ -153,7 +153,7 @@ object BokehBlur {
         ).apply { setTextureIndices("filterTexture", "image") }
 
         compositionShader = Shader(
-            "bokeh-composition", svsList, simplestVertexShader,
+            "bokeh-composition", coordsList, simplestVertexShader,
             varyingShader, listOf(
                 Variable(GLSLType.V2F, "stepVal"),// 1/resolution
                 Variable(GLSLType.V1I, "radius"),
@@ -282,6 +282,7 @@ object BokehBlur {
                 override fun onUpdate() {
                     invalidateDrawing()
                 }
+
                 override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                     super.onDraw(x0, y0, x1, y1)
                     if (Input.isShiftDown) return

@@ -62,7 +62,7 @@ object LineBuffer {
 
     // whenever this is updated, nioBuffer in buffer needs to be updated as well
 
-    private val buffer = StaticBuffer(attributes, 1024, GL_STREAM_DRAW)
+    private val buffer = StaticBuffer(attributes, 65536, GL_STREAM_DRAW)
     const val lineSize = 2 * (3 * 4 + 4)
 
     init {
@@ -505,8 +505,8 @@ object LineBuffer {
     }
 
     fun drawIf1M(camTransform: Matrix4f) {
-        if (bytes.position() >= 32_000_000) {
-            // more than 1M points have been collected
+        if (bytes.position() >= 32 * 256 * 1024) {
+            // more than 256k points have been collected
             finish(camTransform)
         }
     }
@@ -520,7 +520,7 @@ object LineBuffer {
 
     private fun finish(transform: Matrix4f, shader: Shader) {
 
-        buffer.upload()
+        buffer.upload(allowResize = true, keepLarge = true)
         shader.m4x4("transform", transform)
         buffer.draw(shader)
 

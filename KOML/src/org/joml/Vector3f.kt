@@ -403,7 +403,16 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     }
 
     fun lengthSquared() = x * x + y * y + z * z
-    fun length() = sqrt(lengthSquared())
+    fun length(): Float {
+        val ls = lengthSquared()
+        return if (ls.isInfinite()) {
+            val f1 = 1.175494e-38f
+            val lx = x * f1
+            val ly = y * f1
+            val lz = z * f1
+            sqrt(lx * lx + ly * ly + lz * lz) / f1
+        } else sqrt(ls)
+    }
 
     fun normalize(dst: Vector3f = this) = mul(1f / length(), dst)
     fun normalize(length: Float, dst: Vector3f = this) = mul(length / length(), dst)

@@ -3,10 +3,11 @@ package me.anno.tests.mesh
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.chunks.spherical.HexagonSphere
+import me.anno.ecs.components.chunks.spherical.Hexagon
 import me.anno.ecs.components.chunks.spherical.HexagonSphere.createFaceMesh
 import me.anno.ecs.components.chunks.spherical.HexagonSphere.createHexSphere
 import me.anno.ecs.components.chunks.spherical.HexagonSphere.createLineMesh
+import me.anno.ecs.components.chunks.spherical.HexagonSphere.findLength
 import me.anno.ecs.components.chunks.spherical.HexagonSphere.pentagonCount
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
@@ -21,6 +22,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestStudio.Companion.testUI2
@@ -37,13 +39,46 @@ import kotlin.math.sqrt
 
 // todo small simulator using this
 //  - civilisation builder
-//  - fluid simulation
 
-fun createNiceMesh(mesh: Mesh, hexagons: Array<HexagonSphere.Hexagon>) {
+fun createNiceMesh(mesh: Mesh, n: Int, hexagons: Array<Hexagon>) {
 
     val texture = ImageCPUCache[getReference("E:/Pictures/earth_flat_map.jpg"), false]!!
     val height = ImageCPUCache[downloads.getChild("earth-height.png"), false]!!
     val h0 = height.getRGB(0).r01() * 1.5f
+
+    val dx1 = texture.width * 0.5f
+    val dy1 = texture.height * 0.5f
+    val sx1 = texture.width / TAUf
+    val sy1 = texture.height / PIf
+    val dx2 = height.width * 0.5f
+    val dy2 = height.height * 0.5f
+    val sx2 = height.width / TAUf
+    val sy2 = height.height / PIf
+
+    createNiceMesh1(mesh, n, hexagons, 0.2f, 0.2f, true, { _, uv ->
+        texture.sampleRGB(
+            uv.x * sx1 + dx1,
+            uv.y * sy1 + dy1,
+            GPUFiltering.LINEAR,
+            Clamping.CLAMP
+        )
+    }, { _, _ -> 0.997f }, { _, uv ->
+        1f + max(
+            height.sampleRGB(
+                uv.x * sx2 + dx2,
+                uv.y * sy2 + dy2,
+                GPUFiltering.LINEAR,
+                Clamping.CLAMP
+            ).r01() - h0, 0f
+        ) * 0.03f
+    })
+
+}
+
+fun createNiceMesh0(
+    mesh: Mesh, hexagons: Array<Hexagon>,
+    getColor: (Hexagon, Vector3f) -> Int,
+) {
 
     var pi = 0
     var li = 0
@@ -61,56 +96,41 @@ fun createNiceMesh(mesh: Mesh, hexagons: Array<HexagonSphere.Hexagon>) {
     mesh.normals = mesh.normals.resize(3 * numPositions)
     mesh.color0 = colors
 
-    val dx1 = texture.width * 0.5f
-    val dy1 = texture.height * 0.5f
-    val sx1 = texture.width / TAUf
-    val sy1 = texture.height / PIf
-    val dx2 = height.width * 0.5f
-    val dy2 = height.height * 0.5f
-    val sx2 = height.width / TAUf
-    val sy2 = height.height / PIf
+
+    val colors1 = IntArray(hexagons.size)
+    for (hi in hexagons.indices) {
+        colors1[hi]
+    }
+
     for (hex in hexagons) {
         val p0 = pi / 3
         var p1 = p0 + 1
+        val corners = hex.corners
+        val size = corners.size
         val center = hex.center
-        val size = hex.corners.size
-        val lon = atan2(center.x, center.z)
-        val lat = atan2(-center.y, hypot(center.x, center.z))
-        val color = texture.sampleRGB(
-            lon * sx1 + dx1,
-            lat * sy1 + dy1,
-            GPUFiltering.LINEAR,
-            Clamping.CLAMP
-        )
-        val h = 1f + max(
-            height.sampleRGB(
-                lon * sx2 + dx2,
-                lat * sy2 + dy2,
-                GPUFiltering.LINEAR,
-                Clamping.CLAMP
-            ).r01() - h0, 0f
-        ) * 0.03f
+        val color = getColor(hex, center)
         // raised
-        val f = 0.2f
-        for (c in hex.corners) {
-            positions[pi++] = mix(c.x, center.x, f) * h
-            positions[pi++] = mix(c.y, center.y, f) * h
-            positions[pi++] = mix(c.z, center.z, f) * h
+        for (c in corners) {
+            positions[pi++] = c.x * 2f
+            positions[pi++] = c.y * 2f
+            positions[pi++] = c.z * 2f
             colors[ci++] = color
         }
         // base
-        val hl = 0.997f
-        for (c in hex.corners) {
-            positions[pi++] = c.x * hl
-            positions[pi++] = c.y * hl
-            positions[pi++] = c.z * hl
-            colors[ci++] = color
+        for (j in corners.indices) {
+            val c = corners[j]
+            positions[pi++] = c.x
+            positions[pi++] = c.y
+            positions[pi++] = c.z
+            colors[ci++] = colors1[hex.neighborIds[j]]
         }
+        // base faces
         for (i in 2 until size) {
             indices[li++] = p0
             indices[li++] = p1++
             indices[li++] = p1
         }
+        // edge faces
         p1 = p0
         var p2 = p1 + size - 1
         for (i in 0 until size) {
@@ -125,11 +145,106 @@ fun createNiceMesh(mesh: Mesh, hexagons: Array<HexagonSphere.Hexagon>) {
         }
     }
 
+    mesh.makeFlatShaded()
+    mesh.invalidateGeometry()
+}
+
+fun createNiceMesh1(
+    mesh: Mesh, n: Int, hexagons: Array<Hexagon>,
+    insetX: Float, insetY: Float,
+    latLon: Boolean,
+    getColor: (Hexagon, Vector3f) -> Int,
+    getHeightMin: (Hexagon, Vector3f) -> Float,
+    getHeightMax: (Hexagon, Vector3f) -> Float,
+) {
+
+    var pi = 0
+    var li = 0
+    var ci = 0
+
+    val numPositions = 3 * (6 * hexagons.size - pentagonCount)
+    val positions = mesh.positions.resize(3 * numPositions)
+    val baseIndices = 3 * (4 * hexagons.size - pentagonCount)
+    val heightIndices = 2 * 6 * 6 * hexagons.size
+    val indices = mesh.indices.resize(baseIndices + heightIndices)
+    val colors = mesh.color0.resize(numPositions)
+
+    mesh.positions = positions
+    mesh.indices = indices
+    mesh.normals = mesh.normals.resize(3 * numPositions)
+    mesh.color0 = colors
+
+    val len = findLength(n) / (n + 1)
+    val insetY1 = 0.5f * insetY * len
+
+    val query = Vector3f()
+    for (hex in hexagons) {
+        val p0 = pi / 3
+        var p1 = p0 + 1
+        val center = hex.center
+        val size = hex.corners.size
+        val q = if (latLon) {
+            val lon = atan2(center.x, center.z)
+            val lat = atan2(-center.y, hypot(center.x, center.z))
+            query.set(lon, lat, 0f)
+        } else hex.center
+        val color = getColor(hex, q)
+        val hMin = getHeightMin(hex, q)
+        val hMax = getHeightMax(hex, q)
+        val hMid = getHeightMax(hex, q) - min(insetY1, hMax - hMin)
+        // raised
+        for (c in hex.corners) {
+            positions[pi++] = mix(c.x, center.x, insetX) * hMax
+            positions[pi++] = mix(c.y, center.y, insetX) * hMax
+            positions[pi++] = mix(c.z, center.z, insetX) * hMax
+            colors[ci++] = color
+        }
+        // mid
+        for (c in hex.corners) {
+            positions[pi++] = c.x * hMid
+            positions[pi++] = c.y * hMid
+            positions[pi++] = c.z * hMid
+            colors[ci++] = color
+        }
+        // base
+        for (c in hex.corners) {
+            positions[pi++] = c.x * hMin
+            positions[pi++] = c.y * hMin
+            positions[pi++] = c.z * hMin
+            colors[ci++] = color
+        }
+        // base faces
+        for (i in 2 until size) {
+            indices[li++] = p0
+            indices[li++] = p1++
+            indices[li++] = p1
+        }
+        // edge faces
+        p1 = p0
+        var p2 = p1 + size - 1
+        for (i in 0 until size) {
+            indices[li++] = p1
+            indices[li++] = p2
+            indices[li++] = p2 + size
+            indices[li++] = p1
+            indices[li++] = p2 + size
+            indices[li++] = p1 + size
+            indices[li++] = p1 + size
+            indices[li++] = p2 + size
+            indices[li++] = p2 + size + size
+            indices[li++] = p1 + size
+            indices[li++] = p2 + size + size
+            indices[li++] = p1 + size + size
+            p2 = p1
+            p1++
+        }
+    }
+
     // faceMesh.makeFlatShaded()
     mesh.invalidateGeometry()
 }
 
-fun createConnectionMesh(mesh: Mesh, hexagons: Array<HexagonSphere.Hexagon>) {
+fun createConnectionMesh(mesh: Mesh, hexagons: Array<Hexagon>) {
     val numConnections = hexagons.size * 6
     val positions = mesh.positions.resize(numConnections * 6)
     mesh.drawMode = GL_LINES
@@ -191,7 +306,7 @@ fun main() {
         // connections are not needed here
         val hexagons = createHexSphere(n)
         if (showLineMesh) createLineMesh(lineMesh, hexagons)
-        if (showNiceMesh) createNiceMesh(niceMesh, hexagons)
+        if (showNiceMesh) createNiceMesh(niceMesh, n, hexagons)
         if (showSimpleMesh) createFaceMesh(simpleMesh, hexagons)
         if (showConnections) createConnectionMesh(connMesh, hexagons)
     }

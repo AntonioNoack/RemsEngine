@@ -4,6 +4,7 @@ import me.anno.engine.raycast.RayHit
 import me.anno.utils.Tabs
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.halfSubCrossDot
+import me.anno.utils.types.Triangles.rayTriangleIntersectionFront
 import org.joml.AABBf
 import org.joml.Vector3f
 import kotlin.math.max
@@ -23,8 +24,8 @@ class BLASLeaf(
     override fun maxDepth() = 1
     override fun forEach(run: (BLASNode) -> Unit) = run(this)
 
-    override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit) {
-        if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
+    override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+        return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
 
             val vs = hit.tmpVector3fs
             val a = vs[0]
@@ -39,17 +40,19 @@ class BLASLeaf(
             var bestLocalDistance = hit.distance.toFloat()
             val bld0 = bestLocalDistance
 
-            val p = this.geometry.positions
+            val positions = geometry.positions
+            val indices = geometry.indices
 
-            var i3 = start * 9
-            val j3 = i3 + length * 9
+            var i3 = start * 3
+            val j3 = i3 + length * 3
             while (i3 < j3) {
 
-                a.set(p[i3++], p[i3++], p[i3++])
-                b.set(p[i3++], p[i3++], p[i3++])
-                c.set(p[i3++], p[i3++], p[i3++])
+                a.set(positions, indices[i3] * 3)
+                b.set(positions, indices[i3 + 1] * 3)
+                c.set(positions, indices[i3 + 2] * 3)
+                i3 += 3
 
-                val localDistance = Triangles.rayTriangleIntersectionFront(
+                val localDistance = rayTriangleIntersectionFront(
                     pos, dir, a, b, c, bestLocalDistance, localNormalTmp, localHitTmp
                 )
                 if (localDistance < bestLocalDistance) {
@@ -64,9 +67,9 @@ class BLASLeaf(
             if (bld < bld0) {
                 hit.distance = bld
                 hit.normalWS.set(localNormal)
-            }
-
-        }
+                true
+            } else false
+        } else false
     }
 
     override fun intersect(group: RayGroup) {
@@ -84,17 +87,20 @@ class BLASLeaf(
             val bc = vs[6]
             val ca = vs[7]
 
-            val p = this.geometry.positions
+            val positions = geometry.positions
+            val indices = geometry.indices
+
             val pos = group.pos
             val maxDistance = group.maxDistance
 
-            var i3 = start * 9
-            val j3 = i3 + length * 9
+            var i3 = start * 3
+            val j3 = i3 + length * 3
             while (i3 < j3) {
 
-                a.set(p[i3++], p[i3++], p[i3++])
-                b.set(p[i3++], p[i3++], p[i3++])
-                c.set(p[i3++], p[i3++], p[i3++])
+                a.set(positions, indices[i3])
+                b.set(positions, indices[i3 + 1])
+                c.set(positions, indices[i3 + 2])
+                i3 += 3
 
                 // inlined, optimized calculation with dx and dy
 

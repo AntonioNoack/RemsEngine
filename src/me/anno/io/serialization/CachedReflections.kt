@@ -180,8 +180,10 @@ class CachedReflections(
                 if (m != null) annotations += m.annotations.toList()
                 val serial = annotations.firstOrNull { it is SerializedProperty } as? SerializedProperty
                 val notSerial = annotations.firstOrNull { it is NotSerializedProperty }
-                val getterName = "get$fieldCap"
-                val setterName = "set$fieldCap"
+                val getterName = if (fieldCap.startsWith("Is")) field.name
+                else "get$fieldCap"
+                val setterName = if (fieldCap.startsWith("Is")) "set${fieldCap.substring(2).titlecase()}"
+                else "set$fieldCap"
                 val isPublic = Modifier.isPublic(field.modifiers) ||
                         (methods.any { Modifier.isPublic(it.modifiers) && it.name == getterName } &&
                                 methods.any { Modifier.isPublic(it.modifiers) && it.name == setterName })

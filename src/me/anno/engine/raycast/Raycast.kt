@@ -206,7 +206,7 @@ object Raycast {
             val inverse = result.tmpMat4x3d
             if (transform != null) {
                 // local -> global
-                inverse.set(globalTransform!!).invert()
+                globalTransform!!.invert(inverse)
             } else inverse.identity()
 
             val tmp0 = result.tmpVector3fs

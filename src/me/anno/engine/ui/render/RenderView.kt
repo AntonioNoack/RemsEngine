@@ -9,6 +9,7 @@ import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.effects.*
 import me.anno.ecs.components.ui.CanvasComponent
@@ -1504,11 +1505,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     val components = entity.components
                     for (i in components.indices) {
                         val component = components[i]
-                        if (component.isEnabled && component !is MeshComponentBase) {
+                        if (component.isEnabled) {
                             // mesh components already got their ID
-                            val componentClickId = clickId++
-                            component.clickId = componentClickId
-                            GFX.drawnId = componentClickId
+                            if (component !is MeshComponentBase && component !is MeshSpawner) {
+                                val componentClickId = clickId++
+                                component.clickId = componentClickId
+                                GFX.drawnId = componentClickId
+                            } else GFX.drawnId = component.clickId
                             component.onDrawGUI(component.isSelectedIndirectly)
                         }
                     }
@@ -1523,6 +1526,16 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                     LineBuffer.drawIf1M(cameraMatrix)
 
+                }
+
+                if (world is Component) {
+                    if (world !is MeshComponentBase && world !is MeshSpawner) {
+                        // mesh components already got their ID
+                        val componentClickId = clickId++
+                        world.clickId = componentClickId
+                        GFX.drawnId = componentClickId
+                    } else GFX.drawnId = world.clickId
+                    world.onDrawGUI(world.isSelectedIndirectly)
                 }
 
                 // JomlPools.vec3d.sub(1)

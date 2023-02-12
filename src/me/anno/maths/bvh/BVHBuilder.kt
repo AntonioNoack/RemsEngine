@@ -35,14 +35,15 @@ abstract class BVHBuilder(val bounds: AABBf) {
 
     fun Vector3f.dirIsNeg() = (x < 0f).toInt() + (y < 0f).toInt(2) + (z < 0f).toInt(4)
 
-    fun intersect(pos: Vector3f, dir: Vector3f, hit: RayHit) {
+    fun intersect(pos: Vector3f, dir: Vector3f, hit: RayHit): Boolean {
         val invDir = JomlPools.vec3f.create().set(1f).div(dir)
         val dirIsNeg = dir.dirIsNeg()
-        intersect(pos, dir, invDir, dirIsNeg, hit)
+        val res = intersect(pos, dir, invDir, dirIsNeg, hit)
         JomlPools.vec3f.sub(1)
+        return res
     }
 
-    abstract fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit)
+    abstract fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean
 
     abstract fun intersect(group: RayGroup)
 
@@ -115,7 +116,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
                 }
             }
             clock.stop("Creating BLASes")
-            val tlas = recursiveBuildTLAS(objects, 0, objects.size, splitMethod)
+            val tlas = buildTLAS(objects, splitMethod)
             clock.stop("Creating TLAS")
             return tlas
         }
@@ -124,34 +125,19 @@ abstract class BVHBuilder(val bounds: AABBf) {
             val srcPos = mesh.positions ?: return null
             if (mesh.normals == null) mesh.calculateNormals(smooth = true)
             val srcNor = mesh.normals!!
-            val srcCol = mesh.color0
             val indices = mesh.indices ?: IntArray(srcPos.size / 3) { it }
-            val numTriangles = indices.size / 3
-            val dstPos = FloatArray(numTriangles * 9)
-            val dstNor = FloatArray(numTriangles * 9)
-            val dstCol = IntArray(numTriangles * 3)
-            val geometryData = GeometryData(dstPos, dstNor, dstCol)
-            val root = recursiveBuildBLAS(srcPos, indices, 0, numTriangles, maxNodeSize, splitMethod, geometryData)
-            var i3 = 0
-            for (di1 in 0 until numTriangles * 3) {
-                val si1 = indices[di1]
-                val si3 = si1 * 3
-                dstPos[i3] = srcPos[si3]
-                dstPos[i3 + 1] = srcPos[si3 + 1]
-                dstPos[i3 + 2] = srcPos[si3 + 2]
-                dstNor[i3] = srcNor[si3]
-                dstNor[i3 + 1] = srcNor[si3 + 1]
-                dstNor[i3 + 2] = srcNor[si3 + 2]
-                dstCol[di1] = if (srcCol == null) -1 else srcCol[si1]
-                i3 += 3
-            }
-            if (dstPos.size != i3) throw IllegalStateException()
-            return root
+            val geometryData = GeometryData(srcPos, srcNor, indices, mesh.color0)
+            return recursiveBuildBLAS(srcPos, indices, 0, indices.size / 3, maxNodeSize, splitMethod, geometryData)
         }
 
-        private fun recursiveBuildTLAS(
-            objects: ArrayList<TLASLeaf>, start: Int, end: Int, // triangle indices
-            splitMethod: SplitMethod
+        fun buildTLAS(
+            objects: ArrayList<TLASLeaf>,
+            splitMethod: SplitMethod,
+        ) = buildTLAS(objects, splitMethod, 0, objects.size)
+
+        fun buildTLAS(
+            objects: ArrayList<TLASLeaf>, splitMethod: SplitMethod,
+            start: Int, end: Int, // array indices
         ): TLASNode {
             val count = end - start
             if (count <= 1) {
@@ -199,8 +185,8 @@ abstract class BVHBuilder(val bounds: AABBf) {
                     }
                 }
 
-                val n0 = recursiveBuildTLAS(objects, start, mid, splitMethod)
-                val n1 = recursiveBuildTLAS(objects, mid, end, splitMethod)
+                val n0 = buildTLAS(objects, splitMethod, start, mid)
+                val n1 = buildTLAS(objects, splitMethod, mid, end)
 
                 val bounds = AABBf(n0.bounds)
                 bounds.union(n1.bounds)
@@ -290,33 +276,6 @@ abstract class BVHBuilder(val bounds: AABBf) {
             return BLASBranch(dim, n0, n1, bounds)
         }
 
-        /*var fileId = 0
-        fun debug(pos: FloatArray, indices: IntArray, start: Int, end: Int) {
-            val file = desktop.getChild("bvh/${fileId++}.obj")
-            val builder = StringBuilder()
-            fun point(a3: Int) {
-                builder.append("v ").append(pos[a3]).append(' ')
-                    .append(pos[a3 + 1]).append(' ')
-                    .append(pos[a3 + 2]).append('\n')
-            }
-            builder.append("o x$fileId\n")
-            for (i in start until end) {
-                val i3 = i * 3
-                point(indices[i3] * 3)
-                point(indices[i3 + 1] * 3)
-                point(indices[i3 + 2] * 3)
-            }
-            fun face(i: Int) {
-                builder.append("f ").append(i).append(' ')
-                    .append(i + 1).append(' ')
-                    .append(i + 2).append('\n')
-            }
-            for (i in 0 until end - start) {
-                face(i * 3 + 1)
-            }
-            file.writeText(builder.toString())
-        }*/
-
         fun <V> ArrayList<V>.median(
             start: Int, end: Int,
             condition: (t0: V, t1: V) -> Int
@@ -324,36 +283,7 @@ abstract class BVHBuilder(val bounds: AABBf) {
             // not optimal performance, but at least it will 100% work
             subList(start, end).sortWith(condition)
             return (start + end) ushr 1
-            // new, on avg O(n) way, based on nth_element:
-            // ... has the same performance ...
-            /*val random = Random() // to do only create a single random instance per tlas
-            // we could reduce this +/- 1 accuracy if there are e.g. max 16 nodes/element
-            val avg = (start + end) / 2
-            val mid = median2(start, end, avg, random, condition)
-            return clamp(partition1(start, end) {
-                condition(it, mid) < 0
-            }, start + 1, end - 2)*/
         }
-
-        /*fun <V> ArrayList<V>.median2(
-            start: Int,
-            end: Int,
-            avg: Int,
-            random: Random,
-            condition: (t0: V, t1: V) -> Int
-        ): V {
-            val randomElement = this[start + random.nextInt(end - start)]
-            val mid = partition1(start, end) { a ->
-                condition(a, randomElement) > 0
-            }
-            return if (mid < avg) {
-                // partition mid ... end
-                median2(mid + 1, end, avg, random, condition)
-            } else if (mid > avg) {
-                // partition start .. mid
-                median2(start, mid, avg, random, condition)
-            } else randomElement// else done :)
-        }*/
 
         fun median(
             positions: FloatArray, indices: IntArray, start: Int, end: Int,
@@ -365,13 +295,6 @@ abstract class BVHBuilder(val bounds: AABBf) {
             // not optimal performance, but at least it will 100% work
             val count = end - start
             val solution = Array(count) { start + it }
-            /*val sol2 = ArrayList(solution.toList())
-            sol2.median2(0, count, count / 2, Random()) { a, b ->
-                comp(positions, indices, a, b, condition)
-            }
-            for (i in solution.indices) {
-                solution[i] = sol2[i]
-            }*/
             solution.sortWith { a, b ->
                 comp(positions, indices, a, b, condition)
             }

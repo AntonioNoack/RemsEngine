@@ -529,6 +529,7 @@ object GFX {
             inst.onGameLoop(window, window.width, window.height)
         } catch (e: Exception) {
             e.printStackTrace()
+            Thread.sleep(250)
         }
 
         resetFBStack()

@@ -4,8 +4,14 @@ import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.shader.*
-import me.anno.gpu.shader.builder.*
+import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.builder.ShaderBuilder
+import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 import kotlin.math.max
@@ -123,6 +129,110 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r), 0.0, 1.0);\n"
         val finalMotionCalculation =
             "finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n"
+
+        val applyTransformCode = "" +
+                "#ifdef LIMITED_TRANSFORM\n" +
+                "   finalPosition = quatRot(localPosition + instancePosSize.xyz, instanceRot) * instancePosSize.w;\n" +
+                "   #ifdef COLORS\n" +
+                // scale not needed, because scale is scalar in this case
+                "       normal = quatRot(normal, instanceRot);\n" +
+                "       tangent.xyz = quatRot(tangent.xyz, instanceRot);\n" +
+                "   #endif\n" + // colors
+                "#else\n" +
+                "   finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
+                "   #ifdef COLORS\n" +
+                "       normal = normalize(mat3x3(localTransform) * normal);\n" +
+                "       tangent.xyz = normalize(mat3x3(localTransform) * tangent.xyz);\n" +
+                "   #endif\n" + // colors
+                "#endif\n"
+
+        val normalInitCode = "" +
+                "       #ifdef COLORS\n" +
+                "           normal = normals;\n" +
+                "           tangent = tangents;\n" +
+                "       #endif\n"
+
+        val colorInitCode = "" +
+                "#ifdef COLORS\n" +
+                "   vertexColor0 = (hasVertexColors & 1) != 0 ? colors0 : vec4(1.0);\n" +
+                "   vertexColor1 = (hasVertexColors & 2) != 0 ? colors1 : vec4(1.0);\n" +
+                "   vertexColor2 = (hasVertexColors & 4) != 0 ? colors2 : vec4(1.0);\n" +
+                "   vertexColor3 = (hasVertexColors & 8) != 0 ? colors3 : vec4(1.0);\n" +
+                "   uv = uvs;\n" +
+                "#endif\n"
+
+        val motionVectorInit = "" +
+                "#ifdef MOTION_VECTORS\n" +
+                "   vec3 prevLocalPosition = coords;\n" +
+                "#endif\n"
+
+        val motionVectorCode = "" +
+                "#ifdef MOTION_VECTORS\n" +
+                "   currPosition = gl_Position;\n" +
+                "   #ifdef LIMITED_TRANSFORM\n" +
+                "       prevPosition = prevTransform * vec4(finalPosition, 1.0);\n" +
+                "   #else\n" +
+                "       prevPosition = prevTransform * vec4(prevLocalTransform * vec4(prevLocalPosition, 1.0), 1.0);\n" +
+                "   #endif\n" +
+                "#endif\n"
+
+        val instancedInitCode = "" +
+                "#ifdef INSTANCED\n" +
+                "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
+                "   #ifdef MOTION_VECTORS\n" +
+                "       mat4x3 prevLocalTransform = mat4x3(prevInstanceTrans0,prevInstanceTrans1,prevInstanceTrans2,prevInstanceTrans3);\n" +
+                "   #endif\n" +
+                "   #ifdef COLORS\n" +
+                "       tint = instanceTint;\n" +
+                "   #endif\n" + // colors
+                "#endif\n" // instanced
+
+        fun animCode0() = "" +
+                "#ifdef ANIMATED\n" +
+                "   if(hasAnimation){\n" +
+                "       mat4x3 jointMat;\n" +
+                animationCode() +
+                "       localPosition = jointMat * vec4(coords, 1.0);\n" +
+                "       #ifdef MOTION_VECTORS\n" +
+                animationCode2() +
+                "       #endif\n" +
+                "       #ifdef COLORS\n" +
+                "           normal = mat3x3(jointMat) * normals;\n" +
+                "           tangent = vec4(mat3x3(jointMat) * tangents.xyz, tangents.w);\n" +
+                "       #endif\n" +
+                "   } else {\n" +
+                "#endif\n" // animated
+
+        val animCode1 = "" +
+                "#ifdef ANIMATED\n" +
+                "   }\n" +
+                "#endif\n" // animated
+
+        fun animationCode() = if (useAnimTextures) {
+            "" +
+                    "jointMat  = getAnimMatrix(indices.x) * weights.x;\n" +
+                    "jointMat += getAnimMatrix(indices.y) * weights.y;\n" +
+                    "jointMat += getAnimMatrix(indices.z) * weights.z;\n" +
+                    "jointMat += getAnimMatrix(indices.w) * weights.w;\n"
+        } else {
+            "" +
+                    "jointMat  = jointTransforms[indices.x] * weights.x;\n" +
+                    "jointMat += jointTransforms[indices.y] * weights.y;\n" +
+                    "jointMat += jointTransforms[indices.z] * weights.z;\n" +
+                    "jointMat += jointTransforms[indices.w] * weights.w;\n"
+        }
+
+        fun animationCode2() = if (useAnimTextures) {
+            "" +
+                    "mat4x3 jointMat2;\n" +
+                    "jointMat2  = getAnimMatrix(indices.x,prevAnimIndices,prevAnimWeights) * weights.x;\n" +
+                    "jointMat2 += getAnimMatrix(indices.y,prevAnimIndices,prevAnimWeights) * weights.y;\n" +
+                    "jointMat2 += getAnimMatrix(indices.z,prevAnimIndices,prevAnimWeights) * weights.z;\n" +
+                    "jointMat2 += getAnimMatrix(indices.w,prevAnimIndices,prevAnimWeights) * weights.w;\n" +
+                    "prevLocalPosition = jointMat2 * vec4(coords, 1.0);\n"
+        } else {
+            "prevLocalPosition = localPosition;\n"
+        }
 
     }
 
@@ -294,109 +404,24 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         motionVectors: Boolean,
         limitedTransform: Boolean
     ): ShaderStage {
-
         val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
-
-        val animationCode = if (useAnimTextures) {
-            "" +
-                    "jointMat  = getAnimMatrix(indices.x) * weights.x;\n" +
-                    "jointMat += getAnimMatrix(indices.y) * weights.y;\n" +
-                    "jointMat += getAnimMatrix(indices.z) * weights.z;\n" +
-                    "jointMat += getAnimMatrix(indices.w) * weights.w;\n"
-        } else {
-            "" +
-                    "jointMat  = jointTransforms[indices.x] * weights.x;\n" +
-                    "jointMat += jointTransforms[indices.y] * weights.y;\n" +
-                    "jointMat += jointTransforms[indices.z] * weights.z;\n" +
-                    "jointMat += jointTransforms[indices.w] * weights.w;\n"
-        }
-
-        val animationCode2 = if (useAnimTextures) {
-            "" +
-                    "mat4x3 jointMat2;\n" +
-                    "jointMat2  = getAnimMatrix(indices.x,prevAnimIndices,prevAnimWeights) * weights.x;\n" +
-                    "jointMat2 += getAnimMatrix(indices.y,prevAnimIndices,prevAnimWeights) * weights.y;\n" +
-                    "jointMat2 += getAnimMatrix(indices.z,prevAnimIndices,prevAnimWeights) * weights.z;\n" +
-                    "jointMat2 += getAnimMatrix(indices.w,prevAnimIndices,prevAnimWeights) * weights.w;\n" +
-                    "prevLocalPosition = jointMat2 * vec4(coords, 1.0);\n"
-        } else {
-            "prevLocalPosition = localPosition;\n"
-        }
-
         val variables = createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
         val stage = ShaderStage(
             "vertex",
-            variables,
-            "" + defines +
+            variables, defines +
                     "localPosition = coords;\n" + // is output, so no declaration needed
-                    "#ifdef MOTION_VECTORS\n" +
-                    "vec3 prevLocalPosition = coords;\n" +
-                    "#endif\n" +
-                    "#ifdef INSTANCED\n" +
-                    "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
-                    "   #ifdef MOTION_VECTORS\n" +
-                    "       mat4x3 prevLocalTransform = mat4x3(prevInstanceTrans0,prevInstanceTrans1,prevInstanceTrans2,prevInstanceTrans3);\n" +
-                    "   #endif\n" +
-                    "   #ifdef COLORS\n" +
-                    "       tint = instanceTint;\n" +
-                    "   #endif\n" + // colors
-                    "#endif\n" + // instanced
-                    "   #ifdef ANIMATED\n" +
-                    "   if(hasAnimation){\n" +
-                    "       mat4x3 jointMat;\n" +
-                    animationCode +
-                    "       localPosition = jointMat * vec4(coords, 1.0);\n" +
-                    "       #ifdef MOTION_VECTORS\n" +
-                    animationCode2 +
-                    "       #endif\n" +
-                    "       #ifdef COLORS\n" +
-                    "           normal = mat3x3(jointMat) * normals;\n" +
-                    "           tangent = vec4(mat3x3(jointMat) * tangents.xyz, tangents.w);\n" +
-                    "       #endif\n" +
-                    "   } else {\n" +
-                    "   #endif\n" + // animated
-                    "       #ifdef COLORS\n" +
-                    "           normal = normals;\n" +
-                    "           tangent = tangents;\n" +
-                    "       #endif\n" +
-                    "   #ifdef ANIMATED\n" +
-                    "   }\n" +
-                    "   #endif\n" + // animated
+                    motionVectorInit +
 
-                    "#ifdef LIMITED_TRANSFORM\n" +
-                    "   finalPosition = quatRot(localPosition + instancePosSize.xyz, instanceRot) * instancePosSize.w;\n" +
-                    "   #ifdef COLORS\n" +
-                    // scale not needed, because scale is scalar in this case
-                    "       normal = quatRot(normal, instanceRot);\n" +
-                    "       tangent.xyz = quatRot(tangent.xyz, instanceRot);\n" +
-                    "   #endif\n" + // colors
-                    "#else\n" +
-                    "   finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
-                    "   #ifdef COLORS\n" +
-                    "       normal = normalize(mat3x3(localTransform) * normal);\n" +
-                    "       tangent.xyz = normalize(mat3x3(localTransform) * tangent.xyz);\n" +
-                    "   #endif\n" + // colors
-                    "#endif\n" +
+                    instancedInitCode +
 
-                    "#ifdef COLORS\n" +
-                    "   vertexColor0 = (hasVertexColors & 1) != 0 ? colors0 : vec4(1.0);\n" +
-                    "   vertexColor1 = (hasVertexColors & 2) != 0 ? colors1 : vec4(1.0);\n" +
-                    "   vertexColor2 = (hasVertexColors & 4) != 0 ? colors2 : vec4(1.0);\n" +
-                    "   vertexColor3 = (hasVertexColors & 8) != 0 ? colors3 : vec4(1.0);\n" +
-                    "   uv = uvs;\n" +
-                    "#endif\n" +
+                    animCode0() +
+                    normalInitCode +
+                    animCode1 +
 
+                    applyTransformCode +
+                    colorInitCode +
                     "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
-
-                    "#ifdef MOTION_VECTORS\n" +
-                    "   currPosition = gl_Position;\n" +
-                    "   #ifdef LIMITED_TRANSFORM\n" +
-                    "       prevPosition = prevTransform * vec4(finalPosition, 1.0);\n" +
-                    "   #else\n" +
-                    "       prevPosition = prevTransform * vec4(prevLocalTransform * vec4(prevLocalPosition, 1.0), 1.0);\n" +
-                    "   #endif\n" +
-                    "#endif\n" +
-
+                    motionVectorCode +
                     ShaderLib.positionPostProcessing
         )
         if (isAnimated && useAnimTextures) stage.add(getAnimMatrix)

@@ -60,7 +60,7 @@ object ShaderLib {
             "}"
 
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
-    val svsList = listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR))
+    val svsList = coordsList
     const val simpleVertexShader = "" +
             "uniform vec2 pos, size;\n" +
             "uniform vec4 tiling;\n" +
@@ -855,7 +855,7 @@ object ShaderLib {
     )
 
     val textShader = BaseShader(
-        "textShader", svsList,
+        "textShader", coordsList,
         "" +
                 "uniform vec2 pos, size;\n" +
                 "uniform mat4 transform;\n" + // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective

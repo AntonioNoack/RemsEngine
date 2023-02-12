@@ -629,7 +629,16 @@ open class Vector3d {
     }
 
     fun lengthSquared() = x * x + y * y + z * z
-    fun length() = sqrt(lengthSquared())
+    fun length(): Double {
+        val ls = lengthSquared()
+        return if (ls.isInfinite()) {
+            val f1 = 2.225e-307
+            val lx = x * f1
+            val ly = y * f1
+            val lz = z * f1
+            sqrt(lx * lx + ly * ly + lz * lz) / f1
+        } else sqrt(ls)
+    }
 
     fun normalize(dst: Vector3d = this) = mul(1.0 / length(), dst)
     fun normalize(length: Double, dst: Vector3d = this) = mul(length / length(), dst)

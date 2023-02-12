@@ -7,7 +7,7 @@ import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.svsList
+import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.ResourceHelper
@@ -29,7 +29,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", svsList, vertex, uvList, emptyList(), "" +
+            "upscale", coordsList, vertex, uvList, emptyList(), "" +
                     "uniform vec2 dstWH;\n" +
                     "uniform vec3 background;\n" +
                     "uniform sampler2D source;\n" +
@@ -89,7 +89,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", svsList, vertex, uvList, emptyList(), "" +
+            "upscale", coordsList, vertex, uvList, emptyList(), "" +
                     "out vec4 glFragColor;\n" +
                     "uniform vec2 dstWH;\n" +
                     "uniform float sharpness;\n" +

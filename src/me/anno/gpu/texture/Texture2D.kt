@@ -155,19 +155,18 @@ open class Texture2D(
             GL_UNSIGNED_INT, GL_INT, GL_FLOAT -> 4
             GL_DOUBLE -> 8
             else -> {
-                LOGGER.warn("Unknown data type $dataType")
-                RuntimeException().printStackTrace()
+                RuntimeException("Unknown data type $dataType").printStackTrace()
                 1
             }
         }
         val numChannels = when (dataFormat) {
-            GL_R, GL_RED -> 1
-            GL_RG -> 2
-            GL_RGB, GL_BGR -> 3
-            GL_RGBA, GL_BGRA -> 4
+            GL_R, GL_RED, GL_RED_INTEGER -> 1
+            GL_RG, GL_RG_INTEGER -> 2
+            GL_RGB, GL_BGR, GL_RGB_INTEGER -> 3
+            GL_RGBA, GL_BGRA, GL_RGBA_INTEGER -> 4
             else -> {
-                LOGGER.warn("Unknown data format $dataFormat")
-                RuntimeException().printStackTrace()
+                RuntimeException("Unknown data format ${GFX.getName(dataFormat)}")
+                    .printStackTrace()
                 1
             }
         }
@@ -274,19 +273,11 @@ open class Texture2D(
         afterUpload(type.isHDR, type.bytesPerPixel)
     }
 
-    fun create(type: TargetType, data: ByteBuffer) {
-        beforeUpload(0, 0)
-        texImage2D(type, data)
-        afterUpload(type.isHDR, type.bytesPerPixel)
+    fun create(type: TargetType, data: Any?) {
+        create(type, type, data)
     }
 
-    fun create(type: TargetType, data: ByteArray) {
-        beforeUpload(0, 0)
-        texImage2D(type, data)
-        afterUpload(type.isHDR, type.bytesPerPixel)
-    }
-
-    fun create(creationType: TargetType, uploadType: TargetType, data: Any) {
+    fun create(creationType: TargetType, uploadType: TargetType, data: Any?) {
         beforeUpload(0, 0)
         texImage2D(creationType.internalFormat, uploadType.uploadFormat, uploadType.fillType, data)
         afterUpload(creationType.isHDR, creationType.bytesPerPixel)

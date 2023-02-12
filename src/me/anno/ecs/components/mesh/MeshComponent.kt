@@ -21,6 +21,7 @@ import me.anno.io.serialization.SerializedProperty
 open class MeshComponent() : MeshComponentBase() {
 
     constructor(mesh: FileReference) : this() {
+        this.name = mesh.nameWithoutExtension
         this.mesh = mesh
     }
 

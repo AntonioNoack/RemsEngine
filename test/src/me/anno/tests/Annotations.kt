@@ -33,7 +33,7 @@ fun main() {
     }
 
     val test = CachedReflections(Entity::class)
-    val prop = test.allProperties["prefab"]
-    println(prop)
+    println(test.allProperties["prefab"])
+    println(test.allProperties["isEnabled"])
 
 }

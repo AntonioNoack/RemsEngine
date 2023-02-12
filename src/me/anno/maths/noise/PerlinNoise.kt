@@ -1,7 +1,6 @@
 package me.anno.maths.noise
 
-import me.anno.image.ImageWriter
-import org.apache.logging.log4j.LogManager
+import org.joml.Vector4f
 import kotlin.random.Random
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
@@ -18,7 +17,8 @@ class PerlinNoise(
     octaves: Int, // 0 .. Int.Max
     falloff: Float, // 0 .. 1
     min: Float,
-    max: Float
+    max: Float,
+    val scale: Vector4f = Vector4f(1f)
 ) {
 
     private var levels: Array<FullNoise>? = null
@@ -111,7 +111,7 @@ class PerlinNoise(
         var sum = offset
         val generators = levels!!
         val factors = factors
-        var vx = x
+        var vx = x * scale.x
         for (i in factors.indices) {
             sum += factors[i] * generators[i][vx]
             vx *= 2f
@@ -123,8 +123,8 @@ class PerlinNoise(
         var sum = offset
         val generators = levels!!
         val factors = factors
-        var vx = x
-        var vy = y
+        var vx = x * scale.x
+        var vy = y * scale.y
         for (i in factors.indices) {
             sum += factors[i] * generators[i][vx, vy]
             vx *= 2f
@@ -137,9 +137,9 @@ class PerlinNoise(
         var sum = offset
         val generators = levels!!
         val factors = factors
-        var vx = x
-        var vy = y
-        var vz = z
+        var vx = x * scale.x
+        var vy = y * scale.y
+        var vz = z * scale.z
         for (i in factors.indices) {
             sum += factors[i] * generators[i][vx, vy, vz]
             vx *= 2f
@@ -153,10 +153,10 @@ class PerlinNoise(
         var sum = offset
         val generators = levels!!
         val factors = factors
-        var vx = x
-        var vy = y
-        var vz = z
-        var vw = w
+        var vx = x * scale.x
+        var vy = y * scale.y
+        var vz = z * scale.z
+        var vw = w * scale.w
         for (i in factors.indices) {
             sum += factors[i] * generators[i][vx, vy, vz, vw]
             vx *= 2f
@@ -171,7 +171,7 @@ class PerlinNoise(
         var sum = offset
         val generators = levels!!
         val factors = factors
-        var vx = x
+        var vx = x * scale.x
         for (i in factors.indices) {
             sum += factors[i] * generators[i].getSmooth(vx)
             vx *= 2f
@@ -183,8 +183,8 @@ class PerlinNoise(
         var sum = offset
         val generators = levels!!
         val factors = factors
-        var vx = x
-        var vy = y
+        var vx = x * scale.x
+        var vy = y * scale.y
         for (i in factors.indices) {
             sum += factors[i] * generators[i].getSmooth(vx, vy)
             vx *= 2f
@@ -197,9 +197,9 @@ class PerlinNoise(
         var sum = offset
         val generators = levels!!
         val factors = factors
-        var vx = x
-        var vy = y
-        var vz = z
+        var vx = x * scale.x
+        var vy = y * scale.y
+        var vz = z * scale.z
         for (i in factors.indices) {
             sum += factors[i] * generators[i].getSmooth(vx, vy, vz)
             vx *= 2f
@@ -213,10 +213,10 @@ class PerlinNoise(
         var sum = offset
         val generators = levels!!
         val factors = factors
-        var vx = x
-        var vy = y
-        var vz = z
-        var vw = w
+        var vx = x * scale.x
+        var vy = y * scale.y
+        var vz = z * scale.z
+        var vw = w * scale.z
         for (i in factors.indices) {
             sum += factors[i] * generators[i].getSmooth(vx, vy, vz, vw)
             vx *= 2f

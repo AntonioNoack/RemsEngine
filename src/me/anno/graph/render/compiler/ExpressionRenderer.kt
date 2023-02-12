@@ -63,7 +63,7 @@ interface ExpressionRenderer {
                     )
                     shader.setTextureIndices(variables.filter {
                         when (it.type) {
-                            GLSLType.S2D, GLSLType.S2DA, GLSLType.S3D, GLSLType.S2DMS,
+                            GLSLType.S2D, GLSLType.S2DI, GLSLType.S2DU, GLSLType.S2DA, GLSLType.S3D, GLSLType.S2DMS,
                             GLSLType.SCube -> true
                             else -> false
                         }

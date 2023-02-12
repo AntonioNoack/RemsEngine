@@ -51,13 +51,18 @@ class TargetType(
         val Normal12Target4 = // not working, because compressed formats are not color-renderable :/, why ever...
             FP16Target4 // TargetType(GL_UNSIGNED_INT_10_10_10_2, GL_RGBA, GL_UNSIGNED_BYTE, 4, true)
 
-        val R32UNorm = TargetType("u32norm", GL_R32UI, GL_RED_INTEGER, GL_INT, 4, 1, false)
-        val R16UInt = TargetType("u32norm", GL_R16UI, GL_RED_INTEGER, GL_INT, 2, 1, false)
-        val RG16UInt = TargetType("u32norm", GL_RG16UI, GL_RG_INTEGER, GL_INT, 4, 2, false)
         val DEPTH16 = TargetType("depth16", GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, 2, 1, false)
         val DEPTH32 = TargetType("depth32", GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 4, 1, false)
         val DEPTH32F = TargetType("depth32f", GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 4, 1, false)
-        val R32U = TargetType("r32u", GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 4, 1, false)
+
+        val U32Nx1 = TargetType("u32norm1", GL_R32UI, GL_RED_INTEGER, GL_INT, 4, 1, false)
+        val U16Nx1 = TargetType("u16norm1", GL_R16UI, GL_RED_INTEGER, GL_INT, 2, 1, false)
+        val U16Nx2 = TargetType("u16norm2", GL_RG16UI, GL_RG_INTEGER, GL_INT, 4, 2, false)
+
+        val U32x1 = TargetType("u32x1", GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 4, 1, false)
+        val U32x2 = TargetType("u32x2", GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, 8, 2, false)
+        val U32x3 = TargetType("u32x3", GL_RGB32UI, GL_RGB_INTEGER, GL_UNSIGNED_INT, 12, 3, false)
+        val U32x4 = TargetType("u32x4", GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 16, 4, false)
 
     }
 
