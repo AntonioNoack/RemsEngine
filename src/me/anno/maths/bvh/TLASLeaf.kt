@@ -11,13 +11,13 @@ import org.joml.Vector3f
 import kotlin.math.sqrt
 
 class TLASLeaf(
-    val centroid: Vector3f,
+    centroid: Vector3f,
     val localToWorld: Matrix4x3f,   //           12
     val worldToLocal: Matrix4x3f,   //           12
     val blas: BLASNode,             //          1-2
     bounds: AABBf,                  //            6
     //                              // total: 31/32 floats = 124/128 bytes
-) : TLASNode(bounds) {
+) : TLASLeaf0(centroid,bounds) {
 
     override fun collectMeshes(result: MutableCollection<BLASNode>) {
         result.add(blas)
@@ -26,11 +26,6 @@ class TLASLeaf(
     override fun print(depth: Int) {
         println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $worldToLocal, ${blas.nodeId}")
     }
-
-    override fun countNodes() = 1
-    override fun maxDepth() = 1
-    override fun forEach(run: (TLASNode) -> Unit) = run(this)
-    override fun countTLASLeaves() = 1
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {

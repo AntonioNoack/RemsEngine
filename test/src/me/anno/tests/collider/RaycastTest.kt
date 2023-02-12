@@ -1,7 +1,9 @@
 package me.anno.tests.collider
 
+import me.anno.Engine
 import me.anno.ecs.components.collider.Collider
 import me.anno.image.ImageWriter
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
@@ -28,26 +30,36 @@ fun writeImage(
 fun renderCollider(b: Collider, name: String = b.name.ifBlank { b.className }) {
     LogManager.getLogger("RaycastTest").info("Rendering $name")
     val heavy = name == "Monkey"
-    val dir = Quaternionf()
+    val rotation = Quaternionf()
         .rotateY(30f.toRadians())
     val w = if (heavy) 256 else 1024
     val h = if (heavy) 256 else 1024
     val fov = 90f.toRadians()
     val fovY = fov / h
-    val start = Vector3f(0f, 0f, 1f)
-        .rotate(dir)
-        .mul(2f)
+    val start = Vector3f(0f, 0f, 3f)
+        .rotate(rotation)
     writeImage(w, h, heavy, "img/$name-r.png", true) { x, y ->
-        val rayDir = Vector3f(0f, 0f, -1f)
+        val dir = JomlPools.vec3f.create()
+            .set(0f, 0f, -1f)
             .rotateX((y - h / 2) * -fovY)
             .rotateY((x - w / 2) * +fovY)
-            .rotate(dir)
-        b.raycast(start, rayDir, 0f, 0f, null, 10f)
+            .rotate(rotation)
+        val dist = b.raycast(start, dir, 0f, 0f, null, 10f)
+        JomlPools.vec3f.sub(1)
+        dist
+        /*  val hit = RayHit()
+          val b = b.raycast(
+              sampleEntity, Vector3d(start), Vector3d(dir), Vector3d(dir).mul(10.0).add(start),
+              0.0, 0.0, -1, false, hit
+          )
+          if (b) hit.distance.toFloat()
+          else Float.POSITIVE_INFINITY*/
     }
 }
 
 fun main() {
-    for (shape in testShapes) {
+    for (shape in testShapes.filter { it.name == "Monkey" }) {
         renderCollider(shape)
     }
+    Engine.requestShutdown()
 }

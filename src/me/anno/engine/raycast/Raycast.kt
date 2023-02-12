@@ -15,7 +15,7 @@ import me.anno.utils.types.Triangles.rayTriangleIntersection
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.sqrt
+import kotlin.math.abs
 
 object Raycast {
 
@@ -121,15 +121,15 @@ object Raycast {
     ): Boolean {
 
         val global = entity.transform.globalTransform // local -> global
-        val inverse = JomlPools.mat4x3d.create().set(global).invert()
+        val inverse = global.invert(JomlPools.mat4x3d.create())
 
         // radius for the ray, like sphere-trace, e.g. for bullets + spread for the radius, so we can test cones
-        // (e.g. for inaccurate checks like a large beam)
+        // (e.g., for inaccurate checks like a large beam)
         // for that, just move towards the ray towards the origin of the collider by min(<radius>, <distance(ray, collider-origin)>)
         val radiusScale = inverse.getScaleLength() / SQRT3
         var testRadiusAtOrigin = (radiusAtOrigin * radiusScale).toFloat()
         var testRadiusPerUnit = radiusPerUnit.toFloat() // like an angle -> stays the same for regular scales
-        val interpolation = if (collider.isConvex) {
+        val interpolation = if ((radiusAtOrigin > 0.0 || radiusPerUnit > 0.0) && collider.isConvex) {
             testRadiusAtOrigin = 0f
             testRadiusPerUnit = 0f
             1f - computeConeInterpolation(
@@ -152,18 +152,18 @@ object Raycast {
 
         JomlPools.mat4x3d.sub(1)
 
-        val maxDistance = sqrt(localDir.lengthSquared() / direction.lengthSquared()).toFloat()
+        val maxDistance = (end.distance(start) * localDir.length() / direction.length()).toFloat()
 
         val localNormal = tmp3f[3]
         val localDistance = collider.raycast(
             localStart, localDir, testRadiusAtOrigin, testRadiusPerUnit,
             localNormal, maxDistance
         )
-        if (localDistance < maxDistance) {
+        // println("ld: $localDistance, md: $maxDistance, [$start,$direction] -> [$localStart,$localDir]")
+        if (abs(localDistance) < maxDistance) {
             if (localDistance >= 0f || result.hitIfInside) {
                 result.setFromLocal(
-                    global,
-                    localStart, localDir, localDistance, localNormal,
+                    global, localStart, localDir, abs(localDistance), localNormal,
                     start, direction, end
                 )
                 return true
@@ -196,8 +196,6 @@ object Raycast {
                 typeMask
             )
         } else {
-
-            mesh.ensureBounds()
 
             // todo it would be great if we would/could project the start+end onto the global aabb,
             //  if they lay outside, so we can use the faster method more often
@@ -244,7 +242,9 @@ object Raycast {
                 val localMaxDistance = localSrt.distance(localEnd)
 
                 // test whether we intersect the aabb of this mesh
-                if (mesh.aabb.testLine(localSrt, localDir, localRadiusAtOrigin, localRadiusPerUnit, localMaxDistance)) {
+                if (mesh.ensureBounds()
+                        .testLine(localSrt, localDir, localRadiusAtOrigin, localRadiusPerUnit, localMaxDistance)
+                ) {
 
                     // test whether we intersect any triangle of this mesh
                     val localMaxDistance2 = localMaxDistance + extraDistance
@@ -360,11 +360,9 @@ object Raycast {
         val acceptBack = typeMask.hasFlag(TRIANGLE_BACK)
         if (!acceptFront && !acceptBack) return false
 
-        mesh.ensureBuffer()
-
         // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
         // test whether we intersect the aabb of this mesh
-        if (mesh.aabb.testLine(start, dir, distance)) {
+        if (mesh.ensureBounds().testLine(start, dir, distance)) {
             val localHitTmp = JomlPools.vec3f.create()
             val localNormalTmp = JomlPools.vec3f.create()
             val a = JomlPools.vec3f.create()

@@ -130,13 +130,13 @@ abstract class BVHBuilder(val bounds: AABBf) {
             return recursiveBuildBLAS(srcPos, indices, 0, indices.size / 3, maxNodeSize, splitMethod, geometryData)
         }
 
-        fun buildTLAS(
-            objects: ArrayList<TLASLeaf>,
+        fun <V : TLASLeaf0> buildTLAS(
+            objects: ArrayList<V>,
             splitMethod: SplitMethod,
         ) = buildTLAS(objects, splitMethod, 0, objects.size)
 
-        fun buildTLAS(
-            objects: ArrayList<TLASLeaf>, splitMethod: SplitMethod,
+        fun <V : TLASLeaf0> buildTLAS(
+            objects: ArrayList<V>, splitMethod: SplitMethod,
             start: Int, end: Int, // array indices
         ): TLASNode {
             val count = end - start

@@ -102,9 +102,11 @@ open class MeshCollider() : Collider() {
     ): Float {
 
         val mesh = mesh ?: return Float.POSITIVE_INFINITY
+        if (!mesh.ensureBounds().testLine(start, direction))
+            return Float.POSITIVE_INFINITY
 
         // test whether we intersect any triangle of this mesh
-        var bestDistance = Float.POSITIVE_INFINITY
+        var bestDistance = maxDistance
         val tmpPos = JomlPools.vec3f.create()
         val tmpNor = JomlPools.vec3f.create()
 

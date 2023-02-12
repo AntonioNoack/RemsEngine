@@ -2,8 +2,7 @@ package me.anno.tests.collider
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.collider.MeshCollider
+import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.image.ImageWriter
@@ -16,7 +15,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 
 val testShapes = listOf(
-    /*BoxCollider(),
+    BoxCollider(),
     BoxCollider().apply {
         name = "BoxWithBorder"
         roundness = 0.5
@@ -47,7 +46,7 @@ val testShapes = listOf(
         name = "ConeWide"
         radius *= 1.5
         height /= 1.5
-    },*/
+    },
     MeshCollider().apply {
         registerCustomClass(Entity())
         registerCustomClass(MeshComponent())
@@ -75,7 +74,7 @@ fun renderSDF(collider: Collider, name: String) {
 
     val logger = LogManager.getLogger("SDFTest")
 
-    val heavy = name.contains("Monkey")
+    val heavy = name == "Monkey"
 
     val size = 8.0f
     val res = if (heavy) 128 else 512
