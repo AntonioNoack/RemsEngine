@@ -122,7 +122,7 @@ fun createNiceMesh0(
             positions[pi++] = c.x
             positions[pi++] = c.y
             positions[pi++] = c.z
-            colors[ci++] = colors1[hex.neighborIds[j]]
+            colors[ci++] = colors1[hex.neighbors[j]!!.index.toInt()]
         }
         // base faces
         for (i in 2 until size) {
@@ -259,8 +259,8 @@ fun createConnectionMesh(mesh: Mesh, hexagons: Array<Hexagon>) {
     for (srcId in hexagons.indices) {
         val src = hexagons[srcId]
         val srcPos = src.center
-        for (neighborId in src.neighborIds) {
-            val dst = hexagons.getOrNull(neighborId) ?: continue
+        for (dst in src.neighbors) {
+            dst ?: continue
             val dstPos = dst.center
             dir.set(dstPos).sub(srcPos)
             dir.cross(srcPos, dirX)
@@ -331,12 +331,12 @@ fun main() {
 
     validate()
     val entity = Entity()
-    if (showNiceMesh) entity.add(MeshComponent(niceMesh.ref))
-    if (showSimpleMesh) entity.add(MeshComponent(simpleMesh.ref))
-    if (showConnections) entity.add(MeshComponent(connMesh.ref))
+    if (showNiceMesh) entity.add(MeshComponent(niceMesh))
+    if (showSimpleMesh) entity.add(MeshComponent(simpleMesh))
+    if (showConnections) entity.add(MeshComponent(connMesh))
     if (showLineMesh) {
         val scaled = Entity()
-        scaled.add(MeshComponent(lineMesh.ref))
+        scaled.add(MeshComponent(lineMesh))
         scaled.scale = scaled.scale.set(1.0001)
         entity.add(scaled)
     }

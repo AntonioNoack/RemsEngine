@@ -1,6 +1,8 @@
 package org.joml
 
+import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.sin
 
 @Suppress("unused")
 open class Vector2f {
@@ -86,6 +88,12 @@ open class Vector2f {
         val dot = x * v.x + y * v.y
         val det = x * v.y - y * v.x
         return kotlin.math.atan2(det, dot)
+    }
+
+    fun rotate(radians: Float, dst: Vector2f = this): Vector2f {
+        val c = cos(radians)
+        val s = sin(radians)
+        return dst.set(c * x - s * y, c * y + s * x)
     }
 
     fun lengthSquared() = x * x + y * y

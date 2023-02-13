@@ -296,7 +296,7 @@ fun main() {
 
         val data = meshToVoxels(mesh, renderer, blocksX, blocksY, blocksZ, true)
         val mesh1 = smoothCube.scaled(Vector3f(data.w / 2f, data.h / 2f, data.d / 2f)).back
-        val comp = MeshComponent(mesh1.ref)
+        val comp = MeshComponent(mesh1)
         val mat = Texture3DBTv2Material()
 
         val useSDF = true

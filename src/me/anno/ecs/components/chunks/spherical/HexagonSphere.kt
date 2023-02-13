@@ -27,9 +27,6 @@ import kotlin.math.min
  * */
 object HexagonSphere {
 
-    // todo support for sub-chunks
-    // (makes indexing more complicated)
-
     /**
      * calculates the number of hexagons; includes pentagons
      * */
@@ -37,7 +34,9 @@ object HexagonSphere {
         // smaller than zero is illegal,
         // larger than 14652 would result arrays with more than 2^31 elements (not possible in Java)
         if (n < 0 || n > 14652) throw IllegalArgumentException()
-        return 20 * ((n * (n + 1)) shr 1) + lineCount * (n + 1) + pentagonCount
+        val special = lineCount * (n + 1) + pentagonCount
+        val perSide = (n * (n + 1)) shr 1
+        return 20 * perSide + special
     }
 
     /**
@@ -47,7 +46,8 @@ object HexagonSphere {
      * */
     fun calculateChunkEnd(i: Int, n: Int): Int {
         val special = lineCount * (n + 1) + pentagonCount
-        return special + min(i, n) * ((n * (n + 1)) shr 1)
+        val perSide = (n * (n + 1)) shr 1
+        return special + min(i, n) * perSide
     }
 
     /**
@@ -118,12 +118,27 @@ object HexagonSphere {
 
     val nullHex = Hexagon(-1, Vector3f(), emptyArray())
 
+    fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, i: Int, len: Float): Vector3f {
+        val di = d[i]
+        return create(pos, ab, ac, di.x * len, di.y * len)
+    }
+
+    fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, d0: Float, d1: Float): Vector3f {
+        return Vector3f(pos)
+            .add(ab.x * d0, ab.y * d0, ab.z * d0)
+            .add(ac.x * d1, ac.y * d1, ac.z * d1)
+            .normalize()
+    }
+
     fun createHexSphere(
-        n: Int, creator: HexagonCreator = HexagonCreator { a, b, c -> Hexagon(a, b, c) },
+        n: Int, creator: HexagonCreator = HexagonCreator.DefaultHexagonCreator,
         hexagons: Array<Hexagon> = Array(calculateHexagonCount(n)) { nullHex }
     ): Array<Hexagon> {
 
         var hexagonCount = 0
+
+        val special0 = lineCount * (n + 1)
+        val special = special0 + pentagonCount
 
         val ab = Vector3f()
         val ac = Vector3f()
@@ -131,10 +146,10 @@ object HexagonSphere {
         // could probably be calculated with some sqrt
         val len = findLength(n) / (n + 1) // +1 for extra lines at the edges
 
-        fun connect(a: Hexagon, ai: Int, bi: Int) {
+        fun connect(a: Hexagon, bi: Int) {
             val b = hexagons[bi]
-            b.neighborIds[b.neighborIds.indexOf(-1)] = ai
-            a.neighborIds[a.neighborIds.indexOf(-1)] = bi
+            b.neighbors[b.neighbors.indexOf(null)] = a
+            a.neighbors[a.neighbors.indexOf(null)] = b
             // replace the common points
             // use the vertex of the lower id
             val bc = b.center
@@ -170,16 +185,9 @@ object HexagonSphere {
             val pos = Vector3f(center)
                 .add(ab.x * c0, ab.y * c0, ab.z * c0)
                 .add(ac.x * c1, ac.y * c1, ac.z * c1)
-            val r = len * 0.5f
             val hi = hexagonCount++
-            val hex = creator.create(hi, pos, Array(6) {
-                val di = d[it]
-                val d0 = di.x * r
-                val d1 = di.y * r
-                Vector3f(pos)
-                    .add(ab.x * d0, ab.y * d0, ab.z * d0)
-                    .add(ac.x * d1, ac.y * d1, ac.z * d1)
-                    .normalize()
+            val hex = creator.create(hi.toLong(), pos, Array(6) {
+                create(pos, ab, ac, it, len)
             })
             pos.normalize()
             hexagons[hi] = hex
@@ -211,12 +219,12 @@ object HexagonSphere {
             pointsToLines[ai].add(h0i)
             for (j in 1 until n) {
                 val hex = addHex(center, (j - j0) * len, 0f)
-                connect(hex, hexagonCount - 1, hexagonCount - 2)
+                connect(hex, hexagonCount - 2)
             }
             pointsToLines[bi].add(
                 if (n > 0) {
                     val hex = addHex(center, (n - j0) * len, 0f)
-                    connect(hex, hexagonCount - 1, hexagonCount - 2)
+                    connect(hex, hexagonCount - 2)
                     hexagonCount - 1
                 } else h0i
             )
@@ -226,7 +234,7 @@ object HexagonSphere {
         }
 
         // create pentagons
-        for (i in pointsToLines.indices) {
+        for (i in 0 until pentagonCount) {
             // build coordinate system
             val point = vertices[i]
             val coords = point.normalToQuaternion(Quaternionf())
@@ -242,18 +250,16 @@ object HexagonSphere {
             }
             // create a pentagon
             val pi = hexagonCount++
-            val pentagon = creator.create(pi, point, Array(5) {
+            val pentagon = creator.create(pi.toLong(), point, Array(5) {
                 val hex = hexagons[hexagons1[it]]
                 Vector3f(point).lerp(hex.center, -0.5f)
             })
             hexagons[pi] = pentagon
             // add all connections
-            var h0i = hexagons1.last()
-            var h0 = hexagons[h0i]
+            var h0 = hexagons[hexagons1.last()]
             for (h1i in hexagons1) {
-                connect(pentagon, pi, h1i)
-                connect(h0, h0i, h1i)
-                h0i = h1i
+                connect(pentagon, h1i)
+                connect(h0, h1i)
                 h0 = hexagons[h1i]
             }
         }
@@ -304,23 +310,23 @@ object HexagonSphere {
                     val hi = hexagonCount
                     val hex = addHex(center, c0, c1)
                     // internal connections
-                    if (j > 0) connect(hex, hi, hi - 1) // bottom left
+                    if (j > 0) connect(hex, hi - 1) // bottom left
                     if (i > 0) {
-                        connect(hex, hi, lastIdx + j) // left
-                        connect(hex, hi, lastIdx + j + 1) // top left
+                        connect(hex, lastIdx + j) // left
+                        connect(hex, lastIdx + j + 1) // top left
                     }
                     // external connections
                     if (j == 0) { // bottom
-                        connect(hex, hi, abLine[i]) // bottom left
-                        connect(hex, hi, abLine[i + 1]) // bottom right
+                        connect(hex, abLine[i]) // bottom left
+                        connect(hex, abLine[i + 1]) // bottom right
                     }
                     if (i == 0) { // left
-                        connect(hex, hi, acLine[j]) // left bottom
-                        connect(hex, hi, acLine[j + 1]) // left top
+                        connect(hex, acLine[j]) // left bottom
+                        connect(hex, acLine[j + 1]) // left top
                     }
                     if (j == jn - 1) { // right
-                        connect(hex, hi, bcLine[j]) // right bottom
-                        connect(hex, hi, bcLine[j + 1]) // right top
+                        connect(hex, bcLine[j]) // right bottom
+                        connect(hex, bcLine[j + 1]) // right top
                     }
                 }
                 lastIdx += prevIS
@@ -331,11 +337,12 @@ object HexagonSphere {
         // sort neighbors like corner points
         val a = Vector3f()
         val b = Vector3f()
-        val tmp = IntArray(6)
+        val tmp = arrayOfNulls<Hexagon>(6)
         for (hex in hexagons) {
+            if (hex.index in special0 until special) continue
             val center = hex.center
-            System.arraycopy(hex.neighborIds, 0, tmp, 0, 6)
-            hex.neighborIds.fill(-1)
+            System.arraycopy(hex.neighbors, 0, tmp, 0, 6)
+            hex.neighbors.fill(null)
             a.set(hex.corners[0]).sub(center).normalize()
             b.set(center).cross(a).normalize()
             val ca = center.dot(a)
@@ -343,13 +350,13 @@ object HexagonSphere {
             val size = hex.corners.size
             val factor = size / TAUf
             for (ni in tmp) {
-                if (ni < 0) break
-                val corner = hexagons[ni].center
+                if (ni == null) break
+                val corner = ni.center
                 val angle = atan2(b.dot(corner) - cb, a.dot(corner) - ca)
                 var idx0 = floor(angle * factor).toInt()
                 if (idx0 < 0) idx0 += size
-                if (hex.neighborIds[idx0] >= 0) throw IllegalStateException()
-                hex.neighborIds[idx0] = ni
+                if (hex.neighbors[idx0] != null) throw IllegalStateException()
+                hex.neighbors[idx0] = ni
             }
         }
 
@@ -368,11 +375,13 @@ object HexagonSphere {
     // values measured by eye; will be kind-of fixed
     private val lengthI = intArrayOf(
         0, 1, 2, 3, 4, 5, 6, 7, 8,
-        10, 15, 20, 25, 40, 60, 90, 150, 200, 500
+        10, 15, 20, 25, 40, 60, 90, 150, 200,
+        500, 2000, 5000, 10000, 50000
     )
     private val lengthF = floatArrayOf(
         2f / 3f, 0.87f, 0.98f, 1.05f, 1.097f, 1.151f, 1.158f, 1.165f, 1.185f,
-        1.20f, 1.24f, 1.253f, 1.268f, 1.288f, 1.302f, 1.308f, 1.314f, 1.316f, 1.320f
+        1.20f, 1.24f, 1.253f, 1.268f, 1.288f, 1.302f, 1.308f, 1.314f, 1.316f,
+        1.320f, 1.3223885f, 1.3228698f, 1.3230022f, 1.323151f
     )
 
     fun findLength(n: Int): Float {
@@ -390,8 +399,9 @@ object HexagonSphere {
 
     // Icosphere without subdivisions from Blender = dodecahedron (20 triangle faces, each corner is a pentagon)
     val indices = intArrayOf(
-        0, 1, 2, 1, 0, 5, 0, 2, 3, 0, 3, 4, 0, 4, 5, 1, 5, 10, 2, 1, 6, 3, 2, 7, 4, 3, 8, 5, 4, 9, 1, 10,
-        6, 2, 6, 7, 3, 7, 8, 4, 8, 9, 5, 9, 10, 6, 10, 11, 7, 6, 11, 8, 7, 11, 9, 8, 11, 10, 9, 11
+        // this order was brute-forced for a nice layout for partitionIntoSubChunks 😅
+        0, 1, 2, 1, 0, 5, 0, 2, 3, 0, 3, 4, 0, 4, 5, 1, 5, 10, 1, 6, 2, 2, 7, 3, 3, 8, 4, 5, 4, 9, 1,
+        10, 6, 6, 7, 2, 7, 8, 3, 4, 8, 9, 5, 9, 10, 10, 11, 6, 11, 7, 6, 7, 11, 8, 8, 11, 9, 9, 11, 10
     )
 
     val vertices = run {
@@ -417,8 +427,8 @@ object HexagonSphere {
     )
 
     val d = run {
-        val s = 2f / 3f
-        val f = 4f / 3f
+        val s = 1f / 3f
+        val f = 2f / 3f
         arrayOf(
             Vector2f(s, s),
             Vector2f(-s, f),

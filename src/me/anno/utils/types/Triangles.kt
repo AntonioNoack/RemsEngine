@@ -398,9 +398,9 @@ object Triangles {
         if (t < 0f || t >= maxDistance) return null
         val q = Vector3f(direction).mul(t).add(origin)
         var sum = 0
-        if (subCrossDot(a, b, q, n) < 0.0) sum++
-        if (subCrossDot(b, c, q, n) < 0.0) sum++
-        if (subCrossDot(c, a, q, n) < 0.0) sum++
+        if (subCrossDot(a, b, q, n) < 0f) sum++
+        if (subCrossDot(b, c, q, n) < 0f) sum++
+        if (subCrossDot(c, a, q, n) < 0f) sum++
         return if (sum == 0 || (allowBackside && sum == 3)) q to t else null
     }
 
@@ -416,9 +416,9 @@ object Triangles {
         if (t < 0.0 || t >= maxDistance) return false
         val q = origin + direction * t
         var sum = 0
-        if (subCrossDot(a, b, q, n) < 0.0) sum++
-        if (subCrossDot(b, c, q, n) < 0.0) sum++
-        if (subCrossDot(c, a, q, n) < 0.0) sum++
+        if (subCrossDot(a, b, q, n) < 0f) sum++
+        if (subCrossDot(b, c, q, n) < 0f) sum++
+        if (subCrossDot(c, a, q, n) < 0f) sum++
         return sum == 0 || (allowBackside && sum == 3)
     }
 

@@ -25,6 +25,8 @@ open class MeshComponent() : MeshComponentBase() {
         this.mesh = mesh
     }
 
+    constructor(mesh: Mesh) : this(mesh.ref)
+
     @SerializedProperty
     @Type("Mesh/Reference")
     var mesh: FileReference = InvalidRef

@@ -18,7 +18,7 @@ object Arrays {
             var ctr = 1
             for (i in 1 until size) {
                 val curr = this[i]
-                if (prev != curr)  {
+                if (prev != curr) {
                     // append prev
                     if (ctr > 1) builder.append(ctr).append("x ")
                     builder.append(prev)
@@ -33,6 +33,10 @@ object Arrays {
         }
         builder.append(suffix)
         return builder.toString()
+    }
+
+    inline fun <reified V> Array<V>.subArray(i0: Int = 0, i1: Int = size): Array<V> {
+        return Array(i1 - i0) { this[i0 + it] }
     }
 
 }

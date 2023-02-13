@@ -172,7 +172,7 @@ object RenderGraph {
         sceneNode.connectTo(2, retNode, 1)
 
         scene = Entity()
-        val cube = MeshComponent(flatCube.front.ref)
+        val cube = MeshComponent(flatCube.front)
         scene.add(cube)
         scene.add(SkyBox())
         testUI {

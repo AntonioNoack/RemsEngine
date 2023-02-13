@@ -25,14 +25,14 @@ class DecalMaterial : Material() {
         fun main(args: Array<String>) {
             val scene = Entity()
             val decal = Entity()
-            val decalMesh = MeshComponent(flatCube.back.ref)
+            val decalMesh = MeshComponent(flatCube.back)
             scene.add(decal)
             decal.add(decalMesh)
             val decalMat = DecalMaterial()
             decalMat.diffuseBase.set(1f, 0f, 0f, 1f)
             decalMesh.materials = listOf(decalMat.ref)
             val baseMesh = Entity()
-            baseMesh.add(MeshComponent(flatCube.front.ref))
+            baseMesh.add(MeshComponent(flatCube.front))
             scene.add(baseMesh)
             testSceneWithUI(scene)
         }

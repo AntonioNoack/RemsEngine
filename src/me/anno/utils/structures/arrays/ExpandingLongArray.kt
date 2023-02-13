@@ -7,7 +7,7 @@ open class ExpandingLongArray(private val initCapacity: Int) {
 
     var size = 0
 
-    fun clear(){
+    fun clear() {
         size = 0
     }
 
@@ -29,6 +29,13 @@ open class ExpandingLongArray(private val initCapacity: Int) {
         } else {
             array[size++] = value
         }
+    }
+
+    fun toLongArray(): LongArray {
+        val size = size
+        val clone = LongArray(size)
+        System.arraycopy(array!!, 0, clone, 0, size)
+        return clone
     }
 
 }

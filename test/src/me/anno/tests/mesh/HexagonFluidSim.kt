@@ -40,7 +40,7 @@ fun main() {
 
     val fluidMesh = Mesh()
     createNiceMesh0(fluidMesh, hexagons) { hex, _ ->
-        val i = hex.index
+        val i = hex.index.toInt()
         rgba(
             i.and(255), i.shr(8).and(255),
             i.shr(16).and(255), i.shr(24).and(255)
@@ -54,24 +54,23 @@ fun main() {
 
     val inset = 0.2f
     createNiceMesh1(terrainMesh, n, hexagons, inset, inset, false, { hex, _ ->
-        val i = hex.index
+        val i = hex.index.toInt()
         rgba(
             i.and(255), i.shr(8).and(255),
             i.shr(16).and(255), i.shr(24).and(255)
         )
     }, { hex, v ->
         var h = terrainPerlin[v.x, v.y, v.z]
-        for (i in hex.neighborIds) {
-            if (i < 0) continue
-            val vi = hexagons[i].center
+        for (neighbor in hex.neighbors) {
+            val vi = (neighbor ?: continue).center
             h = min(h, terrainPerlin[vi.x, vi.y, vi.z])
         }
         h - 0.01f
     }, { _, v -> terrainPerlin[v.x, v.y, v.z] })
     terrainMesh.makeFlatShaded()
 
-    val terrain = MeshComponent(terrainMesh.ref)
-    val fluid = MeshComponent(fluidMesh.ref)
+    val terrain = MeshComponent(terrainMesh)
+    val fluid = MeshComponent(fluidMesh)
     scene.add(Entity("Terrain").apply { add(terrain) })
     scene.add(Entity("Fluid").apply { add(fluid) })
 
@@ -100,19 +99,19 @@ fun main() {
 
         val s0 = IntArray(w * h * 4)
         for (i in hexagons.indices) {
-            val hex = hexagons[i].neighborIds
+            val hex = hexagons[i].neighbors
             val j = i * 4
-            s0[j] = hex[0]
-            s0[j + 1] = hex[1]
-            s0[j + 2] = hex[2]
-            s0[j + 3] = hex[3]
+            s0[j] = hex[0]!!.index.toInt()
+            s0[j + 1] = hex[1]!!.index.toInt()
+            s0[j + 2] = hex[2]!!.index.toInt()
+            s0[j + 3] = hex[3]!!.index.toInt()
         }
         staticData[0].create(staticLayout[0], s0)
         for (i in hexagons.indices) {
-            val hex = hexagons[i].neighborIds
+            val hex = hexagons[i].neighbors
             val j = i * 2
-            s0[j] = hex[4]
-            s0[j + 1] = hex[5]
+            s0[j] = hex[4]!!.index.toInt()
+            s0[j + 1] = hex[5]?.index?.toInt() ?: -1
         }
         staticData[1].create(staticLayout[1], s0)
 

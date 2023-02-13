@@ -20,7 +20,7 @@ fun main() {
         createFaceMesh(mesh, hexagons, i0, i1, if (i == 0) 12 else 0)
         i0 = i1
         val subEntity = Entity()
-        val meshComp = MeshComponent(mesh.ref)
+        val meshComp = MeshComponent(mesh)
         subEntity.add(meshComp)
         /*val bounds = mesh.ensureBounds()
         // todo this is too simple, use something working...

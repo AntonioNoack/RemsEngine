@@ -97,7 +97,7 @@ fun main() {
 
     val world = Entity()
     world.addChild(build(tlas))
-    world.add(MeshComponent(simpleMesh.ref).apply {
+    world.add(MeshComponent(simpleMesh).apply {
         collisionMask = 0 // disable collisions
     })
     testSceneWithUI(world) {

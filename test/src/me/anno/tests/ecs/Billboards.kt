@@ -15,7 +15,7 @@ fun main() {
         clamping = Clamping.CLAMP
     }
     SceneView.testSceneWithUI(Entity().apply {
-        add(MeshComponent(Shapes.flat11.front.ref).apply {
+        add(MeshComponent(Shapes.flat11.front).apply {
             materials = listOf(material.ref)
         })
         add(BillboardTransformer())

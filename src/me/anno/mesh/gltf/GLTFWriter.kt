@@ -128,7 +128,7 @@ object GLTFWriter {
             add(scene)
         } else {
             scene as Mesh
-            nodes.add(MeshComponent(scene.ref))
+            nodes.add(MeshComponent(scene))
             meshes[Pair(scene, emptyList())] = 0
         }
 
