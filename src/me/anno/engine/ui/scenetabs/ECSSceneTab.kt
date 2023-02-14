@@ -170,7 +170,10 @@ class ECSSceneTab(
         for (window in window?.windowStack ?: emptyList()) {
             window.panel.forAll {
                 if (it is RenderView) {
+                    val radius = radius
                     it.radius = radius
+                    it.near = 1e-3 * radius
+                    it.far = 1e10 * radius
                     it.position.set(position)
                     it.rotation.set(rotation)
                 }

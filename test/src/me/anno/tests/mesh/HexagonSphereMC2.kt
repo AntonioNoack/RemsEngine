@@ -2,24 +2,27 @@ package me.anno.tests.mesh
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.chunks.spherical.Hexagon
 import me.anno.ecs.components.chunks.spherical.HexagonSphere.findLength
 import me.anno.ecs.components.chunks.spherical.LargeHexagonSphere
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.IntImage
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.tests.cross
 import me.anno.utils.OS.desktop
+import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.joml.AABBd
 import org.joml.Vector3d
 import org.joml.Vector3f
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.ceil
 
 // create a Minecraft world on a hex sphere :3
-// todo use chunks and a visibility system for them
+// use chunks and a visibility system for them
 
 fun testFindingSubChunks(sphere: LargeHexagonSphere, s: Int) {
 
@@ -36,13 +39,10 @@ fun testFindingSubChunks(sphere: LargeHexagonSphere, s: Int) {
     var w1 = 0
     var w2 = 0
     for (ti in 0 until 20) {
-        println("[[[ ----------- $ti ----------- ]]]")
         for (si in 0 until s) {
             for (sj in 0 until s - si) {
-                println("/// $si,$sj")
                 val hexagons = sphere.querySubChunk(ti, si, sj)
                 val color0 = sijToColor.getOrPut(Triple(ti, si, sj)) { rand.nextInt() }
-                // .shuffled().subList(0, min(50, hexagons.size))
                 for (hex in hexagons) {
                     if (hex.center.y < 0f) continue
                     val x = ((hex.center.x + 1) * hs).toInt()
@@ -72,8 +72,7 @@ fun main() {
     val sphere = LargeHexagonSphere(n, s)
     val len = findLength(n) / (n + 1)
 
-
-    // todo test all hexagons for ray checks :)
+    val worker = ProcessingQueue("WorldGen", 4)
 
     val chunkLoader = object : Component() {
         override fun clone() = throw NotImplementedError()
@@ -83,14 +82,14 @@ fun main() {
             val scene = entity!!
             val pos = Vector3d(RenderState.cameraPosition).normalize()
             val maxDistance = len * 256
-            chunks.removeIf { (sub, child) ->
+            chunks.removeIf { (_, child) ->
                 val comp = child.getComponent(MeshComponent::class)
                 if (comp != null) {
                     aabb.clear()
                     comp.fillSpace(scene.transform.globalTransform, aabb)
                     if (aabb.distance(pos) > maxDistance) {
-                        println("destroying $sub")
                         scene.remove(child)
+                        comp.getMesh()?.destroy()
                         true
                     } else false
                 } else false
@@ -113,24 +112,42 @@ fun main() {
                         .normalize()
                     val sub = sphere.findSubChunk(dirI)
                     chunks.getOrPut(Triple(sub.tri.index, sub.i, sub.j)) {
-                        val sc = sphere.querySubChunk(sub.tri.index, sub.i, sub.j)
-                        sphere.ensureNeighbors(ArrayList(sc), HashMap(sc.associateBy { it.index }), 3)
-                        val map = HashMap<Long, Int>(sc.size)
-                        for (hex in sc) map[hex.index] = map.size
-                        val map1 = IndexMap { index -> map[index] ?: -1 }
-                        val world = generateWorld(sc, map1, 0, sc.size)
-                        val mesh = generateMesh(sc, map1, 0, sc.size, world, len)
-                        val entity = Entity().apply {
-                            add(MeshComponent(mesh.ref))
+                        val entity = Entity()
+                        worker += {
+                            val sc = sphere.querySubChunk(sub.tri.index, sub.i, sub.j)
+                            val chunkSize = sc.size
+                            val map2 = HashMap<Long, Hexagon>(chunkSize)
+                            for (hex in sc) map2[hex.index] = hex
+                            sphere.ensureNeighbors(sc, map2, 1)
+                            println("$chunkSize -> ${sc.size}")
+                            val indexMap = HashMap<Long, Int>(sc.size)
+                            for (hex in sc) indexMap[hex.index] = indexMap.size
+                            val map1i = IndexMap { index -> indexMap[index] ?: -1 }
+                            val world = generateWorld(sc, map1i, 0, sc.size, n)
+                            val map2i = IndexMap { index ->
+                                val idx = indexMap[index]
+                                if (idx == null || idx >= chunkSize) -1
+                                else idx
+                            }
+                            val mesh = generateMesh(sc, map2i, 0, chunkSize, world, len, false)
+                            Texture2D.byteArrayPool.returnBuffer(world)
+                            for (hex in sc) {
+                                if (hex.index >= sphere.special) {
+                                    Hexagon.hexagonPool.ret(hex)
+                                }
+                            }
+                            addEvent {
+                                entity.add(MeshComponent(mesh.ref))
+                                entity.invalidateAABBsCompletely()
+                                scene.add(entity)
+                            }
                         }
-                        scene.add(entity)
-                        scene.invalidateAABBsCompletely()
-                        println("creating ${sub.tri.index}/${sub.i}/${sub.j}")
                         entity
                     }
                     chunks
                 }
             }
+            (scene.children as MutableList).sortBy { it.aabb.distanceSquared(pos) }
             return 1
         }
     }

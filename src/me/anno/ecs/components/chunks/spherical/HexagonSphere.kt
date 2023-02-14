@@ -118,13 +118,13 @@ object HexagonSphere {
 
     val nullHex = Hexagon(-1, Vector3f(), emptyArray())
 
-    fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, i: Int, len: Float): Vector3f {
-        val di = d[i]
-        return create(pos, ab, ac, di.x * len, di.y * len)
+    fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, i: Int, len: Float, dst: Vector3f = Vector3f()): Vector3f {
+        val di = hexInLocalCoords[i]
+        return create(pos, ab, ac, di.x * len, di.y * len, dst)
     }
 
-    fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, d0: Float, d1: Float): Vector3f {
-        return Vector3f(pos)
+    fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, d0: Float, d1: Float, dst: Vector3f = Vector3f()): Vector3f {
+        return dst.set(pos)
             .add(ab.x * d0, ab.y * d0, ab.z * d0)
             .add(ac.x * d1, ac.y * d1, ac.z * d1)
             .normalize()
@@ -426,7 +426,7 @@ object HexagonSphere {
         2, 6, 6, 7, 3, 7, 7, 8, 4, 8, 8, 9, 5, 9, 9, 10, 6, 10, 10, 11, 6, 11, 7, 11, 8, 11, 9, 11
     )
 
-    val d = run {
+    val hexInLocalCoords = run {
         val s = 1f / 3f
         val f = 2f / 3f
         arrayOf(

@@ -20,7 +20,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
 
     private val LOGGER = LogManager.getLogger(MeshCache::class)
 
-    private val cache = CacheSection("MeshCache2")
+    val cache = CacheSection("MeshCache2")
 
     override operator fun get(ref: FileReference?, async: Boolean): Mesh? {
         if (ref == null || ref == InvalidRef) return null
@@ -67,21 +67,25 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
      * */
     private fun joinMeshes(list: Iterable<Component>): Mesh? {
 
-        val meshes = ArrayList<Triple<Mesh, Transform?, (Int) -> FileReference>>()
+        val meshes = ArrayList<Triple<Mesh, Transform?, FileReference>>()
         for (comp in list) {
             when (comp) {
                 is MeshComponentBase -> {
                     val mesh = comp.getMesh() ?: continue
                     if (mesh.proceduralLength > 0) continue
-                    val mat = comp.materials
-                    meshes.add(Triple(mesh, comp.transform) {
-                        mat.getOrNull(it)?.nullIfUndefined() ?: mesh.materials.getOrNull(it) ?: InvalidRef
-                    })
+                    val mat0 = comp.materials
+                    val mat1 = mesh.materials
+                    for (i in 0 until mesh.numMaterials) {
+                        // todo only write submesh
+                        val mat = mat0.getOrNull(i)?.nullIfUndefined() ?: mat1.getOrNull(i) ?: InvalidRef
+                        meshes.add(Triple(mesh, comp.transform, mat))
+                    }
+
                 }
                 is MeshSpawner -> {
                     comp.forEachMesh { mesh, material, transform ->
                         if (mesh.proceduralLength <= 0) {
-                            meshes.add(Triple(mesh, transform) { material?.ref ?: InvalidRef })
+                            meshes.add(Triple(mesh, transform, material?.ref ?: InvalidRef))
                         }
                     }
                 }
@@ -92,9 +96,10 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
         val hasBones = meshes.any2 { it.first.boneWeights != null && it.first.boneIndices != null }
         val hasUVs = meshes.any2 { it.first.uvs != null }
 
-        return object : MeshJoiner<Triple<Mesh, Transform?, (Int) -> FileReference>>(hasColors, hasBones, hasUVs) {
-            override fun getMesh(element: Triple<Mesh, Transform?, (Int) -> FileReference>) = element.first
-            override fun getTransform(element: Triple<Mesh, Transform?, (Int) -> FileReference>, dst: Matrix4x3f) {
+        return object : MeshJoiner<Triple<Mesh, Transform?, FileReference>>(hasColors, hasBones, hasUVs) {
+            override fun getMesh(element: Triple<Mesh, Transform?, FileReference>) = element.first
+            override fun getMaterial(element: Triple<Mesh, Transform?, FileReference>) = element.third
+            override fun getTransform(element: Triple<Mesh, Transform?, FileReference>, dst: Matrix4x3f) {
                 val transform = element.second
                 if (transform != null) dst.set2(transform.globalTransform)
                 else dst.identity()

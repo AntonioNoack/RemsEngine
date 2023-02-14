@@ -4,8 +4,11 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.cache.instances.LastModifiedCache
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.gpu.GFX
+import me.anno.image.ImageCPUCache
+import me.anno.image.ImageGPUCache
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.io.zip.InnerFolderCache
@@ -26,11 +29,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
-import java.io.File
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.io.OutputStreamWriter
+import java.io.*
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
@@ -128,11 +127,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                     }
                 }
             }
-            val removed = PrefabCache.removeDual { file, _, _ ->
-                (file is FileReference && file.absolutePath.startsWith(path, true)) ||
-                        (file is String && file.startsWith(path, true))
-            }
-            LOGGER.info("Removed $removed instances from prefab cache")
+            CacheSection.invalidateFiles(path)
         }
 
         /** keep the value loaded and check if it has changed maybe (internal files, like zip files) */

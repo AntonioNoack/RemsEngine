@@ -180,8 +180,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         // if (editMode?.onEditWheel(x, y, dx, dy) == true) return
         if (isSelected) {
             val factor = Maths.pow(0.5f, dy / 16f)
-            view.radius *= factor
-            camera.fovOrthographic *= factor
+            zoom(factor)
             view.updateEditorCameraTransform()
             invalidateDrawing()
         }
@@ -352,7 +351,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
 
                     // zoom in/out
                     val r = Touch.getZoomFactor()
-                    view.radius *= r * r * sign(r) // power 1 is too slow
+                    zoom(r * r * sign(r))// power 1 is too slow
 
                     Touch.updateAll()
 
@@ -371,7 +370,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
 
                     // zoom in/out
                     val r = Touch.getZoomFactor()
-                    view.radius *= r * r * sign(r) // power 1 is too slow
+                    zoom(r * r * sign(r))// power 1 is too slow
 
                     Touch.updateAll()
 
@@ -379,6 +378,13 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
             }
         }
 
+    }
+
+    fun zoom(factor: Float) {
+        view.radius *= factor
+        view.near *= factor
+        view.far *= factor
+        camera.fovOrthographic *= factor
     }
 
     companion object {

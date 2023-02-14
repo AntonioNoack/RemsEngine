@@ -229,6 +229,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 view.rotation.set(0.0)
                 view.position.set(0.0)
                 view.radius = 50.0
+                view.near = 1e-3
+                view.far = 1e10
                 camera.fovOrthographic = 5f
                 camera.fovY = 90f
                 camera.isPerspective = true

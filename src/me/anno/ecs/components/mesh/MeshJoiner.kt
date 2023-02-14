@@ -41,13 +41,13 @@ abstract class MeshJoiner<V>(
     private fun alloc(needed: Boolean, size: Int, old: IntArray?) = if (needed) old.resize(size) else null
     private fun alloc(needed: Boolean, size: Int, old: ByteArray?) = if (needed) old.resize(size) else null
 
-    fun join(mesh: Mesh, elements: List<V>): Mesh {
+    fun join(dstMesh: Mesh, elements: List<V>): Mesh {
 
         if (elements.isEmpty()) {
-            mesh.positions = FloatArray(0)
-            mesh.indices = null
-            mesh.materialIds = null
-            return mesh
+            dstMesh.positions = FloatArray(0)
+            dstMesh.indices = null
+            dstMesh.materialIds = null
+            return dstMesh
         }
 
         var numPositions = 0
@@ -56,15 +56,16 @@ abstract class MeshJoiner<V>(
         val firstMaterial = getMaterial(elements[0])
         val hasUniqueMaterial = elements.all2 { getMaterial(it) == firstMaterial }
         val materialToId: Map<FileReference, Int>?
+
         if (hasUniqueMaterial) {
             materialToId = null
-            mesh.materials = listOf(firstMaterial)
+            dstMesh.materials = listOf(firstMaterial)
         } else {
             val uniqueMaterials = elements
                 .map { getMaterial(it) }
                 .toHashSet().toList()
             materialToId = uniqueMaterials.withIndex().associate { it.value to it.index }
-            mesh.materials = uniqueMaterials
+            dstMesh.materials = uniqueMaterials
         }
 
         for (element in elements) {
@@ -77,18 +78,18 @@ abstract class MeshJoiner<V>(
         val numPositionCoords = numPositions * 3
         val numUVsCoords = numPositions * 2
 
-        val dstPositions = alloc(true, numPositionCoords, mesh.positions)!!
-        val dstNormals = alloc(true, numPositionCoords, mesh.normals)!!
+        val dstPositions = alloc(true, numPositionCoords, dstMesh.positions)!!
+        val dstNormals = alloc(true, numPositionCoords, dstMesh.normals)!!
         val hasUVs = mayHaveUVs && elements.any2 { getMesh(it).uvs != null }
-        val dstUVs = alloc(hasUVs, numUVsCoords, mesh.uvs)
-        val dstTangents = alloc(hasUVs, numPositions * 4, mesh.tangents)
-        val dstColors = alloc(hasColors, numPositions, mesh.color0)
-        val dstIndices = alloc(true, numIndices, mesh.indices)!!
-        val dstMaterialIds = alloc(!hasUniqueMaterial, numTriangles, mesh.materialIds)
+        val dstUVs = alloc(hasUVs, numUVsCoords, dstMesh.uvs)
+        val dstTangents = alloc(hasUVs, numPositions * 4, dstMesh.tangents)
+        val dstColors = alloc(hasColors, numPositions, dstMesh.color0)
+        val dstIndices = alloc(true, numIndices, dstMesh.indices)!!
+        val dstMaterialIds = alloc(!hasUniqueMaterial, numTriangles, dstMesh.materialIds)
         val numBoneIndices = numPositions * 4
-        val dstBoneIndices = alloc(hasBones, numBoneIndices, mesh.boneIndices)
+        val dstBoneIndices = alloc(hasBones, numBoneIndices, dstMesh.boneIndices)
         val dstBoneWeights = if (dstBoneIndices != null) {
-            val w = alloc(true, numBoneIndices, mesh.boneWeights)!!
+            val w = alloc(true, numBoneIndices, dstMesh.boneWeights)!!
             // set every 4th value to 1
             for (i in w.indices step 4) {
                 w[i] = 1f
@@ -104,15 +105,15 @@ abstract class MeshJoiner<V>(
 
         for (element in elements) {
 
-            val model = getMesh(element)
-            model.ensureBuffer() // ensure normals, tangents and such have been initialized
+            val srcMesh = getMesh(element)
+            srcMesh.ensureBuffer() // ensure normals, tangents and such have been initialized
 
-            val srcPositions = model.positions!!
-            val srcNormals = model.normals!!
+            val srcPositions = srcMesh.positions!!
+            val srcNormals = srcMesh.normals!!
             getTransform(element, localToGlobal)
             val i0 = i
 
-            val srcTangents = mesh.tangents
+            val srcTangents = srcMesh.tangents
             if (is3x3Identity(localToGlobal)) { // fast path with translation only
                 val px = localToGlobal.m30
                 val py = localToGlobal.m31
@@ -156,7 +157,7 @@ abstract class MeshJoiner<V>(
                     }
                 }
             }
-            val meshUVs = mesh.uvs
+            val meshUVs = srcMesh.uvs
             if (dstUVs != null && meshUVs != null) {
                 val i2 = i0 / 3 * 2
                 val j2 = min(i2 + meshUVs.size, dstUVs.size)
@@ -170,7 +171,7 @@ abstract class MeshJoiner<V>(
                 }
             }
             dstColors?.fill(getVertexColor(element), i0 / 3, (i0 + srcNormals.size) / 3)
-            val indices2 = model.indices
+            val indices2 = srcMesh.indices
             val baseIndex = i0 / 3
             val j0 = j
             if (indices2 != null) {
@@ -191,17 +192,17 @@ abstract class MeshJoiner<V>(
         JomlPools.mat4x3f.sub(1)
         JomlPools.vec3f.sub(1)
 
-        mesh.positions = dstPositions
-        mesh.indices = dstIndices
-        mesh.normals = dstNormals
-        mesh.uvs = dstUVs
-        mesh.tangents = dstTangents
-        mesh.color0 = dstColors
-        mesh.boneWeights = dstBoneWeights
-        mesh.boneIndices = dstBoneIndices
-        mesh.materialIds = dstMaterialIds
+        dstMesh.positions = dstPositions
+        dstMesh.indices = dstIndices
+        dstMesh.normals = dstNormals
+        dstMesh.uvs = dstUVs
+        dstMesh.tangents = dstTangents
+        dstMesh.color0 = dstColors
+        dstMesh.boneWeights = dstBoneWeights
+        dstMesh.boneIndices = dstBoneIndices
+        dstMesh.materialIds = dstMaterialIds
 
-        return mesh
+        return dstMesh
 
     }
 

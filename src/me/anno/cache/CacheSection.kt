@@ -487,6 +487,26 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             LastModifiedCache.clear()
         }
 
+        fun invalidateFiles(path: String) {
+            val filter = { file: Any?, _: Any?, _: Any? ->
+                (file is FileReference && file.absolutePath.startsWith(path, true)) ||
+                        (file is String && file.startsWith(path, true))
+            }
+            val removed = ArrayList<Pair<String, Int>>()
+            for (cache in caches) {
+                val count = cache.removeDual(filter)
+                if (count > 0) removed.add(Pair(cache.name, count))
+            }
+            when (removed.sumOf { it.second }) {
+                0 -> {}
+                1 -> LOGGER.debug("Removed one file entry from ${removed.first().first} cache")
+                else -> LOGGER.debug(
+                    "Removed [${removed.joinToString("+") { it.second.toString() }}] file entries from [" +
+                            "${removed.joinToString("+") { it.first }}] caches"
+                )
+            }
+        }
+
         @JvmStatic
         private val LOGGER = LogManager.getLogger(CacheSection::class)
 

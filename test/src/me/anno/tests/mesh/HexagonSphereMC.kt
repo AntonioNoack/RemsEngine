@@ -9,20 +9,23 @@ import me.anno.ecs.components.chunks.spherical.HexagonSphere.findLength
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.texture.Texture2D
 import me.anno.maths.noise.FullNoise
 import me.anno.maths.noise.PerlinNoise
+import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
+import org.joml.Vector4f
 
 // create a Minecraft world on a hex sphere :3
 // todo use chunks and a visibility system for them
 
-val air = 0
-val stone = 1
-val dirt = 2
-val grass = 3
-val log = 4
-val leaves = 5
+val air: Byte = 0
+val stone: Byte = 1
+val dirt: Byte = 2
+val grass: Byte = 3
+val log: Byte = 4
+val leaves: Byte = 5
 
 val colors0 = intArrayOf(
     0,
@@ -33,20 +36,22 @@ val colors0 = intArrayOf(
     0x3a692c,
 )
 
-val minHeight = -32
-val maxHeight = 32
+val minHeight = -64
+val maxHeight = 64
 val sy = maxHeight - minHeight
 
 fun interface IndexMap {
     fun map(index: Long): Int
 }
 
-fun generateWorld(hexagons: List<Hexagon>, mapping: IndexMap, ci0: Int, ci1: Int): IntArray {
+val rnd = FullNoise(2345L)
+fun generateWorld(hexagons: List<Hexagon>, mapping: IndexMap, ci0: Int, ci1: Int, n: Int): ByteArray {
 
-    val world = IntArray((ci1-ci0) * sy)
-    val rnd = FullNoise(2345L)
+    val size = (ci1 - ci0) * sy
+    val world = Texture2D.byteArrayPool[size, false, false]
+    world.fill(air, 0, size)
 
-    val perlin = PerlinNoise(1234L, 8, 0.5f, -30f, 30f)
+    val perlin = PerlinNoise(1234L, 8, 0.5f, -63f, 56f, Vector4f(n / 100f))
     for (i in ci0 until ci1) {
         val i0 = mapping.map(hexagons[i].index) * sy
         val hex = hexagons[i].center
@@ -58,8 +63,8 @@ fun generateWorld(hexagons: List<Hexagon>, mapping: IndexMap, ci0: Int, ci1: Int
 
     // generate random trees :3
     for (i in ci0 until ci1) {
-        if (rnd[i.toFloat()] < 0.03f) {
-            val hex0 = hexagons[i]
+        val hex0 = hexagons[i]
+        if (rnd[hex0.index.toInt()] < 0.03f) {
             val i0 = mapping.map(hex0.index) * sy
             val cen = hex0.center
             val hi = (perlin[cen.x, cen.y, cen.z] - minHeight).toInt()
@@ -82,10 +87,17 @@ fun generateWorld(hexagons: List<Hexagon>, mapping: IndexMap, ci0: Int, ci1: Int
 
 }
 
-fun generateMesh(hexagons: List<Hexagon>, mapping: IndexMap, ci0: Int, ci1: Int, world: IntArray, len: Float): Mesh {
+val positions = ThreadLocal2 { ExpandingFloatArray(8192) }
+val colors = ThreadLocal2 { ExpandingIntArray(8192) }
 
-    val positions = ExpandingFloatArray(256)
-    val colors = ExpandingIntArray(256)
+fun generateMesh(
+    hexagons: List<Hexagon>, mapping: IndexMap, ci0: Int, ci1: Int, world: ByteArray, len: Float,
+    fillVoid: Boolean
+): Mesh {
+
+    val positions = positions.get()
+    val colors = colors.get()
+
     for (hexId in ci0 until ci1) {
         val hex = hexagons[hexId]
         val i0 = mapping.map(hex.index) * sy
@@ -94,7 +106,7 @@ fun generateMesh(hexagons: List<Hexagon>, mapping: IndexMap, ci0: Int, ci1: Int,
             if (here != air) {
                 fun addLayer(fy: Float, di0: Int, di1: Int) {
                     val c0 = hex.corners[0]
-                    val color = colors0[here]
+                    val color = colors0[here.toInt().and(255)]
                     for (i in 2 until hex.corners.size) {
                         positions.add(c0.x * fy, c0.y * fy, c0.z * fy)
                         val c2 = hex.corners[i + di0]
@@ -124,10 +136,10 @@ fun generateMesh(hexagons: List<Hexagon>, mapping: IndexMap, ci0: Int, ci1: Int,
             val i1 = mapping.map(neighbor.index) * sy
 
             // sideways
-            fun addSide(here: Int, y0: Int, y1: Int) {
+            fun addSide(block: Byte, y0: Int, y1: Int) {
                 val c0 = hex.corners[k]
                 val c1 = hex.corners[(k + 1) % hex.corners.size]
-                val color = colors0[here]
+                val color = colors0[block.toInt().and(255)]
                 val h0 = 1f + len * (y0 + minHeight)
                 val h1 = 1f + len * (y1 + minHeight)
                 positions.add(c0.x * h0, c0.y * h0, c0.z * h0)
@@ -152,8 +164,8 @@ fun generateMesh(hexagons: List<Hexagon>, mapping: IndexMap, ci0: Int, ci1: Int,
                         addSide(here, y, y + 1)
                     }
                 }
-            } else { // unknown (chunk border)
-                var lastType = 0
+            } else if (fillVoid) { // unknown (chunk border)
+                var lastType: Byte = 0
                 var lastY0 = 0
                 for (y in 0 until sy) {
                     val currType = world[i0 + y]
@@ -175,6 +187,9 @@ fun generateMesh(hexagons: List<Hexagon>, mapping: IndexMap, ci0: Int, ci1: Int,
     mesh.color0 = colors.toIntArray()
     mesh.invalidateGeometry()
 
+    positions.clear()
+    colors.clear()
+
     return mesh
 
 }
@@ -195,8 +210,9 @@ fun main() {
             if (idx in ci0 until ci1) idx - ci0
             else -1
         }
-        val world = generateWorld(hexagonsList, map, ci0, ci1)
-        val mesh = generateMesh(hexagonsList, map, ci0, ci1, world, len)
+        val world = generateWorld(hexagonsList, map, ci0, ci1, n)
+        val mesh = generateMesh(hexagonsList, map, ci0, ci1, world, len, false)
+        Texture2D.byteArrayPool.returnBuffer(world)
         scene.add(Entity().apply {
             add(MeshComponent(mesh.ref))
         })
