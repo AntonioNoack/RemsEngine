@@ -1126,10 +1126,10 @@ open class Texture2D(
 
             override fun destroy() = this@Texture2D.destroy()
 
-            override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean) =
+            override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean) =
                 throw NotImplementedError()
 
-            override fun attachFramebufferToDepth(targets: Array<TargetType>) =
+            override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>) =
                 throw NotImplementedError()
 
             override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {

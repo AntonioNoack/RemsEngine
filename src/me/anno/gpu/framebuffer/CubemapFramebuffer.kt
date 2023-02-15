@@ -283,7 +283,7 @@ class CubemapFramebuffer(
         }
     }
 
-    override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer {
         return if (targetCount <= GFX.maxColorAttachments) {
             val buffer = CubemapFramebuffer(name, size, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this
@@ -296,7 +296,7 @@ class CubemapFramebuffer(
         }
     }
 
-    override fun attachFramebufferToDepth(targets: Array<TargetType>): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
         return if (targets.size <= GFX.maxColorAttachments) {
             val buffer = CubemapFramebuffer(name, size, samples, targets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this

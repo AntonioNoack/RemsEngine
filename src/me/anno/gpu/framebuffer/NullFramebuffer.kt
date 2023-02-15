@@ -32,11 +32,11 @@ object NullFramebuffer : IFramebuffer {
 
     override fun destroy() {} // cannot really be destroyed
 
-    override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer {
         throw UnsupportedOperationException()
     }
 
-    override fun attachFramebufferToDepth(targets: Array<TargetType>): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
         throw UnsupportedOperationException()
     }
 

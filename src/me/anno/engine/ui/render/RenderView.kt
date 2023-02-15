@@ -162,14 +162,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     val baseNBuffer1 = deferred.createBaseBuffer()
     val baseNBuffer8 = deferredMSAA.createBaseBuffer()
-    private val baseSameDepth1 = baseNBuffer1.attachFramebufferToDepth(1, false)
-    private val baseSameDepth8 = baseNBuffer8.attachFramebufferToDepth(1, false)
+    private val baseSameDepth1 = baseNBuffer1.attachFramebufferToDepth("baseSD1", 1, false)
+    private val baseSameDepth8 = baseNBuffer8.attachFramebufferToDepth("baseSD8", 1, false)
     val base1Buffer = Framebuffer("base1", 1, 1, 1, 1, false, DepthBufferType.TEXTURE)
     val base8Buffer = Framebuffer("base8", 1, 1, 8, 1, false, DepthBufferType.TEXTURE)
 
-    private val light1Buffer = base1Buffer.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
-    private val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
-    private val lightNBuffer8 = baseNBuffer8.attachFramebufferToDepth(arrayOf(TargetType.FP16Target4))
+    private val light1Buffer = base1Buffer.attachFramebufferToDepth("light1", arrayOf(TargetType.FP16Target4))
+    private val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth("lightN1", arrayOf(TargetType.FP16Target4))
+    private val lightNBuffer8 = baseNBuffer8.attachFramebufferToDepth("lightN8", arrayOf(TargetType.FP16Target4))
 
     private val clock = Clock()
     private var entityBaseClickId = 0
@@ -560,9 +560,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                                 val shader = LightPipelineStage.getPostShader(deferred)
                                 shader.use()
                                 shader.v1b("applyToneMapping", true)
-                                buffer.bindTrulyNearest(2)
+                                buffer.bindTrulyNearestMS(2)
                                 ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                                lightBuffer.bindTexture0(
+                                lightBuffer.getTexture0MS().bind(
                                     shader,
                                     "finalLight",
                                     GPUFiltering.TRULY_NEAREST,
@@ -689,9 +689,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                                 val shader = LightPipelineStage.getPostShader(deferred)
                                 shader.use()
                                 shader.v1b("applyToneMapping", hdr)
-                                buffer.bindTrulyNearest(2)
+                                buffer.bindTrulyNearestMS(2)
                                 whiteTexture.bindTrulyNearest(1) // ssao
-                                lightBuffer.bindTrulyNearest(0)
+                                lightBuffer.bindTrulyNearestMS(0)
                                 flat01.draw(shader)
                             }
                         }
@@ -936,15 +936,15 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     }
 
     fun drawSceneDeferred(
-        buffer: IFramebuffer, baseNBuffer: IFramebuffer,
-        lightNBuffer: IFramebuffer, baseSameDepth: IFramebuffer,
+        buffer: IFramebuffer, baseBuffer: IFramebuffer,
+        lightBuffer: IFramebuffer, baseSameDepth: IFramebuffer,
         camera0: Camera, camera1: Camera, blending: Float,
         renderer: Renderer,
         dstBuffer1: IFramebuffer,
         deferredSettings: DeferredSettingsV2
     ): IFramebuffer {
 
-        if (buffer != baseNBuffer)
+        if (buffer != baseBuffer)
             throw IllegalStateException("Expected baseBuffer, but got ${buffer.name} for $renderMode")
 
         pipeline.deferred = deferredSettings
@@ -956,7 +956,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             hdr = true
         )
 
-        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer
         drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
 
         val ssaoStrength = ssao.strength
@@ -968,7 +967,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         // use the existing depth buffer for the 3d ui
         if (useBloom) {
 
-            val illuminated = FBStack["", w, h, 4, true, 1, false]
+            val illuminated = FBStack["", w, h, 4, true, buffer.samples, false]
             useFrame(illuminated, copyRenderer) { // apply post-processing
 
                 val shader = LightPipelineStage.getPostShader(deferred)
@@ -976,9 +975,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 shader.v1b("applyToneMapping", false)
                 shader.v3f("ambientLight", pipeline.ambient)
 
-                buffer.bindTrulyNearest(2)
+                buffer.bindTrulyNearestMS(2)
                 ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                lightBuffer.getTexture0().bindTrulyNearest(shader, "finalLight")
+                lightBuffer.getTexture0MS().bindTrulyNearest(shader, "finalLight")
 
                 flat01.draw(shader)
 
@@ -1014,11 +1013,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     shader.use()
                     shader.v1b("applyToneMapping", true)
 
-                    buffer.bindTrulyNearest(2)
+                    buffer.bindTrulyNearestMS(2)
                     ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                    lightBuffer.bindTexture0(
-                        shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP
-                    )
+                    lightBuffer.getTexture0MS()
+                        .bind(shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
                     flat01.draw(shader)
 

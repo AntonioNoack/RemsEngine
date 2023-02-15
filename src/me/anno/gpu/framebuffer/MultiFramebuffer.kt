@@ -2,7 +2,6 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -11,8 +10,6 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.utils.types.Booleans.toInt
-import org.lwjgl.opengl.GL11C
 
 /**
  * there is a target limit, so
@@ -80,12 +77,12 @@ class MultiFramebuffer(
         }
     }
 
-    override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer {
-        return targetsI[0].attachFramebufferToDepth(targetCount, fpTargets)
+    override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer {
+        return targetsI[0].attachFramebufferToDepth(name, targetCount, fpTargets)
     }
 
-    override fun attachFramebufferToDepth(targets: Array<TargetType>): IFramebuffer {
-        return targetsI[0].attachFramebufferToDepth(targets)
+    override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
+        return targetsI[0].attachFramebufferToDepth(name, targets)
     }
 
     override fun getTextureI(index: Int): ITexture2D {
@@ -102,6 +99,25 @@ class MultiFramebuffer(
             target.bindTextures(delta, nearest, clamping)
             delta += div
         }
+    }
+
+    val withMultisampling get() = samples > 1
+
+    override fun getTextureIMS(index: Int): ITexture2D {
+        return if (withMultisampling) targetsI[index / div].getTextureIMS(index % div)
+        else super.getTextureIMS(index)
+    }
+
+    override fun bindTrulyNearestMS(offset: Int) {
+        if (withMultisampling) {
+            var k = offset
+            for (i in targetsI.indices) {
+                val tex = targetsI[i].textures
+                for (j in tex.indices) {
+                    tex[j].bindTrulyNearest(k++)
+                }
+            }
+        } else super.bindTrulyNearestMS(offset)
     }
 
     override fun ensure() {

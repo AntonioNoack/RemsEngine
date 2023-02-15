@@ -20,6 +20,20 @@ object FlatShaders {
         ), "void main(){ result = alpha * texture(tex, uv); }"
     )
 
+    val copyShaderMS = Shader(
+        "copy", coordsList, coordsVShader, uvList, listOf(
+            Variable(GLSLType.S2DMS, "tex"),
+            Variable(GLSLType.V1F, "alpha"),
+            Variable(GLSLType.V1I, "samples"),
+            Variable(GLSLType.V4F, "result", VariableMode.OUT)
+        ), "void main() {\n" +
+                "   vec4 sum = vec4(0.0);\n" +
+                "   ivec2 uvi = ivec2(textureSize(tex) * uv);\n" +
+                "   for(int i=0;i<samples;i++) sum += texelFetch(tex, uvi, i);\n" +
+                "   result = (alpha / float(samples)) * sum;\n" +
+                "}"
+    )
+
     val coordsPosSize = coordsList + listOf(
         Variable(GLSLType.V2F, "pos"),
         Variable(GLSLType.V2F, "size"),

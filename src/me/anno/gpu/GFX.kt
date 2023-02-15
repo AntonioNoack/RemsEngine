@@ -17,6 +17,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.FlatShaders.copyShader
+import me.anno.gpu.shader.FlatShaders.copyShaderMS
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
@@ -289,30 +290,32 @@ object GFX {
         currentRenderer.shaderColor(shader, name, color)
 
     @JvmStatic
-    fun copy(buffer: IFramebuffer) = copy(buffer.getTexture0())
+    fun copy(buffer: IFramebuffer) = copy(buffer.getTexture0MS())
 
     @JvmStatic
     fun copy(buffer: ITexture2D) {
         Frame.bind()
         buffer.bindTrulyNearest(0)
-        copy()
+        copy(if (buffer is Texture2D) buffer.samples else 1)
     }
 
     @JvmStatic
-    fun copy(alpha: Float) {
+    fun copy(alpha: Float, samples: Int = 1) {
         check()
-        val shader = copyShader
+        val shader = if (samples > 1) copyShaderMS else copyShader
         shader.use()
+        shader.v1i("samples", samples)
         shader.v1f("alpha", alpha)
         flat01.draw(shader)
         check()
     }
 
     @JvmStatic
-    fun copy() {
+    fun copy(samples: Int = 1) {
         check()
-        val shader = copyShader
+        val shader = if (samples > 1) copyShaderMS else copyShader
         shader.use()
+        shader.v1i("samples", samples)
         shader.v1f("alpha", 1f)
         flat01.draw(shader)
         check()
@@ -325,16 +328,17 @@ object GFX {
     fun copyNoAlpha(buffer: ITexture2D) {
         Frame.bind()
         buffer.bindTrulyNearest(0)
-        copyNoAlpha()
+        copyNoAlpha(if (buffer is Texture2D) buffer.samples else 1)
     }
 
     @JvmStatic
-    fun copyNoAlpha() {
+    fun copyNoAlpha(samples: Int = 1) {
         check()
         blendMode.use(BlendMode.DST_ALPHA) {
             depthMode.use(DepthMode.ALWAYS) {
-                val shader = copyShader
+                val shader = if (samples > 1) copyShaderMS else copyShader
                 shader.use()
+                shader.v1i("samples", samples)
                 shader.v1f("alpha", 1f)
                 flat01.draw(shader)
             }

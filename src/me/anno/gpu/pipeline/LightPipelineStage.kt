@@ -74,7 +74,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         )
 
         // test: can we get better performance, when we eliminate dependencies?
-        // pro: less dependencies
+        // pro: fewer dependencies
         // con: we use more vram
         // con: we remove cache locality
         /*private val lightInstanceBuffers = Array(512) {
@@ -88,8 +88,12 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         private val lightCountInstanceBuffer =
             StaticBuffer(lightCountInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
 
+        val useMSAA get() = GFXState.currentBuffer.samples > 1
+
         fun getPostShader(settingsV2: DeferredSettingsV2): Shader {
-            return shaderCache.getOrPut(settingsV2 to -1) {
+            val useMSAA = useMSAA
+            val code = if(useMSAA) -1 else -2
+            return shaderCache.getOrPut(settingsV2 to code) {
                 /*
                 * vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);
                 * vec3 specularColor = finalColor * finalMetallic;
@@ -137,7 +141,6 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                 val deferredInputs = ArrayList<Variable>()
                 deferredInputs += Variable(GLSLType.V2F, "uv")
                 val imported = HashSet<String>()
-                val useMSAA = settingsV2.samples > 1
                 val sampleVariableName = if (useMSAA) "gl_SampleID" else null
                 val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
                 for (layer in settingsV2.layers) {
@@ -173,7 +176,8 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         private val shaderCache = HashMap<Pair<DeferredSettingsV2, Int>, Shader>()
         fun getShader(settingsV2: DeferredSettingsV2, type: LightType): Shader {
             val isInstanced = GFXState.instanced.currentValue
-            val key = type.ordinal * 2 + isInstanced.toInt()
+            val useMSAA = useMSAA
+            val key = type.ordinal * 4 + useMSAA.toInt(2) + isInstanced.toInt()
             return shaderCache.getOrPut(settingsV2 to key) {
 
                 /*
@@ -300,7 +304,8 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                             // sheen is a fresnel effect, which adds light at the edge, e.g., for clothing
                             "NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
                             "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
-                            "light = vec4(mix(diffuseLight, specularLight, finalMetallic), 1.0);\n"
+                            // ~65k is the limit, after that only Infinity
+                            "light = vec4(clamp(mix(diffuseLight, specularLight, finalMetallic), 0.0, 16e3), 1.0);\n"
                 )
 
                 // deferred inputs
@@ -309,7 +314,6 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                 val deferredInputs = ArrayList<Variable>()
                 deferredInputs += Variable(GLSLType.V2F, "uv")
                 val imported = HashSet<String>()
-                val useMSAA = settingsV2.samples > 1
                 val sampleVariableName = if (useMSAA) "gl_SampleID" else null
                 val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
                 for (layer in settingsV2.layers) {
@@ -507,16 +511,14 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
         val time = Engine.gameTime
 
-        // todo if (destination is multi-sampled &&) settings is multisampled,
-        //  bind the multi-sampled textures :)
-
         // todo detect, where MSAA is applicable
         // todo and then only do computations with MSAA on those pixels
         //  - render the remaining pixels on a new FB without MSAA
         // todo we can also separate the case of 2 different fragments, just with some ratio (4x less compute/light lookups)
         // (twice as many draw calls, but hopefully less work altogether)
 
-        source.bindTrulyNearest(0)
+        // if (destination is multi-sampled &&) settings is multisampled, bind the multi-sampled textures
+        source.bindTrulyNearestMS(0)
 
         nonInstanced.forEachType { lights, type, size ->
 

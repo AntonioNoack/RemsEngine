@@ -11,6 +11,7 @@ import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mixARGB22d
 import me.anno.maths.Maths.roundDiv
+import me.anno.utils.Color.toHexColor
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.io.OutputStream
@@ -23,6 +24,12 @@ abstract class Image(
     var numChannels: Int,
     var hasAlphaChannel: Boolean
 ) : ICacheData {
+
+    override fun toString(): String {
+        return "${javaClass.name}@${
+            System.identityHashCode(this).toHexColor()
+        }[$width x $height x $numChannels${if (hasAlphaChannel) ", alpha" else ""}]"
+    }
 
     open fun getIndex(x: Int, y: Int): Int {
         val xi = clamp(x, 0, width - 1)
@@ -145,6 +152,9 @@ abstract class Image(
     }
 
     open fun resized(dstWidth: Int, dstHeight: Int): Image {
+
+        // todo add optional upscaling
+        // todo add optional padding, if the aspect ratio isn't fitting
 
         var dstWidth1 = dstWidth
         var dstHeight1 = dstHeight

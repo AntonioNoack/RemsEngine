@@ -232,8 +232,17 @@ data class DeferredSettingsV2(
         return findTexture(buffer, layer)
     }
 
+    fun findTextureMS(buffer: IFramebuffer, type: DeferredLayerType): ITexture2D? {
+        val layer = layers.firstOrNull2 { it.type == type } ?: return null
+        return findTextureMS(buffer, layer)
+    }
+
     fun findTexture(buffer: IFramebuffer, layer: Layer): ITexture2D {
         return buffer.getTextureI(layer.index)
+    }
+
+    fun findTextureMS(buffer: IFramebuffer, layer: Layer): ITexture2D {
+        return buffer.getTextureIMS(layer.index)
     }
 
     fun split(index: Int, splitSize: Int): DeferredSettingsV2 {

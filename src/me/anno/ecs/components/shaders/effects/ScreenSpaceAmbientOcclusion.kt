@@ -186,8 +186,8 @@ object ScreenSpaceAmbientOcclusion {
         enableBlur: Boolean,
     ): Framebuffer? {
         // ensure we can find the required inputs
-        val position = settingsV2.findTexture(data, DeferredLayerType.POSITION) ?: return null
-        val normal = settingsV2.findTexture(data, DeferredLayerType.NORMAL) ?: return null
+        val position = settingsV2.findTextureMS(data, DeferredLayerType.POSITION) ?: return null
+        val normal = settingsV2.findTextureMS(data, DeferredLayerType.NORMAL) ?: return null
         return calculate(position, normal, transform, radius, strength, samples, enableBlur)
     }
 

@@ -37,9 +37,9 @@ interface IFramebuffer {
 
     fun destroy()
 
-    fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer
+    fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer
 
-    fun attachFramebufferToDepth(targets: Array<TargetType>): IFramebuffer
+    fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer
 
     fun checkSession()
 
@@ -64,10 +64,16 @@ interface IFramebuffer {
     fun bindTextures(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping)
 
     fun getTexture0() = getTextureI(0)
+    fun getTexture0MS() = getTextureIMS(0)
 
     fun bindTrulyNearest(offset: Int = 0) = bindTextures(offset, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
+    fun bindTrulyNearestMS(offset: Int = 0) {
+        bindTrulyNearest(offset)
+    }
+
     fun getTextureI(index: Int): ITexture2D
+    fun getTextureIMS(index: Int): ITexture2D = getTextureI(index)
 
     val depthTexture: ITexture2D?
 

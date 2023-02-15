@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.SimpleRenderer
+import kotlin.math.min
 
 // many lights with many shadow maps would
 // - require many heavy updates
@@ -24,7 +25,7 @@ object DeferredRenderer : SimpleRenderer(
 )
 
 object DeferredRendererMSAA : SimpleRenderer(
-    "deferredMSAA", DeferredSettingsV2(findLayers(), GFX.maxSamples, true),
+    "deferredMSAA", DeferredSettingsV2(findLayers(), min(GFX.maxSamples, 8), true),
     colorRenderer.getPostProcessing()!!
 )
 

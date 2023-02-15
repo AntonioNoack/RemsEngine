@@ -2,6 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
@@ -10,6 +11,7 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.control.PlayControls
+import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
@@ -57,6 +59,10 @@ class SceneView(
 
     companion object {
 
+        fun testSceneWithUI(source: FileReference, init: ((SceneView) -> Unit)? = null) {
+            testUI { testScene(source, init) }
+        }
+
         fun testSceneWithUI(prefab: Prefab, init: ((SceneView) -> Unit)? = null) {
             testSceneWithUI(prefab.createInstance(), init)
         }
@@ -68,9 +74,14 @@ class SceneView(
         @Suppress("unused")
         fun testScene(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null): Panel {
             scene.prefabPath = Path.ROOT_PATH
-            EditorState.prefabSource = scene.ref
+            return testScene(scene.ref, init)
+        }
+
+        @Suppress("unused")
+        fun testScene(scene: FileReference, init: ((SceneView) -> Unit)? = null): Panel {
+            EditorState.prefabSource = scene
             val sceneView = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
-            PrefabInspector.currentInspector = PrefabInspector(scene.ref)
+            PrefabInspector.currentInspector = PrefabInspector(scene)
             val list = CustomList(false, DefaultConfig.style)
             list.add(ECSTreeView(EditorState, DefaultConfig.style), 1f)
             list.add(sceneView, 3f)

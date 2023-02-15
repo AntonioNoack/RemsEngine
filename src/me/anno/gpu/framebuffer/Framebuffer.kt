@@ -2,7 +2,6 @@ package me.anno.gpu.framebuffer
 
 import me.anno.Build
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.texture.Clamping
@@ -58,20 +57,14 @@ class Framebuffer(
      * this can be used to draw 3D ui without deferred-rendering,
      * but using the same depth values
      * */
-    override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer {
         return if (targetCount <= GFX.maxColorAttachments) {
-            val buffer = Framebuffer(
-                "$name.sd", w, h, samples,
-                targetCount, fpTargets, DepthBufferType.ATTACHMENT
-            )
+            val buffer = Framebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this
             buffer.ssBuffer?.depthAttachment = ssBuffer
             buffer
         } else {
-            val buffer = MultiFramebuffer(
-                "$name.msd", w, h, samples,
-                targetCount, fpTargets, DepthBufferType.ATTACHMENT
-            )
+            val buffer = MultiFramebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
             for (it in buffer.targetsI) {
                 it.depthAttachment = this
                 it.ssBuffer?.depthAttachment = ssBuffer
@@ -85,16 +78,16 @@ class Framebuffer(
      * this can be used to draw 3D ui without deferred-rendering,
      * but using the same depth values
      * */
-    override fun attachFramebufferToDepth(targets: Array<TargetType>): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
         if (depthBufferType != DepthBufferType.TEXTURE && depthBufferType != DepthBufferType.TEXTURE_16)
             throw IllegalStateException("Cannot attach depth to framebuffer without depth texture")
         return if (targets.size <= GFX.maxColorAttachments) {
-            val buffer = Framebuffer("$name.sd", w, h, samples, targets, DepthBufferType.ATTACHMENT)
+            val buffer = Framebuffer(name, w, h, samples, targets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this
             buffer.ssBuffer?.depthAttachment = ssBuffer
             buffer
         } else {
-            val buffer = MultiFramebuffer("$name.msd", w, h, samples, targets, DepthBufferType.ATTACHMENT)
+            val buffer = MultiFramebuffer(name, w, h, samples, targets, DepthBufferType.ATTACHMENT)
             for (it in buffer.targetsI) {
                 it.depthAttachment = this
                 it.ssBuffer?.depthAttachment = ssBuffer
@@ -301,7 +294,7 @@ class Framebuffer(
     ): Int {
         val renderBuffer = glGenRenderbuffers()
         glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        if (samples > 1) {
+        if (withMultisampling) {
             glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, format, w, h)
         } else {
             glRenderbufferStorage(GL_RENDERBUFFER, format, w, h)
@@ -402,14 +395,28 @@ class Framebuffer(
         if (withMultisampling) {
             val ssBuffer = ssBuffer!!
             blitTo(ssBuffer)
-            GFX.check()
             ssBuffer.bindTextures(offset, nearest, clamping)
         } else {
-            for ((index, texture) in textures.withIndex()) {
-                texture.bind(offset + index, nearest, clamping)
+            val textures = textures
+            for (i in textures.indices) {
+                textures[i].bind(offset + i, nearest, clamping)
             }
         }
         GFX.check()
+    }
+
+    override fun bindTrulyNearestMS(offset: Int) {
+        if (withMultisampling) {
+            val tex = textures
+            for (i in tex.indices) {
+                tex[i].bindTrulyNearest(offset + i)
+            }
+        } else super.bindTrulyNearestMS(offset)
+    }
+
+    override fun getTextureIMS(index: Int): ITexture2D {
+        return if (samples > 1) textures[index]
+        else super.getTextureIMS(index)
     }
 
     fun resolve() {
@@ -481,9 +488,10 @@ class Framebuffer(
 
     override fun getTextureI(index: Int): ITexture2D {
         checkSession()
-        return if (samples > 1) {
-            bindTextureI(index, 0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            ssBuffer!!.getTextureI(index)
+        return if (withMultisampling) {
+            val ssBuffer = ssBuffer!!
+            blitTo(ssBuffer)
+            ssBuffer.getTextureI(index)
         } else textures[index]
     }
 
