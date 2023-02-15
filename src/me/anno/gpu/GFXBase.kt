@@ -225,17 +225,12 @@ object GFXBase {
                 (videoMode.height() - height) / 2
             )
 
-            val buffer = ByteBuffer.allocateDirect(8)
-                .order(ByteOrder.nativeOrder())
-            val framebufferSize = buffer.asIntBuffer()
-            GLFW.nglfwGetFramebufferSize(
-                window,
-                MemoryUtil.memAddress(framebufferSize),
-                MemoryUtil.memAddress(framebufferSize) + 4
-            )
+            val w = intArrayOf(0)
+            val h = intArrayOf(1)
+            GLFW.glfwGetFramebufferSize(window, w, h)
 
-            instance.width = framebufferSize[0]
-            instance.height = framebufferSize[1]
+            instance.width = w[0]
+            instance.height = h[0]
 
             tick?.stop("Window position")
             GLFW.glfwSetWindowTitle(window, instance.title)

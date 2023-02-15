@@ -12,8 +12,7 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL20.*
-import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
+import org.lwjgl.opengl.GL21C.*
 import java.nio.FloatBuffer
 
 abstract class OpenGLShader(val name: String) : ICacheData {
@@ -82,8 +81,8 @@ abstract class OpenGLShader(val name: String) : ICacheData {
             return shader
         }*/
 
-        private fun addText(warning: StringBuilder, s0: String, idx0: Int): Int {
-            var idx = idx0
+        private fun addText(warning: StringBuilder, s0: String): Int {
+            var idx = 1
             var i = 0
             while (i < s0.length) {
                 val i0 = i
@@ -100,20 +99,20 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
 
         fun postPossibleError(shaderName: String, shader: Int, isShader: Boolean, s0: String, s1: String = "") {
-            val log = if (isShader) {
+            val log: String? = if (isShader) {
                 glGetShaderInfoLog(shader)
             } else {
                 glGetProgramInfoLog(shader)
             }
-            if (!log.isBlank2()) {
+            if (log != null && !log.isBlank2()) {
                 val warning = StringBuilder( // estimate size to prevent unnecessary allocations
                     shaderName.length + log.length + 6 + // intro line
                             s0.length + s1.length +
                             (countLines(s0) + countLines(s1)) * 6 // 4 for number, 2 for :+space
                 )
                 warning.append(log).append(" by ").append(shaderName).append("\n\n")
-                addText(warning, s0, 1)
-                addText(warning, s1, 1)
+                addText(warning, s0)
+                addText(warning, s1)
                 LOGGER.warn(warning)
                 /*LOGGER.warn( // more compact, but also needs .format(), which is costly in WASM
                     "$log by $shaderName\n\n${

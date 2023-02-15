@@ -11,6 +11,7 @@ import kotlin.concurrent.thread
 @Suppress("unused")
 object Streams {
 
+    @JvmStatic
     fun InputStream.readLine(reader: Reader, builder: StringBuilder = StringBuilder()): String? {
         var ctr = 0
         while (!Engine.shutdown) {
@@ -37,6 +38,7 @@ object Streams {
         return null
     }
 
+    @JvmStatic
     fun InputStream.listen(name: String, callback: (String) -> Unit) {
         thread(name = name) {
             // some streams always return 0 for available() :(
@@ -54,8 +56,10 @@ object Streams {
         }
     }
 
+    @JvmStatic
     fun InputStream.readText() = String(readBytes())
 
+    @JvmStatic
     fun InputStream.copy(other: OutputStream) {
         use { input ->
             other.use { output ->
@@ -67,6 +71,7 @@ object Streams {
     // the following functions are reading and writing functions for little and big endian integers and floats
     // half precision floats might be added in the future (on request maybe)
 
+    @JvmStatic
     fun InputStream.readBE16(): Int {
         val a = read()
         val b = read()
@@ -74,6 +79,7 @@ object Streams {
         return a.shl(8) + b
     }
 
+    @JvmStatic
     fun InputStream.readLE16(): Int {
         val a = read()
         val b = read()
@@ -81,6 +87,7 @@ object Streams {
         return a + b.shl(8)
     }
 
+    @JvmStatic
     fun InputStream.readLE32(): Int {
         val a = read()
         val b = read()
@@ -90,11 +97,13 @@ object Streams {
         return d.shl(24) + c.shl(16) + b.shl(8) + a
     }
 
+    @JvmStatic
     fun InputStream.readLE64(): Long {
         return readLE32().toLong().and(0xffffffff) +
                 readLE32().toLong().shl(32)
     }
 
+    @JvmStatic
     fun InputStream.readBE32(): Int {
         val a = read()
         val b = read()
@@ -104,26 +113,34 @@ object Streams {
         return a.shl(24) + b.shl(16) + c.shl(8) + d
     }
 
+    @JvmStatic
     fun InputStream.readBE64(): Long {
         return readBE32().toLong().shl(32) +
                 readBE32().toLong().and(0xffffffff)
     }
 
+    @JvmStatic
     fun InputStream.readFloatLE() = Float.fromBits(readLE32())
+    @JvmStatic
     fun InputStream.readDoubleLE() = Double.fromBits(readLE64())
+    @JvmStatic
     fun InputStream.readFloatBE() = Float.fromBits(readBE32())
+    @JvmStatic
     fun InputStream.readDoubleBE() = Double.fromBits(readBE64())
 
+    @JvmStatic
     fun OutputStream.writeBE16(a: Int) {
         write(a shr 8)
         write(a)
     }
 
+    @JvmStatic
     fun OutputStream.writeLE16(a: Int) {
         write(a)
         write(a shr 8)
     }
 
+    @JvmStatic
     fun OutputStream.writeBE32(a: Int) {
         write(a shr 24)
         write(a shr 16)
@@ -131,6 +148,13 @@ object Streams {
         write(a)
     }
 
+    @JvmStatic
+    fun OutputStream.writeBE64(a: Long) {
+        writeBE32((a shr 32).toInt())
+        writeBE32(a.toInt())
+    }
+
+    @JvmStatic
     fun OutputStream.writeLE32(a: Int) {
         write(a)
         write(a shr 8)
@@ -138,9 +162,36 @@ object Streams {
         write(a shr 24)
     }
 
+    @JvmStatic
+    fun OutputStream.writeLE64(a: Long) {
+        writeLE32(a.toInt())
+        writeLE32((a shr 32).toInt())
+    }
+
+    @JvmStatic
+    fun OutputStream.writeLE32(a: Float) {
+        writeLE32(a.toRawBits())
+    }
+
+    @JvmStatic
+    fun OutputStream.writeLE64(a: Double) {
+        writeLE64(a.toRawBits())
+    }
+
+    @JvmStatic
+    fun OutputStream.writeBE32(a: Float) {
+        writeBE32(a.toRawBits())
+    }
+
+    @JvmStatic
+    fun OutputStream.writeBE64(a: Double) {
+        writeBE64(a.toRawBits())
+    }
+
     /**
      * read a zero-terminated string, as they are commonly used in C
      * */
+    @JvmStatic
     fun InputStream.read0String(): String {
         val builder = StringBuilder()
         while (true) {
