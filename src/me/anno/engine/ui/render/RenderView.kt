@@ -39,7 +39,6 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2
-import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
@@ -67,8 +66,6 @@ import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.effects.DepthBasedAntiAliasing
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
@@ -557,18 +554,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         useFrame(w, h, true, dstBuffer0) {
                             // don't write depth
                             GFXState.depthMask.use(false) {
-                                val shader = LightPipelineStage.getPostShader(deferred)
-                                shader.use()
-                                shader.v1b("applyToneMapping", true)
-                                buffer.bindTrulyNearestMS(2)
-                                ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                                lightBuffer.getTexture0MS().bind(
-                                    shader,
-                                    "finalLight",
-                                    GPUFiltering.TRULY_NEAREST,
-                                    Clamping.CLAMP
+                                LightPipelineStage.combineLighting(
+                                    deferred, true, pipeline.ambient,
+                                    buffer, lightBuffer, ssao
                                 )
-                                flat01.draw(shader)
                             }
                         }
 
@@ -686,18 +675,16 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         useFrame(illuminated, copyRenderer) {
                             // apply lighting; don't write depth
                             GFXState.depthMask.use(false) {
-                                val shader = LightPipelineStage.getPostShader(deferred)
-                                shader.use()
-                                shader.v1b("applyToneMapping", hdr)
-                                buffer.bindTrulyNearestMS(2)
-                                whiteTexture.bindTrulyNearest(1) // ssao
-                                lightBuffer.bindTrulyNearestMS(0)
-                                flat01.draw(shader)
+                                LightPipelineStage.combineLighting(
+                                    deferred, hdr, pipeline.ambient,
+                                    buffer, lightBuffer, whiteTexture
+                                )
                             }
                         }
                         val result = ScreenSpaceReflections.compute(
                             buffer, illuminated.getTexture0(),
-                            deferred, cameraMatrix, hdr
+                            deferred, cameraMatrix, pipeline.skyBox,
+                            Vector4f(clearColor.x, clearColor.y, clearColor.z, 1f), hdr
                         )
                         drawTexture(x, y + h - 1, w, -h, result ?: buffer.getTexture0(), true, -1, null)
                         if (result == null) {
@@ -969,23 +956,16 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
             val illuminated = FBStack["", w, h, 4, true, buffer.samples, false]
             useFrame(illuminated, copyRenderer) { // apply post-processing
-
-                val shader = LightPipelineStage.getPostShader(deferred)
-                shader.use()
-                shader.v1b("applyToneMapping", false)
-                shader.v3f("ambientLight", pipeline.ambient)
-
-                buffer.bindTrulyNearestMS(2)
-                ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                lightBuffer.getTexture0MS().bindTrulyNearest(shader, "finalLight")
-
-                flat01.draw(shader)
-
+                LightPipelineStage.combineLighting(
+                    deferred, false, pipeline.ambient,
+                    buffer, lightBuffer, ssao
+                )
             }
 
             // screen space reflections
             val ssReflections = ScreenSpaceReflections.compute(
-                buffer, illuminated.getTexture0(), deferred, cameraMatrix, false
+                buffer, illuminated.getTexture0(), deferred, cameraMatrix,
+                pipeline.skyBox, Vector4f(clearColor.x, clearColor.y, clearColor.z, 1f), false
             ) ?: illuminated.getTexture0()
 
             useFrame(w, h, true, baseSameDepth) {
@@ -1008,18 +988,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                 // don't write depth
                 GFXState.depthMask.use(false) {
-
-                    val shader = LightPipelineStage.getPostShader(deferred)
-                    shader.use()
-                    shader.v1b("applyToneMapping", true)
-
-                    buffer.bindTrulyNearestMS(2)
-                    ssao.bindTrulyNearest(shader, "ambientOcclusion")
-                    lightBuffer.getTexture0MS()
-                        .bind(shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-
-                    flat01.draw(shader)
-
+                    LightPipelineStage.combineLighting(
+                        deferred, true, pipeline.ambient,
+                        buffer, lightBuffer, ssao
+                    )
                 }
 
                 drawGizmos(true)
@@ -1301,6 +1273,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     var skipClear = false
 
+    val clearColor = Vector4f()
+
     fun clearColor(
         previousCamera: Camera, camera: Camera,
         blending: Float, hdr: Boolean
@@ -1334,7 +1308,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             .rotate(tmpQ.set(prevCamRotation))
                         shader.m4x4("prevTransform", tmp1)
                     }
-                    val c = tmp4f
+                    val c = clearColor
                     c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
                     // inverse tonemapping
                     if (hdr) tonemapInvKt(c)

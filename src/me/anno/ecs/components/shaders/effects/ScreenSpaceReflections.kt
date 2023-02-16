@@ -1,5 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
+import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.useFrame
@@ -9,16 +10,20 @@ import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import org.joml.Matrix4f
+import org.joml.Vector4f
 
 // https://lettier.github.io/3d-game-shaders-for-beginners/screen-space-reflection.html
 // https://github.com/lettier/3d-game-shaders-for-beginners/blob/master/demonstration/shaders/fragment/screen-space-reflection.frag
@@ -27,34 +32,53 @@ object ScreenSpaceReflections {
     private const val testMaxDistanceRatio = 100
 
     // position + normal + metallic/reflectivity + maybe-roughness + illuminated image -> illuminated + reflections
-    val shader = lazy {
-        Shader(
-            "ss-reflections", coordsList, coordsVShader, uvList, emptyList(), "" +
+    fun createShader(sky: SkyBox?): Shader {
+        val defaultSkyColor = "vec4 getSkyColor1(vec3 pos){ return skyColor; }\n"
+        val variables = arrayListOf(
+            Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
+            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.S2D, "finalColor"),
+            Variable(GLSLType.S2D, "finalIlluminated"),
+            Variable(GLSLType.S2D, "finalPosition"),
+            Variable(GLSLType.S2D, "finalNormal"),
+            // reflectivity = metallic * (1-roughness),
+            Variable(GLSLType.S2D, "finalMetallic"),
+            Variable(GLSLType.S2D, "finalRoughness"),
+            Variable(GLSLType.V4F, "metallicMask"),
+            Variable(GLSLType.V4F, "roughnessMask"),
+            Variable(GLSLType.V1F, "testDistance"),
+            Variable(GLSLType.V1F, "maxDistanceSq"),
+            Variable(GLSLType.V1F, "resolution"),
+            Variable(GLSLType.V1I, "steps"),
+            Variable(GLSLType.V1F, "thickness"),
+            Variable(GLSLType.V1F, "maskSharpness"),
+            Variable(GLSLType.V1F, "strength"),
+            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.V4F, "skyColor"),
+        )
+        val functions = ArrayList<String>()
+        if (sky != null) {
+            val material = sky.material
+            val shader = material.shader as? SkyBox.Companion.SkyShader
+            if (shader != null) {
+                val overrides = material.shaderOverrides
+                variables.addAll(overrides.entries.map { Variable(it.value.type, it.key) })
+                val stage = shader.createFragmentStage(isInstanced = false, isAnimated = false, motionVectors = false)
+                functions.addAll(stage.functions.map { it.body })
+                functions.add("vec4 getSkyColor1(vec3 pos){ return vec4(getSkyColor(pos),1.0);\n }")
+            } else functions.add(defaultSkyColor)
+        } else functions.add(defaultSkyColor)
 
-                    "out vec4 fragColor;\n" +
+        functions.remove(noiseFunc)
+        functions.remove(tonemapGLSL)
 
-                    "uniform mat4 transform;\n" +
-                    "uniform sampler2D finalColor;\n" +
-                    "uniform sampler2D finalIlluminated;\n" +
-                    "uniform sampler2D finalPosition;\n" +
-                    "uniform sampler2D finalNormal;\n" +
-                    // reflectivity = metallic * (1-roughness)
-                    "uniform sampler2D finalMetallic;\n" +
-                    "uniform sampler2D finalRoughness;\n" +
-                    "uniform vec4 metallicMask, roughnessMask;\n" +
-
-                    "uniform float testDistance;\n" +
-                    "uniform float maxDistanceSq;\n" +
-                    "uniform float resolution;\n" +
-                    "uniform int steps;\n" +
-                    "uniform float thickness;\n" +
-                    "uniform float maskSharpness;\n" +
-                    "uniform float strength;\n" +
-
-                    "uniform bool applyToneMapping;\n" +
+        val shader = Shader(
+            "ss-reflections", coordsList, coordsVShader, uvList, variables, "" +
 
                     noiseFunc +
                     tonemapGLSL +
+
+                    functions.joinToString("\n") +
 
                     "void main() {\n" +
 
@@ -105,9 +129,9 @@ object ScreenSpaceReflections {
                     "   vec3 positionTo = vec3(0.0);\n" +
 
                     // calculate the number of pixels to the edge of the screen
-                    "   int maxLinearSteps = int(min(delta * $testMaxDistanceRatio.0, useX ? " +
-                    "       (deltaXY.x < 0.0 ? uv.x : 1.0 - uv.x) * resolution * texSize.x : " +
-                    "       (deltaXY.y < 0.0 ? uv.y : 1.0 - uv.y) * resolution * texSize.y" +
+                    "   int maxLinearSteps = int(min(delta * $testMaxDistanceRatio.0, useX ?\n" +
+                    "       (deltaXY.x < 0.0 ? uv.x : 1.0 - uv.x) * resolution * texSize.x :\n" +
+                    "       (deltaXY.y < 0.0 ? uv.y : 1.0 - uv.y) * resolution * texSize.y\n" +
                     "   ));\n" +
                     "   for (int i = 0; i <= maxLinearSteps; i++){\n" +
 
@@ -131,7 +155,9 @@ object ScreenSpaceReflections {
                     "   if(hit0 == 0){\n" +
                     "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     // debug color
-                    // "       fragColor = vec4(1,0,1,1);\n" +
+                    "       vec4 color2 = getSkyColor1(pivot) * vec4(texture(finalColor, uv).rgb, 1.0);\n" +
+                    "       color0 = mix(color0, color2.rgb, min(reflectivity * color2.a * strength, 1.0));\n" +
+                    "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     "       return;\n" +
                     "   }\n" +
 
@@ -167,39 +193,44 @@ object ScreenSpaceReflections {
                     "       return;\n" +
                     "   }\n" +
 
-                    "   float visibility = reflectivity\n" +
-                    "       * (1.0 + min(dot(normalize(positionFrom), pivot), 0.0))\n" + // [0,1]
+                    "   float visibility = \n" +
+                    "         (1.0 + min(dot(normalize(positionFrom), pivot), 0.0))\n" + // [0,1]
                     "       * (1.0 - min(bestDepth / thickness, 1.0))\n" +
                     "       * (1.0 - sqrt(distanceSq / maxDistanceSq))\n" +
                     "       * min(10.0 * (0.5 - abs(bestUV.x - 0.5)), 1.0)\n" +
                     "       * min(10.0 * (0.5 - abs(bestUV.y - 0.5)), 1.0);\n" +
 
                     // reflected position * base color of mirror (for golden reflections)
-                    "   vec3 color1 = texture(finalIlluminated, bestUV).rgb * texture(finalColor, uv).rgb;\n" +
-                    "   color0 = mix(color0, color1, min(visibility * strength, 1.0));\n" +
+                    "   vec3 color1 = texture(finalIlluminated, bestUV).rgb;\n" +
+                    "   vec4 sky = getSkyColor1(pivot);\n" +
+                    "   vec4 color2 = mix(sky, vec4(color1,1.0), visibility) * vec4(texture(finalColor, uv).rgb, 1.0);\n" +
+                    "   color0 = mix(color0, color2.rgb, min(reflectivity * color2.a * strength, 1.0));\n" +
                     "   fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     // "   fragColor = vec4(0,0,visibility,1);\n" +
                     // "   fragColor = vec4(bestUV, visibility, 1);\n" +
                     "}"
-        ).apply {
-            setTextureIndices(
-                listOf(
-                    "finalColor", "finalPosition", "finalNormal",
-                    "finalMetallic", "finalRoughness", "finalIlluminated"
-                )
-            )
-        }
+        )
+        shader.setTextureIndices(
+            "finalColor", "finalPosition", "finalNormal",
+            "finalMetallic", "finalRoughness", "finalIlluminated"
+        )
+        return shader
     }
+
+    val shaders = HashMap<SkyBox.Companion.SkyShader?, Shader>()
 
     fun compute(
         buffer: IFramebuffer,
         illuminated: ITexture2D,
         deferred: DeferredSettingsV2,
         transform: Matrix4f,
+        skyBox: SkyBox?,
+        skyColor: Vector4f,
         applyToneMapping: Boolean,
         dst: Framebuffer = FBStack["ss-reflections", buffer.w, buffer.h, 4, true, 1, false]
     ) = compute(
         buffer, illuminated, deferred, transform,
+        skyBox, skyColor,
         1f, 2f, 0.2f, 10, 8f,
         applyToneMapping, dst
     )
@@ -212,6 +243,8 @@ object ScreenSpaceReflections {
         illuminated: ITexture2D,
         deferred: DeferredSettingsV2,
         transform: Matrix4f,
+        skyBox: SkyBox?,
+        skyColor: Vector4f,
         strength: Float = 1f,
         maskSharpness: Float = 2f,
         wallThickness: Float = 0.2f,
@@ -237,7 +270,7 @@ object ScreenSpaceReflections {
             deferred.findTexture(buffer, roughnessLayer),
             roughnessMask,
             illuminated,
-            transform,
+            transform, skyBox, skyColor,
             strength, maskSharpness, wallThickness, fineSteps, maxDistance,
             applyToneMapping, dst
         ).getTexture0()
@@ -256,6 +289,8 @@ object ScreenSpaceReflections {
         roughnessMask: String,
         illuminated: ITexture2D,
         transform: Matrix4f,
+        skyBox: SkyBox?,
+        skyColor: Vector4f,
         strength: Float = 1f,
         maskSharpness: Float = 2f,
         wallThickness: Float = 0.2f,
@@ -266,8 +301,15 @@ object ScreenSpaceReflections {
     ): IFramebuffer {
         // metallic may be on r, g, b, or a
         useFrame(dst, Renderer.copyRenderer) {
-            val shader = shader.value
+            val skyShader = skyBox?.material?.shader as? SkyBox.Companion.SkyShader
+            val shader = shaders.getOrPut(skyShader) { createShader(skyBox) }
             shader.use()
+            shader.v4f("skyColor", skyColor)
+            if (skyShader != null) {
+                for ((k, v) in skyBox.material.shaderOverrides) {
+                    v.bind(shader, k)
+                }
+            }
             shader.v1b("applyToneMapping", applyToneMapping)
             shader.v1f("testDistance", maxDistance / testMaxDistanceRatio)
             shader.v1f("maxDistanceSq", maxDistance * maxDistance)

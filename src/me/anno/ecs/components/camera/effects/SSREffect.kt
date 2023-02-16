@@ -8,6 +8,7 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.utils.Color.white4
 
 class SSREffect : ToneMappedEffect() {
 
@@ -42,7 +43,7 @@ class SSREffect : ToneMappedEffect() {
                 layers[DeferredLayerType.ROUGHNESS]!!.getTexture0(),
                 format.findMapping(DeferredLayerType.ROUGHNESS)!!,
                 layers[DeferredLayerType.HDR_RESULT]!!.getTexture0(),
-                RenderState.cameraMatrix,
+                RenderState.cameraMatrix, null, white4, // todo add/support skybox
                 strength,
                 maskSharpness,
                 wallThickness,

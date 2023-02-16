@@ -344,25 +344,48 @@ class Framebuffer(
         if (pointer == 0 || (target.pointer == 0 && target != NullFramebuffer))
             throw RuntimeException("Something went wrong $this -> $target")
 
-        // LOGGER.info("Blit: $pointer -> ${target.pointer}")
         bindFramebuffer(GL_DRAW_FRAMEBUFFER, target.pointer)
         bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
-        // if(target == null) glDrawBuffer(GL_BACK)?
 
         GFX.check()
 
-        // LOGGER.info("Blit $w $h into target $target")
         var bits = 0
         if (targets.isNotEmpty()) bits = bits or GL_COLOR_BUFFER_BIT
         if (depthBufferType != DepthBufferType.NONE) bits = bits or GL_DEPTH_BUFFER_BIT
 
-        glBlitFramebuffer(
-            0, 0, w, h,
-            0, 0, w, h,
-            // we may want to add GL_STENCIL_BUFFER_BIT, if present
-            bits,
-            GL_NEAREST
-        )
+        if (targets.size > 1) {
+
+            for (i in targets.indices) {
+
+                glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
+                glReadBuffer(GL_COLOR_ATTACHMENT0 + i)
+
+                glBlitFramebuffer(
+                    0, 0, w, h,
+                    0, 0, w, h,
+                    // we may want to add GL_STENCIL_BUFFER_BIT, if present
+                    if (i == 0) bits else GL_COLOR_BUFFER_BIT, // correct???
+                    GL_NEAREST
+                )
+
+            }
+
+            // reset state, just in case
+            glDrawBuffers(GL_COLOR_ATTACHMENT0)
+            glReadBuffer(GL_COLOR_ATTACHMENT0)
+
+        } else {
+
+            glBlitFramebuffer(
+                0, 0, w, h,
+                0, 0, w, h,
+                // we may want to add GL_STENCIL_BUFFER_BIT, if present
+                bits, GL_NEAREST
+            )
+
+            GFX.check()
+
+        }
 
         GFX.check()
 

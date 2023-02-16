@@ -11,6 +11,7 @@ import me.anno.engine.ui.render.Renderers
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.M4x3Delta.m4x3x
@@ -27,6 +28,7 @@ import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.ITexture2D
 import me.anno.io.Saveable
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.Lists.any2
@@ -34,6 +36,7 @@ import me.anno.utils.structures.lists.SmallestKList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4f
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW
 
 class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
@@ -90,9 +93,23 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
         val useMSAA get() = GFXState.currentBuffer.samples > 1
 
+        fun combineLighting(
+            deferred: DeferredSettingsV2, applyToneMapping: Boolean, ambientLight: Vector3f,
+            scene: IFramebuffer, light: IFramebuffer, ssao: ITexture2D,
+        ) {
+            val shader = getPostShader(deferred)
+            shader.use()
+            shader.v1b("applyToneMapping", applyToneMapping)
+            shader.v3f("ambientLight", ambientLight)
+            scene.bindTrulyNearestMS(2)
+            ssao.bindTrulyNearest(1)
+            light.bindTrulyNearestMS(0)
+            GFX.flat01.draw(shader)
+        }
+
         fun getPostShader(settingsV2: DeferredSettingsV2): Shader {
             val useMSAA = useMSAA
-            val code = if(useMSAA) -1 else -2
+            val code = if (useMSAA) -1 else -2
             return shaderCache.getOrPut(settingsV2 to code) {
                 /*
                 * vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);
@@ -305,7 +322,8 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                             "NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
                             "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
                             // ~65k is the limit, after that only Infinity
-                            "light = vec4(clamp(mix(diffuseLight, specularLight, finalMetallic), 0.0, 16e3), 1.0);\n"
+                            "vec3 color = mix(diffuseLight, specularLight, finalMetallic);\n" +
+                            "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n"
                 )
 
                 // deferred inputs

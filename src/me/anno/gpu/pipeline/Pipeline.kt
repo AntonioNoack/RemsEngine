@@ -12,6 +12,7 @@ import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.sdf.SDFGroup
+import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -77,6 +78,8 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
     val frustum = Frustum()
 
     val ambient = Vector3f()
+
+    var skyBox: SkyBox? = null
 
     val planarReflections = ArrayList<PlanarReflection>()
 

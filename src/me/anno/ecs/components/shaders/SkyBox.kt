@@ -2,6 +2,7 @@ package me.anno.ecs.components.shaders
 
 import me.anno.Engine
 import me.anno.ecs.Component
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Range
@@ -12,6 +13,7 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
@@ -133,6 +135,17 @@ class SkyBox : MeshComponentBase() {
         materials = listOf(material.ref)
     }
 
+    override fun fill(
+        pipeline: Pipeline,
+        entity: Entity,
+        clickId: Int,
+        cameraPosition: Vector3d,
+        worldScale: Double
+    ): Int {
+        pipeline.skyBox = this
+        return super.fill(pipeline, entity, clickId, cameraPosition, worldScale)
+    }
+
     override fun onUpdate(): Int {
         val dt = Engine.deltaTime
         cirrusSpeed.mulAdd(dt, cirrusOffset, cirrusOffset)
@@ -176,8 +189,7 @@ class SkyBox : MeshComponentBase() {
 
         val mesh = Shapes.smoothCube.back
 
-        // https://github.com/shff/opengl_sky/blob/master/main.c
-        val defaultShader = object : ECSMeshShader("sky") {
+        open class SkyShader(name: String) : ECSMeshShader(name) {
 
             override fun createVertexStage(
                 isInstanced: Boolean,
@@ -256,61 +268,70 @@ class SkyBox : MeshComponentBase() {
                         Variable(GLSLType.V2F, "cumulusOffset"), // 0.3
                         Variable(GLSLType.V4F, "nadir"),
                     ), "" +
-                            "const float Br = 0.0025;\n" +
-                            "const float Bm = 0.0003;\n" +
-                            "const float g =  0.9800;\n" +
-                            "const vec3 nitrogen = vec3(0.650, 0.570, 0.475);\n" +
-                            "const vec3 Kr = Br / pow(nitrogen, vec3(4.0));\n" +
-                            "const vec3 Km = Bm / pow(nitrogen, vec3(0.84));\n" +
-
                             // sky no longer properly defined for y > 0
                             "finalNormal = normalize(-normal);\n" +
-
-                            "vec3 pos = finalNormal;\n" +
-                            "pos.y = max(pos.y, 0.0);\n" +
-                            // todo override depth
-                            // todo disable lighting
-
-                            // Atmospheric Scattering
-                            "float mu = max(dot(pos, sunDir), 0.0);\n" +
-                            "float rayleigh = 3.0 / (8.0 * 3.1416) * (1.0 + mu * mu);\n" +
-                            "vec3 mie = (Kr + Km * (1.0 - g * g) / (2.0 + g * g) / pow(1.0 + g * g - 2.0 * g * mu, 1.5)) / (Br + Bm);\n" +
-
-                            "vec3 day_extinction = exp(-exp(-((pos.y + sunDir.y * 4.0) * (exp(-pos.y * 16.0) + 0.1) / 80.0) / Br)" +
-                            " * (exp(-pos.y * 16.0) + 0.1) * Kr / Br) * exp(-pos.y * exp(-pos.y * 8.0 ) * 4.0) * exp(-pos.y * 2.0) * 4.0;\n" +
-                            "vec3 night_extinction = vec3(0.2 - exp(max(sunDir.y, 0.0)) * 0.2);\n" +
-                            "vec3 extinction = mix(clamp(day_extinction, 0.0, 1.0), night_extinction, -sunDir.y * 0.2 + 0.5);\n" +
-                            "vec3 color = rayleigh * mie * extinction;\n" +
-
-                            // Cirrus Clouds
-                            "vec2 pxz = pos.xz / max(pos.y, 0.001);\n" +
-                            "float density = smoothstep(1.0 - cirrus, 1.0, fbm(pxz * 2.0 + cirrusOffset)) * 0.3;\n" +
-                            "color = mix(color, extinction * 4.0, density * max(pos.y, 0.0));\n" +
-
-                            // Cumulus Clouds
-                            "for (int i = 0; i < 3; i++){\n" +
-                            "  float density = smoothstep(1.0 - cumulus, 1.0, fbm((0.7 + float(i) * 0.01) * pxz + cumulusOffset));\n" +
-                            "  color = mix(color, extinction * density * 5.0, min(density, 1.0) * max(pos.y, 0.0));\n" +
-                            "}\n" +
-
-                            // falloff towards downwards
-                            "if(finalNormal.y < 0.0){\n" +
-                            "   color = mix(nadir.rgb, color, exp(finalNormal.y * nadir.w));\n" +
-                            "}\n" +
-
-                            "finalNormal = -finalNormal;\n" +
                             "finalColor = vec3(0.0);\n" +
                             "finalAlpha = 1.0;\n" +
                             "finalRoughness = 1.0;\n" +
-                            "finalEmissive = color;\n" +
+                            "finalEmissive = getSkyColor(finalNormal);\n" +
+                            "finalNormal = -finalNormal;\n" +
                             "finalPosition = finalNormal * 1e20;\n"
                 )
                 stage.add(funcHash)
                 stage.add(funcNoise)
                 stage.add(funcFBM)
+                stage.add(getSkyColor())
                 return stage
             }
+
+            open fun getSkyColor(): String {
+                // https://github.com/shff/opengl_sky/blob/master/main.c
+                return "vec3 getSkyColor(vec3 pos){\n" +
+                        "vec3 pos0 = pos;\n" +
+
+                        "const float Br = 0.0025;\n" +
+                        "const float Bm = 0.0003;\n" +
+                        "const float g =  0.9800;\n" +
+                        "const vec3 nitrogen = vec3(0.650, 0.570, 0.475);\n" +
+                        "const vec3 Kr = Br / pow(nitrogen, vec3(4.0));\n" +
+                        "const vec3 Km = Bm / pow(nitrogen, vec3(0.84));\n" +
+                        "pos.y = max(pos.y, 0.0);\n" +
+
+                        // Atmospheric Scattering
+                        "float mu = max(dot(pos, sunDir), 0.0);\n" +
+                        "float rayleigh = 3.0 / (8.0 * 3.1416) * (1.0 + mu * mu);\n" +
+                        "vec3 mie = (Kr + Km * (1.0 - g * g) / ((2.0 + g * g) * pow(1.0 + g * (g - 2.0 * mu), 1.5))) / (Br + Bm);\n" +
+
+                        "vec3 day_extinction = exp(-exp(-((pos.y + sunDir.y * 4.0) * \n" +
+                        "   (exp(-pos.y * 16.0) + 0.1) / 80.0) / Br) * \n" +
+                        "   (exp(-pos.y * 16.0) + 0.1) * Kr / Br) * \n" +
+                        "   exp(-pos.y * exp(-pos.y * 8.0 ) * 4.0) * \n" +
+                        "   exp(-pos.y * 2.0) * 4.0;\n" +
+                        "vec3 night_extinction = vec3(0.2 - exp(max(sunDir.y, 0.0)) * 0.2);\n" +
+                        "vec3 extinction = mix(clamp(day_extinction, 0.0, 1.0), night_extinction, -sunDir.y * 0.2 + 0.5);\n" +
+                        "vec3 color = rayleigh * mie * extinction;\n" +
+
+                        // Cirrus Clouds
+                        "vec2 pxz = pos.xz / max(pos.y, 0.001);\n" +
+                        "float density = smoothstep(1.0 - cirrus, 1.0, fbm(pxz * 2.0 + cirrusOffset)) * 0.3;\n" +
+                        "color = mix(color, extinction * 4.0, density * max(pos.y, 0.0));\n" +
+
+                        // Cumulus Clouds
+                        "for (int i = 0; i < 3; i++){\n" +
+                        "  float density = smoothstep(1.0 - cumulus, 1.0, fbm((0.7 + float(i) * 0.01) * pxz + cumulusOffset));\n" +
+                        "  color = mix(color, extinction * density * 5.0, min(density, 1.0) * max(pos.y, 0.0));\n" +
+                        "}\n" +
+
+                        // falloff towards downwards
+                        "if(pos0.y < 0.0){\n" +
+                        "   color = mix(nadir.rgb, color, exp(pos0.y * nadir.w));\n" +
+                        "}\n" +
+                        "return color;\n" +
+                        "}"
+            }
         }
+
+        val defaultShader = SkyShader("sky")
 
     }
 

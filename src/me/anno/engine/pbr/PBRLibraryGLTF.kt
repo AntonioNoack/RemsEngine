@@ -16,7 +16,7 @@ object PBRLibraryGLTF {
             "finalRoughness = 1.0 - (1.0 - finalRoughness) * max(0.0, 1.0 - length(curvature));\n" +
             "finalRoughness = max(finalRoughness, 0.01);\n"
 
-    val maxDivisor = 1e5 // preventing divisions by zero
+    val maxDivisor = 1e-5 // preventing divisions by zero
 
     // we can extract common factors (which always appear, and never change for a pixel)
     // alpha, Dx, rp1, k, 1-k
@@ -55,7 +55,7 @@ object PBRLibraryGLTF {
             //"    float Gx = NdotL;\n" +
             // NdotL is already in the light equation, NdotV is in G
             // also we don't need two divisions, we can use one
-            "vec3 computeSpecularBRDF = (DxPi4 / min(x * x * t.x * t.y, $maxDivisor)) * F;\n"
+            "vec3 computeSpecularBRDF = (DxPi4 / max(x * x * t.x * t.y, $maxDivisor)) * F;\n"
 
     // the following functions can be used, if the color isn't yet available
     // (or you want to use one texture access less)
@@ -86,7 +86,7 @@ object PBRLibraryGLTF {
             // also we don't need two divisions, we can use one
             // to do 1. where is our bug, that we need to limit the value?
             // to do 2. why can we set the limit so high? how is it processed further?
-            "#define computeSpecularBRDF DxPi4 / min(x * x * t.x * t.y, $maxDivisor)\n"
+            "#define computeSpecularBRDF DxPi4 / max(x * x * t.x * t.y, $maxDivisor)\n"
 
     val specularBRDFv2NoColorEnd = "specularLight *= finalMetallic;\n" // * specularColor, just without color
 
