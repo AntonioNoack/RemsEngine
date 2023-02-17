@@ -40,7 +40,6 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
-// todo bug: right click doesn't show reset option
 // todo bug: instance and inspector can get out of sync: the color slider for materials stops working :/
 
 // this can be like a scene (/scene tab)

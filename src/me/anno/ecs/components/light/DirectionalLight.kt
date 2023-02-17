@@ -129,17 +129,6 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             // "           diffuseColor = vec3(val,val,dir.z);\n" + // nice for debugging
                             "           " +
                             "           lightColor *= 1.0 - edgeFactor * depthFromTex;\n" +
-                           /* "           lightColor *= 1.0 - edgeFactor * (" +
-                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy-vec2(coc,0), depthFromShader) +" +
-                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy-vec2(0,coc), depthFromShader) +" +
-                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(coc,0), depthFromShader) +" +
-                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(0,coc), depthFromShader) +" +
-                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(+coc,+coc), depthFromShader) +" +
-                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(+coc,-coc), depthFromShader) +" +
-                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(-coc,+coc), depthFromShader) +" +
-                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(-coc,-coc), depthFromShader) +" +
-                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader)" +
-                            ") * 0.111111;\n" +*/
                             "       }\n" +
                             "   }\n" +
                             "}\n"
@@ -147,7 +136,6 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     "effectiveDiffuse = lightColor;\n" +
                     "effectiveSpecular = lightColor;\n"
         }
-
 
     }
 

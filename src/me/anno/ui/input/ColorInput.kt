@@ -72,7 +72,7 @@ open class ColorInput(
     override fun setValue(value: Vector4f, notify: Boolean): ColorInput {
         previewField.color = value.toARGB()
         previewField.invalidateDrawing()
-        contentView.setRGBA(value, notify)
+        contentView.setRGBA(value, false)
         return this
     }
 
@@ -107,6 +107,9 @@ open class ColorInput(
         titleView.enableHoverColor = true
         titleView.disableFocusColors()
         contentView.setRGBA(oldValue, false)
+        contentView.setChangeRGBListener { r, g, b, a ->
+            setValue(Vector4f(r, g, b, a), true)
+        }
     }
 
     override fun calculateSize(w: Int, h: Int) {

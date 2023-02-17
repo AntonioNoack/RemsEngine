@@ -17,6 +17,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.FrameTimings
 import me.anno.ui.editor.files.Search
+import me.anno.ui.input.ColorInput
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
@@ -131,7 +132,9 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             }
 
             if (!mismatch && newPanel is InputPanel<*>) {
-                if (newPanel.isAnyChildInFocus || oldPanel.isAnyChildInFocus) {
+                if (newPanel.isAnyChildInFocus || oldPanel.isAnyChildInFocus ||
+                    (oldPanel is ColorInput && oldPanel.contentView.isAnyChildInFocus)
+                ) {
                     isInFocus = true
                     break
                 }
