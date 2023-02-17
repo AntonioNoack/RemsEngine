@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.image
 
 import me.anno.Engine
 import me.anno.gpu.GFX

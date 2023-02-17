@@ -226,7 +226,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             "SetMode(SCALE)" -> mode = Mode.SCALING
             "Cam0", "ResetCamera" -> {
                 // reset the camera
-                view.rotation.set(0.0)
+                view.rotation.identity()
                 view.position.set(0.0)
                 view.radius = 50.0
                 view.near = 1e-3

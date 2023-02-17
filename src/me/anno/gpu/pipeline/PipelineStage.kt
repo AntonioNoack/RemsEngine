@@ -31,6 +31,8 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Saveable
 import me.anno.utils.types.Matrices.set2
@@ -330,7 +332,7 @@ class PipelineStage(
                                         val texture = cascades[0].depthTexture!!
                                         // bind the texture, and don't you dare to use mipmapping ^^
                                         // (at least without variance shadow maps)
-                                        texture.bindTrulyNearest(slot)
+                                        texture.bind(slot, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
                                         cubicSlot++ // no break necessary
                                     }
                                     buffer.put(cubicSlot.toFloat()) // end index
@@ -344,7 +346,7 @@ class PipelineStage(
                                             val texture = cascades[j].depthTexture!!
                                             // bind the texture, and don't you dare to use mipmapping ^^
                                             // (at least without variance shadow maps)
-                                            texture.bindTrulyNearest(slot)
+                                            texture.bind(slot, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
                                             if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
                                         }
                                     }

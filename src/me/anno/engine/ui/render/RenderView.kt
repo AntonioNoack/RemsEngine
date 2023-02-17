@@ -11,6 +11,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
+import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.components.shaders.effects.*
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
@@ -85,7 +86,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.glfw.GLFW
@@ -132,6 +132,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     var controlScheme: ControlScheme? = null
 
+    var enableOrbiting = true
+
     // can exist (game/game mode), but does not need to (editor)
     var localPlayer: LocalPlayer? = null
 
@@ -152,7 +154,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     }
 
     val position = Vector3d()
-    val rotation = Vector3d(-20.0, 0.0, 0.0)
+    val rotation = Quaterniond()
+        .rotateX(20.0.toRadians())
 
     private val deferred = DeferredRenderer.deferredSettings!!
     private val deferredMSAA = DeferredRendererMSAA.deferredSettings!!
@@ -211,27 +214,19 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val radius = radius
         val camera = editorCamera
         val cameraNode = editorCameraNode
-        val tmpQ = JomlPools.quat4d.borrow()
-        cameraNode.transform.localRotation = rotation.toQuaternionDegrees(tmpQ)
-        camera.far = far
-        camera.near = near
-        /*if (renderMode == RenderMode.DEPTH) {
-            0.2
-        } else {
-            if (reverseDepth) radius * 1e-10
-            else radius * 1e-2
-        }*/
-
-        val rotation = cameraNode.transform.localRotation
 
         if (!position.isFinite) LOGGER.warn("Invalid position $position")
         if (!rotation.isFinite) LOGGER.warn("Invalid rotation $rotation")
 
-        val tmp3d = JomlPools.vec3d.borrow()
-        cameraNode.transform.localPosition = rotation.transform(tmp3d.set(0.0, 0.0, radius)).add(position)
-        cameraNode.validateTransform()
+        camera.far = far
+        camera.near = near
 
-        // println(cameraNode.transform.localTransform)
+        val tmp3d = JomlPools.vec3d.borrow()
+        cameraNode.transform.localPosition =
+            if (enableOrbiting) rotation.transform(tmp3d.set(0.0, 0.0, radius)).add(position)
+            else position
+        cameraNode.transform.localRotation = rotation
+        cameraNode.validateTransform()
 
     }
 
@@ -1261,7 +1256,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
          * - if we choose the normal mode, we wouldn't see it ->
          * - use the inverse mode, and discard lights that are too close instead of those that are too far
          * */
-        pipeline.lightPseudoStage.depthMode = invDepthMode
+        // todo re-enable, when we know, why the directional light doesn't like this
+        // pipeline.lightPseudoStage.depthMode = invDepthMode
     }
 
     private val depthMode
@@ -1384,6 +1380,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             for (selected in library.selection) {
                 when (selected) {
                     is Entity -> drawOutline(selected, worldScale)
+                    is SkyBox -> {}
                     is MeshComponentBase -> {
                         val mesh = selected.getMesh() ?: continue
                         drawOutline(selected, mesh, worldScale)

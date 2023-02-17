@@ -24,6 +24,7 @@ import kotlin.math.ceil
 // create a Minecraft world on a hex sphere :3
 // use chunks and a visibility system for them
 
+@Suppress("unused")
 fun testFindingSubChunks(sphere: LargeHexagonSphere, s: Int) {
 
     // visualize how the engine decides subchunks, and how we do the inverse transform
@@ -70,7 +71,7 @@ fun main() {
     val n = 2000
     val s = n / 50
     val sphere = LargeHexagonSphere(n, s)
-    val len = findLength(n) / (n + 1)
+    val len = findLength(n)
 
     val worker = ProcessingQueue("WorldGen", 4)
 
@@ -119,7 +120,6 @@ fun main() {
                             val map2 = HashMap<Long, Hexagon>(chunkSize)
                             for (hex in sc) map2[hex.index] = hex
                             sphere.ensureNeighbors(sc, map2, 1)
-                            println("$chunkSize -> ${sc.size}")
                             val indexMap = HashMap<Long, Int>(sc.size)
                             for (hex in sc) indexMap[hex.index] = indexMap.size
                             val map1i = IndexMap { index -> indexMap[index] ?: -1 }

@@ -9,7 +9,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -153,7 +153,7 @@ class ShaderGraphNode : ActionNode(
                 defineLocalVars(builder)
                 val locals = builder.toString()
                 shader = Shader(
-                    name, coordsList, simplestVertexShader, uvList,
+                    name, coordsList, coordsVShader, uvList,
                     typeValues.map { (k, v) -> Variable(v.type, k) } +
                             listOf(Variable(GLSLType.V4F, "result1", VariableMode.OUT)),
                     extraFunctions.toString() +

@@ -104,7 +104,7 @@ object LineShapes {
         // from z0 to z1; used for lights
 
         val x = (z1 - z0) * 0.15
-        val z = 2.0 * x + z1
+        val z = z1 - 2.0 * x // correct for directional lights
 
         val positions = tmpVec3d
         positions[0].set(0.0, 0.0, z0)

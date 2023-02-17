@@ -126,6 +126,36 @@ open class Texture2DArray(
         }
     }
 
+    fun create(images: Array<Image>, sync: Boolean) {
+        // todo we could detect monochrome and such :)
+        val intData = IntArray(w * h * d)
+        var i0 = 0
+        for (image in images) {
+            val data = image.createIntImage().data
+            System.arraycopy(data, 0, intData, i0, data.size)
+            i0 += data.size
+        }
+        if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
+            for (i in intData.indices) {// argb -> abgr
+                val argb = intData[i]
+                val r = argb.shr(16) and 0xff
+                val b = (argb and 0xff).shl(16)
+                intData[i] = (argb and 0xff00ff00.toInt()) or r or b
+            }
+        } else {
+            for (i in intData.indices) {// argb -> rgba
+                val argb = intData[i]
+                val a = argb.shr(24) and 255
+                val rgb = argb.and(0xffffff) shl 8
+                intData[i] = rgb or a
+            }
+        }
+        if (sync) createRGBA8(intData)
+        else GFX.addGPUTask("Texture3D.create()", w, h * d) {
+            createRGBA8(intData)
+        }
+    }
+
     fun createRGBA8(data: IntArray) {
         beforeUpload(w * 4)
         glTexImage3D(target, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)

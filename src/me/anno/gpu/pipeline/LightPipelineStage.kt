@@ -28,6 +28,8 @@ import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.Saveable
 import me.anno.maths.Maths.min
@@ -281,9 +283,9 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                         Variable(GLSLType.V4F, "data2"), // only if with shadows
                         // light maps for shadows
                         // - spotlights, directional lights
-                        Variable(GLSLType.S2D, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
+                        Variable(GLSLType.S2DShadow, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
                         // - point lights
-                        Variable(GLSLType.SCube, "shadowMapCubic", 1),
+                        Variable(GLSLType.SCubeShadow, "shadowMapCubic", 1),
                         Variable(GLSLType.V1B, "receiveShadows"),
                         // Variable(GLSLType.V3F, "finalColor"), // not really required
                         Variable(GLSLType.V3F, "finalPosition"),
@@ -599,7 +601,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                             val texture = cascades[0].depthTexture!!
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
-                            texture.bindTrulyNearest(cubicIndex0)
+                            texture.bind(cubicIndex0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
                             shadowIdx1 = 1 // end index
                         }
                     }
@@ -613,7 +615,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                             val texture = cascades[j].depthTexture!!
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
-                            texture.bindTrulyNearest(slot)
+                            texture.bind(slot, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
                             if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
                         }
                         shadowIdx1 = planarSlot // end index

@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.mesh
 
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageWriter

@@ -5,6 +5,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType

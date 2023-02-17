@@ -83,33 +83,77 @@ class MainStage {
     fun defineUniformSamplerArrayFunctions(code: StringBuilder, uniform: Variable) {
 
         val isMoreThanOne = uniform.arraySize > 1 // if there is only one value, we can optimize it
-        val isCubemap = uniform.type == GLSLType.SCube
+        val isCubemap = uniform.type == GLSLType.SCube || uniform.type == GLSLType.SCubeShadow
+        val isShadow = uniform.type == GLSLType.S2DShadow || uniform.type == GLSLType.SCubeShadow
         val name = uniform.name
 
         // base color function
-        code.append("vec4 texture_array_")
-        code.append(name)
-        code.append(
-            if (isCubemap) "(int index, vec3 uv){\n"
-            else "(int index, vec2 uv){\n"
-        )
-        if (isMoreThanOne) code.append("switch(index){\n")
-        for (index in 0 until uniform.arraySize) {
-            if (isMoreThanOne) {
-                code.append("case ")
-                code.append(index)
-                code.append(": ")
-            }
-            code.append("return texture(")
+        if (!isShadow) {
+            code.append("vec4 texture_array_")
             code.append(name)
-            code.append(index)
-            code.append(", uv);\n")
-        }
-        if (isMoreThanOne) {
-            code.append("default: return vec4(0.0);\n")
+            code.append(
+                if (isCubemap) "(int index, vec3 uv){\n"
+                else "(int index, vec2 uv){\n"
+            )
+            if (isMoreThanOne) code.append("switch(index){\n")
+            for (index in 0 until uniform.arraySize) {
+                if (isMoreThanOne) {
+                    code.append("case ")
+                    code.append(index)
+                    code.append(": ")
+                }
+                code.append("return texture(")
+                code.append(name)
+                code.append(index)
+                code.append(", uv);\n")
+            }
+            if (isMoreThanOne) {
+                code.append("default: return vec4(0.0);\n")
+                code.append("}\n")
+            }
             code.append("}\n")
+        } else {
+            // function with interpolation for depth,
+            // as sampler2DShadow is supposed to work
+            code.append("float texture_array_depth_")
+            code.append(name)
+            // todo base bias on the normal as suggested by https://digitalrune.github.io/DigitalRune-Documentation/html/3f4d959e-9c98-4a97-8d85-7a73c26145d7.htm ? :)
+            if (isCubemap) {
+                code.append("(int index, vec3 uv, float depth){\n")
+                code.append("float bias = 0.005;\n")
+                code.append("vec4 uvw = vec4(uv,depth+bias);\n")
+                if (isMoreThanOne) code.append("switch(index){\n")
+                for (index in 0 until uniform.arraySize) {
+                    val nameIndex = name + index.toString()
+                    if (isMoreThanOne) code.append("case ").append(index).append(": ")
+                    code.append("return texture(").append(nameIndex).append(", uvw);\n")
+                }
+                if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
+                code.append("}\n")
+            } else {
+                code.append("(int index, vec2 uv, float depth){\n")
+                code.append("float bias = 0.001;\n")
+                code.append("vec3 uvw = vec3(uv*.5+.5,depth+bias);\n")
+                code.append("ivec2 size;float sum,du;\n")
+                if (isMoreThanOne) code.append("switch(index){\n")
+                for (index in 0 until uniform.arraySize) {
+                    val nameIndex = name + index.toString()
+                    if (isMoreThanOne) code.append("case ").append(index).append(":\n")
+                    code.append("" +
+                            // 5x5 percentage closer filtering for prettier results
+                            "size = textureSize($nameIndex,0);\n" +
+                            "du = 1.0/float(size.x);\n" +
+                            "for(int j=-2;j<=2;j++){\n" +
+                            "   for(int i=-2;i<=2;i++){\n" +
+                            "       sum += texture($nameIndex, uvw+du*vec3(i,j,0.0));\n" +
+                            "   }\n" +
+                            "}\n" +
+                            "return sum * 0.04;\n")
+                }
+                if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
+                code.append("}\n")
+            }
         }
-        code.append("}\n")
 
         // texture size function
         code.append("ivec2 texture_array_size_")
@@ -132,82 +176,6 @@ class MainStage {
             code.append("}\n")
         }
         code.append("}\n")
-
-        // function with interpolation for depth,
-        // as sampler2DShadow is supposed to work
-        code.append("float texture_array_depth_")
-        code.append(name)
-        if (isCubemap) {
-            code.append("(int index, vec3 uv, float depth){\n")
-            code.append("float d0;\n")
-            if (isMoreThanOne) code.append("switch(index){\n")
-            for (index in 0 until uniform.arraySize) {
-                val nameIndex = name + index.toString()
-                if (isMoreThanOne) {
-                    code.append("case ")
-                    code.append(index)
-                    code.append(": ")
-                }
-                // interpolation? we would need to know the side, and switch case on that
-                code.append("d0=texture(").append(nameIndex).append(", uv).r;")
-                code.append(if (isMoreThanOne) "break;\n" else '\n')
-            }
-            if (isMoreThanOne) {
-                code.append("default: return 0.0;\n")
-                code.append("}\n")
-            }
-            code.append(
-                "" +
-                        // depth bias
-                        // dynamic bias is hard...
-                        // todo base it on the normal as suggested by https://digitalrune.github.io/DigitalRune-Documentation/html/3f4d959e-9c98-4a97-8d85-7a73c26145d7.htm ? :)
-                        "depth += 0.005;\n" +
-                        "return float(d0>depth);\n"
-            )
-            code.append("}\n")
-        } else {
-            // todo implement percentage closer filtering for prettier results
-            code.append("(int index, vec2 uv, float depth){\n")
-            code.append("int size;vec2 f;float d,d0,d1,d2,d3,fSize;uv=uv*.5+.5;\n")
-            if (isMoreThanOne) code.append("switch(index){\n")
-            for (index in 0 until uniform.arraySize) {
-                val nameIndex = name + index.toString()
-                if (isMoreThanOne) {
-                    code.append("case ").append(index).append(":\n")
-                }
-                code.append(
-                    "" +
-                            "size = textureSize($nameIndex,0).x;\n" +
-                            "fSize = float(size);\n" +
-                            "d = 1.0/fSize;\n" +
-                            "f = fract(uv*fSize);\n" +
-                            "d0=texture($nameIndex, uv          ).r;\n" +
-                            "d1=texture($nameIndex, uv+vec2(0,d)).r;\n" +
-                            "d2=texture($nameIndex, uv+vec2(d,0)).r;\n" +
-                            "d3=texture($nameIndex, uv+vec2(d,d)).r;\n"
-
-                )
-                if (isMoreThanOne) {
-                    code.append("break;\n")
-                }
-            }
-            if (isMoreThanOne) {
-                code.append("default: return 0.0;\n}\n")
-            }
-            code.append(
-                "" +
-                        // depth bias
-                        // dynamic bias is hard...
-                        "depth += 0.005;\n" +
-                        "return mix(mix(" +
-                        "   float(d0>depth),\n" +
-                        "   float(d1>depth),\n" +
-                        "f.y), mix(\n" +
-                        "   float(d2>depth),\n" +
-                        "   float(d3>depth),\n" +
-                        "f.y), f.x);\n}\n"
-            )
-        }
     }
 
     fun createCode(
@@ -272,8 +240,8 @@ class MainStage {
         // define all required functions
         // todo find dependencies, if possible, and order them
         // work-around: like in C, declare the function header, and then GLSL will find the dependency by itself :)
-        for ((_, func) in functions) code.append(func)
-        if (functions.isNotEmpty()) code.append('\n')
+        for (func in functions2) code.append(func)
+        if (functions2.isNotEmpty()) code.append('\n')
 
         // for all uniforms, which are sampler arrays, define the appropriate access function
         for (uniform in uniforms) {
@@ -399,16 +367,18 @@ class MainStage {
         return code.toString()
     }
 
-    val functions = HashMap<String, String>()
+    val functions1 = HashSet<String>()
+    val functions2 = ArrayList<String>()
 
     private fun defineFunction(function: Function) {
         val key = function.header.ifBlank2(function.body)
-        val value = function.body
-        val previous = functions[key]
-        if (previous != null && previous != value) {
-            LOGGER.warn("Overriding shader function! key $key")
+        val previous = key in functions1
+        if (previous) {
+            if (function.body !in functions2)
+                LOGGER.warn("Overriding shader function! $key")
+            return
         }
-        functions[key] = function.body
+        functions2.add(function.body)
     }
 
     companion object {

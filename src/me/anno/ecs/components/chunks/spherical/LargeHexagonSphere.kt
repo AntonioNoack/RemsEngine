@@ -32,7 +32,7 @@ class LargeHexagonSphere(
     val j0l = n * 0.5f
 
     // todo findLength() is experimental for n > 500, add data points
-    val len = HexagonSphere.findLength(n) / (n + 1) // +1 for extra lines at the edges
+    val len = HexagonSphere.findLength(n)
 
     init {
         if (t * s != n) throw IllegalArgumentException()
@@ -250,9 +250,7 @@ class LargeHexagonSphere(
                 }
             }
         }
-        println("   [$d] $size -> ${all.size}")
         // todo remove items, that are done
-        // todo sort neighbors by angle on the local plane
         if (d > 0) {
             ensureNeighbors(all, hexMap, d - 1)
         }

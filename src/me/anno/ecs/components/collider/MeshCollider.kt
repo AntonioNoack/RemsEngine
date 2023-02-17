@@ -38,6 +38,8 @@ open class MeshCollider() : Collider() {
         meshFile = src
     }
 
+    constructor(src: Mesh) : this(src.ref)
+
     @SerializedProperty
     override var isConvex = true
 

@@ -174,7 +174,7 @@ fun createNiceMesh1(
     mesh.normals = mesh.normals.resize(3 * numPositions)
     mesh.color0 = colors
 
-    val len = findLength(n) / (n + 1)
+    val len = findLength(n)
     val insetY1 = 0.5f * insetY * len
 
     val query = Vector3f()

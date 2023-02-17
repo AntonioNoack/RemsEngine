@@ -54,7 +54,7 @@ interface ExpressionRenderer {
                     val variables = typeValues.map { (k, v) -> Variable(v.type, k) } +
                             listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT))
                     shader = Shader(
-                        "ExpressionRenderer", ShaderLib.coordsList, ShaderLib.simplestVertexShader,
+                        "ExpressionRenderer", ShaderLib.coordsList, ShaderLib.coordsVShader,
                         ShaderLib.uvList, variables, extraFunctions.toString() +
                                 builder.toString() +
                                 "void main(){\n" +

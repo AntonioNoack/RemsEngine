@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.maths
 
 import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths.mix
@@ -18,7 +18,7 @@ fun calcRelativeDensity(rand: Float, rayX: Float): Float {
 
 fun main() {
 
-    // todo there still is a small systematic difference... where is it coming from?
+    // to do there still is a small systematic difference... where is it coming from?
 
     // create a nice image from it
 

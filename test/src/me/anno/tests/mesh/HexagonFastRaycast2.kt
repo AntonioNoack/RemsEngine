@@ -88,7 +88,7 @@ fun main() {
         } else {
             node as HexLeaf
             // todo these are not reacting for large distances
-            MeshCollider(meshes[node.index].ref)
+            MeshCollider(meshes[node.index])
         }
     }
 

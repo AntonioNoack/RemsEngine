@@ -31,6 +31,7 @@ import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Quaternions.fromDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
@@ -145,15 +146,22 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
 
     // less than 90, so we always know forward when computing movement
     val limit = 90.0 - 0.001
-    val rotationTarget = Vector3d(view.rotation)
+    val rotationTarget = view.rotation.getEulerAnglesYXZ(Vector3d())
 
     override fun onUpdate() {
         super.onUpdate()
-        if (view.rotation.distanceSquared(rotationTarget) > 1e-4) {
-            view.rotation.lerp(rotationTarget, Maths.dtTo01(deltaTime * 25.0))
-            view.updateEditorCameraTransform()
-            invalidateDrawing()
-        }
+        updateViewRotation()
+    }
+
+    open fun updateViewRotation() {
+        val tmp = Quaterniond()
+            .identity()
+            .rotateY(rotationTarget.y.toRadians())
+            .rotateX(rotationTarget.x.toRadians())
+            .rotateZ(rotationTarget.z.toRadians())
+        view.rotation.slerp(tmp, Maths.dtTo01(deltaTime * 25.0))
+        view.updateEditorCameraTransform()
+        invalidateDrawing()
     }
 
     fun rotateCameraTo(vx: Float, vy: Float, vz: Float) =
@@ -165,7 +173,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
 
     fun rotateCameraTo(v: Vector3f) = rotateCameraTo(v.x, v.y, v.z)
 
-    fun rotateCamera(vx: Float, vy: Float, vz: Float) {
+    open fun rotateCamera(vx: Float, vy: Float, vz: Float) {
         rotateCameraTo(clamp(rotationTarget.x + vx, -limit, +limit), rotationTarget.y + vy, rotationTarget.z + vz)
     }
 
@@ -295,7 +303,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
 
     open fun moveCamera(dx: Double, dy: Double, dz: Double) {
         val normXZ = !Input.isShiftDown // todo use UI toggle instead
-        val r = view.rotation
+        val r = rotationTarget
         val y = r.y * fromDegrees
         if (normXZ) {
             val c = cos(y)

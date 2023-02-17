@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.image
 
 import me.anno.image.ImageCPUCache
 import me.anno.io.files.FileReference.Companion.getReference

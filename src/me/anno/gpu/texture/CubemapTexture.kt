@@ -8,15 +8,8 @@ import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
-import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL11C.*
-import org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE
-import org.lwjgl.opengl.GL12C.GL_TEXTURE_WRAP_R
-import org.lwjgl.opengl.GL13C.GL_TEXTURE_CUBE_MAP
-import org.lwjgl.opengl.GL13C.GL_TEXTURE_CUBE_MAP_POSITIVE_X
-import org.lwjgl.opengl.GL14C.GL_DEPTH_COMPONENT16
-import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL30C.*
 import java.nio.ByteBuffer
 
 // can be used e.g. for game engine for environment & irradiation maps
@@ -135,7 +128,7 @@ class CubemapTexture(
     fun create(type: TargetType) {
         beforeUpload(0, 0)
         val size = size
-        OpenGLBuffer.bindBuffer(GL30.GL_PIXEL_UNPACK_BUFFER, 0)
+        OpenGLBuffer.bindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
         for (i in 0 until 6) {
             glTexImage2D(
                 getTarget(i), 0, type.internalFormat, size, size,
@@ -196,11 +189,11 @@ class CubemapTexture(
 
     private fun filtering(nearest: GPUFiltering) {
         if (!hasMipmap && nearest.needsMipmap && samples <= 1) {
-            GL30.glGenerateMipmap(target)
+            glGenerateMipmap(target)
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {
                 val anisotropy = GFX.anisotropy
-                glTexParameteri(target, GL30.GL_TEXTURE_LOD_BIAS, 0)
+                glTexParameteri(target, GL_TEXTURE_LOD_BIAS, 0)
                 glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
@@ -214,6 +207,20 @@ class CubemapTexture(
         // ensure being bound?
         if (nearest != this.filtering) filtering(nearest)
     }
+
+    var depthFunc = 0
+        set(value) {
+            if (field != value) {
+                field = value
+                bindBeforeUpload()
+                if (value != 0) {
+                    glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE)
+                    glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value)
+                } else {
+                    glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_NONE)
+                }
+            }
+        }
 
     fun reset() {
         isDestroyed = false

@@ -100,10 +100,10 @@ object Renderers {
                     Variable(GLSLType.V4F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
                     Variable(GLSLType.V4F, "shadowData", RenderView.MAX_FORWARD_LIGHTS),
                     // light maps for shadows
-                    // - spot lights, directional lights
-                    Variable(GLSLType.S2D, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
+                    // - spotlights, directional lights
+                    Variable(GLSLType.S2DShadow, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
                     // - point lights
-                    Variable(GLSLType.SCube, "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
+                    Variable(GLSLType.SCubeShadow, "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
                     // reflection plane for rivers or perfect mirrors
                     Variable(GLSLType.V1B, "hasReflectionPlane"),
                     Variable(GLSLType.S2D, "reflectionPlane"),

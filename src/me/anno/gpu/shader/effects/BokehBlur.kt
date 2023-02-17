@@ -12,7 +12,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -128,7 +128,7 @@ object BokehBlur {
         val varyingShader = listOf(Variable(GLSLType.V2F, "uv"))
 
         perChannelShader = Shader(
-            "bokeh-perChannel", coordsList, simplestVertexShader, varyingShader,
+            "bokeh-perChannel", coordsList, coordsVShader, varyingShader,
             listOf(
                 Variable(GLSLType.V2F, "stepVal"),// 1/resolution
                 Variable(GLSLType.S2D, "image"),
@@ -153,7 +153,7 @@ object BokehBlur {
         ).apply { setTextureIndices("filterTexture", "image") }
 
         compositionShader = Shader(
-            "bokeh-composition", coordsList, simplestVertexShader,
+            "bokeh-composition", coordsList, coordsVShader,
             varyingShader, listOf(
                 Variable(GLSLType.V2F, "stepVal"),// 1/resolution
                 Variable(GLSLType.V1I, "radius"),

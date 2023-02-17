@@ -1035,8 +1035,23 @@ open class Texture2D(
         }
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering.mag)
+        // todo only set this, if it is a depth texture
         this.filtering = filtering
     }
+
+    var depthFunc = 0
+        set(value) {
+            if (field != value) {
+                field = value
+                bindBeforeUpload()
+                if (value != 0) {
+                    glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE)
+                    glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value)
+                } else {
+                    glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_NONE)
+                }
+            }
+        }
 
     var hasMipmap = false
 

@@ -22,9 +22,12 @@ import me.anno.gpu.shader.Renderer
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
+import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
+import org.lwjgl.opengl.GL11C.GL_GREATER
+import org.lwjgl.opengl.GL11C.GL_LESS
 import kotlin.math.pow
 
 abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
@@ -38,7 +41,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     // black lamp light?
     @Type("Color3HDR")
     @SerializedProperty
-    var color: Vector3f = Vector3f(1f)
+    var color = Vector3f(1f)
 
     @Range(0.0, 16.0)
     var shadowMapCascades = 0
@@ -57,6 +60,9 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     @SerializedProperty
     var shadowMapPower = 4.0
     var shadowMapResolution = 1024
+        set(value) {
+            field = max(1, value)
+        }
 
     val hasShadow get() = shadowMapCascades > 0
 
@@ -100,6 +106,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     var samples = 1
 
+    var depthFunc = GL_LESS
+
     fun ensureShadowBuffers() {
         if (hasShadow) {
             // only a single one is supported,
@@ -118,20 +126,26 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                     it.destroy()
                 }
                 // we currently use a depth bias of 0.005,
-                // which is equal to ~ 1/255
-                // so a 8 bit depth buffer would be enough
+                // which is equal to ~ 1/255,
+                // so an 8 bit depth buffer would be enough
                 val depthBufferType = DepthBufferType.TEXTURE_16
                 this.shadowTextures = Array(targetSize) {
                     if (isPointLight) {
                         CubemapFramebuffer(
                             "ShadowCubemap[$it]", resolution, samples, 0,
                             false, depthBufferType
-                        )
+                        ).apply {
+                            ensure()
+                            depthTexture!!.depthFunc = depthFunc
+                        }
                     } else {
                         Framebuffer(
                             "Shadow[$it]", resolution, resolution, samples, 0,
                             false, depthBufferType
-                        )
+                        ).apply {
+                            ensure()
+                            depthTexture!!.depthFunc = depthFunc
+                        }
                     }
                 }
             }

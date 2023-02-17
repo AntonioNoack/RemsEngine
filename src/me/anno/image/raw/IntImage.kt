@@ -63,6 +63,17 @@ open class IntImage(
         }
     }
 
+    override fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {
+        val result = IntImage(w0, h0, hasAlphaChannel)
+        val src = data
+        val dst = result.data
+        val width = width
+        for (y in 0 until h0) {
+            System.arraycopy(src, x0 + (y0 + y) * width, dst, y * w0, w0)
+        }
+        return result
+    }
+
     fun cloneData(): IntArray {
         val clone = Texture2D.intArrayPool[data.size, false, true]
         System.arraycopy(data, 0, clone, 0, data.size)

@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.maths
 
 import me.anno.maths.ContinuousMedian
 import me.anno.maths.Maths

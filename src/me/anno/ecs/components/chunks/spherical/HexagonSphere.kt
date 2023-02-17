@@ -144,7 +144,7 @@ object HexagonSphere {
         val ac = Vector3f()
 
         // could probably be calculated with some sqrt
-        val len = findLength(n) / (n + 1) // +1 for extra lines at the edges
+        val len = findLength(n)
 
         fun connect(a: Hexagon, bi: Int) {
             val b = hexagons[bi]
@@ -385,6 +385,10 @@ object HexagonSphere {
     )
 
     fun findLength(n: Int): Float {
+        return findLength0(n) / (n + 1)
+    }
+
+    private fun findLength0(n: Int): Float {
         if (n < 0) throw IllegalArgumentException()
         val bi = lengthI.binarySearch(n)
         if (bi >= 0) return lengthF[bi]

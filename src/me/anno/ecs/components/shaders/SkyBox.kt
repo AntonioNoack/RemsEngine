@@ -7,11 +7,14 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV3
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.RayHit
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
@@ -25,12 +28,18 @@ import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.joml.*
+import kotlin.math.max
 
 class SkyBox : MeshComponentBase() {
 
     // todo make this a light, such that all things can be lighted from it
 
     // todo override raytracing for clicking: if ray goes far enough, let it click us
+
+    init {
+        castShadows = false
+        receiveShadows = false
+    }
 
     @SerializedProperty
     var shader
@@ -44,7 +53,7 @@ class SkyBox : MeshComponentBase() {
 
     @SerializedProperty
     var sunRotation = Quaternionf()
-        .rotateX(45f.toRadians()) // 45° from zenith
+        .rotateX((-45f).toRadians()) // 45° from zenith
         .rotateZ(90f.toRadians()) // 90° from sunset, so noon
         set(value) {
             field.set(value)
@@ -62,14 +71,14 @@ class SkyBox : MeshComponentBase() {
 
     @Group("Cirrus")
     @SerializedProperty
-    var cirrusOffset = Vector2f()
+    var cirrusOffset = Vector3f()
         set(value) {
             field.set(value)
         }
 
     @Group("Cirrus")
     @SerializedProperty
-    var cirrusSpeed = Vector2f(0.005f, 0f)
+    var cirrusSpeed = Vector3f(0.005f, 0f, 0f)
         set(value) {
             field.set(value)
         }
@@ -81,14 +90,14 @@ class SkyBox : MeshComponentBase() {
 
     @Group("Cumulus")
     @SerializedProperty
-    var cumulusOffset = Vector2f()
+    var cumulusOffset = Vector3f()
         set(value) {
             field.set(value)
         }
 
     @Group("Cumulus")
     @SerializedProperty
-    var cumulusSpeed = Vector2f(0.03f, 0f)
+    var cumulusSpeed = Vector3f(0.03f, 0f, 0f)
         set(value) {
             field.set(value)
         }
@@ -117,23 +126,47 @@ class SkyBox : MeshComponentBase() {
         }
 
     @SerializedProperty
-    var sunBaseDir = Vector3f(1f, 0f, 0f)
+    var sunBaseDir = Vector3f(0f, 0f, 1f) // like directional lights
         set(value) {
             field.set(value).safeNormalize()
         }
+
+    @SerializedProperty
+    var worldRotation = Quaternionf()
+        set(value) {
+            field.set(value)
+        }
+
+    @SerializedProperty
+    var spherical = false
 
     init {
         material.shader = defaultShader
         material.shaderOverrides["cirrus"] = TypeValue(GLSLType.V1F) { cirrus }
         material.shaderOverrides["cumulus"] = TypeValue(GLSLType.V1F) { cumulus }
         material.shaderOverrides["nadir"] = TypeValue(GLSLType.V4F, nadir)
-        material.shaderOverrides["cirrusOffset"] = TypeValue(GLSLType.V2F, cirrusOffset)
-        material.shaderOverrides["cumulusOffset"] = TypeValue(GLSLType.V2F, cumulusOffset)
+        material.shaderOverrides["cirrusOffset"] = TypeValue(GLSLType.V3F, cirrusOffset)
+        material.shaderOverrides["cumulusOffset"] = TypeValue(GLSLType.V3F, cumulusOffset)
+        material.shaderOverrides["worldRot"] = TypeValue(GLSLType.V4F, worldRotation)
+        material.shaderOverrides["sphericalSky"] = TypeValue(GLSLType.V1B) { spherical }
         material.shaderOverrides["sunDir"] = TypeValueV3(GLSLType.V3F, Vector3f()) {
             it.set(sunBaseDir).rotate(sunRotation)
         }
         materials = listOf(material.ref)
     }
+
+    override fun hasRaycastType(typeMask: Int) = false
+    override fun raycast(
+        entity: Entity,
+        start: Vector3d,
+        direction: Vector3d,
+        end: Vector3d,
+        radiusAtOrigin: Double,
+        radiusPerUnit: Double,
+        typeMask: Int,
+        includeDisabled: Boolean,
+        result: RayHit
+    ) = false
 
     override fun fill(
         pipeline: Pipeline,
@@ -161,6 +194,19 @@ class SkyBox : MeshComponentBase() {
         return true
     }
 
+    fun applyOntoSun(sun: Entity, sun1: DirectionalLight, brightness: Float) {
+        // only works if sunBaseDir is 1.0
+        val sunDir = Vector3f(sunBaseDir).rotate(sunRotation)
+        val sr = sunRotation
+        val wr = worldRotation
+        sun.rotation = sun.rotation
+            .set(sr.x.toDouble(), sr.y.toDouble(), sr.z.toDouble(), sr.w.toDouble())
+            .mul(wr.x.toDouble(), wr.y.toDouble(), wr.z.toDouble(), wr.w.toDouble()) // todo correct order... not working
+        // todo set color based on angle, including red in the twilight
+        sun1.color.set(brightness * max(sunDir.y, 0f))
+        sun.transform.teleportUpdate()
+    }
+
     override fun clone(): Component {
         val clone = SkyBox()
         copy(clone)
@@ -180,6 +226,7 @@ class SkyBox : MeshComponentBase() {
         clone.cirrusSpeed = cirrusSpeed
         clone.cirrusOffset = cirrusOffset
         clone.nadir = nadir
+        clone.worldRotation = worldRotation
         clone.sunSpeed.set(sunSpeed)
     }
 
@@ -264,19 +311,22 @@ class SkyBox : MeshComponentBase() {
                         Variable(GLSLType.V3F, "sunDir"),
                         Variable(GLSLType.V1F, "cirrus"), // 0.4
                         Variable(GLSLType.V1F, "cumulus"), // 0.8
-                        Variable(GLSLType.V2F, "cirrusOffset"), // 0.05
-                        Variable(GLSLType.V2F, "cumulusOffset"), // 0.3
+                        Variable(GLSLType.V3F, "cirrusOffset"), // 0.05
+                        Variable(GLSLType.V3F, "cumulusOffset"), // 0.3
                         Variable(GLSLType.V4F, "nadir"),
+                        Variable(GLSLType.V4F, "worldRot"),
+                        Variable(GLSLType.V1B, "sphericalSky")
                     ), "" +
                             // sky no longer properly defined for y > 0
                             "finalNormal = normalize(-normal);\n" +
                             "finalColor = vec3(0.0);\n" +
                             "finalAlpha = 1.0;\n" +
                             "finalRoughness = 1.0;\n" +
-                            "finalEmissive = getSkyColor(finalNormal);\n" +
+                            "finalEmissive = getSkyColor(quatRot(finalNormal, worldRot));\n" +
                             "finalNormal = -finalNormal;\n" +
                             "finalPosition = finalNormal * 1e20;\n"
                 )
+                stage.add(quatRot)
                 stage.add(funcHash)
                 stage.add(funcNoise)
                 stage.add(funcFBM)
@@ -312,7 +362,7 @@ class SkyBox : MeshComponentBase() {
                         "vec3 color = rayleigh * mie * extinction;\n" +
 
                         // Cirrus Clouds
-                        "vec2 pxz = pos.xz / max(pos.y, 0.001);\n" +
+                        "vec3 pxz = sphericalSky ? pos0 : vec3(pos.xz / max(pos.y, 0.001), 0.0);\n" +
                         "float density = smoothstep(1.0 - cirrus, 1.0, fbm(pxz * 2.0 + cirrusOffset)) * 0.3;\n" +
                         "color = mix(color, extinction * 4.0, density * max(pos.y, 0.0));\n" +
 

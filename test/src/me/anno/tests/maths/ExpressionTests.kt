@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.maths
 
 import me.anno.parser.SimpleExpressionParser
 import kotlin.math.abs

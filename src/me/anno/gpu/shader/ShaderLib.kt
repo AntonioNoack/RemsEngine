@@ -51,12 +51,6 @@ object ShaderLib {
     const val simplestVertexShader = "" +
             "void main(){\n" +
             "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
-            "   uv = coords;\n" +
-            "}"
-
-    const val simplestVertexShader2 = "" +
-            "void main(){\n" +
-            "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
             "}"
 
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))

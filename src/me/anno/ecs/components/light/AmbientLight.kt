@@ -12,7 +12,7 @@ import org.joml.Vector3f
 class AmbientLight : LightComponentBase() {
 
     @Type("Color3HDR")
-    var color = Vector3f(0.1f)
+    var color = Vector3f(0.5f)
 
     override fun fill(
         pipeline: Pipeline,

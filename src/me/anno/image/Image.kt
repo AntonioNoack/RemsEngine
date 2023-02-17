@@ -240,7 +240,7 @@ abstract class Image(
     /**
      * for debugging and easier seeing pixels
      * */
-    fun scaleUp(sx: Int, sy: Int): Image {
+    open fun scaleUp(sx: Int, sy: Int): Image {
         return object : Image(width * sx, height * sy, numChannels, hasAlphaChannel) {
             override fun getRGB(index: Int): Int {
                 val x = (index % this.width) / sx
@@ -248,6 +248,32 @@ abstract class Image(
                 return this@Image.getRGB(x, y)
             }
         }
+    }
+
+    open fun split(sx: Int, sy: Int): Array<Image> {
+        return Array(sx * sy) {
+            val ix = it % sx
+            val iy = it / sx
+            val x0 = ix * width / sx
+            val x1 = (ix + 1) * width / sx
+            val y0 = iy * height / sy
+            val y1 = (iy + 1) * height / sy
+            cropped(x0, y0, x1 - x0, y1 - y0)
+        }
+    }
+
+    open fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {
+        if (x0 + w0 > width || y0 + h0 > height)
+            throw IllegalArgumentException("Cannot crop $x0+=$w0,$y0+=$h0 from ${width}x${height}")
+        val result = IntImage(w0, h0, hasAlphaChannel)
+        val data = result.data
+        val width = width
+        for (y in 0 until h0) {
+            for (x in 0 until w0) {
+                data[x + y * w0] = getRGB((x + x0) + (y + y0) * width)
+            }
+        }
+        return result
     }
 
     var ref: FileReference = InvalidRef

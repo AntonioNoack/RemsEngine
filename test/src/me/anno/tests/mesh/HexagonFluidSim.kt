@@ -139,7 +139,7 @@ fun main() {
         initialHeight.destroy()
 
         val shader = Shader(
-            "fluid", ShaderLib.coordsList, ShaderLib.simplestVertexShader, uvList,
+            "fluid", ShaderLib.coordsList, ShaderLib.coordsVShader, uvList,
             listOf(
                 Variable(GLSLType.V1I, "totalSize"),
                 Variable(GLSLType.V2I, "size"),

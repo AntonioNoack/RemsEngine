@@ -35,9 +35,11 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
+import org.joml.Quaterniond
 import org.joml.Vector3d
 
 // todo darken panels when in play-testing mode
@@ -69,14 +71,16 @@ class ECSSceneTab(
     // different tabs have different "cameras"
     var radius = 50.0
     var position = Vector3d()
-    var rotation = Vector3d(-20.0, 0.0, 0.0)
+    var rotation = Quaterniond()
+        .rotateX(20.0.toRadians())
 
     var isFirstTime = true
 
     override fun getCursor() = Cursor.hand
 
     private fun resetCamera(root: PrefabSaveable) {
-        rotation.set(-20.0, 0.0, 0.0)
+        rotation.identity()
+            .rotateX(20.0.toRadians())
         when (root) {
             is MeshComponentBase -> {
                 root.ensureBuffer()
