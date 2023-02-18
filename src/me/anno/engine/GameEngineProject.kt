@@ -1,6 +1,5 @@
 package me.anno.engine
 
-import javafx.scene.Scene
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.PlayMode
