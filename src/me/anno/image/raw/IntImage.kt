@@ -5,12 +5,15 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
+import me.anno.maths.Maths
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.a01
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
+import kotlin.math.abs
 import kotlin.math.floor
 
 open class IntImage(
@@ -50,10 +53,7 @@ open class IntImage(
                 mixRGB(x0, y1, rgb, fx * gy)
                 mixRGB(x1, y0, rgb, gx * fy)
                 mixRGB(x1, y1, rgb, gx * gy)
-            } else {
-                println("$x -> ${posMod(x, width.toFloat())}, $y -> ${posMod(y, height.toFloat())}")
-                mixRGB(posMod(x, width.toFloat()), posMod(y, height.toFloat()), rgb, alpha, clamping)
-            }
+            } else mixRGB(posMod(x, width.toFloat()), posMod(y, height.toFloat()), rgb, alpha, clamping)
             Clamping.CLAMP -> if (x in -1f..width.toFloat() && y in -1f..height.toFloat()) {
                 val xf = floor(x)
                 val yf = floor(y)
@@ -77,6 +77,16 @@ open class IntImage(
     fun mixRGB(x: Int, y: Int, rgb: Int, alpha: Float) {
         val i = x + y * width
         data[i] = mixARGB(data[i], rgb, alpha)
+    }
+
+    fun drawLine(x0: Float, y0: Float, x1: Float, y1: Float, color: Int, alpha: Float = color.a01()) {
+        val len = max(1, max(abs(x0 - x1), abs(y0 - y1)).toInt())
+        for (i in 0..len) {
+            val f = i.toFloat() / len
+            val lx = Maths.mix(x0, x1, f)
+            val ly = Maths.mix(y0, y1, f)
+            mixRGB(lx, ly, color, alpha)
+        }
     }
 
     override fun getRGB(index: Int): Int = data[index]

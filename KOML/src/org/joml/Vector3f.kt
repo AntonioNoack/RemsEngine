@@ -99,30 +99,30 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     }
 
     fun fma(a: Vector3f, b: Vector3f, dst: Vector3f = this): Vector3f {
-        dst.x = JomlMath.fma(a.x, b.x, x)
-        dst.y = JomlMath.fma(a.y, b.y, y)
-        dst.z = JomlMath.fma(a.z, b.z, z)
+        dst.x = a.x * b.x + x
+        dst.y = a.y * b.y + y
+        dst.z = a.z * b.z + z
         return dst
     }
 
     fun fma(a: Float, b: Vector3f, dst: Vector3f = this): Vector3f {
-        dst.x = JomlMath.fma(a, b.x, x)
-        dst.y = JomlMath.fma(a, b.y, y)
-        dst.z = JomlMath.fma(a, b.z, z)
+        dst.x = a * b.x + x
+        dst.y = a * b.y + y
+        dst.z = a * b.z + z
         return dst
     }
 
     fun mulAdd(a: Vector3f, b: Vector3f, dst: Vector3f = this): Vector3f {
-        dst.x = JomlMath.fma(x, a.x, b.x)
-        dst.y = JomlMath.fma(y, a.y, b.y)
-        dst.z = JomlMath.fma(z, a.z, b.z)
+        dst.x = x * a.x + b.x
+        dst.y = y * a.y + b.y
+        dst.z = z * a.z + b.z
         return dst
     }
 
     fun mulAdd(a: Float, b: Vector3f, dst: Vector3f = this): Vector3f {
-        dst.x = JomlMath.fma(x, a, b.x)
-        dst.y = JomlMath.fma(y, a, b.y)
-        dst.z = JomlMath.fma(z, a, b.z)
+        dst.x = x * a + b.x
+        dst.y = y * a + b.y
+        dst.z = z * a + b.z
         return dst
     }
 
@@ -493,15 +493,7 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return JomlMath.fma(this.x, x, JomlMath.fma(this.y, y, this.z * z))
     }
 
-    fun angleCos(v: Vector3f): Float {
-        val x = x
-        val y = y
-        val z = z
-        val length1Squared = JomlMath.fma(x, x, JomlMath.fma(y, y, z * z))
-        val length2Squared = JomlMath.fma(v.x, v.x, JomlMath.fma(v.y, v.y, v.z * v.z))
-        val dot = JomlMath.fma(x, v.x, JomlMath.fma(y, v.y, z * v.z))
-        return dot / sqrt(length1Squared * length2Squared)
-    }
+    fun angleCos(v: Vector3f) = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
 
     fun angle(v: Vector3f): Float {
         var cos = angleCos(v)

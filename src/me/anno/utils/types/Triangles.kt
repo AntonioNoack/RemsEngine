@@ -395,13 +395,14 @@ object Triangles {
         val n = ba.cross(ca, Vector3f())
         val d = n.dot(a)
         val t = (d - n.dot(origin)) / n.dot(direction)
-        if (t < 0f || t >= maxDistance) return null
-        val q = Vector3f(direction).mul(t).add(origin)
-        var sum = 0
-        if (subCrossDot(a, b, q, n) < 0f) sum++
-        if (subCrossDot(b, c, q, n) < 0f) sum++
-        if (subCrossDot(c, a, q, n) < 0f) sum++
-        return if (sum == 0 || (allowBackside && sum == 3)) q to t else null
+        return if (t in 0f..maxDistance) {
+            val q = Vector3f(direction).mul(t).add(origin)
+            var sum = 0
+            if (subCrossDot(a, b, q, n) < 0f) sum++
+            if (subCrossDot(b, c, q, n) < 0f) sum++
+            if (subCrossDot(c, a, q, n) < 0f) sum++
+            if (sum == 0 || (allowBackside && sum == 3)) q to t else null
+        } else null
     }
 
     fun rayTriangleIntersect(
@@ -413,13 +414,14 @@ object Triangles {
         val n = subCross(a, b, c, JomlPools.vec3f.borrow())
         val d = n.dot(a)
         val t = (d - n.dot(origin)) / n.dot(direction)
-        if (t < 0.0 || t >= maxDistance) return false
-        val q = origin + direction * t
-        var sum = 0
-        if (subCrossDot(a, b, q, n) < 0f) sum++
-        if (subCrossDot(b, c, q, n) < 0f) sum++
-        if (subCrossDot(c, a, q, n) < 0f) sum++
-        return sum == 0 || (allowBackside && sum == 3)
+        return if (t in 0f..maxDistance) {
+            val q = origin + direction * t
+            var sum = 0
+            if (subCrossDot(a, b, q, n) < 0f) sum++
+            if (subCrossDot(b, c, q, n) < 0f) sum++
+            if (subCrossDot(c, a, q, n) < 0f) sum++
+            sum == 0 || (allowBackside && sum == 3)
+        } else false
     }
 
     fun rayTriangleIntersect(
@@ -431,13 +433,14 @@ object Triangles {
         val n = subCross(a, b, c, JomlPools.vec3d.borrow())
         val d = n.dot(a)
         val t = (d - n.dot(origin)) / n.dot(direction)
-        if (t < 0.0 || t >= maxDistance) return false
-        val q = origin + direction * t
-        var sum = 0
-        if (subCrossDot(a, b, q, n) < 0.0) sum++
-        if (subCrossDot(b, c, q, n) < 0.0) sum++
-        if (subCrossDot(c, a, q, n) < 0.0) sum++
-        return sum == 0 || (allowBackside && sum == 3)
+        return if (t in 0.0..maxDistance) {
+            val q = origin + direction * t
+            var sum = 0
+            if (subCrossDot(a, b, q, n) < 0.0) sum++
+            if (subCrossDot(b, c, q, n) < 0.0) sum++
+            if (subCrossDot(c, a, q, n) < 0.0) sum++
+            sum == 0 || (allowBackside && sum == 3)
+        } else false
     }
 
     const val thirdD = 1.0 / 3.0

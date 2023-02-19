@@ -35,24 +35,12 @@ fun main() {
         entity.removeAllComponents()
         val hexagons = LargeHexagonSphere(n, s)
 
-        println("stats:")
-        println(hexagons.special0)
-        println(hexagons.special)
-        println(hexagons.perSide)
-        println(hexagons.total)
-
         for (ti in max(0, dj) until min(20, dk)) {
             val tri = hexagons.triangles[ti]
             val random = Random(1234L * ti)
             fun add(si: Int, sj: Int) {
                 val chunk = hexagons.querySubChunk(tri.index, si, sj)
                 hexagons.ensureNeighbors(ArrayList(chunk), HashMap(chunk.associateBy { it.index }), 0)
-                for(hex in chunk){
-                    for(ni in hex.neighborIds.indices){
-                        val nei = hex.neighborIds[ni]
-                        if(nei < 0) throw IllegalStateException("${hex.index} is missing neighbor #$ni, available: ${hex.neighborIds.joinToString()}")
-                    }
-                }
                 entity.add(Entity().apply {
                     // add(MeshComponent(chunkToMesh(chunk.toTypedArray(), random.nextInt(16_777_216))))
                     add(MeshComponent(chunkToMesh2(chunk.toTypedArray(), len, random.nextInt(16_777_216))))

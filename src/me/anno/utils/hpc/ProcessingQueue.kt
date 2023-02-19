@@ -16,6 +16,8 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
 
     val size get() = tasks.size
 
+    val remaining get() = tasks.size
+
     fun stop() {
         shouldStop = true
         hasBeenStarted = false

@@ -678,9 +678,7 @@ open class Vector3d {
         return (this.x * x + (this.y * y + this.z * z))
     }
 
-    fun angleCos(v: Vector3d): Double {
-        return dot(v) / sqrt(lengthSquared() * v.lengthSquared())
-    }
+    fun angleCos(v: Vector3d) = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
 
     fun angle(v: Vector3d): Double {
         var cos = angleCos(v)

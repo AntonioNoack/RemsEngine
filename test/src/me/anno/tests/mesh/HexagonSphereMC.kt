@@ -105,13 +105,15 @@ val material = Material().apply {
                         // baseColorCalculation +
                         "ivec2 uv2;\n" +
                         "ivec3 ts = textureSize(diffuseMapStack,0);\n" +
+                        // todo anisotropic filtering or similar for the distance
+                        // todo optional edge smoothing like in Rem's Studio
                         "if(abs(dot(normal,normalize(localPosition)))>0.9){\n" +
                         // looks great :3, but now the quads are too large, even if they match
-                        "   vec2  uv1 = fract(vec2(uv.x,uv.y-0.5*uv.x)) * ts.x;\n" +
+                        "   vec2 uv1 = fract(vec2(uv.x,uv.y-0.5*uv.x)) * ts.x;\n" +
                         "   uv2 = ivec2(uv1);\n" +
                         "   if(dot(fract(uv1),vec2(1.0))>=1.0) uv2.x = (uv2.x + 8) % ts.x;\n" +
                         "} else {\n" +
-                        "   vec2  uv1 = fract(uv) * ts.xy;\n" +
+                        "   vec2 uv1 = fract(uv) * ts.xy;\n" +
                         "   vec2 uvl = mod(uv1, 2.0) - 1.0;\n" +
                         "   if(abs(uvl.x)+abs(uvl.y)>=1.0) uv1 -= 2.0 * uvl;\n" +
                         "   uv2 = ivec2(uv1);\n" +
@@ -141,6 +143,12 @@ fun interface IndexMap {
 }
 
 val rnd = FullNoise(2345L)
+
+fun generateWorld(hexagons: List<Hexagon>, n: Int): ByteArray {
+    val idMap = hexagons.withIndex().associate { it.value.index to it.index }
+    return generateWorld(hexagons, { idMap[it] ?: -1 }, n)
+}
+
 fun generateWorld(hexagons: List<Hexagon>, mapping: IndexMap, n: Int): ByteArray {
 
     val size = hexagons.size * sy
@@ -206,7 +214,8 @@ val uv5 = Array(5) {
 
 fun h(yi: Int, len: Float): Float {
     val y = yi + minHeight
-    return pow(1f + 0.866f * len, y.toFloat())
+    val base = 1f + 0.866f * len
+    return pow(base, y.toFloat())
 }
 
 fun yi(h: Float, len: Float): Float {
@@ -299,6 +308,7 @@ fun generateMesh(hexagons: List<Hexagon>, mapping: IndexMap, world: ByteArray, l
             }
 
             if (i1 >= 0) {
+                // todo can be made more efficient by joining sides
                 for (y in 0 until sy) {
                     val here = world[i0 + y]
                     if (here != air && world[i1 + y] == air) {
@@ -399,7 +409,7 @@ fun createMesh(visualList: List<Hexagon>, n: Int, helper: MeshBuildHelper): Mesh
 }
 
 fun destroyMesh(mesh: Mesh) {
-    if(useMeshPools){
+    if (useMeshPools) {
         Texture2D.floatArrayPool.returnBuffer(mesh.positions)
         Texture2D.floatArrayPool.returnBuffer(mesh.normals)
         Texture2D.floatArrayPool.returnBuffer(mesh.uvs)
@@ -477,7 +487,7 @@ fun main() {
 
 // todo change light direction to come from sun
 
-class ControllerOnSphere(rv: RenderView, val sky: SkyBox?) : ControlScheme(rv) {
+open class ControllerOnSphere(rv: RenderView, val sky: SkyBox?) : ControlScheme(rv) {
 
     // todo walk and jump with physics
     // todo set and destroy blocks
@@ -529,6 +539,10 @@ class ControllerOnSphere(rv: RenderView, val sky: SkyBox?) : ControlScheme(rv) {
         position.add(dx * right.x, dx * right.y, dx * right.z)
         position.sub(dz * forward.x, dz * forward.y, dz * forward.z)
         position.normalize(height + dy)
+        onChangePosition()
+    }
+
+    fun onChangePosition() {
         val rot = JomlPools.quat4d.borrow().rotationTo(up, position)
         position.normalize(up)
         rot.transform(forward)
@@ -539,7 +553,7 @@ class ControllerOnSphere(rv: RenderView, val sky: SkyBox?) : ControlScheme(rv) {
 
 }
 
-// todo free: one small world
+// todo free: one small world, basic MC-like mechanics
 // todo cost: unlimited worlds
 // todo cost: multiplayer
 // todo cost: chemistry dlc, mineral dlc, gun play dlc...

@@ -450,16 +450,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         return JomlMath.fma(this.x, x, JomlMath.fma(this.y, y, JomlMath.fma(this.z, z, this.w * w)))
     }
 
-    fun angleCos(v: Vector4f): Float {
-        val x = x
-        val y = y
-        val z = z
-        val w = w
-        val length1Squared = JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w)))
-        val length2Squared = JomlMath.fma(v.x, v.x, JomlMath.fma(v.y, v.y, JomlMath.fma(v.z, v.z, v.w * v.w)))
-        val dot = JomlMath.fma(x, v.x, JomlMath.fma(y, v.y, JomlMath.fma(z, v.z, w * v.w)))
-        return dot / sqrt(length1Squared * length2Squared)
-    }
+    fun angleCos(v: Vector4f) = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
 
     fun angle(v: Vector4f): Float {
         var cos = angleCos(v)
