@@ -39,6 +39,12 @@ object SDFComposer {
             "float dot2(vec2 v){ return dot(v,v); }\n" +
             "float dot2(vec3 v){ return dot(v,v); }\n"
 
+    const val sdfConstants = "" +
+            "#define Infinity 1e20\n" +
+            "#define PI 3.141592653589793\n" +
+            "#define TAU 6.283185307179586\n" +
+            "#define PHI 1.618033988749895\n"
+
     // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
     const val raycasting = "" +
             // input: vec3 ray origin, vec3 ray direction
@@ -389,13 +395,7 @@ object SDFComposer {
                 stage.functions.ensureCapacity(stage.functions.size + functions.size + 1)
                 val builder2 =
                     StringBuilder(100 + functions.sumOf { it.length } + shapeDependentShader.length + raycasting.length + normal.length)
-                builder2.append(
-                    "" +
-                            "#define Infinity 1e20\n" +
-                            "#define PI 3.141592653589793\n" +
-                            "#define TAU 6.283185307179586\n" +
-                            "#define PHI 1.618033988749895\n"
-                )
+                builder2.append(sdfConstants)
                 for (func in functions) builder2.append(func)
                 builder2.append("vec4 map(vec3 ro, vec3 rd, vec3 pos0){\n")
                 builder2.append("   vec4 res0;\n")

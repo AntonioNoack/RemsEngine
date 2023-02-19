@@ -30,17 +30,24 @@ class ComparableStringBuilder(init: Int = 16) : CharSequence {
         hash = 0
     }
 
-    fun append(c: Char) {
+    fun append(c: Char): ComparableStringBuilder {
         if (length >= value.size) ensureCapacity(value.size * 2)
         value[length++] = c
         hash = 0
+        return this
     }
 
-    fun append(str: String) {
-        if (length + str.length < value.size) ensureCapacity(max(value.size * 2, length + str.length))
+    fun append(str: String): ComparableStringBuilder {
+        if (length + str.length > value.size) ensureCapacity(max(value.size * 2, length + str.length))
         System.arraycopy(str.toCharArray(), 0, value, length, str.length)
         length += str.length
         hash = 0
+        return this
+    }
+
+    fun append(str: Any?): ComparableStringBuilder {
+        append(str.toString())
+        return this
     }
 
     fun ensureCapacity(size: Int) {

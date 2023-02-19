@@ -104,9 +104,6 @@ object BlenderReader {
         val positions2 = ExpandingFloatArray(vertexCount * 3)
         val normals2 = ExpandingFloatArray(vertexCount * 3)
         val uvs2 = ExpandingFloatArray(vertexCount * 2)
-        positions2.ensure()
-        normals2.ensure()
-        uvs2.ensure()
         var uvIndex = 0
         var matIndex = 0
         //var complexCtr = 0

@@ -40,6 +40,11 @@ object Matrices {
     }
 
     @JvmStatic
+    fun Matrix3x2f.skew(x: Float, y: Float) {
+        mul(Matrix3x2f(1f, y, 0f, x, 1f, 0f))
+    }
+
+    @JvmStatic
     fun Matrix4d.skew(x: Double, y: Double) {
         mul3x3(// works
             1.0, y, 0.0,

@@ -261,10 +261,6 @@ open class XMLReader {
         if (ac != b && ac != c) throw RuntimeException("Expected $b, but got ${a.toChar()}")
     }
 
-    fun assert(a: Int, b: Int) {
-        if (a != b) throw RuntimeException("Expected ${b.toChar()}, but got ${a.toChar()}")
-    }
-
     companion object {
         @JvmStatic
         val endElement = Any()

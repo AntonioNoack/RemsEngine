@@ -81,7 +81,7 @@ class InstancedStackI32(capacity: Int = 512) :
         GFX.shaderColor(shader, "tint", -1)
         shader.v1b("hasAnimation", false)
         shader.v1i("hasVertexColors", mesh.hasVertexColors)
-        shader.v2i("randomIdData", mesh.numPrimitives, 0)
+        shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
         GFX.check()
 
         // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580

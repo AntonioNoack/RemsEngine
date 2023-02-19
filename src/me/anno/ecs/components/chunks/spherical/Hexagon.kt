@@ -4,8 +4,8 @@ import me.anno.utils.pooling.RandomAccessPool
 import org.joml.Vector3f
 
 open class Hexagon(var index: Long, var center: Vector3f, var corners: Array<Vector3f>) {
-    val neighbors = arrayOfNulls<Hexagon>(corners.size) // 5 or 6 entries; empty one will be the last one, and -1
-    val neighborIds = LongArray(corners.size)
+    var neighbors = arrayOfNulls<Hexagon>(corners.size) // 5 or 6 entries; empty one will be the last one, and -1
+    var neighborIds = LongArray(corners.size)
 
     init {
         neighborIds.fill(-1)
@@ -15,8 +15,8 @@ open class Hexagon(var index: Long, var center: Vector3f, var corners: Array<Vec
     override fun equals(other: Any?) = (other === this) || (other is Hexagon && other.index == index)
 
     companion object {
-        val hexagonPool = object : RandomAccessPool<Hexagon>(8192) {
-            override fun create() = Hexagon(0, Vector3f(), Array(6) { Vector3f() })
+        val hexagonPool = RandomAccessPool(8192) {
+            Hexagon(0, Vector3f(), Array(6) { Vector3f() })
         }
     }
 }

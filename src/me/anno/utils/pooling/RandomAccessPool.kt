@@ -1,11 +1,9 @@
 package me.anno.utils.pooling
 
-abstract class RandomAccessPool<V>(val capacity: Int) {
-    
-    abstract fun create(): V
-    
-    val elements = ArrayList<V>(capacity)
-    
+open class RandomAccessPool<V>(val capacity: Int, val creator: () -> V) {
+
+    private val elements = ArrayList<V>(capacity)
+
     fun ret(v: V) {
         synchronized(elements) {
             if (elements.size < capacity) {
@@ -20,6 +18,6 @@ abstract class RandomAccessPool<V>(val capacity: Int) {
                 return elements.removeLast()
             }
         }
-        return create()
+        return creator()
     }
 }

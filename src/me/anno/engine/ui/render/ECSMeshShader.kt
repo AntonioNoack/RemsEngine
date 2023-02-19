@@ -163,7 +163,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val motionVectorInit = "" +
                 "#ifdef MOTION_VECTORS\n" +
-                "   vec3 prevLocalPosition = coords;\n" +
+                "   vec3 prevLocalPosition = localPosition;\n" +
                 "#endif\n"
 
         val motionVectorCode = "" +

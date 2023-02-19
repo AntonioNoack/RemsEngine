@@ -2,10 +2,16 @@ package me.anno.image.raw
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
+import me.anno.maths.Maths.min
+import me.anno.maths.Maths.mixARGB
+import me.anno.maths.Maths.posMod
+import me.anno.utils.Color.a01
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
+import kotlin.math.floor
 
 open class IntImage(
     width: Int, height: Int,
@@ -24,6 +30,53 @@ open class IntImage(
         if (x in 0 until width && y in 0 until height) {
             data[x + y * width] = rgb
         }
+    }
+
+    fun mixRGB(x: Float, y: Float, rgb: Int, alpha: Float = rgb.a01(), clamping: Clamping = Clamping.REPEAT) {
+        if (x.isNaN() || y.isNaN()) return
+        when (clamping) {
+            Clamping.REPEAT -> if (x in 0f..width.toFloat() && y in 0f..height.toFloat()) {
+                val xf = min(floor(x), width - 1f)
+                val yf = min(floor(y), height - 1f)
+                val gx = (x - xf) * alpha
+                val fx = alpha - gx
+                val gy = (y - yf) * alpha
+                val fy = alpha - gy
+                val x0 = xf.toInt()
+                val x1 = if (x0 + 1 >= width) 0 else x0 + 1
+                val y0 = yf.toInt()
+                val y1 = if (y0 + 1 >= height) 0 else y0 + 1
+                mixRGB(x0, y0, rgb, fx * fy)
+                mixRGB(x0, y1, rgb, fx * gy)
+                mixRGB(x1, y0, rgb, gx * fy)
+                mixRGB(x1, y1, rgb, gx * gy)
+            } else {
+                println("$x -> ${posMod(x, width.toFloat())}, $y -> ${posMod(y, height.toFloat())}")
+                mixRGB(posMod(x, width.toFloat()), posMod(y, height.toFloat()), rgb, alpha, clamping)
+            }
+            Clamping.CLAMP -> if (x in -1f..width.toFloat() && y in -1f..height.toFloat()) {
+                val xf = floor(x)
+                val yf = floor(y)
+                val gx = (x - xf) * alpha
+                val fx = alpha - gx
+                val gy = (y - yf) * alpha
+                val fy = alpha - gy
+                val x0 = xf.toInt()
+                val x1 = if (x0 + 1 >= width) 0 else x0 + 1
+                val y0 = yf.toInt()
+                val y1 = if (y0 + 1 >= height) 0 else y0 + 1
+                if (x0 >= 0 && y0 >= 0) mixRGB(x0, y0, rgb, fx * fy)
+                if (x0 >= 0 && y1 < height) mixRGB(x0, y1, rgb, fx * gy)
+                if (x1 < width && y0 >= 0) mixRGB(x1, y0, rgb, gx * fy)
+                if (x1 < width && y1 < height) mixRGB(x1, y1, rgb, gx * gy)
+            }
+            else -> throw NotImplementedError(clamping.name)
+        }
+    }
+
+    fun mixRGB(x: Int, y: Int, rgb: Int, alpha: Float) {
+        val i = x + y * width
+        data[i] = mixARGB(data[i], rgb, alpha)
     }
 
     override fun getRGB(index: Int): Int = data[index]

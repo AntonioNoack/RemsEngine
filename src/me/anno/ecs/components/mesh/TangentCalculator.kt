@@ -4,6 +4,7 @@ import me.anno.utils.pooling.JomlPools
 import org.lwjgl.opengl.GL11C.GL_TRIANGLES
 import org.lwjgl.opengl.GL11C.GL_TRIANGLE_STRIP
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.sign
 import kotlin.math.sqrt
 
@@ -133,7 +134,8 @@ object TangentCalculator {
 
         tan1.fill(0f) // in the future we could keep old values, probably not worth the effort
         val tan2 = FloatArray(tan1.size)
-        for (i0 in 0 until (positions.size - 8) / 3 step 3) {
+        val size = min((positions.size - 8) / 3, (uvs.size - 5) / 3)
+        for (i0 in 0 until size step 3) {
 
             // https://gamedev.stackexchange.com/questions/68612/how-to-compute-tangent-and-bitangent-vectors
 
@@ -207,7 +209,8 @@ object TangentCalculator {
 
         // apply all the normals, smooth shading
         var j = 0
-        for (i in normals.indices step 3) {
+        val size1 = min(normals.size / 3, tan1.size / 4)
+        for (i in 0 until size1 * 3 step 3) {
 
             n.set(normals[i], normals[i + 1], normals[i + 2])
             t.set(tan1[j], tan1[j + 1], tan1[j + 2])

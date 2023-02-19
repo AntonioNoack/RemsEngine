@@ -14,6 +14,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
+import me.anno.maths.Maths.posMod
 
 class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
@@ -68,10 +69,6 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         val fade = getInput(FADE) as Float
         if (progress > end - fade) return super.update()
         return this // continuing this animation
-    }
-
-    fun posMod(x: Float, y: Float): Float {
-        return ((x % y) + y) % y
     }
 
     fun updateRenderer(previous: AnimStateNode?, target: AnimRenderer) {

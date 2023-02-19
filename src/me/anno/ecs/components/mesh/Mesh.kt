@@ -34,6 +34,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11C.*
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 // open, so you can define your own attributes
@@ -99,10 +100,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     // todo also we need a renderer, which can handle morphing
     // todo or we need to compute it on the cpu
 
-    /**
-     * when this property is > 0, then all vertex data will be ignored;
-     * please set positions to a float array (e.g., empty) anyways
-     * */
     var proceduralLength = 0
 
     var inverseOutline = false
@@ -301,7 +298,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                 aabb.union(x, y, z)
             }
         } else {
-            for (index in positions.indices step 3) {
+            for (index in 0 until positions.size - 2 step 3) {
                 val x = positions[index]
                 val y = positions[index + 1]
                 val z = positions[index + 2]
@@ -632,21 +629,31 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     var hasBonesInBuffer = false
 
     val numPrimitives
-        get() =
-            indices?.run {
+        get(): Long {
+            val indices = indices
+            val positions = positions
+            val drawMode = drawMode
+            val baseLength = if (indices != null) {
                 when (drawMode) {
-                    GL_TRIANGLE_STRIP -> max(0, size - 2)
-                    else -> size / 3
+                    GL_TRIANGLE_STRIP -> max(0, indices.size - 2)
+                    else -> indices.size / 3
                 }
-            } ?: positions?.run {
-                when (drawMode) {
-                    GL_POINTS -> size / 3
-                    GL_LINES -> size / 6
-                    GL_LINE_STRIP -> max(0, size / 3 - 1)
-                    GL_TRIANGLE_STRIP -> max(0, size / 3 - 2)
-                    else -> size / 9
-                }
-            } ?: 0
+            } else if (positions != null) numPrimitivesByType(positions.size, drawMode) else 0
+            val size = proceduralLength
+            return if (size <= 0) baseLength.toLong()
+            else if (baseLength > 0) baseLength.toLong() * size
+            else numPrimitivesByType(size, drawMode).toLong()
+        }
+
+    fun numPrimitivesByType(size: Int, drawMode: Int): Int {
+        return when (drawMode) {
+            GL_POINTS -> size / 3
+            GL_LINES -> size / 6
+            GL_LINE_STRIP -> max(0, size / 3 - 1)
+            GL_TRIANGLE_STRIP -> max(0, size / 3 - 2)
+            else -> size / 9
+        }
+    }
 
     var hasHighPrecisionNormals = false
 
@@ -702,14 +709,13 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
     private fun updateMesh() {
 
-        if (proceduralLength > 0) return
-
         ensureBounds()
 
         needsMeshUpdate = false
 
         // not the safest, but well...
         val positions = positions ?: return // throw RuntimeException("mesh has no positions")
+        if (positions.isEmpty()) return
 
         ensureNorTanUVs()
 
@@ -726,7 +732,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         val boneWeights = boneWeights
         val boneIndices = boneIndices
 
-        val vertexCount = positions.size / 3
+        val vertexCount = min(positions.size, normals.size) / 3
         val indices = indices
 
         val hasBones = boneWeights != null && boneWeights.isNotEmpty()
@@ -964,7 +970,11 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         super.destroy()
         // todo only if we were not cloned...
         destroyHelperMeshes()
-        // destroy buffers
+        clearGPUData()
+        clearCPUData()
+    }
+
+    fun clearGPUData() {
         buffer?.destroy()
         triBuffer?.destroy()
         lineBuffer?.destroy()
@@ -972,6 +982,24 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         buffer = null
         triBuffer = null
         debugLineBuffer = null
+    }
+
+    fun clearCPUData() {
+        positions = null
+        normals = null
+        uvs = null
+        tangents = null
+        color0 = null
+        color1 = null
+        color2 = null
+        color3 = null
+        color4 = null
+        color5 = null
+        color6 = null
+        color7 = null
+        indices = null
+        boneWeights = null
+        boneIndices = null
     }
 
     fun draw(shader: Shader, materialIndex: Int) {
@@ -1001,7 +1029,17 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                     }
                 }
             }
-        } else StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
+        } else if ((positions?.size ?: 0) == 0) {
+            StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
+        } else {
+            if (drawDebugLines) {
+                ensureDebugLines()
+                debugLineBuffer?.drawInstanced(shader, proceduralLength)
+            } else {
+                (triBuffer ?: buffer)?.drawInstanced(shader, proceduralLength)
+                lineBuffer?.drawInstanced(shader, proceduralLength)
+            }
+        }
     }
 
     fun drawMeshPurely(shader: Shader) {

@@ -169,4 +169,20 @@ object TerrainUtils {
 
     }
 
+    fun fillUVs(mesh: Mesh) {
+        val pos = mesh.positions!!
+        val bs = mesh.ensureBounds()
+        val uvs = mesh.uvs.resize(pos.size / 3 * 2)
+        var j = 0
+        val fx = +1f / bs.deltaX()
+        val fz = -1f / bs.deltaZ()
+        val mx = bs.minX
+        val mz = bs.maxZ
+        for (i in pos.indices step 3) {
+            uvs[j++] = (pos[i] - mx) * fx
+            uvs[j++] = (pos[i + 2] - mz) * fz
+        }
+        mesh.uvs = uvs
+    }
+
 }

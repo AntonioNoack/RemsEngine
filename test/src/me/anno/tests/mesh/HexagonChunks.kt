@@ -27,9 +27,9 @@ fun chunkToMesh(chunk: Array<Hexagon>, color: Int = (Math.random() * 1e9).toInt(
     return mesh
 }
 
-fun chunkToMesh2(chunk: Array<Hexagon>, color: Int = (Math.random() * 1e9).toInt()): Mesh {
+fun chunkToMesh2(chunk: Array<Hexagon>, len: Float, color: Int = (Math.random() * 1e9).toInt()): Mesh {
     val mesh = createMesh(color)
-    createConnectionMesh(mesh, chunk)
+    createConnectionMesh(mesh, chunk, len)
     return mesh
 }
 

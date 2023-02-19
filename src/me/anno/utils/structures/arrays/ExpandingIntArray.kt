@@ -1,19 +1,28 @@
 package me.anno.utils.structures.arrays
 
+import me.anno.cache.ICacheData
 import me.anno.utils.LOGGER
+import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.search.BinarySearch
 import kotlin.math.max
 import kotlin.math.min
 
-open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
+open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) :
+    Collection<Int>, ICacheData {
 
     override var size = 0
+
+    var array = alloc(initCapacity)
+
+    val capacity get() = array.size
+
+    fun alloc(size: Int): IntArray {
+        return if (pool != null) pool[size, true, false] else IntArray(size)
+    }
 
     fun clear() {
         size = 0
     }
-
-    var array: IntArray? = null
 
     fun add(value: Int) = plusAssign(value)
 
@@ -23,8 +32,8 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
 
     fun ensureCapacity(requestedSize: Int) {
         val array = array
-        if (array == null || requestedSize >= array.size) {
-            val suggestedSize = if (array == null) initCapacity else max(array.size * 2, 16)
+        if (requestedSize >= array.size) {
+            val suggestedSize = max(array.size * 2, 16)
             val newSize = max(suggestedSize, requestedSize)
             val newArray = try {
                 IntArray(newSize)
@@ -32,7 +41,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
                 LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingIntArray")
                 throw e
             }
-            if (array != null) System.arraycopy(array, 0, newArray, 0, this.size)
+            System.arraycopy(array, 0, newArray, 0, this.size)
             this.array = newArray
         }
     }
@@ -43,18 +52,18 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
     }
 
     fun inc(position: Int) {
-        val array = array ?: return
+        val array = array
         array[position]++
     }
 
     fun dec(position: Int) {
-        val array = array ?: return
+        val array = array
         array[position]--
     }
 
     fun add(index: Int, value: Int) {
         ensureCapacity(size + 1)
-        val array = array!!
+        val array = array
         System.arraycopy(array, index, array, index + 1, size - index)
         array[index] = value
         size++
@@ -64,7 +73,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
         var size = size
         val length = index1 - index0
         ensureCapacity(size + length)
-        val array = array!!
+        val array = array
         for (index in index0 until index1) {
             array[size++] = values[index]
         }
@@ -72,13 +81,13 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
     }
 
     fun addUnsafe(src: IntArray, startIndex: Int = 0, length: Int = src.size - startIndex) {
-        System.arraycopy(src, startIndex, array!!, size, length)
+        System.arraycopy(src, startIndex, array, size, length)
         size += length
     }
 
     @Suppress("unused")
     fun addUnsafe(src: ExpandingIntArray, startIndex: Int, length: Int) {
-        System.arraycopy(src.array!!, startIndex, array!!, size, length)
+        System.arraycopy(src.array, startIndex, array, size, length)
         size += length
     }
 
@@ -91,8 +100,8 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
         if (length < 0) throw IllegalArgumentException()
         if (length == 0) return
         ensureCapacity(size + length)
-        val dst = array!!
-        val src = values.array!!
+        val dst = array
+        val src = values.array
         System.arraycopy(src, srcStartIndex, dst, size, length)
         this.size += length
     }
@@ -107,7 +116,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
     }
 
     fun removeAt(index: Int): Int {
-        val array = array!!
+        val array = array
         val value = array[index]
         System.arraycopy(array, index + 1, array, index, size - index - 1)
         size--
@@ -116,28 +125,28 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
 
     fun removeBetween(index0: Int, index1: Int) {
         val length = index1 - index0
-        val array = array ?: return
+        val array = array
         System.arraycopy(array, index1, array, index0, size - index1)
         size -= length
     }
 
     operator fun set(index: Int, value: Int) {
-        array!![index] = value
+        array[index] = value
     }
 
-    fun last() = array!![size - 1]
+    fun last() = array[size - 1]
 
-    operator fun get(index: Int) = array!![index]
-    fun getOrNull(index: Int) = array?.getOrNull(index)
+    operator fun get(index: Int) = array[index]
+    fun getOrNull(index: Int) = array.getOrNull(index)
 
     @Suppress("unused")
     fun addUnsafe(x: Int) {
-        array!![size++] = x
+        array[size++] = x
     }
 
     @Suppress("unused")
     fun addUnsafe(x: Int, y: Int) {
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = x
         array[size++] = y
@@ -146,7 +155,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
 
     fun add(x: Int, y: Int, z: Int) {
         ensureCapacity(size + 3)
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = x
         array[size++] = y
@@ -156,7 +165,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
 
     @Suppress("unused")
     fun addUnsafe(x: Int, y: Int, z: Int) {
-        val array = array!!
+        val array = array
         var size = size
         array[size++] = x
         array[size++] = y
@@ -166,7 +175,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
 
     operator fun plusAssign(value: Int) {
         ensureCapacity(size + 1)
-        array!![size++] = value
+        array[size++] = value
     }
 
     override fun isEmpty(): Boolean = size <= 0
@@ -176,7 +185,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
     }
 
     fun indexOf(element: Int): Int {
-        val array = array ?: return -1
+        val array = array
         for (i in indices) {
             if (array[i] == element) return i
         }
@@ -184,7 +193,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
     }
 
     fun lastIndexOf(element: Int): Int {
-        val array = array ?: return -1
+        val array = array
         for (i in size - 1 downTo 0) {
             if (array[i] == element) return i
         }
@@ -193,7 +202,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
 
     override fun iterator() = listIterator()
     fun listIterator(index: Int = 0): ListIterator<Int> {
-        val array = array!!
+        val array = array
         return object : ListIterator<Int> {
             var i = index
             override fun hasNext(): Boolean = i < size
@@ -206,7 +215,7 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
     }
 
     fun subList(fromIndex: Int, toIndex: Int): List<Int> {
-        val array = array ?: return emptyList()
+        val array = array
         return IntArray(toIndex - fromIndex) { array[fromIndex + it] }.toList()
     }
 
@@ -225,16 +234,21 @@ open class ExpandingIntArray(private val initCapacity: Int) : Collection<Int> {
         return true
     }
 
-    fun toIntArray(size1: Int): IntArray {
-        val tmp = IntArray(size1)
-        if (isNotEmpty()) System.arraycopy(array!!, 0, tmp, 0, min(size, size1))
+
+    fun toIntArray(canReturnSelf: Boolean = true, exact: Boolean = true) = toIntArray(size, canReturnSelf, exact)
+
+    fun toIntArray(size1: Int, canReturnSelf: Boolean = true, exact: Boolean = true): IntArray {
+        val array = array
+        if (canReturnSelf && (size1 == array.size || (!exact && size1 <= array.size)))
+            return array
+        val tmp = alloc(size1)
+        System.arraycopy(array, 0, tmp, 0, min(size, size1))
         return tmp
     }
 
-    fun toIntArray(): IntArray {
-        val tmp = IntArray(size)
-        if (isNotEmpty()) System.arraycopy(array!!, 0, tmp, 0, size)
-        return tmp
+    override fun destroy() {
+        pool?.returnBuffer(array)
+        size = 0
     }
 
     override fun toString(): String {

@@ -7,18 +7,20 @@ import me.anno.ecs.components.chunks.spherical.HexagonSphere.pentagonCount
 import me.anno.ecs.components.chunks.spherical.HexagonSphere.vertices
 import me.anno.ecs.components.chunks.spherical.HexagonSpherePartitioner.pentagonTris
 import me.anno.ecs.components.chunks.spherical.HexagonSpherePartitioner.triangleLines
+import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.posMod
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.normalToQuaternion
 import org.joml.AABBf
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.atan2
-import kotlin.math.min
 import kotlin.math.sqrt
 
 class LargeHexagonSphere(
     val n: Int, val s: Int,
-    val creator: HexagonCreator = HexagonCreator.PooledHexagonCreator
+    val creator: HexagonCreator = HexagonCreator.DefaultHexagonCreator
 ) {
 
     val t = n / s
@@ -26,6 +28,7 @@ class LargeHexagonSphere(
     val special0 = lineCount * (n + 1L)
     val special = special0 + pentagonCount
     val perSide = (n * (n + 1L)) shr 1
+    val total = special + perSide * 20
 
     val i0 = (n - 1) / 3f
     val j0 = (n - 1.5f) * 0.5f - n / 6f + 0.4f // why 0.4???
@@ -49,13 +52,27 @@ class LargeHexagonSphere(
         lateinit var caLine: Line
         lateinit var bcLine: Line
         val aabb = AABBf()
-        val idx0 = self.special + index * (self.n * (self.n + 1)).shr(1)
+        val idx0 = self.special + index * self.perSide
         operator fun get(i: Int, j: Int): Hexagon {
-            return self.create(center, ab, ac, self.triIdx(idx0, i, j), i - self.i0, j - self.j0)
+            return get(i, j, self.triIdx(idx0, i, j))
         }
 
         operator fun get(i: Int, j: Int, id: Long): Hexagon {
             return self.create(center, ab, ac, id, i - self.i0, j - self.j0)
+        }
+
+        fun getSubChunkCenter(si: Int, sj: Int, dst: Vector3f = Vector3f()): Vector3f {
+            if (si !in 0 until self.s || sj !in 0 until self.s - si) throw IndexOutOfBoundsException("$si,$sj !in ${self.s}")
+
+            val t = self.t
+            val j0 = t * sj
+            val tj = t * 0.5f
+
+            val i0 = si * t - (tj + 1) * 0.5f
+            val jj = tj + j0
+            val ti = i0 + (t - 1) * 0.5f
+
+            return self.calcHexPos(center, ab, ac, ti - self.i0, jj - self.j0, dst).normalize()
         }
     }
 
@@ -100,14 +117,14 @@ class LargeHexagonSphere(
         }
     }
 
-    fun find(id: Long): Hexagon {
+    fun find(id: Long, connect: Boolean = true): Hexagon {
         return when {
             id < special0 -> {
                 val n1 = (n + 1L)
                 val line = lines[(id / n1).toInt() * 2]
                 val li = (id % n1).toInt()
                 val hex = line[li]
-                connectLine(line, hex, li)
+                if (connect && li > 0) connectLine(line, hex, li)
                 hex
             }
             // connections are lines, and done already :)
@@ -119,7 +136,7 @@ class LargeHexagonSphere(
                 val i = triFindI(li)
                 val j = triFindJ(li, i)
                 val hex = tri[i, j, id]
-                connectTriHex(tri, hex, i, j)
+                if (connect) connectTriHex(tri, hex, i, j)
                 hex
             }
         }
@@ -136,20 +153,31 @@ class LargeHexagonSphere(
     }
 
     fun connectLine(line: Line, hex: Hexagon, li: Int) {
-        val id = hex.index
+        if (li >= n) return // theoretically would be defined, but I rotated them for ease of implementation,
+        // so they would be a special case; but I don't want to handle it, so I inited them in reverse at the start :)
         val nei = hex.neighborIds
         val l = line.left
         val r = line.right
+        val lj = n - li
         if (li > 0) {
-            nei[2] = id - 1
+            nei[2] = line.getIndex(li - 1)
             nei[1] = triIdx(l.tri.idx0, l.mapI(li - 1, 0), l.mapJ(li - 1, 0))
-            nei[3] = triIdx(r.tri.idx0, r.mapI(li - 1, 0), r.mapJ(li - 1, 0))
+            nei[3] = triIdx(r.tri.idx0, r.mapI(lj, 0), r.mapJ(lj, 0))
         } // else pentagon / other lines
-        if (li < n) {
-            nei[5] = id + 1
-            nei[0] = triIdx(l.tri.idx0, l.mapI(li, 0), l.mapJ(li, 0))
-            nei[4] = triIdx(r.tri.idx0, r.mapI(li, 0), r.mapJ(li, 0))
-        } // else pentagon / other lines
+        // if (li < n) {
+        nei[5] = line.getIndex(li + 1)
+        nei[0] = triIdx(l.tri.idx0, l.mapI(li, 0), l.mapJ(li, 0))
+        nei[4] = triIdx(r.tri.idx0, r.mapI(lj - 1, 0), r.mapJ(lj - 1, 0))
+        // } // else pentagon / other lines
+        for (i in 0 until 6) {
+            if (nei[i] >= 0 && find(nei[i], false).center.distance(hex.center) > 2 * len)
+                println("$i -> ${nei[i]} is not neighbor of ${hex.index}!!!")
+            for (j in i + 1 until 6) {
+                if (nei[i] >= 0 && nei[i] == nei[j])
+                    println("$i/$j -> ${nei[i]} duplicate neighbor for ${hex.index}!!!")
+            }
+        }
+        // println("// connected ${hex.index} with [${hex.neighborIds.joinToString()}]")
     }
 
     fun connectTriHex(tri: Triangle, hex: Hexagon, i: Int, j: Int) {
@@ -183,9 +211,10 @@ class LargeHexagonSphere(
 
     // todo given a hexagon, find its subchunk
 
-    class SubChunk(val center: Vector3f, val tri: Triangle, val i: Int, val j: Int)
+    data class SubChunk(val center: Vector3f, val tri: Triangle, val i: Int, val j: Int)
 
     fun findSubChunk(dir: Vector3f): SubChunk {
+        if (!dir.isFinite) throw IllegalArgumentException(dir.toString())
         var bestDistance = triangles[0].center.distanceSquared(dir)
         var bestI = 0
         for (i in 1 until triangles.size) {
@@ -196,21 +225,30 @@ class LargeHexagonSphere(
             }
         }
         val tri = triangles[bestI]
+        if (n == 0 || s <= 1)
+            return SubChunk(tri.center, tri, 0, 0)
         val i3 = bestI * 3
         val a = vertices[indices[i3]]
         val b = vertices[indices[i3 + 1]]
         val c = vertices[indices[i3 + 2]]
-        val uvw = barycentric(a, b, c, dir, Vector3f())
-        val i = uvw.x * n
-        val j = uvw.y * n
+        val tmp = JomlPools.vec3f.borrow()
+        dir.div(dir.dot(tri.center), tmp)
+        val uvw = barycentric(a, b, c, tmp, tmp)
+        val i = ((uvw.x - 0.5f) * 0.797 + 0.5f) * n - 0.667 * t
+        val j = ((uvw.y - 0.5f) * 0.795 + 0.5f) * n - 0.667 * t
         val ii = i.toInt()
         val ji = j.toInt()
-        val cj = clamp((ji) / t, 0, s - 1)
-        val ci = clamp((ii + (ji % t) / 2) / t, 0, s - 1 - cj)
-        val ni = min(ci * t + t.shr(1), n - 1)
-        val nj = min(cj * t + t.shr(1), n - 1 - ni)
-        val pos = tri[ni, nj].center
-        return SubChunk(pos, tri, ci, cj)
+        val sj = clamp((ji) / t, 0, s - 1)
+        val si = clamp((ii + (ji % t) / 2) / t, 0, s - 1 - sj)
+        val pos = tri.getSubChunkCenter(si, sj)
+        return SubChunk(pos, tri, si, sj)
+    }
+
+    fun findSubChunks(dir: Vector3f, angleRadiusRadians: Float, callback: (SubChunk) -> Boolean) {
+        if (!dir.isFinite || dir.lengthSquared() < 1e-19f) throw IllegalArgumentException(dir.toString())
+        for (tri in triangles) {
+
+        }
     }
 
     fun barycentric(a: Vector3f, b: Vector3f, c: Vector3f, p: Vector3f, uvw: Vector3f): Vector3f {
@@ -229,61 +267,92 @@ class LargeHexagonSphere(
         return uvw
     }
 
-    fun ensureNeighbors(all: ArrayList<Hexagon>, hexMap: HashMap<Long, Hexagon>, d: Int) {
+    fun ensureNeighbors(all: ArrayList<Hexagon>, hexMap: HashMap<Long, Hexagon>, depth: Int) {
         // ensure all neighbors
-        val size = all.size
-        for (hi in all.indices) {
-            val hex = all[hi]
-            for (i in 0 until hex.corners.size) {
-                if (hex.neighbors[i] == null) {
-                    val neighborId = hex.neighborIds[i]
-                    if (neighborId < 0) continue
-                    var neighbor = hexMap[neighborId]
-                    if (neighbor == null) {
-                        // register
-                        neighbor = find(neighborId)
-                        hexMap[neighborId] = neighbor
-                        all.add(neighbor)
+        var i0 = 0
+        for (di in 0..depth) {
+            val i1 = all.size
+            for (hi in i0 until i1) {
+                val hex = all[hi]
+                for (i in 0 until hex.corners.size) {
+                    if (hex.neighbors[i] == null) {
+                        val neighborId = hex.neighborIds[i]
+                        if (neighborId < 0) throw IllegalStateException(
+                            "${hex.index} (${isLine(hex.index)},${isPentagon(hex.index)}) " +
+                                    "is missing neighbor #$i: [${hex.neighborIds.joinToString()}]"
+                        )
+                        var neighbor = hexMap[neighborId]
+                        if (neighbor == null) {
+                            // register
+                            neighbor = find(neighborId)
+                            if (neighbor.center.distance(hex.center) > len * 2f)
+                                println("[2] $neighborId is not neighbor of ${hex.index}!!!")
+                            hexMap[neighborId] = neighbor
+                            all.add(neighbor)
+                        }
+                        // connect
+                        hex.neighbors[i] = neighbor
                     }
-                    // connect
-                    hex.neighbors[i] = neighbor
+                    // checkNeighbor(hex, i)
                 }
             }
+            i0 = i1
         }
-        // todo remove items, that are done
-        if (d > 0) {
-            ensureNeighbors(all, hexMap, d - 1)
+    }
+
+    fun checkNeighbor(hex: Hexagon, i: Int) {
+        val neighbor = hex.neighbors[i]!!
+        val ml = len * 0.65f
+        if (hex.corners.count { neighbor.center.distance(it) <= ml } != 2) {
+            println("$n, $s*$t, $special,$special0,$perSide/$total")
+            println("info: ${hex.index} - ${neighbor.index}")
+            println("//")
+            println(neighbor.center)
+            for (c in hex.corners) println("$c [${c.distance(neighbor.center) / ml}]")
+            println("//")
+            println(hex.center)
+            for (x in neighbor.corners) println("$x [${x.distance(hex.center) / ml}]")
+            println(
+                "Not two dots are close? " +
+                        "${hex.corners.map { neighbor.center.distance(it) / ml }}"
+            )
+        }
+        if (neighbor.center.distance(hex.corners[i]) > ml ||
+            neighbor.center.distance(hex.corners[(i + 1) % hex.corners.size]) > ml
+        ) {
+            println("$n, $s*$t, $special,$special0,$perSide/$total")
+            println(
+                "Improper neighbor sorting of ${hex.index}/$i for ${neighbor.index}: " +
+                        "${hex.corners.map { neighbor.center.distance(it) / ml }}"
+            )
         }
     }
 
     val lines = ArrayList<Line>(lineIndices.size)
     val pentagons = Array(pentagonCount) {
         val v = vertices[it]
-        creator.create(special + it, v, Array(5) { v })
+        creator.create(special0 + it, v, Array(5) { v })
     }
 
-    fun calcHexPos(center: Vector3f, ab: Vector3f, ac: Vector3f, b0: Float, b1: Float): Vector3f {
+    fun calcHexPos(
+        center: Vector3f,
+        ab: Vector3f,
+        ac: Vector3f,
+        b0: Float,
+        b1: Float,
+        dst: Vector3f = Vector3f()
+    ): Vector3f {
         val c0 = b0 * len
         val c1 = b1 * len
-        return Vector3f(center)
+        return dst.set(center)
             .add(ab.x * c0, ab.y * c0, ab.z * c0)
             .add(ac.x * c1, ac.y * c1, ac.z * c1)
     }
 
     fun create(center: Vector3f, ab: Vector3f, ac: Vector3f, index: Long, b0: Float, b1: Float): Hexagon {
         val pos = calcHexPos(center, ab, ac, b0, b1)
-        val hex: Hexagon
-        if (creator is HexagonCreator.PooledHexagonCreator) {
-            hex = creator.pool.create()
-            hex.index = index
-            hex.center.set(center)
-            for (i in 0 until 6) {
-                HexagonSphere.create(pos, ab, ac, i, len, hex.corners[i])
-            }
-        } else {
-            hex = creator.create(index, pos, Array(6) { HexagonSphere.create(pos, ab, ac, it, len) })
-        }
-        pos.normalize()
+        val hex = creator.create(index, pos, Array(6) { HexagonSphere.create(pos, ab, ac, it, len) })
+        hex.center.normalize()
         return hex
     }
 
@@ -306,8 +375,6 @@ class LargeHexagonSphere(
             val ps = if (a) ps00 else ps10
             HexagonSphere.create(ps, tri.ab, tri.ac, i, len)
         }
-
-        // if (corners.any { it.distance(pos) > len * 1.2f }) throw IllegalStateException("$pos, $ab,$i0,$index, ${corners.joinToString()}")
 
         return creator.create(index, pos, corners)
     }
@@ -446,33 +513,47 @@ class LargeHexagonSphere(
             baLine.firstH = hex1
             baLine.lastH = hex0
 
-            /*if (hex0.center.distance(a) > len * 2)
-                throw IllegalStateException()
-            if (hex1.center.distance(b) > len * 2)
-                throw IllegalStateException()
+            abLine.apply {
+                if (left.tri === right.tri) throw IllegalStateException()
+            }
+            baLine.apply {
+                if (left.tri === right.tri) throw IllegalStateException()
+            }
 
-            if (ai == 1) println("[$ai] += ${hex0.center}, ${hex0.corners.joinToString()}")
-            if (bi == 1) println("[$bi] += ${hex1.center}, ${hex1.corners.joinToString()}")*/
             pointsToLines[ai].add(hex0)
             pointsToLines[bi].add(hex1)
 
         }
 
+        for (i in lineIndices.indices step 2) {
+
+            val abLine = lines[i]
+            val baLine = lines[i + 1]
+
+            val hex0 = abLine[0]
+            val hex1 = if (n > 0) baLine[0] else hex0
+
+            connectLine(abLine, hex0, 0)
+            connectLine(baLine, hex1, 0)
+
+        }
+
         fun connect(a: Hexagon, b: Hexagon) {
-            val bis = b.neighborIds.indexOf(-1)
-            val ais = a.neighborIds.indexOf(-1)
-            b.neighbors[bis] = a
-            b.neighborIds[bis] = a.index
-            a.neighbors[ais] = b
-            a.neighborIds[ais] = b.index
+            val sa = a.neighborIds.indexOf(-1)
+            val sb = b.neighborIds.indexOf(-1)
+            b.neighbors[sb] = a
+            b.neighborIds[sb] = a.index
+            a.neighbors[sa] = b
+            a.neighborIds[sa] = b.index
         }
 
         // create all pentagons
+        val tmpQ = Quaternionf()
         for (i in 0 until pentagonCount) {
 
             // build coordinate system
             val point = vertices[i]
-            val coords = point.normalToQuaternion(Quaternionf())
+            val coords = point.normalToQuaternion(tmpQ)
             val ax = coords.transform(Vector3f(1f, 0f, 0f))
             val az = coords.transform(Vector3f(0f, 0f, 1f))
             val hexagons1 = pointsToLines[i]
@@ -489,25 +570,23 @@ class LargeHexagonSphere(
             // create a pentagon
             val pentagon = pentagons[i]
             for (j in 0 until 5) {
-                val x0 = hexagons1[j].center
-                val target = Vector3f(point).lerp(x0, -0.5f).normalize()
-                val x1 = hexagons1[(j + 2) % 5]
-                pentagon.corners[j] = x1.corners.minByOrNull { it.distanceSquared(target) }!!
-                /*val dist = pentagon.corners[j].distance(target)
-                if (dist > len * 2) {
-                    for (hex in hexagons1) {
-                        println("${hex.center}, ${hex.corners.joinToString()}")
-                    }
-                    throw IllegalStateException("[$i/$j] $dist > $len*2, $x0 x $target x ${x1.center}")
-                }*/
+                pentagon.corners[j] = if (n == 0) {
+                    val x0 = hexagons1[j].center
+                    val target = Vector3f(point).lerp(x0, -0.5f).normalize()
+                    val x1 = hexagons1[(j + 2) % 5]
+                    x1.corners.minByOrNull { it.distanceSquared(target) }!!
+                } else {
+                    hexagons1[j].corners[3]
+                }
             }
 
             // add all connections
             var h0 = hexagons1.last()
-            for (h1i in hexagons1) {
-                connect(pentagon, h1i)
-                connect(h0, h1i)
-                h0 = h1i
+            for (j in hexagons1.indices) {
+                val neighbor = hexagons1[j]
+                connect(pentagon, neighbor)
+                connect(h0, neighbor)
+                h0 = neighbor
             }
         }
 
@@ -527,6 +606,41 @@ class LargeHexagonSphere(
 
         }
 
+        for (hexList in pointsToLines) {
+            for (hex in hexList) {
+                sortNeighbors(hex)
+            }
+        }
+
+        for (pentagon in pentagons) {
+            sortNeighbors(pentagon)
+        }
+
+    }
+
+    fun sortNeighbors(hex: Hexagon) {
+
+        val center = hex.center
+        val ax = Vector3f(hex.corners[0]).sub(center)
+        val az = Vector3f(ax).cross(center)
+
+        // sort neighbors by their angle
+        fun angle(c: Vector3f) = atan2(ax.dot(c), az.dot(c))
+        for (i in 0 until hex.corners.size) {
+            if (hex.neighbors[i] == null) {
+                hex.neighbors[i] = find(hex.neighborIds[i])
+            }
+        }
+        hex.neighbors.sortBy {
+            val c = it!!.center
+            angle(c)
+        }
+        val a0 = angle(hex.neighbors.last()!!.center)
+        hex.corners.sortBy { c ->
+            posMod(angle(c) - a0, TAUf)
+        }
+        for (i in 0 until hex.corners.size)
+            checkNeighbor(hex, i)
     }
 
     fun triIdx(idx0: Long, i: Int, j: Int): Long {
@@ -557,24 +671,24 @@ class LargeHexagonSphere(
         val ti3 = triIndex * 3
         val a = indices[ti3]
         val b = indices[ti3 + 1]
+        val lenSq = len * len
         for (i in 0 until 2) {
             val li = triangleLines[triIndex * 2 + i]
             if (li < 0) continue
             val l0 = lineIndices[li * 2]
             val l1 = lineIndices[li * 2 + 1]
-            if (l0 == a) {
-                if (l1 == b) ab = tri.abLine
-                else ac = tri.acLine
+            if (l0 == a && l1 == b || l0 == b && l1 == a) {
+                ab = if (vertices[a].distanceSquared(tri.abLine[0].center) > lenSq) tri.baLine else tri.abLine
             } else {
-                // reverse
-                if (l0 == b) ab = tri.baLine
-                else ac = tri.caLine
+                ac = if (vertices[a].distanceSquared(tri.acLine[0].center) > lenSq) tri.caLine else tri.acLine
             }
         }
 
         // add a pentagon to the left corner
         if (pentagonTris[a] == triIndex) {
             group.add(pentagons[a])
+            if (group.indexOf(group.last()) != group.lastIndex)
+                throw IllegalStateException()
         }
 
         if (sj == 0 && ab != null) {
@@ -582,7 +696,7 @@ class LargeHexagonSphere(
             for (i in si * t until (si + 1) * t) {
                 val hex = ab[i]
                 group.add(hex)
-                connectLine(ab, hex, i)
+                if (i > 0) connectLine(ab, hex, i)
             }
             if (si == s - 1) { // last one
                 val hex = ab[n]
@@ -600,7 +714,7 @@ class LargeHexagonSphere(
                 for (tj in j0..n) {
                     val hex = ac[tj]
                     group.add(hex)
-                    connectLine(ac, hex, tj)
+                    if (tj > 0) connectLine(ac, hex, tj)
                 }
             }
             for (ti in 0 until t) {
@@ -629,7 +743,7 @@ class LargeHexagonSphere(
                         for (j in j0 until j0 + t) {
                             val hex = ac[j]
                             group.add(hex)
-                            connectLine(ac, hex, j)
+                            if (j > 0) connectLine(ac, hex, j)
                         }
                     }
                 }
@@ -663,5 +777,6 @@ class LargeHexagonSphere(
         }
         return group
     }
+
 
 }

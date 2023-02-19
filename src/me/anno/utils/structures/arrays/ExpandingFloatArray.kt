@@ -1,8 +1,10 @@
 package me.anno.utils.structures.arrays
 
+import me.anno.cache.ICacheData
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.LOGGER
+import me.anno.utils.pooling.FloatArrayPool
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -10,25 +12,25 @@ import org.joml.Vector4f
 import kotlin.math.max
 import kotlin.math.min
 
-open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
+open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = null) :
+    Saveable(), ICacheData {
 
     var size = 0
 
-    var array = FloatArray(initCapacity)
+    var array = alloc(initCapacity)
 
     val capacity get() = array.size
+
+    fun alloc(size: Int): FloatArray {
+        return if (pool != null) pool[size, true, false] else FloatArray(size)
+    }
 
     fun clear() {
         size = 0
     }
 
-    fun ensure() {
-        array = FloatArray(initCapacity)
-    }
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeInt("initCapacity", initCapacity)
         writer.writeInt("size", size)
         val array = array
         // clear the end, so we can save it with less space wasted
@@ -41,7 +43,6 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
     override fun readInt(name: String, value: Int) {
         when (name) {
             "size" -> size = value
-            "initCapacity" -> initCapacity
             else -> super.readInt(name, value)
         }
     }
@@ -63,12 +64,13 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
             val suggestedSize = max(array.size * 2, 16)
             val newSize = max(suggestedSize, requestedSize)
             val newArray = try {
-                FloatArray(newSize)
+                alloc(newSize)
             } catch (e: OutOfMemoryError) {
                 LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingFloatArray")
                 throw e
             }
             System.arraycopy(array, 0, newArray, 0, this.size)
+            pool?.returnBuffer(array)
             this.array = newArray
         }
     }
@@ -174,7 +176,7 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
 
     fun add(l: FloatArray, srcStartIndex: Int, srcLength: Int) {
         ensureExtra(srcLength)
-        System.arraycopy(l, srcStartIndex, array!!, size, srcLength)
+        System.arraycopy(l, srcStartIndex, array, size, srcLength)
         size += srcLength
     }
 
@@ -189,7 +191,7 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
     }
 
     fun addUnsafe(src: FloatArray, startIndex: Int = 0, length: Int = src.size - startIndex) {
-        System.arraycopy(src, startIndex, array!!, size, length)
+        System.arraycopy(src, startIndex, array, size, length)
         size += length
     }
 
@@ -203,22 +205,20 @@ open class ExpandingFloatArray(private var initCapacity: Int) : Saveable() {
         add(value)
     }
 
-    fun toFloatArray(size1: Int): FloatArray {
+    fun toFloatArray(canReturnSelf: Boolean = true, exact: Boolean = true) = toFloatArray(size, canReturnSelf, exact)
+
+    fun toFloatArray(size1: Int, canReturnSelf: Boolean = true, exact: Boolean = true): FloatArray {
         val array = array
-        val size = size
-        if (size == array.size) return array
-        val tmp = FloatArray(size1)
-        if (size > 0) System.arraycopy(array, 0, tmp, 0, min(size, size1))
+        if (canReturnSelf && (size1 == array.size || (!exact && size1 <= array.size)))
+            return array
+        val tmp = alloc(size1)
+        System.arraycopy(array, 0, tmp, 0, min(size, size1))
         return tmp
     }
 
-    fun toFloatArray(): FloatArray {
-        val array = array
-        val size = size
-        if (size == array.size) return array
-        val tmp = FloatArray(size)
-        if (size > 0) System.arraycopy(array, 0, tmp, 0, size)
-        return tmp
+    override fun destroy() {
+        pool?.returnBuffer(array)
+        size = 0
     }
 
     operator fun plusAssign(v: Vector2f) {

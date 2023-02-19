@@ -5,7 +5,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.image.svg.SVGTransform.applyTransform
 import me.anno.image.svg.gradient.Formula
 import me.anno.image.svg.gradient.LinearGradient
 import me.anno.image.svg.gradient.RadialGradient
@@ -518,132 +517,49 @@ class SVGMesh {
     fun addPath(xml: XMLNode, style: SVGStyle, fill: Boolean) {
         init(style, fill)
         val data = xml["d"] ?: return
-        var i = 0
-        fun read(): Float {
-            var j = i
-            spaces@ while (true) {
-                when (data[j]) {
-                    ' ', '\t', '\r', '\n', ',' -> j++
-                    else -> break@spaces
-                }
-            }
-            i = j
-            when (data[j]) {
-                '+', '-' -> j++
-            }
-            when (data[j]) {
-                '.' -> {
-                    // LOGGER.info("starts with .")
-                    j++
-                    int@ while (true) {
-                        when (data.getOrNull(j)) {
-                            in '0'..'9' -> j++
-                            else -> break@int
-                        }
-                    }
-                }
-                else -> {
-                    int@ while (true) {
-                        when (data.getOrNull(j)) {
-                            in '0'..'9' -> j++
-                            else -> break@int
-                        }
-                    }
-                    if (data.getOrNull(j) == '.') {
-                        j++
-                        int@ while (true) {
-                            when (data.getOrNull(j)) {
-                                in '0'..'9' -> j++
-                                else -> break@int
-                            }
-                        }
-                    }
-                }
-            }
 
-            when (data.getOrNull(j)) {
-                'e', 'E' -> {
-                    j++
-                    when (data.getOrNull(j)) {
-                        '+', '-' -> j++
-                    }
-                    int@ while (true) {
-                        when (data.getOrNull(j)) {
-                            in '0'..'9' -> j++
-                            else -> break@int
-                        }
-                    }
+        readSVGPath(data,
+            ::close,
+            { s, v ->
+                when (s) {
+                    'H' -> lineTo(v, y)
+                    'h' -> lineTo(x + v, y)
+                    'V' -> lineTo(x, v)
+                    'v' -> lineTo(x, y + v)
                 }
-            }
-            // LOGGER.info("'${data.substring(i, j)}' + ${data.substring(j, j+10)}")
-            val value = data.substring(i, j).toFloat()
-            i = j
-            return value
-        }
+            },
+            { s, x0, y0 ->
+                when (s) {
+                    'M' -> moveTo(x0, y0)
+                    'm' -> moveTo(x + x0, y + y0)
+                    'L' -> lineTo(x0, y0)
+                    'l' -> lineTo(x + x0, y + y0)
+                    'T' -> quadraticTo(reflectedX, reflectedY, x0, y0)
+                    't' -> quadraticTo(reflectedX, reflectedY, x + x0, y + y0)
+                }
+            },
+            { s, x0, y0, x1, y1 ->
+                when (s) {
+                    'S' -> cubicTo(reflectedX, reflectedY, x0, y0, x1, y1)
+                    's' -> cubicTo(reflectedX, reflectedY, x + x0, y + y0, x + x1, y + y1)
+                    'Q' -> quadraticTo(x0, y0, x1, y1)
+                    'q' -> quadraticTo(x + x0, y + y0, x + x1, y + y1)
+                }
+            },
+            { s, x0, y0, x1, y1, x2, y2 ->
+                when (s) {
+                    'C' -> cubicTo(x0, y0, x1, y1, x2, y2)
+                    'c' -> cubicTo(x + x0, y + y0, x + x1, y + y1, x + x2, y + y2)
+                }
+            },
+            { s, rx, ry, rot, la, sw, x2, y2 ->
+                when (s) {
+                    'A' -> arcTo(rx, ry, rot, la, sw, x2, y2)
+                    'a' -> arcTo(rx, ry, rot, la, sw, x + x2, y + y2)
+                }
+            })
 
-        var lastAction = ' '
-        fun parseAction(symbol: Char): Boolean {
-            try {
-                when (symbol) {
-                    ' ', '\t', '\r', '\n' -> return false
-                    'M' -> moveTo(read(), read())
-                    'm' -> moveTo(x + read(), y + read())
-                    'L' -> lineTo(read(), read())
-                    'l' -> lineTo(x + read(), y + read())
-                    'H' -> lineTo(read(), y)
-                    'h' -> lineTo(x + read(), y)
-                    'V' -> lineTo(x, read())
-                    'v' -> lineTo(x, y + read())
-                    'C' -> cubicTo(read(), read(), read(), read(), read(), read())
-                    'c' -> cubicTo(x + read(), y + read(), x + read(), y + read(), x + read(), y + read())
-                    'S' -> cubicTo(reflectedX, reflectedY, read(), read(), read(), read())
-                    's' -> cubicTo(reflectedX, reflectedY, x + read(), y + read(), x + read(), y + read())
-                    'Q' -> quadraticTo(read(), read(), read(), read())
-                    'q' -> quadraticTo(x + read(), y + read(), x + read(), y + read())
-                    'T' -> quadraticTo(reflectedX, reflectedY, read(), read())
-                    't' -> quadraticTo(reflectedX, reflectedY, x + read(), y + read())
-                    'A' -> arcTo(read(), read(), read(), read(), read(), read(), read())
-                    'a' -> arcTo(read(), read(), read(), read(), read(), x + read(), y + read())
-                    'Z', 'z' -> close()
-                    else -> {
-                        i--
-                        parseAction(lastAction)
-                        return false
-                    }
-                }
-            } catch (e: Exception) {
-                LOGGER.info(data)
-                throw e
-            }
-            return true
-        }
-
-        while (i < data.length) {
-            when (val symbol = data[i++]) {
-                ' ', '\t', '\r', '\n' -> {
-                }
-                else -> {
-                    if (parseAction(symbol)) {
-                        lastAction = symbol
-                    }
-                }
-            }
-        }
         endElement()
-    }
-
-    fun arcTo(
-        rx: Float, ry: Float, xAxisRotation: Float,
-        largeArcFlag: Float, sweepFlag: Float,
-        x2: Float, y2: Float
-    ) {
-        // LOGGER.info("$rx $ry $xAxisRotation $largeArcFlag $sweepFlag $x2 $y2")
-        arcTo(
-            rx, ry, xAxisRotation,
-            largeArcFlag.toInt() != 0,
-            sweepFlag.toInt() != 0,
-            x2, y2
-        )
     }
 
     // http://xahlee.info/REC-SVG11-20110816/implnote.html#ArcImplementationNotes

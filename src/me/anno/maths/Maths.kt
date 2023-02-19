@@ -50,6 +50,9 @@ object Maths {
     fun sq(x: Double, y: Double) = x * x + y * y
 
     @JvmStatic
+    fun sq(x: Int, y: Int) = x * x + y * y
+
+    @JvmStatic
     fun sq(x: Double, y: Double, z: Double) = x * x + y * y + z * z
 
     @JvmStatic
@@ -179,6 +182,18 @@ object Maths {
         val exponent = (bits shr 52).toInt() and 2047
         return exponent - 1023
     }
+
+    @JvmStatic
+    fun posMod(x: Int, y: Int) = if (x >= 0) x % y else (x % y) + y
+
+    @JvmStatic
+    fun posMod(x: Long, y: Long) = if (x >= 0) x % y else (x % y) + y
+
+    @JvmStatic
+    fun posMod(x: Float, y: Float) = if (x >= 0f) x % y else (x % y) + y
+
+    @JvmStatic
+    fun posMod(x: Double, y: Double) = if (x >= 0.0) x % y else (x % y) + y
 
     @JvmStatic
     fun length(dx: Float, dy: Float) = hypot(dx, dy)

@@ -296,10 +296,6 @@ class JsonReader(val data: InputStream) {
         if (i != c) throw JsonFormatException("Expected $c, but got $i")
     }
 
-    fun assert(i: Char, c: Char, msg: String) {
-        if (i != c) throw JsonFormatException(msg)
-    }
-
     fun assert(b: Boolean, msg: String) {
         if (!b) throw JsonFormatException(msg)
     }

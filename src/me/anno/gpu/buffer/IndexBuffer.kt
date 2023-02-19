@@ -81,7 +81,7 @@ class IndexBuffer(
 
     }
 
-    fun createVAOInstanced(shader: Shader, instanceData: Buffer) {
+    fun createVAOInstanced(shader: Shader, instanceData: Buffer?) {
 
         ensureVAO()
         base.ensureBuffer()
@@ -94,17 +94,19 @@ class IndexBuffer(
             bindAttribute(shader, attr, false)
         }
 
-        instanceData.ensureBuffer()
-        bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
-        val attr2 = instanceData.attributes
-        for (attr in attr2) {
-            bindAttribute(shader, attr, true)
+        val attr2 = instanceData?.attributes
+        if(instanceData != null){
+            instanceData.ensureBuffer()
+            bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
+            for (attr in attr2!!) {
+                bindAttribute(shader, attr, true)
+            }
         }
 
         for (attr in shader.attributes) {
             // check if name is bound in attr1/attr2
             val attrName = attr.name
-            if (attr1.none2 { it.name == attrName } && attr2.none2 { it.name == attrName }) {
+            if (attr1.none2 { it.name == attrName } && (attr2 == null || attr2.none2 { it.name == attrName })) {
                 // disable attribute
                 unbindAttribute(shader, attrName)
             }
@@ -205,7 +207,7 @@ class IndexBuffer(
     private var baseAttributes: List<Attribute>? = null
     private var instanceAttributes: List<Attribute>? = null
     private var lastInstanceBuffer: Buffer? = null
-    private fun bindBufferAttributesInstanced(shader: Shader, instanceData: Buffer) {
+    private fun bindBufferAttributesInstanced(shader: Shader, instanceData: Buffer?) {
         GFX.check()
         shader.potentiallyUse()
         checkSession()
@@ -213,12 +215,12 @@ class IndexBuffer(
             lastInstanceBuffer !== instanceData ||
             shader !== lastShader ||
             base.attributes != baseAttributes ||
-            instanceAttributes != instanceData.attributes ||
+            instanceAttributes != instanceData?.attributes ||
             !useVAOs || renewVAOs
         ) {
             lastShader = shader
             baseAttributes = base.attributes
-            instanceAttributes = instanceData.attributes
+            instanceAttributes = instanceData?.attributes
             lastInstanceBuffer = instanceData
             createVAOInstanced(shader, instanceData)
         } else bindVAO(vao)
@@ -233,7 +235,7 @@ class IndexBuffer(
         }
     }
 
-    fun bindInstanced(shader: Shader, instanceData: Buffer) {
+    fun bindInstanced(shader: Shader, instanceData: Buffer?) {
         checkSession()
         if (!base.isUpToDate) base.upload()
         if (base.drawLength > 0) {
@@ -249,6 +251,12 @@ class IndexBuffer(
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
         glDrawElementsInstanced(mode, indices.size, elementsType, 0, instanceData.drawLength)
+        unbind()
+    }
+
+    override fun drawInstanced(shader: Shader, instanceCount: Int) {
+        bindInstanced(shader, null)
+        glDrawElementsInstanced(if (drawMode < 0) base.drawMode else drawMode, indices.size, elementsType, 0, instanceCount)
         unbind()
     }
 

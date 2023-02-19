@@ -1,7 +1,7 @@
 package me.anno.utils.structures.arrays
 
 /**
- * a [CharSequence], which does no proper character conversion; it is means for
+ * a [CharSequence], which does no proper character conversion; it is meant for
  * coloring programming code only, and should not be used for String generation
  * */
 class DirtyCharSequence(val base: IntSequence, val i0: Int = 0, val i1: Int = base.length) : CharSequence {

@@ -108,7 +108,8 @@ object NormalCalculator {
         val c = JomlPools.vec3f.create()
         // just go through the vertices;
         // mode to calculate smooth shading by clustering points?
-        for (i in 0 until positions.size - 8 step 9) {
+        val size = min(positions.size, normals.size) - 8
+        for (i in 0 until size step 9) {
             // check whether the normal update is needed
             val needsUpdate = normalIsInvalid(normals, i) ||
                     normalIsInvalid(normals, i + 3) ||

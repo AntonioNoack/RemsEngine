@@ -15,10 +15,10 @@ import kotlin.math.roundToInt
 
 fun main() {
     // convert()
-    createMesh()
+    createHeightMesh()
 }
 
-fun createMesh() {
+fun createHeightMesh() {
 
     val file = getReference("C:/XAMPP/htdocs/DigitalCampus/images/map/h750.png")
     val image = ImageCPUCache[file, false]!!

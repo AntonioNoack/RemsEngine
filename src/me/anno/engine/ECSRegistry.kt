@@ -80,6 +80,8 @@ object ECSRegistry {
     @JvmStatic
     fun init() {
 
+        throw IllegalStateException()
+
         if (hasBeenInited) return
         hasBeenInited = true
 

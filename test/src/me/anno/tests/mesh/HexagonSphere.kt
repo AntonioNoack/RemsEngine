@@ -244,7 +244,7 @@ fun createNiceMesh1(
     mesh.invalidateGeometry()
 }
 
-fun createConnectionMesh(mesh: Mesh, hexagons: Array<Hexagon>) {
+fun createConnectionMesh(mesh: Mesh, hexagons: Array<Hexagon>, len: Float) {
     val numConnections = hexagons.size * 6
     val positions = mesh.positions.resize(numConnections * 6)
     mesh.drawMode = GL_LINES
@@ -252,7 +252,7 @@ fun createConnectionMesh(mesh: Mesh, hexagons: Array<Hexagon>) {
     val dirX = Vector3f()
     val rx = 0.1f
     val hx = 1.01f
-    val fx = 0.1f
+    val fx = 0.05f
     val fy = hx * rx
     val gy = hx * (1f - rx)
     var pi = 0
@@ -262,6 +262,7 @@ fun createConnectionMesh(mesh: Mesh, hexagons: Array<Hexagon>) {
         for (dst in src.neighbors) {
             dst ?: continue
             val dstPos = dst.center
+            if(srcPos.distance(dstPos) > 2*len) throw IllegalStateException()
             dir.set(dstPos).sub(srcPos)
             dir.cross(srcPos, dirX)
             positions[pi++] = srcPos.x * gy + dstPos.x * fy + dirX.x * fx
@@ -287,6 +288,7 @@ fun main() {
     val showConnections = true
 
     var n = 4
+    val len = findLength(n)
 
     val lineMesh = Mesh()
     lineMesh.material = Material().apply {
@@ -308,7 +310,7 @@ fun main() {
         if (showLineMesh) createLineMesh(lineMesh, hexagons)
         if (showNiceMesh) createNiceMesh(niceMesh, n, hexagons)
         if (showSimpleMesh) createFaceMesh(simpleMesh, hexagons)
-        if (showConnections) createConnectionMesh(connMesh, hexagons)
+        if (showConnections) createConnectionMesh(connMesh, hexagons, len)
     }
 
     var working = false

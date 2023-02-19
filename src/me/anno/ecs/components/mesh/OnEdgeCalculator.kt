@@ -5,7 +5,7 @@ import kotlin.math.min
 
 object OnEdgeCalculator {
 
-    fun calculateIsOnEdge(mesh: Mesh, dst: BooleanArray = BooleanArray(mesh.numPrimitives * 3)): BooleanArray {
+    fun calculateIsOnEdge(mesh: Mesh, dst: BooleanArray = BooleanArray(mesh.numPrimitives.toInt() * 3)): BooleanArray {
 
         dst.fill(true)
 
