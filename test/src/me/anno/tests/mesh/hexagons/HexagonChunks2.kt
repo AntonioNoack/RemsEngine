@@ -1,18 +1,16 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.hexagons
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.findLength
-import me.anno.ecs.components.chunks.spherical.LargeHexagonSphere
+import me.anno.ecs.components.chunks.spherical.HexagonSphere
+import me.anno.ecs.components.chunks.spherical.HexagonSphere.Companion.findLength
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.debug.TestStudio
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 import kotlin.math.max
 import kotlin.math.min
 
@@ -33,7 +31,7 @@ fun main() {
         }
         val outlineOnly = n > 5000
         entity.removeAllComponents()
-        val hexagons = LargeHexagonSphere(n, s)
+        val hexagons = HexagonSphere(n, s)
 
         for (ti in max(0, dj) until min(20, dk)) {
             val tri = hexagons.triangles[ti]
@@ -43,7 +41,7 @@ fun main() {
                 hexagons.ensureNeighbors(ArrayList(chunk), HashMap(chunk.associateBy { it.index }), 0)
                 entity.add(Entity().apply {
                     // add(MeshComponent(chunkToMesh(chunk.toTypedArray(), random.nextInt(16_777_216))))
-                    add(MeshComponent(chunkToMesh2(chunk.toTypedArray(), len, random.nextInt(16_777_216))))
+                    add(MeshComponent(chunkToMesh2(chunk, len, random.nextInt(16_777_216))))
                 })
             }
             if (outlineOnly) {

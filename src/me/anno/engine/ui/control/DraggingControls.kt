@@ -296,6 +296,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 val globalCamTransform = camTransform.globalTransform
                 val offset = globalCamTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
                 view.position.sub(offset)
+                camera.invalidateAABB()
             }
             isSelected && Input.isLeftDown && mode != Mode.NOTHING -> {
 
@@ -443,7 +444,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             prefab.setUnsafe(path, "rotation", transform.localRotation)
             prefab.setUnsafe(path, "scale", transform.localScale)
         }
-        // entity.invalidateAABBsCompletely()
+        entity.invalidateAABBsCompletely()
         entity.invalidateChildTransforms()
         invalidateInspector()
     }

@@ -1,14 +1,11 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.hexagons
 
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.chunks.spherical.Hexagon
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.createFaceMesh
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.createHexSphere
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.createLineMesh
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.findLength
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.pentagonCount
+import me.anno.ecs.components.chunks.spherical.HexagonSphere.Companion.findLength
+import me.anno.ecs.components.chunks.spherical.HexagonSphere.Companion.pentagonCount
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
@@ -40,7 +37,7 @@ import kotlin.math.sqrt
 // todo small simulator using this
 //  - civilisation builder
 
-fun createNiceMesh(mesh: Mesh, n: Int, hexagons: Array<Hexagon>) {
+fun createNiceMesh(mesh: Mesh, n: Int, hexagons: List<Hexagon>) {
 
     val texture = ImageCPUCache[getReference("E:/Pictures/earth_flat_map.jpg"), false]!!
     val height = ImageCPUCache[downloads.getChild("earth-height.png"), false]!!
@@ -150,7 +147,7 @@ fun createNiceMesh0(
 }
 
 fun createNiceMesh1(
-    mesh: Mesh, n: Int, hexagons: Array<Hexagon>,
+    mesh: Mesh, n: Int, hexagons: List<Hexagon>,
     insetX: Float, insetY: Float,
     latLon: Boolean,
     getColor: (Hexagon, Vector3f) -> Int,
@@ -244,7 +241,7 @@ fun createNiceMesh1(
     mesh.invalidateGeometry()
 }
 
-fun createConnectionMesh(mesh: Mesh, hexagons: Array<Hexagon>, len: Float) {
+fun createConnectionMesh(mesh: Mesh, hexagons: List<Hexagon>, len: Float) {
     val numConnections = hexagons.size * 6
     val positions = mesh.positions.resize(numConnections * 6)
     mesh.drawMode = GL_LINES

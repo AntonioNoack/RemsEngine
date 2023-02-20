@@ -262,7 +262,10 @@ class PrefabInspector(val reference: FileReference) {
             val title = property.name.camelCaseToTitle()
             val list1 = PanelListX(style)
             list1.add(TextPanel("$title:", style))
-            list1.add(UpdatingTextPanel(100L, style) { property.getter.call(instance).toString().shorten2Way(50) })
+            list1.add(UpdatingTextPanel(100L, style) {
+                property.getter.call(instance)
+                    .toString().shorten2Way(200)
+            })
             // todo when clicked, a tracking graph/plot is displayed (real time)
             /*list1.addLeftClickListener {
 

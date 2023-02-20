@@ -1,9 +1,8 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.hexagons
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.findLength
-import me.anno.ecs.components.chunks.spherical.LargeHexagonSphere
+import me.anno.ecs.components.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderState
@@ -29,7 +28,7 @@ import kotlin.math.sin
 // use chunks and a visibility system for them
 
 @Suppress("unused")
-fun testFindingSubChunks(sphere: LargeHexagonSphere) {
+fun testFindingSubChunks(sphere: HexagonSphere) {
 
     // visualize how the engine decides subchunks, and how we do the inverse transform
 
@@ -85,7 +84,7 @@ fun testFindingSubChunks(sphere: LargeHexagonSphere) {
 }
 
 @Suppress("unused")
-fun testFindingSubChunks2(sphere: LargeHexagonSphere) {
+fun testFindingSubChunks2(sphere: HexagonSphere) {
 
     // visualize how the engine decides subchunks, and how we do the inverse transform
 
@@ -139,98 +138,91 @@ fun testFindingSubChunks2(sphere: LargeHexagonSphere) {
 fun main() {
 
     // todo sizes like 10k no longer work properly, and I suspect findClosestSubChunk() is the culprit
-    val n = 1000
+    val n = 100
     val t = 25 // good chunk size
     val s = n / t
-    val sphere = LargeHexagonSphere(n, s)
+    val sphere = HexagonSphere(n, s)
+    val world = HexagonSphereMCWorld(sphere)
     // return testFindingSubChunks(sphere)
     // return testFindingSubChunks2(sphere)
 
     ECSRegistry.initMeshes()
 
-    val worker = ProcessingGroup("worldGen", 4)
-
-    val len = findLength(n)
-    val dir = Vector3f()
-
-    val chunkLoader = object : Component() {
-        override fun clone() = throw NotImplementedError()
-        val aabb = AABBd()
-        val chunks = HashMap<LargeHexagonSphere.SubChunk, Entity>()
-        val requests = ArrayList<LargeHexagonSphere.SubChunk>()
-        override fun onUpdate(): Int {
-
-            val scene = entity!!
-            val pos = Vector3d(RenderState.cameraPosition).safeNormalize()
-            if (pos.lengthSquared() < 0.5) pos.z = 1.0
-            val maxAngleDifference = len * 256
-            chunks.removeIf { (_, child) ->
-                val comp = child.getComponent(MeshComponent::class)
-                if (comp != null) {
-                    aabb.clear()
-                    comp.fillSpace(scene.transform.globalTransform, aabb)
-                    if (aabb.distance(pos) > maxAngleDifference) {
-                        scene.remove(child)
-                        val mesh = comp.getMesh()
-                        if (mesh != null) destroyMesh(mesh)
-                        true
-                    } else false
-                } else false
-            }
-
-            // within a certain radius, request all chunks
-
-            dir.set(pos)
-
-            // todo sort requests by distance
-            if (chunks.size < 5000) {
-                sphere.querySubChunks(dir, maxAngleDifference) { sc ->
-                    if (sc !in chunks) requests.add(sc)
-                    false
-                }
-                requests.sortByDescending { it.center.angleCos(dir) }
-                for (i in 0 until min(5000 - chunks.size, min(requests.size, 16 - max(worker.remaining, GFX.gpuTasks.size)))) {
-                    val sc = requests[i]
-                    val entity = Entity()
-                    worker += {
-                        // check if the request is still valid
-                        val helper = MeshBuildHelper(t)
-                        val hexagons = sphere.querySubChunk(sc)
-                        sphere.ensureNeighbors(ArrayList(hexagons), HashMap(hexagons.associateBy { it.index }), 3)
-                        val mesh = createMesh(hexagons, n, helper)
-                        GFX.addGPUTask("chunk", s) {
-                            mesh.ensureBuffer()
-                            StudioBase.addEvent {
-                                val comp = MeshComponent(mesh.ref)
-                                entity.add(comp)
-                                entity.invalidateAABBsCompletely()
-                                entity.validateAABBs()
-                                scene.add(entity)
-                                scene.validateAABBs()
-                            }
-                        }
-                    }
-                    chunks[sc] = entity
-                }
-                requests.clear()
-            }
-
-            (scene.children as MutableList).sortBy { it.aabb.distanceSquared(pos) }
-            return 1
-        }
-    }
-
-    val scene = Entity()
-    scene.add(chunkLoader)
-
-    // todo create planetary sky box
-
-    testSceneWithUI(scene) {
+    testSceneWithUI(Entity(HSChunkLoader(sphere, world))) {
         it.renderer.position.set(0.0, 1.0, 0.0)
-        it.renderer.radius = 10.0 * len
+        it.renderer.radius = 10.0 * sphere.len
         it.renderer.near = it.renderer.radius * 0.01
         it.renderer.far = it.renderer.radius * 1e5
         it.renderer.updateEditorCameraTransform()
     }
 
+}
+
+val worker = ProcessingGroup("worldGen", 4)
+
+class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) : Component() {
+    val dir = Vector3f()
+    val aabb = AABBd()
+    val chunks = HashMap<HexagonSphere.SubChunk, Entity>()
+    val requests = ArrayList<HexagonSphere.SubChunk>()
+    var maxAngleDifference = sphere.len * 512
+    override fun clone() = HSChunkLoader(sphere, world)
+    override fun onUpdate(): Int {
+
+        val scene = entity ?: return 1
+        val pos = Vector3d(RenderState.cameraPosition).safeNormalize()
+        if (pos.lengthSquared() < 0.5) pos.z = 1.0
+        chunks.removeIf { (_, child) ->
+            val comp = child.getComponent(MeshComponent::class)
+            if (comp != null) {
+                aabb.clear()
+                comp.fillSpace(scene.transform.globalTransform, aabb)
+                if (aabb.distance(pos) > maxAngleDifference) {
+                    scene.remove(child)
+                    val mesh = comp.getMesh()
+                    if (mesh != null) destroyMesh(mesh)
+                    true
+                } else false
+            } else false
+        }
+
+        // within a certain radius, request all chunks
+
+        dir.set(pos)
+
+
+        sphere.querySubChunks(dir, maxAngleDifference) { sc ->
+            if (sc !in chunks) requests.add(sc)
+            false
+        }
+        // sort requests by distance
+        requests.sortByDescending { it.center.angleCos(dir) }
+        for (i in 0 until min(
+            5000 - chunks.size,
+            min(requests.size, 16 - max(worker.remaining, GFX.gpuTasks.size))
+        )) {
+            val sc = requests[i]
+            val entity = Entity()
+            worker += {
+                // check if the request is still valid
+                val mesh = createMesh(sphere.querySubChunk(sc), world)
+                GFX.addGPUTask("chunk", sphere.s) {
+                    mesh.ensureBuffer()
+                    StudioBase.addEvent {
+                        val comp = MeshComponent(mesh.ref)
+                        entity.add(comp)
+                        entity.invalidateAABBsCompletely()
+                        entity.validateAABBs()
+                        scene.add(entity)
+                        scene.validateAABBs()
+                    }
+                }
+            }
+            chunks[sc] = entity
+        }
+        requests.clear()
+
+        (scene.children as MutableList).sortBy { it.aabb.distanceSquared(pos) }
+        return 1
+    }
 }

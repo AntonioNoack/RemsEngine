@@ -1,17 +1,15 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.hexagons
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.chunks.spherical.HexagonSphere
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.calculateChunkEnd
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.chunkCount
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.createFaceMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.maths.Maths
 
 fun main() {
     val n = 100
-    val hexagons = HexagonSphere.createHexSphere(n)
+    val hexagons = createHexSphere(n)
     var i0 = 0
     val entity = Entity()
     for (i in 0 until chunkCount) {
@@ -37,4 +35,17 @@ fun main() {
         entity.add(subEntity)
     }
     testSceneWithUI(entity)
+}
+
+val chunkCount = 12
+
+/**
+ * if you want to split your world into chunks for culling, you can use this function
+ * it will return the ranges of indices for 21 chunks;
+ * the first chunk will be visible most times, because it contains the borders and edges
+ * */
+fun calculateChunkEnd(i: Int, n: Int): Int {
+    val special = HexagonSphere.lineCount * (n + 1) + HexagonSphere.pentagonCount
+    val perSide = (n * (n + 1)) shr 1
+    return special + Maths.min(i, n) * perSide
 }

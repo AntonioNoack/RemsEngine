@@ -16,25 +16,13 @@ import javax.vecmath.Quat4f
 import javax.vecmath.Vector3d
 import kotlin.math.max
 
-class HSPhysics(
-    val world: LargeHexagonSphere,
+class HexagonSpherePhysics(
+    val sphere: HexagonSphere,
     val shape: ConvexShape,
-    val triangleQuery: TriangleQuery
+    val triangleQuery: HexagonTriangleQuery
 ) {
 
-    val scale = 1.0 / world.len
-
-    interface TriangleQuery {
-        fun run(
-            hex1: Hexagon, minY: Float, maxY: Float,
-            callback: (Vector3f, Vector3f, Vector3f) -> Boolean
-        )
-
-        fun run(
-            hex1: Hexagon, hex2: Hexagon, i: Int, minY: Float, maxY: Float,
-            callback: (Vector3f, Vector3f, Vector3f) -> Boolean
-        )
-    }
+    val scale = 1.0 / sphere.len
 
     val lastPosition = Vector3f()
     val currPosition = Vector3f()
@@ -50,7 +38,7 @@ class HSPhysics(
     }
 
     fun teleport(pos: Vector3f, setMotionNull: Boolean) {
-        hexagon = world.findClosestHexagon(pos)
+        hexagon = sphere.findClosestHexagon(pos)
         currPosition.set(pos)
         if (setMotionNull) velocity.set(0f)
     }
@@ -82,7 +70,7 @@ class HSPhysics(
             currPosition.set(nextPosition)
 
             // update hexagon
-            hexagon = world.findClosestHexagon(currPosition, hexagon!!)
+            hexagon = sphere.findClosestHexagon(currPosition, hexagon!!)
 
         }
     }
@@ -96,8 +84,8 @@ class HSPhysics(
         val aabbMin = Vector3d()
         val aabbMax = Vector3d()
         shape.getAabb(nullTransform, aabbMin, aabbMax)
-        yMin = aabbMin.y.toFloat() * world.len
-        yMax = aabbMax.y.toFloat() * world.len
+        yMin = aabbMin.y.toFloat() * sphere.len
+        yMax = aabbMax.y.toFloat() * sphere.len
     }
 
     fun applyCollisions(dt: Float) {
@@ -195,7 +183,7 @@ class HSPhysics(
 
     fun ensureNeighbors(hex: Hexagon) {
         if (hex.neighbors.any { it == null })
-            world.ensureNeighbors(arrayListOf(hex), hashMapOf(hex.index to hex), 0)
+            sphere.ensureNeighbors(arrayListOf(hex), hashMapOf(hex.index to hex), 0)
     }
 
     fun accelerate(dir: Vector3f, dt: Float) {

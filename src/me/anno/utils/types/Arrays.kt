@@ -41,6 +41,11 @@ object Arrays {
     }
 
     @JvmStatic
+    fun ByteArray.subArray(i0: Int = 0, i1: Int = size): ByteArray {
+        return ByteArray(i1 - i0) { this[i0 + it] }
+    }
+
+    @JvmStatic
     fun <V> Array<V>.subList(i0: Int = 0, i1: Int = size): List<V> {
         val self = this
         return object : List<Any?> {
