@@ -29,7 +29,7 @@ fun testIncompletePentagons() {
     val hex = sphere.findClosestHexagon(sc)
     val (_, map) = world.generateWorld(hex)
     var pentagonsIncluded = 0
-    for (pentagonId in sphere.pentagon0 until sphere.pentagon1) {
+    for (pentagonId in sphere.special0 until sphere.special) {
         if (map[pentagonId] >= 0) pentagonsIncluded++
     }
 }

@@ -96,4 +96,16 @@ object Arrays {
         } as List<V>
     }
 
+    fun LongArray.rotateRight(shift: Int) {
+        val end = LongArray(shift) { this[size - shift + it] }
+        System.arraycopy(this, 0, this, shift, size - shift)
+        System.arraycopy(end, 0, this, 0, shift)
+    }
+
+    inline fun <reified V> Array<V>.rotateRight(shift: Int) {
+        val end = Array(shift) { this[size - shift + it] }
+        System.arraycopy(this, 0, this, shift, size - shift)
+        System.arraycopy(end, 0, this, size - shift, shift)
+    }
+
 }

@@ -18,11 +18,11 @@ fun main() {
 
     var dj = 0
     var dk = 20
-    val n = 100
+    val n = 100000
     // todo crashes at 100k because of indices :/
 
-    val len = findLength(n)
-    val s = 1
+    val t = 25
+    val s = n / t
     val entity = Entity()
     fun recalculate() {
         if (n > 150) { // if you're testing a large world, only generate a single chunk
@@ -40,8 +40,8 @@ fun main() {
                 val chunk = hexagons.querySubChunk(tri.index, si, sj)
                 hexagons.ensureNeighbors(ArrayList(chunk), HashMap(chunk.associateBy { it.index }), 0)
                 entity.add(Entity().apply {
-                    // add(MeshComponent(chunkToMesh(chunk.toTypedArray(), random.nextInt(16_777_216))))
-                    add(MeshComponent(chunkToMesh2(chunk, len, random.nextInt(16_777_216))))
+                    add(MeshComponent(chunkToMesh(chunk, random.nextInt(16_777_216))))
+                    // add(MeshComponent(chunkToMesh2(chunk, len, random.nextInt(16_777_216))))
                 })
             }
             if (outlineOnly) {

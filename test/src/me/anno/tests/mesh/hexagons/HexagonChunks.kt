@@ -54,7 +54,7 @@ fun main() {
     testSceneWithUI(entity)
 }
 
-fun createHexSphere(n: Int): List<Hexagon> {
+fun createHexSphere(n: Int): ArrayList<Hexagon> {
     val sphere = HexagonSphere(n, 1)
     val all = ArrayList<Hexagon>(sphere.total.toInt())
     for (tri in 0 until 20) all.addAll(sphere.querySubChunk(tri, 0, 0))

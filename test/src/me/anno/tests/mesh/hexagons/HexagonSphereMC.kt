@@ -231,7 +231,7 @@ fun generateMesh(
     val uv5 = IntArray(5)
 
     for (i in uv6.indices) uv6[i] = i.shl(8)
-    for (i in uv5.indices) uv5[i] = (i+6).shl(8)
+    for (i in uv5.indices) uv5[i] = (i + 6).shl(8)
 
     val normal = Vector3f()
     val c2v = Vector3f()
@@ -368,18 +368,9 @@ fun main() {
     val hexagons = createHexSphere(n)
     val world = HexagonSphereMCWorld(HexagonSphere(100, 1))
 
-    var i0 = 0
     val scene = Entity()
-    for (chunkId in 0 until chunkCount) {
-        val i1 = calculateChunkEnd(chunkId, n)
-        scene.add(Entity().apply {
-            val mesh = createMesh(ArrayList(hexagons.subList(i0, i1)), world)
-            add(MeshComponent(mesh))
-            // add(MeshCollider(mesh).apply { isConvex = false }) // much too expensive
-            // add(Rigidbody().apply { isStatic = true })
-        })
-        i0 = i1
-    }
+    val mesh = createMesh(hexagons, world)
+    scene.add(MeshComponent(mesh))
 
     val sky = SkyBox()
     sky.spherical = true
@@ -414,8 +405,6 @@ fun main() {
     ambient.color.set(0.5f)
     scene.add(ambient)
     scene.add(sunEntity)
-
-    // todo add sphere as a test object for collisions
 
     testSceneWithUI(scene) {
         if (false) {
@@ -453,10 +442,10 @@ open class ControllerOnSphere(
     override fun rotateCamera(vx: Float, vy: Float, vz: Float) {
         val axis = up
         val s = 1.0.toRadians()
+        println("rotating $vx,$vy,$vz,$axis, x $forward, x $right")
         forward.rotateAxis(vy * s, axis.x, axis.y, axis.z)
         right.rotateAxis(vy * s, axis.x, axis.y, axis.z)
         val dx = vx * s
-        // todo clamp angle
         // val currAngle = forward.angleSigned(up, right)
         // val dx2 = clamp(currAngle + dx, 1.0.toRadians(), 179.0.toRadians()) - currAngle
         forward.rotateAxis(dx, right.x, right.y, right.z)

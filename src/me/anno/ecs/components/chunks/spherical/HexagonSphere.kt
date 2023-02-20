@@ -2,16 +2,13 @@ package me.anno.ecs.components.chunks.spherical
 
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.maths.Maths.posMod
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.normalToQuaternion
+import me.anno.utils.types.Arrays.rotateRight
 import org.joml.AABBf
-import org.joml.Quaternionf
-import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -58,40 +55,14 @@ class HexagonSphere(
             )
         }
 
-        fun create(
-            pos: Vector3f,
-            ab: Vector3f,
-            ac: Vector3f,
-            i: Int,
-            len: Float,
-            dst: Vector3f = Vector3f()
-        ): Vector3f {
-            val di = hexInLocalCoords[i]
-            return create(pos, ab, ac, di.x * len, di.y * len, dst)
-        }
-
-        fun create(
-            pos: Vector3f,
-            ab: Vector3f,
-            ac: Vector3f,
-            d0: Float,
-            d1: Float,
-            dst: Vector3f = Vector3f()
-        ): Vector3f {
-            return dst.set(pos)
-                .add(ab.x * d0, ab.y * d0, ab.z * d0)
-                .add(ac.x * d1, ac.y * d1, ac.z * d1)
-                .normalize()
-        }
-
         // Icosphere without subdivisions from Blender = dodecahedron (20 triangle faces, each corner is a pentagon)
-        val indices = intArrayOf(
+        private val indices = intArrayOf(
             // this order was brute-forced for a nice layout for partitionIntoSubChunks 😅
             0, 1, 2, 1, 0, 5, 0, 2, 3, 0, 3, 4, 0, 4, 5, 1, 5, 10, 1, 6, 2, 2, 7, 3, 3, 8, 4, 5, 4, 9, 1,
             10, 6, 6, 7, 2, 7, 8, 3, 4, 8, 9, 5, 9, 10, 10, 11, 6, 11, 7, 6, 7, 11, 8, 8, 11, 9, 9, 11, 10
         )
 
-        val vertices = run {
+        private val vertices = run {
             val s = 0.276385f
             val t = 0.723600f
             val u = 0.447215f
@@ -108,92 +79,52 @@ class HexagonSphere(
             )
         }
 
-        val lineIndices = intArrayOf(
+        private val lineIndices = intArrayOf(
             0, 1, 1, 2, 0, 5, 0, 2, 2, 3, 0, 3, 3, 4, 0, 4, 4, 5, 1, 5, 5, 10, 1, 6, 2, 7, 3, 8, 4, 9, 1, 10,
             2, 6, 6, 7, 3, 7, 7, 8, 4, 8, 8, 9, 5, 9, 9, 10, 6, 10, 10, 11, 6, 11, 7, 11, 8, 11, 9, 11
         )
 
-        val hexInLocalCoords = run {
-            val s = 1f / 3f
-            val f = 2f / 3f
-            arrayOf(
-                Vector2f(s, s),
-                Vector2f(-s, f),
-                Vector2f(-f, s),
-                Vector2f(-s, -s),
-                Vector2f(s, -f),
-                Vector2f(f, -s)
-            )
-        }
-
-
-        val triangleLines = IntArray(20 * 2)
-        val pentagonTris = IntArray(30)
-
-        init {
-            val triLiCounter = IntArray(20)
-            triangleLines.fill(-1)
-            lis@ for (li in 0 until 30) {
-                val l0 = lineIndices[li * 2]
-                val l1 = lineIndices[li * 2 + 1]
-                for (ti in 0 until 20) {
-                    val ti3 = ti * 3
-                    val a = indices[ti3]
-                    val b = indices[ti3 + 1]
-                    val c = indices[ti3 + 2]
-                    if (
-                        (a == l0 && b == l1) || (a == l1 && b == l0) ||
-                        (a == l0 && c == l1) || (a == l1 && c == l0)
-                    ) {
-                        // assign line to triangle
-                        var di = ti * 2
-                        if (triangleLines[di] >= 0) di++
-                        if (triangleLines[di] >= 0) continue // there is already two lines
-                        triangleLines[di] = li
-                        triLiCounter[ti]++
-                        continue@lis
-                    }
-                }
-                throw IllegalStateException("No triangle found for $li")
-            }
-            for (tri in 19 downTo 0) {
-                // ab and ac shall be defined
-                if (triLiCounter[tri] == 2) {
-                    val t3 = indices[tri * 3]
-                    pentagonTris[t3] = Maths.max(pentagonTris[t3], tri)
-                }
-            }
-            var ctr = 0
-            for (triIndex in 0 until 20) {
-                if (pentagonTris[indices[triIndex * 3]] == triIndex)
-                    ctr++
-            }
-            if (ctr < pentagonCount) throw IllegalStateException()
-        }
+        private val hexInLocalCoords = floatArrayOf(1f, 1f, -1f, 2f, -2f, 1f, -1f, -1f, 1f, -2f, 2f, -1f)
+        private val triangleLines = intArrayOf(
+            0, 3, 9, -1, 5, -1, 7, -1, 2, -1, 15, -1, 1, 11, 4, 12, 6, 13, 8, 22, -1, -1,
+            16, 17, 18, 19, 14, 20, 10, -1, 24, 25, 26, 27, -1, -1, 21, 28, 23, 29
+        )
+        private val pentagonTris = intArrayOf(0, 6, 7, 8, 13, 9, 11, 12, 18, 19, 15, 16)
+        private val hexSortOrders0 = // base 8 indices for sorting the hexagons around the pentagons; pre-calculated
+            shortArrayOf(794, 17419, 16467, 16467, 16467, 16915, 12372, 16915, 16915, 16915, 17419, 16467)
 
     }
 
     val t = n / s
 
+    val special0 = lineCount * (n + 1L)
+    val special = special0 + pentagonCount
     val perSide = (n * (n + 1L)) shr 1
-
-    val pentagon0 = 0L // lineCount * (n + 1L)
-    val pentagon1 = pentagon0 + pentagonCount // special0 + pentagonCount
-    val lines0 = pentagon1
-    val lines1 = lines0 + lineCount * (n + 1L)
-    val triangle0 = lines1
-    val triangle1 = triangle0 + perSide * 20
-    val total = triangle1
+    val total = special + perSide * 20
 
     val i0 = (n - 1) / 3f
     val j0 = (n - 1.5f) * 0.5f - n / 6f + 0.4f // why 0.4???
     val j0l = n * 0.5f
 
     val len = findLength(n)
+    val lenX3 = len / 3f
 
     init {
         if (t * s != n) throw IllegalArgumentException()
         println(len * (n + 1))
+    }
+
+    private fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, i: Int): Vector3f {
+        val i2 = i + i
+        return create(pos, ab, ac, hexInLocalCoords[i2] * lenX3, hexInLocalCoords[i2 + 1] * lenX3)
+    }
+
+    private fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, d0: Float, d1: Float): Vector3f {
+        return Vector3f(
+            pos.x + ab.x * d0 + ac.x * d1,
+            pos.y + ab.y * d0 + ac.y * d1,
+            pos.z + ab.z * d0 + ac.z * d1
+        ).normalize()
     }
 
     class Triangle(
@@ -206,7 +137,7 @@ class HexagonSphere(
         lateinit var caLine: Line
         lateinit var bcLine: Line
         val aabb = AABBf()
-        val idx0 = self.triangle0 + index * self.perSide
+        val idx0 = self.special + index * self.perSide
         operator fun get(i: Int, j: Int): Hexagon {
             return get(i, j, self.triIdx(idx0, i, j))
         }
@@ -252,9 +183,9 @@ class HexagonSphere(
     }
 
     fun find(id: Long, connect: Boolean = true): Hexagon {
-        return when (id) {
-            in pentagon0 until pentagon1 -> pentagons[(id - pentagon0).toInt()]
-            in lines0 until lines1 -> {
+        return when {
+            id !in 0 until total -> throw IllegalArgumentException("Id out of bounds: $id !in 0 until $total")
+            id < special0 -> {
                 val n1 = (n + 1L)
                 val line = lines[(id / n1).toInt() * 2]
                 val li = (id % n1).toInt()
@@ -262,8 +193,10 @@ class HexagonSphere(
                 if (connect && li > 0) connectLine(line, hex, li)
                 hex
             }
-            in triangle0 until triangle1 -> {
-                val lr = id - triangle0
+            // connections are lines, and done already :)
+            id < special -> pentagons[(id - special0).toInt()]
+            else -> {
+                val lr = id - special
                 val tri = triangles[(lr / perSide).toInt()]
                 val li = lr % perSide
                 val i = triFindI(li)
@@ -272,7 +205,6 @@ class HexagonSphere(
                 if (connect) connectTriHex(tri, hex, i, j)
                 hex
             }
-            else -> throw IndexOutOfBoundsException()
         }
     }
 
@@ -552,7 +484,7 @@ class HexagonSphere(
     private val lines = ArrayList<Line>(lineIndices.size)
     private val pentagons = Array(pentagonCount) {
         val v = vertices[it]
-        creator.create(pentagon0 + it, v, Array(5) { v })
+        creator.create(special0 + it, v, Array(5) { v })
     }
 
     private fun calcHexPos(
@@ -572,7 +504,7 @@ class HexagonSphere(
 
     private fun create(center: Vector3f, ab: Vector3f, ac: Vector3f, index: Long, b0: Float, b1: Float): Hexagon {
         val pos = calcHexPos(center, ab, ac, b0, b1)
-        val hex = creator.create(index, pos, Array(6) { create(pos, ab, ac, it, len) })
+        val hex = creator.create(index, pos, Array(6) { create(pos, ab, ac, it) })
         hex.center.normalize()
         return hex
     }
@@ -595,7 +527,7 @@ class HexagonSphere(
             if (i >= 12) i -= 12
             if (i >= 6) i -= 6
             val ps = if (a) ps00 else ps10
-            create(ps, tri.ab, tri.ac, i, len)
+            create(ps, tri.ab, tri.ac, i)
         }
 
         return creator.create(index, pos, corners)
@@ -648,20 +580,13 @@ class HexagonSphere(
         throw IllegalStateException()
     }
 
-    private fun findTriangle(a: Int, b: Int): TRef {
-        val ts = triangles
-        for (i in 0 until 20) {
-            val i3 = i * 3
-            val ai = indices[i3]
-            val bi = indices[i3 + 1]
-            val ci = indices[i3 + 2]
-            when {
-                ai == a && bi == b -> return TRef(ts[i])
-                bi == a && ci == b -> return RRef(n, TRef(ts[i]))
-                ci == a && ai == b -> return RRef(n, RRef(n, TRef(ts[i])))
-            }
+    private fun decodeTriangle(a: Int): TRef {
+        val tri = triangles[a % 20]
+        return when (a / 20) {
+            0 -> TRef(tri)
+            1 -> RRef(n, TRef(tri))
+            else -> RRef(n, RRef(n, TRef(tri)))
         }
-        throw IllegalStateException()
     }
 
     open class TRef(val tri: Triangle, val d: Int = 0) {
@@ -678,6 +603,11 @@ class HexagonSphere(
     init {
 
         val pointsToLines = Array(12) { ArrayList<Hexagon>(5) }
+        val lineToTriangle = byteArrayOf(
+            0, 1, 20, 46, 21, 44, 2, 40, 22, 47, 3, 42, 23, 48, 4, 43, 24, 9, 5, 41, 25, 54, 6, 50, 7, 31, 8, 32, 29,
+            53, 10, 45, 51, 26, 11, 36, 52, 27, 12, 57, 13, 28, 33, 58, 14, 49, 34, 59, 55, 30, 15, 39, 56, 35, 17, 16,
+            18, 37, 19, 38,
+        )
 
         // define edges
         for (i in lineIndices.indices step 2) {
@@ -688,8 +618,8 @@ class HexagonSphere(
             val a = vertices[ai]
             val b = vertices[bi]
 
-            val ta = findTriangle(ai, bi)
-            val tb = findTriangle(bi, ai)
+            val ta = decodeTriangle(lineToTriangle[i].toInt())
+            val tb = decodeTriangle(lineToTriangle[i + 1].toInt())
 
             val i0 = (i.shr(1)) * (n + 1L)
             val i1 = i0 + n
@@ -714,13 +644,6 @@ class HexagonSphere(
             abLine.lastH = hex1
             baLine.firstH = hex1
             baLine.lastH = hex0
-
-            abLine.apply {
-                if (left.tri === right.tri) throw IllegalStateException()
-            }
-            baLine.apply {
-                if (left.tri === right.tri) throw IllegalStateException()
-            }
 
             pointsToLines[ai].add(hex0)
             pointsToLines[bi].add(hex1)
@@ -750,42 +673,29 @@ class HexagonSphere(
         }
 
         // create all pentagons
-        val tmpQ = Quaternionf()
         for (i in 0 until pentagonCount) {
 
             // build coordinate system
-            val point = vertices[i]
-            val coords = point.normalToQuaternion(tmpQ)
-            val ax = coords.transform(Vector3f(1f, 0f, 0f))
-            val az = coords.transform(Vector3f(0f, 0f, 1f))
             val hexagons1 = pointsToLines[i]
 
-            val ax0 = ax.dot(point)
-            val az0 = az.dot(point)
-
             // sort neighbors by their angle
-            hexagons1.sortBy {
-                val c = it.center
-                atan2(ax.dot(c) - ax0, az.dot(c) - az0)
-            }
+            val sortOrder = hexSortOrders0[i].toInt()
 
             // create a pentagon
             val pentagon = pentagons[i]
             for (j in 0 until 5) {
+                val hj = hexagons1[sortOrder.shr(3 * j).and(7)]
                 pentagon.corners[j] = if (n == 0) {
-                    val x0 = hexagons1[j].center
-                    val target = Vector3f(point).lerp(x0, -0.5f).normalize()
-                    val x1 = hexagons1[(j + 2) % 5]
-                    x1.corners.minByOrNull { it.distanceSquared(target) }!!
-                } else {
-                    hexagons1[j].corners[3]
-                }
+                    val target = Vector3f(vertices[i]).lerp(hj.center, -0.5f).normalize()
+                    val hk = hexagons1[sortOrder.shr(3 * ((j + 2) % 5)).and(7)]
+                    hk.corners.minByOrNull { it.distanceSquared(target) }!!
+                } else hj.corners[3]
             }
 
             // add all connections
-            var h0 = hexagons1.last()
+            var h0 = hexagons1[sortOrder.shr(12)]
             for (j in hexagons1.indices) {
-                val neighbor = hexagons1[j]
+                val neighbor = hexagons1[sortOrder.shr(3 * j).and(7)]
                 connect(pentagon, neighbor)
                 connect(h0, neighbor)
                 h0 = neighbor
@@ -808,21 +718,52 @@ class HexagonSphere(
 
         }
 
-        for (hexList in pointsToLines) {
-            for (hex in hexList) {
-                sortNeighbors(hex)
+        if (n == 0) {
+            for (hexList in pointsToLines) {
+                for (hex in hexList) {
+                    sortNeighbors(hex)
+                }
+            }
+        } else {
+            // pre-computed sorting, so it no longer relies on coordinates
+            // luckily, there are only two orders that actually appear :),
+            // and one of them is already sorted
+            val flags = 0x7bdef7ddef7bdfe
+            var i = 0
+            // order, that is to be applied,
+            // whenever the flag is set: 0, 3, 1, 2, 4, 5
+            for (hexList in pointsToLines) {
+                for (hex in hexList) {
+                    if (flags.hasFlag(1L.shl(i++))) {
+                        val nei = hex.neighborIds
+                        val nex = hex.neighbors
+                        val tmi = nei[1]
+                        nei[1] = nei[3]
+                        nei[3] = nei[2]
+                        nei[2] = tmi
+                        val tmx = nex[1]
+                        nex[1] = nex[3]
+                        nex[3] = nex[2]
+                        nex[2] = tmx
+                    }
+                }
             }
         }
 
-        for (pentagon in pentagons) {
-            sortNeighbors(pentagon)
-        }
+        if (n == 0) {
+            // every second needs to be reordered
+            for (i in 0 until pentagonCount step 2) {
+                val pentagon = pentagons[i]
+                pentagon.neighborIds.rotateRight(2)
+                pentagon.neighbors.rotateRight(2)
+            }
+        } // else perfectly sorted :)
 
     }
 
     private fun sortNeighbors(hex: Hexagon) {
         val center = hex.center
-        val ax = Vector3f(hex.corners[0]).sub(center)
+        val ax = Vector3f(hex.corners.last()).sub(center)
         val az = Vector3f(ax).cross(center)
         fun angle(c: Vector3f) = atan2(ax.dot(c), az.dot(c))
         val neighbors = hex.neighbors
@@ -836,10 +777,6 @@ class HexagonSphere(
         neighbors.sortBy {
             val c = it!!.center
             angle(c)
-        }
-        val a0 = angle(neighbors.last()!!.center)
-        hex.corners.sortBy { c ->
-            posMod(angle(c) - a0, TAUf)
         }
         for (i in neighbors.indices) {
             neighborIds[i] = neighbors[i]!!.index
