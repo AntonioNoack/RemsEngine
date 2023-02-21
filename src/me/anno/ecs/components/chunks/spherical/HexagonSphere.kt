@@ -58,7 +58,7 @@ class HexagonSphere(
 
         // Icosphere without subdivisions from Blender = dodecahedron (20 triangle faces, each corner is a pentagon)
         private val indices = intArrayOf(
-            // this order was brute-forced for a nice layout for partitionIntoSubChunks 😅
+            // this order was brute-forced for a nice layout for partitionIntoChunks 😅
             0, 1, 2, 1, 0, 5, 0, 2, 3, 0, 3, 4, 0, 4, 5, 1, 5, 10, 1, 6, 2, 2, 7, 3, 3, 8, 4, 5, 4, 9, 1,
             10, 6, 6, 7, 2, 7, 8, 3, 4, 8, 9, 5, 9, 10, 10, 11, 6, 11, 7, 6, 7, 11, 8, 8, 11, 9, 9, 11, 10
         )
@@ -131,8 +131,8 @@ class HexagonSphere(
         ).normalize()
     }
 
-    fun getSubChunkCenter(tri: Int, si: Int, sj: Int, dst: Vector3f = Vector3f()): Vector3f {
-        return triangles[tri].getSubChunkCenter(si, sj, dst)
+    fun getChunkCenter(tri: Int, si: Int, sj: Int, dst: Vector3f = Vector3f()): Vector3f {
+        return triangles[tri].getChunkCenter(si, sj, dst)
     }
 
     class Triangle(
@@ -154,7 +154,7 @@ class HexagonSphere(
             return self.create(center, ab, ac, id, i - self.i0, j - self.j0)
         }
 
-        fun getSubChunkCenter(si: Int, sj: Int, dst: Vector3f = Vector3f()): Vector3f {
+        fun getChunkCenter(si: Int, sj: Int, dst: Vector3f = Vector3f()): Vector3f {
             if (si !in 0 until self.s || sj !in 0 until self.s - si) throw IndexOutOfBoundsException("$si,$sj !in ${self.s}")
 
             val t = self.t
@@ -270,7 +270,7 @@ class HexagonSphere(
     }
 
     /**
-     * finds the subchunk for a given hexagon; always O(1)
+     * finds the chunk for a given hexagon; always O(1)
      * */
     fun findChunk(hex: Hexagon): Chunk {
         when (val id = hex.index) {
@@ -278,7 +278,7 @@ class HexagonSphere(
                 // find triangle with respective line
                 val lineIndex = (id / (n + 1)).toInt()
                 val tri = triangleLines.indexOf(lineIndex).shr(1)
-                // then find subchunk, which contains this line
+                // then find chunk, which contains this line
                 val li = (id % (n + 1)).toInt()
                 val l0 = lineIndices[lineIndex * 2]
                 val l1 = lineIndices[lineIndex * 2 + 1]
@@ -288,10 +288,10 @@ class HexagonSphere(
                 val lj = n - li
                 val sm1 = s - 1
                 return when {
-                    l0 == a && l1 == b -> subChunk(tri, min(li / t, sm1), 0)
-                    l0 == b && l1 == a -> subChunk(tri, min(lj / t, sm1), 0)
-                    l0 == a && l1 == c -> subChunk(tri, 0, min(li / t, sm1))
-                    l0 == c && l1 == a -> subChunk(tri, 0, min(lj / t, sm1))
+                    l0 == a && l1 == b -> chunk(tri, min(li / t, sm1), 0)
+                    l0 == b && l1 == a -> chunk(tri, min(lj / t, sm1), 0)
+                    l0 == a && l1 == c -> chunk(tri, 0, min(li / t, sm1))
+                    l0 == c && l1 == a -> chunk(tri, 0, min(lj / t, sm1))
                     else -> throw IllegalStateException()
                 }
             }
@@ -299,12 +299,12 @@ class HexagonSphere(
                 // this is a pentagon: find, which triangle owns us,
                 // and then return 0,0, as it will be the owner
                 val tri = pentagonTris[(id - special0).toInt()]
-                return subChunk(tri, 0, 0)
+                return chunk(tri, 0, 0)
             }
             in special until total -> {
                 val id1 = id - special
                 val tri = (id1 / perSide).toInt()
-                if (s == 1) return subChunk(tri, 0, 0)
+                if (s == 1) return chunk(tri, 0, 0)
                 val li = id1 % perSide
                 val i = triFindI(li)
                 val j = triFindJ(li, i)
@@ -313,19 +313,19 @@ class HexagonSphere(
                 // works for the tip as well :)
                 val i0 = ((j % t) + 1).shr(1)
                 val si = (i + i0) / t
-                return subChunk(tri, si, sj)
+                return chunk(tri, si, sj)
             }
             else -> throw IndexOutOfBoundsException()
         }
     }
 
-    fun subChunk(tri: Int, i: Int, j: Int): Chunk {
-        return Chunk(triangles[tri].getSubChunkCenter(i, j), tri, i, j)
+    fun chunk(tri: Int, i: Int, j: Int): Chunk {
+        return Chunk(triangles[tri].getChunkCenter(i, j), tri, i, j)
     }
 
     data class Chunk(val center: Vector3f, val tri: Int, val si: Int, val sj: Int)
 
-    fun findClosestSubChunk(dir: Vector3f): Chunk {
+    fun findClosestChunk(dir: Vector3f): Chunk {
         return findChunk(findClosestHexagon(dir))
     }
 
@@ -346,7 +346,7 @@ class HexagonSphere(
         val ji = j.toInt()
         val sj = clamp((ji) / t, 0, s - 1)
         val si = clamp((ii + (ji % t) / 2) / t, 0, s - 1 - sj)
-        val pos = tri.getSubChunkCenter(si, sj)
+        val pos = tri.getChunkCenter(si, sj)
         return Chunk(pos, tri.index, si, sj)
     }
 
@@ -415,9 +415,9 @@ class HexagonSphere(
             return i.toLong() * s + j
         }
 
-        fun checkSubChunk(si: Int, sj: Int): Boolean {
+        fun checkChunk(si: Int, sj: Int): Boolean {
             if (checked.add(scKey(si, sj))) {
-                val center = tri.getSubChunkCenter(si, sj)
+                val center = tri.getChunkCenter(si, sj)
                 if (center.angleCos(dir) >= maxAngleCos1) {
                     if (callback(Chunk(center, tri.index, si, sj))) return true
                     checkNeighbors(si, sj)
@@ -428,16 +428,16 @@ class HexagonSphere(
 
         fun checkNeighbors(si: Int, sj: Int): Boolean {
             if (si > 0) {
-                if (checkSubChunk(si - 1, sj)) return true
-                if (checkSubChunk(si - 1, sj + 1)) return true
+                if (checkChunk(si - 1, sj)) return true
+                if (checkChunk(si - 1, sj + 1)) return true
             }
             if (sj > 0) {
-                if (checkSubChunk(si, sj - 1)) return true
-                if (checkSubChunk(si + 1, sj - 1)) return true
+                if (checkChunk(si, sj - 1)) return true
+                if (checkChunk(si + 1, sj - 1)) return true
             }
             if (si + sj + 1 < s) {
-                if (checkSubChunk(si, sj + 1)) return true
-                if (checkSubChunk(si + 1, sj)) return true
+                if (checkChunk(si, sj + 1)) return true
+                if (checkChunk(si + 1, sj)) return true
             }
             return false
         }
@@ -445,24 +445,24 @@ class HexagonSphere(
     }
 
     /**
-     * iterates over all subchunks within a certain angle (on the surface);
+     * iterates over all chunks within a certain angle (on the surface);
      * if any callback returns true, iteration is cancelled, any the method returns true
      * */
-    fun querySubChunks(dir: Vector3f, angleRadiusRadians: Float, callback: (Chunk) -> Boolean): Boolean {
+    fun queryChunks(dir: Vector3f, angleRadiusRadians: Float, callback: (Chunk) -> Boolean): Boolean {
         if (!dir.isFinite || dir.lengthSquared() < 1e-19f) throw IllegalArgumentException(dir.toString())
         val triangleSelfRadius = triangles.first().run { vertices[indices[0]].angle(center) } // ~37.4°
-        val subChunkRadius = triangleSelfRadius * 1.4f / max(s, 1)
+        val chunkRadius = triangleSelfRadius * 1.4f / max(s, 1)
         val maxAngleCos0 = cos(min(angleRadiusRadians + triangleSelfRadius, PIf))
-        val maxAngleCos1 = cos(min(angleRadiusRadians + subChunkRadius, PIf))
+        val maxAngleCos1 = cos(min(angleRadiusRadians + chunkRadius, PIf))
         val checked = HashSet<Long>()
         val checker = Checker(triangles.first(), s, dir, checked, maxAngleCos1, callback)
         for (tri in triangles) {
             if (tri.center.angleCos(dir) >= maxAngleCos0) {
                 checker.tri = tri
                 checked.clear()
-                // find closest subchunk to dir
+                // find the closest chunk to dir
                 val sub = findChunk(tri, dir)
-                if (checker.checkSubChunk(sub.si, sub.sj)) return true
+                if (checker.checkChunk(sub.si, sub.sj)) return true
                 if (checker.checkNeighbors(sub.si, sub.sj)) return true
             }
         }
@@ -828,14 +828,14 @@ class HexagonSphere(
         return idx0 + j + n.toLong() * i - (i * (i - 1L)).shr(1)
     }
 
-    fun querySubChunk(sc: Chunk): ArrayList<Hexagon> =
-        querySubChunk(sc.tri, sc.si, sc.sj)
+    fun queryChunk(sc: Chunk): ArrayList<Hexagon> =
+        queryChunk(sc.tri, sc.si, sc.sj)
 
     /**
      * group lines onto triangle faces
      * then split each triangle face into s*(s+1)/2 sub-triangles
      * */
-    fun querySubChunk(
+    fun queryChunk(
         triIndex: Int,
         si: Int,
         sj: Int,

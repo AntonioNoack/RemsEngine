@@ -14,7 +14,7 @@ fun main() {
             for (tri in 0 until 20) {
                 for (si in 0 until s) {
                     for (sj in 0 until s - si) {
-                        val hexagons = world.querySubChunk(tri, si, sj)
+                        val hexagons = world.queryChunk(tri, si, sj)
                         total.addAll(hexagons.map { it.index })
                     }
                 }
@@ -32,7 +32,7 @@ fun main() {
                 for (si in 0 until s) {
                     for (sj in 0 until s - si) {
                         println("checking $s/$t/$tri/$si/$sj")
-                        val hexagons = world.querySubChunk(tri, si, sj)
+                        val hexagons = world.queryChunk(tri, si, sj)
                         for (hex in hexagons) {
                             val test = world.findChunk(hex)
                             println("  #${hex.index}: ${test.tri}/${test.si}/${test.sj}")

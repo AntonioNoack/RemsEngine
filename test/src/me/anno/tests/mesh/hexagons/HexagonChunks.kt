@@ -48,10 +48,10 @@ fun main() {
         for (si in 0 until s) {
             for (sj in 0 until s - si) {
                 triangle.add(Entity().apply {
-                    val chunk = hexagons.querySubChunk(tri, si, sj)
+                    val chunk = hexagons.queryChunk(tri, si, sj)
                     debugTexts.add(
                         DebugText(
-                            Vector3d(hexagons.getSubChunkCenter(tri, si, sj)),
+                            Vector3d(hexagons.getChunkCenter(tri, si, sj)),
                             "$tri/$si/$sj", -1, duration
                         )
                     )
@@ -67,7 +67,7 @@ fun main() {
 fun createHexSphere(n: Int): Pair<ArrayList<Hexagon>, Float> {
     val sphere = HexagonSphere(n, 1)
     val all = ArrayList<Hexagon>(sphere.total.toInt())
-    for (tri in 0 until 20) all.addAll(sphere.querySubChunk(tri, 0, 0))
+    for (tri in 0 until 20) all.addAll(sphere.queryChunk(tri, 0, 0))
     return all to sphere.len
 }
 

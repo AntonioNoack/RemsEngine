@@ -29,7 +29,7 @@ import kotlin.math.min
 fun testIncompletePentagons() {
     val sphere = HexagonSphere(10, 1)
     val world = HexagonSphereMCWorld(sphere)
-    val sc = sphere.findClosestSubChunk(Vector3f(0f, 0f, 1f)).center
+    val sc = sphere.findClosestChunk(Vector3f(0f, 0f, 1f)).center
     val hex = sphere.findClosestHexagon(sc)
     val (_, map) = world.generateWorld(hex)
     var pentagonsIncluded = 0
@@ -161,13 +161,13 @@ fun main() {
         scene.add(triEntity)
         for (si in 0 until sphere.s) {
             for (sj in 0 until sphere.s - si) {
-                val hexagons = sphere.querySubChunk(tri, si, sj)
+                val hexagons = sphere.queryChunk(tri, si, sj)
                 val mesh = createMesh(hexagons, world)
                 val comp = MeshComponent(mesh.ref)
                 val entity = Entity()
                 entity.add(comp)
                 triEntity.add(entity)
-                chunks[sphere.subChunk(tri, si, sj)] = mesh
+                chunks[sphere.chunk(tri, si, sj)] = mesh
             }
         }
     }
@@ -252,7 +252,7 @@ fun main() {
                         for (key in invalidChunks) {
                             val mesh = chunks[key]!!
                             val (_, tri, si, sj) = key
-                            createMesh(sphere.querySubChunk(tri, si, sj), world, mesh)
+                            createMesh(sphere.queryChunk(tri, si, sj), world, mesh)
                         }
                     }
                 }

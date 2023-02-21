@@ -13,7 +13,7 @@ import kotlin.math.ln
 
 class HexagonSphereMCWorld(val sphere: HexagonSphere, val save: HexMCWorldSave = HexMCWorldSave()) {
 
-    // to do generate all easy subchunks (si,sj > 0, < n-1), their data, and their mesh, on the GPU :3
+    // to do generate all easy chunks (si,sj > 0, < n-1), their data, and their mesh, on the GPU :3
 
     val minHeight = -16
     val maxHeight = 48

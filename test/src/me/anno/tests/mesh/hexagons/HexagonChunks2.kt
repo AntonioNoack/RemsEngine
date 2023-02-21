@@ -43,7 +43,7 @@ fun main() {
             val tri = hexagons.triangles[ti]
             val random = Random(1234L * ti)
             fun add(si: Int, sj: Int) {
-                val chunk = hexagons.querySubChunk(tri.index, si, sj)
+                val chunk = hexagons.queryChunk(tri.index, si, sj)
                 hexagons.ensureNeighbors(ArrayList(chunk), HashMap(chunk.associateBy { it.index }), 0)
                 scene.add(Entity().apply {
                     add(MeshComponent(chunkToMesh(chunk, random.nextInt(16_777_216))))

@@ -28,9 +28,9 @@ import kotlin.math.sin
 // use chunks and a visibility system for them
 
 @Suppress("unused")
-fun testFindingSubChunks(sphere: HexagonSphere) {
+fun testFindingChunks(sphere: HexagonSphere) {
 
-    // visualize how the engine decides subchunks, and how we do the inverse transform
+    // visualize how the engine decides chunks, and how we do the inverse transform
 
     val sijToColor = HashMap<Triple<Int, Int, Int>, Int>()
     val rand = Random(1234L)
@@ -45,13 +45,13 @@ fun testFindingSubChunks(sphere: HexagonSphere) {
     for (triIndex in 0 until 20) {
         for (si in 0 until sphere.s) {
             for (sj in 0 until sphere.s - si) {
-                val hexagons = sphere.querySubChunk(triIndex, si, sj)
+                val hexagons = sphere.queryChunk(triIndex, si, sj)
                 val color0 = sijToColor.getOrPut(Triple(triIndex, si, sj)) { rand.nextInt() }
                 for (hex in hexagons) {
-                    val q = sphere.findClosestSubChunk(hex.center)
+                    val q = sphere.findClosestChunk(hex.center)
                     val color1 = sijToColor.getOrPut(Triple(q.tri, q.si, q.sj)) { rand.nextInt() }
                     if (q.tri != triIndex) w1++// println("wrong triangle for $triIndex/$si/$sj (${hex.center}, ${hex.index})")
-                    else if (q.si != si || q.sj != sj) w2++ // println("wrong subchunk for $triIndex/$si/$sj (${hex.center}, ${hex.index})")
+                    else if (q.si != si || q.sj != sj) w2++ // println("wrong chunk for $triIndex/$si/$sj (${hex.center}, ${hex.index})")
                     else ok++
                     if (hex.center.y > 0f) {
                         val x = ((hex.center.x + 1) * hs)
@@ -64,7 +64,7 @@ fun testFindingSubChunks(sphere: HexagonSphere) {
                 val cx = hexagons.map { it.center.x }.average().toFloat()
                 val cy = hexagons.map { it.center.y }.average().toFloat()
                 val cz = hexagons.map { it.center.z }.average().toFloat()
-                val center = sphere.triangles[triIndex].getSubChunkCenter(si, sj)
+                val center = sphere.triangles[triIndex].getChunkCenter(si, sj)
                 if (cy > 0f && center.y > 0f) {
                     val x0 = ((cx + 1) * hs)
                     val y0 = ((cz + 1) * hs)
@@ -76,17 +76,17 @@ fun testFindingSubChunks(sphere: HexagonSphere) {
         }
     }
 
-    image.write(desktop.getChild("subchunk.png"))
+    image.write(desktop.getChild("chunk.png"))
 
     val total = sphere.total.toFloat()
-    println("${ok / total}/${w1 / total}/${w2 / total} ok/wrong-tri/wrong-subchunk")
+    println("${ok / total}/${w1 / total}/${w2 / total} ok/wrong-tri/wrong-chunk")
 
 }
 
 @Suppress("unused")
-fun testFindingSubChunks2(sphere: HexagonSphere) {
+fun testFindingChunks2(sphere: HexagonSphere) {
 
-    // visualize how the engine decides subchunks, and how we do the inverse transform
+    // visualize how the engine decides chunks, and how we do the inverse transform
 
     val maxDistance = sphere.n / 2 * sphere.len
 
@@ -95,7 +95,7 @@ fun testFindingSubChunks2(sphere: HexagonSphere) {
     val image = IntImage(size, size, false)
 
     val queried = HashSet<Triple<Int, Int, Int>>()
-    sphere.querySubChunks(Vector3f(0f, 1f, 0f), maxDistance) { sc ->
+    sphere.queryChunks(Vector3f(0f, 1f, 0f), maxDistance) { sc ->
         queried.add(Triple(sc.tri, sc.si, sc.sj))
         false
     }
@@ -104,7 +104,7 @@ fun testFindingSubChunks2(sphere: HexagonSphere) {
     for (tri in 0 until 20) {
         for (si in 0 until sphere.s) {
             for (sj in 0 until sphere.s - si) {
-                val hexagons = sphere.querySubChunk(tri, si, sj)
+                val hexagons = sphere.queryChunk(tri, si, sj)
                 val color0 = rand.nextInt().and(0x777777) or (if (Triple(tri, si, sj) in queried) 0x808080 else 0)
                 for (hex in hexagons) {
                     if (hex.center.y > 0f) {
@@ -131,20 +131,20 @@ fun testFindingSubChunks2(sphere: HexagonSphere) {
         y0 = y1
     }
 
-    image.write(desktop.getChild("subchunk.png"))
+    image.write(desktop.getChild("chunk2.png"))
 
 }
 
 fun main() {
 
-    // todo sizes like 20k no longer work properly, and I suspect findSubChunk() is the culprit
+    // todo sizes like 20k no longer work properly, and I suspect findChunk() is the culprit
     val n = 10000
     val t = 25 // good chunk size
     val s = n / t
     val sphere = HexagonSphere(n, s)
     val world = HexagonSphereMCWorld(sphere)
-    // return testFindingSubChunks(sphere)
-    // return testFindingSubChunks2(sphere)
+    // return testFindingChunks(sphere)
+    // return testFindingChunks2(sphere)
 
     ECSRegistry.initMeshes()
 
@@ -189,7 +189,7 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
         }
 
         // within a certain radius, request all chunks
-        sphere.querySubChunks(dir, maxAngleDifference) { sc ->
+        sphere.queryChunks(dir, maxAngleDifference) { sc ->
             if (sc !in chunks) requests.add(sc)
             false
         }
@@ -203,7 +203,7 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
             val entity = Entity()
             worker += {
                 // check if the request is still valid
-                val mesh = createMesh(sphere.querySubChunk(key), world)
+                val mesh = createMesh(sphere.queryChunk(key), world)
                 GFX.addGPUTask("chunk", sphere.s) {
                     mesh.ensureBuffer()
                     StudioBase.addEvent {

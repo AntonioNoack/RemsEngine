@@ -11,7 +11,7 @@ fun main() {
     val sphere = HexagonSphere(n, 1)
     val scene = Entity()
     for (i in 0 until 20) {
-        val mesh = createFaceMesh(Mesh(), sphere.querySubChunk(i, 0, 0))
+        val mesh = createFaceMesh(Mesh(), sphere.queryChunk(i, 0, 0))
         scene.add(Entity(MeshComponent(mesh)))
     }
     testSceneWithUI(scene)
