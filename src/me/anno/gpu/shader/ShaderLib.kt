@@ -56,11 +56,11 @@ object ShaderLib {
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
     val svsList = coordsList
     const val simpleVertexShader = "" +
-            "uniform vec2 pos, size;\n" +
+            "uniform vec4 posSize;\n" +
             "uniform vec4 tiling;\n" +
             "uniform mat4 transform;\n" +
             "void main(){\n" +
-            "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.5, 1.0);\n" +
+            "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.5, 1.0);\n" +
             "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "}"
 
@@ -78,15 +78,14 @@ object ShaderLib {
 
     val simpleVertexShaderV2List = listOf(
         Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
-        Variable(GLSLType.V2F, "pos"),
-        Variable(GLSLType.V2F, "size"),
+        Variable(GLSLType.V4F, "posSize"),
         Variable(GLSLType.V4F, "tiling"),
         Variable(GLSLType.M4x4, "transform")
     )
 
     const val simpleVertexShaderV2 = "" +
             "void main(){\n" +
-            "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.5, 1.0);\n" +
+            "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.5, 1.0);\n" +
             "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "}"
 
@@ -863,11 +862,11 @@ object ShaderLib {
     val textShader = BaseShader(
         "textShader", coordsList,
         "" +
-                "uniform vec2 pos, size;\n" +
+                "uniform vec4 posSize;\n" +
                 "uniform mat4 transform;\n" + // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
                 "uniform vec2 windowSize;\n" +
                 "void main(){\n" +
-                "   vec2 localPos = pos + coords * size;\n" +
+                "   vec2 localPos = posSize.xy + coords * posSize.zw;\n" +
                 "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
                 "   position = localPos * windowSize;\n" +
                 "   uv = coords;\n" +
@@ -902,15 +901,14 @@ object ShaderLib {
                 Variable(GLSLType.V3F, "instData", type),
                 Variable(GLSLType.V4F, "color0", type),
                 Variable(GLSLType.V4F, "color1", type),
-                Variable(GLSLType.V2F, "pos"),
-                Variable(GLSLType.V2F, "size"),
+                Variable(GLSLType.V4F, "posSize"),
                 // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
                 Variable(GLSLType.M4x4, "transform"),
                 Variable(GLSLType.V2F, "windowSize"),
             ), if (instanced) {
                 "" +
                         "void main(){\n" +
-                        "   vec2 localPos = coords * size + instData.xy;\n" +
+                        "   vec2 localPos = coords * posSize.zw + instData.xy;\n" +
                         "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
                         "   position = localPos * windowSize;\n" +
                         "   textColor = color0;\n" +
@@ -920,7 +918,7 @@ object ShaderLib {
             } else {
                 "" +
                         "void main(){\n" +
-                        "   vec2 localPos = coords * size + pos;\n" +
+                        "   vec2 localPos = coords * posSize.zw + posSize.xy;\n" +
                         "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
                         "   position = localPos * windowSize;\n" +
                         "   uv = coords;\n" +

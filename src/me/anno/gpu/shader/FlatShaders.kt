@@ -1,7 +1,6 @@
 package me.anno.gpu.shader
 
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
-import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.ShaderLib.blacklist
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
@@ -35,14 +34,13 @@ object FlatShaders {
     )
 
     val coordsPosSize = coordsList + listOf(
-        Variable(GLSLType.V2F, "pos"),
-        Variable(GLSLType.V2F, "size"),
+        Variable(GLSLType.V4F, "posSize"),
         Variable(GLSLType.M4x4, "transform")
     )
 
     val coordsPosSizeVShader = "" +
             "void main(){\n" +
-            "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
+            "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0);\n" +
             "}"
 
     // color only for a rectangle
@@ -73,14 +71,14 @@ object FlatShaders {
 
     val flatShaderGradient = ShaderLib.createShader(
         "flatShaderGradient", listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR)), "" +
-                "uniform vec2 pos, size;\n" +
+                "uniform vec4 posSize;\n" +
                 "uniform mat4 transform;\n" +
                 "uniform vec4 uvs;\n" +
                 ShaderLib.yuv2rgb +
                 "uniform vec4 lColor, rColor;\n" +
                 "uniform bool inXDirection;\n" +
                 "void main(){\n" +
-                "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
+                "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0);\n" +
                 "   color = (inXDirection ? coords.x : coords.y) < 0.5 ? lColor : rColor;\n" +
                 "   color = color * color;\n" + // srgb -> linear
                 "   uv = mix(uvs.xy, uvs.zw, coords);\n" +
@@ -161,11 +159,11 @@ object FlatShaders {
     )
 
     val flatShaderCubemap = BaseShader(
-        "flatShaderCubemap", listOf(Variable(GLSLType.V2F,"coords",VariableMode.ATTR)), "" +
-                "uniform vec2 pos, size;\n" +
+        "flatShaderCubemap", listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR)), "" +
+                "uniform vec4 posSize;\n" +
                 "uniform mat4 transform;\n" +
                 "void main(){\n" +
-                "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
+                "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0);\n" +
                 "   uv = (coords - 0.5) * vec2(${PI * 2},${PI});\n" +
                 "}", listOf(Variable(GLSLType.V2F, "uv")), listOf(), "" +
                 "uniform samplerCube tex;\n" +
@@ -186,12 +184,12 @@ object FlatShaders {
 
 
     val flatShader3dSlice = BaseShader(
-        "flatShader3dSlice", listOf(Variable(GLSLType.V2F,"coords",VariableMode.ATTR)), "" +
-                "uniform vec2 pos, size;\n" +
+        "flatShader3dSlice", listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR)), "" +
+                "uniform vec4 posSize;\n" +
                 "uniform mat4 transform;\n" +
                 "uniform float z;\n" +
                 "void main(){\n" +
-                "   gl_Position = transform * vec4((pos + coords * size)*2.0-1.0, 0.0, 1.0);\n" +
+                "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0);\n" +
                 "   uvw = vec3(coords, z);\n" +
                 "}", listOf(Variable(GLSLType.V3F, "uvw")), listOf(), "" +
                 "uniform sampler3D tex;\n" +

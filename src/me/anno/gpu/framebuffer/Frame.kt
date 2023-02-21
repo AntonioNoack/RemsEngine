@@ -120,5 +120,9 @@ object Frame {
 
     }
 
+    fun isFullscreen(): Boolean {
+        val fb = GFXState.currentBuffer
+        return lastX == 0 && lastY == 0 && fb.w == lastW && fb.h == lastH
+    }
 
 }

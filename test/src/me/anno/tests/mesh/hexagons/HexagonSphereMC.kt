@@ -17,6 +17,8 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.TAUf
+import me.anno.maths.Maths.clamp
+import me.anno.maths.noise.FullNoise
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.ExpandingFloatArray
@@ -100,10 +102,11 @@ fun needsFace(currType: Byte, otherType: Byte): Boolean {
     }
 }
 
+val rnd = FullNoise(1234L)
 fun generateMesh(
     hexagons: List<Hexagon>, size: Int,
     mapping: IndexMap, blocks: ByteArray,
-    world: HexagonSphereMCWorld
+    world: HexagonSphereMCWorld, mesh: Mesh
 ): Mesh {
 
     for (hex in hexagons) {
@@ -117,11 +120,11 @@ fun generateMesh(
     val normals = normals.get()
     val colors = colors.get()
 
-    val uv6 = IntArray(6)
-    val uv5 = IntArray(5)
+    val uv6 = IntArray(12)
+    val uv5 = IntArray(12)
 
-    for (i in uv6.indices) uv6[i] = i.shl(8)
-    for (i in uv5.indices) uv5[i] = (i + 6).shl(8)
+    for (i in uv6.indices) uv6[i] = (i % 6).shl(8)
+    for (i in uv5.indices) uv5[i] = ((i % 5) + 6).shl(8)
 
     val normal = Vector3f()
     val c2v = Vector3f()
@@ -160,8 +163,9 @@ fun generateMesh(
             if (here != air) {
                 fun addLayer(fy: Float, di0: Int, di1: Int, color: Int) {
                     val uvi = if (hex.corners.size == 6) uv6 else uv5
+                    val rotation = clamp((rnd[hex.index.toInt()] * 6).toInt(), 0, 5)
                     val c0 = hex.corners[0]
-                    val uv0 = uvi[0]
+                    val uv0 = uvi[rotation]
                     for (j in 2 until hex.corners.size) {
                         positions.add(c0.x * fy, c0.y * fy, c0.z * fy)
                         normals.add(c0)
@@ -172,8 +176,8 @@ fun generateMesh(
                         positions.add(c1.x * fy, c1.y * fy, c1.z * fy)
                         normals.add(c1)
                         colors.add(color or uv0)
-                        colors.add(color or uvi[j + di0])
-                        colors.add(color or uvi[j + di1])
+                        colors.add(color or uvi[j + di0 + rotation])
+                        colors.add(color or uvi[j + di1 + rotation])
                     }
                 }
                 // add top/bottom
@@ -209,8 +213,8 @@ fun generateMesh(
             if (i1 < 0) throw IllegalStateException("Missing neighbor[$k]=${neighbor.index} of list[$i]=${hex.index}")
 
             // sideways
-            fun addSide(block: Byte, y0: Int, y1: Int) {
-                val lower = matType[block.toInt().and(255)] == fluidLow
+            fun addSide(block: Byte, y0: Int, y1: Int, atop: Byte) {
+                val lower = matType[block.toInt().and(255)] == fluidLow && block != atop
                 val h0 = world.h(y0)
                 val h1 = world.h(y1 + (if (lower) fluidLowY - 1f else 0f))
                 addSide(k, block, h0, h1, (y1 - y0) * 8 - lower.toInt())
@@ -223,20 +227,21 @@ fun generateMesh(
                 val currType = blocks[i0 + y]
                 val needsFace = needsFace(currType, blocks[i1 + y])
                 if (currType != lastType || needsFace != lastAir) {
-                    if (lastType > 0 && lastAir) addSide(lastType, lastY0, y)
+                    if (lastType > 0 && lastAir) {
+                        addSide(lastType, lastY0, y, currType)
+                    }
                     lastY0 = y
                     lastType = currType
                     lastAir = needsFace
                 }
             }
             if (lastType > 0 && lastAir) {
-                addSide(lastType, lastY0, sy)
+                addSide(lastType, lastY0, sy, air)
             }
 
         }
     }
 
-    val mesh = Mesh()
     mesh.positions = positions.toFloatArray(canReturnSelf = false)
     mesh.normals = normals.toFloatArray(canReturnSelf = false)
     mesh.color0 = colors.toIntArray(canReturnSelf = false)
@@ -251,10 +256,10 @@ fun generateMesh(
 
 }
 
-fun createMesh(visualList: ArrayList<Hexagon>, world: HexagonSphereMCWorld): Mesh {
+fun createMesh(visualList: ArrayList<Hexagon>, world: HexagonSphereMCWorld, mesh: Mesh = Mesh()): Mesh {
     val size = visualList.size
     val (world1, indexMap) = world.generateWorld(visualList, true)
-    val mesh = generateMesh(visualList, size, indexMap, world1, world)
+    generateMesh(visualList, size, indexMap, world1, world, mesh)
     Texture2D.byteArrayPool.returnBuffer(world1)
     return mesh
 }

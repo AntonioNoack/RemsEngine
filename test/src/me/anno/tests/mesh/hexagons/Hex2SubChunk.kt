@@ -34,7 +34,7 @@ fun main() {
                         println("checking $s/$t/$tri/$si/$sj")
                         val hexagons = world.querySubChunk(tri, si, sj)
                         for (hex in hexagons) {
-                            val test = world.findSubChunk(hex)
+                            val test = world.findChunk(hex)
                             println("  #${hex.index}: ${test.tri}/${test.si}/${test.sj}")
                             if (test.tri != tri) throw IllegalStateException("Wrong tri")
                             if (test.si != si) throw IllegalStateException("Wrong si")

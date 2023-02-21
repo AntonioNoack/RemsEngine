@@ -11,7 +11,7 @@ import me.anno.utils.types.Arrays.subArray
 import org.joml.Vector4f
 import kotlin.math.ln
 
-class HexagonSphereMCWorld(val sphere: HexagonSphere) {
+class HexagonSphereMCWorld(val sphere: HexagonSphere, val save: HexMCWorldSave = HexMCWorldSave()) {
 
     // to do generate all easy subchunks (si,sj > 0, < n-1), their data, and their mesh, on the GPU :3
 
@@ -19,8 +19,6 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere) {
     val maxHeight = 48
     val sy = maxHeight - minHeight
     val waterY = -minHeight
-
-    val custom = HashMap<Long, ByteArray>()
 
     val rnd = FullNoise(2345L)
     val perlin = PerlinNoise(1234L, 8, 0.5f, -63f, 56f, Vector4f(sphere.n / 100f))
@@ -40,11 +38,11 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere) {
 
     fun setBlock(
         hexagon: Hexagon, yi: Int, block: Byte,
-        world: ByteArray = custom[hexagon.index] ?: generateWorld(hexagon).first
+        world: ByteArray = save[sphere, hexagon] ?: generateWorld(hexagon).first
     ) {
         if (world[yi] != block) {
             world[yi] = block
-            custom[hexagon.index] = if (world.size > sy) world.subArray(0, sy) else world
+            save[sphere, hexagon] = if (world.size > sy) world.subArray(0, sy) else world
         }
     }
 
@@ -112,9 +110,10 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere) {
             }
         }
 
+        // could be optimized
         for (i in hexagons.indices) {
-            val hex0 = hexagons[i]
-            val custom = custom[hex0.index]
+            val hexagon = hexagons[i]
+            val custom = save[sphere, hexagon]
             if (custom != null) {
                 // val wi = mapping.map(hex0.index) * sy
                 val wi = i * sy // the same, just faster

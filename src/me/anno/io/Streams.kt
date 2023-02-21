@@ -121,10 +121,13 @@ object Streams {
 
     @JvmStatic
     fun InputStream.readFloatLE() = Float.fromBits(readLE32())
+
     @JvmStatic
     fun InputStream.readDoubleLE() = Double.fromBits(readLE64())
+
     @JvmStatic
     fun InputStream.readFloatBE() = Float.fromBits(readBE32())
+
     @JvmStatic
     fun InputStream.readDoubleBE() = Double.fromBits(readBE64())
 
@@ -197,9 +200,19 @@ object Streams {
         while (true) {
             val n = read()
             if (n == 0) break
+            if (n < 0) throw EOFException()
             builder.append(n.toChar())
         }
         return builder.toString()
+    }
+
+    /**
+     * read a zero-terminated string, as they are commonly used in C
+     * */
+    @JvmStatic
+    fun OutputStream.write0String(data: String) {
+        write(data.toByteArray())
+        write(0)
     }
 
 }

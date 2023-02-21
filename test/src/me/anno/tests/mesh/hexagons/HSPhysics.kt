@@ -7,6 +7,7 @@ import me.anno.ecs.components.chunks.spherical.Hexagon
 import me.anno.ecs.components.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.chunks.spherical.HexagonSpherePhysics
 import me.anno.ecs.components.chunks.spherical.HexagonTriangleQuery
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.PlayMode
@@ -16,7 +17,10 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.maths.Maths.dtTo01
 import me.anno.utils.Color.black
+import me.anno.utils.OS.documents
+import me.anno.utils.files.Files.formatFileSize
 import org.joml.Vector3f
+import java.io.IOException
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -25,7 +29,7 @@ import kotlin.math.min
 fun testIncompletePentagons() {
     val sphere = HexagonSphere(10, 1)
     val world = HexagonSphereMCWorld(sphere)
-    val sc = sphere.findSubChunk(Vector3f(0f, 0f, 1f)).center
+    val sc = sphere.findClosestSubChunk(Vector3f(0f, 0f, 1f)).center
     val hex = sphere.findClosestHexagon(sc)
     val (_, map) = world.generateWorld(hex)
     var pentagonsIncluded = 0
@@ -133,6 +137,13 @@ fun main() {
     val world = HexagonSphereMCWorld(sphere)
     val len = sphere.len
 
+    val save = world.save
+    val file = documents.getChild("hexSphere.bin")
+    if (file.exists) try {
+        save.read(file)
+    } catch (e: IOException) {
+        e.printStackTrace()
+    }
 
     // todo using a capsule, the collisions often are neighbor triangles... why???
     val shape = SphereShape(0.25)
@@ -143,6 +154,7 @@ fun main() {
     physics.debugMeshActiveColor = yellow or black
 
     // add visuals
+    val chunks = HashMap<HexagonSphere.Chunk, Mesh>()
     val scene = Entity()
     for (tri in 0 until sphere.triangles.size) {
         val triEntity = Entity()
@@ -155,6 +167,7 @@ fun main() {
                 val entity = Entity()
                 entity.add(comp)
                 triEntity.add(entity)
+                chunks[sphere.subChunk(tri, si, sj)] = mesh
             }
         }
     }
@@ -189,24 +202,60 @@ fun main() {
                 position.set(physics.currPosition)//.mul(1.0 + len * shape.halfHeight) // eye height
                 onChangePosition()
                 updateViewRotation()
+
+                if (Input.wasKeyPressed('s') && Input.isControlDown) {
+                    println("Saving")
+                    file.getParent()?.mkdirs()
+                    save.write(world, file)
+                    println("Saved, ${file.length().formatFileSize()}")
+                }
+
             }
 
+            // todo show inventory
+            // todo serialization
+            var inventory = grass
             override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-                super.onMouseClicked(x, y, button, long)
-                // todo resolve click
+                // resolve click
                 val start = it.renderer.cameraPosition
                 val dir = it.renderer.getMouseRayDirection()
                 val hit = Raycast.raycast(scene, start, dir, 0.0, 0.0, 10.0, -1)
                 if (hit != null) {
-                    // move hit more into the block
-                    hit.normalWS.mulAdd(-sphere.len * 0.5, hit.positionWS, hit.positionWS)
+                    val setBlock = button.isRight
+                    val testBlock = button.isMiddle
+                    if (setBlock) {
+                        // move hit back slightly
+                        dir.mulAdd(-sphere.len * 0.05, hit.positionWS, hit.positionWS)
+                    } else {
+                        // move hit more into the block
+                        hit.normalWS.mulAdd(-sphere.len * 0.25, hit.positionWS, hit.positionWS)
+                    }
                     val hexagon = sphere.findClosestHexagon(Vector3f(hit.positionWS))
                     val h = hit.positionWS.length().toFloat()
-                    val yi = world.yi(h).toInt()
-                    println("overriding ${hexagon.index}, ${hexagon.center.distance(Vector3f(hit.positionWS)) / sphere.len}, $yi")
-                    // todo set block
-                    // todo invalidate chunk
-                } else println("hit nothing")
+                    val yj = world.yi(h).toInt()
+                    if (yj !in 0 until world.sy) return
+                    if (testBlock) {
+                        inventory = triQ.getWorld(hexagon)[yj]
+                    } else {
+                        // set block
+                        world.setBlock(hexagon, yj, if (setBlock) inventory else air)
+                        // physics need to be updated as well
+                        triQ.worldCache.remove(hexagon)
+                        // invalidate chunk
+                        val invalidChunks = HashSet<HexagonSphere.Chunk>()
+                        invalidChunks.add(sphere.findChunk(hexagon))
+                        // invalidate neighbor chunks
+                        sphere.ensureNeighbors(hexagon)
+                        for (neighbor in hexagon.neighbors) {
+                            invalidChunks.add(sphere.findChunk(neighbor!!))
+                        }
+                        for (key in invalidChunks) {
+                            val mesh = chunks[key]!!
+                            val (_, tri, si, sj) = key
+                            createMesh(sphere.querySubChunk(tri, si, sj), world, mesh)
+                        }
+                    }
+                }
             }
 
             override fun moveCamera(dx: Double, dy: Double, dz: Double) {

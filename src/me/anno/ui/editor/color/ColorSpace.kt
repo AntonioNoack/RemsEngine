@@ -32,10 +32,10 @@ abstract class ColorSpace(
         val oldShader = shaders[type]
         if (oldShader != null) return oldShader
         val vertexShader = "" +
-                "uniform vec2 pos, size;\n" +
+                "uniform vec4 posSize;\n" +
                 "uniform mat4 transform;\n" +
                 "void main(){\n" +
-                "   gl_Position = transform * vec4((pos + coords * size)*2.-1., 0.0, 1.0);\n" +
+                "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.-1., 0.0, 1.0);\n" +
                 "   uv = coords;\n" +
                 "}"
         val varyingShader = listOf(Variable(GLSLType.V2F, "uv"))

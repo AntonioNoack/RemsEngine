@@ -223,8 +223,7 @@ object GFXx2D {
         val relW = +w / GFX.viewportWidth
         val relH = -h / GFX.viewportHeight
         shader.m4x4("transform", transform)
-        shader.v2f("pos", posX, posY)
-        shader.v2f("size", relW, relH)
+        shader.v4f("posSize", posX, posY, relW, relH)
     }
 
     fun defineAdvancedGraphicalFeatures(shader: Shader) {
@@ -239,6 +238,5 @@ object GFXx2D {
         shader.v3f("cgPower", 1f)
         shader.v1f("cgSaturation", 1f)
     }
-
 
 }

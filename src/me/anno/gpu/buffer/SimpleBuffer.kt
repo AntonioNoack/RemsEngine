@@ -1,9 +1,11 @@
 package me.anno.gpu.buffer
 
+import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.pow
 import org.joml.Vector2f
 
-class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
+open class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
     StaticBuffer(listOf(Attribute(name, 2)), vertices.size) {
 
     constructor(vertices: Array<Vector2f>, indices: IntArray, name: String) :
@@ -73,15 +75,35 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             return buffer
         }
 
+        /**
+         * The go-to buffer for applying a shader to a rectangle of the screen, or all of it.
+         * If you want to draw a sub-rect only, please take a look at GFXx2D.posSize().
+         * */
         @JvmField
-        val flat01 = SimpleBuffer(
+        val flat01 = object : SimpleBuffer(
             arrayOf(
                 Vector2f(0f, 0f),
                 Vector2f(0f, 1f),
                 Vector2f(1f, 1f),
                 Vector2f(1f, 0f)
             ), intArrayOf(0, 1, 2, 0, 2, 3), "coords"
-        )
+        ) {
+            // https://wallisc.github.io/rendering/2021/04/18/Fullscreen-Pass.html
+            private val flat01FS = SimpleBuffer(
+                arrayOf(
+                    Vector2f(0f, 0f),
+                    Vector2f(0f, 2f),
+                    Vector2f(2f, 0f)
+                ), intArrayOf(0, 1, 2), "coords"
+            )
+            override fun draw(shader: Shader) {
+                // this draws full-screen passes like blur using a single triangle
+                // if you dislike this behaviour, create your own buffer 😉
+                if (Frame.isFullscreen() && shader.getUniformLocation("posSize") < 0)
+                    flat01FS.draw(shader)
+                else super.draw(shader)
+            }
+        }
 
         @JvmStatic
         fun splitIndices(numSegments: Int): IntArray {

@@ -30,6 +30,9 @@ class RayHit {
     // var uv: Vector2f? = null
 
     val positionWS = Vector3d()
+    /**
+     * might not be normalized!
+     * */
     val normalWS = Vector3d()
 
     var ctr = 0

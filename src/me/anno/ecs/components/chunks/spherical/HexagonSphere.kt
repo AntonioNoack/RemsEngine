@@ -272,7 +272,7 @@ class HexagonSphere(
     /**
      * finds the subchunk for a given hexagon; always O(1)
      * */
-    fun findSubChunk(hex: Hexagon): SubChunk {
+    fun findChunk(hex: Hexagon): Chunk {
         when (val id = hex.index) {
             in 0L until special0 -> {
                 // find triangle with respective line
@@ -319,29 +319,19 @@ class HexagonSphere(
         }
     }
 
-    fun subChunk(tri: Int, i: Int, j: Int): SubChunk {
-        return SubChunk(triangles[tri].getSubChunkCenter(i, j), tri, i, j)
+    fun subChunk(tri: Int, i: Int, j: Int): Chunk {
+        return Chunk(triangles[tri].getSubChunkCenter(i, j), tri, i, j)
     }
 
-    data class SubChunk(val center: Vector3f, val tri: Int, val si: Int, val sj: Int)
+    data class Chunk(val center: Vector3f, val tri: Int, val si: Int, val sj: Int)
 
-    fun findSubChunk(dir: Vector3f): SubChunk {
-        if (!dir.isFinite) throw IllegalArgumentException(dir.toString())
-        var bestDistance = triangles[0].center.distanceSquared(dir)
-        var bestI = 0
-        for (i in 1 until triangles.size) {
-            val dist = triangles[i].center.distanceSquared(dir)
-            if (dist < bestDistance) {
-                bestDistance = dist
-                bestI = i
-            }
-        }
-        return findSubChunk(triangles[bestI], dir)
+    fun findClosestSubChunk(dir: Vector3f): Chunk {
+        return findChunk(findClosestHexagon(dir))
     }
 
-    fun findSubChunk(tri: Triangle, dir: Vector3f): SubChunk {
+    fun findChunk(tri: Triangle, dir: Vector3f): Chunk {
         if (n == 0 || s <= 1)
-            return SubChunk(tri.center, tri.index, 0, 0)
+            return Chunk(tri.center, tri.index, 0, 0)
         val i3 = tri.index * 3
         val a = vertices[indices[i3]]
         val b = vertices[indices[i3 + 1]]
@@ -349,6 +339,7 @@ class HexagonSphere(
         val tmp = JomlPools.vec3f.borrow()
         dir.div(dir.dot(tri.center), tmp)
         val uvw = barycentric(a, b, c, tmp, tmp)
+        // todo find the proper formula without magic numbers
         val i = ((uvw.x - 0.5f) * 0.797 + 0.5f) * n - 0.667 * t
         val j = ((uvw.y - 0.5f) * 0.795 + 0.5f) * n - 0.667 * t
         val ii = i.toInt()
@@ -356,7 +347,7 @@ class HexagonSphere(
         val sj = clamp((ji) / t, 0, s - 1)
         val si = clamp((ii + (ji % t) / 2) / t, 0, s - 1 - sj)
         val pos = tri.getSubChunkCenter(si, sj)
-        return SubChunk(pos, tri.index, si, sj)
+        return Chunk(pos, tri.index, si, sj)
     }
 
     fun findClosestHexagon(dir: Vector3f): Hexagon {
@@ -384,6 +375,7 @@ class HexagonSphere(
             val tmp = JomlPools.vec3f.borrow()
             dir.div(dir.dot(tri.center), tmp)
             val uvw = barycentric(a, b, c, tmp, tmp)
+            // todo find the proper formula without magic numbers
             val i = ((uvw.x - 0.5f) * 0.797 + 0.5f) * n - 0.667 * t
             val j = ((uvw.y - 0.5f) * 0.795 + 0.5f) * n - 0.667 * t
             val ii = clamp(i.toInt(), 0, n - 1)
@@ -416,7 +408,7 @@ class HexagonSphere(
     private class Checker(
         var tri: Triangle, val s: Int, val dir: Vector3f,
         val checked: HashSet<Long>,
-        val maxAngleCos1: Float, val callback: (SubChunk) -> Boolean
+        val maxAngleCos1: Float, val callback: (Chunk) -> Boolean
     ) {
 
         private fun scKey(i: Int, j: Int): Long {
@@ -427,7 +419,7 @@ class HexagonSphere(
             if (checked.add(scKey(si, sj))) {
                 val center = tri.getSubChunkCenter(si, sj)
                 if (center.angleCos(dir) >= maxAngleCos1) {
-                    if (callback(SubChunk(center, tri.index, si, sj))) return true
+                    if (callback(Chunk(center, tri.index, si, sj))) return true
                     checkNeighbors(si, sj)
                 }
             }
@@ -456,7 +448,7 @@ class HexagonSphere(
      * iterates over all subchunks within a certain angle (on the surface);
      * if any callback returns true, iteration is cancelled, any the method returns true
      * */
-    fun querySubChunks(dir: Vector3f, angleRadiusRadians: Float, callback: (SubChunk) -> Boolean): Boolean {
+    fun querySubChunks(dir: Vector3f, angleRadiusRadians: Float, callback: (Chunk) -> Boolean): Boolean {
         if (!dir.isFinite || dir.lengthSquared() < 1e-19f) throw IllegalArgumentException(dir.toString())
         val triangleSelfRadius = triangles.first().run { vertices[indices[0]].angle(center) } // ~37.4°
         val subChunkRadius = triangleSelfRadius * 1.4f / max(s, 1)
@@ -469,7 +461,7 @@ class HexagonSphere(
                 checker.tri = tri
                 checked.clear()
                 // find closest subchunk to dir
-                val sub = findSubChunk(tri, dir)
+                val sub = findChunk(tri, dir)
                 if (checker.checkSubChunk(sub.si, sub.sj)) return true
                 if (checker.checkNeighbors(sub.si, sub.sj)) return true
             }
@@ -836,7 +828,7 @@ class HexagonSphere(
         return idx0 + j + n.toLong() * i - (i * (i - 1L)).shr(1)
     }
 
-    fun querySubChunk(sc: SubChunk): ArrayList<Hexagon> =
+    fun querySubChunk(sc: Chunk): ArrayList<Hexagon> =
         querySubChunk(sc.tri, sc.si, sc.sj)
 
     /**

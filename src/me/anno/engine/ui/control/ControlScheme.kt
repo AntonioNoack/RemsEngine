@@ -244,9 +244,6 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         // .add(Maths.random()*20-10,Maths.random()*20-10, Maths.random()*20-10)
         val hit = when (world) {
             is Entity -> {
-                world.validateMasks()
-                world.validateAABBs()
-                world.validateTransform()
                 Raycast.raycast(
                     world, start, dir, 0.0, 0.0, // 1.0 / max(h, 1)
                     maxDistance, -1, -1, emptySet(), false, hit

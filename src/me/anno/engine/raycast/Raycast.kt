@@ -78,6 +78,9 @@ object Raycast {
         result: RayHit = RayHit()
     ): RayHit? {
         if (result.distance <= 0.0) return null
+        entity.validateMasks()
+        entity.validateAABBs()
+        entity.validateTransform()
         val originalDistance = result.distance
         val components = entity.components
         for (i in components.indices) {
@@ -110,7 +113,10 @@ object Raycast {
                 }
             }
         }
-        return if (result.distance < originalDistance) result else null
+        return if (result.distance < originalDistance) {
+            result.normalWS.normalize()
+            result
+        } else null
     }
 
     fun raycastCollider(

@@ -48,7 +48,7 @@ fun testFindingSubChunks(sphere: HexagonSphere) {
                 val hexagons = sphere.querySubChunk(triIndex, si, sj)
                 val color0 = sijToColor.getOrPut(Triple(triIndex, si, sj)) { rand.nextInt() }
                 for (hex in hexagons) {
-                    val q = sphere.findSubChunk(hex.center)
+                    val q = sphere.findClosestSubChunk(hex.center)
                     val color1 = sijToColor.getOrPut(Triple(q.tri, q.si, q.sj)) { rand.nextInt() }
                     if (q.tri != triIndex) w1++// println("wrong triangle for $triIndex/$si/$sj (${hex.center}, ${hex.index})")
                     else if (q.si != si || q.sj != sj) w2++ // println("wrong subchunk for $triIndex/$si/$sj (${hex.center}, ${hex.index})")
@@ -137,8 +137,8 @@ fun testFindingSubChunks2(sphere: HexagonSphere) {
 
 fun main() {
 
-    // todo sizes like 10k no longer work properly, and I suspect findClosestSubChunk() is the culprit
-    val n = 100
+    // todo sizes like 20k no longer work properly, and I suspect findSubChunk() is the culprit
+    val n = 10000
     val t = 25 // good chunk size
     val s = n / t
     val sphere = HexagonSphere(n, s)
@@ -162,22 +162,24 @@ val worker = ProcessingGroup("worldGen", 4)
 
 class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) : Component() {
     val dir = Vector3f()
+    val pos = Vector3d()
     val aabb = AABBd()
-    val chunks = HashMap<HexagonSphere.SubChunk, Entity>()
-    val requests = ArrayList<HexagonSphere.SubChunk>()
+    val chunks = HashMap<HexagonSphere.Chunk, Entity>()
+    val requests = ArrayList<HexagonSphere.Chunk>()
     var maxAngleDifference = sphere.len * 512
     override fun clone() = HSChunkLoader(sphere, world)
     override fun onUpdate(): Int {
 
         val scene = entity ?: return 1
-        val pos = Vector3d(RenderState.cameraPosition).safeNormalize()
+        val pos = pos.set(RenderState.cameraPosition).safeNormalize()
         if (pos.lengthSquared() < 0.5) pos.z = 1.0
-        chunks.removeIf { (_, child) ->
+        dir.set(pos)
+        chunks.removeIf { (key, child) ->
             val comp = child.getComponent(MeshComponent::class)
             if (comp != null) {
                 aabb.clear()
                 comp.fillSpace(scene.transform.globalTransform, aabb)
-                if (aabb.distance(pos) > maxAngleDifference) {
+                if (aabb.distance(pos) > 1.5f * maxAngleDifference) {
                     scene.remove(child)
                     val mesh = comp.getMesh()
                     if (mesh != null) destroyMesh(mesh)
@@ -187,10 +189,6 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
         }
 
         // within a certain radius, request all chunks
-
-        dir.set(pos)
-
-
         sphere.querySubChunks(dir, maxAngleDifference) { sc ->
             if (sc !in chunks) requests.add(sc)
             false
@@ -201,11 +199,11 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
             5000 - chunks.size,
             min(requests.size, 16 - max(worker.remaining, GFX.gpuTasks.size))
         )) {
-            val sc = requests[i]
+            val key = requests[i]
             val entity = Entity()
             worker += {
                 // check if the request is still valid
-                val mesh = createMesh(sphere.querySubChunk(sc), world)
+                val mesh = createMesh(sphere.querySubChunk(key), world)
                 GFX.addGPUTask("chunk", sphere.s) {
                     mesh.ensureBuffer()
                     StudioBase.addEvent {
@@ -218,7 +216,7 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
                     }
                 }
             }
-            chunks[sc] = entity
+            chunks[key] = entity
         }
         requests.clear()
 
