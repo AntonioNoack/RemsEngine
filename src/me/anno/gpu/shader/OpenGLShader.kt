@@ -187,11 +187,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     abstract fun sourceContainsWord(word: String): Boolean
 
     fun setTextureIndicesIfExisting() {
-        for ((index, key) in textureNames.withIndex()) {
-            val location = getUniformLocation(key)
-            if (location >= 0) {
-                glUniform1i(location, index)
-            }
+        for ((index, name) in textureNames.withIndex()) {
+            val location = getUniformLocation(name)
+            if (location >= 0) glUniform1i(location, index)
         }
     }
 
@@ -232,7 +230,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
             for ((index, name) in textures.withIndex()) {
                 if (',' in name) throw IllegalArgumentException("Name must not contain comma!")
                 val texName = getUniformLocation(name)
-                if (texName >= 0) glUniform1i(texName, index)
+                if (texName >= 0) {
+                    glUniform1i(texName, index)
+                }
             }
         } else {
             textureNames = textures

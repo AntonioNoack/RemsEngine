@@ -9,11 +9,17 @@ import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
+import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.LineBuffer
+import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input
+import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.utils.Color.a
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import org.joml.Vector3d
@@ -92,22 +98,23 @@ object DebugRendering {
         val points = DebugShapes.debugPoints
         val lines = DebugShapes.debugLines
         val rays = DebugShapes.debugRays
+        val texts = DebugShapes.debugTexts
         val camPosition = view.cameraPosition
-        for (index in points.indices) {
-            val point = points[index]
+        for (i in points.indices) {
+            val point = points[i]
             // visualize a point
             drawDebugPoint(view, point.position, point.color)
         }
-        for (index in lines.indices) {
-            val line = lines[index]
+        for (i in lines.indices) {
+            val line = lines[i]
             LineBuffer.putRelativeLine(
                 line.p0, line.p1,
                 camPosition, worldScale,
                 line.color
             )
         }
-        for (index in rays.indices) {
-            val ray = rays[index]
+        for (i in rays.indices) {
+            val ray = rays[i]
             val pos = ray.start
             val dir = ray.direction
             val color = ray.color
@@ -119,10 +126,33 @@ object DebugRendering {
                 color
             )
         }
-        val time = Engine.gameTime
-        points.removeIf { it.timeOfDeath < time }
-        lines.removeIf { it.timeOfDeath < time }
-        rays.removeIf { it.timeOfDeath < time }
+        val m = view.cameraMatrix
+        LineBuffer.finish(m)
+        val v = JomlPools.vec4f.borrow()
+        // transform is only correct, if we use a temporary framebuffer!
+        val sx = +view.w * 0.5f
+        val sy = -view.h * 0.5f
+        val x0 = +sx
+        val y0 = -sy
+        val betterBlending = GFXState.currentBuffer.getTargetType(0) == TargetType.UByteTarget4
+        val pbb = DrawTexts.pushBetterBlending(betterBlending)
+        for (index in texts.indices) {
+            val text = texts[index]
+            val pos = text.position
+            val px = (pos.x - camPosition.x) * worldScale
+            val py = (pos.y - camPosition.y) * worldScale
+            val pz = (pos.z - camPosition.z) * worldScale
+            m.transform(v.set(px, py, pz, 1.0))
+            if (v.w > 0f && v.x in -v.w..v.w && v.y in -v.w..v.w) {
+                val vx = v.x * sx / v.w + x0
+                val vy = v.y * sy / v.w + y0
+                DrawTexts.drawSimpleTextCharByChar(
+                    vx.toInt(), vy.toInt(), 0, text.text,
+                    text.color, 0, AxisAlignment.CENTER, AxisAlignment.CENTER
+                )
+            }
+        }
+        DrawTexts.popBetterBlending(pbb)
     }
 
     fun drawDebugPoint(view: RenderView, p: Vector3d, color: Int) {

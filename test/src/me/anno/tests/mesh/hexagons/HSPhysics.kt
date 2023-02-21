@@ -210,10 +210,11 @@ fun main() {
             }
 
             override fun moveCamera(dx: Double, dy: Double, dz: Double) {
+                val dy2 = dy * 5f
                 physics.addForce(
-                    (dx * right.x + dy * up.x - dz * forward.x).toFloat(),
-                    (dx * right.y + dy * up.y - dz * forward.y).toFloat(),
-                    (dx * right.z + dy * up.z - dz * forward.z).toFloat(),
+                    (dx * right.x + dy2 * up.x - dz * forward.x).toFloat(),
+                    (dx * right.y + dy2 * up.y - dz * forward.y).toFloat(),
+                    (dx * right.z + dy2 * up.z - dz * forward.z).toFloat(),
                     200f * Engine.deltaTime
                 )
             }

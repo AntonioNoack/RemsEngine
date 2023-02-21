@@ -14,14 +14,9 @@ import kotlin.math.ln
 class HexagonSphereMCWorld(val sphere: HexagonSphere) {
 
     // to do generate all easy subchunks (si,sj > 0, < n-1), their data, and their mesh, on the GPU :3
-    // todo Unity jobs?
 
-    // todo raycast
-    // todo transparent fluids (water)
-    // todo inset fluids (slightly lower y)
-
-    val minHeight = -1
-    val maxHeight = 47
+    val minHeight = -16
+    val maxHeight = 48
     val sy = maxHeight - minHeight
     val waterY = -minHeight
 
@@ -33,9 +28,10 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere) {
     var depth = 3
     val base = 1f + 0.866f * sphere.len
 
-    fun h(yi: Int): Float {
+    fun h(yi: Int): Float = h(yi.toFloat())
+    fun h(yi: Float): Float {
         val y = yi + minHeight
-        return Maths.pow(base, y.toFloat())
+        return Maths.pow(base, y)
     }
 
     fun yi(h: Float): Float {
@@ -78,7 +74,7 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere) {
             // val wi = mapping.map(hexagons[i].index) * sy
             val wi = i * sy // the same, just faster
             val cen = hexagons[i].center
-            val hi = clamp((perlin[cen.x, cen.y, cen.z] - minHeight).toInt(), 0, sy)
+            val hi = clamp((perlin[cen.x, cen.y, cen.z] - minHeight).toInt(), 1, sy)
             if (hi <= waterY + 1) {
                 for (y in 0 until hi - 2) world[wi + y] = stone
                 for (y in max(hi - 2, 0) until hi - 1) world[wi + y] = gravel

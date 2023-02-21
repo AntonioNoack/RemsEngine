@@ -158,9 +158,9 @@ class HexagonSpherePhysics(
 
     fun showTriangle(a: Vector3f, b: Vector3f, c: Vector3f, color: Int) {
         if (color.a() > 0) {
-            debugLines.add(DebugLine(org.joml.Vector3d(a), org.joml.Vector3d(b), color, 0.0))
-            debugLines.add(DebugLine(org.joml.Vector3d(b), org.joml.Vector3d(c), color, 0.0))
-            debugLines.add(DebugLine(org.joml.Vector3d(c), org.joml.Vector3d(a), color, 0.0))
+            debugLines.add(DebugLine(org.joml.Vector3d(a), org.joml.Vector3d(b), color, 0f))
+            debugLines.add(DebugLine(org.joml.Vector3d(b), org.joml.Vector3d(c), color, 0f))
+            debugLines.add(DebugLine(org.joml.Vector3d(c), org.joml.Vector3d(a), color, 0f))
         }
     }
 

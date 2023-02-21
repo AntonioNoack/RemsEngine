@@ -9,4 +9,7 @@ class DebugRay(
     val direction: Vector3d,
     val color: Int,
     val timeOfDeath: Long = Engine.gameTime + 5000 * MILLIS_TO_NANOS
-)
+){
+    constructor(start: Vector3d, direction: Vector3d, color: Int, duration: Float) :
+            this(start, direction, color, Engine.gameTime + (duration * 1e9f).toLong())
+}

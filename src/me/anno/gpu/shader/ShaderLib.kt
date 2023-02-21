@@ -64,6 +64,18 @@ object ShaderLib {
             "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "}"
 
+    val dither2x2 = "" +
+            "bool dither2x2(float brightness, vec2 uvf) {\n" +
+            "  ivec2 uvi = ivec2(floor(uvf)) & ivec2(1);\n" +
+            "  int index = (uvi.x + uvi.y * 2 + gl_SampleID) & 3;\n" +
+            "  float limit = 0.20;\n" +
+            "  if (index == 1) limit = 0.60;\n" +
+            "  if (index == 2) limit = 0.80;\n" +
+            "  if (index == 3) limit = 0.40;\n" +
+            "  return brightness < limit;\n" +
+            "}\n" +
+            "bool dither2x2(float brightness) { return dither2x2(brightness, gl_FragCoord.xy); }\n"
+
     val simpleVertexShaderV2List = listOf(
         Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
         Variable(GLSLType.V2F, "pos"),

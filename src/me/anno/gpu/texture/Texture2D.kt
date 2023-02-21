@@ -1133,12 +1133,9 @@ open class Texture2D(
             override val numTextures: Int get() = 1
             override fun ensure() {}
             override fun checkSession() = this@Texture2D.checkSession()
-            override fun bindDirectly() =
-                throw NotImplementedError()
-
-            override fun bindDirectly(w: Int, h: Int) =
-                throw NotImplementedError()
-
+            override fun getTargetType(slot: Int) = throw NotImplementedError()
+            override fun bindDirectly() = throw NotImplementedError()
+            override fun bindDirectly(w: Int, h: Int) = throw NotImplementedError()
             override fun destroy() = this@Texture2D.destroy()
 
             override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean) =

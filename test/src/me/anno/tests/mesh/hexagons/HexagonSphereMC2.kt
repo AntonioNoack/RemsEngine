@@ -49,9 +49,9 @@ fun testFindingSubChunks(sphere: HexagonSphere) {
                 val color0 = sijToColor.getOrPut(Triple(triIndex, si, sj)) { rand.nextInt() }
                 for (hex in hexagons) {
                     val q = sphere.findSubChunk(hex.center)
-                    val color1 = sijToColor.getOrPut(Triple(q.tri, q.i, q.j)) { rand.nextInt() }
+                    val color1 = sijToColor.getOrPut(Triple(q.tri, q.si, q.sj)) { rand.nextInt() }
                     if (q.tri != triIndex) w1++// println("wrong triangle for $triIndex/$si/$sj (${hex.center}, ${hex.index})")
-                    else if (q.i != si || q.j != sj) w2++ // println("wrong subchunk for $triIndex/$si/$sj (${hex.center}, ${hex.index})")
+                    else if (q.si != si || q.sj != sj) w2++ // println("wrong subchunk for $triIndex/$si/$sj (${hex.center}, ${hex.index})")
                     else ok++
                     if (hex.center.y > 0f) {
                         val x = ((hex.center.x + 1) * hs)
@@ -96,7 +96,7 @@ fun testFindingSubChunks2(sphere: HexagonSphere) {
 
     val queried = HashSet<Triple<Int, Int, Int>>()
     sphere.querySubChunks(Vector3f(0f, 1f, 0f), maxDistance) { sc ->
-        queried.add(Triple(sc.tri, sc.i, sc.j))
+        queried.add(Triple(sc.tri, sc.si, sc.sj))
         false
     }
 

@@ -139,7 +139,7 @@ object ScreenSpaceAmbientOcclusion {
                 "}"
     ).apply {
         glslVersion = 330
-        setTextureIndices(listOf("finalPosition", "finalNormal", "random4x4", "sampleKernel"))
+        setTextureIndices("finalPosition", "finalNormal", "random4x4", "sampleKernel")
     }
 
     private val blurShader = Shader(

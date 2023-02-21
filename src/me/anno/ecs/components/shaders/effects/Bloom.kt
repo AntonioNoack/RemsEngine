@@ -195,7 +195,7 @@ object Bloom {
                     "   if(applyToneMapping) color = tonemap(color) - random(uv) * ${1.0 / 255.0};\n" +
                     "   fragColor = vec4(color.rgb, 1.0);\n" +
                     "}\n"
-        ).apply { setTextureIndices(listOf("base", "bloom")) }
+        ).apply { setTextureIndices("base", "bloom") }
     }
 
     fun bloom(source: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean) {

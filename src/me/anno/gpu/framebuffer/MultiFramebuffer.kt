@@ -61,6 +61,8 @@ class MultiFramebuffer(
         }
     }
 
+    override fun getTargetType(slot: Int) = targetsI[slot / div].getTargetType(slot % div)
+
     override val numTextures: Int = targets.size
 
     override val w: Int get() = targetsI[0].w

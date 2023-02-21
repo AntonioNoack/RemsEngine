@@ -220,6 +220,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             Signature("gimp", 0, GimpImage.MAGIC), // gimp file
             Signature("qoi", 0, "qoif"),
             Signature("exr", 0, 0x76, 0x2f, 0x31, 0x01), // HDR image format, can be exported from Blender
+            Signature("webp", 8, "WEBP"), // after RIFF header
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
             Signature("svg", 0, "<svg"),

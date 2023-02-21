@@ -22,10 +22,11 @@ class HexagonSphere(
 
     companion object {
 
-        val lineCount = 30
-        val pentagonCount = 12
+        const val lineCount = 30
+        const val pentagonCount = 12
 
         fun findLength(n: Int): Float {
+            // todo find this value mathematically
             return findLength0(n) / (n + 1)
         }
 
@@ -34,12 +35,12 @@ class HexagonSphere(
         private val lengthI = intArrayOf(
             0, 1, 2, 3, 4, 5, 6, 7, 8,
             10, 15, 20, 25, 40, 60, 90, 150, 200,
-            500, 2000, 5000, 10000, 50000
+            500, 2000, 5000, 10_000, 50_000, 100_000
         )
         private val lengthF = floatArrayOf(
             2f / 3f, 0.87f, 0.98f, 1.05f, 1.097f, 1.151f, 1.158f, 1.165f, 1.185f,
             1.20f, 1.24f, 1.253f, 1.268f, 1.288f, 1.302f, 1.308f, 1.314f, 1.316f,
-            1.320f, 1.3223885f, 1.3228698f, 1.3230022f, 1.323151f
+            1.320f, 1.3223885f, 1.3228698f, 1.3230022f, 1.323151f, 1.3231488f
         )
 
         private fun findLength0(n: Int): Float {
@@ -62,7 +63,7 @@ class HexagonSphere(
             10, 6, 6, 7, 2, 7, 8, 3, 4, 8, 9, 5, 9, 10, 10, 11, 6, 11, 7, 6, 7, 11, 8, 8, 11, 9, 9, 11, 10
         )
 
-        private val vertices = run {
+        val vertices = run {
             val s = 0.276385f
             val t = 0.723600f
             val u = 0.447215f
@@ -79,7 +80,7 @@ class HexagonSphere(
             )
         }
 
-        private val lineIndices = intArrayOf(
+        val lineIndices = intArrayOf(
             0, 1, 1, 2, 0, 5, 0, 2, 2, 3, 0, 3, 3, 4, 0, 4, 4, 5, 1, 5, 5, 10, 1, 6, 2, 7, 3, 8, 4, 9, 1, 10,
             2, 6, 6, 7, 3, 7, 7, 8, 4, 8, 8, 9, 5, 9, 9, 10, 6, 10, 10, 11, 6, 11, 7, 11, 8, 11, 9, 11
         )
@@ -92,7 +93,11 @@ class HexagonSphere(
         private val pentagonTris = intArrayOf(0, 6, 7, 8, 13, 9, 11, 12, 18, 19, 15, 16)
         private val hexSortOrders0 = // base 8 indices for sorting the hexagons around the pentagons; pre-calculated
             shortArrayOf(794, 17419, 16467, 16467, 16467, 16915, 12372, 16915, 16915, 16915, 17419, 16467)
-
+        private val lineToTriangle = byteArrayOf(
+            0, 1, 20, 46, 21, 44, 2, 40, 22, 47, 3, 42, 23, 48, 4, 43, 24, 9, 5, 41, 25, 54, 6, 50, 7, 31, 8, 32, 29,
+            53, 10, 45, 51, 26, 11, 36, 52, 27, 12, 57, 13, 28, 33, 58, 14, 49, 34, 59, 55, 30, 15, 39, 56, 35, 17, 16,
+            18, 37, 19, 38,
+        )
     }
 
     val t = n / s
@@ -104,7 +109,6 @@ class HexagonSphere(
 
     val i0 = (n - 1) / 3f
     val j0 = (n - 1.5f) * 0.5f - n / 6f + 0.4f // why 0.4???
-    val j0l = n * 0.5f
 
     val len = findLength(n)
     val lenX3 = len / 3f
@@ -125,6 +129,10 @@ class HexagonSphere(
             pos.y + ab.y * d0 + ac.y * d1,
             pos.z + ab.z * d0 + ac.z * d1
         ).normalize()
+    }
+
+    fun getSubChunkCenter(tri: Int, si: Int, sj: Int, dst: Vector3f = Vector3f()): Vector3f {
+        return triangles[tri].getSubChunkCenter(si, sj, dst)
     }
 
     class Triangle(
@@ -162,11 +170,9 @@ class HexagonSphere(
     }
 
     class Line(
-        val self: HexagonSphere,
+        val sphere: HexagonSphere,
         val left: TRef, val right: TRef,
-        val center: Vector3f, val ab: Vector3f, val ac: Vector3f,
-        val first: Long, val last: Long,
-        val step: Long
+        val first: Long, val last: Long, val step: Long
     ) {
         var firstH: Hexagon? = null
         var lastH: Hexagon? = null
@@ -177,8 +183,7 @@ class HexagonSphere(
             else if (idx == last && lastH != null) return lastH!!
             if ((step > 0 && idx > last) || (step < 0 && idx < last))
                 throw IndexOutOfBoundsException()
-            val pos = self.calcHexPos(center, ab, ac, index - self.j0l, 0f)
-            return self.createLineHexagon(pos.normalize(), left, right, index, idx)
+            return sphere.createLineHexagon(left, right, index, idx)
         }
     }
 
@@ -264,9 +269,61 @@ class HexagonSphere(
         }
     }
 
-    // todo given a hexagon, find its subchunk
+    /**
+     * finds the subchunk for a given hexagon; always O(1)
+     * */
+    fun findSubChunk(hex: Hexagon): SubChunk {
+        when (val id = hex.index) {
+            in 0L until special0 -> {
+                // find triangle with respective line
+                val lineIndex = (id / (n + 1)).toInt()
+                val tri = triangleLines.indexOf(lineIndex).shr(1)
+                // then find subchunk, which contains this line
+                val li = (id % (n + 1)).toInt()
+                val l0 = lineIndices[lineIndex * 2]
+                val l1 = lineIndices[lineIndex * 2 + 1]
+                val a = indices[tri * 3]
+                val b = indices[tri * 3 + 1]
+                val c = indices[tri * 3 + 2]
+                val lj = n - li
+                val sm1 = s - 1
+                return when {
+                    l0 == a && l1 == b -> subChunk(tri, min(li / t, sm1), 0)
+                    l0 == b && l1 == a -> subChunk(tri, min(lj / t, sm1), 0)
+                    l0 == a && l1 == c -> subChunk(tri, 0, min(li / t, sm1))
+                    l0 == c && l1 == a -> subChunk(tri, 0, min(lj / t, sm1))
+                    else -> throw IllegalStateException()
+                }
+            }
+            in special0 until special -> {
+                // this is a pentagon: find, which triangle owns us,
+                // and then return 0,0, as it will be the owner
+                val tri = pentagonTris[(id - special0).toInt()]
+                return subChunk(tri, 0, 0)
+            }
+            in special until total -> {
+                val id1 = id - special
+                val tri = (id1 / perSide).toInt()
+                if (s == 1) return subChunk(tri, 0, 0)
+                val li = id1 % perSide
+                val i = triFindI(li)
+                val j = triFindJ(li, i)
+                val sj = j / t // easy
+                // si is a bit more complicated; use the end of the left block for comparison
+                // works for the tip as well :)
+                val i0 = ((j % t) + 1).shr(1)
+                val si = (i + i0) / t
+                return subChunk(tri, si, sj)
+            }
+            else -> throw IndexOutOfBoundsException()
+        }
+    }
 
-    data class SubChunk(val center: Vector3f, val tri: Int, val i: Int, val j: Int)
+    fun subChunk(tri: Int, i: Int, j: Int): SubChunk {
+        return SubChunk(triangles[tri].getSubChunkCenter(i, j), tri, i, j)
+    }
+
+    data class SubChunk(val center: Vector3f, val tri: Int, val si: Int, val sj: Int)
 
     fun findSubChunk(dir: Vector3f): SubChunk {
         if (!dir.isFinite) throw IllegalArgumentException(dir.toString())
@@ -413,8 +470,8 @@ class HexagonSphere(
                 checked.clear()
                 // find closest subchunk to dir
                 val sub = findSubChunk(tri, dir)
-                if (checker.checkSubChunk(sub.i, sub.j)) return true
-                if (checker.checkNeighbors(sub.i, sub.j)) return true
+                if (checker.checkSubChunk(sub.si, sub.sj)) return true
+                if (checker.checkNeighbors(sub.si, sub.sj)) return true
             }
         }
         return false
@@ -467,6 +524,7 @@ class HexagonSphere(
         }
     }
 
+    @Suppress("unused")
     fun ensureNeighbors(hex: Hexagon) {
         // ensure all neighbors
         val neighbors = hex.neighbors
@@ -509,7 +567,7 @@ class HexagonSphere(
         return hex
     }
 
-    private fun createLineHexagon(pos: Vector3f, ab: TRef, ba: TRef, i0: Int, index: Long): Hexagon {
+    private fun createLineHexagon(ab: TRef, ba: TRef, i0: Int, index: Long): Hexagon {
 
         val i0Inv = n - i0
 
@@ -530,6 +588,11 @@ class HexagonSphere(
             create(ps, tri.ab, tri.ac, i)
         }
 
+        val pos = Vector3f()
+        for (i in corners.indices) {
+            pos.add(corners[i])
+        }
+        pos.normalize()
         return creator.create(index, pos, corners)
     }
 
@@ -603,11 +666,6 @@ class HexagonSphere(
     init {
 
         val pointsToLines = Array(12) { ArrayList<Hexagon>(5) }
-        val lineToTriangle = byteArrayOf(
-            0, 1, 20, 46, 21, 44, 2, 40, 22, 47, 3, 42, 23, 48, 4, 43, 24, 9, 5, 41, 25, 54, 6, 50, 7, 31, 8, 32, 29,
-            53, 10, 45, 51, 26, 11, 36, 52, 27, 12, 57, 13, 28, 33, 58, 14, 49, 34, 59, 55, 30, 15, 39, 56, 35, 17, 16,
-            18, 37, 19, 38,
-        )
 
         // define edges
         for (i in lineIndices.indices step 2) {
@@ -615,25 +673,14 @@ class HexagonSphere(
             val ai = lineIndices[i]
             val bi = lineIndices[i + 1]
 
-            val a = vertices[ai]
-            val b = vertices[bi]
-
             val ta = decodeTriangle(lineToTriangle[i].toInt())
             val tb = decodeTriangle(lineToTriangle[i + 1].toInt())
 
             val i0 = (i.shr(1)) * (n + 1L)
             val i1 = i0 + n
-            val factor = 1.070f
-            val center = Vector3f(a).add(b).mul(0.5f).normalize(factor)
 
-            val fx = 0.5f
-            val ab = Vector3f(b).sub(a).normalize()
-            val ac = Vector3f(center).cross(ab).add(ab.x * fx, ab.y * fx, ab.z * fx).normalize()
-
-            val abn = ab.negate(Vector3f())
-            val acn = ac.negate(Vector3f())
-            val abLine = Line(this, ta, tb, center, ab, ac, i0, i1, +1)
-            val baLine = Line(this, tb, ta, center, abn, acn, i1, i0, -1)
+            val abLine = Line(this, ta, tb, i0, i1, +1)
+            val baLine = Line(this, tb, ta, i1, i0, -1)
             lines.add(abLine)
             lines.add(baLine)
 
@@ -790,7 +837,7 @@ class HexagonSphere(
     }
 
     fun querySubChunk(sc: SubChunk): ArrayList<Hexagon> =
-        querySubChunk(sc.tri, sc.i, sc.j)
+        querySubChunk(sc.tri, sc.si, sc.sj)
 
     /**
      * group lines onto triangle faces

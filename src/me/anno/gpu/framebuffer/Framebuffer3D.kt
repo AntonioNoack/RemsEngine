@@ -30,6 +30,8 @@ class Framebuffer3D(
     var depthAttachedPtr = 0
     var depthAttachment: Framebuffer3D? = null
 
+    override fun getTargetType(slot: Int) = targets[slot]
+
     fun create() {
         Frame.invalidate()
         GFX.check()

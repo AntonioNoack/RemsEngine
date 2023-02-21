@@ -6,9 +6,12 @@ import me.anno.ecs.components.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.debug.DebugShapes.debugTexts
+import me.anno.engine.debug.DebugText
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.types.Arrays.resize
+import org.joml.Vector3d
 import org.lwjgl.opengl.GL11C
 
 private fun createMesh(color: Int): Mesh {
@@ -23,7 +26,7 @@ private fun createMesh(color: Int): Mesh {
 
 fun chunkToMesh(chunk: List<Hexagon>, color: Int = (Math.random() * 1e9).toInt()): Mesh {
     val mesh = createMesh(color)
-    createFaceMesh(mesh, chunk, 0, chunk.size, 0)
+    createFaceMesh(mesh, chunk)
     return mesh
 }
 
@@ -39,12 +42,19 @@ fun main() {
     val s = 2
     val hexagons = HexagonSphere(n, s)
     val entity = Entity()
+    val duration = 1e9f
     for (tri in 0 until 20) {
         val triangle = Entity()
         for (si in 0 until s) {
             for (sj in 0 until s - si) {
                 triangle.add(Entity().apply {
                     val chunk = hexagons.querySubChunk(tri, si, sj)
+                    debugTexts.add(
+                        DebugText(
+                            Vector3d(hexagons.getSubChunkCenter(tri, si, sj)),
+                            "$tri/$si/$sj", -1, duration
+                        )
+                    )
                     add(MeshComponent(chunkToMesh(chunk)))
                 })
             }
@@ -54,11 +64,11 @@ fun main() {
     testSceneWithUI(entity)
 }
 
-fun createHexSphere(n: Int): ArrayList<Hexagon> {
+fun createHexSphere(n: Int): Pair<ArrayList<Hexagon>, Float> {
     val sphere = HexagonSphere(n, 1)
     val all = ArrayList<Hexagon>(sphere.total.toInt())
     for (tri in 0 until 20) all.addAll(sphere.querySubChunk(tri, 0, 0))
-    return all
+    return all to sphere.len
 }
 
 /**
@@ -97,12 +107,12 @@ fun createFaceMesh(
     mesh: Mesh,
     hexagons: List<Hexagon>,
     i0: Int = 0,
-    i1: Int = hexagons.size,
-    pentagonCount: Int = 12
-) {
+    i1: Int = hexagons.size
+): Mesh {
     var pi = 0
     var li = 0
     val size = i1 - i0
+    val pentagonCount = (i0 until i1).count { hexagons[it].corners.size == 5 }
     val positions = mesh.positions.resize(3 * (6 * size - pentagonCount))
     val indices = mesh.indices.resize(3 * (4 * size - pentagonCount))
     mesh.positions = positions
@@ -124,4 +134,5 @@ fun createFaceMesh(
         }
     }
     mesh.invalidateGeometry()
+    return mesh
 }

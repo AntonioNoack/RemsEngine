@@ -43,6 +43,8 @@ interface IFramebuffer {
 
     fun checkSession()
 
+    fun getTargetType(slot: Int): TargetType
+
     fun bindTexture0(shader: Shader, texName: String, nearest: GPUFiltering, clamping: Clamping) {
         val index = shader.getTextureIndex(texName)
         if (index >= 0) {

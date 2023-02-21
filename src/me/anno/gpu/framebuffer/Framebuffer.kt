@@ -52,6 +52,8 @@ class Framebuffer(
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
     override val numTextures: Int = targets.size
 
+    override fun getTargetType(slot: Int) = targets[slot]
+
     /**
      * attach another framebuffer, which shares the depth buffer
      * this can be used to draw 3D ui without deferred-rendering,

@@ -48,6 +48,8 @@ class CubemapFramebuffer(
 
     lateinit var textures: Array<CubemapTexture>
 
+    override fun getTargetType(slot: Int) = targets[slot]
+
     override fun ensure() {
         if (pointer == 0) create()
     }

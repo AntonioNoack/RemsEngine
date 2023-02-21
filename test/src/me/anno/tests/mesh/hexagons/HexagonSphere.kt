@@ -4,7 +4,6 @@ import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.chunks.spherical.Hexagon
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.Companion.findLength
 import me.anno.ecs.components.chunks.spherical.HexagonSphere.Companion.pentagonCount
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
@@ -37,7 +36,7 @@ import kotlin.math.sqrt
 // todo small simulator using this
 //  - civilisation builder
 
-fun createNiceMesh(mesh: Mesh, n: Int, hexagons: List<Hexagon>) {
+fun createNiceMesh(mesh: Mesh, hexagons: List<Hexagon>, len: Float) {
 
     val texture = ImageCPUCache[getReference("E:/Pictures/earth_flat_map.jpg"), false]!!
     val height = ImageCPUCache[downloads.getChild("earth-height.png"), false]!!
@@ -52,14 +51,14 @@ fun createNiceMesh(mesh: Mesh, n: Int, hexagons: List<Hexagon>) {
     val sx2 = height.width / TAUf
     val sy2 = height.height / PIf
 
-    createNiceMesh1(mesh, n, hexagons, 0.2f, 0.2f, true, { _, uv ->
+    createNiceMesh1(mesh, hexagons, len, 0.2f, 0.2f, true, { _, uv ->
         texture.sampleRGB(
             uv.x * sx1 + dx1,
             uv.y * sy1 + dy1,
             GPUFiltering.LINEAR,
             Clamping.CLAMP
         )
-    }, { _, _ -> 0.997f }, { _, uv ->
+    }, { _, _ -> 0.997f }) { _, uv ->
         1f + max(
             height.sampleRGB(
                 uv.x * sx2 + dx2,
@@ -68,7 +67,7 @@ fun createNiceMesh(mesh: Mesh, n: Int, hexagons: List<Hexagon>) {
                 Clamping.CLAMP
             ).r01() - h0, 0f
         ) * 0.03f
-    })
+    }
 
 }
 
@@ -147,9 +146,8 @@ fun createNiceMesh0(
 }
 
 fun createNiceMesh1(
-    mesh: Mesh, n: Int, hexagons: List<Hexagon>,
-    insetX: Float, insetY: Float,
-    latLon: Boolean,
+    mesh: Mesh, hexagons: List<Hexagon>, len: Float, insetX: Float,
+    insetY: Float, latLon: Boolean,
     getColor: (Hexagon, Vector3f) -> Int,
     getHeightMin: (Hexagon, Vector3f) -> Float,
     getHeightMax: (Hexagon, Vector3f) -> Float,
@@ -171,7 +169,6 @@ fun createNiceMesh1(
     mesh.normals = mesh.normals.resize(3 * numPositions)
     mesh.color0 = colors
 
-    val len = findLength(n)
     val insetY1 = 0.5f * insetY * len
 
     val query = Vector3f()
@@ -259,7 +256,7 @@ fun createConnectionMesh(mesh: Mesh, hexagons: List<Hexagon>, len: Float) {
         for (dst in src.neighbors) {
             dst ?: continue
             val dstPos = dst.center
-            if(srcPos.distance(dstPos) > 2*len) throw IllegalStateException()
+            if (srcPos.distance(dstPos) > 2 * len) throw IllegalStateException()
             dir.set(dstPos).sub(srcPos)
             dir.cross(srcPos, dirX)
             positions[pi++] = srcPos.x * gy + dstPos.x * fy + dirX.x * fx
@@ -285,7 +282,6 @@ fun main() {
     val showConnections = true
 
     var n = 4
-    val len = findLength(n)
 
     val lineMesh = Mesh()
     lineMesh.material = Material().apply {
@@ -303,9 +299,9 @@ fun main() {
 
     fun validateSync() {
         // connections are not needed here
-        val hexagons = createHexSphere(n)
+        val (hexagons, len) = createHexSphere(n)
         if (showLineMesh) createLineMesh(lineMesh, hexagons)
-        if (showNiceMesh) createNiceMesh(niceMesh, n, hexagons)
+        if (showNiceMesh) createNiceMesh(niceMesh, hexagons, len)
         if (showSimpleMesh) createFaceMesh(simpleMesh, hexagons)
         if (showConnections) createConnectionMesh(connMesh, hexagons, len)
     }

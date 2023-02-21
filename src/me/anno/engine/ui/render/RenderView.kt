@@ -1515,9 +1515,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                 if (drawDebug) {
                     DebugRendering.drawDebug(this)
-                } else {
-                    DebugShapes.clear()
                 }
+                DebugShapes.removeExpired()
 
                 LineBuffer.finish(cameraMatrix)
                 PlaneShapes.finish()

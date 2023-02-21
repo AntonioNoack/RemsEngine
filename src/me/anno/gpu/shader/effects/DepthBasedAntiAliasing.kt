@@ -138,7 +138,7 @@ object DepthBasedAntiAliasing {
                     "       fragColor = texelFetch(color, p, 0);\n" +
                     "   }\n" +
                     "}"
-        ).apply { setTextureIndices(listOf("color", "depth0")) }
+        ).apply { setTextureIndices("color", "depth0") }
     }
 
     fun render(color: ITexture2D, depth: ITexture2D, threshold: Float = 1e-5f) {

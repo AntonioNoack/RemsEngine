@@ -65,6 +65,9 @@ open class Shader(
         if (glslVersion < 330 && fragmentVariables.any2 { it.isOutput })
             glslVersion = 330 // needed for layout(location=x) qualifier
 
+        if (glslVersion < 400 && "gl_SampleID" in fragmentShader)
+            glslVersion = 400
+
         val versionString = formatVersion(glslVersion) + "\n// $name\n"
 
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
