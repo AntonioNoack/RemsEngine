@@ -2,6 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.camera.effects.ColorBlindnessEffect
+import me.anno.ecs.components.camera.effects.DepthOfFieldEffect
 import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
@@ -93,6 +94,8 @@ enum class RenderMode(
     TRITANOPIA(ColorBlindnessEffect(ColorBlindnessEffect.Mode.TRITANOPIA)),
 
     RAY_TEST,
+
+    DEPTH_OF_FIELD(DepthOfFieldEffect()),
 
     ;
 

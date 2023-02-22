@@ -644,6 +644,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun v3f(loc: Int, v: Vector3f) = v3f(loc, v.x, v.y, v.z)
     fun v4f(loc: Int, v: Vector4f) = v4f(loc, v.x, v.y, v.z, v.w)
     fun v4f(loc: Int, v: Quaternionf) = v4f(loc, v.x, v.y, v.z, v.w)
+    fun v4f(loc: Int, v: Quaterniond) = v4f(loc, v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
 
     fun v2i(loc: Int, v: Vector2i) = v2i(loc, v.x, v.y)
     fun v3i(loc: Int, v: Vector3i) = v3i(loc, v.x, v.y, v.z)
@@ -665,6 +666,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun v3f(name: String, v: Vector3f) = v3f(name, v.x, v.y, v.z)
     fun v4f(name: String, v: Vector4f) = v4f(name, v.x, v.y, v.z, v.w)
     fun v4f(name: String, v: Quaternionf) = v4f(name, v.x, v.y, v.z, v.w)
+    fun v4f(name: String, v: Quaterniond) = v4f(name, v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     fun v4f(name: String, v: Vector4d) =
         v4f(name, v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
 

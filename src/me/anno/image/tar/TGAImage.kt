@@ -49,7 +49,8 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                     val buffer = Texture2D.bufferPool[data2.size, false, false]
                     buffer.put(data2).flip()
                     GFX.addGPUTask("TGAImage", width, height) {
-                        texture.createMonochrome(buffer, false)
+                        if (!texture.isDestroyed)
+                            texture.createMonochrome(buffer, false)
                     }
                 }
                 2 -> {
@@ -57,7 +58,8 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                     val buffer = Texture2D.bufferPool[data.size, false, false]
                     buffer.put(data2).flip()
                     GFX.addGPUTask("TGAImage", width, height) {
-                        texture.createRG(buffer, false)
+                        if (!texture.isDestroyed)
+                            texture.createRG(buffer, false)
                     }
                 }
                 3 -> {
@@ -65,7 +67,8 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                     val buffer = Texture2D.bufferPool[data2.size, false, false]
                     buffer.put(data2).flip()
                     GFX.addGPUTask("TGAImage", width, height) {
-                        texture.createBGR(buffer, false)
+                        if (!texture.isDestroyed)
+                            texture.createBGR(buffer, false)
                     }
                 }
                 4 -> {
@@ -73,7 +76,8 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                     val buffer = Texture2D.bufferPool[data2.size, false, false]
                     buffer.put(data2).flip()
                     GFX.addGPUTask("TGAImage", width, height) {
-                        texture.createBGRA(buffer, false)
+                        if (!texture.isDestroyed)
+                            texture.createBGRA(buffer, false)
                     }
                 }
                 else -> throw RuntimeException("$numChannels channels?")

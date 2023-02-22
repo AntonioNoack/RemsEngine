@@ -328,7 +328,8 @@ object Renderers {
                         else -> ""
                     }
                 };\n" + if (type.highDynamicRange) {
-                    "finalResult.rgb /= 1.0 + max(max(abs(finalColor).x,abs(finalColor).y),abs(finalColor).z);\n"
+                    val name = type.glslName
+                    "finalResult.rgb /= 1.0 + max(max(abs($name).x,abs($name).y),abs($name).z);\n"
                 } else ""
             }
         }

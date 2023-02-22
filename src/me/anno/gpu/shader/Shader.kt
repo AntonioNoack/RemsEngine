@@ -16,10 +16,10 @@ import org.lwjgl.opengl.GL20.*
 open class Shader(
     shaderName: String,
     private var vertexVariables: List<Variable>,
-    private var vertexShader: String,
+    var vertexShader: String,
     private var varyings: List<Variable>,
     private var fragmentVariables: List<Variable>,
-    private var fragmentShader: String
+    var fragmentShader: String
 ) : OpenGLShader(shaderName) {
 
     companion object {
@@ -44,6 +44,12 @@ open class Shader(
 
     var vertexSource = vertexShader
     var fragmentSource = fragmentShader
+
+    init {
+        val candidates = (vertexVariables.filter { it.type.glslName.startsWith("sampler") } +
+                fragmentVariables.filter { it.type.glslName.startsWith("sampler") }).map { it.name }
+        setTextureIndices(ArrayList(LinkedHashSet(candidates))) // removing duplicates, while keeping the order
+    }
 
     override fun sourceContainsWord(word: String): Boolean {
         return word in vertexShader || word in fragmentShader

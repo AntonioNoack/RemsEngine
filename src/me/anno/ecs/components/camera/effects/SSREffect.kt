@@ -35,7 +35,7 @@ class SSREffect : ToneMappedEffect() {
         write(
             layers, dstType,
             ScreenSpaceReflections.compute(
-                layers[DeferredLayerType.POSITION]!!.getTexture0(),
+                buffer.depthTexture!!,
                 layers[DeferredLayerType.NORMAL]!!.getTexture0(),
                 layers[DeferredLayerType.COLOR]!!.getTexture0(),
                 layers[DeferredLayerType.METALLIC]!!.getTexture0(),

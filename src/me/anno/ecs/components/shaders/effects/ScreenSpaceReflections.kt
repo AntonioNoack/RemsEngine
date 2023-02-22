@@ -1,5 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX.flat01
@@ -12,6 +13,9 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
+import me.anno.gpu.shader.ReverseDepth.depthToPosition
+import me.anno.gpu.shader.ReverseDepth.depthToPositionList
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -39,7 +43,7 @@ object ScreenSpaceReflections {
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.S2D, "finalColor"),
             Variable(GLSLType.S2D, "finalIlluminated"),
-            Variable(GLSLType.S2D, "finalPosition"),
+            Variable(GLSLType.S2D, "finalDepth"),
             Variable(GLSLType.S2D, "finalNormal"),
             // reflectivity = metallic * (1-roughness),
             Variable(GLSLType.S2D, "finalMetallic"),
@@ -56,7 +60,7 @@ object ScreenSpaceReflections {
             Variable(GLSLType.V1B, "applyToneMapping"),
             Variable(GLSLType.V4F, "skyColor"),
         )
-        val functions = ArrayList<String>()
+        val functions = HashSet<String>()
         if (sky != null) {
             val material = sky.material
             val shader = material.shader as? SkyBox.Companion.SkyShader
@@ -69,14 +73,14 @@ object ScreenSpaceReflections {
             } else functions.add(defaultSkyColor)
         } else functions.add(defaultSkyColor)
 
-        functions.remove(noiseFunc)
-        functions.remove(tonemapGLSL)
+        functions.add(noiseFunc)
+        functions.add(tonemapGLSL)
+        functions.add(quatRot)
+        functions.add(depthToPosition)
+        variables.addAll(depthToPositionList)
 
-        val shader = Shader(
+        return Shader(
             "ss-reflections", coordsList, coordsVShader, uvList, variables, "" +
-
-                    noiseFunc +
-                    tonemapGLSL +
 
                     functions.joinToString("\n") +
 
@@ -96,14 +100,14 @@ object ScreenSpaceReflections {
                     "       return;\n" +
                     "   }\n" +
 
-                    "   ivec2 texSizeI = textureSize(finalPosition, 0);\n" +
+                    "   ivec2 texSizeI = textureSize(finalDepth, 0);\n" +
                     "   vec2  texSize  = vec2(texSizeI);\n" +
 
-                    "   vec3 positionFrom     = texture(finalPosition, uv).xyz;\n" +
+                    "   vec3 positionFrom     = depthToPosition(texture(finalDepth,uv).r);\n" +
+
                     "   vec3 normal           = normalize(texture(finalNormal, uv).xyz * 2.0 - 1.0);\n" +
                     "   vec3 pivot            = normalize(reflect(positionFrom, normal));\n" +
 
-                    "   vec4  startView     = vec4(positionFrom, 1.0);\n" +
                     "   float startDistance = length(positionFrom);\n" +
 
                     "   vec3  endView       = positionFrom + pivot * testDistance;\n" +
@@ -136,7 +140,7 @@ object ScreenSpaceReflections {
                     "   for (int i = 0; i <= maxLinearSteps; i++){\n" +
 
                     "       dstUV     += increment;\n" +
-                    "       positionTo = texture(finalPosition, dstUV).xyz;\n" +
+                    "       positionTo = depthToPosition(texture(finalDepth, dstUV).r);\n" +
 
                     "       fraction1 = useX ? (dstUV.x - uv.x) / deltaXY.x : (dstUV.y - uv.y) / deltaXY.y;\n" +
 
@@ -171,7 +175,7 @@ object ScreenSpaceReflections {
                     "       float fractionI = mix(fraction0, fraction1, float(i)/float(steps));\n" +
 
                     "       dstUV      = mix(uv, endUV, fractionI);\n" +
-                    "       positionTo = texture(finalPosition, dstUV).xyz;\n" +
+                    "       positionTo = depthToPosition(texture(finalDepth,dstUV).r);\n" +
 
                     "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, fractionI);\n" +
                     "       depth        = viewDistance - length(positionTo);\n" +
@@ -210,11 +214,6 @@ object ScreenSpaceReflections {
                     // "   fragColor = vec4(bestUV, visibility, 1);\n" +
                     "}"
         )
-        shader.setTextureIndices(
-            "finalColor", "finalPosition", "finalNormal",
-            "finalMetallic", "finalRoughness", "finalIlluminated"
-        )
-        return shader
     }
 
     val shaders = HashMap<SkyBox.Companion.SkyShader?, Shader>()
@@ -259,10 +258,9 @@ object ScreenSpaceReflections {
         val roughnessLayer = deferred.findLayer(DeferredLayerType.ROUGHNESS) ?: return null
         val roughnessMask = roughnessLayer.mapping
         val normalTexture = deferred.findTexture(buffer, DeferredLayerType.NORMAL) ?: return null
-        val positionTexture = deferred.findTexture(buffer, DeferredLayerType.POSITION) ?: return null
         val colorTexture = deferred.findTexture(buffer, DeferredLayerType.COLOR) ?: return null
         return compute(
-            positionTexture,
+            buffer.depthTexture!!,
             normalTexture,
             colorTexture,
             deferred.findTexture(buffer, metallicLayer),
@@ -270,9 +268,10 @@ object ScreenSpaceReflections {
             deferred.findTexture(buffer, roughnessLayer),
             roughnessMask,
             illuminated,
-            transform, skyBox, skyColor,
-            strength, maskSharpness, wallThickness, fineSteps, maxDistance,
-            applyToneMapping, dst
+            transform,
+            skyBox, skyColor, strength,
+            maskSharpness, wallThickness, fineSteps, maxDistance, applyToneMapping,
+            dst
         ).getTexture0()
     }
 
@@ -280,7 +279,7 @@ object ScreenSpaceReflections {
      * computes screen space reflections from metallic, roughness, normal, position and color buffers
      * */
     fun compute(
-        position: ITexture2D,
+        depth: ITexture2D,
         normal: ITexture2D,
         color: ITexture2D,
         metallic: ITexture2D,
@@ -297,7 +296,7 @@ object ScreenSpaceReflections {
         fineSteps: Int = 10, // 10 are enough, if there are only rough surfaces
         maxDistance: Float = 8f,
         applyToneMapping: Boolean,
-        dst: IFramebuffer = FBStack["ss-reflections", position.w, position.h, 4, true, 1, false]
+        dst: IFramebuffer = FBStack["ss-reflections", depth.w, depth.h, 4, true, 1, false]
     ): IFramebuffer {
         // metallic may be on r, g, b, or a
         useFrame(dst, Renderer.copyRenderer) {
@@ -323,12 +322,13 @@ object ScreenSpaceReflections {
             val c = Clamping.CLAMP
             shader.v4f("metallicMask", singleToVector[metallicMask]!!)
             shader.v4f("roughnessMask", singleToVector[roughnessMask]!!)
-            illuminated.bind(5, n, c)
-            roughness.bind(4, n, c)
-            metallic.bind(3, n, c)
-            normal.bind(2, n, c)
-            position.bind(1, n, c)
-            color.bind(0, n, c)
+            bindDepthToPosition(shader)
+            illuminated.bind(shader, "finalIlluminated", n, c)
+            roughness.bind(shader, "finalRoughness", n, c)
+            metallic.bind(shader, "finalMetallic", n, c)
+            normal.bind(shader, "finalNormal", n, c)
+            depth.bind(shader, "finalDepth", n, c)
+            color.bind(shader, "finalColor", n, c)
             flat01.draw(shader)
         }
         return dst

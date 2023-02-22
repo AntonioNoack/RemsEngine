@@ -5,6 +5,7 @@ import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
+import me.anno.ecs.components.camera.effects.DepthOfFieldEffect
 import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
 import me.anno.ecs.components.mesh.Material
@@ -89,6 +90,7 @@ import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.glfw.GLFW
+import kotlin.math.atan
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.tan
@@ -876,29 +878,43 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 FSR.sharpen(tmp.getTexture0(), 0.5f, x, y, tw, th, flipY)
             }
             effect != null -> {
-                val map = if (effect is OutlineEffect) {
-                    // reset+set old selection IDs; not efficient
-                    // just for testing used here
-                    getWorld()?.forAll {
-                        if (it is MeshComponentBase) it.groupId = 0
-                    }
-                    for (thing in EditorState.selection) {
-                        (thing as? PrefabSaveable)?.forAll {
-                            if (it is MeshComponentBase) it.groupId = 1
+                val map = when (effect) {
+                    is OutlineEffect -> {
+                        // reset+set old selection IDs; not efficient
+                        // just for testing used here
+                        getWorld()?.forAll {
+                            if (it is MeshComponentBase) it.groupId = 0
                         }
+                        for (thing in EditorState.selection) {
+                            (thing as? PrefabSaveable)?.forAll {
+                                if (it is MeshComponentBase) it.groupId = 1
+                            }
+                        }
+                        val ids = FBStack["ids", w, h, 4, true, buffer.samples, true]
+                        drawScene(
+                            w, h, camera0, camera1, blending,
+                            idRenderer, ids, changeSize = false, hdr = false
+                        )
+                        hashMapOf(
+                            DeferredLayerType.SDR_RESULT to dstBuffer,
+                            DeferredLayerType.ID to ids
+                        )
                     }
-                    val ids = FBStack["ids", w, h, 4, true, buffer.samples, true]
-                    drawScene(
-                        w, h, camera0, camera1,
-                        blending, idRenderer, ids,
-                        changeSize = false,
-                        hdr = false
-                    )
-                    hashMapOf(
-                        DeferredLayerType.SDR_RESULT to dstBuffer,
-                        DeferredLayerType.ID to ids
-                    )
-                } else hashMapOf(DeferredLayerType.SDR_RESULT to dstBuffer)
+                    is DepthOfFieldEffect -> {
+                        val position = FBStack["pos", w, h, 4, true, 1, true]
+                        val renderer1 = rawAttributeRenderers[DeferredLayerType.POSITION]
+                        drawScene(
+                            w, h, camera0, camera1, blending,
+                            renderer1, position, changeSize = false, hdr = false
+                        )
+                        hashMapOf(
+                            DeferredLayerType.SDR_RESULT to dstBuffer,
+                            DeferredLayerType.DEPTH to position.depthTexture!!.wrapAsFramebuffer(),
+                            DeferredLayerType.POSITION to position
+                        )
+                    }
+                    else -> hashMapOf(DeferredLayerType.SDR_RESULT to dstBuffer)
+                }
                 effect.render(dstBuffer, deferred, map)
                 GFX.copyNoAlpha(map[DeferredLayerType.SDR_RESULT]!!)
             }
@@ -1134,13 +1150,16 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         this.isPerspective = isPerspective
         if (isPerspective) {
             val fovYRadians = fov.toRadians()
+            this.fovXRadians = 2f * atan(tan(fovYRadians * 0.5f) * aspectRatio)
             this.fovYRadians = fovYRadians
             Perspective.setPerspective(
-                cameraMatrix, fovYRadians, aspectRatio, scaledNear.toFloat(), scaledFar.toFloat(), centerX, centerY
+                cameraMatrix, fovYRadians, aspectRatio,
+                scaledNear.toFloat(), scaledFar.toFloat(), centerX, centerY
             )
         } else {
             scaledNear = max(scaledNear, worldScale * 0.001)
             scaledFar = min(scaledFar, worldScale * 1000.0)
+            fovXRadians = fov * aspectRatio
             fovYRadians = fov // not really defined
             val sceneScaleXY = 1f / fov
             val n: Float
@@ -1183,6 +1202,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         }
 
         cameraMatrix.rotate(rot)
+        cameraMatrix.invert(cameraMatrixInv)
 
         // lerp the world transforms
         val camTransform = camTransform
@@ -1204,6 +1224,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
         prevCamMatrix.set(lastCamMat)
+        prevCamMatrixInv.set(lastCamMatInv)
         prevCamPosition.set(lastCamPos)
         prevCamRotation.set(lastCamRot)
         prevWorldScale = lastWorldScale
@@ -1565,6 +1586,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     var worldScale = 1.0
 
+    var fovXRadians = 1f
     var fovYRadians = 1f
 
     var near = 1e-3
@@ -1576,6 +1598,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     var isPerspective = true
 
     val cameraMatrix = Matrix4f()
+    val cameraMatrixInv = Matrix4f()
 
     val camTransform = Matrix4x3d()
     val camInverse = Matrix4d()
@@ -1586,18 +1609,21 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     val prevCamRotation = Quaterniond()
     val prevCamMatrix = Matrix4f()
+    val prevCamMatrixInv = Matrix4f()
     val prevCamPosition = Vector3d()
     var prevWorldScale = worldScale
 
     private val lastCamPos = Vector3d()
     private val lastCamRot = Quaterniond()
     private val lastCamMat = Matrix4f()
+    private val lastCamMatInv = Matrix4f()
     private var lastWorldScale = worldScale
 
     fun updatePrevState() {
         lastCamPos.set(cameraPosition)
         lastCamRot.set(cameraRotation)
         lastCamMat.set(cameraMatrix)
+        lastCamMatInv.set(cameraMatrixInv)
         lastWorldScale = worldScale
     }
 
@@ -1611,12 +1637,17 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         RenderState.calculateDirections()
         RenderState.cameraDirection.set(cameraDirection)
         RenderState.cameraMatrix.set(cameraMatrix)
+        RenderState.cameraMatrixInv.set(cameraMatrixInv)
 
         RenderState.prevCamMatrix.set(prevCamMatrix)
+        RenderState.prevCamMatrixInv.set(prevCamMatrixInv)
         RenderState.prevCameraPosition.set(prevCamPosition)
 
         RenderState.isPerspective = isPerspective
+        RenderState.fovXRadians = fovXRadians
         RenderState.fovYRadians = fovYRadians
+        RenderState.near = scaledNear.toFloat()
+        RenderState.far = scaledFar.toFloat()
 
     }
 

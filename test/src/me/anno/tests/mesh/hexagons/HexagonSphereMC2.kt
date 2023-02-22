@@ -138,7 +138,7 @@ fun testFindingChunks2(sphere: HexagonSphere) {
 fun main() {
 
     // todo sizes like 20k no longer work properly, and I suspect findChunk() is the culprit
-    val n = 10000
+    val n = 100
     val t = 25 // good chunk size
     val s = n / t
     val sphere = HexagonSphere(n, s)
@@ -224,3 +224,5 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
         return 1
     }
 }
+
+// todo smooth normals using gaussian blur: this will smooth edges :3

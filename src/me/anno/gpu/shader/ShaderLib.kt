@@ -337,16 +337,6 @@ object ShaderLib {
     const val positionPostProcessing = "" +
             "   zDistance = gl_Position.w;\n"
 
-    // this mapping only works with well tessellated geometry;
-    // or we need to add it to the fragment shader instead
-    //"   const float far = 1000;\n" +
-    //"   const float near = 0.001;\n" +
-    //"   gl_Position.z = 2.0*log(gl_Position.w*near + 1)/log(far*near + 1) - 1;\n" +
-    //"   gl_Position.z *= gl_Position.w;"
-
-    // const val v3DBase = "" +
-    //        "uniform mat4 transform;\n"
-
     const val flatNormal = "" +
             "   normal = vec3(0.0, 0.0, 1.0);\n"
 

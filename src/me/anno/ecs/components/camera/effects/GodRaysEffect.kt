@@ -20,6 +20,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import org.joml.Vector3f
 
+// todo test this
 class GodRaysEffect : ToneMappedEffect() {
 
     @Range(16.0, 1024.0)
