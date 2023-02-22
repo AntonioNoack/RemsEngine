@@ -16,13 +16,14 @@ import kotlin.math.roundToLong
 
 // must be open for Rem's Studio
 open class FloatInput(
-    style: Style, title: String,
+    title: String,
     visibilityKey: String,
     type: Type = Type.FLOAT,
+    style: Style,
     private val inputPanel0: NumberInputComponent? = null
 ) : NumberInput<Double>(style, title, visibilityKey, type, inputPanel0) {
 
-    constructor(style: Style) : this(style, "", "", Type.FLOAT)
+    constructor(style: Style) : this("", "", Type.FLOAT, style)
 
     final override var lastValue: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
@@ -42,12 +43,17 @@ open class FloatInput(
     }
 
     constructor(title: String, visibilityKey: String, value0: Float, type: Type, style: Style) :
-            this(style, title, visibilityKey, type) {
+            this(title, visibilityKey, type, style) {
+        setValue(value0, false)
+    }
+
+    constructor(title: String, value0: Float, type: Type, style: Style) :
+            this(title, "", type, style) {
         setValue(value0, false)
     }
 
     constructor(title: String, visibilityKey: String, value0: Double, type: Type, style: Style) :
-            this(style, title, visibilityKey, type) {
+            this(title, visibilityKey, type, style) {
         setValue(value0, false)
     }
 
@@ -179,7 +185,7 @@ open class FloatInput(
     }
 
     override fun clone(): FloatInput {
-        val clone = FloatInput(style, title, visibilityKey, type, inputPanel0?.clone())
+        val clone = FloatInput(title, visibilityKey, type, style, inputPanel0?.clone())
         copy(clone)
         return clone
     }

@@ -900,20 +900,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             DeferredLayerType.ID to ids
                         )
                     }
-                    is DepthOfFieldEffect -> {
-                        val position = FBStack["pos", w, h, 4, true, 1, true]
-                        val renderer1 = rawAttributeRenderers[DeferredLayerType.POSITION]
-                        drawScene(
-                            w, h, camera0, camera1, blending,
-                            renderer1, position, changeSize = false, hdr = false
-                        )
-                        hashMapOf(
-                            DeferredLayerType.SDR_RESULT to dstBuffer,
-                            DeferredLayerType.DEPTH to position.depthTexture!!.wrapAsFramebuffer(),
-                            DeferredLayerType.POSITION to position
-                        )
-                    }
-                    else -> hashMapOf(DeferredLayerType.SDR_RESULT to dstBuffer)
+                    else -> hashMapOf(
+                        DeferredLayerType.SDR_RESULT to dstBuffer,
+                        DeferredLayerType.DEPTH to buffer.depthTexture!!.wrapAsFramebuffer(),
+                    )
                 }
                 effect.render(dstBuffer, deferred, map)
                 GFX.copyNoAlpha(map[DeferredLayerType.SDR_RESULT]!!)

@@ -32,7 +32,7 @@ open class FloatVectorInput(
 ) : TitledListY(title, visibilityKey, style), InputPanel<Vector4d>, TextStyleable {
 
     constructor(title: String, visibilityKey: String, type: Type, style: Style) :
-            this(title, visibilityKey, type, style, { FloatInput(style, "", visibilityKey, type) })
+            this(title, visibilityKey, type, style, { FloatInput( "", visibilityKey, type, style) })
 
     constructor(style: Style) : this("", "", Type.FLOAT, style)
 

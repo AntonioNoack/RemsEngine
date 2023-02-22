@@ -6,13 +6,19 @@ import kotlin.math.tan
 
 object ReverseDepth {
 
+    val rawToDepth = "" +
+            "float rawToDepth(float rawDepth){\n" +
+            "   return fovFactor.z / rawDepth;\n" +
+            "}\n"
+
     val depthToPosition = "" +
             "vec3 quatRot(vec3,vec4);\n" +
+            "float rawToDepth(float);\n" +
             "vec3 rawCameraDirection(){\n" +
             "   return quatRot(vec3((uv-0.5)*fovFactor.xy, -1.0), camRot);\n" +
             "}\n" +
-            "vec3 depthToPosition(float depth){\n" +
-            "   return rawCameraDirection() * (fovFactor.z / depth);\n" +
+            "vec3 depthToPosition(float rawDepth){\n" +
+            "   return rawCameraDirection() * rawToDepth(rawDepth);\n" +
             "}\n"
 
     val depthToPositionList = listOf(

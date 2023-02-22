@@ -467,7 +467,7 @@ object ComponentUI {
             "Float" -> {
                 val type = Type(default as? Float ?: throw RuntimeException("$title is not float"),
                     { clamp(it as Float, range.minFloat(), range.maxFloat()) }, { it })
-                return FloatInput(style, title, visibilityKey, type).apply {
+                return FloatInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue(value as Float, false)
                     setResetListener { property.reset(this).toString() }
@@ -480,7 +480,7 @@ object ComponentUI {
             "Double" -> {
                 val type = Type(default as? Double ?: throw RuntimeException("$title is not double"),
                     { clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
-                return FloatInput(style, title, visibilityKey, type).apply {
+                return FloatInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue(value as Double, false)
                     setResetListener { property.reset(this).toString() }
