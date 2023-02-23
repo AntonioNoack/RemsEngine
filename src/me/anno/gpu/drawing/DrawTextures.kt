@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.FlatShaders.depthShader
+import me.anno.gpu.shader.FlatShaders.flatShader2dArraySlice
 import me.anno.gpu.shader.FlatShaders.flatShader3dSlice
 import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
 import me.anno.gpu.shader.FlatShaders.flatShaderTexture
@@ -203,6 +204,31 @@ object DrawTextures {
         shader.v1b("applyToneMapping", applyToneMapping)
         shader.v1b("showDepth", showDepth)
         shader.v1f("z", z)
+        texture.bind(0)
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
+    fun draw2dArraySlice(
+        x: Int, y: Int, w: Int, h: Int,
+        z: Int,
+        texture: Texture2DArray,
+        ignoreAlpha: Boolean,
+        color: Int,
+        applyToneMapping: Boolean,
+        showDepth: Boolean
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = flatShader2dArraySlice.value
+        shader.use()
+        posSize(shader, x, y, w, h)
+        defineAdvancedGraphicalFeatures(shader)
+        shader.v4f("color", color)
+        shader.v1b("ignoreTexAlpha", ignoreAlpha)
+        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1b("showDepth", showDepth)
+        shader.v1f("z", z + 0.5f)
         texture.bind(0)
         GFX.flat01.draw(shader)
         GFX.check()

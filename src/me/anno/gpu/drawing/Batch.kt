@@ -13,17 +13,17 @@ abstract class Batch(val base: StaticBuffer, attributes: List<Attribute>, val ba
     private var shader: Shader? = null
 
     private var batchCount = 0
-    private val buffer = StaticBuffer(
-        attributes, batchSize, GL20C.GL_DYNAMIC_DRAW
-    )
-
-    init {
-        buffer.createNioBuffer()
-        buffer.nioBuffer!!.position(batchSize * buffer.stride)
-        buffer.ensureBuffer() // maximum size :)
+    private val buffer by lazy {
+        StaticBuffer(
+            attributes, batchSize, GL20C.GL_DYNAMIC_DRAW
+        ).apply {
+            createNioBuffer()
+            nioBuffer!!.position(batchSize * stride)
+            ensureBuffer() // maximum size :)
+        }
     }
 
-    val data = buffer.nioBuffer!!
+    val data get() = buffer.nioBuffer!!
 
     fun next() {
         if (++batchCount >= batchSize) {

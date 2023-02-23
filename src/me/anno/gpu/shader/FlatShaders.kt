@@ -182,7 +182,6 @@ object FlatShaders {
                 "}"
     )
 
-
     val flatShader3dSlice = BaseShader(
         "flatShader3dSlice", listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR)), "" +
                 "uniform vec4 posSize;\n" +
@@ -191,11 +190,35 @@ object FlatShaders {
                 "void main(){\n" +
                 "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0);\n" +
                 "   uvw = vec3(coords, z);\n" +
-                "}", listOf(Variable(GLSLType.V3F, "uvw")), listOf(), "" +
-                "uniform sampler3D tex;\n" +
-                "uniform vec4 color;\n" +
-                "uniform bool ignoreTexAlpha;\n" +
-                "uniform bool showDepth;\n" +
+                "}", listOf(Variable(GLSLType.V3F, "uvw")),  listOf(
+            Variable(GLSLType.S3D, "tex"),
+            Variable(GLSLType.V4F, "color"),
+            Variable(GLSLType.V1B, "ignoreTexAlpha"),
+            Variable(GLSLType.V1B, "showDepth")
+        ), "" +
+                "void main(){\n" +
+                // "   uvw = rotation * uvw;\n" +
+                "   vec4 col = color;\n" +
+                "   if(ignoreTexAlpha) col.rgb *= texture(tex, uvw).rgb; else col *= texture(tex, uvw);\n" +
+                "   if(showDepth) col = vec4(vec3(fract(log2(col.r))), 1.0);\n" +
+                "   gl_FragColor = col;\n" +
+                "}"
+    )
+
+    val flatShader2dArraySlice = BaseShader(
+        "flatShader3dSlice", listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR)), "" +
+                "uniform vec4 posSize;\n" +
+                "uniform mat4 transform;\n" +
+                "uniform float z;\n" +
+                "void main(){\n" +
+                "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0);\n" +
+                "   uvw = vec3(coords, z);\n" +
+                "}", listOf(Variable(GLSLType.V3F, "uvw")), listOf(
+            Variable(GLSLType.S2DA, "tex"),
+            Variable(GLSLType.V4F, "color"),
+            Variable(GLSLType.V1B, "ignoreTexAlpha"),
+            Variable(GLSLType.V1B, "showDepth")
+        ), "" +
                 "void main(){\n" +
                 // "   uvw = rotation * uvw;\n" +
                 "   vec4 col = color;\n" +

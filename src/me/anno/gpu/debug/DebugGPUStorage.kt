@@ -16,6 +16,7 @@ import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
+import me.anno.maths.Maths.max
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
@@ -147,6 +148,36 @@ object DebugGPUStorage {
 
     }
 
+    class TexturePanel2DA(name: String, val tex: Texture2DArray) :
+        TexturePanelBase("$name, ${tex.w} x ${tex.h} x ${tex.d}") {
+
+        override fun getTexW(): Int = tex.w
+        override fun getTexH(): Int = tex.h
+        override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
+        val isDepth get() = isDepthFormat(tex.internalFormat)
+
+        // animated
+        override fun onUpdate() {
+            super.onUpdate()
+            invalidateDrawing()
+        }
+
+        override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
+            // how can we display them? as slices...
+            // slide through slices
+            // a) automatically
+            // b) when hovering
+            // todo calculate min/max?
+            val z = if (isHovered) clamp((window!!.mouseX - x) / w)
+            else fract(Engine.gameTimeF / max(5f, tex.d / 3f))
+            DrawTextures.draw2dArraySlice(
+                x, y, w, h, (z * (tex.d + 1)).toInt(),
+                tex, true, -1, false, isDepth
+            )
+        }
+
+    }
+
     class TexturePanel3DC(name: String, val tex: CubemapTexture) : TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
 
         override fun getTexW(): Int = tex.w * 2 // 360°
@@ -163,7 +194,13 @@ object DebugGPUStorage {
     fun openMenu() {
         val window = GFX.someWindow
         Menu.openMenu(window.windowStack, listOf(
-            MenuOption(NameDesc("Texture2Ds (${tex2d.size})")) {
+            MenuOption(
+                NameDesc(
+                    "Texture2Ds (${tex2d.size}, ${
+                        tex2d.sumOf { it.locallyAllocated }.formatFileSize()
+                    })"
+                )
+            ) {
                 create2DListOfPanels("Texture2Ds") { list ->
                     for (tex in tex2d.sortedWith { a, b ->
                         val sa = a.w * a.h
@@ -176,7 +213,13 @@ object DebugGPUStorage {
                     }
                 }
             },
-            MenuOption(NameDesc("Texture3Ds (${tex3d.size})")) {
+            MenuOption(
+                NameDesc(
+                    "Texture3Ds (${tex3d.size}, ${
+                        tex3d.sumOf { it.locallyAllocated }.formatFileSize()
+                    })"
+                )
+            ) {
                 // todo test this
                 create2DListOfPanels("Texture3Ds") { list ->
                     for (tex in tex3d.sortedBy { it.w * it.h * it.d }) {
@@ -184,14 +227,39 @@ object DebugGPUStorage {
                     }
                 }
             },
-            MenuOption(NameDesc("CubemapTextures (${tex3dCs.size})")) {
+            MenuOption(
+                NameDesc(
+                    "Texture2D[]s (${tex2da.size}, ${
+                        tex2da.sumOf { it.locallyAllocated }.formatFileSize()
+                    })"
+                )
+            ) {
+                create2DListOfPanels("Texture2D[]s") { list ->
+                    for (tex in tex2da.sortedBy { it.w * it.h * it.d }) {
+                        list.add(TexturePanel2DA(tex.name, tex))
+                    }
+                }
+            },
+            MenuOption(
+                NameDesc(
+                    "CubemapTextures (${tex3dCs.size}, ${
+                        tex3dCs.sumOf { it.locallyAllocated }.formatFileSize()
+                    })"
+                )
+            ) {
                 create2DListOfPanels("CubemapTextures") { list ->
                     for (tex in tex3dCs.sortedBy { it.w }) {
                         list.add(TexturePanel3DC("", tex))
                     }
                 }
             },
-            MenuOption(NameDesc("Framebuffers (${fbs.size})")) {
+            MenuOption(
+                NameDesc(
+                    "Framebuffers (${fbs.size}, ${
+                        fbs.sumOf { it.renderBufferAllocated }.formatFileSize()
+                    })"
+                )
+            ) {
                 create2DListOfPanels("Framebuffers") { list ->
                     for (fb in fbs.sortedBy { it.w * it.h }) {
                         for (tex in fb.textures) {
@@ -202,7 +270,13 @@ object DebugGPUStorage {
                     }
                 }
             },
-            MenuOption(NameDesc("Buffers (${buffers.size})")) {
+            MenuOption(
+                NameDesc(
+                    "Buffers (${buffers.size}, ${
+                        buffers.sumOf { it.locallyAllocated }.formatFileSize()
+                    })"
+                )
+            ) {
                 // how can we display them?
                 // to do maybe like in RenderDoc, or as plain list with attributes, vertex count and such
                 // we have name data, so we could show colors, uvs, coordinates and such :)
