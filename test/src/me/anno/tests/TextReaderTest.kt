@@ -1,6 +1,5 @@
 package me.anno.tests
 
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
@@ -20,7 +19,6 @@ fun main() {
             "\"S:value\":\"var\"},{\"i:*ptr\":5,\"NodeOutput[]:others\":[1,{\"i:*ptr\":6," +
             "\"NodeInput[]:others\":[1,5],\"l:value\":24}],\"l:value\":24}],\"NodeOutput[]:outputs\":" +
             "[2,{\"i:*ptr\":7},{\"i:*ptr\":8,\"l:value\":6}],\"v3d:position\":[1,2,3]}]\n"
-    val g = FlowGraph()
     val node = TextReader.readFirst<SetLocalVariableNode>(source, InvalidRef, false)
     if (node.key != "var") throw IllegalStateException()
     if (node.value != 24L) throw IllegalStateException("Value is ${node.value}")
@@ -31,7 +29,6 @@ fun main() {
 }
 
 fun test5() {
-    val g = FlowGraph()
     val a = SetLocalVariableNode("a", "var")
     val evilHelper = SetLocalVariableNode("b", "bar")
     a.connectTo(evilHelper)

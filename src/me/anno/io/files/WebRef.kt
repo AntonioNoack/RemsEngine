@@ -25,7 +25,7 @@ import kotlin.math.min
  * todo if is redirect, automatically redirect?
  * todo watch dogs? we only can ask for changes every x seconds
  * */
-open class WebRef(url: String, args: Map<Any?, Any?>) :
+open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     FileReference(formatAccessURL(url, args)) {
 
     var valueTimeout = 30_000L

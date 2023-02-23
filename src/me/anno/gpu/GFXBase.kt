@@ -47,8 +47,6 @@ import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil
 import java.awt.AWTException
 import java.awt.Robot
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
@@ -481,9 +479,12 @@ object GFXBase {
                     if (inFocus.any2 { p -> p.anyInHierarchy { h -> h is InputPanel<*> } }) {
                         val centerX = window.width * 0.5
                         val centerY = window.height * 0.5
-                        GLFW.glfwSetCursorPos(window.pointer, centerX, centerY)
-                        window.mouseX = centerX.toFloat()
-                        window.mouseY = centerY.toFloat()
+                        synchronized(window) {
+                            GLFW.glfwSetCursorPos(window.pointer, centerX, centerY)
+                            window.mouseX = centerX.toFloat()
+                            window.mouseY = centerY.toFloat()
+                            window.lastMouseCorrection = Engine.nanoTime + 5_000_000 // 5ms safety delay
+                        }
                     }
                 }
             }

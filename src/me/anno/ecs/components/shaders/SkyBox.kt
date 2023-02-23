@@ -336,7 +336,9 @@ class SkyBox : MeshComponentBase() {
 
             open fun getSkyColor(): String {
                 // https://github.com/shff/opengl_sky/blob/master/main.c
-                return "vec3 getSkyColor(vec3 pos){\n" +
+                return "" +
+                        "float fbm(vec3); float fbm(vec2);\n" + // imports
+                        "vec3 getSkyColor(vec3 pos){\n" +
                         "vec3 pos0 = pos;\n" +
 
                         "const float Br = 0.0025;\n" +

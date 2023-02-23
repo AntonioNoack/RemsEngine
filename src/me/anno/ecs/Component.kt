@@ -10,7 +10,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.studio.Inspectable
-import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 
@@ -167,16 +166,12 @@ abstract class Component : PrefabSaveable(), Inspectable {
     }
 
     companion object {
-
-        // private val LOGGER = LogManager.getLogger(Component::class)
-
         fun create(type: String): Component {
             return (ISaveable.createOrNull(type) ?: throw TypeNotPresentException(
                 type,
                 NullPointerException()
             )) as Component
         }
-
     }
 
 }

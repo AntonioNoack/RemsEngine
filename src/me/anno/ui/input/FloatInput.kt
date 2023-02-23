@@ -9,10 +9,7 @@ import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
-import kotlin.math.max
-import kotlin.math.pow
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
+import kotlin.math.*
 
 // must be open for Rem's Studio
 open class FloatInput(

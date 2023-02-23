@@ -153,7 +153,11 @@ object Input {
         }
 
         GLFW.glfwSetCursorPosCallback(window.pointer) { _, xPosition, yPosition ->
-            addEvent { onMouseMove(window, xPosition.toFloat(), yPosition.toFloat()) }
+            val time = Engine.nanoTime
+            addEvent {
+                if (time > window.lastMouseCorrection)
+                    onMouseMove(window, xPosition.toFloat(), yPosition.toFloat())
+            }
         }
 
         GLFW.glfwSetMouseButtonCallback(window.pointer) { _, button, action, mods ->
@@ -339,15 +343,19 @@ object Input {
 
         if (keysDown.isNotEmpty()) window.framesSinceLastInteraction = 0
 
-        val dx = newX - window.mouseX
-        val dy = newY - window.mouseY
+        val dx: Float
+        val dy: Float
+        synchronized(window) {
 
-        val length = length(dx, dy)
-        mouseMovementSinceMouseDown += length
-        if (length > 0f) hadMouseMovement = true
+            dx = newX - window.mouseX
+            dy = newY - window.mouseY
+            val length = length(dx, dy)
+            mouseMovementSinceMouseDown += length
+            if (length > 0f) hadMouseMovement = true
 
-        window.mouseX = newX
-        window.mouseY = newY
+            window.mouseX = newX
+            window.mouseY = newY
+        }
 
         UIEvent(
             window.currentWindow,

@@ -3,6 +3,7 @@ package me.anno.tests
 import me.anno.io.files.FileReference
 import me.anno.utils.OS.documents
 import me.anno.utils.structures.Iterators.filter
+import me.anno.utils.structures.Iterators.map
 import me.anno.utils.types.Strings.addPrefix
 
 fun main() {
@@ -16,71 +17,52 @@ fun main() {
         "javax."
     )
 
-    // val mainPath = "me.anno."
-
     // create dependency graph between folders and files
-    fun traverse(folder: FileReference, folderPath: String?) {
+    fun traverse(folder: FileReference, folderPaths: ArrayList<String>, nodes: ArrayList<HashSet<String>>) {
         for (file in folder.listChildren() ?: return) {
-            val filePath = addPrefix(folderPath, "/", file.name)
             if (file.isDirectory) {
-                traverse(file, filePath)
+                val filePath = addPrefix(folderPaths.lastOrNull(), "/", file.name)
+                folderPaths.add(filePath)
+                nodes.add(graph.getOrPut(filePath) { HashSet() })
+                traverse(file, folderPaths, nodes)
+                nodes.removeLast()
+                folderPaths.removeLast()
             } else {
                 when (file.lcExtension) {
                     "java", "kt" -> {
                         val lines = file.readLinesSync(Int.MAX_VALUE)
-                            .filter { line ->
-                                val startIndex = line.indexOfFirst { c -> c != ' ' && c != '\t' }
-                                startIndex >= 0 && (line.startsWith("import ", startIndex) || line.startsWith(
-                                    "import\t",
-                                    startIndex
-                                ))
+                            .map { it.trim() }
+                            .filter { it.startsWith("import ") }
+                            .map {
+                                var i0 = it.indexOfFirst { c -> c.isUpperCase() }
+                                if (i0 < 0) i0 = it.length
+                                var i1 = it.lastIndexOf('.', i0)
+                                if (i1 < 0) i1 = i0
+                                it.substring("import ".length, i1)
                             }
-                        if (lines.hasNext()) {
-                            val name = folderPath ?: ""
-                            val node = graph.getOrPut(name) { HashSet() }
-                            for (line in lines) {
-                                val startIndex0 = line.indexOfFirst { c -> c != ' ' && c != '\t' } + "import".length
-                                val startIndex1 = line.withIndex()
-                                    .indexOfFirst { (index, c) -> index > startIndex0 && c != ' ' && c != '\t' }
-                                val endIndex1 = line.withIndex().indexOfFirst { (index, c) ->
-                                    index > startIndex1 && c !in 'A'..'Z' && c !in 'a'..'z' && c !in '0'..'9' &&
-                                            c !in ".*"
-                                }
-                                if (startIndex1 in (startIndex0 + 1) until endIndex1) {
-                                    var importPath = line.substring(startIndex1, endIndex1)
-                                    if (importPath == "static") {
-                                        val startIndex2 = line.withIndex()
-                                            .indexOfFirst { (index, c) -> index > endIndex1 && c != ' ' && c != '\t' }
-                                        val endIndex2 = line.withIndex().indexOfFirst { (index, c) ->
-                                            index > startIndex2 && c !in 'A'..'Z' && c !in 'a'..'z' && c !in '0'..'9' && c !in ".*"
-                                        }
-                                        importPath = line.substring(startIndex2, endIndex2)
-                                    }
-                                    if (ignoredPaths.none { importPath.startsWith(it) }) {
-                                        /*if (importPath.startsWith(mainPath)) {
-                                            importPath = importPath.substring(mainPath.length)
-                                        }*/
-                                        node.add(importPath)
-                                    }
+                        for (line in lines) {
+                            if (ignoredPaths.none { line.startsWith(it) }) {
+                                for (node in nodes) {
+                                    node.add(line)
                                 }
                             }
                         }
-                        // lines.close()
                     }
                 }
             }
         }
     }
 
-    traverse(source, null)
+    traverse(source, arrayListOf(), arrayListOf())
 
     // todo visualize graph?
     // todo find parts, which could be extracted
 
     for ((nodeName, node) in graph.toSortedMap()) {
-        // todo merge similar paths into [Name1,Name2,Name3]
+        // merge similar paths into [Name1,Name2,Name3]
         val byPrefix = HashMap<String, HashSet<String>>()
-        node.filter { !it.startsWith(nodeName) }
+        node
+            .filter { !it.startsWith(nodeName) }
             .forEach { pathName ->
                 val index = pathName.lastIndexOf('.')
                 if (index > 0) {
@@ -93,7 +75,9 @@ fun main() {
         println(
             "$nodeName: [${
                 byPrefix.toSortedMap().entries.joinToString { (path, names) ->
-                    if (names.size == 1) "$path.${names.first()}" else "$path.${names.toSortedSet().joinToString("/")}"
+                    if (names.size == 1) "$path.${names.first()}" else "$path.[${
+                        names.toSortedSet().joinToString(",")
+                    }]"
                 }
             }]"
         )

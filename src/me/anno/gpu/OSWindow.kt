@@ -62,6 +62,7 @@ open class OSWindow(var title: String) {
     var mouseTargetX = Double.NaN
     var mouseTargetY = Double.NaN
     var lastMouseTargetNanos = 0L
+    var lastMouseCorrection = Engine.nanoTime
 
     var savedWidth = 300
     var savedHeight = 300
