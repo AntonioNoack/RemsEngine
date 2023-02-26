@@ -96,6 +96,69 @@ object JsonFormatter {
 
     fun format(sth: Any?) = format(sth.toString())
 
+    fun format(map: Map<String, Any?>): String {
+        val builder = StringBuilder()
+        append(map, builder)
+        return format(builder.toString())
+    }
+
+    fun append(map: Map<*, *>, builder: StringBuilder) {
+        builder.append("{")
+        var first = true
+        for ((key, value) in map) {
+            if (!first) builder.append(',')
+            append(key.toString(), builder)
+            builder.append(":")
+            append(value, builder)
+            first = false
+        }
+        builder.append("}")
+    }
+
+    fun append(value: Any?, builder: StringBuilder) {
+        when (value) {
+            null, true, false -> builder.append(value)
+            is List<*> -> append(value, builder)
+            is Map<*, *> -> append(value, builder)
+            is Char -> append(value.toString(), builder)
+            is Byte, is Short, is Int, is Long, is Float, is Double ->
+                builder.append(value.toString())
+            is ByteArray -> builder.append('[').append(value.joinToString(",")).append(']')
+            is CharArray -> append(String(value), builder)
+            is ShortArray -> builder.append('[').append(value.joinToString(",")).append(']')
+            is IntArray -> builder.append('[').append(value.joinToString(",")).append(']')
+            is LongArray -> builder.append('[').append(value.joinToString(",")).append(']')
+            is FloatArray -> builder.append('[').append(value.joinToString(",")).append(']')
+            is DoubleArray -> builder.append('[').append(value.joinToString(",")).append(']')
+            else -> append(value.toString(), builder)
+        }
+    }
+
+    fun append(list: List<*>, builder: StringBuilder) {
+        builder.append('[')
+        var first = true
+        for (value in list) {
+            if (!first) builder.append(',')
+            append(value, builder)
+            first = false
+        }
+        builder.append(']')
+    }
+
+    fun append(str: String, builder: StringBuilder) {
+        builder.ensureCapacity(builder.length + str.length + 2)
+        builder.append('"')
+        for (c in str) {
+            when (c) {
+                '\\', '"' -> builder.append('\\').append(c)
+                '\n' -> builder.append('\\').append('n')
+                '\r' -> builder.append('\\').append('r')
+                else -> builder.append(c)
+            }
+        }
+        builder.append('"')
+    }
+
     fun format(str: String, indentation: String = "  ", lineBreakLength: Int = 10) =
         FormatHelper(str.length, indentation).format(str, lineBreakLength)
 

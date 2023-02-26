@@ -15,7 +15,6 @@ import me.anno.ui.input.FloatInput
 import me.anno.utils.OS.downloads
 
 fun main() {
-    // https://blog.voxagon.se/2018/05/04/bokeh-depth-of-field-in-single-pass.html
     val scene = downloads.getChild("ogldev-source/crytek_sponza/sponza.obj")
     testUI3 {
         EditorState.prefabSource = scene

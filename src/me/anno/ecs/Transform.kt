@@ -4,9 +4,14 @@ import me.anno.Engine
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.pooling.JomlPools
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 
 class Transform() : Saveable() {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(Transform::class.java)
+    }
 
     constructor(entity: Entity?) : this() {
         this.entity = entity
@@ -108,9 +113,8 @@ class Transform() : Saveable() {
 
     fun checkTransform(transform: Matrix4x3d) {
         if (!transform.isFinite) {
-            Engine.requestShutdown()
-            Thread.sleep(100)
-            throw RuntimeException("Transform became invalid: $transform")
+            LOGGER.error("Transform became invalid: $transform")
+            transform.identity()
         }
     }
 

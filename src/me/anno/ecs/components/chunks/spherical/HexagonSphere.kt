@@ -6,6 +6,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.rotateRight
 import org.joml.AABBf
@@ -115,7 +116,7 @@ class HexagonSphere(
 
     init {
         if (t * s != n) throw IllegalArgumentException()
-        println(len * (n + 1))
+        LOGGER.debug("HexSphere-Cell-Length: ${len * (n + 1)}")
     }
 
     private fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, i: Int): Vector3f {

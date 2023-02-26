@@ -1,5 +1,6 @@
 package me.anno.engine.raycast
 
+import me.anno.cache.CacheSection
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.collider.Collider
@@ -8,13 +9,14 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.hasFlag
+import me.anno.maths.bvh.BLASNode
+import me.anno.maths.bvh.BVHBuilder
+import me.anno.maths.bvh.SplitMethod
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Triangles.computeConeInterpolation
 import me.anno.utils.types.Triangles.rayTriangleIntersection
-import org.joml.Matrix4x3d
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 import kotlin.math.abs
 
 object Raycast {
@@ -179,10 +181,13 @@ object Raycast {
 
     }
 
+    val blasCache = CacheSection("BLAS")
+
     fun raycastTriangleMesh(
-        transform: Transform?, mesh: Mesh, start: Vector3d,
-        direction: Vector3d, end: Vector3d, radiusAtOrigin: Double,
-        radiusPerUnit: Double, result: RayHit, typeMask: Int
+        transform: Transform?, mesh: Mesh,
+        start: Vector3d, direction: Vector3d, end: Vector3d,
+        radiusAtOrigin: Double, radiusPerUnit: Double,
+        result: RayHit, typeMask: Int
     ): Boolean {
 
         val original = result.distance
@@ -238,50 +243,22 @@ object Raycast {
 
             // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
             if (hasValidCoordinates && orderOfMagnitudeIsFine) {
-
-                // LOGGER.info(Vector3f(localEnd).sub(localStart).normalize().dot(localDir))
-                // for that test, extend the radius at the start & end or sth like that
-                // calculate local radius & radius extend
-                val radiusScale = inverse.getScaleLength() / SQRT3 // a guess
-                val localRadiusAtOrigin = (radiusAtOrigin * radiusScale).toFloat()
-                val localRadiusPerUnit = radiusPerUnit.toFloat()
-                val localMaxDistance = localSrt.distance(localEnd)
-
-                // test whether we intersect the aabb of this mesh
-                if (mesh.ensureBounds()
-                        .testLine(localSrt, localDir, localRadiusAtOrigin, localRadiusPerUnit, localMaxDistance)
-                ) {
-
-                    // test whether we intersect any triangle of this mesh
-                    val localMaxDistance2 = localMaxDistance + extraDistance
-                    var bestLocalDistance = localMaxDistance
-                    val localHitTmp = tmp0[3]
-                    val localNormalTmp = tmp0[4]
-                    val localHit = tmp0[5]
-                    val localNormal = tmp0[6]
-
-                    mesh.forEachTriangle(tmp0[7], tmp0[8], tmp0[9]) { a, b, c ->
-                        // check collision of localStart-localEnd with triangle a,b,c
-                        val localDistance = rayTriangleIntersection(
-                            localSrt, localDir, a, b, c,
-                            localRadiusAtOrigin, localRadiusPerUnit,
-                            bestLocalDistance, localHitTmp, localNormalTmp
-                        )
-                        if (localDistance < bestLocalDistance) {
-                            if (if (localNormalTmp.dot(localDir) < 0f) acceptFront else acceptBack) {
-                                bestLocalDistance = localDistance
-                                localHit.set(localHitTmp)
-                                localNormal.set(localNormalTmp)
-                            }
-                        }
+                // todo doesn't work yet with BLAS
+                /*val blas = blasCache.getFileEntry(mesh.ref, true, 5000, true) { _, _ ->
+                    BVHBuilder.buildBLAS(mesh, SplitMethod.MIDDLE, 16)
+                } as? BLASNode
+                if (blas != null) {
+                    val localMaxDistance = localSrt.distance(localEnd)
+                    result.distance = localMaxDistance.toDouble()
+                    if (blas.intersect(localSrt, localDir, result)) {
+                        result.localToGlobal(globalTransform, start, direction, end)
                     }
-
-                    if (bestLocalDistance < localMaxDistance2) {
-                        result.setFromLocal(globalTransform, localHit, localNormal, start, direction, end)
-                    }
-
-                }
-
+                } else {*/
+                    localRaycast(
+                        mesh, globalTransform, inverse, start, direction, end, localSrt, localDir, localEnd,
+                        radiusAtOrigin, radiusPerUnit, result, typeMask, extraDistance, tmp0
+                    )
+               // }
             } else {
                 // mesh is scaled to zero on some axis, need to work in global coordinates
                 // this is quite a bit more expensive, because we need to transform each mesh point into global coordinates
@@ -301,6 +278,61 @@ object Raycast {
 
         return result.distance < original
 
+    }
+
+    fun localRaycast(
+        mesh: Mesh, globalTransform: Matrix4x3d?, inverse: Matrix4x3d,
+        start: Vector3d, direction: Vector3d, end: Vector3d,
+        localSrt: Vector3f, localDir: Vector3f, localEnd: Vector3f,
+        radiusAtOrigin: Double, radiusPerUnit: Double,
+        result: RayHit, typeMask: Int,
+        extraDistance: Double, tmp0: Array<Vector3f>,
+    ) {
+
+        val acceptFront = typeMask.hasFlag(TRIANGLE_FRONT)
+        val acceptBack = typeMask.hasFlag(TRIANGLE_BACK)
+
+        // LOGGER.info(Vector3f(localEnd).sub(localStart).normalize().dot(localDir))
+        // for that test, extend the radius at the start & end or sth like that
+        // calculate local radius & radius extend
+        val radiusScale = inverse.getScaleLength() / SQRT3 // a guess
+        val localRadiusAtOrigin = (radiusAtOrigin * radiusScale).toFloat()
+        val localRadiusPerUnit = radiusPerUnit.toFloat()
+        val localMaxDistance = localSrt.distance(localEnd)
+
+        // test whether we intersect the aabb of this mesh
+        if (mesh.ensureBounds()
+                .testLine(localSrt, localDir, localRadiusAtOrigin, localRadiusPerUnit, localMaxDistance)
+        ) {
+
+            // test whether we intersect any triangle of this mesh
+            val localMaxDistance2 = localMaxDistance + extraDistance
+            var bestLocalDistance = localMaxDistance
+            val localHitTmp = tmp0[3]
+            val localNormalTmp = tmp0[4]
+            val localHit = tmp0[5]
+            val localNormal = tmp0[6]
+
+            mesh.forEachTriangle(tmp0[7], tmp0[8], tmp0[9]) { a, b, c ->
+                // check collision of localStart-localEnd with triangle a,b,c
+                val localDistance = rayTriangleIntersection(
+                    localSrt, localDir, a, b, c,
+                    localRadiusAtOrigin, localRadiusPerUnit,
+                    bestLocalDistance, localHitTmp, localNormalTmp
+                )
+                if (localDistance < bestLocalDistance) {
+                    if (if (localNormalTmp.dot(localDir) < 0f) acceptFront else acceptBack) {
+                        bestLocalDistance = localDistance
+                        localHit.set(localHitTmp)
+                        localNormal.set(localNormalTmp)
+                    }
+                }
+            }
+
+            if (bestLocalDistance < localMaxDistance2) {
+                result.setFromLocal(globalTransform, localHit, localNormal, start, direction, end)
+            }
+        }
     }
 
     fun globalRaycast(

@@ -270,8 +270,12 @@ interface ISaveable {
 
         fun checkInstance(instance0: ISaveable) {
             if (Build.isDebug && instance0 is PrefabSaveable) {
-                val clone = instance0.clone()
-                if (clone::class != instance0::class) {
+                val clone = try {
+                    instance0.clone()
+                } catch (ignored: Exception) {
+                    null
+                }
+                if (clone != null && clone::class != instance0::class) {
                     throw RuntimeException("${instance0::class}.clone() is incorrect, returns ${clone::class} instead")
                 }
             }
@@ -327,7 +331,6 @@ interface ISaveable {
         @JvmStatic
         fun <V : ISaveable> registerCustomClass(clazz: KClass<V>) {
             val clazz2 = clazz.java
-                ?: throw IllegalArgumentException("$clazz is missing constructor without parameters")
             val instance0 = try {
                 clazz2.newInstance()
             } catch (e: InstantiationException) {

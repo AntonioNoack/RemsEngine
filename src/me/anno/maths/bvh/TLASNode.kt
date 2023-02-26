@@ -96,7 +96,7 @@ abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
         }
 
         val numNodes = nodeId
-        val buffer = ComputeBuffer(numNodes, tlasAttr)
+        val buffer = ComputeBuffer(tlasAttr, numNodes)
 
         fun writeMatrix(m: Matrix4x3f) {
             // send data column major

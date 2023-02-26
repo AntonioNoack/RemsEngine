@@ -5,6 +5,7 @@ import me.anno.audio.AudioPools
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
 import me.anno.language.translation.Dict
 import me.anno.ui.base.constraints.WrapAlign
@@ -39,7 +40,9 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
     private fun getDebugText(): String {
         val runtime = Runtime.getRuntime()
         val jvmMemory = runtime.totalMemory() - runtime.freeMemory()
-        val videoMemory = Texture2D.allocated + CubemapTexture.allocated + Texture3D.allocated + OpenGLBuffer.allocated
+        val videoMemory =
+            Texture2D.allocated + CubemapTexture.allocated + Texture3D.allocated + OpenGLBuffer.allocated +
+                    Texture2DArray.allocated
         return if (OS.isWeb) {
             val jsMemory = jsUsedMemory() - jvmMemory
             if (jsMemory >= 0) {

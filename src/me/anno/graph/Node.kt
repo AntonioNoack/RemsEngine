@@ -59,6 +59,18 @@ abstract class Node() : PrefabSaveable() {
     open fun supportsMultipleInputs(con: NodeConnector) = false
     open fun supportsMultipleOutputs(con: NodeConnector) = false
 
+    fun isConnected(): Boolean {
+        val inputs = inputs
+        if (inputs != null && inputs.any { !it.isEmpty() }) {
+            return true
+        }
+        val outputs = outputs
+        if (outputs != null && outputs.any { !it.isEmpty() }) {
+            return true
+        }
+        return false
+    }
+
     fun setOutput(value: Any?, index: Int = 0) {
         val output = outputs!![index]
         output.currValue = value
@@ -206,8 +218,23 @@ abstract class Node() : PrefabSaveable() {
      * if you want to change this function, please be aware, that node cloning is very complex!
      * you need to clone all connectors, their values (names, descriptions, types, ...), and potentially neighboring nodes
      * */
-    override fun clone(): Node {// not ideal, but probably good enough for now and manual graph creation
+    override fun clone(): Node {
+        // not ideal, but probably good enough for now and manual graph creation
+        if (!isConnected()) {
+            val clone = javaClass.newInstance()
+            copy(clone)
+            return clone
+        }
         return TextReader.readFirst(TextWriter.toText(this, InvalidRef), InvalidRef)
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as Node
+        clone.position.set(position)
+        clone.layer = layer
+        clone.graph = graph
+        clone.color = color
     }
 
 }

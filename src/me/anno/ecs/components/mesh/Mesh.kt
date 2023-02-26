@@ -18,6 +18,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.FindLines
 import me.anno.utils.Color.a
@@ -95,6 +96,10 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     fun invalidateGeometry() {
         needsMeshUpdate = true
         needsBoundsUpdate = true
+        val ref = ref
+        if (ref is InnerTmpFile.InnerTmpPrefabFile) {
+            ref.markAsModified()
+        }
     }
 
     // todo also we need a renderer, which can handle morphing

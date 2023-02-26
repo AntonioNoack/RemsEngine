@@ -9,6 +9,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.*
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.Node
 import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
@@ -16,7 +17,6 @@ import me.anno.graph.NodeOutput
 import me.anno.graph.render.*
 import me.anno.graph.render.MaterialGraph.convert
 import me.anno.graph.render.MaterialGraph.kotlinToGLSL
-import me.anno.graph.render.scene.SceneNode
 import me.anno.graph.render.scene.TextureNode2
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ReturnNode
@@ -85,19 +85,15 @@ abstract class GraphCompiler(val g: FlowGraph) {
     fun aType(an: NodeConnector, bn: NodeInput): String {
         if (an.type == "Texture") {
             val tex = bn.getValue() as? Texture ?: return "Vector4f"
-            return if (tex.formula == "map") {
-                val params = tex.formulaParams!![0] as String
-                when (params.length) {
-                    1 -> "Float"
-                    2 -> "Vector2f"
-                    3 -> "Vector3f"
-                    else -> "Vector4f"
-                }
-            } else if (tex.v2d == null && tex.tint == white4) {
-                "Float"
-            } else if (tex.v2d == null) {
-                "Vector4f"
-            } else "Vector4f"
+            val params = tex.mapping
+            return when (params.length) {
+                0 -> if (tex.tex == whiteTexture && tex.color == white4) "Float" else "Vector4f"
+                1 -> "Float"
+                2 -> "Vector2f"
+                3 -> "Vector3f"
+                4 -> "Vector4f"
+                else -> throw NotImplementedError()
+            }
         } else return an.type
     }
 
@@ -188,32 +184,6 @@ abstract class GraphCompiler(val g: FlowGraph) {
                     "texture($texName,$uv)"
                 } else "vec4(1.0,0.0,1.0,1.0)"
             }
-            is SceneNode, is StartNode -> {
-                when (out.type) {
-                    "Texture" -> {
-                        // Texture()
-                        val input = out.others.firstOrNull() as? NodeInput
-                        val tex = input?.getValue() as? Texture
-                        if (tex != null) {
-                            val tint = tex.tint
-                            val tintStr = if (tint != white4) "vec4(${tint.x},${tint.y},${tint.z},${tint.z})" else null
-                            val tex1 = if (tex.v2d != null) {
-                                val texName = textures2.getOrPut(input) { Pair("tex2I${textures2.size}", true) }.first
-                                "texture($texName,uv)${if (tintStr != null) "*$tintStr" else ""}"
-                            } else tintStr ?: "1.0"
-                            when (val formula = tex.formula) {
-                                null -> tex1
-                                "map" -> {
-                                    val map = tex.formulaParams!![0] as String
-                                    "$tex1.$map"
-                                }
-                                else -> throw NotImplementedError(formula)
-                            }
-                        } else "(((floor(uv.x)+floor(uv.y)) & 1) != 0 ? vec4(1,0,1,1) : vec4(0,0,0,1))"
-                    }
-                    else -> throw NotImplementedError()
-                }
-            }
             is MovieNode -> {
                 val uv = expr(n.inputs!![0])
                 val texName = movies.getOrPut(n) {
@@ -233,7 +203,23 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 }
                 key
             }
-            else -> throw IllegalArgumentException("Unknown node ${n.javaClass.name}")
+            else -> when (out.type) {
+                "Texture" -> {
+                    val input = out.others.firstOrNull() as? NodeInput
+                    val tex = input?.getValue() as? Texture
+                    if (tex != null) {
+                        val tint = tex.color
+                        val tintStr = if (tint != white4) "vec4(${tint.x},${tint.y},${tint.z},${tint.z})" else null
+                        val tex1 = if (tex.tex != whiteTexture) {
+                            val texName = textures2.getOrPut(input) { Pair("tex2I${textures2.size}", true) }.first
+                            "texture($texName,uv)${if (tintStr != null) "*$tintStr" else ""}"
+                        } else tintStr ?: "1.0"
+                        val map = tex.mapping
+                        if (map.isEmpty()) tex1 else "$tex1.$map"
+                    } else "((int(floor(uv.x*4.0)+floor(uv.y*4.0)) & 1) != 0 ? vec4(1,0,1,1) : vec4(0,0,0,1))"
+                }
+                else -> throw IllegalArgumentException("Unknown node type ${out.type} by ${n.javaClass.name}")
+            }
         }
     }
 
@@ -420,7 +406,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
             typeValues[name] = TypeValueV2(GLSLType.S2D) {
                 when (val tex = node.getValue()) {
                     is ITexture2D -> filter(currentShader, name, tex, linear)
-                    is Texture -> tex.v2d ?: TextureLib.missingTexture
+                    is Texture -> tex.tex ?: TextureLib.missingTexture
                     else -> TextureLib.missingTexture
                 }
             }

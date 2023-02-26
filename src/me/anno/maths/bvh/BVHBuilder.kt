@@ -1,5 +1,6 @@
 package me.anno.maths.bvh
 
+import me.anno.cache.ICacheData
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.raycast.RayHit
@@ -22,7 +23,7 @@ import kotlin.math.sqrt
 /**
  * creates a bounding volume hierarchy for triangle meshes
  * */
-abstract class BVHBuilder(val bounds: AABBf) {
+abstract class BVHBuilder(val bounds: AABBf) : ICacheData {
 
     // https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
     var nodeId = 0
@@ -46,6 +47,8 @@ abstract class BVHBuilder(val bounds: AABBf) {
     abstract fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean
 
     abstract fun intersect(group: RayGroup)
+
+    override fun destroy() {}
 
     companion object {
 

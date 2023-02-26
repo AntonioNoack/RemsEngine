@@ -1,5 +1,6 @@
 package me.anno.graph.types.flow.maths
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.EnumNode
 import me.anno.graph.render.MaterialGraph.kotlinToGLSL
 import me.anno.graph.types.flow.ValueNode
@@ -82,6 +83,12 @@ abstract class MathNode<V : Enum<V>>(
     override fun readInt(name: String, value: Int) {
         if (name == "type") type = data.byId[value] ?: type
         else super.readInt(name, value)
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as MathNode<V>
+        clone.type = type
     }
 
 }

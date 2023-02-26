@@ -289,6 +289,7 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     private fun loadPrefabFromFolder(file: FileReference, callback: (ISaveable?, Exception?) -> Unit) {
+        LOGGER.debug("Reading $file as folder")
         val folder = InnerFolderCache.readAsFolder(file, false)
         if (folder != null) {
             val scene = folder.getChild("Scene.json") as? PrefabReadable
@@ -326,9 +327,7 @@ object PrefabCache : CacheSection("Prefab") {
                         if (loaded != null) FileWatch.addWatchDog(file)
                         if (debugLoading) LOGGER.info(
                             "loaded ${file.absolutePath.shorten(200)}, got ${loaded?.className}@${
-                                System.identityHashCode(
-                                    loaded
-                                )
+                                System.identityHashCode(loaded)
                             }"
                         )
                         e?.printStackTrace()

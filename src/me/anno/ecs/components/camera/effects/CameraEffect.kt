@@ -7,6 +7,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.texture.ITexture2D
 import me.anno.io.base.BaseWriter
 
 // todo each camera effect shall become a node in RenderGraph
@@ -32,6 +33,10 @@ abstract class CameraEffect : PrefabSaveable() {
     fun write(layers: MutableMap<DeferredLayerType, IFramebuffer>, type: DeferredLayerType, fb: IFramebuffer) {
         (fb as? Framebuffer)?.lastDraw = Engine.nanoTime
         layers[type] = fb
+    }
+
+    fun write(layers: MutableMap<DeferredLayerType, IFramebuffer>, type: DeferredLayerType, fb: ITexture2D) {
+        layers[type] = fb.wrapAsFramebuffer()
     }
 
     override fun copy(clone: PrefabSaveable) {

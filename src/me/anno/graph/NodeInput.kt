@@ -94,7 +94,7 @@ class NodeInput : NodeConnector {
             }
             "String" -> value.toString()
             "Any?", "", "?" -> value
-            "Boolean" -> when (val v = value) {
+            "Boolean", "Bool" -> when (val v = value) {
                 is Collection<*> -> v.isNotEmpty()
                 is Array<*> -> v.isNotEmpty()
                 is ByteArray -> v.isNotEmpty()

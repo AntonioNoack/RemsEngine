@@ -170,8 +170,10 @@ object DebugGPUStorage {
             // todo calculate min/max?
             val z = if (isHovered) clamp((window!!.mouseX - x) / w)
             else fract(Engine.gameTimeF / max(5f, tex.d / 3f))
+            val zi = (z * (tex.d + 1)).toInt()
+            // todo why is every 2nd slice missing??
             DrawTextures.draw2dArraySlice(
-                x, y, w, h, (z * (tex.d + 1)).toInt(),
+                x, y, w, h, zi,
                 tex, true, -1, false, isDepth
             )
         }

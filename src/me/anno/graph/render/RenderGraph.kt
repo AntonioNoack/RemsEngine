@@ -17,6 +17,7 @@ import me.anno.graph.NodeOutput
 import me.anno.graph.render.compiler.ExpressionRenderer
 import me.anno.graph.render.compiler.ShaderExprNode
 import me.anno.graph.render.compiler.ShaderGraphNode
+import me.anno.graph.render.effects.ShapedBlurNode
 import me.anno.graph.render.scene.SceneNode
 import me.anno.graph.render.scene.UVNode
 import me.anno.graph.render.scene.UViNode
@@ -27,6 +28,8 @@ import me.anno.graph.types.flow.StartNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.NodePositionOptimization.calculateNodePositions
 import me.anno.image.ImageScale
+import me.anno.io.ISaveable
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.Panel
 import me.anno.ui.custom.CustomList
@@ -60,6 +63,8 @@ object RenderGraph {
     // todo node to apply lights on deferred rendering
     // is the same as SDR / HDR
 
+    // todo highlight cpu/gpu computations (silver/gold)
+
     val library = NodeLibrary(
         listOf(
             { SceneNode() },
@@ -68,6 +73,7 @@ object RenderGraph {
             { ShaderGraphNode() },
             { UVNode() },
             { UViNode() },
+            { ShapedBlurNode() },
         ) + NodeLibrary.flowNodes.nodes,
     )
 
@@ -77,7 +83,8 @@ object RenderGraph {
             "Int", "Width",
             "Int", "Height",
             "Int", "Channels",
-            "Int", "Samples"
+            "Int", "Samples",
+            "Bool", "HDR"
         )
     ), ExpressionRenderer {
 
@@ -148,11 +155,12 @@ object RenderGraph {
                 return
             }
 
-            val texture = endNode.render()
+            val texture = endNode.render(true)
             val (w, h) = ImageScale.scaleMax(texture.w, texture.h, dst.w, dst.h)
             val x = dst.x + (dst.w - w) / 2
             val y = dst.y + (dst.h - h) / 2
-            drawTexture(x, y + h, w, -h, texture, false, -1)
+            val applyToneMapping = endNode.getInput(6) as Boolean
+            drawTexture(x, y + h, w, -h, texture, false, -1, null, applyToneMapping)
         }
 
         val sceneNode = SceneNode()
@@ -197,6 +205,11 @@ object RenderGraph {
 
                     // todo center graph panel on nodes by calculating their mid point
                     library = RenderGraph.library
+                    for (it in library.allNodes) {
+                        val sample = it.first
+                        if (sample.className !in ISaveable.objectTypeRegistry)
+                            registerCustomClass(sample)
+                    }
 
                     // todo lighting pass node
 

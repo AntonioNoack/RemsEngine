@@ -39,7 +39,7 @@ interface ExpressionRenderer {
         setInput(5, 1)
     }
 
-    fun render(): ITexture2D {
+    fun render(fp: Boolean): ITexture2D {
         val shader = shader ?: kotlin.run {
             val compiler = object : GraphCompiler(graph as FlowGraph) {
 
@@ -89,11 +89,20 @@ interface ExpressionRenderer {
             buffer = Framebuffer(
                 name, w, h, samples,
                 arrayOf(
-                    when (channels) {
-                        1 -> TargetType.UByteTarget1
-                        2 -> TargetType.UByteTarget2
-                        3 -> TargetType.UByteTarget3
-                        else -> TargetType.UByteTarget4
+                    if (fp) {
+                        when (channels) {
+                            1 -> TargetType.FloatTarget1
+                            2 -> TargetType.FloatTarget2
+                            3 -> TargetType.FloatTarget3
+                            else -> TargetType.FloatTarget4
+                        }
+                    } else {
+                        when (channels) {
+                            1 -> TargetType.UByteTarget1
+                            2 -> TargetType.UByteTarget2
+                            3 -> TargetType.UByteTarget3
+                            else -> TargetType.UByteTarget4
+                        }
                     }
                 ), DepthBufferType.NONE
             )

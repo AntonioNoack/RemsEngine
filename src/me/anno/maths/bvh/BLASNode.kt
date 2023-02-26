@@ -94,7 +94,7 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             val buffers = BLASs.map { it.findGeometryData() } // positions without index
             // RGB is not supported by compute shaders (why ever...), so use RGBA
             val numTriangles = buffers.sumOf { it.positions.size / 9 }
-            val buffer = ComputeBuffer(numTriangles * 3, triangleAttr)
+            val buffer = ComputeBuffer(triangleAttr, numTriangles * 3)
             // write triangle into memory
             var pixelIndex = 0
             var triangleIndex = 0
@@ -120,7 +120,7 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
                         buffer.put(normals[k])
                         buffer.put(normals[k + 1])
                         buffer.put(normals[k + 2])
-                        buffer.put(Float.fromBits(if(colors != null) colors[i] else -1))
+                        buffer.put(Float.fromBits(if (colors != null) colors[i] else -1))
                     }
                     k += 3
                 }
@@ -216,7 +216,7 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             // for both types just use 8x4 = 32 bytes
             // we will find a place for markers about the type :)
             val numNodes = BLASs.sumOf { it.countNodes() }
-            val texture = ComputeBuffer(numNodes, blasAttr)
+            val texture = ComputeBuffer(blasAttr, numNodes)
 
             var i = 0
             var nextId = 0

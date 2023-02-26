@@ -626,7 +626,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
                     .setResetListener { con.currValue = con.defaultValue; con.defaultValue.toString() }
                     .apply { textSize = font.size }
             }
-            "Bool", "Boolean" -> {
+            "Boolean", "Bool" -> {
                 if (old is Checkbox) return old
                     .apply { size = font.sizeInt }
                 return Checkbox(con.currValue == true, false, font.sizeInt, style)

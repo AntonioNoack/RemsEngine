@@ -80,4 +80,19 @@ class RayHit {
         // update the end vector
         end.set(direction).normalize(distance).add(start)
     }
+
+    fun localToGlobal(
+        globalTransform: Matrix4x3d?,
+        start: Vector3d,
+        direction: Vector3d,
+        end: Vector3d,
+    ) {
+        globalTransform ?: return
+        globalTransform.transformPosition(positionWS)
+        globalTransform.transformDirection(normalWS)
+        val distance = positionWS.distance(start)
+        this.distance = distance
+        // update the end vector
+        end.set(direction).normalize(distance).add(start)
+    }
 }

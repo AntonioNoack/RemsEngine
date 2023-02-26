@@ -1,6 +1,5 @@
 package me.anno.graph.types.flow.vector
 
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.maths.FloatMathsBinary
 import me.anno.graph.types.flow.maths.FloatMathsTernary
 import me.anno.graph.types.flow.maths.FloatMathsUnary

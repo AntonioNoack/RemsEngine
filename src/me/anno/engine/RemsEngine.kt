@@ -41,8 +41,9 @@ import me.anno.utils.files.Files.findNextFileName
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 
+// todo file explorer sorting options
 
-// todo Unity($)/RemsEngine(research) shader debugger:
+// to do Unity($)/RemsEngine(research) shader debugger:
 //  - go up/down one instruction
 //  - see local variables for all execution units
 //  - printf() statements

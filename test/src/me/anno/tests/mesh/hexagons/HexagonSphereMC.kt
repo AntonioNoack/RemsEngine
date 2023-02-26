@@ -46,6 +46,11 @@ val gravel: Byte = 6
 val sand: Byte = 7
 val water: Byte = 8
 
+val logic0: Byte = 9
+val logic1: Byte = 10
+val light0: Byte = 11
+val light1: Byte = 12
+
 val texIdsXZ = intArrayOf(-1, 16, 32, 48, 65, 67, 17, 33, 253)
 val texIdsPY = intArrayOf(-1, 16, 32, 0, 81, 67, 17, 33, 253)
 val texIdsNY = intArrayOf(-1, 16, 32, 32, 81, 67, 17, 33, 253)

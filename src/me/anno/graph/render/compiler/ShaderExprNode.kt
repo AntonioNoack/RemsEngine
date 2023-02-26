@@ -33,7 +33,7 @@ class ShaderExprNode : ActionNode(
     override var buffer: Framebuffer? = null
     override var typeValues: HashMap<String, TypeValue>? = null
     override fun executeAction() {
-        setOutput(render(), 1)
+        setOutput(render(true), 1)
     }
 
     override fun onDestroy() {

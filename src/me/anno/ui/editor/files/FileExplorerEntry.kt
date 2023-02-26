@@ -16,7 +16,10 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFXState
+import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.popBetterBlending
+import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
@@ -684,7 +687,12 @@ open class FileExplorerEntry(
         titlePanel.y = max(y0, (y0 + y1 - titlePanel.minH) / 2)
         titlePanel.w = x1 - x0
         titlePanel.h = titlePanel.minH
+        // the title might overlap with the image,
+        // and this can cause badly-readable text,
+        // so use better text rendering, if possible
+        val pbb = pushBetterBlending(true)
         titlePanel.drawText()
+        popBetterBlending(pbb)
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

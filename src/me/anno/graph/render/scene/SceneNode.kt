@@ -25,7 +25,7 @@ class SceneNode : ActionNode(
         "Int", "Stage Id",
         "Int", "Sorting", // todo enum
         "Int", "Camera Index",
-        "Bool", "Apply ToneMapping",
+        "Boolean", "Apply ToneMapping",
     ),
     // list all available deferred layers
     DeferredLayerType.values.map { listOf("Texture", it.name) }.flatten()
@@ -115,13 +115,7 @@ class SceneNode : ActionNode(
                     LOGGER.warn("$type -> ${layer.index} is missing")
                     continue
                 }
-                val output1: Any = if (layer.mapping.isEmpty()) tex
-                else {
-                    val output1 = Texture("map", listOf(layer.mapping))
-                    output1.v2d = tex
-                    output1
-                }
-                setOutput(output1, i)
+                setOutput(Texture(tex, layer.mapping), i)
             }
         }
 

@@ -5,12 +5,10 @@ import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.AnimationState
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
-import me.anno.engine.ECSRegistry
 import me.anno.io.NamedSaveable
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
@@ -25,6 +23,7 @@ import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
 import me.anno.mesh.assimp.SkeletonAnimAndBones.loadSkeletonFromAnimationsAndBones
+import me.anno.mesh.fbx.FBX6000
 import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.pooling.JomlPools
@@ -32,6 +31,7 @@ import me.anno.utils.types.Matrices.isIdentity
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.assimp.*
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.min
@@ -41,18 +41,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     private val LOGGER = LogManager.getLogger(AnimatedMeshesLoader::class)
 
     var createImportedAnimations = true
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        ECSRegistry.init()
-        // should return about 5m
-        val ref = FileReference.getReference(
-            "E:/Assets/Polygon_Street_Racer_Unity_Package_2018_4_Update_01.unitypackage/Assets/" + "PolygonStreetRacer/Models/SM_Prop_LogPile_Large_02.fbx"
-        )
-        val mesh = MeshCache[ref]!!
-        mesh.ensureBounds()
-        println(mesh.aabb)
-    }
 
     private fun matrixFix(file: FileReference, metadata: Map<String, Any>): Matrix3f? {
 
@@ -127,7 +115,32 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         // it creates prefabs from the whole file content,
         // so we can inherit from the materials, meshes, animations, ...
         // all and separately
-        val aiScene = loadFile(file, flags)
+        val aiScene: AIScene
+        try {
+            aiScene = loadFile(file, flags)
+        } catch (e: IOException) {
+            if (e.message?.contains("FBX-DOM unsupported") == true) {
+                val meshes = FBX6000.readBinaryFBX6000AsMeshes(file.inputStreamSync())
+                if (meshes.isNotEmpty()) {
+                    val root = InnerFolder(file)
+                    val all = Prefab("Entity")
+                    for (i in meshes.indices) {
+                        val mesh = meshes[i]
+                        val meshPrefab = Prefab("Mesh")
+                        meshPrefab["positions"] = mesh.positions
+                        meshPrefab["indices"] = mesh.indices
+                        meshPrefab["normals"] = mesh.normals
+                        val meshFileName = "$i.json"
+                        val meshFile = root.createPrefabChild(meshFileName, meshPrefab)
+                        val meshComp = all.add(ROOT_PATH, 'c', "MeshComponent", meshFileName)
+                        all[meshComp, "mesh"] = meshFile
+                    }
+                    root.createPrefabChild("Scene.json", all)
+                    return root to all
+                }
+            }
+            throw e
+        }
         val root = InnerFolder(file)
         val rootNode = aiScene.mRootNode()!!
         val loadedTextures = if (aiScene.mNumTextures() > 0) {

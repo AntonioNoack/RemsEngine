@@ -7,6 +7,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
+import kotlin.math.max
 
 /**
  * a file, which is inside another file,
@@ -50,6 +51,10 @@ abstract class InnerFile(
     var isEncrypted = false
 
     override fun length(): Long = size
+
+    fun markAsModified(){
+        lastModified = max(lastModified + 1, System.currentTimeMillis())
+    }
 
     override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
         val data = data

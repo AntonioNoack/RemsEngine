@@ -1,6 +1,7 @@
 package me.anno.io
 
 import me.anno.Engine
+import me.anno.io.base.InvalidFormatException
 import me.anno.utils.Sleep.sleepShortly
 import java.io.EOFException
 import java.io.InputStream
@@ -213,6 +214,14 @@ object Streams {
     fun OutputStream.write0String(data: String) {
         write(data.toByteArray())
         write(0)
+    }
+
+    @JvmStatic
+    fun InputStream.consumeMagic(magic: String) {
+        for (i in magic) {
+            if (read() != i.code)
+                throw InvalidFormatException("Magic incorrect")
+        }
     }
 
 }

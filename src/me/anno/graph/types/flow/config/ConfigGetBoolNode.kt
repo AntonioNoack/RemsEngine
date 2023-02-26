@@ -15,7 +15,7 @@ class ConfigGetBoolNode(val config: StringMap = DefaultConfig) :
     override val className get() = "ConfigGetBoolNode"
 
     companion object {
-        private val input = listOf("String", "Name", "Bool", "Default")
+        private val input = listOf("String", "Name", "Boolean", "Default")
         private val output = listOf("Bool", "Value")
     }
 }

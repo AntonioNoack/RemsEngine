@@ -138,7 +138,7 @@ fun testFindingChunks2(sphere: HexagonSphere) {
 fun main() {
 
     // todo sizes like 20k no longer work properly, and I suspect findChunk() is the culprit
-    val n = 100
+    val n = 10000
     val t = 25 // good chunk size
     val s = n / t
     val sphere = HexagonSphere(n, s)
