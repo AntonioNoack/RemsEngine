@@ -130,6 +130,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                         meshPrefab["positions"] = mesh.positions
                         meshPrefab["indices"] = mesh.indices
                         meshPrefab["normals"] = mesh.normals
+                        meshPrefab["uvs"] = mesh.uvs
+                        meshPrefab._sampleInstance = mesh
                         val meshFileName = "$i.json"
                         val meshFile = root.createPrefabChild(meshFileName, meshPrefab)
                         val meshComp = all.add(ROOT_PATH, 'c', "MeshComponent", meshFileName)

@@ -126,16 +126,23 @@ object FBX6000 {
         val objects = data["Objects"]
         // todo load UVs...
         if (objects != null) {
-            for (obj in objects) {
+            for (oi in objects.indices) {
+                val obj = objects[oi]
                 obj as? Map<*, *> ?: continue
                 val positions0 = obj["Vertices"] as? List<Double> ?: continue
                 val normals0 = obj["Normals"] as? List<Double> ?: continue
                 val indices = obj["PolygonVertexIndex"] as? List<Int> ?: continue
+                val uvData = objects.subList(oi, objects.size)
+                    .firstOrNull { it is Map<*, *> && it["UV"] is List<*> } as? Map<*, *>
+                val uvs = uvData?.run { (this["UV"] as List<Double>).map { it.toFloat() }.toFloatArray() }
+                val uvIndices = uvData?.run { this["UVIndex"] as List<Int> }
                 val mesh = Mesh()
                 when (val type = (obj["MappingInformationType"] as? List<*>)?.first()) {
                     "ByPolygonVertex" -> {
-                        val positions2 = ExpandingFloatArray(1024)
-                        val normals2 = ExpandingFloatArray(1024)
+                        val size = indices.size * 2
+                        val positions2 = ExpandingFloatArray(size * 3)
+                        val normals2 = ExpandingFloatArray(size * 3)
+                        val uvs2 = if (uvs != null) ExpandingFloatArray(size * 2) else null
                         val positions1 = positions0.map { it.toFloat() }.toFloatArray()
                         val normals1 = normals0.map { it.toFloat() }.toFloatArray()
                         var i0 = 0
@@ -148,6 +155,11 @@ object FBX6000 {
                                     val j3 = i * 3
                                     positions2.add(positions1, i3 * 3, 3)
                                     normals2.add(normals1, j3, 3)
+                                    if (uvs != null) {
+                                        uvs2!!
+                                        val k2 = uvIndices!![i] * 2
+                                        uvs2.add(uvs, k2, 2)
+                                    }
                                 }
                                 for (j in i0 + 1 until i) {
                                     pt(i0)
@@ -162,6 +174,7 @@ object FBX6000 {
                         }
                         mesh.positions = positions2.toFloatArray()
                         mesh.normals = normals2.toFloatArray()
+                        mesh.uvs = uvs2?.toFloatArray()
                     }
                     else -> throw IOException("$type not yet implemented")
                 }
