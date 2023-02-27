@@ -23,7 +23,6 @@ fun main() {
         DefaultConfig["debug.ui.showRedraws"] = false
         val list = PanelListY(style)
         for (i in Interpolation.values()) {
-            // todo isHovered is incorrect, they all move together
             val animContainer = AnimContainer(TextButton(i.displayName, false, style), Padding(10, 0), style)
             // in the real world better not mix them
             animContainer.add(MoveAnimation(EventType.HOVER, i, 0f, 0.5f, 1f, 0.5f))

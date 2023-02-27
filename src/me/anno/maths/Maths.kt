@@ -35,6 +35,9 @@ object Maths {
     fun sq(x: Int) = x * x
 
     @JvmStatic
+    fun sq(x: Long) = x * x
+
+    @JvmStatic
     fun sq(x: Float) = x * x
 
     @JvmStatic

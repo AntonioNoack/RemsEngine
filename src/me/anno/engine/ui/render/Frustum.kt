@@ -13,7 +13,7 @@ class Frustum {
 
     // todo define a 7th plane for reflection culling
 
-    private val planes = Array(6) { Vector4d() }
+    val planes = Array(6) { Vector4d() }
     private val normals = Array(6) { Vector3d() }
     private val positions = Array(6) { Vector3d() }
 
@@ -129,12 +129,10 @@ class Frustum {
         normals[5].set(0.0, 0.0, +1.0)
 
         for (i in 0 until 6) {
-            cameraRotation.transform(normals[i])
-            val position = positions[i]
-            position.add(cameraPosition)
-            val normal = normals[i]
-            val distance = position.dot(normal)
-            planes[i].set(normal, -distance)
+            val position = positions[i].add(cameraPosition)
+            val normal = cameraRotation.transform(normals[i])
+            val dot = position.dot(normal)
+            planes[i].set(normal, -dot)
         }
 
         isPerspective = false
