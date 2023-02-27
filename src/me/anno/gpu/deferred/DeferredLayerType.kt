@@ -150,12 +150,13 @@ open class DeferredLayerType(
             BufferQuality.LOW_8, false, 0x007799ff, "", ""
         )
 
-        // todo should be replaced by depth to save bandwidth
+        // use baked depth instead of this, this is kind of virtual
         val DEPTH = DeferredLayerType(
             "DEPTH", "finalDepth", 1,
             BufferQuality.HIGH_32, true, 0, "", ""
         )
 
+        // make there should be an option for 2d motion vectors as well
         val MOTION = DeferredLayerType(
             "MOTION", "finalMotion", 3,
             BufferQuality.HIGH_16, true, 0, "", ""

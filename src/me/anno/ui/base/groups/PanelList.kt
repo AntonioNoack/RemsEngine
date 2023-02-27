@@ -29,6 +29,10 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         invalidateLayout()
     }
 
+    fun invalidateSorting() {
+        invalidateLayout() // causes calculateSize() to be called
+    }
+
     fun isEmpty() = children.isEmpty()
 
     fun add(index: Int, child: Panel) {
@@ -68,9 +72,7 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        if (sorter != null) {
-            children.sortWith(sorter)
-        }
+        if (sorter != null) children.sortWith(sorter)
         super.calculateSize(w, h)
     }
 

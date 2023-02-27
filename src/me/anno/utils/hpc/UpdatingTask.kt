@@ -6,6 +6,10 @@ import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import kotlin.concurrent.thread
 
+/**
+ * Task, that can be cancelled and re-run;
+ * Insert Thread.sleep(0) every once in a while into your calculations, so they can be cancelled
+ * */
 class UpdatingTask(val threadName: String, val cleaning: () -> Unit) {
 
     var runningThread: Thread? = null

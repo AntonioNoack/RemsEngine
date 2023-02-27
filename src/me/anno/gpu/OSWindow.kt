@@ -73,10 +73,7 @@ open class OSWindow(var title: String) {
     private var lastVsyncInterval = -1
 
     val currentWindow: Window?
-        get() {
-            // todo find window at mouse coordinates (?)
-            return windowStack.lastOrNull()
-        }
+        get() = windowStack.lastOrNull()
 
     fun hasActiveMouseTargets(): Boolean {
         return abs(lastMouseTargetNanos - Engine.nanoTime) < 1e9

@@ -265,15 +265,14 @@ abstract class Image(
     open fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {
         if (x0 + w0 > width || y0 + h0 > height)
             throw IllegalArgumentException("Cannot crop $x0+=$w0,$y0+=$h0 from ${width}x${height}")
-        val result = IntImage(w0, h0, hasAlphaChannel)
-        val data = result.data
-        val width = width
-        for (y in 0 until h0) {
-            for (x in 0 until w0) {
-                data[x + y * w0] = getRGB((x + x0) + (y + y0) * width)
+        val self = this
+        return object : Image(w0, h0, numChannels, hasAlphaChannel) {
+            override fun getRGB(index: Int): Int {
+                val x = index % w0
+                val y = index / w0
+                return self.getRGB(x0 + x, y0 + y)
             }
         }
-        return result
     }
 
     var ref: FileReference = InvalidRef

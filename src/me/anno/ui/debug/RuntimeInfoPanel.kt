@@ -27,9 +27,12 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         super.onUpdate()
         val time = gameTime
         if (abs(time - lastUpdate) > updateInterval) {
-            text = getDebugText()
+            val newText = getDebugText()
             lastUpdate = time
-            invalidateLayout()
+            if (text != newText) {
+                text = newText
+                invalidateDrawing()
+            }
         }
     }
 

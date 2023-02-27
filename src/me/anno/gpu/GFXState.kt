@@ -221,7 +221,6 @@ object GFXState {
         ws[index] = w
         hs[index] = h
         changeSizes[index] = changeSize
-        // todo depth must maybe be cleared only once
         buffer.use(index, renderer, render)
     }
 

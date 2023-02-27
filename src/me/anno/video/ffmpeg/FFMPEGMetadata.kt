@@ -71,7 +71,6 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
                 }
             }
             "png", "jpg", "psd", "exr" -> {
-                LOGGER.debug("$signature1 -> ${ImageIO.getImageReadersBySuffix(signature1).toList().size} readers")
                 for (reader in ImageIO.getImageReadersBySuffix(signature1)) {
                     try {
                         file.inputStreamSync().use {
@@ -94,6 +93,7 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
                     else -> LOGGER.debug("${file.absolutePath.shorten(200)} has unknown extension and signature: '$signature1'")
                 }
             }
+            // todo xml/svg
             else -> LOGGER.debug("${file.absolutePath.shorten(200)}'s signature wasn't registered in FFMPEGMetadata.kt: '$signature1'")
         }
     }

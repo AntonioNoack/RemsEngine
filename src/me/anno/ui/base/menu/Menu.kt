@@ -36,7 +36,6 @@ object Menu {
 
     const val menuSeparator = "-----"
 
-    // used in Rem's Studio, maybe should be moved there
     @Suppress("unused")
     val menuSeparator1 = MenuOption(NameDesc(menuSeparator, "", "")) {}
 

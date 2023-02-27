@@ -28,6 +28,7 @@ import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.askName
+import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
@@ -74,12 +75,46 @@ import kotlin.math.roundToInt
 // todo search in text files
 // todo search in meta data for audio and video
 
-// todo list view
-
 open class FileExplorer(
     initialLocation: FileReference?,
     style: Style
 ) : PanelListY(style.getChild("fileExplorer")) {
+
+    enum class FolderSorting(val v: Int) {
+        FIRST(-2), MIXED(0), LAST(2)
+    }
+
+    enum class FileSorting {
+        NAME,
+        SIZE,
+        LAST_MODIFIED,
+    }
+
+    // todo group files by stuff?
+
+    var folderSorting = FolderSorting.FIRST
+        set(value) {
+            if (field != value) {
+                content2d.invalidateSorting()
+                field = value
+            }
+        }
+
+    var fileSorting = FileSorting.NAME
+        set(value) {
+            if (field != value) {
+                content2d.invalidateSorting()
+                field = value
+            }
+        }
+
+    var ascendingSorting = true
+        set(value) {
+            if (field != value) {
+                content2d.invalidateSorting()
+                field = value
+            }
+        }
 
     open fun getFolderOptions(): List<FileExplorerOption> = emptyList()
 
@@ -140,7 +175,28 @@ open class FileExplorer(
     val minEntrySize = 32f
 
     val uContent = PanelListX(style)
-    val content2d = PanelList2D(null, style)
+    val content2d = PanelList2D({ p0, p1 ->
+        p0 as FileExplorerEntry
+        p1 as FileExplorerEntry
+        when {
+            p0 === p1 -> 0
+            p0.isParent -> -1
+            p1.isParent -> +1
+            else -> {
+                val a = p0.ref1s
+                val b = p1.ref1s
+                val base = clamp(
+                    when (fileSorting) {
+                        FileSorting.NAME -> a.name.compareTo(b.name, true)
+                        FileSorting.SIZE -> a.length().compareTo(b.length())
+                        FileSorting.LAST_MODIFIED -> a.lastModified.compareTo(b.lastModified)
+                    }, -1, +1
+                ) * (if (ascendingSorting) +1 else -1)
+                if (folderSorting == FolderSorting.MIXED) base
+                else base + a.isDirectory.compareTo(b.isDirectory) * folderSorting.v
+            }
+        }
+    }, style)
 
     var lastFiles = emptyList<String>()
     var lastSearch = true
@@ -219,7 +275,6 @@ open class FileExplorer(
         this += topBar
         topBar += title
 
-        // todo somehow a second menu is opening :/
         title.addRightClickListener {
             val shortCutFolders = getShortcutFolders()
             openMenu(windowStack, NameDesc("Switch To"), listOf(
@@ -332,6 +387,7 @@ open class FileExplorer(
                         val entry = FileExplorerEntry(this, true, parent, style)
                         entry.listMode = listMode
                         content2d += entry
+                        invalidateLayout()
                     }
                 }
 
@@ -358,6 +414,7 @@ open class FileExplorer(
                                 for (i in windows.indices) {
                                     windows[i].framesSinceLastInteraction = 0
                                 }
+                                invalidateLayout()
                             }
                         }
                     }
@@ -392,7 +449,12 @@ open class FileExplorer(
                 for (it in fe) {
                     it.isVisible = search.matches(getReferenceOrTimeout(it.path).name)
                 }
+                invalidateLayout()
             }
+
+            // reset query time
+            isValid = 5f
+
         }
     }
 
@@ -405,7 +467,7 @@ open class FileExplorer(
     override fun onUpdate() {
         super.onUpdate()
         if (isValid <= 0f) {
-            isValid = 5f // depending on amount of files?
+            isValid = Float.POSITIVE_INFINITY
             title.file = folder// ?.toString() ?: "This Computer"
             title.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
             createResults()
@@ -530,7 +592,7 @@ open class FileExplorer(
         when (action) {
             "OpenOptions" -> {
                 val home = folder
-                openMenu(windowStack, listOf(
+                val base = listOf(
                     MenuOption(NameDesc("Create Folder", "Creates a new directory", "ui.newFolder")) {
                         askName(windowStack,
                             NameDesc("Name", "", "ui.newFolder.askName"),
@@ -547,12 +609,37 @@ open class FileExplorer(
                     MenuOption(openInExplorerDesc) { folder.openInExplorer() },
                     MenuOption(openInStandardProgramDesc) { folder.openInStandardProgram() },
                     MenuOption(editInStandardProgramDesc) { folder.editInStandardProgram() },
-                    MenuOption(copyPathDesc) { setClipboardContent(folder.absolutePath) }
-                ) + getFolderOptions().map {
+                    MenuOption(copyPathDesc) { setClipboardContent(folder.absolutePath) },
+                    menuSeparator1,
+                    MenuOption(NameDesc("Sort by Name")) { fileSorting = FileSorting.NAME }
+                        .setEnabled(fileSorting != FileSorting.NAME),
+                    MenuOption(NameDesc("Sort by Size")) { fileSorting = FileSorting.SIZE }
+                        .setEnabled(fileSorting != FileSorting.SIZE),
+                    MenuOption(NameDesc("Sort by Last-Modified")) { fileSorting = FileSorting.LAST_MODIFIED }
+                        .setEnabled(fileSorting != FileSorting.LAST_MODIFIED),
+                    menuSeparator1,
+                    MenuOption(NameDesc("Sort Ascending")) { ascendingSorting = true }
+                        .setEnabled(!ascendingSorting),
+                    MenuOption(NameDesc("Sort Descending")) { ascendingSorting = false }
+                        .setEnabled(ascendingSorting),
+                    menuSeparator1,
+                    MenuOption(NameDesc("Folders First")) { folderSorting = FolderSorting.FIRST }
+                        .setEnabled(folderSorting != FolderSorting.FIRST),
+                    MenuOption(NameDesc("Folders Mixed")) { folderSorting = FolderSorting.MIXED }
+                        .setEnabled(folderSorting != FolderSorting.MIXED),
+                    MenuOption(NameDesc("Folders Last")) { folderSorting = FolderSorting.LAST }
+                        .setEnabled(folderSorting != FolderSorting.LAST),
+                    menuSeparator1, // debug options
+                    MenuOption(NameDesc("Invalidate Layout")) { invalidateLayout() },
+                    MenuOption(NameDesc("Invalidate Drawing")) { invalidateDrawing() },
+                    MenuOption(NameDesc("Invalidate")) { invalidate() },
+                )
+                val folder = getFolderOptions().map {
                     MenuOption(it.nameDesc) {
                         it.onClick(this, folder)
                     }
-                })
+                }
+                openMenu(windowStack, if (folder.isEmpty()) base else base + menuSeparator1 + folder)
             }
             "Refresh" -> {
                 LOGGER.info("Refreshing")

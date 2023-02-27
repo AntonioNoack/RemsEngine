@@ -96,6 +96,7 @@ open class FileExplorerEntry(
 
     val path = file.absolutePath
     val ref1 get() = getReferenceAsync(path)
+    val ref1s get() = getReference(path)
 
     // todo when entering a json file, and leaving it, the icon should not be a folder!
 
