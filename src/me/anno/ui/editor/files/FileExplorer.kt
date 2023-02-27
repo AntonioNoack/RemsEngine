@@ -629,10 +629,6 @@ open class FileExplorer(
                         .setEnabled(folderSorting != FolderSorting.MIXED),
                     MenuOption(NameDesc("Folders Last")) { folderSorting = FolderSorting.LAST }
                         .setEnabled(folderSorting != FolderSorting.LAST),
-                    menuSeparator1, // debug options
-                    MenuOption(NameDesc("Invalidate Layout")) { invalidateLayout() },
-                    MenuOption(NameDesc("Invalidate Drawing")) { invalidateDrawing() },
-                    MenuOption(NameDesc("Invalidate")) { invalidate() },
                 )
                 val folder = getFolderOptions().map {
                     MenuOption(it.nameDesc) {
