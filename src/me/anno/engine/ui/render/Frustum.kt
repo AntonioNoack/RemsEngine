@@ -13,7 +13,9 @@ class Frustum {
 
     // todo define a 7th plane for reflection culling
 
+    // -x,+x,-y,+y,-z,+z
     val planes = Array(6) { Vector4d() }
+
     private val normals = Array(6) { Vector3d() }
     private val positions = Array(6) { Vector3d() }
 
@@ -34,6 +36,7 @@ class Frustum {
     // for debugging, when the pipeline seems to be empty for unknown reasons
     fun setToEverything(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
 
+        val planes = planes
         planes[0].set(-1.0, 0.0, 0.0, -1e30)
         planes[1].set(+1.0, 0.0, 0.0, -1e30)
         planes[2].set(0.0, -1.0, 0.0, -1e30)
@@ -66,6 +69,8 @@ class Frustum {
         val objectSizeThreshold = minObjectSizePixels * sizeX / resolution
         sizeThreshold = /* detailFactor * */ sq(objectSizeThreshold)
 
+        val positions = positions
+        val normals = normals
         positions[0].set(+sizeX, 0.0, 0.0)
         normals[0].set(+1.0, 0.0, 0.0)
         positions[1].set(-sizeX, 0.0, 0.0)
@@ -81,24 +86,27 @@ class Frustum {
         positions[5].set(0.0, 0.0, +far)
         normals[5].set(0.0, 0.0, +1.0)
 
-        for (i in 0 until 6) {
-            cameraRotation.transform(normals[i])
-            val position = positions[i]
-            position.add(cameraPosition)
-            val normal = normals[i]
-            val distance = position.dot(normal)
-            planes[i].set(normal, -distance)
-        }
+        transform(cameraPosition, cameraRotation)
 
         isPerspective = false
-
-        this.cameraPosition.set(cameraPosition)
-        this.cameraRotation.identity()
-            .rotate(cameraRotation)
 
         // todo code this properly
         setToEverything(cameraPosition, cameraRotation)
 
+    }
+
+    fun transform(cameraPosition: Vector3d, cameraRotation: Quaterniond){
+        val positions = positions
+        val normals = normals
+        val planes = planes
+        for (i in 0 until 6) {
+            val position = positions[i].add(cameraPosition)
+            val normal = cameraRotation.transform(normals[i])
+            val distance = position.dot(normal)
+            planes[i].set(normal, -distance)
+        }
+        this.cameraPosition.set(cameraPosition)
+        this.cameraRotation.set(cameraRotation)
     }
 
     fun defineOrthographic(
@@ -113,10 +121,12 @@ class Frustum {
         val objectSizeThreshold = minObjectSizePixels * sizeX / resolution
         sizeThreshold = /* detailFactor * */ sq(objectSizeThreshold)
 
-        positions[0].set(+sizeX, 0.0, 0.0)
-        normals[0].set(+1.0, 0.0, 0.0)
-        positions[1].set(-sizeX, 0.0, 0.0)
-        normals[1].set(-1.0, 0.0, 0.0)
+        val positions = positions
+        val normals = normals
+        positions[0].set(-sizeX, 0.0, 0.0)
+        normals[0].set(-1.0, 0.0, 0.0)
+        positions[1].set(+sizeX, 0.0, 0.0)
+        normals[1].set(+1.0, 0.0, 0.0)
 
         positions[2].set(0.0, -sizeY, 0.0)
         normals[2].set(0.0, -1.0, 0.0)
@@ -128,19 +138,9 @@ class Frustum {
         positions[5].set(0.0, 0.0, +sizeZ)
         normals[5].set(0.0, 0.0, +1.0)
 
-        for (i in 0 until 6) {
-            val position = positions[i].add(cameraPosition)
-            val normal = cameraRotation.transform(normals[i])
-            val dot = position.dot(normal)
-            planes[i].set(normal, -dot)
-        }
+        transform(cameraPosition, cameraRotation)
 
         isPerspective = false
-
-        this.cameraPosition.set(cameraPosition)
-        this.cameraRotation.identity()
-            .rotate(cameraRotation)
-
     }
 
     fun defineOrthographic(
@@ -177,8 +177,7 @@ class Frustum {
         isPerspective = false
 
         this.cameraPosition.set(cameraPosition)
-        this.cameraRotation.identity()
-            .rotate(cameraRotation)
+        this.cameraRotation.set(cameraRotation)
 
         // showPlanes()
 
@@ -206,27 +205,23 @@ class Frustum {
         // all positions and normals of the planes
 
         // near
-        positions[0].set(0.0, 0.0, -near)
-        normals[0].set(0.0, 0.0, +1.0)
+        positions[4].set(0.0, 0.0, -near)
+        normals[4].set(0.0, 0.0, +1.0)
 
         // far
-        positions[1].set(0.0, 0.0, -far)
-        normals[1].set(0.0, 0.0, -1.0)
+        positions[5].set(0.0, 0.0, -far)
+        normals[5].set(0.0, 0.0, -1.0)
 
         // the other positions need no rotation
-        val pos0 = positions[0]
-        val pos1 = positions[1]
-        cameraRotation.transform(pos0)
-        cameraRotation.transform(pos1)
-        pos0.add(cameraPosition)
-        pos1.add(cameraPosition)
+        cameraRotation.transform(positions[4])
+        cameraRotation.transform(positions[5])
 
         // calculate the position of the sideways planes: 0, because they go trough the center
         // then comes the rotation: rotate 0 = 0
         // then add the camera position ->
         // in summary just use the camera position
-        for (i in 2 until 6) {
-            positions[i].set(cameraPosition)
+        for (i in 0 until 4) {
+            positions[i].set(0.0)
         }
 
         // more complicated: calculate the normals of the sideways planes
@@ -240,22 +235,12 @@ class Frustum {
         val halfFovX = atan(sideLengthZ)
         val cosX = cos(halfFovX)
         val sinX = sin(halfFovX)
-        normals[4].set(+cosX, 0.0, +sinX)
-        normals[5].set(-cosX, 0.0, +sinX)
+        normals[0].set(+cosX, 0.0, +sinX)
+        normals[1].set(-cosX, 0.0, +sinX)
 
-        for (i in 0 until 6) {
-            cameraRotation.transform(normals[i])
-            val position = positions[i]
-            val normal = normals[i]
-            val distance = position.dot(normal)
-            planes[i].set(normal, -distance)
-        }
+        transform(cameraPosition, cameraRotation)
 
         isPerspective = true
-
-        this.cameraPosition.set(cameraPosition)
-        this.cameraRotation.identity()
-            .rotate(cameraRotation)
 
         // showPlanes()
     }
