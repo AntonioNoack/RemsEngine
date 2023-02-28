@@ -161,7 +161,7 @@ open class ColorInput(
                 val fb = Framebuffer("colorPicker", ws.width, ws.height, 1, 1, false, DepthBufferType.INTERNAL)
                 fb.ensure()
                 useFrame(fb) {
-                    windowStack.draw(fb.w, fb.h, didSomething0 = true, forceRedraw = true)
+                    windowStack.draw(0, 0, fb.w, fb.h, didSomething0 = true, forceRedraw = true)
                 }
                 val imageData = fb.createImage(true, withAlpha = false)
                 ColorPicker(fb, fb.getTexture0() as Texture2D, imageData, true, style)

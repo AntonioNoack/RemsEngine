@@ -58,6 +58,11 @@ class FoliageShader(
         motionVectors: Boolean,
         limitedTransform: Boolean
     ): ShaderStage {
+        val animFunc = "" +
+                "float sdfVoronoi(vec3,vec2);\n" +
+                "float animCurve(vec2 uv0, float time){\n" +
+                "   return 0.3 * sin((uv0.x+uv0.y)*30.0 + 3.0*time + sdfVoronoi(vec3(uv0*30.0,0.5*time), vec2(2.0, 0.5)));\n" +
+                "}\n"
         val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
         val variables =
             createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform) +
@@ -67,7 +72,7 @@ class FoliageShader(
                         Variable(GLSLType.V1F, "camRotY"),
                         Variable(GLSLType.V2F, "camPosXZ"),
                         Variable(GLSLType.V1F, "fovQ"),
-                        Variable(GLSLType.V1F, "time"),
+                        Variable(GLSLType.V2F, "time"),
                         Variable(GLSLType.V1F, "index0"),
                         Variable(GLSLType.V1F, "invMaxDensity"),
                         Variable(GLSLType.V1F, "temporalStabilityFactor")
@@ -87,12 +92,23 @@ class FoliageShader(
                     "vec2 center = vec2(px,pz)*invMaxDensity;\n" +
                     "center += vec2(0.5,0.0) * rot(seed*6.2832*31.0);\n" +
                     "float scale = zero ? 0.0 : mix(0.7, 1.2, seed);\n" +
-                    "vec2 pos = (coords.xz * scale) * rot(seed*6.2832*17.0) + center;\n" +
-                    "float animation = 0.3 * sin((uv0.x+uv0.y)*30.0 + 3.0*time + sdfVoronoi(vec3(uv0*30.0,0.5*time), vec2(2.0, 0.5)));\n" +
-                    "localPosition = vec3(pos.x,terrain+coords.y*scale*mix(1.0,0.6366,abs(animation)),pos.y) + \n" +
-                    "   vec3(1,0,1) * (coords.y * coords.y * sign(coords.y) * animation);\n" +
-                    motionVectorInit +
-                    normalInitCode +
+                    "mat2 bladeRot = rot(seed*6.2832*17.0);\n" +
+                    "vec2 pos = bladeRot * (coords.xz * scale) + center;\n" +
+                    "float animWeight = coords.y * coords.y * sign(coords.y);\n" +
+                    "float anim1 = animWeight * animCurve(uv0,time.x);\n" +
+                    "vec3 basePos1 = vec3(pos.x,terrain+coords.y*scale*mix(1.0,0.6366,abs(anim1)),pos.y);\n" +
+                    "localPosition = basePos1 + vec3(anim1,0.0,anim1);\n" +
+                    "#ifdef MOTION_VECTORS\n" +
+                    "   float anim2 = animWeight * animCurve(uv0,time.y);\n" +
+                    "   vec3 basePos2 = vec3(pos.x,terrain+coords.y*scale*mix(1.0,0.6366,abs(anim2)),pos.y);\n" +
+                    "   vec3 prevLocalPosition = basePos2 + vec3(anim2,0.0,anim2);\n" +
+                    "#endif\n" +
+                    "#ifdef COLORS\n" +
+                    "   normal = normals;\n" +
+                    "   normal.xz = bladeRot * normal.xz;\n" +
+                    "   tangent = tangents;\n" +
+                    "   tangent.xz = bladeRot * tangent.xz;\n" +
+                    "#endif\n" +
                     applyTransformCode +
                     "#ifdef COLORS\n" +
                     "   vertexColor0 = mix(vec4(0.02,0.22,0.02,1),vec4(0.72,0.6,0.73,1), coords.y*0.5);\n" +
@@ -105,6 +121,7 @@ class FoliageShader(
                     motionVectorCode +
                     ShaderLib.positionPostProcessing
         ).apply {
+            add(animFunc)
             add(quatRot)
             add(noiseFunc)
             add(sdfConstants)
@@ -118,7 +135,7 @@ class FoliageShader(
         val density = ImageGPUCache[densitySource, false] ?: blackTexture
         terrainTexture.value.bind(shader, "terrainTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         density.bind(shader, "densityTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
-        shader.v1f("time", Engine.gameTimeF)
+        shader.v2f("time", Engine.gameTimeF, Engine.gameTimeF - Engine.deltaTime)
 
         val rv = rv ?: RenderView.currentInstance!!
         val pos = rv.cameraPosition
@@ -239,12 +256,15 @@ fun main() {
         list.add(sv0, 1f)
         list.add(sv1, 1f)
 
+        val grassTranslucency = 0.9f
         mesh0.material = Material().apply {
             isDoubleSided = true
+            translucency = grassTranslucency
             shader = FoliageShader(maxDensity, terrainTexture, densitySource, emptyList(), sv0.renderer)
         }.ref
         mesh1.material = Material().apply {
             isDoubleSided = true
+            translucency = grassTranslucency
             shader = FoliageShader(maxDensity, terrainTexture, densitySource, listOf(mesh0), sv0.renderer)
         }.ref
 

@@ -18,7 +18,6 @@ import me.anno.io.zip.InnerFolderCache
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
-import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
@@ -512,23 +511,21 @@ open class FileExplorer(
     }
 
     fun copyIntoCurrent(files: List<FileReference>) {
-        // done progress bar
-        // todo cancellable
-        // and then async as well
-        val progress = StudioBase.addProgressBar("Bytes", files.sumOf { it.length() }.toDouble())
+        val progress = GFX.someWindow.addProgressBar("Bytes", files.sumOf { it.length() }.toDouble())
         for (file in files) {
+            if (progress.isCancelled) break
             val newFile = findNextFile(folder, file, 1, '-', 1)
             newFile.writeFile(file, { progress.add(it) }, { it?.printStackTrace() })
         }
+        progress.finish()
         invalidate()
     }
 
     fun createLinksIntoCurrent(files: List<FileReference>) {
-        // done progress bar
-        // todo cancellable
-        val progress = StudioBase.addProgressBar("Files", files.size.toDouble())
+        val progress = GFX.someWindow.addProgressBar("Files", files.size.toDouble())
         var tmp: FileReference? = null
         loop@ for (file in files) {
+            if (progress.isCancelled) break
             when {
                 OS.isWindows -> {
                     val newFile = findNextFile(folder, file, "lnk", 1, '-', 1)

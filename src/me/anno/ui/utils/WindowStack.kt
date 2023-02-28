@@ -111,7 +111,7 @@ class WindowStack : Stack<Window>() {
     private var w1 = 0
     private var h1 = 0
 
-    fun updateTransform(window: OSWindow, w: Int, h: Int) {
+    fun updateTransform(window: OSWindow, x: Int, y: Int, w: Int, h: Int) {
 
         viewTransform.identity()
 
@@ -120,12 +120,12 @@ class WindowStack : Stack<Window>() {
         mouseDownX = Input.mouseDownX
         mouseDownY = Input.mouseDownY
 
-        this.x0 = 0
-        this.y0 = 0
+        this.x0 = x
+        this.y0 = y
         this.w0 = w
         this.h0 = h
-        this.x1 = 0
-        this.y1 = 0
+        this.x1 = x
+        this.y1 = y
         this.w1 = w
         this.h1 = h
 
@@ -134,14 +134,8 @@ class WindowStack : Stack<Window>() {
     fun updateTransform(
         window: OSWindow,
         transform: Matrix4f,
-        x0: Int,
-        y0: Int,
-        w0: Int,
-        h0: Int,
-        x1: Int,
-        y1: Int,
-        w1: Int,
-        h1: Int
+        x0: Int, y0: Int, w0: Int, h0: Int,
+        x1: Int, y1: Int, w1: Int, h1: Int
     ) {
 
         viewTransform.set(transform)
@@ -183,13 +177,13 @@ class WindowStack : Stack<Window>() {
 
     }
 
-    fun draw(w: Int, h: Int, didSomething0: Boolean, forceRedraw: Boolean): Boolean {
+    fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int, didSomething0: Boolean, forceRedraw: Boolean): Boolean {
         val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
         var didSomething = didSomething0
         val windowStack = this
         val lastFullscreenIndex = max(windowStack.indexOfLast { it.isFullscreen }, 0)
         for (index in lastFullscreenIndex until windowStack.size) {
-            didSomething = windowStack[index].draw(w, h, sparseRedraw, didSomething, forceRedraw)
+            didSomething = windowStack[index].draw(dx, dy, windowW, windowH, sparseRedraw, didSomething, forceRedraw)
         }
         return didSomething
     }

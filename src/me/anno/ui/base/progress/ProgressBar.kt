@@ -19,6 +19,8 @@ open class ProgressBar(val unit: String, var total: Double) {
     private var lastDrawnUpdate = 0.0
     private var lastDraw = Engine.gameTime
 
+    val isCancelled get() = cancelTime != 0L
+
     fun add(deltaProgress: Int) = add(deltaProgress.toDouble())
     fun add(deltaProgress: Long) = add(deltaProgress.toDouble())
     fun add(deltaProgress: Float) = add(deltaProgress.toDouble())
@@ -44,11 +46,11 @@ open class ProgressBar(val unit: String, var total: Double) {
 
     fun finish() {
         progress = total
-        finishTime = Engine.gameTime
+        if (finishTime == 0L) finishTime = Engine.gameTime
     }
 
     fun cancel() {
-        cancelTime = Engine.gameTime
+        if (cancelTime == 0L) cancelTime = Engine.gameTime
     }
 
     fun canBeRemoved(time: Long): Boolean {

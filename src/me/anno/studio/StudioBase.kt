@@ -6,7 +6,6 @@ import me.anno.Engine.projectName
 import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultConfig.style
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
@@ -30,7 +29,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.Tooltips
-import me.anno.ui.base.progress.ProgressBar
 import me.anno.ui.debug.FrameTimings
 import me.anno.ui.dragging.IDraggable
 import me.anno.utils.Clock
@@ -209,13 +207,15 @@ abstract class StudioBase(
         // be sure always something is drawn
         var didSomething = window.needsRefresh || Input.needsLayoutUpdate(window)
         window.needsRefresh = false
+        val windowStack = window.windowStack
 
+        val dy = window.progressbarHeightSum
         // when the frame is minimized, nothing needs to be drawn
         if (!window.isMinimized) {
 
-            window.windowStack.updateTransform(window, w, h)
-            didSomething = window.windowStack.draw(
-                w, h, didSomething,
+            windowStack.updateTransform(window, 0, 0, w, h)
+            didSomething = windowStack.draw(
+                0, dy, w, h, didSomething,
                 didSomething || window.didNothingCounter < 3
             )
 
@@ -311,15 +311,19 @@ abstract class StudioBase(
             didSomething = true
         }
 
-        synchronized(progressBars) {
-            if (progressBars.isNotEmpty()) {
-                val ph = style.getSize("progressbarHeight", 8)
-                val time = Engine.gameTime
-                for (index in progressBars.indices) {
-                    val bar = progressBars[index]
-                    bar.draw(0, ph * index, w, ph, time)
+        val progressBars = window.progressBars
+        if (progressBars.isNotEmpty()) {
+            val ph = window.progressbarHeight
+            val time = Engine.gameTime
+            for (index in progressBars.indices) {
+                val bar = progressBars[index]
+                bar.draw(0, ph * index, w, ph, time)
+            }
+            val changed = progressBars.removeIf { it.canBeRemoved(time) }
+            if (changed) {
+                for (window1 in window.windowStack) {
+                    if (window1.isFullscreen) window1.panel.invalidateLayout()
                 }
-                progressBars.removeIf { it.canBeRemoved(time) }
             }
         }
 
@@ -346,8 +350,6 @@ abstract class StudioBase(
     private var isFirstFrame = true
 
     fun check() = GFX.check()
-
-    val progressBars = ArrayList<ProgressBar>()
 
     open fun clearAll() {
         CacheSection.clearAll()
@@ -388,15 +390,6 @@ abstract class StudioBase(
 
         fun warn(msg: String) {
             LOGGER.warn(msg)
-        }
-
-        fun addProgressBar(unit: String, total: Double): ProgressBar {
-            val bar = ProgressBar(unit, total)
-            val instance = instance ?: return bar
-            synchronized(instance.progressBars) {
-                instance.progressBars.add(bar)
-            }
-            return bar
         }
 
         private val eventTasks: Queue<() -> Unit> = ConcurrentLinkedQueue()

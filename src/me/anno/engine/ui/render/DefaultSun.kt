@@ -17,7 +17,7 @@ object DefaultSun {
             .rotateX(-1.0)
             .rotateY(-0.5)
         defaultSunEntity.validateTransform()
-        defaultSun.color.set(5f)
+        defaultSun.color.set(20f)
     }
 
 }

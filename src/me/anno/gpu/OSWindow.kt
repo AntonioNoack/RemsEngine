@@ -1,9 +1,12 @@
 package me.anno.gpu
 
 import me.anno.Engine
+import me.anno.config.DefaultConfig
 import me.anno.input.Input
 import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.Window
+import me.anno.ui.base.progress.ProgressBar
 import me.anno.ui.utils.WindowStack
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
@@ -262,6 +265,9 @@ open class OSWindow(var title: String) {
     val windowTransparency: Float
         get() = GLFW.glfwGetWindowOpacity(pointer)
 
+    val isFramebufferTransparent: Boolean
+        get() = GLFW.glfwGetWindowAttrib(pointer, GLFW.GLFW_TRANSPARENT_FRAMEBUFFER) != GLFW.GLFW_FALSE
+
     fun requestExit() {
         GLFW.glfwSetWindowShouldClose(pointer, true)
     }
@@ -275,8 +281,30 @@ open class OSWindow(var title: String) {
         return pointer != 0L
     }
 
-    val isFramebufferTransparent: Boolean
-        get() = GLFW.glfwGetWindowAttrib(pointer, GLFW.GLFW_TRANSPARENT_FRAMEBUFFER) != GLFW.GLFW_FALSE
+    val progressBars = ArrayList<ProgressBar>()
 
+    fun addProgressBar(unit: String, total: Double): ProgressBar {
+        return addProgressBar(ProgressBar(unit, total))
+    }
+
+    fun addProgressBar(bar: ProgressBar): ProgressBar {
+        addEvent {
+            progressBars.add(bar)
+            for (window in windowStack) {
+                if (window.isFullscreen) {
+                    window.panel.invalidateLayout()
+                }
+            }
+        }
+        return bar
+    }
+
+    val progressbarHeight
+        get() = DefaultConfig.style.getSize("progressbarHeight", 8)
+
+    val progressbarHeightSum
+        get() =
+            if (progressBars.isEmpty()) 0
+            else progressbarHeight * progressBars.size
 
 }

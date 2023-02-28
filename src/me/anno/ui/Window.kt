@@ -91,12 +91,11 @@ open class Window(
         panel.window = this
     }
 
-    private fun calculateFullLayout(w: Int, h: Int) {
-        val window = this
+    private fun calculateFullLayout(dx: Int, dy: Int, windowW: Int, windowH: Int) {
         val t0 = System.nanoTime()
-        panel.calculateSize(min(w - window.x, w), min(h - window.y, h))
+        panel.calculateSize(min(windowW - (x + dx), windowW - dx), min(windowH - (y + dy), windowH - dy))
         val t1 = System.nanoTime()
-        panel.setPosSize(window.x, window.y, w, h)
+        panel.setPosSize(x + dx, y + dy, windowW, windowH)
         val t2 = System.nanoTime()
         val dt1 = (t1 - t0) * 1e-9f
         val dt2 = (t2 - t1) * 1e-9f
@@ -118,7 +117,8 @@ open class Window(
     }
 
     fun draw(
-        w: Int, h: Int,
+        dx: Int, dy: Int,
+        windowW: Int, windowH: Int,
         sparseRedraw: Boolean,
         didSomething0: Boolean,
         forceRedraw: Boolean
@@ -151,7 +151,7 @@ open class Window(
         panel.forAllVisiblePanels { p -> p.onUpdate() }
         panel.forAllVisiblePanels { p -> p.tick() }
 
-        validateLayouts(w, h, panel)
+        validateLayouts(dx, dy, windowW, windowH, panel)
 
         if (panel.w > 0 && panel.h > 0) {
 
@@ -163,7 +163,7 @@ open class Window(
                 }
                 didSomething || forceRedraw -> {
                     needsRedraw.clear()
-                    fullRedraw(w, h, panel)
+                    fullRedraw(dx, dy, windowW, windowH, panel)
                     didSomething = true
                 }
                 // else no buffer needs to be updated
@@ -172,12 +172,12 @@ open class Window(
         return didSomething
     }
 
-    fun validateLayouts(w: Int, h: Int, panel: Panel) {
+    fun validateLayouts(dx: Int, dy: Int, windowW: Int, windowH: Int, panel: Panel) {
         val needsLayout = needsLayout
-        if (this.w != w || this.h != h || panel in needsLayout || needsLayout.isFull()) {
-            this.w = w
-            this.h = h
-            calculateFullLayout(w, h)
+        if (this.w != windowW || this.h != windowH || panel in needsLayout || needsLayout.isFull()) {
+            this.w = windowW
+            this.h = windowH
+            calculateFullLayout(dx, dy, windowW, windowH)
             needsRedraw.add(panel)
             needsLayout.clear()
         } else {
@@ -197,6 +197,7 @@ open class Window(
     }
 
     private fun fullRedraw(
+        x: Int, y: Int,
         w: Int, h: Int,
         panel0: Panel
     ) {
@@ -205,11 +206,11 @@ open class Window(
         GFX.loadTexturesSync.push(false)
 
         if (Input.needsLayoutUpdate(GFX.activeWindow!!)) {
-            calculateFullLayout(w, h)
+            calculateFullLayout(x, y, w, h)
         }
 
-        val w2 = min(panel0.w, w)
-        val h2 = min(panel0.h, h)
+        val w2 = min(panel0.w, w - x)
+        val h2 = min(panel0.h, h - y)
         useFrame(panel0.x, panel0.y, w2, h2, Renderer.colorRenderer) {
             panel0.canBeSeen = true
             panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)

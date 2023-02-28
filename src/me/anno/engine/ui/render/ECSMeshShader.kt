@@ -117,7 +117,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val normalTanBitanCalculation = "" +
                 "finalTangent   = normalize(tangent.xyz);\n" + // for debugging
-                "finalNormal    = normalize(normal);\n" +
+                "finalNormal    = normalize(gl_FrontFacing ? normal : -normal);\n" +
                 "finalBitangent = cross(finalNormal, finalTangent) * tangent.w;\n" +
                 "if(dot(finalBitangent,finalBitangent) > 0.0) finalBitangent = normalize(finalBitangent);\n"
 
