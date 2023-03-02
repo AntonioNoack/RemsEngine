@@ -9,6 +9,7 @@ import me.anno.maths.Maths
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.structures.tuples.LongPair
 
 class InstancedStackPSR(capacity: Int = 64) :
     KeyPairMap<Mesh, Material, InstancedStackPSR.Data>(capacity), DrawableStack {
@@ -28,19 +29,20 @@ class InstancedStackPSR(capacity: Int = 64) :
         stage: PipelineStage,
         needsLightUpdateForEveryMesh: Boolean,
         time: Long, depth: Boolean
-    ): Long {
-        var sum = 0L
+    ): LongPair {
+        var drawnPrimitives = 0L
+        var drawCalls = 0L
         GFXState.limitedTransform.use(true) {
             for ((mesh, list) in values) {
                 for ((material, values) in list) {
                     if (values.size > 0) {
-                        draw(stage, mesh, material, pipeline, values, depth)
-                        sum += mesh.numPrimitives * values.size.toLong()
+                        drawCalls += draw(stage, mesh, material, pipeline, values, depth)
+                        drawnPrimitives += mesh.numPrimitives * values.size.toLong()
                     }
                 }
             }
         }
-        return sum
+        return LongPair(drawnPrimitives, drawCalls)
     }
 
     fun draw(
@@ -50,7 +52,7 @@ class InstancedStackPSR(capacity: Int = 64) :
         pipeline: Pipeline,
         instances: Data,
         depth: Boolean
-    ) {
+    ): Long {
 
         val aabb = PipelineStage.tmpAABBd
 
@@ -88,6 +90,7 @@ class InstancedStackPSR(capacity: Int = 64) :
         val worldScale = RenderState.worldScale
 
         var baseIndex = 0
+        var drawCalls = 0L
         for (i in 0 until instances.clickIds.size / 2) {
 
             val totalEndIndex = if (i * 2 + 2 < instances.clickIds.size)
@@ -138,9 +141,11 @@ class InstancedStackPSR(capacity: Int = 64) :
 
                 mesh.drawInstanced(shader, 0, buffer)
                 baseIndex = endIndex
+                drawCalls++
 
             }
         }
+        return drawCalls
     }
 
     override fun clear() {

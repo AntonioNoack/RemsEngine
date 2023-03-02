@@ -8,6 +8,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.structures.tuples.LongPair
 
 class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, InstancedStackStatic.Data>(capacity), DrawableStack {
 
@@ -31,8 +32,9 @@ class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, Ins
         stage: PipelineStage,
         needsLightUpdateForEveryMesh: Boolean,
         time: Long, depth: Boolean
-    ): Long {
-        var sum = 0L
+    ): LongPair {
+        var drawnPrimitives = 0L
+        var drawCalls = 0L
         // draw instanced meshes
         GFXState.instanced.use(true) {
             for ((mesh, list) in values) {
@@ -76,13 +78,14 @@ class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, Ins
 
                         shader.v4f("clickId", stack.clickIds[i])
                         mesh.drawInstanced(shader, 0, stack.data[i])
-                        sum += mesh.numPrimitives * stack.data[i].elementCount.toLong()
+                        drawnPrimitives += mesh.numPrimitives * stack.data[i].elementCount.toLong()
+                        drawCalls++
 
                     }
                 }
             }
         }
-        return sum
+        return LongPair(drawnPrimitives, drawCalls)
     }
 
     override fun clear() {

@@ -1,5 +1,7 @@
 package me.anno.gpu.pipeline
 
+import me.anno.utils.structures.tuples.LongPair
+
 interface DrawableStack {
 
     /**
@@ -11,7 +13,7 @@ interface DrawableStack {
         needsLightUpdateForEveryMesh: Boolean,
         time: Long,
         depth: Boolean
-    ): Long
+    ): LongPair
 
     fun clear()
 

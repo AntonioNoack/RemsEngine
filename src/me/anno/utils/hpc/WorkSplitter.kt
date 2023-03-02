@@ -2,6 +2,7 @@ package me.anno.utils.hpc
 
 import me.anno.maths.Maths
 import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.structures.tuples.IntPair
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -17,8 +18,6 @@ import kotlin.math.sqrt
  * HeavyProcessing for testing/debugging parallel tasks
  * */
 abstract class WorkSplitter(val numThreads: Int) {
-
-    data class IntPair(val a: Int, val b: Int)
 
     fun interface Task1d {
         fun work(x0: Int, x1: Int)

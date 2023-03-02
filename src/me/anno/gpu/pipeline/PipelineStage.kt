@@ -54,7 +54,8 @@ class PipelineStage(
 
     companion object {
 
-        var drawnTriangles = 0L
+        var drawnPrimitives = 0L
+        var drawCalls = 0L
 
         val lastMaterial = HashMap<Shader, Material>(64)
         private val tmp4x3 = Matrix4x3f()
@@ -412,7 +413,8 @@ class PipelineStage(
         var lastEntity: Entity? = null
         var lastMesh: Mesh? = null
         var lastShader: Shader? = null
-        var drawnTriangles = 0L
+        var drawnPrimitives = 0L
+        var drawCalls = 0L
 
         val time = Engine.gameTime
 
@@ -508,7 +510,8 @@ class PipelineStage(
                     mesh.draw(shader, materialIndex)
                 }
 
-                drawnTriangles += mesh.numPrimitives
+                drawnPrimitives += mesh.numPrimitives
+                drawCalls++
 
             }
         }
@@ -517,12 +520,15 @@ class PipelineStage(
 
         // instanced rendering of all kinds
         for (inst in instances) {
-            drawnTriangles += inst.draw(pipeline, this, needsLightUpdateForEveryMesh, time, false)
+            val (dt, dc) = inst.draw(pipeline, this, needsLightUpdateForEveryMesh, time, false)
+            drawnPrimitives += dt
+            drawCalls += dc
         }
 
         lastMaterial.clear()
 
-        Companion.drawnTriangles += drawnTriangles
+        Companion.drawnPrimitives += drawnPrimitives
+        Companion.drawCalls += drawCalls
 
     }
 
@@ -576,7 +582,8 @@ class PipelineStage(
         var lastEntity: Entity? = null
         var lastMesh: Mesh? = null
 
-        var drawnTriangles = 0L
+        var drawnPrimitives = 0L
+        var drawCalls = 0L
         val time = Engine.gameTime
 
         val shader = defaultShader.value
@@ -622,7 +629,9 @@ class PipelineStage(
             } else {
                 mesh.drawDepth(shader)
             }
-            drawnTriangles += mesh.numPrimitives
+
+            drawnPrimitives += mesh.numPrimitives
+            drawCalls++
 
         }
 
@@ -630,12 +639,15 @@ class PipelineStage(
 
         // draw instanced meshes
         for (inst in instances) {
-            drawnTriangles += inst.draw(pipeline, this, false, time, true)
+            val (dt, dc) = inst.draw(pipeline, this, false, time, true)
+            drawnPrimitives += dt
+            drawCalls += dc
         }
 
         GFX.check()
 
-        Companion.drawnTriangles += drawnTriangles
+        Companion.drawnPrimitives += drawnPrimitives
+        Companion.drawCalls += drawCalls
 
     }
 

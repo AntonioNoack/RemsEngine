@@ -8,6 +8,7 @@ import me.anno.gpu.GFXState
 import me.anno.maths.Maths
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.structures.tuples.LongPair
 import org.joml.Matrix4x3f
 
 class InstancedStackI32(capacity: Int = 512) :
@@ -33,19 +34,20 @@ class InstancedStackI32(capacity: Int = 512) :
         stage: PipelineStage,
         needsLightUpdateForEveryMesh: Boolean,
         time: Long, depth: Boolean
-    ): Long {
-        var sum = 0L
+    ): LongPair {
+        var drawnPrimitives = 0L
+        var drawCalls = 0L
         GFXState.limitedTransform.use(true) {
             for ((mesh, list) in values) {
                 for ((material, values) in list) {
                     if (values.size > 0) {
-                        draw(stage, mesh, material, pipeline, values, depth)
-                        sum += mesh.numPrimitives * values.size.toLong()
+                        drawCalls += draw(stage, mesh, material, pipeline, values, depth)
+                        drawnPrimitives += mesh.numPrimitives * values.size.toLong()
                     }
                 }
             }
         }
-        return sum
+        return LongPair(drawnPrimitives, drawCalls)
     }
 
     fun draw(
@@ -55,7 +57,7 @@ class InstancedStackI32(capacity: Int = 512) :
         pipeline: Pipeline,
         instances: Data,
         depth: Boolean
-    ) {
+    ): Long {
 
         val aabb = PipelineStage.tmpAABBd
 
@@ -94,6 +96,7 @@ class InstancedStackI32(capacity: Int = 512) :
 
         var baseIndex = 0
         val batchSize = buffer.vertexCount
+        var drawCalls = 0L
         for (i in 0 until instances.clickIds.size / 2) {
 
             val totalEndIndex = if (i * 2 + 2 < instances.clickIds.size)
@@ -122,10 +125,12 @@ class InstancedStackI32(capacity: Int = 512) :
                 }
                 // slightly optimized over PSR ^^, ~ 8-fold throughput
                 mesh.drawInstanced(shader, 0, buffer)
+                drawCalls++
                 baseIndex = endIndex
 
             }
         }
+        return drawCalls
     }
 
     override fun clear() {

@@ -14,6 +14,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.maths.Maths
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.maps.KeyTripleMap
+import me.anno.utils.structures.tuples.LongPair
 
 /**
  * container for instanced transforms and their click ids
@@ -55,7 +56,7 @@ open class InstancedStack {
             mesh: Mesh, material: Material, materialIndex: Int,
             pipeline: Pipeline, stage: PipelineStage, needsLightUpdateForEveryMesh: Boolean,
             time: Long, instances: InstancedStack, depth: Boolean
-        ) {
+        ): Int {
 
             val receiveShadows = true
             val aabb = PipelineStage.tmpAABBd
@@ -66,6 +67,7 @@ open class InstancedStack {
             val useAnimations = instances is InstancedAnimStack && instances.animTexture != null
 
             val motionVectors = BaseShader.motionVectors
+            var drawCalls = 0
             GFXState.animated.use(useAnimations) {
 
                 // val t0 = System.nanoTime()
@@ -217,6 +219,7 @@ open class InstancedStack {
                     st45 += t5 - t4
 
                     mesh.drawInstanced(shader, materialIndex, buffer)
+                    drawCalls++
 
                     val t6 = System.nanoTime()
                     st56 += t6 - t5
@@ -235,6 +238,7 @@ open class InstancedStack {
                 )*/
 
             }
+            return drawCalls
         }
 
     }
@@ -246,26 +250,27 @@ open class InstancedStack {
             needsLightUpdateForEveryMesh: Boolean,
             time: Long,
             depth: Boolean
-        ): Long {
-            var sum = 0L
+        ): LongPair {
+            var drawnPrimitives = 0L
+            var drawCalls = 0L
             // draw instanced meshes
             GFXState.instanced.use(true) {
                 for ((mesh, list) in values) {
                     for ((material, values) in list) {
                         if (values.isNotEmpty()) {
                             GFXState.cullMode.use(if (material.isDoubleSided) CullMode.BOTH else stage.cullMode) {
-                                Companion.draw(
+                                drawCalls += Companion.draw(
                                     mesh, material, 0,
                                     pipeline, stage, needsLightUpdateForEveryMesh,
                                     time, values, depth
                                 )
                             }
-                            sum += mesh.numPrimitives * values.size.toLong()
+                            drawnPrimitives += mesh.numPrimitives * values.size.toLong()
                         }
                     }
                 }
             }
-            return sum
+            return LongPair(drawnPrimitives, drawCalls)
         }
 
         override fun clear() {
@@ -286,24 +291,25 @@ open class InstancedStack {
             needsLightUpdateForEveryMesh: Boolean,
             time: Long,
             depth: Boolean
-        ): Long {
-            var sum = 0L
+        ): LongPair {
+            var drawnPrimitives = 0L
+            var drawCalls = 0L
             // draw instanced meshes
             GFXState.instanced.use(true) {
                 for ((mesh, list) in values) {
                     for ((material, materialIndex, values) in list) {
                         if (values.isNotEmpty()) {
-                            Companion.draw(
+                            drawCalls += Companion.draw(
                                 mesh, material, materialIndex,
                                 pipeline, stage, needsLightUpdateForEveryMesh,
                                 time, values, depth
                             )
-                            sum += mesh.numPrimitives * values.size.toLong()
+                            drawnPrimitives += mesh.numPrimitives * values.size.toLong()
                         }
                     }
                 }
             }
-            return sum
+            return LongPair(drawnPrimitives, drawCalls)
         }
 
         override fun clear() {

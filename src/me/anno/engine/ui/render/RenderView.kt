@@ -240,7 +240,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val count0 = PipelineStage.drawnTriangles
+        val drawnPrimitives0 = PipelineStage.drawnPrimitives
+        var drawCalls0 = PipelineStage.drawCalls
 
         clock.start()
 
@@ -429,13 +430,12 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         if (playMode == PlayMode.EDITING) {
             pushBetterBlending(true)
-            val count1 = PipelineStage.drawnTriangles
-            val deltaCount = count1 - count0
+            val drawnPrimitives = PipelineStage.drawnPrimitives - drawnPrimitives0
+            val drawCalls = PipelineStage.drawCalls - drawCalls0
             drawSimpleTextCharByChar(
                 x + DrawTexts.monospaceFont.sizeInt / 4,
-                y + h - 2 - DrawTexts.monospaceFont.sizeInt,
-                2,
-                deltaCount.toString(),
+                y + h - 1 - DrawTexts.monospaceFont.sizeInt,
+                0, "$drawnPrimitives tris, $drawCalls draw calls",
                 FrameTimings.textColor,
                 FrameTimings.backgroundColor and 0xffffff
             )
