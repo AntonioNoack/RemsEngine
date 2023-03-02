@@ -10,7 +10,7 @@ import java.io.InputStream
 
 /**
  * a file, which is inside another file,
- * e.g. inside a zip file, or inside a mesh
+ * e.g., inside a zip file, or inside a mesh
  * */
 open class InnerFolder(
     absolutePath: String,
@@ -23,6 +23,7 @@ open class InnerFolder(
     constructor(parent: InnerFolder, name: String) :
             this(appendPath(parent.absolutePath, name), appendPath(parent.relativePath, name), parent)
 
+    var lookup: Map<String, InnerFile>? = null
     val children = HashMap<String, InnerFile>()
     val childrenList = ArrayList<InnerFile>()
 
@@ -67,7 +68,7 @@ open class InnerFolder(
     }
 
     fun getOrPut(name: String, create: () -> InnerFile): InnerFile {
-        return synchronized(children){
+        return synchronized(children) {
             children.getOrPut(name) {
                 val child = create()
                 childrenList.add(child)

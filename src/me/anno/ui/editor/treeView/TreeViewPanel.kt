@@ -158,13 +158,15 @@ class TreeViewPanel<V>(
                 // todo selecting multiple isn't working yet :/
                 val inFocusByParent = siblings.count { it is TreeViewPanel<*> && it.isAnyChildInFocus }
                 println(
-                    "click -> ${siblings.size}, ${siblings.count { it is TreeViewPanel<*> }}, $inFocusByParent, " +
+                    "[TVP] click -> ${siblings.size}, ${siblings.count { it is TreeViewPanel<*> }}, $inFocusByParent, " +
                             "${Input.isShiftDown}, ${isMouseOnSymbol(x)}"
                 )
                 if (Input.isShiftDown && inFocusByParent < 2) {
                     toggleCollapsed(element)
+                    uiParent?.invalidateLayout()
                 } else if (isMouseOnSymbol(x)) {
                     toggleCollapsed(element)
+                    uiParent?.invalidateLayout()
                 } else {
                     val elements = siblings.mapNotNull {
                         if (it == this) element

@@ -106,7 +106,17 @@ class InnerZipFile(
                         createEntryV2(file, entry, zis, getStream, registry)
                     }
                     zis.close()
-                    if (hasReadEntry) callback(file, null) else {
+                    if (hasReadEntry) {
+                        // create fast lookup to find missing files,
+                        // e.g., inside synty store fbx files
+                        val lookup = HashMap<String, InnerFile>(registry.size)
+                        file.lookup = lookup
+                        for ((_, value) in registry) {
+                            lookup[value.name] = value
+                            if (value is InnerFolder) value.lookup = lookup
+                        }
+                        callback(file, null)
+                    } else {
                         callback(null, IOException("Zip was empty"))
                     }
                 } else callback(null, exc)

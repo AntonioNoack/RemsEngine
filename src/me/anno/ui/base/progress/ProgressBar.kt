@@ -8,55 +8,47 @@ import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mixARGB
 import me.anno.utils.Color.black
 
-open class ProgressBar(val unit: String, var total: Double) {
+open class ProgressBar(
+    val name: String,
+    val unit: String,
+    var total: Double
+) {
 
     var progress = 0.0
+        set(value) {
+            if (field != value) {
+                lastUpdate = Engine.nanoTime
+                field = if (finishTime == 0L && value >= total) {
+                    finishTime = lastUpdate
+                    total
+                } else value
+            }
+        }
 
     private var finishTime = 0L
-    private var cancelTime = 0L
-    private var lastUpdate = Engine.gameTime
+    private var lastUpdate = Engine.nanoTime
 
     private var lastDrawnUpdate = 0.0
-    private var lastDraw = Engine.gameTime
+    private var lastDraw = Engine.nanoTime
 
-    val isCancelled get() = cancelTime != 0L
+    var isCancelled = false
 
-    fun add(deltaProgress: Int) = add(deltaProgress.toDouble())
-    fun add(deltaProgress: Long) = add(deltaProgress.toDouble())
-    fun add(deltaProgress: Float) = add(deltaProgress.toDouble())
-
-    fun add(deltaProgress: Double) {
-        progress += deltaProgress
-        lastUpdate = Engine.gameTime
-        checkFinish()
+    fun finish(done: Boolean = !isCancelled) {
+        if (done) progress = total
+        if (finishTime == 0L) finishTime = Engine.nanoTime
     }
 
-    fun update(newProgress: Double) {
-        progress = newProgress
-        lastUpdate = Engine.gameTime
-        checkFinish()
-    }
-
-    fun checkFinish() {
-        if (progress >= total) {
-            finishTime = Engine.gameTime
-            progress = total
-        }
-    }
-
-    fun finish() {
-        progress = total
-        if (finishTime == 0L) finishTime = Engine.gameTime
-    }
-
-    fun cancel() {
-        if (cancelTime == 0L) cancelTime = Engine.gameTime
+    /**
+     * marks the progress as cancelled;
+     * if you skip work by detecting isCancelled, call finish anyway, so the progress bar can be removed from the UI!
+     * */
+    fun cancel(isFinished: Boolean) {
+        isCancelled = true
+        if (isFinished) finish()
     }
 
     fun canBeRemoved(time: Long): Boolean {
-        return time - lastUpdate > timeout ||
-                (finishTime != 0L && time - finishTime > endShowDuration) ||
-                (cancelTime != 0L && time - cancelTime > endShowDuration)
+        return time - lastUpdate > timeout || (finishTime != 0L && time - finishTime > endShowDuration)
     }
 
     /**
@@ -68,8 +60,8 @@ open class ProgressBar(val unit: String, var total: Double) {
     open val backgroundColor = black
     open val color
         get() = when {
+            isCancelled -> 0xff7777 or black
             finishTime > 0L -> 0x77ff77 or black
-            cancelTime > 0L -> 0xff7777 or black
             else -> 0x999999 or black
         }
 
@@ -90,12 +82,7 @@ open class ProgressBar(val unit: String, var total: Double) {
         drawRect(x + wxi, y, 1, h, mixARGB(backgroundColor, color, fract(wx).toFloat()))
     }
 
-    companion object {
-        @JvmStatic
-        private var endShowDuration = 3_000_000_000
-
-        @JvmStatic
-        private var timeout = 10_000_000_000
-    }
+    var timeout = Long.MAX_VALUE
+    var endShowDuration = 3_000_000_000
 
 }

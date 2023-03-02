@@ -19,12 +19,14 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.Panel
 import me.anno.ui.Window
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.Sleep
 import me.anno.utils.files.FileExplorerSelectWrapper
@@ -506,6 +508,18 @@ object Input {
                     } else {
                         windowStack.requestFocus(mouseTarget, true)
                         false
+                    }
+                }
+
+                val mouseYi = mouseY.toInt()
+                if (button2.isRight && mouseYi in 0 until window.progressbarHeightSum) {
+                    val idx = mouseYi / window.progressbarHeight
+                    val progressBar = window.progressBars.getOrNull(idx)
+                    if (progressBar != null) {
+                        Menu.ask(windowStack, NameDesc("Cancel ${progressBar.name}?")) {
+                            progressBar.cancel(false)
+                        }
+                        issuedMouseDown = true
                     }
                 }
 

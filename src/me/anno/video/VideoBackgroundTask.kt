@@ -14,51 +14,56 @@ import me.anno.video.FrameTask.Companion.missingResource
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 
-abstract class VideoBackgroundTask(val video: VideoCreator) {
+abstract class VideoBackgroundTask(val creator: VideoCreator) {
+
+    var isDone = false
+    var isCancelled = false
 
     abstract fun getMotionBlurSteps(time: Double): Int
     abstract fun getShutterPercentage(time: Double): Float
 
     private val partialFrame = Framebuffer(
-        "VideoBackgroundTask-partial", video.w, video.h, 1, 1,
+        "VideoBackgroundTask-partial", creator.w, creator.h, 1, 1,
         false, DepthBufferType.TEXTURE
     )
 
     private val averageFrame = Framebuffer(
-        "VideoBackgroundTask-sum", video.w, video.h, 1, 1,
+        "VideoBackgroundTask-sum", creator.w, creator.h, 1, 1,
         true, DepthBufferType.TEXTURE
     )
 
     private val renderingIndex = AtomicLong(0)
     private val savingIndex = AtomicLong(0)
-    private val totalFrameCount = video.totalFrameCount
-
-    var isDone = false
+    private val totalFrameCount = creator.totalFrameCount
 
     fun start() {
         if (renderingIndex.get() < totalFrameCount) {
             addNextTask()
-        } else video.close()
+        } else destroy()
     }
 
     var isDoneRenderingAndSaving = false
 
     private fun addNextTask() {
 
+        if (isCancelled || creator.wasClosed) {
+            isCancelled = true
+            destroy()
+            return
+        }
+
         if (isDoneRenderingAndSaving) {
-            video.close()
             destroy()
             isDone = true
             return
         }
-
 
         /**
          * runs on GPU thread
          * */
         val ri = renderingIndex.get()
         if (ri < totalFrameCount && ri < savingIndex.get() + 2) {
-            GFX.addGPUTask("VideoBackgroundTask", video.w, video.h, ::tryRenderingFrame)
+            GFX.addGPUTask("VideoBackgroundTask", creator.w, creator.h, ::tryRenderingFrame)
         } else {
             // waiting for saving to ffmpeg
             thread(name = "VBT/2") { addNextTask() }
@@ -67,10 +72,17 @@ abstract class VideoBackgroundTask(val video: VideoCreator) {
     }
 
     private fun tryRenderingFrame() {
+
+        if (isCancelled || creator.wasClosed) {
+            isCancelled = true
+            destroy()
+            return
+        }
+
         val frameIndex = renderingIndex.get()
-        if (renderFrame(frameIndex / video.fps)) {
+        if (renderFrame(frameIndex / creator.fps)) {
             renderingIndex.incrementAndGet()
-            video.writeFrame(averageFrame, frameIndex) {
+            creator.writeFrame(averageFrame, frameIndex) {
                 // it was saved -> everything works well :)
                 val si = savingIndex.incrementAndGet()
                 if (si == totalFrameCount) {
@@ -98,7 +110,7 @@ abstract class VideoBackgroundTask(val video: VideoCreator) {
         val shutterPercentage = getShutterPercentage(time)
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
-            useFrame(0, 0, video.w, video.h, averageFrame, renderer) {
+            useFrame(0, 0, creator.w, creator.h, averageFrame, renderer) {
                 try {
                     renderScene(time, true, renderer)
                     if (!GFX.isFinalRendering) throw RuntimeException()
@@ -115,11 +127,11 @@ abstract class VideoBackgroundTask(val video: VideoCreator) {
 
                 var i = 0
                 while (i++ < motionBlurSteps && !needsMoreSources) {
-                    FBStack.reset(video.w, video.h)
+                    FBStack.reset(creator.w, creator.h)
                     useFrame(partialFrame, renderer) {
                         try {
                             renderScene(
-                                time + (i - motionBlurSteps / 2f) * shutterPercentage / (video.fps * motionBlurSteps),
+                                time + (i - motionBlurSteps / 2f) * shutterPercentage / (creator.fps * motionBlurSteps),
                                 true, renderer
                             )
                             if (!GFX.isFinalRendering) throw RuntimeException()
@@ -142,7 +154,6 @@ abstract class VideoBackgroundTask(val video: VideoCreator) {
             }
         }
 
-
         GFX.isFinalRendering = false
 
         if (needsMoreSources) return false
@@ -156,7 +167,8 @@ abstract class VideoBackgroundTask(val video: VideoCreator) {
     abstract fun renderScene(time: Double, flipY: Boolean, renderer: Renderer)
 
     private fun destroy() {
-        GFX.addGPUTask("VideoBackgroundTask.destroy()", video.w, video.h) {
+        creator.close()
+        GFX.addGPUTask("VideoBackgroundTask.destroy()", creator.w, creator.h) {
             partialFrame.destroy()
             averageFrame.destroy()
         }

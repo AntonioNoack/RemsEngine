@@ -5,7 +5,6 @@ import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
-import me.anno.ecs.components.camera.effects.DepthOfFieldEffect
 import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
 import me.anno.ecs.components.mesh.Material
@@ -416,7 +415,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         }
 
         if (world is Entity && playMode != PlayMode.EDITING) {
-            world.getComponentsInChildren(CanvasComponent::class, false) { comp ->
+            world.firstComponentInChildren(CanvasComponent::class, false) { comp ->
                 if (comp.space == CanvasComponent.Space.CAMERA_SPACE) {
                     comp.width = x1 - x0
                     comp.height = y1 - y0

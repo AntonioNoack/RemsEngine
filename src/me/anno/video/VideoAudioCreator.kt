@@ -20,8 +20,10 @@ open class VideoAudioCreator(
         val videoTask = videoBackgroundTask
         videoTask.start()
         // wait for the task to finish
-        waitUntil(true) { videoTask.isDone }
-        if (audioCreator.hasStreams()) {
+        waitUntil(true) { videoTask.isDone || videoTask.isCancelled }
+        if (isCancelled) {
+            onFinished()
+        } else if (audioCreator.hasStreams()) {
             audioCreator.createOrAppendAudio(output, videoCreator.output, true)
         } else {
             if (output != videoCreator.output) {
@@ -29,7 +31,7 @@ open class VideoAudioCreator(
                 videoCreator.output.renameTo(output)
             }
             LOGGER.info("No audio found, saved result to $output.")
-            audioCreator.onFinished()
+            onFinished()
         }
     }
 
@@ -37,6 +39,13 @@ open class VideoAudioCreator(
         get() = audioCreator.onFinished
         set(value) {
             audioCreator.onFinished = value
+        }
+
+    var isCancelled
+        get() = audioCreator.isCancelled || videoBackgroundTask.isCancelled
+        set(value) {
+            audioCreator.isCancelled = value
+            videoBackgroundTask.isCancelled = value
         }
 
     companion object {

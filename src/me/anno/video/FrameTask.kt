@@ -31,6 +31,8 @@ abstract class FrameTask(
     private val dst: FileReference
 ) {
 
+    var isCancelled = false
+
     abstract fun renderScene(
         time: Double,
         flipY: Boolean, renderer: Renderer
@@ -53,6 +55,10 @@ abstract class FrameTask(
     }
 
     private fun start1(callback: () -> Unit) {
+        if (isCancelled) {
+            callback()
+            return
+        }
         if (renderFrame(time)) {
             writeFrame(averageFrame)
             destroy()
@@ -112,7 +118,7 @@ abstract class FrameTask(
             useFrame(0, 0, width, height, averageFrame) {
                 try {
                     renderScene(time, true, renderer)
-                    if (!GFX.isFinalRendering) throw RuntimeException()
+                    if (!GFX.isFinalRendering) throw IllegalStateException()
                 } catch (e: MissingFrameException) {
                     // e.printStackTrace()
                     missingResource = e.message ?: ""
@@ -134,7 +140,7 @@ abstract class FrameTask(
                                 true,
                                 renderer
                             )
-                            if (!GFX.isFinalRendering) throw RuntimeException()
+                            if (!GFX.isFinalRendering) throw IllegalStateException()
                         } catch (e: MissingFrameException) {
                             // e.printStackTrace()
                             missingResource = e.message ?: ""

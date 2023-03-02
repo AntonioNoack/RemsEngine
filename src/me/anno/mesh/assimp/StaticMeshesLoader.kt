@@ -182,6 +182,7 @@ open class StaticMeshesLoader {
         texturesDir: FileReference,
         loadedTextures: List<FileReference>,
         original: FileReference,
+        missingFilesLookup: Map<String, FileReference>,
     ): Array<Prefab> {
         val numMaterials = aiScene.mNumMaterials()
         val aiMaterials = aiScene.mMaterials()
@@ -192,7 +193,7 @@ open class StaticMeshesLoader {
         }
         return Array(numMaterials) {
             val aiMaterial = AIMaterial.create(aiMaterials!![it])
-            processMaterialPrefab(aiScene, aiMaterial, loadedTextures, texturesDir, gltfMaterials)
+            processMaterialPrefab(aiScene, aiMaterial, loadedTextures, texturesDir, gltfMaterials, missingFilesLookup)
         }
     }
 
@@ -234,7 +235,8 @@ open class StaticMeshesLoader {
         aiMaterial: AIMaterial,
         loadedTextures: List<FileReference>,
         texturesDir: FileReference,
-        extraDataMap: Map<String, GLTFMaterialExtractor.PBRMaterialData>?
+        extraDataMap: Map<String, GLTFMaterialExtractor.PBRMaterialData>?,
+        missingFilesLookup: Map<String, FileReference>,
     ): Prefab {
 
         val prefab = Prefab("Material")
@@ -248,7 +250,7 @@ open class StaticMeshesLoader {
         val name = nameStr.dataString()
         prefab.setProperty("name", name)
 
-        val diffuseMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir)
+        val diffuseMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir, missingFilesLookup)
         if (diffuseMap != InvalidRef) prefab.setProperty("diffuseMap", diffuseMap)
         else {// I think the else-if is the correct thing here; the storm-trooper is too dark otherwise
 
@@ -276,17 +278,18 @@ open class StaticMeshesLoader {
             prefab.setProperty("emissiveBase", Vector3f(emissive.x, emissive.y, emissive.z))
         }
 
-        val emissiveMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE, texturesDir)
+        val emissiveMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE, texturesDir, missingFilesLookup)
         if (emissiveMap != InvalidRef) prefab.setProperty("emissiveMap", emissiveMap)
 
         // normal
-        val normalMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS, texturesDir)
+        val normalMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS, texturesDir, missingFilesLookup)
         if (normalMap != InvalidRef) prefab.setProperty("normalMap", normalMap)
 
         // metallic / roughness
         val metallicRoughness = getPath(
             aiScene, aiMaterial, loadedTextures,
-            AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, texturesDir
+            AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, texturesDir,
+            missingFilesLookup
         )
 
         if (metallicRoughness != InvalidRef) {
@@ -319,8 +322,8 @@ open class StaticMeshesLoader {
         }
 
         // other stuff
-        val displacementMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DISPLACEMENT, texturesDir)
-        val occlusionMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP, texturesDir)
+        val displacementMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DISPLACEMENT, texturesDir, missingFilesLookup)
+        val occlusionMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP, texturesDir, missingFilesLookup)
         if (displacementMap != InvalidRef) prefab.setProperty("displacementMap", displacementMap)
         if (occlusionMap != InvalidRef) prefab.setProperty("occlusionMap", occlusionMap)
 
@@ -328,6 +331,7 @@ open class StaticMeshesLoader {
     }
 
     private val pMax = IntArray(1)
+
     init {
         pMax[0] = 1
     }
@@ -343,7 +347,8 @@ open class StaticMeshesLoader {
         aiMaterial: AIMaterial,
         loadedTextures: List<FileReference>,
         type: Int,
-        parentFolder: FileReference
+        parentFolder: FileReference,
+        missingFilesLookup: Map<String, FileReference>,
     ): FileReference {
         val path = AIString.calloc()
         aiGetMaterialTexture(
@@ -368,7 +373,7 @@ open class StaticMeshesLoader {
             ?: loadedTextures.firstOrNull { it.name.equals(maybePath.name, true) }
             ?: loadedTextures.firstOrNull { it.nameWithoutExtension == maybePath.nameWithoutExtension }
             ?: loadedTextures.firstOrNull { it.nameWithoutExtension.equals(maybePath.nameWithoutExtension, true) }
-            ?: maybePath
+            ?: missingFilesLookup[maybePath.name] ?: maybePath
     }
 
     private fun loadTexture(parentFolder: InnerFolder, texture: AITexture, index: Int): InnerFile {

@@ -18,12 +18,13 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 abstract class AudioCreator(
-    private val durationSeconds: Double,
+    val durationSeconds: Double,
     val sampleRate: Int
 ) {
 
     val startTime = Engine.gameTime
     var onFinished = {}
+    var isCancelled = false
 
     abstract fun hasStreams(): Boolean
 
@@ -93,9 +94,17 @@ abstract class AudioCreator(
             // -> kill it at the end at the very least
             if (!videoCreatorOutput.delete()) videoCreatorOutput.deleteOnExit()
         }
+
         onFinished()
 
     }
+
+    // some callback while rendering audio
+    open fun onStreaming(bufferIndex: Long, streamIndex: Int) {}
+
+    val sliceDuration = playbackSliceDuration
+    val bufferSize = (sliceDuration * sampleRate).roundToInt() * 2
+    val bufferCount = ceil(durationSeconds / sliceDuration).toLong()
 
     fun createAudio(audioOutput: DataOutputStream) {
 
@@ -108,17 +117,15 @@ abstract class AudioCreator(
 
         try {
 
-
-            val sliceDuration = playbackSliceDuration
-            val bufferSize = (sliceDuration * sampleRate * 2).roundToInt()
-            val bufferCount = ceil(durationSeconds / sliceDuration).toLong()
-
             val streams = createStreams()
-
             var intBuffer: IntArray? = null
 
-            for (bufferIndex in 0 until bufferCount) {
-                for (stream in streams) {
+            loop@ for (bufferIndex in 0 until bufferCount) {
+                if (streams.isEmpty()) onStreaming(bufferIndex, -1)
+                for (si in streams.indices) {
+                    val stream = streams[si]
+                    onStreaming(bufferIndex, si)
+                    if (isCancelled) break@loop
                     stream.requestNextBuffer(bufferIndex, 0)
                 }
                 if (streams.size == 1) {

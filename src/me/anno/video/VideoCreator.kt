@@ -243,9 +243,13 @@ open class VideoCreator(
     var wasClosed = false
     open fun close() {
         wasClosed = true
-        synchronized(videoOut) {
-            videoOut.flush()
-            videoOut.close()
+        try {
+            synchronized(videoOut) {
+                videoOut.flush()
+                videoOut.close()
+            }
+        } catch (ignored: IOException) {
+
         }
         process.waitFor()
         if (output.exists) LOGGER.info("Saved video without audio to $output")

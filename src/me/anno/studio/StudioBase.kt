@@ -314,7 +314,7 @@ abstract class StudioBase(
         val progressBars = window.progressBars
         if (progressBars.isNotEmpty()) {
             val ph = window.progressbarHeight
-            val time = Engine.gameTime
+            val time = Engine.nanoTime
             for (index in progressBars.indices) {
                 val bar = progressBars[index]
                 bar.draw(0, ph * index, w, ph, time)

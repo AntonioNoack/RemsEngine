@@ -511,18 +511,18 @@ open class FileExplorer(
     }
 
     fun copyIntoCurrent(files: List<FileReference>) {
-        val progress = GFX.someWindow.addProgressBar("Bytes", files.sumOf { it.length() }.toDouble())
+        val progress = GFX.someWindow.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
         for (file in files) {
             if (progress.isCancelled) break
             val newFile = findNextFile(folder, file, 1, '-', 1)
-            newFile.writeFile(file, { progress.add(it) }, { it?.printStackTrace() })
+            newFile.writeFile(file, { progress.progress += it }, { it?.printStackTrace() })
         }
         progress.finish()
         invalidate()
     }
 
     fun createLinksIntoCurrent(files: List<FileReference>) {
-        val progress = GFX.someWindow.addProgressBar("Files", files.size.toDouble())
+        val progress = GFX.someWindow.addProgressBar("Creating Links", "Files", files.size.toDouble())
         var tmp: FileReference? = null
         loop@ for (file in files) {
             if (progress.isCancelled) break
@@ -545,7 +545,7 @@ open class FileExplorer(
                     builder.add(tmp.absolutePath)
                     builder.startAndPrint().waitFor()
                     invalidate()
-                    progress.add(1.0)
+                    progress.progress += 1.0
                 }
                 OS.isLinux || OS.isMacOS -> {
                     val newFile = findNextFile(folder, file, 1, '-', 1)
@@ -557,17 +557,17 @@ open class FileExplorer(
                     builder.add(newFile.absolutePath)
                     builder.startAndPrint()
                     invalidate()
-                    progress.add(1.0)
+                    progress.progress += 1.0
                 }
                 OS.isAndroid -> {
                     LOGGER.warn("Unsupported OS for creating links.. how would you do that?")
-                    progress.cancel()
-                    return
+                    progress.cancel(true)
+                    break@loop
                 }
                 else -> {
                     LOGGER.warn("Unknown OS, don't know how to create links")
-                    progress.cancel()
-                    return
+                    progress.cancel(true)
+                    break@loop
                 }
             }
         }

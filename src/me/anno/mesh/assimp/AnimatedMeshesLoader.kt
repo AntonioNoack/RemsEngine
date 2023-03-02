@@ -18,6 +18,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerPrefabFile
+import me.anno.io.zip.InnerZipFile
 import me.anno.mesh.assimp.AnimationLoader.getDuration
 import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
 import me.anno.mesh.assimp.AssimpTree.convert
@@ -135,6 +136,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                         val meshFileName = "$i.json"
                         val meshFile = root.createPrefabChild(meshFileName, meshPrefab)
                         val meshComp = all.add(ROOT_PATH, 'c', "MeshComponent", meshFileName)
+                        all[meshComp, "isInstanced"] = true
                         all[meshComp, "mesh"] = meshFile
                     }
                     root.createPrefabChild("Scene.json", all)
@@ -149,7 +151,17 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             val texFolder = root.createChild("textures", null) as InnerFolder
             loadTextures(aiScene, texFolder)
         } else emptyList()
-        val materialList = loadMaterialPrefabs(aiScene, resources, loadedTextures, file).toList()
+        val missingFilesLookup: Map<String, FileReference> = when {
+            file is InnerZipFile -> {
+                val parent = file.getParent() as InnerFolder
+                parent.lookup ?: emptyMap()
+            }
+            else -> {
+                // todo fill this by folder, /tex, /textures
+                emptyMap()
+            }
+        }
+        val materialList = loadMaterialPrefabs(aiScene, resources, loadedTextures, file, missingFilesLookup).toList()
         val materials = createReferences(root, "materials", materialList)
         val boneList = ArrayList<Bone>()
         val boneMap = HashMap<String, Bone>()

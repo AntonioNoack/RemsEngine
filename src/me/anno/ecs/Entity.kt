@@ -867,7 +867,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return dst
     }
 
-    fun <V : Any> getComponentsInChildren(
+    fun <V : Any> firstComponentInChildren(
         clazz: KClass<V>,
         includingDisabled: Boolean = false,
         action: (V) -> Boolean
@@ -884,7 +884,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         val children = children
         for (i in children.indices) {
             val child = children[i]
-            val v = child.getComponentsInChildren(clazz, includingDisabled, action)
+            val v = child.firstComponentInChildren(clazz, includingDisabled, action)
             if (v != null) return v
         }
         return null

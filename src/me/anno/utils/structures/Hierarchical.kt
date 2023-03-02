@@ -204,7 +204,7 @@ interface Hierarchical<V : Hierarchical<V>> {
             return parent.children.indexOf(this)
         }
 
-    fun simpleTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
+    fun simpleTraversal(processDisabled: Boolean = false, func: (V) -> Boolean): V? {
         return depthFirstTraversal(processDisabled, func)
     }
 

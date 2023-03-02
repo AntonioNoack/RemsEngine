@@ -283,8 +283,8 @@ open class OSWindow(var title: String) {
 
     val progressBars = ArrayList<ProgressBar>()
 
-    fun addProgressBar(unit: String, total: Double): ProgressBar {
-        return addProgressBar(ProgressBar(unit, total))
+    fun addProgressBar(name: String, unit: String, total: Double): ProgressBar {
+        return addProgressBar(ProgressBar(name, unit, total))
     }
 
     fun addProgressBar(bar: ProgressBar): ProgressBar {

@@ -17,19 +17,20 @@ fun main() {
         testUI {
             TextButton("Start", false, style)
                 .addLeftClickListener {
-                    val bar = GFX.someWindow.addProgressBar("Infinity", 1.0)
+                    val bar = GFX.someWindow.addProgressBar("Sample", "Infinity", 1.0)
                     thread {
                         while (!Engine.shutdown && !bar.isCancelled) {
                             bar.progress = (Engine.gameTimeF % 1f) * 0.99
                             Thread.sleep(10)
                         }
+                        bar.finish()
                         println("Finished :)")
                     }
                 }
         }
     } else {
         // test progress bar panel
-        val p = ProgressBarPanel("", 1.0, 15, style)
+        val p = ProgressBarPanel("Sample", "", 1.0, 15, style)
         val t = SpyPanel { p.progress = (Engine.gameTimeD * 5.0 / p.w) % 1.0 }
         testUI2 { listOf(t, p) }
     }
