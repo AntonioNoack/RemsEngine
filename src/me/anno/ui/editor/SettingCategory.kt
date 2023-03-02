@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
+import me.anno.ui.Keys.isClickKey
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
@@ -12,10 +13,8 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputVisibility
 import me.anno.ui.style.Style
-import me.anno.ui.Keys.isClickKey
 import kotlin.math.max
 
-// todo when the scrollbar is enabled, the size calculation is incorrect
 open class SettingCategory(
     val title: String,
     val visibilityKey: String,
@@ -47,29 +46,15 @@ open class SettingCategory(
         }
     }
 
-    val content = object : PanelListY(style) {
-        override var isVisible: Boolean
-            get() = InputVisibility[visibilityKey]
-            set(_) {}
-    }
-
-    val scrollbar: ScrollPanelY? =
-        if (withScrollbar) {
-            object : ScrollPanelY(content, Padding.Zero, style) {
-                override var isVisible: Boolean
-                    get() = InputVisibility[visibilityKey]
-                    set(_) {}
-            }
-        } else null
-
+    val content = PanelListY(style)
+    val child = if (withScrollbar) ScrollPanelY(content, Padding.Zero, style) else content
     val padding = Padding((titlePanel.font.size * .667f).toInt(), 0, 0, 0)
 
     init {
         titlePanel.parent = this
-        // titlePanel.enableHoverColor = true
         titlePanel.textColor = mixARGB(titlePanel.textColor, titlePanel.textColor and 0xffffff, 0.5f)
-        titlePanel.focusTextColor = -1//titlePanel.textColor
-        (scrollbar ?: content).parent = this
+        titlePanel.focusTextColor = -1
+        child.parent = this
     }
 
     fun show2() {
@@ -80,6 +65,13 @@ open class SettingCategory(
         InputVisibility.toggle(visibilityKey, this)
     }
 
+    override fun onUpdate() {
+        val visible = InputVisibility[visibilityKey]
+        child.isVisible = visible
+        content.isVisible = visible
+        super.onUpdate()
+    }
+
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
         if (key.isClickKey()) toggle()
     }
@@ -87,7 +79,7 @@ open class SettingCategory(
     override fun acceptsChar(char: Int) = char.isClickKey()
     override fun isKeyInput() = true
 
-    override val children: List<Panel> = listOf(this.titlePanel, scrollbar ?: content)
+    override val children: List<Panel> = listOf(titlePanel, child)
     override fun remove(child: Panel) {
         throw RuntimeException("Not supported!")
     }
@@ -105,15 +97,15 @@ open class SettingCategory(
         }
 
     override fun calculateSize(w: Int, h: Int) {
-        // println("[$gameTime] calculateSize($title): $w x $h, $minW x $minH, ${this.w} x ${this.h}")
+        this.w = w
+        this.h = h
         if (isEmpty) {
             minW = 0
             minH = 0
         } else {
             titlePanel.calculateSize(w, h)
-            val panel2 = scrollbar ?: content
-            if (panel2.isVisible) {
-                panel2.calculateSize(w - padding.width, h)
+            if (child.isVisible) {
+                child.calculateSize(w - padding.width, h)
                 minW = max(titlePanel.minW, content.minW + padding.width)
                 minH = titlePanel.minH + content.minH + padding.height
             } else {
@@ -130,9 +122,7 @@ open class SettingCategory(
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
         titlePanel.setPosition(x, y)
-        val panel2 = scrollbar ?: content
-        // println("[$gameTime] setPosition($title): $w x $h, ${panel2.minW} x ${panel2.minH}, ${panel2.w} x ${panel2.h}")
-        panel2.setPosition(x + padding.left, y + titlePanel.minH + padding.top)
+        child.setPosition(x + padding.left, y + titlePanel.minH + padding.top)
     }
 
     operator fun plusAssign(child: Panel) {

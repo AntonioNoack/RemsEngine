@@ -144,14 +144,13 @@ abstract class WelcomeUI {
     fun createRecentProjectsUI(studio: StudioBase, style: Style, recent: List<ProjectHeader>): Panel {
 
         val window = GFX.someWindow
-        val recentProjects =
-            SettingCategory(
-                "Recent Projects",
-                "Your projects of the past",
-                "ui.recentProjects.title",
-                true,
-                style
-            )
+        val recentProjects = SettingCategory(
+            "Recent Projects",
+            "Your projects of the past",
+            "ui.recentProjects.title",
+            true,
+            style
+        )
         recentProjects.show2()
 
         for (project in recent) {

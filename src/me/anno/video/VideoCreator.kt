@@ -243,6 +243,7 @@ open class VideoCreator(
     var wasClosed = false
     open fun close() {
         wasClosed = true
+        LOGGER.debug("Closing stream")
         try {
             synchronized(videoOut) {
                 videoOut.flush()

@@ -12,6 +12,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
+import me.anno.utils.types.Booleans.toInt
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.round
@@ -134,12 +135,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
 
         child.calculateSize(maxLength - padding.width, maxLength - padding.height)
 
-        minW = child.minW + padding.width
-        minH = child.minH + padding.height
-
-        if (hasScrollbarX) minH += scrollbarHeight
-        if (hasScrollbarY) minW += scrollbarWidth
-
+        minW = child.minW + padding.width + hasScrollbarY.toInt(scrollbarWidth)
+        minH = child.minH + padding.height + hasScrollbarX.toInt(scrollbarHeight)
     }
 
     override fun setPosition(x: Int, y: Int) {

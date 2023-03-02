@@ -7,7 +7,7 @@ class Padding(l: Int, t: Int, r: Int, b: Int) : LTRB(l, t, r, b) {
     constructor() : this(0)
 
     companion object {
-        val Zero = Padding()
+        val Zero get() = Padding()
     }
 
     operator fun plusAssign(s: Padding) {

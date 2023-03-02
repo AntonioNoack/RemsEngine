@@ -16,6 +16,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.minWeight
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.style.Style
+import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
 import kotlin.math.round
 
@@ -103,9 +104,7 @@ open class ScrollPanelX(
         child.calculateSize(maxLength, h - padding.height)
 
         minW = child.minW + padding.width
-        minH = child.minH + padding.height
-        if (hasScrollbar) minH += scrollbarHeight
-
+        minH = child.minH + padding.height + hasScrollbar.toInt(scrollbarHeight)
     }
 
     override fun setPosition(x: Int, y: Int) {

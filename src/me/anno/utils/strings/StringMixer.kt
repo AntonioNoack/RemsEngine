@@ -33,6 +33,18 @@ object StringMixer {
 
     fun mix(a: String, b: String, f: Double): String {
 
+        if (f <= 0.0 || a == b) return a
+        if (f >= 1.0) return b
+
+        // lines are special
+        if (a.indexOf('\n') >= 0 || b.indexOf('\n') >= 0) {
+            val la = a.split('\n')
+            val lb = b.split('\n')
+            return (0 until max(la.size, lb.size)).joinToString("\n") {
+                mix(la.getOrNull(it) ?: "", lb.getOrNull(it) ?: "", f)
+            }
+        }
+
         val aLength = a.length
         val bLength = b.length
 
@@ -42,9 +54,6 @@ object StringMixer {
         val bIsLonger = bLength > aLength
 
         return when {
-            f <= 0f -> a
-            f >= 1f -> b
-            a == b -> a
             aIsLonger && a.startsWith(b, true) ->
                 a.substring(0, mixLength(aLength, bLength, f, aLength))
             bIsLonger && b.startsWith(a, true) ->

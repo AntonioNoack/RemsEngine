@@ -82,6 +82,8 @@ abstract class AudioCreator(
             }
         }
 
+        LOGGER.debug("Starting audio encoding with ${(durationSeconds * sampleRate).toLong()} samples")
+
         val audioOutput = DataOutputStream(process.outputStream.buffered())
         createAudio(audioOutput)
 
@@ -167,9 +169,6 @@ abstract class AudioCreator(
                 }
             }
 
-            audioOutput.flush()
-            audioOutput.close()
-
         } catch (e: IOException) {
             val msg = e.message!!
             // pipe has been ended will be thrown, if we write more audio bytes than required
@@ -177,8 +176,16 @@ abstract class AudioCreator(
             if ("pipe has been ended" !in msg.lowercase(Locale.getDefault()) &&
                 "pipe is being closed" !in msg.lowercase(Locale.getDefault())
             ) throw e
+        } finally {
+            try {
+                audioOutput.flush()
+            } catch (ignored: Exception) {
+            }
+            try {
+                audioOutput.close()
+            } catch (ignored: Exception) {
+            }
         }
-
     }
 
     companion object {
