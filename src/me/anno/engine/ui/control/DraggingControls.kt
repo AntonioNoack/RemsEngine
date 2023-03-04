@@ -22,6 +22,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
+import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
@@ -179,7 +180,9 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         super.onDraw(x0, y0, x1, y1)
         // show the mode
         drawSimpleTextCharByChar(
-            x, y, 2, when (mode) {
+            x + w - 2 - DrawTexts.monospaceFont.sampleWidth,
+            y + h - 2 - DrawTexts.monospaceFont.sampleHeight,
+            2, when (mode) {
                 Mode.TRANSLATING -> "T"
                 Mode.ROTATING -> "R"
                 Mode.SCALING -> "S"

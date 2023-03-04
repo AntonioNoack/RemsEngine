@@ -66,7 +66,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
-import me.anno.gpu.shader.effects.DepthBasedAntiAliasing
+import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
@@ -403,11 +403,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             )
         }
 
-        if (useDeferredRendering) {
-            drawSimpleTextCharByChar(
-                x + w, y, 2, "DEFERRED", AxisAlignment.MAX
-            )
-        }
         popBetterBlending(pbb)
 
         if (!isFinalRendering) {
@@ -1002,16 +997,11 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         }
 
         // anti-aliasing
-        return if (buffer.depthTexture != null) {
-            val dstBuffer = FBStack["RenderView-dst", w, h, 4, false, 1, false]
-            useFrame(w, h, true, dstBuffer) {
-                DepthBasedAntiAliasing.render(baseSameDepth.getTexture0(), buffer.depthTexture!!)
-            }
-            dstBuffer
-        } else {
-            LOGGER.warn("Depth buffer is null! ${buffer::class}")
-            dstBuffer1
+        val dstBuffer = FBStack["RenderView-dst", w, h, 4, false, 1, false]
+        useFrame(w, h, true, dstBuffer) {
+            FXAA.render(baseSameDepth.getTexture0())
         }
+        return dstBuffer
     }
 
     fun resolveClick(px: Float, py: Float, drawDebug: Boolean = false): Pair<Entity?, Component?> {

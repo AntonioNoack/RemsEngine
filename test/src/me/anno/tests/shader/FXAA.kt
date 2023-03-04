@@ -1,12 +1,12 @@
 package me.anno.tests.shader
 
 import me.anno.Engine
+import me.anno.ecs.components.mesh.shapes.CubemapModel
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.ecs.components.mesh.shapes.CubemapModel
-import me.anno.gpu.shader.effects.DepthBasedAntiAliasing
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.image.ImageWriter
@@ -18,7 +18,6 @@ import org.joml.Matrix2f
 import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C
 import kotlin.math.abs
 
 fun main() {
@@ -51,7 +50,7 @@ private fun testShader() {
         }
         val result = FBStack["result", w, h, 4, false, 1, false]
         GFXState.useFrame(result) {
-            val shader = DepthBasedAntiAliasing.shader.value
+            val shader = FXAA.shader.value
             shader.use()
             shader.v1b("showEdges", Input.isShiftDown)
             shader.v1b("disableEffect", Input.isControlDown)
@@ -67,7 +66,7 @@ private fun testShader() {
 
 private fun testEdgeAA() {
 
-    val logger = LogManager.getLogger(DepthBasedAntiAliasing::class)
+    val logger = LogManager.getLogger(FXAA::class)
 
     // task: to find the correct formula, maybe draw a graph of fraction ~ correct blur
     // result: there is no simple correct formula, it seems... there must be something inheritely wrong...

@@ -262,6 +262,10 @@ object GFXBase {
         // alternatively we could play a small animation
         GFX.maxSamples = max(1, GL30C.glGetInteger(GL30C.GL_MAX_SAMPLES))
         GFX.check()
+        // nice features :3
+        // cause issues in FrameGen -> not enabled everywhere
+        // glEnable(GL_LINE_SMOOTH)
+        // glEnable(GL_POINT_SMOOTH)
         checkIsGFXThread()
     }
 

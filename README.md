@@ -82,7 +82,7 @@ graph TB
     - for beautiful MSAA with a few lights,
     - or thousands of lights without performance hit
     - Note: forward rendering does not support SSR nor SSAO
-- depth-edge-detection based anti-aliasing (like FXAA)
+- FXAA as cheap anti-aliasing, MSAA as expensive anti-aliasing
 - different light types, with shadow support: directional, spot, point
 - shadows with cascades (directional)
 - planar reflections

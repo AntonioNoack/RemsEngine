@@ -30,7 +30,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.image.ImageGPUCache
 import me.anno.input.Input
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -42,7 +41,8 @@ import org.joml.Matrix4x3d
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11C.GL_POINTS
+import org.lwjgl.opengl.GL11.GL_POINT_SMOOTH
+import org.lwjgl.opengl.GL11C.*
 import kotlin.math.max
 
 fun main() {
@@ -75,7 +75,7 @@ fun main() {
             var data0 = settings.createBaseBuffer()
             var data1 = settings.createBaseBuffer()
 
-            var zoom = 1f
+            var zoom = 0.5f
             val rotation = Vector3f()
 
             // to avoid a search, draw each pixel onto where it is expected to be
@@ -182,6 +182,13 @@ fun main() {
                 data0.ensure()
                 data1.ensure()
 
+                // todo GL_LINE_SMOOTH looks really nice for debug rendering ->
+                // todo why is it breaking the FrameGen demo? (much too bright)
+                if (Input.isShiftDown) {
+                    glEnable(GL_POINT_SMOOTH)
+                    glPointSize(1f)
+                } else glDisable(GL_POINT_SMOOTH)
+
                 // keep textures loaded
                 scene.firstComponentInChildren(MeshComponent::class) {
                     for (m in it.materials) {
@@ -253,7 +260,7 @@ fun main() {
                     // render the current frame
                     scene.validateAABBs()
                     val aabb = scene.aabb
-                    val sz = 0.5f * max(max(aabb.deltaX(), aabb.deltaY()), aabb.deltaZ()).toFloat()
+                    val sz = max(max(aabb.deltaX(), aabb.deltaY()), aabb.deltaZ()).toFloat()
                     val sx = sz * zoom
                     val wf = w.toFloat()
                     val hf = h.toFloat()

@@ -1,7 +1,6 @@
 package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultConfig.style
-import me.anno.utils.Color.black
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.depthMode
@@ -16,9 +15,11 @@ import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
+import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Vectors.avg
 import org.joml.*
+import org.lwjgl.opengl.GL11C.*
 import org.lwjgl.opengl.GL20.GL_LINES
 import kotlin.math.*
 
@@ -192,6 +193,8 @@ object Grid {
     // allow more/full grid customization?
     fun draw(stack: Matrix4fArrayList, distance: Double) {
 
+        // todo why is line smoothing doing nothing?
+        // if (LineBuffer.enableLineSmoothing) glEnable(GL_LINE_SMOOTH)
         // to avoid flickering
         depthMode.use(DepthMode.ALWAYS) {
 
@@ -213,16 +216,17 @@ object Grid {
 
             drawGrid(stack, gridAlpha * f)
 
-            stack.rotateX(PIf/2f)
+            stack.rotateX(PIf / 2f)
             drawLine(stack, xAxisColor, 0.15f) // x
 
-            stack.rotateY(PIf/2f)
+            stack.rotateY(PIf / 2f)
             drawLine(stack, yAxisColor, 0.15f) // y
 
-            stack.rotateZ(PIf/2f)
+            stack.rotateZ(PIf / 2f)
             drawLine(stack, zAxisColor, 0.15f) // z
 
         }
+        // if (LineBuffer.enableLineSmoothing) glDisable(GL_LINE_SMOOTH)
 
     }
 
@@ -249,6 +253,7 @@ object Grid {
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color)
         bindWhite(0)
+
         buffer.draw(shader)
 
     }
@@ -263,6 +268,7 @@ object Grid {
         shader.m4x4("transform", stack)
         defaultUniforms(shader, -1, alpha)
         bindWhite(0)
+
         gridBuffer.draw(shader)
 
     }
