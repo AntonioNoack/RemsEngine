@@ -974,10 +974,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return Matrix4x3d(other.transform.globalTransform).invert().mul(transform.globalTransform)
     }
 
-    override fun fill(
-        pipeline: Pipeline, entity: Entity,
-        clickId: Int, cameraPosition: Vector3d, worldScale: Double
-    ) = pipeline.fill(this, cameraPosition, worldScale)
+    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int) = pipeline.fill(this)
 
     override fun clone(): Entity {
         val clone = Entity()

@@ -227,8 +227,8 @@ open class BaseShader(
             get(): Boolean {
                 val renderer = GFXState.currentRenderer
                 return (renderer == Renderer.motionVectorRenderer ||
-                        renderer == attributeRenderers[DeferredLayerType.MOTION] ||
-                        renderer == rawAttributeRenderers[DeferredLayerType.MOTION])
+                        renderer == rawAttributeRenderers[DeferredLayerType.MOTION] ||
+                        renderer.deferredSettings != null && DeferredLayerType.MOTION in renderer.deferredSettings.layerTypes)
             }
     }
 

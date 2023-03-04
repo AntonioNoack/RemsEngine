@@ -31,11 +31,12 @@ object DrawAABB {
         JomlPools.vec3f.sub(2)
     }
 
-    fun drawAABB(aabb: AABBd, worldScale: Double, color: Int) {
+    fun drawAABB(aabb: AABBd, color: Int) {
 
         if (aabb.isEmpty()) return
 
         val pos = RenderState.cameraPosition
+        val worldScale = RenderState.worldScale
 
         val x0 = ((aabb.minX - pos.x) * worldScale)
         val y0 = ((aabb.minY - pos.y) * worldScale)
@@ -82,7 +83,7 @@ object DrawAABB {
     fun drawAABB(transform: Matrix4x3d?, aabb: AABBd, worldScale: Double, color: Int) {
 
         if (aabb.isEmpty()) return
-        if (transform == null) return drawAABB(aabb, worldScale, color)
+        if (transform == null) return drawAABB(aabb, color)
 
         val pos = RenderState.cameraPosition
         val min = transform.transformPosition(aabb.getMin2(JomlPools.vec3d.create()))

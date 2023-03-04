@@ -453,7 +453,6 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 bounds
                     .setMin(minAabb.x, minAabb.y, minAabb.z)
                     .setMax(maxAabb.x, maxAabb.y, maxAabb.z),
-                RenderState.worldScale,
                 color
             )
         }

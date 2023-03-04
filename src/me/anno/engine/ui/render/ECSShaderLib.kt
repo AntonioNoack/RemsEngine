@@ -33,15 +33,17 @@ object ECSShaderLib {
                     Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
                     Variable(GLSLType.M4x4, "transform"),
                     Variable(GLSLType.M4x4, "prevTransform"),
+                    Variable(GLSLType.V3F,"normalOverride"),
+                    Variable(GLSLType.V1B, "isOrtho"),
                     Variable(GLSLType.V4F, "currPosition", VariableMode.OUT),
                     Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
                     Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
                     Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
                 ), "" +
-                        "gl_Position = transform * vec4(coords, 1.0);\n" +
-                        "finalNormal = -coords;\n" +
-                        "currPosition = gl_Position;\n" +
-                        "prevPosition = (prevTransform * vec4(coords, 1.0));\n" +
+                        "finalNormal = isOrtho ? normalOverride : -coords;\n" +
+                        "currPosition = transform * vec4(coords, 1.0);\n" +
+                        "gl_Position = isOrtho ? vec4(coords.xy, 0.0, 1.0) : currPosition;\n" +
+                        "prevPosition = isOrtho ? currPosition : (prevTransform * vec4(coords, 1.0));\n" +
                         ShaderLib.positionPostProcessing
             )
         }

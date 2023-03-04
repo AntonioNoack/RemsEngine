@@ -197,9 +197,7 @@ open class Material : PrefabSaveable(), Renderable {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         val mesh = Pipeline.sampleMesh
         val stage = pipeline.findStage(mesh, this)

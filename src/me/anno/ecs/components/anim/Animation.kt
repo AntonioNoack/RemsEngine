@@ -168,13 +168,11 @@ abstract class Animation : PrefabSaveable, Renderable {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         val skeleton = SkeletonCache[skeleton] ?: return clickId
         if (previewData == null) previewData = PreviewData(skeleton, this)
-        return previewData!!.renderer.fill(pipeline, entity, clickId, cameraPosition, worldScale)
+        return previewData!!.renderer.fill(pipeline, entity, clickId)
     }
 
     override fun save(writer: BaseWriter) {

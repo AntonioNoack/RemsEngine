@@ -223,8 +223,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     fun calculateSize(w: Int, text: String) {
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
-        val widthLimit = if (breaksIntoMultiline) w - padding.width else GFX.maxTextureSize
-        val heightLimit = GFX.maxTextureSize
+        val widthLimit = max(1, if (breaksIntoMultiline) w - padding.width else GFX.maxTextureSize)
+        val heightLimit = max(1, GFX.maxTextureSize)
         if (widthLimit != textCacheKey.widthLimit ||
             heightLimit != textCacheKey.heightLimit ||
             text != textCacheKey.text ||

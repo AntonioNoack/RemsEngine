@@ -139,16 +139,18 @@ class MainStage {
                 for (index in 0 until uniform.arraySize) {
                     val nameIndex = name + index.toString()
                     if (isMoreThanOne) code.append("case ").append(index).append(":\n")
-                    code.append("" +
-                            // 5x5 percentage closer filtering for prettier results
-                            "size = textureSize($nameIndex,0);\n" +
-                            "du = 1.0/float(size.x);\n" +
-                            "for(int j=-2;j<=2;j++){\n" +
-                            "   for(int i=-2;i<=2;i++){\n" +
-                            "       sum += texture($nameIndex, uvw+du*vec3(i,j,0.0));\n" +
-                            "   }\n" +
-                            "}\n" +
-                            "return sum * 0.04;\n")
+                    code.append(
+                        "" +
+                                // 5x5 percentage closer filtering for prettier results
+                                "size = textureSize($nameIndex,0);\n" +
+                                "du = 1.0/float(size.x);\n" +
+                                "for(int j=-2;j<=2;j++){\n" +
+                                "   for(int i=-2;i<=2;i++){\n" +
+                                "       sum += texture($nameIndex, uvw+du*vec3(i,j,0.0));\n" +
+                                "   }\n" +
+                                "}\n" +
+                                "return sum * 0.04;\n"
+                    )
                 }
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
                 code.append("}\n")

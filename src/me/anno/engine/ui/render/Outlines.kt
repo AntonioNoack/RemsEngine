@@ -19,29 +19,29 @@ object Outlines {
 
     private val tmpMat4d = Matrix4d()
 
-    fun drawOutline(entity: Entity, worldScale: Double) {
+    fun drawOutline(entity: Entity) {
         whiteTexture.bind(0) // for the albedo
-        DrawAABB.drawAABB(entity.aabb, worldScale, RenderView.aabbColorHovered)
+        DrawAABB.drawAABB(entity.aabb, RenderView.aabbColorHovered)
         LineBuffer.finish(RenderState.cameraMatrix)
-        drawOutlineInternally(entity, worldScale)
+        drawOutlineInternally(entity)
     }
 
-    private fun drawOutlineInternally(entity: Entity, worldScale: Double) {
+    private fun drawOutlineInternally(entity: Entity) {
         val children = entity.children
         for (i in children.indices) {
-            drawOutlineInternally(children[i], worldScale)
+            drawOutlineInternally(children[i])
         }
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
             if (component is MeshComponentBase) {
                 val mesh = component.getMesh() ?: continue
-                drawOutline(component, mesh, worldScale)
+                drawOutline(component, mesh)
             }
         }
     }
 
-    fun drawOutline(meshComponent: MeshComponentBase, mesh: Mesh, worldScale: Double) {
+    fun drawOutline(meshComponent: MeshComponentBase, mesh: Mesh) {
 
         // todo respect alpha somehow?
 
@@ -104,6 +104,7 @@ object Outlines {
                     shader.m4x4("transform", RenderState.cameraMatrix)
                     shader.m4x4("prevTransform", RenderState.prevCamMatrix)
 
+                    val worldScale = RenderState.worldScale
                     shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
                     // todo inv local transform
                     shader.m4x3delta("prevLocalTransform", offsetCorrectedTransform, camPosition, worldScale, scale)

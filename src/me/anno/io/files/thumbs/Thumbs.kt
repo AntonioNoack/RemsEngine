@@ -670,12 +670,10 @@ object Thumbs {
         val cameraPosition = Vector3d()
         val worldScale = 1.0
 
-        comp.fill(pipeline, sampleEntity, 0, cameraPosition, worldScale)
-
-        renderToImage(srcFile, false, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
-
+        fun defineRenderState() {
             // setup full render state
             RenderState.cameraPosition.set(cameraPosition)
+            RenderState.worldScale = worldScale
             RenderState.cameraMatrix.set(cm)
             RenderState.cameraRotation.identity()
                 .rotateX((15.0).toRadians())// rotate it into a nice viewing angle
@@ -684,10 +682,15 @@ object Thumbs {
 
             RenderState.fovYRadians = 1f
             RenderState.isPerspective = true
-            RenderState.worldScale = worldScale
+        }
 
+        defineRenderState()
+        comp.fill(pipeline, sampleEntity, 0)
+
+        renderToImage(srcFile, false, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
+            // setup full render state
+            defineRenderState()
             pipeline.defaultStage.drawColors(pipeline)
-
         }
     }
 

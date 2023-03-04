@@ -93,9 +93,9 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         // todo debugging view selection
         val topLeft = PanelListX(style)
         topLeft.add(EnumInput(
-            "Draw Mode", "", view.renderMode.name, RenderMode.values().map { NameDesc(it.name) }, style
+            "Draw Mode", "", view.renderMode.name, RenderMode.values.map { NameDesc(it.name) }, style
         ).setChangeListener { _, index, _ ->
-            view.renderMode = RenderMode.values()[index]
+            view.renderMode = RenderMode.values[index]
         })
         topLeft.add(TextButton("Play", "Start the game", false, style).addLeftClickListener {
             ECSSceneTabs.currentTab?.play()
@@ -161,7 +161,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                     movedSample.validateTransform()
                     if (sample is Entity) sample.validateTransform()
 
-                    pipeline.fill(movedSample, view.cameraPosition, view.worldScale)
+                    pipeline.fill(movedSample)
 
                     // draw its gui
                     // todo add them as normal meshes instead

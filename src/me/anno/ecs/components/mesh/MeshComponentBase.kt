@@ -102,9 +102,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         val mesh = getMesh()
         return if (mesh != null) {

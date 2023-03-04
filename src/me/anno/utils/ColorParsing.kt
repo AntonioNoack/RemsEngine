@@ -184,7 +184,7 @@ object ColorParsing {
                 } else throw InvalidFormatException("Unknown color $name")
             }
             else -> colorMap[name.trim().lowercase()]?.or(black)
-                ?: throw InvalidFormatException("Unknown color $name")
+                ?: throw InvalidFormatException("Unknown color '$name'")
         }
     }
 

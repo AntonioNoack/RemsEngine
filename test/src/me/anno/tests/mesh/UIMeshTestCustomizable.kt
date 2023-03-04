@@ -67,7 +67,7 @@ class SimpleMeshTest(
         // fill/update pipeline
         pipeline.clear()
         rootEntity.validateTransform()
-        pipeline.fill(rootEntity, RenderState.cameraPosition, 1.0)
+        pipeline.fill(rootEntity)
         // render
         val samples = min(GFX.maxSamples, 8)
         val msaa = msaa && GFXState.currentBuffer.samples < samples

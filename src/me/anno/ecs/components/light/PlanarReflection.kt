@@ -131,7 +131,7 @@ class PlanarReflection : LightComponentBase() {
         pipeline.frustum.setToEverything(reflectedCameraPosition, camRot)
         // defineFrustum(camPos, camRot)
         // pipeline.frustum.applyTransform(mirror)
-        pipeline.fill(root, reflectedCameraPosition, RenderState.worldScale)
+        pipeline.fill(root)
         pipeline.planarReflections.clear()
 
         pipeline.disableReflectionCullingPlane()
@@ -214,9 +214,7 @@ class PlanarReflection : LightComponentBase() {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         pipeline.planarReflections.add(this)
         return clickId // not itself clickable

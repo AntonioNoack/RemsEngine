@@ -70,6 +70,7 @@ data class DeferredSettingsV2(
 
     val layers = ArrayList<Layer>()
     val layers2: ArrayList<DeferredLayer>
+    val emptySlots = ArrayList<Pair<String, String>>()
 
     init {
 
@@ -96,9 +97,9 @@ data class DeferredSettingsV2(
         usedTextures0++
 
         layers2 = ArrayList(usedTextures0)
-        for (i in 0 until usedTextures0) {
+        for (layerIndex in 0 until usedTextures0) {
             val layer2 = DeferredLayer(
-                "defLayer$i", when (needsHighPrecision[i]) {
+                "defLayer$layerIndex", when (needsHighPrecision[layerIndex]) {
                     BufferQuality.LOW_8 -> TargetType.UByteTarget4
                     BufferQuality.MEDIUM_12 -> TargetType.Normal12Target4
                     BufferQuality.HIGH_16 -> TargetType.FP16Target4
@@ -106,6 +107,11 @@ data class DeferredSettingsV2(
                 }
             )
             layers2.add(layer2)
+            when (spaceInLayers[layerIndex]) {
+                1 -> emptySlots += Pair(layer2.name, "a")
+                2 -> emptySlots += Pair(layer2.name, "ba")
+                3 -> emptySlots += Pair(layer2.name, "gba")
+            }
         }
 
     }
@@ -216,6 +222,14 @@ data class DeferredSettingsV2(
         output.append("float defRR = GET_RANDOM(0.001 * gl_FragCoord)-0.5;\n")
         for (layer in layers) {
             layer.appendLayer(output)
+        }
+        for ((name, map) in emptySlots) {
+            val value = when (map.length) {
+                1 -> " = finalAlpha;\n"
+                2 -> " = vec2(0.0,finalAlpha);\n"
+                else -> " = vec3(0.0,0.0,finalAlpha);\n"
+            }
+            output.append(name).append('.').append(map).append(value)
         }
     }
 

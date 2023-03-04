@@ -33,6 +33,7 @@ object RenderState {
     val prevCamMatrix = Matrix4f()
     val prevCamMatrixInv = Matrix4f()
     val prevCameraPosition = Vector3d()
+    val prevCameraRotation = Quaterniond()
 
     var isPerspective = true
     var fovXRadians = 1.57f

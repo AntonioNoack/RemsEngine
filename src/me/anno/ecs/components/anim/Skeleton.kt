@@ -78,9 +78,7 @@ class Skeleton : PrefabSaveable(), Renderable {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         val bones = bones
         if (bones.isEmpty()) return clickId
@@ -95,7 +93,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             previewData = mesh
         }
         val mesh = previewData!!
-        pipeline.fill(mesh, cameraPosition, worldScale)
+        pipeline.fill(mesh)
         return clickId
     }
 

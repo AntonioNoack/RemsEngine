@@ -347,7 +347,7 @@ object ComponentUI {
             "Byte" -> {
                 val type = Type(default as Byte,
                     { clamp(it.toLong(), range.minByte().toLong(), range.maxByte().toLong()).toByte() }, { it })
-                return IntInput(style, title, visibilityKey, type).apply {
+                return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue((value as Byte).toInt(), false)
                     askForReset(property) { setValue((it as Byte).toInt(), false) }
@@ -361,7 +361,7 @@ object ComponentUI {
                 val type = Type(default as UByte,
                     { clamp(it.toLong(), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
                     { it })
-                return IntInput(style, title, visibilityKey, type).apply {
+                return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue((value as UByte).toInt(), false)
                     askForReset(property) { setValue((it as UByte).toInt(), false) }
@@ -375,7 +375,7 @@ object ComponentUI {
                 val type = Type(default as Short,
                     { clamp(it.toLong(), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
                     { it })
-                return IntInput(style, title, visibilityKey, type).apply {
+                return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue((value as Short).toInt(), false)
                     askForReset(property) { setValue((it as Short).toInt(), false) }
@@ -389,7 +389,7 @@ object ComponentUI {
                 val type = Type(default as UShort,
                     { clamp(it.toLong(), range.minUShort().toLong(), range.maxUShort().toLong()).toUShort() },
                     { it })
-                return IntInput(style, title, visibilityKey, type).apply {
+                return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue((value as UShort).toInt(), false)
                     askForReset(property) { setValue((it as UShort).toInt(), false) }
@@ -413,7 +413,7 @@ object ComponentUI {
                 } else {
                     val type = Type(default as Int,
                         { clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()).toInt() }, { it })
-                    return IntInput(style, title, visibilityKey, type).apply {
+                    return IntInput(title, visibilityKey, type, style).apply {
                         property.init(this)
                         setValue(value as Int, false)
                         askForReset(property) { setValue(it as Int, false) }
@@ -427,7 +427,7 @@ object ComponentUI {
             "UInt" -> {
                 val type = Type(default as UInt,
                     { clamp(it.toLong(), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() }, { it })
-                return IntInput(style, title, visibilityKey, type).apply {
+                return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue((value as UInt).toLong(), false)
                     askForReset(property) { setValue((it as UInt).toLong(), false) }
@@ -440,7 +440,7 @@ object ComponentUI {
             "Long" -> {
                 val type = Type(default as? Long ?: throw RuntimeException("$title is not long"),
                     { clamp(it.toLong(), range.minLong(), range.maxLong()) }, { it })
-                return IntInput(style, title, visibilityKey, type).apply {
+                return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue(value as Long, false)
                     askForReset(property) { setValue(it as Long, false) }
@@ -453,7 +453,7 @@ object ComponentUI {
             "ULong" -> {// not fully supported
                 val type = Type(default as ULong,
                     { clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
-                return IntInput(style, title, visibilityKey, type).apply {
+                return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue((value as ULong).toLong(), false)
                     askForReset(property) { setValue((it as ULong).toLong(), false) }

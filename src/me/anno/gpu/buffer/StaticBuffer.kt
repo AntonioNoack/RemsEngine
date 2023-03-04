@@ -95,8 +95,9 @@ open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage
             nullBuffer.ensureBuffer()
             nullBuffer.apply {
                 val baseLength = when (mode) {
-                    GL_LINE, GL_LINES -> 2
-                    GL_TRIANGLES -> 3
+                    GL_POINTS -> 1
+                    GL_LINES, GL_LINE_STRIP, GL_LINE_LOOP -> 2
+                    GL_TRIANGLES, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN -> 3
                     GL_QUADS -> 4
                     else -> throw RuntimeException("DrawMode ${GFX.getName(mode)} is not supported")
                 }

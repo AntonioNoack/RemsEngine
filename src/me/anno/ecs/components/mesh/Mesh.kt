@@ -1142,9 +1142,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         pipeline.addMesh(this, Pipeline.sampleMeshComponent, entity, clickId)
         return clickId

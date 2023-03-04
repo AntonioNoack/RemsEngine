@@ -171,12 +171,10 @@ class SkyBox : MeshComponentBase() {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         pipeline.skyBox = this
-        return super.fill(pipeline, entity, clickId, cameraPosition, worldScale)
+        return super.fill(pipeline, entity, clickId)
     }
 
     override fun onUpdate(): Int {

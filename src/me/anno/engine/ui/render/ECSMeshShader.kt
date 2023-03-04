@@ -558,7 +558,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         limitedTransform: Boolean
     ): Shader {
 
-        val base = createBase(isInstanced, isAnimated, !motionVectors, motionVectors, limitedTransform)
+        val base = createBase(
+            isInstanced, isAnimated,
+            deferred.layerTypes.size > 1 || !motionVectors,
+            motionVectors, limitedTransform
+        )
         base.outputs = deferred
 
         // build & finish

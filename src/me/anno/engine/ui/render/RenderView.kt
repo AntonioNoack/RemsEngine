@@ -241,7 +241,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val drawnPrimitives0 = PipelineStage.drawnPrimitives
-        var drawCalls0 = PipelineStage.drawCalls
+        val drawCalls0 = PipelineStage.drawCalls
 
         clock.start()
 
@@ -1233,19 +1233,20 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             )
         } else {
             pipeline.frustum.defineOrthographic(
-                fov.toDouble(), aspectRatio.toDouble(), near, far, width, cameraPosition, cameraRotation
+                fov.toDouble(), aspectRatio.toDouble(), near, far, width,
+                cameraPosition, cameraRotation
             )
             // pipeline.frustum.showPlanes()
         }
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
         pipeline.resetClickId()
-        if (world != null) pipeline.fill(world, cameraPosition, worldScale)
+        if (world != null) pipeline.fill(world)
         controlScheme?.fill(pipeline)
         // if the scene would be dark, define lights, so we can see something
         if (pipeline.lightPseudoStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
             pipeline.ambient.set(0.5f)
-            defaultSun.fill(pipeline, defaultSunEntity, 0, cameraPosition, worldScale)
+            defaultSun.fill(pipeline, defaultSunEntity, 0)
         }
         entityBaseClickId = pipeline.lastClickId
 
@@ -1287,43 +1288,16 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     ) {
         // this can be skipped, if we have a sky
         if (skipClear) return
-        Frame.bind()
-        GFXState.blendMode.use(null) {
-            GFXState.depthMode.use(DepthMode.ALWAYS) {
-                // don't write depth, only all buffers
-                GFXState.depthMask.use(false) {
-                    // draw a huge cube with default values for all buffers
-                    val shader = clearPbrModelShader.value
-                    shader.use()
-                    if (isPerspective) {
-                        shader.m4x4("transform", cameraMatrix)
-                        shader.m4x4("prevTransform", prevCamMatrix)
-                    } else {
-                        // this buffer can be very small in orthographic case, because the camera matrix contains scale, which it shouldn't;
-                        // aspect ratio shouldn't matter, because it's orthographic = the same direction and position at infinity anyway
-                        val tmpQ = JomlPools.quat4f.borrow()
-                        val tmp1 = JomlPools.mat4f.borrow()
-                        tmp1
-                            .identity()
-                            .scale(2f, 2f, 0.3f)
-                            .rotate(tmpQ.set(cameraRotation))
-                        shader.m4x4("transform", tmp1)
-                        tmp1
-                            .identity()
-                            .scale(2f, 2f, 0.3f)
-                            .rotate(tmpQ.set(prevCamRotation))
-                        shader.m4x4("prevTransform", tmp1)
-                    }
-                    val c = clearColor
-                    c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
-                    // inverse tonemapping
-                    if (hdr) tonemapInvKt(c)
-                    shader.v4f("color", c.x, c.y, c.z, 1f)
-                    shaderColor(shader, "tint", -1)
-                    Shapes.smoothCube.back.drawMeshPurely(shader)
-                }
-            }
-        }
+        val c = clearColor
+        c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
+        // inverse tonemapping
+        if (hdr) tonemapInvKt(c)
+        clearColor(
+            cameraMatrix, prevCamMatrix,
+            cameraRotation, prevCamRotation,
+            cameraDirection,
+            isPerspective, clearColor
+        )
     }
 
     fun drawScene(
@@ -1389,13 +1363,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         GFXState.depthMode.use(depthMode) {
             for (selected in library.selection) {
                 when (selected) {
-                    is Entity -> drawOutline(selected, worldScale)
+                    is Entity -> drawOutline(selected)
                     is SkyBox -> {}
                     is MeshComponentBase -> {
                         val mesh = selected.getMesh() ?: continue
-                        drawOutline(selected, mesh, worldScale)
+                        drawOutline(selected, mesh)
                     }
-                    is Component -> drawOutline(selected.entity ?: continue, worldScale)
+                    is Component -> drawOutline(selected.entity ?: continue)
                 }
             }
         }
@@ -1500,7 +1474,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     if (drawAABBs) {
                         val aabb = entity.aabb
                         val hit = aabb.testLine(cameraPosition, mouseDirection, 1e10)
-                        drawAABB(aabb, worldScale, if (hit) aabbColorHovered else aabbColorDefault)
+                        drawAABB(aabb, if (hit) aabbColorHovered else aabbColorDefault)
                     }
 
                     LineBuffer.drawIf1M(cameraMatrix)
@@ -1661,6 +1635,49 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         val aabbColorDefault = -1
         val aabbColorHovered = 0xffaaaa or black
+
+        fun clearColor(
+            cameraMatrix: Matrix4f, prevCamMatrix: Matrix4f,
+            cameraRotation: Quaterniond, prevCameraRotation: Quaterniond,
+            cameraDirection: Vector3d,
+            isPerspective: Boolean,
+            clearColor: Vector4f
+        ) {
+            GFXState.blendMode.use(null) {
+                GFXState.depthMode.use(DepthMode.ALWAYS) {
+                    // don't write depth, only all buffers
+                    GFXState.depthMask.use(false) {
+                        // draw a huge cube with default values for all buffers
+                        val shader = clearPbrModelShader.value
+                        shader.use()
+                        if (isPerspective) {
+                            shader.m4x4("transform", cameraMatrix)
+                            shader.m4x4("prevTransform", prevCamMatrix)
+                            shader.v1b("isOrtho", false)
+                        } else {
+                            // this buffer can be very small in orthographic case, because the camera matrix contains scale, which it shouldn't;
+                            // aspect ratio shouldn't matter, because it's orthographic = the same direction and position at infinity anyway
+                            val tmpQ = JomlPools.quat4f.borrow()
+                            val tmp1 = JomlPools.mat4f.borrow()
+                            val tmp3 = JomlPools.vec3f.borrow()
+                            tmp1
+                                .identity()
+                                .rotate(tmpQ.set(cameraRotation))
+                            shader.m4x4("transform", tmp1)
+                            tmp1
+                                .identity()
+                                .rotate(tmpQ.set(prevCameraRotation))
+                            shader.m4x4("prevTransform", tmp1)
+                            shader.v3f("normalOverride", tmp3.set(cameraDirection))
+                            shader.v1b("isOrtho", true)
+                        }
+                        shader.v4f("color", clearColor.x, clearColor.y, clearColor.z, 1f)
+                        shaderColor(shader, "tint", -1)
+                        Shapes.smoothCube.back.drawMeshPurely(shader)
+                    }
+                }
+            }
+        }
 
     }
 

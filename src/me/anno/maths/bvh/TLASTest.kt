@@ -78,7 +78,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
     val worldScale = 1.0 // used in Rem's Engine for astronomic scales
 
     pipeline.frustum.setToEverything(cameraPosition, cameraRotation)
-    pipeline.fill(scene, cameraPosition, worldScale)
+    pipeline.fill(scene)
 
     if (true) {// duplicate object 25 times for testing
         val dx = aabb.deltaX() * 1.1
@@ -95,7 +95,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
                         .rotateXLocal(0.2 * j)
                     scene2.validateTransform()
                     scene2.validateAABBs()
-                    pipeline.fill(scene2, cameraPosition, worldScale)
+                    pipeline.fill(scene2)
                 }
             }
         }

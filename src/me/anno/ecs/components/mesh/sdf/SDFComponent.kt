@@ -221,9 +221,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         val mesh = getMesh()
         this.clickId = clickId

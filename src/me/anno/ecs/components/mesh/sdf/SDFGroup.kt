@@ -96,11 +96,9 @@ open class SDFGroup : SDFComponent() {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
-        val clickId1 = super.fill(pipeline, entity, clickId, cameraPosition, worldScale)
+        val clickId1 = super.fill(pipeline, entity, clickId)
         return assignClickIds(this, clickId1)
     }
 

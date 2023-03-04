@@ -43,6 +43,11 @@ class ImageButton(
         }
     }
 
+    override fun onUpdate() {
+        super.onUpdate()
+        if (canBeSeen) icon // ensure it stays loaded
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
         val icon = icon ?: return

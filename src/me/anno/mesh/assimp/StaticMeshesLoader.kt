@@ -17,6 +17,7 @@ import me.anno.mesh.assimp.io.AIFileIOImpl
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.LOGGER
+import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Triangles.crossDot
 import org.joml.Vector2f
@@ -250,7 +251,8 @@ open class StaticMeshesLoader {
         val name = nameStr.dataString()
         prefab.setProperty("name", name)
 
-        val diffuseMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir, missingFilesLookup)
+        val diffuseMap =
+            getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir, missingFilesLookup)
         if (diffuseMap != InvalidRef) prefab.setProperty("diffuseMap", diffuseMap)
         else {// I think the else-if is the correct thing here; the storm-trooper is too dark otherwise
 
@@ -278,11 +280,13 @@ open class StaticMeshesLoader {
             prefab.setProperty("emissiveBase", Vector3f(emissive.x, emissive.y, emissive.z))
         }
 
-        val emissiveMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE, texturesDir, missingFilesLookup)
+        val emissiveMap =
+            getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE, texturesDir, missingFilesLookup)
         if (emissiveMap != InvalidRef) prefab.setProperty("emissiveMap", emissiveMap)
 
         // normal
-        val normalMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS, texturesDir, missingFilesLookup)
+        val normalMap =
+            getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS, texturesDir, missingFilesLookup)
         if (normalMap != InvalidRef) prefab.setProperty("normalMap", normalMap)
 
         // metallic / roughness
@@ -322,8 +326,10 @@ open class StaticMeshesLoader {
         }
 
         // other stuff
-        val displacementMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DISPLACEMENT, texturesDir, missingFilesLookup)
-        val occlusionMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP, texturesDir, missingFilesLookup)
+        val displacementMap =
+            getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DISPLACEMENT, texturesDir, missingFilesLookup)
+        val occlusionMap =
+            getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP, texturesDir, missingFilesLookup)
         if (displacementMap != InvalidRef) prefab.setProperty("displacementMap", displacementMap)
         if (occlusionMap != InvalidRef) prefab.setProperty("occlusionMap", occlusionMap)
 
@@ -398,25 +404,30 @@ open class StaticMeshesLoader {
         // lwjgl 3.2.3
         // val data = bufferToBytes(texture.pcData(size / 4), size)
 
-        val fileName = texture.mFilename().dataString().ifEmpty {
-            if (isCompressed) {
-                // png file? check using signature
-                val extension = Signature.findName(data) ?: "png"
-                "$index.$extension"
+        // ensure uniqueness of file name
+        var fileExt0 = ""
+        val fileName0i = texture.mFilename().dataString()
+        val fileName0 = fileName0i.run {
+            if (isEmpty()) {
+                fileExt0 = if (isCompressed) Signature.findName(data) ?: "png" else "bmp"
+                index.toString()
             } else {
-                "$index.bmp"
+                val di = lastIndexOf('.')
+                if (di < 0) this
+                else {
+                    fileExt0 = substring(di + 1)
+                    substring(0, di)
+                }
             }
         }
 
-        // todo make unique
-        // (name collisions might occur -> prevent that)
+        val fileName = findNextFileName(parentFolder, fileName0, fileExt0, 3, '-')
+
         return if (isCompressed) {
-            // LOGGER.info("Loading compressed texture: $index, $width bytes")
             // width is the buffer size in bytes
             // the last bytes will be filled automatically with zeros :)
             parentFolder.createByteChild(fileName, data)
         } else {
-            // LOGGER.info("Loading raw texture: $index, $width x $height")
             // if not compressed, get data as raw, and save it to bmp or sth like that
             // best possible format: raw
             // ARGB8888

@@ -21,7 +21,7 @@ class BlendMode(
         blendModes[id] = this
     }
 
-    fun set(src: Int, dst: Int) = set(src, dst, srcAlpha, dstAlpha)
+    fun set(src: Int, dst: Int) = set(src, dst, src, dst)
     fun set(src: Int, dst: Int, srcAlpha: Int, dstAlpha: Int): BlendMode {
         this.src = src
         this.dst = dst

@@ -34,9 +34,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         this.clickId = clickId
         var done = forEachInstancedGroup { mesh, material, group, overrides ->

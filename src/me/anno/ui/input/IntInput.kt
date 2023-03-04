@@ -17,10 +17,10 @@ import kotlin.math.roundToLong
 
 // must be open for Rem's Studio
 open class IntInput(
-    style: Style,
     title: String,
     visibilityKey: String,
     type: Type = Type.LONG,
+    style: Style,
     inputPanel0: NumberInputComponent? = null
 ) : NumberInput<Long>(style, title, visibilityKey, type, inputPanel0) {
 
@@ -41,27 +41,27 @@ open class IntInput(
         }
     }
 
-    constructor(style: Style) : this(style, "", "", Type.LONG)
+    constructor(style: Style) : this("", "", Type.LONG, style)
 
     @Suppress("unused")
     constructor(title: String, visibilityKey: String, value0: Int, type: Type, style: Style) :
-            this(style, title, visibilityKey, type) {
+            this(title, visibilityKey, type, style) {
         setValue(value0, false)
     }
 
     @Suppress("unused")
     constructor(title: String, visibilityKey: String, value0: Long, type: Type, style: Style) :
-            this(style, title, visibilityKey, type) {
+            this(title, visibilityKey, type, style) {
         setValue(value0, false)
     }
 
     constructor(title: String, visibilityKey: String, value0: Int, style: Style) :
-            this(style, title, visibilityKey, Type.FLOAT) {
+            this(title, visibilityKey, Type.LONG, style) {
         setValue(value0, false)
     }
 
     constructor(title: String, visibilityKey: String, value0: Long, style: Style) :
-            this(style, title, visibilityKey, Type.DOUBLE) {
+            this(title, visibilityKey, Type.LONG, style) {
         setValue(value0, false)
     }
 
@@ -187,13 +187,13 @@ open class IntInput(
     }
 
     override fun onEnterKey(x: Float, y: Float) {
-        // evaluate the value, and write it back into the text field, e.g. for calculations
+        // evaluate the value, and write it back into the text field, e.g., for calculations
         hasValue = false
         setValue(lastValue, true)
     }
 
     override fun clone(): IntInput {
-        val clone = IntInput(style, title, visibilityKey, type)
+        val clone = IntInput(title, visibilityKey, type, style)
         copy(clone)
         return clone
     }

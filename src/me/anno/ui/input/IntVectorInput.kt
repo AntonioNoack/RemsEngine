@@ -31,7 +31,7 @@ open class IntVectorInput(
 ) : TitledListY(title, visibilityKey, style), InputPanel<Vector4i>, TextStyleable {
 
     constructor(title: String, visibilityKey: String, type: Type, style: Style) :
-            this(title, visibilityKey, type, style, { IntInput(style, "", visibilityKey, type) })
+            this(title, visibilityKey, type, style, { IntInput("", visibilityKey, type, style) })
 
     constructor(style: Style) : this("", "", Type.LONG, style)
 

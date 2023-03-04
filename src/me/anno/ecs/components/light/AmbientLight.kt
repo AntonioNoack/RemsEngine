@@ -6,7 +6,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import org.joml.Vector3d
 import org.joml.Vector3f
 
 class AmbientLight : LightComponentBase() {
@@ -17,9 +16,7 @@ class AmbientLight : LightComponentBase() {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         pipeline.ambient.add(color)
         return clickId // not itself clickable

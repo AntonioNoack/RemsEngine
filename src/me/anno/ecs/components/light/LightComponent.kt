@@ -72,12 +72,10 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         // todo if(entity == pipeline.sampleEntity) add floor/setup, so we can see the light
-        pipeline.addLight(this, entity, cameraPosition, worldScale)
+        pipeline.addLight(this, entity)
         return clickId // not itself clickable
     }
 

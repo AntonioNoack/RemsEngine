@@ -151,7 +151,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
         defaultStage.addInstanced(mesh, component, entity, material, materialIndex, 0)
     }
 
-    fun addLight(light: LightComponent, entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
+    fun addLight(light: LightComponent, entity: Entity) {
         // for debugging of the light shapes
         // addMesh(light.getLightPrimitive(), MeshRenderer(), entity, 0)
         val stage = lightPseudoStage
@@ -161,7 +161,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
         val invWorldTransform = light.invWorldMatrix
         val drawTransform = entity.transform.getDrawMatrix()
         invWorldTransform
-            .set4x3delta(drawTransform, cameraPosition, worldScale)
+            .set4x3delta(drawTransform, RenderState.cameraPosition, RenderState.worldScale)
             .invert()
         stage.add(light, entity)
     }
@@ -197,7 +197,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
         lastClickId = 1
     }
 
-    fun fill(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double): Int {
+    fun fill(rootElement: Entity): Int {
         // more complex traversal:
         // done exclude static entities by their AABB
         // done exclude entities, if they contain no meshes
@@ -206,16 +206,16 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
         //  - add a margin, so entities at the screen border can stay visible
         //  - partially populate the pipeline?
         rootElement.validateAABBs()
-        val lastClickId = subFill(rootElement, lastClickId, cameraPosition, worldScale)
+        val lastClickId = subFill(rootElement, lastClickId)
         this.lastClickId = lastClickId
         // LOGGER.debug("$contained/$nonContained")
         return lastClickId
     }
 
-    fun fill(root: PrefabSaveable, cameraPosition: Vector3d, worldScale: Double) {
+    fun fill(root: PrefabSaveable) {
         val clickId = lastClickId
         if (root is Renderable) {
-            root.fill(this, sampleEntity, clickId, cameraPosition, worldScale)
+            root.fill(this, sampleEntity, clickId)
         } else {
             LOGGER.warn(
                 "Don't know how to render ${root.className}, " +
@@ -289,21 +289,21 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
         }
     }
 
-    private fun subFill(entity: Entity, clickId0: Int, cameraPosition: Vector3d, worldScale: Double): Int {
+    private fun subFill(entity: Entity, clickId0: Int): Int {
         entity.hasBeenVisible = true
         var clickId = clickId0
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
             if (component.isEnabled && component !== ignoredComponent && component is Renderable) {
-                clickId = component.fill(this, entity, clickId, cameraPosition, worldScale)
+                clickId = component.fill(this, entity, clickId)
             }
         }
         val children = entity.children
         for (i in children.indices) {
             val child = children[i]
             if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
-                clickId = subFill(child, clickId, cameraPosition, worldScale)
+                clickId = subFill(child, clickId)
             }
         }
         return clickId

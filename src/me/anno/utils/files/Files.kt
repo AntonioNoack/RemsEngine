@@ -15,7 +15,7 @@ object Files {
         parent: FileReference,
         nameWithoutExtension: String,
         extension: String,
-        @Suppress("UNUSED_PARAMETER")
+        @Suppress("unused_parameter")
         digitsLength: Int,
         colonSymbol: Char,
         startingNumber: Long = 1
@@ -184,14 +184,14 @@ object Files {
                 OS.isWindows -> {// https://stackoverflow.com/questions/2829501/implement-open-containing-folder-and-highlight-file
                     OS.startProcess("explorer.exe", "/select,", absolutePath)
                 }
-                else -> {
-                    if (Desktop.isDesktopSupported()) {
-                        val desktop = Desktop.getDesktop()
-                        desktop.open(if (isDirectory) this else this.parentFile ?: this)
-                    } else if (OS.isLinux) {// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
-                        OS.startProcess("xdg-open", absolutePath)
-                    }
+                Desktop.isDesktopSupported() -> {
+                    val desktop = Desktop.getDesktop()
+                    desktop.open(if (isDirectory) this else this.parentFile ?: this)
                 }
+                OS.isLinux -> {// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
+                    OS.startProcess("xdg-open", absolutePath)
+                }
+                else -> LOGGER.warn("File.openInExplorer() is not implemented on that platform")
             }
         }
     }

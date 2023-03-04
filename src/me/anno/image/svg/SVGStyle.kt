@@ -3,6 +3,7 @@ package me.anno.image.svg
 import me.anno.image.svg.gradient.Gradient1D
 import me.anno.io.xml.XMLNode
 import me.anno.utils.ColorParsing.parseColor
+import me.anno.utils.types.Strings.isBlank2
 
 class SVGStyle(mesh: SVGMesh?, data: XMLNode) {
 
@@ -13,19 +14,23 @@ class SVGStyle(mesh: SVGMesh?, data: XMLNode) {
     val strokeWidth = data["stroke-width"]?.toFloatOrNull() ?: 1f
 
     private fun parseColor2(mesh: SVGMesh?, name: String): Gradient1D? {
-        return if (name.startsWith("url(")) {
-            val link = name.substring(4, name.length - 1)
-            if (link.startsWith("#")) {
-                mesh ?: throw IllegalStateException("Links to styles need parent")
-                when (val style = mesh.styles[link.substring(1)]) {
-                    is Gradient1D -> style
-                    null -> throw IllegalStateException("Unknown style $link, known: ${mesh.styles.keys}")
-                    else -> throw IllegalStateException("Unknown style type $style")
-                }
-            } else throw IllegalStateException("Unknown link type $link")
-        } else {
-            val color = parseColor(name)
-            if (color != null) Gradient1D(color) else null
+        return when {
+            name.isBlank2() -> null
+            name.startsWith("url(") -> {
+                val link = name.substring(4, name.length - 1)
+                if (link.startsWith("#")) {
+                    mesh ?: throw IllegalStateException("Links to styles need parent")
+                    when (val style = mesh.styles[link.substring(1)]) {
+                        is Gradient1D -> style
+                        null -> throw IllegalStateException("Unknown style $link, known: ${mesh.styles.keys}")
+                        else -> throw IllegalStateException("Unknown style type $style")
+                    }
+                } else throw IllegalStateException("Unknown link type $link")
+            }
+            else -> {
+                val color = parseColor(name)
+                if (color != null) Gradient1D(color) else null
+            }
         }
     }
 

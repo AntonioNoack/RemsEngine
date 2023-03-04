@@ -26,8 +26,10 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.rotate2
-import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.AABBd
+import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
 import kotlin.math.PI
 
 // todo these could be used as
@@ -87,9 +89,7 @@ class EnvironmentMap : LightComponentBase() {
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
-        clickId: Int,
-        cameraPosition: Vector3d,
-        worldScale: Double
+        clickId: Int
     ): Int {
         // todo needs be added to specific array in pipeline, I think :)
         this.clickId = clickId
@@ -170,7 +170,7 @@ class EnvironmentMap : LightComponentBase() {
                     position, rotation2 // needs to be the inverse again
                 )
                 pipeline.applyToneMapping = false
-                pipeline.fill(root, position, worldScale)
+                pipeline.fill(root)
                 pipeline.draw()
             }
         }
@@ -215,7 +215,7 @@ class EnvironmentMap : LightComponentBase() {
         private val tmpQ1 = Quaterniond()
         private val tmpQ2 = Quaterniond()
 
-        private val LOGGER = LogManager.getLogger(EnvironmentMap::class)
+        // private val LOGGER = LogManager.getLogger(EnvironmentMap::class)
 
         val crossExtends = Vector3d(0.1)
 
