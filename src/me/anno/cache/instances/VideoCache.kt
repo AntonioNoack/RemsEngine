@@ -201,7 +201,7 @@ object VideoCache : CacheSection("Videos") {
     }
 
     fun useProxy(scale: Int, bufferLength0: Int, meta: FFMPEGMetadata?): Boolean {
-        return scale >= 4 && bufferLength0 > 1 && bufferLength0 % framesPerSlice == 0L &&
+        return scale >= 4 && bufferLength0 > 1 && framesPerSlice % bufferLength0 == 0L &&
                 (meta != null && min(meta.videoWidth, meta.videoHeight) >= VideoProxyCreator.minSizeForScaling)
     }
 
