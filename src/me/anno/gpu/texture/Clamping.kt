@@ -23,6 +23,9 @@ enum class Clamping(val id: Int, val naming: NameDesc, val mode: Int) {
             if (xi >= w) xi = w2 - xi
             return xi
         }
+    },
+    CLAMP_TO_BORDER(3, NameDesc("ClampToBorder"), GL_CLAMP_TO_BORDER) {
+        override fun apply(x: Int, w: Int) = clamp(x, 0, w - 1) // not really supported yet...
     };
 
     abstract fun apply(x: Int, w: Int): Int

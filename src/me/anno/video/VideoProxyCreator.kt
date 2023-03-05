@@ -25,6 +25,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
     const val scale = 4
     const val minSize = 16
     const val minSizeForScaling = scale * minSize
+    const val framesPerSlice = 512L
 
     private const val configName = "ProxyCache.json"
 
@@ -43,23 +44,27 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         deleteOldProxies()
     }
 
-    fun getProxyFileDontUpdate(src: FileReference): FileReference? {
+    data class Key(val file: FileReference, val lastModified: Long, val sliceIndex: Long)
+
+    fun getKey(src: FileReference, sliceIndex: Long) = Key(src, src.lastModified, sliceIndex)
+
+    fun getProxyFileDontUpdate(src: FileReference, sliceIndex: Long): FileReference? {
         init()
-        val data = getEntryWithoutGenerator(src) as? CacheData<*>
+        val data = getEntryWithoutGenerator(getKey(src, sliceIndex)) as? CacheData<*>
         return data?.value as? FileReference
     }
 
-    fun getProxyFile(src: FileReference): FileReference? {
+    fun getProxyFile(src: FileReference, sliceIndex: Long): FileReference? {
         init()
-        val data = getEntry(src, 10_000, true) {
-            if (src.exists && !src.isDirectory) {
-                val uuid = getUniqueFilename(src)
+        val data = getEntry(getKey(src, sliceIndex), 10_000, true) { (src1, _, sliceIndex1) ->
+            if (src1.exists && !src1.isDirectory) {
+                val uuid = getUniqueFilename(src1, sliceIndex1)
                 val proxyFile = getReference(proxyFolder, uuid)
                 val data = CacheData<FileReference?>(null)
                 if (!proxyFile.exists) {
                     val tmp = proxyFolder.getChild(proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")
-                    LOGGER.debug("$src -> $tmp -> $proxyFile")
-                    createProxy(src, proxyFile, uuid, tmp) { data.value = proxyFile }
+                    LOGGER.debug("$src1 -> $tmp -> $proxyFile")
+                    createProxy(src1, proxyFile, uuid, tmp) { data.value = proxyFile }
                 } else {
                     markUsed(uuid)
                     data.value = proxyFile
@@ -133,12 +138,13 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         )
     }
 
-    private fun getUniqueFilename(file: FileReference): String {
+    private fun getUniqueFilename(file: FileReference, sliceIndex: Long): String {
         val completePath = file.toString()
         val lastModified = file.lastModified
         return "${file.nameWithoutExtension}-" +
                 "${completePath.hashCode().toUInt().toString(36)}-" +
-                "${lastModified.hashCode().toUInt().toString(36)}." +
+                "${lastModified.hashCode().toUInt().toString(36)}-" +
+                "$sliceIndex." +
                 // just hoping the container is compatible;
                 // if not, we could use the signature to figure out a compatible extension
                 file.extension.ifBlank { "mp4" }

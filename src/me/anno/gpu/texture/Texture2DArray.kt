@@ -20,7 +20,6 @@ import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL45C
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -44,6 +43,7 @@ open class Texture2DArray(
     var locallyAllocated = 0L
 
     var internalFormat = 0
+    var border = 0
 
     val target get() = GL_TEXTURE_2D_ARRAY
 
@@ -322,10 +322,7 @@ open class Texture2DArray(
     }
 
     fun clamping(clamping: Clamping) {
-        val type = clamping.mode
-        glTexParameteri(target, GL_TEXTURE_WRAP_S, type)
-        glTexParameteri(target, GL_TEXTURE_WRAP_T, type)
-        glTexParameteri(target, GL_TEXTURE_WRAP_R, type)
+        TextureHelper.clamping(target, clamping.mode, border)
         this.clamping = clamping
     }
 
@@ -415,16 +412,8 @@ open class Texture2DArray(
         swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED)
     }
 
-    // could and should be used for roughness/metallic like textures in the future
     fun swizzle(r: Int, g: Int, b: Int, a: Int) {
-        val tmp = Texture2D.tmp4i
-        tmp[0] = r
-        tmp[1] = g
-        tmp[2] = b
-        tmp[3] = a
-        GFX.check()
-        glTexParameteriv(target, GL45C.GL_TEXTURE_SWIZZLE_RGBA, tmp)
-        GFX.check()
+        TextureHelper.swizzle(target, r, g, b, a)
     }
 
     companion object {

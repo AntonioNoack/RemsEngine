@@ -39,13 +39,6 @@ object GFXx2D {
         shader.v4f("color", color)
     }
 
-    // the background color is important for correct subpixel rendering, because we can't blend per channel
-    /*fun drawText(
-        x: Int, y: Int, font: Font, text: String,
-        color: Int, backgroundColor: Int, widthLimit: Int, centerX: Boolean = false
-    ) =
-        drawText(x, y, font, text, color, backgroundColor, widthLimit, centerX)*/
-
     fun getSizeX(value: Int) = value.and(0xffff)
     fun getSizeY(value: Int) = value.ushr(16)
     fun getSize(x: Int, y: Int) = clamp(x, 0, 0xffff) or clamp(y, 0, 0xffff).shl(16)

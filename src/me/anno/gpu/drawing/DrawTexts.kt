@@ -14,6 +14,8 @@ import me.anno.gpu.drawing.GFXx2D.posSizeDraw
 import me.anno.gpu.drawing.GFXx2D.transform
 import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -77,7 +79,7 @@ object DrawTexts {
         val x = pushBetterBlending(false)
         val shader = chooseShader(-1, -1, 1)
         val texture = FontManager.getASCIITexture(font)
-        texture.bindTrulyNearest(0)
+        texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
         if (shader is Shader) {
             simpleBatch.start()
             posSize(shader, 0f, 0f, texture.w.toFloat(), texture.h.toFloat())
@@ -121,7 +123,7 @@ object DrawTexts {
         val texture = FontManager.getASCIITexture(font)
         val shader = if (!batched) {
             val shader = chooseShader(textColor, background, 1)
-            texture.bindTrulyNearest(0)
+            texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
             if (shader is Shader) {
                 simpleBatch.start()
                 posSize(shader, 0f, 0f, texture.w.toFloat(), texture.h.toFloat())
@@ -274,7 +276,7 @@ object DrawTexts {
                 if (!txt.isBlank2()) {
                     val texture = FontManager.getTexture(font, txt, -1, -1)
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
-                        texture.bindTrulyNearest(0)
+                        texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
                         shader.use()
                         val x2 = fx + (w - texture.w) / 2
                         // println("cp[2] $codepoint, $x2 by $fx + ($w - ${texture.w}) / 2")
@@ -398,7 +400,7 @@ object DrawTexts {
 
     private fun draw(shader: OpenGLShader, texture: ITexture2D?, x2: Int, y2: Int, txt: CharSequence) {
         if (texture != null && (texture !is Texture2D || texture.isCreated)) {
-            texture.bindTrulyNearest(0)
+            texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
             shader.use()
             if (shader is Shader) {
                 posSize(shader, x2, y2, texture.w, texture.h)
@@ -455,7 +457,7 @@ object DrawTexts {
         if (texture !is Texture2D || texture.isCreated) {
             GFX.check()
             GFX.check()
-            texture.bindTrulyNearest(0)
+            texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
             val x2 = x + getOffset(w, alignX)
             val y2 = y + getOffset(h, alignY)
             val shader = chooseShader(textColor, backgroundColor)

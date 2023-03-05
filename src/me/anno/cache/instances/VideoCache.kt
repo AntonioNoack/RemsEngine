@@ -11,6 +11,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.video.BlankFrameDetector
 import me.anno.video.VideoProxyCreator
+import me.anno.video.VideoProxyCreator.framesPerSlice
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
@@ -188,14 +189,20 @@ object VideoCache : CacheSection("Videos") {
         if (scale < 1) throw RuntimeException()
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
-        // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
-        if (scale >= 4 && meta.run { min(videoWidth, videoHeight) >= VideoProxyCreator.minSizeForScaling }) {
-            val file2 = VideoProxyCreator.getProxyFile(file)
+        if (useProxy(scale, bufferLength0, meta)) {
+            val slice0 = index / framesPerSlice
+            val file2 = VideoProxyCreator.getProxyFile(file, slice0)
             if (file2 != null) {
-                return getVideoFrame(file2, (scale + 2) / 4, index, bufferLength0, fps, timeout, meta, async)
+                val sliceI = (index % framesPerSlice).toInt()
+                return getVideoFrame(file2, (scale + 2) / 4, sliceI, bufferLength0, fps, timeout, meta, async)
             }
         }
         return getFrame(file, scale, index, bufferIndex, bufferLength, fps, timeout, async)
+    }
+
+    fun useProxy(scale: Int, bufferLength0: Int, meta: FFMPEGMetadata?): Boolean {
+        return scale >= 4 && bufferLength0 > 1 && bufferLength0 % framesPerSlice == 0L &&
+                (meta != null && min(meta.videoWidth, meta.videoHeight) >= VideoProxyCreator.minSizeForScaling)
     }
 
     /**
@@ -213,14 +220,15 @@ object VideoCache : CacheSection("Videos") {
         val bufferIndex = index / bufferLength
         val async = true
         for (scale in 1..4) {
-            // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
-            if (bufferLength0 > 0 && scale >= 4 && meta.run {
-                    min(videoWidth, videoHeight) >= VideoProxyCreator.minSizeForScaling
-                }) {
-                val file2 = VideoProxyCreator.getProxyFileDontUpdate(meta.file)
+            if (useProxy(scale, bufferLength0, meta)) {
+                val slice0 = index / framesPerSlice
+                val file2 = VideoProxyCreator.getProxyFileDontUpdate(meta.file, slice0)
                 if (file2 != null) {
                     val meta2 = getMeta(file2, async)
-                    if (meta2 != null) return getVideoFrameWithoutGenerator(meta2, index, bufferLength0, fps)
+                    if (meta2 != null) {
+                        val sliceI = (index % framesPerSlice).toInt()
+                        return getVideoFrameWithoutGenerator(meta2, sliceI, bufferLength0, fps)
+                    }
                 }
             }
             val frame = getFrameWithoutGenerator(meta.file, scale, index, bufferIndex, bufferLength, fps)
@@ -235,26 +243,26 @@ object VideoCache : CacheSection("Videos") {
     fun getVideoFrame(
         file: FileReference,
         scale: Int,
-        frameIndex: Int,
+        index: Int,
         bufferLength0: Int,
         fps: Double,
         timeout: Long,
         async: Boolean
     ): GPUFrame? {
-        if (frameIndex < 0) return null
+        if (index < 0) return null
         if (scale < 1) throw IllegalArgumentException("Scale must not be < 1")
         val bufferLength = max(1, bufferLength0)
-        val bufferIndex = frameIndex / bufferLength
+        val bufferIndex = index / bufferLength
         // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
-        if (bufferLength0 > 1 && scale >= 4 && (getMeta(file, async)?.run {
-                min(videoWidth, videoHeight) >= VideoProxyCreator.minSizeForScaling
-            } == true)) {
-            val file2 = VideoProxyCreator.getProxyFile(file)
+        if (useProxy(scale, bufferLength0, getMeta(file, async))) {
+            val slice0 = index / framesPerSlice
+            val file2 = VideoProxyCreator.getProxyFile(file, slice0)
             if (file2 != null) {
-                return getVideoFrame(file2, (scale + 2) / 4, frameIndex, bufferLength0, fps, timeout, async)
+                val sliceI = (index % framesPerSlice).toInt()
+                return getVideoFrame(file2, (scale + 2) / 4, sliceI, bufferLength0, fps, timeout, async)
             }
         }
-        return getFrame(file, scale, frameIndex, bufferIndex, bufferLength, fps, timeout, async)
+        return getFrame(file, scale, index, bufferIndex, bufferLength, fps, timeout, async)
     }
 
 

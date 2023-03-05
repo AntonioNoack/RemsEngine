@@ -58,6 +58,7 @@ open class Texture2D(
     val samples = clamp(samples, 1, GFX.maxSamples)
 
     var internalFormat = 0
+    var border = 0
 
     override fun toString() = "Tex2D(\"$name\", $w $h $samples)"
 
@@ -118,14 +119,7 @@ open class Texture2D(
 
     // could and should be used for roughness/metallic like textures in the future
     fun swizzle(r: Int, g: Int, b: Int, a: Int) {
-        val tmp = tmp4i
-        tmp[0] = r
-        tmp[1] = g
-        tmp[2] = b
-        tmp[3] = a
-        check()
-        glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, tmp)
-        check()
+        TextureHelper.swizzle(target, r, g, b, a)
     }
 
     fun ensurePointer() {
@@ -1003,10 +997,8 @@ open class Texture2D(
 
     private fun clamping(clamping: Clamping) {
         if (!withMultisampling && this.clamping != clamping) {
+            TextureHelper.clamping(target, clamping.mode, border)
             this.clamping = clamping
-            val type = clamping.mode
-            glTexParameteri(target, GL_TEXTURE_WRAP_S, type)
-            glTexParameteri(target, GL_TEXTURE_WRAP_T, type)
         }
     }
 
@@ -1229,6 +1221,9 @@ open class Texture2D(
 
         @JvmField
         val tmp4i = IntArray(4)
+
+        @JvmField
+        val tmp4f = FloatArray(4)
 
         @JvmStatic
         fun invalidateBinding() {
