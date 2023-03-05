@@ -109,6 +109,13 @@ object GFXx2D {
         radiusX: Float, radiusY: Float, innerRadius: Float,
         startDegrees: Float, endDegrees: Float,
         color: Int
+    ) = drawCircle(x.toFloat(), y.toFloat(), radiusX, radiusY, innerRadius, startDegrees, endDegrees, color)
+
+    fun drawCircle(
+        x: Float, y: Float,
+        radiusX: Float, radiusY: Float, innerRadius: Float,
+        startDegrees: Float, endDegrees: Float,
+        color: Int
     ) {
 
         val shader = flatShaderCircle.value

@@ -53,7 +53,7 @@ object DrawCurves {
                     "   uv = p1x + rot90(normalize(pi1-pi0)) * coords.y * extrusion;\n" +
                     "   p0 = pi0;c0 = ci0;\n" +
                     "   p1 = pi1;c1 = ci1;\n" +
-                    "   gl_Position = transform * vec4((pos + uv * size)*2.0-1.0, 0.0, 1.0);\n" +
+                    "   gl_Position = transform * vec4((posSize.xy + uv * posSize.zw)*2.0-1.0, 0.0, 1.0);\n" +
                     "}",
             listOf(
                 Variable(GLSLType.V2F, "uv"),
