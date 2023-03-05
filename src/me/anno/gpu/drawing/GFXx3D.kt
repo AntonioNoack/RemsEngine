@@ -186,6 +186,15 @@ object GFXx3D {
         GFX.shaderColor(shader, "tint", color)
     }
 
+    fun shader3DUniforms(
+        shader: Shader, stack: Matrix4fArrayList,
+        w: Int, h: Int, color: Int,
+        tiling: Vector4f?, uvProjection: UVProjection?
+    ) {
+        shader3DUniforms(shader, stack, w, h, tiling, Filtering.NEAREST, uvProjection)
+        GFX.shaderColor(shader, "tint", color)
+    }
+
     fun drawDebugCube(matrix: Matrix4fArrayList, size: Float, color: Vector4f?) {
         matrix.scale(0.5f * size, -0.5f * size, 0.5f * size) // flip inside out
         val tex = TextureLib.whiteTexture
@@ -271,6 +280,21 @@ object GFXx3D {
         val shader = texture.get3DShader().value
         shader.use()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
+        defineAdvancedGraphicalFeatures(shader)
+        texture.bind(0, filtering, clamping)
+        texture.bindUVCorrection(shader)
+        uvProjection.getBuffer().draw(shader)
+        GFX.check()
+    }
+
+    fun draw3D(
+        stack: Matrix4fArrayList, texture: GPUFrame, color: Int,
+        filtering: GPUFiltering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
+    ) {
+        if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
+        val shader = texture.get3DShader().value
+        shader.use()
+        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, uvProjection)
         defineAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)

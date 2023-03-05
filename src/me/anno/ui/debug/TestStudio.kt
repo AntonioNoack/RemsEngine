@@ -27,6 +27,7 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Tes
 
     override fun loadConfig() {
         super.loadConfig()
+        DefaultConfig.defineDefaultFileAssociations()
         EngineActions.register()
         ActionManager.init()
     }

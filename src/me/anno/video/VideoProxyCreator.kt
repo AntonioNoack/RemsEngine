@@ -3,6 +3,7 @@ package me.anno.video
 import me.anno.Engine.startDateTime
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -13,6 +14,7 @@ import me.anno.utils.files.Files.formatFileSize
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
+import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -44,9 +46,9 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         deleteOldProxies()
     }
 
-    data class Key(val file: FileReference, val lastModified: Long, val sliceIndex: Long)
+    private data class Key(val file: FileReference, val lastModified: Long, val sliceIndex: Long)
 
-    fun getKey(src: FileReference, sliceIndex: Long) = Key(src, src.lastModified, sliceIndex)
+    private fun getKey(src: FileReference, sliceIndex: Long) = Key(src, src.lastModified, sliceIndex)
 
     fun getProxyFileDontUpdate(src: FileReference, sliceIndex: Long): FileReference? {
         init()
@@ -54,25 +56,28 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         return data?.value as? FileReference
     }
 
-    fun getProxyFile(src: FileReference, sliceIndex: Long): FileReference? {
+    fun getProxyFile(src: FileReference, sliceIndex: Long, async: Boolean = true): FileReference? {
         init()
-        val data = getEntry(getKey(src, sliceIndex), 10_000, true) { (src1, _, sliceIndex1) ->
-            if (src1.exists && !src1.isDirectory) {
-                val uuid = getUniqueFilename(src1, sliceIndex1)
-                val proxyFile = getReference(proxyFolder, uuid)
-                val data = CacheData<FileReference?>(null)
-                if (!proxyFile.exists) {
-                    val tmp = proxyFolder.getChild(proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")
-                    LOGGER.debug("$src1 -> $tmp -> $proxyFile")
-                    createProxy(src1, proxyFile, uuid, tmp) { data.value = proxyFile }
-                } else {
-                    markUsed(uuid)
-                    data.value = proxyFile
-                }
-                data
-            } else CacheData<FileReference?>(null)
-        } as? CacheData<*>
+        val data = getEntry(getKey(src, sliceIndex), 10_000, async, ::generateProxyFile) as? CacheData<*>
         return data?.value as? FileReference
+    }
+
+    private fun generateProxyFile(key: Key): CacheData<FileReference?> {
+        val (src1, _, sliceIndex1) = key
+        return if (src1.exists && !src1.isDirectory) {
+            val uuid = getUniqueFilename(src1, sliceIndex1)
+            val proxyFile = getReference(proxyFolder, uuid)
+            val data = CacheData<FileReference?>(null)
+            if (!proxyFile.exists) {
+                val tmp = proxyFolder.getChild(proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")
+                LOGGER.debug("$src1 -> $tmp -> $proxyFile")
+                createProxy(src1, proxyFile, uuid, sliceIndex1, tmp) { data.value = proxyFile }
+            } else {
+                markUsed(uuid)
+                data.value = proxyFile
+            }
+            data
+        } else CacheData(null)
     }
 
     fun markUsed(uuid: String) {
@@ -89,6 +94,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         src: FileReference,
         dst: FileReference,
         uuid: String,
+        sliceIndex: Long,
         tmp: FileReference,
         callback: () -> Unit
     ) {
@@ -96,6 +102,10 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         val meta = FFMPEGMetadata.getMeta(src, false)
         if (meta == null) {
             LOGGER.warn("Meta is null")
+            return
+        }
+        if (sliceIndex * framesPerSlice >= meta.videoFrameCount) {
+            LOGGER.warn("Slice index out of bounds")
             return
         }
         val w = (meta.videoWidth / scale.toFloat()).roundToInt() and (1.inv())
@@ -114,7 +124,8 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
                 // devNull("error", process.errorStream)
                 devLog("error", process.errorStream)
                 devLog("input", process.inputStream)
-                waitUntil(true) { !process.isAlive }
+                waitUntil(true) { process.waitFor(1, TimeUnit.MILLISECONDS) }
+                LastModifiedCache.invalidate(tmp)
                 if (tmp.exists) {
                     if (dst.exists) dst.deleteRecursively()
                     tmp.renameTo(dst)
@@ -129,9 +140,11 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         }.run(
             listOf(
                 "-y", // override existing files: they may exist, if the previous proxy creation process for this file was killed
+                "-ss", "${(sliceIndex * framesPerSlice) / meta.videoFPS}", // start time
                 "-i", "\"${src.absolutePath}\"",
                 "-filter:v",
                 "scale=\"$w:$h\"",
+                "-vframes", "$framesPerSlice", // exact amount needed? (less at the end)
                 "-c:a", "copy",
                 tmp.absolutePath
             )

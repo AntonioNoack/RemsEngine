@@ -159,9 +159,10 @@ object DrawTextures {
     fun drawTexture(texture: GPUFrame, color: Int = -1, tiling: Vector4f? = null) {
         matrix.identity()
         matrix.scale(GFX.viewportHeight.toFloat() / GFX.viewportWidth, 1f, 1f)
+        // todo for filtering without required mipmap-generation, sample each pixel upto 8x :)
         GFXx3D.draw3D(
             matrix, texture, color,
-            Filtering.LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar
+            GPUFiltering.TRULY_LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar
         )
     }
 

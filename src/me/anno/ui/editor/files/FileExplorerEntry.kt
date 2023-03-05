@@ -451,11 +451,7 @@ open class FileExplorerEntry(
         val image = getFrame(0)
         if (frameIndex > 0) getFrame(videoBufferLength)
         if (image != null && image.isCreated) {
-            // todo check that this is correct
-            drawTexture(
-                image, -1,
-                null
-            )
+            drawTexture(image, -1, null)
             drawCircle(x0, y0, x1, y1)
         } else drawDefaultIcon(x0, y0, x1, y1)
 

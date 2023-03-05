@@ -1,14 +1,14 @@
 package me.anno.tests.image
 
-import me.anno.config.DefaultConfig.style
-import me.anno.ui.debug.TestStudio.Companion.testUI3
-import me.anno.ui.editor.files.FileExplorer
+import me.anno.Engine
 import me.anno.utils.OS.videos
+import me.anno.video.VideoProxyCreator
 
 fun main() {
-    // todo test proxy generation speed
-    // todo also test speed on how quickly FFMPEG is called, thumb generation seems rather slow
-    testUI3 {
-        FileExplorer(videos, style)
+    // test proxy generation with slices
+    val src = videos.getChild("2023-02-28 09-24-10.mkv")
+    for (i in 0 until 100L) {
+        println(VideoProxyCreator.getProxyFile(src, i, false))
     }
+    Engine.requestShutdown()
 }
